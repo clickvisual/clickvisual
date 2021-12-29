@@ -1,0 +1,14 @@
+.idea
+.vscode
+
+*.log
+*.swp
+*.swo
+
+/bin
+/api/bin
+
+/logs
+/api/logs
+
+*.tar.gz
