@@ -22,7 +22,7 @@ jobs:
       - name: yarn build dist
         run: |
           cd ui
-          yarn ci --ignore-scripts
+          yarn install --frozen-lockfile
           yarn run build
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
