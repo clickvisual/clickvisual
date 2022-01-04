@@ -28,12 +28,12 @@ func loadMenuTree(filePath string) Resource {
 
 	resourceContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		elog.Panicf("Read Resource File Failed: %s", err.Error())
+		elog.Panic("Read Resource File Failed", elog.String("err", err.Error()))
 	}
 
 	err = yaml.Unmarshal(resourceContent, &menu)
 	if err != nil {
-		elog.Panicf("Unmarshall %s failed: %s", filePath, err.Error())
+		elog.Panic("Unmarshall %s failed: %s", elog.String("filePath", filePath), elog.String("err", err.Error()))
 	}
 
 	return menu
