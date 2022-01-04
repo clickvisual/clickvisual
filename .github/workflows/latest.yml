@@ -3,7 +3,7 @@ name: goreleaser
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   goreleaser:
@@ -16,18 +16,18 @@ jobs:
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('assets/package-lock.json') }}
-          restore-keys: npm-
-      - name: npm build dist
+          path: ~/.yarn
+          key: yarn-${{ hashFiles('ui/yarn.lock') }}
+          restore-keys: yarn-
+      - name: yarn build dist
         run: |
           cd assets
-          npm ci --ignore-scripts
-          npm run build
-      - name: Set up Go 1.16
+          yarn ci --ignore-scripts
+          yarn run build
+      - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
       - uses: actions/cache@v2
         with:
           path: |
