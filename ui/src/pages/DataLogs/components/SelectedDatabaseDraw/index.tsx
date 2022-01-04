@@ -50,7 +50,7 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
       ellipsis: { showTitle: false },
       ...FilterTableColumn('databaseName'),
       render: (databaseName: string, record: DatabaseResponse) => (
-        <Tooltip title={databaseName}>
+        <Tooltip title={databaseName} placement={'left'}>
           <Button
             onClick={() => {
               doSelectedDatabase(record);
