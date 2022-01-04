@@ -1,0 +1,48 @@
+permission:
+  - name: 日志查询
+    path: /query
+    icon: RocketOutlined
+    api:
+      - name: 获取日志列表
+        method: GET
+        path: /api/query/logs
+      - name: 获取日志图表
+        method: GET
+        path: /api/query/charts
+      - name: 获取日志tables
+        method: GET
+        path: /api/query/tables
+  - name: 系统配置
+    path: /sys
+    icon: SettingOutlined
+    children:
+      - path: /sys/instances
+        name: 数据库管理
+        api:
+        - name: 查询数据库连接
+          method: GET
+          path: /api/sys/instances
+        - name: 新增数据库连接
+          method: POST
+          path: /api/sys/instances
+        - name: 更新数据库连接
+          method: PATCH
+          path: /api/sys/instances/:id
+        - name: 删除数据库连接
+          method: DELETE
+          path: /api/sys/instances/:id
+      - path: /sys/clusters
+        name: 集群管理
+        api:
+        - name: 查询数据库连接
+          method: GET
+          path: /api/v1/sys/clusters
+        - name: 新增数据库连接
+          method: POST
+          path: /api/v1/sys/clusters
+        - name: 更新数据库连接
+          method: PATCH
+          path: /api/v1/sys/clusters/:id
+        - name: 删除数据库连接
+          method: DELETE
+          path: /api/v1/sys/clusters/:id

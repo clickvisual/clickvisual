@@ -1,0 +1,41 @@
+.loginContextMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 30px;
+  .formMain {
+    width: 80%;
+    .formBtn {
+      width: 100%;
+    }
+    .loginText {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      & a,
+      span {
+        user-select: none;
+      }
+    }
+  }
+  .loginNote {
+    display: flex;
+    width: 80%;
+    padding: 10px;
+    color: hsla(0, 0%, 0%, 0.4);
+    border: 1px solid hsla(0, 0%, 0%, 0.1);
+    border-radius: 6px;
+    user-select: none;
+    ol,
+    li {
+      margin: 0;
+      padding: 0;
+    }
+    ol {
+      padding: 0 0 0 10px;
+      list-style: decimal;
+    }
+  }
+}

@@ -1,0 +1,102 @@
+@import '~antd/es/style/themes/default.less';
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.colorWeak {
+  filter: invert(80%);
+}
+.ant-design-pro {
+  color: #41464beb;
+  font-size: 16px;
+  font-family: '-apple-system', 'BlinkMacSystemFont', 'PingFang SC', 'Helvetica', 'Tahoma', 'Arial',
+    'Microsoft YaHei', '微软雅黑', '黑体', 'Heiti', 'sans-serif', 'SimSun', '宋体', 'serif';
+}
+
+.ant-layout {
+  min-height: 100vh;
+}
+.ant-pro-sider.ant-layout-sider.ant-pro-sider-fixed {
+  left: unset;
+}
+.ant-layout-content {
+  height: calc(100vh - 120px);
+  margin: 20px 0 !important;
+  padding: 0 15px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.ant-pro-top-nav-header-logo {
+  display: flex;
+  align-items: center;
+  & > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    & > img {
+      flex: 1;
+      height: 42px;
+    }
+  }
+}
+
+.ant-modal-wrap .ant-modal-content .ant-modal-header {
+  padding: 10px;
+}
+
+.ant-modal-wrap .ant-modal-content .ant-modal-body {
+  padding: 10px;
+}
+
+.ant-modal-close .ant-modal-close-x {
+  width: 43px;
+  height: 43px;
+  line-height: 43px;
+}
+
+.ant-modal-wrap .ant-modal-content .ant-modal-footer {
+  padding: 10px;
+}
+
+canvas {
+  display: block;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+@media (max-width: @screen-xs) {
+  .ant-table {
+    width: 100%;
+    overflow-x: auto;
+    &-thead > tr,
+    &-tbody > tr {
+      > th,
+      > td {
+        white-space: pre;
+        > span {
+          display: block;
+        }
+      }
+    }
+  }
+}
+
+// Compatible with IE11
+@media screen and(-ms-high-contrast: active), (-ms-high-contrast: none) {
+  body .ant-design-pro > .ant-layout {
+    min-height: 100vh;
+  }
+}

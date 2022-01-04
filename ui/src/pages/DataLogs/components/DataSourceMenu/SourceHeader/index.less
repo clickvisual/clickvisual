@@ -1,0 +1,30 @@
+.sourceHeaderMain {
+  display: flex;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: space-between;
+  .sourceTitle {
+    flex: 1;
+    overflow: hidden;
+    color: #41464b;
+    font-weight: bold;
+    text-align: left;
+    cursor: default;
+    .titleContext {
+      display: block;
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+  .selectedBtn {
+    flex: 0 0 35px;
+    :global {
+      .ant-btn {
+        padding: 0;
+        border: none;
+      }
+    }
+  }
+}

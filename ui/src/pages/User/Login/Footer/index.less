@@ -1,0 +1,55 @@
+.loginFooterMain {
+  display: flex;
+  flex: 0 0 60px;
+  flex-direction: column;
+  align-items: center;
+  .dividerMain {
+    display: flex;
+    flex: 0 0 30px;
+    align-items: center;
+    width: 80%;
+    .left {
+      flex: 0 0 150px;
+      height: 2px;
+      background: hsla(0, 0%, 0%, 0.1);
+    }
+    .context {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      color: hsla(210, 7%, 27%, 0.6);
+      font-size: 16px;
+    }
+    .right {
+      flex: 0 0 150px;
+      height: 2px;
+      background: hsla(0, 0%, 0%, 0.1);
+    }
+  }
+
+  .thirdPartyMain {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    width: 80%;
+    font-size: 20px;
+    .thirdPartyIconModel {
+      display: flex;
+      align-items: center;
+
+      .thirdPartyBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #41464beb;
+        background: hsla(0, 0%, 255%, 0.8);
+        border: none;
+        &:hover {
+          color: #41464b;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+}

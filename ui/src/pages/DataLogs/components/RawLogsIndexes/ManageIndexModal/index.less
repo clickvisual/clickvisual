@@ -1,0 +1,68 @@
+.manageIndexModalMain {
+  min-height: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+  .tableMain {
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+    border: 1px solid hsla(0, 0%, 0%, 0.1);
+    border-radius: 6px;
+    border-collapse: separate;
+    border-spacing: 0;
+    td,
+    th {
+      padding: 0 5px;
+      border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
+    }
+  }
+  .tableHeader {
+    background: hsl(0, 0%, 97%);
+    tr {
+      line-height: 32px;
+    }
+    tr:first-child th:not(:last-child) {
+      border-right: 1px solid hsla(0, 0%, 0%, 0.1);
+    }
+    tr:nth-child(2) th {
+      border-right: 1px solid hsla(0, 0%, 0%, 0.1);
+    }
+    .secondHeader {
+      width: 25%;
+    }
+  }
+  .tableBody {
+    .tableTr {
+      line-height: 48px;
+      td:last-child {
+        border-left: 1px solid hsla(0, 0%, 0%, 0.1);
+      }
+      & > td {
+        :global {
+          .ant-form-item {
+            margin: 0;
+          }
+          .ant-form-item-with-help .ant-form-item-explain {
+            height: 0;
+            min-height: 0;
+          }
+        }
+      }
+    }
+  }
+  .tableFooter {
+    .tableTr {
+      td {
+        height: 48px;
+        border-bottom: none;
+        .context {
+          display: flex;
+          align-items: center;
+          .operationBtn {
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+  }
+}

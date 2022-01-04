@@ -1,3 +1,12 @@
+### react ###
+.DS_*
+**/*.backup.*
+**/*.back.*
+
+psd
+thumb
+sketch
+
 .idea
 .vscode
 
@@ -12,3 +21,14 @@
 /api/logs
 
 *.tar.gz
+
+*.sys
+configs/
+logs/
+
+node_modules/
+dist/
+
+.umi/
+.umi-production/
+package-lock.json
