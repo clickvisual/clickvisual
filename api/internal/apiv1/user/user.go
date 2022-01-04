@@ -1,11 +1,11 @@
 package user
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 
 	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/shimohq/mogo/api/pkg/utils"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gotomicro/ego/core/elog"
 
@@ -28,19 +28,13 @@ type login struct {
 	Password string `form:"password"`
 }
 
-func md5V(str string) string {
-	h := md5.New()
-	h.Write([]byte(str))
-	return hex.EncodeToString(h.Sum(nil))
-}
-
 // Login ...
 func Login(c *core.Context) {
 	var data login
 	_ = c.Bind(&data)
 
 	// 登录的时候直接校验
-	m := md5V("admin")
+	m := utils.MD5("admin")
 	elog.Debug("login", elog.Any("data", data), elog.String("m", m))
 	if data.Username != "admin" || data.Password != m {
 		c.JSONE(1, "login failed", nil)

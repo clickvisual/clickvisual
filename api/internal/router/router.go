@@ -3,7 +3,9 @@ package router
 import (
 	"github.com/kl7sn/toolkit/kfile"
 
+	"github.com/shimohq/mogo/api/internal/apiv1/configs"
 	"github.com/shimohq/mogo/api/internal/apiv1/inquiry"
+	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
 	"github.com/shimohq/mogo/api/internal/apiv1/static"
@@ -68,18 +70,23 @@ func GetRouter() *egin.Component {
 		v1.GET("/setting/indexes", core.Handle(setting.Indexes))
 	}
 	// 配置管理
-	// {
-	// 	v1.GET("/configs", core.Handle(configs.List))          // 配置文件列表
-	// 	v1.GET("/configs/:id", core.Handle(configs.Detail))    // 配置文件内容
-	// 	v1.POST("/configs", core.Handle(configs.Create))       // 配置新建
-	// 	v1.PATCH("/configs/:id", core.Handle(configs.Update))  // 配置更新
-	// 	v1.DELETE("/configs/:id", core.Handle(configs.Delete)) // 配置删除
-	//
-	// 	v1.POST("/configs/:id/publish", core.Handle(configs.Publish)) // 配置发布
-	// 	v1.GET("/configs/:id/history", core.Handle(configs.History))  // 配置文件历史
-	// 	v1.GET("/configs/diff", core.Handle(configs.Diff))            // Diff
-	// 	v1.GET("/configs/:id/lock", core.Handle(configs.Lock))        // 获取编辑锁
-	// 	v1.POST("/configs/:id/unlock", core.Handle(configs.Unlock))   // 解锁
-	// }
+	{
+		v1.GET("/configs", core.Handle(configs.List))         // 配置文件列表
+		v1.GET("/configs/:id", core.Handle(configs.Detail))   // 配置文件内容
+		v1.POST("/configs", core.Handle(configs.Create))      // 配置新建
+		v1.PATCH("/configs/:id", core.Handle(configs.Update)) // 配置更新
+		// v1.DELETE("/configs/:id", core.Handle(configs.Delete)) // 配置删除
+
+		v1.POST("/configs/:id/publish", core.Handle(configs.Publish)) // 配置发布
+		// v1.GET("/configs/:id/history", core.Handle(configs.History))  // 配置文件历史
+		// v1.GET("/configs/diff", core.Handle(configs.Diff))            // Diff
+		// v1.GET("/configs/:id/lock", core.Handle(configs.Lock))        // 获取编辑锁
+		// v1.POST("/configs/:id/unlock", core.Handle(configs.Unlock))   // 解锁
+	}
+	// 集群相关接口
+	{
+		v1.GET("/clusters", core.Handle(kube.ClusterList))                                            // 配置文件列表
+		v1.GET("/clusters/:clusterId/namespace/configmaps", core.Handle(kube.NamespaceConfigMapList)) // 配置文件列表
+	}
 	return r
 }

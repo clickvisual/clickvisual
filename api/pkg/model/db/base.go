@@ -11,6 +11,12 @@ const (
 	TableNameIndex    = "mogo_index"
 	TableNameCluster  = "mogo_cluster"
 	TableNameInstance = "mogo_instance"
+
+	TableNameConfiguration        = "mogo_configuration"
+	TableNameConfigurationHistory = "mogo_configuration_history"
+	TableNameConfigurationPublish = "mogo_configuration_publish"
+
+	TableNameK8SConfigMap = "mogo_k8s_cm"
 )
 
 type BaseModel struct {

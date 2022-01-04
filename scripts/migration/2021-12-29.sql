@@ -96,7 +96,8 @@ CREATE TABLE `mogo_configuration`
     `ctime`             int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`             int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_k8s_cm_id_name` (`cm_name`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4;
@@ -125,8 +126,6 @@ CREATE TABLE `mogo_configuration_publish`
     `uid`                      int(11) unsigned DEFAULT NULL,
     `configuration_id`         int(11) unsigned DEFAULT NULL,
     `configuration_history_id` int(11) unsigned DEFAULT NULL,
-    `apply_instance`           varchar(255)     DEFAULT NULL,
-    `file_path`                varchar(255)     DEFAULT NULL,
     `ctime`             int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`             int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',

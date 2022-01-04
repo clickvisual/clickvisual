@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kauth"
+
+	"github.com/shimohq/mogo/api/pkg/component/core"
 
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
@@ -49,6 +50,14 @@ func AuthChecker() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		ctxUser := &core.User{
+			Uid:      int64(u.ID),
+			Nickname: u.Nickname,
+			Username: u.Username,
+			Avatar:   u.Avatar,
+			Email:    u.Email,
+		}
+		c.Set(core.UserContextKey, ctxUser)
 		c.Next()
 		return
 	}
