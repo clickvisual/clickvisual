@@ -21,7 +21,7 @@ jobs:
           restore-keys: yarn-
       - name: yarn build dist
         run: |
-          cd assets
+          cd ui
           yarn ci --ignore-scripts
           yarn run build
       - name: Set up Go 1.17
