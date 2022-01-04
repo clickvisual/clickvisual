@@ -1,0 +1,61 @@
+.darkTimeSelect {
+  padding-top: 5px !important;
+  :global {
+    .ant-popover-inner-content {
+      padding: 0 12px;
+    }
+    .ant-popover-content .ant-popover-arrow {
+      border: none !important;
+      box-shadow: none !important;
+    }
+  }
+}
+
+.darkTimeBtn {
+  padding: 4px 4px;
+}
+
+.darkTimeSelectCard {
+  width: 382px;
+  min-height: 102px;
+  :global {
+    .ant-tabs > .ant-tabs-nav .ant-tabs-nav-list {
+      width: 100%;
+    }
+    .ant-tabs-tab {
+      flex: 1;
+      justify-content: center;
+      margin: 0;
+    }
+    .ant-tabs-top > .ant-tabs-nav {
+      margin: 0;
+    }
+  }
+}
+
+.tabCard {
+  padding: 10px 0;
+  .defaultTime {
+    margin-bottom: 4px;
+    line-height: 32px;
+    text-align: center;
+    border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    line-height: 42px;
+    .timeOption {
+      flex: 0 0 25%;
+      text-align: center;
+      border-radius: 5px;
+      cursor: pointer;
+      &:hover {
+        background: hsla(208, 97%, 87%, 0.4);
+      }
+    }
+    .activeOption {
+      background: hsl(208, 97%, 87%);
+    }
+  }
+}

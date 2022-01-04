@@ -1,0 +1,28 @@
+.indexItemMain {
+  border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
+  .detailContextMain {
+    flex: 1;
+    padding: 10px;
+    background: #fff;
+    .context {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      text-align: left;
+      .title {
+        line-height: 14px;
+        cursor: default;
+        .name {
+          display: block;
+          width: 50%;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+      }
+      .progress {
+        width: 80%;
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+.logItemMain {
+  display: flex;
+  padding: 10px 13px;
+  .left {
+    display: flex;
+    width: 140px;
+    margin-top: 3px;
+    font-size: 14px;
+    .logIndex {
+      flex: 0 0 40px;
+    }
+    .dateTime {
+      display: flex;
+      flex: 1;
+      font-weight: bolder;
+      font-size: 14px;
+    }
+  }
+  .right {
+    flex: 1;
+    margin-left: 4px;
+    .operationLine {
+      display: flex;
+      color: #41464beb;
+      .icon {
+        font-size: 18px;
+        cursor: pointer;
+      }
+    }
+    .details {
+      flex: 1;
+      font-size: 14px;
+
+      .logLine {
+        display: flex;
+        align-items: center;
+        line-height: 21px;
+        cursor: default;
+        .logKey {
+          margin: 2px 0;
+          span {
+            background: #edf2fb;
+          }
+        }
+        .logContent {
+          margin-left: 4px;
+          word-break: break-all;
+          cursor: pointer;
+          &:hover {
+            color: #41464b;
+            font-weight: bold;
+            text-decoration: underline;
+          }
+        }
+        .logContentHighlight {
+          color: hsl(360, 68%, 59%);
+          font-weight: bold;
+          word-break: break-all;
+          cursor: pointer;
+          &:hover {
+            color: hsl(360, 68%, 59%);
+          }
+        }
+      }
+    }
+  }
+}

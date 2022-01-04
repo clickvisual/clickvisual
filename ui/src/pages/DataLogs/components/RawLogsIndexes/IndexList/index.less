@@ -1,0 +1,43 @@
+.indexListMain {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  margin: 0 0 5px 0;
+  overflow-y: auto;
+  & ul {
+    flex: 1;
+  }
+  & ul,
+  li {
+    margin: 0;
+    padding: 0;
+  }
+  .indexRowMain {
+    &:first-child {
+      border-top: 1px solid hsla(0, 0%, 0%, 0.1);
+    }
+
+    .indexRow {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 5px;
+      color: #41464beb;
+      font-size: 14px;
+      line-height: 32px;
+      border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
+      cursor: pointer;
+      user-select: none;
+      .title {
+        flex: 0 0 80%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-align: left;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .activeIndexRow {
+    background: hsla(208, 97%, 87%, 0.3);
+  }
+}

@@ -1,0 +1,39 @@
+.clusterPanelMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  .searchBar {
+    display: flex;
+    flex: 0 0 42px;
+    align-items: center;
+    .input {
+      display: flex;
+      flex: 0 0 260px;
+      .label {
+        font-size: 14px;
+        line-height: 32px;
+      }
+      .query {
+        flex: 1;
+      }
+    }
+    .searchBtn {
+      margin-left: 8px;
+    }
+  }
+
+  .table {
+    flex: 1;
+    overflow-y: auto;
+    .icon {
+      color: #1890ff;
+      cursor: pointer;
+    }
+  }
+}
+.formBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

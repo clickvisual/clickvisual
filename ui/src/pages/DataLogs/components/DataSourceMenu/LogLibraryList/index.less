@@ -1,0 +1,23 @@
+.logLibraryListMain {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 14px;
+  ul {
+    margin: 0;
+    padding: 0;
+    & > li {
+      margin: 2px 0;
+      padding: 0 8px;
+      overflow: hidden;
+      line-height: 32px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      background: hsla(208, 97%, 87%, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .activeLogLibrary {
+      background: hsl(208, 97%, 87%);
+    }
+  }
+}
