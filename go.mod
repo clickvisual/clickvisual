@@ -15,7 +15,6 @@ require (
 	github.com/kl7sn/toolkit v0.1.3-0.20211227125910-4da942aabe37
 	github.com/spf13/cast v1.4.1
 	github.com/stretchr/testify v1.7.0
-	github.com/unknwon/com v1.0.1
 	go.uber.org/zap v1.19.1
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
