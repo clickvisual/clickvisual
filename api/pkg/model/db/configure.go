@@ -114,8 +114,8 @@ type ConfigurationHistory struct {
 	Content         string `gorm:"column:content;type:longtext" json:"content"`
 	Version         string `gorm:"column:version;type:varchar(64)" json:"version"`
 
-	User          *User          `json:"-" gorm:"foreignKey:ID;association_foreignkey:ID"`
-	Configuration *Configuration `json:"-" gorm:"foreignKey:ID;"`
+	User          User          `json:"user,omitempty" gorm:"foreignKey:Uid;references:ID"`
+	Configuration Configuration `json:"configuration,omitempty" gorm:"foreignKey:ConfigurationId;references:ID"`
 
 	BaseModel
 }

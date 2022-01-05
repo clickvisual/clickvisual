@@ -55,16 +55,16 @@ type ReqDetailConfig struct {
 // RespDetailConfig Contains configuration content
 type RespDetailConfig struct {
 	ID              int      `json:"id"` // ConfigurationHistory.ID
-	ConfigmapId     int      `json:"configmapId"`
+	ConfigmapId     int      `json:"k8sConfigmapId"`
 	Name            string   `json:"name"`
 	Content         string   `json:"content"`
 	Format          string   `json:"format"` // Yaml/Toml
 	EnvId           int      `json:"envId"`  // 环境id
 	ZoneId          int      `json:"zoneId"`
-	Ctime           int64    `json:"created_time"`
-	Utime           int64    `json:"update_time"`
-	PublishTime     int64    `json:"publish_time"`      // 未发布/发布时间
-	CurrentEditUser *db.User `json:"current_edit_user"` // 当前正在编辑的用户名
+	Ctime           int64    `json:"ctime"`
+	Utime           int64    `json:"utime"`
+	PublishTime     int64    `json:"ptime"`           // 未发布/发布时间
+	CurrentEditUser *db.User `json:"currentEditUser"` // 当前正在编辑的用户名
 }
 
 // ReqUpdateConfig ..
@@ -83,14 +83,14 @@ type ReqPublishConfig struct {
 // ConfigMetadata 用于记录某个配置的版本信息
 type ConfigMetadata struct {
 	Version     string `json:"version"`
-	ChangeLog   string `json:"change_log"`
+	ChangeLog   string `json:"changeLog"`
 	PublishedBy int    `json:"uid"`
 }
 
 // ReqDiffConfig ..
 type ReqDiffConfig struct {
-	ID        int `form:"id" binding:"required"`         // 配置ID
-	HistoryID int `form:"history_id" binding:"required"` // 版本ID
+	ID        int `form:"id" binding:"required"`        // 配置ID
+	HistoryID int `form:"historyId" binding:"required"` // 版本ID
 }
 
 // RespDiffConfig ..

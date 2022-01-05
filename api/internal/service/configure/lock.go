@@ -28,9 +28,8 @@ func (s *configure) TryLock(uid, configId int) (err error) {
 			return fmt.Errorf("当前有其他客户端正在编辑,获取编辑锁失败")
 		}
 
-		now := time.Now()
 		err = tx.Model(&db.Configuration{}).Where("id = ?", config.ID).Updates(map[string]interface{}{
-			"lock_at":  &now,
+			"lock_at":  time.Now().Unix(),
 			"lock_uid": uid,
 		}).Error
 		if err != nil {

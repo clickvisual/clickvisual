@@ -159,7 +159,7 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 			tx.Rollback()
 			return errors.Wrap(err, "删除配置记录失败")
 		}
-		kcm, errKcm := db.K8SConfigMapInfo(id)
+		kcm, errKcm := db.K8SConfigMapInfo(config.K8SCmId)
 		if errKcm != nil {
 			tx.Rollback()
 			return errors.Wrap(err, errKcm.Error())
@@ -169,7 +169,7 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 			tx.Rollback()
 			return errors.Errorf("存在其他用户在操作配置，删除失败")
 		}
-		err = resource.ConfigmapDelete(kcm.ClusterId, kcm.Namespace, kcm.Name, s.configMetadataKey(config.FileName()))
+		err = resource.ConfigmapDelete(kcm.ClusterId, kcm.Namespace, kcm.Name, config.FileName(), s.configMetadataKey(config.FileName()))
 		if err != nil {
 			configLock.Unlock()
 			tx.Rollback()

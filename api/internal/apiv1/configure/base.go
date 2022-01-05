@@ -22,13 +22,18 @@ func List(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
+	resp := make(view.RespListConfig, 0)
 	if param.K8SConfigMapId == 0 {
+		if param.K8SConfigMapNamespace == "" || param.K8SConfigMapName == "" {
+			c.JSONE(1, "参数错误", nil)
+			return
+		}
 		condsKCM := egorm.Conds{}
 		condsKCM["name"] = param.K8SConfigMapName
 		condsKCM["namespace"] = param.K8SConfigMapNamespace
 		kcm, _ := db.K8SConfigMapInfoX(condsKCM)
 		if kcm.ID == 0 {
-			c.JSONE(1, "参数错误", "")
+			c.JSONOK(resp)
 			return
 		}
 		param.K8SConfigMapId = kcm.ID
@@ -40,7 +45,6 @@ func List(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	resp := make(view.RespListConfig, 0)
 	for _, item := range list {
 		resp = append(resp, view.RespListConfigItem{
 			ID:          item.ID,
@@ -249,7 +253,7 @@ func Lock(c *core.Context) {
 		c.JSONE(1, "获取配置信息错误.", nil)
 		return
 	}
-	err = configure.Configure.TryLock(int(c.Uid()), id)
+	err = configure.Configure.TryLock(c.Uid(), id)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
