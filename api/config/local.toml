@@ -20,6 +20,11 @@ level = "panic"
 maxIdleConns = 50
 maxOpenConns = 100
 
+[redis.default]
+addrs = "127.0.0.1:6379"
+writeTimeout = "3s"
+password = ""
+
 [app]
 secretKey = "ASDFASDFASDF" # hashStatecode
 rootURL = "http://localhost:9001"

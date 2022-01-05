@@ -37,7 +37,7 @@ type clusterManager struct {
 	clients sync.Map
 }
 
-type clusterClient struct {
+type ClusterClient struct {
 	Cluster    *db.Cluster
 	Config     *rest.Config
 	KubeClient ResourceHandler
@@ -113,7 +113,7 @@ func (s *clusterManager) addConn(key string, cluster *db.Cluster) {
 		elog.Warn(fmt.Sprintf("build cache controller for cluster (%s) error.", cluster.Name), zap.Error(err))
 		return
 	}
-	cm := &clusterClient{
+	cm := &ClusterClient{
 		Config:     config,
 		Cluster:    cluster,
 		KubeClient: NewResourceHandler(clientSet, cacheFactory),
@@ -127,7 +127,7 @@ func (s *clusterManager) delConn(key string) {
 	s.clients.Delete(key)
 }
 
-func (s *clusterManager) GetClusterManager(clusterId int) (*clusterClient, error) {
+func (s *clusterManager) GetClusterManager(clusterId int) (*ClusterClient, error) {
 	obj, err := db.ClusterNormalInfo(clusterId)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (s *clusterManager) GetClusterManager(clusterId int) (*clusterClient, error
 	if !exist {
 		return nil, ErrNotExist
 	}
-	manager := managerInterface.(*clusterClient)
+	manager := managerInterface.(*ClusterClient)
 	if manager.Cluster.Status == db.ClusterStatusMaintaining {
 		return nil, ErrMaintaining
 	}

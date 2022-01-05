@@ -65,6 +65,7 @@ CREATE TABLE `mogo_cluster`
     UNIQUE KEY `uix_cluster_name` (`name`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '集群配置' DEFAULT CHARSET = utf8mb4;
 
+
 -- configuration: table
 CREATE TABLE `mogo_k8s_cm`
 (
@@ -75,7 +76,8 @@ CREATE TABLE `mogo_k8s_cm`
     `ctime`     int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`     int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`     int(11) DEFAULT NULL COMMENT '删除时间',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_cluster_id_name_namespace` (`cluster_id`,`name`,`namespace`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4;
@@ -85,8 +87,6 @@ CREATE TABLE `mogo_configuration`
 (
     `id`              int(11) unsigned NOT NULL AUTO_INCREMENT,
     `k8s_cm_id`     int(11) DEFAULT NULL COMMENT 'config map id',
-    `k8s_cm_name`      varchar(128) DEFAULT NULL,
-    `k8s_cm_namespace` varchar(128) DEFAULT NULL,
     `name`            varchar(64)      DEFAULT NULL,
     `content`         longtext,
     `format`          varchar(32)      DEFAULT NULL,
@@ -94,12 +94,12 @@ CREATE TABLE `mogo_configuration`
     `uid`             int(11) unsigned DEFAULT NULL,
     `publish_time`     int(11)         DEFAULT NULL,
     `lock_uid`        int(11) unsigned DEFAULT NULL,
-    `lock_at`         datetime         DEFAULT NULL,
+    `lock_at`        int(11)         DEFAULT NULL,
     `ctime`             int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`             int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uix_k8s_cm_id_name` (`cm_name`)
+    UNIQUE KEY `uix_k8s_cm_id_name` (`k8s_cm_id`,`name`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4;
@@ -118,8 +118,8 @@ CREATE TABLE `mogo_configuration_history`
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
-AUTO_INCREMENT = 1
-DEFAULT CHARSET = utf8mb4;
+  AUTO_INCREMENT = 1
+  DEFAULT CHARSET = utf8mb4;
 
 -- configuration_publish: table
 CREATE TABLE `mogo_configuration_publish`

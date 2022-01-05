@@ -71,17 +71,16 @@ func GetRouter() *egin.Component {
 	}
 	// 配置管理
 	{
-		v1.GET("/configs", core.Handle(configure.List))         // 配置文件列表
-		v1.GET("/configs/:id", core.Handle(configure.Detail))   // 配置文件内容
-		v1.POST("/configs", core.Handle(configure.Create))      // 配置新建
-		v1.PATCH("/configs/:id", core.Handle(configure.Update)) // 配置更新
-		// v1.DELETE("/configs/:id", core.Handle(configs.Delete)) // 配置删除
-
-		v1.POST("/configs/:id/publish", core.Handle(configure.Publish)) // 配置发布
-		// v1.GET("/configs/:id/history", core.Handle(configs.History))  // 配置文件历史
-		// v1.GET("/configs/diff", core.Handle(configs.Diff))            // Diff
-		// v1.GET("/configs/:id/lock", core.Handle(configs.Lock))        // 获取编辑锁
-		// v1.POST("/configs/:id/unlock", core.Handle(configs.Unlock))   // 解锁
+		v1.GET("/configurations", core.Handle(configure.List))                  // 配置文件列表
+		v1.GET("/configurations/:id", core.Handle(configure.Detail))            // 配置文件内容
+		v1.POST("/configurations", core.Handle(configure.Create))               // 配置新建
+		v1.PATCH("/configurations/:id", core.Handle(configure.Update))          // 配置更新
+		v1.DELETE("/configurations/:id", core.Handle(configure.Delete))         // 配置删除
+		v1.POST("/configurations/:id/publish", core.Handle(configure.Publish))  // 配置发布
+		v1.GET("/configurations/:id/histories", core.Handle(configure.History)) // 配置文件历史
+		v1.GET("/configurations/diff", core.Handle(configure.Diff))             // Diff
+		v1.GET("/configurations/:id/lock", core.Handle(configure.Lock))         // 获取编辑锁
+		v1.POST("/configurations/:id/unlock", core.Handle(configure.Unlock))    // 解锁
 	}
 	// 集群相关接口
 	{

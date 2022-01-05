@@ -1,6 +1,8 @@
 package db
 
 import (
+	"errors"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
@@ -27,7 +29,7 @@ func K8SConfigMapCreate(db *gorm.DB, data *K8SConfigMap) (err error) {
 		elog.Error("create cluster error", zap.Error(err))
 		return
 	}
-	return
+	return nil
 }
 
 // K8SConfigMapUpdate ...
@@ -39,6 +41,37 @@ func K8SConfigMapUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (e
 		return
 	}
 	return
+}
+
+// K8SConfigMapInfoX Info的扩展方法，根据Cond查询单条记录
+func K8SConfigMapInfoX(conds map[string]interface{}) (resp K8SConfigMap, err error) {
+	conds["dtime"] = 0
+	sql, binds := egorm.BuildQuery(conds)
+	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+		elog.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
+		return
+	}
+	return
+}
+
+func K8SConfigMapLoadOrSave(db *gorm.DB, data *K8SConfigMap) (resp *K8SConfigMap, err error) {
+	conds := egorm.Conds{}
+	conds["cluster_id"] = data.ClusterId
+	conds["name"] = data.Name
+	conds["namespace"] = data.Namespace
+	respLoad, errLoad := K8SConfigMapInfoX(conds)
+	if errLoad != nil {
+		if errors.Is(errLoad, gorm.ErrRecordNotFound) {
+			// Save
+			errSave := K8SConfigMapCreate(db, data)
+			if errSave != nil {
+				return nil, errSave
+			}
+			return data, nil
+		}
+		return nil, errLoad
+	}
+	return &respLoad, nil
 }
 
 func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {

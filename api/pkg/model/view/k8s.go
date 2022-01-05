@@ -6,5 +6,5 @@ type RespNamespaceConfigmaps struct {
 }
 
 type RespConfigmap struct {
-	ConfigmapName string `json:"configmapName"`
+	Name string `json:"configmapName"`
 }

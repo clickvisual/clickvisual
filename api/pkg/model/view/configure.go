@@ -1,21 +1,30 @@
 package view
 
 import (
-	"time"
-
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
 // ConfigFormat ..
 type ConfigFormat string
 
+const (
+	ConfigFormatToml       ConfigFormat = "toml"
+	ConfigFormatYaml                    = "yaml"
+	ConfigFormatJson                    = "json"
+	ConfigFormatXml                     = "xml"
+	ConfigFormatProperties              = "properties"
+	ConfigFormatIni                     = "ini"
+	ConfigFormatConf                    = "conf"
+)
+
 // ReqCreateConfig ..
 type ReqCreateConfig struct {
-	Name                  string       `gorm:"column:name;type:varchar(64)" json:"configame" binding:"required"`
+	Name                  string       `gorm:"column:name;type:varchar(64)" json:"configurationName" binding:"required"`
 	Format                ConfigFormat `json:"format" binding:"required,oneof=yaml toml ini json conf"` // 格式后缀名(比如: toml, yaml)
-	K8SConfigMapId        int          `form:"k8sConfigMapId" binding:"required"`
+	K8SConfigMapId        int          `form:"k8sConfigMapId"`
 	K8SConfigMapName      string       `form:"k8sConfigMapName" binding:"required"`
 	K8SConfigMapNamespace string       `form:"k8sConfigMapNameSpace" binding:"required"`
+	ClusterId             int          `form:"clusterId" binding:"required"`
 }
 
 type ReqListConfig struct {
@@ -29,15 +38,13 @@ type RespListConfig []RespListConfigItem
 
 // RespListConfigItem Does not contain configuration content to prevent configuration from being too long
 type RespListConfigItem struct {
-	ID          int        `json:"id"`
-	AID         int        `json:"aid"`
-	Name        string     `json:"name"`
-	Format      string     `json:"format"` // Yaml/Toml
-	EnvId       int        `json:"envId"`  // 环境id
-	ZoneId      int        `json:"zoneId"`
-	CreatedAt   time.Time  `json:"created_time"`
-	UpdatedAt   time.Time  `json:"update_time"`
-	PublishedAt *time.Time `json:"published"` // 未发布/发布时间
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Format      string `json:"format"`         // Yaml/Toml
+	K8SCmId     int    `json:"k8sConfigmapId"` // 环境id
+	Ctime       int64  `json:"ctime"`
+	Utime       int64  `json:"utime"`
+	PublishTime int64  `json:"publishTime"`
 }
 
 // ReqDetailConfig ..
@@ -48,7 +55,7 @@ type ReqDetailConfig struct {
 // RespDetailConfig Contains configuration content
 type RespDetailConfig struct {
 	ID              int      `json:"id"` // ConfigurationHistory.ID
-	AID             int      `json:"aid"`
+	ConfigmapId     int      `json:"configmapId"`
 	Name            string   `json:"name"`
 	Content         string   `json:"content"`
 	Format          string   `json:"format"` // Yaml/Toml
@@ -62,13 +69,32 @@ type RespDetailConfig struct {
 
 // ReqUpdateConfig ..
 type ReqUpdateConfig struct {
-	ID      int    `json:"id" binding:"required"` // the id of configuration
+	ID      int    `json:"id"` // the id of configuration
 	Message string `json:"message" binding:"required"`
 	Content string `json:"content" binding:"required"`
 }
 
 // ReqPublishConfig ..
 type ReqPublishConfig struct {
-	ID      int     `json:"id" binding:"required"` // 配置ID
-	Version *string `json:"version"`               // 版本号
+	ID      int     `json:"id"`                         // 配置ID
+	Version *string `json:"version" binding:"required"` // 版本号
+}
+
+// ConfigMetadata 用于记录某个配置的版本信息
+type ConfigMetadata struct {
+	Version     string `json:"version"`
+	ChangeLog   string `json:"change_log"`
+	PublishedBy int    `json:"uid"`
+}
+
+// ReqDiffConfig ..
+type ReqDiffConfig struct {
+	ID        int `form:"id" binding:"required"`         // 配置ID
+	HistoryID int `form:"history_id" binding:"required"` // 版本ID
+}
+
+// RespDiffConfig ..
+type RespDiffConfig struct {
+	Origin   *RespDetailConfig `json:"origin,omitempty"`
+	Modified RespDetailConfig  `json:"modified"`
 }

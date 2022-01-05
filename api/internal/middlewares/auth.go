@@ -22,12 +22,13 @@ func AuthChecker() gin.HandlerFunc {
 			mockUser := &db.User{
 				Username: "admin",
 				Nickname: "admin",
+				BaseModel: db.BaseModel{
+					ID: 777,
+				},
 			}
 			session := sessions.Default(c)
 			session.Set("user", mockUser)
 			_ = session.Save()
-			c.Next()
-			return
 		}
 		session := sessions.Default(c)
 		user := session.Get("user")

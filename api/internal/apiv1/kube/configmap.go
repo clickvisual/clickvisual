@@ -41,7 +41,7 @@ func NamespaceConfigMapList(c *core.Context) {
 		for _, configMapObj := range configmaps {
 			cm := *(configMapObj.(*corev1.ConfigMap))
 			respConfigMap = append(respConfigMap, view.RespConfigmap{
-				ConfigmapName: cm.Name,
+				Name: cm.Name,
 			})
 		}
 		resp = append(resp, view.RespNamespaceConfigmaps{

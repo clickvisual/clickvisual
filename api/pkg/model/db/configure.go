@@ -1,7 +1,7 @@
 package db
 
 import (
-	"time"
+	"fmt"
 
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -12,23 +12,28 @@ import (
 )
 
 type Configuration struct {
-	K8SCmId        int       `gorm:"column:k8s_cm_id;type:int(11)" json:"k8s_cm_id"` // config map id
-	K8SCmName      string    `gorm:"column:k8s_cm_name;type:varchar(128)" json:"k8s_cm_name"`
-	K8SCmNamespace string    `gorm:"column:k8s_cm_namespace;type:varchar(128)" json:"k8s_cm_namespace"`
-	Name           string    `gorm:"column:name;type:varchar(64)" json:"name"`
-	Content        string    `gorm:"column:content;type:longtext" json:"content"`
-	Format         string    `gorm:"column:format;type:varchar(32)" json:"format"`
-	Version        string    `gorm:"column:version;type:varchar(64)" json:"version"`
-	Uid            uint      `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
-	PublishTime    int64     `gorm:"column:publish_time;type:int(11)" json:"publish_time"`
-	LockUid        uint      `gorm:"column:lock_uid;type:int(11) unsigned" json:"lock_uid"`
-	LockAt         time.Time `gorm:"column:lock_at;type:datetime" json:"lock_at"`
+	K8SCmId     int    `gorm:"column:k8s_cm_id;type:int(11)" json:"k8sConfigmapId"` // config map id
+	Name        string `gorm:"column:name;type:varchar(64)" json:"name"`
+	Content     string `gorm:"column:content;type:longtext" json:"content"`
+	Format      string `gorm:"column:format;type:varchar(32)" json:"format"`
+	Version     string `gorm:"column:version;type:varchar(64)" json:"version"`
+	Uid         uint   `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
+	PublishTime int64  `gorm:"column:publish_time;type:int(11)" json:"publishTime"`
+	LockUid     uint   `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
+	LockAt      int64  `gorm:"column:lock_at;type:datetime" json:"lockAt"`
+
+	K8SConfigMap K8SConfigMap `gorm:"foreignKey:ID" json:"-"`
 
 	BaseModel
 }
 
-func (m *Configuration) TableName() string {
+func (c *Configuration) TableName() string {
 	return TableNameConfiguration
+}
+
+// FileName ..
+func (c Configuration) FileName() string {
+	return fmt.Sprintf("%s.%s", c.Name, c.Format)
 }
 
 // ConfigurationCreate CRUD
@@ -109,6 +114,9 @@ type ConfigurationHistory struct {
 	Content         string `gorm:"column:content;type:longtext" json:"content"`
 	Version         string `gorm:"column:version;type:varchar(64)" json:"version"`
 
+	User          *User          `json:"-" gorm:"foreignKey:Uid;association_foreignkey:Uid"`
+	Configuration *Configuration `json:"-" gorm:"foreignKey:ConfigurationId;"`
+
 	BaseModel
 }
 
@@ -150,7 +158,7 @@ func ConfigurationHistoryInfo(paramId int) (resp ConfigurationHistory, err error
 func ConfigurationHistoryInfoX(conds map[string]interface{}) (resp ConfigurationHistory, err error) {
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = invoker.Db.Table(TableNameConfigurationHistory).Preload("Configuration").Preload("Configuration.K8SConfigMap").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		elog.Error("ConfigurationHistoryInfoX infoX error", zap.Error(err))
 		return
 	}
