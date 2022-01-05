@@ -46,3 +46,6 @@ permission:
         - name: 删除数据库连接
           method: DELETE
           path: /api/v1/sys/clusters/:id
+  - name: 配置
+    path: /configure
+    icon: SettingOutlined
