@@ -17,9 +17,9 @@ type Configuration struct {
 	Content     string `gorm:"column:content;type:longtext" json:"content"`
 	Format      string `gorm:"column:format;type:varchar(32)" json:"format"`
 	Version     string `gorm:"column:version;type:varchar(64)" json:"version"`
-	Uid         uint   `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
+	Uid         int    `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
 	PublishTime int64  `gorm:"column:publish_time;type:int(11)" json:"publishTime"`
-	LockUid     uint   `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
+	LockUid     int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
 	LockAt      int64  `gorm:"column:lock_at;type:datetime" json:"lockAt"`
 
 	K8SConfigMap K8SConfigMap `gorm:"foreignKey:ID" json:"-"`
@@ -108,14 +108,14 @@ func ConfigurationListPage(conds egorm.Conds, reqList *ReqPage) (total int64, re
 }
 
 type ConfigurationHistory struct {
-	Uid             uint   `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
-	ConfigurationId uint   `gorm:"column:configuration_id;type:int(11) unsigned" json:"configurationId"`
+	Uid             int    `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
+	ConfigurationId int    `gorm:"column:configuration_id;type:int(11) unsigned" json:"configurationId"`
 	ChangeLog       string `gorm:"column:change_log;type:longtext" json:"changeLog"`
 	Content         string `gorm:"column:content;type:longtext" json:"content"`
 	Version         string `gorm:"column:version;type:varchar(64)" json:"version"`
 
-	User          *User          `json:"-" gorm:"foreignKey:Uid;association_foreignkey:Uid"`
-	Configuration *Configuration `json:"-" gorm:"foreignKey:ConfigurationId;"`
+	User          *User          `json:"-" gorm:"foreignKey:ID;association_foreignkey:ID"`
+	Configuration *Configuration `json:"-" gorm:"foreignKey:ID;"`
 
 	BaseModel
 }
@@ -158,7 +158,7 @@ func ConfigurationHistoryInfo(paramId int) (resp ConfigurationHistory, err error
 func ConfigurationHistoryInfoX(conds map[string]interface{}) (resp ConfigurationHistory, err error) {
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Table(TableNameConfigurationHistory).Preload("Configuration").Preload("Configuration.K8SConfigMap").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		elog.Error("ConfigurationHistoryInfoX infoX error", zap.Error(err))
 		return
 	}

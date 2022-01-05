@@ -22,13 +22,13 @@ type User struct {
 }
 
 // Uid 返回当前用户uid
-func (c *Context) Uid() uint {
+func (c *Context) Uid() int {
 	return Uid(c.Context)
 }
 
 // Uid 返回当前用户uid，入参使用gin.Context
-func Uid(c *gin.Context) uint {
-	return uint(ContextUser(c).Uid)
+func Uid(c *gin.Context) int {
+	return int(ContextUser(c).Uid)
 }
 
 // ContextUser 从context取用户，入参使用gin.Context

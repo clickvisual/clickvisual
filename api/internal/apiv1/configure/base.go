@@ -179,7 +179,7 @@ func Publish(c *core.Context) {
 	}
 	err = configure.Configure.Publish(c, param)
 	if err != nil {
-		c.JSONE(1, err.Error(), err)
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	c.JSONOK("发布成功")

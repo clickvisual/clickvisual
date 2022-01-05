@@ -52,7 +52,7 @@ func (s *configure) Update(c *core.Context, param view.ReqUpdateConfig) (err err
 		return errors.New("保存失败，本次无更新.")
 	}
 	history := db.ConfigurationHistory{
-		ConfigurationId: uint(configuration.ID),
+		ConfigurationId: configuration.ID,
 		ChangeLog:       param.Message,
 		Content:         param.Content,
 		Version:         version,
@@ -108,21 +108,23 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 	conds["version"] = param.Version
 	var history db.ConfigurationHistory
 	history, err = db.ConfigurationHistoryInfoX(conds)
-	elog.Debug("Publish", elog.Any("history", history))
 	if err != nil {
 		return err
 	}
-	configureObj := history.Configuration
-	k8sConfigmap := history.Configuration.K8SConfigMap
+	configureObj, _ := db.ConfigurationInfo(history.ConfigurationId)
+	k8sConfigmap, _ := db.K8SConfigMapInfo(configureObj.K8SCmId)
+
+	elog.Debug("Publish", elog.Any("history", history))
+
 	configData := make(map[string]string)
 	filename := configureObj.FileName()
 	configData[filename] = history.Content
 	configData[s.configMetadataKey(filename)] = s.marshallMetadata(view.ConfigMetadata{
 		Version:     history.Version,
 		ChangeLog:   history.ChangeLog,
-		PublishedBy: int(c.Uid()),
+		PublishedBy: c.Uid(),
 	})
-	lock := NewConfigMapLock(k8sConfigmap.Namespace, k8sConfigmap.Name, history.Configuration.K8SCmId)
+	lock := NewConfigMapLock(k8sConfigmap.Namespace, k8sConfigmap.Name, configureObj.K8SCmId)
 	if !lock.Lock() {
 		return fmt.Errorf("有其他用户或系统正在更新ConfigMap，更新失败")
 	}

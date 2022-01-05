@@ -18,7 +18,6 @@ import (
 
 func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string, data map[string]string) error {
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, name, "")
-	configMap := obj.(*corev1.ConfigMap)
 	if NotFound(err) {
 		if err = configmapCreate(client, namespace, name, data); err != nil {
 			elog.Error("ConfigmapCreateOrUpdate", elog.String("namespace", namespace), elog.String("name", name), elog.Any("data", data), elog.String("err", err.Error()))
@@ -26,6 +25,8 @@ func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string,
 		}
 		return nil
 	}
+	configMap := obj.(*corev1.ConfigMap)
+
 	// target configMap exist, so update the data of configMap in current cluster:
 	if configMap.Data == nil {
 		configMap.Data = make(map[string]string)

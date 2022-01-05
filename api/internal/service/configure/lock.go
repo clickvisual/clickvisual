@@ -23,7 +23,7 @@ func (s *configure) TryLock(uid, configId int) (err error) {
 			return fmt.Errorf("配置不存在")
 		}
 
-		if config.LockUid != 0 && config.LockUid != uint(uid) {
+		if config.LockUid != 0 && config.LockUid != uid {
 			tx.Rollback()
 			return fmt.Errorf("当前有其他客户端正在编辑,获取编辑锁失败")
 		}
@@ -52,7 +52,7 @@ func (s *configure) Unlock(uid, configId int) (err error) {
 			return fmt.Errorf("配置不存在")
 		}
 
-		if config.LockUid != 0 && config.LockUid != uint(uid) {
+		if config.LockUid != 0 && config.LockUid != uid {
 			tx.Rollback()
 			return fmt.Errorf("当前有其他客户端正在编辑,释放编辑锁失败")
 		}
