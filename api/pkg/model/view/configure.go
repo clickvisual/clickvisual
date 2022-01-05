@@ -11,12 +11,17 @@ type ConfigFormat string
 
 // ReqCreateConfig ..
 type ReqCreateConfig struct {
-	Name   string       `gorm:"column:name;type:varchar(64)" json:"configame"`
-	Format ConfigFormat `json:"format" binding:"required,oneof=yaml toml ini json conf"` // 格式后缀名(比如: toml, yaml)
+	Name                  string       `gorm:"column:name;type:varchar(64)" json:"configame" binding:"required"`
+	Format                ConfigFormat `json:"format" binding:"required,oneof=yaml toml ini json conf"` // 格式后缀名(比如: toml, yaml)
+	K8SConfigMapId        int          `form:"k8sConfigMapId" binding:"required"`
+	K8SConfigMapName      string       `form:"k8sConfigMapName" binding:"required"`
+	K8SConfigMapNamespace string       `form:"k8sConfigMapNameSpace" binding:"required"`
 }
 
 type ReqListConfig struct {
-	K8SConfigMapId int `form:"k8sConfigMapId" binding:"required"`
+	K8SConfigMapId        int    `form:"k8sConfigMapId"`
+	K8SConfigMapName      string `form:"k8sConfigMapName"`
+	K8SConfigMapNamespace string `form:"k8sConfigMapNameSpace"`
 }
 
 // RespListConfig ..

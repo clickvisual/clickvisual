@@ -85,6 +85,8 @@ CREATE TABLE `mogo_configuration`
 (
     `id`              int(11) unsigned NOT NULL AUTO_INCREMENT,
     `k8s_cm_id`     int(11) DEFAULT NULL COMMENT 'config map id',
+    `k8s_cm_name`      varchar(128) DEFAULT NULL,
+    `k8s_cm_namespace` varchar(128) DEFAULT NULL,
     `name`            varchar(64)      DEFAULT NULL,
     `content`         longtext,
     `format`          varchar(32)      DEFAULT NULL,

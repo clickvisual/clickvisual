@@ -12,14 +12,17 @@ import (
 )
 
 type Configuration struct {
-	Name        string    `gorm:"column:name;type:varchar(64)" json:"name"`
-	Content     string    `gorm:"column:content;type:longtext" json:"content"`
-	Format      string    `gorm:"column:format;type:varchar(32)" json:"format"`
-	Version     string    `gorm:"column:version;type:varchar(64)" json:"version"`
-	Uid         uint      `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
-	PublishTime int64     `gorm:"column:publish_time;type:int(11)" json:"publishTime"`
-	LockUid     uint      `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
-	LockAt      time.Time `gorm:"column:lock_at;type:datetime" json:"lockAt"`
+	K8SCmId        int       `gorm:"column:k8s_cm_id;type:int(11)" json:"k8s_cm_id"` // config map id
+	K8SCmName      string    `gorm:"column:k8s_cm_name;type:varchar(128)" json:"k8s_cm_name"`
+	K8SCmNamespace string    `gorm:"column:k8s_cm_namespace;type:varchar(128)" json:"k8s_cm_namespace"`
+	Name           string    `gorm:"column:name;type:varchar(64)" json:"name"`
+	Content        string    `gorm:"column:content;type:longtext" json:"content"`
+	Format         string    `gorm:"column:format;type:varchar(32)" json:"format"`
+	Version        string    `gorm:"column:version;type:varchar(64)" json:"version"`
+	Uid            uint      `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
+	PublishTime    int64     `gorm:"column:publish_time;type:int(11)" json:"publish_time"`
+	LockUid        uint      `gorm:"column:lock_uid;type:int(11) unsigned" json:"lock_uid"`
+	LockAt         time.Time `gorm:"column:lock_at;type:datetime" json:"lock_at"`
 
 	BaseModel
 }
