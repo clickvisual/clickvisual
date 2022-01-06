@@ -5,8 +5,15 @@ APP_PATH=$(ROOT)/api
 SCRIPT_PATH:=$(APP_PATH)/../scripts
 COMPILE_OUT:=$(APP_PATH)/../bin/$(APP_NAME)
 
-build:
-	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making build app<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+build: build.api build.ui
+
+build.api:
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	@chmod +x $(SCRIPT_PATH)/build/*.sh
 	@cd $(APP_PATH) && $(SCRIPT_PATH)/build/gobuild.sh $(APP_NAME) $(COMPILE_OUT)
+	@echo -e "\n"
+
+build.ui:
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+	@cd $(APP_PATH)/ui && npm run build
 	@echo -e "\n"
