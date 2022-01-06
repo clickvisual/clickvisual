@@ -81,7 +81,7 @@ func Detail(c *core.Context) {
 		PublishTime: configuration.PublishTime,
 	}
 	if configuration.LockUid != 0 {
-		user, _ := db.UserInfo(int(configuration.LockUid))
+		user, _ := db.UserInfo(configuration.LockUid)
 		resp.CurrentEditUser = &user
 	}
 	c.JSONOK(resp)

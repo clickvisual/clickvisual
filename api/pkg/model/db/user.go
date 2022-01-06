@@ -82,6 +82,17 @@ func UserInfo(paramId int) (resp User, err error) {
 	return
 }
 
+// UserInfoX Info的扩展方法，根据Cond查询单条记录
+func UserInfoX(conds map[string]interface{}) (resp User, err error) {
+	conds["dtime"] = 0
+	sql, binds := egorm.BuildQuery(conds)
+	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+		elog.Error("UserInfoX infoX error", zap.Error(err))
+		return
+	}
+	return
+}
+
 // UserDelete 软删除
 func UserDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(User{}).Delete(&User{}, id).Error; err != nil {
