@@ -32,8 +32,8 @@ go run api/main -config api/config/local.toml
 ### 启动 ui 服务
 
 ```bash
-# 第一次运行前需要执行 npm install
-npm run dev
+# 第一次运行前需要执行 yarn install
+yarn run dev
 ```
 
 ## 代码风格
