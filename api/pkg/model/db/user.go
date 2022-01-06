@@ -116,9 +116,6 @@ func UserListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Table(TableNameUser).Where(sql, binds...)
 	db.Count(&total)
-	if reqList.Sort != "" {
-		db = db.Order(reqList.Sort)
-	}
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }

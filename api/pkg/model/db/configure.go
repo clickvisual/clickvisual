@@ -100,9 +100,6 @@ func ConfigurationListPage(conds egorm.Conds, reqList *ReqPage) (total int64, re
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Table(TableNameConfiguration).Where(sql, binds...)
 	db.Count(&total)
-	if reqList.Sort != "" {
-		db = db.Order(reqList.Sort)
-	}
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }
@@ -199,9 +196,6 @@ func ConfigurationHistoryListPage(conds egorm.Conds, reqList *ReqPage) (total in
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...)
 	db.Count(&total)
-	if reqList.Sort != "" {
-		db = db.Order(reqList.Sort)
-	}
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }
@@ -282,9 +276,6 @@ func ConfigurationPublishListPage(conds egorm.Conds, reqList *ReqPage) (total in
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Table(TableNameConfigurationPublish).Where(sql, binds...)
 	db.Count(&total)
-	if reqList.Sort != "" {
-		db = db.Order(reqList.Sort)
-	}
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }

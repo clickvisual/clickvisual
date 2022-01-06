@@ -118,9 +118,6 @@ func K8SConfigMapListPage(conds egorm.Conds, reqList *ReqPage) (total int64, res
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...)
 	db.Count(&total)
-	if reqList.Sort != "" {
-		db = db.Order(reqList.Sort)
-	}
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }

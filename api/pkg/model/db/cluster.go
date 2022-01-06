@@ -176,9 +176,6 @@ func ClusterListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList
 
 	db := invoker.Db.Table(TableNameCluster).Where(sql, binds...)
 	db.Count(&total)
-	if reqList.Sort != "" {
-		db = db.Order(reqList.Sort)
-	}
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	for _, cluster := range respList {
 		cluster.KubeConfig = json2yaml(cluster.KubeConfig)
