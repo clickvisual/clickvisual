@@ -26,7 +26,7 @@ func GetRouter() *egin.Component {
 	// static file
 	flag, err := kfile.IsFileExists("./ui/dist")
 	if err != nil || !flag {
-		panic("ui/dist not exist")
+		panic("请在 ./ui 目录下，执行 yarn install && yarn build，编译前端静态文件后，才能启动后端服务。")
 	}
 	r.GET("/", core.Handle(static.File))
 	r.NoRoute(core.Handle(static.Filter))
@@ -84,10 +84,10 @@ func GetRouter() *egin.Component {
 	}
 	// 集群相关接口
 	{
-		v1.GET("/clusters", core.Handle(kube.ClusterList))                            // 获取集群列表
-		v1.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))    // 获取集群内部的 configmap 数据
-		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate)) // 获取集群内部的 configmap 数据
-
+		v1.GET("/clusters", core.Handle(kube.ClusterList))                                                    // 获取集群列表
+		v1.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))                            // 获取集群内部的 configmap 数据
+		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))                         // 新建 configmap
+		v1.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo)) // 获取集群内部的 configmap 数据
 	}
 	return r
 }

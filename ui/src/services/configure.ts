@@ -54,7 +54,7 @@ export default {
   // 获取指定集群下的 ConfigMap
   async getSelectedConfigMaps(clusterId: number) {
     return request<API.Res<NameSpaceType[]>>(
-      `/api/v1/clusters/${clusterId}/namespace/configmaps`,
+      `/api/v1/clusters/${clusterId}/configmaps`,
       {
         method: "GET",
       }

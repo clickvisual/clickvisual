@@ -104,3 +104,8 @@ type ReqCreateConfigMap struct {
 	Name      string `form:"name" binding:"required"`
 	Namespace string `form:"namespace" binding:"required"`
 }
+
+// ReqConfigMapInfo ..
+type ReqConfigMapInfo struct {
+	Key string `form:"key" binding:"required"`
+}
