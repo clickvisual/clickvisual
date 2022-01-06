@@ -41,6 +41,8 @@ const CreatedOrUpdatedClusterModal = (
     { wait: 500 }
   );
 
+  const loading = doCreatedCluster.loading || doUpdatedCluster.loading;
+
   useEffect(() => {
     if (visible && isEditor && current) {
       clusterFormRef.current?.setFieldsValue(current);
@@ -87,7 +89,7 @@ const CreatedOrUpdatedClusterModal = (
         </Form.Item>
         <Form.Item noStyle>
           <div className={clusterPanelStyles.formBtn}>
-            <Button type={"primary"} htmlType={"submit"}>
+            <Button loading={loading} type={"primary"} htmlType={"submit"}>
               提交
             </Button>
           </div>

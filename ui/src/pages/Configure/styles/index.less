@@ -1,0 +1,66 @@
+.configMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+
+  :global {
+    .ant-pro-basicLayout-content {
+      margin: 0 !important;
+    }
+  }
+
+  .configManage {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    .menuBar {
+      flex: 0 0 60px;
+      background-color: #333;
+      ul {
+        display: block;
+        margin: 0;
+        padding: 0;
+
+        li {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 57px;
+          color: #858585;
+          font-size: 24px;
+          text-align: center;
+          cursor: pointer;
+
+          &.active {
+            color: #bac0ce;
+
+            &::before {
+              position: absolute;
+              top: 0;
+              left: 0;
+              display: block;
+              width: 4px;
+              height: 57px;
+              background-color: #bac0ce;
+              content: "";
+            }
+          }
+
+          &:hover {
+            color: #fff;
+          }
+        }
+      }
+    }
+
+    .optionContainer {
+      display: flex;
+      flex: 0 0 260px;
+      color: #abb2bf;
+      background-color: #1c1c1c;
+    }
+  }
+}

@@ -1,0 +1,37 @@
+.optionButton {
+  padding: 5px 10px;
+  background-color: #3c3c3c;
+  color: #ffffff;
+  border: none;
+  outline: none;
+  cursor: pointer;
+
+  &.btnDisabled {
+    cursor: not-allowed;
+    color: #777777;
+  }
+
+  &.defaultBtn {
+    &:hover {
+      background-color: #535353;
+    }
+
+    &:active {
+      background-color: #616161;
+    }
+  }
+
+  &.textBtn {
+    padding: 2px;
+    background-color: transparent;
+
+    &:hover {
+      color: #649cff;
+    }
+  }
+}
+
+.optionButton.border {
+  background: none;
+  border: 1px solid #3c3c3c;
+}

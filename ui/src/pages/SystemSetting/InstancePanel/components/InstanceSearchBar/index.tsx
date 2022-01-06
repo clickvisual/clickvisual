@@ -1,4 +1,4 @@
-import instanceSearchBarStyles from '@/pages/SystemSetting/InstancePanel/InstanceSearchBar/index.less';
+import instanceSearchBarStyles from '@/pages/SystemSetting/InstancePanel/components/InstanceSearchBar/index.less';
 import { Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useContext } from 'react';

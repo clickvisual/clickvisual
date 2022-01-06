@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import copy from 'copy-to-clipboard';
-import { message } from 'antd';
+import { useEffect, useRef, useState } from "react";
+import copy from "copy-to-clipboard";
+import { message } from "antd";
 import api, {
   DatabaseResponse,
   HighCharts,
   InstanceSelectedType,
   LogsResponse,
-} from '@/services/dataLogs';
-import useRequest from '@/hooks/useRequest';
-import { currentTimeStamp } from '@/utils/momentUtils';
+} from "@/services/dataLogs";
+import useRequest from "@/hooks/useRequest";
+import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
   FIFTEEN_TIME,
@@ -16,10 +16,10 @@ import {
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
   TimeRangeType,
-} from '@/config/config';
-import moment from 'moment';
-import Request, { Canceler } from 'umi-request';
-import lodash from 'lodash';
+} from "@/config/config";
+import moment from "moment";
+import Request, { Canceler } from "umi-request";
+import lodash from "lodash";
 
 export type PaneType = {
   pane: string;
@@ -60,19 +60,26 @@ const DataLogsModel = () => {
 
   // 日志库列表
   const [logLibraryList, setLogLibraryList] = useState<string[]>([]);
-  const [currentLogLibrary, setCurrentLogLibrary] = useState<string | undefined>();
+  const [currentLogLibrary, setCurrentLogLibrary] = useState<
+    string | undefined
+  >();
   const [highlightKeywords, setHighlightKeywords] = useState<
     { key: string; value: string }[] | undefined
   >();
   // 数据库列表
   const [databaseList, setDataBaseList] = useState<DatabaseResponse[]>([]);
-  const [currentDatabase, setCurrentDatabase] = useState<DatabaseResponse | undefined>();
+  const [currentDatabase, setCurrentDatabase] = useState<
+    DatabaseResponse | undefined
+  >();
 
   // 是否展示日志切换抽屉
-  const [visibleDataBaseDraw, setVisibleDataBaseDraw] = useState<boolean>(false);
+  const [visibleDataBaseDraw, setVisibleDataBaseDraw] =
+    useState<boolean>(false);
 
   // 时间选择器
-  const [activeTabKey, setActiveTabKey] = useState<string>(TimeRangeType.Relative);
+  const [activeTabKey, setActiveTabKey] = useState<string>(
+    TimeRangeType.Relative
+  );
   const [activeTimeOptionIndex, setActiveTimeOptionIndex] = useState(2);
 
   // 日志 Tab 标签
@@ -139,9 +146,9 @@ const DataLogsModel = () => {
   const onCopyRawLogDetails = (log: any) => {
     if (log) {
       copy(JSON.stringify(log));
-      message.success('复制成功');
+      message.success("复制成功");
     } else {
-      message.error('复制失败，请手动复制');
+      message.error("复制失败，请手动复制");
     }
   };
 
@@ -197,14 +204,17 @@ const DataLogsModel = () => {
   });
 
   const settingIndexes = useRequest(api.setIndexes, {
-    loadingText: { loading: undefined, done: '保存成功' },
+    loadingText: { done: "保存成功" },
   });
 
   const getIndexList = useRequest(api.getIndexes, {
     loadingText: false,
   });
 
-  const logsAndHighChartsPayload = (database: DatabaseResponse, params?: QueryParams) => {
+  const logsAndHighChartsPayload = (
+    database: DatabaseResponse,
+    params?: QueryParams
+  ) => {
     return {
       dt: database.datasourceType,
       db: database.databaseName,
@@ -225,7 +235,7 @@ const DataLogsModel = () => {
         logsAndHighChartsPayload(currentDatabase, params),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
-        }),
+        })
       );
     }
   };
@@ -236,7 +246,7 @@ const DataLogsModel = () => {
         logsAndHighChartsPayload(currentDatabase, params),
         new CancelToken(function executor(c) {
           cancelTokenHighChartsRef.current = c;
-        }),
+        })
       );
     }
   };
@@ -251,7 +261,9 @@ const DataLogsModel = () => {
     }
   };
 
-  const doGetDatabaseList = (selectedInstance?: InstanceSelectedType | undefined) => {
+  const doGetDatabaseList = (
+    selectedInstance?: InstanceSelectedType | undefined
+  ) => {
     getDatabases.run(selectedInstance);
   };
 
@@ -260,12 +272,13 @@ const DataLogsModel = () => {
   };
 
   const doParseQuery = (keyword?: string) => {
-    const defaultInput = lodash.cloneDeep(keyword ? keyword : keywordInput) || '';
+    const defaultInput =
+      lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
     const strReg = /(\w+)='([^']+)'/g;
     const allQuery = defaultInput.match(strReg)?.map((item) => {
       return {
-        key: item.replaceAll("'", '').split('=')[0],
-        value: item.replaceAll("'", '').split('=')[1],
+        key: item.replaceAll("'", "").split("=")[0],
+        value: item.replaceAll("'", "").split("=")[1],
       };
     });
     setHighlightKeywords(allQuery);
@@ -273,7 +286,9 @@ const DataLogsModel = () => {
 
   const resetLogs = () => {
     onChangeEndDateTime(currentTimeStamp());
-    onChangeStartDateTime(moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix());
+    onChangeStartDateTime(
+      moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
+    );
     onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
     onChangeKeywordInput(undefined);
     onChangeActiveTabKey(TimeRangeType.Relative);
@@ -299,16 +314,20 @@ const DataLogsModel = () => {
       cancelTokenLogsRef.current?.();
       cancelTokenHighChartsRef.current?.();
       getLogs.run(
-        logsAndHighChartsPayload(currentDatabase, { logLibrary: currentLogLibrary }),
+        logsAndHighChartsPayload(currentDatabase, {
+          logLibrary: currentLogLibrary,
+        }),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
-        }),
+        })
       );
       getHighCharts.run(
-        logsAndHighChartsPayload(currentDatabase, { logLibrary: currentLogLibrary }),
+        logsAndHighChartsPayload(currentDatabase, {
+          logLibrary: currentLogLibrary,
+        }),
         new CancelToken(function executor(c) {
           cancelTokenHighChartsRef.current = c;
-        }),
+        })
       );
     }
   }, [pageSize, currentPage]);
