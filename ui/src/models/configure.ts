@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useRequest from "@/hooks/useRequest";
 import api, {
   ConfigurationsResponse,
+  CurrentConfigurationResponse,
   NameSpaceType,
 } from "@/services/configure";
 import { ClusterType } from "@/services/systemSetting";
@@ -23,7 +24,7 @@ const Configure = () => {
 
   // 当前选择的配置文件
   const [currentConfiguration, setCurrentConfiguration] = useState<
-    any | undefined
+    CurrentConfigurationResponse | undefined
   >();
   const [configContent, setConfigContent] = useState<string>("");
 
@@ -75,6 +76,24 @@ const Configure = () => {
     onSuccess: (res) => {
       setCurrentConfiguration(res.data);
       setConfigContent(res.data.content);
+    },
+  });
+
+  const doAddLock = useRequest(api.addLock, {
+    loadingText: false,
+    onSuccess: (res) => {
+      if (currentConfiguration) {
+        doGetConfiguration.run(currentConfiguration.id);
+      }
+    },
+  });
+
+  const doRemoveLock = useRequest(api.removeLock, {
+    loadingText: false,
+    onSuccess: (res) => {
+      if (currentConfiguration) {
+        doGetConfiguration.run(currentConfiguration.id);
+      }
     },
   });
 
@@ -137,6 +156,8 @@ const Configure = () => {
     doCreatedConfiguration,
     doDeletedConfigurations,
     doGetConfiguration,
+    doAddLock,
+    doRemoveLock,
 
     onChangeConfigMaps,
     onChangeConfigurations,

@@ -13,7 +13,11 @@ const Editor = (props: EditorProps) => {
     currentConfiguration,
     onChangeConfigContent,
     configContent,
+    doAddLock,
+    doRemoveLock,
   } = useModel("configure");
+  const { currentUser } = useModel("@@initialState").initialState || {};
+  const currentEditorUser = currentConfiguration?.currentEditUser;
   if (!currentConfiguration || doGetConfiguration.loading) {
     return (
       <div className={editorStyles.editorLoading}>
@@ -32,12 +36,29 @@ const Editor = (props: EditorProps) => {
   return (
     <div className={editorStyles.editorMain}>
       <div className={editorStyles.editorHeader}>
-        <OptionButton
-          type={"border" as ButtonType}
-          style={{ fontSize: "12px", padding: "2px 10px" }}
-        >
-          开始编辑
-        </OptionButton>
+        {currentEditorUser ? (
+          <>
+            <OptionButton
+              type={"border" as ButtonType}
+              style={{ fontSize: "12px", padding: "2px 10px" }}
+              onClick={() => {
+                doRemoveLock.run(currentConfiguration.id);
+              }}
+            >
+              退出编辑
+            </OptionButton>
+          </>
+        ) : (
+          <OptionButton
+            type={"border" as ButtonType}
+            style={{ fontSize: "12px", padding: "2px 10px" }}
+            onClick={() => {
+              doAddLock.run(currentConfiguration.id);
+            }}
+          >
+            开始编辑
+          </OptionButton>
+        )}
       </div>
       <MonacoEditor
         height={"100%"}
@@ -46,7 +67,9 @@ const Editor = (props: EditorProps) => {
         options={{
           automaticLayout: true,
           scrollBeyondLastLine: false,
-          readOnly: false,
+          readOnly: !(
+            currentEditorUser && currentEditorUser.id === currentUser.id
+          ),
         }}
         value={configContent}
         onChange={onChangeConfigContent}

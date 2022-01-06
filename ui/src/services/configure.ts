@@ -99,4 +99,8 @@ export default {
   async addLock(id: number) {
     return request(`/api/v1/configurations/${id}/lock`, { method: "GET" });
   },
+
+  async removeLock(id: number) {
+    return request(`/api/v1/configurations/${id}/unlock`, { method: "POST" });
+  },
 };
