@@ -98,3 +98,9 @@ type RespDiffConfig struct {
 	Origin   *RespDetailConfig `json:"origin,omitempty"`
 	Modified RespDetailConfig  `json:"modified"`
 }
+
+// ReqCreateConfigMap ..
+type ReqCreateConfigMap struct {
+	Name      string `form:"name" binding:"required"`
+	Namespace string `form:"namespace" binding:"required"`
+}

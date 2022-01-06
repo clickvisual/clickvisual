@@ -15,6 +15,7 @@ require (
 	github.com/gotomicro/ego-component/esession v0.0.0-20211223080319-731d89856cf7
 	github.com/jonboulle/clockwork v0.2.2
 	github.com/kl7sn/toolkit v0.1.3-0.20211227125910-4da942aabe37
+	github.com/link-duan/toml v0.3.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.4.1
 	github.com/stretchr/testify v1.7.0
@@ -97,7 +98,6 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
-	github.com/link-duan/toml v0.3.2 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
