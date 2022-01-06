@@ -202,8 +202,29 @@ func History(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	total, list := db.ConfigurationHistoryListPage(egorm.Conds{}, &param)
-	c.JSONPage(list, core.Pagination{
+	total, list := db.ConfigurationHistoryListPage(egorm.Conds{"configuration_id": id}, &param)
+	for k, _ := range list {
+		if list[k].Uid != 0 {
+
+		}
+	}
+	resp := make([]view.RespHistoryConfigItem, 0)
+	for _, item := range list {
+		configItem := view.RespHistoryConfigItem{
+			ID:              item.ID,
+			UID:             item.Uid,
+			ConfigurationID: item.ConfigurationId,
+			Version:         item.Version,
+			Ctime:           item.Ctime,
+			ChangeLog:       item.ChangeLog,
+		}
+		configItem.UID = item.Uid
+		user, _ := db.UserInfo(item.Uid)
+		configItem.UserName = user.Nickname
+		resp = append(resp, configItem)
+	}
+
+	c.JSONPage(resp, core.Pagination{
 		Current:  param.Current,
 		PageSize: param.PageSize,
 		Total:    total,
@@ -212,12 +233,18 @@ func History(c *core.Context) {
 
 // Diff ..
 func Diff(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id < 1 {
+		c.JSONE(1, "error param id", nil)
+		return
+	}
 	param := view.ReqDiffConfig{}
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
+	param.ID = id
 	resp, err := configure.Configure.Diff(param.ID, param.HistoryID)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)

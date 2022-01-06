@@ -1,8 +1,11 @@
 package kube
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 
+	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 	corev1 "k8s.io/api/core/v1"
@@ -33,6 +36,23 @@ func ConfigMapList(c *core.Context) {
 		return
 	}
 	resp := make([]view.RespNamespaceConfigmaps, 0)
+
+	filter := make(map[string]interface{})
+
+	conds := egorm.Conds{}
+	conds["cluster_id"] = clusterId
+	dbConfigmaps, _ := db.K8SConfigMapListX(conds)
+	nscm := make(map[string][]view.RespConfigmap)
+	for _, cm := range dbConfigmaps {
+		if _, ok := nscm[cm.Namespace]; !ok {
+			nscm[cm.Namespace] = make([]view.RespConfigmap, 0)
+		}
+		nscm[cm.Namespace] = append(nscm[cm.Namespace], view.RespConfigmap{
+			Name: cm.Name,
+		})
+		filter[fmt.Sprintf("%d|%s|%s", clusterId, cm.Namespace, cm.Name)] = struct{}{}
+	}
+
 	for _, obj := range namespaces {
 		ns := *(obj.(*corev1.Namespace))
 		elog.Debug("namespace", elog.Any("ns", ns))
@@ -41,18 +61,29 @@ func ConfigMapList(c *core.Context) {
 			elog.Error("configmaps", elog.String("err", errConfigs.Error()))
 			continue
 		}
-		respConfigMap := make([]view.RespConfigmap, 0)
 		for _, configMapObj := range configmaps {
 			cm := *(configMapObj.(*corev1.ConfigMap))
-			respConfigMap = append(respConfigMap, view.RespConfigmap{
+			if _, ok := filter[fmt.Sprintf("%d|%s|%s", clusterId, cm.Namespace, cm.Name)]; ok {
+				continue
+			}
+			if _, ok := nscm[cm.Namespace]; !ok {
+				nscm[cm.Namespace] = make([]view.RespConfigmap, 0)
+			}
+			nscm[cm.Namespace] = append(nscm[cm.Namespace], view.RespConfigmap{
 				Name: cm.Name,
 			})
 		}
-		resp = append(resp, view.RespNamespaceConfigmaps{
-			Namespace:  ns.Name,
-			Configmaps: respConfigMap,
-		})
 	}
+
+	for namespace, respConfigMap := range nscm {
+		if len(respConfigMap) > 0 {
+			resp = append(resp, view.RespNamespaceConfigmaps{
+				Namespace:  namespace,
+				Configmaps: respConfigMap,
+			})
+		}
+	}
+	sort.Slice(resp, func(i, j int) bool { return len(resp[i].Configmaps) > len(resp[j].Configmaps) })
 	c.JSONOK(resp)
 }
 

@@ -54,6 +54,17 @@ func K8SConfigMapInfoX(conds map[string]interface{}) (resp K8SConfigMap, err err
 	return
 }
 
+// K8SConfigMapListX Info的扩展方法，根据Cond查询单条记录
+func K8SConfigMapListX(conds map[string]interface{}) (resp []K8SConfigMap, err error) {
+	conds["dtime"] = 0
+	sql, binds := egorm.BuildQuery(conds)
+	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+		elog.Error("K8SConfigMapListX infoX error", zap.Error(err))
+		return
+	}
+	return
+}
+
 func K8SConfigMapLoadOrSave(db *gorm.DB, data *K8SConfigMap) (resp *K8SConfigMap, err error) {
 	conds := egorm.Conds{}
 	conds["cluster_id"] = data.ClusterId

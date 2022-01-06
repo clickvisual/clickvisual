@@ -89,7 +89,7 @@ type ConfigMetadata struct {
 
 // ReqDiffConfig ..
 type ReqDiffConfig struct {
-	ID        int `form:"id" binding:"required"`        // 配置ID
+	ID        int `form:"id"`                           // 配置ID
 	HistoryID int `form:"historyId" binding:"required"` // 版本ID
 }
 
@@ -108,4 +108,14 @@ type ReqCreateConfigMap struct {
 // ReqConfigMapInfo ..
 type ReqConfigMapInfo struct {
 	Key string `form:"key" binding:"required"`
+}
+
+type RespHistoryConfigItem struct {
+	ID              int    `json:"id"`
+	UID             int    `json:"uid"` // 发布人ID
+	UserName        string `json:"username"`
+	ChangeLog       string `json:"changeLog"`
+	ConfigurationID int    `json:"configurationId"`
+	Version         string `json:"version"` // 发布到Juno Proxy的版本号
+	Ctime           int64  `json:"ctime"`
 }
