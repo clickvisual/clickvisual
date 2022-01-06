@@ -1,6 +1,8 @@
 package kube
 
 import (
+	"strings"
+
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 	corev1 "k8s.io/api/core/v1"
@@ -79,4 +81,44 @@ func ConfigMapCreate(c *core.Context) {
 		return
 	}
 	c.JSONOK(resp)
+}
+
+// ConfigMapInfo Get configmap by name
+func ConfigMapInfo(c *core.Context) {
+	clusterId := cast.ToInt(c.Param("clusterId"))
+	namespace := strings.TrimSpace(c.Param("namespace"))
+	name := strings.TrimSpace(c.Param("name"))
+	if clusterId == 0 || namespace == "" || name == "" {
+		c.JSONE(core.CodeErr, "参数错误", nil)
+		return
+	}
+	param := view.ReqConfigMapInfo{}
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	client, err := kube.ClusterManager.GetClusterManager(clusterId)
+	if err != nil {
+		c.JSONE(core.CodeErr, "集群数据获取失败："+err.Error(), nil)
+		return
+	}
+	elog.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
+	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
+	if err != nil {
+		c.JSONE(core.CodeErr, "configmap 数据读取失败："+err.Error(), nil)
+		return
+	}
+	cm := obj.(*corev1.ConfigMap)
+	var (
+		upstreamValue string
+		// mogoValue     string
+	)
+	for k, v := range cm.Data {
+		if k == param.Key {
+			upstreamValue = v
+			break
+		}
+	}
+	c.JSONOK(upstreamValue)
 }
