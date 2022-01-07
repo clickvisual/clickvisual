@@ -27,7 +27,10 @@ configs/
 logs/
 
 node_modules/
-dist
+/dist
+/ui/dist
+api/internal/ui/dist/*
+!api/internal/ui/dist/README.md
 
 .umi/
 .umi-production/

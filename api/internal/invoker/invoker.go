@@ -6,7 +6,7 @@ import (
 	"github.com/gotomicro/ego-component/eredis"
 	"github.com/gotomicro/ego-component/esession"
 	"github.com/gotomicro/ego/server/egin"
-	"github.com/shimohq/mogo/ui"
+	"github.com/shimohq/mogo/api/internal/ui"
 )
 
 var (
