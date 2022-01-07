@@ -26,7 +26,7 @@ const ModalCreatedConfigMap = () => {
   return (
     <CustomModal
       visible={visibleCreatedConfigMap}
-      title={"新增配置空间"}
+      title={"Add"}
       onCancel={() => onChangeVisibleCreatedConfigMap(false)}
       footer={
         <Button

@@ -38,7 +38,7 @@ const Files = (props: FilesProps) => {
       <div className={fileStyles.fileMain}>
         <div className={fileStyles.loading}>
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={""} />
-          <div>请先选择集群空间</div>
+          <div>Please select a cluster</div>
         </div>
       </div>
     );
@@ -49,7 +49,7 @@ const Files = (props: FilesProps) => {
       {doGetConfigurations?.loading ? (
         <div className={fileStyles.loading}>
           <Spin />
-          <div>加载中</div>
+          <div>loading</div>
         </div>
       ) : configurationList.length > 0 ? (
         <>
