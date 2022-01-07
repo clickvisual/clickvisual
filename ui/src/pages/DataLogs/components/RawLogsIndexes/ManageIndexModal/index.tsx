@@ -1,15 +1,15 @@
-import mangeIndexModalStyles from '@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/index.less';
-import CustomModal from '@/components/CustomModal';
-import { useModel } from '@@/plugin-model/useModel';
-import { Button, Form, FormInstance, Spin } from 'antd';
-import { useEffect, useRef, useState } from 'react';
-import { SaveOutlined } from '@ant-design/icons';
-import TableHeader from '@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableHeader';
-import TableBody from '@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody';
-import TableFooter from '@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableFooter';
-import { useDebounceFn } from 'ahooks';
-import { IndexInfoType } from '@/services/dataLogs';
-import { DEBOUNCE_WAIT } from '@/config/config';
+import mangeIndexModalStyles from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/index.less";
+import CustomModal from "@/components/CustomModal";
+import { useModel } from "@@/plugin-model/useModel";
+import { Button, Form, FormInstance, Spin } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { SaveOutlined } from "@ant-design/icons";
+import TableHeader from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableHeader";
+import TableBody from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody";
+import TableFooter from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableFooter";
+import { useDebounceFn } from "ahooks";
+import { IndexInfoType } from "@/services/dataLogs";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 type ManageIndexModalProps = {};
 
@@ -22,7 +22,7 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
     settingIndexes,
     getIndexList,
     doGetLogs,
-  } = useModel('dataLogs');
+  } = useModel("dataLogs");
   const indexFormRef = useRef<FormInstance>(null);
   const [indexList, setIndexList] = useState<IndexInfoType[]>([]);
 
@@ -46,7 +46,7 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
         }
       });
     },
-    { wait: DEBOUNCE_WAIT },
+    { wait: DEBOUNCE_WAIT }
   );
 
   useEffect(() => {
@@ -75,14 +75,14 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
   return (
     <CustomModal
       onCancel={cancel}
-      title={'索引管理'}
+      title={"索引管理"}
       visible={visibleIndexModal}
-      width={'70vw'}
+      width={"70vw"}
       footer={
         <Button
           loading={settingIndexes.loading}
-          size={'small'}
-          type={'primary'}
+          size={"small"}
+          type={"primary"}
           icon={<SaveOutlined />}
           onClick={() => {
             indexFormRef.current?.submit();
@@ -93,17 +93,11 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
       }
     >
       <div className={mangeIndexModalStyles.manageIndexModalMain}>
-        <Form
-          ref={indexFormRef}
-          onFinish={onSubmit.run}
-          onFinishFailed={({ values, errorFields, outOfDate }) => {
-            console.log('values, errorFields, outOfDate: ', values, errorFields, outOfDate);
-          }}
-        >
-          <Spin spinning={getIndexList.loading} tip={'加载中...'}>
+        <Form ref={indexFormRef} onFinish={onSubmit.run}>
+          <Spin spinning={getIndexList.loading} tip={"加载中..."}>
             <table className={mangeIndexModalStyles.tableMain}>
               <TableHeader />
-              <Form.List name={'data'}>
+              <Form.List name={"data"}>
                 {(fields, fieldsOptions) => (
                   <>
                     <TableBody

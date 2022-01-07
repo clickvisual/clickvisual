@@ -1,7 +1,7 @@
-import { useDebounceFn } from 'ahooks';
-import { Button, message, notification } from 'antd';
-import { CopyOutlined } from '@ant-design/icons';
-import { useEffect, useState } from 'react';
+import { useDebounceFn } from "ahooks";
+import { Button, message, notification } from "antd";
+import { CopyOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
 
 export interface ResPage {
   current: number;
@@ -74,6 +74,9 @@ export interface RequestType<R, P extends any[] = any> {
   // 发起请求，返回值是 service 的响应值
   run: (...args: P) => Promise<BaseRes<R> | undefined>;
 
+  // 清空 data
+  reset: () => void;
+
   // 防抖模式执行, 无返回值
   debounceRun: (...args: P) => void;
 }
@@ -83,8 +86,8 @@ const defaultOptions = <R, P extends any[]>(): RequestOptions<R, P> => {
     deps: undefined,
     defaultLoading: false,
     loadingText: {
-      loading: '正在加载',
-      done: '加载成功',
+      loading: "正在加载",
+      done: "加载成功",
     },
     // @ts-ignore
     defaultParams: [],
@@ -107,9 +110,17 @@ function convertHeaders(h?: Headers) {
 
 function useRequest<R = any, P extends any[] = any>(
   service: (...args: P) => Promise<BaseRes<R>>,
-  options?: RequestOptions<R, P>,
+  options?: RequestOptions<R, P>
 ): RequestType<R, P> {
-  const { params, deps, defaultLoading, debounceWait, onError, onSuccess, loadingText } = {
+  const {
+    params,
+    deps,
+    defaultLoading,
+    debounceWait,
+    onError,
+    onSuccess,
+    loadingText,
+  } = {
     ...defaultOptions<R, P>(),
     ...options,
   } as RequestOptions<R, P>;
@@ -121,7 +132,7 @@ function useRequest<R = any, P extends any[] = any>(
     async (...args: P) => {
       await handleReq(...args);
     },
-    { wait: debounceWait },
+    { wait: debounceWait }
   );
 
   useEffect(() => {
@@ -142,6 +153,8 @@ function useRequest<R = any, P extends any[] = any>(
     setLoading(true);
     return await handleReq(...args);
   };
+
+  const reset = () => setData(undefined);
 
   const handleReq = async (...args: P) => {
     let hideLoading = () => {};
@@ -167,7 +180,7 @@ function useRequest<R = any, P extends any[] = any>(
   };
 
   const handleError = (e: any) => {
-    console.error('useRequest: catch an error while call service', e);
+    console.error("useRequest: catch an error while call service", e);
     const skipMsg = onError && !onError(e);
     if (skipMsg) return;
     showError(e.data, e.response, e.request);
@@ -194,16 +207,16 @@ function useRequest<R = any, P extends any[] = any>(
     });
 
     notification.error({
-      message: '请求失败',
+      message: "请求失败",
       description: (
         <div>
-          <div>错误: {data?.msg || '未知错误, 请联系负责人'}</div>
-          <div style={{ marginTop: '10px' }}>
+          <div>错误: {data?.msg || "未知错误, 请联系负责人"}</div>
+          <div style={{ marginTop: "10px" }}>
             <Button
               size="small"
               type="primary"
               shape="round"
-              style={{ marginRight: '10px' }}
+              style={{ marginRight: "10px" }}
               onClick={() => {
                 navigator.clipboard.writeText(resText);
               }}
@@ -241,6 +254,7 @@ function useRequest<R = any, P extends any[] = any>(
     data,
     pagination,
     loading,
+    reset,
     run,
     debounceRun,
   };

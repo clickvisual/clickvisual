@@ -19,6 +19,7 @@ const SelectedBar = (props: SelectedBarProps) => {
     onChangeConfigMaps,
     doSelectedNameSpace,
     doSelectedConfigMap,
+    onChangeVisibleCreatedConfigMap,
   } = useModel("configure");
 
   useEffect(() => {
@@ -83,7 +84,6 @@ const SelectedBar = (props: SelectedBarProps) => {
         options={options}
         disabled={disabled}
         onChange={(value: any, selectedOptions: any) => {
-          console.log("val: ", value, selectedOptions);
           if (value.length === 2) {
             doSelectedNameSpace(value[0]);
             doSelectedConfigMap(value[1]);
@@ -92,12 +92,17 @@ const SelectedBar = (props: SelectedBarProps) => {
             doSelectedConfigMap(undefined);
           }
         }}
-        placeholder="请选择配置中心"
+        placeholder="Namespace/Configmap"
         showSearch={{ filter }}
         className={searchBarStyles.cascaderInput}
       />
-      <Button disabled={disabled} icon={<PlusOutlined />} type={"primary"}>
-        新增
+      <Button
+        disabled={disabled}
+        icon={<PlusOutlined />}
+        type={"primary"}
+        onClick={() => onChangeVisibleCreatedConfigMap(true)}
+      >
+        Add
       </Button>
     </div>
   );

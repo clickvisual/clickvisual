@@ -39,7 +39,12 @@ const ModalCreatedConfig = () => {
   };
   return (
     <CustomModal title="新建配置" visible={visibleCreate} onCancel={onCancel}>
-      <Form ref={formRef} onFinish={handleCreated}>
+      <Form
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 18 }}
+        ref={formRef}
+        onFinish={handleCreated}
+      >
         <Form.Item
           label="格式"
           name="format"

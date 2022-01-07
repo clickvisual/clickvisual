@@ -1,6 +1,7 @@
 import fileStyles from "@/pages/Configure/components/Menu/Files/index.less";
 import {
   DeleteOutlined,
+  DiffOutlined,
   FileAddOutlined,
   HistoryOutlined,
 } from "@ant-design/icons";
@@ -11,14 +12,14 @@ import IconFont from "@/components/IconFont";
 import ActionButton from "@/pages/Configure/components/CustomButton/ActionButton";
 import classNames from "classnames";
 import { useModel } from "@@/plugin-model/useModel";
-import { useEffect } from "react";
 import DeletedModal from "@/components/DeletedModal";
+import OnlineDiff from "@/pages/Configure/components/Menu/Files/OnlineDiff";
+import { useState } from "react";
 
 type FilesProps = {};
 const Files = (props: FilesProps) => {
   const {
     configurationList,
-    onChangeConfigurations,
     doGetConfigurations,
     doDeletedConfigurations,
     selectedConfigMap,
@@ -26,34 +27,29 @@ const Files = (props: FilesProps) => {
     currentConfiguration,
     onChangeVisibleCreate,
     doGetConfiguration,
+    onChangeCurrentConfiguration,
+    onChangeVisibleHistory,
   } = useModel("configure");
 
-  useEffect(() => {
-    if (selectedConfigMap && selectedNameSpace) {
-      doGetConfigurations.run({
-        k8sConfigMapNameSpace: selectedNameSpace,
-        k8sConfigMapName: selectedConfigMap,
-      });
-    } else {
-      onChangeConfigurations([]);
-    }
-  }, [selectedConfigMap, selectedNameSpace]);
+  const [visibleDiff, setVisibleDiff] = useState<boolean>(false);
+
   if (!selectedConfigMap || !selectedNameSpace) {
     return (
       <div className={fileStyles.fileMain}>
         <div className={fileStyles.loading}>
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={""} />
-          <div>请先选择集群空间</div>
+          <div>Please select a cluster</div>
         </div>
       </div>
     );
   }
+
   return (
     <div className={fileStyles.fileMain}>
       {doGetConfigurations?.loading ? (
         <div className={fileStyles.loading}>
           <Spin />
-          <div>加载中</div>
+          <div>loading</div>
         </div>
       ) : configurationList.length > 0 ? (
         <>
@@ -65,11 +61,18 @@ const Files = (props: FilesProps) => {
                 </ActionButton>
               </Tooltip>
               {currentConfiguration && (
-                <Tooltip title="提交历史" placement="bottom">
-                  <ActionButton>
-                    <HistoryOutlined />
-                  </ActionButton>
-                </Tooltip>
+                <>
+                  <Tooltip title="提交历史" placement="bottom">
+                    <ActionButton onClick={() => onChangeVisibleHistory(true)}>
+                      <HistoryOutlined />
+                    </ActionButton>
+                  </Tooltip>
+                  <Tooltip title="线上版本对比" placement="bottom">
+                    <ActionButton onClick={() => setVisibleDiff(true)}>
+                      <DiffOutlined />
+                    </ActionButton>
+                  </Tooltip>
+                </>
               )}
             </Space>
           </div>
@@ -96,10 +99,14 @@ const Files = (props: FilesProps) => {
                       ev.stopPropagation();
                       DeletedModal({
                         onOk: () => {
-                          doDeletedConfigurations(item.id);
-                          doGetConfigurations.run({
-                            k8sConfigMapNameSpace: selectedNameSpace,
-                            k8sConfigMapName: selectedConfigMap,
+                          doDeletedConfigurations(item.id).then((res) => {
+                            if (res?.code === 0) {
+                              doGetConfigurations.run({
+                                k8sConfigMapNameSpace: selectedNameSpace,
+                                k8sConfigMapName: selectedConfigMap,
+                              });
+                              onChangeCurrentConfiguration(undefined);
+                            }
                           });
                         },
                         content: `确认删除配置文件：${item.name}.${item.format} 吗？`,
@@ -122,6 +129,10 @@ const Files = (props: FilesProps) => {
           </DarkButton>
         </div>
       )}
+      <OnlineDiff
+        visible={visibleDiff}
+        onCancel={() => setVisibleDiff(false)}
+      />
     </div>
   );
 };

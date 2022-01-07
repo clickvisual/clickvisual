@@ -24,22 +24,7 @@ import (
 func GetRouter() *egin.Component {
 	r := invoker.Gin
 	r.Use(invoker.Session)
-	//
-	//public := econf.GetString("server.http.public")
-	//// static file
-	//flag, err := kfile.IsFileExists(public)
-	//if err != nil || !flag {
-	//	panic("Execute yarn install & & yarn build in the ./ui directory to compile the front-end static files before starting the back-end service.")
-	//}
 
-	// 设置Ant Design前端访问，try file到index.html
-	//webuiAntIndexObj := &webuiIndex{
-	//	webui: invoker.Gin.GetEmbedWrapper(),
-	//}
-	//
-	//r.GET("/", core.Handle(func(c *core.Context) {
-	//	c.FileFromFS("/", http.FS(webuiAntIndexObj))
-	//}))
 	r.NoRoute(core.Handle(func(c *core.Context) {
 		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
 			c.JSONE(http.StatusNotFound, "", nil)
@@ -96,7 +81,8 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/configurations/:id", core.Handle(configure.Update))
 		v1.DELETE("/configurations/:id", core.Handle(configure.Delete))
 		v1.POST("/configurations/:id/publish", core.Handle(configure.Publish))
-		v1.GET("/configurations/:id/histories", core.Handle(configure.History))
+		v1.GET("/configurations/:id/histories", core.Handle(configure.HistoryList))
+		v1.GET("/configurations/:id/histories/:version", core.Handle(configure.HistoryInfo))
 		v1.GET("/configurations/:id/diff", core.Handle(configure.Diff))
 		v1.GET("/configurations/:id/lock", core.Handle(configure.Lock))
 		v1.POST("/configurations/:id/unlock", core.Handle(configure.Unlock))
@@ -110,12 +96,3 @@ func GetRouter() *egin.Component {
 	}
 	return r
 }
-
-// Ant Design前端页面，需要该方式，实现刷新，访问到前端index.html
-//type webuiIndex struct {
-//	webui *egin.EmbedWrapper
-//}
-//
-//func (w *webuiIndex) Open(name string) (fs.File, error) {
-//	return w.webui.Open("index.html")
-//}

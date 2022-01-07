@@ -2,6 +2,7 @@ package configure
 
 import (
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
@@ -189,8 +190,8 @@ func Publish(c *core.Context) {
 	c.JSONOK("发布成功")
 }
 
-// History ..
-func History(c *core.Context) {
+// HistoryList ..
+func HistoryList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
 		c.JSONE(1, "error cluster id", nil)
@@ -229,6 +230,25 @@ func History(c *core.Context) {
 		PageSize: param.PageSize,
 		Total:    total,
 	})
+}
+
+// HistoryInfo ..
+func HistoryInfo(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	version := strings.TrimSpace(c.Param("version"))
+	if id < 1 || version == "" {
+		c.JSONE(1, "error cluster id", nil)
+		return
+	}
+	conds := egorm.Conds{}
+	conds["configuration_id"] = id
+	conds["version"] = version
+	resp, err := db.ConfigurationHistoryInfoX(conds)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(resp)
 }
 
 // Diff ..

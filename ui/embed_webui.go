@@ -2,5 +2,5 @@ package ui
 
 import "embed"
 
-//go:embed public
+//go:embed dist
 var WebUI embed.FS

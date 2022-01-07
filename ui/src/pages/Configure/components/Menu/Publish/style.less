@@ -1,0 +1,82 @@
+.publishMain {
+  flex: 1;
+  padding: 12px;
+  .publishForm {
+    color: hsl(219, 14%, 71%);
+    .formSelectInput {
+      width: 100%;
+    }
+    .configDetail {
+      margin-bottom: 24px;
+      overflow: hidden;
+      font-size: 12px;
+      word-break: break-all;
+      //overflow: "hidden",
+      //wordBreak: "break-all",
+      //marginBottom: "24px",
+      //fontSize: "12px",
+    }
+  }
+}
+.darkSelect {
+  color: #fff;
+  font-size: 12px;
+
+  :global {
+    .ant-select-selector {
+      background-color: #181c21 !important;
+      border-color: #2e3442 !important;
+    }
+  }
+}
+
+.darkSelectDropdown {
+  color: #c1c0c0 !important;
+  font-size: 12px;
+  background-color: #262626 !important;
+
+  :global {
+    .ant-empty {
+      color: #c1c0c0 !important;
+      font-size: 13px;
+    }
+
+    .ant-select-item-option {
+      color: #c1c0c0 !important;
+      font-size: 12px;
+      background-color: #262626 !important;
+    }
+  }
+}
+
+.fieldLabel {
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.versionSelectInfo {
+  display: flex;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.changeLog {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.versionSelectLabel {
+  display: flex;
+  min-width: 0;
+
+  .changeLog {
+    flex: 1;
+  }
+}
+
+.versionFieldLabel {
+  display: inline-block;
+  margin-right: 8px;
+  font-weight: bold;
+}

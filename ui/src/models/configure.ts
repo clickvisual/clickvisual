@@ -3,6 +3,7 @@ import useRequest from "@/hooks/useRequest";
 import api, {
   ConfigurationsResponse,
   CurrentConfigurationResponse,
+  DiffHistoryConfigResponse,
   NameSpaceType,
 } from "@/services/configure";
 import { ClusterType } from "@/services/systemSetting";
@@ -43,8 +44,21 @@ const Configure = () => {
     string | undefined
   >();
 
+  const [diffHistory, setDiffHistory] = useState<
+    DiffHistoryConfigResponse | undefined
+  >();
+
   // 是否打开新增配置文件弹窗
   const [visibleCreate, setVisibleCreate] = useState<boolean>(false);
+  // 显示保存弹窗
+  const [visibleCommit, setVisibleCommit] = useState<boolean>(false);
+  // 历史记录列表弹窗
+  const [visibleHistory, setVisibleHistory] = useState<boolean>(false);
+  // 历史版本比对弹窗
+  const [visibleHistoryDiff, setVisibleHistoryDiff] = useState<boolean>(false);
+  // 创建 ConfigMap 弹窗
+  const [visibleCreatedConfigMap, setVisibleCreatedMap] =
+    useState<boolean>(false);
 
   const doGetClusters = useRequest(api.getSelectedClusters, {
     loadingText: false,
@@ -63,6 +77,10 @@ const Configure = () => {
     onSuccess: (res) => setConfigurationList(res.data),
   });
 
+  const doCreatedConfigMap = useRequest(api.createdConfigMap, {
+    loadingText: { done: "新增 ConfigMap 成功" },
+  });
+
   const doCreatedConfiguration = useRequest(api.createdConfiguration, {
     loadingText: { done: "新增配置成功" },
   });
@@ -70,6 +88,10 @@ const Configure = () => {
   const doDeletedConfigurations = useRequest(api.deletedConfiguration, {
     loadingText: { done: "删除配置成功" },
   }).run;
+
+  const doUpdatedConfiguration = useRequest(api.updatedConfiguration, {
+    loadingText: { done: "保存配置成功" },
+  });
 
   const doGetConfiguration = useRequest(api.getConfiguration, {
     loadingText: false,
@@ -79,6 +101,25 @@ const Configure = () => {
     },
   });
 
+  const doGetHistoryConfiguration = useRequest(api.getHistoryConfiguration, {
+    loadingText: false,
+  });
+
+  const doGetCurrentVersionConfiguration = useRequest(
+    api.getCurrentVersionConfigurations,
+    {
+      loadingText: false,
+    }
+  );
+
+  const doGetOnlineConfiguration = useRequest(api.getOnlineConfiguration, {
+    loadingText: false,
+  });
+
+  const doPublishConfiguration = useRequest(api.publishConfiguration, {
+    loadingText: { done: "发布配置成功" },
+  });
+
   const doAddLock = useRequest(api.addLock, {
     loadingText: false,
     onSuccess: (res) => {
@@ -86,6 +127,11 @@ const Configure = () => {
         doGetConfiguration.run(currentConfiguration.id);
       }
     },
+  });
+
+  const doDiffHistoryConfiguration = useRequest(api.diffHistoryConfiguration, {
+    loadingText: false,
+    onSuccess: (res) => setDiffHistory(res.data),
   });
 
   const doRemoveLock = useRequest(api.removeLock, {
@@ -124,6 +170,22 @@ const Configure = () => {
     setVisibleCreate(visible);
   };
 
+  const onChangeVisibleCommit = (visible: boolean) => {
+    setVisibleCommit(visible);
+  };
+
+  const onChangeVisibleHistory = (visible: boolean) => {
+    setVisibleHistory(visible);
+  };
+
+  const onChangeVisibleHistoryDiff = (visible: boolean) => {
+    setVisibleHistoryDiff(visible);
+  };
+
+  const onChangeVisibleCreatedConfigMap = (visible: boolean) => {
+    setVisibleCreatedMap(visible);
+  };
+
   const onChangeCurrentConfiguration = (configuration: any | undefined) => {
     setCurrentConfiguration(configuration);
   };
@@ -132,10 +194,14 @@ const Configure = () => {
     setConfigContent(context);
   };
 
+  const onChangeDiffHistory = (diff: any | undefined) => {
+    setDiffHistory(diff);
+  };
+
   useEffect(() => {
     onChangeCurrentConfiguration(undefined);
     onChangeConfigContent("");
-  }, [selectedClusterId, selectedNameSpace, selectedConfigMap, activeMenu]);
+  }, [selectedClusterId, selectedNameSpace, selectedConfigMap]);
 
   return {
     clusters,
@@ -147,23 +213,40 @@ const Configure = () => {
     activeMenu,
     currentConfiguration,
     configContent,
+    diffHistory,
 
     visibleCreate,
+    visibleCommit,
+    visibleHistory,
+    visibleHistoryDiff,
+    visibleCreatedConfigMap,
 
     doGetClusters,
     doGetConfigMaps,
     doGetConfigurations,
     doCreatedConfiguration,
     doDeletedConfigurations,
+    doUpdatedConfiguration,
     doGetConfiguration,
+    doGetHistoryConfiguration,
+    doDiffHistoryConfiguration,
+    doGetCurrentVersionConfiguration,
+    onChangeVisibleCreatedConfigMap,
+    doCreatedConfigMap,
     doAddLock,
     doRemoveLock,
+    doPublishConfiguration,
+    doGetOnlineConfiguration,
 
     onChangeConfigMaps,
     onChangeConfigurations,
     onChangeVisibleCreate,
+    onChangeVisibleCommit,
+    onChangeVisibleHistory,
+    onChangeVisibleHistoryDiff,
     onChangeCurrentConfiguration,
     onChangeConfigContent,
+    onChangeDiffHistory,
 
     doSelectedMenu,
     doSelectedClusterId,

@@ -1,5 +1,5 @@
 import { request } from "umi";
-interface TimeBaseType {
+export interface TimeBaseType {
   utime?: number;
   ctime?: number;
   dtime?: number;
