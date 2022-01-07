@@ -90,6 +90,17 @@ export interface DiffHistoryConfigResponse {
   modified: CurrentConfigurationResponse;
 }
 
+export interface CurrentVersionConfigResponse extends TimeBaseType {
+  changeLog: string;
+  configuration: CurrentVersionConfigResponse;
+  configurationId: number;
+  content: string;
+  id: 5;
+  uid: 1;
+  user: EditorUserType;
+  version: string;
+}
+
 export default {
   // 获取集群下拉列表
   async getSelectedClusters() {
@@ -171,7 +182,7 @@ export default {
   // 进行历史版本比对
   async diffHistoryConfiguration(id: number, historyId: number) {
     return request<API.Res<DiffHistoryConfigResponse>>(
-      `api/v1/configurations/${id}/diff`,
+      `/api/v1/configurations/${id}/diff`,
       {
         method: "GET",
         params: { historyId },
@@ -179,11 +190,38 @@ export default {
     );
   },
 
+  // 获取线上版本配置信息
+  async getOnlineConfiguration(
+    clusterId: number,
+    namespace: string,
+    configmapName: string,
+    configurationName: string
+  ) {
+    return request<API.Res<string>>(
+      `/api/v1/clusters/${clusterId}/namespace/${namespace}/configmaps/${configmapName}`,
+      { method: "GET", params: { key: configurationName } }
+    );
+  },
+
+  // 获取当前版本的配置信息
+  async getCurrentVersionConfigurations(id: number, version: string) {
+    return request<API.Res<CurrentVersionConfigResponse>>(
+      `/api/v1/configurations/${id}/histories/${version}`,
+      {
+        method: "GET",
+      }
+    );
+  },
+
+  // 版本发布
   async publishConfiguration(configId: number, version: string) {
-    return request(`/api/v1/configurations/${configId}/publish`, {
-      method: "POST",
-      data: { version },
-    });
+    return request<API.Res<string>>(
+      `/api/v1/configurations/${configId}/publish`,
+      {
+        method: "POST",
+        data: { version },
+      }
+    );
   },
 
   // 增加编辑锁

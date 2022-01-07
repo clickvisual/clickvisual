@@ -1,7 +1,7 @@
 import editorStyles from "@/pages/Configure/components/Editor/index.less";
 import MonacoEditor from "react-monaco-editor";
 import { useModel } from "@@/plugin-model/useModel";
-import { Empty, Spin } from "antd";
+import { Empty, Modal, Spin } from "antd";
 import OptionButton, {
   ButtonType,
 } from "@/pages/Configure/components/CustomButton/OptionButton";
@@ -12,12 +12,16 @@ const Editor = (props: EditorProps) => {
     doGetConfiguration,
     currentConfiguration,
     onChangeConfigContent,
+    onChangeVisibleCommit,
     configContent,
     doAddLock,
     doRemoveLock,
   } = useModel("configure");
   const { currentUser } = useModel("@@initialState").initialState || {};
   const currentEditorUser = currentConfiguration?.currentEditUser;
+  const contentChanged =
+    currentConfiguration && currentConfiguration.content !== configContent;
+
   if (!currentConfiguration || doGetConfiguration.loading) {
     return (
       <div className={editorStyles.editorLoading}>
@@ -38,15 +42,46 @@ const Editor = (props: EditorProps) => {
       <div className={editorStyles.editorHeader}>
         {currentEditorUser ? (
           <>
-            <OptionButton
-              type={"border" as ButtonType}
-              style={{ fontSize: "12px", padding: "2px 10px" }}
-              onClick={() => {
-                doRemoveLock.run(currentConfiguration.id);
-              }}
-            >
-              退出编辑
-            </OptionButton>
+            <span className={editorStyles.editorUser}>
+              <span>{currentEditorUser?.nickname}&nbsp;&nbsp;</span>
+              <span>正在编辑</span>
+            </span>
+            {currentEditorUser.id === currentUser.id && (
+              <OptionButton
+                type={"border" as ButtonType}
+                style={{ fontSize: "12px", padding: "2px 10px" }}
+                onClick={() => {
+                  if (contentChanged) {
+                    Modal.confirm({
+                      content:
+                        "当前修改未保存，退出后将丢失本次修改的内容，是否退出编辑？",
+                      onOk: () => {
+                        doRemoveLock.run(currentConfiguration.id);
+                      },
+                    });
+                  } else {
+                    doRemoveLock.run(currentConfiguration.id);
+                  }
+                }}
+              >
+                退出编辑
+              </OptionButton>
+            )}
+            {contentChanged && (
+              <OptionButton
+                type={"border" as ButtonType}
+                style={{
+                  fontSize: "12px",
+                  padding: "2px 10px",
+                  marginLeft: "10px",
+                }}
+                onClick={() => {
+                  onChangeVisibleCommit(true);
+                }}
+              >
+                保存
+              </OptionButton>
+            )}
           </>
         ) : (
           <OptionButton
@@ -60,20 +95,22 @@ const Editor = (props: EditorProps) => {
           </OptionButton>
         )}
       </div>
-      <MonacoEditor
-        height={"100%"}
-        language={currentConfiguration.format === "json" ? "json" : "sb"}
-        theme="vs-dark"
-        options={{
-          automaticLayout: true,
-          scrollBeyondLastLine: false,
-          readOnly: !(
-            currentEditorUser && currentEditorUser.id === currentUser.id
-          ),
-        }}
-        value={configContent}
-        onChange={onChangeConfigContent}
-      />
+      <div className={editorStyles.editor}>
+        <MonacoEditor
+          height={"100%"}
+          language={currentConfiguration.format === "json" ? "json" : "sb"}
+          theme="vs-dark"
+          options={{
+            automaticLayout: true,
+            scrollBeyondLastLine: false,
+            readOnly: !(
+              currentEditorUser && currentEditorUser.id === currentUser.id
+            ),
+          }}
+          value={configContent}
+          onChange={onChangeConfigContent}
+        />
+      </div>
     </div>
   );
 };
