@@ -1,5 +1,5 @@
 import { request } from "umi";
-import { ClusterType } from "@/services/systemSetting";
+import { ClusterType, TimeBaseType } from "@/services/systemSetting";
 export interface NameSpaceType {
   configmaps: ConfigMapType[];
   namespace: string;
@@ -29,10 +29,15 @@ export interface ConfigurationsResponse {
   utime: number;
 }
 
+export interface ConfigurationUpdateRequest {
+  message: string;
+  content: string;
+}
+
 export interface CurrentConfigurationResponse {
   content: string;
   ctime: number;
-  currentEditUser: any;
+  currentEditUser: EditorUserType | null;
   envId: number;
   format: string;
   id: number;
@@ -41,6 +46,48 @@ export interface CurrentConfigurationResponse {
   ptime: number;
   utime: number;
   zoneId: number;
+}
+
+export interface PaginationRequest {
+  current: number;
+  pageSize: number;
+}
+
+export interface HistoryConfigurationResponse extends TimeBaseType {
+  changeLog: string;
+  configurationId: number;
+  ctime: number;
+  id: number;
+  uid: number;
+  username: string;
+  version: string;
+}
+export interface EditorUserType extends TimeBaseType {
+  access: string;
+  avatar: string;
+  currentAuthority: string;
+  email: string;
+  hash: string;
+  id: 1;
+  nickname: string;
+  oa_id: number;
+  oauth: string;
+  oauthId: string;
+  password: string;
+  secret: string;
+  state: string;
+  username: string;
+  webUrl: string;
+}
+
+export interface CreatedConfigMapRequest {
+  configMapName: string;
+  namespace: string;
+}
+
+export interface DiffHistoryConfigResponse {
+  origin: CurrentConfigurationResponse;
+  modified: CurrentConfigurationResponse;
 }
 
 export default {
@@ -59,6 +106,13 @@ export default {
         method: "GET",
       }
     );
+  },
+
+  async createdConfigMap(clusterId: number, data: CreatedConfigMapRequest) {
+    return request(`/api/v1/clusters/${clusterId}/configmaps`, {
+      method: "POST",
+      data,
+    });
   },
 
   // 获取当前 k8s 配置空间下的配置列表
@@ -88,6 +142,14 @@ export default {
     );
   },
 
+  // 更新当前选中的配置文件
+  async updatedConfiguration(id: number, data: ConfigurationUpdateRequest) {
+    return request<API.Res<string>>(`/api/v1/configurations/${id}`, {
+      method: "PATCH",
+      data,
+    });
+  },
+
   // 删除配置文件
   async deletedConfiguration(id: number) {
     return request<API.Res<string>>(`/api/v1/configurations/${id}`, {
@@ -95,12 +157,46 @@ export default {
     });
   },
 
-  // 增加编辑锁
-  async addLock(id: number) {
-    return request(`/api/v1/configurations/${id}/lock`, { method: "GET" });
+  // 获取配置文件历史版本
+  async getHistoryConfiguration(id: number, params: PaginationRequest) {
+    return request<API.ResPage<HistoryConfigurationResponse>>(
+      `/api/v1/configurations/${id}/histories`,
+      {
+        method: "GET",
+        params,
+      }
+    );
   },
 
+  // 进行历史版本比对
+  async diffHistoryConfiguration(id: number, historyId: number) {
+    return request<API.Res<DiffHistoryConfigResponse>>(
+      `api/v1/configurations/${id}/diff`,
+      {
+        method: "GET",
+        params: { historyId },
+      }
+    );
+  },
+
+  async publishConfiguration(configId: number, version: string) {
+    return request(`/api/v1/configurations/${configId}/publish`, {
+      method: "POST",
+      data: { version },
+    });
+  },
+
+  // 增加编辑锁
+  async addLock(id: number) {
+    return request<API.Res<string>>(`/api/v1/configurations/${id}/lock`, {
+      method: "GET",
+    });
+  },
+
+  // 移除编辑锁
   async removeLock(id: number) {
-    return request(`/api/v1/configurations/${id}/unlock`, { method: "POST" });
+    return request<API.Res<string>>(`/api/v1/configurations/${id}/unlock`, {
+      method: "POST",
+    });
   },
 };
