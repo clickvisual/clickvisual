@@ -38,7 +38,12 @@ const ModalCreatedConfigMap = () => {
         </Button>
       }
     >
-      <Form ref={configMapFormRef} onFinish={doSubmit}>
+      <Form
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 18 }}
+        ref={configMapFormRef}
+        onFinish={doSubmit}
+      >
         <Form.Item label={"名称"} name={"configmapName"}>
           <Input />
         </Form.Item>
