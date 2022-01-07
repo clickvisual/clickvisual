@@ -3,7 +3,7 @@ FROM node:16-alpine3.14 as js-builder
 
 ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /mogo
-COPY ui/package.json ui/package-lock.json ui/yarn.lock .
+COPY ui/package.json ui/yarn.lock ./
 
 RUN yarn install
 ENV NODE_ENV production
@@ -19,7 +19,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk add --no-cache make bash git
 WORKDIR /mogo
 
-COPY go.mod go.sum .
+COPY go.mod go.sum ./
 RUN go mod download -x
 COPY scripts scripts
 COPY api api

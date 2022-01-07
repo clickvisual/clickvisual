@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.9.0
-	github.com/gotomicro/ego v0.8.1
+	github.com/gotomicro/ego v0.8.3-0.20220107063841-9459da2415f1
 	github.com/gotomicro/ego-component/egorm v0.4.0
 	github.com/gotomicro/ego-component/eredis v0.3.0
 	github.com/gotomicro/ego-component/esession v0.0.0-20220106091512-0c5abf687773

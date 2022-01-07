@@ -4,7 +4,7 @@ level = "debug"
 [server.http]
 host = "0.0.0.0"
 port = 9001
-public="./public"
+embedPath = "public"
 
 [server.governor]
 host = "0.0.0.0"
@@ -22,7 +22,7 @@ maxIdleConns = 50
 maxOpenConns = 100
 
 [redis.default]
-addrs= "127.0.0.1:6379"
+addrs = "127.0.0.1:6379"
 writeTimeout = "3s"
 password = ""
 
