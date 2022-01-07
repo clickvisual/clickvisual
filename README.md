@@ -8,6 +8,12 @@ Mogo is a lightweight browser-based logs analytics and logs search platform for 
 
 ## Live demo
 
+- log search page
+![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
+
+- configuration page
+![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
+
 TODO.
 
 ## Features
