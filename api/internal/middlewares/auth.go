@@ -32,7 +32,7 @@ func AuthChecker() gin.HandlerFunc {
 		user := session.Get("user")
 		if user == nil {
 			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "找不到指定token信息(#1)"})
+			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
 			c.Abort()
 			return
 		}
@@ -41,7 +41,7 @@ func AuthChecker() gin.HandlerFunc {
 		_ = json.Unmarshal(tmp, &u)
 		if u.Username == "" {
 			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "找不到指定token信息(#1)"})
+			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
 			c.Abort()
 			return
 		}
