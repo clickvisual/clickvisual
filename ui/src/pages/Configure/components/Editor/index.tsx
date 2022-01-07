@@ -105,7 +105,11 @@ const Editor = (props: EditorProps) => {
       <div className={editorStyles.editor}>
         <MonacoEditor
           height={"100%"}
-          language={currentConfiguration.format === "json" ? "json" : "sb"}
+          language={
+            ["toml", "conf"].indexOf(currentConfiguration.format) === -1
+              ? currentConfiguration.format
+              : "sb"
+          }
           theme="vs-dark"
           options={{
             automaticLayout: true,

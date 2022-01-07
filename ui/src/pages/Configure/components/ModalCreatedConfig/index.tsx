@@ -52,7 +52,10 @@ const ModalCreatedConfig = () => {
           rules={[{ required: true }]}
         >
           <Radio.Group>
+            <Radio value="toml">TOML</Radio>
+            <Radio value="yaml">YAML</Radio>
             <Radio value="json">JSON</Radio>
+            <Radio value="ini">INI</Radio>
             <Radio value="conf">CONF</Radio>
           </Radio.Group>
         </Form.Item>
