@@ -27,7 +27,7 @@ configs/
 logs/
 
 node_modules/
-dist/
+dist
 
 .umi/
 .umi-production/

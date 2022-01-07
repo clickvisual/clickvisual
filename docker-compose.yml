@@ -1,0 +1,75 @@
+version: '3'
+
+networks:
+  mogo-net:
+    driver: bridge
+
+services:
+  mysql:
+    image: mysql:5.7.24
+    expose:
+      - "3307"
+    ports:
+      - "3307:3307"
+    command: [
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_general_ci',
+        '--port=3307',
+        '--init-file=/data/migration/latest.sql',
+    ]
+    volumes:
+      - ./scripts/migration:/data/migration
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_HOST: '%'
+    restart: always
+    networks:
+      - mogo-net
+  redis:
+    image: redis:5.0.14-alpine
+    expose:
+      - "6380"
+    ports:
+      - "6380:6380"
+    restart: always
+    networks:
+      - mogo-net
+    command: [ '--port 6380' ]
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    expose:
+      - "8123"
+    ports:
+      - "8123:8123"
+    # volumes:
+    # - ./scripts/migration/latest.sql:/data/init.sql
+    # environment:
+    restart: always
+    networks:
+      - mogo-net
+  api:
+    image: mogo:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "9001"
+    ports:
+      - "9001:9001"
+    depends_on:
+      - mysql
+      - redis
+      - clickhouse
+    networks:
+      - mogo-net
+    links:
+      - mysql
+      - redis
+      - clickhouse
+    restart: always
+    environment:
+      EGO_CONFIG_PATH: /mogo/config/default.toml
+      EGO_LOG_WRITER: stderr
+    volumes:
+      - ./api/config:/mogo/config
+    command: ['/bin/sh', '-c', './bin/mogo']

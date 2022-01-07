@@ -1,14 +1,16 @@
 package router
 
 import (
-	"github.com/kl7sn/toolkit/kfile"
+	"net/http"
+	"strings"
+
+	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
 	"github.com/shimohq/mogo/api/internal/apiv1/inquiry"
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
-	"github.com/shimohq/mogo/api/internal/apiv1/static"
 	"github.com/shimohq/mogo/api/internal/apiv1/sys"
 	"github.com/shimohq/mogo/api/internal/apiv1/user"
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -22,14 +24,31 @@ import (
 func GetRouter() *egin.Component {
 	r := invoker.Gin
 	r.Use(invoker.Session)
+	//
+	//public := econf.GetString("server.http.public")
+	//// static file
+	//flag, err := kfile.IsFileExists(public)
+	//if err != nil || !flag {
+	//	panic("Execute yarn install & & yarn build in the ./ui directory to compile the front-end static files before starting the back-end service.")
+	//}
 
-	// static file
-	flag, err := kfile.IsFileExists("./ui/dist")
-	if err != nil || !flag {
-		panic("Execute yarn install & & yarn build in the ./ui directory to compile the front-end static files before starting the back-end service.")
-	}
-	r.GET("/", core.Handle(static.File))
-	r.NoRoute(core.Handle(static.Filter))
+	// 设置Ant Design前端访问，try file到index.html
+	//webuiAntIndexObj := &webuiIndex{
+	//	webui: invoker.Gin.GetEmbedWrapper(),
+	//}
+	//
+	//r.GET("/", core.Handle(func(c *core.Context) {
+	//	c.FileFromFS("/", http.FS(webuiAntIndexObj))
+	//}))
+	r.NoRoute(core.Handle(func(c *core.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			c.JSONE(http.StatusNotFound, "", nil)
+			return
+		}
+		elog.Debug("static", elog.String("path", c.Request.URL.Path))
+		c.FileFromFS(c.Request.URL.Path, invoker.Gin.HTTPEmbedFs())
+		return
+	}))
 
 	// non-authentication api
 	r.POST("/api/admin/users/login", core.Handle(user.Login))
@@ -92,3 +111,12 @@ func GetRouter() *egin.Component {
 	}
 	return r
 }
+
+// Ant Design前端页面，需要该方式，实现刷新，访问到前端index.html
+//type webuiIndex struct {
+//	webui *egin.EmbedWrapper
+//}
+//
+//func (w *webuiIndex) Open(name string) (fs.File, error) {
+//	return w.webui.Open("index.html")
+//}

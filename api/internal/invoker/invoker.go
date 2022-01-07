@@ -6,6 +6,7 @@ import (
 	"github.com/gotomicro/ego-component/eredis"
 	"github.com/gotomicro/ego-component/esession"
 	"github.com/gotomicro/ego/server/egin"
+	"github.com/shimohq/mogo/ui"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 // Init invoker
 func Init() (err error) {
 	Session = esession.Load("session").Build()
-	Gin = egin.Load("server.http").Build()
+	Gin = egin.Load("server.http").Build(egin.WithEmbedFs(ui.WebUI))
 	Db = egorm.Load("mysql.default").Build()
 	Redis = eredis.Load("redis.default").Build()
 	return nil
