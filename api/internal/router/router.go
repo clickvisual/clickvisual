@@ -1,14 +1,17 @@
 package router
 
 import (
+	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfile"
+	"net/http"
+	"strings"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
 	"github.com/shimohq/mogo/api/internal/apiv1/inquiry"
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
-	"github.com/shimohq/mogo/api/internal/apiv1/static"
 	"github.com/shimohq/mogo/api/internal/apiv1/sys"
 	"github.com/shimohq/mogo/api/internal/apiv1/user"
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -23,13 +26,24 @@ func GetRouter() *egin.Component {
 	r := invoker.Gin
 	r.Use(invoker.Session)
 
+	public := econf.GetString("server.http.public")
 	// static file
-	flag, err := kfile.IsFileExists("./ui/dist")
+	flag, err := kfile.IsFileExists(public)
 	if err != nil || !flag {
 		panic("Execute yarn install & & yarn build in the ./ui directory to compile the front-end static files before starting the back-end service.")
 	}
-	r.GET("/", core.Handle(static.File))
-	r.NoRoute(core.Handle(static.Filter))
+	r.GET("/", core.Handle(func(c *core.Context) {
+		c.File(public + "/index.html")
+	}))
+	r.NoRoute(core.Handle(func(c *core.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			c.JSONE(http.StatusNotFound, "", nil)
+			return
+		}
+		elog.Debug("static", elog.String("path", c.Request.URL.Path))
+		c.File(public + c.Request.URL.Path)
+		return
+	}))
 
 	// non-authentication api
 	r.POST("/api/admin/users/login", core.Handle(user.Login))
