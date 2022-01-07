@@ -39,11 +39,13 @@ services:
     image: clickhouse/clickhouse-server:latest
     expose:
       - "8123"
+      - "9000"
     ports:
       - "8123:8123"
-    # volumes:
-    # - ./scripts/migration/latest.sql:/data/init.sql
-    # environment:
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_USER: user1
+      CLICKHOUSE_PASSWORD: pass1
     restart: always
     networks:
       - mogo-net
@@ -68,8 +70,8 @@ services:
       - clickhouse
     restart: always
     environment:
-      EGO_CONFIG_PATH: /mogo/config/default.toml
+      EGO_CONFIG_PATH: /mogo/config/docker.toml
       EGO_LOG_WRITER: stderr
     volumes:
       - ./api/config:/mogo/config
-    command: ['/bin/sh', '-c', './bin/mogo']
+    command: ['/bin/sh', '-c', './bin/mogo -job install && ./bin/mogo']

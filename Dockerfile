@@ -24,7 +24,8 @@ RUN go mod download -x
 COPY scripts scripts
 COPY api api
 COPY Makefile Makefile
-RUN ls -rlt && make build.api
+COPY --from=js-builder /mogo/dist ./api/internal/ui/dist
+RUN ls -rlt ./api/internal/ui/dist && make build.api
 
 
 # # Fianl running stage
@@ -34,7 +35,7 @@ LABEL maintainer="mogo@shimo.im"
 WORKDIR /mogo
 
 COPY --from=go-builder /mogo/bin/mogo ./bin/
-COPY --from=js-builder /mogo/dist ./public
+# COPY --from=js-builder /mogo/dist ./public
 
 EXPOSE 9001
 EXPOSE 9003
