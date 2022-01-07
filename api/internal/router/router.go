@@ -3,7 +3,9 @@ package router
 import (
 	"github.com/kl7sn/toolkit/kfile"
 
+	"github.com/shimohq/mogo/api/internal/apiv1/configure"
 	"github.com/shimohq/mogo/api/internal/apiv1/inquiry"
+	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
 	"github.com/shimohq/mogo/api/internal/apiv1/static"
@@ -24,7 +26,7 @@ func GetRouter() *egin.Component {
 	// static file
 	flag, err := kfile.IsFileExists("./ui/dist")
 	if err != nil || !flag {
-		panic("ui/dist not exist")
+		panic("Execute yarn install & & yarn build in the ./ui directory to compile the front-end static files before starting the back-end service.")
 	}
 	r.GET("/", core.Handle(static.File))
 	r.NoRoute(core.Handle(static.Filter))
@@ -34,13 +36,13 @@ func GetRouter() *egin.Component {
 	r.GET("/api/admin/login/:oauth", core.Handle(user.Oauth))
 
 	v1 := r.Group("/api/v1", middlewares.AuthChecker())
-	// 用户相关
+	// User related
 	{
 		v1.GET("/menus/list", core.Handle(permission.MenuList))
 		v1.GET("/users/info", core.Handle(user.Info))
 		v1.POST("/users/logout", core.Handle(user.Logout))
 	}
-	// 数据查询
+	// Data query
 	{
 		v1.GET("/query/logs", core.Handle(inquiry.Logs))
 		v1.GET("/query/charts", core.Handle(inquiry.Charts))
@@ -48,38 +50,44 @@ func GetRouter() *egin.Component {
 		v1.GET("/query/databases", core.Handle(inquiry.Databases))
 		v1.GET("/query/indexes", core.Handle(inquiry.Indexes))
 	}
-	// 系统配置
+	// System configuration
 	{
-		// 数据库实例配置
+		// Database instance configuration
 		v1.POST("/sys/instances", core.Handle(sys.InstanceCreate))
 		v1.GET("/sys/instances", core.Handle(sys.InstanceList))
 		v1.PATCH("/sys/instances/:id", core.Handle(sys.InstanceUpdate))
 		v1.DELETE("/sys/instances/:id", core.Handle(sys.InstanceDelete))
-		// 集群配置
+		// Cluster configuration
 		v1.GET("/sys/clusters/:id", core.Handle(setting.ClusterInfo))
 		v1.GET("/sys/clusters", core.Handle(setting.ClusterPageList))
 		v1.POST("/sys/clusters", core.Handle(setting.ClusterCreate))
 		v1.PATCH("/sys/clusters/:id", core.Handle(setting.ClusterUpdate))
 		v1.DELETE("/sys/clusters/:id", core.Handle(setting.ClusterDelete))
 	}
-	// 数据表自定义设置
+	// Data Table Customization Settings
 	{
 		v1.PATCH("/setting/indexes", core.Handle(setting.IndexUpdate))
 		v1.GET("/setting/indexes", core.Handle(setting.Indexes))
 	}
-	// 配置管理
-	// {
-	// 	v1.GET("/configs", core.Handle(configs.List))          // 配置文件列表
-	// 	v1.GET("/configs/:id", core.Handle(configs.Detail))    // 配置文件内容
-	// 	v1.POST("/configs", core.Handle(configs.Create))       // 配置新建
-	// 	v1.PATCH("/configs/:id", core.Handle(configs.Update))  // 配置更新
-	// 	v1.DELETE("/configs/:id", core.Handle(configs.Delete)) // 配置删除
-	//
-	// 	v1.POST("/configs/:id/publish", core.Handle(configs.Publish)) // 配置发布
-	// 	v1.GET("/configs/:id/history", core.Handle(configs.History))  // 配置文件历史
-	// 	v1.GET("/configs/diff", core.Handle(configs.Diff))            // Diff
-	// 	v1.GET("/configs/:id/lock", core.Handle(configs.Lock))        // 获取编辑锁
-	// 	v1.POST("/configs/:id/unlock", core.Handle(configs.Unlock))   // 解锁
-	// }
+	// Configuration management
+	{
+		v1.GET("/configurations", core.Handle(configure.List))
+		v1.GET("/configurations/:id", core.Handle(configure.Detail))
+		v1.POST("/configurations", core.Handle(configure.Create))
+		v1.PATCH("/configurations/:id", core.Handle(configure.Update))
+		v1.DELETE("/configurations/:id", core.Handle(configure.Delete))
+		v1.POST("/configurations/:id/publish", core.Handle(configure.Publish))
+		v1.GET("/configurations/:id/histories", core.Handle(configure.History))
+		v1.GET("/configurations/:id/diff", core.Handle(configure.Diff))
+		v1.GET("/configurations/:id/lock", core.Handle(configure.Lock))
+		v1.POST("/configurations/:id/unlock", core.Handle(configure.Unlock))
+	}
+	// Cluster-related interfaces
+	{
+		v1.GET("/clusters", core.Handle(kube.ClusterList))
+		v1.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))
+		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
+		v1.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
+	}
 	return r
 }

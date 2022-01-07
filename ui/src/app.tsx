@@ -31,7 +31,9 @@ const fetchMenu = async () => {
 };
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
-  if (window.location.pathname === '/login') return { menus: [], settings: defaultSettings };
+  if (window.location.pathname === '/user/login/') {
+    return {menus: [], settings: defaultSettings };
+  }
   const currentUser = (await FetchCurrentUserInfo()).data;
   const menus = await fetchMenu();
 

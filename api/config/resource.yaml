@@ -1,7 +1,6 @@
 permission:
-  - name: 日志查询
+  - name: Logs
     path: /query
-    icon: RocketOutlined
     api:
       - name: 获取日志列表
         method: GET
@@ -12,12 +11,13 @@ permission:
       - name: 获取日志tables
         method: GET
         path: /api/query/tables
-  - name: 系统配置
+  - name: Config
+    path: /configure
+  - name: Setting
     path: /sys
-    icon: SettingOutlined
     children:
       - path: /sys/instances
-        name: 数据库管理
+        name: Database
         api:
         - name: 查询数据库连接
           method: GET
@@ -32,7 +32,7 @@ permission:
           method: DELETE
           path: /api/sys/instances/:id
       - path: /sys/clusters
-        name: 集群管理
+        name: Cluster
         api:
         - name: 查询数据库连接
           method: GET

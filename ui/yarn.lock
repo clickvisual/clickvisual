@@ -9600,7 +9600,7 @@ loader-utils@^1.1.0:
     emojis-list "^3.0.0"
     json5 "^1.0.1"
 
-loader-utils@^2.0.0:
+loader-utils@^2.0.0, loader-utils@^2.0.2:
   version "2.0.2"
   resolved "https://registry.npmmirror.com/loader-utils/download/loader-utils-2.0.2.tgz?cache=0&sync_timestamp=1636687952028&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Floader-utils%2Fdownload%2Floader-utils-2.0.2.tgz#d6e3b4fb81870721ae4e0868ab11dd638368c129"
   integrity sha1-1uO0+4GHByGuTghoqxHdY4NowSk=
@@ -10375,6 +10375,18 @@ moment@^2.24.0, moment@^2.25.3, moment@^2.27.0, moment@^2.29.1:
   version "2.29.1"
   resolved "https://registry.npmmirror.com/moment/download/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
   integrity sha1-sr52n6MZQL6e7qZGnAdeNQBvo9M=
+
+monaco-editor-webpack-plugin@^7.0.1:
+  version "7.0.1"
+  resolved "https://registry.npmmirror.com/monaco-editor-webpack-plugin/download/monaco-editor-webpack-plugin-7.0.1.tgz#ba19c60aba990184e36ad8722b1ed6a564527c7c"
+  integrity sha512-M8qIqizltrPlIbrb73cZdTWfU9sIsUVFvAZkL3KGjAHmVWEJ0hZKa/uad14JuOckc0GwnCaoGHvMoYtJjVyCzw==
+  dependencies:
+    loader-utils "^2.0.2"
+
+monaco-editor@^0.31.1:
+  version "0.31.1"
+  resolved "https://registry.npmmirror.com/monaco-editor/download/monaco-editor-0.31.1.tgz#67f597b3e45679d1f551237e12a3a42c4438b97b"
+  integrity sha512-FYPwxGZAeP6mRRyrr5XTGHD9gRXVjy7GUzF4IPChnyt3fS5WrNxIkS8DNujWf6EQy0Zlzpxw8oTVE+mWI2/D1Q==
 
 moo@^0.5.0:
   version "0.5.1"
@@ -12866,6 +12878,13 @@ react-lifecycles-compat@^3.0.4:
   version "3.0.4"
   resolved "https://registry.npmmirror.com/react-lifecycles-compat/download/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha1-TxonOv38jzSIqMUWv9p4+HI1I2I=
+
+react-monaco-editor@^0.46.0:
+  version "0.46.0"
+  resolved "https://registry.npmmirror.com/react-monaco-editor/download/react-monaco-editor-0.46.0.tgz#ac97d5429cd8821d466f0e8e0536ea2a90bbc6d0"
+  integrity sha1-rJfVQpzYgh1Gbw6OBTbqKpC7xtA=
+  dependencies:
+    prop-types "^15.7.2"
 
 react-motion@^0.5.2:
   version "0.5.2"

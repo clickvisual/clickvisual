@@ -11,6 +11,12 @@ const (
 	TableNameIndex    = "mogo_index"
 	TableNameCluster  = "mogo_cluster"
 	TableNameInstance = "mogo_instance"
+
+	TableNameConfiguration        = "mogo_configuration"
+	TableNameConfigurationHistory = "mogo_configuration_history"
+	TableNameConfigurationPublish = "mogo_configuration_publish"
+
+	TableNameK8SConfigMap = "mogo_k8s_cm"
 )
 
 type BaseModel struct {
@@ -21,9 +27,8 @@ type BaseModel struct {
 }
 
 type ReqPage struct {
-	Current  int    `json:"current" form:"current"`
-	PageSize int    `json:"pageSize" form:"pageSize"`
-	Sort     string `json:"sort" form:"sort"`
+	Current  int `json:"current" form:"current"`
+	PageSize int `json:"pageSize" form:"pageSize"`
 }
 
 func (r *ReqPage) Valid() error {

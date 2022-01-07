@@ -36,6 +36,7 @@ CREATE TABLE `mogo_user` (
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '用户数据存储' DEFAULT CHARSET = utf8mb4;
 
+INSERT INTO mogo_user (id, oa_id, username, nickname, secret, email, avatar, hash, web_url, oauth, state, oauth_id, password, current_authority, access, oauth_token, ctime, utime, dtime) VALUES (1, 0, 'admin', 'admin', '', '', '', '', '', '', '', '', '$2a$10$qcItdU1.GoWjjStA7VzYmuRT0bDyVtgyo4p.8LJhxSq7/c48Vednm', '', '', '{}', 1640624435, 1640624435, 0);
 
 CREATE TABLE `mogo_index` (
     `instance_id` bigint(20) NOT NULL COMMENT '实例ID',
@@ -65,6 +66,7 @@ CREATE TABLE `mogo_cluster`
     UNIQUE KEY `uix_cluster_name` (`name`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '集群配置' DEFAULT CHARSET = utf8mb4;
 
+
 -- configuration: table
 CREATE TABLE `mogo_k8s_cm`
 (
@@ -75,7 +77,8 @@ CREATE TABLE `mogo_k8s_cm`
     `ctime`     int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`     int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`     int(11) DEFAULT NULL COMMENT '删除时间',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_cluster_id_name_namespace` (`cluster_id`,`name`,`namespace`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4;
@@ -92,11 +95,12 @@ CREATE TABLE `mogo_configuration`
     `uid`             int(11) unsigned DEFAULT NULL,
     `publish_time`     int(11)         DEFAULT NULL,
     `lock_uid`        int(11) unsigned DEFAULT NULL,
-    `lock_at`         datetime         DEFAULT NULL,
+    `lock_at`        int(11)         DEFAULT NULL,
     `ctime`             int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`             int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_k8s_cm_id_name` (`k8s_cm_id`,`name`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4;
@@ -115,8 +119,8 @@ CREATE TABLE `mogo_configuration_history`
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
-AUTO_INCREMENT = 1
-DEFAULT CHARSET = utf8mb4;
+  AUTO_INCREMENT = 1
+  DEFAULT CHARSET = utf8mb4;
 
 -- configuration_publish: table
 CREATE TABLE `mogo_configuration_publish`
@@ -125,8 +129,6 @@ CREATE TABLE `mogo_configuration_publish`
     `uid`                      int(11) unsigned DEFAULT NULL,
     `configuration_id`         int(11) unsigned DEFAULT NULL,
     `configuration_history_id` int(11) unsigned DEFAULT NULL,
-    `apply_instance`           varchar(255)     DEFAULT NULL,
-    `file_path`                varchar(255)     DEFAULT NULL,
     `ctime`             int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`             int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',

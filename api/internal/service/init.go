@@ -3,6 +3,8 @@ package service
 import (
 	"github.com/gotomicro/ego/core/econf"
 
+	"github.com/shimohq/mogo/api/internal/service/configure"
+	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/permission"
 )
 
@@ -10,7 +12,6 @@ var (
 	Permission      *permission.Service
 	InstanceManager *instanceManager
 	User            *user
-	// Config          *config
 )
 
 func Init() error {
@@ -18,6 +19,7 @@ func Init() error {
 	InstanceManager = NewInstanceManager()
 	initGob()
 	User = NewUser()
-	// Config = NewConfig()
+	configure.InitConfigure()
+	kube.InitClusterManager()
 	return nil
 }
