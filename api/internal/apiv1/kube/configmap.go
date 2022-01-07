@@ -16,6 +16,8 @@ import (
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // ConfigMapList Get configmap by name
@@ -137,6 +139,10 @@ func ConfigMapInfo(c *core.Context) {
 	elog.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
 	if err != nil {
+		if err.Error() == apierrors.NewNotFound(corev1.Resource("configmaps"), name).Error() {
+			c.JSONOK("")
+			return
+		}
 		c.JSONE(core.CodeErr, "configmap 数据读取失败："+err.Error(), nil)
 		return
 	}
