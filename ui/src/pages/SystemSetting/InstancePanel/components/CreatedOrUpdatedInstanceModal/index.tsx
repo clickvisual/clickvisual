@@ -50,9 +50,14 @@ const CreatedOrUpdatedInstanceModal = (
       title={!isEditor ? "新增实例" : `编辑实例`}
       visible={visible}
       onCancel={onCancel}
-      width={"50vw"}
+      width={"45vw"}
     >
-      <Form ref={instanceFormRef} onFinish={run}>
+      <Form
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 18 }}
+        ref={instanceFormRef}
+        onFinish={run}
+      >
         <Form.Item name={"instanceName"} label={"实例名称"}>
           <Input placeholder={"请输入实例名称"} allowClear />
         </Form.Item>

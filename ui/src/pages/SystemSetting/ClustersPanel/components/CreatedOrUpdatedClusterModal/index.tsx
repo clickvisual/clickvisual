@@ -57,7 +57,12 @@ const CreatedOrUpdatedClusterModal = (
       onCancel={onCancel}
       width={"70vw"}
     >
-      <Form ref={clusterFormRef} onFinish={onSubmit.run}>
+      <Form
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 18 }}
+        ref={clusterFormRef}
+        onFinish={onSubmit.run}
+      >
         <Form.Item label={"名称"} name={"clusterName"}>
           <Input placeholder="请输入集群名称" />
         </Form.Item>
