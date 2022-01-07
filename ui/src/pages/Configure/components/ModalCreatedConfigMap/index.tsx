@@ -45,10 +45,10 @@ const ModalCreatedConfigMap = () => {
         onFinish={doSubmit}
       >
         <Form.Item label={"名称"} name={"configmapName"}>
-          <Input />
+          <Input placeholder={"请输入名称"} />
         </Form.Item>
         <Form.Item label={"命名空间"} name={"namespace"}>
-          <Input />
+          <Input placeholder={"请输入命名空间"} />
         </Form.Item>
       </Form>
     </CustomModal>
