@@ -16,11 +16,18 @@ const Editor = (props: EditorProps) => {
     configContent,
     doAddLock,
     doRemoveLock,
+    selectedConfigMap,
+    selectedNameSpace,
+    selectedClusterId,
   } = useModel("configure");
   const { currentUser } = useModel("@@initialState").initialState || {};
   const currentEditorUser = currentConfiguration?.currentEditUser;
   const contentChanged =
     currentConfiguration && currentConfiguration.content !== configContent;
+
+  if (!selectedConfigMap || !selectedNameSpace || !selectedClusterId) {
+    return <div className={editorStyles.editorLoading} />;
+  }
 
   if (!currentConfiguration || doGetConfiguration.loading) {
     return (
