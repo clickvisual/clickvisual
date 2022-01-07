@@ -75,12 +75,8 @@ const CreatedOrUpdatedClusterModal = (
             ))}
           </Select>
         </Form.Item>
-        <Form.Item label={"描述"} name={"description"}>
-          <Input.TextArea
-            placeholder="请输入集群描述"
-            autoSize={{ minRows: 5, maxRows: 5 }}
-            allowClear
-          />
+        <Form.Item label={"Api Server"} name={"apiServer"}>
+          <Input placeholder="请输入 Api Server" />
         </Form.Item>
         <Form.Item label={"k8s配置"} name={"kubeConfig"}>
           <Input.TextArea
@@ -89,8 +85,12 @@ const CreatedOrUpdatedClusterModal = (
             allowClear
           />
         </Form.Item>
-        <Form.Item label={"Api Server"} name={"apiServer"}>
-          <Input placeholder="请输入 Api Server" />
+        <Form.Item label={"描述"} name={"description"}>
+          <Input.TextArea
+            placeholder="请输入集群描述"
+            autoSize={{ minRows: 5, maxRows: 5 }}
+            allowClear
+          />
         </Form.Item>
         <Form.Item noStyle>
           <div className={clusterPanelStyles.formBtn}>
