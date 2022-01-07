@@ -101,8 +101,8 @@ type RespDiffConfig struct {
 
 // ReqCreateConfigMap ..
 type ReqCreateConfigMap struct {
-	Name      string `form:"name" binding:"required"`
-	Namespace string `form:"namespace" binding:"required"`
+	ConfigmapName string `form:"configmapName" binding:"required"`
+	Namespace     string `form:"namespace" binding:"required"`
 }
 
 // ReqConfigMapInfo ..

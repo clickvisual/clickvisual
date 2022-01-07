@@ -103,7 +103,7 @@ func ConfigMapCreate(c *core.Context) {
 	// Gets the configmap ID
 	obj := db.K8SConfigMap{
 		ClusterId: clusterId,
-		Name:      param.Name,
+		Name:      param.ConfigmapName,
 		Namespace: param.Namespace,
 	}
 	resp, err := db.K8SConfigMapLoadOrSave(invoker.Db, &obj)
