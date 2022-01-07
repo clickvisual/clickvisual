@@ -71,7 +71,7 @@ const Publish = () => {
         form={publishForm}
         onFinish={handleFormSubmit}
       >
-        <div className={publishStyles.fieldLabel}>配置文件</div>
+        <div className={publishStyles.fieldLabel}>File</div>
         <Form.Item name="configId">
           <Select<number>
             className={classNames(
@@ -79,7 +79,7 @@ const Publish = () => {
               publishStyles.darkSelect
             )}
             dropdownClassName={publishStyles.darkSelectDropdown}
-            placeholder="选择配置文件"
+            placeholder="Select a file"
             onSelect={(configId) => {
               handleChangeConfig(configId);
             }}
@@ -92,10 +92,10 @@ const Publish = () => {
           </Select>
         </Form.Item>
 
-        <div className={publishStyles.fieldLabel}>配置文件</div>
+        <div className={publishStyles.fieldLabel}>Version</div>
         <Form.Item name="version">
           <Select
-            placeholder="选择配置版本"
+            placeholder="Select the version"
             className={classNames(
               publishStyles.formSelectInput,
               publishStyles.darkSelect
@@ -183,9 +183,17 @@ const Publish = () => {
               const configId = getFieldValue("configId");
               const version = getFieldValue("version");
               if (!configId)
-                return <DarkButton disabled>请选择配置</DarkButton>;
+                return (
+                  <DarkButton disabled>
+                    Please select a configuration
+                  </DarkButton>
+                );
               if (!version)
-                return <DarkButton disabled>请选择配置版本</DarkButton>;
+                return (
+                  <DarkButton disabled>
+                    Please select a configuration version
+                  </DarkButton>
+                );
 
               return <DarkButton onClick={publishForm.submit}>发布</DarkButton>;
             }}

@@ -29,10 +29,10 @@ const Editor = (props: EditorProps) => {
         {doGetConfiguration.loading ? (
           <div>
             <Spin />
-            <div>加载中</div>
+            <div>loading</div>
           </div>
         ) : (
-          <div>请选择文件</div>
+          <div>Please select a file</div>
         )}
       </div>
     );
@@ -44,7 +44,7 @@ const Editor = (props: EditorProps) => {
           <>
             <span className={editorStyles.editorUser}>
               <span>{currentEditorUser?.nickname}&nbsp;&nbsp;</span>
-              <span>正在编辑</span>
+              <span>Editing</span>
             </span>
             {currentEditorUser.id === currentUser.id && (
               <OptionButton
@@ -64,7 +64,7 @@ const Editor = (props: EditorProps) => {
                   }
                 }}
               >
-                退出编辑
+                Exit Edit
               </OptionButton>
             )}
             {contentChanged && (
@@ -79,7 +79,7 @@ const Editor = (props: EditorProps) => {
                   onChangeVisibleCommit(true);
                 }}
               >
-                保存
+                Save
               </OptionButton>
             )}
           </>
@@ -91,7 +91,7 @@ const Editor = (props: EditorProps) => {
               doAddLock.run(currentConfiguration.id);
             }}
           >
-            开始编辑
+            Start Editing
           </OptionButton>
         )}
       </div>

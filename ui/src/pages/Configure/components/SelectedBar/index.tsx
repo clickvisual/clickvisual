@@ -92,7 +92,7 @@ const SelectedBar = (props: SelectedBarProps) => {
             doSelectedConfigMap(undefined);
           }
         }}
-        placeholder="请选择配置中心"
+        placeholder="Namespace/Configmap"
         showSearch={{ filter }}
         className={searchBarStyles.cascaderInput}
       />
@@ -102,7 +102,7 @@ const SelectedBar = (props: SelectedBarProps) => {
         type={"primary"}
         onClick={() => onChangeVisibleCreatedConfigMap(true)}
       >
-        新增配置空间
+        Add
       </Button>
     </div>
   );
