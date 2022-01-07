@@ -386,8 +386,9 @@ github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoA
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gotomicro/ego v0.8.0/go.mod h1:eQDInBi4IrfrwctWZZTQmtWTBYrSVgJ0arwx2WE48ag=
-github.com/gotomicro/ego v0.8.1 h1:3rQDplCig8q/u4yoMx4cvD38RDC3Wmf1HKqKA4NVmp8=
 github.com/gotomicro/ego v0.8.1/go.mod h1:eQDInBi4IrfrwctWZZTQmtWTBYrSVgJ0arwx2WE48ag=
+github.com/gotomicro/ego v0.8.3-0.20220107063841-9459da2415f1 h1:d63ocDCmsNrMDmGyILPm5OHAvNWqFDUt7fCvvXHUwxQ=
+github.com/gotomicro/ego v0.8.3-0.20220107063841-9459da2415f1/go.mod h1:eQDInBi4IrfrwctWZZTQmtWTBYrSVgJ0arwx2WE48ag=
 github.com/gotomicro/ego-component/egorm v0.4.0 h1:zK1ZLUWfrMT0/i2zsfWLE6x4kTMXU0B7D2Sm6tW9KtU=
 github.com/gotomicro/ego-component/egorm v0.4.0/go.mod h1:1egjaI8zNFJFsjonLRPs78TPi7VBbEc5KO2N7ge+Ll0=
 github.com/gotomicro/ego-component/eredis v0.3.0 h1:BcBXdKp9SG4PFAk5eQ1YtveeOlOira7gC7n5VS3PouI=

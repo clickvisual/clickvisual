@@ -7,9 +7,11 @@
 Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse, MySQL, etc.)
 
 ## Live demo
+
 TODO.
 
 ## Features
+
 - visual query dashboard, support query Histogram and raw logs for SQL.
 - shows percentage for specified fields.
 - vscode style configuration board, you can easily emit your fluent-bit configuration to Kubernetes ConfigMap.
@@ -17,9 +19,12 @@ TODO.
 - Support for GitHub and GitLab Authentication.
 
 ## Architecture
+![image](./docs/images/mogoprocess.png)
 
 ## Installation
+
 - For host
+
 ```bash
 # download release
 # go to https://github.com/shimohq/mogo/releases and choose specific release to download.
@@ -40,6 +45,7 @@ tar xvf mogo.tar.gz -O
 ```
 
 - For Docker
+
 ```bash
 git clone https://github.com/shimohq/mogo.git
 docker-compose up
@@ -50,14 +56,18 @@ docker-compose up
 ```
 
 - For helm
+
 ```bash
 ```
 
 ## Main Tasks
+
 -[x] task1
+
 -[x] task2
 
 ## Bugs or features
+
 If you want to report a bug or request for a feature, create a issue [here](https://github.com/shimohq/mogo/issues).
 
 ## Contributors
