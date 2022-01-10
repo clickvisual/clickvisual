@@ -8,7 +8,11 @@ type TooltipRenderProps = {
 const TooltipRender = (props: TooltipRenderProps) => {
   const { placement } = props;
   return (_: any) => (
-    <Tooltip title={_} placement={placement}>
+    <Tooltip
+      title={_}
+      placement={placement}
+      overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
+    >
       <span style={{ cursor: "default" }}>{_}</span>
     </Tooltip>
   );
