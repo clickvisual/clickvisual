@@ -9,6 +9,7 @@ import { useContext } from "react";
 import DeletedModal from "@/components/DeletedModal";
 import { useModel } from "@@/plugin-model/useModel";
 import type { InstanceType } from "@/services/systemSetting";
+import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 
 type InstanceTableProps = {
   list: InstanceType[];
@@ -28,12 +29,14 @@ const InstanceTable = (props: InstanceTableProps) => {
       dataIndex: "instanceName",
       width: 100,
       ellipsis: { showTitle: false },
+      render: TooltipRender({ placement: "right" }),
     },
     {
       title: "DSN",
       align: "center" as AlignType,
       dataIndex: "dsn",
       ellipsis: { showTitle: false },
+      render: TooltipRender({ placement: "right" }),
     },
     {
       title: "操作",
