@@ -4,7 +4,7 @@ level = "debug"
 [server.http]
 host = "0.0.0.0"
 port = 9001
-embedPath = "public"
+embedPath = "dist"
 
 [server.governor]
 host = "0.0.0.0"
@@ -88,6 +88,6 @@ name = "mysession"
 size = 10
 debug = true
 network = "tcp"
-addr = ""
+addr = "localhost:6379"
 password = ""
 keypairs = ""

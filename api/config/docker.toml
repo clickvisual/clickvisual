@@ -4,7 +4,7 @@ level = "debug"
 [server.http]
 host = "0.0.0.0"
 port = 9001
-public="./public"
+embedPath = "dist"
 
 [server.governor]
 host = "0.0.0.0"
@@ -91,3 +91,6 @@ network = "tcp"
 addr = "redis:6380"
 password = ""
 keypairs = ""
+
+[defaultCh]
+dsn="tcp://clickhouse:9000?username=user1&password=pass1&read_timeout=10&writer_timeou=10&debug=true"
