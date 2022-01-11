@@ -14,7 +14,7 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-const ignoreKey = "time"
+const ignoreKey = "_time_"
 
 type ClickHouse struct {
 	id             int
@@ -173,7 +173,7 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND time >= %d AND time < %d LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -183,7 +183,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND time >= %d AND time < %d",
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
@@ -192,7 +192,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND time >= %d AND time < %d group by %s",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d group by %s",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,

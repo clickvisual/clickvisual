@@ -4,6 +4,8 @@ import (
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egovernor"
+	"github.com/gotomicro/ego/task/ejob"
+	"github.com/shimohq/mogo/api/pkg/job"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/router"
@@ -16,6 +18,7 @@ func main() {
 			invoker.Init,
 			service.Init,
 		).
+		Job(ejob.Job("install", job.RunInstall)).
 		Serve(
 			egovernor.Load("server.governor").Build(),
 			router.GetRouter(),
