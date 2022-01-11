@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useRequest from "@/hooks/useRequest";
 import api, {
   ConfigurationsResponse,
@@ -204,11 +204,6 @@ const Configure = () => {
   const onChangeDiffHistory = (diff: any | undefined) => {
     setDiffHistory(diff);
   };
-
-  useEffect(() => {
-    onChangeCurrentConfiguration(undefined);
-    onChangeConfigContent("");
-  }, [selectedClusterId, selectedNameSpace, selectedConfigMap]);
 
   return {
     clusters,

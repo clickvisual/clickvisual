@@ -27,6 +27,8 @@ const Configure = (props: ConfigureProps) => {
     selectedClusterId,
     doGetConfigurations,
     onChangeConfigurations,
+    currentConfiguration,
+    doGetConfiguration,
   } = useModel("configure");
 
   const setUrlQuery = useDebounceFn(
@@ -35,6 +37,7 @@ const Configure = (props: ConfigureProps) => {
         cluster: selectedClusterId,
         nameSpace: selectedNameSpace,
         configMap: selectedConfigMap,
+        current: currentConfiguration?.id,
       });
     },
     { wait: DEBOUNCE_WAIT }
@@ -60,7 +63,12 @@ const Configure = (props: ConfigureProps) => {
 
   useEffect(() => {
     setUrlQuery.run();
-  }, [selectedConfigMap, selectedNameSpace, selectedClusterId]);
+  }, [
+    selectedConfigMap,
+    selectedNameSpace,
+    selectedClusterId,
+    currentConfiguration,
+  ]);
 
   useEffect(() => {
     try {
@@ -70,6 +78,9 @@ const Configure = (props: ConfigureProps) => {
       if (urlState.nameSpace && urlState.configMap) {
         doSelectedNameSpace(urlState.nameSpace);
         doSelectedConfigMap(urlState.configMap);
+      }
+      if (urlState.current) {
+        doGetConfiguration.run(parseInt(urlState.current));
       }
     } catch (e) {
       console.log("【Error】: ", e);

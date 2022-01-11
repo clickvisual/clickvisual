@@ -18,9 +18,9 @@ const SearchBarSuffixIcon = () => {
       >
         <QuestionCircleFilled size={32} />
       </Tooltip>
-      <Tooltip title={"添加查询条件"}>
-        <ProfileFilled style={{ cursor: "pointer" }} />
-      </Tooltip>
+      {/*<Tooltip title={"添加查询条件"}>*/}
+      {/*  <ProfileFilled style={{ cursor: "pointer" }} />*/}
+      {/*</Tooltip>*/}
     </Space>
   );
 };
