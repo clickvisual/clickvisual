@@ -2,6 +2,7 @@ package inquiry
 
 import (
 	"sort"
+	"sync"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfloat"
@@ -73,32 +74,47 @@ func Charts(c *core.Context) {
 		}
 		res.Histograms = append(res.Histograms, row)
 	} else {
+		limiter := make(chan view.HighChart, 100)
+		wg := &sync.WaitGroup{}
 		for i := param.ST; i <= param.ET; i += interval {
-			row := view.HighChart{
-				Count: op.Count(view.ReqQuery{
-					DatasourceType: param.DatasourceType,
-					Table:          param.Table,
-					DatabaseTable:  param.DatabaseTable,
-					Query:          param.Query,
-					ST:             i,
-					ET:             i + interval,
-					Page:           param.Page,
-					PageSize:       param.PageSize,
-				}),
-				Progress: "",
-				From:     i,
-				To:       i + interval,
-			}
-			if isZero && row.Count > 0 {
-				isZero = false
-			}
-			res.Histograms = append(res.Histograms, row)
+			wg.Add(1)
+			go func(st, et int64, wg *sync.WaitGroup) {
+				row := view.HighChart{
+					Count: op.Count(view.ReqQuery{
+						DatasourceType: param.DatasourceType,
+						Table:          param.Table,
+						DatabaseTable:  param.DatabaseTable,
+						Query:          param.Query,
+						ST:             st,
+						ET:             et,
+						Page:           param.Page,
+						PageSize:       param.PageSize,
+					}),
+					Progress: "",
+					From:     st,
+					To:       et,
+				}
+				if isZero && row.Count > 0 {
+					isZero = false
+				}
+				limiter <- row
+				wg.Done()
+				return
+			}(i, i+interval, wg)
+		}
+		wg.Wait()
+		close(limiter)
+		for d := range limiter {
+			res.Histograms = append(res.Histograms, d)
 		}
 	}
 	if isZero {
 		c.JSONE(core.CodeOK, "查询数据为空. ", nil)
 		return
 	}
+	sort.Slice(res.Histograms, func(i int, j int) bool {
+		return res.Histograms[i].From < res.Histograms[j].From
+	})
 	c.JSONOK(res)
 	return
 }

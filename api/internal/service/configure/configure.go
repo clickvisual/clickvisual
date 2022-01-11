@@ -46,7 +46,7 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 	}
 	fileNameRegex := regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_-]{1,32}$")
 	if !fileNameRegex.MatchString(param.Name) {
-		return configuration, errors.New("无效的文件名: " + param.Name)
+		return configuration, errors.New("Invalid file name: " + param.Name)
 	}
 	if param.K8SConfigMapId == 0 {
 		// Gets the configmap ID
@@ -88,6 +88,8 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 		// do update
 		ups := make(map[string]interface{}, 0)
 		ups["dtime"] = 0
+		ups["lock_uid"] = 0
+		ups["lock_at"] = 0
 		if err = db.ConfigurationUpdate(tx, hc.ID, ups); err != nil {
 			return configuration, err
 		}
@@ -106,7 +108,7 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 	// Calculate the current version number
 	version := utils.MD5(param.Content)
 	if utils.MD5(configuration.Content) == version {
-		return errors.New("保存失败，本次无更新.")
+		return errors.New("save failed, no update at this time.")
 	}
 	history := db.ConfigurationHistory{
 		ConfigurationId: configuration.ID,
@@ -121,13 +123,13 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 			return
 		}
 		if configuration.LockUid != 0 && configuration.LockUid != c.Uid() {
-			return fmt.Errorf("当前有其他人正在编辑，更新失败")
+			return fmt.Errorf("someone else is editing, update failed")
 		}
 		err = tx.Where("version=? AND configuration_id=?", version, param.ID).Delete(&db.ConfigurationHistory{}).Error
 		if err != nil {
 			return err
 		}
-		// 存历史版本
+		// Save the historical version
 		err = tx.Save(&history).Error
 		if err != nil {
 			return err

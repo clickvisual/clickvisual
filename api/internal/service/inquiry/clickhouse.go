@@ -92,13 +92,10 @@ func (c *ClickHouse) Count(param view.ReqQuery) (res uint64) {
 	if err != nil {
 		return
 	}
-	elog.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
 	if len(sqlCountData) > 0 {
 		if sqlCountData[0]["count"] != nil {
-			elog.Debug("ClickHouse", elog.Any("sqlCountData2", sqlCountData[0]["count"]), elog.Any("type", typeof(sqlCountData[0]["count"])))
 			switch sqlCountData[0]["count"].(type) {
 			case uint64:
-				elog.Debug("ClickHouse", elog.Any("sqlCountData3", sqlCountData[0]["count"].(uint64)))
 				return sqlCountData[0]["count"].(uint64)
 			}
 		}
