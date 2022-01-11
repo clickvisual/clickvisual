@@ -36,7 +36,7 @@ func (c *ClickHouse) ID() int {
 	return c.id
 }
 
-func (c *ClickHouse) Prepare(res view.ReqQuery) view.ReqQuery {
+func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("%s.%s", res.Database, res.Table)
 	}
@@ -55,7 +55,9 @@ func (c *ClickHouse) Prepare(res view.ReqQuery) view.ReqQuery {
 	if res.ET == 0 {
 		res.ET = time.Now().Unix()
 	}
-	return res
+	var err error
+	res.Query, err = queryTransformer(res.Query)
+	return res, err
 }
 
 func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {

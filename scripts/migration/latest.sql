@@ -36,7 +36,7 @@ CREATE TABLE `mogo_user` (
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '用户数据存储' DEFAULT CHARSET = utf8mb4;
 
-INSERT INTO mogo_user (`id`, `oa_id`, `username`, `nickname`, `secret`, `email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES (1, 0, 'admin', 'admin', '', '', '', '', '', '', '', '', '$2a$10$qcItdU1.GoWjjStA7VzYmuRT0bDyVtgyo4p.8LJhxSq7/c48Vednm', '', '', '{}', 1640624435, 1640624435, 0);
+INSERT INTO mogo_user (`id`, `oa_id`, `username`, `nickname`, `secret`, `email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES (1, 0, 'admin', 'admin', '', '', '', '', '', '', '', '', '$2a$10$qcItdU1.GoWjjStA7VzYmuRT0bDyVtgyo4p.8LJhxSq7/c48Vednm', '', 'init', '{}', 1640624435, 1640624435, 0);
 
 CREATE TABLE `mogo_index` (
     `instance_id` bigint(20) NOT NULL COMMENT '实例ID',

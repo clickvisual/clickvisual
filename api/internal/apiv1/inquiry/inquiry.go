@@ -16,21 +16,26 @@ func Logs(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "参数无效: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" || param.Table == "" {
-		c.JSONE(core.CodeErr, "db 和 table 为必填字段", nil)
+		c.JSONE(core.CodeErr, "DB and table are required fields", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
+		c.JSONE(core.CodeErr, "Corresponding configuration instance does not exist:  ", nil)
 		return
 	}
-	res, err := op.GET(op.Prepare(param))
+	param, err = op.Prepare(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "查询失败. "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		return
+	}
+	res, err := op.GET(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "Query failed. "+err.Error(), nil)
 		return
 	}
 	c.JSONOK(res)
@@ -41,23 +46,27 @@ func Charts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "参数无效: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" || param.Table == "" {
-		c.JSONE(core.CodeErr, "db 和 table 为必填字段", nil)
+		c.JSONE(core.CodeErr, "DB and table are required fields", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
+		c.JSONE(core.CodeErr, "Corresponding configuration instance does not exist:  ", nil)
 		return
 	}
 	// Calculate 50 intervals
 	res := view.HighCharts{
 		Histograms: make([]view.HighChart, 0),
 	}
-	param = op.Prepare(param)
+	param, err = op.Prepare(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		return
+	}
 	interval := (param.ET - param.ST) / 50
 	isZero := true
 	elog.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
@@ -195,8 +204,12 @@ func Indexes(c *core.Context) {
 		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
 		return
 	}
-	list := op.GroupBy(op.Prepare(param))
-
+	param, err = op.Prepare(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		return
+	}
+	list := op.GroupBy(param)
 	res := make([]view.RespIndexItem, 0)
 	sum := uint64(0)
 	for _, row := range list {

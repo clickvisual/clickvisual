@@ -12,7 +12,8 @@ var (
 	ErrAuthUserLoginError = &kerror.KError{Code: 10004, Message: "user_login_error"}
 
 	// ErrSkipConfigureName 01 business errors
-	ErrSkipConfigureName = &kerror.KError{Code: 10101, Message: "Skipped synchronization file name"}
+	ErrSkipConfigureName  = &kerror.KError{Code: 10101, Message: "Skipped synchronization file name"}
+	ErrQueryFormatIllegal = &kerror.KError{Code: 10102, Message: "Query format is illegal"}
 
 	// ErrGrpcUserListEmpty 02 grpc errors
 	ErrGrpcUserListEmpty = &kerror.KError{Code: 10201, Message: "svc grpc user list empty"}
