@@ -76,6 +76,24 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 		Uid:         c.Uid(),
 		PublishTime: time.Now().Unix(),
 	}
+	conds := egorm.Conds{}
+	conds["name"] = param.Name
+	conds["format"] = string(param.Format)
+	conds["k8s_cm_id"] = param.K8SConfigMapId
+	hc, err := db.ConfigurationInfoX(conds)
+	if err != nil {
+		return configuration, err
+	}
+	if hc.ID != 0 {
+		// do update
+		ups := make(map[string]interface{}, 0)
+		ups["dtime"] = 0
+		if err = db.ConfigurationUpdate(tx, hc.ID, ups); err != nil {
+			return configuration, err
+		}
+		hc.Dtime = 0
+		return hc, err
+	}
 	err = db.ConfigurationCreate(tx, &data)
 	return data, err
 }

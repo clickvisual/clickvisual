@@ -336,6 +336,8 @@ func Sync(c *core.Context) {
 	}
 	tx := invoker.Db.Begin()
 	cm := *(obj.(*corev1.ConfigMap))
+	elog.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
+
 	for key, val := range cm.Data {
 		nameArr := strings.Split(key, ".")
 		if len(nameArr) < 2 {
