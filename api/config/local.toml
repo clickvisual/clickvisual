@@ -57,22 +57,10 @@ apiKeyMaxSecondsToLive = -1
 [auth.anonymous]
 # enable anonymous access
 enabled = false
-# specify organization name that should be used for unauthenticated users
-org_name = "Main Org"
-# specify role for unauthenticated users
-org_role = "Viewer"
-# mask the Grafana version number for unauthenticated users
-hide_version = false
 
 [auth.proxy]
-enabled = true
-header_name = "X-WEBAUTH-USER"
-header_property = "username"
-auto_sign_up = true
-# Deprecated, use sync_ttl instead
-ldap_sync_ttl = 60
-sync_ttl = 60
-enable_login_token = false
+enabled = false
+headerName = "X-WEBAUTH-USER"
 
 [[auth.tps]]
 typ = "github"

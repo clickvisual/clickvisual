@@ -64,7 +64,7 @@ func initContextWithAnonymousUser(c *gin.Context) bool {
 }
 
 func initContextWithAuthProxy(c *gin.Context) bool {
-	username := c.GetHeader(econf.GetString("auth.proxy.header_name"))
+	username := c.GetHeader(econf.GetString("auth.proxy.headerName"))
 	// Bail if auth proxy is not enabled
 	if !econf.GetBool("auth.proxy.enabled") {
 		return false
