@@ -3,6 +3,9 @@ package configure
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -13,6 +16,7 @@ import (
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/resource"
 	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 	"github.com/shimohq/mogo/api/pkg/utils"
@@ -36,12 +40,47 @@ func (s *configure) marshallMetadata(metadata view.ConfigMetadata) string {
 	return string(metadataBytes)
 }
 
-func (s *configure) Update(c *core.Context, param view.ReqUpdateConfig) (err error) {
-	var configuration db.Configuration
-	err = invoker.Db.Where("id = ?", param.ID).First(&configuration).Error
-	if err != nil || configuration.ID == 0 {
-		return errors.New("获取配置信息错误.")
+func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateConfig) (configuration db.Configuration, err error) {
+	if strings.Contains(param.Name, "__metadata") {
+		return configuration, constx.ErrSkipConfigureName
 	}
+	fileNameRegex := regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_-]{1,32}$")
+	if !fileNameRegex.MatchString(param.Name) {
+		return configuration, errors.New("无效的文件名: " + param.Name)
+	}
+	if param.K8SConfigMapId == 0 {
+		// Gets the configmap ID
+		obj := db.K8SConfigMap{
+			ClusterId: param.ClusterId,
+			Name:      param.K8SConfigMapName,
+			Namespace: param.K8SConfigMapNamespace,
+		}
+		dbConfigMap, errK8SConfigMapLoadOrSave := db.K8SConfigMapLoadOrSave(invoker.Db, &obj)
+		if errK8SConfigMapLoadOrSave != nil {
+			return configuration, errK8SConfigMapLoadOrSave
+		}
+		if dbConfigMap == nil {
+			return configuration, errors.New("dbConfigMap is nil")
+		}
+		if dbConfigMap.ID == 0 {
+			return configuration, errors.New("dbConfigMap is 0")
+		}
+		param.K8SConfigMapId = dbConfigMap.ID
+	}
+	data := db.Configuration{
+		K8SCmId:     param.K8SConfigMapId,
+		Name:        param.Name,
+		Content:     "",
+		Format:      string(param.Format),
+		Version:     "",
+		Uid:         c.Uid(),
+		PublishTime: time.Now().Unix(),
+	}
+	err = db.ConfigurationCreate(tx, &data)
+	return data, err
+}
+
+func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateConfig, configuration db.Configuration) (err error) {
 	err = CheckSyntax(view.ConfigFormat(configuration.Format), param.Content)
 	if err != nil {
 		return
@@ -58,26 +97,21 @@ func (s *configure) Update(c *core.Context, param view.ReqUpdateConfig) (err err
 		Version:         version,
 		Uid:             c.Uid(),
 	}
-	tx := invoker.Db.Begin()
 	{
 		err = tx.Where("id = ?", param.ID).First(&configuration).Error
 		if err != nil {
-			tx.Rollback()
 			return
 		}
 		if configuration.LockUid != 0 && configuration.LockUid != c.Uid() {
-			tx.Rollback()
 			return fmt.Errorf("当前有其他人正在编辑，更新失败")
 		}
 		err = tx.Where("version=? AND configuration_id=?", version, param.ID).Delete(&db.ConfigurationHistory{}).Error
 		if err != nil {
-			tx.Rollback()
 			return err
 		}
 		// 存历史版本
 		err = tx.Save(&history).Error
 		if err != nil {
-			tx.Rollback()
 			return err
 		}
 		ups := make(map[string]interface{}, 0)
@@ -85,14 +119,8 @@ func (s *configure) Update(c *core.Context, param view.ReqUpdateConfig) (err err
 		ups["content"] = param.Content
 		err = db.ConfigurationUpdate(tx, param.ID, ups)
 		if err != nil {
-			tx.Rollback()
 			return err
 		}
-	}
-	err = tx.Commit().Error
-	if err != nil {
-		tx.Rollback()
-		return err
 	}
 	return nil
 }

@@ -196,7 +196,7 @@ func ConfigurationHistoryListPage(conds egorm.Conds, reqList *ReqPage) (total in
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...)
 	db.Count(&total)
-	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
+	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Order("id DESC").Find(&respList)
 	return
 }
 
