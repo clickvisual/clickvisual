@@ -35,7 +35,6 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
     <div className={logItemStyles.details}>
       {keys.length > 0 &&
         keys.map((keyItem, index) => {
-          const notClick = ["_time_", "_timestamp_"];
           let flag = false;
           if (highlightKeywords) {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
@@ -47,11 +46,9 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
               </div>
               :
               <span
-                onClick={() =>
-                  !notClick.includes(keyItem) && quickInsertQuery(keyItem)
-                }
+                onClick={() => quickInsertQuery(keyItem)}
                 className={classNames(
-                  !notClick.includes(keyItem) && logItemStyles.logContent,
+                  logItemStyles.logContent,
                   flag && logItemStyles.logContentHighlight
                 )}
               >
