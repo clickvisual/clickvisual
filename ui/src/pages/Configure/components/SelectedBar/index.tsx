@@ -19,7 +19,9 @@ const SelectedBar = (props: SelectedBarProps) => {
     onChangeConfigMaps,
     doSelectedNameSpace,
     doSelectedConfigMap,
+    onChangeConfigContent,
     onChangeVisibleCreatedConfigMap,
+    onChangeCurrentConfiguration,
   } = useModel("configure");
 
   useEffect(() => {
@@ -66,7 +68,11 @@ const SelectedBar = (props: SelectedBarProps) => {
         showSearch
         value={selectedClusterId}
         className={searchBarStyles.selectedInput}
-        onChange={doSelectedClusterId}
+        onChange={(val) => {
+          onChangeCurrentConfiguration(undefined);
+          onChangeConfigContent("");
+          doSelectedClusterId(val);
+        }}
         allowClear
       >
         {clusters.map((item) => (
@@ -91,6 +97,8 @@ const SelectedBar = (props: SelectedBarProps) => {
             doSelectedNameSpace(undefined);
             doSelectedConfigMap(undefined);
           }
+          onChangeCurrentConfiguration(undefined);
+          onChangeConfigContent("");
         }}
         placeholder="Namespace/Configmap"
         showSearch={{ filter }}

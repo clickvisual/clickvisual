@@ -1,6 +1,6 @@
 import CustomModal from "@/components/CustomModal";
 import { Button, Form, FormInstance, Input, Radio } from "antd";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 
 const ModalCreatedConfig = () => {
@@ -37,6 +37,12 @@ const ModalCreatedConfig = () => {
   const onCancel = () => {
     onChangeVisibleCreate(false);
   };
+
+  useEffect(() => {
+    if (!visibleCreate) {
+      formRef.current?.resetFields();
+    }
+  }, [visibleCreate]);
   return (
     <CustomModal title="新建配置" visible={visibleCreate} onCancel={onCancel}>
       <Form
@@ -48,7 +54,7 @@ const ModalCreatedConfig = () => {
         <Form.Item
           label="格式"
           name="format"
-          initialValue="json"
+          initialValue="toml"
           rules={[{ required: true }]}
         >
           <Radio.Group>
@@ -71,7 +77,7 @@ const ModalCreatedConfig = () => {
                 name="configurationName"
                 rules={[{ required: true }, { min: 2 }, { max: 32 }]}
               >
-                <Input addonAfter={"." + format} />
+                <Input placeholder={"请输入文件名"} addonAfter={"." + format} />
               </Form.Item>
             );
           }}
