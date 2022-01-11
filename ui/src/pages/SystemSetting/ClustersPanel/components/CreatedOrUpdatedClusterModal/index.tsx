@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { useDebounceFn } from "ahooks";
 import { useModel } from "@@/plugin-model/useModel";
 import type { ClusterType } from "@/services/systemSetting";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 const { Option } = Select;
 
@@ -38,7 +39,7 @@ const CreatedOrUpdatedClusterModal = (
       }
       onCancel();
     },
-    { wait: 500 }
+    { wait: DEBOUNCE_WAIT }
   );
 
   const loading = doCreatedCluster.loading || doUpdatedCluster.loading;

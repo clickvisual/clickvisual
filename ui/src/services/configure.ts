@@ -13,10 +13,13 @@ export interface ConfigurationsRequest {
   k8sConfigMapNameSpace: string;
 }
 
-export interface ConfigurationCreatedRequest extends ConfigurationsRequest {
+export interface ConfigurationSyncRequest extends ConfigurationsRequest {
+  clusterId: number;
+}
+
+export interface ConfigurationCreatedRequest extends ConfigurationSyncRequest {
   configurationName: string;
   format: string;
-  clusterId: number;
 }
 
 export interface ConfigurationsResponse {
@@ -140,6 +143,14 @@ export default {
   // 新增配置文件
   async createdConfiguration(data: ConfigurationCreatedRequest) {
     return request<API.Res<string>>(`/api/v1/configurations`, {
+      method: "POST",
+      data,
+    });
+  },
+
+  // 快速同步集群配置
+  async synchronizingConfiguration(data: ConfigurationSyncRequest) {
+    return request<API.Res<string>>(`/api/v1/configurations/0/sync`, {
       method: "POST",
       data,
     });

@@ -143,6 +143,13 @@ const Configure = () => {
     },
   });
 
+  const doSynchronizingConfiguration = useRequest(
+    api.synchronizingConfiguration,
+    {
+      loadingText: { loading: "同步中...", done: "同步成功" },
+    }
+  );
+
   const doSelectedMenu = (key: string) => {
     setActiveMenu(key);
   };
@@ -237,6 +244,7 @@ const Configure = () => {
     doRemoveLock,
     doPublishConfiguration,
     doGetOnlineConfiguration,
+    doSynchronizingConfiguration,
 
     onChangeConfigMaps,
     onChangeConfigurations,

@@ -3,6 +3,7 @@ import {
   DeleteOutlined,
   DiffOutlined,
   FileAddOutlined,
+  FileSyncOutlined,
   HistoryOutlined,
 } from "@ant-design/icons";
 import DarkButton from "@/pages/Configure/components/CustomButton/DarkButton";
@@ -15,6 +16,8 @@ import { useModel } from "@@/plugin-model/useModel";
 import DeletedModal from "@/components/DeletedModal";
 import OnlineDiff from "@/pages/Configure/components/Menu/Files/OnlineDiff";
 import { useState } from "react";
+import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 type FilesProps = {};
 const Files = (props: FilesProps) => {
@@ -23,15 +26,33 @@ const Files = (props: FilesProps) => {
     doGetConfigurations,
     doDeletedConfigurations,
     selectedConfigMap,
+    selectedClusterId,
     selectedNameSpace,
     currentConfiguration,
     onChangeVisibleCreate,
     doGetConfiguration,
     onChangeCurrentConfiguration,
     onChangeVisibleHistory,
+    doSynchronizingConfiguration,
   } = useModel("configure");
 
   const [visibleDiff, setVisibleDiff] = useState<boolean>(false);
+
+  const doSync = useDebounceFn(
+    () => {
+      const params = {
+        k8sConfigMapNameSpace: selectedNameSpace as string,
+        k8sConfigMapName: selectedConfigMap as string,
+      };
+      doSynchronizingConfiguration
+        .run({
+          clusterId: selectedClusterId as number,
+          ...params,
+        })
+        .then((res) => doGetConfigurations.run(params));
+    },
+    { wait: DEBOUNCE_WAIT }
+  );
 
   if (!selectedConfigMap || !selectedNameSpace) {
     return (
@@ -109,7 +130,7 @@ const Files = (props: FilesProps) => {
                             }
                           });
                         },
-                        content: `确认删除配置文件：${item.name}.${item.format} 吗？`,
+                        content: `确认删除配置文件：${item.name}.${item.format} 吗？该操作会同时删除集群 configmap 内相关配置文件，请谨慎操作。`,
                       });
                     }}
                   >
@@ -126,6 +147,13 @@ const Files = (props: FilesProps) => {
           <DarkButton onClick={() => onChangeVisibleCreate(true)}>
             <FileAddOutlined />
             <span className={fileStyles.btn}>新建配置</span>
+          </DarkButton>
+          <DarkButton
+            style={{ marginTop: "12px" }}
+            onClick={() => doSync.run()}
+          >
+            <FileSyncOutlined />
+            <span className={fileStyles.btn}>快速同步集群配置</span>
           </DarkButton>
         </div>
       )}

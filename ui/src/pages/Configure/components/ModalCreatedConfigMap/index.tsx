@@ -3,6 +3,7 @@ import { Button, Form, FormInstance, Input } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useRef } from "react";
 import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 const ModalCreatedConfigMap = () => {
   const configMapFormRef = useRef<FormInstance>(null);
@@ -22,7 +23,7 @@ const ModalCreatedConfigMap = () => {
           onChangeVisibleCreatedConfigMap(false);
         }
       }),
-    { wait: 500 }
+    { wait: DEBOUNCE_WAIT }
   ).run;
 
   return (

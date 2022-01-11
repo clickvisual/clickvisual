@@ -2,7 +2,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import CustomModal from "@/components/CustomModal";
 import { Button, Table } from "antd";
 import { useEffect } from "react";
-import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
+import { DEBOUNCE_WAIT, FIRST_PAGE, PAGE_SIZE } from "@/config/config";
 import moment from "moment";
 import { useDebounceFn } from "ahooks";
 
@@ -26,7 +26,7 @@ const ModalHistory = () => {
           }
         });
     },
-    { wait: 500 }
+    { wait: DEBOUNCE_WAIT }
   );
 
   const pagination = doGetHistoryConfiguration.pagination;

@@ -1,15 +1,15 @@
-import dataLogsStyles from '@/pages/DataLogs/styles/index.less';
-import DataSourceMenu from '@/pages/DataLogs/components/DataSourceMenu';
-import SelectedDataBaseDraw from '@/pages/DataLogs/components/SelectedDatabaseDraw';
-import classNames from 'classnames';
-import useUrlState from '@ahooksjs/use-url-state';
-import { useEffect } from 'react';
-import { useModel } from '@@/plugin-model/useModel';
-import { useDebounceFn } from 'ahooks';
-import RawLogTabs from '@/pages/DataLogs/components/RawLogTabs';
-import moment from 'moment';
-import { currentTimeStamp } from '@/utils/momentUtils';
-import ManageIndexModal from '@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal';
+import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
+import DataSourceMenu from "@/pages/DataLogs/components/DataSourceMenu";
+import SelectedDataBaseDraw from "@/pages/DataLogs/components/SelectedDatabaseDraw";
+import classNames from "classnames";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useEffect } from "react";
+import { useModel } from "@@/plugin-model/useModel";
+import { useDebounceFn } from "ahooks";
+import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
+import moment from "moment";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
 import {
   ACTIVE_TIME_INDEX,
   DEBOUNCE_WAIT,
@@ -18,7 +18,7 @@ import {
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
   TimeRangeType,
-} from '@/config/config';
+} from "@/config/config";
 
 const DataLogs = () => {
   const [urlState, setUrlState] = useUrlState();
@@ -42,7 +42,7 @@ const DataLogs = () => {
     onChangeActiveTimeOptionIndex,
     onChangeVisibleDatabaseDraw,
     onChangeLogPanes,
-  } = useModel('dataLogs');
+  } = useModel("dataLogs");
 
   const setUrlQuery = useDebounceFn(
     () => {
@@ -61,7 +61,7 @@ const DataLogs = () => {
         tab: activeTabKey,
       });
     },
-    { wait: DEBOUNCE_WAIT },
+    { wait: DEBOUNCE_WAIT }
   );
 
   useEffect(() => {
@@ -103,7 +103,8 @@ const DataLogs = () => {
         panes.push({
           pane: urlState.lb,
           start:
-            parseInt(urlState.start) || moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+            parseInt(urlState.start) ||
+            moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
           end: parseInt(urlState.end) || currentTimeStamp(),
           keyword: urlState.kw || undefined,
           page: parseInt(urlState.page) || FIRST_PAGE,
@@ -115,10 +116,10 @@ const DataLogs = () => {
       onChangeKeywordInput(urlState.kw);
       onChangeLogsPageByUrl(
         parseInt(urlState.page) || FIRST_PAGE,
-        parseInt(urlState.size) || PAGE_SIZE,
+        parseInt(urlState.size) || PAGE_SIZE
       );
     } catch (e) {
-      console.log('【Error】: ', e);
+      console.log("【Error】: ", e);
     }
   }, []);
 
@@ -131,7 +132,10 @@ const DataLogs = () => {
 
   return (
     <div
-      className={classNames(dataLogsStyles.dataLogsMain, dataLogsStyles.siteDrawerInCurrentWrapper)}
+      className={classNames(
+        dataLogsStyles.dataLogsMain,
+        dataLogsStyles.siteDrawerInCurrentWrapper
+      )}
     >
       <DataSourceMenu />
       <SelectedDataBaseDraw />
