@@ -2,6 +2,7 @@ import { useDebounceFn } from "ahooks";
 import { Button, message, notification } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
+import copy from "copy-to-clipboard";
 
 export interface ResPage {
   current: number;
@@ -220,7 +221,7 @@ function useRequest<R = any, P extends any[] = any>(
               shape="round"
               style={{ marginRight: "10px" }}
               onClick={() => {
-                navigator.clipboard.writeText(resText);
+                copy(resText);
               }}
             >
               <CopyOutlined />
