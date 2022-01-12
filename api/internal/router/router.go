@@ -78,6 +78,7 @@ func GetRouter() *egin.Component {
 		v1.GET("/configurations", core.Handle(configure.List))
 		v1.GET("/configurations/:id", core.Handle(configure.Detail))
 		v1.POST("/configurations", core.Handle(configure.Create))
+		v1.POST("/configurations/:id/sync", core.Handle(configure.Sync))
 		v1.PATCH("/configurations/:id", core.Handle(configure.Update))
 		v1.DELETE("/configurations/:id", core.Handle(configure.Delete))
 		v1.POST("/configurations/:id/publish", core.Handle(configure.Publish))

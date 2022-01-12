@@ -10,17 +10,38 @@ import ModalCommit from "@/pages/Configure/components/ModalCommit";
 import ModalHistory from "@/pages/Configure/components/ModalHistory";
 import ModalHistoryDiff from "@/pages/Configure/components/ModalHistoryDiff";
 import ModalCreatedConfigMap from "@/pages/Configure/components/ModalCreatedConfigMap";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 type ConfigureProps = {};
 const Configure = (props: ConfigureProps) => {
+  const [urlState, setUrlState] = useUrlState();
   const {
     doGetClusters,
     doSelectedClusterId,
+    doSelectedNameSpace,
+    doSelectedConfigMap,
     selectedConfigMap,
     selectedNameSpace,
+    selectedClusterId,
     doGetConfigurations,
     onChangeConfigurations,
+    currentConfiguration,
+    doGetConfiguration,
   } = useModel("configure");
+
+  const setUrlQuery = useDebounceFn(
+    () => {
+      setUrlState({
+        cluster: selectedClusterId,
+        nameSpace: selectedNameSpace,
+        configMap: selectedConfigMap,
+        current: currentConfiguration?.id,
+      });
+    },
+    { wait: DEBOUNCE_WAIT }
+  );
 
   useEffect(() => {
     doGetClusters();
@@ -39,6 +60,32 @@ const Configure = (props: ConfigureProps) => {
       onChangeConfigurations([]);
     }
   }, [selectedConfigMap, selectedNameSpace]);
+
+  useEffect(() => {
+    setUrlQuery.run();
+  }, [
+    selectedConfigMap,
+    selectedNameSpace,
+    selectedClusterId,
+    currentConfiguration,
+  ]);
+
+  useEffect(() => {
+    try {
+      if (urlState.cluster) {
+        doSelectedClusterId(parseInt(urlState.cluster));
+      }
+      if (urlState.nameSpace && urlState.configMap) {
+        doSelectedNameSpace(urlState.nameSpace);
+        doSelectedConfigMap(urlState.configMap);
+      }
+      if (urlState.current) {
+        doGetConfiguration.run(parseInt(urlState.current));
+      }
+    } catch (e) {
+      console.log("【Error】: ", e);
+    }
+  }, []);
 
   return (
     <div className={configsStyles.configMain}>

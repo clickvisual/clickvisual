@@ -14,7 +14,7 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-const ignoreKey = "time"
+const ignoreKey = "_time_"
 
 type ClickHouse struct {
 	id             int
@@ -36,7 +36,7 @@ func (c *ClickHouse) ID() int {
 	return c.id
 }
 
-func (c *ClickHouse) Prepare(res view.ReqQuery) view.ReqQuery {
+func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("%s.%s", res.Database, res.Table)
 	}
@@ -55,7 +55,9 @@ func (c *ClickHouse) Prepare(res view.ReqQuery) view.ReqQuery {
 	if res.ET == 0 {
 		res.ET = time.Now().Unix()
 	}
-	return res
+	var err error
+	res.Query, err = queryTransformer(res.Query)
+	return res, err
 }
 
 func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
@@ -92,13 +94,10 @@ func (c *ClickHouse) Count(param view.ReqQuery) (res uint64) {
 	if err != nil {
 		return
 	}
-	elog.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
 	if len(sqlCountData) > 0 {
 		if sqlCountData[0]["count"] != nil {
-			elog.Debug("ClickHouse", elog.Any("sqlCountData2", sqlCountData[0]["count"]), elog.Any("type", typeof(sqlCountData[0]["count"])))
 			switch sqlCountData[0]["count"].(type) {
 			case uint64:
-				elog.Debug("ClickHouse", elog.Any("sqlCountData3", sqlCountData[0]["count"].(uint64)))
 				return sqlCountData[0]["count"].(uint64)
 			}
 		}
@@ -173,7 +172,7 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND time >= %d AND time < %d LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -183,7 +182,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND time >= %d AND time < %d",
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
@@ -192,7 +191,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND time >= %d AND time < %d group by %s",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d group by %s",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,

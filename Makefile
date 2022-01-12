@@ -15,7 +15,7 @@ build.api:
 
 build.ui:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@cd $(APP_PATH)/ui && npm run build
+	@cd $(APP_PATH)/../ui && yarn install --frozen-lockfile &&  yarn run build
 	@echo -e "\n"
 
 docker.build:

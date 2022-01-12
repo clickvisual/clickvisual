@@ -233,10 +233,9 @@ function useRequest<R = any, P extends any[] = any>(
   const handleRes = (res: BaseRes<R>) => {
     setData(res?.data);
     setPagination(res?.pagination);
-
     // 错误提示
     if (res?.code !== 0) {
-      const skipMsg = onError && !onError(newError(res));
+      const skipMsg = onError && onError(newError(res)) === false;
       if (skipMsg) return;
 
       showError(res);

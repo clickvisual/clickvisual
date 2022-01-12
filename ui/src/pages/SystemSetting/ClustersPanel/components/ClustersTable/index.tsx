@@ -9,6 +9,7 @@ import DeletedModal from "@/components/DeletedModal";
 import classNames from "classnames";
 import type { ClusterType } from "@/services/systemSetting";
 import { ClustersPanelContext } from "@/pages/SystemSetting/ClustersPanel";
+import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 
 type ClustersTableProps = {};
 const ClustersTable = (props: ClustersTableProps) => {
@@ -28,24 +29,28 @@ const ClustersTable = (props: ClustersTableProps) => {
       dataIndex: "clusterName",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
+      render: TooltipRender({ placement: "right" }),
     },
     {
       title: "描述",
       dataIndex: "description",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
+      render: TooltipRender({ placement: "right" }),
     },
     {
       title: "Api Server",
       dataIndex: "apiServer",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
+      render: TooltipRender({ placement: "right" }),
     },
     {
       title: "配置",
       dataIndex: "kubeConfig",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
+      render: TooltipRender({ placement: "left" }),
     },
     {
       title: "操作",

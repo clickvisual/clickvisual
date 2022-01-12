@@ -3,6 +3,7 @@ import { Button, Form, FormInstance, Input } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useRef } from "react";
 import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 const ModalCreatedConfigMap = () => {
   const configMapFormRef = useRef<FormInstance>(null);
@@ -12,6 +13,7 @@ const ModalCreatedConfigMap = () => {
     visibleCreatedConfigMap,
     onChangeVisibleCreatedConfigMap,
     doGetConfigMaps,
+    clusters,
   } = useModel("configure");
   const doSubmit = useDebounceFn(
     (field) =>
@@ -21,12 +23,15 @@ const ModalCreatedConfigMap = () => {
           onChangeVisibleCreatedConfigMap(false);
         }
       }),
-    { wait: 500 }
+    { wait: DEBOUNCE_WAIT }
   ).run;
+
   return (
     <CustomModal
       visible={visibleCreatedConfigMap}
-      title={"Add"}
+      title={`新增 configmap，当前集群为：${
+        clusters.find((item) => item.id === selectedClusterId)?.clusterName
+      }`}
       onCancel={() => onChangeVisibleCreatedConfigMap(false)}
       footer={
         <Button
@@ -39,16 +44,16 @@ const ModalCreatedConfigMap = () => {
       }
     >
       <Form
-        labelCol={{ span: 4 }}
-        wrapperCol={{ span: 18 }}
+        labelCol={{ span: 6 }}
+        wrapperCol={{ span: 16 }}
         ref={configMapFormRef}
         onFinish={doSubmit}
       >
-        <Form.Item label={"名称"} name={"configmapName"}>
-          <Input placeholder={"请输入名称"} />
+        <Form.Item label={"namespace"} name={"namespace"}>
+          <Input placeholder={"请输入 namespace"} />
         </Form.Item>
-        <Form.Item label={"命名空间"} name={"namespace"}>
-          <Input placeholder={"请输入命名空间"} />
+        <Form.Item label={"configmap"} name={"configmapName"}>
+          <Input placeholder={"请输入 configmap"} />
         </Form.Item>
       </Form>
     </CustomModal>

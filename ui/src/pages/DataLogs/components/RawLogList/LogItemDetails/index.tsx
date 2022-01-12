@@ -1,9 +1,9 @@
-import logItemStyles from '@/pages/DataLogs/components/RawLogList/LogItem/index.less';
-import { useContext } from 'react';
-import { LogItemContext } from '@/pages/DataLogs/components/RawLogList';
-import { useModel } from '@@/plugin-model/useModel';
-import lodash from 'lodash';
-import classNames from 'classnames';
+import logItemStyles from "@/pages/DataLogs/components/RawLogList/LogItem/index.less";
+import { useContext } from "react";
+import { LogItemContext } from "@/pages/DataLogs/components/RawLogList";
+import { useModel } from "@@/plugin-model/useModel";
+import lodash from "lodash";
+import classNames from "classnames";
 
 type LogItemDetailsProps = {};
 const LogItemDetails = (props: LogItemDetailsProps) => {
@@ -15,25 +15,26 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
     doGetHighCharts,
     highlightKeywords,
     doParseQuery,
-  } = useModel('dataLogs');
+  } = useModel("dataLogs");
   const keys = Object.keys(log).sort();
 
   const quickInsertQuery = (keyItem: string) => {
     const currentSelected = `${keyItem}='${log[keyItem]}'`;
-    const defaultValueArr = lodash.cloneDeep(keywordInput)?.split(' and ') || [];
-    if (defaultValueArr.length === 1 && defaultValueArr[0] === '') defaultValueArr.pop();
+    const defaultValueArr =
+      lodash.cloneDeep(keywordInput)?.split(" and ") || [];
+    if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
+      defaultValueArr.pop();
     defaultValueArr.push(currentSelected);
-    onChangeKeywordInput(defaultValueArr.join(' and '));
-    doGetLogs({ kw: defaultValueArr.join(' and ') });
-    doGetHighCharts({ kw: defaultValueArr.join(' and ') });
-    doParseQuery(defaultValueArr.join(' and '));
+    onChangeKeywordInput(defaultValueArr.join(" and "));
+    doGetLogs({ kw: defaultValueArr.join(" and ") });
+    doGetHighCharts({ kw: defaultValueArr.join(" and ") });
+    doParseQuery(defaultValueArr.join(" and "));
   };
 
   return (
     <div className={logItemStyles.details}>
       {keys.length > 0 &&
         keys.map((keyItem, index) => {
-          const notClick = ['time', 'timestamp'];
           let flag = false;
           if (highlightKeywords) {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
@@ -45,10 +46,10 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
               </div>
               :
               <span
-                onClick={() => !notClick.includes(keyItem) && quickInsertQuery(keyItem)}
+                onClick={() => quickInsertQuery(keyItem)}
                 className={classNames(
-                  !notClick.includes(keyItem) && logItemStyles.logContent,
-                  flag && logItemStyles.logContentHighlight,
+                  logItemStyles.logContent,
+                  flag && logItemStyles.logContentHighlight
                 )}
               >
                 {log[keyItem]}

@@ -4,6 +4,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { MonacoDiffEditor } from "react-monaco-editor";
 import { useEffect, useRef } from "react";
 import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 const ModalCommit = () => {
   const commitFormRef = useRef<FormInstance>(null);
@@ -39,7 +40,7 @@ const ModalCommit = () => {
         });
       onChangeVisibleCommit(false);
     },
-    { wait: 500 }
+    { wait: DEBOUNCE_WAIT }
   ).run;
 
   useEffect(() => {

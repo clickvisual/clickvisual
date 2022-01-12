@@ -1,5 +1,5 @@
 import searchBarStyles from "@/pages/Configure/components/SelectedBar/index.less";
-import { Button, Cascader, Select } from "antd";
+import { Button, Cascader, Select, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
@@ -19,7 +19,9 @@ const SelectedBar = (props: SelectedBarProps) => {
     onChangeConfigMaps,
     doSelectedNameSpace,
     doSelectedConfigMap,
+    onChangeConfigContent,
     onChangeVisibleCreatedConfigMap,
+    onChangeCurrentConfiguration,
   } = useModel("configure");
 
   useEffect(() => {
@@ -66,7 +68,11 @@ const SelectedBar = (props: SelectedBarProps) => {
         showSearch
         value={selectedClusterId}
         className={searchBarStyles.selectedInput}
-        onChange={doSelectedClusterId}
+        onChange={(val) => {
+          onChangeCurrentConfiguration(undefined);
+          onChangeConfigContent("");
+          doSelectedClusterId(val);
+        }}
         allowClear
       >
         {clusters.map((item) => (
@@ -91,19 +97,31 @@ const SelectedBar = (props: SelectedBarProps) => {
             doSelectedNameSpace(undefined);
             doSelectedConfigMap(undefined);
           }
+          onChangeCurrentConfiguration(undefined);
+          onChangeConfigContent("");
         }}
         placeholder="Namespace/Configmap"
         showSearch={{ filter }}
         className={searchBarStyles.cascaderInput}
       />
-      <Button
-        disabled={disabled}
-        icon={<PlusOutlined />}
-        type={"primary"}
-        onClick={() => onChangeVisibleCreatedConfigMap(true)}
-      >
-        Add
-      </Button>
+      <Tooltip title={"Add namespace and configmap"}>
+        <Button
+          disabled={disabled}
+          icon={<PlusOutlined />}
+          type={"primary"}
+          onClick={() => onChangeVisibleCreatedConfigMap(true)}
+        >
+          Add
+        </Button>
+      </Tooltip>
+      {selectedNameSpace && selectedConfigMap && (
+        <div className={searchBarStyles.describe}>
+          <span>当前&nbsp;namespace:&nbsp;</span>
+          <span>{selectedNameSpace},&nbsp;</span>
+          <span>当前&nbsp;configmap:&nbsp;</span>
+          <span>{selectedConfigMap}</span>
+        </div>
+      )}
     </div>
   );
 };

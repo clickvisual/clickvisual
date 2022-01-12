@@ -28,9 +28,9 @@ func NewInstanceManager() *instanceManager {
 	for _, ds := range datasourceList {
 		switch ds.Datasource {
 		case db.DatasourceMySQL:
-			// TODO 暂时不支持
+			// TODO Not supported at this time
 		case db.DatasourceClickHouse:
-			// 测试连接，存储
+			// Test connection, storage
 			chDb, err := clickHouseLink(ds.Dsn)
 			if err != nil {
 				elog.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
@@ -50,7 +50,7 @@ func (i *instanceManager) Delete(key string) {
 func (i *instanceManager) Add(obj *db.Instance) error {
 	switch obj.Datasource {
 	case db.DatasourceClickHouse:
-		// 测试连接，存储
+		// Test connection, storage
 		chDb, err := clickHouseLink(obj.Dsn)
 		if err != nil {
 			elog.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
@@ -62,7 +62,7 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 }
 
 func (i *instanceManager) Load(datasource, name string) inquiry.Operator {
-	// 测试连接，存储
+	// Test connection, storage
 	obj, _ := i.dss.Load(db.InstanceKey(datasource, name))
 	if obj == nil {
 		return nil
@@ -75,7 +75,6 @@ func (i *instanceManager) Load(datasource, name string) inquiry.Operator {
 }
 
 func (i *instanceManager) All() []inquiry.Operator {
-	// 测试连接，存储
 	res := make([]inquiry.Operator, 0)
 	i.dss.Range(func(key, obj interface{}) bool {
 		if strings.HasPrefix(key.(string), db.DatasourceClickHouse) {

@@ -54,6 +54,14 @@ oauthStateCookieMaxAge = 60
 # limit of api_key seconds to live before expiration
 apiKeyMaxSecondsToLive = -1
 
+[auth.anonymous]
+# enable anonymous access
+enabled = false
+
+[auth.proxy]
+enabled = false
+headerName = "X-WEBAUTH-USER"
+
 [[auth.tps]]
 typ = "github"
 enable = true

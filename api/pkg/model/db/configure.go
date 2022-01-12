@@ -56,6 +56,17 @@ func ConfigurationUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (
 	return
 }
 
+// ConfigurationInfoX Info extension method to query a single record according to Cond
+func ConfigurationInfoX(conds map[string]interface{}) (resp Configuration, err error) {
+	sql, binds := egorm.BuildQuery(conds)
+	elog.Debug("ConfigurationInfoX", elog.Any("conds", sql))
+	if err = invoker.Db.Table(TableNameConfiguration).Unscoped().Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+		elog.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
+		return
+	}
+	return resp, nil
+}
+
 func ConfigurationInfo(paramId int) (resp Configuration, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{paramId}
@@ -66,7 +77,7 @@ func ConfigurationInfo(paramId int) (resp Configuration, err error) {
 	return
 }
 
-// ConfigurationDelete 软删除
+// ConfigurationDelete 硬删除
 func ConfigurationDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Configuration{}).Delete(&Configuration{}, id).Error; err != nil {
 		elog.Error("cluster delete error", zap.Error(err))
@@ -196,7 +207,7 @@ func ConfigurationHistoryListPage(conds egorm.Conds, reqList *ReqPage) (total in
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...)
 	db.Count(&total)
-	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
+	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Order("id DESC").Find(&respList)
 	return
 }
 

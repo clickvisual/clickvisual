@@ -55,7 +55,7 @@ export default defineConfig({
   chainWebpack(config, { env, webpack, createCSSRule }) {
     config.plugin("monaco-editor").use(MonacoEditorWebpackPlugin, [
       {
-        languages: ["json", "sb"],
+        languages: ["json", "ini", "yaml", "sb"],
         features: [
           "coreCommands",
           "find",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useRequest from "@/hooks/useRequest";
 import api, {
   ConfigurationsResponse,
@@ -143,6 +143,13 @@ const Configure = () => {
     },
   });
 
+  const doSynchronizingConfiguration = useRequest(
+    api.synchronizingConfiguration,
+    {
+      loadingText: { loading: "同步中...", done: "同步成功" },
+    }
+  );
+
   const doSelectedMenu = (key: string) => {
     setActiveMenu(key);
   };
@@ -198,11 +205,6 @@ const Configure = () => {
     setDiffHistory(diff);
   };
 
-  useEffect(() => {
-    onChangeCurrentConfiguration(undefined);
-    onChangeConfigContent("");
-  }, [selectedClusterId, selectedNameSpace, selectedConfigMap]);
-
   return {
     clusters,
     configMaps,
@@ -237,6 +239,7 @@ const Configure = () => {
     doRemoveLock,
     doPublishConfiguration,
     doGetOnlineConfiguration,
+    doSynchronizingConfiguration,
 
     onChangeConfigMaps,
     onChangeConfigurations,

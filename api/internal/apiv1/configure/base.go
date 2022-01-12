@@ -1,16 +1,21 @@
 package configure
 
 import (
-	"regexp"
+	"errors"
 	"strings"
-	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/configure"
+	"github.com/shimohq/mogo/api/internal/service/kube"
+	"github.com/shimohq/mogo/api/internal/service/kube/api"
 	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
@@ -96,44 +101,7 @@ func Create(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	fileNameRegex := regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_-]{1,32}$")
-	if !fileNameRegex.MatchString(param.Name) {
-		c.JSONE(1, "无效的文件名", nil)
-		return
-	}
-	if param.K8SConfigMapId == 0 {
-		// Gets the configmap ID
-		obj := db.K8SConfigMap{
-			ClusterId: param.ClusterId,
-			Name:      param.K8SConfigMapName,
-			Namespace: param.K8SConfigMapNamespace,
-		}
-		dbConfigMap, errK8SConfigMapLoadOrSave := db.K8SConfigMapLoadOrSave(invoker.Db, &obj)
-		if errK8SConfigMapLoadOrSave != nil {
-			c.JSONE(1, errK8SConfigMapLoadOrSave.Error(), nil)
-			return
-		}
-		if dbConfigMap == nil {
-			c.JSONE(1, "dbConfigMap is nil", nil)
-			return
-		}
-		if dbConfigMap.ID == 0 {
-			c.JSONE(1, "dbConfigMap id is 0", nil)
-			return
-		}
-		param.K8SConfigMapId = dbConfigMap.ID
-	}
-
-	data := db.Configuration{
-		K8SCmId:     param.K8SConfigMapId,
-		Name:        param.Name,
-		Content:     "",
-		Format:      string(param.Format),
-		Version:     "",
-		Uid:         c.Uid(),
-		PublishTime: time.Now().Unix(),
-	}
-	err = db.ConfigurationCreate(invoker.Db, &data)
+	_, err = configure.Configure.Create(c, invoker.Db, param)
 	if err != nil {
 		c.JSONE(1, "创建失败，存在同名配置。", err)
 		return
@@ -155,7 +123,20 @@ func Update(c *core.Context) {
 		return
 	}
 	param.ID = id
-	if err = configure.Configure.Update(c, param); err != nil {
+	var configuration db.Configuration
+	err = invoker.Db.Where("id = ?", param.ID).First(&configuration).Error
+	if err != nil || configuration.ID == 0 {
+		c.JSONE(1, "Error getting configuration information", err)
+		return
+	}
+	tx := invoker.Db.Begin()
+	if err = configure.Configure.Update(c, tx, param, configuration); err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
 		c.JSONE(1, err.Error(), err)
 		return
 	}
@@ -316,6 +297,86 @@ func Unlock(c *core.Context) {
 	}
 	err := configure.Configure.Unlock(int(c.Uid()), id)
 	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	c.JSONOK()
+}
+
+// Sync Synchronize the configmap configuration
+// if id is 0 means all configurations need to be synchronized
+// not support update operator
+func Sync(c *core.Context) {
+	param := view.ReqSyncConfig{}
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	id := cast.ToInt(c.Param("id"))
+	if id != 0 {
+		// TODO Configuration update based on ID
+		c.JSONE(1, "only support id 0 and sync all configuration", nil)
+		return
+	}
+	// Read all configurations under the configmap in the cluster
+	var client *kube.ClusterClient
+	client, err = kube.ClusterManager.GetClusterManager(param.ClusterId)
+	if err != nil {
+		c.JSONE(core.CodeErr, "Cluster data acquisition failed: "+err.Error(), nil)
+		return
+	}
+
+	var obj runtime.Object
+	obj, err = client.KubeClient.Get(api.ResourceNameConfigMap, param.K8SConfigMapNamespace, param.K8SConfigMapName)
+	if err != nil {
+		elog.Error("configmaps", elog.String("err", err.Error()))
+		c.JSONE(core.CodeErr, "client.KubeClient.List error: "+err.Error(), nil)
+		return
+	}
+	tx := invoker.Db.Begin()
+	cm := *(obj.(*corev1.ConfigMap))
+	elog.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
+
+	for key, val := range cm.Data {
+		nameArr := strings.Split(key, ".")
+		if len(nameArr) < 2 {
+			elog.Warn("sync", elog.String("name", key), elog.String("err", "nameArr size error"))
+			continue
+		}
+		format := nameArr[len(nameArr)-1]
+		name := strings.TrimSuffix(key, "."+format)
+		var configuration db.Configuration
+		configuration, err = configure.Configure.Create(c, tx, view.ReqCreateConfig{
+			Name:                  name,
+			Format:                view.ConfigFormat(format),
+			K8SConfigMapId:        param.K8SConfigMapId,
+			K8SConfigMapName:      param.K8SConfigMapName,
+			K8SConfigMapNamespace: param.K8SConfigMapNamespace,
+			ClusterId:             param.ClusterId,
+		})
+		if err != nil {
+			if errors.Is(err, constx.ErrSkipConfigureName) {
+				continue
+			}
+			tx.Rollback()
+			c.JSONE(core.CodeErr, "configure.Configure.Create error:"+err.Error(), nil)
+			return
+		}
+		elog.Debug("sync", elog.String("step", "Update"), elog.Any("configuration", configuration))
+		if err = configure.Configure.Update(c, tx, view.ReqUpdateConfig{
+			ID:      configuration.ID,
+			Message: "sync from cluster",
+			Content: val,
+		}, configuration); err != nil {
+			tx.Rollback()
+			c.JSONE(1, err.Error(), err)
+			return
+		}
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
 		c.JSONE(1, err.Error(), err)
 		return
 	}

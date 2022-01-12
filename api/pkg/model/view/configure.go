@@ -27,6 +27,14 @@ type ReqCreateConfig struct {
 	ClusterId             int          `form:"clusterId" binding:"required"`
 }
 
+// ReqSyncConfig ..
+type ReqSyncConfig struct {
+	K8SConfigMapId        int    `form:"k8sConfigMapId"`
+	K8SConfigMapName      string `form:"k8sConfigMapName" binding:"required"`
+	K8SConfigMapNamespace string `form:"k8sConfigMapNameSpace" binding:"required"`
+	ClusterId             int    `form:"clusterId" binding:"required"`
+}
+
 type ReqListConfig struct {
 	K8SConfigMapId        int    `form:"k8sConfigMapId"`
 	K8SConfigMapName      string `form:"k8sConfigMapName"`

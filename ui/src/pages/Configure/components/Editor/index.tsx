@@ -16,11 +16,18 @@ const Editor = (props: EditorProps) => {
     configContent,
     doAddLock,
     doRemoveLock,
+    selectedConfigMap,
+    selectedNameSpace,
+    selectedClusterId,
   } = useModel("configure");
   const { currentUser } = useModel("@@initialState").initialState || {};
   const currentEditorUser = currentConfiguration?.currentEditUser;
   const contentChanged =
     currentConfiguration && currentConfiguration.content !== configContent;
+
+  if (!selectedConfigMap || !selectedNameSpace || !selectedClusterId) {
+    return <div className={editorStyles.editorLoading} />;
+  }
 
   if (!currentConfiguration || doGetConfiguration.loading) {
     return (
@@ -98,7 +105,11 @@ const Editor = (props: EditorProps) => {
       <div className={editorStyles.editor}>
         <MonacoEditor
           height={"100%"}
-          language={currentConfiguration.format === "json" ? "json" : "sb"}
+          language={
+            ["toml", "conf"].indexOf(currentConfiguration.format) === -1
+              ? currentConfiguration.format
+              : "sb"
+          }
           theme="vs-dark"
           options={{
             automaticLayout: true,

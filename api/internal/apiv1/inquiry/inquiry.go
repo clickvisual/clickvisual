@@ -2,6 +2,7 @@ package inquiry
 
 import (
 	"sort"
+	"sync"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfloat"
@@ -15,21 +16,26 @@ func Logs(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "参数无效: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" || param.Table == "" {
-		c.JSONE(core.CodeErr, "db 和 table 为必填字段", nil)
+		c.JSONE(core.CodeErr, "DB and table are required fields", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
+		c.JSONE(core.CodeErr, "Corresponding configuration instance does not exist:  ", nil)
 		return
 	}
-	res, err := op.GET(op.Prepare(param))
+	param, err = op.Prepare(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "查询失败. "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		return
+	}
+	res, err := op.GET(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "Query failed. "+err.Error(), nil)
 		return
 	}
 	c.JSONOK(res)
@@ -40,23 +46,27 @@ func Charts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "参数无效: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" || param.Table == "" {
-		c.JSONE(core.CodeErr, "db 和 table 为必填字段", nil)
+		c.JSONE(core.CodeErr, "DB and table are required fields", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
+		c.JSONE(core.CodeErr, "Corresponding configuration instance does not exist:  ", nil)
 		return
 	}
 	// Calculate 50 intervals
 	res := view.HighCharts{
 		Histograms: make([]view.HighChart, 0),
 	}
-	param = op.Prepare(param)
+	param, err = op.Prepare(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		return
+	}
 	interval := (param.ET - param.ST) / 50
 	isZero := true
 	elog.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
@@ -73,32 +83,47 @@ func Charts(c *core.Context) {
 		}
 		res.Histograms = append(res.Histograms, row)
 	} else {
+		limiter := make(chan view.HighChart, 100)
+		wg := &sync.WaitGroup{}
 		for i := param.ST; i <= param.ET; i += interval {
-			row := view.HighChart{
-				Count: op.Count(view.ReqQuery{
-					DatasourceType: param.DatasourceType,
-					Table:          param.Table,
-					DatabaseTable:  param.DatabaseTable,
-					Query:          param.Query,
-					ST:             i,
-					ET:             i + interval,
-					Page:           param.Page,
-					PageSize:       param.PageSize,
-				}),
-				Progress: "",
-				From:     i,
-				To:       i + interval,
-			}
-			if isZero && row.Count > 0 {
-				isZero = false
-			}
-			res.Histograms = append(res.Histograms, row)
+			wg.Add(1)
+			go func(st, et int64, wg *sync.WaitGroup) {
+				row := view.HighChart{
+					Count: op.Count(view.ReqQuery{
+						DatasourceType: param.DatasourceType,
+						Table:          param.Table,
+						DatabaseTable:  param.DatabaseTable,
+						Query:          param.Query,
+						ST:             st,
+						ET:             et,
+						Page:           param.Page,
+						PageSize:       param.PageSize,
+					}),
+					Progress: "",
+					From:     st,
+					To:       et,
+				}
+				if isZero && row.Count > 0 {
+					isZero = false
+				}
+				limiter <- row
+				wg.Done()
+				return
+			}(i, i+interval, wg)
+		}
+		wg.Wait()
+		close(limiter)
+		for d := range limiter {
+			res.Histograms = append(res.Histograms, d)
 		}
 	}
 	if isZero {
 		c.JSONE(core.CodeOK, "查询数据为空. ", nil)
 		return
 	}
+	sort.Slice(res.Histograms, func(i int, j int) bool {
+		return res.Histograms[i].From < res.Histograms[j].From
+	})
 	c.JSONOK(res)
 	return
 }
@@ -179,8 +204,12 @@ func Indexes(c *core.Context) {
 		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
 		return
 	}
-	list := op.GroupBy(op.Prepare(param))
-
+	param, err = op.Prepare(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		return
+	}
+	list := op.GroupBy(param)
 	res := make([]view.RespIndexItem, 0)
 	sum := uint64(0)
 	for _, row := range list {
