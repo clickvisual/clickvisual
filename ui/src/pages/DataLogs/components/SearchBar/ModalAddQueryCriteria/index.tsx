@@ -9,7 +9,7 @@ type ModalAddQueryCriteriaProps = {
   visible: boolean;
   onCancel: () => void;
 };
-const operatorList = ["=", "!="];
+const operatorList = ["=", "!=", "<", "<=", ">", ">="];
 const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
   const formRef = useRef<FormInstance>(null);
   const { visible, onCancel } = props;
