@@ -209,8 +209,10 @@ function useRequest<R = any, P extends any[] = any>(
     notification.error({
       message: "请求失败",
       description: (
-        <div style={{ maxHeight: "450px", overflowY: "auto" }}>
-          <div>错误: {data?.msg || "未知错误, 请联系负责人"}</div>
+        <div>
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            错误: {data?.msg || "未知错误, 请联系负责人"}
+          </div>
           <div style={{ marginTop: "10px" }}>
             <Button
               size="small"
