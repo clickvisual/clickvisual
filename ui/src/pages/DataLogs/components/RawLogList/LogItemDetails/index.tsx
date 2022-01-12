@@ -25,10 +25,11 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
       defaultValueArr.pop();
     defaultValueArr.push(currentSelected);
-    onChangeKeywordInput(defaultValueArr.join(" and "));
-    doGetLogs({ kw: defaultValueArr.join(" and ") });
-    doGetHighCharts({ kw: defaultValueArr.join(" and ") });
-    doParseQuery(defaultValueArr.join(" and "));
+    const kw = defaultValueArr.join(" and ");
+    onChangeKeywordInput(kw);
+    doGetLogs({ kw });
+    doGetHighCharts({ kw });
+    doParseQuery(kw);
   };
 
   return (

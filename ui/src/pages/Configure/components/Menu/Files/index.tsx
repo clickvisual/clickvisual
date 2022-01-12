@@ -109,7 +109,7 @@ const Files = (props: FilesProps) => {
                 onClick={() => doGetConfiguration.run(item.id)}
               >
                 <div className={fileStyles.configIcon}>
-                  <IconFont type={"icon-json"} />
+                  <IconFont type={"icon-file"} />
                 </div>
                 <div
                   className={fileStyles.configName}
