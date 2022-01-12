@@ -12,7 +12,7 @@ type QueryResultProps = {};
 const QueryResult = (props: QueryResultProps) => {
   const {} = props;
   const { logsLoading, highChartLoading } = useModel("dataLogs");
-  const isShare = document.location.pathname === "/share";
+  const isShare = document.location.pathname === "/share" || "/share/";
 
   return (
     <div
