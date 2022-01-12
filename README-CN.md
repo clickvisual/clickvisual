@@ -53,11 +53,13 @@ wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_
 # Linux 下下载
 wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
 
-# 解压 tar.gz 包
-tar -xvf mogo.tar.gz -C ./
+# 解压 tar.gz 包到 ./mogo 目录
+mkdir -p ./mogo-$(latest) && tar -zxvf mogo-$(latest).tar.gz -C ./mogo-$(latest) && cd ./mogo-$(latest)
 
+# 修改 config/default.toml 配置文件
+# 执行 scripts/migration 下迁移脚本，创建数据库和表
 # 启动 mogo
-./mogo -config config/local.toml
+./mogo -config config/default.toml
 
 # 打开浏览器访问 http://localhost:9001
 # 默认登录用户名: admin

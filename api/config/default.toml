@@ -1,33 +1,45 @@
 [logger.default]
+# log level, avaliable level: "debug", "info", "warn", "error", "panic", "fatal"
 level = "debug"
 
 [server.http]
+# HTTP server Host
 host = "0.0.0.0"
+# HTTP server Port
 port = 9001
 embedPath = "dist"
 
 [server.governor]
+# Governor server host
 host = "0.0.0.0"
+# Governor server port
 port = 9003
 
 [permission]
 resourceFile = './config/resource.yaml'
 
 [mysql.default]
-connMaxLifetime = "300s"
 debug = true
-dsn = "root:123456@tcp(localhost:3306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
-level = "panic"
-maxIdleConns = 50
-maxOpenConns = 100
+# database DSN
+dsn = "root:root@tcp(localhost:3306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+# log level
+level = "debug"
+# maximum number of connections in the idle connection pool for database
+maxIdleConns = 5
+# maximum number of open connections for database
+maxOpenConns = 10
+# maximum amount of time a connection
+connMaxLifetime = "300s"
 
 [redis.default]
+# your redis address
 addr = "127.0.0.1:6379"
 writeTimeout = "3s"
 password = ""
 
 [app]
-secretKey = "ASDFASDFASDF" # hashStatecode
+# hashStatecode
+secretKey = "ASDFASDFASDF"
 rootURL = "http://localhost:9001"
 baseURL = "/api/admin/login/"
 
