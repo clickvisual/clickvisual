@@ -6,15 +6,11 @@
 
 Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse, MySQL, etc.)
 
-## Live demo
-
 - log search page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
 
 - configuration page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
-
-TODO.
 
 ## Features
 
@@ -29,48 +25,44 @@ TODO.
 
 ## Installation
 
-- For host
-
-```bash
-# download release
-# go to https://github.com/shimohq/mogo/releases and choose specific release to download.
-latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
-# for MacOS
-wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_darwin_x86_64.tar.gz -O mogo.tar.gz 
-# for Linux
-wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
-
-# extract zip file
-tar xvf mogo.tar.gz -O 
-
-# start api server
-
-
-# configure nginx config
-
-```
-
 - For Docker
 
 ```bash
 git clone https://github.com/shimohq/mogo.git
 docker-compose up
 
+# you may need to set docker image mirror, visit <https://github.com/yeasy/docker_practice/blob/master/install/mirror.md> for details.
+
 # then go to browser and visit http://localhost:9001
-# username: admin
-# password: admin
+# login username: admin
+# login password: admin
 ```
 
-- For helm
+- For host
 
 ```bash
+# download release
+# go to https://github.com/shimohq/mogo/releases and choose specific release to download.
+latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+
+# for MacOS
+wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_darwin_x86_64.tar.gz -O mogo.tar.gz 
+
+# for Linux
+wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
+
+# extract zip file
+tar xvf mogo.tar.gz -O 
+
+# start mogo
+./mogo -config config/local.toml
+
+# then go to browser and visit http://localhost:9001
+# login username: admin
+# login password: admin
 ```
 
 ## Main Tasks
-
--[x] task1
-
--[x] task2
 
 ## Bugs or features
 

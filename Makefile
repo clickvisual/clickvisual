@@ -4,6 +4,7 @@ ROOT:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 APP_PATH=$(ROOT)/api
 SCRIPT_PATH:=$(APP_PATH)/../scripts
 COMPILE_OUT:=$(APP_PATH)/../bin/$(APP_NAME)
+HUB_USER:=sevennt
 
 build: build.api build.ui
 
@@ -18,7 +19,14 @@ build.ui:
 	@cd $(APP_PATH)/../ui && yarn install --frozen-lockfile &&  yarn run build
 	@echo -e "\n"
 
+docker:docker.build docker.push
+
 docker.build:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@docker build -t mogo:latest .
+	@docker build -t $(HUB_USER)/mogo:latest .
+	@echo -e "\n"
+
+docker.push:
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+	@docker push $(HUB_USER)mogo:latest
 	@echo -e "\n"
