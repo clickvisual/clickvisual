@@ -1,8 +1,11 @@
 import { Space, Tooltip } from "antd";
 import SearchBarToolTip from "@/pages/DataLogs/components/SearchBar/SearchBarToolTip";
 import { ProfileFilled, QuestionCircleFilled } from "@ant-design/icons";
+import ModalAddQueryCriteria from "@/pages/DataLogs/components/SearchBar/ModalAddQueryCriteria";
+import { useState } from "react";
 
 const SearchBarSuffixIcon = () => {
+  const [visible, setVisible] = useState<boolean>(false);
   return (
     <Space>
       <Tooltip
@@ -18,9 +21,16 @@ const SearchBarSuffixIcon = () => {
       >
         <QuestionCircleFilled size={32} />
       </Tooltip>
-      {/*<Tooltip title={"添加查询条件"}>*/}
-      {/*  <ProfileFilled style={{ cursor: "pointer" }} />*/}
-      {/*</Tooltip>*/}
+      <Tooltip title={"添加查询条件"}>
+        <ProfileFilled
+          style={{ cursor: "pointer" }}
+          onClick={() => setVisible(true)}
+        />
+      </Tooltip>
+      <ModalAddQueryCriteria
+        visible={visible}
+        onCancel={() => setVisible(false)}
+      />
     </Space>
   );
 };

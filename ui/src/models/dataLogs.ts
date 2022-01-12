@@ -7,7 +7,7 @@ import api, {
   InstanceSelectedType,
   LogsResponse,
 } from "@/services/dataLogs";
-import useRequest from "@/hooks/useRequest";
+import useRequest from "@/hooks/useRequest/useRequest";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
