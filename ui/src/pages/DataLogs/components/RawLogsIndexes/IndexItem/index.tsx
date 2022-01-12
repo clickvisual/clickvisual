@@ -11,8 +11,13 @@ type IndexItemProps = {
 };
 const IndexItem = (props: IndexItemProps) => {
   const { index, isActive } = props;
-  const { currentDatabase, currentLogLibrary, startDateTime, endDateTime } =
-    useModel("dataLogs");
+  const {
+    currentDatabase,
+    keywordInput,
+    currentLogLibrary,
+    startDateTime,
+    endDateTime,
+  } = useModel("dataLogs");
   const getIndexDetails = useRequest(api.getIndexDetail, {
     loadingText: false,
   });
@@ -35,6 +40,7 @@ const IndexItem = (props: IndexItemProps) => {
       field: index,
       st: startDateTime,
       et: endDateTime,
+      query: keywordInput,
     };
     getIndexDetails.run(params).then((res) => {
       if (res?.code === 0) {
@@ -48,12 +54,12 @@ const IndexItem = (props: IndexItemProps) => {
         <div className={indexItemStyles.detailContextMain}>
           {details.length > 0 ? (
             <>
-              {details.map((detail) => (
-                <div className={indexItemStyles.context}>
+              {details.map((detail, index) => (
+                <div key={index} className={indexItemStyles.context}>
                   <div className={indexItemStyles.title}>
                     <span className={indexItemStyles.name}>
                       <Tooltip title={detail.indexName} placement={"left"}>
-                        {detail.indexName}
+                        {detail.indexName === "" ? "null" : detail.indexName}
                       </Tooltip>
                     </span>
                   </div>

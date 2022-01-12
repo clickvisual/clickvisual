@@ -1,4 +1,4 @@
-import { request } from 'umi';
+import { request } from "umi";
 
 export interface DatabaseProps {
   dt: string;
@@ -78,6 +78,7 @@ export interface IndexDetailRequest extends DataSourceTableProps {
   st: number;
   et: number;
   field: string;
+  query?: string | undefined;
 }
 
 export interface IndexDetail {
@@ -91,7 +92,7 @@ export default {
   async getHighCharts(params: QueryLogsProps, cancelToken: any) {
     return request<API.Res<HighChartsResponse>>(`/api/v1/query/charts`, {
       cancelToken,
-      method: 'GET',
+      method: "GET",
       params,
       skipErrorHandler: true,
     });
@@ -101,7 +102,7 @@ export default {
   async getLogs(params: QueryLogsProps, cancelToken: any) {
     return request<API.Res<LogsResponse>>(`/api/v1/query/logs`, {
       cancelToken,
-      method: 'GET',
+      method: "GET",
       params,
       skipErrorHandler: true,
     });
@@ -109,13 +110,16 @@ export default {
 
   // 获取日志库列表
   async getTableList(params: DataSourceTableProps) {
-    return request<API.Res<string[]>>(`/api/v1/query/tables`, { method: 'GET', params });
+    return request<API.Res<string[]>>(`/api/v1/query/tables`, {
+      method: "GET",
+      params,
+    });
   },
 
   // 获取数据库列表
   async getDatabaseList(payload: InstanceSelectedType | undefined) {
     return request<API.Res<DatabaseResponse[]>>(`/api/v1/query/databases`, {
-      method: 'GET',
+      method: "GET",
       params: { dt: payload?.datasourceType, in: payload?.instanceName },
     });
   },
@@ -137,16 +141,25 @@ export default {
 
   // 获取索引详情
   async getIndexDetail(params: IndexDetailRequest) {
-    return request<API.Res<IndexDetail[]>>(`/api/v1/query/indexes`, { method: 'GET', params });
+    return request<API.Res<IndexDetail[]>>(`/api/v1/query/indexes`, {
+      method: "GET",
+      params,
+    });
   },
 
   // 增加 or 修改索引
   async setIndexes(data: IndexRequest) {
-    return request<API.Res<string>>(`/api/v1/setting/indexes`, { method: 'PATCH', data });
+    return request<API.Res<string>>(`/api/v1/setting/indexes`, {
+      method: "PATCH",
+      data,
+    });
   },
 
   // 获取索引编辑列表
   async getIndexes(params: IndexRequest) {
-    return request<API.Res<IndexInfoType[]>>(`/api/v1/setting/indexes`, { method: 'GET', params });
+    return request<API.Res<IndexInfoType[]>>(`/api/v1/setting/indexes`, {
+      method: "GET",
+      params,
+    });
   },
 };
