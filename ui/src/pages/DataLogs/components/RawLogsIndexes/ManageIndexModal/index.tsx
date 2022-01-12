@@ -22,6 +22,7 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
     settingIndexes,
     getIndexList,
     doGetLogs,
+    doParseQuery,
   } = useModel("dataLogs");
   const indexFormRef = useRef<FormInstance>(null);
   const [indexList, setIndexList] = useState<IndexInfoType[]>([]);
@@ -43,6 +44,7 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
         if (res?.code === 0) {
           cancel();
           doGetLogs();
+          doParseQuery();
         }
       });
     },
