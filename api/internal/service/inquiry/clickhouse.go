@@ -129,9 +129,7 @@ func (c *ClickHouse) Tables(database string) (res []string, err error) {
 	}
 	for _, v := range tables {
 		tableName := v["name"].(string)
-		tableContent, _ := c.doQuery(fmt.Sprintf("select count(*) as c from system.columns where table = '%s' and name = '%s'", tableName, ignoreKey))
-		elog.Debug("ClickHouse", elog.Any("step", "tables"), elog.Any("tables", tables), elog.Any("tableContent", tableContent))
-		if c.isConformToRules(tableName) {
+		if c.isConformToRules(database, tableName) {
 			res = append(res, tableName)
 		}
 	}
@@ -140,8 +138,8 @@ func (c *ClickHouse) Tables(database string) (res []string, err error) {
 	return
 }
 
-func (c *ClickHouse) isConformToRules(tableName string) bool {
-	tableContent, _ := c.doQuery(fmt.Sprintf("select count(*) as c from system.columns where table = '%s' and name = '%s'", tableName, ignoreKey))
+func (c *ClickHouse) isConformToRules(database, tableName string) bool {
+	tableContent, _ := c.doQuery(fmt.Sprintf("select count(*) as c from system.columns where database = '%s' and table = '%s' and name = '%s'", database, tableName, ignoreKey))
 	elog.Debug("ClickHouse", elog.Any("step", "tables"), elog.Any("tableName", tableName), elog.Any("tableContent", tableContent))
 	if len(tableContent) == 0 {
 		return false
