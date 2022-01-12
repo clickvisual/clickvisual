@@ -1,6 +1,6 @@
 import type { InstanceType } from "@/services/systemSetting";
 import api from "@/services/systemSetting";
-import useRequest from "@/hooks/useRequest";
+import useRequest from "@/hooks/useRequest/useRequest";
 import { useState } from "react";
 import type { InstanceSelectedType } from "@/services/dataLogs";
 

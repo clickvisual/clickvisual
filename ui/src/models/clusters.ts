@@ -1,4 +1,4 @@
-import useRequest from "@/hooks/useRequest";
+import useRequest from "@/hooks/useRequest/useRequest";
 import api, { ClustersRequest, ClusterType } from "@/services/systemSetting";
 import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
 import { useState } from "react";

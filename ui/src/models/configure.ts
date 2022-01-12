@@ -1,5 +1,5 @@
 import { useState } from "react";
-import useRequest from "@/hooks/useRequest";
+import useRequest from "@/hooks/useRequest/useRequest";
 import api, {
   ConfigurationsResponse,
   CurrentConfigurationResponse,
