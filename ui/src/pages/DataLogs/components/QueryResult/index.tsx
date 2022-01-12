@@ -20,6 +20,7 @@ import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
+import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
 
 type QueryResultProps = {};
 const QueryResult = (props: QueryResultProps) => {
@@ -146,6 +147,7 @@ const QueryResult = (props: QueryResultProps) => {
           <RawLogs />
         </div>
       </Spin>
+      <ManageIndexModal />
     </div>
   );
 };

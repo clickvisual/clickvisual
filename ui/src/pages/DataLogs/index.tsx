@@ -5,7 +5,6 @@ import classNames from "classnames";
 import { useEffect } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
-import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
 
 const DataLogs = () => {
   const { onChangeCurrentDatabase, onChangeVisibleDatabaseDraw } =
@@ -28,7 +27,6 @@ const DataLogs = () => {
       <DataSourceMenu />
       <SelectedDataBaseDraw />
       <RawLogTabs />
-      <ManageIndexModal />
     </div>
   );
 };
