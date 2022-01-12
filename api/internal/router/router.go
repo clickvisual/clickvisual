@@ -50,8 +50,8 @@ func GetRouter() *egin.Component {
 	{
 		v1.GET("/query/logs", core.Handle(inquiry.Logs))
 		v1.GET("/query/charts", core.Handle(inquiry.Charts))
-		v1.GET("/query/tables", core.Handle(inquiry.Tables))
 		v1.GET("/query/databases", core.Handle(inquiry.Databases))
+		v1.GET("/query/tables", core.Handle(inquiry.Tables))
 		v1.GET("/query/indexes", core.Handle(inquiry.Indexes))
 	}
 	// System configuration

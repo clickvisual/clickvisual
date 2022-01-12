@@ -3,6 +3,7 @@ package setting
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -72,13 +73,12 @@ func ClusterCreate(c *core.Context) {
 		c.JSONE(1, "KubeConfig 文件格式错误.", err)
 		return
 	}
-
 	if err = db.ClusterCreate(invoker.Db, &db.Cluster{
 		Name:        params.Name,
 		Description: params.Description,
 		Status:      params.Status,
-		ApiServer:   params.ApiServer,
-		KubeConfig:  params.KubeConfig,
+		ApiServer:   strings.TrimSpace(params.ApiServer),
+		KubeConfig:  strings.TrimSpace(params.KubeConfig),
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return

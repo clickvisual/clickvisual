@@ -57,7 +57,7 @@ CREATE TABLE `mogo_cluster`
     `ctime`             int(11) DEFAULT NULL COMMENT '创建时间',
     `utime`             int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime`             int(11) DEFAULT NULL COMMENT '删除时间',
-    `name`               varchar(255)     NOT NULL COMMENT 'k8s集群英文唯一标识名',
+    `name`               varchar(128)     NOT NULL COMMENT 'k8s集群英文唯一标识名',
     `description`        varchar(128) DEFAULT NULL COMMENT '对k8s集群的简要描述',
     `status`             tinyint(1)   DEFAULT NULL COMMENT '集群状态,0:正常, 非0:不正常',
     `api_server`         varchar(255)     NOT NULL COMMENT 'k8s集群的ApiServer地址',
