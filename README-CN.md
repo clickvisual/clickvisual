@@ -3,3 +3,71 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/shimohq/mogo)](https://goreportcard.com/report/github.com/shimohq/mogo)
 [![Release](https://img.shields.io/github/v/release/shimohq/mogo.svg)](https://github.com/shimohq/mogo)
 [![GitHub license](https://img.shields.io/github/license/shimohq/mogo)](https://github.com/shimohq/mogo/blob/master/LICENSE)
+
+[English](https://github.com/shimohq/mogo/blob/master/README.md) | [中文](https://github.com/shimohq/mogo/blob/master/README-CN.md)
+
+Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
+
+- 日志查询界面
+  ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
+
+- 可视化配置界面
+  ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
+
+## 特性
+
+- 提供了可视化的查询面板，可查询命中条数直方图和原始日志
+- 配置好需要计算比率的字段后，可查看字段不同值占比
+- 提供了可视化的 VS Code 风格配置中心，可以便捷地将 fluent-bit 配置同步到 Kubernetes 集群 ConfigMap 中
+- 支持 GitHub 和 GitLab 授权登录
+
+## 架构
+![image](./docs/images/mogoprocess.png)
+
+## 安装方法
+
+- Docker 方式运行
+
+```bash
+git clone https://github.com/shimohq/mogo.git
+
+# 国内可能需要配置 Docker Proxy，或者配置 image mirror
+# 可参考这里：https://github.com/yeasy/docker_practice/blob/master/install/mirror.md
+docker-compose up
+
+# 打开浏览器访问 http://localhost:9001
+# 默认登录用户名: admin
+# 默认登录密码: admin
+```
+
+- 本地运行
+
+```bash
+# 下载二进制 
+# 获取最新版本
+latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+
+# MacOs 下下载
+wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_darwin_x86_64.tar.gz -O mogo.tar.gz 
+
+# Linux 下下载
+wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
+
+# 解压 tar.gz 包
+tar -xvf mogo.tar.gz -C ./
+
+# 启动 mogo
+./mogo -config config/local.toml
+
+# 打开浏览器访问 http://localhost:9001
+# 默认登录用户名: admin
+# 默认登录密码: admin
+```
+
+## Main Tasks
+
+## Bugs or features
+
+如果需要提交 Bug，可以点击 [这里](https://github.com/shimohq/mogo/issues)。
+
+## Contributors
