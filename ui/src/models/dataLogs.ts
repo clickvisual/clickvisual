@@ -7,7 +7,7 @@ import api, {
   InstanceSelectedType,
   LogsResponse,
 } from "@/services/dataLogs";
-import useRequest from "@/hooks/useRequest";
+import useRequest from "@/hooks/useRequest/useRequest";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
@@ -42,6 +42,7 @@ export type QueryParams = {
 };
 
 const DataLogsModel = () => {
+  // 查询关键字
   const [keywordInput, setKeywordInput] = useState<string | undefined>();
   // 是否隐藏 Highcharts
   const [isHiddenHighChart, setIsHiddenHighChart] = useState<boolean>(false);

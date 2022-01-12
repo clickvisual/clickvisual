@@ -178,7 +178,7 @@ const Publish = () => {
         </Form.Item>
 
         <div>
-          <Form.Item noStyle shouldUpdate={() => true}>
+          <Form.Item noStyle shouldUpdate>
             {({ getFieldValue }) => {
               const configId = getFieldValue("configId");
               const version = getFieldValue("version");

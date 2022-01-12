@@ -1,4 +1,4 @@
-import useRequest from "@/hooks/useRequest";
+import useRequest from "@/hooks/useRequest/useRequest";
 import { LoginByPassword, LoginOut } from "@/services/users";
 import { history } from "umi";
 import { HOME_PATH, LOGIN_PATH } from "@/config/config";

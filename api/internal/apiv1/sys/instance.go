@@ -1,6 +1,8 @@
 package sys
 
 import (
+	"strings"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/spf13/cast"
 
@@ -33,7 +35,7 @@ func InstanceCreate(c *core.Context) {
 	obj := db.Instance{
 		Datasource: req.Datasource,
 		Name:       req.Name,
-		Dsn:        req.Dsn,
+		Dsn:        strings.TrimSpace(req.Dsn),
 	}
 	if err = service.InstanceManager.Add(&obj); err != nil {
 		c.JSONE(1, "DNS 配置异常，数据库连接失败: "+err.Error(), nil)

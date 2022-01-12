@@ -2,6 +2,7 @@ import { useDebounceFn } from "ahooks";
 import { Button, message, notification } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
+import copy from "copy-to-clipboard";
 
 export interface ResPage {
   current: number;
@@ -210,7 +211,9 @@ function useRequest<R = any, P extends any[] = any>(
       message: "请求失败",
       description: (
         <div>
-          <div>错误: {data?.msg || "未知错误, 请联系负责人"}</div>
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            错误: {data?.msg || "未知错误, 请联系负责人"}
+          </div>
           <div style={{ marginTop: "10px" }}>
             <Button
               size="small"
@@ -218,7 +221,7 @@ function useRequest<R = any, P extends any[] = any>(
               shape="round"
               style={{ marginRight: "10px" }}
               onClick={() => {
-                navigator.clipboard.writeText(resText);
+                copy(resText);
               }}
             >
               <CopyOutlined />

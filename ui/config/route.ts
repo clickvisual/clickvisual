@@ -10,7 +10,7 @@ export default [
       {
         path: "/share",
         name: "日志查看",
-        component: "./DataLogs/components/QueryResult",
+        component: "./DataLogs/ShareQueryResultPage",
         layout: false,
       },
       {

@@ -1,17 +1,21 @@
-import logsIndexStyles from '@/pages/DataLogs/components/RawLogsIndexes/index.less';
-import classNames from 'classnames';
-import IndexSearchBar from '@/pages/DataLogs/components/RawLogsIndexes/IndexSearchBar';
-import IndexHeader from '@/pages/DataLogs/components/RawLogsIndexes/IndexHeader';
-import IndexList from '@/pages/DataLogs/components/RawLogsIndexes/IndexList';
-import { useModel } from '@@/plugin-model/useModel';
-import { useEffect, useState } from 'react';
+import logsIndexStyles from "@/pages/DataLogs/components/RawLogsIndexes/index.less";
+import classNames from "classnames";
+import IndexSearchBar from "@/pages/DataLogs/components/RawLogsIndexes/IndexSearchBar";
+import IndexHeader from "@/pages/DataLogs/components/RawLogsIndexes/IndexHeader";
+import IndexList from "@/pages/DataLogs/components/RawLogsIndexes/IndexList";
+import { useModel } from "@@/plugin-model/useModel";
+import { useEffect, useState } from "react";
 
 type RawLogsIndexesProps = {};
 const RawLogsIndexes = (props: RawLogsIndexesProps) => {
-  const { logs } = useModel('dataLogs');
+  const { logs } = useModel("dataLogs");
   const [indexList, setIndexList] = useState<string[]>(logs?.keys || []);
   const onSearch = (val: string) => {
-    setIndexList(indexList.filter((item) => item.toLowerCase().includes(val.toLowerCase())) || []);
+    const list = logs?.keys || [];
+    setIndexList(
+      list.filter((item) => item.toLowerCase().includes(val.toLowerCase())) ||
+        []
+    );
   };
   useEffect(() => {
     setIndexList(logs?.keys || []);
