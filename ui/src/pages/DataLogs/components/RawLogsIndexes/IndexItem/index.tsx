@@ -48,12 +48,12 @@ const IndexItem = (props: IndexItemProps) => {
         <div className={indexItemStyles.detailContextMain}>
           {details.length > 0 ? (
             <>
-              {details.map((detail) => (
-                <div className={indexItemStyles.context}>
+              {details.map((detail, index) => (
+                <div key={index} className={indexItemStyles.context}>
                   <div className={indexItemStyles.title}>
                     <span className={indexItemStyles.name}>
                       <Tooltip title={detail.indexName} placement={"left"}>
-                        {detail.indexName}
+                        {detail.indexName === "" ? "null" : detail.indexName}
                       </Tooltip>
                     </span>
                   </div>
