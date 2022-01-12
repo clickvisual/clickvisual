@@ -4,7 +4,9 @@
 [![Release](https://img.shields.io/github/v/release/shimohq/mogo.svg)](https://github.com/shimohq/mogo)
 [![GitHub license](https://img.shields.io/github/license/shimohq/mogo)](https://github.com/shimohq/mogo/blob/master/LICENSE)
 
-Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse, MySQL, etc.)
+[English](https://github.com/shimohq/mogo/blob/master/README.md) | [中文](https://github.com/shimohq/mogo/blob/master/README-CN.md)
+
+Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse or MySQL).
 
 - log search page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
@@ -28,10 +30,11 @@ Mogo is a lightweight browser-based logs analytics and logs search platform for 
 - For Docker
 
 ```bash
+# clone mogo source code
 git clone https://github.com/shimohq/mogo.git
-docker-compose up
 
 # you may need to set docker image mirror, visit <https://github.com/yeasy/docker_practice/blob/master/install/mirror.md> for details.
+docker-compose up
 
 # then go to browser and visit http://localhost:9001
 # login username: admin
@@ -51,8 +54,8 @@ wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_
 # for Linux
 wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
 
-# extract zip file
-tar xvf mogo.tar.gz -O 
+# extract zip file to current directory
+tar -xvf mogo.tar.gz -C ./
 
 # start mogo
 ./mogo -config config/local.toml
