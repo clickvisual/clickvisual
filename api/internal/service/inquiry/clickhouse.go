@@ -115,7 +115,19 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	for _, v := range sqlCountData {
 		if v["count"] != nil {
 			elog.Debug("ClickHouse", elog.Any("sqlCountData2", v["f"]), elog.Any("type", typeof(v["f"])))
-			res[v["f"].(string)] = v["count"].(uint64)
+			var (
+				key string
+			)
+			switch v["f"].(type) {
+			case string:
+				key = v["f"].(string)
+			case uint16:
+				key = fmt.Sprintf("%d", v["f"].(uint16))
+			default:
+				continue
+			}
+			res[key] = v["count"].(uint64)
+
 		}
 	}
 	return
@@ -123,49 +135,39 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 
 func (c *ClickHouse) Tables(database string) (res []string, err error) {
 	res = make([]string, 0)
-	tables, err := c.doQuery(fmt.Sprintf("show tables in %s", database))
+	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns where database = '%s' and name = '%s' and type = 'DateTime' group by table", database, ignoreKey))
 	if err != nil {
 		return
 	}
-	for _, v := range tables {
-		tableName := v["name"].(string)
-		if c.isConformToRules(database, tableName) {
-			res = append(res, tableName)
+	for _, row := range list {
+		if count, ok := row["c"]; ok {
+			if count.(uint64) == 0 {
+				continue
+			}
 		}
+		res = append(res, row["table"].(string))
 	}
-
-	elog.Debug("ClickHouse", elog.Any("step", "tables"), elog.Any("tables", tables))
 	return
 }
 
-func (c *ClickHouse) isConformToRules(database, tableName string) bool {
-	tableContent, _ := c.doQuery(fmt.Sprintf("select count(*) as c from system.columns where database = '%s' and table = '%s' and name = '%s'", database, tableName, ignoreKey))
-	elog.Debug("ClickHouse", elog.Any("step", "tables"), elog.Any("tableName", tableName), elog.Any("tableContent", tableContent))
-	if len(tableContent) == 0 {
-		return false
-	}
-	if count, ok := tableContent[0]["c"]; ok {
-		if count.(uint64) > 0 {
-			return true
-		}
-	}
-	return false
-}
-
 func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
-	tables, err := c.doQuery("show databases")
+	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns where name = '%s' and type = 'DateTime' group by database", ignoreKey))
 	if err != nil {
 		return
 	}
-	for _, v := range tables {
+	for _, row := range list {
+		if count, ok := row["c"]; ok {
+			if count.(uint64) == 0 {
+				continue
+			}
+		}
 		res = append(res, view.RespDatabase{
-			DatabaseName:   v["name"].(string),
+			DatabaseName:   row["database"].(string),
 			InstanceName:   c.instanceName,
 			DatasourceType: c.datasourceType,
 			InstanceId:     c.id,
 		})
 	}
-	elog.Debug("ClickHouse", elog.Any("step", "tables"), elog.Any("tables", tables))
 	return
 }
 
