@@ -5,11 +5,12 @@ import classNames from "classnames";
 import { useEffect } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
+import useLogUrlParams from "@/pages/DataLogs/hooks/useLogUrlParams";
 
 const DataLogs = () => {
   const { onChangeCurrentDatabase, onChangeVisibleDatabaseDraw } =
     useModel("dataLogs");
-
+  useLogUrlParams();
   useEffect(() => {
     return () => {
       onChangeVisibleDatabaseDraw(false);

@@ -42,6 +42,7 @@ export type QueryParams = {
 };
 
 const DataLogsModel = () => {
+  // 查询关键字
   const [keywordInput, setKeywordInput] = useState<string | undefined>();
   // 是否隐藏 Highcharts
   const [isHiddenHighChart, setIsHiddenHighChart] = useState<boolean>(false);
