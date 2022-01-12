@@ -4,17 +4,15 @@
 [![Release](https://img.shields.io/github/v/release/shimohq/mogo.svg)](https://github.com/shimohq/mogo)
 [![GitHub license](https://img.shields.io/github/license/shimohq/mogo)](https://github.com/shimohq/mogo/blob/master/LICENSE)
 
-Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse, MySQL, etc.)
+[English](https://github.com/shimohq/mogo/blob/master/README.md) | [中文](https://github.com/shimohq/mogo/blob/master/README-CN.md)
 
-## Live demo
+Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse or MySQL).
 
 - log search page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
 
 - configuration page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
-
-TODO.
 
 ## Features
 
@@ -29,48 +27,45 @@ TODO.
 
 ## Installation
 
+- For Docker
+
+```bash
+# clone mogo source code
+git clone https://github.com/shimohq/mogo.git
+
+# you may need to set docker image mirror, visit <https://github.com/yeasy/docker_practice/blob/master/install/mirror.md> for details.
+docker-compose up
+
+# then go to browser and visit http://localhost:9001
+# login username: admin
+# login password: admin
+```
+
 - For host
 
 ```bash
 # download release
 # go to https://github.com/shimohq/mogo/releases and choose specific release to download.
 latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+
 # for MacOS
 wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_darwin_x86_64.tar.gz -O mogo.tar.gz 
+
 # for Linux
 wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
 
-# extract zip file
-tar xvf mogo.tar.gz -O 
+# extract zip file to current directory
+tar -xvf mogo.tar.gz -C ./
 
-# start api server
-
-
-# configure nginx config
-
-```
-
-- For Docker
-
-```bash
-git clone https://github.com/shimohq/mogo.git
-docker-compose up
+# start mogo
+./mogo -config config/local.toml
 
 # then go to browser and visit http://localhost:9001
-# username: admin
-# password: admin
-```
-
-- For helm
-
-```bash
+# login username: admin
+# login password: admin
 ```
 
 ## Main Tasks
-
--[x] task1
-
--[x] task2
 
 ## Bugs or features
 
