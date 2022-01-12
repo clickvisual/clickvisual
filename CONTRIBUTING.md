@@ -22,11 +22,11 @@ Mogo ui 使用 Ant Design 构建，你可以参考这里 [Ant Design](https://an
 ### 启动 api 服务
 
 - 修改配置文件
-修改 `api/config/local.toml` 中对应配置，比如 `mysql.default` 等。
+修改 `api/config/default.toml` 中对应配置，比如 `mysql.default` 等。
 
 - 启动 api 服务
 ```bash
-go run api/main -config api/config/local.toml 
+go run api/main -config api/config/default.toml 
 ```
 
 ### 启动 ui 服务
