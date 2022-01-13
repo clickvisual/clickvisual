@@ -73,3 +73,5 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 如果需要提交 Bug，可以点击 [这里](https://github.com/shimohq/mogo/issues)。
 
 ## Contributors
+
+Thanks for these wonderful people:

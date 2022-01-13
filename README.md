@@ -1,4 +1,7 @@
 # mogo
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/shimohq/mogo)](https://goreportcard.com/report/github.com/shimohq/mogo)
 [![Release](https://img.shields.io/github/v/release/shimohq/mogo.svg)](https://github.com/shimohq/mogo)
@@ -74,3 +77,12 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 If you want to report a bug or request for a feature, create a issue [here](https://github.com/shimohq/mogo/issues).
 
 ## Contributors
+
+Thanks for these wonderful people:
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
