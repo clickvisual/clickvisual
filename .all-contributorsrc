@@ -8,9 +8,9 @@
     "README-CN.md"
   ],
   "imageSize": 64,
-  "commit": true,
+  "commit": false,
   "commitConvention": "none",
-  "contributors": [],
+  "contributorTemplate": "<a href=\"<%= contributor.profile %>\"><img src=\"<%= contributor.avatar_url %>\" width=\"<%= options.imageSize %>px;\" alt=\"\"/><br /><sub><b><%= contributor.name %></b></sub></a>",
   "contributorsPerLine": 7,
   "skipCi": true,
   "contributors": [
