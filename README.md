@@ -55,12 +55,12 @@ wget "https://github.com/shimohq/mogo/releases/download/${latest}/mogo-${latest}
 wget "https://github.com/shimohq/mogo/releases/download/${latest}/mogo-${latest}-linux-amd64.tar.gz" -O mogo-$(latest).tar.gz  
 
 # extract zip file to current directory.
-mkdir -p ./mogo-$(latest) && tar -zxvf mogo-$(latest).tar.gz -C ./mogo-$(latest) && cd ./mogo-$(latest)
+mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
 
 # open config/default.toml, then change database and redis or other section configuration
 # execute migration latest sql script in scripts/migration directory
 # start mogo
-./mogo -config config/default.toml
+cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 # then go to browser and visit http://localhost:9001
 # login username: admin
