@@ -1,6 +1,6 @@
 # mogo
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/shimohq/mogo)](https://goreportcard.com/report/github.com/shimohq/mogo)
@@ -84,11 +84,12 @@ Thanks for these wonderful people:
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://kl7sn.github.io"><img src="https://avatars.githubusercontent.com/u/2037801?v=4?s=64" width="64px;" alt=""/><br /><sub><b>MEX7</b></sub></a><br /><a href="https://github.com/shimohq/mogo/commits?author=kl7sn" title="Code">💻</a></td>
-    <td align="center"><a href="https://m1666.github.io"><img src="https://avatars.githubusercontent.com/u/39024186?v=4?s=64" width="64px;" alt=""/><br /><sub><b>m1666</b></sub></a><br /><a href="https://github.com/shimohq/mogo/commits?author=m1666" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/askuy"><img src="https://avatars.githubusercontent.com/u/14119383?v=4?s=64" width="64px;" alt=""/><br /><sub><b>askuy</b></sub></a><br /><a href="https://github.com/shimohq/mogo/commits?author=askuy" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/sevennt"><img src="https://avatars.githubusercontent.com/u/10843736?v=4?s=64" width="64px;" alt=""/><br /><sub><b>sevennt</b></sub></a><br /><a href="https://github.com/shimohq/mogo/commits?author=sevennt" title="Code">💻</a></td>
-    <td align="center"><a href="http://blog.lincolnzhou.com/"><img src="https://avatars.githubusercontent.com/u/3911154?v=4?s=64" width="64px;" alt=""/><br /><sub><b>LincolnZhou</b></sub></a><br /><a href="https://github.com/shimohq/mogo/commits?author=lincolnzhou" title="Code">💻</a></td>
+    <td align="center"><a href="https://kl7sn.github.io"><img src="https://avatars.githubusercontent.com/u/2037801?v=4" width="64px;" alt=""/><br /><sub><b>MEX7</b></sub></a></td>
+    <td align="center"><a href="https://m1666.github.io"><img src="https://avatars.githubusercontent.com/u/39024186?v=4" width="64px;" alt=""/><br /><sub><b>m1666</b></sub></a></td>
+    <td align="center"><a href="https://github.com/askuy"><img src="https://avatars.githubusercontent.com/u/14119383?v=4" width="64px;" alt=""/><br /><sub><b>askuy</b></sub></a></td>
+    <td align="center"><a href="https://github.com/sevennt"><img src="https://avatars.githubusercontent.com/u/10843736?v=4" width="64px;" alt=""/><br /><sub><b>sevennt</b></sub></a></td>
+    <td align="center"><a href="http://blog.lincolnzhou.com/"><img src="https://avatars.githubusercontent.com/u/3911154?v=4" width="64px;" alt=""/><br /><sub><b>LincolnZhou</b></sub></a></td>
+    <td align="center"><a href="https://www.duanlv.ltd"><img src="https://avatars.githubusercontent.com/u/20787331?v=4" width="64px;" alt=""/><br /><sub><b>Link Duan</b></sub></a></td>
   </tr>
 </table>
 
