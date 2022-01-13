@@ -1,20 +1,20 @@
 # mogo
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![Go Report Card](https://goreportcard.com/badge/github.com/shimohq/mogo)](https://goreportcard.com/report/github.com/shimohq/mogo)
 [![Release](https://img.shields.io/github/v/release/shimohq/mogo.svg)](https://github.com/shimohq/mogo)
 [![GitHub license](https://img.shields.io/github/license/shimohq/mogo)](https://github.com/shimohq/mogo/blob/master/LICENSE)
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [English](https://github.com/shimohq/mogo/blob/master/README.md) | [中文](https://github.com/shimohq/mogo/blob/master/README-CN.md)
 
 Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse or MySQL).
 
-- log search page
+**log search page**
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
 
-- configuration page
+**configuration page**
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
 
 ## Features
