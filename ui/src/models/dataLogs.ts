@@ -285,6 +285,19 @@ const DataLogsModel = () => {
     setHighlightKeywords(allQuery);
   };
 
+  const doUpdatedQuery = (currentSelected: string) => {
+    const defaultValueArr =
+      lodash.cloneDeep(keywordInput)?.split(" and ") || [];
+    if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
+      defaultValueArr.pop();
+    defaultValueArr.push(currentSelected);
+    const kw = defaultValueArr.join(" and ");
+    onChangeKeywordInput(kw);
+    doGetLogs({ kw });
+    doGetHighCharts({ kw });
+    doParseQuery(kw);
+  };
+
   const resetLogs = () => {
     onChangeEndDateTime(currentTimeStamp());
     onChangeStartDateTime(
@@ -394,6 +407,7 @@ const DataLogsModel = () => {
 
     doSelectedDatabase,
     doParseQuery,
+    doUpdatedQuery,
 
     resetLogs,
     resetCurrentHighChart,

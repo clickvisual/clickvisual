@@ -2,34 +2,17 @@ import logItemStyles from "@/pages/DataLogs/components/RawLogList/LogItem/index.
 import { useContext } from "react";
 import { LogItemContext } from "@/pages/DataLogs/components/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
-import lodash from "lodash";
 import classNames from "classnames";
 
 type LogItemDetailsProps = {};
 const LogItemDetails = (props: LogItemDetailsProps) => {
   const { log } = useContext(LogItemContext);
-  const {
-    keywordInput,
-    onChangeKeywordInput,
-    doGetLogs,
-    doGetHighCharts,
-    highlightKeywords,
-    doParseQuery,
-  } = useModel("dataLogs");
+  const { highlightKeywords, doUpdatedQuery } = useModel("dataLogs");
   const keys = Object.keys(log).sort();
 
   const quickInsertQuery = (keyItem: string) => {
     const currentSelected = `${keyItem}='${log[keyItem]}'`;
-    const defaultValueArr =
-      lodash.cloneDeep(keywordInput)?.split(" and ") || [];
-    if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
-      defaultValueArr.pop();
-    defaultValueArr.push(currentSelected);
-    const kw = defaultValueArr.join(" and ");
-    onChangeKeywordInput(kw);
-    doGetLogs({ kw });
-    doGetHighCharts({ kw });
-    doParseQuery(kw);
+    doUpdatedQuery(currentSelected);
   };
 
   return (
