@@ -10,18 +10,15 @@
   "imageSize": 64,
   "commit": true,
   "commitConvention": "none",
-  "contributors": [],
-  "contributorsPerLine": 7,
-  "skipCi": true,
   "contributors": [
     {
-        "login": "kl7sn",
-        "name": "MEX7",
-        "avatar_url": "https://avatars.githubusercontent.com/u/2037801?v=4",
-        "profile": "https://kl7sn.github.io",
-        "contributions": [
-          "code"
-        ]
+      "login": "kl7sn",
+      "name": "MEX7",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2037801?v=4",
+      "profile": "https://kl7sn.github.io",
+      "contributions": [
+        "code"
+      ]
     },
     {
       "login": "m1666",
@@ -49,6 +46,17 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "lincolnzhou",
+      "name": "LincolnZhou",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3911154?v=4",
+      "profile": "http://blog.lincolnzhou.com/",
+      "contributions": [
+        "code"
+      ]
     }
-  ]
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true
 }
