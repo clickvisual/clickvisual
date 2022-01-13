@@ -33,7 +33,13 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
       visible={visible}
       onCancel={onCancel}
       footer={
-        <Button type={"primary"} onClick={() => formRef.current?.submit()}>
+        <Button
+          type={"primary"}
+          onClick={() => {
+            formRef.current?.submit();
+            onCancel();
+          }}
+        >
           保存
         </Button>
       }
