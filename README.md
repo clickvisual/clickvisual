@@ -26,7 +26,8 @@ Mogo is a lightweight browser-based logs analytics and logs search platform for 
 - Support for GitHub and GitLab Authentication.
 
 ## Architecture
-![image](./docs/images/mogoprocess.png)
+
+![image](https://helpcenter.shimonote.com/uploads/0LL8P57E01E8G.png)
 
 ## Installation
 
