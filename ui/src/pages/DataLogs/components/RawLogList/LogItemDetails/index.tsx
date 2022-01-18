@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { LogItemContext } from "@/pages/DataLogs/components/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
+import LogContentParse from "@/pages/DataLogs/components/RawLogList/LogItem/LogContentParse";
 
 type LogItemDetailsProps = {};
 const LogItemDetails = (props: LogItemDetailsProps) => {
@@ -26,18 +27,22 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
           return (
             <div key={index} className={logItemStyles.logLine}>
               <div className={logItemStyles.logKey}>
-                <span>{keyItem}</span>
+                <span>{keyItem}</span>:
               </div>
-              :
-              <span
-                onClick={() => quickInsertQuery(keyItem)}
-                className={classNames(
-                  logItemStyles.logContent,
-                  flag && logItemStyles.logContentHighlight
-                )}
-              >
-                {log[keyItem]}
-              </span>
+              {keyItem !== "log" ? (
+                <span
+                  onClick={() => quickInsertQuery(keyItem)}
+                  className={classNames(
+                    logItemStyles.logContent,
+                    flag && logItemStyles.logContentHighlight,
+                    logItemStyles.logHover
+                  )}
+                >
+                  {log[keyItem]}
+                </span>
+              ) : (
+                <LogContentParse logContent={log[keyItem]} />
+              )}
             </div>
           );
         })}

@@ -30,8 +30,8 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
   const datasourceTypeList = [{ name: "ClickHouse", value: "ch" }];
 
   useEffect(() => {
-    doGetDatabaseList(selectedInstance);
-  }, [selectedInstance]);
+    if (visibleDataBaseDraw) doGetDatabaseList(selectedInstance);
+  }, [selectedInstance, visibleDataBaseDraw]);
 
   useEffect(() => {
     if (visibleDataBaseDraw) {

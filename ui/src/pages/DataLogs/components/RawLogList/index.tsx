@@ -1,49 +1,34 @@
-import rawLogListStyles from '@/pages/DataLogs/components/RawLogList/index.less';
-import LogItem from '@/pages/DataLogs/components/RawLogList/LogItem';
-import { useModel } from '@@/plugin-model/useModel';
-import React, { useEffect, useRef } from 'react';
-import classNames from 'classnames';
+import rawLogListStyles from "@/pages/DataLogs/components/RawLogList/index.less";
+import LogItem from "@/pages/DataLogs/components/RawLogList/LogItem";
+import { useModel } from "@@/plugin-model/useModel";
+import React, { useEffect } from "react";
+import classNames from "classnames";
+import useLogListScroll from "@/pages/DataLogs/hooks/useLogListScroll";
 
 type RawLogListProps = {};
 type LogItemContextType = {
   log: any;
 };
 
-export const LogItemContext = React.createContext<LogItemContextType>({ log: {} });
+export const LogItemContext = React.createContext<LogItemContextType>({
+  log: {},
+});
 const RawLogList = (props: RawLogListProps) => {
-  // 用于监听日志列表滚动
-  const logListRef = useRef<HTMLDivElement | null>(null);
-  const { onChangeHiddenHighChart, logs } = useModel('dataLogs');
-
-  const onChangeScroll = () => {
-    if (logListRef.current) {
-      if (logListRef.current.scrollTop < 300) {
-        onChangeHiddenHighChart(false);
-      } else {
-        onChangeHiddenHighChart(true);
-      }
-    } else {
-      onChangeHiddenHighChart(true);
-    }
-  };
-
-  const LogsBackToTop = () => {
-    if (logListRef.current) {
-      logListRef.current.scrollTop = 0;
-      onChangeHiddenHighChart(false);
-    }
-  };
+  const { onChangeHiddenHighChart, logs } = useModel("dataLogs");
+  const containerProps = useLogListScroll();
 
   useEffect(() => {
-    LogsBackToTop();
+    if (containerProps.ref.current) {
+      containerProps.ref.current.scrollTop = 0;
+      onChangeHiddenHighChart(false);
+    }
   }, [logs]);
 
   const list = logs?.logs || [];
   return (
     <div
       className={classNames(rawLogListStyles.rawLogListMain)}
-      ref={logListRef}
-      onScrollCapture={onChangeScroll}
+      {...containerProps}
     >
       {list.map((logItem: any, index: number) => (
         <LogItemContext.Provider key={index} value={{ log: logItem }}>

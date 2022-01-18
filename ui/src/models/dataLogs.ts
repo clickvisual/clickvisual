@@ -82,12 +82,19 @@ const DataLogsModel = () => {
     TimeRangeType.Relative
   );
   const [activeTimeOptionIndex, setActiveTimeOptionIndex] = useState(2);
+  const [currentRelativeAmount, setCurrentRelativeAmount] =
+    useState<number>(15);
+  const [currentRelativeUnit, setCurrentRelativeUnit] =
+    useState<string>("minutes");
 
   // 日志 Tab 标签
   const [logPanes, setLogPanes] = useState<PaneType[]>([]);
 
   // 是否展示索引列表
   const [visibleIndexModal, setVisibleIndexModal] = useState<boolean>(false);
+
+  // 是否使用表格形式展示日志信息
+  const [activeTableLog, setActiveTableLog] = useState<boolean>(false);
 
   // 用于关闭无效请求
   const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
@@ -129,12 +136,24 @@ const DataLogsModel = () => {
     setActiveTimeOptionIndex(index);
   };
 
+  const onChangeCurrentRelativeAmount = (amount: number) => {
+    setCurrentRelativeAmount(amount);
+  };
+
+  const onChangeCurrentRelativeUnit = (unit: string) => {
+    setCurrentRelativeUnit(unit);
+  };
+
   const onChangeLogPanes = (panes: PaneType[]) => {
     setLogPanes(panes);
   };
 
   const onChangeVisibleIndexModal = (visible: boolean) => {
     setVisibleIndexModal(visible);
+  };
+
+  const onChangeActiveTableLog = (active: boolean) => {
+    setActiveTableLog(active);
   };
 
   const onChangeLogPane = (newPane: PaneType) => {
@@ -378,11 +397,14 @@ const DataLogsModel = () => {
     logsLoading: getLogs.loading,
     highChartLoading: getHighCharts.loading,
     activeTabKey,
+    currentRelativeAmount,
+    currentRelativeUnit,
     activeTimeOptionIndex,
     highlightKeywords,
     logPanes,
     visibleDataBaseDraw,
     visibleIndexModal,
+    activeTableLog,
 
     doGetLogs,
     doGetHighCharts,
@@ -399,11 +421,14 @@ const DataLogsModel = () => {
     onChangeLogsPageByUrl,
     onChangeActiveTabKey,
     onChangeActiveTimeOptionIndex,
+    onChangeCurrentRelativeAmount,
+    onChangeCurrentRelativeUnit,
     onChangeLogPanes,
     onChangeLogPane,
     onChangeVisibleDatabaseDraw,
     onChangeVisibleIndexModal,
     onChangeHiddenHighChart,
+    onChangeActiveTableLog,
 
     doSelectedDatabase,
     doParseQuery,
