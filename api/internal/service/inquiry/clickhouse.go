@@ -15,6 +15,7 @@ import (
 )
 
 const ignoreKey = "_time_"
+const timeCondition = "_time_ >= parseDateTime64BestEffort('%d', 3, 'Asia/Shanghai') AND _time_ < parseDateTime64BestEffort('%d', 3, 'Asia/Shanghai')"
 
 type ClickHouse struct {
 	id             int
@@ -72,7 +73,7 @@ func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
 	}
 	res.Count = c.Count(param)
 	res.Limited = param.PageSize
-	// 读取索引数据
+	// Read the index data
 	instance, _ := db.InstanceByName(param.DatasourceType, param.InstanceName)
 	conds := egorm.Conds{}
 	conds["instance_id"] = instance.ID
@@ -83,10 +84,6 @@ func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
 		res.Keys = append(res.Keys, i.Field)
 	}
 	return
-}
-
-func typeof(v interface{}) string {
-	return reflect.TypeOf(v).String()
 }
 
 func (c *ClickHouse) Count(param view.ReqQuery) (res uint64) {
@@ -114,10 +111,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	elog.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
 	for _, v := range sqlCountData {
 		if v["count"] != nil {
-			elog.Debug("ClickHouse", elog.Any("sqlCountData2", v["f"]), elog.Any("type", typeof(v["f"])))
-			var (
-				key string
-			)
+			var key string
 			switch v["f"].(type) {
 			case string:
 				key = v["f"].(string)
@@ -127,7 +121,6 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 				continue
 			}
 			res[key] = v["count"].(uint64)
-
 		}
 	}
 	return
@@ -135,7 +128,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 
 func (c *ClickHouse) Tables(database string) (res []string, err error) {
 	res = make([]string, 0)
-	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns where database = '%s' and name = '%s' and type = 'DateTime' group by table", database, ignoreKey))
+	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns a left join system.tables b on a.table = b.name where a.database = '%s' and a.name = '%s' and a.type = 'DateTime64(3)' and b.engine != 'MaterializedView' group by table", database, ignoreKey))
 	if err != nil {
 		return
 	}
@@ -151,7 +144,7 @@ func (c *ClickHouse) Tables(database string) (res []string, err error) {
 }
 
 func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
-	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns where name = '%s' and type = 'DateTime' group by database", ignoreKey))
+	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns where name = '%s' and type = 'DateTime64(3)' group by database", ignoreKey))
 	if err != nil {
 		return
 	}
@@ -172,7 +165,7 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+timeCondition+" LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -182,7 +175,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d",
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+timeCondition,
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
@@ -191,7 +184,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND _time_ >= %d AND _time_ < %d group by %s",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+timeCondition+" group by %s",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,

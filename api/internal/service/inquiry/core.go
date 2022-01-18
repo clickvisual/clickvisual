@@ -21,7 +21,7 @@ type Operator interface {
 	GroupBy(param view.ReqQuery) (res map[string]uint64)
 }
 
-var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">="}
+var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "~"}
 
 type queryItem struct {
 	Key      string
@@ -54,6 +54,9 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
+		if item.Operator == "~" {
+			item.Operator = " like "
+		}
 		if item.Key == "_time_" {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
@@ -83,7 +86,7 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	if len(opArr) != 2 {
 		return constx.ErrQueryFormatIllegal
 	}
-	if strings.Contains(opArr[1], " ") {
+	if strings.Contains(strings.TrimSpace(opArr[1]), " ") {
 		return constx.ErrQueryFormatIllegal
 	}
 	*res = append(*res, queryItem{
