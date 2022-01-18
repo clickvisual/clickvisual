@@ -5,6 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { Progress, Spin, Tooltip } from "antd";
 import useRequest from "@/hooks/useRequest/useRequest";
 import api, { IndexDetail } from "@/services/dataLogs";
+
 type IndexItemProps = {
   index: string;
   isActive: boolean;
@@ -17,11 +18,18 @@ const IndexItem = (props: IndexItemProps) => {
     currentLogLibrary,
     startDateTime,
     endDateTime,
+    doUpdatedQuery,
   } = useModel("dataLogs");
+
   const getIndexDetails = useRequest(api.getIndexDetail, {
     loadingText: false,
   });
   const [details, setDetails] = useState<IndexDetail[]>([]);
+
+  const insertQuery = (name: string) => {
+    const currentSelected = `${index}='${name}'`;
+    doUpdatedQuery(currentSelected);
+  };
 
   useEffect(() => {
     if (
@@ -56,8 +64,19 @@ const IndexItem = (props: IndexItemProps) => {
             <>
               {details.map((detail, index) => (
                 <div key={index} className={indexItemStyles.context}>
-                  <div className={indexItemStyles.title}>
-                    <span className={indexItemStyles.name}>
+                  <div
+                    className={indexItemStyles.title}
+                    onClick={() => {
+                      if (detail.indexName !== "")
+                        insertQuery(detail.indexName);
+                    }}
+                  >
+                    <span
+                      className={classNames(
+                        indexItemStyles.name,
+                        detail.indexName !== "" && indexItemStyles.nameHover
+                      )}
+                    >
                       <Tooltip title={detail.indexName} placement={"left"}>
                         {detail.indexName === "" ? "null" : detail.indexName}
                       </Tooltip>
@@ -65,12 +84,18 @@ const IndexItem = (props: IndexItemProps) => {
                   </div>
                   <div>
                     <Tooltip title={detail.count} placement={"right"}>
-                      <Progress
-                        className={indexItemStyles.progress}
-                        percent={detail.percent}
-                        trailColor={"hsla(210, 14%, 83%, 0.4)"}
-                        size="small"
-                      />
+                      <div className={indexItemStyles.progressMain}>
+                        <Progress
+                          className={indexItemStyles.progress}
+                          percent={detail.percent}
+                          showInfo={false}
+                          trailColor={"hsla(210, 14%, 83%, 0.4)"}
+                          size="small"
+                        />
+                        <div className={indexItemStyles.percent}>
+                          <span>{`${detail.percent}%`}</span>
+                        </div>
+                      </div>
                     </Tooltip>
                   </div>
                 </div>

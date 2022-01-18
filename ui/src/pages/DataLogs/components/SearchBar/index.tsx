@@ -1,11 +1,19 @@
-import searchBarStyles from '@/pages/DataLogs/components/SearchBar/index.less';
-import { Button, Input } from 'antd';
-import { useModel } from 'umi';
-import DarkTimeSelect from '@/pages/DataLogs/components/DateTimeSelected';
-import { useDebounceFn } from 'ahooks';
-import SearchBarSuffixIcon from '@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon';
-import { PaneType } from '@/models/dataLogs';
-import {DEBOUNCE_WAIT, FIRST_PAGE, PAGE_SIZE} from "@/config/config";
+import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
+import { Button, Input } from "antd";
+import { useModel } from "umi";
+import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
+import { useDebounceFn } from "ahooks";
+import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
+import { PaneType, QueryParams } from "@/models/dataLogs";
+import {
+  DEBOUNCE_WAIT,
+  FIRST_PAGE,
+  PAGE_SIZE,
+  TimeRangeType,
+} from "@/config/config";
+import moment from "moment";
+import type { DurationInputArg2, DurationInputArg1 } from "moment";
+import { currentTimeStamp } from "@/utils/momentUtils";
 
 const SearchBar = () => {
   const {
@@ -17,21 +25,42 @@ const SearchBar = () => {
     doGetHighCharts,
     onChangeLogsPageByUrl,
     onChangeLogPane,
+    onChangeStartDateTime,
+    onChangeEndDateTime,
     logsLoading,
     highChartLoading,
+    activeTabKey,
+    currentRelativeAmount,
+    currentRelativeUnit,
     doParseQuery,
-  } = useModel('dataLogs');
+  } = useModel("dataLogs");
 
-  const oldPane = logPanes.find((item) => item.pane === currentLogLibrary) as PaneType;
+  const oldPane = logPanes.find(
+    (item) => item.pane === currentLogLibrary
+  ) as PaneType;
 
   const doSearch = useDebounceFn(
     () => {
+      const params: QueryParams = { page: FIRST_PAGE, pageSize: PAGE_SIZE };
+      if (activeTabKey === TimeRangeType.Relative) {
+        const start = moment()
+          .subtract(
+            currentRelativeAmount as DurationInputArg1,
+            currentRelativeUnit as DurationInputArg2
+          )
+          .unix();
+        const end = currentTimeStamp();
+        onChangeStartDateTime(start);
+        onChangeEndDateTime(end);
+        params.st = start;
+        params.et = end;
+      }
       onChangeLogsPageByUrl(FIRST_PAGE, PAGE_SIZE);
-      doGetHighCharts({ page: FIRST_PAGE, pageSize: PAGE_SIZE });
-      doGetLogs({ page: FIRST_PAGE, pageSize: PAGE_SIZE });
+      doGetHighCharts(params);
+      doGetLogs(params);
       doParseQuery();
     },
-    { wait: DEBOUNCE_WAIT },
+    { wait: DEBOUNCE_WAIT }
   );
   return (
     <div className={searchBarStyles.searchBarMain}>

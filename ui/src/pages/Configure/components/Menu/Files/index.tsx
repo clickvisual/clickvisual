@@ -5,6 +5,7 @@ import {
   FileAddOutlined,
   FileSyncOutlined,
   HistoryOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import DarkButton from "@/pages/Configure/components/CustomButton/DarkButton";
 import { Empty, Space, Spin, Tooltip } from "antd";
@@ -150,9 +151,15 @@ const Files = (props: FilesProps) => {
           </DarkButton>
           <DarkButton
             style={{ marginTop: "12px" }}
-            onClick={() => doSync.run()}
+            onClick={() => {
+              if (!doSynchronizingConfiguration.loading) doSync.run();
+            }}
           >
-            <FileSyncOutlined />
+            {doSynchronizingConfiguration.loading ? (
+              <LoadingOutlined />
+            ) : (
+              <FileSyncOutlined />
+            )}
             <span className={fileStyles.btn}>快速同步集群配置</span>
           </DarkButton>
         </div>

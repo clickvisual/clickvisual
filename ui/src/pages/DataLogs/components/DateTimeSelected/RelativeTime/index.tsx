@@ -1,11 +1,14 @@
-import darkTimeStyles from '@/pages/DataLogs/components/DateTimeSelected/index.less';
-import { useModel } from '@@/plugin-model/useModel';
-import moment from 'moment';
-import { currentTimeStamp, timeStampFormat } from '@/utils/momentUtils';
-import { useContext, useState } from 'react';
-import classNames from 'classnames';
-import { DarkTimeContext, TimeUnit } from '@/pages/DataLogs/components/DateTimeSelected';
-import { PaneType } from '@/models/dataLogs';
+import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
+import { useModel } from "@@/plugin-model/useModel";
+import moment from "moment";
+import { currentTimeStamp, timeStampFormat } from "@/utils/momentUtils";
+import { useContext, useState } from "react";
+import classNames from "classnames";
+import {
+  DarkTimeContext,
+  TimeUnit,
+} from "@/pages/DataLogs/components/DateTimeSelected";
+import { PaneType } from "@/models/dataLogs";
 
 type RelativeTimeProps = {};
 const RelativeTime = (props: RelativeTimeProps) => {
@@ -18,20 +21,32 @@ const RelativeTime = (props: RelativeTimeProps) => {
     onChangeEndDateTime,
     activeTimeOptionIndex,
     onChangeLogPane,
+    doGetLogs,
+    doGetHighCharts,
+    onChangeCurrentRelativeAmount,
+    onChangeCurrentRelativeUnit,
     onChangeActiveTimeOptionIndex,
-  } = useModel('dataLogs');
+  } = useModel("dataLogs");
   const [startTime, setStartTime] = useState<number>(startDateTime as number);
   const [endTime, setEndTime] = useState<number>(endDateTime as number);
   const { timeOptions } = useContext(DarkTimeContext);
 
-  const oldPane = logPanes.find((item) => item.pane === currentLogLibrary) as PaneType;
+  const oldPane = logPanes.find(
+    (item) => item.pane === currentLogLibrary
+  ) as PaneType;
 
-  const handleSelect = (relativeAmount: number, relativeUnit: TimeUnit, index: number) => {
+  const handleSelect = (
+    relativeAmount: number,
+    relativeUnit: TimeUnit,
+    index: number
+  ) => {
     const start = moment().subtract(relativeAmount, relativeUnit).unix();
     const end = currentTimeStamp();
     onChangeStartDateTime(start);
     onChangeEndDateTime(end);
-
+    const params = { st: start, et: end };
+    doGetLogs(params);
+    doGetHighCharts(params);
     onChangeLogPane({ ...oldPane, start, end, activeIndex: index });
   };
 
@@ -57,11 +72,15 @@ const RelativeTime = (props: RelativeTimeProps) => {
             onClick={() => {
               handleSelect(option.relativeAmount, option.relativeUnit, index);
               onChangeActiveTimeOptionIndex(index);
+              onChangeCurrentRelativeAmount(option.relativeAmount);
+              onChangeCurrentRelativeUnit(option.relativeUnit);
             }}
             className={classNames(darkTimeStyles.timeOption, {
               [darkTimeStyles.activeOption]: index === activeTimeOptionIndex,
             })}
-            onMouseEnter={() => handleMouseEnter(option.relativeAmount, option.relativeUnit)}
+            onMouseEnter={() =>
+              handleMouseEnter(option.relativeAmount, option.relativeUnit)
+            }
             onMouseLeave={() => handleMouseLeave()}
           >
             {option.title}
