@@ -89,9 +89,6 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	if len(opArr) != 2 {
 		return constx.ErrQueryFormatIllegal
 	}
-	if strings.Contains(strings.TrimSpace(opArr[1]), "%") {
-		return constx.ErrQueryFormatIllegal
-	}
 	*res = append(*res, queryItem{
 		Key:      opArr[0],
 		Operator: op,

@@ -130,7 +130,14 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 				key = v["f"].(string)
 			case uint16:
 				key = fmt.Sprintf("%d", v["f"].(uint16))
+			case int32:
+				key = fmt.Sprintf("%d", v["f"].(int32))
+			case int64:
+				key = fmt.Sprintf("%d", v["f"].(int64))
+			case float64:
+				key = fmt.Sprintf("%f", v["f"].(float64))
 			default:
+				elog.Info("GroupBy", elog.Any("type", reflect.TypeOf(v["f"])))
 				continue
 			}
 			res[key] = v["count"].(uint64)
