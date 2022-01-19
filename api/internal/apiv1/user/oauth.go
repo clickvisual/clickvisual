@@ -14,11 +14,12 @@ import (
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 
-	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
+
+	"github.com/shimohq/mogo/api/pkg/component/core"
 
 	"github.com/kl7sn/toolkit/kauth"
 )
@@ -50,7 +51,7 @@ func Oauth(c *core.Context) {
 		state, err = kauth.GenStateString()
 		if err != nil {
 			elog.Error("Generating state string failed", zap.Error(err))
-			c.JSONE(3, "An internal error occurred", nil)
+			c.JSONE(3, "internal error occurred", nil)
 			return
 		}
 

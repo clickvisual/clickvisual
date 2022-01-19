@@ -20,7 +20,7 @@ const RawLogs = (props: RawLogsProps) => {
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={"暂无日志信息"}
+            description={"found nothing"}
           />
         )}
       </div>

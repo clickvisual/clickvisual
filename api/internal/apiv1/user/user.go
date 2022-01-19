@@ -47,7 +47,7 @@ func Login(c *core.Context) {
 	// fmt.Println(string(hash))
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
-		c.JSONE(1, "账号或密码错误", "")
+		c.JSONE(1, "account or password error", "")
 		return
 	}
 	session := sessions.Default(c.Context)

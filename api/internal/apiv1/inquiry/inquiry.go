@@ -16,26 +16,26 @@ func Logs(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Invalid parameter: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" || param.Table == "" {
-		c.JSONE(core.CodeErr, "DB and table are required fields", nil)
+		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "Corresponding configuration instance does not exist:  ", nil)
+		c.JSONE(core.CodeErr, "instance does not exist", nil)
 		return
 	}
 	param, err = op.Prepare(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	res, err := op.GET(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Query failed. "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK(res)
@@ -46,16 +46,16 @@ func Charts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Invalid parameter: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" || param.Table == "" {
-		c.JSONE(core.CodeErr, "DB and table are required fields", nil)
+		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "Corresponding configuration instance does not exist:  ", nil)
+		c.JSONE(core.CodeErr, "instance does not exist", nil)
 		return
 	}
 	// Calculate 50 intervals
@@ -64,7 +64,7 @@ func Charts(c *core.Context) {
 	}
 	param, err = op.Prepare(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	interval := (param.ET - param.ST) / 50
@@ -118,7 +118,7 @@ func Charts(c *core.Context) {
 		}
 	}
 	if isZero {
-		c.JSONE(core.CodeOK, "查询数据为空. ", nil)
+		c.JSONE(core.CodeOK, "the query data is empty", nil)
 		return
 	}
 	sort.Slice(res.Histograms, func(i int, j int) bool {
@@ -132,21 +132,21 @@ func Tables(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "参数无效: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" {
-		c.JSONE(core.CodeErr, "db 为必填字段", nil)
+		c.JSONE(core.CodeErr, "db is a required field", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
+		c.JSONE(core.CodeErr, "instance does not exist", nil)
 		return
 	}
 	res, err := op.Tables(param.Database)
 	if err != nil {
-		c.JSONE(core.CodeErr, "查询失败. "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK(res)
@@ -157,7 +157,7 @@ func Databases(c *core.Context) {
 	var param view.ReqDatabases
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "参数无效: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	// 获取全部实例下的 databases
@@ -177,7 +177,7 @@ func Databases(c *core.Context) {
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "未查询到对应实例数据 ", nil)
+		c.JSONE(core.CodeErr, "instance does not exist", nil)
 		return
 	}
 	res, err := op.Databases()
@@ -192,21 +192,21 @@ func Indexes(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "参数无效: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	if param.Database == "" || param.Table == "" {
-		c.JSONE(core.CodeErr, "db 和 table 为必填字段", nil)
+		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
 	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
 	if op == nil {
-		c.JSONE(core.CodeErr, "不存在对应配置实例:  ", nil)
+		c.JSONE(core.CodeErr, "instance does not exist", nil)
 		return
 	}
 	param, err = op.Prepare(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Invalid parameter. "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter. "+err.Error(), nil)
 		return
 	}
 	list := op.GroupBy(param)

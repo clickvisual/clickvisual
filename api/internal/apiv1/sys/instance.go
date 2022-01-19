@@ -17,7 +17,7 @@ import (
 func InstanceCreate(c *core.Context) {
 	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "参数错误:"+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
@@ -25,11 +25,11 @@ func InstanceCreate(c *core.Context) {
 	conds["name"] = req.Name
 	checks, err := db.InstanceList(conds)
 	if err != nil {
-		c.JSONE(1, "创建失败 DB: "+err.Error(), nil)
+		c.JSONE(1, "creation DB failed: "+err.Error(), nil)
 		return
 	}
 	if len(checks) > 0 {
-		c.JSONE(1, "存在重复名称的数据源配置", nil)
+		c.JSONE(1, "data source configuration with duplicate name", nil)
 		return
 	}
 	obj := db.Instance{
@@ -38,11 +38,11 @@ func InstanceCreate(c *core.Context) {
 		Dsn:        strings.TrimSpace(req.Dsn),
 	}
 	if err = service.InstanceManager.Add(&obj); err != nil {
-		c.JSONE(1, "DNS 配置异常，数据库连接失败: "+err.Error(), nil)
+		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
 		return
 	}
 	if err = db.InstanceCreate(invoker.Db, &obj); err != nil {
-		c.JSONE(1, "创建失败 DB: "+err.Error(), nil)
+		c.JSONE(1, "creation DB failed: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -51,17 +51,17 @@ func InstanceCreate(c *core.Context) {
 func InstanceUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
-		c.JSONE(1, "did不能为空", nil)
+		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
 	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "参数错误:"+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	objBef, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "删除失败，数据库不存在对应记录:"+err.Error(), nil)
+		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
 	service.InstanceManager.Delete(objBef.DsKey())
@@ -72,7 +72,7 @@ func InstanceUpdate(c *core.Context) {
 	}
 	if err = service.InstanceManager.Add(&objUpdate); err != nil {
 		_ = service.InstanceManager.Add(&objBef)
-		c.JSONE(1, "DNS 配置异常，数据库连接失败: "+err.Error(), nil)
+		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
 		return
 	}
 	ups := make(map[string]interface{}, 0)
@@ -80,10 +80,9 @@ func InstanceUpdate(c *core.Context) {
 	ups["name"] = req.Name
 	ups["dsn"] = req.Dsn
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
-		c.JSONE(1, "更新失败:"+err.Error(), nil)
+		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-
 	c.JSONOK()
 }
 
@@ -100,16 +99,16 @@ func InstanceList(c *core.Context) {
 func InstanceDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
-		c.JSONE(1, "did不能为空", nil)
+		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
 	obj, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "删除失败，数据库不存在对应记录:"+err.Error(), nil)
+		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
 	if err = db.InstanceDelete(invoker.Db, id); err != nil {
-		c.JSONE(1, "删除失败:"+err.Error(), nil)
+		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
 	service.InstanceManager.Delete(obj.DsKey())

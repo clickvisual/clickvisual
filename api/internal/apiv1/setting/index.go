@@ -20,12 +20,12 @@ func IndexUpdate(c *core.Context) {
 		err    error
 	)
 	if err = c.Bind(&req); err != nil {
-		c.JSONE(1, "参数错误:"+err.Error(), nil)
+		c.JSONE(1, "param error:"+err.Error(), nil)
 		return
 	}
 	addMap, delMap, newMap, err = service.Index.Diff(req)
 	if err != nil {
-		c.JSONE(1, "内部错误:"+err.Error(), nil)
+		c.JSONE(1, "unknown error:"+err.Error(), nil)
 		return
 	}
 	elog.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
@@ -36,7 +36,7 @@ func IndexUpdate(c *core.Context) {
 	// Create View
 	err = service.Index.Sync(req, addMap, delMap, newMap)
 	if err != nil {
-		c.JSONE(1, "内部错误:"+err.Error(), nil)
+		c.JSONE(1, "unknown error:"+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -48,7 +48,7 @@ func Indexes(c *core.Context) {
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
-		c.JSONE(1, "参数错误:"+err.Error(), nil)
+		c.JSONE(1, "param error:"+err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
@@ -57,7 +57,7 @@ func Indexes(c *core.Context) {
 	conds["table"] = req.Table
 	indexes, err := db.IndexList(conds)
 	if err != nil {
-		c.JSONE(1, "索引查询失败: "+err.Error(), nil)
+		c.JSONE(1, "unknown error: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK(indexes)
