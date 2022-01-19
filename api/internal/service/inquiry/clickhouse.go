@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
@@ -16,6 +17,18 @@ import (
 
 const ignoreKey = "_time_"
 const timeCondition = "_time_ >= parseDateTime64BestEffort('%d', 3, 'Asia/Shanghai') AND _time_ < parseDateTime64BestEffort('%d', 3, 'Asia/Shanghai')"
+
+var typORM = map[int]string{
+	0: "String",
+	1: "Int64",
+	2: "Float64",
+}
+
+var jsonExtractORM = map[int]string{
+	0: "JSONExtractString",
+	1: "JSONExtractInt",
+	2: "JSONExtractFloat",
+}
 
 type ClickHouse struct {
 	id             int
@@ -162,6 +175,96 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 		})
 	}
 	return
+}
+
+// IndexUpdate Data table index operation
+func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
+	var tx *sql.Tx
+	tx, err = c.db.Begin()
+	if err != nil {
+		return err
+	}
+	// step 1 drop
+	for _, del := range dels {
+		qs := fmt.Sprintf("alter table %s.%s drop column IF EXISTS %s;", param.Database, param.Table, del.Field)
+		_, err = tx.Exec(qs)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	// step 2 add
+	for _, add := range adds {
+		qs := fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN IF NOT EXISTS %s Nullable(%s);", param.Database, param.Table, add.Field, typORM[add.Typ])
+		_, err = tx.Exec(qs)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	// step 3 drop view, contains two views, one using ts and the other using _time_
+	viewDropSQL := fmt.Sprintf("drop table IF EXISTS %s.%s;", param.Database, param.Table+"_view")
+	_, err = tx.Exec(viewDropSQL)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	viewTsDropSQL := fmt.Sprintf("drop table IF EXISTS %s.%s;", param.Database, param.Table+"_view_ts")
+	_, err = tx.Exec(viewTsDropSQL)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	// step 4 add view
+	var jsonExtractSQL string
+	jsonExtractSQL = ","
+	for _, obj := range newList {
+		jsonExtractSQL += fmt.Sprintf("%s(log, '%s') AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
+	}
+	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
+	viewCreateSQL := fmt.Sprintf(`CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+SELECT
+parseDateTimeBestEffortOrNull(_time_) AS _time_,
+_source_,
+_cluster_,
+_log_agent_,
+_namespace_,
+_node_name_,
+_node_ip_,
+_container_name_,
+_pod_name_,
+log%s
+FROM %s.%s where JSONHas(log, 'ts') = 0;`, param.Database, param.Table+"_view", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
+	_, err = tx.Exec(viewCreateSQL)
+	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("view", viewCreateSQL))
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	viewTsCreateSQL := fmt.Sprintf(`CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+SELECT
+fromUnixTimestamp64Milli(JSONExtractInt(log, 'ts')) AS _time_,
+_source_,
+_cluster_,
+_log_agent_,
+_namespace_,
+_node_name_,
+_node_ip_,
+_container_name_,
+_pod_name_,
+log%s
+FROM %s.%s where JSONHas(log, 'ts') = 1;`, param.Database, param.Table+"_view_ts", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
+	_, err = tx.Exec(viewTsCreateSQL)
+	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("viewTs", viewTsCreateSQL))
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return nil
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
