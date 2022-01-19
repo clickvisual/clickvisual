@@ -12,14 +12,19 @@ var (
 	Permission      *permission.Service
 	InstanceManager *instanceManager
 	User            *user
+	Index           *index
 )
 
 func Init() error {
 	Permission = permission.New(&permission.Config{ResFilePath: econf.GetString("permission.resourceFile")})
 	InstanceManager = NewInstanceManager()
-	initGob()
+
 	User = NewUser()
+	Index = NewIndex()
+
+	initGob()
 	configure.InitConfigure()
 	kube.InitClusterManager()
+
 	return nil
 }

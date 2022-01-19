@@ -31,7 +31,7 @@ func List(c *core.Context) {
 	resp := make(view.RespListConfig, 0)
 	if param.K8SConfigMapId == 0 {
 		if param.K8SConfigMapNamespace == "" || param.K8SConfigMapName == "" {
-			c.JSONE(1, "参数错误", nil)
+			c.JSONE(1, "param error", nil)
 			return
 		}
 		condsKCM := egorm.Conds{}
@@ -103,7 +103,7 @@ func Create(c *core.Context) {
 	}
 	_, err = configure.Configure.Create(c, invoker.Db, param)
 	if err != nil {
-		c.JSONE(1, "创建失败，存在同名配置。", err)
+		c.JSONE(1, "create failed, configuration with same name exist: ", err)
 		return
 	}
 	c.JSONOK()
@@ -126,7 +126,7 @@ func Update(c *core.Context) {
 	var configuration db.Configuration
 	err = invoker.Db.Where("id = ?", param.ID).First(&configuration).Error
 	if err != nil || configuration.ID == 0 {
-		c.JSONE(1, "Error getting configuration information", err)
+		c.JSONE(1, "can not get the configuration information", err)
 		return
 	}
 	tx := invoker.Db.Begin()
@@ -160,7 +160,7 @@ func Publish(c *core.Context) {
 	var configuration db.Configuration
 	err = invoker.Db.Where("id = ?", param.ID).First(&configuration).Error
 	if err != nil || configuration.ID == 0 {
-		c.JSONE(1, "获取配置信息错误.", nil)
+		c.JSONE(1, "failed to get configuration information", nil)
 		return
 	}
 	err = configure.Configure.Publish(c, param)
@@ -168,7 +168,7 @@ func Publish(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	c.JSONOK("发布成功")
+	c.JSONOK("succ")
 }
 
 // HistoryList ..
@@ -278,7 +278,7 @@ func Lock(c *core.Context) {
 	var configuration db.Configuration
 	err := invoker.Db.Where("id = ?", id).First(&configuration).Error
 	if err != nil || configuration.ID == 0 {
-		c.JSONE(1, "获取配置信息错误.", nil)
+		c.JSONE(1, "failed to get configuration information", nil)
 		return
 	}
 	err = configure.Configure.TryLock(c.Uid(), id)
@@ -323,7 +323,7 @@ func Sync(c *core.Context) {
 	var client *kube.ClusterClient
 	client, err = kube.ClusterManager.GetClusterManager(param.ClusterId)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Cluster data acquisition failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "cluster data acquisition failed: "+err.Error(), nil)
 		return
 	}
 

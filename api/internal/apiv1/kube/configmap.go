@@ -24,17 +24,17 @@ import (
 func ConfigMapList(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	if clusterId == 0 {
-		c.JSONE(core.CodeErr, "参数无效", nil)
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
 	client, err := kube.ClusterManager.GetClusterManager(clusterId)
 	if err != nil {
-		c.JSONE(core.CodeErr, "集群数据获取失败"+err.Error(), err)
+		c.JSONE(core.CodeErr, "Cluster data acquisition failed: "+err.Error(), err)
 		return
 	}
 	namespaces, err := client.KubeClient.List(api.ResourceNameNamespace, "", "")
 	if err != nil {
-		c.JSONE(core.CodeErr, "集群数据获取失败"+err.Error(), err)
+		c.JSONE(core.CodeErr, "Cluster data acquisition failed: "+err.Error(), err)
 		return
 	}
 	resp := make([]view.RespNamespaceConfigmaps, 0)
@@ -93,7 +93,7 @@ func ConfigMapList(c *core.Context) {
 func ConfigMapCreate(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	if clusterId == 0 {
-		c.JSONE(core.CodeErr, "参数无效", nil)
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
 	param := view.ReqCreateConfigMap{}
@@ -122,7 +122,7 @@ func ConfigMapInfo(c *core.Context) {
 	namespace := strings.TrimSpace(c.Param("namespace"))
 	name := strings.TrimSpace(c.Param("name"))
 	if clusterId == 0 || namespace == "" || name == "" {
-		c.JSONE(core.CodeErr, "参数错误", nil)
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
 	param := view.ReqConfigMapInfo{}
@@ -133,7 +133,7 @@ func ConfigMapInfo(c *core.Context) {
 	}
 	client, err := kube.ClusterManager.GetClusterManager(clusterId)
 	if err != nil {
-		c.JSONE(core.CodeErr, "集群数据获取失败："+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Cluster data acquisition failed:："+err.Error(), nil)
 		return
 	}
 	elog.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
@@ -143,7 +143,7 @@ func ConfigMapInfo(c *core.Context) {
 			c.JSONOK("")
 			return
 		}
-		c.JSONE(core.CodeErr, "configmap 数据读取失败："+err.Error(), nil)
+		c.JSONE(core.CodeErr, "Configmap data read failed："+err.Error(), nil)
 		return
 	}
 	cm := obj.(*corev1.ConfigMap)

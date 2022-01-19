@@ -34,22 +34,26 @@
       .logLine {
         display: flex;
         align-items: center;
+        margin: 2px 0;
         line-height: 21px;
+        text-align: justify;
         cursor: default;
         .logKey {
-          margin: 2px 0;
+          align-self: flex-start;
           span {
-            background: #edf2fb;
+            background: hsl(219, 64%, 96%);
           }
         }
         .logContent {
           margin-left: 4px;
           word-break: break-all;
-          cursor: pointer;
+        }
+        .logHover {
           &:hover {
-            color: #41464b;
+            color: hsl(210, 7%, 27%);
             font-weight: bold;
             text-decoration: underline;
+            cursor: pointer;
           }
         }
         .logContentHighlight {

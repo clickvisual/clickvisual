@@ -1,17 +1,19 @@
-import rawLogsOperationsStyles from '@/pages/DataLogs/components/RawLogsOperations/index.less';
-import { Pagination } from 'antd';
-import { useModel } from '@@/plugin-model/useModel';
+import rawLogsOperationsStyles from "@/pages/DataLogs/components/RawLogsOperations/index.less";
+import { Pagination } from "antd";
+import { useModel } from "@@/plugin-model/useModel";
 
 type RawLogsPaginationProps = {};
 
 const RawLogsOperations = (props: RawLogsPaginationProps) => {
-  const { logs, pageSize, currentPage, onChangeLogsPage } = useModel('dataLogs');
+  const { logs, pageSize, currentPage, onChangeLogsPage } =
+    useModel("dataLogs");
+
   return (
     <div className={rawLogsOperationsStyles.rawLogsOperationsMain}>
       <div className={rawLogsOperationsStyles.operationsBtn} />
-      <div>
+      <div className={rawLogsOperationsStyles.pagination}>
         <Pagination
-          size={'small'}
+          size={"small"}
           total={logs?.count}
           pageSize={pageSize}
           current={currentPage}

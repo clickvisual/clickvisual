@@ -54,6 +54,7 @@
     "@ant-design/pro-layout": "^6.15.3",
     "@ant-design/pro-table": "^2.30.8",
     "@types/crypto-js": "^4.0.2",
+    "@types/react-resizable": "^1.7.4",
     "@umijs/route-utils": "^1.0.36",
     "ahooks": "^3.0.5",
     "antd": "^4.14.0",
@@ -69,6 +70,7 @@
     "react-dom": "^17.0.0",
     "react-helmet-async": "^1.0.4",
     "react-monaco-editor": "^0.46.0",
+    "react-resizable": "^3.0.4",
     "umi": "^3.5.0",
     "umi-serve": "^1.9.10"
   },

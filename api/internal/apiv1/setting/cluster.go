@@ -40,7 +40,7 @@ func ClusterInfo(c *core.Context) {
 func ClusterPageList(c *core.Context) {
 	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
-		c.JSONE(1, "参数错误", err)
+		c.JSONE(1, "invalid parameter", err)
 		return
 	}
 	query := egorm.Conds{}
@@ -70,7 +70,7 @@ func ClusterCreate(c *core.Context) {
 	// check the format of kubeConfig which submitted from frontend
 	params.KubeConfig, err = getJsonStr(params.KubeConfig)
 	if err != nil {
-		c.JSONE(1, "KubeConfig 文件格式错误.", err)
+		c.JSONE(1, "KubeConfig format error: ", err)
 		return
 	}
 	if err = db.ClusterCreate(invoker.Db, &db.Cluster{
@@ -103,7 +103,7 @@ func ClusterUpdate(c *core.Context) {
 	// make sure the format of kubeConfig is json.
 	params.KubeConfig, err = getJsonStr(params.KubeConfig)
 	if err != nil {
-		c.JSONE(1, "KubeConfig 文件格式错误.", err)
+		c.JSONE(1, "KubeConfig format error: ", err)
 		return
 	}
 	ups := make(map[string]interface{}, 0)
@@ -148,7 +148,7 @@ func getJsonStr(jsonOrYaml string) (jsonStr string, err error) {
 	jsonBytes, err := yaml.YAMLToJSON([]byte(jsonOrYaml))
 	if err != nil {
 		elog.Warn("Parse yaml to json failed", zap.Error(err))
-		return "", fmt.Errorf("请使用Json或Yaml格式! ")
+		return "", fmt.Errorf("Use Json or Yaml format! ")
 	}
 	return string(jsonBytes), nil
 }

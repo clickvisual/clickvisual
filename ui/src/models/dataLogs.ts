@@ -82,6 +82,10 @@ const DataLogsModel = () => {
     TimeRangeType.Relative
   );
   const [activeTimeOptionIndex, setActiveTimeOptionIndex] = useState(2);
+  const [currentRelativeAmount, setCurrentRelativeAmount] =
+    useState<number>(15);
+  const [currentRelativeUnit, setCurrentRelativeUnit] =
+    useState<string>("minutes");
 
   // 日志 Tab 标签
   const [logPanes, setLogPanes] = useState<PaneType[]>([]);
@@ -127,6 +131,14 @@ const DataLogsModel = () => {
 
   const onChangeActiveTimeOptionIndex = (index: number) => {
     setActiveTimeOptionIndex(index);
+  };
+
+  const onChangeCurrentRelativeAmount = (amount: number) => {
+    setCurrentRelativeAmount(amount);
+  };
+
+  const onChangeCurrentRelativeUnit = (unit: string) => {
+    setCurrentRelativeUnit(unit);
   };
 
   const onChangeLogPanes = (panes: PaneType[]) => {
@@ -275,14 +287,28 @@ const DataLogsModel = () => {
   const doParseQuery = (keyword?: string) => {
     const defaultInput =
       lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
-    const strReg = /(\w+)='([^']+)'/g;
-    const allQuery = defaultInput.match(strReg)?.map((item) => {
+    const strReg = /(\w+)(=|~)'([^']+)'/g;
+    const allQuery = Array.from(defaultInput.matchAll(strReg))?.map((item) => {
+      console.log(item);
       return {
-        key: item.replaceAll("'", "").split("=")[0],
-        value: item.replaceAll("'", "").split("=")[1],
+        key: item[1],
+        value: item[3],
       };
     });
     setHighlightKeywords(allQuery);
+  };
+
+  const doUpdatedQuery = (currentSelected: string) => {
+    const defaultValueArr =
+      lodash.cloneDeep(keywordInput)?.split(" and ") || [];
+    if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
+      defaultValueArr.pop();
+    defaultValueArr.push(currentSelected);
+    const kw = defaultValueArr.join(" and ");
+    onChangeKeywordInput(kw);
+    doGetLogs({ kw });
+    doGetHighCharts({ kw });
+    doParseQuery(kw);
   };
 
   const resetLogs = () => {
@@ -365,6 +391,8 @@ const DataLogsModel = () => {
     logsLoading: getLogs.loading,
     highChartLoading: getHighCharts.loading,
     activeTabKey,
+    currentRelativeAmount,
+    currentRelativeUnit,
     activeTimeOptionIndex,
     highlightKeywords,
     logPanes,
@@ -386,6 +414,8 @@ const DataLogsModel = () => {
     onChangeLogsPageByUrl,
     onChangeActiveTabKey,
     onChangeActiveTimeOptionIndex,
+    onChangeCurrentRelativeAmount,
+    onChangeCurrentRelativeUnit,
     onChangeLogPanes,
     onChangeLogPane,
     onChangeVisibleDatabaseDraw,
@@ -394,6 +424,7 @@ const DataLogsModel = () => {
 
     doSelectedDatabase,
     doParseQuery,
+    doUpdatedQuery,
 
     resetLogs,
     resetCurrentHighChart,

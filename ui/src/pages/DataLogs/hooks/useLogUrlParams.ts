@@ -35,6 +35,7 @@ export default function useLogUrlParams() {
     onChangeActiveTabKey,
     onChangeActiveTimeOptionIndex,
     onChangeLogPanes,
+    doParseQuery,
   } = useModel("dataLogs");
 
   const setUrlQuery = useDebounceFn(
@@ -111,6 +112,7 @@ export default function useLogUrlParams() {
         parseInt(urlState.page) || FIRST_PAGE,
         parseInt(urlState.size) || PAGE_SIZE
       );
+      doParseQuery(urlState.kw);
     } catch (e) {
       console.log("【Error】: ", e);
     }

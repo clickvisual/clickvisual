@@ -9,7 +9,7 @@ type ModalAddQueryCriteriaProps = {
   visible: boolean;
   onCancel: () => void;
 };
-const operatorList = ["=", "!="];
+const operatorList = ["=", "!=", "<", "<=", ">", ">="];
 const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
   const formRef = useRef<FormInstance>(null);
   const { visible, onCancel } = props;
@@ -33,7 +33,13 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
       visible={visible}
       onCancel={onCancel}
       footer={
-        <Button type={"primary"} onClick={() => formRef.current?.submit()}>
+        <Button
+          type={"primary"}
+          onClick={() => {
+            formRef.current?.submit();
+            onCancel();
+          }}
+        >
           保存
         </Button>
       }
