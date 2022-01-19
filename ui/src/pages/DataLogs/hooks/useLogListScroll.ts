@@ -8,9 +8,9 @@ export default function useLogListScroll() {
 
   const onScrollCapture = () => {
     if (ref.current) {
-      if (ref.current.scrollTop < 300) {
+      if (ref.current.scrollTop < 50) {
         onChangeHiddenHighChart(false);
-      } else {
+      } else if (ref.current.scrollTop > 300) {
         onChangeHiddenHighChart(true);
       }
     } else {

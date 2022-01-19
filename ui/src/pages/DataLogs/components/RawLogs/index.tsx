@@ -3,11 +3,10 @@ import RawLogsOperations from "@/pages/DataLogs/components/RawLogsOperations";
 import RawLogList from "@/pages/DataLogs/components/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
 import { Empty } from "antd";
-import TableLogList from "@/pages/DataLogs/components/TableLogList";
 
 type RawLogsProps = {};
 const RawLogs = (props: RawLogsProps) => {
-  const { logs, activeTableLog } = useModel("dataLogs");
+  const { logs } = useModel("dataLogs");
 
   const logList = logs?.logs || [];
   return (
@@ -16,7 +15,7 @@ const RawLogs = (props: RawLogsProps) => {
         {logList.length > 0 ? (
           <>
             <RawLogsOperations />
-            {activeTableLog ? <TableLogList /> : <RawLogList />}
+            <RawLogList />
           </>
         ) : (
           <Empty
