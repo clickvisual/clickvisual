@@ -8,6 +8,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/pkg/constx"
+	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
@@ -15,13 +16,15 @@ type Operator interface {
 	Databases() ([]view.RespDatabase, error)
 	Tables(string) ([]string, error)
 
-	Prepare(view.ReqQuery) (view.ReqQuery, error)
-	GET(query view.ReqQuery) (view.RespQuery, error)
-	Count(query view.ReqQuery) uint64
-	GroupBy(param view.ReqQuery) (res map[string]uint64)
+	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
+	GET(view.ReqQuery) (view.RespQuery, error)
+	Count(view.ReqQuery) uint64
+	GroupBy(view.ReqQuery) map[string]uint64
+
+	IndexUpdate(view.ReqCreateIndex, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 }
 
-var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">="}
+var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "~"}
 
 type queryItem struct {
 	Key      string
@@ -54,6 +57,9 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
+		if item.Operator == "~" {
+			item.Operator = " like "
+		}
 		if item.Key == "_time_" {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
@@ -81,9 +87,6 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	}
 	opArr := strings.Split(strings.TrimSpace(a), op)
 	if len(opArr) != 2 {
-		return constx.ErrQueryFormatIllegal
-	}
-	if strings.Contains(opArr[1], " ") {
 		return constx.ErrQueryFormatIllegal
 	}
 	*res = append(*res, queryItem{

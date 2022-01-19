@@ -16,7 +16,7 @@ type Index struct {
 	Database   string `gorm:"column:database" db:"database" json:"database" form:"database"`
 	Table      string `gorm:"column:table" db:"table" json:"table" form:"table"`
 	Field      string `gorm:"column:field" db:"field" json:"field" form:"field"`
-	Typ        int    `gorm:"column:typ" db:"typ" json:"typ" form:"typ"`
+	Typ        int    `gorm:"column:typ" db:"typ" json:"typ" form:"typ"` // 字段 0 string 1 int 2 float
 	Alias      string `gorm:"column:alias" db:"alias" json:"alias" form:"alias"`
 
 	Ctime int64             `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`

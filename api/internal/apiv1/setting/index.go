@@ -2,46 +2,43 @@ package setting
 
 import (
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
 func IndexUpdate(c *core.Context) {
 	var (
-		req view.ReqCreateIndex
-		err error
+		req    view.ReqCreateIndex
+		addMap map[string]*db.Index
+		delMap map[string]*db.Index
+		newMap map[string]*db.Index
+		err    error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "参数错误:"+err.Error(), nil)
 		return
 	}
-	tx := invoker.Db.Begin()
-	err = db.IndexDeleteBatch(tx, req.InstanceID, req.Database, req.Table)
+	addMap, delMap, newMap, err = service.Index.Diff(req)
 	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, "历史数据删除失败 DB: "+err.Error(), nil)
+		c.JSONE(1, "内部错误:"+err.Error(), nil)
 		return
 	}
-	for _, d := range req.Data {
-		err = db.IndexCreate(tx, &db.Index{
-			InstanceID: req.InstanceID,
-			Database:   req.Database,
-			Table:      req.Table,
-			Field:      d.Field,
-			Typ:        d.Typ,
-			Alias:      d.Alias,
-		})
-		if err != nil {
-			tx.Rollback()
-			c.JSONE(1, err.Error(), nil)
-			return
-		}
+	elog.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
+
+	// Prefer clickhouse operation
+	// Alert Delete or Create
+	// Drop View
+	// Create View
+	err = service.Index.Sync(req, addMap, delMap, newMap)
+	if err != nil {
+		c.JSONE(1, "内部错误:"+err.Error(), nil)
+		return
 	}
-	tx.Commit()
 	c.JSONOK()
 }
 

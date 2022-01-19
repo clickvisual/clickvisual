@@ -210,6 +210,8 @@ func Indexes(c *core.Context) {
 		return
 	}
 	list := op.GroupBy(param)
+	elog.Debug("Indexes", elog.Any("list", list))
+
 	res := make([]view.RespIndexItem, 0)
 	sum := uint64(0)
 	for _, row := range list {

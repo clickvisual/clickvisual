@@ -47,6 +47,20 @@ func Test_queryTransformer(t *testing.T) {
 			},
 			wantOut: "_namespace_='kube-system' and _log_agent_='fluent-bit-8w7qh' and _time_='1641893989'",
 			wantErr: false,
+		}, {
+			name: "test-2",
+			args: args{
+				in: "_namespace_='kube-system'",
+			},
+			wantOut: "_namespace_='kube-system'",
+			wantErr: false,
+		}, {
+			name: "test-3",
+			args: args{
+				in: "_namespace_~'%kube-system%'",
+			},
+			wantOut: "_namespace_ like '%kube-system%'",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
