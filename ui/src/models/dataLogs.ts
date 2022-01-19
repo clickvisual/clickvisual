@@ -93,9 +93,6 @@ const DataLogsModel = () => {
   // 是否展示索引列表
   const [visibleIndexModal, setVisibleIndexModal] = useState<boolean>(false);
 
-  // 是否使用表格形式展示日志信息
-  const [activeTableLog, setActiveTableLog] = useState<boolean>(false);
-
   // 用于关闭无效请求
   const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
   const cancelTokenLogsRef = useRef<Canceler | null>(null);
@@ -150,10 +147,6 @@ const DataLogsModel = () => {
 
   const onChangeVisibleIndexModal = (visible: boolean) => {
     setVisibleIndexModal(visible);
-  };
-
-  const onChangeActiveTableLog = (active: boolean) => {
-    setActiveTableLog(active);
   };
 
   const onChangeLogPane = (newPane: PaneType) => {
@@ -294,11 +287,12 @@ const DataLogsModel = () => {
   const doParseQuery = (keyword?: string) => {
     const defaultInput =
       lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
-    const strReg = /(\w+)='([^']+)'/g;
-    const allQuery = defaultInput.match(strReg)?.map((item) => {
+    const strReg = /(\w+)(=|~)'([^']+)'/g;
+    const allQuery = Array.from(defaultInput.matchAll(strReg))?.map((item) => {
+      console.log(item);
       return {
-        key: item.replaceAll("'", "").split("=")[0],
-        value: item.replaceAll("'", "").split("=")[1],
+        key: item[1],
+        value: item[3],
       };
     });
     setHighlightKeywords(allQuery);
@@ -404,7 +398,6 @@ const DataLogsModel = () => {
     logPanes,
     visibleDataBaseDraw,
     visibleIndexModal,
-    activeTableLog,
 
     doGetLogs,
     doGetHighCharts,
@@ -428,7 +421,6 @@ const DataLogsModel = () => {
     onChangeVisibleDatabaseDraw,
     onChangeVisibleIndexModal,
     onChangeHiddenHighChart,
-    onChangeActiveTableLog,
 
     doSelectedDatabase,
     doParseQuery,
