@@ -109,7 +109,7 @@ func (c *Context) JSON(httpStatus int, res Res) {
 func (c *Context) JSONOK(data ...interface{}) {
 	j := new(Res)
 	j.Code = CodeOK
-	j.Msg = "成功"
+	j.Msg = "succ"
 	if len(data) > 0 {
 		j.Data = data[0]
 	} else {

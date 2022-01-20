@@ -146,7 +146,10 @@ const Configure = () => {
   const doSynchronizingConfiguration = useRequest(
     api.synchronizingConfiguration,
     {
-      loadingText: { loading: "同步中...", done: "同步成功" },
+      loadingText: {
+        loading: "Synchronizing...",
+        done: "Synchronization succeeded",
+      },
     }
   );
 
