@@ -24,7 +24,7 @@ type Operator interface {
 	IndexUpdate(view.ReqCreateIndex, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 }
 
-var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "~"}
+var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "like"}
 
 type queryItem struct {
 	Key      string
@@ -57,9 +57,6 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Operator == "~" {
-			item.Operator = " like "
-		}
 		if item.Key == "_time_" {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}

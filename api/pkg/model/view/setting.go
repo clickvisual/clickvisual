@@ -1,7 +1,7 @@
 package view
 
 type ReqCreateIndex struct {
-	InstanceID int         `json:"instanceId" form:"instanceId" binding:"required"`
+	InstanceID int         `json:"iid" form:"iid" binding:"required"`
 	Database   string      `json:"database" form:"database" binding:"required"`
 	Table      string      `json:"table" form:"table" binding:"required"`
 	Data       []IndexItem `json:"data"`

@@ -26,11 +26,11 @@ func (t *Instance) TableName() string {
 }
 
 func (t *Instance) DsKey() string {
-	return InstanceKey(t.Datasource, t.Name)
+	return InstanceKey(t.ID)
 }
 
-func InstanceKey(datasource, name string) string {
-	return fmt.Sprintf("%s-%s", datasource, name)
+func InstanceKey(id int) string {
+	return fmt.Sprintf("%d", id)
 }
 
 const (

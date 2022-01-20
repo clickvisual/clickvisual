@@ -23,9 +23,9 @@ func Logs(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
-	if op == nil {
-		c.JSONE(core.CodeErr, "instance does not exist", nil)
+	op, err := service.InstanceManager.Load(param.InstanceId)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	param, err = op.Prepare(param)
@@ -53,9 +53,9 @@ func Charts(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
-	if op == nil {
-		c.JSONE(core.CodeErr, "instance does not exist", nil)
+	op, err := service.InstanceManager.Load(param.InstanceId)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	// Calculate 50 intervals
@@ -90,14 +90,13 @@ func Charts(c *core.Context) {
 			go func(st, et int64, wg *sync.WaitGroup) {
 				row := view.HighChart{
 					Count: op.Count(view.ReqQuery{
-						DatasourceType: param.DatasourceType,
-						Table:          param.Table,
-						DatabaseTable:  param.DatabaseTable,
-						Query:          param.Query,
-						ST:             st,
-						ET:             et,
-						Page:           param.Page,
-						PageSize:       param.PageSize,
+						Table:         param.Table,
+						DatabaseTable: param.DatabaseTable,
+						Query:         param.Query,
+						ST:            st,
+						ET:            et,
+						Page:          param.Page,
+						PageSize:      param.PageSize,
 					}),
 					Progress: "",
 					From:     st,
@@ -139,9 +138,9 @@ func Tables(c *core.Context) {
 		c.JSONE(core.CodeErr, "db is a required field", nil)
 		return
 	}
-	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
-	if op == nil {
-		c.JSONE(core.CodeErr, "instance does not exist", nil)
+	op, err := service.InstanceManager.Load(param.InstanceId)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	res, err := op.Tables(param.Database)
@@ -161,7 +160,7 @@ func Databases(c *core.Context) {
 		return
 	}
 	// 获取全部实例下的 databases
-	if param.DatasourceType == "" && param.InstanceName == "" {
+	if param.InstanceId == 0 {
 		ops := service.InstanceManager.All()
 		res := make([]view.RespDatabase, 0)
 		for _, op := range ops {
@@ -175,9 +174,9 @@ func Databases(c *core.Context) {
 		c.JSONOK(res)
 		return
 	}
-	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
-	if op == nil {
-		c.JSONE(core.CodeErr, "instance does not exist", nil)
+	op, err := service.InstanceManager.Load(param.InstanceId)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	res, err := op.Databases()
@@ -199,9 +198,9 @@ func Indexes(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	op := service.InstanceManager.Load(param.DatasourceType, param.InstanceName)
-	if op == nil {
-		c.JSONE(core.CodeErr, "instance does not exist", nil)
+	op, err := service.InstanceManager.Load(param.InstanceId)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	param, err = op.Prepare(param)
@@ -228,6 +227,10 @@ func Indexes(c *core.Context) {
 		return res[i].Count > res[j].Count
 	})
 	elog.Debug("Indexes", elog.Any("res", res))
+	if len(res) > 10 {
+		c.JSONOK(res[:9])
+		return
+	}
 	c.JSONOK(res)
 	return
 }
