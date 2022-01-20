@@ -35,7 +35,7 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
     (field) => {
       if (!currentDatabase || !currentLogLibrary) return;
       const params = {
-        instanceId: currentDatabase.instanceId,
+        iid: currentDatabase.instanceId,
         database: currentDatabase.databaseName,
         table: currentLogLibrary,
         data: field.data,
@@ -55,7 +55,7 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
     if (visibleIndexModal && currentDatabase && currentLogLibrary) {
       getIndexList
         .run({
-          instanceId: currentDatabase.instanceId,
+          iid: currentDatabase.instanceId,
           database: currentDatabase.databaseName,
           table: currentLogLibrary,
         })

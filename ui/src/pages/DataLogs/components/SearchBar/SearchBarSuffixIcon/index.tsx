@@ -19,11 +19,14 @@ const SearchBarSuffixIcon = () => {
           lineHeight: "24px",
         }}
       >
-        <QuestionCircleFilled size={32} />
+        <QuestionCircleFilled
+          size={32}
+          style={{ color: "hsl(21, 85%, 56%)" }}
+        />
       </Tooltip>
       <Tooltip title={"添加查询条件"}>
         <ProfileFilled
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", color: "hsl(21, 85%, 56%)" }}
           onClick={() => setVisible(true)}
         />
       </Tooltip>

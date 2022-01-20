@@ -1,12 +1,8 @@
 import { request } from "umi";
 
-export interface DatabaseProps {
-  dt: string;
-}
-
-export interface DataSourceTableProps extends DatabaseProps {
-  db: string;
-  in: string;
+export interface DataSourceTableProps {
+  database: string;
+  iid: number;
 }
 
 export interface QueryLogsProps extends DataSourceTableProps {
@@ -56,8 +52,7 @@ export interface DatabaseResponse {
 }
 
 export interface InstanceSelectedType {
-  instanceName: string;
-  datasourceType: string;
+  iid: number;
 }
 
 export interface IndexInfoType {
@@ -67,7 +62,7 @@ export interface IndexInfoType {
 }
 
 export interface IndexRequest {
-  instanceId: number;
+  iid: number;
   database: string;
   table: string;
   data?: IndexInfoType[];
@@ -120,24 +115,9 @@ export default {
   async getDatabaseList(payload: InstanceSelectedType | undefined) {
     return request<API.Res<DatabaseResponse[]>>(`/api/v1/query/databases`, {
       method: "GET",
-      params: { dt: payload?.datasourceType, in: payload?.instanceName },
+      params: { iid: payload?.iid },
     });
   },
-
-  // async getIndexes({
-  //   dt: string,
-  //   in: string,
-  //   db: string,
-  //   table: string,
-  //   field: string,
-  //   st: number,
-  //   et: string,
-  // }) {
-  //   return request(
-  //     `/api/v1/query/indexes?dt=ch&in=dev&db=devlogs&table=ingress_stdout&field=method&st=1&et=1640228013`,
-  //   );
-  // },
-  // /api/v1/query/indexes?dt=ch&in=dev&db=devlogs&table=ingress_stdout&field=method&st=1&et=1640228013
 
   // 获取索引详情
   async getIndexDetail(params: IndexDetailRequest) {

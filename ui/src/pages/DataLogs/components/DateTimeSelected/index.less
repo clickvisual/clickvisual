@@ -1,3 +1,4 @@
+@import "../../../../styles/var.less";
 .darkTimeSelect {
   padding-top: 5px !important;
   :global {
@@ -39,7 +40,7 @@
     margin-bottom: 4px;
     line-height: 32px;
     text-align: center;
-    border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
+    border-bottom: 1px solid @border-color;
   }
   .row {
     display: flex;
@@ -51,11 +52,13 @@
       border-radius: 5px;
       cursor: pointer;
       &:hover {
-        background: hsla(208, 97%, 87%, 0.4);
+        color: @font-color-white;
+        background: @primary-color-70;
       }
     }
     .activeOption {
-      background: hsl(208, 97%, 87%);
+      color: @font-color-white;
+      background: @primary-color;
     }
   }
 }

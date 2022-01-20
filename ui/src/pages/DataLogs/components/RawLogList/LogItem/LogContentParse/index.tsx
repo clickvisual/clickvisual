@@ -12,63 +12,74 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
     const currentSelected = `log~'%${key}%'`;
     doUpdatedQuery(currentSelected);
   };
-  let content;
-  try {
-    const contentJson = JSON.parse(logContent);
-    const contentKeys = Object.keys(contentJson);
-    content = contentKeys.map((item, index) => {
-      let flagItem = false;
-      let flagContent = false;
-      if (highlightKeywords) {
-        flagItem = !!highlightKeywords.find(
-          (keyItem) =>
-            keyItem.key === "log" && keyItem.value.replaceAll("%", "") === item
-        );
-        flagContent = !!highlightKeywords.find(
-          (keyItem) =>
-            keyItem.key === "log" &&
-            keyItem.value.replaceAll("%", "") === contentJson[item].toString()
-        );
-      }
-      return (
-        <span key={index}>
-          {index === 0 && <span>&#123;</span>}
-          <span
-            onClick={() => addQuery(item)}
-            className={classNames(
-              logItemStyles.logHover,
-              flagItem && logItemStyles.logContentHighlight
-            )}
-          >
-            {item}
-          </span>
-          <span>:</span>
-          <span>
-            {typeof contentJson[item] === "object" ? (
-              JSON.stringify(contentJson[item])
+
+  const parseContent = (content: any) => {
+    try {
+      const contentJson = JSON.parse(content);
+      const contentKeys = Object.keys(contentJson);
+      return contentKeys.map((item, index) => {
+        let flagItem = false;
+        let flagContent = false;
+        if (highlightKeywords) {
+          flagItem = !!highlightKeywords.find(
+            (keyItem) =>
+              keyItem.key === "log" &&
+              keyItem.value.replaceAll("%", "") === item
+          );
+          flagContent = !!highlightKeywords.find(
+            (keyItem) =>
+              keyItem.key === "log" &&
+              keyItem.value.replaceAll("%", "") === contentJson[item].toString()
+          );
+        }
+        return (
+          <span key={index}>
+            {index === 0 && <span>&#123;</span>}
+            <span>"</span>
+            <span
+              onClick={() => addQuery(item)}
+              className={classNames(
+                logItemStyles.logHover,
+                flagItem && logItemStyles.logContentHighlight
+              )}
+            >
+              {item}
+            </span>
+            <span>"</span>
+            <span>:</span>
+            <span>
+              {typeof contentJson[item] === "object" ? (
+                parseContent(contentJson[item])
+              ) : (
+                <>
+                  {typeof contentJson[item] === "string" && <span>"</span>}
+                  <span
+                    onClick={() => addQuery(contentJson[item])}
+                    className={classNames(
+                      logItemStyles.logHover,
+                      flagContent && logItemStyles.logContentHighlight
+                    )}
+                  >
+                    {contentJson[item]}
+                  </span>
+                  {typeof contentJson[item] === "string" && <span>"</span>}
+                </>
+              )}
+            </span>
+            {index === contentKeys.length - 1 ? (
+              <span>&#125;</span>
             ) : (
-              <span
-                onClick={() => addQuery(contentJson[item])}
-                className={classNames(
-                  logItemStyles.logHover,
-                  flagContent && logItemStyles.logContentHighlight
-                )}
-              >
-                {contentJson[item]}
-              </span>
+              <span>,&nbsp;</span>
             )}
           </span>
-          {index === contentKeys.length - 1 ? (
-            <span>&#125;</span>
-          ) : (
-            <span>,&nbsp;</span>
-          )}
-        </span>
-      );
-    });
-  } catch (e) {
-    content = logContent;
-  }
+        );
+      });
+    } catch (e) {
+      return logContent;
+    }
+  };
+
+  const content = parseContent(logContent);
 
   return (
     <span className={classNames(logItemStyles.logContent)}>{content}</span>

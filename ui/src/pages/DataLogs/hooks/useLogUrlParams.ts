@@ -38,14 +38,15 @@ export default function useLogUrlParams() {
     doParseQuery,
   } = useModel("dataLogs");
 
+  const { getInstanceList } = useModel("instances");
+
   const setUrlQuery = useDebounceFn(
     () => {
       setUrlState({
-        db: currentDatabase?.databaseName,
-        in: currentDatabase?.instanceName,
-        dt: currentDatabase?.datasourceType,
-        inId: currentDatabase?.instanceId,
-        lb: currentLogLibrary,
+        database: currentDatabase?.databaseName,
+        datasource: currentDatabase?.datasourceType,
+        instance: currentDatabase?.instanceName,
+        table: currentLogLibrary,
         start: startDateTime,
         end: endDateTime,
         page: currentPage,
@@ -74,45 +75,57 @@ export default function useLogUrlParams() {
 
   useEffect(() => {
     try {
-      if (urlState.db && urlState.in && urlState.dt)
-        onChangeCurrentDatabase({
-          databaseName: urlState.db,
-          instanceName: urlState.in,
-          datasourceType: urlState.dt,
-          instanceId: parseInt(urlState.inId),
+      if (urlState.database && urlState.datasource && urlState.instance)
+        getInstanceList.run().then((res) => {
+          if (res?.code === 0) {
+            const cluster = res.data.find(
+              (item) =>
+                item.instanceName === urlState.instance &&
+                item.datasource === urlState.datasource
+            );
+            if (cluster) {
+              onChangeCurrentDatabase({
+                databaseName: urlState.database,
+                instanceId: cluster.id as number,
+                datasourceType: urlState.datasource,
+                instanceName: urlState.instance,
+              });
+              onChangeLogLibrary(urlState?.table);
+              onChangeStartDateTime(
+                parseInt(urlState.start) ||
+                  moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
+              );
+              onChangeEndDateTime(parseInt(urlState.end) || currentTimeStamp());
+              if (urlState.tab) {
+                onChangeActiveTabKey(urlState.tab);
+              }
+              if (urlState.index) {
+                onChangeActiveTimeOptionIndex(parseInt(urlState.index));
+              }
+              const panes = [];
+              if (urlState.table)
+                panes.push({
+                  pane: urlState.table,
+                  start:
+                    parseInt(urlState.start) ||
+                    moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+                  end: parseInt(urlState.end) || currentTimeStamp(),
+                  keyword: urlState.kw || undefined,
+                  page: parseInt(urlState.page) || FIRST_PAGE,
+                  pageSize: parseInt(urlState.size) || PAGE_SIZE,
+                  activeTabKey: urlState.tab || TimeRangeType.Relative,
+                  activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
+                });
+              onChangeLogPanes(panes);
+              onChangeKeywordInput(urlState.kw);
+              onChangeLogsPageByUrl(
+                parseInt(urlState.page) || FIRST_PAGE,
+                parseInt(urlState.size) || PAGE_SIZE
+              );
+              doParseQuery(urlState.kw);
+            }
+          }
         });
-      onChangeLogLibrary(urlState?.lb);
-      if (urlState.start && urlState.end) {
-        onChangeStartDateTime(parseInt(urlState.start));
-        onChangeEndDateTime(parseInt(urlState.end));
-      }
-      if (urlState.tab) {
-        onChangeActiveTabKey(urlState.tab);
-      }
-      if (urlState.index) {
-        onChangeActiveTimeOptionIndex(parseInt(urlState.index));
-      }
-      const panes = [];
-      if (urlState.lb)
-        panes.push({
-          pane: urlState.lb,
-          start:
-            parseInt(urlState.start) ||
-            moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-          end: parseInt(urlState.end) || currentTimeStamp(),
-          keyword: urlState.kw || undefined,
-          page: parseInt(urlState.page) || FIRST_PAGE,
-          pageSize: parseInt(urlState.size) || PAGE_SIZE,
-          activeTabKey: urlState.tab || TimeRangeType.Relative,
-          activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
-        });
-      onChangeLogPanes(panes);
-      onChangeKeywordInput(urlState.kw);
-      onChangeLogsPageByUrl(
-        parseInt(urlState.page) || FIRST_PAGE,
-        parseInt(urlState.size) || PAGE_SIZE
-      );
-      doParseQuery(urlState.kw);
     } catch (e) {
       console.log("【Error】: ", e);
     }

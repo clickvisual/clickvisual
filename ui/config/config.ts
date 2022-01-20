@@ -37,6 +37,7 @@ export default defineConfig({
   routes,
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
   theme: {
+    "primary-color": "hsl(21, 85%, 56%)",
     "border-radius-base": "8px",
   },
   // esbuild is father build tools

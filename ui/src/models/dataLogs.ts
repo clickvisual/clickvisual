@@ -229,9 +229,8 @@ const DataLogsModel = () => {
     params?: QueryParams
   ) => {
     return {
-      dt: database.datasourceType,
-      db: database.databaseName,
-      in: database.instanceName,
+      database: database.databaseName,
+      iid: database.instanceId,
       table: params?.logLibrary || (currentLogLibrary as string),
       st: params?.st || (startDateTime as number),
       et: params?.et || (endDateTime as number),
@@ -267,9 +266,8 @@ const DataLogsModel = () => {
   const doGetLogLibraryList = () => {
     if (currentDatabase) {
       getLogLibraries.run({
-        dt: currentDatabase.datasourceType,
-        db: currentDatabase.databaseName,
-        in: currentDatabase.instanceName,
+        database: currentDatabase.databaseName,
+        iid: currentDatabase.instanceId,
       });
     }
   };
@@ -337,7 +335,8 @@ const DataLogsModel = () => {
   };
 
   useEffect(() => {
-    if (currentDatabase && currentLogLibrary) {
+    // debugger;
+    if (currentDatabase && currentLogLibrary && pageSize && currentPage) {
       cancelTokenLogsRef.current?.();
       cancelTokenHighChartsRef.current?.();
       getLogs.run(
@@ -357,7 +356,7 @@ const DataLogsModel = () => {
         })
       );
     }
-  }, [pageSize, currentPage]);
+  }, [pageSize, currentPage, currentDatabase, currentLogLibrary]);
 
   useEffect(() => {
     if (!currentDatabase) {
@@ -430,6 +429,7 @@ const DataLogsModel = () => {
     resetCurrentHighChart,
     setChangeTabPane,
 
+    getDatabases,
     settingIndexes,
     getLogLibraries,
     getIndexList,
