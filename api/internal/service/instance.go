@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
+	"strconv"
 	"sync"
 
 	"github.com/ClickHouse/clickhouse-go"
@@ -12,7 +12,9 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
+	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
@@ -36,7 +38,7 @@ func NewInstanceManager() *instanceManager {
 				elog.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 				continue
 			}
-			m.dss.Store(ds.DsKey(), inquiry.NewClickHouse(chDb, ds.ID, ds.Name, ds.Datasource))
+			m.dss.Store(ds.DsKey(), inquiry.NewClickHouse(chDb, ds.ID))
 		}
 	}
 	return m
@@ -56,28 +58,33 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 			elog.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 			return err
 		}
-		i.dss.Store(obj.DsKey(), inquiry.NewClickHouse(chDb, obj.ID, obj.Name, obj.Datasource))
+		i.dss.Store(obj.DsKey(), inquiry.NewClickHouse(chDb, obj.ID))
 	}
 	return nil
 }
 
-func (i *instanceManager) Load(datasource, name string) inquiry.Operator {
-	// Test connection, storage
-	obj, _ := i.dss.Load(db.InstanceKey(datasource, name))
+func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
+	instance, err := db.InstanceInfo(invoker.Db, id)
+	if err != nil {
+		return nil, err
+	}
+	obj, _ := i.dss.Load(db.InstanceKey(id))
 	if obj == nil {
-		return nil
+		return nil, constx.ErrInstanceObj
 	}
-	switch datasource {
+	switch instance.Datasource {
 	case db.DatasourceClickHouse:
-		return obj.(*inquiry.ClickHouse)
+		return obj.(*inquiry.ClickHouse), nil
 	}
-	return nil
+	return nil, constx.ErrInstanceObj
 }
 
 func (i *instanceManager) All() []inquiry.Operator {
 	res := make([]inquiry.Operator, 0)
 	i.dss.Range(func(key, obj interface{}) bool {
-		if strings.HasPrefix(key.(string), db.DatasourceClickHouse) {
+		iid, _ := strconv.Atoi(key.(string))
+		instance, _ := db.InstanceInfo(invoker.Db, iid)
+		if instance.Datasource == db.DatasourceClickHouse {
 			res = append(res, obj.(*inquiry.ClickHouse))
 		}
 		return true

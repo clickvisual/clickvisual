@@ -2,6 +2,7 @@ import fileStyles from "@/pages/Configure/components/Menu/Files/index.less";
 import {
   DeleteOutlined,
   DiffOutlined,
+  SyncOutlined,
   FileAddOutlined,
   FileSyncOutlined,
   HistoryOutlined,
@@ -77,19 +78,28 @@ const Files = (props: FilesProps) => {
         <>
           <div className={fileStyles.actionContainer}>
             <Space>
-              <Tooltip title="新建配置" placement="bottom">
+              <Tooltip title="Create" placement="bottom">
                 <ActionButton onClick={() => onChangeVisibleCreate(true)}>
                   <FileAddOutlined />
                 </ActionButton>
               </Tooltip>
+              <Tooltip title="Sync from K8S" placement="bottom">
+                <ActionButton
+                  onClick={() => {
+                    if (!doSynchronizingConfiguration.loading) doSync.run();
+                  }}
+                >
+                  <SyncOutlined />
+                </ActionButton>
+              </Tooltip>
               {currentConfiguration && (
                 <>
-                  <Tooltip title="提交历史" placement="bottom">
+                  <Tooltip title="Submit history" placement="bottom">
                     <ActionButton onClick={() => onChangeVisibleHistory(true)}>
                       <HistoryOutlined />
                     </ActionButton>
                   </Tooltip>
-                  <Tooltip title="线上版本对比" placement="bottom">
+                  <Tooltip title="Online version comparison" placement="bottom">
                     <ActionButton onClick={() => setVisibleDiff(true)}>
                       <DiffOutlined />
                     </ActionButton>
@@ -131,7 +141,7 @@ const Files = (props: FilesProps) => {
                             }
                           });
                         },
-                        content: `确认删除配置文件：${item.name}.${item.format} 吗？该操作会同时删除集群 configmap 内相关配置文件，请谨慎操作。`,
+                        content: `Confirm :${item.name}.${item.format} ？This operation will also delete the relevant configuration files in the cluster configmap. Please operate with caution.`,
                       });
                     }}
                   >
@@ -144,10 +154,10 @@ const Files = (props: FilesProps) => {
         </>
       ) : (
         <div className={fileStyles.noConfigMain}>
-          <div className={fileStyles.title}>没有配置文件</div>
+          <div className={fileStyles.title}>No Configs</div>
           <DarkButton onClick={() => onChangeVisibleCreate(true)}>
             <FileAddOutlined />
-            <span className={fileStyles.btn}>新建配置</span>
+            <span className={fileStyles.btn}>Create</span>
           </DarkButton>
           <DarkButton
             style={{ marginTop: "12px" }}
@@ -160,7 +170,7 @@ const Files = (props: FilesProps) => {
             ) : (
               <FileSyncOutlined />
             )}
-            <span className={fileStyles.btn}>快速同步集群配置</span>
+            <span className={fileStyles.btn}>Sync from K8S</span>
           </DarkButton>
         </div>
       )}

@@ -1,22 +1,20 @@
 package view
 
 type ReqDatabases struct {
-	DatasourceType string `form:"dt"`
-	InstanceName   string `form:"in"`
+	InstanceId int `form:"iid"`
 }
 
 type ReqQuery struct {
-	DatasourceType string `form:"dt" binding:"required"`
-	InstanceName   string `form:"in" binding:"required"`
-	Database       string `form:"db"`
-	Table          string `form:"table"`
-	DatabaseTable  string `form:"database_table"`
-	Field          string `form:"field"`
-	Query          string `form:"query"`
-	ST             int64  `form:"st"`
-	ET             int64  `form:"et"`
-	Page           uint32 `form:"page"`
-	PageSize       uint32 `form:"pageSize"`
+	InstanceId    int    `form:"iid" binding:"required"`
+	Database      string `form:"database"`
+	Table         string `form:"table"`
+	DatabaseTable string `form:"databaseTable"`
+	Field         string `form:"field"`
+	Query         string `form:"query"`
+	ST            int64  `form:"st"`
+	ET            int64  `form:"et"`
+	Page          uint32 `form:"page"`
+	PageSize      uint32 `form:"pageSize"`
 }
 
 type RespQuery struct {

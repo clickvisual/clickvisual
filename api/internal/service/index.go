@@ -94,13 +94,8 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 		}
 	}
 	// do clickhouse operator
-	instance, err := db.InstanceInfo(tx, req.InstanceID)
+	op, err := InstanceManager.Load(req.InstanceID)
 	if err != nil {
-		tx.Rollback()
-		return
-	}
-	op := InstanceManager.Load(instance.Datasource, instance.Name)
-	if op == nil {
 		tx.Rollback()
 		return errors.New("Corresponding configuration instance does not exist:  ")
 	}
