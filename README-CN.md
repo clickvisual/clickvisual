@@ -1,18 +1,21 @@
 # mogo
 
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![Go Report Card](https://goreportcard.com/badge/github.com/shimohq/mogo)](https://goreportcard.com/report/github.com/shimohq/mogo)
 [![Release](https://img.shields.io/github/v/release/shimohq/mogo.svg)](https://github.com/shimohq/mogo)
 [![GitHub license](https://img.shields.io/github/license/shimohq/mogo)](https://github.com/shimohq/mogo/blob/master/LICENSE)
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [English](https://github.com/shimohq/mogo/blob/master/README.md) | [中文](https://github.com/shimohq/mogo/blob/master/README-CN.md)
 
 Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
 
-- 日志查询界面
-  ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
+**日志查询界面**
+![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
 
-- 可视化配置界面
-  ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
+**可视化配置界面**
+![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
 
 ## 特性
 
@@ -22,7 +25,8 @@ Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以
 - 支持 GitHub 和 GitLab 授权登录
 
 ## 架构
-![image](./docs/images/mogoprocess.png)
+
+![image](https://helpcenter.shimonote.com/uploads/0LL8P57E01E8G.png)
 
 ## 安装方法
 
@@ -53,11 +57,13 @@ wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_
 # Linux 下下载
 wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
 
-# 解压 tar.gz 包
-tar -xvf mogo.tar.gz -C ./
+# 解压 tar.gz 包到 ./mogo 目录
+mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
 
+# 修改 config/default.toml 配置文件
+# 执行 scripts/migration 下迁移脚本，创建数据库和表
 # 启动 mogo
-./mogo -config config/local.toml
+cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 # 打开浏览器访问 http://localhost:9001
 # 默认登录用户名: admin
@@ -71,3 +77,5 @@ tar -xvf mogo.tar.gz -C ./
 如果需要提交 Bug，可以点击 [这里](https://github.com/shimohq/mogo/issues)。
 
 ## Contributors
+
+Thanks for these wonderful people:

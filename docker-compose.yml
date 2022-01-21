@@ -20,7 +20,7 @@ services:
     volumes:
       - ./scripts/migration:/data/migration
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_ROOT_HOST: '%'
     restart: always
     networks:

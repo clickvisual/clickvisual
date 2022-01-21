@@ -1,0 +1,43 @@
+# This is an example .goreleaser.yml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    - ls -rtlh
+    - ls -rtlh api/internal/ui/dist
+    - go mod download -x
+builds:
+  - id: mogo
+    main: ./api
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    binary: mogo
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+archives:
+  - id: mogo
+    builds:
+      - mogo
+    name_template: "mogo-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - LICENSE
+      - scripts/migration
+      - docker-compose.yml
+      - src: api/config/*
+        dst: config
+        strip_parent: true
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

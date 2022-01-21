@@ -1,0 +1,72 @@
+{
+  "projectName": "mogo",
+  "projectOwner": "shimohq",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md",
+    "README-CN.md"
+  ],
+  "imageSize": 64,
+  "commit": false,
+  "commitConvention": "none",
+  "contributorTemplate": "<a href=\"<%= contributor.profile %>\"><img src=\"<%= contributor.avatar_url %>\" width=\"<%= options.imageSize %>px;\" alt=\"\"/><br /><sub><b><%= contributor.name %></b></sub></a>",
+  "contributors": [
+    {
+      "login": "kl7sn",
+      "name": "MEX7",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2037801?v=4",
+      "profile": "https://kl7sn.github.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "m1666",
+      "name": "m1666",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39024186?v=4",
+      "profile": "https://m1666.github.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "askuy",
+      "name": "askuy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14119383?v=4",
+      "profile": "https://github.com/askuy",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "sevennt",
+      "name": "sevennt",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10843736?v=4",
+      "profile": "https://github.com/sevennt",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "lincolnzhou",
+      "name": "LincolnZhou",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3911154?v=4",
+      "profile": "http://blog.lincolnzhou.com/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "link-duan",
+      "name": "Link Duan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20787331?v=4",
+      "profile": "https://www.duanlv.ltd",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true
+}

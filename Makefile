@@ -28,5 +28,5 @@ docker.build:
 
 docker.push:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@docker push $(HUB_USER)mogo:latest
+	@docker push $(HUB_USER)/mogo:latest
 	@echo -e "\n"
