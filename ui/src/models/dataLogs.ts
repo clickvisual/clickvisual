@@ -159,9 +159,9 @@ const DataLogsModel = () => {
   const onCopyRawLogDetails = (log: any) => {
     if (log) {
       copy(typeof log === "object" ? JSON.stringify(log) : log);
-      message.success("复制成功");
+      message.success("copy succeeded");
     } else {
-      message.error("复制失败，请手动复制");
+      message.error("failed to copy, please copy manually");
     }
   };
 

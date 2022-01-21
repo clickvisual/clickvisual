@@ -108,15 +108,11 @@ const HighCharts = (props: HighChartsProps) => {
         interactions={["active-region"]}
         padding={"auto"}
         notCompareData={false}
-        // errorContent={<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={'暂无数据'} />}
         onPlotMousemove={onPlotMousemove}
         onPlotMousedown={onPlotMousedown}
         onMouseup={onMouseup}
         placeholder={
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={"暂无查询数据"}
-          />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"no data"} />
         }
       >
         <Interval position="from*count" color={"hsl(21, 85%, 56%)"} />

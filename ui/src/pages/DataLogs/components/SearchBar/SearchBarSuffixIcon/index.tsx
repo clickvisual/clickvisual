@@ -24,7 +24,7 @@ const SearchBarSuffixIcon = () => {
           style={{ color: "hsl(21, 85%, 56%)" }}
         />
       </Tooltip>
-      <Tooltip title={"添加查询条件"}>
+      <Tooltip title={"add query condition"}>
         <ProfileFilled
           style={{ cursor: "pointer", color: "hsl(21, 85%, 56%)" }}
           onClick={() => setVisible(true)}

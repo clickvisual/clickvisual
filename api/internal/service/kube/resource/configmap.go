@@ -42,7 +42,7 @@ func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string,
 func ConfigmapDelete(clusterId int, namespace, name string, keys ...string) error {
 	client, err := kube.ClusterManager.GetClusterManager(clusterId)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("集群数据获取失败: %s, 集群 ID: %d", err.Error(), clusterId))
+		return errors.Wrap(err, fmt.Sprintf("cluster data acquisition failed: %s, cluster id: %d", err.Error(), clusterId))
 	}
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
 	elog.Debug("ConfigmapDelete", elog.String("step", "Get"))
