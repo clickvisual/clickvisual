@@ -158,7 +158,7 @@ const DataLogsModel = () => {
 
   const onCopyRawLogDetails = (log: any) => {
     if (log) {
-      copy(JSON.stringify(log));
+      copy(typeof log === "object" ? JSON.stringify(log) : log);
       message.success("复制成功");
     } else {
       message.error("复制失败，请手动复制");
@@ -287,7 +287,6 @@ const DataLogsModel = () => {
       lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
     const strReg = /(\w+)(=|~)'([^']+)'/g;
     const allQuery = Array.from(defaultInput.matchAll(strReg))?.map((item) => {
-      console.log(item);
       return {
         key: item[1],
         value: item[3],

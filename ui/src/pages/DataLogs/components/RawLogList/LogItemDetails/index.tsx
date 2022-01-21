@@ -8,7 +8,8 @@ import LogContentParse from "@/pages/DataLogs/components/RawLogList/LogItem/LogC
 type LogItemDetailsProps = {};
 const LogItemDetails = (props: LogItemDetailsProps) => {
   const { log } = useContext(LogItemContext);
-  const { highlightKeywords, doUpdatedQuery } = useModel("dataLogs");
+  const { highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
+    useModel("dataLogs");
   const keys = Object.keys(log).sort();
 
   const quickInsertQuery = (keyItem: string) => {
@@ -24,12 +25,22 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
           if (highlightKeywords) {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
           }
+          const isRawLog = keyItem === "_raw_log_";
           return (
             <div key={index} className={logItemStyles.logLine}>
-              <div className={logItemStyles.logKey}>
+              <div
+                className={classNames(
+                  logItemStyles.logKey,
+                  isRawLog && logItemStyles.logKeyHover
+                )}
+                onClick={() => {
+                  if (!isRawLog) return;
+                  onCopyRawLogDetails(log[keyItem]);
+                }}
+              >
                 <span>{keyItem}</span>:
               </div>
-              {keyItem !== "log" ? (
+              {!isRawLog ? (
                 <span
                   onClick={() => quickInsertQuery(keyItem)}
                   className={classNames(

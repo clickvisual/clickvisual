@@ -1,0 +1,35 @@
+.jsonView {
+  display: inline;
+  line-height: 21px;
+  .jsonViewIcon {
+    display: inline-block;
+    margin: 2px 4px;
+  }
+}
+
+.__react-json-view-key {
+  color: blueviolet;
+}
+
+.jsonViewValue {
+  padding-left: 8px;
+  color: black;
+}
+
+.__react-json-view-bool {
+  color: rgb(0, 0, 128);
+}
+
+.__react-json-view-number {
+  color: blue;
+}
+
+.jsonViewArray {
+  .jsonViewArrayItem > .jsonViewValue {
+    padding-left: 0;
+  }
+}
+
+.jsonViewString {
+  color: green;
+}
