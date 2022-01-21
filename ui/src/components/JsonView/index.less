@@ -17,6 +17,17 @@
 .jsonViewValue {
   padding-left: 8px;
   color: @font-color;
+  white-space: pre-wrap;
+}
+
+.jsonViewHighlight {
+  color: @primary-color-90;
+  font-weight: bold;
+  word-break: break-all;
+  cursor: pointer;
+  &:hover {
+    color: @primary-color-90;
+  }
 }
 
 .jsonViewValueHover {
@@ -27,6 +38,8 @@
   }
 }
 
-.jsonViewArrayItem > .jsonViewValue {
-  padding-left: 0;
+.jsonViewArrayItem {
+  & > .jsonViewValue {
+    padding-left: 0;
+  }
 }
