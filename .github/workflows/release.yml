@@ -24,6 +24,7 @@ jobs:
           cd ui
           yarn install --frozen-lockfile
           yarn run build
+          cp -rf dist ../api/internal/ui
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
@@ -37,8 +38,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Run GoReleaser
-        run: |
-          cd api
         uses: goreleaser/goreleaser-action@v2
         with:
           # either 'goreleaser' (default) or 'goreleaser-pro'
@@ -46,4 +45,4 @@ jobs:
           version: latest
           args: release --rm-dist
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
