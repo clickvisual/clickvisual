@@ -10,7 +10,7 @@ type LogContentParseProps = {
 const LogContentParse = ({ logContent }: LogContentParseProps) => {
   const { doUpdatedQuery, highlightKeywords } = useModel("dataLogs");
   const addQuery = (key: string) => {
-    const currentSelected = `_raw_log_~'%${key}%'`;
+    const currentSelected = `_raw_log_ like '%${key}%'`;
     doUpdatedQuery(currentSelected);
   };
 

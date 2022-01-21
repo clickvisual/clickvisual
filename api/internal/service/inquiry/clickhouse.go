@@ -240,7 +240,7 @@ _node_name_,
 _node_ip_,
 _container_name_,
 _pod_name_,
-log%s
+log AS _raw_log_%s
 FROM %s.%s where JSONHas(log, 'ts') = 0;`, param.Database, param.Table+"_view", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
 	_, err = tx.Exec(viewCreateSQL)
 	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("view", viewCreateSQL))
@@ -259,7 +259,7 @@ _node_name_,
 _node_ip_,
 _container_name_,
 _pod_name_,
-log%s
+log AS _raw_log_%s
 FROM %s.%s where JSONHas(log, 'ts') = 1;`, param.Database, param.Table+"_view_ts", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
 	_, err = tx.Exec(viewTsCreateSQL)
 	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("viewTs", viewTsCreateSQL))

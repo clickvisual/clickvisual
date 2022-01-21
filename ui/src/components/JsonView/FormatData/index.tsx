@@ -13,7 +13,7 @@ type FormatDataProps = {
   data: object;
 };
 const FormatData = ({ data }: FormatDataProps) => {
-  const [isShow, setIsShow] = useState<boolean>(false);
+  const [isShow, setIsShow] = useState<boolean>(true);
   const renderStack: string[] = [];
   const indentStyle = {
     paddingLeft: "20px",
