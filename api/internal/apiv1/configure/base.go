@@ -2,6 +2,7 @@ package configure
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/gotomicro/ego-component/egorm"
@@ -326,7 +327,6 @@ func Sync(c *core.Context) {
 		c.JSONE(core.CodeErr, "cluster data acquisition failed: "+err.Error(), nil)
 		return
 	}
-
 	var obj runtime.Object
 	obj, err = client.KubeClient.Get(api.ResourceNameConfigMap, param.K8SConfigMapNamespace, param.K8SConfigMapName)
 	if err != nil {
@@ -338,6 +338,23 @@ func Sync(c *core.Context) {
 	cm := *(obj.(*corev1.ConfigMap))
 	elog.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
 
+	k8sCMObject := db.K8SConfigMap{
+		ClusterId: param.ClusterId,
+		Name:      param.K8SConfigMapName,
+		Namespace: param.K8SConfigMapNamespace,
+	}
+	k8sCM, err := db.K8SConfigMapLoadOrSave(tx, &k8sCMObject)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "cluster data acquisition failed: "+err.Error(), nil)
+		return
+	}
+	if k8sCM.ID == 0 {
+		c.JSONE(core.CodeErr, "k8sCM id is 0", nil)
+		return
+	}
+	var res string
+	param.K8SConfigMapId = k8sCM.ID
 	for key, val := range cm.Data {
 		nameArr := strings.Split(key, ".")
 		if len(nameArr) < 2 {
@@ -346,33 +363,46 @@ func Sync(c *core.Context) {
 		}
 		format := nameArr[len(nameArr)-1]
 		name := strings.TrimSuffix(key, "."+format)
+
+		// if exist
+		conds := egorm.Conds{}
+		conds["name"] = name
+		conds["format"] = format
+		conds["k8s_cm_id"] = param.K8SConfigMapId
 		var configuration db.Configuration
-		configuration, err = configure.Configure.Create(c, tx, view.ReqCreateConfig{
-			Name:                  name,
-			Format:                view.ConfigFormat(format),
-			K8SConfigMapId:        param.K8SConfigMapId,
-			K8SConfigMapName:      param.K8SConfigMapName,
-			K8SConfigMapNamespace: param.K8SConfigMapNamespace,
-			ClusterId:             param.ClusterId,
-		})
+		configuration, err = db.ConfigurationInfoX(conds)
 		if err != nil {
-			if errors.Is(err, constx.ErrSkipConfigureName) {
-				continue
+			continue
+		}
+		if configuration.ID == 0 {
+			configuration, err = configure.Configure.Create(c, tx, view.ReqCreateConfig{
+				Name:                  name,
+				Format:                view.ConfigFormat(format),
+				K8SConfigMapId:        param.K8SConfigMapId,
+				K8SConfigMapName:      param.K8SConfigMapName,
+				K8SConfigMapNamespace: param.K8SConfigMapNamespace,
+				ClusterId:             param.ClusterId,
+			})
+			if err != nil {
+				if errors.Is(err, constx.ErrSkipConfigureName) {
+					continue
+				}
+				tx.Rollback()
+				c.JSONE(core.CodeErr, "configure.Configure.Create error:"+err.Error(), nil)
+				return
 			}
-			tx.Rollback()
-			c.JSONE(core.CodeErr, "configure.Configure.Create error:"+err.Error(), nil)
-			return
 		}
 		elog.Debug("sync", elog.String("step", "Update"), elog.Any("configuration", configuration))
-		if err = configure.Configure.Update(c, tx, view.ReqUpdateConfig{
-			ID:      configuration.ID,
-			Message: "sync from cluster",
-			Content: val,
-		}, configuration); err != nil {
+		err = configure.Configure.Update(c, tx, view.ReqUpdateConfig{ID: configuration.ID, Message: "sync from cluster", Content: val}, configuration)
+		if err != nil {
+			if errors.Is(err, constx.ErrConfigurationIsNoDifference) {
+				continue
+			}
 			tx.Rollback()
 			c.JSONE(1, err.Error(), err)
 			return
 		}
+		res += fmt.Sprintf("update file：%s.%s ,", name, format)
 	}
 	err = tx.Commit().Error
 	if err != nil {
@@ -380,5 +410,5 @@ func Sync(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	c.JSONOK()
+	c.JSONOK(res)
 }

@@ -125,13 +125,7 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
             }}
           >
             {instanceList.map((item: InstanceType, index: number) => (
-              <Option
-                key={index}
-                value={JSON.stringify({
-                  instanceName: item.instanceName,
-                  datasourceType: item.datasource,
-                })}
-              >
+              <Option key={index} value={JSON.stringify({ iid: item.id })}>
                 {item.instanceName}
               </Option>
             ))}
@@ -142,7 +136,6 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
       placement="right"
       closable
       visible={visibleDataBaseDraw}
-      mask={false}
       getContainer={false}
       width={"35vw"}
       onClose={() => onChangeVisibleDatabaseDraw(false)}
@@ -153,7 +146,7 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
         loading={getInstanceList.loading}
         bordered
         rowKey={(record: DatabaseResponse) =>
-          `${record.databaseName}-${record.instanceId}-${record.instanceName}-${record.datasourceType}`
+          `${record.instanceId}-${record.databaseName}`
         }
         size={"small"}
         columns={column}

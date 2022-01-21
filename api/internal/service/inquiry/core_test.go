@@ -57,7 +57,7 @@ func Test_queryTransformer(t *testing.T) {
 		}, {
 			name: "test-3",
 			args: args{
-				in: "_namespace_~'%kube-system%'",
+				in: "_namespace_ like '%kube-system%'",
 			},
 			wantOut: "_namespace_ like '%kube-system%'",
 			wantErr: false,

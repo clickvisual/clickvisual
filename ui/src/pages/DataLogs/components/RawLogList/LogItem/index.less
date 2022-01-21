@@ -1,3 +1,4 @@
+@import "../../../../../styles/var.less";
 .logItemMain {
   display: flex;
   padding: 10px 13px;
@@ -21,7 +22,7 @@
     margin-left: 4px;
     .operationLine {
       display: flex;
-      color: #41464beb;
+      color: @font-color;
       .icon {
         font-size: 18px;
         cursor: pointer;
@@ -41,8 +42,11 @@
         .logKey {
           align-self: flex-start;
           span {
-            background: hsl(219, 64%, 96%);
+            background: @primary-color-8;
           }
+        }
+        .logKeyHover {
+          cursor: pointer;
         }
         .logContent {
           margin-left: 4px;
@@ -50,19 +54,18 @@
         }
         .logHover {
           &:hover {
-            color: hsl(210, 7%, 27%);
-            font-weight: bold;
+            color: @primary-color-90;
             text-decoration: underline;
             cursor: pointer;
           }
         }
         .logContentHighlight {
-          color: hsl(360, 68%, 59%);
+          color: @primary-color-90;
           font-weight: bold;
           word-break: break-all;
           cursor: pointer;
           &:hover {
-            color: hsl(360, 68%, 59%);
+            color: @primary-color-90;
           }
         }
       }

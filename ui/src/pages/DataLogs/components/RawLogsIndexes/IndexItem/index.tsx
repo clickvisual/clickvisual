@@ -41,9 +41,8 @@ const IndexItem = (props: IndexItemProps) => {
     )
       return;
     const params = {
-      dt: currentDatabase.datasourceType,
-      in: currentDatabase.instanceName,
-      db: currentDatabase.databaseName,
+      database: currentDatabase.databaseName,
+      iid: currentDatabase.instanceId,
       table: currentLogLibrary,
       field: index,
       st: startDateTime,
@@ -86,6 +85,7 @@ const IndexItem = (props: IndexItemProps) => {
                     <Tooltip title={detail.count} placement={"right"}>
                       <div className={indexItemStyles.progressMain}>
                         <Progress
+                          strokeColor={"hsl(21, 85%, 56%)"}
                           className={indexItemStyles.progress}
                           percent={detail.percent}
                           showInfo={false}

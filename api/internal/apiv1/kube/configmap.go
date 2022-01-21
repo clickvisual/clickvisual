@@ -13,11 +13,10 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/api"
+	"github.com/shimohq/mogo/api/internal/service/kube/resource"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
-
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // ConfigMapList Get configmap by name
@@ -131,31 +130,11 @@ func ConfigMapInfo(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	client, err := kube.ClusterManager.GetClusterManager(clusterId)
+	var upstreamValue string
+	upstreamValue, err = resource.ConfigmapInfo(clusterId, namespace, name, param.Key)
 	if err != nil {
-		c.JSONE(core.CodeErr, "Cluster data acquisition failed:："+err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
-	}
-	elog.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
-	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
-	if err != nil {
-		if err.Error() == apierrors.NewNotFound(corev1.Resource("configmaps"), name).Error() {
-			c.JSONOK("")
-			return
-		}
-		c.JSONE(core.CodeErr, "Configmap data read failed："+err.Error(), nil)
-		return
-	}
-	cm := obj.(*corev1.ConfigMap)
-	var (
-		upstreamValue string
-		// mogoValue     string
-	)
-	for k, v := range cm.Data {
-		if k == param.Key {
-			upstreamValue = v
-			break
-		}
 	}
 	c.JSONOK(upstreamValue)
 }

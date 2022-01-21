@@ -1,3 +1,4 @@
+@import "../../../../../styles/var.less";
 .indexListMain {
   display: flex;
   flex: 1;
@@ -14,17 +15,17 @@
   }
   .indexRowMain {
     &:first-child {
-      border-top: 1px solid hsla(0, 0%, 0%, 0.1);
+      border-top: 1px solid @border-color;
     }
 
     .indexRow {
       display: flex;
       justify-content: space-between;
       padding: 0 5px;
-      color: #41464beb;
+      color: @font-color;
       font-size: 14px;
       line-height: 32px;
-      border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
+      border-bottom: 1px solid @border-color;
       cursor: pointer;
       user-select: none;
       .title {
@@ -34,10 +35,14 @@
         text-align: left;
         text-overflow: ellipsis;
       }
+      &:hover {
+        color: @font-color-white;
+        background: @primary-color-70;
+      }
     }
-  }
-
-  .activeIndexRow {
-    background: hsla(208, 97%, 87%, 0.3);
+    .activeIndexRow {
+      color: @font-color-white;
+      background: @primary-color-90;
+    }
   }
 }

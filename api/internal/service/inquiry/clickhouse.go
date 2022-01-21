@@ -11,6 +11,7 @@ import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
@@ -31,18 +32,17 @@ var jsonExtractORM = map[int]string{
 }
 
 type ClickHouse struct {
-	id             int
-	instanceName   string
-	datasourceType string
-	db             *sql.DB
+	id int
+	db *sql.DB
 }
 
-func NewClickHouse(db *sql.DB, id int, instanceName, datasourceType string) *ClickHouse {
+func NewClickHouse(db *sql.DB, id int) *ClickHouse {
+	if id == 0 {
+		panic("clickhouse add err, id is 0")
+	}
 	return &ClickHouse{
-		db:             db,
-		id:             id,
-		instanceName:   instanceName,
-		datasourceType: datasourceType,
+		db: db,
+		id: id,
 	}
 }
 
@@ -87,9 +87,8 @@ func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
 	res.Count = c.Count(param)
 	res.Limited = param.PageSize
 	// Read the index data
-	instance, _ := db.InstanceByName(param.DatasourceType, param.InstanceName)
 	conds := egorm.Conds{}
-	conds["instance_id"] = instance.ID
+	conds["instance_id"] = param.InstanceId
 	conds["database"] = param.Database
 	conds["table"] = param.Table
 	indexes, _ := db.IndexList(conds)
@@ -164,6 +163,7 @@ func (c *ClickHouse) Tables(database string) (res []string, err error) {
 }
 
 func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
+	instance, _ := db.InstanceInfo(invoker.Db, c.id)
 	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns where name = '%s' and type = 'DateTime64(3)' group by database", ignoreKey))
 	if err != nil {
 		return
@@ -176,8 +176,8 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 		}
 		res = append(res, view.RespDatabase{
 			DatabaseName:   row["database"].(string),
-			InstanceName:   c.instanceName,
-			DatasourceType: c.datasourceType,
+			InstanceName:   instance.Name,
+			DatasourceType: instance.Datasource,
 			InstanceId:     c.id,
 		})
 	}
@@ -240,7 +240,7 @@ _node_name_,
 _node_ip_,
 _container_name_,
 _pod_name_,
-log%s
+log AS _raw_log_%s
 FROM %s.%s where JSONHas(log, 'ts') = 0;`, param.Database, param.Table+"_view", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
 	_, err = tx.Exec(viewCreateSQL)
 	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("view", viewCreateSQL))
@@ -259,7 +259,7 @@ _node_name_,
 _node_ip_,
 _container_name_,
 _pod_name_,
-log%s
+log AS _raw_log_%s
 FROM %s.%s where JSONHas(log, 'ts') = 1;`, param.Database, param.Table+"_view_ts", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
 	_, err = tx.Exec(viewTsCreateSQL)
 	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("viewTs", viewTsCreateSQL))
@@ -275,7 +275,7 @@ FROM %s.%s where JSONHas(log, 'ts') = 1;`, param.Database, param.Table+"_view_ts
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+timeCondition+" LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+timeCondition+" ORDER BY "+ignoreKey+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,

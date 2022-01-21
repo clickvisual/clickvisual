@@ -1,12 +1,8 @@
 import { request } from "umi";
 
-export interface DatabaseProps {
-  dt: string;
-}
-
-export interface DataSourceTableProps extends DatabaseProps {
-  db: string;
-  in: string;
+export interface DataSourceTableProps {
+  database: string;
+  iid: number;
 }
 
 export interface QueryLogsProps extends DataSourceTableProps {
@@ -56,8 +52,7 @@ export interface DatabaseResponse {
 }
 
 export interface InstanceSelectedType {
-  instanceName: string;
-  datasourceType: string;
+  iid: number;
 }
 
 export interface IndexInfoType {
@@ -67,7 +62,7 @@ export interface IndexInfoType {
 }
 
 export interface IndexRequest {
-  instanceId: number;
+  iid: number;
   database: string;
   table: string;
   data?: IndexInfoType[];
@@ -88,7 +83,7 @@ export interface IndexDetail {
 }
 
 export default {
-  // 获取海图信息
+  // Get chart information
   async getHighCharts(params: QueryLogsProps, cancelToken: any) {
     return request<API.Res<HighChartsResponse>>(`/api/v1/query/charts`, {
       cancelToken,
@@ -98,7 +93,7 @@ export default {
     });
   },
 
-  // 获取日志信息
+  // Get log information
   async getLogs(params: QueryLogsProps, cancelToken: any) {
     return request<API.Res<LogsResponse>>(`/api/v1/query/logs`, {
       cancelToken,
@@ -108,7 +103,7 @@ export default {
     });
   },
 
-  // 获取日志库列表
+  // Gets a list of log stores
   async getTableList(params: DataSourceTableProps) {
     return request<API.Res<string[]>>(`/api/v1/query/tables`, {
       method: "GET",
@@ -116,30 +111,15 @@ export default {
     });
   },
 
-  // 获取数据库列表
+  // Get a list of databases
   async getDatabaseList(payload: InstanceSelectedType | undefined) {
     return request<API.Res<DatabaseResponse[]>>(`/api/v1/query/databases`, {
       method: "GET",
-      params: { dt: payload?.datasourceType, in: payload?.instanceName },
+      params: { iid: payload?.iid },
     });
   },
 
-  // async getIndexes({
-  //   dt: string,
-  //   in: string,
-  //   db: string,
-  //   table: string,
-  //   field: string,
-  //   st: number,
-  //   et: string,
-  // }) {
-  //   return request(
-  //     `/api/v1/query/indexes?dt=ch&in=dev&db=devlogs&table=ingress_stdout&field=method&st=1&et=1640228013`,
-  //   );
-  // },
-  // /api/v1/query/indexes?dt=ch&in=dev&db=devlogs&table=ingress_stdout&field=method&st=1&et=1640228013
-
-  // 获取索引详情
+  // Get index details
   async getIndexDetail(params: IndexDetailRequest) {
     return request<API.Res<IndexDetail[]>>(`/api/v1/query/indexes`, {
       method: "GET",
@@ -147,7 +127,7 @@ export default {
     });
   },
 
-  // 增加 or 修改索引
+  // Add or modify index
   async setIndexes(data: IndexRequest) {
     return request<API.Res<string>>(`/api/v1/setting/indexes`, {
       method: "PATCH",
@@ -155,7 +135,7 @@ export default {
     });
   },
 
-  // 获取索引编辑列表
+  // Get Index Edit List
   async getIndexes(params: IndexRequest) {
     return request<API.Res<IndexInfoType[]>>(`/api/v1/setting/indexes`, {
       method: "GET",

@@ -14,6 +14,7 @@ import {
 import moment from "moment";
 import type { DurationInputArg2, DurationInputArg1 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
+import IconFont from "@/components/IconFont";
 
 const SearchBar = () => {
   const {
@@ -87,6 +88,7 @@ const SearchBar = () => {
         }}
         className={searchBarStyles.searchBtn}
         type="primary"
+        icon={<IconFont type={"icon-log-search"} />}
       >
         查询
       </Button>

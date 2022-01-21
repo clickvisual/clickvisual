@@ -158,10 +158,10 @@ const DataLogsModel = () => {
 
   const onCopyRawLogDetails = (log: any) => {
     if (log) {
-      copy(JSON.stringify(log));
-      message.success("复制成功");
+      copy(typeof log === "object" ? JSON.stringify(log) : log);
+      message.success("copy succeeded");
     } else {
-      message.error("复制失败，请手动复制");
+      message.error("failed to copy, please copy manually");
     }
   };
 
@@ -229,9 +229,8 @@ const DataLogsModel = () => {
     params?: QueryParams
   ) => {
     return {
-      dt: database.datasourceType,
-      db: database.databaseName,
-      in: database.instanceName,
+      database: database.databaseName,
+      iid: database.instanceId,
       table: params?.logLibrary || (currentLogLibrary as string),
       st: params?.st || (startDateTime as number),
       et: params?.et || (endDateTime as number),
@@ -267,9 +266,8 @@ const DataLogsModel = () => {
   const doGetLogLibraryList = () => {
     if (currentDatabase) {
       getLogLibraries.run({
-        dt: currentDatabase.datasourceType,
-        db: currentDatabase.databaseName,
-        in: currentDatabase.instanceName,
+        database: currentDatabase.databaseName,
+        iid: currentDatabase.instanceId,
       });
     }
   };
@@ -289,7 +287,6 @@ const DataLogsModel = () => {
       lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
     const strReg = /(\w+)(=|~)'([^']+)'/g;
     const allQuery = Array.from(defaultInput.matchAll(strReg))?.map((item) => {
-      console.log(item);
       return {
         key: item[1],
         value: item[3],
@@ -337,7 +334,8 @@ const DataLogsModel = () => {
   };
 
   useEffect(() => {
-    if (currentDatabase && currentLogLibrary) {
+    // debugger;
+    if (currentDatabase && currentLogLibrary && pageSize && currentPage) {
       cancelTokenLogsRef.current?.();
       cancelTokenHighChartsRef.current?.();
       getLogs.run(
@@ -357,7 +355,7 @@ const DataLogsModel = () => {
         })
       );
     }
-  }, [pageSize, currentPage]);
+  }, [pageSize, currentPage, currentDatabase, currentLogLibrary]);
 
   useEffect(() => {
     if (!currentDatabase) {
@@ -430,6 +428,7 @@ const DataLogsModel = () => {
     resetCurrentHighChart,
     setChangeTabPane,
 
+    getDatabases,
     settingIndexes,
     getLogLibraries,
     getIndexList,

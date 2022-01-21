@@ -26,11 +26,11 @@ func (t *Instance) TableName() string {
 }
 
 func (t *Instance) DsKey() string {
-	return InstanceKey(t.Datasource, t.Name)
+	return InstanceKey(t.ID)
 }
 
-func InstanceKey(datasource, name string) string {
-	return fmt.Sprintf("%s-%s", datasource, name)
+func InstanceKey(id int) string {
+	return fmt.Sprintf("%d", id)
 }
 
 const (
@@ -48,6 +48,7 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*Instance, err err
 	if sorts == "" {
 		sorts = "id desc"
 	}
+
 	if err = invoker.Db.Model(Instance{}).Where(sql, binds...).Order(sorts).Find(&resp).Error; err != nil {
 		elog.Error("ConfigMap list error", zap.Error(err))
 		return

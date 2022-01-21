@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -106,10 +107,10 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 		return
 	}
 	// Calculate the current version number
-	version := utils.MD5(param.Content)
-	if utils.MD5(configuration.Content) == version {
-		return errors.New("save failed, no update at this time.")
+	if utils.MD5(configuration.Content) == utils.MD5(param.Content) {
+		return constx.ErrConfigurationIsNoDifference
 	}
+	version := uuid.New().String()
 	history := db.ConfigurationHistory{
 		ConfigurationId: configuration.ID,
 		ChangeLog:       param.Message,
@@ -124,10 +125,6 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 		}
 		if configuration.LockUid != 0 && configuration.LockUid != c.Uid() {
 			return fmt.Errorf("someone else is editing, update failed")
-		}
-		err = tx.Where("version=? AND configuration_id=?", version, param.ID).Delete(&db.ConfigurationHistory{}).Error
-		if err != nil {
-			return err
 		}
 		// Save the historical version
 		err = tx.Save(&history).Error
@@ -148,7 +145,7 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 // Publish ..
 func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err error) {
 	if c.Uid() == 0 {
-		return fmt.Errorf("无法获取授权信息")
+		return fmt.Errorf("unable to get authorization information")
 	}
 	// find configure version
 	conds := egorm.Conds{}
@@ -174,17 +171,17 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 	})
 	lock := NewConfigMapLock(k8sConfigmap.Namespace, k8sConfigmap.Name, configureObj.K8SCmId)
 	if !lock.Lock() {
-		return fmt.Errorf("有其他用户或系统正在更新ConfigMap，更新失败")
+		return fmt.Errorf("configMap is being updated by another user or system. update failed")
 	}
 	defer lock.Unlock()
 
 	client, err := kube.ClusterManager.GetClusterManager(k8sConfigmap.ClusterId)
 	if err != nil {
-		return fmt.Errorf("集群数据获取失败: " + err.Error())
+		return fmt.Errorf("cluster data acquisition failed: " + err.Error())
 	}
 	err = resource.ConfigmapCreateOrUpdate(client, k8sConfigmap.Namespace, k8sConfigmap.Name, configData)
 	if err != nil {
-		return errors.Wrap(err, "ConfigMap 更新失败")
+		return errors.Wrap(err, "configMap update failed")
 	}
 	return
 }
@@ -193,41 +190,60 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 func (s *configure) Delete(c *core.Context, id int) (err error) {
 	var config db.Configuration
 	if c.Uid() == 0 {
-		return fmt.Errorf("无法获取授权信息")
+		return fmt.Errorf("unable to get authorization information")
 	}
+
 	tx := invoker.Db.Begin()
 	{
 		config, err = db.ConfigurationInfo(id)
 		if err != nil {
 			tx.Rollback()
-			return errors.Wrap(err, "")
+			return err
+		}
+		k8sCM, errK8sCM := db.K8SConfigMapInfo(config.K8SCmId)
+		if errK8sCM != nil {
+			tx.Rollback()
+			return errK8sCM
+		}
+		// read remote configmap data
+		var upstreamValue string
+		upstreamValue, err = resource.ConfigmapInfo(k8sCM.ClusterId, k8sCM.Namespace, k8sCM.Name, config.FileName())
+		if err != nil {
+			tx.Rollback()
+			return errors.Wrap(err, "read configmap data failed")
+		}
+		if utils.MD5(upstreamValue) != utils.MD5(config.Content) {
+			elog.Debug("delete", elog.Any("upstreamValue", upstreamValue), elog.Any("config.Content", config.Content))
+			tx.Rollback()
+			return errors.New("The deleted configuration is inconsistent with the effective configuration. The effective configuration cannot be deleted.")
 		}
 		err = db.ConfigurationDelete(tx, id)
 		if err != nil {
 			tx.Rollback()
-			return errors.Wrap(err, "删除配置记录失败")
+			return errors.Wrap(err, "configuration deletion failed")
 		}
 		kcm, errKcm := db.K8SConfigMapInfo(config.K8SCmId)
 		if errKcm != nil {
 			tx.Rollback()
-			return errors.Wrap(err, errKcm.Error())
+			return errKcm
 		}
 		configLock := NewConfigMapLock(kcm.Namespace, kcm.Name, kcm.ID)
 		if !configLock.Lock() {
 			tx.Rollback()
-			return errors.Errorf("存在其他用户在操作配置，删除失败")
+			return errors.Errorf("failed to delete because there are other users operating the configuration")
 		}
 		err = resource.ConfigmapDelete(kcm.ClusterId, kcm.Namespace, kcm.Name, config.FileName(), s.configMetadataKey(config.FileName()))
 		if err != nil {
 			configLock.Unlock()
 			tx.Rollback()
-			return errors.Wrap(err, "ConfigMap更新失败")
+			return errors.Wrap(err, "configMap update failed")
 		}
 		configLock.Unlock()
 	}
 	err = tx.Commit().Error
 	if err != nil {
-		return errors.Wrap(err, "删除失败，事物提交失败")
+		tx.Rollback()
+		return errors.Wrap(err, "failed to delete, transaction submission failed")
 	}
 	return
 }

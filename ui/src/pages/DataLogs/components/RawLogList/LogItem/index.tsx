@@ -13,6 +13,7 @@ const LogItem = (props: LogItemProps) => {
   const { index } = props;
   const { currentPage, pageSize } = useModel("dataLogs");
   const { log } = useContext(LogItemContext);
+  console.log("_time_: ", log._time_);
 
   return (
     <div className={logItemStyles.logItemMain}>
@@ -21,7 +22,7 @@ const LogItem = (props: LogItemProps) => {
           {(pageSize as number) * ((currentPage as number) - 1) + index + 1}
         </div>
         <div className={logItemStyles.dateTime}>
-          {moment(log._time_).format("YYYY-MM-DD HH:mm:ss")}
+          {moment(log._time_).format("YYYY-MM-DD HH:mm:ss.SSS")}
         </div>
       </div>
       <div className={logItemStyles.right}>

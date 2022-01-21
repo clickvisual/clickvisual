@@ -1,12 +1,12 @@
-import highChartsStyles from '@/pages/DataLogs/components/HighCharts/index.less';
-import { Chart, Tooltip, Interval, Interaction } from 'bizcharts';
-import { Empty } from 'antd';
-import classNames from 'classnames';
-import { useModel } from '@@/plugin-model/useModel';
-import { useRef, useState } from 'react';
-import HighChartsTooltip from '@/pages/DataLogs/components/HighCharts/HighChartsTooltip';
-import moment from 'moment';
-import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from '@/config/config';
+import highChartsStyles from "@/pages/DataLogs/components/HighCharts/index.less";
+import { Chart, Tooltip, Interval, Interaction } from "bizcharts";
+import { Empty } from "antd";
+import classNames from "classnames";
+import { useModel } from "@@/plugin-model/useModel";
+import { useRef, useState } from "react";
+import HighChartsTooltip from "@/pages/DataLogs/components/HighCharts/HighChartsTooltip";
+import moment from "moment";
+import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 type HighChartsProps = {};
 const HighCharts = (props: HighChartsProps) => {
   const {
@@ -19,23 +19,25 @@ const HighCharts = (props: HighChartsProps) => {
     isHiddenHighChart,
     highChartList,
     doParseQuery,
-  } = useModel('dataLogs');
-  const [highChartPosition, setHighChartPosition] = useState<'left' | 'right'>('left');
+  } = useModel("dataLogs");
+  const [highChartPosition, setHighChartPosition] = useState<"left" | "right">(
+    "left"
+  );
   const downTime = useRef<number>();
   const isSelectRange = useRef<boolean>(false);
 
   const format = (timeStr: string | number, formatType: string) => {
-    return moment(timeStr, 'X').format(formatType);
+    return moment(timeStr, "X").format(formatType);
   };
 
   const scale = {
     from: {
-      type: 'timeCat',
+      type: "timeCat",
       tickCount: 8,
-      formatter: (text: string) => format(text, 'L'),
+      formatter: (text: string) => format(text, "L"),
     },
     count: {
-      type: 'pow',
+      type: "pow",
       exponent: 1,
       tickCount: 1,
       min: 0,
@@ -53,9 +55,9 @@ const HighCharts = (props: HighChartsProps) => {
   };
   const onChangePosition = (x: number) => {
     if (x < 240) {
-      setHighChartPosition('right');
+      setHighChartPosition("right");
     } else {
-      setHighChartPosition('left');
+      setHighChartPosition("left");
     }
   };
 
@@ -93,7 +95,9 @@ const HighCharts = (props: HighChartsProps) => {
   return (
     <div
       className={classNames(
-        isHiddenHighChart ? highChartsStyles.highCartMainHidden : highChartsStyles.highChartsMain,
+        isHiddenHighChart
+          ? highChartsStyles.highCartMainHidden
+          : highChartsStyles.highChartsMain
       )}
     >
       <Chart
@@ -101,18 +105,19 @@ const HighCharts = (props: HighChartsProps) => {
         scale={scale}
         height={100}
         data={highChartList}
-        interactions={['active-region']}
-        padding={'auto'}
+        interactions={["active-region"]}
+        padding={"auto"}
         notCompareData={false}
-        // errorContent={<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={'暂无数据'} />}
         onPlotMousemove={onPlotMousemove}
         onPlotMousedown={onPlotMousedown}
         onMouseup={onMouseup}
-        placeholder={<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={'暂无查询数据'} />}
+        placeholder={
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"no data"} />
+        }
       >
-        <Interval position="from*count" color={'hsla(219,100%,68%,.7)'} />
+        <Interval position="from*count" color={"hsl(21, 85%, 56%)"} />
         <Tooltip
-          domStyles={{ 'g2-tooltip': { background: 'hsla(0,0%,0%,.8)' } }}
+          domStyles={{ "g2-tooltip": { background: "hsla(0,0%,0%,.8)" } }}
           shared
           position={highChartPosition}
           showTitle={false}
@@ -126,32 +131,32 @@ const HighCharts = (props: HighChartsProps) => {
           }}
         </Tooltip>
         <Interaction
-          type={'brush-x'}
+          type={"brush-x"}
           config={{
             showEnable: [
-              { trigger: 'plot:mouseenter', action: ['cursor:pointer'] },
-              { trigger: 'plot:mouseleave', action: 'cursor:default' },
+              { trigger: "plot:mouseenter", action: ["cursor:pointer"] },
+              { trigger: "plot:mouseleave", action: ["cursor:default"] },
             ],
             start: [
               {
-                trigger: 'plot:mousedown',
-                action: ['x-rect-mask:start', 'rect-mask:show'],
+                trigger: "plot:mousedown",
+                action: ["x-rect-mask:start", "rect-mask:show"],
               },
             ],
             processing: [
               {
-                trigger: 'plot:mousemove',
-                action: ['x-rect-mask:resize', 'cursor:crosshair'],
+                trigger: "plot:mousemove",
+                action: ["x-rect-mask:resize", "cursor:crosshair"],
               },
               {
-                trigger: 'plot:mouseleave',
-                action: ['x-rect-mask:resize', 'tooltip:hide'],
+                trigger: "plot:mouseleave",
+                action: ["x-rect-mask:resize", "tooltip:hide"],
               },
             ],
             end: [
               {
-                trigger: 'mouseup',
-                action: ['rect-mask:end', 'rect-mask:hide'],
+                trigger: "mouseup",
+                action: ["rect-mask:end", "rect-mask:hide"],
               },
             ],
           }}
