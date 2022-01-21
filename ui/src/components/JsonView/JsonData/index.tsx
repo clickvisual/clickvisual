@@ -1,7 +1,7 @@
 import jsonViewStyles from "@/components/JsonView/index.less";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
-import { useState } from "react";
-import RenderValue from "@/components/JsonView/RenderValue";
+import { useEffect, useState } from "react";
+import JsonValue from "@/components/JsonView/JsonValue";
 import classNames from "classnames";
 
 /**
@@ -9,15 +9,21 @@ import classNames from "classnames";
  * @param data 数据
  * @constructor
  */
-type FormatDataProps = {
+type JsonDataProps = {
   data: object;
-};
-const FormatData = ({ data }: FormatDataProps) => {
+} & _CommonProps;
+const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   const [isShow, setIsShow] = useState<boolean>(true);
   const renderStack: string[] = [];
   const indentStyle = {
     paddingLeft: "20px",
   };
+
+  useEffect(() => {
+    return () => {
+      setIsShow(false);
+    };
+  }, []);
 
   /**
    * 处理数据类型
@@ -44,7 +50,7 @@ const FormatData = ({ data }: FormatDataProps) => {
                 className={classNames(jsonViewStyles.jsonViewArrayItem)}
                 key={idx}
               >
-                <RenderValue key={key} val={item} />
+                <JsonValue key={key} val={item} {...restProps} />
                 {isLast ? "" : ","}
                 {renderStack.pop() && ""}
               </div>
@@ -54,11 +60,12 @@ const FormatData = ({ data }: FormatDataProps) => {
         </span>
       );
     } else {
-      dom = <RenderValue key={key} val={val} />;
+      dom = <JsonValue key={key} val={val} {...restProps} />;
     }
     return (
       <>
-        <span className={"__react-json-view-key"}>"{key}"</span>:{dom}
+        <span className={classNames(jsonViewStyles.jsonViewKey)}>"{key}"</span>:
+        {dom}
       </>
     );
   };
@@ -101,4 +108,4 @@ const FormatData = ({ data }: FormatDataProps) => {
   );
 };
 
-export default FormatData;
+export default JsonData;

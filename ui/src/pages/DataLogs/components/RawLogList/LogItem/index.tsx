@@ -13,7 +13,6 @@ const LogItem = (props: LogItemProps) => {
   const { index } = props;
   const { currentPage, pageSize } = useModel("dataLogs");
   const { log } = useContext(LogItemContext);
-  console.log("_time_: ", log._time_);
 
   return (
     <div className={logItemStyles.logItemMain}>
