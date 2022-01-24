@@ -93,7 +93,7 @@ output-kafka.conf
 [OUTPUT]
     Name           kafka
     Match          kube.*
-    Brokers        10.130.157.53:9092
+    Brokers        127.0.0.1:9092
     Topics         kafka-topic-xxx
     Timestamp_Key  _time_
     Retry_Limit    false
