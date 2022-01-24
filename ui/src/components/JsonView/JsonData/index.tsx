@@ -13,7 +13,8 @@ type JsonDataProps = {
   data: object;
 } & _CommonProps;
 const JsonData = ({ data, ...restProps }: JsonDataProps) => {
-  const [isShow, setIsShow] = useState<boolean>(true);
+  const [isShowJson, setIsShowJson] = useState<boolean>(true);
+
   const renderStack: string[] = [];
   const indentStyle = {
     paddingLeft: "20px",
@@ -21,7 +22,7 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
 
   useEffect(() => {
     return () => {
-      setIsShow(false);
+      setIsShowJson(true);
     };
   }, []);
 
@@ -31,53 +32,24 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
    * @param val
    */
   const handleValueTypes = (key: string, val: any) => {
-    let dom: JSX.Element;
-    if (typeof val === "object" && val instanceof Array) {
-      dom = (
-        <span
-          className={classNames(
-            jsonViewStyles.jsonViewValue,
-            jsonViewStyles.jsonViewArray
-          )}
-        >
-          <span>[</span>
-          {val.map((item, idx) => {
-            renderStack.push("$");
-            let isLast = idx === val.length - 1;
-            return (
-              <div
-                style={indentStyle}
-                className={classNames(jsonViewStyles.jsonViewArrayItem)}
-                key={idx}
-              >
-                <JsonValue key={key} val={item} {...restProps} />
-                {isLast ? "" : ","}
-                {renderStack.pop() && ""}
-              </div>
-            );
-          })}
-          <span>]</span>
-        </span>
-      );
-    } else {
-      dom = <JsonValue key={key} val={val} {...restProps} />;
-    }
     return (
       <>
         <span className={classNames(jsonViewStyles.jsonViewKey)}>"{key}"</span>:
-        {dom}
+        <JsonValue jsonKey={key} val={val} {...restProps} />;
       </>
     );
   };
 
   if (!data) return <div style={indentStyle} />;
   let keys = Object.keys(data);
+
   let kvList: JSX.Element[] = [];
   keys.forEach((k, idx) => {
     renderStack.push(k);
     let v = Reflect.get(data, k);
     let isLastEle = idx >= keys.length - 1;
     let dom = handleValueTypes(k, v);
+    console.log("access key", k, "idx", idx);
     kvList.push(
       <div key={idx}>
         {dom}
@@ -89,20 +61,25 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   if (renderStack.length > 0) {
     return <div style={indentStyle}>{kvList}</div>;
   }
+
   return (
     <div className={classNames(jsonViewStyles.jsonView)}>
       {kvList.length > 0 &&
-        (isShow ? (
+        (isShowJson ? (
           <div className={classNames(jsonViewStyles.jsonViewIcon)}>
-            <CaretDownOutlined onClick={() => setIsShow(() => !isShow)} />
+            <CaretDownOutlined
+              onClick={() => setIsShowJson(() => !isShowJson)}
+            />
           </div>
         ) : (
           <div className={classNames(jsonViewStyles.jsonViewIcon)}>
-            <CaretRightOutlined onClick={() => setIsShow(() => !isShow)} />
+            <CaretRightOutlined
+              onClick={() => setIsShowJson(() => !isShowJson)}
+            />
           </div>
         ))}
       <span>&#123;</span>
-      {isShow && <div style={indentStyle}>{kvList}</div>}
+      {isShowJson && <div style={indentStyle}>{kvList}</div>}
       <span>&#125;</span>
     </div>
   );

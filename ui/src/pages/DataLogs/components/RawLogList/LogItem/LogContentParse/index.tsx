@@ -9,7 +9,7 @@ type LogContentParseProps = {
 };
 
 const LogContentParse = ({ logContent }: LogContentParseProps) => {
-  const { doUpdatedQuery } = useModel("dataLogs");
+  const { doUpdatedQuery, highlightKeywords } = useModel("dataLogs");
   const addQuery = (key: string) => {
     const currentSelected = `_raw_log_ like '%${key}%'`;
     doUpdatedQuery(currentSelected);
@@ -18,9 +18,21 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
   let content;
   try {
     const contentJson = JSON.parse(logContent);
-    content = <JsonView data={contentJson} onClickValue={addQuery} />;
+    content = (
+      <JsonView
+        data={contentJson}
+        onClickValue={addQuery}
+        highLightValue={highlightKeywords}
+      />
+    );
   } catch (e) {
-    content = <JsonStringValue val={logContent} onClickValue={addQuery} />;
+    content = (
+      <JsonStringValue
+        val={logContent}
+        onClickValue={addQuery}
+        highLightValue={highlightKeywords}
+      />
+    );
   }
   return (
     <span className={classNames(logItemStyles.logContent)}>{content}</span>
