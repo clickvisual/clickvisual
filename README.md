@@ -79,7 +79,7 @@ If you want to report a bug or request for a feature, create a issue [here](http
 
 ## Join Us
 
-Join us, please add the mogo keyword in the verification information.
+Join us, please add the "mogo" keyword in the verification information.
 
 ![https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png](https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png)
 
