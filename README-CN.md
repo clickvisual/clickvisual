@@ -76,6 +76,12 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 如果需要提交 Bug，可以点击 [这里](https://github.com/shimohq/mogo/issues)。
 
+## 加入我们
+
+加入我们，请在验证信息里添加 mogo 关键字
+
+![https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png](https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png)
+
 ## Contributors
 
 Thanks for these wonderful people:

@@ -77,6 +77,12 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 If you want to report a bug or request for a feature, create a issue [here](https://github.com/shimohq/mogo/issues).
 
+## Join Us
+
+Join us, please add the mogo keyword in the verification information.
+
+![https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png](https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png)
+
 ## Contributors
 
 Thanks for these wonderful people:
