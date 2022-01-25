@@ -74,6 +74,36 @@ func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
 	return res, err
 }
 
+// DropTable
+func (c *ClickHouse) DropTable(database, table string) (err error) {
+	tx, _ := c.db.Begin()
+	_, err = tx.Exec(fmt.Sprintf("drop table IF EXISTS %s.%s;", database, tableNameView(table, "")))
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	_, err = tx.Exec(fmt.Sprintf("drop table IF EXISTS %s.%s;", database, tableNameStream(table)))
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	_, err = tx.Exec(fmt.Sprintf("drop table IF EXISTS %s.%s;", database, table))
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return nil
+}
+
+func (c *ClickHouse) CreateTable(tableType int) (err error) {
+
+	return nil
+}
+
 func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
 	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)

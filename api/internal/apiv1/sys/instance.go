@@ -70,6 +70,7 @@ func InstanceUpdate(c *core.Context) {
 		Name:       req.Name,
 		Dsn:        req.Dsn,
 	}
+	objUpdate.ID = id
 	if err = service.InstanceManager.Add(&objUpdate); err != nil {
 		_ = service.InstanceManager.Add(&objBef)
 		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
