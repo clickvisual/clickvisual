@@ -1,3 +1,5 @@
+@import "../../styles/var.less";
+
 .jsonView {
   display: inline;
   line-height: 21px;
@@ -7,29 +9,37 @@
   }
 }
 
-.__react-json-view-key {
-  color: blueviolet;
+.jsonViewKey {
+  color: @font-color;
+  background: @primary-color-8;
 }
 
 .jsonViewValue {
   padding-left: 8px;
-  color: black;
+  color: @font-color;
+  white-space: pre-wrap;
 }
 
-.__react-json-view-bool {
-  color: rgb(0, 0, 128);
-}
-
-.__react-json-view-number {
-  color: blue;
-}
-
-.jsonViewArray {
-  .jsonViewArrayItem > .jsonViewValue {
-    padding-left: 0;
+.jsonViewHighlight {
+  color: @primary-color-90;
+  font-weight: bold;
+  word-break: break-all;
+  cursor: pointer;
+  &:hover {
+    color: @primary-color-90;
   }
 }
 
-.jsonViewString {
-  color: green;
+.jsonViewValueHover {
+  &:hover {
+    color: @primary-color-90;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+.jsonViewArrayItem {
+  & > .jsonViewValue {
+    padding-left: 0;
+  }
 }

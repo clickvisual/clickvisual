@@ -12,7 +12,7 @@
 Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
 
 **日志查询界面**
-![log-search](https://helpcenter.shimonote.com/uploads/0LJGD3E301CII.png)
+![log-search](https://helpcenter.shimonote.com/uploads/0LNQBTOQ01CF2.png)
 
 **可视化配置界面**
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
@@ -75,6 +75,12 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 ## Bugs or features
 
 如果需要提交 Bug，可以点击 [这里](https://github.com/shimohq/mogo/issues)。
+
+## 加入我们
+
+加入我们，请在验证信息里添加 mogo 关键字
+
+![https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png](https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png)
 
 ## Contributors
 
