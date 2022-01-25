@@ -1,6 +1,21 @@
 CREATE DATABASE mocro DEFAULT CHARSET utf8mb4;
 USE mocro;
 
+CREATE TABLE `mogo_view` (
+    `iid` int(11) DEFAULT NULL COMMENT '实例 id',
+    `database` varchar(32) NOT NULL COMMENT '数据源类型',
+    `table` varchar(64) NOT NULL COMMENT '数据库',
+    `name` varchar(64) NOT NULL COMMENT '视图名称',
+    `condition` varchar(255) COMMENT '过滤条件',
+    `is_use_default_time` int(11) DEFAULT NULL COMMENT '是否使用系统时间',
+    `key` varchar(64) NOT NULL COMMENT '指定时间字段Key名称',
+    `format` varchar(64) NOT NULL COMMENT '时间转换格式',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    UNIQUE KEY `uix_iid_database_table` (`iid`,`database`, `table`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '物化视图管理' DEFAULT CHARSET = utf8mb4;
+
 CREATE TABLE `mogo_instance` (
     `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
     `datasource` varchar(32) NOT NULL COMMENT '数据源类型',

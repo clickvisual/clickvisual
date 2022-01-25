@@ -2,10 +2,12 @@ package inquiry
 
 import (
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfloat"
+	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/pkg/component/core"
@@ -127,7 +129,54 @@ func Charts(c *core.Context) {
 	return
 }
 
+func DeleteTables(c *core.Context) {
+	iid := cast.ToInt(c.Param("iid"))
+	database := strings.TrimSpace(c.Param("db"))
+	table := strings.TrimSpace(c.Param("table"))
+	if iid == 0 || database == "" || table == "" {
+		c.JSONE(core.CodeErr, "params error", nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	err = op.DropTable(database, table)
+	if err != nil {
+		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK()
+	return
+}
+
 func Tables(c *core.Context) {
+	var param view.ReqQuery
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if param.Database == "" {
+		c.JSONE(core.CodeErr, "db is a required field", nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(param.InstanceId)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res, err := op.Tables(param.Database)
+	if err != nil {
+		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK(res)
+	return
+}
+
+func CreateTables(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {

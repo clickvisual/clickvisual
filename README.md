@@ -81,7 +81,9 @@ If you want to report a bug or request for a feature, create a issue [here](http
 
 Join us, please add the "mogo" keyword in the verification information.
 
-![https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png](https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png)
+ <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />
+
+
 
 ## Contributors
 

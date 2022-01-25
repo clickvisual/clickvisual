@@ -80,7 +80,7 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 加入我们，请在验证信息里添加 mogo 关键字
 
-![https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png](https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png)
+ <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />
 
 ## Contributors
 

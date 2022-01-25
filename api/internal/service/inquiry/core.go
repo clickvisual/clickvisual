@@ -15,6 +15,8 @@ import (
 type Operator interface {
 	Databases() ([]view.RespDatabase, error)
 	Tables(string) ([]string, error)
+	CreateTable(int) error
+	DropTable(string, string) error
 
 	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
 	GET(view.ReqQuery) (view.RespQuery, error)
@@ -22,6 +24,23 @@ type Operator interface {
 	GroupBy(view.ReqQuery) map[string]uint64
 
 	IndexUpdate(view.ReqCreateIndex, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
+}
+
+const (
+	TableTypeApp     = 1
+	TableTypeEgo     = 2
+	TableTypeIngress = 3
+)
+
+func tableNameStream(tableName string) string {
+	return fmt.Sprintf("%s_stream", tableName)
+}
+
+func tableNameView(tableName string, timeKey string) string {
+	if timeKey == "" {
+		return fmt.Sprintf("%s_view", tableName)
+	}
+	return fmt.Sprintf("%s_%s_view", tableName, timeKey)
 }
 
 var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "like"}
