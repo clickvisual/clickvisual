@@ -7,10 +7,12 @@ import { Spin } from "antd";
 import classNames from "classnames";
 import RawLogsIndexes from "@/pages/DataLogs/components/RawLogsIndexes";
 import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
+import { useIntl } from "umi";
 
 type QueryResultProps = {};
 const QueryResult = (props: QueryResultProps) => {
   const {} = props;
+  const i18n = useIntl();
   const { logsLoading, highChartLoading } = useModel("dataLogs");
   const isShare = document.location.pathname === "/share" || "/share/";
 
@@ -24,7 +26,7 @@ const QueryResult = (props: QueryResultProps) => {
       <SearchBar />
       <Spin
         spinning={logsLoading || highChartLoading}
-        tip={"加载中..."}
+        tip={i18n.formatMessage({ id: "spin" })}
         wrapperClassName={queryResultStyles.querySpinning}
       >
         <RawLogsIndexes />

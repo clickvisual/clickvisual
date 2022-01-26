@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import HighChartsTooltip from "@/pages/DataLogs/components/HighCharts/HighChartsTooltip";
 import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
+import { useIntl } from "umi";
 type HighChartsProps = {};
 const HighCharts = (props: HighChartsProps) => {
   const {
@@ -25,6 +26,8 @@ const HighCharts = (props: HighChartsProps) => {
   );
   const downTime = useRef<number>();
   const isSelectRange = useRef<boolean>(false);
+
+  const i18n = useIntl();
 
   const format = (timeStr: string | number, formatType: string) => {
     return moment(timeStr, "X").format(formatType);
@@ -111,9 +114,7 @@ const HighCharts = (props: HighChartsProps) => {
         onPlotMousemove={onPlotMousemove}
         onPlotMousedown={onPlotMousedown}
         onMouseup={onMouseup}
-        placeholder={
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"no data"} />
-        }
+        placeholder={<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
       >
         <Interval position="from*count" color={"hsl(21, 85%, 56%)"} />
         <Tooltip
@@ -127,7 +128,9 @@ const HighCharts = (props: HighChartsProps) => {
           {(title, items) => {
             if (!items) return <></>;
             const data = items[0].data;
-            return <HighChartsTooltip data={data} format={format} />;
+            return (
+              <HighChartsTooltip i18n={i18n} data={data} format={format} />
+            );
           }}
         </Tooltip>
         <Interaction

@@ -9,7 +9,7 @@ import {
   LoadingOutlined,
 } from "@ant-design/icons";
 import DarkButton from "@/pages/Configure/components/CustomButton/DarkButton";
-import { Empty, Space, Spin, Tooltip } from "antd";
+import { Empty, message, Space, Spin, Tooltip } from "antd";
 import TextButton from "@/pages/Configure/components/CustomButton/TextButton";
 import IconFont from "@/components/IconFont";
 import ActionButton from "@/pages/Configure/components/CustomButton/ActionButton";
@@ -20,6 +20,7 @@ import OnlineDiff from "@/pages/Configure/components/Menu/Files/OnlineDiff";
 import { useState } from "react";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import { useIntl } from "umi";
 
 type FilesProps = {};
 const Files = (props: FilesProps) => {
@@ -39,9 +40,14 @@ const Files = (props: FilesProps) => {
   } = useModel("configure");
 
   const [visibleDiff, setVisibleDiff] = useState<boolean>(false);
+  const i18n = useIntl();
 
   const doSync = useDebounceFn(
     () => {
+      const hideMessage = message.loading({
+        content: i18n.formatMessage({ id: "config.file.loading.sync" }),
+        key: "sync",
+      });
       const params = {
         k8sConfigMapNameSpace: selectedNameSpace as string,
         k8sConfigMapName: selectedConfigMap as string,
@@ -51,7 +57,20 @@ const Files = (props: FilesProps) => {
           clusterId: selectedClusterId as number,
           ...params,
         })
-        .then((res) => doGetConfigurations.run(params));
+        .then((res) => {
+          if (res?.code === 0) {
+            message.success({
+              content: i18n.formatMessage({
+                id: "config.file.success.sync",
+              }),
+              key: "sync",
+            });
+            doGetConfigurations.run(params);
+          } else {
+            hideMessage();
+          }
+        })
+        .catch(() => hideMessage());
     },
     { wait: DEBOUNCE_WAIT }
   );
@@ -61,7 +80,9 @@ const Files = (props: FilesProps) => {
       <div className={fileStyles.fileMain}>
         <div className={fileStyles.loading}>
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={""} />
-          <div>Please select a cluster</div>
+          <div>
+            {i18n.formatMessage({ id: "config.files.select.empty.tip" })}
+          </div>
         </div>
       </div>
     );
@@ -72,18 +93,28 @@ const Files = (props: FilesProps) => {
       {doGetConfigurations?.loading ? (
         <div className={fileStyles.loading}>
           <Spin />
-          <div>loading</div>
+          <div>{i18n.formatMessage({ id: "spin" })}</div>
         </div>
       ) : configurationList.length > 0 ? (
         <>
           <div className={fileStyles.actionContainer}>
             <Space>
-              <Tooltip title="Create" placement="bottom">
+              <Tooltip
+                title={i18n.formatMessage({
+                  id: "config.files.tooltip.created",
+                })}
+                placement="bottom"
+              >
                 <ActionButton onClick={() => onChangeVisibleCreate(true)}>
                   <FileAddOutlined />
                 </ActionButton>
               </Tooltip>
-              <Tooltip title="Sync from K8S" placement="bottom">
+              <Tooltip
+                title={i18n.formatMessage({
+                  id: "config.files.sync",
+                })}
+                placement="bottom"
+              >
                 <ActionButton
                   onClick={() => {
                     if (!doSynchronizingConfiguration.loading) doSync.run();
@@ -94,12 +125,22 @@ const Files = (props: FilesProps) => {
               </Tooltip>
               {currentConfiguration && (
                 <>
-                  <Tooltip title="Submit history" placement="bottom">
+                  <Tooltip
+                    title={i18n.formatMessage({
+                      id: "config.files.history",
+                    })}
+                    placement="bottom"
+                  >
                     <ActionButton onClick={() => onChangeVisibleHistory(true)}>
                       <HistoryOutlined />
                     </ActionButton>
                   </Tooltip>
-                  <Tooltip title="Online version comparison" placement="bottom">
+                  <Tooltip
+                    title={i18n.formatMessage({
+                      id: "config.files.tooltip.onlineDiff",
+                    })}
+                    placement="bottom"
+                  >
                     <ActionButton onClick={() => setVisibleDiff(true)}>
                       <DiffOutlined />
                     </ActionButton>
@@ -141,7 +182,13 @@ const Files = (props: FilesProps) => {
                             }
                           });
                         },
-                        content: `Confirm :${item.name}.${item.format} ？This operation will also delete the relevant configuration files in the cluster configmap. Please operate with caution.`,
+                        content: `${i18n.formatMessage(
+                          { id: "config.files.confirm.deleted" },
+                          {
+                            name: item.name,
+                            format: item.format,
+                          }
+                        )}`,
                       });
                     }}
                   >
@@ -154,10 +201,14 @@ const Files = (props: FilesProps) => {
         </>
       ) : (
         <div className={fileStyles.noConfigMain}>
-          <div className={fileStyles.title}>No Configs</div>
+          <div className={fileStyles.title}>
+            {i18n.formatMessage({ id: "config.files.empty.tip" })}
+          </div>
           <DarkButton onClick={() => onChangeVisibleCreate(true)}>
             <FileAddOutlined />
-            <span className={fileStyles.btn}>Create</span>
+            <span className={fileStyles.btn}>
+              {i18n.formatMessage({ id: "config.files.button.create" })}
+            </span>
           </DarkButton>
           <DarkButton
             style={{ marginTop: "12px" }}
@@ -170,7 +221,9 @@ const Files = (props: FilesProps) => {
             ) : (
               <FileSyncOutlined />
             )}
-            <span className={fileStyles.btn}>Sync from K8S</span>
+            <span className={fileStyles.btn}>
+              {i18n.formatMessage({ id: "config.files.sync" })}
+            </span>
           </DarkButton>
         </div>
       )}

@@ -3,6 +3,7 @@ import { Button, Cascader, Select, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 
@@ -23,6 +24,7 @@ const SelectedBar = (props: SelectedBarProps) => {
     onChangeVisibleCreatedConfigMap,
     onChangeCurrentConfiguration,
   } = useModel("configure");
+  const i18n = useIntl();
 
   useEffect(() => {
     if (selectedClusterId) {
@@ -64,7 +66,9 @@ const SelectedBar = (props: SelectedBarProps) => {
   return (
     <div className={searchBarStyles.selectedBar}>
       <Select
-        placeholder="请选择集群"
+        placeholder={`${i18n.formatMessage({
+          id: "config.selectedBar.cluster",
+        })}`}
         showSearch
         value={selectedClusterId}
         className={searchBarStyles.selectedInput}
@@ -100,26 +104,34 @@ const SelectedBar = (props: SelectedBarProps) => {
           onChangeCurrentConfiguration(undefined);
           onChangeConfigContent("");
         }}
-        placeholder="Namespace/Configmap"
+        placeholder={`${i18n.formatMessage({
+          id: "config.selectedBar.configMap",
+        })}`}
         showSearch={{ filter }}
         className={searchBarStyles.cascaderInput}
       />
-      <Tooltip title={"Add namespace and configmap"}>
+      <Tooltip
+        title={i18n.formatMessage({
+          id: "config.selectedBar.button.tooltip",
+        })}
+      >
         <Button
           disabled={disabled}
           icon={<PlusOutlined />}
           type={"primary"}
           onClick={() => onChangeVisibleCreatedConfigMap(true)}
         >
-          Add
+          {i18n.formatMessage({ id: "config.selectedBar.button" })}
         </Button>
       </Tooltip>
       {selectedNameSpace && selectedConfigMap && (
         <div className={searchBarStyles.describe}>
-          <span>当前&nbsp;namespace:&nbsp;</span>
-          <span>{selectedNameSpace},&nbsp;</span>
-          <span>当前&nbsp;configmap:&nbsp;</span>
-          <span>{selectedConfigMap}</span>
+          <span>
+            {i18n.formatMessage(
+              { id: "config.selectedBar.current" },
+              { namespace: selectedNameSpace, configMap: selectedConfigMap }
+            )}
+          </span>
         </div>
       )}
     </div>

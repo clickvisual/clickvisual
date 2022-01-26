@@ -10,6 +10,7 @@ import TableFooter from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexM
 import { useDebounceFn } from "ahooks";
 import { IndexInfoType } from "@/services/dataLogs";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import { useIntl } from "umi";
 
 type ManageIndexModalProps = {};
 
@@ -26,6 +27,8 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
   } = useModel("dataLogs");
   const indexFormRef = useRef<FormInstance>(null);
   const [indexList, setIndexList] = useState<IndexInfoType[]>([]);
+
+  const i18n = useIntl();
 
   const cancel = () => {
     onChangeVisibleIndexModal(false);
@@ -77,7 +80,7 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
   return (
     <CustomModal
       onCancel={cancel}
-      title={"索引管理"}
+      title={i18n.formatMessage({ id: "log.index.manage" })}
       visible={visibleIndexModal}
       width={"70vw"}
       footer={
@@ -90,13 +93,16 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
             indexFormRef.current?.submit();
           }}
         >
-          保存
+          {i18n.formatMessage({ id: "button.save" })}
         </Button>
       }
     >
       <div className={mangeIndexModalStyles.manageIndexModalMain}>
         <Form ref={indexFormRef} onFinish={onSubmit.run}>
-          <Spin spinning={getIndexList.loading} tip={"加载中..."}>
+          <Spin
+            spinning={getIndexList.loading}
+            tip={i18n.formatMessage({ id: "spin" })}
+          >
             <table className={mangeIndexModalStyles.tableMain}>
               <TableHeader />
               <Form.List name={"data"}>

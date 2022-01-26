@@ -1,12 +1,14 @@
-import { FormListOperation } from 'antd/es/form/FormList';
-import mangeIndexModalStyles from '@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/index.less';
-import { Button } from 'antd';
-import { PlusCircleOutlined } from '@ant-design/icons';
+import { FormListOperation } from "antd/es/form/FormList";
+import mangeIndexModalStyles from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/index.less";
+import { Button } from "antd";
+import { PlusCircleOutlined } from "@ant-design/icons";
+import { useIntl } from "umi";
 
 type TableFooterProps = {
   options: FormListOperation;
 };
 const TableFooter = (props: TableFooterProps) => {
+  const i18n = useIntl();
   const { options } = props;
   return (
     <tfoot className={mangeIndexModalStyles.tableFooter}>
@@ -16,10 +18,10 @@ const TableFooter = (props: TableFooterProps) => {
             <div className={mangeIndexModalStyles.operationBtn}>
               <Button
                 onClick={() => options.add({ typ: 0 })}
-                type={'primary'}
+                type={"primary"}
                 icon={<PlusCircleOutlined />}
               >
-                增加索引
+                {i18n.formatMessage({ id: "log.index.manage.button.created" })}
               </Button>
             </div>
           </div>

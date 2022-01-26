@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { DEBOUNCE_WAIT, FIRST_PAGE, PAGE_SIZE } from "@/config/config";
 import moment from "moment";
 import { useDebounceFn } from "ahooks";
+import { useIntl } from "umi";
+import { DiffOutlined } from "@ant-design/icons";
 
 const ModalHistory = () => {
   const {
@@ -15,6 +17,8 @@ const ModalHistory = () => {
     onChangeVisibleHistoryDiff,
     doDiffHistoryConfiguration,
   } = useModel("configure");
+
+  const i18n = useIntl();
 
   const doGetDiff = useDebounceFn(
     (historyId: number) => {
@@ -41,7 +45,7 @@ const ModalHistory = () => {
   }, [visibleHistory, currentConfiguration]);
   return (
     <CustomModal
-      title={"提交历史"}
+      title={i18n.formatMessage({ id: "config.files.history" })}
       width={900}
       visible={visibleHistory}
       maskClosable={false}
@@ -51,6 +55,7 @@ const ModalHistory = () => {
         bordered
         rowKey={"id"}
         size={"small"}
+        scroll={{ x: "max-content" }}
         loading={doGetHistoryConfiguration.loading}
         dataSource={doGetHistoryConfiguration.data}
         pagination={{
@@ -67,30 +72,49 @@ const ModalHistory = () => {
         }}
         columns={[
           {
-            title: "操作用户",
+            title: i18n.formatMessage({ id: "config.history.table.user" }),
             dataIndex: "username",
             width: 120,
             align: "center",
           },
-          { title: "变更记录", dataIndex: "changeLog", align: "center" },
-          { title: "版本号", dataIndex: "version", align: "center" },
           {
-            title: "提交时间",
+            title: i18n.formatMessage({
+              id: "config.history.table.changeLog",
+            }),
+            dataIndex: "changeLog",
+            align: "center",
+          },
+          {
+            title: i18n.formatMessage({
+              id: "config.history.table.version",
+            }),
+            dataIndex: "version",
+            align: "center",
+          },
+          {
+            title: i18n.formatMessage({
+              id: "config.history.table.submitTime",
+            }),
             dataIndex: "ctime",
             align: "center",
             render: (ts) => moment(ts, "X").format("YYYY-MM-DD HH:mm:ss"),
           },
           {
-            title: "操作",
+            title: i18n.formatMessage({ id: "operation" }),
             align: "center",
+            fixed: "right",
             render: (_, record) => (
               <Button
+                loading={doDiffHistoryConfiguration.loading}
                 size={"small"}
+                icon={<DiffOutlined />}
                 onClick={() => {
                   doGetDiff.run(record.id);
                 }}
               >
-                查看变更
+                {i18n.formatMessage({
+                  id: "config.history.table.button.viewChanges",
+                })}
               </Button>
             ),
           },

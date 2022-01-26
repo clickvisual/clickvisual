@@ -3,10 +3,12 @@ import RawLogsOperations from "@/pages/DataLogs/components/RawLogsOperations";
 import RawLogList from "@/pages/DataLogs/components/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
 import { Empty } from "antd";
+import { useIntl } from "umi";
 
 type RawLogsProps = {};
 const RawLogs = (props: RawLogsProps) => {
   const { logs } = useModel("dataLogs");
+  const i18n = useIntl();
 
   const logList = logs?.logs || [];
   return (
@@ -20,7 +22,7 @@ const RawLogs = (props: RawLogsProps) => {
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={"found nothing"}
+            description={i18n.formatMessage({ id: "log.empty" })}
           />
         )}
       </div>

@@ -2,6 +2,7 @@ import CustomModal from "@/components/CustomModal";
 import { Button, Form, FormInstance, Input, Radio } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
 
 const ModalCreatedConfig = () => {
   const formRef = useRef<FormInstance>(null);
@@ -14,6 +15,8 @@ const ModalCreatedConfig = () => {
     doGetConfigurations,
     doCreatedConfiguration,
   } = useModel("configure");
+
+  const i18n = useIntl();
 
   const handleCreated = (field: any) => {
     const k8sConfigMap = {
@@ -44,7 +47,11 @@ const ModalCreatedConfig = () => {
     }
   }, [visibleCreate]);
   return (
-    <CustomModal title="新建配置" visible={visibleCreate} onCancel={onCancel}>
+    <CustomModal
+      title={i18n.formatMessage({ id: "config.createdConfig.title" })}
+      visible={visibleCreate}
+      onCancel={onCancel}
+    >
       <Form
         labelCol={{ span: 4 }}
         wrapperCol={{ span: 18 }}
@@ -52,7 +59,9 @@ const ModalCreatedConfig = () => {
         onFinish={handleCreated}
       >
         <Form.Item
-          label="格式"
+          label={i18n.formatMessage({
+            id: "config.createdConfig.form.format",
+          })}
           name="format"
           initialValue="toml"
           rules={[{ required: true }]}
@@ -73,11 +82,18 @@ const ModalCreatedConfig = () => {
             const format = getFieldValue("format");
             return (
               <Form.Item
-                label="文件名"
+                label={i18n.formatMessage({
+                  id: "config.createdConfig.form.fileName",
+                })}
                 name="configurationName"
                 rules={[{ required: true }, { min: 2 }, { max: 32 }]}
               >
-                <Input placeholder={"请输入文件名"} addonAfter={"." + format} />
+                <Input
+                  placeholder={`${i18n.formatMessage({
+                    id: "config.createdConfig.form.placeholder.fileName",
+                  })}`}
+                  addonAfter={"." + format}
+                />
               </Form.Item>
             );
           }}
@@ -89,7 +105,7 @@ const ModalCreatedConfig = () => {
               type="primary"
               htmlType={"submit"}
             >
-              提交
+              {i18n.formatMessage({ id: "submit" })}
             </Button>
           </div>
         </Form.Item>

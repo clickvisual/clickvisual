@@ -7,6 +7,8 @@ import api, {
   NameSpaceType,
 } from "@/services/configure";
 import { ClusterType } from "@/services/systemSetting";
+import { message } from "antd";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 
 const Configure = () => {
   // 当前选择的菜单
@@ -78,19 +80,33 @@ const Configure = () => {
   });
 
   const doCreatedConfigMap = useRequest(api.createdConfigMap, {
-    loadingText: { done: "新增 ConfigMap 成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(
+        formatMessage({ id: "config.configMap.success.created" })
+      );
+    },
   });
 
   const doCreatedConfiguration = useRequest(api.createdConfiguration, {
-    loadingText: { done: "新增配置成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "config.file.success.created" }));
+    },
   });
 
   const doDeletedConfigurations = useRequest(api.deletedConfiguration, {
-    loadingText: { done: "删除配置成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "config.file.success.deleted" }));
+    },
   }).run;
 
   const doUpdatedConfiguration = useRequest(api.updatedConfiguration, {
-    loadingText: { done: "保存配置成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "config.file.success.updated" }));
+    },
   });
 
   const doGetConfiguration = useRequest(api.getConfiguration, {
@@ -117,7 +133,10 @@ const Configure = () => {
   });
 
   const doPublishConfiguration = useRequest(api.publishConfiguration, {
-    loadingText: { done: "发布配置成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "config.file.success.publish" }));
+    },
   });
 
   const doAddLock = useRequest(api.addLock, {
@@ -146,10 +165,7 @@ const Configure = () => {
   const doSynchronizingConfiguration = useRequest(
     api.synchronizingConfiguration,
     {
-      loadingText: {
-        loading: "Synchronizing...",
-        done: "Synchronization succeeded",
-      },
+      loadingText: false,
     }
   );
 
