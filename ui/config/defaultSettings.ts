@@ -1,23 +1,20 @@
-import { Settings as LayoutSettings } from '@ant-design/pro-layout';
+import { Settings as LayoutSettings } from "@ant-design/pro-layout";
 
 const Settings: LayoutSettings & {
   pwa?: boolean;
   logo?: string;
 } = {
-  navTheme: 'light',
-  primaryColor: '#1890ff',
-  layout: 'top',
-  menu: {
-    locale: false,
-  },
-  contentWidth: 'Fixed',
+  navTheme: "light",
+  primaryColor: "#1890ff",
+  layout: "top",
+  contentWidth: "Fixed",
   fixedHeader: true,
   fixSiderbar: true,
   splitMenus: false,
   colorWeak: false,
-  title: 'MOGO',
+  title: "MOGO",
   pwa: false,
-  iconfontUrl: '',
+  iconfontUrl: "",
 };
 
 export default Settings;

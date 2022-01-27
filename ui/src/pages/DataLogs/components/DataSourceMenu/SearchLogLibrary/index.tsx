@@ -1,7 +1,8 @@
-import searchLogLibraryStyles from '@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary/index.less';
-import { Input } from 'antd';
-import { useEffect, useState } from 'react';
-import { useModel } from '@@/plugin-model/useModel';
+import searchLogLibraryStyles from "@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary/index.less";
+import { Input } from "antd";
+import { useEffect, useState } from "react";
+import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
 
 type SearchLogLibraryProps = {
   onSearch: (val: string) => void;
@@ -9,8 +10,9 @@ type SearchLogLibraryProps = {
 
 const SearchLogLibrary = (props: SearchLogLibraryProps) => {
   const { onSearch } = props;
-  const { currentDatabase } = useModel('dataLogs');
+  const { currentDatabase } = useModel("dataLogs");
   const [value, setValue] = useState<string | undefined>(undefined);
+  const i18n = useIntl();
 
   useEffect(() => {
     return () => {
@@ -26,7 +28,9 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
     <div className={searchLogLibraryStyles.searchLogLibraryMain}>
       <Input.Search
         value={value}
-        placeholder={'搜索 log library'}
+        placeholder={i18n.formatMessage({
+          id: "datasource.logLibrary.search.placeholder",
+        })}
         allowClear
         onSearch={onSearch}
         onChange={(ev) => setValue(ev.target.value)}

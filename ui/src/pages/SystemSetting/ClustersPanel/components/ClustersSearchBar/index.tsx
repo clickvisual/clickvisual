@@ -1,13 +1,15 @@
-import clusterPanelStyles from '@/pages/SystemSetting/ClustersPanel/index.less';
-import { Button, Input } from 'antd';
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { useContext } from 'react';
-import { ClustersPanelContext } from '@/pages/SystemSetting/ClustersPanel';
+import clusterPanelStyles from "@/pages/SystemSetting/ClustersPanel/index.less";
+import { Button } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { useContext } from "react";
+import { ClustersPanelContext } from "@/pages/SystemSetting/ClustersPanel";
+import { useIntl } from "umi";
 // import { useDebounceFn } from 'ahooks';
 
 type ClustersSearchBarProps = {};
 const ClustersSearchBar = (props: ClustersSearchBarProps) => {
   const { onChangeVisible } = useContext(ClustersPanelContext);
+  const i18n = useIntl();
   // const handleSearch = useDebounceFn(() => {}, { wait: 500 });
   return (
     <div className={clusterPanelStyles.searchBar}>
@@ -26,9 +28,9 @@ const ClustersSearchBar = (props: ClustersSearchBarProps) => {
           if (onChangeVisible) onChangeVisible(true);
         }}
         icon={<PlusOutlined />}
-        type={'primary'}
+        type={"primary"}
       >
-        新增集群
+        {i18n.formatMessage({ id: "cluster.button.add" })}
       </Button>
       {/*</div>*/}
     </div>

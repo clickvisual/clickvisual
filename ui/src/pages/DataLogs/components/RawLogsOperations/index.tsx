@@ -1,12 +1,14 @@
 import rawLogsOperationsStyles from "@/pages/DataLogs/components/RawLogsOperations/index.less";
 import { Pagination } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
 
 type RawLogsPaginationProps = {};
 
 const RawLogsOperations = (props: RawLogsPaginationProps) => {
   const { logs, pageSize, currentPage, onChangeLogsPage } =
     useModel("dataLogs");
+  const i18n = useIntl();
 
   return (
     <div className={rawLogsOperationsStyles.rawLogsOperationsMain}>
@@ -17,7 +19,9 @@ const RawLogsOperations = (props: RawLogsPaginationProps) => {
           total={logs?.count}
           pageSize={pageSize}
           current={currentPage}
-          showTotal={(total) => `日志总条数 ${total}`}
+          showTotal={(total) =>
+            i18n.formatMessage({ id: "log.pagination.total" }, { total })
+          }
           onChange={onChangeLogsPage}
           showSizeChanger
         />

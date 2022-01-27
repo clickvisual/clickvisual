@@ -20,6 +20,7 @@ import {
 import moment from "moment";
 import Request, { Canceler } from "umi-request";
 import lodash from "lodash";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 
 export type PaneType = {
   pane: string;
@@ -159,9 +160,9 @@ const DataLogsModel = () => {
   const onCopyRawLogDetails = (log: any) => {
     if (log) {
       copy(typeof log === "object" ? JSON.stringify(log) : log);
-      message.success("copy succeeded");
+      message.success(formatMessage({ id: "log.item.copy.success" }));
     } else {
-      message.error("failed to copy, please copy manually");
+      message.error(formatMessage({ id: "log.item.copy.failed" }));
     }
   };
 
@@ -217,7 +218,12 @@ const DataLogsModel = () => {
   });
 
   const settingIndexes = useRequest(api.setIndexes, {
-    loadingText: { done: "保存成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(
+        formatMessage({ id: "log.index.manage.message.save.success" })
+      );
+    },
   });
 
   const getIndexList = useRequest(api.getIndexes, {

@@ -2,6 +2,7 @@ import CustomModal from "@/components/CustomModal";
 import { MonacoDiffEditor } from "react-monaco-editor";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
+import { useIntl } from "umi";
 
 const ModalHistoryDiff = () => {
   const {
@@ -11,6 +12,7 @@ const ModalHistoryDiff = () => {
     diffHistory,
     onChangeDiffHistory,
   } = useModel("configure");
+  const i18n = useIntl();
 
   useEffect(() => {
     if (!visibleHistoryDiff) {
@@ -20,7 +22,7 @@ const ModalHistoryDiff = () => {
 
   return (
     <CustomModal
-      title={"历史版本比对"}
+      title={i18n.formatMessage({ id: "config.historyDiff.title" })}
       width={"90vw"}
       visible={visibleHistoryDiff}
       onCancel={() => onChangeVisibleHistoryDiff(false)}

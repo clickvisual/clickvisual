@@ -2,6 +2,8 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import api, { ClustersRequest, ClusterType } from "@/services/systemSetting";
 import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
 import { useState } from "react";
+import { message } from "antd";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 
 const Clusters = () => {
   const [clusterList, setClusterList] = useState<ClusterType[]>([]);
@@ -15,13 +17,22 @@ const Clusters = () => {
   });
 
   const doCreatedCluster = useRequest(api.createdCluster, {
-    loadingText: { done: "新增集群成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "cluster.success.created" }));
+    },
   });
   const doUpdatedCluster = useRequest(api.updatedCluster, {
-    loadingText: { done: "更新集群成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "cluster.success.updated" }));
+    },
   });
   const doDeletedCluster = useRequest(api.deletedCluster, {
-    loadingText: { done: "删除集群成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "cluster.success.deleted" }));
+    },
   });
 
   const doGetClustersList = (params?: ClustersRequest) => {

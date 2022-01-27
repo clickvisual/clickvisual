@@ -1,10 +1,11 @@
-import rawLogTabsStyles from '@/pages/DataLogs/components/RawLogTabs/index.less';
-import { Empty, Tabs } from 'antd';
-import QueryResult from '@/pages/DataLogs/components/QueryResult';
-import { useModel } from '@@/plugin-model/useModel';
-import lodash from 'lodash';
-import { PaneType, QueryParams } from '@/models/dataLogs';
-import { ACTIVE_TIME_INDEX, TimeRangeType } from '@/config/config';
+import rawLogTabsStyles from "@/pages/DataLogs/components/RawLogTabs/index.less";
+import { Empty, Tabs } from "antd";
+import QueryResult from "@/pages/DataLogs/components/QueryResult";
+import { useModel } from "@@/plugin-model/useModel";
+import lodash from "lodash";
+import { PaneType, QueryParams } from "@/models/dataLogs";
+import { ACTIVE_TIME_INDEX, TimeRangeType } from "@/config/config";
+import { useIntl } from "umi";
 
 const { TabPane } = Tabs;
 
@@ -26,7 +27,9 @@ const RawLogTabs = (props: RawLogTabsProps) => {
     onChangeEndDateTime,
     onChangeKeywordInput,
     onChangeLogsPage,
-  } = useModel('dataLogs');
+  } = useModel("dataLogs");
+
+  const i18n = useIntl();
 
   const doChange = (tabPane: PaneType, logLibrary: string) => {
     const queryParam: QueryParams = {
@@ -50,9 +53,10 @@ const RawLogTabs = (props: RawLogTabsProps) => {
   };
 
   const onEdit = (currentKey: any, action: any) => {
-    if (!currentKey || action !== 'remove') return;
+    if (!currentKey || action !== "remove") return;
     const currentPanes = lodash.cloneDeep(logPanes);
-    const resultPanes = currentPanes.filter((item) => item.pane !== currentKey) || [];
+    const resultPanes =
+      currentPanes.filter((item) => item.pane !== currentKey) || [];
     onChangeLogPanes(resultPanes);
     if (resultPanes.length === 0) {
       resetLogs();
@@ -94,7 +98,7 @@ const RawLogTabs = (props: RawLogTabsProps) => {
         <Empty
           style={{ flex: 1 }}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={'请选择需要查询的日志库'}
+          description={i18n.formatMessage({ id: "log.empty.logLibrary" })}
         />
       )}
     </div>

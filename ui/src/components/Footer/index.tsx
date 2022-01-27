@@ -1,11 +1,16 @@
 import footerStyles from "@/components/Footer/style/index.less";
+import { useIntl } from "umi";
 
 export default () => {
-  const year = new Date().getFullYear();
+  const i18n = useIntl();
 
   return (
     <footer className={footerStyles.footer}>
-      <span>&copy;&nbsp;{year}&nbsp;&nbsp;武汉初心科技</span>
+      <span>
+        {i18n.formatMessage({
+          id: "footer.copyright",
+        })}
+      </span>
     </footer>
   );
 };

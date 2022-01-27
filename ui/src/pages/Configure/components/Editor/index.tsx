@@ -5,6 +5,7 @@ import { Empty, Modal, Spin } from "antd";
 import OptionButton, {
   ButtonType,
 } from "@/pages/Configure/components/CustomButton/OptionButton";
+import { useIntl } from "umi";
 
 type EditorProps = {};
 const Editor = (props: EditorProps) => {
@@ -20,6 +21,7 @@ const Editor = (props: EditorProps) => {
     selectedNameSpace,
     selectedClusterId,
   } = useModel("configure");
+  const i18n = useIntl();
   const { currentUser } = useModel("@@initialState").initialState || {};
   const currentEditorUser = currentConfiguration?.currentEditUser;
   const contentChanged =
@@ -36,10 +38,10 @@ const Editor = (props: EditorProps) => {
         {doGetConfiguration.loading ? (
           <div>
             <Spin />
-            <div>loading</div>
+            <div>{i18n.formatMessage({ id: "spin" })}</div>
           </div>
         ) : (
-          <div>Please select a file</div>
+          <div>{i18n.formatMessage({ id: "config.editor.empty.tip" })}</div>
         )}
       </div>
     );
@@ -50,8 +52,10 @@ const Editor = (props: EditorProps) => {
         {currentEditorUser ? (
           <>
             <span className={editorStyles.editorUser}>
-              <span>{currentEditorUser?.nickname}&nbsp;&nbsp;</span>
-              <span>Editing</span>
+              <span>{currentEditorUser?.nickname}</span>
+              <span>
+                {i18n.formatMessage({ id: "config.editor.userEditing" })}
+              </span>
             </span>
             {currentEditorUser.id === currentUser.id && (
               <OptionButton
@@ -60,8 +64,9 @@ const Editor = (props: EditorProps) => {
                 onClick={() => {
                   if (contentChanged) {
                     Modal.confirm({
-                      content:
-                        "当前修改未保存，退出后将丢失本次修改的内容，是否退出编辑？",
+                      content: `${i18n.formatMessage({
+                        id: "config.editor.exitEditor.confirm",
+                      })}`,
                       onOk: () => {
                         doRemoveLock.run(currentConfiguration.id);
                       },
@@ -71,7 +76,7 @@ const Editor = (props: EditorProps) => {
                   }
                 }}
               >
-                Exit Edit
+                {i18n.formatMessage({ id: "config.editor.exitEditor" })}
               </OptionButton>
             )}
             {contentChanged && (
@@ -86,7 +91,7 @@ const Editor = (props: EditorProps) => {
                   onChangeVisibleCommit(true);
                 }}
               >
-                Save
+                {i18n.formatMessage({ id: "button.save" })}
               </OptionButton>
             )}
           </>
@@ -98,7 +103,7 @@ const Editor = (props: EditorProps) => {
               doAddLock.run(currentConfiguration.id);
             }}
           >
-            Start Editing
+            {i18n.formatMessage({ id: "config.editor.button.startEdit" })}
           </OptionButton>
         )}
       </div>

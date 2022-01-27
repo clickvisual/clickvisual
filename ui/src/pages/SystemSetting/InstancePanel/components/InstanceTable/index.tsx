@@ -10,6 +10,7 @@ import DeletedModal from "@/components/DeletedModal";
 import { useModel } from "@@/plugin-model/useModel";
 import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
+import { useIntl } from "umi";
 
 type InstanceTableProps = {
   list: InstanceType[];
@@ -22,12 +23,16 @@ const InstanceTable = (props: InstanceTableProps) => {
   const { doDeletedInstance, doGetInstanceList, listLoading } =
     useModel("instances");
 
+  const i18n = useIntl();
+
   const column = [
     {
-      title: "实例名称",
+      title: `${i18n.formatMessage({
+        id: "instance.instanceName",
+      })}`,
       align: "center" as AlignType,
       dataIndex: "instanceName",
-      width: 100,
+      width: 160,
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
     },
@@ -39,7 +44,9 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
-      title: "操作",
+      title: `${i18n.formatMessage({
+        id: "operation",
+      })}`,
       align: "center" as AlignType,
       width: 100,
       fixed: "right" as FixedType,
@@ -47,7 +54,11 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: (_: any, record: InstanceType) => {
         return (
           <Space>
-            <Tooltip title={"编辑"}>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "edit",
+              })}
+            >
               <EditOutlined
                 onClick={() => {
                   if (
@@ -64,7 +75,11 @@ const InstanceTable = (props: InstanceTableProps) => {
               />
             </Tooltip>
             <Divider type="vertical" />
-            <Tooltip title={"删除"}>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "delete",
+              })}
+            >
               <IconFont
                 onClick={() =>
                   DeletedModal(
@@ -75,7 +90,12 @@ const InstanceTable = (props: InstanceTableProps) => {
                             .run(record.id)
                             .then(() => doGetInstanceList());
                       },
-                      content: `确认删除实例：${record.instanceName} 吗？`,
+                      content: i18n.formatMessage(
+                        {
+                          id: "instance.delete.confirmTip",
+                        },
+                        { instanceName: record.instanceName }
+                      ),
                     },
                     doDeletedInstance.loading
                   )

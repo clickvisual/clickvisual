@@ -6,6 +6,7 @@ import type { AlignType } from "rc-table/lib/interface";
 import { useEffect } from "react";
 import type { InstanceType } from "@/services/systemSetting";
 import FilterTableColumn from "@/components/FilterTableColumn";
+import { useIntl } from "umi";
 type SelectedDatabaseDrawProps = {};
 
 const { Option } = Select;
@@ -26,6 +27,7 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
     selectedInstance,
     onChangeSelectedInstance,
   } = useModel("instances");
+  const i18n = useIntl();
 
   const datasourceTypeList = [{ name: "ClickHouse", value: "ch" }];
 
@@ -43,7 +45,7 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
 
   const column = [
     {
-      title: "数据库",
+      title: i18n.formatMessage({ id: "datasource.draw.table.datasource" }),
       dataIndex: "databaseName",
       width: "40%",
       align: "center" as AlignType,
@@ -70,13 +72,13 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
       ),
     },
     {
-      title: "实例",
+      title: i18n.formatMessage({ id: "datasource.draw.table.instance" }),
       dataIndex: "instanceName",
       align: "center" as AlignType,
       width: "30%",
     },
     {
-      title: "数据源类型",
+      title: i18n.formatMessage({ id: "datasource.draw.table.type" }),
       dataIndex: "datasourceType",
       width: "30%",
       align: "center" as AlignType,
@@ -94,7 +96,11 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
             </Tooltip>
           );
         return (
-          <Tooltip title={"无数据源类型"}>
+          <Tooltip
+            title={i18n.formatMessage({
+              id: "datasource.draw.table.empty.type.tip",
+            })}
+          >
             <span>-</span>
           </Tooltip>
         );
@@ -113,13 +119,15 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
           }}
         >
           <div>
-            <span>数据库切换</span>
+            <span>{i18n.formatMessage({ id: "datasource.draw.title" })}</span>
           </div>
           <Select
             allowClear
             value={JSON.stringify(selectedInstance)}
             style={{ width: "60%" }}
-            placeholder={"请选择实例"}
+            placeholder={`${i18n.formatMessage({
+              id: "datasource.draw.selected",
+            })}`}
             onChange={(value: string | undefined) => {
               onChangeSelectedInstance(value ? JSON.parse(value) : undefined);
             }}

@@ -9,6 +9,7 @@ import { FIRST_PAGE } from "@/config/config";
 import { HistoryConfigurationResponse } from "@/services/configure";
 import RealtimeDiff from "@/pages/Configure/components/Menu/Publish/RealtimeDiff";
 import classNames from "classnames";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 
@@ -22,6 +23,7 @@ const Publish = () => {
   } = useModel("configure");
   const [selectedVersion, setSelectedVersion] =
     useState<HistoryConfigurationResponse>();
+  const i18n = useIntl();
   const handleChangeConfig = (configId: number) => {
     doGetHistoryConfiguration
       .run(configId, {
@@ -46,9 +48,8 @@ const Publish = () => {
 
   const handleConfirm = () => {
     Modal.confirm({
-      title: "确认发布",
-      okText: "确认发布",
-      content: `发布配置后集群，请谨慎操作`,
+      title: i18n.formatMessage({ id: "config.publish.confirm.title" }),
+      content: i18n.formatMessage({ id: "config.publish.confirm.content" }),
       onOk() {
         if (selectedVersion)
           doPublishConfiguration
@@ -79,7 +80,9 @@ const Publish = () => {
               publishStyles.darkSelect
             )}
             dropdownClassName={publishStyles.darkSelectDropdown}
-            placeholder="Select a file"
+            placeholder={`${i18n.formatMessage({
+              id: "config.publish.form.placeholder.configure",
+            })}`}
             onSelect={(configId) => {
               handleChangeConfig(configId);
             }}
@@ -95,7 +98,9 @@ const Publish = () => {
         <div className={publishStyles.fieldLabel}>Version</div>
         <Form.Item name="version">
           <Select
-            placeholder="Select the version"
+            placeholder={`${i18n.formatMessage({
+              id: "config.publish.form.placeholder.version",
+            })}`}
             className={classNames(
               publishStyles.formSelectInput,
               publishStyles.darkSelect
@@ -151,7 +156,11 @@ const Publish = () => {
 
             return (
               <div className={publishStyles.configDetail}>
-                <div className={publishStyles.fieldLabel}>版本信息</div>
+                <div className={publishStyles.fieldLabel}>
+                  {i18n.formatMessage({
+                    id: "config.publish.versionInfo.title",
+                  })}
+                </div>
                 <div>
                   <span className={publishStyles.versionFieldLabel}>
                     Commit ID:
@@ -166,7 +175,10 @@ const Publish = () => {
                 </div>
                 <div>
                   <span className={publishStyles.versionFieldLabel}>
-                    变更时间:
+                    {i18n.formatMessage({
+                      id: "config.publish.versionInfo.time",
+                    })}
+                    :
                   </span>
                   {moment(configuration.ctime, "X").format(
                     "YYYY-MM-DD HH:mm:ss"
@@ -185,17 +197,25 @@ const Publish = () => {
               if (!configId)
                 return (
                   <DarkButton disabled>
-                    Please select a configuration
+                    {i18n.formatMessage({
+                      id: "config.publish.button.emptyFile",
+                    })}
                   </DarkButton>
                 );
               if (!version)
                 return (
                   <DarkButton disabled>
-                    Please select a configuration version
+                    {i18n.formatMessage({
+                      id: "config.publish.button.emptyVersion",
+                    })}
                   </DarkButton>
                 );
 
-              return <DarkButton onClick={publishForm.submit}>发布</DarkButton>;
+              return (
+                <DarkButton onClick={publishForm.submit}>
+                  {i18n.formatMessage({ id: "config.publish.button" })}
+                </DarkButton>
+              );
             }}
           </Form.Item>
         </div>

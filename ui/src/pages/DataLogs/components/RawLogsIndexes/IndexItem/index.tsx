@@ -5,6 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { Progress, Spin, Tooltip } from "antd";
 import useRequest from "@/hooks/useRequest/useRequest";
 import api, { IndexDetail } from "@/services/dataLogs";
+import { useIntl } from "umi";
 
 type IndexItemProps = {
   index: string;
@@ -20,6 +21,8 @@ const IndexItem = (props: IndexItemProps) => {
     endDateTime,
     doUpdatedQuery,
   } = useModel("dataLogs");
+
+  const i18n = useIntl();
 
   const getIndexDetails = useRequest(api.getIndexDetail, {
     loadingText: false,
@@ -57,7 +60,10 @@ const IndexItem = (props: IndexItemProps) => {
   }, [index, isActive]);
   return (
     <div className={classNames(indexItemStyles.indexItemMain)}>
-      <Spin spinning={getIndexDetails.loading} tip={"加载中..."}>
+      <Spin
+        spinning={getIndexDetails.loading}
+        tip={i18n.formatMessage({ id: "spin" })}
+      >
         <div className={indexItemStyles.detailContextMain}>
           {details.length > 0 ? (
             <>
@@ -102,7 +108,7 @@ const IndexItem = (props: IndexItemProps) => {
               ))}
             </>
           ) : (
-            <span>暂无数据</span>
+            <span>{i18n.formatMessage({ id: "log.index.item.empty" })}</span>
           )}
         </div>
       </Spin>

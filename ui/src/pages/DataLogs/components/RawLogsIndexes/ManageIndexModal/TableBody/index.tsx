@@ -4,6 +4,7 @@ import { Button, Form, FormInstance, Input, Select } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { IndexInfoType } from "@/services/dataLogs";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 
@@ -21,6 +22,7 @@ type TableBodyProps = {
 };
 const TableBody = (props: TableBodyProps) => {
   const { fields, options, form } = props;
+  const i18n = useIntl();
   return (
     <tbody className={classNames(mangeIndexModalStyles.tableBody)}>
       {fields.map((field, index) => (
@@ -46,7 +48,11 @@ const TableBody = (props: TableBodyProps) => {
                 },
               ]}
             >
-              <Input placeholder="必填且不可重复，请输入索引名称" />
+              <Input
+                placeholder={`${i18n.formatMessage({
+                  id: "log.index.manage.placeholder.indexName",
+                })}`}
+              />
             </Form.Item>
           </td>
           <td>
@@ -62,7 +68,11 @@ const TableBody = (props: TableBodyProps) => {
           </td>
           <td>
             <Form.Item noStyle name={[field.name, "alias"]}>
-              <Input placeholder="请输入描述" />
+              <Input
+                placeholder={`${i18n.formatMessage({
+                  id: "log.index.manage.placeholder.alias",
+                })}`}
+              />
             </Form.Item>
           </td>
           <td>
@@ -72,7 +82,7 @@ const TableBody = (props: TableBodyProps) => {
               danger
               icon={<CloseOutlined />}
             >
-              删除索引
+              {i18n.formatMessage({ id: "log.index.manage.button.deleted" })}
             </Button>
           </td>
         </tr>

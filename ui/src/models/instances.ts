@@ -3,6 +3,8 @@ import api from "@/services/systemSetting";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { useState } from "react";
 import type { InstanceSelectedType } from "@/services/dataLogs";
+import { formatMessage } from "@@/plugin-locale/localeExports";
+import { message } from "antd";
 
 const Instances = () => {
   // 实例列表
@@ -18,15 +20,24 @@ const Instances = () => {
   });
 
   const doCreatedInstance = useRequest(api.createdInstance, {
-    loadingText: { done: "新增实例成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "instance.success.created" }));
+    },
   });
 
   const doUpdatedInstance = useRequest(api.updatedInstance, {
-    loadingText: { done: "更新实例成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "instance.success.updated" }));
+    },
   });
 
   const doDeletedInstance = useRequest(api.deletedInstance, {
-    loadingText: { done: "删除实例成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(formatMessage({ id: "instance.success.deleted" }));
+    },
   });
 
   const onChangeSelectedInstance = (

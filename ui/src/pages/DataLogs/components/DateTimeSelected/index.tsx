@@ -1,13 +1,21 @@
-import { Button, Popover } from 'antd';
-import { CaretDownFilled } from '@ant-design/icons';
-import darkTimeStyles from '@/pages/DataLogs/components/DateTimeSelected/index.less';
-import React from 'react';
-import DateTimeSelectedCard from '@/pages/DataLogs/components/DateTimeSelected/DateTimeSelectedCard';
-import { useModel } from '@@/plugin-model/useModel';
-import { timeStampFormat } from '@/utils/momentUtils';
-import { ACTIVE_TIME_NOT_INDEX, TabName, TimeRangeType } from '@/config/config';
+import { Button, Popover } from "antd";
+import { CaretDownFilled } from "@ant-design/icons";
+import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
+import React from "react";
+import DateTimeSelectedCard from "@/pages/DataLogs/components/DateTimeSelected/DateTimeSelectedCard";
+import { useModel } from "@@/plugin-model/useModel";
+import { timeStampFormat } from "@/utils/momentUtils";
+import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
+import { useIntl } from "umi";
 
-export type TimeUnit = 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years';
+export type TimeUnit =
+  | "seconds"
+  | "minutes"
+  | "hours"
+  | "days"
+  | "weeks"
+  | "months"
+  | "years";
 
 export type TimeOption = {
   title: string;
@@ -15,104 +23,164 @@ export type TimeOption = {
   relativeUnit: TimeUnit;
 };
 
-const timeOptions: TimeOption[] = [
-  {
-    title: '1 分钟',
-    relativeAmount: 1,
-    relativeUnit: 'minutes',
-  },
-  {
-    title: '5 分钟',
-    relativeAmount: 5,
-    relativeUnit: 'minutes',
-  },
-  {
-    title: '15 分钟',
-    relativeAmount: 15,
-    relativeUnit: 'minutes',
-  },
-  {
-    title: '30 分钟',
-    relativeAmount: 30,
-    relativeUnit: 'minutes',
-  },
-  {
-    title: '1 小时',
-    relativeAmount: 1,
-    relativeUnit: 'hours',
-  },
-  {
-    title: '3 小时',
-    relativeAmount: 3,
-    relativeUnit: 'hours',
-  },
-  {
-    title: '12 小时',
-    relativeAmount: 12,
-    relativeUnit: 'hours',
-  },
-  {
-    title: '1 天',
-    relativeAmount: 1,
-    relativeUnit: 'days',
-  },
-  {
-    title: '3 天',
-    relativeAmount: 3,
-    relativeUnit: 'days',
-  },
-  {
-    title: '5 天',
-    relativeAmount: 5,
-    relativeUnit: 'days',
-  },
-  {
-    title: '7 天',
-    relativeAmount: 7,
-    relativeUnit: 'days',
-  },
-  {
-    title: '30 天',
-    relativeAmount: 30,
-    relativeUnit: 'days',
-  },
-  {
-    title: '3 个月',
-    relativeAmount: 3,
-    relativeUnit: 'months',
-  },
-  {
-    title: '6 个月',
-    relativeAmount: 6,
-    relativeUnit: 'months',
-  },
-  {
-    title: '1 年',
-    relativeAmount: 1,
-    relativeUnit: 'years',
-  },
-  {
-    title: '2 年',
-    relativeAmount: 2,
-    relativeUnit: 'years',
-  },
-];
-
 type DarkTimeContextType = {
   timeOptions: TimeOption[];
+  TabName: { [TimeRangeType.Relative]: string; [TimeRangeType.Custom]: string };
 };
 export const DarkTimeContext = React.createContext<DarkTimeContextType>({
-  timeOptions,
+  timeOptions: [],
+  TabName: {
+    [TimeRangeType.Relative]: "",
+    [TimeRangeType.Custom]: "",
+  },
 });
 
 type DarkTimeSelectProps = {};
 const DarkTimeSelect = (props: DarkTimeSelectProps) => {
-  const { activeTabKey, activeTimeOptionIndex, startDateTime, endDateTime } = useModel('dataLogs');
+  const { activeTabKey, activeTimeOptionIndex, startDateTime, endDateTime } =
+    useModel("dataLogs");
+  const i18n = useIntl();
 
+  const TabName = {
+    [TimeRangeType.Relative]: i18n.formatMessage({ id: "dateTime.relative" }),
+    [TimeRangeType.Custom]: i18n.formatMessage({ id: "dateTime.custom" }),
+  };
+
+  const timeOptions: TimeOption[] = [
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.minutes" },
+        { num: 1, plural: "" }
+      ),
+      relativeAmount: 1,
+      relativeUnit: "minutes",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.minutes" },
+        { num: 5, plural: "s" }
+      ),
+      relativeAmount: 5,
+      relativeUnit: "minutes",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.minutes" },
+        { num: 15, plural: "s" }
+      ),
+      relativeAmount: 15,
+      relativeUnit: "minutes",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.minutes" },
+        { num: 30, plural: "s" }
+      ),
+      relativeAmount: 30,
+      relativeUnit: "minutes",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.hours" },
+        { num: 1, plural: "" }
+      ),
+      relativeAmount: 1,
+      relativeUnit: "hours",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.hours" },
+        { num: 3, plural: "s" }
+      ),
+      relativeAmount: 3,
+      relativeUnit: "hours",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.hours" },
+        { num: 12, plural: "s" }
+      ),
+      relativeAmount: 12,
+      relativeUnit: "hours",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.days" },
+        { num: 1, plural: "" }
+      ),
+      relativeAmount: 1,
+      relativeUnit: "days",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.days" },
+        { num: 3, plural: "s" }
+      ),
+      relativeAmount: 3,
+      relativeUnit: "days",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.days" },
+        { num: 5, plural: "s" }
+      ),
+      relativeAmount: 5,
+      relativeUnit: "days",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.days" },
+        { num: 7, plural: "s" }
+      ),
+      relativeAmount: 7,
+      relativeUnit: "days",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.days" },
+        { num: 30, plural: "s" }
+      ),
+      relativeAmount: 30,
+      relativeUnit: "days",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.months" },
+        { num: 3, plural: "s" }
+      ),
+      relativeAmount: 3,
+      relativeUnit: "months",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.months" },
+        { num: 6, plural: "s" }
+      ),
+      relativeAmount: 6,
+      relativeUnit: "months",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.years" },
+        { num: 1, plural: "" }
+      ),
+      relativeAmount: 1,
+      relativeUnit: "years",
+    },
+    {
+      title: i18n.formatMessage(
+        { id: "dateTime.option.years" },
+        { num: 2, plural: "s" }
+      ),
+      relativeAmount: 2,
+      relativeUnit: "years",
+    },
+  ];
   return (
     <DarkTimeContext.Provider
       value={{
         timeOptions,
+        TabName,
       }}
     >
       <Popover
@@ -127,14 +195,16 @@ const DarkTimeSelect = (props: DarkTimeSelectProps) => {
               ? `${
                   activeTimeOptionIndex !== ACTIVE_TIME_NOT_INDEX
                     ? timeOptions[activeTimeOptionIndex]?.title
-                    : ''
+                    : ""
                 }`
               : activeTabKey === TimeRangeType.Custom &&
-                `${timeStampFormat(startDateTime as number)} ~ ${timeStampFormat(
-                  endDateTime as number,
-                )}`}
+                `${timeStampFormat(
+                  startDateTime as number
+                )} ~ ${timeStampFormat(endDateTime as number)}`}
           </span>
-          <span>{startDateTime && endDateTime && `（${TabName[activeTabKey]}）`}</span>
+          <span>
+            {startDateTime && endDateTime && `（${TabName[activeTabKey]}）`}
+          </span>
           <CaretDownFilled />
         </Button>
       </Popover>

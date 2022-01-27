@@ -3,11 +3,14 @@ import { Tabs } from "antd";
 import CustomTimeInterval from "@/pages/DataLogs/components/DateTimeSelected/CustomTimeInterval";
 import RelativeTime from "@/pages/DataLogs/components/DateTimeSelected/RelativeTime";
 import { useModel } from "@@/plugin-model/useModel";
-import { TabName, TimeRangeType } from "@/config/config";
+import { TimeRangeType } from "@/config/config";
+import { DarkTimeContext } from "@/pages/DataLogs/components/DateTimeSelected";
+import { useContext } from "react";
 const { TabPane } = Tabs;
 type DarkTimeSelectedCardProps = {};
 const DateTimeSelectedCard = (props: DarkTimeSelectedCardProps) => {
   const { activeTabKey, onChangeActiveTabKey } = useModel("dataLogs");
+  const { TabName } = useContext(DarkTimeContext);
   return (
     <div className={darkTimeStyles.darkTimeSelectCard}>
       <Tabs
