@@ -8,6 +8,8 @@ import (
 
 const (
 	TableNameUser     = "mogo_user"
+	TableNameView     = "mogo_view"
+	TableNameTable    = "mogo_table"
 	TableNameIndex    = "mogo_index"
 	TableNameCluster  = "mogo_cluster"
 	TableNameInstance = "mogo_instance"

@@ -1,7 +1,7 @@
 package inquiry
 
 var clickhouseTableDataORM = map[int]string{
-	TableTypeApp: `create table if not exists %s.%s
+	TableTypeApp: `create table if not exists %s
 (
 	_time_ DateTime64(6),
 	_source_ String,
@@ -16,9 +16,9 @@ var clickhouseTableDataORM = map[int]string{
 )
 engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
 ORDER BY _time_
-TTL _time_ + INTERVAL %d WEEK 
+TTL toDateTime(_time_) + INTERVAL %d WEEK 
 SETTINGS index_granularity = 8192;`,
-	TableTypeEgo: `create table if not exists %s.%s
+	TableTypeEgo: `create table if not exists %s
 (
 	_time_ DateTime64(6),
 	_source_ String,
@@ -44,9 +44,9 @@ SETTINGS index_granularity = 8192;`,
 )
 engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
 ORDER BY _time_ 
-TTL _time_ + INTERVAL %d WEEK
+TTL toDateTime(_time_) + INTERVAL %d WEEK
 SETTINGS index_granularity = 8192;`,
-	TableTypeIngress: `create table if not exists %s.%s
+	TableTypeIngress: `create table if not exists %s
 (
 	_time_ DateTime64(6),
 	_cluster_ String,
@@ -77,12 +77,12 @@ SETTINGS index_granularity = 8192;`,
 )
 engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
 ORDER BY _time_
-TTL _time_ + INTERVAL %d WEEK
+TTL toDateTime(_time_) + INTERVAL %d WEEK
 SETTINGS index_granularity = 8192;`,
 }
 
 var clickhouseTableStreamORM = map[int]string{
-	TableTypeApp: `create table if not exists %s.%s
+	TableTypeApp: `create table if not exists %s
 (
 	_source_ String,
 	_time_ String,
@@ -96,7 +96,7 @@ var clickhouseTableStreamORM = map[int]string{
 	log String
 )
 engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
-	TableTypeEgo: `create table if not exists %s.%s
+	TableTypeEgo: `create table if not exists %s
 (
 	_source_ String,
 	_time_ String,
@@ -110,7 +110,7 @@ engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka
 	log String
 )
 engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
-	TableTypeIngress: `create table if not exists %s.%s
+	TableTypeIngress: `create table if not exists %s
 (
 	_pod_name_ String,
 	_namespace_ String,
@@ -144,7 +144,7 @@ engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka
 }
 
 var clickhouseViewORM = map[int]string{
-	TableTypeApp: `CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+	TableTypeApp: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
     _source_,
@@ -156,8 +156,8 @@ SELECT
     _container_name_,
     _pod_name_,
 	log AS _raw_log_%s
-	FROM %s.%s where %s;`,
-	TableTypeEgo: `CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+	FROM %s where %s;`,
+	TableTypeEgo: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
 	_source_,
@@ -169,8 +169,8 @@ SELECT
 	_log_agent_,
 	_node_ip_,
 	log AS _raw_log_%s
-	FROM %s.%s where %s;`,
-	TableTypeIngress: `CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+	FROM %s where %s;`,
+	TableTypeIngress: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
 	_pod_name_,
@@ -199,5 +199,5 @@ SELECT
 	upstream_status,
 	req_id,
 	host%s
-	FROM %s.%s where %s;`,
+	FROM %s where %s;`,
 }
