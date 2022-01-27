@@ -78,6 +78,15 @@ func ViewDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
+// ViewDeleteByTableID  Soft delete
+func ViewDeleteByTableID(db *gorm.DB, tid int) (err error) {
+	if err = db.Model(View{}).Where("tid = ?", tid).Unscoped().Delete(&View{}).Error; err != nil {
+		elog.Error("delete error", zap.Error(err))
+		return
+	}
+	return
+}
+
 // ViewList Get all currently undeleted clusters. Mainly used for front end
 func ViewList(db *gorm.DB, conds egorm.Conds) (resp []*View, err error) {
 	conds["dtime"] = 0

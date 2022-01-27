@@ -16,7 +16,7 @@ type Operator interface {
 	Databases() ([]view.RespDatabase, error)
 	Tables(string) ([]string, error)
 	TableCreate(string, view.ReqTableCreate) (string, string, string, error)
-	TableDrop(string, string) error
+	TableDrop(string, string, int) error
 
 	ViewSync(db.Table, db.View, []*db.View, bool) (string, string, error)
 

@@ -1,7 +1,7 @@
 package view
 
 type ReqViewCreate struct {
-	Name             string `json:"name"`
+	Name             string `json:"viewName"`
 	IsUseDefaultTime int    `json:"isUseDefaultTime"`
 	Key              string `json:"key"`
 	Format           string `json:"format"`

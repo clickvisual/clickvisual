@@ -154,13 +154,26 @@ func DeleteTables(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	err = op.TableDrop(database, table)
+	err = op.TableDrop(database, table, tableInfo.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
 		return
 	}
-	err = db.TableDelete(invoker.Db, tableInfo.ID)
+	tx := invoker.Db.Begin()
+	err = db.TableDelete(tx, tableInfo.ID)
 	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		return
+	}
+	err = db.ViewDeleteByTableID(tx, tableInfo.ID)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
 		return
 	}

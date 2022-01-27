@@ -16,9 +16,12 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-const ignoreKey = "_time_"
-const timeCondition = "_time_ >= parseDateTime64BestEffort('%d', 6, 'Asia/Shanghai') AND _time_ < parseDateTime64BestEffort('%d', 6, 'Asia/Shanghai')"
-const defaultTimeParse = "parseDateTimeBestEffort(_time_, 'Asia/Shanghai') AS _time_"
+const ignoreKey = "_timestamp_"
+const timeCondition = "_timestamp_ >= %d AND _timestamp_ < %d"
+const defaultTimeParse = "parseDateTimeBestEffort(_time_) AS _timestamp_,parseDateTimeBestEffort(_time_) AS _time_trace_"
+
+var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(log, '%s'))) AS _timestamp_, 
+fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(log, '%s')*1000000000),'Asia/Shanghai') AS _time_trace_`
 
 var typORM = map[int]string{
 	0: "String",
@@ -86,8 +89,8 @@ func (c *ClickHouse) timeParseSQL(v db.View) string {
 	if v.IsUseDefaultTime == 1 {
 		return defaultTimeParse
 	}
-	if v.Format == "%s" {
-		return fmt.Sprintf("fromUnixTimestamp64Micro(JSONExtractInt(log, '%s'), 'Asia/Shanghai') AS _time_", v.Key)
+	if v.Format == "fromUnixTimestamp64Micro" {
+		return fmt.Sprintf(nanosecondTimeParse, v.Key, v.Key)
 	}
 	return defaultTimeParse
 }
@@ -114,8 +117,8 @@ func (c *ClickHouse) ViewSync(table db.Table, current db.View, list []*db.View, 
 	dViewName := genViewName(table.Database, table.Name, "")
 	cViewName := genViewName(table.Database, table.Name, current.Key)
 	// build view statement
-	dViewSQL = fmt.Sprintf(clickhouseViewORM[TableTypeApp], dViewName, dName, timeParseSQL, jsonExtractSQL, dStreamName, dWhereSQL)
-	cViewSQL = fmt.Sprintf(clickhouseViewORM[TableTypeApp], cViewName, dName, timeParseSQL, jsonExtractSQL, dStreamName, cWhereSQL)
+	dViewSQL = fmt.Sprintf(clickhouseViewORM[table.Typ], dViewName, dName, timeParseSQL, jsonExtractSQL, dStreamName, dWhereSQL)
+	cViewSQL = fmt.Sprintf(clickhouseViewORM[table.Typ], cViewName, dName, timeParseSQL, jsonExtractSQL, dStreamName, cWhereSQL)
 	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
 	// delete default view
 	_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s;", dViewName))
@@ -164,14 +167,12 @@ func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
 }
 
 // TableDrop data view stream
-func (c *ClickHouse) TableDrop(database, table string) (err error) {
+func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
 	var (
 		views []*db.View
 	)
 	conds := egorm.Conds{}
-	conds["iid"] = c.id
-	conds["database"] = database
-	conds["table"] = table
+	conds["tid"] = tid
 	views, err = db.ViewList(invoker.Db, conds)
 	_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s;", genViewName(database, table, "")))
 	if err != nil {
@@ -296,7 +297,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 
 func (c *ClickHouse) Tables(database string) (res []string, err error) {
 	res = make([]string, 0)
-	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns a left join system.tables b on a.table = b.name where a.database = '%s' and a.name = '%s' and a.type = '%s' and b.engine != 'MaterializedView' group by table", database, ignoreKey, "DateTime64(6)"))
+	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns a left join system.tables b on a.table = b.name where a.database = '%s' and a.name = '%s' and a.type = '%s' and b.engine != 'MaterializedView' group by table", database, ignoreKey, "DateTime64"))
 	if err != nil {
 		return
 	}

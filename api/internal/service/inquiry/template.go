@@ -3,7 +3,8 @@ package inquiry
 var clickhouseTableDataORM = map[int]string{
 	TableTypeApp: `create table if not exists %s
 (
-	_time_ DateTime64(6),
+	_timestamp_ DateTime,
+	_time_trace_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -14,13 +15,14 @@ var clickhouseTableDataORM = map[int]string{
 	_pod_name_ String,
 	_raw_log_ String
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
-ORDER BY _time_
-TTL toDateTime(_time_) + INTERVAL %d WEEK 
+engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
+ORDER BY _timestamp_
+TTL toDateTime(_timestamp_) + INTERVAL %d WEEK 
 SETTINGS index_granularity = 8192;`,
 	TableTypeEgo: `create table if not exists %s
 (
-	_time_ DateTime64(6),
+	_timestamp_ DateTime,
+	_time_trace_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -42,13 +44,14 @@ SETTINGS index_granularity = 8192;`,
 	type Nullable(String),
 	tid Nullable(String)
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
-ORDER BY _time_ 
-TTL toDateTime(_time_) + INTERVAL %d WEEK
+engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
+ORDER BY _timestamp_ 
+TTL toDateTime(_timestamp_) + INTERVAL %d WEEK
 SETTINGS index_granularity = 8192;`,
 	TableTypeIngress: `create table if not exists %s
 (
-	_time_ DateTime64(6),
+	_timestamp_ DateTime,
+	_time_trace_ DateTime64(9, 'Asia/Shanghai'),
 	_cluster_ String,
 	_log_agent_ String,
 	_namespace_ String,
@@ -75,9 +78,9 @@ SETTINGS index_granularity = 8192;`,
 	req_id String,
 	host String
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
-ORDER BY _time_
-TTL toDateTime(_time_) + INTERVAL %d WEEK
+engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
+ORDER BY _timestamp_
+TTL toDateTime(_timestamp_) + INTERVAL %d WEEK
 SETTINGS index_granularity = 8192;`,
 }
 
@@ -168,6 +171,17 @@ SELECT
 	_cluster_,
 	_log_agent_,
 	_node_ip_,
+	visitParamExtractString(log, 'lv') AS lv,
+	visitParamExtractString(log, 'msg') AS msg,
+	visitParamExtractString(log, 'compName') AS compName,
+	visitParamExtractFloat(log, 'cost') AS cost,
+	visitParamExtractString(log, 'method') AS method,
+	visitParamExtractInt(log, 'code') AS code,
+	visitParamExtractInt(log, 'ucode') AS ucode,
+	visitParamExtractString(log, 'peerName') AS peerName,
+	visitParamExtractString(log, 'peerIp') AS peerIp,
+	visitParamExtractString(log, 'type') AS type,
+	visitParamExtractString(log, 'tid') AS tid,
 	log AS _raw_log_%s
 	FROM %s where %s;`,
 	TableTypeIngress: `CREATE MATERIALIZED VIEW %s TO %s AS
