@@ -182,6 +182,27 @@ const DataLogsModel = () => {
     onChangeLogPanes(currentLogPanes);
   };
 
+  const onChangeCurrentLogPane = (tabPane: PaneType, logLibrary: string) => {
+    const queryParam: QueryParams = {
+      page: tabPane?.page,
+      pageSize: tabPane?.pageSize,
+      st: tabPane?.start,
+      et: tabPane?.end,
+      kw: tabPane?.keyword,
+      logLibrary: logLibrary,
+    };
+    onChangeLogsPage(tabPane?.page as number, tabPane?.pageSize as number);
+    onChangeEndDateTime(tabPane?.end as number);
+    onChangeStartDateTime(tabPane?.start as number);
+    onChangeKeywordInput(tabPane?.keyword as string);
+    onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
+    onChangeActiveTimeOptionIndex(tabPane?.activeIndex || ACTIVE_TIME_INDEX);
+    resetCurrentHighChart();
+    doGetLogs(queryParam);
+    doGetHighCharts(queryParam);
+    doParseQuery(queryParam?.kw);
+  };
+
   const onCopyRawLogDetails = (log: any) => {
     if (log) {
       copy(typeof log === "object" ? JSON.stringify(log) : log);
@@ -450,6 +471,7 @@ const DataLogsModel = () => {
     onChangeVisibleDatabaseDraw,
     onChangeVisibleIndexModal,
     onChangeHiddenHighChart,
+    onChangeCurrentLogPane,
 
     doSelectedDatabase,
     doParseQuery,

@@ -3,8 +3,6 @@ import { Empty, Tabs } from "antd";
 import QueryResult from "@/pages/DataLogs/components/QueryResult";
 import { useModel } from "@@/plugin-model/useModel";
 import lodash from "lodash";
-import { PaneType, QueryParams } from "@/models/dataLogs";
-import { ACTIVE_TIME_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
 
 const { TabPane } = Tabs;
@@ -14,43 +12,13 @@ const RawLogTabs = (props: RawLogTabsProps) => {
   const {
     logPanes,
     currentLogLibrary,
-    doGetLogs,
-    doGetHighCharts,
-    doParseQuery,
     onChangeLogPanes,
     onChangeLogLibrary,
     resetLogs,
-    resetCurrentHighChart,
-    onChangeActiveTabKey,
-    onChangeActiveTimeOptionIndex,
-    onChangeStartDateTime,
-    onChangeEndDateTime,
-    onChangeKeywordInput,
-    onChangeLogsPage,
+    onChangeCurrentLogPane,
   } = useModel("dataLogs");
 
   const i18n = useIntl();
-
-  const doChange = (tabPane: PaneType, logLibrary: string) => {
-    const queryParam: QueryParams = {
-      page: tabPane?.page,
-      pageSize: tabPane?.pageSize,
-      st: tabPane?.start,
-      et: tabPane?.end,
-      kw: tabPane?.keyword,
-      logLibrary: logLibrary,
-    };
-    onChangeLogsPage(tabPane?.page as number, tabPane?.pageSize as number);
-    onChangeEndDateTime(tabPane?.end as number);
-    onChangeStartDateTime(tabPane?.start as number);
-    onChangeKeywordInput(tabPane?.keyword as string);
-    onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
-    onChangeActiveTimeOptionIndex(tabPane?.activeIndex || ACTIVE_TIME_INDEX);
-    resetCurrentHighChart();
-    doGetLogs(queryParam);
-    doGetHighCharts(queryParam);
-    doParseQuery(queryParam?.kw);
-  };
 
   const onEdit = (currentKey: any, action: any) => {
     if (!currentKey || action !== "remove") return;
@@ -65,7 +33,7 @@ const RawLogTabs = (props: RawLogTabsProps) => {
     }
     if (currentKey === currentLogLibrary) {
       onChangeLogLibrary(resultPanes[0].pane);
-      doChange(resultPanes[0], resultPanes[0].pane);
+      onChangeCurrentLogPane(resultPanes[0], resultPanes[0].pane);
     }
   };
 
@@ -74,7 +42,7 @@ const RawLogTabs = (props: RawLogTabsProps) => {
     onChangeLogLibrary(key);
     const currentPanes = lodash.cloneDeep(logPanes);
     const tabPane = currentPanes.find((item) => item.pane === key);
-    if (tabPane) doChange(tabPane, key);
+    if (tabPane) onChangeCurrentLogPane(tabPane, key);
   };
 
   return (

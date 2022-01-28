@@ -54,6 +54,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeActiveTimeOptionIndex,
     doDeletedLogLibrary,
     doGetLogLibraryList,
+    onChangeCurrentLogPane,
     onChangeViewsVisibleDraw,
   } = useModel("dataLogs");
   const [mouseEnter, setMouseEnter] = useState<boolean>(false);
@@ -111,7 +112,14 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           if (logLibrary === currentLogLibrary) {
             resetLogs();
             resetCurrentHighChart();
-            onChangeLogPanes([]);
+            const newPanes = logPanes.filter(
+              (item) => item.pane !== currentLogLibrary
+            );
+            onChangeLogPanes(newPanes);
+            if (newPanes.length > 0) {
+              onChangeCurrentLogPane(newPanes[0], newPanes[0].pane);
+              onChangeLogLibrary(newPanes[0].pane);
+            }
           }
           message.success({
             content: i18n.formatMessage({

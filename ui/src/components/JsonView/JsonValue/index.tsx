@@ -17,7 +17,6 @@ type JsonValueProps = {
 } & _CommonProps;
 
 const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
-  console.log("JsonValue. key=", jsonKey);
   const { onClickValue, highLightValue } = restProps;
   const [isShowArr, setIsShowArr] = useState<boolean>(true);
   const indentStyle = {
