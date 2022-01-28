@@ -54,15 +54,8 @@ func (c *ClickHouse) ID() int {
 	return c.id
 }
 
-func (c *ClickHouse) genJsonExtractSQL(iid int, database, table string) (string, error) {
-	conds := egorm.Conds{}
-	conds["table"] = table
-	conds["instance_id"] = iid
-	conds["database"] = database
-	indexes, err := db.IndexList(conds)
-	if err != nil {
-		return "", err
-	}
+func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, error) {
+
 	var jsonExtractSQL string
 	jsonExtractSQL = ","
 	for _, obj := range indexes {
@@ -111,15 +104,24 @@ func (c *ClickHouse) timeParseSQL(v *db.View) string {
 // create: list need add current
 func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
 	// build view statement
+	conds := egorm.Conds{}
+	conds["table"] = table.Name
+	conds["instance_id"] = table.Iid
+	conds["database"] = table.Database
+	indexes, err := db.IndexList(conds)
+	if err != nil {
+		return
+	}
+	indexMap := make(map[string]*db.Index)
+	for _, i := range indexes {
+		indexMap[i.Field] = i
+	}
 	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
-	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", current, list, isAddOrUpdate)
+	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
 	}
-	cViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, list, isAddOrUpdate)
-	if err != nil {
-		return
-	}
+	cViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
 	return
 }
 
@@ -193,21 +195,21 @@ func (c *ClickHouse) TableCreate(database string, ct view.ReqTableCreate) (dStre
 	if err != nil {
 		return
 	}
-	dViewSQL, err = c.viewOperator(ct.Typ, 0, database, ct.TableName, "", nil, nil, true)
+	dViewSQL, err = c.viewOperator(ct.Typ, 0, database, ct.TableName, "", nil, nil, nil, true)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func (c *ClickHouse) viewOperator(typ, iid int, database, table, timestampKey string, current *db.View, list []*db.View, isCreate bool) (string, error) {
+func (c *ClickHouse) viewOperator(typ, iid int, database, table, timestampKey string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (string, error) {
 	var (
 		err     error
 		viewSQL string
 	)
 	jsonExtractSQL := ""
 	if iid != 0 {
-		jsonExtractSQL, err = c.genJsonExtractSQL(iid, database, table)
+		jsonExtractSQL, err = c.genJsonExtractSQL(indexes)
 		if err != nil {
 			return "", err
 		}
@@ -371,19 +373,23 @@ func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, adds map[string]*db.
 	conds["database"] = param.Database
 	conds["name"] = param.Table
 	table, err := db.TableInfoX(conds)
+
+	elog.Debug("IndexUpdate", elog.Any("table", table))
+
 	if err != nil {
 		return
 	}
 	// step 3.1 default view
-	_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", nil, nil, true)
+	_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", nil, nil, newList, true)
 	if err != nil {
 		return
 	}
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
+	elog.Debug("IndexUpdate", elog.Any("viewList", viewList))
 	for _, current := range viewList {
-		_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, viewList, true)
+		_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, viewList, newList, true)
 		if err != nil {
 			return err
 		}

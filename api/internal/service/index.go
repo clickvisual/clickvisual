@@ -99,6 +99,8 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 		tx.Rollback()
 		return errors.New("Corresponding configuration instance does not exist:  ")
 	}
+	elog.Debug("IndexUpdate", elog.Any("newList", newList))
+
 	err = op.IndexUpdate(req, adds, dels, newList)
 	if err != nil {
 		tx.Rollback()
