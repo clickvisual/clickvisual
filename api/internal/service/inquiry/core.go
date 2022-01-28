@@ -18,7 +18,7 @@ type Operator interface {
 	TableCreate(string, view.ReqTableCreate) (string, string, string, error)
 	TableDrop(string, string, int) error
 
-	ViewSync(db.Table, db.View, []*db.View, bool) (string, string, error)
+	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 
 	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
 	GET(view.ReqQuery) (view.RespQuery, error)

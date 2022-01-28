@@ -18,7 +18,7 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
   const columns: string[] =
     (logs?.logs[0] &&
       Object.keys(logs?.logs[0]).filter(
-        (item: string) => item !== "_time_trace_"
+        (item: string) => item !== "_trace_time_"
       )) ||
     [];
   useEffect(() => {
