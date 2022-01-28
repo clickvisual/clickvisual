@@ -108,6 +108,11 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       .run(currentDatabase.instanceId, currentDatabase.databaseName, logLibrary)
       .then((res) => {
         if (res?.code === 0) {
+          if (logLibrary === currentLogLibrary) {
+            resetLogs();
+            resetCurrentHighChart();
+            onChangeLogPanes([]);
+          }
           message.success({
             content: i18n.formatMessage({
               id: "datasource.logLibrary.deleted.success",
