@@ -57,6 +57,7 @@ const SearchBar = () => {
         onChangeEndDateTime(end);
         params.st = start;
         params.et = end;
+        onChangeLogPane({ ...oldPane, start, end });
       }
       onChangeLogsPageByUrl(FIRST_PAGE, PAGE_SIZE);
       doGetHighCharts(params);
