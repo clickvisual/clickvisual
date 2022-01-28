@@ -1,8 +1,10 @@
 import searchLogLibraryStyles from "@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary/index.less";
-import { Input } from "antd";
+import { Button, Input, Space, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
+import { PlusOutlined } from "@ant-design/icons";
+import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 
 type SearchLogLibraryProps = {
   onSearch: (val: string) => void;
@@ -10,7 +12,8 @@ type SearchLogLibraryProps = {
 
 const SearchLogLibrary = (props: SearchLogLibraryProps) => {
   const { onSearch } = props;
-  const { currentDatabase } = useModel("dataLogs");
+  const { currentDatabase, onChangeLogLibraryCreatedModalVisible } =
+    useModel("dataLogs");
   const [value, setValue] = useState<string | undefined>(undefined);
   const i18n = useIntl();
 
@@ -26,15 +29,29 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
 
   return (
     <div className={searchLogLibraryStyles.searchLogLibraryMain}>
-      <Input.Search
-        value={value}
-        placeholder={i18n.formatMessage({
-          id: "datasource.logLibrary.search.placeholder",
-        })}
-        allowClear
-        onSearch={onSearch}
-        onChange={(ev) => setValue(ev.target.value)}
-      />
+      <Space>
+        <Input.Search
+          value={value}
+          placeholder={i18n.formatMessage({
+            id: "datasource.logLibrary.search.placeholder",
+          })}
+          allowClear
+          onSearch={onSearch}
+          onChange={(ev) => setValue(ev.target.value)}
+        />
+        <Tooltip
+          title={i18n.formatMessage({
+            id: "datasource.logLibrary.search.created",
+          })}
+        >
+          <Button
+            onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
+            type={"primary"}
+            icon={<PlusOutlined />}
+          />
+        </Tooltip>
+        <ModalCreatedLogLibrary />
+      </Space>
     </div>
   );
 };

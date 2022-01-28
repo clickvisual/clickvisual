@@ -3,6 +3,7 @@ import { Button, Form, FormInstance, Input, Radio } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 const ModalCreatedConfig = () => {
   const formRef = useRef<FormInstance>(null);
@@ -104,6 +105,7 @@ const ModalCreatedConfig = () => {
               loading={doCreatedConfiguration.loading}
               type="primary"
               htmlType={"submit"}
+              icon={<SaveOutlined />}
             >
               {i18n.formatMessage({ id: "submit" })}
             </Button>

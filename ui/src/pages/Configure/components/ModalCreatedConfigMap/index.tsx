@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 const ModalCreatedConfigMap = () => {
   const configMapFormRef = useRef<FormInstance>(null);
@@ -46,6 +47,7 @@ const ModalCreatedConfigMap = () => {
           loading={doCreatedConfigMap.loading}
           onClick={() => configMapFormRef.current?.submit()}
           type={"primary"}
+          icon={<SaveOutlined />}
         >
           {i18n.formatMessage({ id: "submit" })}
         </Button>

@@ -165,8 +165,58 @@ export default {
   "datasource.header.databaseEmpty": "DB Is Unselected",
   "datasource.header.switch": "Switch the data source",
   "datasource.logLibrary.search.placeholder": "Search log library",
+  "datasource.logLibrary.search.created": "Creating a Log library",
+
+  "datasource.logLibrary.from.tableName": "Table Name",
+  "datasource.logLibrary.from.type": "Table Type",
+  "datasource.logLibrary.from.days": "Log Retention Days",
+  "datasource.logLibrary.from.brokers": "Brokers",
+  "datasource.logLibrary.from.topics": "Topics",
+
+  "datasource.logLibrary.placeholder.tableName": "Please enter a table name",
+  "datasource.logLibrary.placeholder.type": "Please select a table type",
+  "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
+  "datasource.logLibrary.placeholder.brokers": "Please enter Brokers",
+  "datasource.logLibrary.placeholder.topics": "Please enter Topics",
+
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
+  "datasource.tooltip.icon.view": "Configure data acquisition rules",
+  "datasource.tooltip.icon.deleted": "Deleting a Log Library",
+  "datasource.view.draw": "Manage Log Collection Rules",
+  "datasource.view.button": "Creating a Configuration Rule",
+  "datasource.view.table.viewName": "Rule Name",
+
+  "datasource.logLibrary.created.success": "The table is created successfully.",
+  "datasource.logLibrary.deleted.loading": "Deleting logLibrary: {logLibrary}",
+  "datasource.logLibrary.deleted.content":
+    "Are you sure to delete logLibrary: {logLibrary}?",
+  "datasource.logLibrary.deleted.success":
+    "Deleting the log library succeeded. ",
+
+  "datasource.logLibrary.views.modal.created": "Create a Data Collection Rule",
+  "datasource.logLibrary.views.modal.edit": "Edit a Data Collection Rule",
+  "datasource.logLibrary.views.form.viewName": "Rule Name",
+  "datasource.logLibrary.views.form.isUseDefaultTime": "Use System Time",
+  "datasource.logLibrary.views.form.timeKey": "Specify Time Keyword",
+  "datasource.logLibrary.views.form.timeFormat": "Time Format",
+  "datasource.logLibrary.views.selectName.timeFormat.unix": "Unix timestamp",
+
+  "datasource.logLibrary.views.placeholder.viewName":
+    "Please enter a rule name",
+  "datasource.logLibrary.views.placeholder.timeKey":
+    "Please enter the specified time keyword",
+  "datasource.logLibrary.views.placeholder.timeFormat":
+    "Please select a time format",
+
+  "datasource.logLibrary.views.success.created":
+    "Create a collection rules for success",
+  "datasource.logLibrary.views.success.updated":
+    "Update the acquisition rules for success",
+  "datasource.logLibrary.views.success.deleted":
+    "Delete the acquisition rules for success",
+  "datasource.logLibrary.views.deleted.content":
+    "Confirm deletion rule: {rule}?",
 
   // Data Logs-Datasource-Draw
   "datasource.draw.title": "Datasource Switching",

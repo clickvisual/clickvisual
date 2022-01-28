@@ -8,6 +8,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import type { ClusterType } from "@/services/systemSetting";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -130,7 +131,12 @@ const CreatedOrUpdatedClusterModal = (
         </Form.Item>
         <Form.Item noStyle>
           <div className={clusterPanelStyles.formBtn}>
-            <Button loading={loading} type={"primary"} htmlType={"submit"}>
+            <Button
+              loading={loading}
+              type={"primary"}
+              htmlType={"submit"}
+              icon={<SaveOutlined />}
+            >
               {i18n.formatMessage({ id: "submit" })}
             </Button>
           </div>

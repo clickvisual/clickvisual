@@ -35,7 +35,7 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
     return (
       <>
         <span className={classNames(jsonViewStyles.jsonViewKey)}>"{key}"</span>:
-        <JsonValue jsonKey={key} val={val} {...restProps} />;
+        <JsonValue jsonKey={key} val={val} {...restProps} />
       </>
     );
   };

@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 const ModalCommit = () => {
   const commitFormRef = useRef<FormInstance>(null);
@@ -60,6 +61,7 @@ const ModalCommit = () => {
           loading={doUpdatedConfiguration.loading}
           type="primary"
           onClick={() => commitFormRef.current?.submit()}
+          icon={<SaveOutlined />}
         >
           {i18n.formatMessage({ id: "submit" })}
         </Button>

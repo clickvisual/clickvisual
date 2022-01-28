@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import CustomModal from "@/components/CustomModal";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 type CreatedOrUpdatedInstanceModalProps = {
   isEditor?: boolean;
@@ -106,6 +107,7 @@ const CreatedOrUpdatedInstanceModal = (
               loading={doCreatedInstance.loading || doUpdatedInstance.loading}
               type={"primary"}
               htmlType={"submit"}
+              icon={<SaveOutlined />}
             >
               {i18n.formatMessage({ id: "submit" })}
             </Button>

@@ -21,6 +21,8 @@ import moment from "moment";
 import Request, { Canceler } from "umi-request";
 import lodash from "lodash";
 import { formatMessage } from "@@/plugin-locale/localeExports";
+import useLogLibrary from "@/models/datalogs/useLogLibrary";
+import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 
 export type PaneType = {
   pane: string;
@@ -98,6 +100,29 @@ const DataLogsModel = () => {
   const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
   const cancelTokenLogsRef = useRef<Canceler | null>(null);
   const CancelToken = Request.CancelToken;
+
+  const {
+    logLibraryCreatedModalVisible,
+    onChangeLogLibraryCreatedModalVisible,
+    doCreatedLogLibrary,
+    doDeletedLogLibrary,
+  } = useLogLibrary();
+
+  const {
+    viewsVisibleDraw,
+    onChangeViewsVisibleDraw,
+    getViewList,
+    viewList,
+    viewVisibleModal,
+    viewIsEdit,
+    createdView,
+    deletedView,
+    updatedView,
+    doGetViewInfo,
+    editView,
+    onChangeViewVisibleModal,
+    onChangeViewIsEdit,
+  } = useLogLibraryViews();
 
   const onChangeHiddenHighChart = (flag: boolean) => {
     setIsHiddenHighChart(flag);
@@ -438,6 +463,26 @@ const DataLogsModel = () => {
     settingIndexes,
     getLogLibraries,
     getIndexList,
+
+    // hooks
+    logLibraryCreatedModalVisible,
+    onChangeLogLibraryCreatedModalVisible,
+    doCreatedLogLibrary,
+    doDeletedLogLibrary,
+
+    viewsVisibleDraw,
+    getViewList,
+    viewList,
+    viewIsEdit,
+    createdView,
+    deletedView,
+    updatedView,
+    viewVisibleModal,
+    editView,
+    doGetViewInfo,
+    onChangeViewIsEdit,
+    onChangeViewVisibleModal,
+    onChangeViewsVisibleDraw,
   };
 };
 export default DataLogsModel;
