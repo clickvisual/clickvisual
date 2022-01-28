@@ -172,6 +172,11 @@ func DeleteTables(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
 		return
 	}
+	err = db.IndexDeleteBatch(tx, iid, database, table)
+	if err != nil {
+		tx.Rollback()
+		return
+	}
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
