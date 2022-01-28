@@ -6,18 +6,34 @@ import { useModel } from "@@/plugin-model/useModel";
 import { TimeRangeType } from "@/config/config";
 import { DarkTimeContext } from "@/pages/DataLogs/components/DateTimeSelected";
 import { useContext } from "react";
+import { PaneType } from "@/models/dataLogs";
 const { TabPane } = Tabs;
 type DarkTimeSelectedCardProps = {};
 const DateTimeSelectedCard = (props: DarkTimeSelectedCardProps) => {
-  const { activeTabKey, onChangeActiveTabKey } = useModel("dataLogs");
+  const {
+    logPanes,
+    activeTabKey,
+    currentLogLibrary,
+    onChangeActiveTabKey,
+    onChangeLogPane,
+  } = useModel("dataLogs");
   const { TabName } = useContext(DarkTimeContext);
+
+  const oldPane = logPanes.find(
+    (item) => item.pane === currentLogLibrary
+  ) as PaneType;
+
+  const onChangeActiveTab = (key: string) => {
+    onChangeActiveTabKey(key);
+    onChangeLogPane({ ...oldPane, activeTabKey: key });
+  };
   return (
     <div className={darkTimeStyles.darkTimeSelectCard}>
       <Tabs
         tabBarStyle={{ padding: 0 }}
         activeKey={activeTabKey}
         size="small"
-        onTabClick={onChangeActiveTabKey}
+        onTabClick={onChangeActiveTab}
         defaultActiveKey={activeTabKey}
       >
         <TabPane

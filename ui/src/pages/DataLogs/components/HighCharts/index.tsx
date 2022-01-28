@@ -8,9 +8,12 @@ import HighChartsTooltip from "@/pages/DataLogs/components/HighCharts/HighCharts
 import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
+import { PaneType } from "@/models/dataLogs";
 type HighChartsProps = {};
 const HighCharts = (props: HighChartsProps) => {
   const {
+    logPanes,
+    currentLogLibrary,
     doGetLogs,
     onChangeStartDateTime,
     onChangeEndDateTime,
@@ -19,6 +22,7 @@ const HighCharts = (props: HighChartsProps) => {
     doGetHighCharts,
     isHiddenHighChart,
     highChartList,
+    onChangeLogPane,
     doParseQuery,
   } = useModel("dataLogs");
   const [highChartPosition, setHighChartPosition] = useState<"left" | "right">(
@@ -32,6 +36,10 @@ const HighCharts = (props: HighChartsProps) => {
   const format = (timeStr: string | number, formatType: string) => {
     return moment(timeStr, "X").format(formatType);
   };
+
+  const oldPane = logPanes.find(
+    (item) => item.pane === currentLogLibrary
+  ) as PaneType;
 
   const scale = {
     from: {
@@ -92,6 +100,13 @@ const HighCharts = (props: HighChartsProps) => {
       onChangeActiveTimeOptionIndex(ACTIVE_TIME_NOT_INDEX);
       onChangeActiveTabKey(TimeRangeType.Custom);
       doParseQuery();
+      onChangeLogPane({
+        ...oldPane,
+        start,
+        end,
+        activeIndex: ACTIVE_TIME_NOT_INDEX,
+        activeTabKey: TimeRangeType.Custom,
+      });
     }
   };
 
