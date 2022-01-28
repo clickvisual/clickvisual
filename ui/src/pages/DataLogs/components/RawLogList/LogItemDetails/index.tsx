@@ -26,6 +26,7 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
           }
           const isRawLog = keyItem === "_raw_log_";
+          const notQuery = keyItem === "_time_trace_";
           return (
             <div key={index} className={logItemStyles.logLine}>
               <div
@@ -42,11 +43,11 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
               </div>
               {!isRawLog ? (
                 <span
-                  onClick={() => quickInsertQuery(keyItem)}
+                  onClick={() => !notQuery && quickInsertQuery(keyItem)}
                   className={classNames(
                     logItemStyles.logContent,
                     flag && logItemStyles.logContentHighlight,
-                    logItemStyles.logHover
+                    keyItem !== "_time_trace_" && logItemStyles.logHover
                   )}
                 >
                   {log[keyItem]}

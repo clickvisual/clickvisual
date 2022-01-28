@@ -37,8 +37,7 @@ const ModalCreatedLogLibrary = () => {
     (field: any) => {
       if (!currentDatabase) return;
       doCreatedLogLibrary
-        .run(1, "devlogs", field)
-        // .run(currentDatabase.instanceId, currentDatabase.databaseName, field)
+        .run(currentDatabase.instanceId, currentDatabase.databaseName, field)
         .then((res) => {
           if (res?.code === 0) {
             message.success(

@@ -15,7 +15,12 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
   const i18n = useIntl();
   const { visible, onCancel } = props;
   const { logs, doUpdatedQuery } = useModel("dataLogs");
-  const columns: string[] = (logs?.logs[0] && Object.keys(logs?.logs[0])) || [];
+  const columns: string[] =
+    (logs?.logs[0] &&
+      Object.keys(logs?.logs[0]).filter(
+        (item: string) => item !== "_time_trace_"
+      )) ||
+    [];
   useEffect(() => {
     if (!visible) {
       formRef.current?.resetFields();

@@ -21,7 +21,7 @@ const LogItem = (props: LogItemProps) => {
           {(pageSize as number) * ((currentPage as number) - 1) + index + 1}
         </div>
         <div className={logItemStyles.dateTime}>
-          {moment(log._timestamp_).format("YYYY-MM-DD HH:mm:ss.SSS")}
+          {moment(log._time_trace_).format("YYYY-MM-DD HH:mm:ss.SSS")}
         </div>
       </div>
       <div className={logItemStyles.right}>
