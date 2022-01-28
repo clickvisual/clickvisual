@@ -18,10 +18,10 @@ import (
 
 const ignoreKey = "_timestamp_"
 const timeCondition = "_timestamp_ >= %d AND _timestamp_ < %d"
-const defaultTimeParse = "parseDateTimeBestEffort(_time_) AS _timestamp_,parseDateTimeBestEffort(_time_) AS _time_trace_"
+const defaultTimeParse = "parseDateTimeBestEffort(_time_) AS _timestamp_,parseDateTimeBestEffort(_time_) AS _trace_time_"
 
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(log, '%s'))) AS _timestamp_, 
-fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(log, '%s')*1000000000),'Asia/Shanghai') AS _time_trace_`
+fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(log, '%s')*1000000000),'Asia/Shanghai') AS _trace_time_`
 
 var typORM = map[int]string{
 	0: "String",
@@ -72,7 +72,15 @@ func (c *ClickHouse) genJsonExtractSQL(iid int, database, table string) (string,
 	return jsonExtractSQL, nil
 }
 
-func (c *ClickHouse) whereConditionSQL(current db.View, list []*db.View) (defaultSQL string, currentSQL string, err error) {
+func (c *ClickHouse) whereConditionSQLCurrent(current *db.View) string {
+	return fmt.Sprintf("JSONHas(log, '%s') = 1", current.Key)
+}
+
+func (c *ClickHouse) whereConditionSQLDefault(list []*db.View) string {
+	if list == nil {
+		return "1=1"
+	}
+	var defaultSQL string
 	// It is required to obtain all the view parameters under the current table and construct the default and current view query conditions
 	for k, viewRow := range list {
 		if k == 0 {
@@ -81,11 +89,13 @@ func (c *ClickHouse) whereConditionSQL(current db.View, list []*db.View) (defaul
 			defaultSQL = fmt.Sprintf("%s AND JSONHas(log, '%s') = 0", defaultSQL, viewRow.Key)
 		}
 	}
-	currentSQL = fmt.Sprintf("JSONHas(log, '%s') = 1", current.Key)
-	return
+	if defaultSQL == "" {
+		return "1=1"
+	}
+	return defaultSQL
 }
 
-func (c *ClickHouse) timeParseSQL(v db.View) string {
+func (c *ClickHouse) timeParseSQL(v *db.View) string {
 	if v.IsUseDefaultTime == 1 {
 		return defaultTimeParse
 	}
@@ -99,45 +109,16 @@ func (c *ClickHouse) timeParseSQL(v db.View) string {
 // delete: list need remove current
 // update: list need update current
 // create: list need add current
-func (c *ClickHouse) ViewSync(table db.Table, current db.View, list []*db.View, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
-	timeParseSQL := c.timeParseSQL(current)
-	dWhereSQL, cWhereSQL, err := c.whereConditionSQL(current, list)
-	if err != nil {
-		return
-	}
-	jsonExtractSQL, err := c.genJsonExtractSQL(table.Iid, table.Database, table.Name)
-	if err != nil {
-		return
-	}
-	if dWhereSQL == "" {
-		dWhereSQL = "1=1"
-	}
-	dName := genName(table.Database, table.Name)
-	dStreamName := genStreamName(table.Database, table.Name)
-	dViewName := genViewName(table.Database, table.Name, "")
-	cViewName := genViewName(table.Database, table.Name, current.Key)
+func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
 	// build view statement
-	dViewSQL = fmt.Sprintf(clickhouseViewORM[table.Typ], dViewName, dName, timeParseSQL, jsonExtractSQL, dStreamName, dWhereSQL)
-	cViewSQL = fmt.Sprintf(clickhouseViewORM[table.Typ], cViewName, dName, timeParseSQL, jsonExtractSQL, dStreamName, cWhereSQL)
 	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
-	// delete default view
-	_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s;", dViewName))
+	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", current, list, isAddOrUpdate)
 	if err != nil {
 		return
 	}
-	_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s;", cViewName))
+	cViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, list, isAddOrUpdate)
 	if err != nil {
 		return
-	}
-	_, err = c.db.Exec(dViewSQL)
-	if err != nil {
-		return
-	}
-	if isAddOrUpdate {
-		_, err = c.db.Exec(cViewSQL)
-		if err != nil {
-			return
-		}
 	}
 	return
 }
@@ -198,16 +179,11 @@ func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
 
 // TableCreate create default stream data table and view
 func (c *ClickHouse) TableCreate(database string, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL string, err error) {
-	timeParseSQL := defaultTimeParse
-	dWhereSQL := "1=1"
-	jsonExtractSQL := ""
 	dName := genName(database, ct.TableName)
 	dStreamName := genStreamName(database, ct.TableName)
-	dViewName := genViewName(database, ct.TableName, "")
 	// build view statement
 	dStreamSQL = fmt.Sprintf(clickhouseTableStreamORM[ct.Typ], dStreamName, ct.Brokers, ct.Topics, ct.TableName)
 	dDataSQL = fmt.Sprintf(clickhouseTableDataORM[ct.Typ], dName, ct.Days)
-	dViewSQL = fmt.Sprintf(clickhouseViewORM[ct.Typ], dViewName, dName, timeParseSQL, jsonExtractSQL, dStreamName, dWhereSQL)
 	elog.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
@@ -217,11 +193,48 @@ func (c *ClickHouse) TableCreate(database string, ct view.ReqTableCreate) (dStre
 	if err != nil {
 		return
 	}
-	_, err = c.db.Exec(dViewSQL)
+	dViewSQL, err = c.viewOperator(ct.Typ, 0, database, ct.TableName, "", nil, nil, true)
 	if err != nil {
 		return
 	}
 	return
+}
+
+func (c *ClickHouse) viewOperator(typ, iid int, database, table, timestampKey string, current *db.View, list []*db.View, isCreate bool) (string, error) {
+	var (
+		err     error
+		viewSQL string
+	)
+	jsonExtractSQL := ""
+	if iid != 0 {
+		jsonExtractSQL, err = c.genJsonExtractSQL(iid, database, table)
+		if err != nil {
+			return "", err
+		}
+	}
+	dName := genName(database, table)
+	streamName := genStreamName(database, table)
+	viewName := genViewName(database, table, timestampKey)
+	// drop
+	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
+	_, err = c.db.Exec(viewDropSQL)
+	if err != nil {
+		return "", err
+	}
+	// create
+	if timestampKey == "" {
+		// default
+		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, defaultTimeParse, jsonExtractSQL, streamName, c.whereConditionSQLDefault(list))
+	} else {
+		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, c.timeParseSQL(current), jsonExtractSQL, streamName, c.whereConditionSQLCurrent(current))
+	}
+	if isCreate {
+		_, err = c.db.Exec(viewSQL)
+		if err != nil {
+			return "", err
+		}
+	}
+	return viewSQL, nil
 }
 
 func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
@@ -297,7 +310,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 
 func (c *ClickHouse) Tables(database string) (res []string, err error) {
 	res = make([]string, 0)
-	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns a left join system.tables b on a.table = b.name where a.database = '%s' and a.name = '%s' and a.type = '%s' and b.engine != 'MaterializedView' group by table", database, ignoreKey, "DateTime64"))
+	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns a left join system.tables b on a.table = b.name where a.database = '%s' and a.name = '%s' and a.type = '%s' and b.engine != 'MaterializedView' group by table", database, ignoreKey, "DateTime"))
 	if err != nil {
 		return
 	}
@@ -338,7 +351,7 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	// step 1 drop
 	for _, del := range dels {
-		qs := fmt.Sprintf("alter table %s.%s drop column IF EXISTS %s;", param.Database, param.Table, del.Field)
+		qs := fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN IF EXISTS %s;", param.Database, param.Table, del.Field)
 		_, err = c.db.Exec(qs)
 		if err != nil {
 			return err
@@ -352,59 +365,28 @@ func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, adds map[string]*db.
 			return err
 		}
 	}
-	// step 3 drop view, contains two views, one using ts and the other using _time_
-	viewDropSQL := fmt.Sprintf("drop table IF EXISTS %s.%s;", param.Database, param.Table+"_view")
-	_, err = c.db.Exec(viewDropSQL)
+	// step 3 rebuild view
+	conds := egorm.Conds{}
+	conds["iid"] = param.InstanceID
+	conds["database"] = param.Database
+	conds["name"] = param.Table
+	table, err := db.TableInfoX(conds)
 	if err != nil {
-		return err
+		return
 	}
-	viewTsDropSQL := fmt.Sprintf("drop table IF EXISTS %s.%s;", param.Database, param.Table+"_view_ts")
-	_, err = c.db.Exec(viewTsDropSQL)
+	// step 3.1 default view
+	_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", nil, nil, true)
 	if err != nil {
-		return err
+		return
 	}
-	// step 4 add view
-	var jsonExtractSQL string
-	jsonExtractSQL = ","
-	for _, obj := range newList {
-		jsonExtractSQL += fmt.Sprintf("%s(log, '%s') AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
-	}
-	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
-	viewCreateSQL := fmt.Sprintf(`CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
-SELECT
-parseDateTimeBestEffortOrNull(_time_) AS _time_,
-_source_,
-_cluster_,
-_log_agent_,
-_namespace_,
-_node_name_,
-_node_ip_,
-_container_name_,
-_pod_name_,
-log AS _raw_log_%s
-FROM %s.%s where JSONHas(log, 'ts') = 0;`, param.Database, param.Table+"_view", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
-	_, err = c.db.Exec(viewCreateSQL)
-	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("view", viewCreateSQL))
-	if err != nil {
-		return err
-	}
-	viewTsCreateSQL := fmt.Sprintf(`CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
-SELECT
-fromUnixTimestamp64Milli(JSONExtractInt(log, 'ts')) AS _time_,
-_source_,
-_cluster_,
-_log_agent_,
-_namespace_,
-_node_name_,
-_node_ip_,
-_container_name_,
-_pod_name_,
-log AS _raw_log_%s
-FROM %s.%s where JSONHas(log, 'ts') = 1;`, param.Database, param.Table+"_view_ts", param.Database, param.Table, jsonExtractSQL, param.Database, param.Table+"_stream")
-	_, err = c.db.Exec(viewTsCreateSQL)
-	elog.Info("clickhouse", elog.String("step", "SQL"), elog.String("viewTs", viewTsCreateSQL))
-	if err != nil {
-		return err
+	condsViews := egorm.Conds{}
+	condsViews["tid"] = table.ID
+	viewList, err := db.ViewList(invoker.Db, condsViews)
+	for _, current := range viewList {
+		_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, viewList, true)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -4,7 +4,7 @@ var clickhouseTableDataORM = map[int]string{
 	TableTypeApp: `create table if not exists %s
 (
 	_timestamp_ DateTime,
-	_time_trace_ DateTime64(9, 'Asia/Shanghai'),
+	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -22,7 +22,7 @@ SETTINGS index_granularity = 8192;`,
 	TableTypeEgo: `create table if not exists %s
 (
 	_timestamp_ DateTime,
-	_time_trace_ DateTime64(9, 'Asia/Shanghai'),
+	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -51,7 +51,7 @@ SETTINGS index_granularity = 8192;`,
 	TableTypeIngress: `create table if not exists %s
 (
 	_timestamp_ DateTime,
-	_time_trace_ DateTime64(9, 'Asia/Shanghai'),
+	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
 	_cluster_ String,
 	_log_agent_ String,
 	_namespace_ String,
