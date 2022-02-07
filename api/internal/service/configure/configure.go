@@ -242,7 +242,6 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 	}
 	err = tx.Commit().Error
 	if err != nil {
-		tx.Rollback()
 		return errors.Wrap(err, "failed to delete, transaction submission failed")
 	}
 	return
