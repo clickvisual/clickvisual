@@ -6,8 +6,7 @@ import IndexList from "@/pages/DataLogs/components/RawLogsIndexes/IndexList";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect, useState } from "react";
 
-type RawLogsIndexesProps = {};
-const RawLogsIndexes = (props: RawLogsIndexesProps) => {
+const RawLogsIndexes = () => {
   const { logs } = useModel("dataLogs");
   const [indexList, setIndexList] = useState<string[]>(logs?.keys || []);
   const onSearch = (val: string) => {

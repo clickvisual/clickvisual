@@ -5,12 +5,15 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfloat"
 	"github.com/spf13/cast"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
@@ -133,8 +136,17 @@ func DeleteTables(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	database := strings.TrimSpace(c.Param("db"))
 	table := strings.TrimSpace(c.Param("table"))
-	if iid == 0 || database == "" || table == "" {
-		c.JSONE(core.CodeErr, "params error", nil)
+	conds := egorm.Conds{}
+	conds["iid"] = iid
+	conds["database"] = database
+	conds["name"] = table
+	tableInfo, err := db.TableInfoX(conds)
+	if err != nil {
+		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		return
+	}
+	if tableInfo.ID == 0 {
+		c.JSONE(core.CodeErr, "Unable to delete tables not created by Mogo.", nil)
 		return
 	}
 	op, err := service.InstanceManager.Load(iid)
@@ -142,12 +154,34 @@ func DeleteTables(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	err = op.DropTable(database, table)
+	err = op.TableDrop(database, table, tableInfo.ID)
 	if err != nil {
-		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
 		return
 	}
-	c.JSONOK()
+	tx := invoker.Db.Begin()
+	err = db.TableDelete(tx, tableInfo.ID)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		return
+	}
+	err = db.ViewDeleteByTableID(tx, tableInfo.ID)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		return
+	}
+	err = db.IndexDeleteBatch(tx, iid, database, table)
+	if err != nil {
+		tx.Rollback()
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK("Delete succeeded. Note that Kafka may be backlogged.\n")
 	return
 }
 
@@ -167,37 +201,75 @@ func Tables(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res, err := op.Tables(param.Database)
+	tables, err := op.Tables(param.Database)
 	if err != nil {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
 	}
-	c.JSONOK(res)
+	// res := make([]view.RespTableList, 0)
+	// for _, row := range tables {
+	// 	conds := egorm.Conds{}
+	// 	conds["iid"] = param.InstanceId
+	// 	conds["database"] = param.Database
+	// 	conds["name"] = row
+	// 	tableInfo, errTableInfoX := db.TableInfoX(conds)
+	// 	if errTableInfoX != nil {
+	// 		elog.Error("errTableInfoX", elog.String("err", errTableInfoX.Error()))
+	// 		continue
+	// 	}
+	// 	// if tableInfo.ID == 0 {
+	// 	// 	continue
+	// 	// }
+	// 	res = append(res, view.RespTableList{
+	// 		Id:        tableInfo.ID,
+	// 		TableName: row,
+	// 	})
+	// }
+	c.JSONOK(tables)
 	return
 }
 
 func CreateTables(c *core.Context) {
-	var param view.ReqQuery
+	iid := cast.ToInt(c.Param("iid"))
+	database := strings.TrimSpace(c.Param("db"))
+	if iid == 0 || database == "" {
+		c.JSONE(core.CodeErr, "params error", nil)
+		return
+	}
+	var param view.ReqTableCreate
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if param.Database == "" {
-		c.JSONE(core.CodeErr, "db is a required field", nil)
-		return
-	}
-	op, err := service.InstanceManager.Load(param.InstanceId)
+	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res, err := op.Tables(param.Database)
+	s, d, v, err := op.TableCreate(database, param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
 		return
 	}
-	c.JSONOK(res)
+	err = db.TableCreate(invoker.Db, &db.Table{
+		Iid:       iid,
+		Database:  database,
+		Name:      param.TableName,
+		Typ:       param.Typ,
+		Days:      param.Days,
+		Brokers:   param.Brokers,
+		Topic:     param.Topics,
+		SqlData:   d,
+		SqlStream: s,
+		SqlView:   v,
+		Uid:       c.Uid(),
+	})
+	if err != nil {
+		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK()
 	return
 }
 

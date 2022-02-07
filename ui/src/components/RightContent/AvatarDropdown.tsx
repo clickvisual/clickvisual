@@ -1,12 +1,14 @@
-import { LogoutOutlined } from '@ant-design/icons';
-import { Avatar, Menu, Spin } from 'antd';
-import HeaderDropdown from '../HeaderDropdown';
-import styles from './index.less';
-import { useModel } from '@@/plugin-model/useModel';
+import { LogoutOutlined } from "@ant-design/icons";
+import { Avatar, Menu, Spin } from "antd";
+import HeaderDropdown from "../HeaderDropdown";
+import styles from "./index.less";
+import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
 
 const AvatarDropdown = () => {
-  const { currentUser } = useModel('@@initialState').initialState || {};
-  const { loginOut } = useModel('users');
+  const { currentUser } = useModel("@@initialState").initialState || {};
+  const { loginOut } = useModel("users");
+  const i18n = useIntl();
 
   const handleLogout = () => {
     loginOut.run();
@@ -16,7 +18,9 @@ const AvatarDropdown = () => {
     <Menu className={styles.menu} selectedKeys={[]}>
       <Menu.Item key="logout" onClick={() => handleLogout()}>
         <LogoutOutlined />
-        退出登录
+        {i18n.formatMessage({
+          id: "navbar.logOut",
+        })}
       </Menu.Item>
     </Menu>
   );

@@ -20,6 +20,9 @@ import {
 import moment from "moment";
 import Request, { Canceler } from "umi-request";
 import lodash from "lodash";
+import { formatMessage } from "@@/plugin-locale/localeExports";
+import useLogLibrary from "@/models/datalogs/useLogLibrary";
+import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 
 export type PaneType = {
   pane: string;
@@ -98,6 +101,29 @@ const DataLogsModel = () => {
   const cancelTokenLogsRef = useRef<Canceler | null>(null);
   const CancelToken = Request.CancelToken;
 
+  const {
+    logLibraryCreatedModalVisible,
+    onChangeLogLibraryCreatedModalVisible,
+    doCreatedLogLibrary,
+    doDeletedLogLibrary,
+  } = useLogLibrary();
+
+  const {
+    viewsVisibleDraw,
+    onChangeViewsVisibleDraw,
+    getViewList,
+    viewList,
+    viewVisibleModal,
+    viewIsEdit,
+    createdView,
+    deletedView,
+    updatedView,
+    doGetViewInfo,
+    editView,
+    onChangeViewVisibleModal,
+    onChangeViewIsEdit,
+  } = useLogLibraryViews();
+
   const onChangeHiddenHighChart = (flag: boolean) => {
     setIsHiddenHighChart(flag);
   };
@@ -156,12 +182,33 @@ const DataLogsModel = () => {
     onChangeLogPanes(currentLogPanes);
   };
 
+  const onChangeCurrentLogPane = (tabPane: PaneType, logLibrary: string) => {
+    const queryParam: QueryParams = {
+      page: tabPane?.page,
+      pageSize: tabPane?.pageSize,
+      st: tabPane?.start,
+      et: tabPane?.end,
+      kw: tabPane?.keyword,
+      logLibrary: logLibrary,
+    };
+    onChangeLogsPage(tabPane?.page as number, tabPane?.pageSize as number);
+    onChangeEndDateTime(tabPane?.end as number);
+    onChangeStartDateTime(tabPane?.start as number);
+    onChangeKeywordInput(tabPane?.keyword as string);
+    onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
+    onChangeActiveTimeOptionIndex(tabPane?.activeIndex || ACTIVE_TIME_INDEX);
+    resetCurrentHighChart();
+    doGetLogs(queryParam);
+    doGetHighCharts(queryParam);
+    doParseQuery(queryParam?.kw);
+  };
+
   const onCopyRawLogDetails = (log: any) => {
     if (log) {
       copy(typeof log === "object" ? JSON.stringify(log) : log);
-      message.success("copy succeeded");
+      message.success(formatMessage({ id: "log.item.copy.success" }));
     } else {
-      message.error("failed to copy, please copy manually");
+      message.error(formatMessage({ id: "log.item.copy.failed" }));
     }
   };
 
@@ -217,7 +264,12 @@ const DataLogsModel = () => {
   });
 
   const settingIndexes = useRequest(api.setIndexes, {
-    loadingText: { done: "保存成功" },
+    loadingText: false,
+    onSuccess() {
+      message.success(
+        formatMessage({ id: "log.index.manage.message.save.success" })
+      );
+    },
   });
 
   const getIndexList = useRequest(api.getIndexes, {
@@ -419,6 +471,7 @@ const DataLogsModel = () => {
     onChangeVisibleDatabaseDraw,
     onChangeVisibleIndexModal,
     onChangeHiddenHighChart,
+    onChangeCurrentLogPane,
 
     doSelectedDatabase,
     doParseQuery,
@@ -432,6 +485,26 @@ const DataLogsModel = () => {
     settingIndexes,
     getLogLibraries,
     getIndexList,
+
+    // hooks
+    logLibraryCreatedModalVisible,
+    onChangeLogLibraryCreatedModalVisible,
+    doCreatedLogLibrary,
+    doDeletedLogLibrary,
+
+    viewsVisibleDraw,
+    getViewList,
+    viewList,
+    viewIsEdit,
+    createdView,
+    deletedView,
+    updatedView,
+    viewVisibleModal,
+    editView,
+    doGetViewInfo,
+    onChangeViewIsEdit,
+    onChangeViewVisibleModal,
+    onChangeViewsVisibleDraw,
   };
 };
 export default DataLogsModel;

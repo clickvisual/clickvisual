@@ -7,9 +7,13 @@ import { useRef, useState } from "react";
 import HighChartsTooltip from "@/pages/DataLogs/components/HighCharts/HighChartsTooltip";
 import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
-type HighChartsProps = {};
-const HighCharts = (props: HighChartsProps) => {
+import { useIntl } from "umi";
+import { PaneType } from "@/models/dataLogs";
+
+const HighCharts = () => {
   const {
+    logPanes,
+    currentLogLibrary,
     doGetLogs,
     onChangeStartDateTime,
     onChangeEndDateTime,
@@ -18,6 +22,7 @@ const HighCharts = (props: HighChartsProps) => {
     doGetHighCharts,
     isHiddenHighChart,
     highChartList,
+    onChangeLogPane,
     doParseQuery,
   } = useModel("dataLogs");
   const [highChartPosition, setHighChartPosition] = useState<"left" | "right">(
@@ -26,9 +31,15 @@ const HighCharts = (props: HighChartsProps) => {
   const downTime = useRef<number>();
   const isSelectRange = useRef<boolean>(false);
 
+  const i18n = useIntl();
+
   const format = (timeStr: string | number, formatType: string) => {
     return moment(timeStr, "X").format(formatType);
   };
+
+  const oldPane = logPanes.find(
+    (item) => item.pane === currentLogLibrary
+  ) as PaneType;
 
   const scale = {
     from: {
@@ -89,6 +100,13 @@ const HighCharts = (props: HighChartsProps) => {
       onChangeActiveTimeOptionIndex(ACTIVE_TIME_NOT_INDEX);
       onChangeActiveTabKey(TimeRangeType.Custom);
       doParseQuery();
+      onChangeLogPane({
+        ...oldPane,
+        start,
+        end,
+        activeIndex: ACTIVE_TIME_NOT_INDEX,
+        activeTabKey: TimeRangeType.Custom,
+      });
     }
   };
 
@@ -111,9 +129,7 @@ const HighCharts = (props: HighChartsProps) => {
         onPlotMousemove={onPlotMousemove}
         onPlotMousedown={onPlotMousedown}
         onMouseup={onMouseup}
-        placeholder={
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"no data"} />
-        }
+        placeholder={<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
       >
         <Interval position="from*count" color={"hsl(21, 85%, 56%)"} />
         <Tooltip
@@ -127,7 +143,9 @@ const HighCharts = (props: HighChartsProps) => {
           {(title, items) => {
             if (!items) return <></>;
             const data = items[0].data;
-            return <HighChartsTooltip data={data} format={format} />;
+            return (
+              <HighChartsTooltip i18n={i18n} data={data} format={format} />
+            );
           }}
         </Tooltip>
         <Interaction

@@ -1,9 +1,10 @@
 package inquiry
 
 var clickhouseTableDataORM = map[int]string{
-	TableTypeApp: `create table if not exists %s.%s
+	TableTypeApp: `create table if not exists %s
 (
-	_time_ DateTime64(6),
+	_timestamp_ DateTime,
+	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -14,13 +15,14 @@ var clickhouseTableDataORM = map[int]string{
 	_pod_name_ String,
 	_raw_log_ String
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
-ORDER BY _time_
-TTL _time_ + INTERVAL %d WEEK 
+engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
+ORDER BY _timestamp_
+TTL toDateTime(_timestamp_) + INTERVAL %d WEEK 
 SETTINGS index_granularity = 8192;`,
-	TableTypeEgo: `create table if not exists %s.%s
+	TableTypeEgo: `create table if not exists %s
 (
-	_time_ DateTime64(6),
+	_timestamp_ DateTime,
+	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -42,13 +44,14 @@ SETTINGS index_granularity = 8192;`,
 	type Nullable(String),
 	tid Nullable(String)
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
-ORDER BY _time_ 
-TTL _time_ + INTERVAL %d WEEK
+engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
+ORDER BY _timestamp_ 
+TTL toDateTime(_timestamp_) + INTERVAL %d WEEK
 SETTINGS index_granularity = 8192;`,
-	TableTypeIngress: `create table if not exists %s.%s
+	TableTypeIngress: `create table if not exists %s
 (
-	_time_ DateTime64(6),
+	_timestamp_ DateTime,
+	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
 	_cluster_ String,
 	_log_agent_ String,
 	_namespace_ String,
@@ -75,14 +78,14 @@ SETTINGS index_granularity = 8192;`,
 	req_id String,
 	host String
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_)
-ORDER BY _time_
-TTL _time_ + INTERVAL %d WEEK
+engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
+ORDER BY _timestamp_
+TTL toDateTime(_timestamp_) + INTERVAL %d WEEK
 SETTINGS index_granularity = 8192;`,
 }
 
 var clickhouseTableStreamORM = map[int]string{
-	TableTypeApp: `create table if not exists %s.%s
+	TableTypeApp: `create table if not exists %s
 (
 	_source_ String,
 	_time_ String,
@@ -96,7 +99,7 @@ var clickhouseTableStreamORM = map[int]string{
 	log String
 )
 engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
-	TableTypeEgo: `create table if not exists %s.%s
+	TableTypeEgo: `create table if not exists %s
 (
 	_source_ String,
 	_time_ String,
@@ -110,7 +113,7 @@ engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka
 	log String
 )
 engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
-	TableTypeIngress: `create table if not exists %s.%s
+	TableTypeIngress: `create table if not exists %s
 (
 	_pod_name_ String,
 	_namespace_ String,
@@ -144,7 +147,7 @@ engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka
 }
 
 var clickhouseViewORM = map[int]string{
-	TableTypeApp: `CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+	TableTypeApp: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
     _source_,
@@ -156,8 +159,8 @@ SELECT
     _container_name_,
     _pod_name_,
 	log AS _raw_log_%s
-	FROM %s.%s where %s;`,
-	TableTypeEgo: `CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+	FROM %s where %s;`,
+	TableTypeEgo: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
 	_source_,
@@ -168,9 +171,20 @@ SELECT
 	_cluster_,
 	_log_agent_,
 	_node_ip_,
+	visitParamExtractString(log, 'lv') AS lv,
+	visitParamExtractString(log, 'msg') AS msg,
+	visitParamExtractString(log, 'compName') AS compName,
+	visitParamExtractFloat(log, 'cost') AS cost,
+	visitParamExtractString(log, 'method') AS method,
+	visitParamExtractInt(log, 'code') AS code,
+	visitParamExtractInt(log, 'ucode') AS ucode,
+	visitParamExtractString(log, 'peerName') AS peerName,
+	visitParamExtractString(log, 'peerIp') AS peerIp,
+	visitParamExtractString(log, 'type') AS type,
+	visitParamExtractString(log, 'tid') AS tid,
 	log AS _raw_log_%s
-	FROM %s.%s where %s;`,
-	TableTypeIngress: `CREATE MATERIALIZED VIEW %s.%s TO %s.%s AS
+	FROM %s where %s;`,
+	TableTypeIngress: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
 	_pod_name_,
@@ -199,5 +213,5 @@ SELECT
 	upstream_status,
 	req_id,
 	host%s
-	FROM %s.%s where %s;`,
+	FROM %s where %s;`,
 }

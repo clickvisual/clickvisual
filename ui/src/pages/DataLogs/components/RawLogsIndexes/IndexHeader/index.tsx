@@ -2,14 +2,18 @@ import indexHeaderStyles from "@/pages/DataLogs/components/RawLogsIndexes/IndexH
 import IconFont from "@/components/IconFont";
 import { Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
-type IndexHeaderProps = {};
-const IndexHeader = (props: IndexHeaderProps) => {
+import { useIntl } from "umi";
+
+const IndexHeader = () => {
   const { onChangeVisibleIndexModal } = useModel("dataLogs");
+  const i18n = useIntl();
   return (
     <div className={indexHeaderStyles.indexHeaderMain}>
-      <span className={indexHeaderStyles.title}>分析</span>
+      <span className={indexHeaderStyles.title}>
+        {i18n.formatMessage({ id: "log.index.header.title" })}
+      </span>
       <div className={indexHeaderStyles.icon}>
-        <Tooltip title={"索引管理"}>
+        <Tooltip title={i18n.formatMessage({ id: "log.index.manage" })}>
           <IconFont
             onClick={() => {
               onChangeVisibleIndexModal(true);

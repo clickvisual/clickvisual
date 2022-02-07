@@ -1,6 +1,6 @@
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import { Button, Input } from "antd";
-import { useModel } from "umi";
+import { useIntl, useModel } from "umi";
 import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
 import { useDebounceFn } from "ahooks";
 import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
@@ -36,6 +36,8 @@ const SearchBar = () => {
     doParseQuery,
   } = useModel("dataLogs");
 
+  const i18n = useIntl();
+
   const oldPane = logPanes.find(
     (item) => item.pane === currentLogLibrary
   ) as PaneType;
@@ -55,6 +57,7 @@ const SearchBar = () => {
         onChangeEndDateTime(end);
         params.st = start;
         params.et = end;
+        onChangeLogPane({ ...oldPane, start, end });
       }
       onChangeLogsPageByUrl(FIRST_PAGE, PAGE_SIZE);
       doGetHighCharts(params);
@@ -67,7 +70,7 @@ const SearchBar = () => {
     <div className={searchBarStyles.searchBarMain}>
       <Input
         allowClear
-        placeholder="请输入查询 SQL 语句"
+        placeholder={`${i18n.formatMessage({ id: "log.search.placeholder" })}`}
         className={searchBarStyles.inputBox}
         value={keywordInput}
         suffix={<SearchBarSuffixIcon />}
@@ -90,7 +93,7 @@ const SearchBar = () => {
         type="primary"
         icon={<IconFont type={"icon-log-search"} />}
       >
-        查询
+        {i18n.formatMessage({ id: "button.search" })}
       </Button>
     </div>
   );

@@ -1,3 +1,5 @@
+@import "../../../../../styles/var.less";
+
 .logLibraryListMain {
   flex: 1;
   overflow-y: auto;
@@ -6,21 +8,32 @@
     margin: 0;
     padding: 0;
     & > li {
+      display: flex;
+      align-items: center;
       margin: 2px 0;
       padding: 0 8px;
-      overflow: hidden;
       line-height: 32px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
       cursor: pointer;
-      &:hover {
-        color: #fff;
-        background: #f2905c;
+
+      .title {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        user-select: none;
+      }
+
+      .icon {
+        margin: 0 4px;
       }
     }
     .activeLogLibrary {
-      color: #fff;
-      background: #ee722e;
+      color: @font-color-white;
+      background: @primary-color;
+    }
+    .LogLibraryHover {
+      color: @font-color-white;
+      background: @primary-color-70;
     }
   }
 }

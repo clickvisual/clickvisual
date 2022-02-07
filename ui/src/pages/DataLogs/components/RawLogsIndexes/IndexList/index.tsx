@@ -1,15 +1,17 @@
-import indexListStyles from '@/pages/DataLogs/components/RawLogsIndexes/IndexList/index.less';
-import classNames from 'classnames';
-import { Empty, Tooltip } from 'antd';
-import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
-import { useEffect, useState } from 'react';
-import IndexItem from '@/pages/DataLogs/components/RawLogsIndexes/IndexItem';
+import indexListStyles from "@/pages/DataLogs/components/RawLogsIndexes/IndexList/index.less";
+import classNames from "classnames";
+import { Empty, Tooltip } from "antd";
+import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import IndexItem from "@/pages/DataLogs/components/RawLogsIndexes/IndexItem";
+import { useIntl } from "umi";
 
 type IndexListProps = {
   list: string[];
 };
 const IndexList = (props: IndexListProps) => {
   const [activeList, setActiveList] = useState<string[]>([]);
+  const i18n = useIntl();
   const { list } = props;
   useEffect(() => {
     setActiveList([]);
@@ -21,19 +23,24 @@ const IndexList = (props: IndexListProps) => {
           {list.map((index) => {
             const isActive = activeList.indexOf(index) > -1;
             return (
-              <div className={classNames(indexListStyles.indexRowMain)} key={index}>
-                <Tooltip title={index} placement={'left'}>
+              <div
+                className={classNames(indexListStyles.indexRowMain)}
+                key={index}
+              >
+                <Tooltip title={index} placement={"left"}>
                   <li
                     className={classNames(
                       indexListStyles.indexRow,
-                      isActive && indexListStyles.activeIndexRow,
+                      isActive && indexListStyles.activeIndexRow
                     )}
                     onClick={() => {
                       if (activeList.indexOf(index) === -1) {
                         setActiveList(() => [...activeList, index]);
                       } else {
                         setActiveList(() =>
-                          activeList.filter((itemActive) => itemActive !== index),
+                          activeList.filter(
+                            (itemActive) => itemActive !== index
+                          )
                         );
                       }
                     }}
@@ -50,7 +57,10 @@ const IndexList = (props: IndexListProps) => {
           })}
         </ul>
       ) : (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={'暂未创建索引'} />
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={i18n.formatMessage({ id: "log.index.empty" })}
+        />
       )}
     </div>
   );

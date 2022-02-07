@@ -2,7 +2,7 @@ import CustomModal from "@/components/CustomModal";
 import { AutoComplete, Button, Form, FormInstance, Select } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "@@/plugin-model/useModel";
-import lodash from "lodash";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 type ModalAddQueryCriteriaProps = {
@@ -12,16 +12,15 @@ type ModalAddQueryCriteriaProps = {
 const operatorList = ["=", "!=", "<", "<=", ">", ">="];
 const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
   const formRef = useRef<FormInstance>(null);
+  const i18n = useIntl();
   const { visible, onCancel } = props;
-  const {
-    logs,
-    doParseQuery,
-    doGetLogs,
-    doGetHighCharts,
-    keywordInput,
-    onChangeKeywordInput,
-  } = useModel("dataLogs");
-  const columns: string[] = (logs?.logs[0] && Object.keys(logs?.logs[0])) || [];
+  const { logs, doUpdatedQuery } = useModel("dataLogs");
+  const columns: string[] =
+    (logs?.logs[0] &&
+      Object.keys(logs?.logs[0]).filter(
+        (item: string) => item !== "_trace_time_"
+      )) ||
+    [];
   useEffect(() => {
     if (!visible) {
       formRef.current?.resetFields();
@@ -29,7 +28,7 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
   }, [visible]);
   return (
     <CustomModal
-      title={"增加查询条件"}
+      title={i18n.formatMessage({ id: "log.search.icon.quickSearch" })}
       visible={visible}
       onCancel={onCancel}
       footer={
@@ -37,10 +36,9 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
           type={"primary"}
           onClick={() => {
             formRef.current?.submit();
-            onCancel();
           }}
         >
-          保存
+          {i18n.formatMessage({ id: "button.save" })}
         </Button>
       }
     >
@@ -50,16 +48,8 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
         ref={formRef}
         onFinish={(field) => {
           const addValue = `${field.column}${field.operator}'${field.value}'`;
-          const defaultValueArr =
-            lodash.cloneDeep(keywordInput)?.split(" and ") || [];
-          if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
-            defaultValueArr.pop();
-          defaultValueArr.push(addValue);
-          const kw = defaultValueArr.join(" and ");
-          onChangeKeywordInput(kw);
-          doGetLogs({ kw });
-          doGetHighCharts({ kw });
-          doParseQuery(kw);
+          doUpdatedQuery(addValue);
+          onCancel();
         }}
       >
         <Form.Item
@@ -67,7 +57,11 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
           label={"column"}
           rules={[{ required: true }]}
         >
-          <Select placeholder={"请选择 columns"}>
+          <Select
+            placeholder={`${i18n.formatMessage({
+              id: "log.search.quickSearch.column.placeholder",
+            })}`}
+          >
             {columns.map((item) => (
               <Option key={item} value={item}>
                 {item}
@@ -80,7 +74,11 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
           label={"operator"}
           rules={[{ required: true }]}
         >
-          <Select placeholder={"请选择 operator"}>
+          <Select
+            placeholder={`${i18n.formatMessage({
+              id: "log.search.quickSearch.operator.placeholder",
+            })}`}
+          >
             {operatorList.map((item) => (
               <Option key={item} value={item}>
                 {item}
@@ -105,7 +103,9 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
                   style={{ width: "100%" }}
                   allowClear
                   options={[]}
-                  placeholder="请输入 value"
+                  placeholder={`${i18n.formatMessage({
+                    id: "log.search.quickSearch.value.placeholder",
+                  })}`}
                   filterOption={(inputValue, option) =>
                     option!.value
                       .toUpperCase()

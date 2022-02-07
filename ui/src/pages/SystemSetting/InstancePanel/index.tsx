@@ -6,7 +6,6 @@ import React, { useEffect, useState } from "react";
 import CreatedOrUpdatedInstanceModal from "@/pages/SystemSetting/InstancePanel/components/CreatedOrUpdatedInstanceModal";
 import type { InstanceType } from "@/services/systemSetting";
 
-type InstancePanelProps = {};
 type InstancePanelContextType = {
   onChangeVisible?: (flag: boolean) => void;
   onChangeIsEditor?: (flag: boolean) => void;
@@ -14,7 +13,7 @@ type InstancePanelContextType = {
 };
 export const InstancePanelContext =
   React.createContext<InstancePanelContextType>({});
-const InstancePanel = (props: InstancePanelProps) => {
+const InstancePanel = () => {
   const { doGetInstanceList, instanceList } = useModel("instances");
   const [list, setList] = useState<any[]>([]);
   const [instanceFormVisible, setInstanceFormVisible] = useState<true | false>(

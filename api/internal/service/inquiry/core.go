@@ -15,8 +15,10 @@ import (
 type Operator interface {
 	Databases() ([]view.RespDatabase, error)
 	Tables(string) ([]string, error)
-	CreateTable(int) error
-	DropTable(string, string) error
+	TableCreate(string, view.ReqTableCreate) (string, string, string, error)
+	TableDrop(string, string, int) error
+
+	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 
 	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
 	GET(view.ReqQuery) (view.RespQuery, error)
@@ -32,15 +34,19 @@ const (
 	TableTypeIngress = 3
 )
 
-func tableNameStream(tableName string) string {
-	return fmt.Sprintf("%s_stream", tableName)
+func genName(database, tableName string) string {
+	return fmt.Sprintf("%s.%s", database, tableName)
 }
 
-func tableNameView(tableName string, timeKey string) string {
+func genStreamName(database, tableName string) string {
+	return fmt.Sprintf("%s.%s_stream", database, tableName)
+}
+
+func genViewName(database, tableName string, timeKey string) string {
 	if timeKey == "" {
-		return fmt.Sprintf("%s_view", tableName)
+		return fmt.Sprintf("%s.%s_view", database, tableName)
 	}
-	return fmt.Sprintf("%s_%s_view", tableName, timeKey)
+	return fmt.Sprintf("%s.%s_%s_view", database, tableName, timeKey)
 }
 
 var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "like"}

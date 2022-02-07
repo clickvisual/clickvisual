@@ -5,7 +5,6 @@ import React, { useEffect } from "react";
 import classNames from "classnames";
 import useLogListScroll from "@/pages/DataLogs/hooks/useLogListScroll";
 
-type RawLogListProps = {};
 type LogItemContextType = {
   log: any;
 };
@@ -13,7 +12,7 @@ type LogItemContextType = {
 export const LogItemContext = React.createContext<LogItemContextType>({
   log: {},
 });
-const RawLogList = (props: RawLogListProps) => {
+const RawLogList = () => {
   const { onChangeHiddenHighChart, logs } = useModel("dataLogs");
   const containerProps = useLogListScroll();
 

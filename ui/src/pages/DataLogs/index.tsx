@@ -8,13 +8,17 @@ import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
 import useLogUrlParams from "@/pages/DataLogs/hooks/useLogUrlParams";
 
 const DataLogs = () => {
-  const { onChangeCurrentDatabase, onChangeVisibleDatabaseDraw } =
-    useModel("dataLogs");
+  const {
+    onChangeCurrentDatabase,
+    onChangeVisibleDatabaseDraw,
+    onChangeLogPanes,
+  } = useModel("dataLogs");
   useLogUrlParams();
   useEffect(() => {
     return () => {
       onChangeVisibleDatabaseDraw(false);
       onChangeCurrentDatabase(undefined);
+      onChangeLogPanes([]);
     };
   }, []);
 

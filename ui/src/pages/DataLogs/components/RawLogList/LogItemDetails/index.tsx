@@ -5,8 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import LogContentParse from "@/pages/DataLogs/components/RawLogList/LogItem/LogContentParse";
 
-type LogItemDetailsProps = {};
-const LogItemDetails = (props: LogItemDetailsProps) => {
+const LogItemDetails = () => {
   const { log } = useContext(LogItemContext);
   const { highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
@@ -26,6 +25,7 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
           }
           const isRawLog = keyItem === "_raw_log_";
+          const notQuery = keyItem === "_trace_time_";
           return (
             <div key={index} className={logItemStyles.logLine}>
               <div
@@ -42,11 +42,11 @@ const LogItemDetails = (props: LogItemDetailsProps) => {
               </div>
               {!isRawLog ? (
                 <span
-                  onClick={() => quickInsertQuery(keyItem)}
+                  onClick={() => !notQuery && quickInsertQuery(keyItem)}
                   className={classNames(
                     logItemStyles.logContent,
                     flag && logItemStyles.logContentHighlight,
-                    logItemStyles.logHover
+                    keyItem !== "_trace_time_" && logItemStyles.logHover
                   )}
                 >
                   {log[keyItem]}

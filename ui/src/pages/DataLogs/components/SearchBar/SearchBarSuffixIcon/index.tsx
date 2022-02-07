@@ -3,9 +3,11 @@ import SearchBarToolTip from "@/pages/DataLogs/components/SearchBar/SearchBarToo
 import { ProfileFilled, QuestionCircleFilled } from "@ant-design/icons";
 import ModalAddQueryCriteria from "@/pages/DataLogs/components/SearchBar/ModalAddQueryCriteria";
 import { useState } from "react";
+import { useIntl } from "umi";
 
 const SearchBarSuffixIcon = () => {
   const [visible, setVisible] = useState<boolean>(false);
+  const i18n = useIntl();
   return (
     <Space>
       <Tooltip
@@ -24,7 +26,9 @@ const SearchBarSuffixIcon = () => {
           style={{ color: "hsl(21, 85%, 56%)" }}
         />
       </Tooltip>
-      <Tooltip title={"add query condition"}>
+      <Tooltip
+        title={i18n.formatMessage({ id: "log.search.icon.quickSearch" })}
+      >
         <ProfileFilled
           style={{ cursor: "pointer", color: "hsl(21, 85%, 56%)" }}
           onClick={() => setVisible(true)}

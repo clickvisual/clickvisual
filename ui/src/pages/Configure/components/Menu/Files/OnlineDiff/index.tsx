@@ -4,6 +4,7 @@ import { Spin } from "antd";
 import { MonacoDiffEditor } from "react-monaco-editor";
 import { useEffect } from "react";
 import diffStyles from "@/pages/Configure/components/Menu/Publish/RealtimeDiff/index.less";
+import { useIntl } from "umi";
 
 type OnlineDiffProps = {
   visible: boolean;
@@ -19,6 +20,7 @@ const OnlineDiff = (props: OnlineDiffProps) => {
     currentConfiguration,
     doGetOnlineConfiguration,
   } = useModel("configure");
+  const i18n = useIntl();
 
   useEffect(() => {
     if (!visible) return;
@@ -33,14 +35,18 @@ const OnlineDiff = (props: OnlineDiffProps) => {
   return (
     <CustomModal
       visible={visible}
-      title="实时配置 Diff"
+      title={i18n.formatMessage({ id: "config.diff.title" })}
       width="90%"
       onCancel={onCancel}
     >
       <Spin spinning={doGetOnlineConfiguration.loading}>
         <div className={diffStyles.diffHeader}>
-          <div className={diffStyles.title}>生效中配置</div>
-          <div className={diffStyles.title}>本次发布配置</div>
+          <div className={diffStyles.title}>
+            {i18n.formatMessage({ id: "config.diff.online" })}
+          </div>
+          <div className={diffStyles.title}>
+            {i18n.formatMessage({ id: "config.diff.current" })}
+          </div>
         </div>
         <MonacoDiffEditor
           language="json"

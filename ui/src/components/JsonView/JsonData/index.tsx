@@ -35,7 +35,7 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
     return (
       <>
         <span className={classNames(jsonViewStyles.jsonViewKey)}>"{key}"</span>:
-        <JsonValue jsonKey={key} val={val} {...restProps} />;
+        <JsonValue jsonKey={key} val={val} {...restProps} />
       </>
     );
   };
@@ -49,7 +49,6 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
     let v = Reflect.get(data, k);
     let isLastEle = idx >= keys.length - 1;
     let dom = handleValueTypes(k, v);
-    console.log("access key", k, "idx", idx);
     kvList.push(
       <div key={idx}>
         {dom}

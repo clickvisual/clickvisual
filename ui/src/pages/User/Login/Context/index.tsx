@@ -1,12 +1,13 @@
-import loginContextStyles from '@/pages/User/Login/Context/index.less';
-import { Button, Form, Input } from 'antd';
-import { useModel } from '@@/plugin-model/useModel';
-import CryptoJs from 'crypto-js';
+import loginContextStyles from "@/pages/User/Login/Context/index.less";
+import { Button, Form, Input } from "antd";
+import { useModel } from "@@/plugin-model/useModel";
+import CryptoJs from "crypto-js";
+import { useIntl } from "umi";
 
-type LoginContextProps = {};
-const LoginContext = (props: LoginContextProps) => {
+const LoginContext = (s) => {
   const [loginForm] = Form.useForm();
-  const { loginByPassword } = useModel('users');
+  const { loginByPassword } = useModel("users");
+  const i18n = useIntl();
 
   return (
     <div className={loginContextStyles.loginContextMain}>
@@ -15,13 +16,18 @@ const LoginContext = (props: LoginContextProps) => {
         form={loginForm}
         autoComplete="off"
         onFinish={(field) => {
-          const user = { ...field, password: CryptoJs.MD5(field.password).toString() };
+          const user = {
+            ...field,
+            password: CryptoJs.MD5(field.password).toString(),
+          };
           loginByPassword.run(user);
         }}
       >
         <Form.Item
-          label={'账号'}
-          name={'username'}
+          label={i18n.formatMessage({
+            id: "login.username",
+          })}
+          name={"username"}
           rules={[
             { required: true },
             {
@@ -34,11 +40,17 @@ const LoginContext = (props: LoginContextProps) => {
             },
           ]}
         >
-          <Input placeholder="请输入你的登录账号" />
+          <Input
+            placeholder={i18n.formatMessage({
+              id: "login.username.placeholder",
+            })}
+          />
         </Form.Item>
         <Form.Item
-          label={'密码'}
-          name={'password'}
+          label={i18n.formatMessage({
+            id: "login.password",
+          })}
+          name={"password"}
           rules={[
             { required: true },
             {
@@ -54,16 +66,23 @@ const LoginContext = (props: LoginContextProps) => {
             },
           ]}
         >
-          <Input.Password placeholder="请输入你的登录密码" allowClear />
+          <Input.Password
+            placeholder={i18n.formatMessage({
+              id: "login.password.placeholder",
+            })}
+            allowClear
+          />
         </Form.Item>
         <Form.Item noStyle>
           <Button
             loading={loginByPassword.loading}
             className={loginContextStyles.formBtn}
-            type={'primary'}
-            htmlType={'submit'}
+            type={"primary"}
+            htmlType={"submit"}
           >
-            登录
+            {i18n.formatMessage({
+              id: "login.button",
+            })}
           </Button>
         </Form.Item>
       </Form>

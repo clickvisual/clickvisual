@@ -5,6 +5,8 @@ import { MonacoDiffEditor } from "react-monaco-editor";
 import { useEffect, useRef } from "react";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 const ModalCommit = () => {
   const commitFormRef = useRef<FormInstance>(null);
@@ -20,6 +22,7 @@ const ModalCommit = () => {
     doGetConfiguration,
     doRemoveLock,
   } = useModel("configure");
+  const i18n = useIntl();
   const handleCommit = useDebounceFn(
     (field: any) => {
       if (!currentConfiguration) return;
@@ -50,7 +53,7 @@ const ModalCommit = () => {
   }, [visibleCommit]);
   return (
     <CustomModal
-      title={"保存配置变更"}
+      title={i18n.formatMessage({ id: "config.commit.title" })}
       width={"90vw"}
       visible={visibleCommit}
       footer={
@@ -58,8 +61,9 @@ const ModalCommit = () => {
           loading={doUpdatedConfiguration.loading}
           type="primary"
           onClick={() => commitFormRef.current?.submit()}
+          icon={<SaveOutlined />}
         >
-          提交
+          {i18n.formatMessage({ id: "submit" })}
         </Button>
       }
       onCancel={() => {
@@ -67,9 +71,15 @@ const ModalCommit = () => {
       }}
     >
       <Form ref={commitFormRef} layout="vertical" onFinish={handleCommit}>
-        <Form.Item label="变更记录" name="message" rules={[{ required: true }]}>
+        <Form.Item
+          label={i18n.formatMessage({ id: "config.commit.form.message" })}
+          name="message"
+          rules={[{ required: true }]}
+        >
           <Input.TextArea
-            placeholder="描述一下本次变更修改了哪些内容"
+            placeholder={`${i18n.formatMessage({
+              id: "config.commit.form.placeholder.message",
+            })}`}
             autoSize={{ minRows: 3, maxRows: 3 }}
             allowClear
           />

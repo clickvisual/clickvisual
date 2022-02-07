@@ -41,6 +41,7 @@ const JsonStringValue = ({ val, ...restProps }: JsonStringValueProps) => {
 
         return (
           <span
+            key={index}
             onClick={() => isValue && onClickValue?.(value)}
             className={classNames(
               isValue && jsonViewStyles.jsonViewValueHover,
@@ -55,7 +56,6 @@ const JsonStringValue = ({ val, ...restProps }: JsonStringValueProps) => {
   );
 };
 
-// TODO
 const splitRawLogString = (str: string): string[] => {
   const result: string[] = [];
   const strLen = str.length;
@@ -94,12 +94,10 @@ const splitRawLogString = (str: string): string[] => {
 
   for (let strKey = 0; strKey < strLen; strKey++) {
     const char = str[strKey];
-    console.log(char);
     if (REG_SEPARATORS.includes(char)) pushSeparator(char);
     else pushChar(char);
   }
 
-  console.log("split result", result);
   return result;
 };
 

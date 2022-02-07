@@ -3,6 +3,7 @@ import { Button, message, notification } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import copy from "copy-to-clipboard";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 
 export interface ResPage {
   current: number;
@@ -87,8 +88,8 @@ const defaultOptions = <R, P extends any[]>(): RequestOptions<R, P> => {
     deps: undefined,
     defaultLoading: false,
     loadingText: {
-      loading: "正在加载",
-      done: "加载成功",
+      loading: formatMessage({ id: "loading" }),
+      done: formatMessage({ id: "loadingDone" }),
     },
     // @ts-ignore
     defaultParams: [],
@@ -208,11 +209,14 @@ function useRequest<R = any, P extends any[] = any>(
     });
 
     notification.error({
-      message: "请求失败",
+      message: formatMessage({ id: "error.title" }),
       description: (
         <div>
           <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-            错误: {data?.msg || "未知错误, 请联系负责人"}
+            {formatMessage(
+              { id: "error.content" },
+              { msg: `${data?.msg || formatMessage({ id: "error.default" })}` }
+            )}
           </div>
           <div style={{ marginTop: "10px" }}>
             <Button
@@ -225,7 +229,7 @@ function useRequest<R = any, P extends any[] = any>(
               }}
             >
               <CopyOutlined />
-              复制错误信息
+              {formatMessage({ id: "error.copy" })}
             </Button>
           </div>
         </div>

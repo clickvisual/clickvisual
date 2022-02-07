@@ -1,17 +1,28 @@
-import { Button, Input, Space } from 'antd';
-import IconFont from '@/components/IconFont';
-import { SearchOutlined } from '@ant-design/icons';
+import { Button, Input, Space } from "antd";
+import IconFont from "@/components/IconFont";
+import { SearchOutlined } from "@ant-design/icons";
+import { useIntl } from "umi";
 
 const FilterTableColumn = (dataIndex: string) => {
+  const i18n = useIntl();
   return {
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }: any) => (
       <div style={{ padding: 8 }}>
         <Input
-          placeholder={'请输入查询条件'}
+          placeholder={`${i18n.formatMessage({
+            id: "table.column.filter.placeholder",
+          })}`}
           value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
           onPressEnter={() => confirm()}
-          style={{ marginBottom: 8, display: 'block' }}
+          style={{ marginBottom: 8, display: "block" }}
         />
         <Space>
           <Button
@@ -21,25 +32,36 @@ const FilterTableColumn = (dataIndex: string) => {
             size="small"
             style={{ width: 90 }}
           >
-            Search
+            {i18n.formatMessage({
+              id: "button.search",
+            })}
           </Button>
-          <Button onClick={() => clearFilters()} size="small" style={{ width: 90 }}>
-            Reset
+          <Button
+            onClick={() => clearFilters()}
+            size="small"
+            style={{ width: 90 }}
+          >
+            {i18n.formatMessage({
+              id: "table.column.filter.reset",
+            })}
           </Button>
         </Space>
       </div>
     ),
     filterIcon: (filtered: any) => (
       <IconFont
-        type={'icon-search'}
+        type={"icon-search"}
         size={32}
-        style={{ color: filtered ? '#1890ff' : undefined }}
+        style={{ color: filtered ? "#1890ff" : undefined }}
       />
     ),
     onFilter: (value: any, record: any) =>
       record[dataIndex]
-        ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
-        : '',
+        ? record[dataIndex]
+            .toString()
+            .toLowerCase()
+            .includes(value.toLowerCase())
+        : "",
   };
 };
 export default FilterTableColumn;

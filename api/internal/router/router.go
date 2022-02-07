@@ -51,11 +51,18 @@ func GetRouter() *egin.Component {
 		v1.GET("/query/logs", core.Handle(inquiry.Logs))
 		v1.GET("/query/charts", core.Handle(inquiry.Charts))
 		v1.GET("/query/databases", core.Handle(inquiry.Databases))
+
 		// table operator
 		v1.GET("/query/tables", core.Handle(inquiry.Tables))
-
-		v1.POST("/query/instances/:iid/databases/:db/tables/:table", core.Handle(inquiry.CreateTables))
+		v1.POST("/query/instances/:iid/databases/:db/tables", core.Handle(inquiry.CreateTables))
 		v1.DELETE("/query/instances/:iid/databases/:db/tables/:table", core.Handle(inquiry.DeleteTables))
+
+		// view operator
+		v1.GET("/query/views/:id", core.Handle(inquiry.ViewInfo))
+		v1.PATCH("/query/views/:id", core.Handle(inquiry.ViewUpdate))
+		v1.DELETE("/query/views/:id", core.Handle(inquiry.ViewDelete))
+		v1.GET("/query/instances/:iid/databases/:db/tables/:table/views", core.Handle(inquiry.ViewList))
+		v1.POST("/query/instances/:iid/databases/:db/tables/:table/views", core.Handle(inquiry.ViewCreate))
 
 		v1.GET("/query/indexes", core.Handle(inquiry.Indexes))
 	}
@@ -73,7 +80,7 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/sys/clusters/:id", core.Handle(setting.ClusterUpdate))
 		v1.DELETE("/sys/clusters/:id", core.Handle(setting.ClusterDelete))
 	}
-	// Data Table Customization Settings
+	// Data TableName Customization Settings
 	{
 		v1.PATCH("/setting/indexes", core.Handle(setting.IndexUpdate))
 		v1.GET("/setting/indexes", core.Handle(setting.Indexes))

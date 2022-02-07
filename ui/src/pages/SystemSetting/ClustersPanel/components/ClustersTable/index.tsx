@@ -10,11 +10,12 @@ import classNames from "classnames";
 import type { ClusterType } from "@/services/systemSetting";
 import { ClustersPanelContext } from "@/pages/SystemSetting/ClustersPanel";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
+import { useIntl } from "umi";
 
-type ClustersTableProps = {};
-const ClustersTable = (props: ClustersTableProps) => {
+const ClustersTable = () => {
   const { onChangeVisible, onChangeIsEditor, onChangeCurrentCluster } =
     useContext(ClustersPanelContext);
+  const i18n = useIntl();
   const {
     doGetClustersList,
     listLoading,
@@ -25,14 +26,14 @@ const ClustersTable = (props: ClustersTableProps) => {
 
   const column = [
     {
-      title: "名称",
+      title: `${i18n.formatMessage({ id: "cluster.clusterName" })}`,
       dataIndex: "clusterName",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
     },
     {
-      title: "描述",
+      title: `${i18n.formatMessage({ id: "description" })}`,
       dataIndex: "description",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
@@ -46,14 +47,16 @@ const ClustersTable = (props: ClustersTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
-      title: "配置",
+      title: `${i18n.formatMessage({ id: "cluster.k8sConfiguration" })}`,
       dataIndex: "kubeConfig",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "left" }),
     },
     {
-      title: "操作",
+      title: `${i18n.formatMessage({
+        id: "operation",
+      })}`,
       align: "center" as AlignType,
       width: 100,
       fixed: "right" as FixedType,
@@ -61,7 +64,11 @@ const ClustersTable = (props: ClustersTableProps) => {
       render: (_: any, record: ClusterType) => {
         return (
           <Space>
-            <Tooltip title={"编辑"}>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "edit",
+              })}
+            >
               <EditOutlined
                 onClick={() => {
                   if (
@@ -78,7 +85,11 @@ const ClustersTable = (props: ClustersTableProps) => {
               />
             </Tooltip>
             <Divider type="vertical" />
-            <Tooltip title={"删除"}>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "delete",
+              })}
+            >
               <IconFont
                 onClick={() =>
                   DeletedModal({
@@ -88,7 +99,10 @@ const ClustersTable = (props: ClustersTableProps) => {
                           .run(record.id)
                           .then(() => doGetClustersList());
                     },
-                    content: `确认删除集群：${record.clusterName} 吗？`,
+                    content: `${i18n.formatMessage(
+                      { id: "cluster.delete.confirmTip" },
+                      { clusterName: record.clusterName }
+                    )}`,
                   })
                 }
                 className={classNames(clusterPanelStyles.icon)}

@@ -1,12 +1,12 @@
-import instanceSearchBarStyles from '@/pages/SystemSetting/InstancePanel/components/InstanceSearchBar/index.less';
-import { Button } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import { useContext } from 'react';
-import { InstancePanelContext } from '@/pages/SystemSetting/InstancePanel';
+import instanceSearchBarStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceSearchBar/index.less";
+import { Button } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { useContext } from "react";
+import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
+import { useIntl } from "umi";
 
-type InstanceSearchBarProps = {};
-
-const InstanceSearchBar = (props: InstanceSearchBarProps) => {
+const InstanceSearchBar = () => {
+  const i18n = useIntl();
   const { onChangeVisible } = useContext(InstancePanelContext);
   return (
     <div className={instanceSearchBarStyles.instanceSearchBarMain}>
@@ -15,9 +15,11 @@ const InstanceSearchBar = (props: InstanceSearchBarProps) => {
           if (onChangeVisible) onChangeVisible(true);
         }}
         icon={<PlusOutlined />}
-        type={'primary'}
+        type={"primary"}
       >
-        新增实例
+        {i18n.formatMessage({
+          id: "instance.button.add",
+        })}
       </Button>
     </div>
   );

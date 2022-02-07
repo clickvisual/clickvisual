@@ -7,13 +7,10 @@ import { useDebounceFn } from "ahooks";
 import { useModel } from "@@/plugin-model/useModel";
 import type { ClusterType } from "@/services/systemSetting";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
-
-const ClusterStatus = [
-  { value: 0, name: "正常" },
-  { value: 1, name: "不正常" },
-];
 
 type CreatedOrUpdatedClusterModalProps = {
   isEditor?: boolean;
@@ -29,6 +26,18 @@ const CreatedOrUpdatedClusterModal = (
   const { doCreatedCluster, doGetClustersList, doUpdatedCluster } =
     useModel("clusters");
   const clusterFormRef = useRef<FormInstance>(null);
+  const i18n = useIntl();
+
+  const ClusterStatus = [
+    {
+      value: 0,
+      name: i18n.formatMessage({ id: "cluster.form.status.normality" }),
+    },
+    {
+      value: 1,
+      name: i18n.formatMessage({ id: "cluster.form.status.normality" }),
+    },
+  ];
 
   const onSubmit = useDebounceFn(
     (field) => {
@@ -53,7 +62,9 @@ const CreatedOrUpdatedClusterModal = (
   }, [visible, isEditor, current]);
   return (
     <CustomModal
-      title={`${isEditor ? "编辑" : "新增"}集群`}
+      title={i18n.formatMessage({
+        id: `cluster.form.title.${isEditor ? "edit" : "created"}`,
+      })}
       visible={visible}
       onCancel={onCancel}
       width={"70vw"}
@@ -64,10 +75,21 @@ const CreatedOrUpdatedClusterModal = (
         ref={clusterFormRef}
         onFinish={onSubmit.run}
       >
-        <Form.Item label={"名称"} name={"clusterName"}>
-          <Input placeholder="请输入集群名称" />
+        <Form.Item
+          label={i18n.formatMessage({ id: "cluster.clusterName" })}
+          name={"clusterName"}
+        >
+          <Input
+            placeholder={`${i18n.formatMessage({
+              id: "cluster.form.placeholder.clusterName",
+            })}`}
+          />
         </Form.Item>
-        <Form.Item label={"状态"} name={"status"} initialValue={0}>
+        <Form.Item
+          label={i18n.formatMessage({ id: "cluster.form.status" })}
+          name={"status"}
+          initialValue={0}
+        >
           <Select disabled>
             {ClusterStatus.map((status) => (
               <Option key={status.value} value={status.value}>
@@ -77,26 +99,45 @@ const CreatedOrUpdatedClusterModal = (
           </Select>
         </Form.Item>
         <Form.Item label={"Api Server"} name={"apiServer"}>
-          <Input placeholder="请输入 Api Server" />
+          <Input
+            placeholder={`${i18n.formatMessage({
+              id: "cluster.form.placeholder.apiServer",
+            })}`}
+          />
         </Form.Item>
-        <Form.Item label={"k8s配置"} name={"kubeConfig"}>
+        <Form.Item
+          label={i18n.formatMessage({ id: "cluster.k8sConfiguration" })}
+          name={"kubeConfig"}
+        >
           <Input.TextArea
-            placeholder="请输入集群 k8s 配置"
+            placeholder={`${i18n.formatMessage({
+              id: "cluster.form.placeholder.k8sConfiguration",
+            })}`}
             autoSize={{ minRows: 5, maxRows: 5 }}
             allowClear
           />
         </Form.Item>
-        <Form.Item label={"描述"} name={"description"}>
+        <Form.Item
+          label={i18n.formatMessage({ id: "description" })}
+          name={"description"}
+        >
           <Input.TextArea
-            placeholder="请输入集群描述"
+            placeholder={`${i18n.formatMessage({
+              id: "cluster.form.placeholder.description",
+            })}`}
             autoSize={{ minRows: 5, maxRows: 5 }}
             allowClear
           />
         </Form.Item>
         <Form.Item noStyle>
           <div className={clusterPanelStyles.formBtn}>
-            <Button loading={loading} type={"primary"} htmlType={"submit"}>
-              提交
+            <Button
+              loading={loading}
+              type={"primary"}
+              htmlType={"submit"}
+              icon={<SaveOutlined />}
+            >
+              {i18n.formatMessage({ id: "submit" })}
             </Button>
           </div>
         </Form.Item>
