@@ -2,7 +2,7 @@ import searchBarStyles from "@/pages/Configure/components/SelectedBar/index.less
 import { Button, Cascader, Select, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useIntl } from "umi";
 
 const { Option } = Select;
@@ -38,24 +38,27 @@ const SelectedBar = (props: SelectedBarProps) => {
 
   const disabled = !selectedClusterId;
 
-  const options =
-    configMaps.map((item) => {
-      const children = [];
-      if (item.configmaps.length > 0) {
-        for (const child of item.configmaps) {
-          children.push({
-            value: child.configmapName,
-            label: child.configmapName,
-          });
+  const options = useMemo(() => {
+    return (
+      configMaps.map((item) => {
+        const children = [];
+        if (item.configmaps.length > 0) {
+          for (const child of item.configmaps) {
+            children.push({
+              value: child.configmapName,
+              label: child.configmapName,
+            });
+          }
         }
-      }
-      return {
-        value: item.namespace,
-        label: item.namespace,
-        disabled: !(children.length > 0),
-        children: children,
-      };
-    }) || [];
+        return {
+          value: item.namespace,
+          label: item.namespace,
+          disabled: !(children.length > 0),
+          children: children,
+        };
+      }) || []
+    );
+  }, [configMaps]);
 
   const filter = (inputValue: string, path: any) => {
     return path.some(
@@ -93,6 +96,7 @@ const SelectedBar = (props: SelectedBarProps) => {
         }
         options={options}
         disabled={disabled}
+        expandTrigger="hover"
         onChange={(value: any, selectedOptions: any) => {
           if (value.length === 2) {
             doSelectedNameSpace(value[0]);
