@@ -178,7 +178,6 @@ func DeleteTables(c *core.Context) {
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
 		return
 	}

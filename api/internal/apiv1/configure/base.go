@@ -137,7 +137,6 @@ func Update(c *core.Context) {
 	}
 	err = tx.Commit().Error
 	if err != nil {
-		tx.Rollback()
 		c.JSONE(1, err.Error(), err)
 		return
 	}
@@ -406,7 +405,6 @@ func Sync(c *core.Context) {
 	}
 	err = tx.Commit().Error
 	if err != nil {
-		tx.Rollback()
 		c.JSONE(1, err.Error(), err)
 		return
 	}

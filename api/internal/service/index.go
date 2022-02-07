@@ -109,7 +109,6 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 	// If the commit fails, the clickhouse operation is not rolled back
 	if err = tx.Commit().Error; err != nil {
 		elog.Error("Fatal", elog.String("error", err.Error()), elog.Any("step", "clickhouse db struct can't rollback"))
-		tx.Rollback()
 		return
 	}
 	return

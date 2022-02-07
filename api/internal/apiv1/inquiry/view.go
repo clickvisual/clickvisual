@@ -81,7 +81,6 @@ func ViewDelete(c *core.Context) {
 	}
 
 	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
@@ -173,7 +172,6 @@ func ViewCreate(c *core.Context) {
 	}
 
 	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
@@ -262,7 +260,6 @@ func ViewUpdate(c *core.Context) {
 	}
 
 	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}

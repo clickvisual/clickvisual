@@ -20,12 +20,12 @@ func (s *configure) TryLock(uid, configId int) (err error) {
 		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&config).Error
 		if err != nil {
 			tx.Rollback()
-			return fmt.Errorf("配置不存在")
+			return fmt.Errorf("configuration does not exist")
 		}
 
 		if config.LockUid != 0 && config.LockUid != uid {
 			tx.Rollback()
-			return fmt.Errorf("当前有其他客户端正在编辑,获取编辑锁失败")
+			return fmt.Errorf("failed to release the edit lock because another client is currently editing")
 		}
 
 		err = tx.Model(&db.Configuration{}).Where("id = ?", config.ID).Updates(map[string]interface{}{
@@ -34,7 +34,7 @@ func (s *configure) TryLock(uid, configId int) (err error) {
 		}).Error
 		if err != nil {
 			tx.Rollback()
-			return errors.Wrap(err, "获取编辑锁失败")
+			return errors.Wrap(err, "failed to get edit lock")
 		}
 	}
 	return tx.Commit().Error
@@ -48,12 +48,12 @@ func (s *configure) Unlock(uid, configId int) (err error) {
 		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&config).Error
 		if err != nil {
 			tx.Rollback()
-			return fmt.Errorf("配置不存在")
+			return fmt.Errorf("configuration does not exist")
 		}
 
 		if config.LockUid != 0 && config.LockUid != uid {
 			tx.Rollback()
-			return fmt.Errorf("当前有其他客户端正在编辑,释放编辑锁失败")
+			return fmt.Errorf("failed to release the edit lock because another client is currently editing")
 		}
 
 		err = tx.Model(&db.Configuration{}).Where("id = ?", config.ID).Updates(map[string]interface{}{
@@ -62,13 +62,13 @@ func (s *configure) Unlock(uid, configId int) (err error) {
 		}).Error
 		if err != nil {
 			tx.Rollback()
-			return errors.Wrap(err, "释放编辑锁失败")
+			return errors.Wrap(err, "failed to release edit lock")
 		}
 	}
 	return tx.Commit().Error
 }
 
-// clearLockPeriodically 定期清除编辑锁
+// clearLockPeriodically clear edit locks periodically
 func (s *configure) clearLockPeriodically() {
 	var configs []db.Configuration
 
