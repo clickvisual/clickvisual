@@ -24,6 +24,7 @@ const HighCharts = () => {
     highChartList,
     onChangeLogPane,
     doParseQuery,
+    currentRelativeUnit,
   } = useModel("dataLogs");
   const [highChartPosition, setHighChartPosition] = useState<"left" | "right">(
     "left"
@@ -37,6 +38,14 @@ const HighCharts = () => {
     return moment(timeStr, "X").format(formatType);
   };
 
+  const formatTimes = {
+    minutes: "LTS",
+    hours: "LT",
+    days: "L",
+    months: "L",
+    years: "YYYY/MM",
+  };
+
   const oldPane = logPanes.find(
     (item) => item.pane === currentLogLibrary
   ) as PaneType;
@@ -45,7 +54,8 @@ const HighCharts = () => {
     from: {
       type: "timeCat",
       tickCount: 8,
-      formatter: (text: string) => format(text, "L"),
+      formatter: (text: string) =>
+        format(text, formatTimes[currentRelativeUnit]),
     },
     count: {
       type: "pow",
