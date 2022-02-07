@@ -45,6 +45,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
           })}
         >
           <Button
+            disabled={!currentDatabase}
             onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
             type={"primary"}
             icon={<PlusOutlined />}
