@@ -17,7 +17,7 @@ var clickhouseTableDataORM = map[int]string{
 )
 engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
 ORDER BY _timestamp_
-TTL toDateTime(_timestamp_) + INTERVAL %d WEEK 
+TTL toDateTime(_timestamp_) + INTERVAL %d DAY 
 SETTINGS index_granularity = 8192;`,
 	TableTypeEgo: `create table if not exists %s
 (
@@ -46,7 +46,7 @@ SETTINGS index_granularity = 8192;`,
 )
 engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
 ORDER BY _timestamp_ 
-TTL toDateTime(_timestamp_) + INTERVAL %d WEEK
+TTL toDateTime(_timestamp_) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;`,
 	TableTypeIngress: `create table if not exists %s
 (
@@ -80,7 +80,7 @@ SETTINGS index_granularity = 8192;`,
 )
 engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
 ORDER BY _timestamp_
-TTL toDateTime(_timestamp_) + INTERVAL %d WEEK
+TTL toDateTime(_timestamp_) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;`,
 }
 
