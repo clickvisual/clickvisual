@@ -7,10 +7,9 @@ import { useEffect } from "react";
 import type { InstanceType } from "@/services/systemSetting";
 import FilterTableColumn from "@/components/FilterTableColumn";
 import { useIntl } from "umi";
-type SelectedDatabaseDrawProps = {};
 
 const { Option } = Select;
-const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
+const SelectedDataBaseDraw = () => {
   const {
     databaseList,
     visibleDataBaseDraw,

@@ -9,8 +9,8 @@ import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
 import { PaneType } from "@/models/dataLogs";
-type HighChartsProps = {};
-const HighCharts = (props: HighChartsProps) => {
+
+const HighCharts = () => {
   const {
     logPanes,
     currentLogLibrary,

@@ -1,9 +1,8 @@
 import React from "react";
 import { Space } from "antd";
-import { useModel } from "umi";
+import { SelectLang, useModel } from "umi";
 import Avatar from "./AvatarDropdown";
 import styles from "./index.less";
-import { SelectLang } from "@/components/SelectLang";
 
 export type SiderTheme = "light" | "dark";
 
@@ -23,7 +22,7 @@ const RightContent: React.FC = () => {
   return (
     <Space className={className}>
       <Avatar />
-      <SelectLang className={styles.action} />
+      <SelectLang className={styles.action} reload={false} />
     </Space>
   );
 };

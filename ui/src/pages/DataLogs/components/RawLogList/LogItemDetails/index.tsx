@@ -5,8 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import LogContentParse from "@/pages/DataLogs/components/RawLogList/LogItem/LogContentParse";
 
-type LogItemDetailsProps = {};
-const LogItemDetails = (props: LogItemDetailsProps) => {
+const LogItemDetails = () => {
   const { log } = useContext(LogItemContext);
   const { highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");

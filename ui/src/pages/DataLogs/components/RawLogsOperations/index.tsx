@@ -3,9 +3,7 @@ import { Pagination } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 
-type RawLogsPaginationProps = {};
-
-const RawLogsOperations = (props: RawLogsPaginationProps) => {
+const RawLogsOperations = () => {
   const { logs, pageSize, currentPage, onChangeLogsPage } =
     useModel("dataLogs");
   const i18n = useIntl();

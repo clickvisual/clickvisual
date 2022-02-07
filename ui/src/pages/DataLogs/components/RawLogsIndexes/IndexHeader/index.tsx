@@ -3,8 +3,8 @@ import IconFont from "@/components/IconFont";
 import { Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-type IndexHeaderProps = {};
-const IndexHeader = (props: IndexHeaderProps) => {
+
+const IndexHeader = () => {
   const { onChangeVisibleIndexModal } = useModel("dataLogs");
   const i18n = useIntl();
   return (

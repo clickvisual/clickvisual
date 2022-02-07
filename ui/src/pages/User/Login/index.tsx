@@ -3,8 +3,7 @@ import LoginFooter from "@/pages/User/Login/Footer";
 import LoginContext from "@/pages/User/Login/Context";
 import { useIntl } from "umi";
 
-type LoginProps = {};
-const Login = (props: LoginProps) => {
+const Login = () => {
   const i18n = useIntl();
   return (
     <div className={loginStyles.loginMain}>
