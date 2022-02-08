@@ -12,6 +12,7 @@ import (
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
 	"github.com/shimohq/mogo/api/internal/apiv1/sys"
+	"github.com/shimohq/mogo/api/internal/apiv1/trace"
 	"github.com/shimohq/mogo/api/internal/apiv1/user"
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/middlewares"
@@ -106,6 +107,10 @@ func GetRouter() *egin.Component {
 		v1.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))
 		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
 		v1.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
+	}
+	// Trace
+	{
+		v1.GET("/traces/:tid", core.Handle(trace.Info))
 	}
 	return r
 }
