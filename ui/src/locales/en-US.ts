@@ -68,7 +68,7 @@ export default {
   "cluster.form.status.normality": "Normality",
   "cluster.form.status.anomaly": "Anomaly",
   "cluster.form.placeholder.clusterName": "Please enter a cluster name",
-  "cluster.form.placeholder.apiServer": "Please enter Api Server",
+  "cluster.form.placeholder.apiServer": "http://localhost:6443",
   "cluster.form.placeholder.k8sConfiguration":
     "Please enter k8s cluster configuration",
   "cluster.form.placeholder.description":
