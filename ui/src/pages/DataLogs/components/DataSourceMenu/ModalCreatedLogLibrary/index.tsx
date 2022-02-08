@@ -94,6 +94,12 @@ const ModalCreatedLogLibrary = () => {
                 id: "datasource.logLibrary.placeholder.tableName",
               }),
             },
+            {
+              pattern: new RegExp(/^[a-zA-Z_]+$/),
+              message: i18n.formatMessage({
+                id: "datasource.logLibrary.from.rule.tableName",
+              }),
+            },
           ]}
         >
           <Input
@@ -176,6 +182,12 @@ const ModalCreatedLogLibrary = () => {
               required: true,
               message: i18n.formatMessage({
                 id: "datasource.logLibrary.placeholder.topics",
+              }),
+            },
+            {
+              pattern: new RegExp(/^[a-zA-Z\-]+$/),
+              message: i18n.formatMessage({
+                id: "datasource.logLibrary.from.rule.topics",
               }),
             },
           ]}
