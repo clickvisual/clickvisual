@@ -23,6 +23,7 @@ export default {
   // menu
   "menu.configure": "配置",
   "menu.log": "日志",
+  "menu.alarm": "报警中心",
   "menu.systemSettings": "系统设置",
   "menu.systemSettings.database": "数据库管理",
   "menu.systemSettings.cluster": "集群管理",
@@ -67,7 +68,7 @@ export default {
   "cluster.form.status.normality": "正常",
   "cluster.form.status.anomaly": "异常",
   "cluster.form.placeholder.clusterName": "请输入集群名称",
-  "cluster.form.placeholder.apiServer": "请输入 Api Server",
+  "cluster.form.placeholder.apiServer": "http://localhost:6443",
   "cluster.form.placeholder.k8sConfiguration": "请输入集群的 k8s 配置",
   "cluster.form.placeholder.description": "请输入集群的描述",
   "cluster.success.created": "新增集群成功",
