@@ -24,7 +24,7 @@ export default {
   "menu.configure": "Config",
   "menu.log": "Logs",
   "menu.systemSettings": "Setting",
-  "menu.systemSettings.database": "Database",
+  "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
 
   // user
@@ -52,6 +52,7 @@ export default {
   "instance.form.placeholder.instanceName": "Please enter an instance name",
   "instance.form.placeholder.datasource": "Please select datasource",
   "instance.form.placeholder.dsn": "Please enter DSN, for example: {example}",
+  "instance.operation.addDatabase": "Adding a database",
   "instance.success.created": "Created instance succeeded",
   "instance.success.updated": "Updated instance succeeded",
   "instance.success.deleted": "Deleted instance succeeded",
@@ -173,11 +174,13 @@ export default {
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
 
-  "datasource.logLibrary.placeholder.tableName": "Please enter a table name",
+  "datasource.logLibrary.placeholder.tableName":
+    "Please enter the name of the data table in upper or lower case English or underscore",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
-  "datasource.logLibrary.placeholder.brokers": "Please enter Brokers",
-  "datasource.logLibrary.placeholder.topics": "Please enter Topics",
+  "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
+  "datasource.logLibrary.placeholder.topics":
+    "Please enter Topics, support in uppercase or lowercase English or crossed",
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
@@ -219,7 +222,7 @@ export default {
     "Confirm deletion rule: {rule}?",
 
   // Data Logs-Datasource-Draw
-  "datasource.draw.title": "Datasource Switching",
+  "datasource.draw.title": "Database Switching",
   "datasource.draw.selected": "Please select an instance",
   "datasource.draw.table.datasource": "Datasource",
   "datasource.draw.table.instance": "Instance",

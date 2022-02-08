@@ -24,7 +24,7 @@ export default {
   "menu.configure": "配置",
   "menu.log": "日志",
   "menu.systemSettings": "系统设置",
-  "menu.systemSettings.database": "数据库管理",
+  "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
 
   // user
@@ -52,6 +52,7 @@ export default {
   "instance.form.placeholder.instanceName": "请输入实例名称",
   "instance.form.placeholder.datasource": "请选择数据源",
   "instance.form.placeholder.dsn": "请输入数据源连接串，例如：{example}",
+  "instance.operation.addDatabase": "新增数据库",
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
   "instance.success.deleted": "删除实例成功",
@@ -167,11 +168,13 @@ export default {
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
 
-  "datasource.logLibrary.placeholder.tableName": "请输入数据表名称",
+  "datasource.logLibrary.placeholder.tableName":
+    "请输入数据表名称，支持大写或小写英语或下划线",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
-  "datasource.logLibrary.placeholder.brokers": "请输入 Brokers",
-  "datasource.logLibrary.placeholder.topics": "请输入 Topics",
+  "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
+  "datasource.logLibrary.placeholder.topics":
+    "请输入 Topics，支持大写或小写英语或中划线",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
   "datasource.tooltip.icon.view": "配置数据采集规则",
@@ -203,7 +206,7 @@ export default {
   "datasource.logLibrary.views.deleted.content": "确定删除规则：{rule} 吗？",
 
   // Data Logs-Datasource-Draw
-  "datasource.draw.title": "数据源切换",
+  "datasource.draw.title": "数据库切换",
   "datasource.draw.selected": "请选择实例",
   "datasource.draw.table.datasource": "数据源",
   "datasource.draw.table.instance": "实例",
