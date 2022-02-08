@@ -12,9 +12,7 @@ import { IndexInfoType } from "@/services/dataLogs";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
 
-type ManageIndexModalProps = {};
-
-const ManageIndexModal = (props: ManageIndexModalProps) => {
+const ManageIndexModal = () => {
   const {
     visibleIndexModal,
     onChangeVisibleIndexModal,

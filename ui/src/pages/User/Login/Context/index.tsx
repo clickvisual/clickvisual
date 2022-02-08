@@ -4,8 +4,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import CryptoJs from "crypto-js";
 import { useIntl } from "umi";
 
-type LoginContextProps = {};
-const LoginContext = (props: LoginContextProps) => {
+const LoginContext = (s) => {
   const [loginForm] = Form.useForm();
   const { loginByPassword } = useModel("users");
   const i18n = useIntl();

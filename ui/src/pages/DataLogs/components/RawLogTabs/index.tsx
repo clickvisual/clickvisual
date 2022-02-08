@@ -7,8 +7,7 @@ import { useIntl } from "umi";
 
 const { TabPane } = Tabs;
 
-type RawLogTabsProps = {};
-const RawLogTabs = (props: RawLogTabsProps) => {
+const RawLogTabs = () => {
   const {
     logPanes,
     currentLogLibrary,

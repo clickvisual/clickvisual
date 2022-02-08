@@ -5,8 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { Empty } from "antd";
 import { useIntl } from "umi";
 
-type RawLogsProps = {};
-const RawLogs = (props: RawLogsProps) => {
+const RawLogs = () => {
   const { logs } = useModel("dataLogs");
   const i18n = useIntl();
 

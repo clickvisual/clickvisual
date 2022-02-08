@@ -12,8 +12,7 @@ import { ClustersPanelContext } from "@/pages/SystemSetting/ClustersPanel";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
 
-type ClustersTableProps = {};
-const ClustersTable = (props: ClustersTableProps) => {
+const ClustersTable = () => {
   const { onChangeVisible, onChangeIsEditor, onChangeCurrentCluster } =
     useContext(ClustersPanelContext);
   const i18n = useIntl();

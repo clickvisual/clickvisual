@@ -5,9 +5,7 @@ import { useContext } from "react";
 import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
 import { useIntl } from "umi";
 
-type InstanceSearchBarProps = {};
-
-const InstanceSearchBar = (props: InstanceSearchBarProps) => {
+const InstanceSearchBar = () => {
   const i18n = useIntl();
   const { onChangeVisible } = useContext(InstancePanelContext);
   return (
