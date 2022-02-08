@@ -7,6 +7,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
+	"github.com/shimohq/mogo/api/internal/apiv1/database"
 	"github.com/shimohq/mogo/api/internal/apiv1/inquiry"
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
@@ -111,6 +112,12 @@ func GetRouter() *egin.Component {
 	// Trace
 	{
 		v1.GET("/traces/:tid", core.Handle(trace.Info))
+	}
+	// Database
+	{
+		v1.POST("/instances/:iid/database", core.Handle(database.Create))
+		v1.GET("/instances/:iid/database", core.Handle(database.List))
+		v1.DELETE("/instances/:iid/database/:id", core.Handle(database.Delete))
 	}
 	return r
 }
