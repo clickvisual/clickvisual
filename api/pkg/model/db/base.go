@@ -12,6 +12,7 @@ const (
 	TableNameTable    = "mogo_table"
 	TableNameIndex    = "mogo_index"
 	TableNameCluster  = "mogo_cluster"
+	TableNameDatabase = "mogo_database"
 	TableNameInstance = "mogo_instance"
 
 	TableNameConfiguration        = "mogo_configuration"

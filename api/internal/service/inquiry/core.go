@@ -14,6 +14,7 @@ import (
 
 type Operator interface {
 	Databases() ([]view.RespDatabase, error)
+	DatabaseCreate(string) error
 	Tables(string) ([]string, error)
 	TableCreate(string, view.ReqTableCreate) (string, string, string, error)
 	TableDrop(string, string, int) error

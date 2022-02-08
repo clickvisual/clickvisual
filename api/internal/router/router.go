@@ -115,9 +115,9 @@ func GetRouter() *egin.Component {
 	}
 	// Database
 	{
-		v1.POST("/instances/:iid/database", core.Handle(database.Create))
-		v1.GET("/instances/:iid/database", core.Handle(database.List))
-		v1.DELETE("/instances/:iid/database/:id", core.Handle(database.Delete))
+		v1.POST("/instances/:iid/databases", core.Handle(database.Create))
+		v1.GET("/instances/:iid/databases", core.Handle(database.List))
+		v1.DELETE("/databases/:id", core.Handle(database.Delete))
 	}
 	return r
 }

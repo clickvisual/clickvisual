@@ -246,6 +246,15 @@ func (c *ClickHouse) viewOperator(typ, tid int, database, table, timestampKey st
 	return viewSQL, nil
 }
 
+func (c *ClickHouse) DatabaseCreate(name string) error {
+	_, err := c.db.Exec(fmt.Sprintf("create database %s;", name))
+	if err != nil {
+		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
+		return err
+	}
+	return nil
+}
+
 func (c *ClickHouse) viewRollback(tid int, key string) {
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {

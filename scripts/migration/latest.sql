@@ -1,6 +1,18 @@
 CREATE DATABASE mocro DEFAULT CHARSET utf8mb4;
 USE mocro;
 
+CREATE TABLE `mogo_database` (
+    `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `iid` int(11) DEFAULT NULL COMMENT '实例 id',
+    `name` varchar(128) NOT NULL COMMENT '数据库名称',
+    `uid` int(11) DEFAULT NULL COMMENT '操作人',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_iid_name` (`iid`,`name`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '数据库管理' DEFAULT CHARSET = utf8mb4;
+
 CREATE TABLE `mogo_table` (
     `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
     `iid` int(11) DEFAULT NULL COMMENT '实例 id',
