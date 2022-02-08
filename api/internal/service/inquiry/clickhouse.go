@@ -202,13 +202,21 @@ func (c *ClickHouse) TableCreate(database string, ct view.ReqTableCreate) (dStre
 	return
 }
 
-func (c *ClickHouse) viewOperator(typ, iid int, database, table, timestampKey string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (string, error) {
+func (c *ClickHouse) viewOperator(typ, tid int, database, table, timestampKey string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (res string, err error) {
+	viewName := genViewName(database, table, timestampKey)
+
+	defer func() {
+		if err != nil {
+			elog.Info("viewOperator", elog.Any("tid", tid), elog.Any("timestampKey", timestampKey), elog.Any("database", database), elog.Any("table", table), elog.String("step", "doViewRollback"))
+			c.viewRollback(tid, timestampKey)
+		}
+	}()
+
 	var (
-		err     error
 		viewSQL string
 	)
 	jsonExtractSQL := ""
-	if iid != 0 {
+	if tid != 0 {
 		jsonExtractSQL, err = c.genJsonExtractSQL(indexes)
 		if err != nil {
 			return "", err
@@ -216,7 +224,6 @@ func (c *ClickHouse) viewOperator(typ, iid int, database, table, timestampKey st
 	}
 	dName := genName(database, table)
 	streamName := genStreamName(database, table)
-	viewName := genViewName(database, table, timestampKey)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
 	_, err = c.db.Exec(viewDropSQL)
@@ -237,6 +244,35 @@ func (c *ClickHouse) viewOperator(typ, iid int, database, table, timestampKey st
 		}
 	}
 	return viewSQL, nil
+}
+
+func (c *ClickHouse) viewRollback(tid int, key string) {
+	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	if err != nil {
+		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
+		return
+	}
+	var viewSQL = ""
+	if key == "" {
+		// defaultView
+		viewSQL = tableInfo.SqlView
+	} else {
+		// ts view
+		condsView := egorm.Conds{}
+		condsView["tid"] = tid
+		condsView["key"] = key
+		viewInfo, err := db.ViewInfoX(condsView)
+		if err != nil {
+			elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
+			return
+		}
+		viewSQL = viewInfo.SqlView
+	}
+	_, err = c.db.Exec(viewSQL)
+	if err != nil {
+		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewSQL", viewSQL))
+		return
+	}
 }
 
 func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
