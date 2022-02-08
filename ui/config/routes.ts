@@ -17,6 +17,11 @@ export default [
     component: "./Configure",
   },
   {
+    path: "/alarm",
+    name: "alarm",
+    component: "./Alarm",
+  },
+  {
     path: "/sys",
     name: "systemSettings",
     component: "../layouts/SystemSetting",
