@@ -23,6 +23,7 @@ export default {
   // menu
   "menu.configure": "Config",
   "menu.log": "Logs",
+  "menu.alarm": "Alarm",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Database",
   "menu.systemSettings.cluster": "Cluster",

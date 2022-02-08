@@ -23,6 +23,7 @@ export default {
   // menu
   "menu.configure": "配置",
   "menu.log": "日志",
+  "menu.alarm": "报警中心",
   "menu.systemSettings": "系统设置",
   "menu.systemSettings.database": "数据库管理",
   "menu.systemSettings.cluster": "集群管理",
