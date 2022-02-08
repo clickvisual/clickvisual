@@ -11,10 +11,10 @@ permission:
       - name: 获取日志tables
         method: GET
         path: /api/query/tables
-  - name: configure
-    path: /configure
   - name: alarm
     path: /alarm
+  - name: configure
+    path: /configure
   - name: systemSettings
     path: /sys
     children:
