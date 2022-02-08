@@ -163,18 +163,22 @@ export default {
   "datasource.logLibrary.search.created": "新增日志库",
 
   "datasource.logLibrary.from.tableName": "数据表名称",
+  "datasource.logLibrary.from.rule.tableName":
+    "请输入小写字母、大写字母，或下划线",
   "datasource.logLibrary.from.type": "数据表类型",
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.rule.topics":
+    "请输入小写字母、大写字母，或中划线",
 
   "datasource.logLibrary.placeholder.tableName":
-    "请输入数据表名称，支持大写或小写英语或下划线",
+    "请输入数据表名称，支持小写字母、大写字母，或下划线",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
   "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
   "datasource.logLibrary.placeholder.topics":
-    "请输入 Topics，支持大写或小写英语或中划线",
+    "请输入 Topics，支持小写字母、大写字母，或中划线",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
   "datasource.tooltip.icon.view": "配置数据采集规则",

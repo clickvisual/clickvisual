@@ -169,10 +169,14 @@ export default {
   "datasource.logLibrary.search.created": "Creating a Log library",
 
   "datasource.logLibrary.from.tableName": "Table Name",
+  "datasource.logLibrary.from.rule.tableName":
+    "Please enter lowercase letters, uppercase letters, or underscores",
   "datasource.logLibrary.from.type": "Table Type",
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.rule.topics":
+    "Please enter lowercase letters, uppercase letters, or hyphens",
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
