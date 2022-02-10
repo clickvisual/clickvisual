@@ -42,7 +42,7 @@ export default {
   "login.message.logOut": "Log Out successfully",
 
   // System Setting
-  // Database Management
+  // Instance Management
   "instance.button.add": "Add instance",
   "instance.instanceName": "Instance Name",
   "instance.datasource": "Datasource",
@@ -56,6 +56,14 @@ export default {
   "instance.success.created": "Created instance succeeded",
   "instance.success.updated": "Updated instance succeeded",
   "instance.success.deleted": "Deleted instance succeeded",
+
+  // Database Management
+  "database.form.title": "Create Database",
+  "database.form.label.name": "Database Name",
+  "database.form.placeholder.name": "Please enter a database name",
+  "database.form.reg.name":
+    "Support only _, lowercase letters or Numbers, and begin with a letter",
+  "database.success.created": "Created database succeeded",
 
   // Cluster Management
   "cluster.button.add": "Add cluster",

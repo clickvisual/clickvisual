@@ -6,6 +6,7 @@ import api, {
   HighCharts,
   InstanceSelectedType,
   LogsResponse,
+  TablesResponse,
 } from "@/services/dataLogs";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { currentTimeStamp } from "@/utils/momentUtils";
@@ -26,6 +27,7 @@ import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 
 export type PaneType = {
   pane: string;
+  paneId: number;
   start: number;
   end: number;
   keyword: string | undefined;
@@ -36,7 +38,7 @@ export type PaneType = {
 };
 
 export type QueryParams = {
-  logLibrary?: string;
+  // logLibrary?: TablesResponse;
   page?: number;
   pageSize?: number;
   st?: number;
@@ -63,9 +65,9 @@ const DataLogsModel = () => {
   const [currentPage, setCurrentPage] = useState<number>();
 
   // 日志库列表
-  const [logLibraryList, setLogLibraryList] = useState<string[]>([]);
+  const [logLibraryList, setLogLibraryList] = useState<TablesResponse[]>([]);
   const [currentLogLibrary, setCurrentLogLibrary] = useState<
-    string | undefined
+    TablesResponse | undefined
   >();
   const [highlightKeywords, setHighlightKeywords] = useState<
     { key: string; value: string }[] | undefined
@@ -143,7 +145,7 @@ const DataLogsModel = () => {
     setCurrentDatabase(database);
   };
 
-  const onChangeLogLibrary = (logLibrary: string | undefined) => {
+  const onChangeLogLibrary = (logLibrary: TablesResponse | undefined) => {
     setCurrentLogLibrary(logLibrary);
   };
 
@@ -182,14 +184,13 @@ const DataLogsModel = () => {
     onChangeLogPanes(currentLogPanes);
   };
 
-  const onChangeCurrentLogPane = (tabPane: PaneType, logLibrary: string) => {
+  const onChangeCurrentLogPane = (tabPane: PaneType) => {
     const queryParam: QueryParams = {
       page: tabPane?.page,
       pageSize: tabPane?.pageSize,
       st: tabPane?.start,
       et: tabPane?.end,
       kw: tabPane?.keyword,
-      logLibrary: logLibrary,
     };
     onChangeLogsPage(tabPane?.page as number, tabPane?.pageSize as number);
     onChangeEndDateTime(tabPane?.end as number);
@@ -276,14 +277,8 @@ const DataLogsModel = () => {
     loadingText: false,
   });
 
-  const logsAndHighChartsPayload = (
-    database: DatabaseResponse,
-    params?: QueryParams
-  ) => {
+  const logsAndHighChartsPayload = (params?: QueryParams) => {
     return {
-      database: database.databaseName,
-      iid: database.instanceId,
-      table: params?.logLibrary || (currentLogLibrary as string),
       st: params?.st || (startDateTime as number),
       et: params?.et || (endDateTime as number),
       query: params?.kw || keywordInput,
@@ -293,10 +288,11 @@ const DataLogsModel = () => {
   };
 
   const doGetLogs = (params?: QueryParams) => {
-    if (currentDatabase) {
+    if (currentDatabase && currentLogLibrary) {
       cancelTokenLogsRef.current?.();
       getLogs.run(
-        logsAndHighChartsPayload(currentDatabase, params),
+        currentLogLibrary.id,
+        logsAndHighChartsPayload(params),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
         })
@@ -304,10 +300,11 @@ const DataLogsModel = () => {
     }
   };
   const doGetHighCharts = (params?: QueryParams) => {
-    if (currentDatabase) {
+    if (currentDatabase && currentLogLibrary) {
       cancelTokenHighChartsRef.current?.();
       getHighCharts.run(
-        logsAndHighChartsPayload(currentDatabase, params),
+        currentLogLibrary.id,
+        logsAndHighChartsPayload(params),
         new CancelToken(function executor(c) {
           cancelTokenHighChartsRef.current = c;
         })
@@ -317,10 +314,7 @@ const DataLogsModel = () => {
 
   const doGetLogLibraryList = () => {
     if (currentDatabase) {
-      getLogLibraries.run({
-        database: currentDatabase.databaseName,
-        iid: currentDatabase.instanceId,
-      });
+      getLogLibraries.run(currentDatabase.id);
     }
   };
 
@@ -386,22 +380,19 @@ const DataLogsModel = () => {
   };
 
   useEffect(() => {
-    // debugger;
     if (currentDatabase && currentLogLibrary && pageSize && currentPage) {
       cancelTokenLogsRef.current?.();
       cancelTokenHighChartsRef.current?.();
       getLogs.run(
-        logsAndHighChartsPayload(currentDatabase, {
-          logLibrary: currentLogLibrary,
-        }),
+        currentLogLibrary.id,
+        logsAndHighChartsPayload(),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
         })
       );
       getHighCharts.run(
-        logsAndHighChartsPayload(currentDatabase, {
-          logLibrary: currentLogLibrary,
-        }),
+        currentLogLibrary.id,
+        logsAndHighChartsPayload(),
         new CancelToken(function executor(c) {
           cancelTokenHighChartsRef.current = c;
         })

@@ -42,7 +42,7 @@ export default {
   "login.message.logOut": "退出登录成功",
 
   // System Setting
-  // Database Management
+  // Instance Management
   "instance.button.add": "新增实例",
   "instance.instanceName": "实例名称",
   "instance.datasource": "数据源",
@@ -56,6 +56,13 @@ export default {
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
   "instance.success.deleted": "删除实例成功",
+
+  // Database Management
+  "database.form.title": "新增数据库",
+  "database.form.label.name": "数据库名称",
+  "database.form.placeholder.name": "请输入数据库名称",
+  "database.form.reg.name": "仅支持_、小写字母或数字，且以字母开头",
+  "database.success.created": "新增数据库成功",
 
   // Cluster Management
   "cluster.button.add": "新增集群",
