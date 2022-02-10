@@ -105,6 +105,8 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id/indexes/:idx", core.Handle(inquiry.Indexes))
 		v1.PATCH("/tables/:id/indexes", core.Handle(setting.IndexUpdate))
 		v1.GET("/tables/:id/indexes", core.Handle(setting.Indexes))
+
+		v1.GET("/table/id", core.Handle(base.TableId))
 	}
 	// View
 	{

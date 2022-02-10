@@ -11,6 +11,40 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
+func TableId(c *core.Context) {
+	var param view.ReqTableId
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	condsIns := egorm.Conds{}
+	condsIns["name"] = param.Instance
+	condsIns["datasource"] = param.Datasource
+	instance, err := db.InstanceInfoX(invoker.Db, condsIns)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	condsDb := egorm.Conds{}
+	condsDb["iid"] = instance.ID
+	condsDb["name"] = param.Database
+	databaseInfo, err := db.DatabaseInfoX(invoker.Db, condsDb)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	condsTb := egorm.Conds{}
+	condsTb["did"] = databaseInfo.ID
+	condsTb["name"] = param.Table
+	tableInfo, err := db.TableInfoX(invoker.Db, condsTb)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK(tableInfo.ID)
+}
+
 func TableCreate(c *core.Context) {
 	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
@@ -68,6 +102,11 @@ func TableInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
 		return
 	}
+	instance, err := db.InstanceInfo(invoker.Db, tableInfo.Database.Iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
+		return
+	}
 	res := view.RespTableDetail{
 		Did:     tableInfo.Did,
 		Name:    tableInfo.Name,
@@ -76,6 +115,13 @@ func TableInfo(c *core.Context) {
 		Brokers: tableInfo.Brokers,
 		Topic:   tableInfo.Topic,
 		Uid:     tableInfo.Uid,
+		Database: view.RespDatabaseItem{
+			Id:             tableInfo.Database.ID,
+			Iid:            tableInfo.Database.Iid,
+			Name:           tableInfo.Database.Name,
+			Uid:            tableInfo.Database.Uid,
+			DatasourceType: instance.Datasource,
+		},
 	}
 	keys := make([]string, 0)
 	data := make(map[string]string, 0)

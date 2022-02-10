@@ -5,8 +5,6 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-
-	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
 // Database 数据库管理
@@ -43,10 +41,10 @@ func DatabaseDelete(db *gorm.DB, id int) (err error) {
 }
 
 // DatabaseInfoX Info extension method to query a single record according to Cond
-func DatabaseInfoX(conds map[string]interface{}) (resp Database, err error) {
+func DatabaseInfoX(db *gorm.DB, conds map[string]interface{}) (resp Database, err error) {
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Table(TableNameDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		elog.Error("infoX error", zap.Error(err))
 		return
 	}
