@@ -16,7 +16,6 @@ const ManageIndexModal = () => {
   const {
     visibleIndexModal,
     onChangeVisibleIndexModal,
-    currentDatabase,
     currentLogLibrary,
     settingIndexes,
     getIndexList,
@@ -34,7 +33,7 @@ const ManageIndexModal = () => {
 
   const onSubmit = useDebounceFn(
     (field) => {
-      if (!currentDatabase || !currentLogLibrary) return;
+      if (!currentLogLibrary) return;
 
       settingIndexes
         .run(currentLogLibrary.id, { data: field.data })
@@ -50,7 +49,7 @@ const ManageIndexModal = () => {
   );
 
   useEffect(() => {
-    if (visibleIndexModal && currentDatabase && currentLogLibrary) {
+    if (visibleIndexModal && currentLogLibrary) {
       getIndexList.run(currentLogLibrary.id).then((res) => {
         if (res?.code === 0) {
           setIndexList(res.data);

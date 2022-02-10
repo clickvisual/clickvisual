@@ -291,7 +291,7 @@ const DataLogsModel = () => {
   };
 
   const doGetLogs = (params?: QueryParams) => {
-    if (currentDatabase && currentLogLibrary) {
+    if (currentLogLibrary) {
       cancelTokenLogsRef.current?.();
       getLogs.run(
         currentLogLibrary.id,
@@ -303,7 +303,7 @@ const DataLogsModel = () => {
     }
   };
   const doGetHighCharts = (params?: QueryParams) => {
-    if (currentDatabase && currentLogLibrary) {
+    if (currentLogLibrary) {
       cancelTokenHighChartsRef.current?.();
       getHighCharts.run(
         currentLogLibrary.id,
@@ -383,7 +383,7 @@ const DataLogsModel = () => {
   };
 
   useEffect(() => {
-    if (currentDatabase && currentLogLibrary && pageSize && currentPage) {
+    if (currentLogLibrary && pageSize && currentPage) {
       cancelTokenLogsRef.current?.();
       cancelTokenHighChartsRef.current?.();
       getLogs.run(
@@ -401,7 +401,7 @@ const DataLogsModel = () => {
         })
       );
     }
-  }, [pageSize, currentPage, currentDatabase, currentLogLibrary]);
+  }, [pageSize, currentPage, currentLogLibrary]);
 
   useEffect(() => {
     if (!currentDatabase) {
