@@ -13,13 +13,8 @@ type IndexItemProps = {
 };
 const IndexItem = (props: IndexItemProps) => {
   const { index, isActive } = props;
-  const {
-    currentDatabase,
-    currentLogLibrary,
-    startDateTime,
-    endDateTime,
-    doUpdatedQuery,
-  } = useModel("dataLogs");
+  const { keywordInput, startDateTime, endDateTime, doUpdatedQuery } =
+    useModel("dataLogs");
 
   const i18n = useIntl();
 
@@ -34,15 +29,13 @@ const IndexItem = (props: IndexItemProps) => {
   };
 
   useEffect(() => {
-    if (
-      !isActive ||
-      !currentDatabase ||
-      !currentLogLibrary ||
-      !startDateTime ||
-      !endDateTime
-    )
-      return;
-    getIndexDetails.run(index.tid, index.id).then((res) => {
+    if (!isActive || !index || !startDateTime || !endDateTime) return;
+    const params = {
+      st: startDateTime,
+      et: endDateTime,
+      query: keywordInput,
+    };
+    getIndexDetails.run(index.tid, index.id, params).then((res) => {
       if (res?.code === 0) {
         setDetails(res.data);
       }
