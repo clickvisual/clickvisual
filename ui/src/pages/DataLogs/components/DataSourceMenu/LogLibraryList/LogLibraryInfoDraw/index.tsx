@@ -56,6 +56,8 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
       bodyStyle={{
         margin: 10,
         padding: 0,
+        display: "flex",
+        flexDirection: "column",
       }}
       headerStyle={{ padding: 10 }}
       visible={logLibraryInfoDrawVisible}
@@ -119,17 +121,20 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
           </Select>
         </div>
       </div>
-      <MonacoEditor
-        height={"100%"}
-        language={"sql"}
-        theme="vs-dark"
-        defaultValue={""}
-        value={selectSql && libraryInfo.sqlContent.data[selectSql]}
-        options={{
-          automaticLayout: true,
-          scrollBeyondLastLine: false,
-        }}
-      />
+      <div className={infoStyles.infoEditor}>
+        <MonacoEditor
+          height={"100%"}
+          language={"sql"}
+          theme="vs-dark"
+          value={selectSql && libraryInfo.sqlContent.data[selectSql]}
+          options={{
+            automaticLayout: true,
+            scrollBeyondLastLine: false,
+            smoothScrolling: true,
+            scrollbar: { alwaysConsumeMouseWheel: false },
+          }}
+        />
+      </div>
     </Drawer>
   );
 };
