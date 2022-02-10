@@ -6,6 +6,7 @@ import LogLibraryItem from "@/pages/DataLogs/components/DataSourceMenu/LogLibrar
 import DatabaseViewsDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw";
 import { useState } from "react";
 import { TablesResponse } from "@/services/dataLogs";
+import LogLibraryInfoDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryInfoDraw";
 
 type LogLibraryListProps = {
   list: TablesResponse[];
@@ -50,6 +51,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
         )}
       </Spin>
       <DatabaseViewsDraw logLibrary={selectedLogLibrary as TablesResponse} />
+      <LogLibraryInfoDraw logLibrary={selectedLogLibrary as TablesResponse} />
     </div>
   );
 };

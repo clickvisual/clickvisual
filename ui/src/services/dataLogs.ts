@@ -91,6 +91,22 @@ export interface TablesResponse {
   tableName: string;
 }
 
+export interface TableInfoResponse {
+  brokers: string;
+  days: number;
+  did: number;
+  name: string;
+  sqlContent: TableSqlContent;
+  topic: string;
+  typ: number;
+  uid: number;
+}
+
+export interface TableSqlContent {
+  keys: string[];
+  data: any;
+}
+
 export interface InstanceSelectedType {
   iid: number;
 }
@@ -171,6 +187,13 @@ export default {
   async deletedTable(id: number) {
     return request<API.Res<string>>(`/api/v1/tables/${id}`, {
       method: "DELETE",
+    });
+  },
+
+  // Get log library details
+  async getTableInfo(id: number) {
+    return request<API.Res<TableInfoResponse>>(`api/v1/tables/${id}`, {
+      method: "GET",
     });
   },
 
