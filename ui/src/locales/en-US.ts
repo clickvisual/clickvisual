@@ -172,7 +172,7 @@ export default {
   // Data Logs
   // Data Logs-Datasource
   "datasource.header.databaseEmpty": "DB Is Unselected",
-  "datasource.header.switch": "Switch the data source",
+  "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
   "datasource.logLibrary.search.created": "Creating a Log library",
 
@@ -241,10 +241,10 @@ export default {
   // Data Logs-Datasource-Draw
   "datasource.draw.title": "Database Switching",
   "datasource.draw.selected": "Please select an instance",
-  "datasource.draw.table.datasource": "Datasource",
+  "datasource.draw.table.datasource": "Database",
   "datasource.draw.table.instance": "Instance",
-  "datasource.draw.table.type": "Datasource Type",
-  "datasource.draw.table.empty.type.tip": "None datasource type",
+  "datasource.draw.table.type": "Database Type",
+  "datasource.draw.table.empty.type.tip": "None Database type",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",

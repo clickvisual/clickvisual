@@ -165,7 +165,7 @@ export default {
   // Data Logs
   // Data Logs-Datasource
   "datasource.header.databaseEmpty": "暂未选择数据库",
-  "datasource.header.switch": "切换数据源",
+  "datasource.header.switch": "切换数据库",
   "datasource.logLibrary.search.placeholder": "搜索日志库",
   "datasource.logLibrary.search.created": "新增日志库",
 
@@ -221,12 +221,12 @@ export default {
   "datasource.logLibrary.views.deleted.content": "确定删除规则：{rule} 吗？",
 
   // Data Logs-Datasource-Draw
-  "datasource.draw.title": "数据库切换",
+  "datasource.draw.title": "数据库列表",
   "datasource.draw.selected": "请选择实例",
-  "datasource.draw.table.datasource": "数据源",
+  "datasource.draw.table.datasource": "数据库",
   "datasource.draw.table.instance": "实例",
-  "datasource.draw.table.type": "数据源类型",
-  "datasource.draw.table.empty.type.tip": "无数据源类型",
+  "datasource.draw.table.type": "数据库类型",
+  "datasource.draw.table.empty.type.tip": "无数据库类型",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
