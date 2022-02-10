@@ -18,6 +18,7 @@ export default function useLogUrlParams() {
   const [urlState, setUrlState] = useUrlState();
   const {
     currentLogLibrary,
+    getDatabases,
     currentDatabase,
     onChangeLogLibrary,
     onChangeCurrentDatabase,
@@ -38,15 +39,13 @@ export default function useLogUrlParams() {
     doParseQuery,
   } = useModel("dataLogs");
 
-  const { getInstanceList } = useModel("instances");
-
   const setUrlQuery = useDebounceFn(
     () => {
       setUrlState({
-        database: currentDatabase?.databaseName,
-        datasource: currentDatabase?.datasourceType,
-        instance: currentDatabase?.instanceName,
-        table: currentLogLibrary,
+        databaseId: currentDatabase?.id,
+        iid: currentDatabase?.iid,
+        tid: currentLogLibrary?.id,
+        tableName: currentLogLibrary?.tableName,
         start: startDateTime,
         end: endDateTime,
         page: currentPage,
@@ -75,22 +74,36 @@ export default function useLogUrlParams() {
 
   useEffect(() => {
     try {
-      if (urlState.database && urlState.datasource && urlState.instance)
-        getInstanceList.run().then((res) => {
+      if (urlState.databaseId && urlState.iid)
+        getDatabases.run({ iid: parseInt(urlState.iid) }).then((res) => {
           if (res?.code === 0) {
-            const cluster = res.data.find(
-              (item) =>
-                item.instanceName === urlState.instance &&
-                item.datasource === urlState.datasource
+            const database = res.data.find(
+              (item) => item.id === parseInt(urlState.databaseId)
             );
-            if (cluster) {
-              onChangeCurrentDatabase({
-                databaseName: urlState.database,
-                instanceId: cluster.id as number,
-                datasourceType: urlState.datasource,
-                instanceName: urlState.instance,
-              });
-              onChangeLogLibrary(urlState?.table);
+            if (database) {
+              onChangeCurrentDatabase(database);
+
+              const panes = [];
+              if (urlState.tid && urlState.tableName) {
+                onChangeLogLibrary({
+                  id: parseInt(urlState.tid),
+                  tableName: urlState.tableName,
+                });
+                panes.push({
+                  pane: urlState.tableName,
+                  paneId: parseInt(urlState.tid),
+                  start:
+                    parseInt(urlState.start) ||
+                    moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+                  end: parseInt(urlState.end) || currentTimeStamp(),
+                  keyword: urlState.kw || undefined,
+                  page: parseInt(urlState.page) || FIRST_PAGE,
+                  pageSize: parseInt(urlState.size) || PAGE_SIZE,
+                  activeTabKey: urlState.tab || TimeRangeType.Relative,
+                  activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
+                });
+              }
+              onChangeLogPanes(panes);
               onChangeStartDateTime(
                 parseInt(urlState.start) ||
                   moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
@@ -102,21 +115,6 @@ export default function useLogUrlParams() {
               if (urlState.index) {
                 onChangeActiveTimeOptionIndex(parseInt(urlState.index));
               }
-              const panes = [];
-              if (urlState.table)
-                panes.push({
-                  pane: urlState.table,
-                  start:
-                    parseInt(urlState.start) ||
-                    moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-                  end: parseInt(urlState.end) || currentTimeStamp(),
-                  keyword: urlState.kw || undefined,
-                  page: parseInt(urlState.page) || FIRST_PAGE,
-                  pageSize: parseInt(urlState.size) || PAGE_SIZE,
-                  activeTabKey: urlState.tab || TimeRangeType.Relative,
-                  activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
-                });
-              onChangeLogPanes(panes);
               onChangeKeywordInput(urlState.kw);
               onChangeLogsPageByUrl(
                 parseInt(urlState.page) || FIRST_PAGE,

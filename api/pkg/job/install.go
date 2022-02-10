@@ -3,12 +3,14 @@ package job
 import (
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/task/ejob"
+
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/model/db"
-	"time"
 )
 
 func RunInstall(ctx ejob.Context) error {
@@ -28,17 +30,6 @@ func installDB() error {
 		Dsn:        econf.GetString("defaultCh.dsn"),
 	}
 	err := db.InstanceCreate(invoker.Db, &ins)
-	if err != nil {
-		elog.Error("insert to index fail", elog.FieldErr(err))
-		return err
-	}
-	err = db.IndexCreate(invoker.Db, &db.Index{
-		InstanceID: ins.ID,
-		Database:   "default",
-		Table:      "demo_log",
-		Field:      "url",
-		Typ:        0,
-	})
 	if err != nil {
 		elog.Error("insert to index fail", elog.FieldErr(err))
 		return err

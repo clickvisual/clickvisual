@@ -39,7 +39,7 @@ const SearchBar = () => {
   const i18n = useIntl();
 
   const oldPane = logPanes.find(
-    (item) => item.pane === currentLogLibrary
+    (item) => item.paneId === currentLogLibrary?.id
   ) as PaneType;
 
   const doSearch = useDebounceFn(

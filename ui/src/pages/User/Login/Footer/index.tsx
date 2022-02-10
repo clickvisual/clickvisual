@@ -32,7 +32,7 @@ const LoginFooter = () => {
               onClick={() => {
                 window.open(
                   `/api/admin/login/${channel.name.toLowerCase()}`,
-                  "_blank"
+                  "_self"
                 );
               }}
               className={loginFooterStyles.thirdPartyBtn}

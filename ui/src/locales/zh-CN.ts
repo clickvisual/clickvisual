@@ -24,7 +24,7 @@ export default {
   "menu.configure": "配置",
   "menu.log": "日志",
   "menu.systemSettings": "系统设置",
-  "menu.systemSettings.database": "数据库管理",
+  "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
 
   // user
@@ -42,7 +42,7 @@ export default {
   "login.message.logOut": "退出登录成功",
 
   // System Setting
-  // Database Management
+  // Instance Management
   "instance.button.add": "新增实例",
   "instance.instanceName": "实例名称",
   "instance.datasource": "数据源",
@@ -52,9 +52,17 @@ export default {
   "instance.form.placeholder.instanceName": "请输入实例名称",
   "instance.form.placeholder.datasource": "请选择数据源",
   "instance.form.placeholder.dsn": "请输入数据源连接串，例如：{example}",
+  "instance.operation.addDatabase": "新增数据库",
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
   "instance.success.deleted": "删除实例成功",
+
+  // Database Management
+  "database.form.title": "新增数据库",
+  "database.form.label.name": "数据库名称",
+  "database.form.placeholder.name": "请输入数据库名称",
+  "database.form.reg.name": "仅支持_、小写字母或数字，且以字母开头",
+  "database.success.created": "新增数据库成功",
 
   // Cluster Management
   "cluster.button.add": "新增集群",
@@ -67,7 +75,7 @@ export default {
   "cluster.form.status.normality": "正常",
   "cluster.form.status.anomaly": "异常",
   "cluster.form.placeholder.clusterName": "请输入集群名称",
-  "cluster.form.placeholder.apiServer": "请输入 Api Server",
+  "cluster.form.placeholder.apiServer": "http://localhost:6443",
   "cluster.form.placeholder.k8sConfiguration": "请输入集群的 k8s 配置",
   "cluster.form.placeholder.description": "请输入集群的描述",
   "cluster.success.created": "新增集群成功",
@@ -157,28 +165,38 @@ export default {
   // Data Logs
   // Data Logs-Datasource
   "datasource.header.databaseEmpty": "暂未选择数据库",
-  "datasource.header.switch": "切换数据源",
+  "datasource.header.switch": "切换数据库",
   "datasource.logLibrary.search.placeholder": "搜索日志库",
   "datasource.logLibrary.search.created": "新增日志库",
 
   "datasource.logLibrary.from.tableName": "数据表名称",
+  "datasource.logLibrary.from.rule.tableName":
+    "请输入小写字母、大写字母，或下划线",
   "datasource.logLibrary.from.type": "数据表类型",
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.rule.topics":
+    "请输入小写字母、大写字母，或中划线",
 
-  "datasource.logLibrary.placeholder.tableName": "请输入数据表名称",
+  "datasource.logLibrary.placeholder.tableName":
+    "请输入数据表名称，支持小写字母、大写字母，或下划线",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
-  "datasource.logLibrary.placeholder.brokers": "请输入 Brokers",
-  "datasource.logLibrary.placeholder.topics": "请输入 Topics",
+  "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
+  "datasource.logLibrary.placeholder.topics":
+    "请输入 Topics，支持小写字母、大写字母，或中划线",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
+  "datasource.tooltip.icon.info": "日志库详情",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
   "datasource.view.button": "新增配置规则",
   "datasource.view.table.viewName": "规则名称",
+
+  "datasource.logLibrary.info.sql": "SQL 配置",
+  "datasource.logLibrary.info.placeholder.sql": "请选择要查看的 SQL 配置",
 
   "datasource.logLibrary.created.success": "新增数据表成功",
   "datasource.logLibrary.deleted.loading": "正在删除日志库：{logLibrary}",
@@ -189,7 +207,7 @@ export default {
   "datasource.logLibrary.views.modal.edit": "编辑数据采集规则",
   "datasource.logLibrary.views.form.viewName": "规则名称",
   "datasource.logLibrary.views.form.isUseDefaultTime": "是否使用系统时间",
-  "datasource.logLibrary.views.form.timeKey": "指定时间关键字",
+  "datasource.logLibrary.views.form.timeKey": "关键字",
   "datasource.logLibrary.views.form.timeFormat": "时间格式",
   "datasource.logLibrary.views.selectName.timeFormat.unix": "Unix 时间戳",
 
@@ -203,12 +221,12 @@ export default {
   "datasource.logLibrary.views.deleted.content": "确定删除规则：{rule} 吗？",
 
   // Data Logs-Datasource-Draw
-  "datasource.draw.title": "数据源切换",
+  "datasource.draw.title": "数据库列表",
   "datasource.draw.selected": "请选择实例",
-  "datasource.draw.table.datasource": "数据源",
+  "datasource.draw.table.datasource": "数据库",
   "datasource.draw.table.instance": "实例",
-  "datasource.draw.table.type": "数据源类型",
-  "datasource.draw.table.empty.type.tip": "无数据源类型",
+  "datasource.draw.table.type": "数据库类型",
+  "datasource.draw.table.empty.type.tip": "无数据库类型",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",

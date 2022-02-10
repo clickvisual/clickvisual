@@ -6,8 +6,7 @@ export interface DataSourceTableProps {
   iid: number;
 }
 
-export interface QueryLogsProps extends DataSourceTableProps {
-  table: string;
+export interface QueryLogsProps {
   st: number;
   et: number;
   query?: string | undefined;
@@ -22,7 +21,7 @@ export interface LogsResponse {
   cpuSec: number;
   elapsedMillisecond: number;
   hasSQL: boolean;
-  keys: string[];
+  keys: IndexInfoType[];
   limited: number;
   logs: any[];
   marker: string;
@@ -77,10 +76,35 @@ export interface HighCharts {
 }
 
 export interface DatabaseResponse {
-  databaseName: string;
-  instanceId: number;
-  instanceName: string;
+  // databaseName: string;
+  // instanceId: number;
+  // instanceName: string;
   datasourceType: string;
+  id: number;
+  iid: number;
+  name: string;
+  uid?: number;
+}
+
+export interface TablesResponse {
+  id: number;
+  tableName: string;
+}
+
+export interface TableInfoResponse {
+  brokers: string;
+  days: number;
+  did: number;
+  name: string;
+  sqlContent: TableSqlContent;
+  topic: string;
+  typ: number;
+  uid: number;
+}
+
+export interface TableSqlContent {
+  keys: string[];
+  data: any;
 }
 
 export interface InstanceSelectedType {
@@ -88,15 +112,14 @@ export interface InstanceSelectedType {
 }
 
 export interface IndexInfoType {
+  id: number;
+  tid: number;
   field: string;
   alias: string;
   typ: number;
 }
 
 export interface IndexRequest {
-  iid: number;
-  database: string;
-  table: string;
   data?: IndexInfoType[];
 }
 
@@ -116,18 +139,25 @@ export interface IndexDetail {
 
 export default {
   // Get chart information
-  async getHighCharts(params: QueryLogsProps, cancelToken: any) {
-    return request<API.Res<HighChartsResponse>>(`/api/v1/query/charts`, {
-      cancelToken,
-      method: "GET",
-      params,
-      skipErrorHandler: true,
-    });
+  async getHighCharts(
+    tableId: number,
+    params: QueryLogsProps,
+    cancelToken: any
+  ) {
+    return request<API.Res<HighChartsResponse>>(
+      `/api/v1/tables/${tableId}/charts`,
+      {
+        cancelToken,
+        method: "GET",
+        params,
+        skipErrorHandler: true,
+      }
+    );
   },
 
   // Get log information
-  async getLogs(params: QueryLogsProps, cancelToken: any) {
-    return request<API.Res<LogsResponse>>(`/api/v1/query/logs`, {
+  async getLogs(tableId: number, params: QueryLogsProps, cancelToken: any) {
+    return request<API.Res<LogsResponse>>(`/api/v1/tables/${tableId}/logs`, {
       cancelToken,
       method: "GET",
       params,
@@ -136,101 +166,103 @@ export default {
   },
 
   // Get a list of log stores
-  async getTableList(params: DataSourceTableProps) {
-    return request<API.Res<string[]>>(`/api/v1/query/tables`, {
-      method: "GET",
-      params,
-    });
-  },
-
-  // Create a log library
-  async createdTable(iid: number, db: string, data: CreatedLogLibraryRequest) {
-    return request<API.Res<string>>(
-      `/api/v1/query/instances/${iid}/databases/${db}/tables`,
+  async getTableList(did: number) {
+    return request<API.Res<TablesResponse[]>>(
+      `/api/v1/databases/${did}/tables`,
       {
-        method: "POST",
-        data,
+        method: "GET",
       }
     );
   },
 
+  // Create a log library
+  async createdTable(did: number, data: CreatedLogLibraryRequest) {
+    return request<API.Res<string>>(`/api/v1/databases/${did}/tables`, {
+      method: "POST",
+      data,
+    });
+  },
+
   // Deleting a Log Library
-  async deletedTable(iid: number, db: string, table: string) {
-    return request<API.Res<string>>(
-      `/api/v1/query/instances/${iid}/databases/${db}/tables/${table}`,
-      { method: "DELETE" }
-    );
+  async deletedTable(id: number) {
+    return request<API.Res<string>>(`/api/v1/tables/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // Get log library details
+  async getTableInfo(id: number) {
+    return request<API.Res<TableInfoResponse>>(`api/v1/tables/${id}`, {
+      method: "GET",
+    });
   },
 
   // Get a list of databases
   async getDatabaseList(payload: InstanceSelectedType | undefined) {
-    return request<API.Res<DatabaseResponse[]>>(`/api/v1/query/databases`, {
-      method: "GET",
-      params: { iid: payload?.iid },
-    });
+    return request<API.Res<DatabaseResponse[]>>(
+      `/api/v1/instances/${payload?.iid || 0}/databases`,
+      {
+        method: "GET",
+      }
+    );
   },
 
   // Get index details
-  async getIndexDetail(params: IndexDetailRequest) {
-    return request<API.Res<IndexDetail[]>>(`/api/v1/query/indexes`, {
-      method: "GET",
-      params,
-    });
+  async getIndexDetail(tid: number, id: number) {
+    return request<API.Res<IndexDetail[]>>(
+      `/api/v1/tables/${tid}/indexes/${id}`,
+      {
+        method: "GET",
+      }
+    );
   },
 
   // Add or modify index
-  async setIndexes(data: IndexRequest) {
-    return request<API.Res<string>>(`/api/v1/setting/indexes`, {
+  async setIndexes(tid: number, data: IndexRequest) {
+    return request<API.Res<string>>(`/api/v1/tables/${tid}/indexes`, {
       method: "PATCH",
       data,
     });
   },
 
   // Get Index Edit List
-  async getIndexes(params: IndexRequest) {
-    return request<API.Res<IndexInfoType[]>>(`/api/v1/setting/indexes`, {
+  async getIndexes(tid: number) {
+    return request<API.Res<IndexInfoType[]>>(`/api/v1/tables/${tid}/indexes`, {
       method: "GET",
-      params,
     });
   },
 
   // Obtain log configuration rules
-  async getViews(iid: number, db: string, table: string) {
-    return request<API.Res<ViewResponse[]>>(
-      `/api/v1/query/instances/${iid}/databases/${db}/tables/${table}/views`,
-      { method: "GET" }
-    );
+  async getViews(tid: number) {
+    return request<API.Res<ViewResponse[]>>(`/api/v1/tables/${tid}/views`, {
+      method: "GET",
+    });
   },
   // Create a log configuration rule
-  async createdView(
-    iid: number,
-    db: string,
-    table: string,
-    data: CreatedViewRequest
-  ) {
-    return request<API.Res<string>>(
-      `/api/v1/query/instances/${iid}/databases/${db}/tables/${table}/views`,
-      { method: "POST", data }
-    );
+  async createdView(tid: number, data: CreatedViewRequest) {
+    return request<API.Res<string>>(`/api/v1/tables/${tid}/views`, {
+      method: "POST",
+      data,
+    });
   },
 
   // Update log configuration rules
   async updatedView(id: number, data: CreatedViewRequest) {
-    return request<API.Res<string>>(`/api/v1/query/views/${id}`, {
+    return request<API.Res<string>>(`/api/v1/views/${id}`, {
       method: "PATCH",
       data,
     });
   },
 
   async deletedView(id: number) {
-    return request<API.Res<string>>(`/api/v1/query/views/${id}`, {
+    return request<API.Res<string>>(`/api/v1/views/${id}`, {
       method: "DELETE",
     });
   },
 
   // Obtain rule details
   async getViewInfo(id: number) {
-    return request<API.Res<ViewInfoResponse>>(`/api/v1/query/views/${id}`, {
+    return request<API.Res<ViewInfoResponse>>(`/api/v1/views/${id}`, {
       method: "GET",
     });
   },

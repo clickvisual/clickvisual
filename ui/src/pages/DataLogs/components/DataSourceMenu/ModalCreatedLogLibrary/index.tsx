@@ -16,6 +16,11 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 const { Option } = Select;
 
+export const logLibraryTypes = [
+  { value: 1, type: "common" },
+  { value: 2, type: "ego" },
+];
+
 const ModalCreatedLogLibrary = () => {
   const logFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
@@ -27,17 +32,11 @@ const ModalCreatedLogLibrary = () => {
     doGetLogLibraryList,
   } = useModel("dataLogs");
 
-  const logLibraryTypes = [
-    { value: 1, type: "app_stdout" },
-    { value: 2, type: "ego_stdout" },
-    { value: 3, type: "ingress_stdout" },
-  ];
-
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
       if (!currentDatabase) return;
       doCreatedLogLibrary
-        .run(currentDatabase.instanceId, currentDatabase.databaseName, field)
+        .run(currentDatabase.id, field)
         .then((res) => {
           if (res?.code === 0) {
             message.success(
@@ -92,6 +91,12 @@ const ModalCreatedLogLibrary = () => {
               required: true,
               message: i18n.formatMessage({
                 id: "datasource.logLibrary.placeholder.tableName",
+              }),
+            },
+            {
+              pattern: new RegExp(/^[a-zA-Z_]+$/),
+              message: i18n.formatMessage({
+                id: "datasource.logLibrary.from.rule.tableName",
               }),
             },
           ]}
@@ -176,6 +181,12 @@ const ModalCreatedLogLibrary = () => {
               required: true,
               message: i18n.formatMessage({
                 id: "datasource.logLibrary.placeholder.topics",
+              }),
+            },
+            {
+              pattern: new RegExp(/^[a-zA-Z\-]+$/),
+              message: i18n.formatMessage({
+                id: "datasource.logLibrary.from.rule.topics",
               }),
             },
           ]}
