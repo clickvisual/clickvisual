@@ -98,6 +98,7 @@ func GetRouter() *egin.Component {
 		v1.POST("/databases/:did/tables", core.Handle(base.TableCreate))
 		v1.GET("/databases/:did/tables", core.Handle(base.TableList))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
+		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.GET("/tables/:id/logs", core.Handle(inquiry.Logs))
 		v1.GET("/tables/:id/charts", core.Handle(inquiry.Charts))
 

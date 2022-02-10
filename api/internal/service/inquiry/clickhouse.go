@@ -182,7 +182,7 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 	dName := genName(database, ct.TableName)
 	dStreamName := genStreamName(database, ct.TableName)
 	// build view statement
-	dStreamSQL = fmt.Sprintf(clickhouseTableStreamORM[ct.Typ], dStreamName, ct.Brokers, ct.Topics, ct.TableName)
+	dStreamSQL = fmt.Sprintf(clickhouseTableStreamORM[ct.Typ], dStreamName, ct.Brokers, ct.Topics, database+"_"+ct.TableName)
 	dDataSQL = fmt.Sprintf(clickhouseTableDataORM[ct.Typ], dName, ct.Days)
 	elog.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
 	_, err = c.db.Exec(dStreamSQL)

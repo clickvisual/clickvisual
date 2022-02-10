@@ -57,6 +57,49 @@ func TableCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+func TableInfo(c *core.Context) {
+	tid := cast.ToInt(c.Param("id"))
+	if tid == 0 {
+		c.JSONE(core.CodeErr, "params error", nil)
+		return
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	if err != nil {
+		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
+		return
+	}
+	res := view.RespTableDetail{
+		Did:     tableInfo.Did,
+		Name:    tableInfo.Name,
+		Typ:     tableInfo.Typ,
+		Days:    tableInfo.Days,
+		Brokers: tableInfo.Brokers,
+		Topic:   tableInfo.Topic,
+		Uid:     tableInfo.Uid,
+	}
+	keys := make([]string, 0)
+	data := make(map[string]string, 0)
+	keys = append(keys, "data_sql", "stream_sql", "view_sql")
+	data["data_sql"] = tableInfo.SqlData
+	data["stream_sql"] = tableInfo.SqlStream
+	data["view_sql"] = tableInfo.SqlView
+	conds := egorm.Conds{}
+	conds["tid"] = tableInfo.ID
+	viewList, err := db.ViewList(invoker.Db, conds)
+	if err != nil {
+		c.JSONE(core.CodeErr, "view sql read failed: "+err.Error(), nil)
+		return
+	}
+	for _, v := range viewList {
+		keys = append(keys, v.Name+"_view_sql")
+		data[v.Name+"_view_sql"] = v.SqlView
+	}
+	res.SQLContent.Keys = keys
+	res.SQLContent.Data = data
+	c.JSONOK(res)
+	return
+}
+
 func TableList(c *core.Context) {
 	did := int64(cast.ToInt(c.Param("did")))
 	if did == 0 {
