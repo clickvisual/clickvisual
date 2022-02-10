@@ -56,18 +56,6 @@ const InstanceTable = (props: InstanceTableProps) => {
           <Space>
             <Tooltip
               title={i18n.formatMessage({
-                id: "instance.operation.addDatabase",
-              })}
-            >
-              <IconFont
-                onClick={() => {}}
-                className={classNames(instanceTableStyles.instanceTableIcon)}
-                type={"icon-add-database"}
-              />
-            </Tooltip>
-            <Divider type="vertical" />
-            <Tooltip
-              title={i18n.formatMessage({
                 id: "edit",
               })}
             >

@@ -5,17 +5,20 @@ import { useIntl } from "umi";
 import LogLibraryItem from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryItem";
 import DatabaseViewsDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw";
 import { useState } from "react";
+import { TablesResponse } from "@/services/dataLogs";
 
 type LogLibraryListProps = {
-  list: string[];
+  list: TablesResponse[];
 };
 
 const LogLibraryList = (props: LogLibraryListProps) => {
   const { list } = props;
   const { getLogLibraries } = useModel("dataLogs");
 
-  const [selectedLogLibrary, setSelectedLogLibrary] = useState<string>("");
-  const onChangeSelected = (logLibrary: string) => {
+  const [selectedLogLibrary, setSelectedLogLibrary] = useState<
+    TablesResponse | undefined
+  >();
+  const onChangeSelected = (logLibrary: TablesResponse) => {
     setSelectedLogLibrary(logLibrary);
   };
 
@@ -46,7 +49,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
           />
         )}
       </Spin>
-      <DatabaseViewsDraw logLibrary={selectedLogLibrary} />
+      <DatabaseViewsDraw logLibrary={selectedLogLibrary as TablesResponse} />
     </div>
   );
 };
