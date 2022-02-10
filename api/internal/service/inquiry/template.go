@@ -1,7 +1,7 @@
 package inquiry
 
 var clickhouseTableDataORM = map[int]string{
-	TableTypeApp: `create table if not exists %s
+	TableTypeApp: `create table %s
 (
 	_timestamp_ DateTime,
 	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
@@ -19,7 +19,7 @@ engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
 ORDER BY _timestamp_
 TTL toDateTime(_timestamp_) + INTERVAL %d DAY 
 SETTINGS index_granularity = 8192;`,
-	TableTypeEgo: `create table if not exists %s
+	TableTypeEgo: `create table %s
 (
 	_timestamp_ DateTime,
 	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
@@ -48,7 +48,7 @@ engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
 ORDER BY _timestamp_ 
 TTL toDateTime(_timestamp_) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;`,
-	TableTypeIngress: `create table if not exists %s
+	TableTypeIngress: `create table %s
 (
 	_timestamp_ DateTime,
 	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
@@ -85,7 +85,7 @@ SETTINGS index_granularity = 8192;`,
 }
 
 var clickhouseTableStreamORM = map[int]string{
-	TableTypeApp: `create table if not exists %s
+	TableTypeApp: `create table %s
 (
 	_source_ String,
 	_time_ String,
@@ -99,7 +99,7 @@ var clickhouseTableStreamORM = map[int]string{
 	log String
 )
 engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
-	TableTypeEgo: `create table if not exists %s
+	TableTypeEgo: `create table  %s
 (
 	_source_ String,
 	_time_ String,

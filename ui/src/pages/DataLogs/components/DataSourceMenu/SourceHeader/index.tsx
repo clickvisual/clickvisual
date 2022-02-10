@@ -2,7 +2,7 @@ import sourceHeaderStyles from "@/pages/DataLogs/components/DataSourceMenu/Sourc
 import { Button, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-import { EditOutlined } from "@ant-design/icons";
+import { AppstoreOutlined } from "@ant-design/icons";
 
 type SourceHeaderProps = {};
 const SourceHeader = (props: SourceHeaderProps) => {
@@ -28,7 +28,7 @@ const SourceHeader = (props: SourceHeaderProps) => {
           <Tooltip
             title={i18n.formatMessage({ id: "datasource.header.switch" })}
           >
-            <EditOutlined />
+            <AppstoreOutlined />
           </Tooltip>
         </Button>
       </div>

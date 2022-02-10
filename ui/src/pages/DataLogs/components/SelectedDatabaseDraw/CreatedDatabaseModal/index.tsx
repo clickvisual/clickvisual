@@ -72,7 +72,7 @@ const CreatedDatabaseModal = ({}: CreatedDatabaseModalProps) => {
         onFinish={onOk}
       >
         <Form.Item
-          label={i18n.formatMessage({ id: "instance.instanceName" })}
+          label={i18n.formatMessage({ id: "datasource.draw.table.instance" })}
           name={"iid"}
           rules={[
             {

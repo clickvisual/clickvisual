@@ -14,11 +14,11 @@ import (
 
 // Instance 服务配置存储
 type Instance struct {
-	BaseModel
-
 	Datasource string `gorm:"column:datasource" db:"datasource" json:"datasource" form:"datasource"` // 数据源类型
 	Name       string `gorm:"column:name" db:"name" json:"instanceName" form:"name"`                 // 实例名称
 	Dsn        string `gorm:"column:dsn" db:"dsn" json:"dsn" form:"dsn"`                             // dsn
+
+	BaseModel
 }
 
 func (t *Instance) TableName() string {

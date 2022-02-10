@@ -1,10 +1,8 @@
 package view
 
 type ReqCreateIndex struct {
-	InstanceID int         `json:"iid" form:"iid" binding:"required"`
-	Database   string      `json:"database" form:"database" binding:"required"`
-	Table      string      `json:"table" form:"table" binding:"required"`
-	Data       []IndexItem `json:"data"`
+	Tid  int         `json:"tid" form:"tid"`
+	Data []IndexItem `json:"data"`
 }
 
 type IndexItem struct {
