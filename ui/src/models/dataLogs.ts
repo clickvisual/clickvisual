@@ -230,6 +230,8 @@ const DataLogsModel = () => {
     setPageSize(size);
   };
 
+  const getTableId = useRequest(api.getTableId, { loadingText: false }).run;
+
   const getLogs = useRequest(api.getLogs, {
     loadingText: false,
     onError: (e) => {
@@ -475,6 +477,7 @@ const DataLogsModel = () => {
     resetCurrentHighChart,
     setChangeTabPane,
 
+    getTableId,
     getDatabases,
     settingIndexes,
     getLogLibraries,

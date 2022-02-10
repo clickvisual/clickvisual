@@ -9,6 +9,13 @@ export interface QueryLogsProps {
   page?: number;
 }
 
+export interface GetTableIdRequest {
+  instance: string;
+  database: string;
+  datasource: string;
+  table: string;
+}
+
 export interface LogsResponse {
   aggQueryd: string;
   count: number;
@@ -185,6 +192,14 @@ export default {
   async getTableInfo(id: number) {
     return request<API.Res<TableInfoResponse>>(`api/v1/tables/${id}`, {
       method: "GET",
+    });
+  },
+
+  // Obtain the table id from the third-party channel
+  async getTableId(params: GetTableIdRequest) {
+    return request<API.Res<number>>(`/api/v1/table/id`, {
+      method: "GET",
+      params,
     });
   },
 
