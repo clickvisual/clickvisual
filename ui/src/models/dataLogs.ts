@@ -105,8 +105,11 @@ const DataLogsModel = () => {
 
   const {
     logLibraryCreatedModalVisible,
+    logLibraryInfoDrawVisible,
+    onChangeLogLibraryInfoDrawVisible,
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibrary,
+    doGetLogLibrary,
     doDeletedLogLibrary,
   } = useLogLibrary();
 
@@ -475,13 +478,17 @@ const DataLogsModel = () => {
     getDatabases,
     settingIndexes,
     getLogLibraries,
+
     getIndexList,
 
     // hooks
     logLibraryCreatedModalVisible,
+    logLibraryInfoDrawVisible,
     onChangeLogLibraryCreatedModalVisible,
+    onChangeLogLibraryInfoDrawVisible,
     doCreatedLogLibrary,
     doDeletedLogLibrary,
+    doGetLogLibrary,
 
     viewsVisibleDraw,
     getViewList,

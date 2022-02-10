@@ -196,11 +196,16 @@ export default {
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
+  "datasource.tooltip.icon.info": "Log Library Details",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
   "datasource.view.button": "Creating a Configuration Rule",
   "datasource.view.table.viewName": "Rule Name",
+
+  "datasource.logLibrary.info.sql": "SQL configuration",
+  "datasource.logLibrary.info.placeholder.sql":
+    "Please select to view the SQL configuration",
 
   "datasource.logLibrary.created.success": "The table is created successfully.",
   "datasource.logLibrary.deleted.loading": "Deleting logLibrary: {logLibrary}",
@@ -213,7 +218,7 @@ export default {
   "datasource.logLibrary.views.modal.edit": "Edit a Data Collection Rule",
   "datasource.logLibrary.views.form.viewName": "Rule Name",
   "datasource.logLibrary.views.form.isUseDefaultTime": "Use System Time",
-  "datasource.logLibrary.views.form.timeKey": "Specify Time Keyword",
+  "datasource.logLibrary.views.form.timeKey": "Keyword",
   "datasource.logLibrary.views.form.timeFormat": "Time Format",
   "datasource.logLibrary.views.selectName.timeFormat.unix": "Unix timestamp",
 

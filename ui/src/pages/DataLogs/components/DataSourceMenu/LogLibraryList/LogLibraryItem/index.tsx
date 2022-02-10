@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
 import { message, Tooltip } from "antd";
-import { FundViewOutlined } from "@ant-design/icons";
+import { FileTextOutlined, FundViewOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import { PaneType, QueryParams } from "@/models/dataLogs";
 import {
@@ -54,6 +54,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     resetCurrentHighChart,
     onChangeActiveTabKey,
     onChangeActiveTimeOptionIndex,
+    onChangeLogLibraryInfoDrawVisible,
     doDeletedLogLibrary,
     doGetLogLibraryList,
     onChangeCurrentLogPane,
@@ -163,13 +164,26 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       </Tooltip>
       <Tooltip
         title={i18n.formatMessage({
+          id: "datasource.tooltip.icon.info",
+        })}
+      >
+        <FileTextOutlined
+          onClick={() => {
+            onChange(logLibrary);
+            onChangeLogLibraryInfoDrawVisible(true);
+          }}
+          className={classNames(logLibraryListStyles.icon)}
+        />
+      </Tooltip>
+      <Tooltip
+        title={i18n.formatMessage({
           id: "datasource.tooltip.icon.view",
         })}
       >
         <FundViewOutlined
           onClick={() => {
-            onChangeViewsVisibleDraw(true);
             onChange(logLibrary);
+            onChangeViewsVisibleDraw(true);
           }}
           className={classNames(logLibraryListStyles.icon)}
         />

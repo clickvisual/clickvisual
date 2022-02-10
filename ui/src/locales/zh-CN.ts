@@ -188,11 +188,15 @@ export default {
     "请输入 Topics，支持小写字母、大写字母，或中划线",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
+  "datasource.tooltip.icon.info": "日志库详情",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
   "datasource.view.button": "新增配置规则",
   "datasource.view.table.viewName": "规则名称",
+
+  "datasource.logLibrary.info.sql": "SQL 配置",
+  "datasource.logLibrary.info.placeholder.sql": "请选择要查看的 SQL 配置",
 
   "datasource.logLibrary.created.success": "新增数据表成功",
   "datasource.logLibrary.deleted.loading": "正在删除日志库：{logLibrary}",
@@ -203,7 +207,7 @@ export default {
   "datasource.logLibrary.views.modal.edit": "编辑数据采集规则",
   "datasource.logLibrary.views.form.viewName": "规则名称",
   "datasource.logLibrary.views.form.isUseDefaultTime": "是否使用系统时间",
-  "datasource.logLibrary.views.form.timeKey": "指定时间关键字",
+  "datasource.logLibrary.views.form.timeKey": "关键字",
   "datasource.logLibrary.views.form.timeFormat": "时间格式",
   "datasource.logLibrary.views.selectName.timeFormat.unix": "Unix 时间戳",
 

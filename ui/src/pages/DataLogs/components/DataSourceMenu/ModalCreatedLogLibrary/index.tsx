@@ -16,6 +16,12 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 const { Option } = Select;
 
+export const logLibraryTypes = [
+  { value: 1, type: "app_stdout" },
+  { value: 2, type: "ego_stdout" },
+  { value: 3, type: "ingress_stdout" },
+];
+
 const ModalCreatedLogLibrary = () => {
   const logFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
@@ -26,12 +32,6 @@ const ModalCreatedLogLibrary = () => {
     doCreatedLogLibrary,
     doGetLogLibraryList,
   } = useModel("dataLogs");
-
-  const logLibraryTypes = [
-    { value: 1, type: "app_stdout" },
-    { value: 2, type: "ego_stdout" },
-    { value: 3, type: "ingress_stdout" },
-  ];
 
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
