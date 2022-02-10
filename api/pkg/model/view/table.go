@@ -8,7 +8,7 @@ type ReqTableCreate struct {
 	Topics    string `form:"topics" binding:"required"`
 }
 
-type RespTableList struct {
+type RespTableSimple struct {
 	Id        int    `json:"id"`
 	TableName string `json:"tableName"`
 }

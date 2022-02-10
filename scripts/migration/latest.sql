@@ -1,10 +1,22 @@
 CREATE DATABASE mocro DEFAULT CHARSET utf8mb4;
 USE mocro;
 
-CREATE TABLE `mogo_database` (
+CREATE TABLE `mogo_base_instance` (
+    `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `datasource` varchar(32) NOT NULL COMMENT '数据源类型',
+    `name` varchar(128) NOT NULL COMMENT '实例名称',
+    `dsn` text COMMENT 'dsn',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_datasource_name` (`datasource`,`name`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '服务配置存储' DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `mogo_base_database` (
     `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
     `iid` int(11) DEFAULT NULL COMMENT '实例 id',
-    `name` varchar(128) NOT NULL COMMENT '数据库名称',
+    `name` varchar(32) NOT NULL COMMENT '数据库名称',
     `uid` int(11) DEFAULT NULL COMMENT '操作人',
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
@@ -13,11 +25,10 @@ CREATE TABLE `mogo_database` (
     UNIQUE KEY `uix_iid_name` (`iid`,`name`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '数据库管理' DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE `mogo_table` (
+CREATE TABLE `mogo_base_table` (
     `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
-    `iid` int(11) DEFAULT NULL COMMENT '实例 id',
-    `database` varchar(32) NOT NULL COMMENT '数据库',
-    `name` varchar(64) NOT NULL COMMENT 'table',
+    `did` bigint(20) DEFAULT NULL COMMENT '数据库 id',
+    `name` varchar(32) NOT NULL COMMENT 'table',
     `typ` int(11) DEFAULT NULL COMMENT 'table 类型 1 app 2 ego 3 ingress',
     `days` int(11) DEFAULT NULL COMMENT '数据过期时间',
     `brokers` varchar(255) NOT NULL COMMENT 'kafka broker',
@@ -30,14 +41,26 @@ CREATE TABLE `mogo_table` (
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uix_iid_database_name` (`iid`,`database`, `name`)
+    UNIQUE KEY `uix_did_name` (`did`, `name`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT 'TABLE 管理' DEFAULT CHARSET = utf8mb4;
 
-
-CREATE TABLE `mogo_view` (
+CREATE TABLE `mogo_base_index` (
     `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
-    `tid` int(11) DEFAULT NULL COMMENT 'table id',
-    `name` varchar(64) NOT NULL COMMENT '视图名称',
+    `tid` bigint(20) DEFAULT NULL COMMENT 'table id',
+    `field` varchar(128) NOT NULL COMMENT '字段',
+    `typ` int(11) NOT NULL COMMENT '字段 0 text 1 long 2 double 3 json',
+    `alias` varchar(128) NOT NULL COMMENT '别名',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_tid_field` (`tid`,`field`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '索引存储' DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `mogo_base_view` (
+    `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `tid` bigint(20) DEFAULT NULL COMMENT 'table id',
+    `name` varchar(32) NOT NULL COMMENT '视图名称',
     `is_use_default_time` int(11) DEFAULT NULL COMMENT '是否使用系统时间',
     `key` varchar(64) NOT NULL COMMENT '指定时间字段Key名称',
     `format` varchar(64) NOT NULL COMMENT '时间转换格式',
@@ -49,18 +72,6 @@ CREATE TABLE `mogo_view` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_tid_name` (`tid`, `name`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '物化视图管理' DEFAULT CHARSET = utf8mb4;
-
-CREATE TABLE `mogo_instance` (
-    `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
-    `datasource` varchar(32) NOT NULL COMMENT '数据源类型',
-    `name` varchar(128) NOT NULL COMMENT '实例名称',
-    `dsn` text COMMENT 'dsn',
-    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
-    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
-    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uix_datasource_name` (`datasource`,`name`)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '服务配置存储' DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `mogo_user` (
     `id` bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id',
@@ -86,19 +97,6 @@ CREATE TABLE `mogo_user` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '用户数据存储' DEFAULT CHARSET = utf8mb4;
 
 INSERT INTO mogo_user (`id`, `oa_id`, `username`, `nickname`, `secret`, `email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES (1, 0, 'admin', 'admin', '', '', '', '', '', '', '', '', '$2a$10$qcItdU1.GoWjjStA7VzYmuRT0bDyVtgyo4p.8LJhxSq7/c48Vednm', '', 'init', '{}', 1640624435, 1640624435, 0);
-
-CREATE TABLE `mogo_index` (
-    `instance_id` bigint(20) NOT NULL COMMENT '实例ID',
-    `database` varchar(32) NOT NULL COMMENT '数据库',
-    `table` varchar(64) NOT NULL COMMENT '表',
-    `field` varchar(128) NOT NULL COMMENT '字段',
-    `typ` int(11) NOT NULL COMMENT '字段 0 text 1 long 2 double 3 json',
-    `alias` varchar(128) NOT NULL COMMENT '别名',
-    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
-    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
-    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
-    UNIQUE KEY `uix_instance_database_table_field` (`instance_id`,`database`,`table`,`field`)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '索引存储' DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `mogo_cluster`
 (

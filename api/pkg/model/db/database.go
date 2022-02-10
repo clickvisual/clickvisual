@@ -11,13 +11,13 @@ import (
 
 // Database 数据库管理
 type Database struct {
-	Id    int64  `gorm:"column:id;type:bigint(20);primary_key;AUTO_INCREMENT" json:"id"` // id
-	Iid   int    `gorm:"column:iid;type:int(11)" json:"iid"`                             // 实例 id
-	Name  string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`             // 数据库名称
-	Uid   int    `gorm:"column:uid;type:int(11)" json:"uid"`                             // 操作人
-	Ctime int    `gorm:"column:ctime;type:int(11)" json:"ctime"`                         // 创建时间
-	Utime int    `gorm:"column:utime;type:int(11)" json:"utime"`                         // 更新时间
-	Dtime int    `gorm:"column:dtime;type:int(11)" json:"dtime"`                         // 删除时间
+	Iid  int    `gorm:"column:iid;type:int(11)" json:"iid"`                 // 实例 id
+	Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 数据库名称
+	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
+
+	Instance *Instance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
+
+	BaseModel
 }
 
 func (m *Database) TableName() string {
@@ -79,7 +79,7 @@ func DatabaseList(db *gorm.DB, conds egorm.Conds) (resp []*Database, err error) 
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
-	if err = db.Table(TableNameDatabase).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameDatabase).Preload("Instance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		elog.Error("list error", elog.String("err", err.Error()))
 		return
 	}

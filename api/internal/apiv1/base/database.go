@@ -1,4 +1,4 @@
-package database
+package base
 
 import (
 	"github.com/gotomicro/ego-component/egorm"
@@ -11,7 +11,7 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-func Create(c *core.Context) {
+func DatabaseCreate(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
@@ -23,6 +23,7 @@ func Create(c *core.Context) {
 		return
 	}
 	obj := db.Database{
+		Iid:  iid,
 		Name: req.Name,
 		Uid:  c.Uid(),
 	}
@@ -43,24 +44,32 @@ func Create(c *core.Context) {
 	c.JSONOK()
 }
 
-func List(c *core.Context) {
+func DatabaseList(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
-	if iid == 0 {
-		c.JSONE(core.CodeErr, "invalid parameter", nil)
-		return
-	}
 	conds := egorm.Conds{}
-	conds["iid"] = iid
-	res, err := db.DatabaseList(invoker.Db, conds)
+	if iid != 0 {
+		conds["iid"] = iid
+	}
+	dl, err := db.DatabaseList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
+	}
+	res := make([]view.RespDatabaseItem, 0)
+	for _, row := range dl {
+		res = append(res, view.RespDatabaseItem{
+			Id:             row.ID,
+			Iid:            row.Iid,
+			Name:           row.Name,
+			Uid:            row.Uid,
+			DatasourceType: row.Instance.Datasource,
+		})
 	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
 
-func Delete(c *core.Context) {
+func DatabaseDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)

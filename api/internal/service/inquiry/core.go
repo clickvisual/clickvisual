@@ -13,20 +13,19 @@ import (
 )
 
 type Operator interface {
-	Databases() ([]view.RespDatabase, error)
 	DatabaseCreate(string) error
-	Tables(string) ([]string, error)
-	TableCreate(string, view.ReqTableCreate) (string, string, string, error)
+
+	TableCreate(int, string, view.ReqTableCreate) (string, string, string, error)
 	TableDrop(string, string, int) error
 
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 
 	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
-	GET(view.ReqQuery) (view.RespQuery, error)
+	GET(view.ReqQuery, int) (view.RespQuery, error)
 	Count(view.ReqQuery) uint64
 	GroupBy(view.ReqQuery) map[string]uint64
 
-	IndexUpdate(view.ReqCreateIndex, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
+	IndexUpdate(view.ReqCreateIndex, db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 }
 
 const (

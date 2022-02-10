@@ -3,6 +3,7 @@ package setting
 import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/pkg/component/core"
@@ -12,6 +13,11 @@ import (
 )
 
 func IndexUpdate(c *core.Context) {
+	tid := cast.ToInt(c.Param("id"))
+	if tid == 0 {
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
+		return
+	}
 	var (
 		req    view.ReqCreateIndex
 		addMap map[string]*db.Index
@@ -23,6 +29,7 @@ func IndexUpdate(c *core.Context) {
 		c.JSONE(1, "param error:"+err.Error(), nil)
 		return
 	}
+	req.Tid = tid
 	addMap, delMap, newMap, err = service.Index.Diff(req)
 	if err != nil {
 		c.JSONE(1, "unknown error:"+err.Error(), nil)
@@ -43,18 +50,13 @@ func IndexUpdate(c *core.Context) {
 }
 
 func Indexes(c *core.Context) {
-	var (
-		req view.ReqCreateIndex
-		err error
-	)
-	if err = c.Bind(&req); err != nil {
-		c.JSONE(1, "param error:"+err.Error(), nil)
+	tid := cast.ToInt(c.Param("id"))
+	if tid == 0 {
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
 	conds := egorm.Conds{}
-	conds["instance_id"] = req.InstanceID
-	conds["database"] = req.Database
-	conds["table"] = req.Table
+	conds["tid"] = tid
 	indexes, err := db.IndexList(conds)
 	if err != nil {
 		c.JSONE(1, "unknown error: "+err.Error(), nil)

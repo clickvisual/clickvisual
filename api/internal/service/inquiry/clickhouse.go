@@ -105,9 +105,7 @@ func (c *ClickHouse) timeParseSQL(v *db.View) string {
 func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
 	// build view statement
 	conds := egorm.Conds{}
-	conds["table"] = table.Name
-	conds["instance_id"] = table.Iid
-	conds["database"] = table.Database
+	conds["tid"] = table.ID
 	indexes, err := db.IndexList(conds)
 	if err != nil {
 		return
@@ -117,11 +115,11 @@ func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View,
 		indexMap[i.Field] = i
 	}
 	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
-	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", current, list, indexMap, isAddOrUpdate)
+	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
 	}
-	cViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
+	cViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
 	return
 }
 
@@ -180,7 +178,7 @@ func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
 }
 
 // TableCreate create default stream data table and view
-func (c *ClickHouse) TableCreate(database string, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL string, err error) {
+func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL string, err error) {
 	dName := genName(database, ct.TableName)
 	dStreamName := genStreamName(database, ct.TableName)
 	// build view statement
@@ -195,19 +193,23 @@ func (c *ClickHouse) TableCreate(database string, ct view.ReqTableCreate) (dStre
 	if err != nil {
 		return
 	}
-	dViewSQL, err = c.viewOperator(ct.Typ, 0, database, ct.TableName, "", nil, nil, nil, true)
+	dViewSQL, err = c.viewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func (c *ClickHouse) viewOperator(typ, tid int, database, table, timestampKey string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (res string, err error) {
-	viewName := genViewName(database, table, timestampKey)
+func (c *ClickHouse) viewOperator(typ, tid int, did int, table, timestampKey string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (res string, err error) {
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
+	if err != nil {
+		return
+	}
+	viewName := genViewName(databaseInfo.Name, table, timestampKey)
 
 	defer func() {
 		if err != nil {
-			elog.Info("viewOperator", elog.Any("tid", tid), elog.Any("timestampKey", timestampKey), elog.Any("database", database), elog.Any("table", table), elog.String("step", "doViewRollback"))
+			elog.Info("viewOperator", elog.Any("tid", tid), elog.Any("timestampKey", timestampKey), elog.Any("database", databaseInfo.Name), elog.Any("table", table), elog.String("step", "doViewRollback"))
 			c.viewRollback(tid, timestampKey)
 		}
 	}()
@@ -222,8 +224,8 @@ func (c *ClickHouse) viewOperator(typ, tid int, database, table, timestampKey st
 			return "", err
 		}
 	}
-	dName := genName(database, table)
-	streamName := genStreamName(database, table)
+	dName := genName(databaseInfo.Name, table)
+	streamName := genStreamName(databaseInfo.Name, table)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
 	_, err = c.db.Exec(viewDropSQL)
@@ -261,10 +263,10 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
 		return
 	}
-	var viewSQL = ""
+	var viewQuery string
 	if key == "" {
 		// defaultView
-		viewSQL = tableInfo.SqlView
+		viewQuery = tableInfo.SqlView
 	} else {
 		// ts view
 		condsView := egorm.Conds{}
@@ -275,19 +277,19 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 			elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
 			return
 		}
-		viewSQL = viewInfo.SqlView
+		viewQuery = viewInfo.SqlView
 	}
-	_, err = c.db.Exec(viewSQL)
+	_, err = c.db.Exec(viewQuery)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewSQL", viewSQL))
+		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
 		return
 	}
 }
 
-func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
+func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
 	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)
-	res.Keys = make([]string, 0)
+	res.Keys = make([]*db.Index, 0)
 	res.Terms = make([][]string, 0)
 
 	res.Logs, err = c.doQuery(c.logsSQL(param))
@@ -298,13 +300,8 @@ func (c *ClickHouse) GET(param view.ReqQuery) (res view.RespQuery, err error) {
 	res.Limited = param.PageSize
 	// Read the index data
 	conds := egorm.Conds{}
-	conds["instance_id"] = param.InstanceId
-	conds["database"] = param.Database
-	conds["table"] = param.Table
-	indexes, _ := db.IndexList(conds)
-	for _, i := range indexes {
-		res.Keys = append(res.Keys, i.Field)
-	}
+	conds["tid"] = tid
+	res.Keys, _ = db.IndexList(conds)
 	return
 }
 
@@ -395,10 +392,10 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 }
 
 // IndexUpdate Data table index operation
-func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
+func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	// step 1 drop
 	for _, del := range dels {
-		qs := fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN IF EXISTS %s;", param.Database, param.Table, del.Field)
+		qs := fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN IF EXISTS %s;", database.Name, table.Name, del.Field)
 		_, err = c.db.Exec(qs)
 		if err != nil {
 			return err
@@ -406,26 +403,15 @@ func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, adds map[string]*db.
 	}
 	// step 2 add
 	for _, add := range adds {
-		qs := fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN IF NOT EXISTS %s Nullable(%s);", param.Database, param.Table, add.Field, typORM[add.Typ])
+		qs := fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN IF NOT EXISTS %s Nullable(%s);", database.Name, table.Name, add.Field, typORM[add.Typ])
 		_, err = c.db.Exec(qs)
 		if err != nil {
 			return err
 		}
 	}
 	// step 3 rebuild view
-	conds := egorm.Conds{}
-	conds["iid"] = param.InstanceID
-	conds["database"] = param.Database
-	conds["name"] = param.Table
-	table, err := db.TableInfoX(conds)
-
-	elog.Debug("IndexUpdate", elog.Any("table", table))
-
-	if err != nil {
-		return
-	}
 	// step 3.1 default view
-	_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, "", nil, nil, newList, true)
+	_, err = c.viewOperator(table.Typ, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
 	if err != nil {
 		return
 	}
@@ -434,7 +420,7 @@ func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, adds map[string]*db.
 	viewList, err := db.ViewList(invoker.Db, condsViews)
 	elog.Debug("IndexUpdate", elog.Any("viewList", viewList))
 	for _, current := range viewList {
-		_, err = c.viewOperator(table.Typ, table.ID, table.Database, table.Name, current.Key, current, viewList, newList, true)
+		_, err = c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if err != nil {
 			return err
 		}
