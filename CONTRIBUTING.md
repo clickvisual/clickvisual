@@ -5,6 +5,19 @@
 - Go >= 1.17
 - React >= 17.0.0
 
+
+##  Clone 代码
+一般我们推荐将origin设置为官方的仓库，而设置一个自己的upstream。
+
+如果已经在github上开启了SSH，那么我们推荐使用SSH，否则使用HTTPS。两者之间的区别在于，使用HTTPS每次推代码到远程库的时候，都需要输入身份验证信息。
+而我们强烈建议，官方库永远使用HTTPS，这样可以避免一些误操作。
+
+```bash
+git clone https://github.com/shimohq/mogo.git
+cd mogo
+git remote add upstream 'git@github.com:<your github username>/mogo.git'
+```
+
 ### 设置 Api 开发环境
 
 Mogo api 使用 Go 进行开发，如果你本地尚未安装 Go 环境，可以参考[这里](https://go.dev/learn/)安装。
