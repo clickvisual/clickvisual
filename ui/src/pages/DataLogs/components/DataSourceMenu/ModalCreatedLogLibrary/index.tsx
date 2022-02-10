@@ -17,9 +17,8 @@ import { DEBOUNCE_WAIT } from "@/config/config";
 const { Option } = Select;
 
 export const logLibraryTypes = [
-  { value: 1, type: "app_stdout" },
-  { value: 2, type: "ego_stdout" },
-  { value: 3, type: "ingress_stdout" },
+  { value: 1, type: "common" },
+  { value: 2, type: "ego" },
 ];
 
 const ModalCreatedLogLibrary = () => {
