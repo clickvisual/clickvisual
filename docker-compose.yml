@@ -76,7 +76,7 @@ services:
     networks:
       - mogo-net
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: shimo
       MYSQL_ROOT_HOST: '%'
     ports:
       - 13306:13306
@@ -102,8 +102,8 @@ services:
     networks:
       - mogo-net
     environment:
-      CLICKHOUSE_USER: user1
-      CLICKHOUSE_PASSWORD: pass1
+      CLICKHOUSE_USER: root
+      CLICKHOUSE_PASSWORD: shimo
     expose:
       - 9000
     ports:
