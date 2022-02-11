@@ -101,3 +101,14 @@ func InstanceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 	}
 	return
 }
+
+// InstanceInfoX Info extension method to query a single record according to Cond
+func InstanceInfoX(db *gorm.DB, conds map[string]interface{}) (resp Instance, err error) {
+	conds["dtime"] = 0
+	sql, binds := egorm.BuildQuery(conds)
+	if err = db.Table(TableNameInstance).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+		elog.Error("infoX error", zap.Error(err))
+		return
+	}
+	return
+}

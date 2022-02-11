@@ -172,7 +172,7 @@ export default {
   "datasource.logLibrary.from.tableName": "数据表名称",
   "datasource.logLibrary.from.rule.tableName":
     "请输入小写字母、大写字母，或下划线",
-  "datasource.logLibrary.from.type": "数据表类型",
+  "datasource.logLibrary.from.type": "_time_ 字段类型",
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",

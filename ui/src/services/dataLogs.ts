@@ -1,17 +1,19 @@
 import { request } from "umi";
 import { TimeBaseType } from "@/services/systemSetting";
 
-export interface DataSourceTableProps {
-  database: string;
-  iid: number;
-}
-
 export interface QueryLogsProps {
   st: number;
   et: number;
   query?: string | undefined;
   pageSize?: number;
   page?: number;
+}
+
+export interface GetTableIdRequest {
+  instance: string;
+  database: string;
+  datasource: string;
+  table: string;
 }
 
 export interface LogsResponse {
@@ -76,9 +78,6 @@ export interface HighCharts {
 }
 
 export interface DatabaseResponse {
-  // databaseName: string;
-  // instanceId: number;
-  // instanceName: string;
   datasourceType: string;
   id: number;
   iid: number;
@@ -100,15 +99,12 @@ export interface TableInfoResponse {
   topic: string;
   typ: number;
   uid: number;
+  database: DatabaseResponse;
 }
 
 export interface TableSqlContent {
   keys: string[];
   data: any;
-}
-
-export interface InstanceSelectedType {
-  iid: number;
 }
 
 export interface IndexInfoType {
@@ -123,11 +119,9 @@ export interface IndexRequest {
   data?: IndexInfoType[];
 }
 
-export interface IndexDetailRequest extends DataSourceTableProps {
-  table: string;
+export interface IndexDetailRequest {
   st: number;
   et: number;
-  field: string;
   query?: string | undefined;
 }
 
@@ -197,10 +191,18 @@ export default {
     });
   },
 
+  // Obtain the table id from the third-party channel
+  async getTableId(params: GetTableIdRequest) {
+    return request<API.Res<number>>(`/api/v1/table/id`, {
+      method: "GET",
+      params,
+    });
+  },
+
   // Get a list of databases
-  async getDatabaseList(payload: InstanceSelectedType | undefined) {
+  async getDatabaseList(iid: number | undefined) {
     return request<API.Res<DatabaseResponse[]>>(
-      `/api/v1/instances/${payload?.iid || 0}/databases`,
+      `/api/v1/instances/${iid || 0}/databases`,
       {
         method: "GET",
       }
@@ -208,11 +210,12 @@ export default {
   },
 
   // Get index details
-  async getIndexDetail(tid: number, id: number) {
+  async getIndexDetail(tid: number, id: number, params: IndexDetailRequest) {
     return request<API.Res<IndexDetail[]>>(
       `/api/v1/tables/${tid}/indexes/${id}`,
       {
         method: "GET",
+        params,
       }
     );
   },

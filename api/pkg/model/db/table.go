@@ -5,14 +5,12 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-
-	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
 type Table struct {
 	Did       int    `gorm:"column:did;type:bigint(20)" json:"did"`                    // 数据库 id
 	Name      string `gorm:"column:name;type:varchar(64);NOT NULL" json:"name"`        // table
-	Typ       int    `gorm:"column:typ;type:int(11)" json:"typ"`                       // table 类型 1 app 2 ego 3 ingress
+	Typ       int    `gorm:"column:typ;type:int(11)" json:"typ"`                       // table 类型 1 string 2 float
 	Days      int    `gorm:"column:days;type:int(11)" json:"days"`                     // 数据过期时间
 	Brokers   string `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"` // kafka broker
 	Topic     string `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`     // kafka topic
@@ -49,10 +47,10 @@ func TableDelete(db *gorm.DB, id int) (err error) {
 }
 
 // TableInfoX Info extension method to query a single record according to Cond
-func TableInfoX(conds map[string]interface{}) (resp Table, err error) {
+func TableInfoX(db *gorm.DB, conds map[string]interface{}) (resp Table, err error) {
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Table(TableNameTable).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameTable).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		elog.Error("infoX error", zap.Error(err))
 		return
 	}

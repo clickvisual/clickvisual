@@ -18,7 +18,12 @@ import (
 
 const ignoreKey = "_timestamp_"
 const timeCondition = "_timestamp_ >= %d AND _timestamp_ < %d"
-const defaultTimeParse = "parseDateTimeBestEffort(_time_) AS _timestamp_,parseDateTimeBestEffort(_time_) AS _trace_time_"
+
+const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _timestamp_,
+parseDateTimeBestEffort(_time_) AS _trace_time_`
+
+const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _timestamp_,
+fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _trace_time_`
 
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(log, '%s'))) AS _timestamp_, 
 fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(log, '%s')*1000000000),'Asia/Shanghai') AS _trace_time_`
@@ -88,14 +93,15 @@ func (c *ClickHouse) whereConditionSQLDefault(list []*db.View) string {
 	return defaultSQL
 }
 
-func (c *ClickHouse) timeParseSQL(v *db.View) string {
-	if v.IsUseDefaultTime == 1 {
-		return defaultTimeParse
-	}
-	if v.Format == "fromUnixTimestamp64Micro" {
+func (c *ClickHouse) timeParseSQL(typ int, v *db.View) string {
+	if v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, v.Key, v.Key)
 	}
-	return defaultTimeParse
+	elog.Debug("timeParseSQL", elog.Any("typ", typ))
+	if typ == TableTypeTimeString {
+		return defaultStringTimeParse
+	}
+	return defaultFloatTimeParse
 }
 
 // ViewSync
@@ -235,9 +241,15 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, timestampKey str
 	// create
 	if timestampKey == "" {
 		// default
-		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, defaultTimeParse, jsonExtractSQL, streamName, c.whereConditionSQLDefault(list))
+		var dtp string
+		if typ == TableTypeTimeString {
+			dtp = defaultStringTimeParse
+		} else {
+			dtp = defaultFloatTimeParse
+		}
+		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, dtp, jsonExtractSQL, streamName, c.whereConditionSQLDefault(list))
 	} else {
-		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, c.timeParseSQL(current), jsonExtractSQL, streamName, c.whereConditionSQLCurrent(current))
+		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, c.timeParseSQL(typ, current), jsonExtractSQL, streamName, c.whereConditionSQLCurrent(current))
 	}
 	if isCreate {
 		_, err = c.db.Exec(viewSQL)
@@ -409,21 +421,40 @@ func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, database db.Database
 			return err
 		}
 	}
+	tx := invoker.Db.Begin()
 	// step 3 rebuild view
 	// step 3.1 default view
-	_, err = c.viewOperator(table.Typ, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
+	defaultViewSQL, err := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
 	if err != nil {
 		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["sql_view"] = defaultViewSQL
+	err = db.TableUpdate(tx, table.ID, ups)
+	if err != nil {
+		tx.Rollback()
+		return err
 	}
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
 	elog.Debug("IndexUpdate", elog.Any("viewList", viewList))
 	for _, current := range viewList {
-		_, err = c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
+		innerViewSQL, err := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
+		upsView := make(map[string]interface{}, 0)
+		upsView["sql_view"] = innerViewSQL
+		err = db.ViewUpdate(tx, current.ID, upsView)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	if err = tx.Commit().Error; err != nil {
+		return err
 	}
 	return nil
 }

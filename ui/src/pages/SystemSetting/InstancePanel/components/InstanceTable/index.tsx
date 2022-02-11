@@ -48,7 +48,7 @@ const InstanceTable = (props: InstanceTableProps) => {
         id: "operation",
       })}`,
       align: "center" as AlignType,
-      width: 140,
+      width: 100,
       fixed: "right" as FixedType,
       dataIndex: "operations",
       render: (_: any, record: InstanceType) => {

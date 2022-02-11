@@ -8,6 +8,13 @@ type ReqTableCreate struct {
 	Topics    string `form:"topics" binding:"required"`
 }
 
+type ReqTableId struct {
+	Instance   string `form:"instance" binding:"required"`
+	Database   string `form:"database" binding:"required"`
+	Table      string `form:"table" binding:"required"`
+	Datasource string `form:"datasource" binding:"required"`
+}
+
 type RespTableSimple struct {
 	Id        int    `json:"id"`
 	TableName string `json:"tableName"`
@@ -25,4 +32,5 @@ type RespTableDetail struct {
 		Keys []string          `json:"keys"`
 		Data map[string]string `json:"data"`
 	} `json:"sqlContent"`
+	Database RespDatabaseItem `json:"database"`
 }

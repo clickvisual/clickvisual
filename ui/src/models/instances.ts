@@ -2,7 +2,6 @@ import type { InstanceType } from "@/services/systemSetting";
 import api from "@/services/systemSetting";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { useState } from "react";
-import type { InstanceSelectedType } from "@/services/dataLogs";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 
@@ -11,7 +10,7 @@ const Instances = () => {
   const [instanceList, setInstanceList] = useState<InstanceType[]>([]);
   // 当前选中实例，用于数据库筛选
   const [selectedInstance, setSelectedInstance] = useState<
-    InstanceSelectedType | undefined
+    number | undefined
   >();
 
   const getInstanceList = useRequest(api.getInstances, {
@@ -40,9 +39,7 @@ const Instances = () => {
     },
   });
 
-  const onChangeSelectedInstance = (
-    instance: InstanceSelectedType | undefined
-  ) => {
+  const onChangeSelectedInstance = (instance: number | undefined) => {
     setSelectedInstance(instance);
   };
 
