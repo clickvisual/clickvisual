@@ -31,6 +31,7 @@ services:
       - kafka
     links:
       - kafka
+    restart: always
   zookeeper:
     image: zookeeper
     networks:
@@ -78,14 +79,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: shimo
       MYSQL_ROOT_HOST: '%'
-    ports:
-      - 13306:13306
     command: [
         '--character-set-server=utf8mb4',
         '--collation-server=utf8mb4_general_ci',
         '--port=13306',
         '--init-file=/data/migration/latest.sql',
     ]
+    ports:
+      - 13306:13306
     volumes:
       - ./scripts/migration:/data/migration
     restart: always
@@ -118,7 +119,7 @@ services:
     depends_on:
       - kafka
   api:
-    image: sevennt/mogo
+    image: mixmore/mogo
     networks:
       - mogo-net
     environment:
@@ -139,5 +140,5 @@ services:
       - kafka
     restart: always
     volumes:
-      - ./api/config:/mogo/config
+      - ./data/mogo/config:/mogo/config
     command: [ '/bin/sh', '-c', './bin/mogo -job install && ./bin/mogo' ]
