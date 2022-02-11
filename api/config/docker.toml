@@ -1,9 +1,14 @@
+[app]
+secretKey = "ASDFASDFASDF" # hashStatecode
+rootURL = "http://localhost:19001"
+baseURL = "/api/admin/login/"
+
 [logger.default]
 level = "debug"
 
 [server.http]
 host = "0.0.0.0"
-port = 9001
+port = 19001
 embedPath = "dist"
 
 [server.governor]
@@ -16,7 +21,7 @@ resourceFile = './config/resource.yaml'
 [mysql.default]
 connMaxLifetime = "300s"
 debug = true
-dsn = "root:root@tcp(mysql:3307)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+dsn = "root:root@tcp(mysql:13306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
 level = "panic"
 maxIdleConns = 50
 maxOpenConns = 100
@@ -25,11 +30,6 @@ maxOpenConns = 100
 addr = "redis:6380"
 writeTimeout = "3s"
 password = ""
-
-[app]
-secretKey = "ASDFASDFASDF" # hashStatecode
-rootURL = "http://localhost:9001"
-baseURL = "/api/admin/login/"
 
 [auth]
 # Login cookie name
