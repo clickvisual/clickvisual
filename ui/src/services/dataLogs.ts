@@ -107,10 +107,6 @@ export interface TableSqlContent {
   data: any;
 }
 
-export interface InstanceSelectedType {
-  iid: number;
-}
-
 export interface IndexInfoType {
   id: number;
   tid: number;
@@ -204,9 +200,9 @@ export default {
   },
 
   // Get a list of databases
-  async getDatabaseList(payload: InstanceSelectedType | undefined) {
+  async getDatabaseList(iid: number | undefined) {
     return request<API.Res<DatabaseResponse[]>>(
-      `/api/v1/instances/${payload?.iid || 0}/databases`,
+      `/api/v1/instances/${iid || 0}/databases`,
       {
         method: "GET",
       }

@@ -16,6 +16,7 @@ const { Option } = Select;
 const SelectedDataBaseDraw = () => {
   const {
     databaseList,
+    getDatabases,
     visibleDataBaseDraw,
     doSelectedDatabase,
     doGetDatabaseList,
@@ -137,17 +138,17 @@ const SelectedDataBaseDraw = () => {
           <Space style={{ width: "60%" }}>
             <Select
               allowClear
-              value={JSON.stringify(selectedInstance)}
+              value={selectedInstance}
               style={{ width: "100%" }}
               placeholder={`${i18n.formatMessage({
                 id: "datasource.draw.selected",
               })}`}
-              onChange={(value: string | undefined) => {
-                onChangeSelectedInstance(value ? JSON.parse(value) : undefined);
+              onChange={(value: number) => {
+                onChangeSelectedInstance(value);
               }}
             >
               {instanceList.map((item: InstanceType, index: number) => (
-                <Option key={index} value={JSON.stringify({ iid: item.id })}>
+                <Option key={index} value={item.id as number}>
                   {item.instanceName}
                 </Option>
               ))}
@@ -180,7 +181,7 @@ const SelectedDataBaseDraw = () => {
       headerStyle={{ padding: 10 }}
     >
       <Table
-        loading={getInstanceList.loading}
+        loading={getInstanceList.loading || getDatabases.loading}
         bordered
         rowKey={(record: DatabaseResponse) => `${record.iid}-${record.id}`}
         size={"small"}
