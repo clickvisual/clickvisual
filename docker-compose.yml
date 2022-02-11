@@ -9,6 +9,8 @@ services:
     image: nginx
     ports:
       - "80:80"
+    networks:
+      - mogo-net
     volumes:
       - ./data/nginx/html:/usr/share/nginx/html
       - ./data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
@@ -17,6 +19,8 @@ services:
     restart: always
   fluent-bit:
     image: fluent/fluent-bit:1.8.12
+    networks:
+      - mogo-net
     ports:
       - 2020:2020
     environment:
@@ -33,6 +37,8 @@ services:
     image: zookeeper
     ports:
       - 2181:2181
+    networks:
+      - mogo-net
     volumes:
       - ./data/zookeeper/data:/data
       - ./data/zookeeper/datalog:/datalog
@@ -40,8 +46,6 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
   kafka:
     image: bitnami/kafka:2.8.1
-    expose:
-      - "9092"
     ports:
       - "9092:9092"
     environment:
@@ -51,6 +55,8 @@ services:
     depends_on:
       - zookeeper
     restart: always
+    networks:
+      - mogo-net
     volumes:
       - ./data/kafka:/bitnami/kafka
   kafka-manager:
@@ -62,6 +68,8 @@ services:
     links:
       - zookeeper
       - kafka
+    networks:
+      - mogo-net
     environment:
       ZK_HOSTS: zookeeper:2181
       APPLICATION_SECRET: shimo
@@ -78,10 +86,10 @@ services:
     environment:
       KAFKA_BROKERS: kafka:9092
     restart: always
+    networks:
+      - mogo-net
   mysql:
     image: mysql:5.7.24
-    expose:
-      - "3307"
     ports:
       - "3307:3307"
     command: [
@@ -100,8 +108,6 @@ services:
       - mogo-net
   redis:
     image: redis:5.0.14-alpine
-    expose:
-      - "6380"
     ports:
       - "6380:6380"
     restart: always
@@ -119,6 +125,10 @@ services:
     environment:
       CLICKHOUSE_USER: user1
       CLICKHOUSE_PASSWORD: pass1
+    volumes:
+      - ./data/clickhouse/database:/var/lib/clickhouse
+      - ./data/clickhouse/logs:/var/log
+      - ./data/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
     restart: always
     networks:
       - mogo-net
@@ -127,7 +137,7 @@ services:
     depends_on:
       - kafka
   api:
-    image: sevent/mogo
+    image: sevennt/mogo
     expose:
       - "9001"
     ports:
@@ -137,12 +147,14 @@ services:
       - redis
       - clickhouse
       - fluent-bit
+      - kafka
     networks:
       - mogo-net
     links:
       - mysql
       - redis
       - clickhouse
+      - kafka
     restart: always
     environment:
       EGO_CONFIG_PATH: /mogo/config/docker.toml
