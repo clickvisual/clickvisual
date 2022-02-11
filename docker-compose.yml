@@ -1,16 +1,14 @@
 version: '3'
-
 networks:
   mogo-net:
     driver: bridge
-
 services:
   nginx:
     image: nginx
-    ports:
-      - "19004:80"
     networks:
       - mogo-net
+    ports:
+      - "19003:80"
     volumes:
       - ./data/nginx/html:/usr/share/nginx/html
       - ./data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
@@ -21,10 +19,10 @@ services:
     image: fluent/fluent-bit:1.8.12
     networks:
       - mogo-net
-    ports:
-      - 2020:2020
     environment:
       KAFKA_BROKERS: kafka:9092
+    ports:
+      - 2020:2020
     volumes:
       - ./data/fluent-bit/conf:/fluent-bit/etc/
       - ./data/nginx/logs:/var/log/containers
@@ -35,106 +33,97 @@ services:
       - kafka
   zookeeper:
     image: zookeeper
-    expose:
-      - 2181
     networks:
       - mogo-net
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    expose:
+      - 2181
     volumes:
       - ./data/zookeeper/data:/data
       - ./data/zookeeper/datalog:/datalog
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
   kafka:
     image: bitnami/kafka:2.8.1
-    expose:
-      - 9092
+    networks:
+      - mogo-net
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
+    expose:
+      - 9092
     depends_on:
       - zookeeper
     restart: always
-    networks:
-      - mogo-net
     volumes:
       - ./data/kafka:/bitnami/kafka
-  kafka-manager:
-    image: sheepkiller/kafka-manager
-    ports:
-      - "19003:9000"
-    depends_on:
-      - kafka
-    links:
-      - zookeeper
-      - kafka
-    networks:
-      - mogo-net
-    environment:
-      ZK_HOSTS: zookeeper:2181
-      APPLICATION_SECRET: shimo
-      KM_ARGS: -Djava.net.preferIPv4Stack=true
   kowl:
     image: rsmnarts/kowl
+    networks:
+      - mogo-net
+    environment:
+      KAFKA_BROKERS: kafka:9092
     ports:
-      - "19002:8080"
+      - 19002:8080
     depends_on:
       - kafka
     links:
       - zookeeper
       - kafka
-    environment:
-      KAFKA_BROKERS: kafka:9092
     restart: always
-    networks:
-      - mogo-net
   mysql:
     image: mysql:5.7.24
-    expose:
-      - 3307
+    networks:
+      - mogo-net
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - 13306:13306
     command: [
         '--character-set-server=utf8mb4',
         '--collation-server=utf8mb4_general_ci',
-        '--port=3307',
+        '--port=13306',
         '--init-file=/data/migration/latest.sql',
     ]
     volumes:
       - ./scripts/migration:/data/migration
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_ROOT_HOST: '%'
     restart: always
-    networks:
-      - mogo-net
   redis:
     image: redis:5.0.14-alpine
+    networks:
+      - mogo-net
     expose:
       - 6380
     restart: always
-    networks:
-      - mogo-net
     command: [ '--port 6380' ]
   clickhouse:
     image: clickhouse/clickhouse-server:latest
-    ports:
-      - "8123:8123"
-      - "9000:9000"
+    networks:
+      - mogo-net
     environment:
       CLICKHOUSE_USER: user1
       CLICKHOUSE_PASSWORD: pass1
+    expose:
+      - 9000
+    ports:
+      - "8123:8123"
     volumes:
       - ./data/clickhouse/database:/var/lib/clickhouse
       - ./data/clickhouse/logs:/var/log
       - ./data/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
     restart: always
-    networks:
-      - mogo-net
     links:
       - kafka
     depends_on:
       - kafka
   api:
     image: sevennt/mogo
+    networks:
+      - mogo-net
+    environment:
+      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_LOG_WRITER: stderr
     ports:
       - "19001:19001"
     depends_on:
@@ -143,17 +132,12 @@ services:
       - clickhouse
       - fluent-bit
       - kafka
-    networks:
-      - mogo-net
     links:
       - mysql
       - redis
       - clickhouse
       - kafka
     restart: always
-    environment:
-      EGO_CONFIG_PATH: /mogo/config/docker.toml
-      EGO_LOG_WRITER: stderr
     volumes:
       - ./api/config:/mogo/config
     command: [ '/bin/sh', '-c', './bin/mogo -job install && ./bin/mogo' ]
