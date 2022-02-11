@@ -1,9 +1,14 @@
+[app]
+secretKey = "ASDFASDFASDF" # hashStatecode
+rootURL = "http://localhost:19001"
+baseURL = "/api/admin/login/"
+
 [logger.default]
 level = "debug"
 
 [server.http]
 host = "0.0.0.0"
-port = 9001
+port = 19001
 embedPath = "dist"
 
 [server.governor]
@@ -25,11 +30,6 @@ maxOpenConns = 100
 addr = "redis:6380"
 writeTimeout = "3s"
 password = ""
-
-[app]
-secretKey = "ASDFASDFASDF" # hashStatecode
-rootURL = "http://localhost:9001"
-baseURL = "/api/admin/login/"
 
 [auth]
 # Login cookie name
