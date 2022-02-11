@@ -22,9 +22,7 @@ func NewIndex() *index {
 
 func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]*db.Index, map[string]*db.Index, error) {
 	conds := egorm.Conds{}
-	conds["instance_id"] = req.InstanceID
-	conds["database"] = req.Database
-	conds["table"] = req.Table
+	conds["tid"] = req.Tid
 	nowIndexList, err := db.IndexList(conds)
 	if err != nil {
 		return nil, nil, nil, err
@@ -39,12 +37,10 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 	newIndexArr := make([]string, 0)
 	for _, ir := range req.Data {
 		newIndexMap[fmt.Sprintf("%s.%d", ir.Field, ir.Typ)] = &db.Index{
-			InstanceID: req.InstanceID,
-			Database:   req.Database,
-			Table:      req.Table,
-			Field:      ir.Field,
-			Typ:        ir.Typ,
-			Alias:      ir.Alias,
+			Tid:   req.Tid,
+			Field: ir.Field,
+			Typ:   ir.Typ,
+			Alias: ir.Alias,
 		}
 		newIndexArr = append(newIndexArr, fmt.Sprintf("%s.%d", ir.Field, ir.Typ))
 	}
@@ -74,19 +70,17 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 
 func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	tx := invoker.Db.Begin()
-	err = db.IndexDeleteBatch(tx, req.InstanceID, req.Database, req.Table)
+	err = db.IndexDeleteBatch(tx, req.Tid)
 	if err != nil {
 		tx.Rollback()
 		return
 	}
 	for _, d := range req.Data {
 		err = db.IndexCreate(tx, &db.Index{
-			InstanceID: req.InstanceID,
-			Database:   req.Database,
-			Table:      req.Table,
-			Field:      d.Field,
-			Typ:        d.Typ,
-			Alias:      d.Alias,
+			Tid:   req.Tid,
+			Field: d.Field,
+			Typ:   d.Typ,
+			Alias: d.Alias,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -94,14 +88,16 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 		}
 	}
 	// do clickhouse operator
-	op, err := InstanceManager.Load(req.InstanceID)
+	tableInfo, _ := db.TableInfo(tx, req.Tid)
+	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	op, err := InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
 		return errors.New("Corresponding configuration instance does not exist:  ")
 	}
 	elog.Debug("IndexUpdate", elog.Any("newList", newList))
 
-	err = op.IndexUpdate(req, adds, dels, newList)
+	err = op.IndexUpdate(req, databaseInfo, tableInfo, adds, dels, newList)
 	if err != nil {
 		tx.Rollback()
 		return

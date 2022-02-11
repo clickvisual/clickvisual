@@ -1,4 +1,4 @@
-package inquiry
+package base
 
 import (
 	"strings"
@@ -49,7 +49,8 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(tableInfo.Iid)
+	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -89,24 +90,9 @@ func ViewDelete(c *core.Context) {
 }
 
 func ViewCreate(c *core.Context) {
-	iid := cast.ToInt(c.Param("iid"))
-	database := strings.TrimSpace(c.Param("db"))
-	table := strings.TrimSpace(c.Param("table"))
-	if iid == 0 || database == "" || table == "" {
-		c.JSONE(core.CodeErr, "params error", nil)
-		return
-	}
-	conds := egorm.Conds{}
-	conds["iid"] = iid
-	conds["database"] = database
-	conds["name"] = table
-	tableInfo, err := db.TableInfoX(conds)
-	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-		return
-	}
+	tid := cast.ToInt(c.Param("id"))
 	params := view.ReqViewCreate{}
-	err = c.Bind(&params)
+	err := c.Bind(&params)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
@@ -116,7 +102,7 @@ func ViewCreate(c *core.Context) {
 		return
 	}
 	current := db.View{
-		Tid:              tableInfo.ID,
+		Tid:              tid,
 		Name:             params.Name,
 		IsUseDefaultTime: params.IsUseDefaultTime,
 		Key:              params.Key,
@@ -130,14 +116,16 @@ func ViewCreate(c *core.Context) {
 	}
 	var viewList []*db.View
 	condsView := egorm.Conds{}
-	condsView["tid"] = tableInfo.ID
+	condsView["tid"] = tid
 	viewList, err = db.ViewList(tx, condsView)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(iid)
+	tableInfo, _ := db.TableInfo(tx, tid)
+	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -225,7 +213,8 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(tableInfo.Iid)
+	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -283,20 +272,17 @@ func ViewInfo(c *core.Context) {
 }
 
 func ViewList(c *core.Context) {
-	iid := cast.ToInt(c.Param("iid"))
-	database := strings.TrimSpace(c.Param("db"))
-	table := strings.TrimSpace(c.Param("table"))
-	if iid == 0 || database == "" || table == "" {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	conds := egorm.Conds{}
-	conds["iid"] = iid
-	conds["database"] = database
-	conds["name"] = table
-	tableInfo, err := db.TableInfoX(conds)
-	if err != nil {
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	iid := tableInfo.Database.Iid
+	database := tableInfo.Database.Name
+	table := tableInfo.Name
+	if iid == 0 || database == "" || table == "" {
+		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
 	condsView := egorm.Conds{}

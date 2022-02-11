@@ -2,10 +2,8 @@ package inquiry
 
 import (
 	"sort"
-	"strings"
 	"sync"
 
-	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfloat"
 	"github.com/spf13/cast"
@@ -24,11 +22,19 @@ func Logs(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(core.CodeErr, "params error", nil)
+		return
+	}
+	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	param.Table = tableInfo.Name
+	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(param.InstanceId)
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -38,7 +44,7 @@ func Logs(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	res, err := op.GET(param)
+	res, err := op.GET(param, tableInfo.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
@@ -54,11 +60,19 @@ func Charts(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(core.CodeErr, "params error", nil)
+		return
+	}
+	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	param.Table = tableInfo.Name
+	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(param.InstanceId)
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -132,181 +146,41 @@ func Charts(c *core.Context) {
 	return
 }
 
-func DeleteTables(c *core.Context) {
-	iid := cast.ToInt(c.Param("iid"))
-	database := strings.TrimSpace(c.Param("db"))
-	table := strings.TrimSpace(c.Param("table"))
-	conds := egorm.Conds{}
-	conds["iid"] = iid
-	conds["database"] = database
-	conds["name"] = table
-	tableInfo, err := db.TableInfoX(conds)
-	if err != nil {
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
-		return
-	}
-	if tableInfo.ID == 0 {
-		c.JSONE(core.CodeErr, "Unable to delete tables not created by Mogo.", nil)
-		return
-	}
-	op, err := service.InstanceManager.Load(iid)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	err = op.TableDrop(database, table, tableInfo.ID)
-	if err != nil {
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
-		return
-	}
-	tx := invoker.Db.Begin()
-	err = db.TableDelete(tx, tableInfo.ID)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
-		return
-	}
-	err = db.ViewDeleteByTableID(tx, tableInfo.ID)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
-		return
-	}
-	err = db.IndexDeleteBatch(tx, iid, database, table)
-	if err != nil {
-		tx.Rollback()
-		return
-	}
-	if err = tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
-		return
-	}
-	c.JSONOK("Delete succeeded. Note that Kafka may be backlogged.\n")
-	return
-}
-
-func Tables(c *core.Context) {
-	var param view.ReqQuery
-	err := c.Bind(&param)
-	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	if param.Database == "" {
-		c.JSONE(core.CodeErr, "db is a required field", nil)
-		return
-	}
-	op, err := service.InstanceManager.Load(param.InstanceId)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	tables, err := op.Tables(param.Database)
-	if err != nil {
-		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
-		return
-	}
-	// res := make([]view.RespTableList, 0)
-	// for _, row := range tables {
-	// 	conds := egorm.Conds{}
-	// 	conds["iid"] = param.InstanceId
-	// 	conds["database"] = param.Database
-	// 	conds["name"] = row
-	// 	tableInfo, errTableInfoX := db.TableInfoX(conds)
-	// 	if errTableInfoX != nil {
-	// 		elog.Error("errTableInfoX", elog.String("err", errTableInfoX.Error()))
-	// 		continue
-	// 	}
-	// 	// if tableInfo.ID == 0 {
-	// 	// 	continue
-	// 	// }
-	// 	res = append(res, view.RespTableList{
-	// 		Id:        tableInfo.ID,
-	// 		TableName: row,
-	// 	})
-	// }
-	c.JSONOK(tables)
-	return
-}
-
-func CreateTables(c *core.Context) {
-	iid := cast.ToInt(c.Param("iid"))
-	database := strings.TrimSpace(c.Param("db"))
-	if iid == 0 || database == "" {
-		c.JSONE(core.CodeErr, "params error", nil)
-		return
-	}
-	var param view.ReqTableCreate
-	err := c.Bind(&param)
-	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	op, err := service.InstanceManager.Load(iid)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	s, d, v, err := op.TableCreate(database, param)
-	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-		return
-	}
-	err = db.TableCreate(invoker.Db, &db.Table{
-		Iid:       iid,
-		Database:  database,
-		Name:      param.TableName,
-		Typ:       param.Typ,
-		Days:      param.Days,
-		Brokers:   param.Brokers,
-		Topic:     param.Topics,
-		SqlData:   d,
-		SqlStream: s,
-		SqlView:   v,
-		Uid:       c.Uid(),
-	})
-	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-		return
-	}
-	c.JSONOK()
-	return
-}
-
-func Databases(c *core.Context) {
-	var param view.ReqDatabases
-	err := c.Bind(&param)
-	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	// 获取全部实例下的 databases
-	if param.InstanceId == 0 {
-		ops := service.InstanceManager.All()
-		res := make([]view.RespDatabase, 0)
-		for _, op := range ops {
-			tmp, err := op.Databases()
-			if err != nil {
-				elog.Error("Databases", elog.String("err", err.Error()))
-				continue
-			}
-			res = append(res, tmp...)
-		}
-		c.JSONOK(res)
-		return
-	}
-	op, err := service.InstanceManager.Load(param.InstanceId)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	res, err := op.Databases()
-	if err != nil {
-		elog.Error("Databases", elog.String("err", err.Error()))
-	}
-	c.JSONOK(res)
-	return
-}
+//
+// func Databases(c *core.Context) {
+// 	var param view.ReqDatabases
+// 	err := c.Bind(&param)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+// 		return
+// 	}
+// 	// 获取全部实例下的 databases
+// 	if param.InstanceId == 0 {
+// 		ops := service.InstanceManager.All()
+// 		res := make([]view.RespDatabase, 0)
+// 		for _, op := range ops {
+// 			tmp, err := op.Databases()
+// 			if err != nil {
+// 				elog.Error("Databases", elog.String("err", err.Error()))
+// 				continue
+// 			}
+// 			res = append(res, tmp...)
+// 		}
+// 		c.JSONOK(res)
+// 		return
+// 	}
+// 	op, err := service.InstanceManager.Load(param.InstanceId)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, err.Error(), nil)
+// 		return
+// 	}
+// 	res, err := op.Databases()
+// 	if err != nil {
+// 		elog.Error("Databases", elog.String("err", err.Error()))
+// 	}
+// 	c.JSONOK(res)
+// 	return
+// }
 
 func Indexes(c *core.Context) {
 	var param view.ReqQuery
@@ -315,11 +189,20 @@ func Indexes(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	tid := cast.ToInt(c.Param("id"))
+	indexId := cast.ToInt(c.Param("idx"))
+	if tid == 0 || indexId == 0 {
+		c.JSONE(core.CodeErr, "params error", nil)
+		return
+	}
+	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	param.Table = tableInfo.Name
+	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(param.InstanceId)
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return

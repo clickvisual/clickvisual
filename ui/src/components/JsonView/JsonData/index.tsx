@@ -78,7 +78,9 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
           </div>
         ))}
       <span>&#123;</span>
-      {isShowJson && <div style={indentStyle}>{kvList}</div>}
+      {isShowJson && kvList.length > 0 && (
+        <div style={indentStyle}>{kvList}</div>
+      )}
       <span>&#125;</span>
     </div>
   );

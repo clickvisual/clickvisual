@@ -5,23 +5,18 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	sdelete "gorm.io/plugin/soft_delete"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
 // Index 索引数据存储
 type Index struct {
-	InstanceID int    `gorm:"column:instance_id" db:"instance_id" json:"instanceId" form:"instance_id"`
-	Database   string `gorm:"column:database" db:"database" json:"database" form:"database"`
-	Table      string `gorm:"column:table" db:"table" json:"table" form:"table"`
-	Field      string `gorm:"column:field" db:"field" json:"field" form:"field"`
-	Typ        int    `gorm:"column:typ" db:"typ" json:"typ" form:"typ"` // 字段 0 string 1 int 2 float
-	Alias      string `gorm:"column:alias" db:"alias" json:"alias" form:"alias"`
+	Tid   int    `gorm:"column:tid;type:bigint(11)" json:"tid"` // table id
+	Field string `gorm:"column:field" db:"field" json:"field" form:"field"`
+	Typ   int    `gorm:"column:typ" db:"typ" json:"typ" form:"typ"` // 字段 0 string 1 int 2 float
+	Alias string `gorm:"column:alias" db:"alias" json:"alias" form:"alias"`
 
-	Ctime int64             `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
-	Utime int64             `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
-	Dtime sdelete.DeletedAt `gorm:"bigint;comment:删除时间" json:"dtime"`
+	BaseModel
 }
 
 func (t *Index) TableName() string {
@@ -55,8 +50,8 @@ func IndexUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	return
 }
 
-func IndexDeleteBatch(db *gorm.DB, InstanceID int, database, table string) (err error) {
-	if err = db.Model(Index{}).Where("`instance_id`=? and `database`=? and `table`=?", InstanceID, database, table).Unscoped().Delete(&Index{}).Error; err != nil {
+func IndexDeleteBatch(db *gorm.DB, tid int) (err error) {
+	if err = db.Model(Index{}).Where("`tid`=?", tid).Unscoped().Delete(&Index{}).Error; err != nil {
 		elog.Error("release delete error", zap.Error(err))
 		return
 	}

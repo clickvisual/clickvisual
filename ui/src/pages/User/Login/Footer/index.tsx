@@ -6,8 +6,7 @@ import classNames from "classnames";
 import { getLocale } from "@@/plugin-locale/localeExports";
 import { LANG_CN } from "@/config/config";
 
-type LoginFooterProps = {};
-const LoginFooter = (props: LoginFooterProps) => {
+const LoginFooter = () => {
   const i18n = useIntl();
   const thirdPartyChannels = [{ name: "Gitlab" }, { name: "GitHub" }];
   return (
@@ -33,7 +32,7 @@ const LoginFooter = (props: LoginFooterProps) => {
               onClick={() => {
                 window.open(
                   `/api/admin/login/${channel.name.toLowerCase()}`,
-                  "_blank"
+                  "_self"
                 );
               }}
               className={loginFooterStyles.thirdPartyBtn}

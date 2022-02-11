@@ -1,5 +1,5 @@
 import databaseDrawStyle from "@/pages/DataLogs/components/SelectedDatabaseDraw/index.less";
-import { Button, Drawer, Select, Table, Tooltip } from "antd";
+import { Button, Drawer, Select, Space, Table, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import type { DatabaseResponse } from "@/services/dataLogs";
 import type { AlignType } from "rc-table/lib/interface";
@@ -7,10 +7,13 @@ import { useEffect } from "react";
 import type { InstanceType } from "@/services/systemSetting";
 import FilterTableColumn from "@/components/FilterTableColumn";
 import { useIntl } from "umi";
-type SelectedDatabaseDrawProps = {};
+import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
+import IconFont from "@/components/IconFont";
+import classNames from "classnames";
+import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
 
 const { Option } = Select;
-const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
+const SelectedDataBaseDraw = () => {
   const {
     databaseList,
     visibleDataBaseDraw,
@@ -27,6 +30,7 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
     selectedInstance,
     onChangeSelectedInstance,
   } = useModel("instances");
+  const { onChangeCreatedDatabaseModal } = useModel("database");
   const i18n = useIntl();
 
   const datasourceTypeList = [{ name: "ClickHouse", value: "ch" }];
@@ -46,13 +50,13 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
   const column = [
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.datasource" }),
-      dataIndex: "databaseName",
+      dataIndex: "name",
       width: "40%",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
       ...FilterTableColumn("databaseName"),
       render: (databaseName: string, record: DatabaseResponse) => (
-        <Tooltip title={databaseName} placement={"left"}>
+        <Tooltip title={databaseName}>
           <Button
             onClick={() => {
               doSelectedDatabase(record);
@@ -73,9 +77,18 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
     },
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.instance" }),
-      dataIndex: "instanceName",
+      dataIndex: "iid",
       align: "center" as AlignType,
       width: "30%",
+      render: (iid: number) => {
+        const instance = instanceList.find((item) => item.id === iid);
+        if (!instance) return <span>-</span>;
+        return (
+          <Tooltip title={instance.instanceName}>
+            <span>{instance.instanceName}</span>
+          </Tooltip>
+        );
+      },
     },
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.type" }),
@@ -121,23 +134,39 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
           <div>
             <span>{i18n.formatMessage({ id: "datasource.draw.title" })}</span>
           </div>
-          <Select
-            allowClear
-            value={JSON.stringify(selectedInstance)}
-            style={{ width: "60%" }}
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.draw.selected",
-            })}`}
-            onChange={(value: string | undefined) => {
-              onChangeSelectedInstance(value ? JSON.parse(value) : undefined);
-            }}
-          >
-            {instanceList.map((item: InstanceType, index: number) => (
-              <Option key={index} value={JSON.stringify({ iid: item.id })}>
-                {item.instanceName}
-              </Option>
-            ))}
-          </Select>
+          <Space style={{ width: "60%" }}>
+            <Select
+              allowClear
+              value={JSON.stringify(selectedInstance)}
+              style={{ width: "100%" }}
+              placeholder={`${i18n.formatMessage({
+                id: "datasource.draw.selected",
+              })}`}
+              onChange={(value: string | undefined) => {
+                onChangeSelectedInstance(value ? JSON.parse(value) : undefined);
+              }}
+            >
+              {instanceList.map((item: InstanceType, index: number) => (
+                <Option key={index} value={JSON.stringify({ iid: item.id })}>
+                  {item.instanceName}
+                </Option>
+              ))}
+            </Select>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "instance.operation.addDatabase",
+              })}
+              placement={"bottomRight"}
+            >
+              <IconFont
+                onClick={() => {
+                  onChangeCreatedDatabaseModal(true);
+                }}
+                className={classNames(instanceTableStyles.instanceTableIcon)}
+                type={"icon-add-database"}
+              />
+            </Tooltip>
+          </Space>
         </div>
       }
       className={databaseDrawStyle.databaseDrawMain}
@@ -153,14 +182,13 @@ const SelectedDataBaseDraw = (props: SelectedDatabaseDrawProps) => {
       <Table
         loading={getInstanceList.loading}
         bordered
-        rowKey={(record: DatabaseResponse) =>
-          `${record.instanceId}-${record.databaseName}`
-        }
+        rowKey={(record: DatabaseResponse) => `${record.iid}-${record.id}`}
         size={"small"}
         columns={column}
         dataSource={databaseList}
         pagination={{ responsive: true, showSizeChanger: true, size: "small" }}
       />
+      <CreatedDatabaseModal />
     </Drawer>
   );
 };

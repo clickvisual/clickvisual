@@ -6,20 +6,19 @@ import { useEffect, useRef } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { useDebounceFn } from "ahooks";
 import { cloneDeep } from "lodash";
-import { CreatedViewRequest } from "@/services/dataLogs";
+import { CreatedViewRequest, TablesResponse } from "@/services/dataLogs";
 import { DEBOUNCE_WAIT } from "@/config/config";
 
 const { Option } = Select;
 type ModalCreatedAndUpdatedViewProps = {
   getList: () => void;
-  logLibrary: string;
+  logLibrary: TablesResponse;
 };
 const ModalCreatedAndUpdatedView = ({
   getList,
   logLibrary,
 }: ModalCreatedAndUpdatedViewProps) => {
   const {
-    currentDatabase,
     viewVisibleModal,
     onChangeViewVisibleModal,
     onChangeViewIsEdit,
@@ -33,20 +32,12 @@ const ModalCreatedAndUpdatedView = ({
 
   const doCreated = useDebounceFn(
     (values: CreatedViewRequest) => {
-      if (!currentDatabase) return;
-      createdView
-        .run(
-          currentDatabase.instanceId,
-          currentDatabase.databaseName,
-          logLibrary,
-          values
-        )
-        .then((res) => {
-          if (res?.code === 0) {
-            getList();
-            onChangeViewVisibleModal(false);
-          }
-        });
+      createdView.run(logLibrary.id, values).then((res) => {
+        if (res?.code === 0) {
+          getList();
+          onChangeViewVisibleModal(false);
+        }
+      });
     },
     { wait: DEBOUNCE_WAIT }
   );

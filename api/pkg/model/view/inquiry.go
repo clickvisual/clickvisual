@@ -1,11 +1,10 @@
 package view
 
-type ReqDatabases struct {
-	InstanceId int `form:"iid"`
-}
+import (
+	"github.com/shimohq/mogo/api/pkg/model/db"
+)
 
 type ReqQuery struct {
-	InstanceId    int    `form:"iid" binding:"required"`
 	Database      string `form:"database"`
 	Table         string `form:"table"`
 	DatabaseTable string `form:"databaseTable"`
@@ -19,7 +18,7 @@ type ReqQuery struct {
 
 type RespQuery struct {
 	Limited            uint32                   `json:"limited"`
-	Keys               []string                 `json:"keys"`
+	Keys               []*db.Index              `json:"keys"`
 	ElapsedMillisecond int                      `json:"elapsedMillisecond"`
 	Count              uint64                   `json:"count"`
 	HasSQL             bool                     `json:"hasSQL"`
