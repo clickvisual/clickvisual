@@ -128,6 +128,7 @@ services:
     volumes:
       - ./data/clickhouse/database:/var/lib/clickhouse
       - ./data/clickhouse/logs:/var/log
+      - ./data/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
     restart: always
     networks:
       - mogo-net
