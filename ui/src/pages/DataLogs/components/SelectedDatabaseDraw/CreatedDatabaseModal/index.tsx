@@ -46,7 +46,7 @@ const CreatedDatabaseModal = ({}: CreatedDatabaseModalProps) => {
       visibleCreatedDatabaseModal &&
       databaseFormRef.current
     ) {
-      databaseFormRef.current.setFieldsValue({ iid: selectedInstance.iid });
+      databaseFormRef.current.setFieldsValue({ iid: selectedInstance });
     }
   }, [selectedInstance, visibleCreatedDatabaseModal]);
 

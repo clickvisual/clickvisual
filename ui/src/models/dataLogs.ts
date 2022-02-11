@@ -4,7 +4,6 @@ import { message } from "antd";
 import api, {
   DatabaseResponse,
   HighCharts,
-  InstanceSelectedType,
   LogsResponse,
   TablesResponse,
 } from "@/services/dataLogs";
@@ -323,9 +322,7 @@ const DataLogsModel = () => {
     }
   };
 
-  const doGetDatabaseList = (
-    selectedInstance?: InstanceSelectedType | undefined
-  ) => {
+  const doGetDatabaseList = (selectedInstance?: number | undefined) => {
     getDatabases.run(selectedInstance);
   };
 
