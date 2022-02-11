@@ -21,7 +21,7 @@ resourceFile = './config/resource.yaml'
 [mysql.default]
 connMaxLifetime = "300s"
 debug = true
-dsn = "root:root@tcp(mysql:13306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+dsn = "root:shimo@tcp(mysql:13306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
 level = "panic"
 maxIdleConns = 50
 maxOpenConns = 100
@@ -93,4 +93,4 @@ password = ""
 keypairs = ""
 
 [defaultCh]
-dsn="tcp://clickhouse:9000?username=user1&password=pass1&read_timeout=10&writer_timeou=10&debug=true"
+dsn="tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeou=10&debug=true"
