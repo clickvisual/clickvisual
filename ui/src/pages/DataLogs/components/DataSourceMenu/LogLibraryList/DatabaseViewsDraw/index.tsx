@@ -9,16 +9,15 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import ModalCreatedAndUpdatedView from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/ModalCreatedAndUpdatedView";
 import DeletedModal from "@/components/DeletedModal";
-import { ViewResponse } from "@/services/dataLogs";
+import { TablesResponse, ViewResponse } from "@/services/dataLogs";
 
 type DatabaseViewsDrawProps = {
-  logLibrary: string;
+  logLibrary: TablesResponse;
 };
 
 const DatabaseViewsDraw = (props: DatabaseViewsDrawProps) => {
   const { logLibrary } = props;
   const {
-    currentDatabase,
     viewsVisibleDraw,
     getViewList,
     viewList,
@@ -31,12 +30,7 @@ const DatabaseViewsDraw = (props: DatabaseViewsDrawProps) => {
   const i18n = useIntl();
 
   const doGetViews = () => {
-    if (!currentDatabase) return;
-    getViewList.run(
-      currentDatabase.instanceId,
-      currentDatabase.databaseName,
-      logLibrary
-    );
+    getViewList.run(logLibrary.id);
   };
 
   const doEdit = (id: number) => {

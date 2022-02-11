@@ -2,9 +2,8 @@ import userStyles from "@/layouts/User/styles/index.less";
 import UserCardHeader from "@/layouts/User/UserCardHeader";
 import React from "react";
 import { useModel } from "@@/plugin-model/useModel";
-import { Redirect } from "umi";
+import { Redirect, SelectLang } from "umi";
 import { HOME_PATH } from "@/config/config";
-import { SelectLang } from "@/components/SelectLang";
 
 type UserProps = {
   children: React.ReactNode;
@@ -23,7 +22,7 @@ const LoginLayout = ({ children }: UserProps) => {
         <div className={userStyles.divider} />
         {children}
       </div>
-      <SelectLang className={userStyles.lang} />
+      <SelectLang className={userStyles.lang} reload={false} />
     </div>
   );
 };

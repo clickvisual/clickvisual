@@ -5,6 +5,79 @@ networks:
     driver: bridge
 
 services:
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./data/nginx/html:/usr/share/nginx/html
+      - ./data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./data/nginx/conf.d:/etc/nginx/conf.d
+      - ./data/nginx/logs:/var/log/nginx
+    restart: always
+  fluent-bit:
+    image: fluent/fluent-bit:1.8.12
+    ports:
+      - 2020:2020
+    environment:
+      KAFKA_BROKERS: kafka:9092
+    volumes:
+      - ./data/fluent-bit/conf:/fluent-bit/etc/
+      - ./data/nginx/logs:/var/log/containers
+    depends_on:
+      - nginx
+      - kafka
+    links:
+      - kafka
+  zookeeper:
+    image: zookeeper
+    ports:
+      - 2181:2181
+    volumes:
+      - ./data/zookeeper/data:/data
+      - ./data/zookeeper/datalog:/datalog
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: bitnami/kafka:2.8.1
+    expose:
+      - "9092"
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+    restart: always
+    volumes:
+      - ./data/kafka:/bitnami/kafka
+  kafka-manager:
+    image: sheepkiller/kafka-manager
+    ports:
+      - "19000:9000"
+    depends_on:
+      - kafka
+    links:
+      - zookeeper
+      - kafka
+    environment:
+      ZK_HOSTS: zookeeper:2181
+      APPLICATION_SECRET: shimo
+      KM_ARGS: -Djava.net.preferIPv4Stack=true
+  kowl:
+    image: rsmnarts/kowl
+    ports:
+      - "18080:8080"
+    depends_on:
+      - kafka
+    links:
+      - zookeeper
+      - kafka
+    environment:
+      KAFKA_BROKERS: kafka:9092
+    restart: always
   mysql:
     image: mysql:5.7.24
     expose:
@@ -49,11 +122,12 @@ services:
     restart: always
     networks:
       - mogo-net
+    links:
+      - kafka
+    depends_on:
+      - kafka
   api:
-    image: mogo:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sevent/mogo
     expose:
       - "9001"
     ports:
@@ -62,6 +136,7 @@ services:
       - mysql
       - redis
       - clickhouse
+      - fluent-bit
     networks:
       - mogo-net
     links:

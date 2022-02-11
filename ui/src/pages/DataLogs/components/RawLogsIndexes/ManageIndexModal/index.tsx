@@ -12,13 +12,10 @@ import { IndexInfoType } from "@/services/dataLogs";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
 
-type ManageIndexModalProps = {};
-
-const ManageIndexModal = (props: ManageIndexModalProps) => {
+const ManageIndexModal = () => {
   const {
     visibleIndexModal,
     onChangeVisibleIndexModal,
-    currentDatabase,
     currentLogLibrary,
     settingIndexes,
     getIndexList,
@@ -36,37 +33,28 @@ const ManageIndexModal = (props: ManageIndexModalProps) => {
 
   const onSubmit = useDebounceFn(
     (field) => {
-      if (!currentDatabase || !currentLogLibrary) return;
-      const params = {
-        iid: currentDatabase.instanceId,
-        database: currentDatabase.databaseName,
-        table: currentLogLibrary,
-        data: field.data,
-      };
-      settingIndexes.run(params).then((res) => {
-        if (res?.code === 0) {
-          cancel();
-          doGetLogs();
-          doParseQuery();
-        }
-      });
+      if (!currentLogLibrary) return;
+
+      settingIndexes
+        .run(currentLogLibrary.id, { data: field.data })
+        .then((res) => {
+          if (res?.code === 0) {
+            cancel();
+            doGetLogs();
+            doParseQuery();
+          }
+        });
     },
     { wait: DEBOUNCE_WAIT }
   );
 
   useEffect(() => {
-    if (visibleIndexModal && currentDatabase && currentLogLibrary) {
-      getIndexList
-        .run({
-          iid: currentDatabase.instanceId,
-          database: currentDatabase.databaseName,
-          table: currentLogLibrary,
-        })
-        .then((res) => {
-          if (res?.code === 0) {
-            setIndexList(res.data);
-          }
-        });
+    if (visibleIndexModal && currentLogLibrary) {
+      getIndexList.run(currentLogLibrary.id).then((res) => {
+        if (res?.code === 0) {
+          setIndexList(res.data);
+        }
+      });
     } else {
       indexFormRef.current?.resetFields();
     }

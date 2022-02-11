@@ -1,7 +1,7 @@
 import { Button, Popover } from "antd";
 import { CaretDownFilled } from "@ant-design/icons";
 import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import DateTimeSelectedCard from "@/pages/DataLogs/components/DateTimeSelected/DateTimeSelectedCard";
 import { useModel } from "@@/plugin-model/useModel";
 import { timeStampFormat } from "@/utils/momentUtils";
@@ -35,16 +35,22 @@ export const DarkTimeContext = React.createContext<DarkTimeContextType>({
   },
 });
 
-type DarkTimeSelectProps = {};
-const DarkTimeSelect = (props: DarkTimeSelectProps) => {
-  const { activeTabKey, activeTimeOptionIndex, startDateTime, endDateTime } =
-    useModel("dataLogs");
+const DarkTimeSelect = () => {
+  const {
+    activeTabKey,
+    activeTimeOptionIndex,
+    startDateTime,
+    endDateTime,
+    onChangeCurrentRelativeAmount,
+    onChangeCurrentRelativeUnit,
+  } = useModel("dataLogs");
   const i18n = useIntl();
 
   const TabName = {
     [TimeRangeType.Relative]: i18n.formatMessage({ id: "dateTime.relative" }),
     [TimeRangeType.Custom]: i18n.formatMessage({ id: "dateTime.custom" }),
   };
+  const isFirstLoadRef = useRef<boolean>(true);
 
   const timeOptions: TimeOption[] = [
     {
@@ -176,6 +182,18 @@ const DarkTimeSelect = (props: DarkTimeSelectProps) => {
       relativeUnit: "years",
     },
   ];
+
+  useEffect(() => {
+    if (isFirstLoadRef.current && activeTabKey === TimeRangeType.Relative) {
+      onChangeCurrentRelativeAmount(
+        timeOptions[activeTimeOptionIndex]?.relativeAmount
+      );
+      onChangeCurrentRelativeUnit(
+        timeOptions[activeTimeOptionIndex]?.relativeUnit
+      );
+      isFirstLoadRef.current = false;
+    }
+  }, []);
   return (
     <DarkTimeContext.Provider
       value={{

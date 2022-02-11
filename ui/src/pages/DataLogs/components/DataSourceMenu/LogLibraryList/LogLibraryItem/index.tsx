@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
 import { message, Tooltip } from "antd";
-import { FundViewOutlined } from "@ant-design/icons";
+import { FileTextOutlined, FundViewOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import { PaneType, QueryParams } from "@/models/dataLogs";
 import {
@@ -19,9 +19,11 @@ import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useState } from "react";
 import DeletedModal from "@/components/DeletedModal";
+import { TablesResponse } from "@/services/dataLogs";
 
 const defaultPane: PaneType = {
   pane: "",
+  paneId: 0,
   start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
   end: currentTimeStamp(),
   page: FIRST_PAGE,
@@ -32,8 +34,8 @@ const defaultPane: PaneType = {
 };
 
 type LogLibraryItemProps = {
-  logLibrary: string;
-  onChange: (logLibrary: string) => void;
+  logLibrary: TablesResponse;
+  onChange: (logLibrary: TablesResponse) => void;
 };
 
 const LogLibraryItem = (props: LogLibraryItemProps) => {
@@ -52,6 +54,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     resetCurrentHighChart,
     onChangeActiveTabKey,
     onChangeActiveTimeOptionIndex,
+    onChangeLogLibraryInfoDrawVisible,
     doDeletedLogLibrary,
     doGetLogLibraryList,
     onChangeCurrentLogPane,
@@ -63,7 +66,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
 
   const onChangePanes = () => {
     const currentPanes = lodash.cloneDeep(logPanes);
-    const tabPane = currentPanes.find((item) => item.pane === logLibrary);
+    const tabPane = currentPanes.find((item) => item.paneId === logLibrary.id);
     let queryParam: undefined | QueryParams;
     if (tabPane) {
       setChangeTabPane(tabPane);
@@ -83,14 +86,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       };
       currentPanes.push({
         ...defaultPane,
-        pane: logLibrary,
+        pane: logLibrary.tableName,
+        paneId: logLibrary.id,
       });
     }
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex || ACTIVE_TIME_INDEX);
     onChangeLogPanes(currentPanes);
-    doGetLogs({ ...queryParam, logLibrary });
-    doGetHighCharts({ ...queryParam, logLibrary });
+    doGetLogs(queryParam);
+    doGetHighCharts(queryParam);
     doParseQuery(queryParam?.kw);
   };
 
@@ -101,24 +105,27 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         {
           id: "datasource.logLibrary.deleted.loading",
         },
-        { logLibrary }
+        { logLibrary: logLibrary.tableName }
       ),
       key: "deletedTable",
     });
     doDeletedLogLibrary
-      .run(currentDatabase.instanceId, currentDatabase.databaseName, logLibrary)
+      .run(logLibrary.id)
       .then((res) => {
         if (res?.code === 0) {
           if (logLibrary === currentLogLibrary) {
             resetLogs();
             resetCurrentHighChart();
             const newPanes = logPanes.filter(
-              (item) => item.pane !== currentLogLibrary
+              (item) => item.pane !== currentLogLibrary.tableName
             );
             onChangeLogPanes(newPanes);
             if (newPanes.length > 0) {
-              onChangeCurrentLogPane(newPanes[0], newPanes[0].pane);
-              onChangeLogLibrary(newPanes[0].pane);
+              onChangeCurrentLogPane(newPanes[0]);
+              onChangeLogLibrary({
+                id: newPanes[0].paneId,
+                tableName: newPanes[0].pane,
+              });
             }
           }
           message.success({
@@ -135,15 +142,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   return (
     <li
       className={classNames(
-        currentLogLibrary === logLibrary &&
+        currentLogLibrary?.id === logLibrary.id &&
           logLibraryListStyles.activeLogLibrary,
         mouseEnter && logLibraryListStyles.LogLibraryHover
       )}
     >
-      <Tooltip title={logLibrary}>
+      <Tooltip title={logLibrary.tableName}>
         <span
           onClick={() => {
-            if (currentLogLibrary === logLibrary) return;
+            if (currentLogLibrary?.id === logLibrary.id) return;
             onChangeLogLibrary(logLibrary);
             resetCurrentHighChart();
             onChangePanes();
@@ -152,8 +159,21 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           onMouseLeave={() => setMouseEnter(false)}
           className={classNames(logLibraryListStyles.title)}
         >
-          {logLibrary}
+          {logLibrary.tableName}
         </span>
+      </Tooltip>
+      <Tooltip
+        title={i18n.formatMessage({
+          id: "datasource.tooltip.icon.info",
+        })}
+      >
+        <FileTextOutlined
+          onClick={() => {
+            onChange(logLibrary);
+            onChangeLogLibraryInfoDrawVisible(true);
+          }}
+          className={classNames(logLibraryListStyles.icon)}
+        />
       </Tooltip>
       <Tooltip
         title={i18n.formatMessage({
@@ -162,8 +182,8 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       >
         <FundViewOutlined
           onClick={() => {
-            onChangeViewsVisibleDraw(true);
             onChange(logLibrary);
+            onChangeViewsVisibleDraw(true);
           }}
           className={classNames(logLibraryListStyles.icon)}
         />
@@ -183,13 +203,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
                 {
                   id: "datasource.logLibrary.deleted.content",
                 },
-                { logLibrary }
+                { logLibrary: logLibrary.tableName }
               ),
             });
           }}
           className={classNames(logLibraryListStyles.icon)}
           type={
-            currentLogLibrary === logLibrary ? "icon-log-delete" : "icon-delete"
+            currentLogLibrary?.id === logLibrary.id
+              ? "icon-log-delete"
+              : "icon-delete"
           }
         />
       </Tooltip>

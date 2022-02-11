@@ -5,12 +5,13 @@ import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import IndexItem from "@/pages/DataLogs/components/RawLogsIndexes/IndexItem";
 import { useIntl } from "umi";
+import { IndexInfoType } from "@/services/dataLogs";
 
 type IndexListProps = {
-  list: string[];
+  list: IndexInfoType[];
 };
 const IndexList = (props: IndexListProps) => {
-  const [activeList, setActiveList] = useState<string[]>([]);
+  const [activeList, setActiveList] = useState<number[]>([]);
   const i18n = useIntl();
   const { list } = props;
   useEffect(() => {
@@ -21,31 +22,31 @@ const IndexList = (props: IndexListProps) => {
       {list.length > 0 ? (
         <ul>
           {list.map((index) => {
-            const isActive = activeList.indexOf(index) > -1;
+            const isActive = activeList.indexOf(index.id) > -1;
             return (
               <div
                 className={classNames(indexListStyles.indexRowMain)}
-                key={index}
+                key={index.id}
               >
-                <Tooltip title={index} placement={"left"}>
+                <Tooltip title={index.field} placement={"left"}>
                   <li
                     className={classNames(
                       indexListStyles.indexRow,
                       isActive && indexListStyles.activeIndexRow
                     )}
                     onClick={() => {
-                      if (activeList.indexOf(index) === -1) {
-                        setActiveList(() => [...activeList, index]);
+                      if (activeList.indexOf(index.id) === -1) {
+                        setActiveList(() => [...activeList, index.id]);
                       } else {
                         setActiveList(() =>
                           activeList.filter(
-                            (itemActive) => itemActive !== index
+                            (itemActive) => itemActive !== index.id
                           )
                         );
                       }
                     }}
                   >
-                    <span className={indexListStyles.title}>{index}</span>
+                    <span className={indexListStyles.title}>{index.field}</span>
                     <div className={indexListStyles.icon}>
                       {isActive ? <CaretUpOutlined /> : <CaretDownOutlined />}
                     </div>

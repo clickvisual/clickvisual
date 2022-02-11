@@ -25,7 +25,7 @@ export default {
   "menu.log": "Logs",
   "menu.alarm": "Alarm",
   "menu.systemSettings": "Setting",
-  "menu.systemSettings.database": "Database",
+  "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
 
   // user
@@ -43,7 +43,7 @@ export default {
   "login.message.logOut": "Log Out successfully",
 
   // System Setting
-  // Database Management
+  // Instance Management
   "instance.button.add": "Add instance",
   "instance.instanceName": "Instance Name",
   "instance.datasource": "Datasource",
@@ -53,9 +53,18 @@ export default {
   "instance.form.placeholder.instanceName": "Please enter an instance name",
   "instance.form.placeholder.datasource": "Please select datasource",
   "instance.form.placeholder.dsn": "Please enter DSN, for example: {example}",
+  "instance.operation.addDatabase": "Adding a database",
   "instance.success.created": "Created instance succeeded",
   "instance.success.updated": "Updated instance succeeded",
   "instance.success.deleted": "Deleted instance succeeded",
+
+  // Database Management
+  "database.form.title": "Create Database",
+  "database.form.label.name": "Database Name",
+  "database.form.placeholder.name": "Please enter a database name",
+  "database.form.reg.name":
+    "Support only _, lowercase letters or Numbers, and begin with a letter",
+  "database.success.created": "Created database succeeded",
 
   // Cluster Management
   "cluster.button.add": "Add cluster",
@@ -164,29 +173,40 @@ export default {
   // Data Logs
   // Data Logs-Datasource
   "datasource.header.databaseEmpty": "DB Is Unselected",
-  "datasource.header.switch": "Switch the data source",
+  "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
   "datasource.logLibrary.search.created": "Creating a Log library",
 
   "datasource.logLibrary.from.tableName": "Table Name",
+  "datasource.logLibrary.from.rule.tableName":
+    "Please enter lowercase letters, uppercase letters, or underscores",
   "datasource.logLibrary.from.type": "Table Type",
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.rule.topics":
+    "Please enter lowercase letters, uppercase letters, or hyphens",
 
-  "datasource.logLibrary.placeholder.tableName": "Please enter a table name",
+  "datasource.logLibrary.placeholder.tableName":
+    "Please enter the name of the data table in upper or lower case English or underscore",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
-  "datasource.logLibrary.placeholder.brokers": "Please enter Brokers",
-  "datasource.logLibrary.placeholder.topics": "Please enter Topics",
+  "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
+  "datasource.logLibrary.placeholder.topics":
+    "Please enter Topics, support in uppercase or lowercase English or crossed",
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
+  "datasource.tooltip.icon.info": "Log Library Details",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
   "datasource.view.button": "Creating a Configuration Rule",
   "datasource.view.table.viewName": "Rule Name",
+
+  "datasource.logLibrary.info.sql": "SQL configuration",
+  "datasource.logLibrary.info.placeholder.sql":
+    "Please select to view the SQL configuration",
 
   "datasource.logLibrary.created.success": "The table is created successfully.",
   "datasource.logLibrary.deleted.loading": "Deleting logLibrary: {logLibrary}",
@@ -199,7 +219,7 @@ export default {
   "datasource.logLibrary.views.modal.edit": "Edit a Data Collection Rule",
   "datasource.logLibrary.views.form.viewName": "Rule Name",
   "datasource.logLibrary.views.form.isUseDefaultTime": "Use System Time",
-  "datasource.logLibrary.views.form.timeKey": "Specify Time Keyword",
+  "datasource.logLibrary.views.form.timeKey": "Keyword",
   "datasource.logLibrary.views.form.timeFormat": "Time Format",
   "datasource.logLibrary.views.selectName.timeFormat.unix": "Unix timestamp",
 
@@ -220,12 +240,12 @@ export default {
     "Confirm deletion rule: {rule}?",
 
   // Data Logs-Datasource-Draw
-  "datasource.draw.title": "Datasource Switching",
+  "datasource.draw.title": "Database Switching",
   "datasource.draw.selected": "Please select an instance",
-  "datasource.draw.table.datasource": "Datasource",
+  "datasource.draw.table.datasource": "Database",
   "datasource.draw.table.instance": "Instance",
-  "datasource.draw.table.type": "Datasource Type",
-  "datasource.draw.table.empty.type.tip": "None datasource type",
+  "datasource.draw.table.type": "Database Type",
+  "datasource.draw.table.empty.type.tip": "None Database type",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",

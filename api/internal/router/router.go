@@ -6,6 +6,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/shimohq/mogo/api/internal/apiv1/base"
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
 	"github.com/shimohq/mogo/api/internal/apiv1/inquiry"
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
@@ -46,26 +47,6 @@ func GetRouter() *egin.Component {
 		v1.GET("/users/info", core.Handle(user.Info))
 		v1.POST("/users/logout", core.Handle(user.Logout))
 	}
-	// Data query
-	{
-		v1.GET("/query/logs", core.Handle(inquiry.Logs))
-		v1.GET("/query/charts", core.Handle(inquiry.Charts))
-		v1.GET("/query/databases", core.Handle(inquiry.Databases))
-
-		// table operator
-		v1.GET("/query/tables", core.Handle(inquiry.Tables))
-		v1.POST("/query/instances/:iid/databases/:db/tables", core.Handle(inquiry.CreateTables))
-		v1.DELETE("/query/instances/:iid/databases/:db/tables/:table", core.Handle(inquiry.DeleteTables))
-
-		// view operator
-		v1.GET("/query/views/:id", core.Handle(inquiry.ViewInfo))
-		v1.PATCH("/query/views/:id", core.Handle(inquiry.ViewUpdate))
-		v1.DELETE("/query/views/:id", core.Handle(inquiry.ViewDelete))
-		v1.GET("/query/instances/:iid/databases/:db/tables/:table/views", core.Handle(inquiry.ViewList))
-		v1.POST("/query/instances/:iid/databases/:db/tables/:table/views", core.Handle(inquiry.ViewCreate))
-
-		v1.GET("/query/indexes", core.Handle(inquiry.Indexes))
-	}
 	// System configuration
 	{
 		// Database instance configuration
@@ -79,11 +60,6 @@ func GetRouter() *egin.Component {
 		v1.POST("/sys/clusters", core.Handle(setting.ClusterCreate))
 		v1.PATCH("/sys/clusters/:id", core.Handle(setting.ClusterUpdate))
 		v1.DELETE("/sys/clusters/:id", core.Handle(setting.ClusterDelete))
-	}
-	// Data TableName Customization Settings
-	{
-		v1.PATCH("/setting/indexes", core.Handle(setting.IndexUpdate))
-		v1.GET("/setting/indexes", core.Handle(setting.Indexes))
 	}
 	// Configuration management
 	{
@@ -106,6 +82,39 @@ func GetRouter() *egin.Component {
 		v1.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))
 		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
 		v1.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
+	}
+	// Trace
+	{
+		// v1.GET("/traces/:tid", core.Handle(trace.Info))
+	}
+	// Database
+	{
+		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
+		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
+		v1.DELETE("/databases/:id", core.Handle(base.DatabaseDelete))
+	}
+	// Table
+	{
+		v1.POST("/databases/:did/tables", core.Handle(base.TableCreate))
+		v1.GET("/databases/:did/tables", core.Handle(base.TableList))
+		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
+		v1.GET("/tables/:id", core.Handle(base.TableInfo))
+		v1.GET("/tables/:id/logs", core.Handle(inquiry.Logs))
+		v1.GET("/tables/:id/charts", core.Handle(inquiry.Charts))
+
+		v1.GET("/tables/:id/indexes/:idx", core.Handle(inquiry.Indexes))
+		v1.PATCH("/tables/:id/indexes", core.Handle(setting.IndexUpdate))
+		v1.GET("/tables/:id/indexes", core.Handle(setting.Indexes))
+
+		v1.GET("/table/id", core.Handle(base.TableId))
+	}
+	// View
+	{
+		v1.GET("/views/:id", core.Handle(base.ViewInfo))
+		v1.PATCH("/views/:id", core.Handle(base.ViewUpdate))
+		v1.DELETE("/views/:id", core.Handle(base.ViewDelete))
+		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
+		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
 	}
 	return r
 }

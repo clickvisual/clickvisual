@@ -4,23 +4,17 @@ import { useEffect, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { Progress, Spin, Tooltip } from "antd";
 import useRequest from "@/hooks/useRequest/useRequest";
-import api, { IndexDetail } from "@/services/dataLogs";
+import api, { IndexDetail, IndexInfoType } from "@/services/dataLogs";
 import { useIntl } from "umi";
 
 type IndexItemProps = {
-  index: string;
+  index: IndexInfoType;
   isActive: boolean;
 };
 const IndexItem = (props: IndexItemProps) => {
   const { index, isActive } = props;
-  const {
-    currentDatabase,
-    keywordInput,
-    currentLogLibrary,
-    startDateTime,
-    endDateTime,
-    doUpdatedQuery,
-  } = useModel("dataLogs");
+  const { keywordInput, startDateTime, endDateTime, doUpdatedQuery } =
+    useModel("dataLogs");
 
   const i18n = useIntl();
 
@@ -35,24 +29,13 @@ const IndexItem = (props: IndexItemProps) => {
   };
 
   useEffect(() => {
-    if (
-      !isActive ||
-      !currentDatabase ||
-      !currentLogLibrary ||
-      !startDateTime ||
-      !endDateTime
-    )
-      return;
+    if (!isActive || !index || !startDateTime || !endDateTime) return;
     const params = {
-      database: currentDatabase.databaseName,
-      iid: currentDatabase.instanceId,
-      table: currentLogLibrary,
-      field: index,
       st: startDateTime,
       et: endDateTime,
       query: keywordInput,
     };
-    getIndexDetails.run(params).then((res) => {
+    getIndexDetails.run(index.tid, index.id, params).then((res) => {
       if (res?.code === 0) {
         setDetails(res.data);
       }

@@ -11,7 +11,7 @@ import (
 
 // View Materialized view management
 type View struct {
-	Tid              int    `gorm:"column:tid;type:int(11)" json:"tid"`                              // table id
+	Tid              int    `gorm:"column:tid;type:bigint(11)" json:"tid"`                           // table id
 	Name             string `gorm:"column:name;type:varchar(64);NOT NULL" json:"name"`               // 视图名称
 	IsUseDefaultTime int    `gorm:"column:is_use_default_time;type:int(11)" json:"isUseDefaultTime"` // 是否使用系统时间
 	Key              string `gorm:"column:key;type:varchar(64);NOT NULL" json:"key"`                 // 指定时间字段Key名称

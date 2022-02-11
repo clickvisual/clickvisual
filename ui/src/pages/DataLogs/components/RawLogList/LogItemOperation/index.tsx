@@ -6,8 +6,7 @@ import { LogItemContext } from "@/pages/DataLogs/components/RawLogList";
 import { useContext } from "react";
 import { useIntl } from "umi";
 
-type LogItemOperationProps = {};
-const LogItemOperation = (props: LogItemOperationProps) => {
+const LogItemOperation = () => {
   const { onCopyRawLogDetails } = useModel("dataLogs");
   const { log } = useContext(LogItemContext);
   const i18n = useIntl();

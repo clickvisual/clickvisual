@@ -7,12 +7,15 @@ import (
 )
 
 const (
-	TableNameUser     = "mogo_user"
-	TableNameView     = "mogo_view"
-	TableNameTable    = "mogo_table"
-	TableNameIndex    = "mogo_index"
-	TableNameCluster  = "mogo_cluster"
-	TableNameInstance = "mogo_instance"
+	TableNameView     = "mogo_base_view"
+	TableNameTable    = "mogo_base_table"
+	TableNameIndex    = "mogo_base_index"
+	TableNameDatabase = "mogo_base_database"
+	TableNameInstance = "mogo_base_instance"
+
+	TableNameUser = "mogo_user"
+
+	TableNameCluster = "mogo_cluster"
 
 	TableNameConfiguration        = "mogo_configuration"
 	TableNameConfigurationHistory = "mogo_configuration_history"

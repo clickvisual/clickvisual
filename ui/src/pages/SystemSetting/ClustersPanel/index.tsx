@@ -5,14 +5,13 @@ import ClustersTable from "@/pages/SystemSetting/ClustersPanel/components/Cluste
 import CreatedOrUpdatedClusterModal from "@/pages/SystemSetting/ClustersPanel/components/CreatedOrUpdatedClusterModal";
 import type { ClusterType } from "@/services/systemSetting";
 import { useModel } from "@@/plugin-model/useModel";
-type ClustersPanelProps = {};
 type ClustersPanelContextType = {
   onChangeVisible?: (flag: boolean) => void;
   onChangeIsEditor?: (flag: boolean) => void;
   onChangeCurrentCluster?: (param: ClusterType | undefined) => void;
 };
 export const ClustersPanelContext = createContext<ClustersPanelContextType>({});
-const ClustersPanel = (props: ClustersPanelProps) => {
+const ClustersPanel = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const [isEditor, setIsEditor] = useState<boolean>(false);
   const [current, setCurrent] = useState<ClusterType | undefined>(undefined);

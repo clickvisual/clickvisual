@@ -13,19 +13,19 @@ import (
 )
 
 type Operator interface {
-	Databases() ([]view.RespDatabase, error)
-	Tables(string) ([]string, error)
-	TableCreate(string, view.ReqTableCreate) (string, string, string, error)
+	DatabaseCreate(string) error
+
+	TableCreate(int, string, view.ReqTableCreate) (string, string, string, error)
 	TableDrop(string, string, int) error
 
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 
 	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
-	GET(view.ReqQuery) (view.RespQuery, error)
+	GET(view.ReqQuery, int) (view.RespQuery, error)
 	Count(view.ReqQuery) uint64
 	GroupBy(view.ReqQuery) map[string]uint64
 
-	IndexUpdate(view.ReqCreateIndex, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
+	IndexUpdate(view.ReqCreateIndex, db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 }
 
 const (
@@ -82,7 +82,7 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Key == "_time_" {
+		if item.Key == "_timestamp_" {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
 		if index == 0 {

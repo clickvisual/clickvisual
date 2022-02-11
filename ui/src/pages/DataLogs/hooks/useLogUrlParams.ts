@@ -18,7 +18,7 @@ export default function useLogUrlParams() {
   const [urlState, setUrlState] = useUrlState();
   const {
     currentLogLibrary,
-    currentDatabase,
+    getTableId,
     onChangeLogLibrary,
     onChangeCurrentDatabase,
     startDateTime,
@@ -36,17 +36,63 @@ export default function useLogUrlParams() {
     onChangeActiveTimeOptionIndex,
     onChangeLogPanes,
     doParseQuery,
+    doGetLogLibrary,
   } = useModel("dataLogs");
 
-  const { getInstanceList } = useModel("instances");
+  const doSetUrlQuery = (tid: number) => {
+    try {
+      doGetLogLibrary.run(tid).then((res) => {
+        if (res?.code === 0) {
+          if (res.data.database) {
+            onChangeCurrentDatabase(res.data.database);
+          }
+          const panes = [];
+          onChangeLogLibrary({
+            id: tid,
+            tableName: res.data.name,
+          });
+          panes.push({
+            pane: res.data.name,
+            paneId: tid,
+            start:
+              parseInt(urlState.start) ||
+              moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+            end: parseInt(urlState.end) || currentTimeStamp(),
+            keyword: urlState.kw || undefined,
+            page: parseInt(urlState.page) || FIRST_PAGE,
+            pageSize: parseInt(urlState.size) || PAGE_SIZE,
+            activeTabKey: urlState.tab || TimeRangeType.Relative,
+            activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
+          });
+          onChangeLogPanes(panes);
+          onChangeStartDateTime(
+            parseInt(urlState.start) ||
+              moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
+          );
+          onChangeEndDateTime(parseInt(urlState.end) || currentTimeStamp());
+          if (urlState.tab) {
+            onChangeActiveTabKey(urlState.tab);
+          }
+          if (urlState.index) {
+            onChangeActiveTimeOptionIndex(parseInt(urlState.index));
+          }
+          onChangeKeywordInput(urlState.kw);
+          onChangeLogsPageByUrl(
+            parseInt(urlState.page) || FIRST_PAGE,
+            parseInt(urlState.size) || PAGE_SIZE
+          );
+        }
+      });
+      doParseQuery(urlState.kw);
+    } catch (e) {
+      console.log("【Error】: ", e);
+    }
+  };
 
   const setUrlQuery = useDebounceFn(
     () => {
       setUrlState({
-        database: currentDatabase?.databaseName,
-        datasource: currentDatabase?.datasourceType,
-        instance: currentDatabase?.instanceName,
-        table: currentLogLibrary,
+        tid: currentLogLibrary?.id,
         start: startDateTime,
         end: endDateTime,
         page: currentPage,
@@ -66,7 +112,6 @@ export default function useLogUrlParams() {
     startDateTime,
     endDateTime,
     currentPage,
-    currentDatabase,
     pageSize,
     keywordInput,
     activeTimeOptionIndex,
@@ -74,60 +119,25 @@ export default function useLogUrlParams() {
   ]);
 
   useEffect(() => {
-    try {
-      if (urlState.database && urlState.datasource && urlState.instance)
-        getInstanceList.run().then((res) => {
-          if (res?.code === 0) {
-            const cluster = res.data.find(
-              (item) =>
-                item.instanceName === urlState.instance &&
-                item.datasource === urlState.datasource
-            );
-            if (cluster) {
-              onChangeCurrentDatabase({
-                databaseName: urlState.database,
-                instanceId: cluster.id as number,
-                datasourceType: urlState.datasource,
-                instanceName: urlState.instance,
-              });
-              onChangeLogLibrary(urlState?.table);
-              onChangeStartDateTime(
-                parseInt(urlState.start) ||
-                  moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
-              );
-              onChangeEndDateTime(parseInt(urlState.end) || currentTimeStamp());
-              if (urlState.tab) {
-                onChangeActiveTabKey(urlState.tab);
-              }
-              if (urlState.index) {
-                onChangeActiveTimeOptionIndex(parseInt(urlState.index));
-              }
-              const panes = [];
-              if (urlState.table)
-                panes.push({
-                  pane: urlState.table,
-                  start:
-                    parseInt(urlState.start) ||
-                    moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-                  end: parseInt(urlState.end) || currentTimeStamp(),
-                  keyword: urlState.kw || undefined,
-                  page: parseInt(urlState.page) || FIRST_PAGE,
-                  pageSize: parseInt(urlState.size) || PAGE_SIZE,
-                  activeTabKey: urlState.tab || TimeRangeType.Relative,
-                  activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
-                });
-              onChangeLogPanes(panes);
-              onChangeKeywordInput(urlState.kw);
-              onChangeLogsPageByUrl(
-                parseInt(urlState.page) || FIRST_PAGE,
-                parseInt(urlState.size) || PAGE_SIZE
-              );
-              doParseQuery(urlState.kw);
-            }
-          }
-        });
-    } catch (e) {
-      console.log("【Error】: ", e);
+    const tid = urlState.tid;
+    if (tid) {
+      doSetUrlQuery(parseInt(tid));
+    } else if (
+      urlState.instance &&
+      urlState.database &&
+      urlState.datasource &&
+      urlState.table
+    ) {
+      getTableId({
+        instance: urlState.instance,
+        database: urlState.database,
+        datasource: urlState.datasource,
+        table: urlState.table,
+      }).then((res) => {
+        if (res?.code === 0) {
+          doSetUrlQuery(res.data);
+        }
+      });
     }
   }, []);
 }
