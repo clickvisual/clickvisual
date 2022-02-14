@@ -88,7 +88,7 @@ export default {
 
   // Creating a database
   async createdDatabase(iid: number, data: CreatedDatabaseRequest) {
-    return request(`api/v1/instances/${iid}/databases`, {
+    return request(`/api/v1/instances/${iid}/databases`, {
       method: "POST",
       data,
     });
