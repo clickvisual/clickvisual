@@ -1,4 +1,10 @@
+import useAlarmOperations from "@/models/alarms/useAlarmOperations";
+
 const Alarm = () => {
-  return {};
+  const operations = useAlarmOperations();
+
+  return {
+    operations,
+  };
 };
 export default Alarm;

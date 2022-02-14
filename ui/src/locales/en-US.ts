@@ -292,4 +292,10 @@ export default {
   "dateTime.option.days": "{num} day{plural}",
   "dateTime.option.months": "{num} months",
   "dateTime.option.years": "{num} year{plural}",
+
+  // Alarm
+  // Operations
+  "alarm.selected.placeholder.database": "Please select database",
+  "alarm.selected.placeholder.logLibrary": "Please select log library",
+  "alarm.button.created": "Create Alarm",
 };

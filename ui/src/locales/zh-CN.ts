@@ -273,4 +273,10 @@ export default {
   "dateTime.option.days": "{num} 天",
   "dateTime.option.months": "{num} 月",
   "dateTime.option.years": "{num} 年",
+
+  // Alarm
+  // Operations
+  "alarm.selected.placeholder.database": "请选择数据库",
+  "alarm.selected.placeholder.logLibrary": "请选择日志库",
+  "alarm.button.created": "新增报警",
 };
