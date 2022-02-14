@@ -3137,10 +3137,10 @@
     dva-immer "^0.5.2"
     dva-loading "^3.0.20"
 
-"@umijs/plugin-esbuild@^1.0.1":
+"@umijs/plugin-esbuild@^1.4.1":
   version "1.4.1"
-  resolved "https://registry.npmmirror.com/@umijs/plugin-esbuild/download/@umijs/plugin-esbuild-1.4.1.tgz?cache=0&sync_timestamp=1635234802464&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40umijs%2Fplugin-esbuild%2Fdownload%2F%40umijs%2Fplugin-esbuild-1.4.1.tgz#9cca180cd666f5bdf85261fc7a46b69cf35e3a65"
-  integrity sha1-nMoYDNZm9b34UmH8eka2nPNeOmU=
+  resolved "https://registry.npmmirror.com/@umijs/plugin-esbuild/-/plugin-esbuild-1.4.1.tgz#9cca180cd666f5bdf85261fc7a46b69cf35e3a65"
+  integrity sha512-3B5vhffgbtB/D/Xv2JQ4WRvDo3wvhr9YD90XrRbO17bgl50yj6CVVU6ulM2kCRtn4d7qcM+aMSGz220AwnfCOQ==
   dependencies:
     esbuild-loader "~2.9.2"
 
