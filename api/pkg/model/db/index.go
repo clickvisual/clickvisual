@@ -23,6 +23,16 @@ func (t *Index) TableName() string {
 	return TableNameIndex
 }
 
+func IndexInfo(db *gorm.DB, id int) (resp Index, err error) {
+	var sql = "`id`= ? and dtime = 0"
+	var binds = []interface{}{id}
+	if err = db.Model(Index{}).Where(sql, binds...).First(&resp).Error; err != nil {
+		elog.Error("release info error", zap.Error(err))
+		return
+	}
+	return
+}
+
 func IndexList(conds egorm.Conds) (resp []*Index, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(Index{}).Where(sql, binds...).Find(&resp).Error; err != nil {
