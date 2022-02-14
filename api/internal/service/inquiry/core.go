@@ -29,9 +29,8 @@ type Operator interface {
 }
 
 const (
-	TableTypeApp     = 1
-	TableTypeEgo     = 2
-	TableTypeIngress = 3
+	TableTypeTimeString = 1
+	TableTypeTimeFloat  = 2
 )
 
 func genName(database, tableName string) string {

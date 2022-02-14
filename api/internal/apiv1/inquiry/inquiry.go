@@ -202,6 +202,8 @@ func Indexes(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
+	indexInfo, _ := db.IndexInfo(invoker.Db, indexId)
+	param.Field = indexInfo.Field
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
