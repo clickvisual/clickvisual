@@ -18,7 +18,7 @@ builds:
       - arm64
     binary: mogo
     ldflags:
-      - -s -w -X main.version={{.Version}}
+      - -s -w -extldflags -static -X github.com/gotomicro/ego/core/eapp.appName={{.ProjectName}} -X github.com/gotomicro/ego/core/eapp.buildVersion={{.Version}} -X github.com/gotomicro/ego/core/eapp.buildTime={{.Date}}
 archives:
   - id: mogo
     builds:
