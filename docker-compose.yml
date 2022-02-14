@@ -119,7 +119,7 @@ services:
     depends_on:
       - kafka
   api:
-    image: mixmore/mogo
+    image: sevennt/mogo
     networks:
       - mogo-net
     environment:
