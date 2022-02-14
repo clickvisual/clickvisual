@@ -23,7 +23,7 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
     const contentJson = JSON.parse(logContent);
     content = (
       <>
-        <Tag color="#2db7f5">Json</Tag>
+        <Tag color="#FDEBE1">Json</Tag>
         <JsonView
           data={contentJson}
           onClickValue={addQuery}
@@ -32,13 +32,12 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
       </>
     );
   } catch (e) {
-    console.log(logContent);
     if (isNullList.includes(logContent)) {
       content = "null";
     } else {
       content = (
         <>
-          <Tag color="#2db7f5">Other</Tag>
+          <Tag color="#FDEBE1">Other</Tag>
           <JsonStringValue
             val={logContent}
             onClickValue={addQuery}
