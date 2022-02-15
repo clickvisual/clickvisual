@@ -25,8 +25,8 @@ parseDateTimeBestEffort(_time_) AS _trace_time_`
 const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _timestamp_,
 fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _trace_time_`
 
-var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(log, '%s'))) AS _timestamp_, 
-fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(log, '%s')*1000000000),'Asia/Shanghai') AS _trace_time_`
+var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _timestamp_, 
+fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _trace_time_`
 
 var typORM = map[int]string{
 	0: "String",
@@ -71,7 +71,7 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, er
 }
 
 func (c *ClickHouse) whereConditionSQLCurrent(current *db.View) string {
-	return fmt.Sprintf("JSONHas(log, '%s') = 1", current.Key)
+	return fmt.Sprintf("JSONHas(_log_, '%s') = 1", current.Key)
 }
 
 func (c *ClickHouse) whereConditionSQLDefault(list []*db.View) string {
@@ -82,9 +82,9 @@ func (c *ClickHouse) whereConditionSQLDefault(list []*db.View) string {
 	// It is required to obtain all the view parameters under the current table and construct the default and current view query conditions
 	for k, viewRow := range list {
 		if k == 0 {
-			defaultSQL = fmt.Sprintf("JSONHas(log, '%s') = 0", viewRow.Key)
+			defaultSQL = fmt.Sprintf("JSONHas(_log_, '%s') = 0", viewRow.Key)
 		} else {
-			defaultSQL = fmt.Sprintf("%s AND JSONHas(log, '%s') = 0", defaultSQL, viewRow.Key)
+			defaultSQL = fmt.Sprintf("%s AND JSONHas(_log_, '%s') = 0", defaultSQL, viewRow.Key)
 		}
 	}
 	if defaultSQL == "" {
