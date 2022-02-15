@@ -30,3 +30,9 @@ docker.push:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	@docker push $(HUB_USER)/mogo:latest
 	@echo -e "\n"
+
+docker.clean:
+	rm -rf $(ROOT)/data/clickhouse/database
+	rm -rf $(ROOT)/data/kafka/data
+	rm -rf $(ROOT)/data/zookeeper/data
+	rm -rf $(ROOT)/data/zookeeper/datalog
