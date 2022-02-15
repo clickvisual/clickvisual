@@ -186,7 +186,7 @@ export default {
 
   // Get log library details
   async getTableInfo(id: number) {
-    return request<API.Res<TableInfoResponse>>(`api/v1/tables/${id}`, {
+    return request<API.Res<TableInfoResponse>>(`/api/v1/tables/${id}`, {
       method: "GET",
     });
   },

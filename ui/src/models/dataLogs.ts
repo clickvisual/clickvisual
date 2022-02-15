@@ -409,7 +409,9 @@ const DataLogsModel = () => {
       setLogLibraryList([]);
       setCurrentLogLibrary(undefined);
     }
-    doGetLogLibraryList();
+    if (currentDatabase) {
+      doGetLogLibraryList();
+    }
   }, [currentDatabase]);
 
   useEffect(() => {
