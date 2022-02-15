@@ -26,8 +26,13 @@ export default defineConfig({
   dynamicImport: {
     loading: "@ant-design/pro-layout/es/PageLoading",
   },
+  chunks: ["vendors", "umi"],
   targets: {
-    ie: 11,
+    chrome: 79,
+    firefox: false,
+    safari: false,
+    edge: false,
+    ios: false,
   },
   routes,
   theme: {
@@ -44,7 +49,26 @@ export default defineConfig({
   fastRefresh: {},
   nodeModulesTransform: { type: "none" },
   exportStatic: {},
-  chainWebpack(config, { env, webpack, createCSSRule }) {
+  chainWebpack: (config, { env, webpack, createCSSRule }) => {
+    config.merge({
+      optimization: {
+        splitChunks: {
+          chunks: "all",
+          minSize: 30000,
+          minChunks: 3,
+          automaticNameDelimiter: ".",
+          cacheGroups: {
+            vendor: {
+              name: "vendors",
+              test({ resource }: any) {
+                return /[\\/]node_modules[\\/]/.test(resource);
+              },
+              priority: 10,
+            },
+          },
+        },
+      },
+    });
     config.plugin("monaco-editor").use(MonacoEditorWebpackPlugin, [
       {
         languages: ["json", "ini", "yaml", "sb", "sql"],
@@ -61,5 +85,6 @@ export default defineConfig({
         ],
       },
     ]);
+    return config;
   },
 });

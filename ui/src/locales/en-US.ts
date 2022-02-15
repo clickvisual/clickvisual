@@ -262,7 +262,8 @@ export default {
   "log.index.search.placeholder": "Search index",
   "log.index.empty": "Temporarily not create indexes",
   "log.index.item.empty": "No Data",
-  "log.index.manage": "Index Management",
+  "log.index.manage":
+    "Index Management(This function is available when the _RAW_log_ field format is JSON)",
   "log.index.manage.table.header.indexName": "Index Name",
   "log.index.manage.table.header.query": "Enable Query",
   "log.index.manage.table.header.indexType": "Index Type",

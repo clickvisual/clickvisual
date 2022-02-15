@@ -5,7 +5,7 @@
   "description": "An out-of-box UI solution for enterprise applications",
   "scripts": {
     "analyze": "cross-env ANALYZE=1 umi build",
-    "build": "umi build",
+    "build": "umi build NODE_OPTIONS=--max_old_space_size=4096",
     "deploy": "npm run build && npm run gh-pages",
     "dev": "npm run start",
     "gh-pages": "gh-pages -d dist",

@@ -244,7 +244,7 @@ export default {
   "log.index.search.placeholder": "搜索索引",
   "log.index.empty": "暂未创建索引",
   "log.index.item.empty": "暂无数据",
-  "log.index.manage": "索引管理",
+  "log.index.manage": "索引管理（该功能在 _raw_log_ 字段格式为 JSON 时可用）",
   "log.index.manage.table.header.indexName": "索引名称",
   "log.index.manage.table.header.query": "开启查询",
   "log.index.manage.table.header.indexType": "索引类型",
