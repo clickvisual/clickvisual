@@ -1,5 +1,6 @@
 import { Drawer, Form, Input } from "antd";
 import InspectionFrequencyItem from "@/pages/Alarm/components/FormAlarmDraw/InspectionFrequencyItem";
+import QueryStatisticsItem from "@/pages/Alarm/components/FormAlarmDraw/QueryStatisticsItem";
 
 const FormAlarmDraw = () => {
   return (
@@ -9,7 +10,7 @@ const FormAlarmDraw = () => {
       placement="right"
       closable
       getContainer={false}
-      width={"45vw"}
+      width={700}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
     >
@@ -17,11 +18,11 @@ const FormAlarmDraw = () => {
         <Form.Item label={"规则名称"} name={"a"}>
           <Input />
         </Form.Item>
-        <Form.Item label={"检查频率"}>
+        <Form.Item noStyle>
           <InspectionFrequencyItem />
         </Form.Item>
-        <Form.Item>
-          <Input />
+        <Form.Item noStyle>
+          <QueryStatisticsItem />
         </Form.Item>
       </Form>
     </Drawer>
