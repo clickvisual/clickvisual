@@ -20,8 +20,9 @@ type Operator interface {
 
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 
-	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
+	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
 	GET(view.ReqQuery, int) (view.RespQuery, error)
+	// Query(view.ReqQuery) (view.RespQuery, error)
 	Count(view.ReqQuery) uint64
 	GroupBy(view.ReqQuery) map[string]uint64
 

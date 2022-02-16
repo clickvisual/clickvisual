@@ -129,7 +129,7 @@ func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View,
 	return
 }
 
-func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
+func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("%s.%s", res.Database, res.Table)
 	}
@@ -149,7 +149,9 @@ func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
 		res.ET = time.Now().Unix()
 	}
 	var err error
-	res.Query, err = queryTransformer(res.Query)
+	if isFilter {
+		res.Query, err = queryTransformer(res.Query)
+	}
 	return res, err
 }
 
@@ -297,6 +299,21 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 		return
 	}
 }
+
+// func (c *ClickHouse) Query(param view.ReqQuery) (res view.RespQuery, err error) {
+// 	// Initialization
+// 	res.Logs = make([]map[string]interface{}, 0)
+// 	res.Keys = make([]*db.Index, 0)
+// 	res.Terms = make([][]string, 0)
+// 	// TODO sql security check
+// 	res.Logs, err = c.doQuery(param.Query)
+// 	if err != nil {
+// 		return
+// 	}
+// 	res.Count = uint64(len(res.Logs))
+// 	res.Limited = param.PageSize
+// 	return
+// }
 
 func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
 	// Initialization
