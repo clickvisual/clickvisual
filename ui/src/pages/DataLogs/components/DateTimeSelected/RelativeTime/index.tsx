@@ -32,7 +32,7 @@ const RelativeTime = (props: RelativeTimeProps) => {
   const { timeOptions } = useContext(DarkTimeContext);
 
   const oldPane = logPanes.find(
-    (item) => item.pane === currentLogLibrary
+    (item) => item.paneId === currentLogLibrary?.id
   ) as PaneType;
 
   const handleSelect = (

@@ -22,17 +22,17 @@ const RawLogTabs = () => {
   const onEdit = (currentKey: any, action: any) => {
     if (!currentKey || action !== "remove") return;
     const currentPanes = lodash.cloneDeep(logPanes);
+    const keyObj = JSON.parse(currentKey);
     const resultPanes =
-      currentPanes.filter(
-        (item) => item.paneId !== JSON.parse(currentKey).id
-      ) || [];
+      currentPanes.filter((item) => item.paneId !== keyObj.id) || [];
+    console.log("currentPanes: ", currentPanes, resultPanes, currentKey);
     onChangeLogPanes(resultPanes);
     if (resultPanes.length === 0) {
       resetLogs();
       onChangeLogLibrary(undefined);
       return;
     }
-    if (currentKey === currentLogLibrary) {
+    if (keyObj.id === currentLogLibrary?.id) {
       onChangeLogLibrary({
         id: resultPanes[0].paneId,
         tableName: resultPanes[0].pane,
@@ -41,11 +41,12 @@ const RawLogTabs = () => {
     }
   };
 
-  const onChange = (key: string) => {
-    if (key === JSON.stringify(currentLogLibrary)) return;
-    onChangeLogLibrary(JSON.parse(key));
+  const handleChangeTab = (key: string) => {
+    const currentPane = JSON.parse(key);
+    if (currentPane.id === currentLogLibrary?.id) return;
+    onChangeLogLibrary(currentPane);
     const currentPanes = lodash.cloneDeep(logPanes);
-    const tabPane = currentPanes.find((item) => item.pane === key);
+    const tabPane = currentPanes.find((item) => item.paneId === currentPane.id);
     if (tabPane) onChangeCurrentLogPane(tabPane);
   };
 
@@ -56,7 +57,7 @@ const RawLogTabs = () => {
           hideAdd
           type="editable-card"
           activeKey={JSON.stringify(currentLogLibrary)}
-          onChange={onChange}
+          onChange={handleChangeTab}
           className={rawLogTabsStyles.tabs}
           onEdit={onEdit}
         >
