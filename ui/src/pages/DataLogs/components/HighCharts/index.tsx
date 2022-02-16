@@ -47,7 +47,7 @@ const HighCharts = () => {
   };
 
   const oldPane = logPanes.find(
-    (item) => item.pane === currentLogLibrary
+    (item) => item.paneId === currentLogLibrary?.id
   ) as PaneType;
 
   const scale = {
