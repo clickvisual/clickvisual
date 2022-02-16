@@ -64,7 +64,7 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, er
 	var jsonExtractSQL string
 	jsonExtractSQL = ","
 	for _, obj := range indexes {
-		jsonExtractSQL += fmt.Sprintf("%s(log, '%s') AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
+		jsonExtractSQL += fmt.Sprintf("%s(_log_, '%s') AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
 	return jsonExtractSQL, nil
