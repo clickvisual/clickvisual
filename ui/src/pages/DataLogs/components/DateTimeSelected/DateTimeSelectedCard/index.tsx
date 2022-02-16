@@ -20,7 +20,7 @@ const DateTimeSelectedCard = (props: DarkTimeSelectedCardProps) => {
   const { TabName } = useContext(DarkTimeContext);
 
   const oldPane = logPanes.find(
-    (item) => item.pane === currentLogLibrary
+    (item) => item.paneId === currentLogLibrary?.id
   ) as PaneType;
 
   const onChangeActiveTab = (key: string) => {
