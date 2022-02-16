@@ -329,7 +329,7 @@ func Sync(c *core.Context) {
 	var obj runtime.Object
 	obj, err = client.KubeClient.Get(api.ResourceNameConfigMap, param.K8SConfigMapNamespace, param.K8SConfigMapName)
 	if err != nil {
-		elog.Error("configmaps", elog.String("err", err.Error()))
+		elog.Error("configmaps", elog.String("err", err.Error()), elog.String("namespace", param.K8SConfigMapNamespace), elog.String("configmap", param.K8SConfigMapName))
 		c.JSONE(core.CodeErr, "client.KubeClient.List error: "+err.Error(), nil)
 		return
 	}
