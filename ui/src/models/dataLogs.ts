@@ -37,7 +37,7 @@ export type PaneType = {
 };
 
 export type QueryParams = {
-  // logLibrary?: TablesResponse;
+  logLibrary?: TablesResponse;
   page?: number;
   pageSize?: number;
   st?: number;

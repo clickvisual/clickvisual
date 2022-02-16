@@ -24,7 +24,7 @@ const IndexItem = (props: IndexItemProps) => {
   const [details, setDetails] = useState<IndexDetail[]>([]);
 
   const insertQuery = (name: string) => {
-    const currentSelected = `${index}='${name}'`;
+    const currentSelected = `${index.field}='${name}'`;
     doUpdatedQuery(currentSelected);
   };
 

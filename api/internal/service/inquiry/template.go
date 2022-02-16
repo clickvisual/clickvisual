@@ -51,7 +51,7 @@ var clickhouseTableStreamORM = map[int]string{
 	_log_agent_ String,
 	_node_ip_ String,
 	_time_ String,
-	log String
+	_log_ String
 )
 engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
 	TableTypeTimeFloat: `create table %s
@@ -65,7 +65,7 @@ engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka
 	_log_agent_ String,
 	_node_ip_ String,
 	_time_ Float64,
-	log String
+	_log_ String
 )
 engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
 }
@@ -82,7 +82,7 @@ SELECT
     _node_ip_,
     _container_name_,
     _pod_name_,
-	log AS _raw_log_%s
+	_log_ AS _raw_log_%s
 	FROM %s where %s;`,
 	TableTypeTimeFloat: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
@@ -95,6 +95,6 @@ SELECT
 	_log_agent_,
 	_node_ip_,
 	_source_,
-	log AS _raw_log_%s
+	_log_ AS _raw_log_%s
 	FROM %s where %s;`,
 }
