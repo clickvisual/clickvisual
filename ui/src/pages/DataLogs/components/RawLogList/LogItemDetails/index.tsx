@@ -25,7 +25,7 @@ const LogItemDetails = () => {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
           }
           const isRawLog = keyItem === "_raw_log_";
-          const notQuery = ["_trace_time_", "_timestamp_"].includes(keyItem);
+          const notQuery = ["_time_nanosecond_"].includes(keyItem);
           return (
             <div key={index} className={logItemStyles.logLine}>
               <div
@@ -46,7 +46,7 @@ const LogItemDetails = () => {
                   className={classNames(
                     logItemStyles.logContent,
                     flag && logItemStyles.logContentHighlight,
-                    !["_trace_time_", "_timestamp_"].includes(keyItem) &&
+                    !["_time_nanosecond_"].includes(keyItem) &&
                       logItemStyles.logHover
                   )}
                 >
