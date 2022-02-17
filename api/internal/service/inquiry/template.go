@@ -3,8 +3,8 @@ package inquiry
 var clickhouseTableDataORM = map[int]string{
 	TableTypeTimeString: `create table %s
 (
-	_timestamp_ DateTime,
-	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
+	_time_second_ DateTime,
+	_time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -15,14 +15,14 @@ var clickhouseTableDataORM = map[int]string{
 	_pod_name_ String,
 	_raw_log_ String
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
-ORDER BY _timestamp_
-TTL toDateTime(_timestamp_) + INTERVAL %d DAY 
+engine = MergeTree PARTITION BY toYYYYMMDD(_time_second_)
+ORDER BY _time_second_
+TTL toDateTime(_time_second_) + INTERVAL %d DAY 
 SETTINGS index_granularity = 8192;`,
 	TableTypeTimeFloat: `create table %s
 (
-	_timestamp_ DateTime,
-	_trace_time_ DateTime64(9, 'Asia/Shanghai'),
+	_time_second_ DateTime,
+	_time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
 	_source_ String,
 	_cluster_ String,
 	_log_agent_ String,
@@ -33,9 +33,9 @@ SETTINGS index_granularity = 8192;`,
 	_pod_name_ String,
 	_raw_log_ String
 )
-engine = MergeTree PARTITION BY toYYYYMMDD(_timestamp_)
-ORDER BY _timestamp_
-TTL toDateTime(_timestamp_) + INTERVAL %d DAY
+engine = MergeTree PARTITION BY toYYYYMMDD(_time_second_)
+ORDER BY _time_second_
+TTL toDateTime(_time_second_) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;`,
 }
 
