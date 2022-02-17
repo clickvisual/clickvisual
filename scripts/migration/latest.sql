@@ -8,12 +8,42 @@ CREATE TABLE `mogo_alarm` (
     `desc` varchar(255) NOT NULL COMMENT '描述说明',
     `datasource` varchar(32) NOT NULL COMMENT '数据源类型',
     `dsn` text COMMENT 'dsn',
+    `status` int(11) DEFAULT NULL COMMENT '创建时间',
+    `interval` int(11) DEFAULT NULL COMMENT '告警频率',
+    `unit` int(11) DEFAULT NULL COMMENT '0 m 1 s 2 h 3 d 4 w 5 y',
+    `alert_rule` text COMMENT 'prometheus alert rule',
+    `view` text COMMENT '数据转换视图',
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_datasource_name` (`datasource`,`name`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '告警配置' DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `mogo_alarm_filter` (
+    `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `alarm_id` int(11) DEFAULT NULL COMMENT 'alarm id',
+    `when` text COMMENT '执行条件',
+    `set_operator_typ` int(11) NOT NULL COMMENT '0 不合并 1 笛卡尔积 2 拼接 3 内联 4 左联 5 右连 7 全连 8 左斥 9 右斥',
+    `set_operator_exp` varchar(255) NOT NULL COMMENT '操作',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '告警过滤条件' DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `mogo_alarm_condition` (
+    `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `alarm_id` int(11) DEFAULT NULL COMMENT 'alarm id',
+    `exp` text COMMENT '0 avg 1 min 2 max 3 sum 4 count  ',
+    `cond` int(11) DEFAULT NULL COMMENT '0 above 1 below 2 outside range 3 within range',
+    `val_1` int(11) DEFAULT NULL COMMENT '基准值/最小值',
+    `val_2` int(11) DEFAULT NULL COMMENT '最大值',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '告警触发条件' DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `mogo_base_instance` (
     `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
