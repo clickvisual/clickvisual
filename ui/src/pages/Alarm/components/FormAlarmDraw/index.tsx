@@ -1,14 +1,20 @@
 import { Drawer, Form, Input } from "antd";
 import InspectionFrequencyItem from "@/pages/Alarm/components/FormAlarmDraw/InspectionFrequencyItem";
 import QueryStatisticsItem from "@/pages/Alarm/components/FormAlarmDraw/QueryStatisticsItem";
+import { useModel } from "@@/plugin-model/useModel";
 
 const FormAlarmDraw = () => {
+  const { alarmDraw } = useModel("alarm");
+  const handleClose = () => {
+    alarmDraw.onChangeVisibleDraw(false);
+  };
   return (
     <Drawer
-      title={"新增或编辑"}
-      visible={true}
-      placement="right"
       closable
+      title={"新增或编辑"}
+      visible={alarmDraw.visibleDraw}
+      placement="right"
+      onClose={handleClose}
       getContainer={false}
       width={700}
       bodyStyle={{ padding: 10 }}

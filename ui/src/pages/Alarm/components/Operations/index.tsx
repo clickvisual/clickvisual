@@ -9,9 +9,13 @@ const Operations = () => {
   const { databaseList, logLibraryList, getLogLibraries, doGetDatabaseList } =
     useModel("dataLogs");
 
-  const { operations } = useModel("alarm");
+  const { operations, alarmDraw } = useModel("alarm");
 
   const i18n = useIntl();
+
+  const handleOpenDraw = () => {
+    alarmDraw.onChangeVisibleDraw(true);
+  };
 
   useEffect(() => {
     doGetDatabaseList();
@@ -56,7 +60,7 @@ const Operations = () => {
               </Option>
             ))}
         </Select>
-        <Button icon={<PlusOutlined />} type="primary">
+        <Button icon={<PlusOutlined />} type="primary" onClick={handleOpenDraw}>
           {i18n.formatMessage({ id: "alarm.button.created" })}
         </Button>
       </Space>
