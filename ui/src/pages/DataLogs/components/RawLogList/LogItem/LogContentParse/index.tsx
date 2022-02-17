@@ -21,6 +21,10 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
   let content;
   try {
     const contentJson = JSON.parse(logContent);
+    // 1
+    Object.keys(contentJson);
+
+    // keys 【】
     content = (
       <>
         <Tag color="#FDEBE1">Json</Tag>
@@ -37,7 +41,6 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
     } else {
       content = (
         <>
-          <Tag color="#FDEBE1">Other</Tag>
           <JsonStringValue
             val={logContent}
             onClickValue={addQuery}
