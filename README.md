@@ -41,8 +41,8 @@ git clone https://github.com/shimohq/mogo.git
 docker-compose up
 
 # then go to browser and visit http://localhost:9001.
-# login username: admin
-# login password: admin
+# login username: shimo 
+# login password: shimo
 ```
 
 - For host
@@ -70,6 +70,10 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 # login username: admin
 # login password: admin
 ```
+
+## Documentation
+
+See <https://mogo.shimo.im>
 
 ## Main Tasks
 
