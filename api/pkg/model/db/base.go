@@ -22,6 +22,10 @@ const (
 	TableNameConfigurationPublish = "mogo_configuration_publish"
 
 	TableNameK8SConfigMap = "mogo_k8s_cm"
+
+	TableMogoAlarm           = "mogo_alarm"
+	TableMogoAlarmFilter     = "mogo_alarm_filter"
+	TableMogoAlarmConditions = "mogo_alarm_conditions"
 )
 
 type BaseModel struct {

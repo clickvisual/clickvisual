@@ -1,0 +1,35 @@
+package view
+
+import (
+	"github.com/shimohq/mogo/api/pkg/model/db"
+)
+
+type ReqAlarmCreate struct {
+	Name       string                    `json:"name" from:"name" binding:"required"`             // 告警名称
+	Desc       string                    `json:"desc" from:"desc"`                                // 描述说明
+	Interval   int                       `json:"interval" from:"interval" binding:"required"`     // 告警频率
+	Unit       int                       `json:"unit" from:"unit" binding:"required"`             // 0 m 1 s 2 h 3 d 4 w 5 y
+	AlertRule  string                    `json:"alert_rule" from:"alert_rule" binding:"required"` // prometheus alert rule
+	View       string                    `json:"view" from:"view" binding:"required"`             // 数据转换视图
+	Filters    []ReqAlarmFilterCreate    `json:"filters" from:"filters"`
+	Conditions []ReqAlarmConditionCreate `json:"conditions" from:"conditions"`
+}
+
+type ReqAlarmFilterCreate struct {
+	When           string `json:"when" from:"when" binding:"required"`                         // 执行条件
+	SetOperatorTyp int    `json:"set_operator_typ" from:"set_operator_typ" binding:"required"` // 0 不合并 1 笛卡尔积 2 拼接 3 内联 4 左联 5 右连 7 全连 8 左斥 9 右斥
+	SetOperatorExp string `json:"set_operator_exp" from:"set_operator_exp" binding:"required"` // 操作
+}
+
+type ReqAlarmConditionCreate struct {
+	Exp  string `json:"exp" from:"exp" binding:"required"`     // 0 avg 1 min 2 max 3 sum 4 count
+	Cond int    `json:"cond" from:"cond" binding:"required"`   // 0 above 1 below 2 outside range 3 within range
+	Val1 int    `json:"val_1" from:"val_1" binding:"required"` // 基准值/最小值
+	Val2 int    `json:"val_2" from:"val_2"`                    // 最大值
+}
+
+type ReqAlarmInfo struct {
+	db.Alarm
+	Filters    []*db.AlarmFilter    `json:"filters" from:"filters"`
+	Conditions []*db.AlarmCondition `json:"conditions" from:"conditions"`
+}

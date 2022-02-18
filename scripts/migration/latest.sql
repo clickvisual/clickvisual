@@ -3,12 +3,10 @@ USE mocro;
 
 CREATE TABLE `mogo_alarm` (
     `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `tid` int(11) DEFAULT NULL COMMENT 'table id',
     `uuid` varchar(128) NOT NULL COMMENT '唯一外键',
     `name` varchar(128) NOT NULL COMMENT '告警名称',
     `desc` varchar(255) NOT NULL COMMENT '描述说明',
-    `datasource` varchar(32) NOT NULL COMMENT '数据源类型',
-    `dsn` text COMMENT 'dsn',
-    `status` int(11) DEFAULT NULL COMMENT '创建时间',
     `interval` int(11) DEFAULT NULL COMMENT '告警频率',
     `unit` int(11) DEFAULT NULL COMMENT '0 m 1 s 2 h 3 d 4 w 5 y',
     `alert_rule` text COMMENT 'prometheus alert rule',
@@ -16,8 +14,7 @@ CREATE TABLE `mogo_alarm` (
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uix_datasource_name` (`datasource`,`name`)
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '告警配置' DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `mogo_alarm_filter` (
