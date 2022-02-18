@@ -9,6 +9,7 @@ require (
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.9.0
+	github.com/google/uuid v1.3.0
 	github.com/gotomicro/ego v0.8.3-0.20220107063841-9459da2415f1
 	github.com/gotomicro/ego-component/egorm v0.4.0
 	github.com/gotomicro/ego-component/eredis v0.3.0
@@ -74,7 +75,6 @@ require (
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/pprof v0.0.0-20210226084205-cbba55b83ad5 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect

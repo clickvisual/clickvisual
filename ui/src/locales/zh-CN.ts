@@ -188,6 +188,7 @@ export default {
     "请输入 Topics，支持小写字母、大写字母，或中划线",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
+  "datasource.logLibrary.quickAdd": "快速创建日志库",
   "datasource.tooltip.icon.info": "日志库详情",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.deleted": "删除日志库",
@@ -244,6 +245,8 @@ export default {
   "log.index.empty": "暂未创建索引",
   "log.index.item.empty": "暂无数据",
   "log.index.manage": "索引管理（该功能在 _raw_log_ 字段格式为 JSON 时可用）",
+  "log.index.help":
+    "橙色背景色的字段是系统字段或索引字段，灰色背景色的字段是未设置索引的字段",
   "log.index.manage.table.header.indexName": "索引名称",
   "log.index.manage.table.header.query": "开启查询",
   "log.index.manage.table.header.indexType": "索引类型",
@@ -260,9 +263,10 @@ export default {
 
   "log.empty": "暂未查询到日志",
   "log.pagination.total": "日志总条数：{total}",
-  "log.item.copy": "Copy",
+  "log.item.copy": "复制",
   "log.item.copy.success": "复制成功",
   "log.item.copy.failed": "复制失败，请手动复制",
+  "log.item.moreTag": "查看更多日志信息",
 
   // DateTimeSelectedCard
   "dateTime.relative": "相对",

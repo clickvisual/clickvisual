@@ -1,3 +1,5 @@
+@import "../../../styles/var.less";
+
 .dataLogsMain {
   display: flex;
   width: 100%;
@@ -6,4 +8,28 @@
 }
 .siteDrawerInCurrentWrapper {
   background: hsl(0, 0, 98%);
+}
+
+.menuBtnMain {
+  position: relative;
+
+  .menuBtn {
+    position: absolute;
+    top: calc(50% - 50px);
+    left: 0;
+    display: flex;
+    align-items: center;
+    width: 12px;
+    height: 50px;
+    background: @primary-color-8;
+    border-radius: 0 100% 100% 0 / 50%;
+    cursor: pointer;
+    &:hover {
+      background-color: @primary-color-70;
+    }
+  }
+
+  .menuBtnCollapsed {
+    left: 212px;
+  }
 }

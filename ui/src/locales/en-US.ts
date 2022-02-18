@@ -196,6 +196,7 @@ export default {
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
+  "datasource.logLibrary.quickAdd": "Create log library",
   "datasource.tooltip.icon.info": "Log Library Details",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
@@ -263,6 +264,8 @@ export default {
   "log.index.item.empty": "No Data",
   "log.index.manage":
     "Index Management(This function is available when the _RAW_log_ field format is JSON)",
+  "log.index.help":
+    "Fields with an orange background color are system fields or index fields, and fields with a gray background color are fields that are not indexed",
   "log.index.manage.table.header.indexName": "Index Name",
   "log.index.manage.table.header.query": "Enable Query",
   "log.index.manage.table.header.indexType": "Index Type",
@@ -283,6 +286,7 @@ export default {
   "log.item.copy": "Copy",
   "log.item.copy.success": "Copy success",
   "log.item.copy.failed": "Replication failed. Please manually copy the data",
+  "log.item.moreTag": "View more logs",
 
   // DateTimeSelectedCard
   "dateTime.relative": "Relatively",

@@ -17,20 +17,12 @@ export interface GetTableIdRequest {
 }
 
 export interface LogsResponse {
-  aggQueryd: string;
   count: number;
-  cpuCore: number;
-  cpuSec: number;
-  elapsedMillisecond: number;
-  hasSQL: boolean;
+  hiddenFields: string[];
   keys: IndexInfoType[];
   limited: number;
   logs: any[];
-  marker: string;
-  processedRows: number;
-  progress: string;
   terms: string[][];
-  whereQuery: string;
 }
 
 export interface ViewResponse {

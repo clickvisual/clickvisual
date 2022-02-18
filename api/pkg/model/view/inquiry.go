@@ -17,20 +17,12 @@ type ReqQuery struct {
 }
 
 type RespQuery struct {
-	Limited            uint32                   `json:"limited"`
-	Keys               []*db.Index              `json:"keys"`
-	ElapsedMillisecond int                      `json:"elapsedMillisecond"`
-	Count              uint64                   `json:"count"`
-	HasSQL             bool                     `json:"hasSQL"`
-	WhereQuery         string                   `json:"whereQuery"`
-	ProcessedRows      int                      `json:"processedRows"`
-	Terms              [][]string               `json:"terms"`
-	Marker             string                   `json:"marker"`
-	Progress           string                   `json:"progress"`
-	CpuSec             int                      `json:"cpuSec"`
-	AggQueryd          string                   `json:"aggQueryd"`
-	Logs               []map[string]interface{} `json:"logs"`
-	CpuCore            int                      `json:"cpuCore"`
+	Limited      uint32                   `json:"limited"`
+	Keys         []*db.Index              `json:"keys"`
+	Count        uint64                   `json:"count"`
+	Terms        [][]string               `json:"terms"`
+	HiddenFields []string                 `json:"hiddenFields"`
+	Logs         []map[string]interface{} `json:"logs"`
 }
 
 type HighCharts struct {

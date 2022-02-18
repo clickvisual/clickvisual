@@ -30,7 +30,6 @@ const JsonStringValue = ({ val, ...restProps }: JsonStringValueProps) => {
     <>
       {strListByReg.map((value, index) => {
         const isValue = !REG_SEPARATORS.includes(value[0]);
-        // value = value.replaceAll(" ", "&nbsp;");
 
         let highLightFlag = false;
         if (highLightValue) {
