@@ -40,9 +40,9 @@ git clone https://github.com/shimohq/mogo.git
 # you may need to set docker image mirror, visit <https://github.com/yeasy/docker_practice/blob/master/install/mirror.md> for details.
 docker-compose up
 
-# then go to browser and visit http://localhost:9001.
-# login username: admin
-# login password: admin
+# then go to browser and visit http://localhost:19001.
+# login username: shimo 
+# login password: shimo
 ```
 
 - For host
@@ -66,10 +66,14 @@ mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
 # start mogo
 cd ./mogo-${latest} && ./mogo -config config/default.toml
 
-# then go to browser and visit http://localhost:9001
-# login username: admin
-# login password: admin
+# then go to browser and visit http://localhost:19001
+# login username: shimo
+# login password: shimo
 ```
+
+## Documentation
+
+See <https://mogo.shimo.im>
 
 ## Main Tasks
 
