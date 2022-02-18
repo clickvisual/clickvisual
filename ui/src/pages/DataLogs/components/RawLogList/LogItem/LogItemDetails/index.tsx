@@ -4,12 +4,40 @@ import { LogItemContext } from "@/pages/DataLogs/components/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import LogContentParse from "@/pages/DataLogs/components/RawLogList/LogItem/LogContentParse";
+import { parseJsonObject } from "@/utils/string";
 
 const LogItemDetails = () => {
   const { log } = useContext(LogItemContext);
-  const { highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
+  const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
-  const keys = Object.keys(log).sort();
+
+  const hiddenFields = logs?.hiddenFields || [];
+
+  const indexList =
+    logs?.keys.map((item) => {
+      return item.field;
+    }) || [];
+
+  let keys: string[] = Object.keys(log).sort();
+  let rawLogKeys: any[] = [];
+  const rowLogJson = parseJsonObject(log["_raw_log_"]);
+  let newLogs: any = log;
+
+  if (!!rowLogJson) {
+    rawLogKeys = Object.keys(rowLogJson).filter(
+      (item) => !indexList.includes(item)
+    );
+    newLogs = Object.assign(rowLogJson, log);
+
+    keys = [...keys, ...rawLogKeys]
+      .filter((key, index) => {
+        const preIdx = keys.indexOf(key);
+        return preIdx < 0 || preIdx === index;
+      })
+      .filter((key) => !hiddenFields.includes(key));
+    delete newLogs._raw_log_;
+    keys = keys.filter((key) => key !== "_raw_log_");
+  }
 
   const quickInsertQuery = (keyItem: string) => {
     const currentSelected = `${keyItem}='${log[keyItem]}'`;
@@ -24,7 +52,9 @@ const LogItemDetails = () => {
           if (highlightKeywords) {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
           }
-          const isRawLog = keyItem === "_raw_log_";
+          const isRawLog =
+            (rowLogJson && rawLogKeys.includes(keyItem)) ||
+            keyItem === "_row_log_";
           const notQuery = ["_time_nanosecond_"].includes(keyItem);
           return (
             <div key={index} className={logItemStyles.logLine}>
@@ -34,26 +64,37 @@ const LogItemDetails = () => {
                   isRawLog && logItemStyles.logKeyHover
                 )}
                 onClick={() => {
-                  if (!isRawLog) return;
+                  if (!isRawLog && !rowLogJson) return;
                   onCopyRawLogDetails(log[keyItem]);
                 }}
               >
-                <span>{keyItem}</span>:
+                <span
+                  className={classNames(
+                    rawLogKeys.includes(keyItem) &&
+                      logItemStyles.notIndexContent
+                  )}
+                >
+                  {keyItem}
+                </span>
+                :
               </div>
               {!isRawLog ? (
                 <span
-                  onClick={() => !notQuery && quickInsertQuery(keyItem)}
+                  onClick={() =>
+                    !notQuery && !!newLogs[keyItem] && quickInsertQuery(keyItem)
+                  }
                   className={classNames(
                     logItemStyles.logContent,
                     flag && logItemStyles.logContentHighlight,
+
                     !["_time_nanosecond_"].includes(keyItem) &&
                       logItemStyles.logHover
                   )}
                 >
-                  {log[keyItem]}
+                  {newLogs[keyItem] ? newLogs[keyItem] : "null"}
                 </span>
               ) : (
-                <LogContentParse logContent={log[keyItem]} />
+                <LogContentParse logContent={newLogs[keyItem]} />
               )}
             </div>
           );

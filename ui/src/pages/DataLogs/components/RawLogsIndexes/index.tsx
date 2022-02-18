@@ -5,15 +5,17 @@ import IndexHeader from "@/pages/DataLogs/components/RawLogsIndexes/IndexHeader"
 import IndexList from "@/pages/DataLogs/components/RawLogsIndexes/IndexList";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect, useState } from "react";
+import { IndexInfoType } from "@/services/dataLogs";
 
 const RawLogsIndexes = () => {
   const { logs } = useModel("dataLogs");
-  const [indexList, setIndexList] = useState<string[]>(logs?.keys || []);
+  const [indexList, setIndexList] = useState<IndexInfoType[]>(logs?.keys || []);
   const onSearch = (val: string) => {
     const list = logs?.keys || [];
     setIndexList(
-      list.filter((item) => item.toLowerCase().includes(val.toLowerCase())) ||
-        []
+      list.filter((item) =>
+        item.field.toLowerCase().includes(val.toLowerCase())
+      ) || []
     );
   };
   useEffect(() => {

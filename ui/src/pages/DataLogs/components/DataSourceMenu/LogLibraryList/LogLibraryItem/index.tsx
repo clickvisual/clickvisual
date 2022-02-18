@@ -117,7 +117,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             resetLogs();
             resetCurrentHighChart();
             const newPanes = logPanes.filter(
-              (item) => item.pane !== currentLogLibrary.tableName
+              (item) => item.paneId !== currentLogLibrary.id
             );
             onChangeLogPanes(newPanes);
             if (newPanes.length > 0) {

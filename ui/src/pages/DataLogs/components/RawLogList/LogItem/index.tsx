@@ -1,6 +1,6 @@
 import logItemStyles from "@/pages/DataLogs/components/RawLogList/LogItem/index.less";
-import LogItemOperation from "@/pages/DataLogs/components/RawLogList/LogItemOperation";
-import LogItemDetails from "@/pages/DataLogs/components/RawLogList/LogItemDetails";
+import LogItemOperation from "@/pages/DataLogs/components/RawLogList/LogItem/LogItemOperation";
+import LogItemDetails from "@/pages/DataLogs/components/RawLogList/LogItem/LogItemDetails";
 import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
 import { LogItemContext } from "@/pages/DataLogs/components/RawLogList";
@@ -20,12 +20,14 @@ const LogItem = (props: LogItemProps) => {
         <div className={logItemStyles.logIndex}>
           {(pageSize as number) * ((currentPage as number) - 1) + index + 1}
         </div>
-        <div className={logItemStyles.dateTime}>
-          {moment(log._trace_time_).format("YYYY-MM-DD HH:mm:ss.SSS")}
+        <div>
+          <div className={logItemStyles.dateTime}>
+            {moment(log._time_nanosecond_).format("MM-DD HH:mm:ss.SSS")}
+          </div>
+          <LogItemOperation />
         </div>
       </div>
       <div className={logItemStyles.right}>
-        <LogItemOperation />
         <LogItemDetails />
       </div>
     </div>
