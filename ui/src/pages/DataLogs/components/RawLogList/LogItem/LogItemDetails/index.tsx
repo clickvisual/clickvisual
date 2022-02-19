@@ -91,7 +91,7 @@ const LogItemDetails = () => {
                       logItemStyles.logHover
                   )}
                 >
-                  {newLogs[keyItem] ? newLogs[keyItem] : "null"}
+                  {newLogs[keyItem] ? newLogs[keyItem] : ""}
                 </span>
               ) : (
                 <LogContentParse logContent={newLogs[keyItem]} />
