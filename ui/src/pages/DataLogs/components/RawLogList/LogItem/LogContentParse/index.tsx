@@ -31,7 +31,7 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
       );
     }
   } else if (logContent === null) {
-    content = "null";
+    content = "";
   } else {
     content = (
       <>

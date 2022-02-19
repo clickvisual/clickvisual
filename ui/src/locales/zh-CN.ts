@@ -246,7 +246,7 @@ export default {
   "log.index.item.empty": "暂无数据",
   "log.index.manage": "索引管理（该功能在 _raw_log_ 字段格式为 JSON 时可用）",
   "log.index.help":
-    "橙色背景色的字段是系统字段或索引字段，灰色背景色的字段是未设置索引的字段",
+    "橙色背景色的字段是系统字段或索引字段，灰色背景色的字段是未设置索引的字段，索引统计只对设置索引后的数据生效",
   "log.index.manage.table.header.indexName": "索引名称",
   "log.index.manage.table.header.query": "开启查询",
   "log.index.manage.table.header.indexType": "索引类型",
