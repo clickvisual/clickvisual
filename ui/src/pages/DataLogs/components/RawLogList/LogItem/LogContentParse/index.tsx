@@ -20,7 +20,7 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
   let content;
   if (typeof logContent !== "object") {
     if (isNullList.includes(logContent)) {
-      content = "null";
+      content = "";
     } else {
       content = (
         <JsonStringValue
