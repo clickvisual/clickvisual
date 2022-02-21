@@ -73,7 +73,7 @@ services:
       - kafka
     restart: always
   mysql:
-    image: mysql:5.7.24
+    image: mysql:5.7.37
     networks:
       - mogo-net
     environment:
