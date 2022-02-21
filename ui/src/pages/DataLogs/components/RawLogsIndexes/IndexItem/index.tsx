@@ -66,7 +66,7 @@ const IndexItem = (props: IndexItemProps) => {
                       )}
                     >
                       <Tooltip title={detail.indexName} placement={"left"}>
-                        {detail.indexName === "" ? "null" : detail.indexName}
+                        {detail.indexName === "" ? " " : detail.indexName}
                       </Tooltip>
                     </span>
                   </div>

@@ -23,6 +23,7 @@ import lodash from "lodash";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
+import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
 
 export type PaneType = {
   pane: string;
@@ -127,6 +128,8 @@ const DataLogsModel = () => {
     onChangeViewVisibleModal,
     onChangeViewIsEdit,
   } = useLogLibraryViews();
+
+  const { foldingState, onChangeFoldingState } = useCollapseDatasourceMenu();
 
   const onChangeHiddenHighChart = (flag: boolean) => {
     setIsHiddenHighChart(flag);
@@ -505,6 +508,9 @@ const DataLogsModel = () => {
     onChangeViewIsEdit,
     onChangeViewVisibleModal,
     onChangeViewsVisibleDraw,
+
+    foldingState,
+    onChangeFoldingState,
   };
 };
 export default DataLogsModel;

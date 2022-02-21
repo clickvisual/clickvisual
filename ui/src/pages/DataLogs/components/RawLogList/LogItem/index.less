@@ -4,7 +4,7 @@
   padding: 10px 13px;
   .left {
     display: flex;
-    width: 140px;
+    width: 170px;
     margin-top: 3px;
     font-size: 14px;
     .logIndex {
@@ -14,67 +14,80 @@
       display: flex;
       flex: 1;
       font-weight: bolder;
-      font-size: 14px;
+      font-size: 12px;
+    }
+    .operationLine {
+      display: flex;
+      align-items: center;
+      margin-top: 4px;
+      color: @font-color;
+      background: @primary-color-1;
+      .icon {
+        padding: 0 4px;
+        font-size: 14px;
+        border: 1px solid @primary-color-70;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .popoverOverlay {
+        width: 500px;
+      }
     }
   }
   .right {
     flex: 1;
     margin-left: 4px;
-    .operationLine {
-      display: flex;
-      color: @font-color;
-      .icon {
-        font-size: 18px;
+  }
+}
+
+.details {
+  flex: 1;
+  font-size: 14px;
+
+  .logLine {
+    display: flex;
+    align-items: center;
+    margin: 2px 0;
+    line-height: 21px;
+    text-align: justify;
+    cursor: default;
+    .logKey {
+      align-self: flex-start;
+      span {
+        background: @primary-color-8;
+      }
+      .notIndexContent {
+        background-color: #f5f5f5;
+      }
+    }
+    .logKeyHover {
+      cursor: pointer;
+    }
+    .logContent {
+      margin-left: 4px;
+      word-break: break-all;
+      :global {
+        .ant-tag {
+          height: 20px;
+          color: #41464beb;
+          line-height: 20px;
+        }
+      }
+    }
+    .logHover {
+      &:hover {
+        color: @primary-color-90;
+        text-decoration: underline;
         cursor: pointer;
       }
     }
-    .details {
-      flex: 1;
-      font-size: 14px;
-
-      .logLine {
-        display: flex;
-        align-items: center;
-        margin: 2px 0;
-        line-height: 21px;
-        text-align: justify;
-        cursor: default;
-        .logKey {
-          align-self: flex-start;
-          span {
-            background: @primary-color-8;
-          }
-        }
-        .logKeyHover {
-          cursor: pointer;
-        }
-        .logContent {
-          margin-left: 4px;
-          word-break: break-all;
-          :global {
-            .ant-tag {
-              height: 20px;
-              color: #41464beb;
-              line-height: 20px;
-            }
-          }
-        }
-        .logHover {
-          &:hover {
-            color: @primary-color-90;
-            text-decoration: underline;
-            cursor: pointer;
-          }
-        }
-        .logContentHighlight {
-          color: @primary-color-90;
-          font-weight: bold;
-          word-break: break-all;
-          cursor: pointer;
-          &:hover {
-            color: @primary-color-90;
-          }
-        }
+    .logContentHighlight {
+      color: @primary-color-90;
+      font-weight: bold;
+      word-break: break-all;
+      cursor: pointer;
+      &:hover {
+        color: @primary-color-90;
       }
     }
   }

@@ -13,7 +13,7 @@ type JsonDataProps = {
   data: object;
 } & _CommonProps;
 const JsonData = ({ data, ...restProps }: JsonDataProps) => {
-  const [isShowJson, setIsShowJson] = useState<boolean>(true);
+  const [isShowJson, setIsShowJson] = useState<boolean>(false);
 
   const renderStack: string[] = [];
   const indentStyle = {
@@ -22,7 +22,7 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
 
   useEffect(() => {
     return () => {
-      setIsShowJson(true);
+      setIsShowJson(false);
     };
   }, []);
 

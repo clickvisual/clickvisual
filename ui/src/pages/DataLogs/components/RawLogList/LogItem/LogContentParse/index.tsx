@@ -3,10 +3,9 @@ import logItemStyles from "@/pages/DataLogs/components/RawLogList/LogItem/index.
 import { useModel } from "@@/plugin-model/useModel";
 import JsonView from "@/components/JsonView";
 import JsonStringValue from "@/components/JsonView/JsonStringValue";
-import { Tag } from "antd";
 
 type LogContentParseProps = {
-  logContent: string;
+  logContent: any;
 };
 
 const LogContentParse = ({ logContent }: LogContentParseProps) => {
@@ -19,36 +18,30 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
   const isNullList = ["\n", "\r\n", "", " "];
 
   let content;
-  try {
-    const contentJson = JSON.parse(logContent);
-    // 1
-    Object.keys(contentJson);
-
-    // keys 【】
+  if (typeof logContent !== "object") {
+    if (isNullList.includes(logContent)) {
+      content = "";
+    } else {
+      content = (
+        <JsonStringValue
+          val={logContent.toString()}
+          onClickValue={addQuery}
+          highLightValue={highlightKeywords}
+        />
+      );
+    }
+  } else if (logContent === null) {
+    content = "";
+  } else {
     content = (
       <>
-        <Tag color="#FDEBE1">Json</Tag>
         <JsonView
-          data={contentJson}
+          data={logContent}
           onClickValue={addQuery}
           highLightValue={highlightKeywords}
         />
       </>
     );
-  } catch (e) {
-    if (isNullList.includes(logContent)) {
-      content = "null";
-    } else {
-      content = (
-        <>
-          <JsonStringValue
-            val={logContent}
-            onClickValue={addQuery}
-            highLightValue={highlightKeywords}
-          />
-        </>
-      );
-    }
   }
   return (
     <span className={classNames(logItemStyles.logContent)}>{content}</span>

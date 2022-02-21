@@ -39,9 +39,9 @@ git clone https://github.com/shimohq/mogo.git
 # 可参考这里：https://github.com/yeasy/docker_practice/blob/master/install/mirror.md
 docker-compose up
 
-# 打开浏览器访问 http://localhost:9001
-# 默认登录用户名: admin
-# 默认登录密码: admin
+# 打开浏览器访问 http://localhost:19001
+# 默认登录用户名: shimo
+# 默认登录密码: shimo
 ```
 
 - 本地运行
@@ -65,10 +65,14 @@ mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
 # 启动 mogo
 cd ./mogo-${latest} && ./mogo -config config/default.toml
 
-# 打开浏览器访问 http://localhost:9001
-# 默认登录用户名: admin
-# 默认登录密码: admin
+# 打开浏览器访问 http://localhost:19001
+# 默认登录用户名: shimo 
+# 默认登录密码: shimo
 ```
+
+## 文档 
+
+访问 <https://mogo.shimo.im> 查看最新文档。
 
 ## Main Tasks
 

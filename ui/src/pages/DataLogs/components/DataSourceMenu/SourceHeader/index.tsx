@@ -24,13 +24,17 @@ const SourceHeader = (props: SourceHeaderProps) => {
         )}
       </div>
       <div className={sourceHeaderStyles.selectedBtn}>
-        <Button onClick={() => onChangeVisibleDatabaseDraw(true)} type={"link"}>
-          <Tooltip
-            title={i18n.formatMessage({ id: "datasource.header.switch" })}
-          >
-            <AppstoreOutlined />
-          </Tooltip>
-        </Button>
+        <Button
+          onClick={() => onChangeVisibleDatabaseDraw(true)}
+          type={"link"}
+          icon={
+            <Tooltip
+              title={i18n.formatMessage({ id: "datasource.header.switch" })}
+            >
+              <AppstoreOutlined />
+            </Tooltip>
+          }
+        />
       </div>
     </div>
   );
