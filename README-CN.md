@@ -12,7 +12,7 @@
 Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
 
 **日志查询界面**
-![log-search](https://helpcenter.shimonote.com/uploads/0LNQBTOQ01CF2.png)
+![log-search](https://helpcenter.shimonote.com/uploads/0LUV5QCS01CHG.png)
 
 **可视化配置界面**
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)

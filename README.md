@@ -12,7 +12,7 @@
 Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse or MySQL).
 
 **log search page**
-![log-search](https://helpcenter.shimonote.com/uploads/0LNQBTOQ01CF2.png)
+![log-search](https://helpcenter.shimonote.com/uploads/0LUV5QCS01CHG.png)
 
 **configuration page**
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
