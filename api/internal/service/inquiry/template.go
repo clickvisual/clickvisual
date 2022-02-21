@@ -96,15 +96,14 @@ SELECT
 	_node_ip_,
 	_source_,
 	_log_ AS _raw_log_%s
-	FROM %s where %s;`,
-}
-
-var ToPrometheusView = `CREATE MATERIALIZED VIEW %s TO metrics.samples
-AS SELECT
+	FROM %s WHERE %s;`,
+	TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS 
+SELECT
        toDate(_timestamp_) as date,
-       %s as name,
+       '%s' as name,
        array(%s) as tags,
        toFloat64(count(*)) as val,
        _timestamp_ as ts,
        toDateTime(_timestamp_) as updated
-   FROM %s GROUP by _timestamp_;`
+   FROM %s WHERE %s GROUP by _timestamp_;`,
+}

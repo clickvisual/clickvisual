@@ -3,9 +3,11 @@ package alarm
 import (
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -17,10 +19,15 @@ func Create(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	tid := cast.ToInt(c.Param("id"))
-	if tid == 0 {
-		c.JSONE(core.CodeErr, "invalid parameter", nil)
-		return
+	var tid int
+	for _, f := range req.Filters {
+		if f.SetOperatorTyp == 0 {
+			if tid != 0 {
+				c.JSONE(1, "invalid parameter: only one default table allowed", nil)
+				return
+			}
+			tid = f.Tid
+		}
 	}
 	tx := invoker.Db.Begin()
 	obj := &db.Alarm{
@@ -30,6 +37,7 @@ func Create(c *core.Context) {
 		Desc:     req.Desc,
 		Interval: req.Interval,
 		Unit:     req.Unit,
+		Tags:     req.Tags,
 	}
 	err := db.AlarmCreate(tx, obj)
 	if err != nil {
@@ -37,9 +45,11 @@ func Create(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
+	var filtersDB []*db.AlarmFilter
 	for _, filter := range req.Filters {
 		filterObj := &db.AlarmFilter{
 			AlarmId:        obj.ID,
+			Tid:            filter.Tid,
 			When:           filter.When,
 			SetOperatorTyp: filter.SetOperatorTyp,
 			SetOperatorExp: filter.SetOperatorExp,
@@ -50,14 +60,16 @@ func Create(c *core.Context) {
 			c.JSONE(1, "create failed: "+err.Error(), nil)
 			return
 		}
+		filtersDB = append(filtersDB, filterObj)
 	}
 	for _, condition := range req.Conditions {
 		conditionObj := &db.AlarmCondition{
-			AlarmId: obj.ID,
-			Exp:     condition.Exp,
-			Cond:    condition.Cond,
-			Val1:    condition.Val1,
-			Val2:    condition.Val2,
+			AlarmId:        obj.ID,
+			SetOperatorTyp: condition.SetOperatorTyp,
+			SetOperatorExp: condition.SetOperatorExp,
+			Cond:           condition.Cond,
+			Val1:           condition.Val1,
+			Val2:           condition.Val2,
 		}
 		err = db.AlarmConditionCreate(tx, conditionObj)
 		if err != nil {
@@ -66,6 +78,38 @@ func Create(c *core.Context) {
 			return
 		}
 	}
+	// table info
+	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	// alarm setting
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	// view set
+	viewName, err := op.AlertViewCreate(obj, filtersDB)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	elog.Debug("alarm", elog.String("view", viewName))
+
+	ups := make(map[string]interface{}, 0)
+	ups["view"] = viewName
+	err = db.AlarmUpdate(tx, obj.ID, ups)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	// prometheus set
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSONE(1, "create failed: "+err.Error(), nil)
@@ -123,11 +167,12 @@ func Update(c *core.Context) {
 	}
 	for _, condition := range req.Conditions {
 		conditionObj := &db.AlarmCondition{
-			AlarmId: id,
-			Exp:     condition.Exp,
-			Cond:    condition.Cond,
-			Val1:    condition.Val1,
-			Val2:    condition.Val2,
+			AlarmId:        id,
+			SetOperatorTyp: condition.SetOperatorTyp,
+			SetOperatorExp: condition.SetOperatorExp,
+			Cond:           condition.Cond,
+			Val1:           condition.Val1,
+			Val2:           condition.Val2,
 		}
 		if err := db.AlarmConditionCreate(tx, conditionObj); err != nil {
 			tx.Rollback()

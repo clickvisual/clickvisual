@@ -116,7 +116,6 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id/indexes/:idx", core.Handle(base.TableIndexes))
 		v1.PATCH("/tables/:id/indexes", core.Handle(setting.IndexUpdate))
 
-		v1.POST("/tables/:id/alarms", core.Handle(alarm.Create))
 	}
 	// view
 	{
@@ -126,8 +125,10 @@ func GetRouter() *egin.Component {
 	}
 	// alarm
 	{
+
 		v1.GET("/alarms", core.Handle(alarm.List))
 		v1.GET("/alarms/:id", core.Handle(alarm.Info))
+		v1.POST("/alarms", core.Handle(alarm.Create))
 		v1.PATCH("/alarms/:id", core.Handle(alarm.Update))
 		v1.DELETE("/alarms/:id", core.Handle(alarm.Delete))
 	}

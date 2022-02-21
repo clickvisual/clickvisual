@@ -301,20 +301,60 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 	}
 }
 
-// func (c *ClickHouse) Query(param view.ReqQuery) (res view.RespQuery, err error) {
-// 	// Initialization
-// 	res.Logs = make([]map[string]interface{}, 0)
-// 	res.Keys = make([]*db.Index, 0)
-// 	res.Terms = make([][]string, 0)
-// 	// TODO sql security check
-// 	res.Logs, err = c.doQuery(param.Query)
-// 	if err != nil {
-// 		return
-// 	}
-// 	res.Count = uint64(len(res.Logs))
-// 	res.Limited = param.PageSize
-// 	return
-// }
+// AlertViewCreate TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS
+// SELECT
+//        toDate(_timestamp_) as date,
+//        %s as name,
+//        array(%s) as tags,
+//        toFloat64(count(*)) as val,
+//        _timestamp_ as ts,
+//        toDateTime(_timestamp_) as updated
+//    FROM %s WHERE %s GROUP by _timestamp_;`,
+func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter) (string, error) {
+	var (
+		viewSQL         string
+		viewTableName   string
+		sourceTableName string
+		filter          string
+	)
+	for i, f := range filters {
+		if i == 0 {
+			filter = f.When
+		} else {
+			filter = fmt.Sprintf("%s AND %s", filter, f.When)
+		}
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, alarm.Tid)
+	if err != nil {
+		return "", err
+	}
+
+	viewTableName = fmt.Sprintf("%s.%s_%s_view", tableInfo.Database.Name, tableInfo.Name, alarm.Name)
+	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
+	if alarm.Tags == nil || len(alarm.Tags) == 0 {
+		alarm.Tags = make(map[string]string, 0)
+	}
+	alarm.Tags["uuid"] = alarm.Uuid
+	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, tagsToString(alarm.Tags), sourceTableName, filter)
+
+	elog.Debug("AlertViewCreate", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
+
+	_, err = c.db.Exec(viewSQL)
+	return viewTableName, err
+}
+
+func (c *ClickHouse) AlertViewDelete(name string) error {
+	_, err := c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", name))
+	return err
+}
+
+func tagsToString(tags map[string]string) string {
+	result := make([]string, 0)
+	for k, v := range tags {
+		result = append(result, fmt.Sprintf("'%s=%s'", k, v))
+	}
+	return "[" + strings.Join(result, ",") + "]"
+}
 
 func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
 	// Initialization
