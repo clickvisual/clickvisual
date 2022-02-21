@@ -42,6 +42,7 @@ password = ""
 secretKey = "ASDFASDFASDF"
 rootURL = "http://localhost:9001"
 baseURL = "/api/admin/login/"
+hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_second_", "_time_nanosecond_"]
 
 [auth]
 # Login cookie name

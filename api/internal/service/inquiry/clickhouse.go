@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -16,17 +17,17 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-const ignoreKey = "_timestamp_"
-const timeCondition = "_timestamp_ >= %d AND _timestamp_ < %d"
+const ignoreKey = "_time_second_"
+const timeCondition = "_time_second_ >= %d AND _time_second_ < %d"
 
-const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _timestamp_,
-parseDateTimeBestEffort(_time_) AS _trace_time_`
+const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
+parseDateTimeBestEffort(_time_) AS _time_nanosecond_`
 
-const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _timestamp_,
-fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _trace_time_`
+const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
+fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
-var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _timestamp_, 
-fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _trace_time_`
+var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
+fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
 var typORM = map[int]string{
 	0: "String",
@@ -314,6 +315,7 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	res.Keys, _ = db.IndexList(conds)
+	res.HiddenFields = econf.GetStringSlice("app.hiddenFields")
 	return
 }
 

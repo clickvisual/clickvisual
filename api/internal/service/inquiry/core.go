@@ -81,7 +81,7 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Key == "_timestamp_" {
+		if item.Key == "_time_second_" {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
 		if index == 0 {
