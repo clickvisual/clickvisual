@@ -11,7 +11,7 @@ COPY ui .
 RUN yarn build
 
 
-# # API build stage
+# API build stage
 FROM golang:1.17.3-alpine3.14 as go-builder
 
 ENV GOPROXY=https://goproxy.cn,direct
@@ -28,14 +28,13 @@ COPY --from=js-builder /mogo/dist ./api/internal/ui/dist
 RUN ls -rlt ./api/internal/ui/dist && make build.api
 
 
-# # Fianl running stage
+# Fianl running stage
 FROM alpine:3.14.3
 LABEL maintainer="mogo@shimo.im"
 
 WORKDIR /mogo
 
 COPY --from=go-builder /mogo/bin/mogo ./bin/
-# COPY --from=js-builder /mogo/dist ./public
 
 EXPOSE 9001
 EXPOSE 9003

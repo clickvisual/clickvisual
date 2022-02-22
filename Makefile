@@ -32,7 +32,8 @@ docker.push:
 	@echo -e "\n"
 
 docker.clean:
-	rm -rf $(ROOT)/data/clickhouse/database
-	rm -rf $(ROOT)/data/kafka/data
-	rm -rf $(ROOT)/data/zookeeper/data
-	rm -rf $(ROOT)/data/zookeeper/datalog
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+	@rm -rf $(ROOT)/data/clickhouse/database
+	@rm -rf $(ROOT)/data/kafka/data
+	@rm -rf $(ROOT)/data/zookeeper/data
+	@rm -rf $(ROOT)/data/zookeeper/datalog
