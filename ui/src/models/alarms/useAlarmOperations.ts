@@ -9,7 +9,7 @@ const useAlarmOperations = () => {
     setInputName(name);
   };
 
-  const onChangeSelectDid = (id: number) => {
+  const onChangeSelectDid = (id: number | undefined) => {
     setSelectDid(id);
   };
 

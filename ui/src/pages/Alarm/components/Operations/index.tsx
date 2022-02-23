@@ -43,11 +43,12 @@ const Operations = () => {
       <Space>
         <Select
           showSearch
+          allowClear
           value={operations.selectDid}
           onChange={(id) => {
             operations.onChangeSelectDid(id);
             operations.onChangeSelectTid(undefined);
-            getLogLibraries.run(id);
+            if (id) getLogLibraries.run(id);
             doGetAlarms.run({ ...searchQuery, did: id });
           }}
           className={alarmStyles.selectedBar}
@@ -65,6 +66,7 @@ const Operations = () => {
         <Select
           disabled={!operations.selectDid}
           showSearch
+          allowClear
           value={operations.selectTid}
           onChange={(id) => {
             operations.onChangeSelectTid(id);
