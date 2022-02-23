@@ -60,7 +60,7 @@ const TriggerConditionItem = () => {
               {fields.map((field) => {
                 const isFistCondition = field.name === 0;
                 return (
-                  <div
+                  <Space
                     key={`${field.key}-conditions`}
                     className={conditionStyles.fieldLine}
                   >
@@ -73,10 +73,7 @@ const TriggerConditionItem = () => {
                     >
                       <Form.Item noStyle name={[field.name, "typ"]}>
                         <Select
-                          className={classNames(
-                            conditionStyles.selectItem,
-                            conditionStyles.itemMargin
-                          )}
+                          className={classNames(conditionStyles.selectItem)}
                           disabled={isFistCondition}
                         >
                           {typList
@@ -93,10 +90,7 @@ const TriggerConditionItem = () => {
                     </Form.Item>
                     <Form.Item noStyle name={[field.name, "exp"]}>
                       <Select
-                        className={classNames(
-                          conditionStyles.selectItem,
-                          conditionStyles.itemMargin
-                        )}
+                        className={classNames(conditionStyles.selectItem)}
                       >
                         {expList.map((item) => (
                           <Option key={`${item.key}-exp`} value={item.key}>
@@ -107,10 +101,7 @@ const TriggerConditionItem = () => {
                     </Form.Item>
                     <Form.Item noStyle name={[field.name, "cond"]}>
                       <Select
-                        className={classNames(
-                          conditionStyles.itemMargin,
-                          conditionStyles.selectCond
-                        )}
+                        className={classNames(conditionStyles.selectCond)}
                       >
                         {condList.map((item) => (
                           <Option key={`${item.key}-cond`} value={item.key}>
@@ -131,7 +122,7 @@ const TriggerConditionItem = () => {
                           getFieldValue(["conditions", field.name, "cond"]) > 1;
 
                         return (
-                          <Space className={conditionStyles.itemMargin}>
+                          <Space>
                             <Form.Item
                               className={conditionStyles.formItemMargin}
                               style={{ margin: 0 }}
@@ -200,7 +191,7 @@ const TriggerConditionItem = () => {
                         )}
                       </Space>
                     </Form.Item>
-                  </div>
+                  </Space>
                 );
               })}
               {fields.length < 1 && (
