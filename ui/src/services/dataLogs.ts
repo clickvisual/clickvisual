@@ -19,6 +19,7 @@ export interface GetTableIdRequest {
 export interface LogsResponse {
   count: number;
   hiddenFields: string[];
+  defaultFields: string[];
   keys: IndexInfoType[];
   limited: number;
   logs: any[];
