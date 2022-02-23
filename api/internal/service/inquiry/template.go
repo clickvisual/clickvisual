@@ -99,11 +99,11 @@ SELECT
 	FROM %s WHERE %s;`,
 	TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS 
 SELECT
-       toDate(_timestamp_) as date,
+       toDate(_time_second_) as date,
        '%s' as name,
        array(%s) as tags,
        toFloat64(count(*)) as val,
-       _timestamp_ as ts,
-       toDateTime(_timestamp_) as updated
-   FROM %s WHERE %s GROUP by _timestamp_;`,
+       _time_second_ as ts,
+       toDateTime(_time_second_) as updated
+   FROM %s WHERE %s GROUP by _time_second_;`,
 }

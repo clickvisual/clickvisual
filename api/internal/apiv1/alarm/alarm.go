@@ -1,6 +1,8 @@
 package alarm
 
 import (
+	"strconv"
+
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -38,6 +40,7 @@ func Create(c *core.Context) {
 		Interval: req.Interval,
 		Unit:     req.Unit,
 		Tags:     req.Tags,
+		Uid:      c.Uid(),
 	}
 	err := db.AlarmCreate(tx, obj)
 	if err != nil {
@@ -53,6 +56,9 @@ func Create(c *core.Context) {
 			When:           filter.When,
 			SetOperatorTyp: filter.SetOperatorTyp,
 			SetOperatorExp: filter.SetOperatorExp,
+		}
+		if filterObj.When == "" {
+			filterObj.When = "1=1"
 		}
 		err = db.AlarmFilterCreate(tx, filterObj)
 		if err != nil {
@@ -93,16 +99,16 @@ func Create(c *core.Context) {
 		return
 	}
 	// view set
-	viewName, err := op.AlertViewCreate(obj, filtersDB)
+	viewName, viewSQL, err := op.AlertViewCreate(obj, filtersDB)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	elog.Debug("alarm", elog.String("view", viewName))
+	elog.Debug("alarm", elog.String("view", viewName), elog.String("viewSQL", viewSQL))
 
 	ups := make(map[string]interface{}, 0)
-	ups["view"] = viewName
+	ups["view"] = viewSQL
 	err = db.AlarmUpdate(tx, obj.ID, ups)
 	if err != nil {
 		tx.Rollback()
@@ -135,6 +141,7 @@ func Update(c *core.Context) {
 	ups["desc"] = req.Desc
 	ups["interval"] = req.Interval
 	ups["unit"] = req.Unit
+	ups["uid"] = c.Uid()
 	if err := db.AlarmUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
@@ -189,12 +196,40 @@ func Update(c *core.Context) {
 }
 
 func List(c *core.Context) {
-	res, err := db.AlarmList(egorm.Conds{})
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+	req := &db.ReqPage{}
+	if err := c.Bind(req); err != nil {
+		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	name := c.Query("name")
+	tid, _ := strconv.Atoi(c.Query("tid"))
+	did, _ := strconv.Atoi(c.Query("did"))
+	query := egorm.Conds{}
+	if name != "" {
+		query["name"] = egorm.Cond{
+			Op:  "like",
+			Val: name,
+		}
+	}
+	if tid != 0 {
+		query["tid"] = tid
+	}
+	if did != 0 {
+		query["mogo_base_table.did"] = did
+		total, list := db.AlarmListByDidPage(query, req)
+		c.JSONPage(list, core.Pagination{
+			Current:  req.Current,
+			PageSize: req.PageSize,
+			Total:    total,
+		})
+		return
+	}
+	total, list := db.AlarmListPage(query, req)
+	c.JSONPage(list, core.Pagination{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+		Total:    total,
+	})
 	return
 }
 

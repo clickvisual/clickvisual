@@ -28,7 +28,7 @@ type Operator interface {
 
 	IndexUpdate(view.ReqCreateIndex, db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 
-	AlertViewCreate(*db.Alarm, []*db.AlarmFilter) (string, error)
+	AlertViewCreate(*db.Alarm, []*db.AlarmFilter) (string, string, error)
 	AlertViewDelete(string) error
 }
 

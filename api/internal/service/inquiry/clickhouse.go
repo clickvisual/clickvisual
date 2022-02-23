@@ -310,7 +310,7 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 //        _timestamp_ as ts,
 //        toDateTime(_timestamp_) as updated
 //    FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter) (string, error) {
+func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter) (string, string, error) {
 	var (
 		viewSQL         string
 		viewTableName   string
@@ -326,7 +326,7 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, alarm.Tid)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	viewTableName = fmt.Sprintf("%s.%s_%s_view", tableInfo.Database.Name, tableInfo.Name, alarm.Name)
@@ -340,7 +340,7 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 	elog.Debug("AlertViewCreate", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 
 	_, err = c.db.Exec(viewSQL)
-	return viewTableName, err
+	return viewTableName, viewSQL, err
 }
 
 func (c *ClickHouse) AlertViewDelete(name string) error {
@@ -353,7 +353,7 @@ func tagsToString(tags map[string]string) string {
 	for k, v := range tags {
 		result = append(result, fmt.Sprintf("'%s=%s'", k, v))
 	}
-	return "[" + strings.Join(result, ",") + "]"
+	return strings.Join(result, ",")
 }
 
 func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
@@ -373,6 +373,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	conds["tid"] = tid
 	res.Keys, _ = db.IndexList(conds)
 	res.HiddenFields = econf.GetStringSlice("app.hiddenFields")
+	res.DefaultFields = econf.GetStringSlice("app.defaultFields")
+	for _, k := range res.Keys {
+		res.DefaultFields = append(res.DefaultFields, k.Field)
+	}
 	return
 }
 

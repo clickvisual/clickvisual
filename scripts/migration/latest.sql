@@ -4,6 +4,7 @@ USE mocro;
 CREATE TABLE `mogo_alarm` (
     `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
     `tid` int(11) DEFAULT NULL COMMENT 'table id',
+    `uid` int(11) DEFAULT NULL COMMENT '操作人',
     `uuid` varchar(128) NOT NULL COMMENT '唯一外键',
     `name` varchar(64) NOT NULL COMMENT '告警名称',
     `desc` varchar(255) NOT NULL COMMENT '描述说明',
