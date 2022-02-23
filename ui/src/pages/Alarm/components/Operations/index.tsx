@@ -88,6 +88,7 @@ const Operations = () => {
       </Space>
       <Space>
         <Input
+          allowClear
           className={alarmStyles.selectedBar}
           value={operations.inputName}
           placeholder={`${i18n.formatMessage({
