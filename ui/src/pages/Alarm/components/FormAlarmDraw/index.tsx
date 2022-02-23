@@ -128,6 +128,9 @@ const FormAlarmDraw = () => {
               })}`}
             />
           </Form.Item>
+          <InspectionFrequencyItem />
+          <QueryStatisticsItem />
+          <TriggerConditionItem />
           <Form.Item
             label={i18n.formatMessage({ id: "alarm.form.description" })}
             name={"desc"}
@@ -140,9 +143,6 @@ const FormAlarmDraw = () => {
               })}`}
             />
           </Form.Item>
-          <InspectionFrequencyItem />
-          <QueryStatisticsItem />
-          <TriggerConditionItem />
         </Form>
       </Spin>
     </Drawer>
