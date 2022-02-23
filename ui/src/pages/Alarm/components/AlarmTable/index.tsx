@@ -102,7 +102,7 @@ const AlarmTable = () => {
       width: "50%",
       ellipsis: { showTitle: true },
       render: (desc: string) => (
-        <Tooltip title={desc} placement={"bottom"}>
+        <Tooltip title={desc}>
           <div className={alarmStyles.columnsEllipsis}>
             <span>{desc}</span>
           </div>
