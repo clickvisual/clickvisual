@@ -94,6 +94,7 @@ const Operations = () => {
             id: "alarm.form.placeholder.alarmName",
           })}`}
           onChange={(env) => operations.onChangeInputName(env.target.value)}
+          onPressEnter={handleSearch}
         />
         <Button
           loading={doGetAlarms.loading}
