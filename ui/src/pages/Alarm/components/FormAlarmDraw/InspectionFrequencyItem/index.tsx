@@ -1,18 +1,16 @@
 import frequencyStyle from "@/pages/Alarm/components/FormAlarmDraw/InspectionFrequencyItem/index.less";
 import { Form, InputNumber, Select, Space } from "antd";
 import { NamePath, StoreValue } from "rc-field-form/es/interface";
+import { useIntl } from "umi";
+import useTimeUnits from "@/hooks/useTimeUnits";
 const { Option } = Select;
 
 const InspectionFrequencyItem = () => {
-  const FrequencyTypes = [
-    { key: 0, value: "每小时" },
-    { key: 1, value: "每天" },
-    { key: 2, value: "每周" },
-    { key: 3, value: "固定时间" },
-  ];
+  const i18n = useIntl();
+  const { weekList, FrequencyTypes, FixedTimeUnits } = useTimeUnits();
 
   const HourTime = () => (
-    <Form.Item name={"time"} initialValue={"00:00"}>
+    <Form.Item noStyle name={"time"} initialValue={"00:00"}>
       <Select className={frequencyStyle.selectHours}>
         {[...new Array(24)].map((value, index) => (
           <Option
@@ -25,17 +23,8 @@ const InspectionFrequencyItem = () => {
   );
 
   const Weeks = () => {
-    const weekList = [
-      { key: 0, value: "周一" },
-      { key: 1, value: "周二" },
-      { key: 2, value: "周三" },
-      { key: 3, value: "周四" },
-      { key: 4, value: "周五" },
-      { key: 5, value: "周六" },
-      { key: 6, value: "周日" },
-    ];
     return (
-      <Form.Item name={"week"} initialValue={0}>
+      <Form.Item noStyle name={"week"} initialValue={0}>
         <Select className={frequencyStyle.selectHours}>
           {weekList.map((value) => (
             <Option key={value.key} value={value.key}>
@@ -48,21 +37,16 @@ const InspectionFrequencyItem = () => {
   };
 
   const FixedInterval = () => {
-    const numberTypes = [
-      { key: 1, value: "天" },
-      { key: 2, value: "小时" },
-      { key: 3, value: "分钟" },
-    ];
     return (
       <Space>
-        <Form.Item name={"number"} initialValue={15}>
-          <InputNumber min={1} />
+        <Form.Item noStyle name={"interval"} initialValue={15}>
+          <InputNumber min={0} />
         </Form.Item>
-        <Form.Item name={"numberType"} initialValue={3}>
-          <Select style={{ width: 70 }}>
-            {numberTypes.map((item) => (
+        <Form.Item noStyle name={"unit"} initialValue={0}>
+          <Select style={{ width: 100 }}>
+            {FixedTimeUnits.map((item) => (
               <Option key={item.key} value={item.key}>
-                {item.value}
+                {item.label}
               </Option>
             ))}
           </Select>
@@ -95,11 +79,13 @@ const InspectionFrequencyItem = () => {
   };
 
   return (
-    <div>
-      <span>检查频率：</span>
+    <Form.Item
+      required
+      label={i18n.formatMessage({ id: "alarm.inspectionFrequency" })}
+    >
       <Space className={frequencyStyle.spaceMain}>
-        <Form.Item name={"type"} initialValue={3}>
-          <Select className={frequencyStyle.selectType}>
+        <Form.Item noStyle name={"type"} initialValue={3}>
+          <Select disabled className={frequencyStyle.selectType}>
             {FrequencyTypes.map((type) => (
               <Select.Option key={type.key} value={type.key}>
                 {type.value}
@@ -116,7 +102,7 @@ const InspectionFrequencyItem = () => {
           {({ getFieldValue }) => switchFrequencyType(getFieldValue)}
         </Form.Item>
       </Space>
-    </div>
+    </Form.Item>
   );
 };
 export default InspectionFrequencyItem;

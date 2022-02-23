@@ -8,8 +8,19 @@
     display: flex;
     flex: 0 0 42px;
     align-items: center;
+    justify-content: space-between;
     .selectedBar {
       width: 240px;
+    }
+  }
+
+  .tableWrapper {
+    cursor: default;
+    .columnsEllipsis {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
   }
 }

@@ -1,0 +1,35 @@
+.conditionsMain {
+  flex: 1;
+  .fieldLine {
+    display: flex;
+    .itemMargin {
+      margin-right: 8px;
+      .formItemMargin {
+        margin-bottom: 0;
+      }
+    }
+    .selectItem {
+      flex: 0 0 15%;
+    }
+    .selectCond {
+      flex: 0 0 20%;
+    }
+    .inputNumber {
+      width: 82px;
+    }
+    .lineError {
+      position: absolute;
+      width: 100%;
+    }
+
+    &:not(:last-child) {
+      margin-bottom: 24px;
+    }
+    :global {
+      .ant-form-item-with-help .ant-form-item-explain {
+        position: absolute;
+        top: 32px;
+      }
+    }
+  }
+}
