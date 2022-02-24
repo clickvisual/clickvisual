@@ -209,6 +209,7 @@ export default {
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
     "Please enter lowercase letters, uppercase letters, or hyphens",
 
@@ -219,6 +220,7 @@ export default {
   "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
   "datasource.logLibrary.placeholder.topics":
     "Please enter Topics, support in uppercase or lowercase English or crossed",
+  "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
