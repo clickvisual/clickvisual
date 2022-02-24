@@ -140,7 +140,7 @@ export default {
   "config.files.button.create": "创建配置文件",
 
   // configure-menu-publish
-  "config.diff.button": "发布",
+  "config.publish.button": "发布",
   "config.publish.confirm.title": "确认发布",
   "config.publish.confirm.content": "配置即将发布到集群",
   "config.publish.form.placeholder.configure": "请选择配置文件",
