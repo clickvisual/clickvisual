@@ -46,6 +46,7 @@ func GetRouter() *egin.Component {
 		v1.GET("/menus/list", core.Handle(permission.MenuList))
 		v1.GET("/users/info", core.Handle(user.Info))
 		v1.POST("/users/logout", core.Handle(user.Logout))
+		v1.PATCH("/users/:uid/password", core.Handle(user.UpdatePassword))
 	}
 	// System configuration
 	{

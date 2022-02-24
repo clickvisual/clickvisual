@@ -6,6 +6,7 @@ type ReqTableCreate struct {
 	Days      int    `form:"days" binding:"required"`
 	Brokers   string `form:"brokers" binding:"required"`
 	Topics    string `form:"topics" binding:"required"`
+	Consumers int    `form:"consumers" binding:"required"`
 }
 
 type ReqTableId struct {

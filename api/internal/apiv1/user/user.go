@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/spf13/cast"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gin-contrib/sessions"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
@@ -67,5 +69,44 @@ func Logout(c *core.Context) {
 		return
 	}
 	c.JSONOK("succ")
+	return
+}
+
+type password struct {
+	Password    string `form:"password" binding:"required"`
+	NewPassword string `form:"newPassword" binding:"required"`
+}
+
+func UpdatePassword(c *core.Context) {
+	uid := cast.ToInt(c.Param("uid"))
+	if uid == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var param password
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	user, _ := db.UserInfo(uid)
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
+	if err != nil {
+		c.JSONE(1, "account or password error", "")
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(param.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSONE(1, "account or password error", "")
+		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["password"] = string(hash)
+	err = db.UserUpdate(invoker.Db, uid, ups)
+	if err != nil {
+		c.JSONE(1, "password update error", err.Error())
+		return
+	}
+	c.JSONOK("")
 	return
 }
