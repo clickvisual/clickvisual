@@ -98,7 +98,6 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "description" }),
       dataIndex: "desc",
-      align: "center",
       width: "50%",
       ellipsis: { showTitle: true },
       render: (desc: string) => (

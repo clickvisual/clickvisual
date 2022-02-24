@@ -317,7 +317,7 @@ const CreatedAndUpdatedModal = ({
             return (
               <Form.Item label={i18n.formatMessage({ id: "search" })}>
                 <Input.Group compact>
-                  <Form.Item noStyle name={"when"}>
+                  <Form.Item noStyle name={"when"} initialValue={"1=1"}>
                     <Input style={{ width: "85%" }} />
                   </Form.Item>
                   <Button
