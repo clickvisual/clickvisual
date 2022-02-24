@@ -35,6 +35,7 @@ export interface CreatedLogLibraryRequest {
   days: number;
   brokers: string;
   topics: string;
+  consumers: number;
 }
 
 export interface CreatedViewRequest {
