@@ -17,6 +17,7 @@ export default {
   "table.column.filter.reset": "Reset",
 
   "navbar.lang": "English",
+  "navbar.changePassword": "Change password",
   "navbar.logOut": "Log out",
   "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} by shimo`,
 
@@ -40,6 +41,18 @@ export default {
   "login.thirdParty.gitlab": "Sign in with  GitLab",
   "login.message.success": "Login successful",
   "login.message.logOut": "Log Out successfully",
+
+  "password.title": "Change Password",
+  "password.change.old": "Old Password",
+  "password.change.new": "New Password",
+  "password.change.confirm": "Confirm Password",
+  "password.placeholder.old": "Please enter your old password",
+  "password.placeholder.new": "Please enter a new password",
+  "password.placeholder.confirm": "Please enter the new password again",
+  "password.rule.min": "Password length is short, at least 5 characters",
+  "password.rule.match": "New password must match",
+  "password.loading": "Changing password...",
+  "password.success": "Password changed successfully",
 
   // System Setting
   // Instance Management

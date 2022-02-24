@@ -13,10 +13,6 @@ const DataSourceMenu = (props: DataSourceMenuProps) => {
     doGetDatabaseList();
   }, []);
 
-  useEffect(() => {
-    console.log(foldingState);
-  }, [foldingState]);
-
   return (
     <div
       className={classNames(

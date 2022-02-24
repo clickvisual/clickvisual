@@ -4,8 +4,11 @@ import { history } from "umi";
 import { HOME_PATH, LOGIN_PATH } from "@/config/config";
 import { message } from "antd";
 import { formatMessage } from "@@/plugin-locale/localeExports";
+import usePassword from "@/models/users/usePassword";
 
 const UserActions = () => {
+  const actionPassword = usePassword();
+
   const loginByPassword = useRequest(LoginByPassword, {
     loadingText: false,
     onSuccess: () => {
@@ -22,6 +25,7 @@ const UserActions = () => {
     },
   });
   return {
+    actionPassword,
     loginByPassword,
     loginOut,
   };

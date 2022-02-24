@@ -1,4 +1,4 @@
-import request from '@/utils/requestUtils/request';
+import request from "@/utils/requestUtils/request";
 
 export interface UserLoginType {
   username: string;
@@ -7,15 +7,26 @@ export interface UserLoginType {
 
 // 账号密码登录
 export async function LoginByPassword(data: UserLoginType) {
-  return request(`/api/admin/users/login`, { method: 'POST', data });
+  return request(`/api/admin/users/login`, { method: "POST", data });
 }
 
 // 获取当前用户信息
 export async function FetchCurrentUserInfo() {
-  return request('/api/v1/users/info', { method: 'GET' });
+  return request("/api/v1/users/info", { method: "GET" });
 }
 
 // 退出登录
 export async function LoginOut() {
-  return request('/api/v1/users/logout', { method: 'POST' });
+  return request("/api/v1/users/logout", { method: "POST" });
+}
+
+export async function ChangePassword(
+  uid: number,
+  data: {
+    password: string;
+    newPassword: string;
+    confirmNew: string;
+  }
+) {
+  return request(`/api/v1/users/${uid}/password`, { method: "PATCH", data });
 }
