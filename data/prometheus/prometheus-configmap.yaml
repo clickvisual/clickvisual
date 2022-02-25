@@ -24,7 +24,11 @@ data:
         # 修改：targets、指定地址与端口
         - targets: ["alertmanager:9093"]
     remote_read:
-      - url: "http://127.0.0.1:9201/read"
+      - url: "http://prom2click:9201/read"
         read_recent: true
     remote_write:
-      - url: "http://127.0.0.1:9201/write"
+      - url: "http://prom2click:9201/write"
+        queue_config:
+          capacity: 10000
+          max_shards: 1
+          max_samples_per_send: 500
