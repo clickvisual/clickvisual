@@ -6,10 +6,9 @@ import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/spf13/cast"
 
-	"github.com/shimohq/mogo/api/pkg/component/core"
-
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
@@ -33,9 +32,13 @@ func InstanceCreate(c *core.Context) {
 		return
 	}
 	obj := db.Instance{
-		Datasource: req.Datasource,
-		Name:       req.Name,
-		Dsn:        strings.TrimSpace(req.Dsn),
+		Datasource:       req.Datasource,
+		Name:             req.Name,
+		Dsn:              strings.TrimSpace(req.Dsn),
+		ClusterId:        req.ClusterId,
+		Namespace:        req.Namespace,
+		Configmap:        req.Configmap,
+		PrometheusTarget: req.PrometheusTarget,
 	}
 	if err = db.InstanceCreate(invoker.Db, &obj); err != nil {
 		c.JSONE(1, "creation DB failed: "+err.Error(), nil)
@@ -64,22 +67,30 @@ func InstanceUpdate(c *core.Context) {
 		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
-	service.InstanceManager.Delete(objBef.DsKey())
-	objUpdate := db.Instance{
-		Datasource: req.Datasource,
-		Name:       req.Name,
-		Dsn:        req.Dsn,
-	}
-	objUpdate.ID = id
-	if err = service.InstanceManager.Add(&objUpdate); err != nil {
-		_ = service.InstanceManager.Add(&objBef)
-		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
-		return
-	}
 	ups := make(map[string]interface{}, 0)
+	if objBef.Dsn != req.Dsn {
+		// dns changed
+		service.InstanceManager.Delete(objBef.DsKey())
+		objUpdate := db.Instance{
+			Datasource: req.Datasource,
+			Name:       req.Name,
+			Dsn:        req.Dsn,
+		}
+		objUpdate.ID = id
+		if err = service.InstanceManager.Add(&objUpdate); err != nil {
+			_ = service.InstanceManager.Add(&objBef)
+			c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
+			return
+		}
+		ups["dsn"] = req.Dsn
+	}
+
 	ups["datasource"] = req.Datasource
 	ups["name"] = req.Name
-	ups["dsn"] = req.Dsn
+	ups["cluster_id"] = req.ClusterId
+	ups["namespace"] = req.Namespace
+	ups["configmap"] = req.Configmap
+	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return

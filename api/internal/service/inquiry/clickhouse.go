@@ -331,14 +331,12 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 
 	viewTableName = fmt.Sprintf("%s.%s_%s_view", tableInfo.Database.Name, tableInfo.Name, alarm.Name)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
-	if alarm.Tags == nil || len(alarm.Tags) == 0 {
-		alarm.Tags = make(map[string]string, 0)
-	}
-	alarm.Tags["uuid"] = alarm.Uuid
-	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, tagsToString(alarm.Tags), sourceTableName, filter)
+
+	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, TagsToString(alarm, true), sourceTableName, filter)
 
 	elog.Debug("AlertViewCreate", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 
+	_ = c.AlertViewDelete(viewTableName)
 	_, err = c.db.Exec(viewSQL)
 	return viewTableName, viewSQL, err
 }
@@ -348,10 +346,21 @@ func (c *ClickHouse) AlertViewDelete(name string) error {
 	return err
 }
 
-func tagsToString(tags map[string]string) string {
+func TagsToString(alarm *db.Alarm, withQuote bool) string {
+	tags := alarm.Tags
+	if alarm.Tags == nil || len(alarm.Tags) == 0 {
+		tags = make(map[string]string, 0)
+	}
+	tags["uuid"] = alarm.Uuid
+	tags["name"] = alarm.Name
+	tags["desc"] = alarm.Desc
 	result := make([]string, 0)
 	for k, v := range tags {
-		result = append(result, fmt.Sprintf("'%s=%s'", k, v))
+		if withQuote {
+			result = append(result, fmt.Sprintf("'%s=%s'", k, v))
+		} else {
+			result = append(result, fmt.Sprintf(`%s="%s"`, k, v))
+		}
 	}
 	return strings.Join(result, ",")
 }

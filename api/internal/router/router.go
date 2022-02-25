@@ -126,7 +126,6 @@ func GetRouter() *egin.Component {
 	}
 	// alarm
 	{
-
 		v1.GET("/alarms", core.Handle(alarm.List))
 		v1.GET("/alarms/:id", core.Handle(alarm.Info))
 		v1.POST("/alarms", core.Handle(alarm.Create))

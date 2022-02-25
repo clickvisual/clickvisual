@@ -1,7 +1,11 @@
 package alarm
 
 import (
+	"fmt"
+	"net/http"
+	"sort"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
@@ -10,6 +14,9 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/inquiry"
+	"github.com/shimohq/mogo/api/internal/service/kube"
+	"github.com/shimohq/mogo/api/internal/service/kube/resource"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -68,7 +75,42 @@ func Create(c *core.Context) {
 		}
 		filtersDB = append(filtersDB, filterObj)
 	}
+
+	expVal := fmt.Sprintf("%s{%s}", obj.Name, inquiry.TagsToString(obj, false))
+	sort.Slice(req.Conditions, func(i, j int) bool {
+		return req.Conditions[i].SetOperatorTyp < req.Conditions[j].SetOperatorTyp
+	})
+	var exp string
 	for _, condition := range req.Conditions {
+		var innerCond string
+		switch condition.Cond {
+		case 0:
+			innerCond = fmt.Sprintf("%s>%d", expVal, condition.Val1)
+		case 1:
+			innerCond = fmt.Sprintf("%s<%d", expVal, condition.Val1)
+		case 2:
+			innerCond = fmt.Sprintf("%s<%d and %s>%d", expVal, condition.Val1, expVal, condition.Val2)
+		case 3:
+			innerCond = fmt.Sprintf("%s>=%d and %s<=%d", expVal, condition.Val1, expVal, condition.Val2)
+		}
+		switch condition.SetOperatorTyp {
+		case 0:
+			exp = innerCond
+		case 1:
+			if exp == "" {
+				tx.Rollback()
+				c.JSONE(1, "conditions error: ", nil)
+				return
+			}
+			exp = fmt.Sprintf("%s and %s", exp, innerCond)
+		case 2:
+			if exp == "" {
+				tx.Rollback()
+				c.JSONE(1, "conditions error: ", nil)
+				return
+			}
+			exp = fmt.Sprintf("%s or %s", exp, innerCond)
+		}
 		conditionObj := &db.AlarmCondition{
 			AlarmId:        obj.ID,
 			SetOperatorTyp: condition.SetOperatorTyp,
@@ -106,7 +148,6 @@ func Create(c *core.Context) {
 		return
 	}
 	elog.Debug("alarm", elog.String("view", viewName), elog.String("viewSQL", viewSQL))
-
 	ups := make(map[string]interface{}, 0)
 	ups["view"] = viewSQL
 	err = db.AlarmUpdate(tx, obj.ID, ups)
@@ -116,12 +157,60 @@ func Create(c *core.Context) {
 		return
 	}
 	// prometheus set
+	instance, err := db.InstanceInfo(tx, tableInfo.Database.Iid)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "You need to configure alarms related to the instance first", nil)
+		return
+	}
+	elog.Debug("alert", elog.Any("instance", instance))
+	client, err := kube.ClusterManager.GetClusterManager(instance.ClusterId)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "cluster data acquisition failed: "+err.Error(), nil)
+		return
+	}
+	rule := make(map[string]string)
+	// exp: up{instance="localhost:9090", job="prometheus"} > 0
+
+	template := `groups:
+- name: default
+  rules:
+  - alert: %s
+    expr: %s
+    for: %s
+    labels:
+      severity: warning
+    annotations:
+      summary: "告警 {{ $labels.name }}"
+      description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
+	rule[obj.AlertRuleName()] = fmt.Sprintf(template, obj.Name, exp, obj.AlertInterval())
+
+	elog.Debug("alert", elog.Any("rule", rule))
+
+	err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rule)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "configMap update failed", nil)
+		return
+	}
+	time.Sleep(time.Second)
+	elog.Debug("alert", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
+	resp, err := http.Post(instance.PrometheusTarget+"/-/reload", "application/json", nil)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "configMap update failed", nil)
+		return
+	}
+	defer resp.Body.Close()
+
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
+	return
 }
 
 func Update(c *core.Context) {

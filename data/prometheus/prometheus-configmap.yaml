@@ -4,11 +4,11 @@ metadata:
   name: prometheus-config
   namespace: mogo
 data:
-  prometheus.yml: |
+  prometheus.yaml: |
     global:
       evaluation_interval: "15s"
     rule_files:
-      - /etc/prometheus/rules.yml
+      - /etc/prometheus/rules/*.yaml
     # 配置采集目标
     scrape_configs:
     - job_name: prometheus
@@ -28,15 +28,3 @@ data:
         read_recent: true
     remote_write:
       - url: "http://127.0.0.1:9201/write"
-  rules.yml: |
-    groups:
-    - name: test-rule
-      rules:
-      - alert: NodeMemoryUsage
-        expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes)) / node_memory_MemTotal_bytes * 100 > 20
-        for: 2m
-        labels:
-          team: node
-        annotations:
-          summary: "{{$labels.instance}}: High Memory usage detected"
-          description: "{{$labels.instance}}: Memory usage is above 20% (current value is: {{ $value }}"

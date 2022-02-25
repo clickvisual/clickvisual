@@ -31,7 +31,7 @@ spec:
             - '--web.enable-lifecycle'
             - '--storage.tsdb.retention=6h'
             - '--storage.tsdb.path=/prometheus'
-            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--config.file=/etc/prometheus/prometheus.yaml'
           command:
             - /bin/prometheus
           ports:
@@ -40,6 +40,8 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /etc/prometheus
+            - name: rules-volume
+              mountPath: /etc/prometheus/rules
             - name: data
               mountPath: /prometheus
       restartPolicy: Always
@@ -49,5 +51,8 @@ spec:
         - name: config-volume
           configMap:
             name: prometheus-config
+        - name: rules-volume
+          configMap:
+            name: prometheus-rules
         - name: data
           emptyDir: {}

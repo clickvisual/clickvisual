@@ -87,7 +87,7 @@ const ModalCreatedConfig = () => {
                   id: "config.createdConfig.form.fileName",
                 })}
                 name="configurationName"
-                rules={[{ required: true }, { min: 2 }, { max: 32 }]}
+                rules={[{ required: true }, { min: 2 }, { max: 64 }]}
               >
                 <Input
                   placeholder={`${i18n.formatMessage({
