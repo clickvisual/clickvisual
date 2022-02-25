@@ -93,7 +93,7 @@ const SearchBar = () => {
         type="primary"
         icon={<IconFont type={"icon-log-search"} />}
       >
-        {i18n.formatMessage({ id: "button.search" })}
+        {i18n.formatMessage({ id: "search" })}
       </Button>
     </div>
   );

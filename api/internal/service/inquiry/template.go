@@ -53,7 +53,7 @@ var clickhouseTableStreamORM = map[int]string{
 	_time_ String,
 	_log_ String
 )
-engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
+engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d;`,
 	TableTypeTimeFloat: `create table %s
 (
 	_source_ String,
@@ -67,7 +67,7 @@ engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka
 	_time_ Float64,
 	_log_ String
 )
-engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
+engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d;`,
 }
 
 var clickhouseViewORM = map[int]string{
@@ -96,5 +96,14 @@ SELECT
 	_node_ip_,
 	_source_,
 	_log_ AS _raw_log_%s
-	FROM %s where %s;`,
+	FROM %s WHERE %s;`,
+	TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS 
+SELECT
+       toDate(_time_second_) as date,
+       '%s' as name,
+       array(%s) as tags,
+       toFloat64(count(*)) as val,
+       _time_second_ as ts,
+       toDateTime(_time_second_) as updated
+   FROM %s WHERE %s GROUP by _time_second_;`,
 }

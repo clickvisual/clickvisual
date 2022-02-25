@@ -18,13 +18,17 @@ const Publish = () => {
   const [visibleDiff, setVisibleDiff] = useState(false);
   const {
     configurationList,
+    currentConfiguration,
     doGetHistoryConfiguration,
     doPublishConfiguration,
+    doGetConfiguration,
   } = useModel("configure");
   const [selectedVersion, setSelectedVersion] =
     useState<HistoryConfigurationResponse>();
   const i18n = useIntl();
+
   const handleChangeConfig = (configId: number) => {
+    doGetConfiguration.run(configId);
     doGetHistoryConfiguration
       .run(configId, {
         current: FIRST_PAGE,
@@ -63,6 +67,14 @@ const Publish = () => {
 
   useEffect(() => {
     return () => doGetHistoryConfiguration.reset();
+  }, []);
+
+  useEffect(() => {
+    if (!currentConfiguration) return;
+    publishForm.setFields([
+      { name: "configId", value: currentConfiguration.id },
+    ]);
+    handleChangeConfig(currentConfiguration.id);
   }, []);
 
   return (

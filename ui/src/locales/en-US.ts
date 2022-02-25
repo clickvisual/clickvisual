@@ -1,5 +1,7 @@
 export default {
   operation: "Operation",
+  add: "Add",
+  search: "Search",
   edit: "Edit",
   delete: "Delete",
   submit: "Submit",
@@ -11,18 +13,43 @@ export default {
   "error.content": "Error: {msg}",
   "error.copy": "Copy error message",
   "button.save": "Save",
-  "button.search": "Search",
+  "button.cancel": "Cancel",
   spin: "loading...",
   "table.column.filter.placeholder": "Please input conditions",
   "table.column.filter.reset": "Reset",
+  required: "Required",
+
+  type: "Type",
+
+  "unit.second": "seconds",
+  "unit.minute": "minutes",
+  "unit.hour": "hours",
+  "unit.day": "days",
+  "unit.week": "weeks",
+  "unit.year": "years",
+
+  "frequency.hour": "Per Hour",
+  "frequency.day": "Pre Day",
+  "frequency.week": "Pre Week",
+  "frequency.ft": "FT",
+
+  "week.mon": "Mon.",
+  "week.tue": "Tues.",
+  "week.wed": "Wed.",
+  "week.thurs": "Thurs.",
+  "week.fri": "Fir.",
+  "week.sat": "Sat.",
+  "week.sun": "Sun.",
 
   "navbar.lang": "English",
+  "navbar.changePassword": "Change password",
   "navbar.logOut": "Log out",
   "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} by shimo`,
 
   // menu
   "menu.configure": "Config",
   "menu.log": "Logs",
+  "menu.alarm": "Alarm",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
@@ -41,6 +68,18 @@ export default {
   "login.message.success": "Login successful",
   "login.message.logOut": "Log Out successfully",
 
+  "password.title": "Change Password",
+  "password.change.old": "Old Password",
+  "password.change.new": "New Password",
+  "password.change.confirm": "Confirm Password",
+  "password.placeholder.old": "Please enter your old password",
+  "password.placeholder.new": "Please enter a new password",
+  "password.placeholder.confirm": "Please enter the new password again",
+  "password.rule.min": "Password length is short, at least 5 characters",
+  "password.rule.match": "New password must match",
+  "password.loading": "Changing password...",
+  "password.success": "Password changed successfully",
+
   // System Setting
   // Instance Management
   "instance.button.add": "Add instance",
@@ -49,9 +88,13 @@ export default {
   "instance.delete.confirmTip": "Confirm deleting instance: {instanceName} ?",
   "instance.form.title.created": "Create Instance",
   "instance.form.title.edit": "Edit Instance",
+  "instance.form.title.cluster": "Cluster",
   "instance.form.placeholder.instanceName": "Please enter an instance name",
   "instance.form.placeholder.datasource": "Please select datasource",
   "instance.form.placeholder.dsn": "Please enter DSN, for example: {example}",
+  "instance.form.moreOptions": "More Options",
+  "instance.form.rule.dsn": "Please enter DSN",
+  "instance.form.rule.configmap": "Please select ConfigMap",
   "instance.operation.addDatabase": "Adding a database",
   "instance.success.created": "Created instance succeeded",
   "instance.success.updated": "Updated instance succeeded",
@@ -86,7 +129,7 @@ export default {
   "cluster.success.deleted": "Deleted cluster succeeded",
 
   // Configure
-  "config.configMap.success.created": "Creating ConfigMap succeeded",
+  "config.configmap.success.created": "Creating ConfigMap succeeded",
   "config.file.success.created": "Creating configuration succeeded",
   "config.file.success.updated": "Saving the configuration succeeded",
   "config.file.success.deleted": "Deleting the configuration succeeded",
@@ -107,13 +150,13 @@ export default {
   "config.diff.online": "Effect of the configuration",
   "config.diff.current": "This release configuration",
   "config.files.history": "Submit history",
-  "config.files.select.empty.tip": "Please select a configMap",
+  "config.files.select.empty.tip": "Please select a configmap",
   "config.files.empty.tip": "No configuration file",
   "config.files.sync": "Sync from K8S",
   "config.files.tooltip.created": "Create a configuration",
   "config.files.tooltip.onlineDiff": "Online version comparison",
   "config.files.confirm.deleted":
-    "Are you sure to delete: {name}.{format}? This operation will also delete configuration files in the configMap cluster. Perform this operation with caution",
+    "Are you sure to delete: {name}.{format}? This operation will also delete configuration files in the configmap cluster. Perform this operation with caution",
   "config.files.button.create": "Creating a configuration",
 
   // configure-menu-publish
@@ -135,11 +178,11 @@ export default {
 
   // configure-selectedBar
   "config.selectedBar.cluster": "Please select cluster",
-  "config.selectedBar.configMap": "Namespace / ConfigMap",
+  "config.selectedBar.configmap": "Namespace / ConfigMap",
   "config.selectedBar.button": "Create",
   "config.selectedBar.button.tooltip": "Create a Namespace and ConfigMap",
   "config.selectedBar.current":
-    "The selected Namespace is {namespace} and the selected ConfigMap is {configMap}",
+    "The selected Namespace is {namespace} and the selected ConfigMap is {configmap}",
 
   // configure-modal-commit
   "config.commit.title": "Save Configuration Changes",
@@ -157,7 +200,7 @@ export default {
   // configure-modal-createdConfigMap
   "config.createdConfigMap.title": "Create ConfigMap In {cluster}",
   "config.createdConfigMap.placeholder.namespace": "Please enter Namespace",
-  "config.createdConfigMap.placeholder.configMap": "Please enter ConfigMap",
+  "config.createdConfigMap.placeholder.configmap": "Please enter ConfigMap",
 
   // configure-modal-history
   "config.history.table.user": "Operating User",
@@ -183,6 +226,7 @@ export default {
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
     "Please enter lowercase letters, uppercase letters, or hyphens",
 
@@ -193,6 +237,7 @@ export default {
   "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
   "datasource.logLibrary.placeholder.topics":
     "Please enter Topics, support in uppercase or lowercase English or crossed",
+  "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
@@ -296,4 +341,39 @@ export default {
   "dateTime.option.days": "{num} day{plural}",
   "dateTime.option.months": "{num} months",
   "dateTime.option.years": "{num} year{plural}",
+
+  // Alarm
+  // Operations
+  "alarm.selected.placeholder.database": "Please select database",
+  "alarm.selected.placeholder.logLibrary": "Please select log library",
+  "alarm.button.created": "Create Alarm",
+  "alarm.table.alarmName": "Alarm Name",
+  "alarm.form.title": "Alarm Monitoring Rule",
+  "alarm.form.alarmName": "Alarm Name",
+  "alarm.form.description": "Alarm Description",
+  "alarm.form.placeholder.alarmName": "Please enter a alarm name",
+  "alarm.form.placeholder.description": "Please enter an alarm description",
+  "alarm.form.rule.alarmName":
+    "Please enter lowercase letters, uppercase letters, or underscores",
+  "alarm.inspectionFrequency": "Inspection Frequency",
+  "alarm.form.inspectionStatistics": "Inspection Statistics",
+  "alarm.form.inspectionStatistics.error":
+    "At least you need to add a inspection statistics",
+  "alarm.form.triggerCondition": "Trigger condition",
+  "alarm.form.triggerCondition.error":
+    "At least you need to add a trigger condition",
+  "alarm.form.preview": "Preview",
+  "alarm.form.notPreview.content": "Please click preview first",
+  "alarm.inspectionFrequency.selectOption.logLibrary": "Log Library",
+  "alarm.inspectionFrequency.between": "Between",
+  "alarm.inspectionFrequency.database": "Database",
+  "alarm.inspectionFrequency.placeholder.database": "Please select database",
+  "alarm.inspectionFrequency.logLibrary": "Table",
+  "alarm.inspectionFrequency.placeholder.logLibrary": "Please select a table",
+
+  "alarm.created": "Create alarm success",
+  "alarm.updated": "Update alarm success",
+  "alarm.deleted": "Delete alarm success",
+  "alarm.deleted.loading": "Deleting alarm...",
+  "alarm.deleted.content": "Are you sure to delete alarm: {alarm}?",
 };

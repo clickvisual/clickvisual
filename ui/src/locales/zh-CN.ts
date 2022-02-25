@@ -1,5 +1,7 @@
 export default {
   operation: "操作",
+  add: "添加",
+  search: "查询",
   edit: "编辑",
   delete: "删除",
   submit: "提交",
@@ -11,18 +13,43 @@ export default {
   "error.content": "错误：{msg}",
   "error.copy": "复制错误信息",
   "button.save": "保存",
-  "button.search": "查询",
+  "button.cancel": "关闭",
   spin: "加载中...",
   "table.column.filter.placeholder": "请输入查询条件",
   "table.column.filter.reset": "重置",
+  required: "必填",
+
+  type: "类型",
+
+  "unit.second": "秒",
+  "unit.minute": "分钟",
+  "unit.hour": "小时",
+  "unit.day": "天",
+  "unit.week": "周",
+  "unit.year": "年",
+
+  "frequency.hour": "每小时",
+  "frequency.day": "每天",
+  "frequency.week": "每周",
+  "frequency.ft": "固定时间",
+
+  "week.mon": "周一",
+  "week.tue": "周二",
+  "week.wed": "周三",
+  "week.thurs": "周四",
+  "week.fri": "周五",
+  "week.sat": "周六",
+  "week.sun": "周日",
 
   "navbar.lang": "中文",
+  "navbar.changePassword": "修改密码",
   "navbar.logOut": "退出登录",
   "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} 武汉初心科技有限公司（石墨文档）`,
 
   // menu
   "menu.configure": "配置",
   "menu.log": "日志",
+  "menu.alarm": "报警",
   "menu.systemSettings": "系统设置",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
@@ -30,8 +57,8 @@ export default {
   // user
   "login.header": "欢迎来到 MOGO",
   "login.title": "登  录",
-  "login.username": "用户名",
-  "login.username.placeholder": "请输入用户名",
+  "login.username": "账号",
+  "login.username.placeholder": "请输入账号",
   "login.password": "密码",
   "login.password.placeholder": "请输入密码",
   "login.button": "登  录",
@@ -41,6 +68,18 @@ export default {
   "login.message.success": "登录成功",
   "login.message.logOut": "退出登录成功",
 
+  "password.title": "修改密码",
+  "password.change.old": "原密码",
+  "password.change.new": "新密码",
+  "password.change.confirm": "确认密码",
+  "password.placeholder.old": "请输入原密码",
+  "password.placeholder.new": "请输入新密码",
+  "password.placeholder.confirm": "请再次输入新密码",
+  "password.rule.min": "密码长度过短，最少需要 5 位字符",
+  "password.rule.match": "新密码必须匹配",
+  "password.loading": "正在修改密码...",
+  "password.success": "密码修改成功",
+
   // System Setting
   // Instance Management
   "instance.button.add": "新增实例",
@@ -49,9 +88,13 @@ export default {
   "instance.delete.confirmTip": "确认删除实例：{instanceName} 吗？",
   "instance.form.title.created": "新增实例",
   "instance.form.title.edit": "编辑实例",
+  "instance.form.title.cluster": "集群",
   "instance.form.placeholder.instanceName": "请输入实例名称",
   "instance.form.placeholder.datasource": "请选择数据源",
   "instance.form.placeholder.dsn": "请输入数据源连接串，例如：{example}",
+  "instance.form.moreOptions": "更多设置",
+  "instance.form.rule.dsn": "请输入数据源连接串",
+  "instance.form.rule.configmap": "请选择 ConfigMap",
   "instance.operation.addDatabase": "新增数据库",
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
@@ -83,7 +126,7 @@ export default {
   "cluster.success.deleted": "删除集群成功",
 
   // Configure
-  "config.configMap.success.created": "新增 ConfigMap 成功",
+  "config.configmap.success.created": "新增 ConfigMap 成功",
   "config.file.success.created": "新增配置成功",
   "config.file.success.updated": "保存配置成功",
   "config.file.success.deleted": "删除配置成功",
@@ -114,7 +157,7 @@ export default {
   "config.files.button.create": "创建配置文件",
 
   // configure-menu-publish
-  "config.diff.button": "发布",
+  "config.publish.button": "发布",
   "config.publish.confirm.title": "确认发布",
   "config.publish.confirm.content": "配置即将发布到集群",
   "config.publish.form.placeholder.configure": "请选择配置文件",
@@ -130,11 +173,11 @@ export default {
 
   // configure-selectedBar
   "config.selectedBar.cluster": "请选择集群",
-  "config.selectedBar.configMap": "Namespace / ConfigMap",
+  "config.selectedBar.configmap": "Namespace / ConfigMap",
   "config.selectedBar.button": "新增",
   "config.selectedBar.button.tooltip": "新增 Namespace 和 ConfigMap",
   "config.selectedBar.current":
-    "当前选择的 Namespace 是：{namespace}，当前选择的 ConfigMap 是：{configMap}",
+    "当前选择的 Namespace 是：{namespace}，当前选择的 ConfigMap 是：{configmap}",
 
   // configure-modal-commit
   "config.commit.title": "保存配置变更",
@@ -150,7 +193,7 @@ export default {
   // configure-modal-createdConfigMap
   "config.createdConfigMap.title": "新增 ConfigMap，当前集群为：{cluster}",
   "config.createdConfigMap.placeholder.namespace": "请输入 Namespace",
-  "config.createdConfigMap.placeholder.configMap": "请输入 ConfigMap",
+  "config.createdConfigMap.placeholder.configmap": "请输入 ConfigMap",
 
   // configure-modal-history
   "config.history.table.user": "操作用户",
@@ -176,6 +219,7 @@ export default {
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
     "请输入小写字母、大写字母，或中划线",
 
@@ -186,6 +230,7 @@ export default {
   "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持小写字母、大写字母，或中划线",
+  "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
   "datasource.logLibrary.quickAdd": "快速创建日志库",
@@ -276,4 +321,36 @@ export default {
   "dateTime.option.days": "{num} 天",
   "dateTime.option.months": "{num} 月",
   "dateTime.option.years": "{num} 年",
+
+  // Alarm
+  // Operations
+  "alarm.selected.placeholder.database": "请选择数据库",
+  "alarm.selected.placeholder.logLibrary": "请选择日志库",
+  "alarm.button.created": "新增报警",
+  "alarm.table.alarmName": "报警名称",
+  "alarm.form.title": "报警监控规则",
+  "alarm.form.alarmName": "报警名称",
+  "alarm.form.description": "报警描述",
+  "alarm.form.placeholder.alarmName": "请输入报警名称",
+  "alarm.form.placeholder.description": "请输入报警描述",
+  "alarm.form.rule.alarmName": "请输入小写字母、大写字母，或下划线",
+  "alarm.inspectionFrequency": "检查频率",
+  "alarm.form.inspectionStatistics": "检查统计",
+  "alarm.form.inspectionStatistics.error": "最少需要添加一条检查统计",
+  "alarm.form.triggerCondition": "触发条件",
+  "alarm.form.triggerCondition.error": "最少需要添加一条触发条件",
+  "alarm.form.preview": "预览",
+  "alarm.form.notPreview.content": "请先点击预览",
+  "alarm.inspectionFrequency.selectOption.logLibrary": "日志库",
+  "alarm.inspectionFrequency.between": "查询区间",
+  "alarm.inspectionFrequency.database": "数据库",
+  "alarm.inspectionFrequency.placeholder.database": "请选择数据库",
+  "alarm.inspectionFrequency.logLibrary": "数据表",
+  "alarm.inspectionFrequency.placeholder.logLibrary": "请选择数据表",
+
+  "alarm.created": "新增报警成功",
+  "alarm.updated": "更新报警成功",
+  "alarm.deleted": "删除报警成功",
+  "alarm.deleted.loading": "正在删除报警...",
+  "alarm.deleted.content": "确定删除报警：{alarm} 吗？",
 };

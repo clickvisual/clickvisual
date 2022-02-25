@@ -5,8 +5,7 @@ import logItemStyles from "@/pages/DataLogs/components/RawLogList/LogItem/index.
 import classNames from "classnames";
 import { Empty } from "antd";
 
-type MoreLogPopoverProps = {};
-const MoreLogPopoverContent = ({}: MoreLogPopoverProps) => {
+const MoreLogPopoverContent = () => {
   const { logs } = useModel("dataLogs");
   const { log } = useContext(LogItemContext);
   const hiddenFields = logs?.hiddenFields || [];

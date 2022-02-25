@@ -19,6 +19,7 @@ export interface GetTableIdRequest {
 export interface LogsResponse {
   count: number;
   hiddenFields: string[];
+  defaultFields: string[];
   keys: IndexInfoType[];
   limited: number;
   logs: any[];
@@ -35,6 +36,7 @@ export interface CreatedLogLibraryRequest {
   days: number;
   brokers: string;
   topics: string;
+  consumers: number;
 }
 
 export interface CreatedViewRequest {

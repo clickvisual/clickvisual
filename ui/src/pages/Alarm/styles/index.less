@@ -1,0 +1,32 @@
+.alarmMain {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 5px 15px;
+
+  .operationMain {
+    display: flex;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: space-between;
+    .selectedBar {
+      width: 240px;
+    }
+  }
+
+  .tableMain {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .tableWrapper {
+    cursor: default;
+    .columnsEllipsis {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+}

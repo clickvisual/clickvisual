@@ -33,7 +33,7 @@ const FilterTableColumn = (dataIndex: string) => {
             style={{ width: 90 }}
           >
             {i18n.formatMessage({
-              id: "button.search",
+              id: "search",
             })}
           </Button>
           <Button

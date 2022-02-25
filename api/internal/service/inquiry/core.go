@@ -20,17 +20,23 @@ type Operator interface {
 
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 
-	Prepare(view.ReqQuery) (view.ReqQuery, error) // Request Parameter Preprocessing
+	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
 	GET(view.ReqQuery, int) (view.RespQuery, error)
+
 	Count(view.ReqQuery) uint64
 	GroupBy(view.ReqQuery) map[string]uint64
 
 	IndexUpdate(view.ReqCreateIndex, db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
+
+	AlertViewCreate(*db.Alarm, []*db.AlarmFilter) (string, string, error)
+	AlertViewDelete(string) error
 }
 
 const (
 	TableTypeTimeString = 1
 	TableTypeTimeFloat  = 2
+
+	TableTypePrometheusMetric = 999
 )
 
 func genName(database, tableName string) string {

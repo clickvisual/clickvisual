@@ -14,8 +14,7 @@ import useUrlState from "@ahooksjs/use-url-state";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 
-type ConfigureProps = {};
-const Configure = (props: ConfigureProps) => {
+const Configure = () => {
   const [urlState, setUrlState] = useUrlState();
   const {
     doGetClusters,
@@ -36,7 +35,7 @@ const Configure = (props: ConfigureProps) => {
       setUrlState({
         cluster: selectedClusterId,
         nameSpace: selectedNameSpace,
-        configMap: selectedConfigMap,
+        configmap: selectedConfigMap,
         current: currentConfiguration?.id,
       });
     },
@@ -63,6 +62,7 @@ const Configure = (props: ConfigureProps) => {
 
   useEffect(() => {
     setUrlQuery.run();
+    console.log("currentConfiguration", currentConfiguration);
   }, [
     selectedConfigMap,
     selectedNameSpace,
@@ -75,9 +75,9 @@ const Configure = (props: ConfigureProps) => {
       if (urlState.cluster) {
         doSelectedClusterId(parseInt(urlState.cluster));
       }
-      if (urlState.nameSpace && urlState.configMap) {
+      if (urlState.nameSpace && urlState.configmap) {
         doSelectedNameSpace(urlState.nameSpace);
-        doSelectedConfigMap(urlState.configMap);
+        doSelectedConfigMap(urlState.configmap);
       }
       if (urlState.current) {
         doGetConfiguration.run(parseInt(urlState.current));

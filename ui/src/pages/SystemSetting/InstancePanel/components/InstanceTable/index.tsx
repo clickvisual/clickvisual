@@ -44,6 +44,22 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
+      title: "ConfigMap",
+      align: "center" as AlignType,
+      dataIndex: "configmap",
+      ellipsis: { showTitle: false },
+      width: 200,
+      render: TooltipRender({ placement: "right" }),
+    },
+    {
+      title: "Prometheus Target",
+      align: "center" as AlignType,
+      dataIndex: "prometheusTarget",
+      ellipsis: { showTitle: false },
+      width: 200,
+      render: TooltipRender({ placement: "right" }),
+    },
+    {
       title: `${i18n.formatMessage({
         id: "operation",
       })}`,

@@ -6,9 +6,9 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/shimohq/mogo/api/internal/apiv1/alarm"
 	"github.com/shimohq/mogo/api/internal/apiv1/base"
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
-	"github.com/shimohq/mogo/api/internal/apiv1/inquiry"
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
@@ -46,6 +46,7 @@ func GetRouter() *egin.Component {
 		v1.GET("/menus/list", core.Handle(permission.MenuList))
 		v1.GET("/users/info", core.Handle(user.Info))
 		v1.POST("/users/logout", core.Handle(user.Logout))
+		v1.PATCH("/users/:uid/password", core.Handle(user.UpdatePassword))
 	}
 	// System configuration
 	{
@@ -65,56 +66,71 @@ func GetRouter() *egin.Component {
 	{
 		v1.GET("/configurations", core.Handle(configure.List))
 		v1.GET("/configurations/:id", core.Handle(configure.Detail))
-		v1.POST("/configurations", core.Handle(configure.Create))
-		v1.POST("/configurations/:id/sync", core.Handle(configure.Sync))
-		v1.PATCH("/configurations/:id", core.Handle(configure.Update))
-		v1.DELETE("/configurations/:id", core.Handle(configure.Delete))
-		v1.POST("/configurations/:id/publish", core.Handle(configure.Publish))
 		v1.GET("/configurations/:id/histories", core.Handle(configure.HistoryList))
 		v1.GET("/configurations/:id/histories/:version", core.Handle(configure.HistoryInfo))
 		v1.GET("/configurations/:id/diff", core.Handle(configure.Diff))
 		v1.GET("/configurations/:id/lock", core.Handle(configure.Lock))
+		v1.POST("/configurations/:id/publish", core.Handle(configure.Publish))
 		v1.POST("/configurations/:id/unlock", core.Handle(configure.Unlock))
+		v1.POST("/configurations", core.Handle(configure.Create))
+		v1.POST("/configurations/:id/sync", core.Handle(configure.Sync))
+		v1.PATCH("/configurations/:id", core.Handle(configure.Update))
+		v1.DELETE("/configurations/:id", core.Handle(configure.Delete))
 	}
 	// Cluster-related interfaces
 	{
 		v1.GET("/clusters", core.Handle(kube.ClusterList))
 		v1.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))
-		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
 		v1.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
+		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
 	}
 	// Trace
 	{
 		// v1.GET("/traces/:tid", core.Handle(trace.Info))
 	}
+	// Instance
+	{
+		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
+		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
+	}
 	// Database
 	{
-		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
-		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
+		v1.GET("/databases/:did/tables", core.Handle(base.TableList))
+		v1.POST("/databases/:did/tables", core.Handle(base.TableCreate))
 		v1.DELETE("/databases/:id", core.Handle(base.DatabaseDelete))
 	}
 	// Table
 	{
-		v1.POST("/databases/:did/tables", core.Handle(base.TableCreate))
-		v1.GET("/databases/:did/tables", core.Handle(base.TableList))
-		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
-		v1.GET("/tables/:id", core.Handle(base.TableInfo))
-		v1.GET("/tables/:id/logs", core.Handle(inquiry.Logs))
-		v1.GET("/tables/:id/charts", core.Handle(inquiry.Charts))
-
-		v1.GET("/tables/:id/indexes/:idx", core.Handle(inquiry.Indexes))
-		v1.PATCH("/tables/:id/indexes", core.Handle(setting.IndexUpdate))
-		v1.GET("/tables/:id/indexes", core.Handle(setting.Indexes))
-
 		v1.GET("/table/id", core.Handle(base.TableId))
+
+		v1.GET("/tables/:id", core.Handle(base.TableInfo))
+		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
+
+		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
+		// v1.GET("/tables/:id/query", core.Handle(base.TableQuery))
+		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
+
+		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
+		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
+
+		v1.GET("/tables/:id/indexes", core.Handle(setting.Indexes))
+		v1.GET("/tables/:id/indexes/:idx", core.Handle(base.TableIndexes))
+		v1.PATCH("/tables/:id/indexes", core.Handle(setting.IndexUpdate))
+
 	}
-	// View
+	// view
 	{
 		v1.GET("/views/:id", core.Handle(base.ViewInfo))
 		v1.PATCH("/views/:id", core.Handle(base.ViewUpdate))
 		v1.DELETE("/views/:id", core.Handle(base.ViewDelete))
-		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
-		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
+	}
+	// alarm
+	{
+		v1.GET("/alarms", core.Handle(alarm.List))
+		v1.GET("/alarms/:id", core.Handle(alarm.Info))
+		v1.POST("/alarms", core.Handle(alarm.Create))
+		v1.PATCH("/alarms/:id", core.Handle(alarm.Update))
+		v1.DELETE("/alarms/:id", core.Handle(alarm.Delete))
 	}
 	return r
 }

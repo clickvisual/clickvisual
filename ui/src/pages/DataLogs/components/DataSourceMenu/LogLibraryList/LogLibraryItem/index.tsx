@@ -100,15 +100,18 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
 
   const doDeleted = () => {
     if (!currentDatabase) return;
-    const hideMessage = message.loading({
-      content: i18n.formatMessage(
-        {
-          id: "datasource.logLibrary.deleted.loading",
-        },
-        { logLibrary: logLibrary.tableName }
-      ),
-      key: "deletedTable",
-    });
+    const hideMessage = message.loading(
+      {
+        content: i18n.formatMessage(
+          {
+            id: "datasource.logLibrary.deleted.loading",
+          },
+          { logLibrary: logLibrary.tableName }
+        ),
+        key: "deletedTable",
+      },
+      0
+    );
     doDeletedLogLibrary
       .run(logLibrary.id)
       .then((res) => {
@@ -128,12 +131,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
               });
             }
           }
-          message.success({
-            content: i18n.formatMessage({
-              id: "datasource.logLibrary.deleted.success",
-            }),
-            key: "deletedTable",
-          });
+          message.success(
+            {
+              content: i18n.formatMessage({
+                id: "datasource.logLibrary.deleted.success",
+              }),
+              key: "deletedTable",
+            },
+            3
+          );
           doGetLogLibraryList();
         } else hideMessage();
       })

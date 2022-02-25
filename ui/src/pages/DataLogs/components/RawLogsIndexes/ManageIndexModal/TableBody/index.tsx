@@ -36,7 +36,7 @@ const TableBody = (props: TableBodyProps) => {
               rules={[
                 { required: true, message: "" },
                 {
-                  validator: (_, value) => {
+                  validator: async (_, value) => {
                     const list = form
                       .getFieldValue(["data"])
                       ?.map((item: IndexInfoType) => item.field);

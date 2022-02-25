@@ -22,8 +22,7 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
 
-type FilesProps = {};
-const Files = (props: FilesProps) => {
+const Files = () => {
   const {
     configurationList,
     doGetConfigurations,
@@ -44,10 +43,13 @@ const Files = (props: FilesProps) => {
 
   const doSync = useDebounceFn(
     () => {
-      const hideMessage = message.loading({
-        content: i18n.formatMessage({ id: "config.file.loading.sync" }),
-        key: "sync",
-      });
+      const hideMessage = message.loading(
+        {
+          content: i18n.formatMessage({ id: "config.file.loading.sync" }),
+          key: "sync",
+        },
+        0
+      );
       const params = {
         k8sConfigMapNameSpace: selectedNameSpace as string,
         k8sConfigMapName: selectedConfigMap as string,
@@ -59,12 +61,15 @@ const Files = (props: FilesProps) => {
         })
         .then((res) => {
           if (res?.code === 0) {
-            message.success({
-              content: i18n.formatMessage({
-                id: "config.file.success.sync",
-              }),
-              key: "sync",
-            });
+            message.success(
+              {
+                content: i18n.formatMessage({
+                  id: "config.file.success.sync",
+                }),
+                key: "sync",
+              },
+              3
+            );
             doGetConfigurations.run(params);
           } else {
             hideMessage();

@@ -1,5 +1,5 @@
 import logItemStyles from "@/pages/DataLogs/components/RawLogList/LogItem/index.less";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { LogItemContext } from "@/pages/DataLogs/components/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
@@ -11,33 +11,36 @@ const LogItemDetails = () => {
   const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
 
-  const hiddenFields = logs?.hiddenFields || [];
+  const { keys, newLog, rawLogJson, rawLogKeys } = useMemo(() => {
+    const hiddenFields = logs?.hiddenFields || [];
+    const indexList =
+      logs?.keys.map((item) => {
+        return item.field;
+      }) || [];
 
-  const indexList =
-    logs?.keys.map((item) => {
-      return item.field;
-    }) || [];
+    let keys: string[] = Object.keys(log).sort();
+    let rawLogKeys: any[] = [];
+    const rawLogJson = parseJsonObject(log["_raw_log_"]);
+    let newLog: any = log;
 
-  let keys: string[] = Object.keys(log).sort();
-  let rawLogKeys: any[] = [];
-  const rowLogJson = parseJsonObject(log["_raw_log_"]);
-  let newLogs: any = log;
+    if (!!rawLogJson) {
+      rawLogKeys = Object.keys(rawLogJson).filter(
+        (item) => !indexList.includes(item)
+      );
+      newLog = Object.assign(rawLogJson, log);
 
-  if (!!rowLogJson) {
-    rawLogKeys = Object.keys(rowLogJson).filter(
-      (item) => !indexList.includes(item)
-    );
-    newLogs = Object.assign(rowLogJson, log);
+      keys = [...keys, ...rawLogKeys]
+        .filter((key, index) => {
+          const preIdx = keys.indexOf(key);
+          return preIdx < 0 || preIdx === index;
+        })
+        .filter((key) => !hiddenFields.includes(key));
+      delete newLog._raw_log_;
+      keys = keys.filter((key) => key !== "_raw_log_");
+    }
 
-    keys = [...keys, ...rawLogKeys]
-      .filter((key, index) => {
-        const preIdx = keys.indexOf(key);
-        return preIdx < 0 || preIdx === index;
-      })
-      .filter((key) => !hiddenFields.includes(key));
-    delete newLogs._raw_log_;
-    keys = keys.filter((key) => key !== "_raw_log_");
-  }
+    return { keys, newLog, rawLogJson, rawLogKeys };
+  }, [logs, log]);
 
   const quickInsertQuery = (keyItem: string) => {
     const currentSelected = `${keyItem}='${log[keyItem]}'`;
@@ -53,7 +56,7 @@ const LogItemDetails = () => {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
           }
           const isRawLog =
-            (rowLogJson && rawLogKeys.includes(keyItem)) ||
+            (rawLogJson && rawLogKeys.includes(keyItem)) ||
             keyItem === "_row_log_";
           const notQuery = ["_time_nanosecond_"].includes(keyItem);
           return (
@@ -64,7 +67,7 @@ const LogItemDetails = () => {
                   isRawLog && logItemStyles.logKeyHover
                 )}
                 onClick={() => {
-                  if (!isRawLog && !rowLogJson) return;
+                  if (!isRawLog && !rawLogJson) return;
                   onCopyRawLogDetails(log[keyItem]);
                 }}
               >
@@ -81,7 +84,7 @@ const LogItemDetails = () => {
               {!isRawLog ? (
                 <span
                   onClick={() =>
-                    !notQuery && !!newLogs[keyItem] && quickInsertQuery(keyItem)
+                    !notQuery && !!newLog[keyItem] && quickInsertQuery(keyItem)
                   }
                   className={classNames(
                     logItemStyles.logContent,
@@ -91,10 +94,10 @@ const LogItemDetails = () => {
                       logItemStyles.logHover
                   )}
                 >
-                  {newLogs[keyItem] ? newLogs[keyItem] : ""}
+                  {newLog[keyItem] ? newLog[keyItem] : ""}
                 </span>
               ) : (
-                <LogContentParse logContent={newLogs[keyItem]} />
+                <LogContentParse logContent={newLog[keyItem]} />
               )}
             </div>
           );

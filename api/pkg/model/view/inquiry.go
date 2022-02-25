@@ -17,12 +17,14 @@ type ReqQuery struct {
 }
 
 type RespQuery struct {
-	Limited      uint32                   `json:"limited"`
-	Keys         []*db.Index              `json:"keys"`
-	Count        uint64                   `json:"count"`
-	Terms        [][]string               `json:"terms"`
-	HiddenFields []string                 `json:"hiddenFields"`
-	Logs         []map[string]interface{} `json:"logs"`
+	Limited       uint32                   `json:"limited"`
+	Keys          []*db.Index              `json:"keys"`
+	ShowKeys      []string                 `json:"showKeys"`
+	Count         uint64                   `json:"count"`
+	Terms         [][]string               `json:"terms"`
+	HiddenFields  []string                 `json:"hiddenFields"`
+	DefaultFields []string                 `json:"defaultFields"`
+	Logs          []map[string]interface{} `json:"logs"`
 }
 
 type HighCharts struct {

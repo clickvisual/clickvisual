@@ -4,13 +4,14 @@ import { useModel } from "@@/plugin-model/useModel";
 import { MonacoDiffEditor } from "react-monaco-editor";
 import { useEffect, useRef } from "react";
 import { useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT } from "@/config/config";
+import { DEBOUNCE_WAIT, FIRST_PAGE } from "@/config/config";
 import { useIntl } from "umi";
 import { SaveOutlined } from "@ant-design/icons";
 
 const ModalCommit = () => {
   const commitFormRef = useRef<FormInstance>(null);
   const {
+    activeMenu,
     configContent,
     currentConfiguration,
     doUpdatedConfiguration,
@@ -21,8 +22,10 @@ const ModalCommit = () => {
     doGetConfigurations,
     doGetConfiguration,
     doRemoveLock,
+    doGetHistoryConfiguration,
   } = useModel("configure");
   const i18n = useIntl();
+
   const handleCommit = useDebounceFn(
     (field: any) => {
       if (!currentConfiguration) return;
@@ -39,6 +42,12 @@ const ModalCommit = () => {
             });
             doGetConfiguration.run(currentConfiguration.id);
             doRemoveLock.run(currentConfiguration.id);
+            if (activeMenu === "publish") {
+              doGetHistoryConfiguration.run(currentConfiguration.id, {
+                current: FIRST_PAGE,
+                pageSize: 10000,
+              });
+            }
           }
         });
       onChangeVisibleCommit(false);

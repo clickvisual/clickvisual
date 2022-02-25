@@ -1,9 +1,13 @@
 package view
 
 type ReqCreateInstance struct {
-	Datasource string `json:"datasource"`
-	Name       string `json:"instanceName"`
-	Dsn        string `json:"dsn"`
+	Datasource       string `json:"datasource" binding:"required"`
+	Name             string `json:"instanceName" binding:"required"`
+	Dsn              string `json:"dsn" binding:"required"`
+	ClusterId        int    `json:"clusterId"`
+	Namespace        string `json:"namespace"`
+	Configmap        string `json:"configmap"`
+	PrometheusTarget string `json:"prometheusTarget"`
 }
 
 type ReqCreateCluster struct {

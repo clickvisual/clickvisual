@@ -1,6 +1,8 @@
 package db
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 
 	sdelete "gorm.io/plugin/soft_delete"
@@ -22,6 +24,10 @@ const (
 	TableNameConfigurationPublish = "mogo_configuration_publish"
 
 	TableNameK8SConfigMap = "mogo_k8s_cm"
+
+	TableMogoAlarm          = "mogo_alarm"
+	TableMogoAlarmFilter    = "mogo_alarm_filter"
+	TableMogoAlarmCondition = "mogo_alarm_condition"
 )
 
 type BaseModel struct {
@@ -50,4 +56,15 @@ func (r *ReqPage) Valid() error {
 		return fmt.Errorf("invalid pageSize")
 	}
 	return nil
+}
+
+type String2String map[string]string
+
+func (t String2String) Value() (driver.Value, error) {
+	b, err := json.Marshal(t)
+	return string(b), err
+}
+
+func (t *String2String) Scan(input interface{}) error {
+	return json.Unmarshal(input.([]byte), t)
 }

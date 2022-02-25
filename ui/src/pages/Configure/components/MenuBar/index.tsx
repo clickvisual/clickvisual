@@ -5,8 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { Tooltip } from "antd";
 import { useIntl } from "umi";
 
-type MenuBarProps = {};
-const MenuBar = (props: MenuBarProps) => {
+const MenuBar = () => {
   const { activeMenu, doSelectedMenu } = useModel("configure");
   const i18n = useIntl();
   const MenuItems = [

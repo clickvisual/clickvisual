@@ -130,7 +130,7 @@ func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View,
 	return
 }
 
-func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
+func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("%s.%s", res.Database, res.Table)
 	}
@@ -150,7 +150,9 @@ func (c *ClickHouse) Prepare(res view.ReqQuery) (view.ReqQuery, error) {
 		res.ET = time.Now().Unix()
 	}
 	var err error
-	res.Query, err = queryTransformer(res.Query)
+	if isFilter {
+		res.Query, err = queryTransformer(res.Query)
+	}
 	return res, err
 }
 
@@ -189,7 +191,7 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 	dName := genName(database, ct.TableName)
 	dStreamName := genStreamName(database, ct.TableName)
 	// build view statement
-	dStreamSQL = fmt.Sprintf(clickhouseTableStreamORM[ct.Typ], dStreamName, ct.Brokers, ct.Topics, database+"_"+ct.TableName)
+	dStreamSQL = fmt.Sprintf(clickhouseTableStreamORM[ct.Typ], dStreamName, ct.Brokers, ct.Topics, database+"_"+ct.TableName, ct.Consumers)
 	dDataSQL = fmt.Sprintf(clickhouseTableDataORM[ct.Typ], dName, ct.Days)
 	elog.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
 	_, err = c.db.Exec(dStreamSQL)
@@ -299,6 +301,70 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 	}
 }
 
+// AlertViewCreate TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS
+// SELECT
+//        toDate(_timestamp_) as date,
+//        %s as name,
+//        array(%s) as tags,
+//        toFloat64(count(*)) as val,
+//        _timestamp_ as ts,
+//        toDateTime(_timestamp_) as updated
+//    FROM %s WHERE %s GROUP by _timestamp_;`,
+func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter) (string, string, error) {
+	var (
+		viewSQL         string
+		viewTableName   string
+		sourceTableName string
+		filter          string
+	)
+	for i, f := range filters {
+		if i == 0 {
+			filter = f.When
+		} else {
+			filter = fmt.Sprintf("%s AND %s", filter, f.When)
+		}
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, alarm.Tid)
+	if err != nil {
+		return "", "", err
+	}
+
+	viewTableName = fmt.Sprintf("%s.%s_%s_view", tableInfo.Database.Name, tableInfo.Name, alarm.Name)
+	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
+
+	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, TagsToString(alarm, true), sourceTableName, filter)
+
+	elog.Debug("AlertViewCreate", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
+
+	_ = c.AlertViewDelete(viewTableName)
+	_, err = c.db.Exec(viewSQL)
+	return viewTableName, viewSQL, err
+}
+
+func (c *ClickHouse) AlertViewDelete(name string) error {
+	_, err := c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", name))
+	return err
+}
+
+func TagsToString(alarm *db.Alarm, withQuote bool) string {
+	tags := alarm.Tags
+	if alarm.Tags == nil || len(alarm.Tags) == 0 {
+		tags = make(map[string]string, 0)
+	}
+	tags["uuid"] = alarm.Uuid
+	tags["name"] = alarm.Name
+	tags["desc"] = alarm.Desc
+	result := make([]string, 0)
+	for k, v := range tags {
+		if withQuote {
+			result = append(result, fmt.Sprintf("'%s=%s'", k, v))
+		} else {
+			result = append(result, fmt.Sprintf(`%s="%s"`, k, v))
+		}
+	}
+	return strings.Join(result, ",")
+}
+
 func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
 	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)
@@ -316,6 +382,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	conds["tid"] = tid
 	res.Keys, _ = db.IndexList(conds)
 	res.HiddenFields = econf.GetStringSlice("app.hiddenFields")
+	res.DefaultFields = econf.GetStringSlice("app.defaultFields")
+	for _, k := range res.Keys {
+		res.DefaultFields = append(res.DefaultFields, k.Field)
+	}
 	return
 }
 

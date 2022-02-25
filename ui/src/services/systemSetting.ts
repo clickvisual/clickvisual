@@ -9,6 +9,10 @@ export interface InstanceType extends TimeBaseType {
   datasource: string;
   dsn: string;
   instanceName: string;
+  clusterId?: number;
+  configmap?: string;
+  namespace?: string;
+  prometheusTarget?: string;
 }
 
 export interface ClustersRequest {

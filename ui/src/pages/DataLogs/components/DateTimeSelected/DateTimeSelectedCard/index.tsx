@@ -8,8 +8,8 @@ import { DarkTimeContext } from "@/pages/DataLogs/components/DateTimeSelected";
 import { useContext } from "react";
 import { PaneType } from "@/models/dataLogs";
 const { TabPane } = Tabs;
-type DarkTimeSelectedCardProps = {};
-const DateTimeSelectedCard = (props: DarkTimeSelectedCardProps) => {
+
+const DateTimeSelectedCard = () => {
   const {
     logPanes,
     activeTabKey,
