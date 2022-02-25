@@ -146,23 +146,30 @@ const AlarmTable = () => {
   ];
 
   return (
-    <Table
-      loading={doGetAlarms.loading}
-      rowKey={"id"}
-      size={"small"}
-      columns={column}
-      dataSource={alarmList}
-      rowClassName={alarmStyles.tableWrapper}
-      pagination={{
-        responsive: true,
-        showSizeChanger: true,
-        size: "small",
-        onChange: (page, pageSize) => {
-          onChangePagination({ ...currentPagination, current: page, pageSize });
-          doGetAlarms.run({ ...searchQuery, current: page, pageSize });
-        },
-      }}
-    />
+    <div className={alarmStyles.tableMain}>
+      <Table
+        loading={doGetAlarms.loading}
+        rowKey={"id"}
+        size={"small"}
+        columns={column}
+        dataSource={alarmList}
+        rowClassName={alarmStyles.tableWrapper}
+        pagination={{
+          responsive: true,
+          showSizeChanger: true,
+          size: "small",
+          ...currentPagination,
+          onChange: (page, pageSize) => {
+            onChangePagination({
+              ...currentPagination,
+              current: page,
+              pageSize,
+            });
+            doGetAlarms.run({ ...searchQuery, current: page, pageSize });
+          },
+        }}
+      />
+    </div>
   );
 };
 export default AlarmTable;
