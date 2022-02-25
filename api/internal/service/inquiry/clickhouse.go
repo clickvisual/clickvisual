@@ -336,6 +336,7 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 
 	elog.Debug("AlertViewCreate", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 
+	_ = c.AlertViewDelete(viewTableName)
 	_, err = c.db.Exec(viewSQL)
 	return viewTableName, viewSQL, err
 }
@@ -350,9 +351,9 @@ func TagsToString(alarm *db.Alarm, withQuote bool) string {
 	if alarm.Tags == nil || len(alarm.Tags) == 0 {
 		tags = make(map[string]string, 0)
 	}
-	alarm.Tags["uuid"] = alarm.Uuid
-	alarm.Tags["name"] = alarm.Name
-	alarm.Tags["desc"] = alarm.Desc
+	tags["uuid"] = alarm.Uuid
+	tags["name"] = alarm.Name
+	tags["desc"] = alarm.Desc
 	result := make([]string, 0)
 	for k, v := range tags {
 		if withQuote {

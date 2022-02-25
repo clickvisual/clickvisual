@@ -2,8 +2,10 @@ package alarm
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
@@ -158,9 +160,10 @@ func Create(c *core.Context) {
 	instance, err := db.InstanceInfo(tx, tableInfo.Database.Iid)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, "You need to configure alarms related to the instance first", nil)
 		return
 	}
+	elog.Debug("alert", elog.Any("instance", instance))
 	client, err := kube.ClusterManager.GetClusterManager(instance.ClusterId)
 	if err != nil {
 		tx.Rollback()
@@ -191,12 +194,23 @@ func Create(c *core.Context) {
 		c.JSONE(core.CodeErr, "configMap update failed", nil)
 		return
 	}
+	time.Sleep(time.Second)
+	elog.Debug("alert", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
+	resp, err := http.Post(instance.PrometheusTarget+"/-/reload", "application/json", nil)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "configMap update failed", nil)
+		return
+	}
+	defer resp.Body.Close()
+
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
+	return
 }
 
 func Update(c *core.Context) {
