@@ -74,7 +74,7 @@ const Publish = () => {
     publishForm.setFields([
       { name: "configId", value: currentConfiguration.id },
     ]);
-    // handleChangeConfig(currentConfiguration.id);
+    handleChangeConfig(currentConfiguration.id);
   }, []);
 
   return (
