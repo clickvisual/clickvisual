@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
@@ -27,6 +29,23 @@ type Alarm struct {
 
 func (m *Alarm) TableName() string {
 	return TableMogoAlarm
+}
+
+func (m *Alarm) AlertRuleName() string {
+	return fmt.Sprintf("mogo-%s.yaml", m.Uuid)
+}
+
+var unitMap = map[int]string{
+	0: "m",
+	1: "s",
+	2: "h",
+	3: "d",
+	4: "w",
+	5: "y",
+}
+
+func (m *Alarm) AlertInterval() string {
+	return fmt.Sprintf("%d%s", m.Interval, unitMap[m.Unit])
 }
 
 func AlarmInfo(db *gorm.DB, id int) (resp Alarm, err error) {

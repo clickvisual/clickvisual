@@ -12,7 +12,7 @@ import (
 )
 
 type K8SConfigMap struct {
-	ClusterId int    `gorm:"column:cluster_id;type:int(11)" json:"cluster_id"` // 集群ID
+	ClusterId int    `gorm:"column:cluster_id;type:int(11)" json:"clusterId"` // 集群ID
 	Name      string `gorm:"column:name;type:varchar(128)" json:"name"`
 	Namespace string `gorm:"column:namespace;type:varchar(128)" json:"namespace"`
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 	"golang.org/x/crypto/bcrypt"
 
@@ -75,6 +76,7 @@ func Logout(c *core.Context) {
 type password struct {
 	Password    string `form:"password" binding:"required"`
 	NewPassword string `form:"newPassword" binding:"required"`
+	ConfirmNew  string `form:"confirmNew" binding:"required"`
 }
 
 func UpdatePassword(c *core.Context) {
@@ -89,7 +91,21 @@ func UpdatePassword(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+
+	elog.Debug("UpdatePassword", elog.Any("uid", uid), elog.Any("param", param))
+
+	if param.ConfirmNew != param.NewPassword {
+		c.JSONE(1, "password not match", "")
+		return
+	}
+	if len(param.NewPassword) < 5 || len(param.NewPassword) > 32 {
+		c.JSONE(1, "password length should between 5 ~ 32", "")
+		return
+	}
 	user, _ := db.UserInfo(uid)
+
+	elog.Debug("UpdatePassword", elog.Any("user", user))
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
 		c.JSONE(1, "account or password error", "")
