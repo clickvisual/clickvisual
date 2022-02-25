@@ -42,6 +42,7 @@ export default {
   "week.sun": "周日",
 
   "navbar.lang": "中文",
+  "navbar.changePassword": "修改密码",
   "navbar.logOut": "退出登录",
   "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} 武汉初心科技有限公司（石墨文档）`,
 
@@ -56,8 +57,8 @@ export default {
   // user
   "login.header": "欢迎来到 MOGO",
   "login.title": "登  录",
-  "login.username": "用户名",
-  "login.username.placeholder": "请输入用户名",
+  "login.username": "账号",
+  "login.username.placeholder": "请输入账号",
   "login.password": "密码",
   "login.password.placeholder": "请输入密码",
   "login.button": "登  录",
@@ -66,6 +67,18 @@ export default {
   "login.thirdParty.gitlab": "使用 GitLab 登录",
   "login.message.success": "登录成功",
   "login.message.logOut": "退出登录成功",
+
+  "password.title": "修改密码",
+  "password.change.old": "原密码",
+  "password.change.new": "新密码",
+  "password.change.confirm": "确认密码",
+  "password.placeholder.old": "请输入原密码",
+  "password.placeholder.new": "请输入新密码",
+  "password.placeholder.confirm": "请再次输入新密码",
+  "password.rule.min": "密码长度过短，最少需要 5 位字符",
+  "password.rule.match": "新密码必须匹配",
+  "password.loading": "正在修改密码...",
+  "password.success": "密码修改成功",
 
   // System Setting
   // Instance Management
@@ -202,6 +215,7 @@ export default {
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
     "请输入小写字母、大写字母，或中划线",
 
@@ -212,6 +226,7 @@ export default {
   "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持小写字母、大写字母，或中划线",
+  "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
   "datasource.logLibrary.quickAdd": "快速创建日志库",

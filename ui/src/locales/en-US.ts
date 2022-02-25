@@ -42,6 +42,7 @@ export default {
   "week.sun": "Sun.",
 
   "navbar.lang": "English",
+  "navbar.changePassword": "Change password",
   "navbar.logOut": "Log out",
   "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} by shimo`,
 
@@ -66,6 +67,18 @@ export default {
   "login.thirdParty.gitlab": "Sign in with  GitLab",
   "login.message.success": "Login successful",
   "login.message.logOut": "Log Out successfully",
+
+  "password.title": "Change Password",
+  "password.change.old": "Old Password",
+  "password.change.new": "New Password",
+  "password.change.confirm": "Confirm Password",
+  "password.placeholder.old": "Please enter your old password",
+  "password.placeholder.new": "Please enter a new password",
+  "password.placeholder.confirm": "Please enter the new password again",
+  "password.rule.min": "Password length is short, at least 5 characters",
+  "password.rule.match": "New password must match",
+  "password.loading": "Changing password...",
+  "password.success": "Password changed successfully",
 
   // System Setting
   // Instance Management
@@ -209,6 +222,7 @@ export default {
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
+  "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
     "Please enter lowercase letters, uppercase letters, or hyphens",
 
@@ -219,6 +233,7 @@ export default {
   "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
   "datasource.logLibrary.placeholder.topics":
     "Please enter Topics, support in uppercase or lowercase English or crossed",
+  "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",

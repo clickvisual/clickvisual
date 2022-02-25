@@ -197,6 +197,29 @@ const ModalCreatedLogLibrary = () => {
             })}`}
           />
         </Form.Item>
+        <Form.Item
+          label={i18n.formatMessage({
+            id: "datasource.logLibrary.from.consumers",
+          })}
+          name={"consumers"}
+          rules={[
+            {
+              required: true,
+              message: i18n.formatMessage({
+                id: "datasource.logLibrary.placeholder.consumers",
+              }),
+            },
+          ]}
+          initialValue={1}
+        >
+          <InputNumber
+            min={0}
+            style={{ width: "100%" }}
+            placeholder={`${i18n.formatMessage({
+              id: "datasource.logLibrary.placeholder.consumers",
+            })}`}
+          />
+        </Form.Item>
       </Form>
     </CustomModal>
   );

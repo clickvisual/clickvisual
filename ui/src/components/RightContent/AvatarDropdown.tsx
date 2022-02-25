@@ -4,24 +4,45 @@ import HeaderDropdown from "../HeaderDropdown";
 import styles from "./index.less";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
+import IconFont from "@/components/IconFont";
+import ChangePasswordModal from "@/components/RightContent/ChangePasswordModal";
 
 const AvatarDropdown = () => {
   const { currentUser } = useModel("@@initialState").initialState || {};
-  const { loginOut } = useModel("users");
+  const { loginOut, actionPassword } = useModel("users");
   const i18n = useIntl();
 
   const handleLogout = () => {
     loginOut.run();
   };
 
+  const handleResetPassword = () => {
+    actionPassword.onChangeVisibleChangePassword(true);
+  };
+
   const menuHeaderDropdown = (
     <Menu className={styles.menu} selectedKeys={[]}>
-      <Menu.Item key="logout" onClick={() => handleLogout()}>
-        <LogoutOutlined />
+      {currentUser.oauth === "" && currentUser.oauthId === "" && (
+        <Menu.Item
+          icon={<IconFont type={"icon-reset-password"} />}
+          key="resetPassword"
+          onClick={() => handleResetPassword()}
+        >
+          {i18n.formatMessage({
+            id: "navbar.changePassword",
+          })}
+        </Menu.Item>
+      )}
+      <Menu.Item
+        icon={<LogoutOutlined />}
+        key="logout"
+        onClick={() => handleLogout()}
+      >
         {i18n.formatMessage({
           id: "navbar.logOut",
         })}
       </Menu.Item>
+      <ChangePasswordModal />
     </Menu>
   );
   return currentUser && currentUser.nickname ? (

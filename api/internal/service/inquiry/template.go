@@ -53,7 +53,7 @@ var clickhouseTableStreamORM = map[int]string{
 	_time_ String,
 	_log_ String
 )
-engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
+engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d;`,
 	TableTypeTimeFloat: `create table %s
 (
 	_source_ String,
@@ -67,7 +67,7 @@ engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka
 	_time_ Float64,
 	_log_ String
 )
-engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = 1;`,
+engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d;`,
 }
 
 var clickhouseViewORM = map[int]string{
