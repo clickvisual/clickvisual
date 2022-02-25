@@ -36,7 +36,7 @@ const Configure = (props: ConfigureProps) => {
       setUrlState({
         cluster: selectedClusterId,
         nameSpace: selectedNameSpace,
-        configMap: selectedConfigMap,
+        configmap: selectedConfigMap,
         current: currentConfiguration?.id,
       });
     },
@@ -75,9 +75,9 @@ const Configure = (props: ConfigureProps) => {
       if (urlState.cluster) {
         doSelectedClusterId(parseInt(urlState.cluster));
       }
-      if (urlState.nameSpace && urlState.configMap) {
+      if (urlState.nameSpace && urlState.configmap) {
         doSelectedNameSpace(urlState.nameSpace);
-        doSelectedConfigMap(urlState.configMap);
+        doSelectedConfigMap(urlState.configmap);
       }
       if (urlState.current) {
         doGetConfiguration.run(parseInt(urlState.current));

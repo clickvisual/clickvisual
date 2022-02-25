@@ -69,7 +69,7 @@ const ModalCreatedConfigMap = () => {
         <Form.Item label={"ConfigMap"} name={"configmapName"}>
           <Input
             placeholder={`${i18n.formatMessage({
-              id: "config.createdConfigMap.placeholder.configMap",
+              id: "config.createdConfigMap.placeholder.configmap",
             })}`}
           />
         </Form.Item>

@@ -88,9 +88,13 @@ export default {
   "instance.delete.confirmTip": "Confirm deleting instance: {instanceName} ?",
   "instance.form.title.created": "Create Instance",
   "instance.form.title.edit": "Edit Instance",
+  "instance.form.title.cluster": "Cluster",
   "instance.form.placeholder.instanceName": "Please enter an instance name",
   "instance.form.placeholder.datasource": "Please select datasource",
   "instance.form.placeholder.dsn": "Please enter DSN, for example: {example}",
+  "instance.form.moreOptions": "More Options",
+  "instance.form.rule.dsn": "Please enter DSN",
+  "instance.form.rule.configmap": "Please select ConfigMap",
   "instance.operation.addDatabase": "Adding a database",
   "instance.success.created": "Created instance succeeded",
   "instance.success.updated": "Updated instance succeeded",
@@ -125,7 +129,7 @@ export default {
   "cluster.success.deleted": "Deleted cluster succeeded",
 
   // Configure
-  "config.configMap.success.created": "Creating ConfigMap succeeded",
+  "config.configmap.success.created": "Creating ConfigMap succeeded",
   "config.file.success.created": "Creating configuration succeeded",
   "config.file.success.updated": "Saving the configuration succeeded",
   "config.file.success.deleted": "Deleting the configuration succeeded",
@@ -146,13 +150,13 @@ export default {
   "config.diff.online": "Effect of the configuration",
   "config.diff.current": "This release configuration",
   "config.files.history": "Submit history",
-  "config.files.select.empty.tip": "Please select a configMap",
+  "config.files.select.empty.tip": "Please select a configmap",
   "config.files.empty.tip": "No configuration file",
   "config.files.sync": "Sync from K8S",
   "config.files.tooltip.created": "Create a configuration",
   "config.files.tooltip.onlineDiff": "Online version comparison",
   "config.files.confirm.deleted":
-    "Are you sure to delete: {name}.{format}? This operation will also delete configuration files in the configMap cluster. Perform this operation with caution",
+    "Are you sure to delete: {name}.{format}? This operation will also delete configuration files in the configmap cluster. Perform this operation with caution",
   "config.files.button.create": "Creating a configuration",
 
   // configure-menu-publish
@@ -174,11 +178,11 @@ export default {
 
   // configure-selectedBar
   "config.selectedBar.cluster": "Please select cluster",
-  "config.selectedBar.configMap": "Namespace / ConfigMap",
+  "config.selectedBar.configmap": "Namespace / ConfigMap",
   "config.selectedBar.button": "Create",
   "config.selectedBar.button.tooltip": "Create a Namespace and ConfigMap",
   "config.selectedBar.current":
-    "The selected Namespace is {namespace} and the selected ConfigMap is {configMap}",
+    "The selected Namespace is {namespace} and the selected ConfigMap is {configmap}",
 
   // configure-modal-commit
   "config.commit.title": "Save Configuration Changes",
@@ -196,7 +200,7 @@ export default {
   // configure-modal-createdConfigMap
   "config.createdConfigMap.title": "Create ConfigMap In {cluster}",
   "config.createdConfigMap.placeholder.namespace": "Please enter Namespace",
-  "config.createdConfigMap.placeholder.configMap": "Please enter ConfigMap",
+  "config.createdConfigMap.placeholder.configmap": "Please enter ConfigMap",
 
   // configure-modal-history
   "config.history.table.user": "Operating User",

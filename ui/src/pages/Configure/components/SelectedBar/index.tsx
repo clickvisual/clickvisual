@@ -2,7 +2,7 @@ import searchBarStyles from "@/pages/Configure/components/SelectedBar/index.less
 import { Button, Cascader, Select, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useIntl } from "umi";
 
 const { Option } = Select;
@@ -10,13 +10,13 @@ const { Option } = Select;
 type SelectedBarProps = {};
 const SelectedBar = (props: SelectedBarProps) => {
   const {
+    options,
     clusters,
     doSelectedClusterId,
     selectedClusterId,
     selectedNameSpace,
     selectedConfigMap,
     doGetConfigMaps,
-    configMaps,
     onChangeConfigMaps,
     doSelectedNameSpace,
     doSelectedConfigMap,
@@ -38,28 +38,6 @@ const SelectedBar = (props: SelectedBarProps) => {
 
   const disabled = !selectedClusterId;
 
-  const options = useMemo(() => {
-    return (
-      configMaps.map((item) => {
-        const children = [];
-        if (item.configmaps.length > 0) {
-          for (const child of item.configmaps) {
-            children.push({
-              value: child.configmapName,
-              label: child.configmapName,
-            });
-          }
-        }
-        return {
-          value: item.namespace,
-          label: item.namespace,
-          disabled: !(children.length > 0),
-          children: children,
-        };
-      }) || []
-    );
-  }, [configMaps]);
-
   const filter = (inputValue: string, path: any) => {
     return path.some(
       (option: any) =>
@@ -78,6 +56,8 @@ const SelectedBar = (props: SelectedBarProps) => {
         onChange={(val) => {
           onChangeCurrentConfiguration(undefined);
           onChangeConfigContent("");
+          doSelectedNameSpace(undefined);
+          doSelectedConfigMap(undefined);
           doSelectedClusterId(val);
         }}
         allowClear
@@ -109,7 +89,7 @@ const SelectedBar = (props: SelectedBarProps) => {
           onChangeConfigContent("");
         }}
         placeholder={`${i18n.formatMessage({
-          id: "config.selectedBar.configMap",
+          id: "config.selectedBar.configmap",
         })}`}
         showSearch={{ filter }}
         className={searchBarStyles.cascaderInput}
@@ -133,7 +113,7 @@ const SelectedBar = (props: SelectedBarProps) => {
           <span>
             {i18n.formatMessage(
               { id: "config.selectedBar.current" },
-              { namespace: selectedNameSpace, configMap: selectedConfigMap }
+              { namespace: selectedNameSpace, configmap: selectedConfigMap }
             )}
           </span>
         </div>
