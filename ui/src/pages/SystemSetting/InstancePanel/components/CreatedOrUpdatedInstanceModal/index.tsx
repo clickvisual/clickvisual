@@ -268,10 +268,8 @@ const CreatedOrUpdatedInstanceModal = (
                 );
               }}
             </Form.Item>
-            <Form.Item label={"Target"} name={"prometheusTarget"}>
-              <Input
-                placeholder={"Prometheus Target,e.g.,http://127.0.0.1:9090"}
-              />
+            <Form.Item label={"Prometheus"} name={"prometheusTarget"}>
+              <Input placeholder={"http://127.0.0.1:9090"} />
             </Form.Item>
           </Form.Item>
         )}
