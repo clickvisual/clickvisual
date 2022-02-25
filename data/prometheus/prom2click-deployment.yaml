@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom2click
+  namespace: mogo
+  labels:
+    app: prom2click
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: prom2click
+  template:
+    metadata:
+      labels:
+        app: prom2click
+    spec:
+      containers:
+        - name: prom2click
+          image: fhalim/prom2click:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - '-ch.dsn=tcp://127.0.0.1:8123'
+            - '-ch.db=metrics'
+            - '-ch.table=samples'
+          command:
+            - /usr/local/bin/prom2click
+          ports:
+            - name: web
+              containerPort: 9000
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
