@@ -140,7 +140,6 @@ const TriggerConditionItem = () => {
                                 placeholder={`${i18n.formatMessage({
                                   id: "required",
                                 })}`}
-                                min={0}
                                 className={conditionStyles.inputNumber}
                               />
                             </Form.Item>
@@ -165,7 +164,6 @@ const TriggerConditionItem = () => {
                                     placeholder={`${i18n.formatMessage({
                                       id: "required",
                                     })}`}
-                                    min={0}
                                     className={conditionStyles.inputNumber}
                                   />
                                 </Form.Item>
