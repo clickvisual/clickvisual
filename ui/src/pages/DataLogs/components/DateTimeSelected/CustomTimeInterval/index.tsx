@@ -8,8 +8,7 @@ import { FIFTEEN_TIME, MINUTES_UNIT_TIME } from "@/config/config";
 
 const { RangePicker } = DatePicker;
 
-type CustomTimeIntervalProps = {};
-const CustomTimeInterval = (props: CustomTimeIntervalProps) => {
+const CustomTimeInterval = () => {
   const {
     logPanes,
     currentLogLibrary,

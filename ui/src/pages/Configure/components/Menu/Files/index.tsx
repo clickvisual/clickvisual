@@ -22,8 +22,7 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
 
-type FilesProps = {};
-const Files = (props: FilesProps) => {
+const Files = () => {
   const {
     configurationList,
     doGetConfigurations,

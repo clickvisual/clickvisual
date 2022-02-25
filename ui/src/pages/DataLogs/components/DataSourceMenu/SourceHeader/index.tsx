@@ -4,8 +4,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { AppstoreOutlined } from "@ant-design/icons";
 
-type SourceHeaderProps = {};
-const SourceHeader = (props: SourceHeaderProps) => {
+const SourceHeader = () => {
   const { currentDatabase, onChangeVisibleDatabaseDraw } = useModel("dataLogs");
   const i18n = useIntl();
   return (

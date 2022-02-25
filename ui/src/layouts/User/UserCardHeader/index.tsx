@@ -1,8 +1,7 @@
 import userCardHeaderStyles from "@/layouts/User/UserCardHeader/index.less";
 import { useIntl } from "umi";
 
-type UserCardHeaderProps = {};
-const UserCardHeader = (props: UserCardHeaderProps) => {
+const UserCardHeader = () => {
   const i18n = useIntl();
   return (
     <div className={userCardHeaderStyles.userCardHeaderMain}>

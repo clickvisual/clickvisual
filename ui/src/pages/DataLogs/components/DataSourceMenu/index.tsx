@@ -4,9 +4,8 @@ import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLi
 import { useEffect } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
-type DataSourceMenuProps = {};
-const DataSourceMenu = (props: DataSourceMenuProps) => {
-  const {} = props;
+
+const DataSourceMenu = () => {
   const { doGetDatabaseList } = useModel("dataLogs");
   const { foldingState } = useModel("dataLogs");
   useEffect(() => {

@@ -11,8 +11,7 @@ import { InstanceType } from "@/services/systemSetting";
 
 const { Option } = Select;
 
-type CreatedDatabaseModalProps = {};
-const CreatedDatabaseModal = ({}: CreatedDatabaseModalProps) => {
+const CreatedDatabaseModal = () => {
   const {
     visibleCreatedDatabaseModal,
     onChangeCreatedDatabaseModal,
