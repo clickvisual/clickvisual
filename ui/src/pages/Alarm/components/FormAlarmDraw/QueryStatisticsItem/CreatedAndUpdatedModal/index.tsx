@@ -184,7 +184,6 @@ const CreatedAndUpdatedModal = ({
   useEffect(() => {
     if (visible && modalForm.current) {
       doGetDatabaseList();
-      console.log("operations: ", operations);
       if (operations.selectDid) {
         modalForm.current.setFieldsValue({ databaseId: operations.selectDid });
         getLogLibraries.run(operations.selectDid);

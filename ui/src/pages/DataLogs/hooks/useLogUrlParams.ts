@@ -13,6 +13,8 @@ import {
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect } from "react";
+import { TableInfoResponse } from "@/services/dataLogs";
+import { BaseRes } from "@/hooks/useRequest/useRequest";
 
 export default function useLogUrlParams() {
   const [urlState, setUrlState] = useUrlState();
@@ -39,51 +41,58 @@ export default function useLogUrlParams() {
     doGetLogLibrary,
   } = useModel("dataLogs");
 
+  const handleResponse = (res: BaseRes<TableInfoResponse>, tid: number) => {
+    if (res.data.database) {
+      onChangeCurrentDatabase(res.data.database);
+    }
+    onChangeLogLibrary({
+      id: tid,
+      tableName: res.data.name,
+    });
+
+    const panes = [];
+    panes.push({
+      pane: res.data.name,
+      paneId: tid,
+      start:
+        parseInt(urlState.start) ||
+        moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+      end: parseInt(urlState.end) || currentTimeStamp(),
+      keyword: urlState.kw || undefined,
+      page: parseInt(urlState.page) || FIRST_PAGE,
+      pageSize: parseInt(urlState.size) || PAGE_SIZE,
+      activeTabKey: urlState.tab || TimeRangeType.Relative,
+      activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
+    });
+
+    onChangeLogPanes(panes);
+    onChangeStartDateTime(
+      parseInt(urlState.start) ||
+        moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
+    );
+    onChangeEndDateTime(parseInt(urlState.end) || currentTimeStamp());
+    if (urlState.tab) {
+      onChangeActiveTabKey(urlState.tab);
+    }
+    if (urlState.index) {
+      onChangeActiveTimeOptionIndex(parseInt(urlState.index));
+    }
+    onChangeKeywordInput(urlState.kw);
+    onChangeLogsPageByUrl(
+      parseInt(urlState.page) || FIRST_PAGE,
+      parseInt(urlState.size) || PAGE_SIZE
+    );
+    doParseQuery(urlState.kw);
+  };
+
   const doSetUrlQuery = (tid: number) => {
     try {
       doGetLogLibrary.run(tid).then((res) => {
-        if (res?.code === 0) {
-          if (res.data.database) {
-            onChangeCurrentDatabase(res.data.database);
-          }
-          const panes = [];
-          onChangeLogLibrary({
-            id: tid,
-            tableName: res.data.name,
-          });
-          panes.push({
-            pane: res.data.name,
-            paneId: tid,
-            start:
-              parseInt(urlState.start) ||
-              moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-            end: parseInt(urlState.end) || currentTimeStamp(),
-            keyword: urlState.kw || undefined,
-            page: parseInt(urlState.page) || FIRST_PAGE,
-            pageSize: parseInt(urlState.size) || PAGE_SIZE,
-            activeTabKey: urlState.tab || TimeRangeType.Relative,
-            activeIndex: parseInt(urlState.index) || ACTIVE_TIME_INDEX,
-          });
-          onChangeLogPanes(panes);
-          onChangeStartDateTime(
-            parseInt(urlState.start) ||
-              moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
-          );
-          onChangeEndDateTime(parseInt(urlState.end) || currentTimeStamp());
-          if (urlState.tab) {
-            onChangeActiveTabKey(urlState.tab);
-          }
-          if (urlState.index) {
-            onChangeActiveTimeOptionIndex(parseInt(urlState.index));
-          }
-          onChangeKeywordInput(urlState.kw);
-          onChangeLogsPageByUrl(
-            parseInt(urlState.page) || FIRST_PAGE,
-            parseInt(urlState.size) || PAGE_SIZE
-          );
+        if (res?.code !== 0) {
+          return;
         }
+        handleResponse(res, tid);
       });
-      doParseQuery(urlState.kw);
     } catch (e) {
       console.log("【Error】: ", e);
     }

@@ -8,11 +8,13 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 const { Option } = Select;
 const Operations = () => {
-  const { databaseList, logLibraryList, getLogLibraries, doGetDatabaseList } =
-    useModel("dataLogs");
+  // const { databaseList, logLibraryList, getLogLibraries, doGetDatabaseList } =
+  //   useModel("dataLogs");
 
   const { operations, alarmDraw, doGetAlarms, currentPagination } =
     useModel("alarm");
+
+  const { tableList, databaseList, getLogLibraries, getDatabases } = operations;
 
   const i18n = useIntl();
 
@@ -35,7 +37,7 @@ const Operations = () => {
   ).run;
 
   useEffect(() => {
-    doGetDatabaseList();
+    getDatabases.run();
   }, []);
 
   return (
@@ -77,8 +79,8 @@ const Operations = () => {
             id: "alarm.selected.placeholder.logLibrary",
           })}`}
         >
-          {logLibraryList.length > 0 &&
-            logLibraryList.map((item) => (
+          {tableList.length > 0 &&
+            tableList.map((item) => (
               <Option key={item.id} value={item.id}>
                 {item.tableName}
               </Option>
