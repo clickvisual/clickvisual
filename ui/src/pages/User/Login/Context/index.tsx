@@ -4,7 +4,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import CryptoJs from "crypto-js";
 import { useIntl } from "umi";
 
-const LoginContext = (s) => {
+const LoginContext = () => {
   const [loginForm] = Form.useForm();
   const { loginByPassword } = useModel("users");
   const i18n = useIntl();
@@ -31,7 +31,7 @@ const LoginContext = (s) => {
           rules={[
             { required: true },
             {
-              validator: (_, value) => {
+              validator: async (_, value) => {
                 if (!value) {
                   return Promise.reject();
                 }
@@ -54,7 +54,7 @@ const LoginContext = (s) => {
           rules={[
             { required: true },
             {
-              validator: (_, value) => {
+              validator: async (_, value) => {
                 if (!value) {
                   return Promise.reject();
                 }

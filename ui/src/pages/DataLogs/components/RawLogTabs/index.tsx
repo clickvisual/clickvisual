@@ -25,7 +25,6 @@ const RawLogTabs = () => {
     const keyObj = JSON.parse(currentKey);
     const resultPanes =
       currentPanes.filter((item) => item.paneId !== keyObj.id) || [];
-    console.log("currentPanes: ", currentPanes, resultPanes, currentKey);
     onChangeLogPanes(resultPanes);
     if (resultPanes.length === 0) {
       resetLogs();
