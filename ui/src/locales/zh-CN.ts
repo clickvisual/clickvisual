@@ -49,7 +49,7 @@ export default {
   // menu
   "menu.configure": "配置",
   "menu.log": "日志",
-  "menu.alarm": "报警中心",
+  "menu.alarm": "报警",
   "menu.systemSettings": "系统设置",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
@@ -88,9 +88,13 @@ export default {
   "instance.delete.confirmTip": "确认删除实例：{instanceName} 吗？",
   "instance.form.title.created": "新增实例",
   "instance.form.title.edit": "编辑实例",
+  "instance.form.title.cluster": "集群",
   "instance.form.placeholder.instanceName": "请输入实例名称",
   "instance.form.placeholder.datasource": "请选择数据源",
   "instance.form.placeholder.dsn": "请输入数据源连接串，例如：{example}",
+  "instance.form.moreOptions": "更多设置",
+  "instance.form.rule.dsn": "请输入数据源连接串",
+  "instance.form.rule.configmap": "请选择 ConfigMap",
   "instance.operation.addDatabase": "新增数据库",
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
@@ -122,7 +126,7 @@ export default {
   "cluster.success.deleted": "删除集群成功",
 
   // Configure
-  "config.configMap.success.created": "新增 ConfigMap 成功",
+  "config.configmap.success.created": "新增 ConfigMap 成功",
   "config.file.success.created": "新增配置成功",
   "config.file.success.updated": "保存配置成功",
   "config.file.success.deleted": "删除配置成功",
@@ -169,11 +173,11 @@ export default {
 
   // configure-selectedBar
   "config.selectedBar.cluster": "请选择集群",
-  "config.selectedBar.configMap": "Namespace / ConfigMap",
+  "config.selectedBar.configmap": "Namespace / ConfigMap",
   "config.selectedBar.button": "新增",
   "config.selectedBar.button.tooltip": "新增 Namespace 和 ConfigMap",
   "config.selectedBar.current":
-    "当前选择的 Namespace 是：{namespace}，当前选择的 ConfigMap 是：{configMap}",
+    "当前选择的 Namespace 是：{namespace}，当前选择的 ConfigMap 是：{configmap}",
 
   // configure-modal-commit
   "config.commit.title": "保存配置变更",
@@ -189,7 +193,7 @@ export default {
   // configure-modal-createdConfigMap
   "config.createdConfigMap.title": "新增 ConfigMap，当前集群为：{cluster}",
   "config.createdConfigMap.placeholder.namespace": "请输入 Namespace",
-  "config.createdConfigMap.placeholder.configMap": "请输入 ConfigMap",
+  "config.createdConfigMap.placeholder.configmap": "请输入 ConfigMap",
 
   // configure-modal-history
   "config.history.table.user": "操作用户",

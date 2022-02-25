@@ -22,6 +22,7 @@ import api from "@/services/dataLogs";
 import Request, { Canceler } from "umi-request";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
+import { SaveOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -213,6 +214,9 @@ const CreatedAndUpdatedModal = ({
       onOk={onSubmit}
       onCancel={onCancel}
       bodyStyle={{ maxHeight: "75vh", overflowY: "auto" }}
+      okButtonProps={{
+        icon: <SaveOutlined />,
+      }}
     >
       <Form
         labelCol={{ span: 4 }}

@@ -6,6 +6,7 @@ import { useIntl } from "umi";
 import { useEffect, useRef } from "react";
 import TriggerConditionItem from "@/pages/Alarm/components/FormAlarmDraw/TriggerConditionItem";
 import TextArea from "antd/es/input/TextArea";
+import { SaveOutlined } from "@ant-design/icons";
 
 const FormAlarmDraw = () => {
   const {
@@ -94,6 +95,7 @@ const FormAlarmDraw = () => {
               alarmDraw.doUpdatedAlarm.loading ||
               alarmDraw.doCreatedAlarm.loading
             }
+            icon={<SaveOutlined />}
             type="primary"
             onClick={handleOk}
           >

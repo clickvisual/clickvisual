@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useRequest from "@/hooks/useRequest/useRequest";
 import api, {
   ConfigurationsResponse,
@@ -18,7 +18,7 @@ const Configure = () => {
   const [clusters, setClusters] = useState<ClusterType[]>([]);
 
   // k8s Config Map 下拉列表
-  const [configMaps, setConfigMaps] = useState<NameSpaceType[]>([]);
+  const [configmaps, setConfigMaps] = useState<NameSpaceType[]>([]);
 
   // 配置文件列表
   const [configurationList, setConfigurationList] = useState<
@@ -36,7 +36,7 @@ const Configure = () => {
     number | undefined
   >();
 
-  // 当前选择的 k8s Config Map NameSpace
+  // 当前选择的 k8s Config Map Namespace
   const [selectedNameSpace, setSelectedNameSpace] = useState<
     string | undefined
   >();
@@ -83,7 +83,7 @@ const Configure = () => {
     loadingText: false,
     onSuccess() {
       message.success(
-        formatMessage({ id: "config.configMap.success.created" })
+        formatMessage({ id: "config.configmap.success.created" })
       );
     },
   });
@@ -184,8 +184,8 @@ const Configure = () => {
     setSelectedConfigMap(namespace);
   };
 
-  const onChangeConfigMaps = (configMap: NameSpaceType[]) => {
-    setConfigMaps(configMap);
+  const onChangeConfigMaps = (configmap: NameSpaceType[]) => {
+    setConfigMaps(configmap);
   };
 
   const onChangeConfigurations = (configurations: any[]) => {
@@ -224,9 +224,32 @@ const Configure = () => {
     setDiffHistory(diff);
   };
 
+  const options = useMemo(() => {
+    return (
+      configmaps.map((item) => {
+        const children = [];
+        if (item.configmaps.length > 0) {
+          for (const child of item.configmaps) {
+            children.push({
+              value: child.configmapName,
+              label: child.configmapName,
+            });
+          }
+        }
+        return {
+          value: item.namespace,
+          label: item.namespace,
+          disabled: !(children.length > 0),
+          children: children,
+        };
+      }) || []
+    );
+  }, [configmaps]);
+
   return {
+    options,
     clusters,
-    configMaps,
+    configmaps,
     configurationList,
     selectedClusterId,
     selectedNameSpace,
