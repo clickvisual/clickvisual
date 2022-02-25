@@ -194,15 +194,24 @@ func Create(c *core.Context) {
 		c.JSONE(core.CodeErr, "configMap update failed", nil)
 		return
 	}
-	time.Sleep(time.Second)
-	elog.Debug("alert", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
-	resp, err := http.Post(instance.PrometheusTarget+"/-/reload", "application/json", nil)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, "configMap update failed", nil)
-		return
-	}
-	defer resp.Body.Close()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			time.Sleep(time.Second)
+			data, _ := resource.ConfigmapInfo(instance.ClusterId, instance.Namespace, instance.Configmap, obj.AlertRuleName())
+			if data == "" {
+				continue
+			}
+			elog.Debug("alert", elog.Any("reload", instance.PrometheusTarget+"/-/reload"), elog.Any("data", data))
+			resp, errReload := http.Post(instance.PrometheusTarget+"/-/reload", "application/json", nil)
+			if errReload != nil {
+				elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
+				continue
+			}
+			defer resp.Body.Close()
+			break
+		}
+	}()
 
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
