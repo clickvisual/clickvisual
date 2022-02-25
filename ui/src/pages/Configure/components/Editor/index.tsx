@@ -7,8 +7,7 @@ import OptionButton, {
 } from "@/pages/Configure/components/CustomButton/OptionButton";
 import { useIntl } from "umi";
 
-type EditorProps = {};
-const Editor = (props: EditorProps) => {
+const Editor = () => {
   const {
     doGetConfiguration,
     currentConfiguration,
@@ -46,6 +45,7 @@ const Editor = (props: EditorProps) => {
       </div>
     );
   }
+
   return (
     <div className={editorStyles.editorMain}>
       <div className={editorStyles.editorHeader}>

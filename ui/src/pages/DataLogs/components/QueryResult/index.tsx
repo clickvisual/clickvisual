@@ -9,9 +9,7 @@ import RawLogsIndexes from "@/pages/DataLogs/components/RawLogsIndexes";
 import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
 import { useIntl } from "umi";
 
-type QueryResultProps = {};
-const QueryResult = (props: QueryResultProps) => {
-  const {} = props;
+const QueryResult = () => {
   const i18n = useIntl();
   const { logsLoading, highChartLoading } = useModel("dataLogs");
   const isShare = document.location.pathname === "/share" || "/share/";

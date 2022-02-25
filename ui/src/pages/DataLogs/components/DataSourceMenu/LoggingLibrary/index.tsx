@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { TablesResponse } from "@/services/dataLogs";
 
-type LoggingLibraryProps = {};
-const LoggingLibrary = (props: LoggingLibraryProps) => {
+const LoggingLibrary = () => {
   const { logLibraryList } = useModel("dataLogs");
   const [list, setList] = useState<TablesResponse[]>([]);
   const onSearch = (val: string) => {

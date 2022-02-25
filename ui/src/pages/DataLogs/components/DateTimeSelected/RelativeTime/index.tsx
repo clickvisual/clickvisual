@@ -10,8 +10,7 @@ import {
 } from "@/pages/DataLogs/components/DateTimeSelected";
 import { PaneType } from "@/models/dataLogs";
 
-type RelativeTimeProps = {};
-const RelativeTime = (props: RelativeTimeProps) => {
+const RelativeTime = () => {
   const {
     logPanes,
     currentLogLibrary,

@@ -2,8 +2,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import Files from "@/pages/Configure/components/Menu/Files";
 import Publish from "@/pages/Configure/components/Menu/Publish";
 
-type MenuProps = {};
-const Menu = (props: MenuProps) => {
+const Menu = () => {
   const { activeMenu } = useModel("configure");
 
   switch (activeMenu) {

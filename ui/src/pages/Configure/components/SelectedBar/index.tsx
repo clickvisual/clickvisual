@@ -7,8 +7,7 @@ import { useIntl } from "umi";
 
 const { Option } = Select;
 
-type SelectedBarProps = {};
-const SelectedBar = (props: SelectedBarProps) => {
+const SelectedBar = () => {
   const {
     options,
     clusters,
