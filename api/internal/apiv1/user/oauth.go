@@ -10,18 +10,14 @@ import (
 	"net/url"
 
 	"github.com/gin-contrib/sessions"
-
-	"github.com/shimohq/mogo/api/internal/service"
-	"github.com/shimohq/mogo/api/pkg/model/db"
-
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/kl7sn/toolkit/kauth"
+	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/shimohq/mogo/api/pkg/model/db"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
-
-	"github.com/shimohq/mogo/api/pkg/component/core"
-
-	"github.com/kl7sn/toolkit/kauth"
 )
 
 func Oauth(c *core.Context) {
@@ -56,9 +52,7 @@ func Oauth(c *core.Context) {
 		}
 
 		elog.Info("Oauth", zap.String("state", state))
-
 		hashedState := kauth.HashStateCode(state, econf.GetString("app.secretKey"), kauth.OAuthService.OAuthInfos[name].ClientSecret)
-
 		elog.Info("Oauth", zap.String("hashedState", hashedState))
 
 		c.SetCookie(
@@ -83,10 +77,14 @@ func Oauth(c *core.Context) {
 
 	cookie, err := c.Cookie(kauth.OauthStateCookieName)
 	if err != nil {
-		c.JSONE(4, "system error: "+err.Error(), nil)
+		c.JSONE(4, "get cookie fail, "+err.Error(), nil)
 		return
 	}
-	cookieState, _ := url.QueryUnescape(cookie)
+	cookieState, err := url.QueryUnescape(cookie)
+	if err != nil {
+		c.JSONE(4, "unescape query fail, "+err.Error(), nil)
+		return
+	}
 
 	// delete cookie
 	c.SetCookie(
