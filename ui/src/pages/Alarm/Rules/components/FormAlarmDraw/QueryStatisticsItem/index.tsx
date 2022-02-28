@@ -21,7 +21,7 @@ const QueryStatisticsItem = () => {
     <Form.Item
       required
       label={i18n.formatMessage({
-        id: "alarm.form.inspectionStatistics",
+        id: "alarm.rules.form.inspectionStatistics",
       })}
     >
       <Form.List
@@ -33,7 +33,7 @@ const QueryStatisticsItem = () => {
                 return Promise.reject(
                   new Error(
                     i18n.formatMessage({
-                      id: "alarm.form.inspectionStatistics.error",
+                      id: "alarm.rules.form.inspectionStatistics.error",
                     })
                   )
                 );

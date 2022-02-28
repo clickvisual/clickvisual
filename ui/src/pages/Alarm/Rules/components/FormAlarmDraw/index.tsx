@@ -77,7 +77,7 @@ const FormAlarmDraw = () => {
     <Drawer
       closable
       destroyOnClose
-      title={i18n.formatMessage({ id: "alarm.form.title" })}
+      title={i18n.formatMessage({ id: "alarm.rules.form.title" })}
       visible={alarmDraw.visibleDraw}
       placement="right"
       onClose={handleClose}
@@ -107,26 +107,26 @@ const FormAlarmDraw = () => {
       <Spin spinning={alarmDraw.doGetAlarmInfo.loading}>
         <Form layout={"vertical"} ref={alarmFormRef} onFinish={handleSubmit}>
           <Form.Item
-            label={i18n.formatMessage({ id: "alarm.form.alarmName" })}
+            label={i18n.formatMessage({ id: "alarm.rules.form.alarmName" })}
             name={"alarmName"}
             rules={[
               {
                 required: true,
                 message: i18n.formatMessage({
-                  id: "alarm.form.placeholder.alarmName",
+                  id: "alarm.rules.form.placeholder.alarmName",
                 }),
               },
               {
                 pattern: new RegExp("^[a-zA-Z_]{0,64}$"),
                 message: i18n.formatMessage({
-                  id: "alarm.form.rule.alarmName",
+                  id: "alarm.rules.form.rule.alarmName",
                 }),
               },
             ]}
           >
             <Input
               placeholder={`${i18n.formatMessage({
-                id: "alarm.form.placeholder.alarmName",
+                id: "alarm.rules.form.placeholder.alarmName",
               })}`}
             />
           </Form.Item>
@@ -134,14 +134,14 @@ const FormAlarmDraw = () => {
           <QueryStatisticsItem />
           <TriggerConditionItem />
           <Form.Item
-            label={i18n.formatMessage({ id: "alarm.form.description" })}
+            label={i18n.formatMessage({ id: "alarm.rules.form.description" })}
             name={"desc"}
           >
             <TextArea
               allowClear
               autoSize={{ minRows: 5, maxRows: 5 }}
               placeholder={`${i18n.formatMessage({
-                id: "alarm.form.placeholder.description",
+                id: "alarm.rules.form.placeholder.description",
               })}`}
             />
           </Form.Item>

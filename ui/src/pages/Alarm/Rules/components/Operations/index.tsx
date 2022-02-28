@@ -55,7 +55,7 @@ const Operations = () => {
           }}
           className={alarmStyles.selectedBar}
           placeholder={`${i18n.formatMessage({
-            id: "alarm.selected.placeholder.database",
+            id: "alarm.rules.selected.placeholder.database",
           })}`}
         >
           {databaseList.length > 0 &&
@@ -76,7 +76,7 @@ const Operations = () => {
           }}
           className={alarmStyles.selectedBar}
           placeholder={`${i18n.formatMessage({
-            id: "alarm.selected.placeholder.logLibrary",
+            id: "alarm.rules.selected.placeholder.logLibrary",
           })}`}
         >
           {tableList.length > 0 &&
@@ -87,7 +87,7 @@ const Operations = () => {
             ))}
         </Select>
         <Button icon={<PlusOutlined />} type="primary" onClick={handleOpenDraw}>
-          {i18n.formatMessage({ id: "alarm.button.created" })}
+          {i18n.formatMessage({ id: "alarm.rules.button.created" })}
         </Button>
       </Space>
       <Space>
@@ -96,7 +96,7 @@ const Operations = () => {
           className={alarmStyles.selectedBar}
           value={operations.inputName}
           placeholder={`${i18n.formatMessage({
-            id: "alarm.form.placeholder.alarmName",
+            id: "alarm.rules.form.placeholder.alarmName",
           })}`}
           onChange={(env) => operations.onChangeInputName(env.target.value)}
           onPressEnter={handleSearch}

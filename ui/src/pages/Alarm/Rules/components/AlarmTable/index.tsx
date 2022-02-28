@@ -41,13 +41,13 @@ const AlarmTable = () => {
   const handleDelete = (record: AlarmType) => {
     DeletedModal({
       content: i18n.formatMessage(
-        { id: "alarm.deleted.content" },
+        { id: "alarm.rules.deleted.content" },
         { alarm: record.alarmName }
       ),
       onOk: () => {
         const hideMessage = message.loading(
           {
-            content: i18n.formatMessage({ id: "alarm.deleted.loading" }),
+            content: i18n.formatMessage({ id: "alarm.rules.deleted.loading" }),
             key: "alarm",
           },
           0
@@ -59,7 +59,7 @@ const AlarmTable = () => {
             doGetAlarms.run(searchQuery);
             message.success(
               {
-                content: i18n.formatMessage({ id: "alarm.deleted" }),
+                content: i18n.formatMessage({ id: "alarm.rules.deleted" }),
                 key: "alarm",
               },
               3
@@ -76,12 +76,12 @@ const AlarmTable = () => {
 
   const column: ColumnsType<any> = [
     {
-      title: i18n.formatMessage({ id: "alarm.table.alarmName" }),
+      title: i18n.formatMessage({ id: "alarm.rules.table.alarmName" }),
       dataIndex: "alarmName",
       align: "center",
     },
     {
-      title: i18n.formatMessage({ id: "alarm.inspectionFrequency" }),
+      title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
       dataIndex: "interval",
       align: "center",
       render: (interval: number, record: AlarmType) => {

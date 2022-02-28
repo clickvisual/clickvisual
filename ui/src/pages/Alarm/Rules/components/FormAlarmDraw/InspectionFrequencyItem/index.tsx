@@ -81,7 +81,7 @@ const InspectionFrequencyItem = () => {
   return (
     <Form.Item
       required
-      label={i18n.formatMessage({ id: "alarm.inspectionFrequency" })}
+      label={i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" })}
     >
       <Space className={frequencyStyle.spaceMain}>
         <Form.Item noStyle name={"type"} initialValue={3}>

@@ -33,7 +33,7 @@ const TriggerConditionItem = () => {
   return (
     <Form.Item
       required
-      label={i18n.formatMessage({ id: "alarm.form.triggerCondition" })}
+      label={i18n.formatMessage({ id: "alarm.rules.form.triggerCondition" })}
     >
       <Form.List
         name={"conditions"}
@@ -44,7 +44,7 @@ const TriggerConditionItem = () => {
                 return Promise.reject(
                   new Error(
                     i18n.formatMessage({
-                      id: "alarm.form.triggerCondition.error",
+                      id: "alarm.rules.form.triggerCondition.error",
                     })
                   )
                 );
