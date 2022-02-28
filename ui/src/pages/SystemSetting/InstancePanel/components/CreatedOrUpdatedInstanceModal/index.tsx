@@ -237,8 +237,16 @@ const CreatedOrUpdatedInstanceModal = (
                 </Tooltip>
                 <Form.Item noStyle name={"ruleStoreType"} initialValue={0}>
                   <Radio.Group>
-                    <Radio value={0}>集群</Radio>
-                    <Radio value={1}>文件</Radio>
+                    <Radio value={0}>
+                      {i18n.formatMessage({
+                        id: "instance.form.title.ruleStoreType.radio.cluster",
+                      })}
+                    </Radio>
+                    <Radio value={1}>
+                      {i18n.formatMessage({
+                        id: "instance.form.title.ruleStoreType.radio.file",
+                      })}
+                    </Radio>
                   </Radio.Group>
                 </Form.Item>
               </Space>
