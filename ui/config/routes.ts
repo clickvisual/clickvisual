@@ -18,6 +18,7 @@ export default [
   },
   {
     name: "alarm",
+    path: "/alarm",
     routes: [
       { path: "/alarm/rules", name: "rules", component: "./Alarm/Rules" },
       {
@@ -29,6 +30,7 @@ export default [
   },
   {
     name: "systemSettings",
+    path: "/sys",
     component: "../layouts/SystemSetting",
     routes: [
       {
