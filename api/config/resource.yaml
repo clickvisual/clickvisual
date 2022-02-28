@@ -12,11 +12,14 @@ permission:
         method: GET
         path: /api/query/tables
   - name: alarm
-    path: /alarm
+    children:
+      - name: rules
+        path: /alarm/rules
+      - name: notifications
+        path: /alarm/notifications
   - name: configure
     path: /configure
   - name: systemSettings
-    path: /sys
     children:
       - path: /sys/instances
         name: database

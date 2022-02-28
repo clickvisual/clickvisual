@@ -1,4 +1,4 @@
-import conditionStyles from "@/pages/Alarm/components/FormAlarmDraw/TriggerConditionItem/index.less";
+import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/index.less";
 import { Button, Form, InputNumber, Select, Space } from "antd";
 import { useIntl } from "umi";
 import classNames from "classnames";

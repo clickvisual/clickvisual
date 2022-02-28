@@ -1,10 +1,10 @@
 import { Button, Drawer, Form, FormInstance, Input, Space, Spin } from "antd";
-import InspectionFrequencyItem from "@/pages/Alarm/components/FormAlarmDraw/InspectionFrequencyItem";
-import QueryStatisticsItem from "@/pages/Alarm/components/FormAlarmDraw/QueryStatisticsItem";
+import InspectionFrequencyItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem";
+import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useEffect, useRef } from "react";
-import TriggerConditionItem from "@/pages/Alarm/components/FormAlarmDraw/TriggerConditionItem";
+import TriggerConditionItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem";
 import TextArea from "antd/es/input/TextArea";
 import { SaveOutlined } from "@ant-design/icons";
 

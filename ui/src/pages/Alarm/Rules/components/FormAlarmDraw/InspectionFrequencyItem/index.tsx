@@ -1,4 +1,4 @@
-import frequencyStyle from "@/pages/Alarm/components/FormAlarmDraw/InspectionFrequencyItem/index.less";
+import frequencyStyle from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem/index.less";
 import { Form, InputNumber, Select, Space } from "antd";
 import { NamePath, StoreValue } from "rc-field-form/es/interface";
 import { useIntl } from "umi";

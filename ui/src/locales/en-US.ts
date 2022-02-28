@@ -50,6 +50,8 @@ export default {
   "menu.configure": "Config",
   "menu.log": "Logs",
   "menu.alarm": "Alarm",
+  "menu.alarm.rules": "Rules",
+  "menu.alarm.notifications": "Notifications",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",

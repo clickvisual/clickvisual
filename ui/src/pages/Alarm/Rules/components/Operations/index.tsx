@@ -1,4 +1,4 @@
-import alarmStyles from "@/pages/Alarm/styles/index.less";
+import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
 import { Button, Input, Select, Space } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";

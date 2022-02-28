@@ -17,12 +17,17 @@ export default [
     component: "./Configure",
   },
   {
-    path: "/alarm",
     name: "alarm",
-    component: "./Alarm",
+    routes: [
+      { path: "/alarm/rules", name: "rules", component: "./Alarm/Rules" },
+      {
+        path: "/alarm/notifications",
+        name: "notice",
+        component: "./Alarm/Notifications",
+      },
+    ],
   },
   {
-    path: "/sys",
     name: "systemSettings",
     component: "../layouts/SystemSetting",
     routes: [

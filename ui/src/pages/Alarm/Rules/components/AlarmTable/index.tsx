@@ -1,4 +1,4 @@
-import alarmStyles from "@/pages/Alarm/styles/index.less";
+import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
 import { Button, Divider, message, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
