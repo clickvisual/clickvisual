@@ -43,7 +43,7 @@ secretKey = "ASDFASDFASDF"
 rootURL = "http://localhost:9001"
 baseURL = "/api/admin/login/"
 hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_second_", "_time_nanosecond_"]
-defaultFields = ["_namespace_","_container_name_","_pod_name_","_raw_log_","_time_second_"]
+defaultFields = ["_namespace_","_container_name_","_pod_name_","_time_second_"]
 
 [auth]
 # Login cookie name

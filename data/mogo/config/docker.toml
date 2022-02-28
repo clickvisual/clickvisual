@@ -2,6 +2,8 @@
 secretKey = "ASDFASDFASDF" # hashStatecode
 rootURL = "http://localhost:19001"
 baseURL = "/api/admin/login/"
+hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_second_", "_time_nanosecond_","_source_","_container_name_","_namespace_","_pod_name_"]
+
 
 [logger.default]
 level = "debug"

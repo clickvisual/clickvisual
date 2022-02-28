@@ -8,7 +8,7 @@ data:
     groups:
     - name: test-rule
       rules:
-      - alert: watchdog
+      - alert: mogo_watchdog
         expr: up{instance="localhost:9090", job="prometheus"} > 0
         for: 1m
         labels:
