@@ -22,7 +22,7 @@ export default [
       { path: "/alarm/rules", name: "rules", component: "./Alarm/Rules" },
       {
         path: "/alarm/notifications",
-        name: "notice",
+        name: "notifications",
         component: "./Alarm/Notifications",
       },
     ],
