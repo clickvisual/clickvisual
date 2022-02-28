@@ -94,7 +94,6 @@ export default {
   "instance.form.title.ruleStoreType": "Alarm storage",
   "instance.form.title.ruleStoreType.tip":
     "The storage method of the alarm rules of the alarm center",
-  "instance.form.title.ruleStoreType.radio.cluster": "Cluster",
   "instance.form.title.ruleStoreType.radio.file": "File",
   "instance.form.title.filePath": "File Path",
   "instance.form.placeholder.instanceName": "Please enter an instance name",

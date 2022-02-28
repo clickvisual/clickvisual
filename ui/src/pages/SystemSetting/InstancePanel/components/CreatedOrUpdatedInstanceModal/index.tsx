@@ -239,7 +239,7 @@ const CreatedOrUpdatedInstanceModal = (
                   <Radio.Group>
                     <Radio value={0}>
                       {i18n.formatMessage({
-                        id: "instance.form.title.ruleStoreType.radio.cluster",
+                        id: "instance.form.title.cluster",
                       })}
                     </Radio>
                     <Radio value={1}>
