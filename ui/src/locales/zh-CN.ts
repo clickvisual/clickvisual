@@ -92,7 +92,7 @@ export default {
   "instance.form.title.edit": "编辑实例",
   "instance.form.title.cluster": "集群",
   "instance.form.title.ruleStoreType": "报警存储",
-  "instance.form.title.ruleStoreType.tip": "报警中心的告警规则存储方式",
+  "instance.form.title.ruleStoreType.tip": "报警中心的报警规则存储方式",
   "instance.form.title.ruleStoreType.radio.file": "文件",
   "instance.form.title.filePath": "文件路径",
   "instance.form.placeholder.instanceName": "请输入实例名称",
