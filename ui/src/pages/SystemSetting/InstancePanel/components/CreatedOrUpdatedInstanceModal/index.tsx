@@ -6,8 +6,11 @@ import {
   FormInstance,
   Input,
   Modal,
+  Radio,
   Row,
   Select,
+  Space,
+  Tooltip,
 } from "antd";
 import { useDebounceFn } from "ahooks";
 import type { InstanceType } from "@/services/systemSetting";
@@ -18,6 +21,7 @@ import { useIntl } from "umi";
 import {
   CaretDownOutlined,
   CaretRightOutlined,
+  QuestionCircleOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
 import { cloneDeep } from "lodash";
@@ -213,25 +217,89 @@ const CreatedOrUpdatedInstanceModal = (
         </Row>
         {moreOptionFlag && (
           <Form.Item noStyle>
+            <Form.Item label={"Prometheus"} name={"prometheusTarget"}>
+              <Input placeholder={"http://127.0.0.1:9090"} />
+            </Form.Item>
             <Form.Item
-              label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
-              name={"clusterId"}
+              label={i18n.formatMessage({
+                id: "instance.form.title.ruleStoreType",
+              })}
             >
-              <Select
-                placeholder={`${i18n.formatMessage({
-                  id: "config.selectedBar.cluster",
-                })}`}
-                onChange={(val: number) => {
-                  if (val) doGetConfigMaps(val);
-                }}
-                showSearch
-              >
-                {clusters.map((item) => (
-                  <Option key={item.id} value={item.id as number}>
-                    {item.clusterName}
-                  </Option>
-                ))}
-              </Select>
+              <Space>
+                <Tooltip
+                  title={i18n.formatMessage({
+                    id: "instance.form.title.ruleStoreType.tip",
+                  })}
+                >
+                  <a>
+                    <QuestionCircleOutlined />
+                  </a>
+                </Tooltip>
+                <Form.Item noStyle name={"ruleStoreType"} initialValue={0}>
+                  <Radio.Group>
+                    <Radio value={0}>
+                      {i18n.formatMessage({
+                        id: "instance.form.title.cluster",
+                      })}
+                    </Radio>
+                    <Radio value={1}>
+                      {i18n.formatMessage({
+                        id: "instance.form.title.ruleStoreType.radio.file",
+                      })}
+                    </Radio>
+                  </Radio.Group>
+                </Form.Item>
+              </Space>
+            </Form.Item>
+            <Form.Item
+              noStyle
+              shouldUpdate={(prevValues, nextValues) =>
+                prevValues.ruleStoreType !== nextValues.ruleStoreType
+              }
+            >
+              {({ getFieldValue }) => {
+                const type = getFieldValue("ruleStoreType");
+                if (type === 1) {
+                  return (
+                    <Form.Item
+                      label={i18n.formatMessage({
+                        id: "instance.form.title.filePath",
+                      })}
+                      name={"filePath"}
+                    >
+                      <Input
+                        placeholder={`${i18n.formatMessage({
+                          id: "instance.form.placeholder.filePath",
+                        })}`}
+                      />
+                    </Form.Item>
+                  );
+                }
+                return (
+                  <Form.Item
+                    label={i18n.formatMessage({
+                      id: "instance.form.title.cluster",
+                    })}
+                    name={"clusterId"}
+                  >
+                    <Select
+                      placeholder={`${i18n.formatMessage({
+                        id: "config.selectedBar.cluster",
+                      })}`}
+                      onChange={(val: number) => {
+                        if (val) doGetConfigMaps(val);
+                      }}
+                      showSearch
+                    >
+                      {clusters.map((item) => (
+                        <Option key={item.id} value={item.id as number}>
+                          {item.clusterName}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                );
+              }}
             </Form.Item>
             <Form.Item
               noStyle
@@ -267,9 +335,6 @@ const CreatedOrUpdatedInstanceModal = (
                   </Form.Item>
                 );
               }}
-            </Form.Item>
-            <Form.Item label={"Prometheus"} name={"prometheusTarget"}>
-              <Input placeholder={"http://127.0.0.1:9090"} />
             </Form.Item>
           </Form.Item>
         )}
