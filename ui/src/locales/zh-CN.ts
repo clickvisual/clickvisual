@@ -85,6 +85,7 @@ export default {
   "instance.button.add": "新增实例",
   "instance.instanceName": "实例名称",
   "instance.datasource": "数据源",
+  "instance.storagePah": "存储路径",
   "instance.delete.confirmTip": "确认删除实例：{instanceName} 吗？",
   "instance.form.title.created": "新增实例",
   "instance.form.title.edit": "编辑实例",

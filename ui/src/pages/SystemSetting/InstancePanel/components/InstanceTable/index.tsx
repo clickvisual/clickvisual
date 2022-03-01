@@ -26,6 +26,16 @@ const InstanceTable = (props: InstanceTableProps) => {
 
   const { AlarmStorages } = useAlarmStorages();
 
+  const TooltipUtil = (content: any) => (
+    <Tooltip
+      title={content}
+      placement={"right"}
+      overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
+    >
+      <span style={{ cursor: "default" }}>{content || "-"}</span>
+    </Tooltip>
+  );
+
   const i18n = useIntl();
 
   const column = [
@@ -65,34 +75,24 @@ const InstanceTable = (props: InstanceTableProps) => {
       width: 200,
       render: (_: any, record: any) => {
         if (record.ruleStoreType === 0) return <>-</>;
-        return (
-          <Tooltip
-            title={_}
-            placement={"right"}
-            overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
-          >
-            <span style={{ cursor: "default" }}>{_ || "-"}</span>
-          </Tooltip>
-        );
+        return TooltipUtil(_);
       },
     },
     {
-      title: "ConfigMap",
+      title: i18n.formatMessage({ id: "instance.storagePah" }),
       align: "center" as AlignType,
       dataIndex: "configmap",
       ellipsis: { showTitle: false },
       width: 200,
       render: (_: any, record: any) => {
-        if (record.ruleStoreType !== 2) return <>-</>;
-        return (
-          <Tooltip
-            title={_}
-            placement={"right"}
-            overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
-          >
-            <span style={{ cursor: "default" }}>{_ || "-"}</span>
-          </Tooltip>
-        );
+        switch (record.ruleStoreType) {
+          case 1:
+            return TooltipUtil(record.filePath);
+          case 2:
+            return TooltipUtil(_);
+          default:
+            return <>-</>;
+        }
       },
     },
     {
