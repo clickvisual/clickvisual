@@ -92,7 +92,7 @@ export default {
   "instance.form.title.ruleStoreType": "报警存储",
   "instance.form.title.ruleStoreType.tip": "报警中心的报警规则存储方式",
   "instance.form.title.ruleStoreType.radio.file": "文件",
-  "instance.form.title.ruleStoreType.radio.enable": "不启用",
+  "instance.form.title.ruleStoreType.radio.enable": "关闭",
   "instance.form.title.filePath": "文件路径",
   "instance.form.placeholder.instanceName": "请输入实例名称",
   "instance.form.placeholder.datasource": "请选择数据源",

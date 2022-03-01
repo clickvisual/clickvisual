@@ -47,22 +47,6 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
-      title: "ConfigMap",
-      align: "center" as AlignType,
-      dataIndex: "configmap",
-      ellipsis: { showTitle: false },
-      width: 200,
-      render: TooltipRender({ placement: "right" }),
-    },
-    {
-      title: "Prometheus Target",
-      align: "center" as AlignType,
-      dataIndex: "prometheusTarget",
-      ellipsis: { showTitle: false },
-      width: 200,
-      render: TooltipRender({ placement: "right" }),
-    },
-    {
       width: 120,
       title: i18n.formatMessage({ id: "instance.form.title.ruleStoreType" }),
       align: "center" as AlignType,
@@ -72,6 +56,44 @@ const InstanceTable = (props: InstanceTableProps) => {
           {AlarmStorages.find((item) => item.value === type)?.label || "-"}
         </span>
       ),
+    },
+    {
+      title: "Prometheus Target",
+      align: "center" as AlignType,
+      dataIndex: "prometheusTarget",
+      ellipsis: { showTitle: false },
+      width: 200,
+      render: (_: any, record: any) => {
+        if (record.ruleStoreType === 0) return <>-</>;
+        return (
+          <Tooltip
+            title={_}
+            placement={"right"}
+            overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
+          >
+            <span style={{ cursor: "default" }}>{_ || "-"}</span>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      title: "ConfigMap",
+      align: "center" as AlignType,
+      dataIndex: "configmap",
+      ellipsis: { showTitle: false },
+      width: 200,
+      render: (_: any, record: any) => {
+        if (record.ruleStoreType !== 2) return <>-</>;
+        return (
+          <Tooltip
+            title={_}
+            placement={"right"}
+            overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
+          >
+            <span style={{ cursor: "default" }}>{_ || "-"}</span>
+          </Tooltip>
+        );
+      },
     },
     {
       title: `${i18n.formatMessage({
