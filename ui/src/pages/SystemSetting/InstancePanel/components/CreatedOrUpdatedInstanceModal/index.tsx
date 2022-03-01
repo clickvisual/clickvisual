@@ -264,7 +264,11 @@ const CreatedOrUpdatedInstanceModal = (
               {({ getFieldValue }) => {
                 const type = getFieldValue("ruleStoreType");
                 const content = (
-                  <Form.Item label={"Prometheus"} name={"prometheusTarget"}>
+                  <Form.Item
+                    label={"Prometheus"}
+                    name={"prometheusTarget"}
+                    rules={[{ required: true }]}
+                  >
                     <Input placeholder={"http://127.0.0.1:9090"} />
                   </Form.Item>
                 );
