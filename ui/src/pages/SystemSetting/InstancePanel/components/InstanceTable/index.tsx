@@ -11,6 +11,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
+import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 
 type InstanceTableProps = {
   list: InstanceType[];
@@ -22,6 +23,18 @@ const InstanceTable = (props: InstanceTableProps) => {
     useContext(InstancePanelContext);
   const { doDeletedInstance, doGetInstanceList, listLoading } =
     useModel("instances");
+
+  const { AlarmStorages } = useAlarmStorages();
+
+  const TooltipUtil = (content: any) => (
+    <Tooltip
+      title={content}
+      placement={"right"}
+      overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
+    >
+      <span style={{ cursor: "default" }}>{content || "-"}</span>
+    </Tooltip>
+  );
 
   const i18n = useIntl();
 
@@ -44,12 +57,15 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
-      title: "ConfigMap",
+      width: 120,
+      title: i18n.formatMessage({ id: "instance.form.title.ruleStoreType" }),
       align: "center" as AlignType,
-      dataIndex: "configmap",
-      ellipsis: { showTitle: false },
-      width: 200,
-      render: TooltipRender({ placement: "right" }),
+      dataIndex: "ruleStoreType",
+      render: (type: number) => (
+        <span>
+          {AlarmStorages.find((item) => item.value === type)?.label || "-"}
+        </span>
+      ),
     },
     {
       title: "Prometheus Target",
@@ -57,7 +73,27 @@ const InstanceTable = (props: InstanceTableProps) => {
       dataIndex: "prometheusTarget",
       ellipsis: { showTitle: false },
       width: 200,
-      render: TooltipRender({ placement: "right" }),
+      render: (_: any, record: any) => {
+        if (record.ruleStoreType === 0) return <>-</>;
+        return TooltipUtil(_);
+      },
+    },
+    {
+      title: i18n.formatMessage({ id: "instance.storagePah" }),
+      align: "center" as AlignType,
+      dataIndex: "configmap",
+      ellipsis: { showTitle: false },
+      width: 200,
+      render: (_: any, record: any) => {
+        switch (record.ruleStoreType) {
+          case 1:
+            return TooltipUtil(record.filePath);
+          case 2:
+            return TooltipUtil(_);
+          default:
+            return <>-</>;
+        }
+      },
     },
     {
       title: `${i18n.formatMessage({

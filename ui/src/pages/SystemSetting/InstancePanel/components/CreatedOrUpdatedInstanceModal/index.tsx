@@ -6,8 +6,11 @@ import {
   FormInstance,
   Input,
   Modal,
+  Radio,
   Row,
   Select,
+  Space,
+  Tooltip,
 } from "antd";
 import { useDebounceFn } from "ahooks";
 import type { InstanceType } from "@/services/systemSetting";
@@ -18,10 +21,12 @@ import { useIntl } from "umi";
 import {
   CaretDownOutlined,
   CaretRightOutlined,
+  QuestionCircleOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
 import { cloneDeep } from "lodash";
 import classNames from "classnames";
+import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 
 type CreatedOrUpdatedInstanceModalProps = {
   isEditor?: boolean;
@@ -41,6 +46,7 @@ const CreatedOrUpdatedInstanceModal = (
     useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
+  const { AlarmStorages } = useAlarmStorages();
 
   const [moreOptionFlag, setMoreOptionFlag] = useState<boolean>(false);
 
@@ -92,6 +98,7 @@ const CreatedOrUpdatedInstanceModal = (
           cloneCurrent.configmap,
         ];
       }
+      if (cloneCurrent.ruleStoreType > 0) onChangeMoreOptionFlag(true);
       instanceFormRef.current?.setFieldsValue(cloneCurrent);
     }
   }, [visible, isEditor, current]);
@@ -214,62 +221,135 @@ const CreatedOrUpdatedInstanceModal = (
         {moreOptionFlag && (
           <Form.Item noStyle>
             <Form.Item
-              label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
-              name={"clusterId"}
+              label={i18n.formatMessage({
+                id: "instance.form.title.ruleStoreType",
+              })}
             >
-              <Select
-                placeholder={`${i18n.formatMessage({
-                  id: "config.selectedBar.cluster",
-                })}`}
-                onChange={(val: number) => {
-                  if (val) doGetConfigMaps(val);
-                }}
-                showSearch
-              >
-                {clusters.map((item) => (
-                  <Option key={item.id} value={item.id as number}>
-                    {item.clusterName}
-                  </Option>
-                ))}
-              </Select>
+              <Space>
+                <Tooltip
+                  title={i18n.formatMessage({
+                    id: "instance.form.title.ruleStoreType.tip",
+                  })}
+                >
+                  <a>
+                    <QuestionCircleOutlined />
+                  </a>
+                </Tooltip>
+                <Form.Item noStyle name={"ruleStoreType"} initialValue={0}>
+                  <Radio.Group>
+                    {AlarmStorages.map((item) => (
+                      <Radio value={item.value}>{item.label}</Radio>
+                    ))}
+                  </Radio.Group>
+                </Form.Item>
+              </Space>
             </Form.Item>
+
             <Form.Item
               noStyle
               shouldUpdate={(prevValues, nextValues) =>
-                prevValues.clusterId !== nextValues.clusterId
+                prevValues.ruleStoreType !== nextValues.ruleStoreType
               }
             >
-              {({ getFieldValue, resetFields }) => {
-                resetFields(["clusterConfig"]);
-                const clusterId = getFieldValue("clusterId");
-                if (!clusterId) return <></>;
-                return (
+              {({ getFieldValue }) => {
+                const type = getFieldValue("ruleStoreType");
+                const content = (
                   <Form.Item
-                    label={"ConfigMap"}
-                    name="k8sConfig"
-                    rules={[
-                      {
-                        required: true,
-                        message: i18n.formatMessage({
-                          id: "instance.form.rule.configmap",
-                        }),
-                      },
-                    ]}
+                    label={"Prometheus"}
+                    name={"prometheusTarget"}
+                    rules={[{ required: true }]}
                   >
-                    <Cascader
-                      options={options}
-                      expandTrigger="hover"
-                      placeholder={`${i18n.formatMessage({
-                        id: "config.selectedBar.configmap",
-                      })}`}
-                      showSearch={{ filter }}
-                    />
+                    <Input placeholder={"http://127.0.0.1:9090"} />
                   </Form.Item>
                 );
+                switch (type) {
+                  case 1:
+                    return (
+                      <>
+                        {content}
+                        <Form.Item
+                          label={i18n.formatMessage({
+                            id: "instance.form.title.filePath",
+                          })}
+                          name={"filePath"}
+                          rules={[
+                            {
+                              required: true,
+                              message: i18n.formatMessage({
+                                id: "instance.form.placeholder.filePath",
+                              }),
+                            },
+                          ]}
+                        >
+                          <Input
+                            placeholder={`${i18n.formatMessage({
+                              id: "instance.form.placeholder.filePath",
+                            })}`}
+                          />
+                        </Form.Item>
+                      </>
+                    );
+                  case 2:
+                    return (
+                      <>
+                        {content}
+                        <Form.Item
+                          label={i18n.formatMessage({
+                            id: "instance.form.title.cluster",
+                          })}
+                          name={"clusterId"}
+                          rules={[
+                            {
+                              required: true,
+                              message: i18n.formatMessage({
+                                id: "config.selectedBar.cluster",
+                              }),
+                            },
+                          ]}
+                        >
+                          <Select
+                            placeholder={`${i18n.formatMessage({
+                              id: "config.selectedBar.cluster",
+                            })}`}
+                            onChange={(val: number) => {
+                              if (val) doGetConfigMaps(val);
+                            }}
+                            showSearch
+                          >
+                            {clusters.map((item) => (
+                              <Option key={item.id} value={item.id as number}>
+                                {item.clusterName}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                        <Form.Item
+                          label={"ConfigMap"}
+                          name="k8sConfig"
+                          rules={[
+                            {
+                              required: true,
+                              message: i18n.formatMessage({
+                                id: "instance.form.rule.configmap",
+                              }),
+                            },
+                          ]}
+                        >
+                          <Cascader
+                            options={options}
+                            expandTrigger="hover"
+                            placeholder={`${i18n.formatMessage({
+                              id: "config.selectedBar.configmap",
+                            })}`}
+                            showSearch={{ filter }}
+                          />
+                        </Form.Item>
+                      </>
+                    );
+                  default:
+                    return <></>;
+                }
               }}
-            </Form.Item>
-            <Form.Item label={"Prometheus"} name={"prometheusTarget"}>
-              <Input placeholder={"http://127.0.0.1:9090"} />
             </Form.Item>
           </Form.Item>
         )}

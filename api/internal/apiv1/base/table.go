@@ -229,7 +229,6 @@ func TableDelete(c *core.Context) {
 	table := tableInfo.Name
 	iid := tableInfo.Database.Iid
 	database := tableInfo.Database.Name
-
 	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -237,29 +236,30 @@ func TableDelete(c *core.Context) {
 	}
 	err = op.TableDrop(database, table, tableInfo.ID)
 	if err != nil {
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 01: "+err.Error(), nil)
 		return
 	}
 	tx := invoker.Db.Begin()
 	err = db.TableDelete(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 02: "+err.Error(), nil)
 		return
 	}
 	err = db.ViewDeleteByTableID(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 03: "+err.Error(), nil)
 		return
 	}
 	err = db.IndexDeleteBatch(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
+		c.JSONE(core.CodeErr, "delete failed 04: "+err.Error(), nil)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")

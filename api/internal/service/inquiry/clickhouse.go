@@ -310,7 +310,7 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 //        _timestamp_ as ts,
 //        toDateTime(_timestamp_) as updated
 //    FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter) (string, string, error) {
+func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter) (string, error) {
 	var (
 		viewSQL         string
 		viewTableName   string
@@ -326,7 +326,7 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, alarm.Tid)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	viewTableName = fmt.Sprintf("%s.%s_%s_view", tableInfo.Database.Name, tableInfo.Name, alarm.Name)
@@ -338,7 +338,7 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 
 	_ = c.AlertViewDelete(viewTableName)
 	_, err = c.db.Exec(viewSQL)
-	return viewTableName, viewSQL, err
+	return viewSQL, err
 }
 
 func (c *ClickHouse) AlertViewDelete(name string) error {
