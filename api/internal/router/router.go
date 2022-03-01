@@ -102,21 +102,16 @@ func GetRouter() *egin.Component {
 	// Table
 	{
 		v1.GET("/table/id", core.Handle(base.TableId))
-
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
-
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
 		// v1.GET("/tables/:id/query", core.Handle(base.TableQuery))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
-
 		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
 		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
-
 		v1.GET("/tables/:id/indexes", core.Handle(setting.Indexes))
 		v1.GET("/tables/:id/indexes/:idx", core.Handle(base.TableIndexes))
 		v1.PATCH("/tables/:id/indexes", core.Handle(setting.IndexUpdate))
-
 	}
 	// view
 	{

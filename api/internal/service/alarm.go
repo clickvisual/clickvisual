@@ -13,13 +13,14 @@ import (
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/resource"
+	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
 const (
-	RuleStoreTypeK8s  = 0
 	RuleStoreTypeFile = 1
+	RuleStoreTypeK8s  = 2
 )
 
 type alarm struct{}
@@ -135,6 +136,8 @@ func (i *alarm) RuleStore(tx *gorm.DB, instance db.Instance, obj *db.Alarm, exp 
 		if err != nil {
 			return
 		}
+	default:
+		return constx.ErrAlarmRuleStoreIsClosed
 	}
 	return nil
 }

@@ -99,6 +99,7 @@ func Create(c *core.Context) {
 	if errReload != nil {
 		tx.Rollback()
 		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
+		c.JSONE(1, "create failed: prometheus reload failed", nil)
 		return
 	}
 	defer func() { _ = resp.Body.Close() }()

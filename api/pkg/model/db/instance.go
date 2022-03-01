@@ -90,7 +90,7 @@ func InstanceInfo(db *gorm.DB, id int) (resp Instance, err error) {
 }
 
 func InstanceDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(Instance{}).Delete(&Instance{}, id).Error; err != nil {
+	if err = db.Model(Instance{}).Unscoped().Delete(&Instance{}, id).Error; err != nil {
 		elog.Error("release delete error", zap.Error(err))
 		return
 	}

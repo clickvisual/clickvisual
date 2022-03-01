@@ -89,10 +89,18 @@ func InstanceUpdate(c *core.Context) {
 	ups["datasource"] = req.Datasource
 	ups["name"] = req.Name
 	ups["rule_store_type"] = req.RuleStoreType
-	ups["file_path"] = req.FilePath
-	ups["cluster_id"] = req.ClusterId
-	ups["namespace"] = req.Namespace
-	ups["configmap"] = req.Configmap
+	if req.FilePath != "" {
+		ups["file_path"] = req.FilePath
+	}
+	if req.ClusterId != 0 {
+		ups["cluster_id"] = req.ClusterId
+	}
+	if req.Namespace != "" {
+		ups["namespace"] = req.Namespace
+	}
+	if req.Configmap != "" {
+		ups["configmap"] = req.Configmap
+	}
 	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
