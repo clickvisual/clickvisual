@@ -26,6 +26,7 @@ import {
 } from "@ant-design/icons";
 import { cloneDeep } from "lodash";
 import classNames from "classnames";
+import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 
 type CreatedOrUpdatedInstanceModalProps = {
   isEditor?: boolean;
@@ -45,6 +46,7 @@ const CreatedOrUpdatedInstanceModal = (
     useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
+  const { AlarmStorages } = useAlarmStorages();
 
   const [moreOptionFlag, setMoreOptionFlag] = useState<boolean>(false);
 
@@ -235,21 +237,9 @@ const CreatedOrUpdatedInstanceModal = (
                 </Tooltip>
                 <Form.Item noStyle name={"ruleStoreType"} initialValue={0}>
                   <Radio.Group>
-                    <Radio value={0}>
-                      {i18n.formatMessage({
-                        id: "instance.form.title.ruleStoreType.radio.enable",
-                      })}
-                    </Radio>
-                    <Radio value={2}>
-                      {i18n.formatMessage({
-                        id: "instance.form.title.cluster",
-                      })}
-                    </Radio>
-                    <Radio value={1}>
-                      {i18n.formatMessage({
-                        id: "instance.form.title.ruleStoreType.radio.file",
-                      })}
-                    </Radio>
+                    {AlarmStorages.map((item) => (
+                      <Radio value={item.value}>{item.label}</Radio>
+                    ))}
                   </Radio.Group>
                 </Form.Item>
               </Space>

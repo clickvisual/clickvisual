@@ -89,7 +89,7 @@ export default {
   "instance.form.title.created": "Create Instance",
   "instance.form.title.edit": "Edit Instance",
   "instance.form.title.cluster": "Cluster",
-  "instance.form.title.ruleStoreType": "Alarm storage",
+  "instance.form.title.ruleStoreType": "Alarm Storage",
   "instance.form.title.ruleStoreType.tip":
     "The storage method of the alarm rules of the alarm center",
   "instance.form.title.ruleStoreType.radio.file": "File",

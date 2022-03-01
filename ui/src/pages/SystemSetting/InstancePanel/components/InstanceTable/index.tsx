@@ -11,6 +11,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
+import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 
 type InstanceTableProps = {
   list: InstanceType[];
@@ -22,6 +23,8 @@ const InstanceTable = (props: InstanceTableProps) => {
     useContext(InstancePanelContext);
   const { doDeletedInstance, doGetInstanceList, listLoading } =
     useModel("instances");
+
+  const { AlarmStorages } = useAlarmStorages();
 
   const i18n = useIntl();
 
@@ -58,6 +61,17 @@ const InstanceTable = (props: InstanceTableProps) => {
       ellipsis: { showTitle: false },
       width: 200,
       render: TooltipRender({ placement: "right" }),
+    },
+    {
+      width: 120,
+      title: i18n.formatMessage({ id: "instance.form.title.ruleStoreType" }),
+      align: "center" as AlignType,
+      dataIndex: "ruleStoreType",
+      render: (type: number) => (
+        <span>
+          {AlarmStorages.find((item) => item.value === type)?.label || "-"}
+        </span>
+      ),
     },
     {
       title: `${i18n.formatMessage({
