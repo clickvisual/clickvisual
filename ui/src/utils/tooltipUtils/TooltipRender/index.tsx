@@ -13,7 +13,7 @@ const TooltipRender = (props: TooltipRenderProps) => {
       placement={placement}
       overlayInnerStyle={{ maxHeight: "200px", overflowY: "auto" }}
     >
-      <span style={{ cursor: "default" }}>{_}</span>
+      <span style={{ cursor: "default" }}>{_ || "-"}</span>
     </Tooltip>
   );
 };
