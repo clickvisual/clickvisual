@@ -14,7 +14,7 @@ var (
 	// ErrSkipConfigureName 01 inner errors
 	ErrSkipConfigureName           = &kerror.KError{Code: 10101, Message: "Skipped synchronization file name"}
 	ErrQueryFormatIllegal          = &kerror.KError{Code: 10102, Message: "Query format is illegal"}
-	ErrInstanceObj                 = &kerror.KError{Code: 10103, Message: "empty instance object"}
+	ErrInstanceObj                 = &kerror.KError{Code: 10103, Message: "The current database is unavailable"}
 	ErrConfigurationIsNoDifference = &kerror.KError{Code: 10104, Message: "save failed, no update at this time."}
 	// ErrGrpcUserListEmpty 02 grpc errors
 	ErrGrpcUserListEmpty = &kerror.KError{Code: 10201, Message: "svc grpc user list empty"}

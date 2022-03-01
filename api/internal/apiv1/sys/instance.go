@@ -35,6 +35,8 @@ func InstanceCreate(c *core.Context) {
 		Datasource:       req.Datasource,
 		Name:             req.Name,
 		Dsn:              strings.TrimSpace(req.Dsn),
+		RuleStoreType:    req.RuleStoreType,
+		FilePath:         req.FilePath,
 		ClusterId:        req.ClusterId,
 		Namespace:        req.Namespace,
 		Configmap:        req.Configmap,
@@ -84,9 +86,10 @@ func InstanceUpdate(c *core.Context) {
 		}
 		ups["dsn"] = req.Dsn
 	}
-
 	ups["datasource"] = req.Datasource
 	ups["name"] = req.Name
+	ups["rule_store_type"] = req.RuleStoreType
+	ups["file_path"] = req.FilePath
 	ups["cluster_id"] = req.ClusterId
 	ups["namespace"] = req.Namespace
 	ups["configmap"] = req.Configmap
