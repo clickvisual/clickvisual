@@ -85,6 +85,7 @@ export default {
   "instance.button.add": "Add instance",
   "instance.instanceName": "Instance Name",
   "instance.datasource": "Datasource",
+  "instance.storagePah": "Storage Path",
   "instance.delete.confirmTip": "Confirm deleting instance: {instanceName} ?",
   "instance.form.title.created": "Create Instance",
   "instance.form.title.edit": "Edit Instance",
