@@ -227,6 +227,9 @@ export default {
   "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
   "datasource.logLibrary.search.created": "Creating a Log library",
+  "datasource.deleted.content": "Confirm deleting database: {database}?",
+  "datasource.deleted.loading": "Deleting a database: {database}...",
+  "datasource.deleted.success": "Delete database: {database} succeeded",
 
   "datasource.logLibrary.from.tableName": "Table Name",
   "datasource.logLibrary.from.rule.tableName":

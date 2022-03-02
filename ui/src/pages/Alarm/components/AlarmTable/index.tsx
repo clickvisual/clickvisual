@@ -55,7 +55,10 @@ const AlarmTable = () => {
         doDeletedAlarm
           .run(record.id)
           .then((res) => {
-            if (res?.code !== 0) hideMessage();
+            if (res?.code !== 0) {
+              hideMessage();
+              return;
+            }
             doGetAlarms.run(searchQuery);
             message.success(
               {
