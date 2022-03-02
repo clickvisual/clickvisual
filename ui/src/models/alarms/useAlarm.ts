@@ -1,9 +1,9 @@
-import api from "@/services/alarm";
+import api, { AlarmType } from "@/services/alarm";
 import { useState } from "react";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
 const useAlarm = () => {
-  const [alarmList, setAlarmList] = useState<any[]>([]);
+  const [alarmList, setAlarmList] = useState<AlarmType[]>([]);
   const [currentPagination, setPagination] = useState<API.Pagination>({
     current: FIRST_PAGE,
     pageSize: PAGE_SIZE,

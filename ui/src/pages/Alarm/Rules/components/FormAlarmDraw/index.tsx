@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import TriggerConditionItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem";
 import TextArea from "antd/es/input/TextArea";
 import { SaveOutlined } from "@ant-design/icons";
+import { AlarmRequest } from "@/services/alarm";
 
 const FormAlarmDraw = () => {
   const {
@@ -36,14 +37,14 @@ const FormAlarmDraw = () => {
     alarmFormRef.current.submit();
   };
 
-  const doCreated = (field: any) => {
+  const doCreated = (field: AlarmRequest) => {
     alarmDraw.doCreatedAlarm.run(field).then((res) => {
       if (res?.code !== 0) return;
       doGetAlarms.run(searchQuery);
       handleClose();
     });
   };
-  const doUpdated = (field: any) => {
+  const doUpdated = (field: AlarmRequest) => {
     if (!currentRowAlarm) return;
     alarmDraw.doUpdatedAlarm.run(currentRowAlarm.id, field).then((res) => {
       if (res?.code !== 0) return;
@@ -52,7 +53,7 @@ const FormAlarmDraw = () => {
     });
   };
 
-  const handleSubmit = (field: any) => {
+  const handleSubmit = (field: AlarmRequest) => {
     !alarmDraw.isEditor ? doCreated(field) : doUpdated(field);
   };
 
@@ -117,7 +118,7 @@ const FormAlarmDraw = () => {
                 }),
               },
               {
-                pattern: new RegExp("^[a-zA-Z_]{0,64}$"),
+                pattern: new RegExp("^[a-zA-Z1-9_]{0,64}$"),
                 message: i18n.formatMessage({
                   id: "alarm.rules.form.rule.alarmName",
                 }),
