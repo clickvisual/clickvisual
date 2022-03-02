@@ -11,9 +11,11 @@ const SourceHeader = () => {
     <div className={sourceHeaderStyles.sourceHeaderMain}>
       <div className={sourceHeaderStyles.sourceTitle}>
         {currentDatabase ? (
-          <Tooltip title={currentDatabase.name}>
+          <Tooltip
+            title={`${currentDatabase.instanceName}-${currentDatabase.name}`}
+          >
             <span className={sourceHeaderStyles.titleContext}>
-              {currentDatabase.name}
+              {`${currentDatabase.instanceName}-${currentDatabase.name}`}
             </span>
           </Tooltip>
         ) : (
