@@ -243,7 +243,7 @@ export default {
     "Please enter the name of the data table in upper or lower case English or underscore",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
-  "datasource.logLibrary.placeholder.brokers": "kafka:9091",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9092",
   "datasource.logLibrary.placeholder.topics":
     "Please enter Topics, support in uppercase or lowercase English or crossed",
   "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",

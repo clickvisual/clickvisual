@@ -235,7 +235,7 @@ export default {
     "请输入数据表名称，支持小写字母、大写字母，或下划线",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
-  "datasource.logLibrary.placeholder.brokers": "kafka:9091",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9092",
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持小写字母、大写字母，或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",

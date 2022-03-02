@@ -76,9 +76,31 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	err := db.DatabaseDelete(invoker.Db, id)
+	conds := egorm.Conds{}
+	conds["did"] = id
+	tables, err := db.TableList(invoker.Db, conds)
+	if len(tables) > 0 {
+		c.JSONE(1, "you should delete all tables before delete database", nil)
+		return
+	}
+	database, err := db.DatabaseInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
+		c.JSONE(1, "failed to delete database: "+err.Error(), nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(database.Iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	err = op.DropDatabase(database.Name)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	err = db.DatabaseDelete(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "failed to delete database, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
