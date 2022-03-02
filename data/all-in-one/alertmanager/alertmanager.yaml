@@ -1,0 +1,11 @@
+global:
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 10m
+  receiver: webhook
+receivers:
+  - name: 'webhook'
+    webhook_configs:
+      - url: 'http://xxx:8080/public/prometheus/alerts'

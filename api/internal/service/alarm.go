@@ -101,7 +101,7 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	return
 }
 
-func (i *alarm) RuleStore(tx *gorm.DB, instance db.Instance, obj *db.Alarm, exp string) (err error) {
+func (i *alarm) RuleStore(instance db.Instance, obj *db.Alarm, exp string) (err error) {
 	template := `groups:
 - name: default
   rules:
