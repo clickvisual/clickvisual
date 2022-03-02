@@ -89,7 +89,7 @@ func Create(c *core.Context) {
 	err = db.AlarmUpdate(tx, obj.ID, ups)
 
 	// rule store
-	err = service.Alarm.RuleStore(tx, instance, obj, exp)
+	err = service.Alarm.RuleStore(instance, obj, exp)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 05: "+err.Error(), nil)
@@ -98,7 +98,7 @@ func Create(c *core.Context) {
 	resp, errReload := http.Post(strings.TrimSuffix(instance.PrometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
 	if errReload != nil {
 		tx.Rollback()
-		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
+		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"), elog.Any("err", errReload.Error()))
 		c.JSONE(1, "create failed: prometheus reload failed", nil)
 		return
 	}

@@ -335,14 +335,40 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, TagsToString(alarm, true), sourceTableName, filter)
 
 	elog.Debug("AlertViewCreate", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
-
-	_ = c.AlertViewDelete(viewTableName)
+	// create
+	err = c.alertPrepare()
+	if err != nil {
+		return "", err
+	}
+	_ = c.DropTable(viewTableName)
 	_, err = c.db.Exec(viewSQL)
 	return viewSQL, err
 }
 
-func (c *ClickHouse) AlertViewDelete(name string) error {
+func (c *ClickHouse) alertPrepare() (err error) {
+	_, err = c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
+	if err != nil {
+		return
+	}
+	_, err = c.db.Exec(`CREATE TABLE IF NOT EXISTS metrics.samples
+(
+    date Date DEFAULT toDate(0),
+    name String,
+    tags Array(String),
+    val Float64,
+    ts DateTime,
+    updated DateTime DEFAULT now()
+)ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup');`)
+	return
+}
+
+func (c *ClickHouse) DropTable(name string) error {
 	_, err := c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", name))
+	return err
+}
+
+func (c *ClickHouse) DropDatabase(name string) error {
+	_, err := c.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s;", name))
 	return err
 }
 
