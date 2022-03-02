@@ -63,6 +63,7 @@ func DatabaseList(c *core.Context) {
 			Name:           row.Name,
 			Uid:            row.Uid,
 			DatasourceType: row.Instance.Datasource,
+			InstanceName:   row.Instance.Name,
 		})
 	}
 	c.JSONE(core.CodeOK, "succ", res)

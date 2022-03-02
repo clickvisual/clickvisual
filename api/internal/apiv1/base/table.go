@@ -165,6 +165,7 @@ func TableInfo(c *core.Context) {
 			Name:           tableInfo.Database.Name,
 			Uid:            tableInfo.Database.Uid,
 			DatasourceType: instance.Datasource,
+			InstanceName:   instance.Name,
 		},
 	}
 	keys := make([]string, 0)

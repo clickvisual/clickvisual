@@ -10,4 +10,5 @@ type RespDatabaseItem struct {
 	Name           string `json:"name"` // 数据库名称
 	Uid            int    `json:"uid"`  // 操作人
 	DatasourceType string `json:"datasourceType"`
+	InstanceName   string `json:"instanceName"`
 }
