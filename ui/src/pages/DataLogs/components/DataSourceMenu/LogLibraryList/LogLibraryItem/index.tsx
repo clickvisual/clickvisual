@@ -20,6 +20,7 @@ import { currentTimeStamp } from "@/utils/momentUtils";
 import { useState } from "react";
 import DeletedModal from "@/components/DeletedModal";
 import { TablesResponse } from "@/services/dataLogs";
+import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 
 const defaultPane: PaneType = {
   pane: "",
@@ -63,6 +64,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   const [mouseEnter, setMouseEnter] = useState<boolean>(false);
 
   const i18n = useIntl();
+  const { handleChangeRelativeAmountAndUnit } = useTimeOptions();
 
   const onChangePanes = () => {
     const currentPanes = lodash.cloneDeep(logPanes);
@@ -125,6 +127,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             onChangeLogPanes(newPanes);
             if (newPanes.length > 0) {
               onChangeCurrentLogPane(newPanes[0]);
+              handleChangeRelativeAmountAndUnit(newPanes[0]);
               onChangeLogLibrary({
                 id: newPanes[0].paneId,
                 tableName: newPanes[0].pane,
