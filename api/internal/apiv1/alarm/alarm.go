@@ -47,19 +47,19 @@ func Create(c *core.Context) {
 	err := db.AlarmCreate(tx, obj)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 01: "+err.Error(), nil)
 		return
 	}
 	filtersDB, err := service.Alarm.FilterCreate(tx, obj.ID, req.Filters)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 02: "+err.Error(), nil)
 		return
 	}
 	exp, err := service.Alarm.ConditionCreate(tx, obj, req.Conditions)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
 		return
 	}
 	// table info
@@ -79,7 +79,7 @@ func Create(c *core.Context) {
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 04: "+err.Error(), nil)
 		return
 	}
 	// view set
@@ -92,7 +92,7 @@ func Create(c *core.Context) {
 	err = service.Alarm.RuleStore(tx, instance, obj, exp)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 05: "+err.Error(), nil)
 		return
 	}
 	resp, errReload := http.Post(strings.TrimSuffix(instance.PrometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
@@ -106,7 +106,7 @@ func Create(c *core.Context) {
 
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 06: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
