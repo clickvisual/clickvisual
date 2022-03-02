@@ -13,6 +13,7 @@ var (
 	InstanceManager *instanceManager
 	User            *user
 	Index           *index
+	Alarm           *alarm
 )
 
 func Init() error {
@@ -21,6 +22,7 @@ func Init() error {
 
 	User = NewUser()
 	Index = NewIndex()
+	Alarm = NewAlarm()
 
 	initGob()
 	configure.InitConfigure()

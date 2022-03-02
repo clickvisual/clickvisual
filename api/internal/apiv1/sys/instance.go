@@ -35,6 +35,8 @@ func InstanceCreate(c *core.Context) {
 		Datasource:       req.Datasource,
 		Name:             req.Name,
 		Dsn:              strings.TrimSpace(req.Dsn),
+		RuleStoreType:    req.RuleStoreType,
+		FilePath:         req.FilePath,
 		ClusterId:        req.ClusterId,
 		Namespace:        req.Namespace,
 		Configmap:        req.Configmap,
@@ -84,12 +86,21 @@ func InstanceUpdate(c *core.Context) {
 		}
 		ups["dsn"] = req.Dsn
 	}
-
 	ups["datasource"] = req.Datasource
 	ups["name"] = req.Name
-	ups["cluster_id"] = req.ClusterId
-	ups["namespace"] = req.Namespace
-	ups["configmap"] = req.Configmap
+	ups["rule_store_type"] = req.RuleStoreType
+	if req.FilePath != "" {
+		ups["file_path"] = req.FilePath
+	}
+	if req.ClusterId != 0 {
+		ups["cluster_id"] = req.ClusterId
+	}
+	if req.Namespace != "" {
+		ups["namespace"] = req.Namespace
+	}
+	if req.Configmap != "" {
+		ups["configmap"] = req.Configmap
+	}
 	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)

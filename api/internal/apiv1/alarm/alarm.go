@@ -1,11 +1,9 @@
 package alarm
 
 import (
-	"fmt"
 	"net/http"
-	"sort"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
@@ -14,9 +12,6 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
-	"github.com/shimohq/mogo/api/internal/service/inquiry"
-	"github.com/shimohq/mogo/api/internal/service/kube"
-	"github.com/shimohq/mogo/api/internal/service/kube/resource"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -55,102 +50,20 @@ func Create(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	var filtersDB []*db.AlarmFilter
-	for _, filter := range req.Filters {
-		filterObj := &db.AlarmFilter{
-			AlarmId:        obj.ID,
-			Tid:            filter.Tid,
-			When:           filter.When,
-			SetOperatorTyp: filter.SetOperatorTyp,
-			SetOperatorExp: filter.SetOperatorExp,
-		}
-		if filterObj.When == "" {
-			filterObj.When = "1=1"
-		}
-		err = db.AlarmFilterCreate(tx, filterObj)
-		if err != nil {
-			tx.Rollback()
-			c.JSONE(1, "create failed: "+err.Error(), nil)
-			return
-		}
-		filtersDB = append(filtersDB, filterObj)
+	filtersDB, err := service.Alarm.FilterCreate(tx, obj.ID, req.Filters)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(1, "create failed: "+err.Error(), nil)
+		return
 	}
-
-	expVal := fmt.Sprintf("%s{%s}", obj.Name, inquiry.TagsToString(obj, false))
-	sort.Slice(req.Conditions, func(i, j int) bool {
-		return req.Conditions[i].SetOperatorTyp < req.Conditions[j].SetOperatorTyp
-	})
-	var exp string
-	for _, condition := range req.Conditions {
-		var innerCond string
-		switch condition.Cond {
-		case 0:
-			innerCond = fmt.Sprintf("%s>%d", expVal, condition.Val1)
-		case 1:
-			innerCond = fmt.Sprintf("%s<%d", expVal, condition.Val1)
-		case 2:
-			innerCond = fmt.Sprintf("%s<%d and %s>%d", expVal, condition.Val1, expVal, condition.Val2)
-		case 3:
-			innerCond = fmt.Sprintf("%s>=%d and %s<=%d", expVal, condition.Val1, expVal, condition.Val2)
-		}
-		switch condition.SetOperatorTyp {
-		case 0:
-			exp = innerCond
-		case 1:
-			if exp == "" {
-				tx.Rollback()
-				c.JSONE(1, "conditions error: ", nil)
-				return
-			}
-			exp = fmt.Sprintf("%s and %s", exp, innerCond)
-		case 2:
-			if exp == "" {
-				tx.Rollback()
-				c.JSONE(1, "conditions error: ", nil)
-				return
-			}
-			exp = fmt.Sprintf("%s or %s", exp, innerCond)
-		}
-		conditionObj := &db.AlarmCondition{
-			AlarmId:        obj.ID,
-			SetOperatorTyp: condition.SetOperatorTyp,
-			SetOperatorExp: condition.SetOperatorExp,
-			Cond:           condition.Cond,
-			Val1:           condition.Val1,
-			Val2:           condition.Val2,
-		}
-		err = db.AlarmConditionCreate(tx, conditionObj)
-		if err != nil {
-			tx.Rollback()
-			c.JSONE(1, "create failed: "+err.Error(), nil)
-			return
-		}
+	exp, err := service.Alarm.ConditionCreate(tx, obj, req.Conditions)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(1, "create failed: "+err.Error(), nil)
+		return
 	}
 	// table info
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	// alarm setting
-	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	// view set
-	viewName, viewSQL, err := op.AlertViewCreate(obj, filtersDB)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	elog.Debug("alarm", elog.String("view", viewName), elog.String("viewSQL", viewSQL))
-	ups := make(map[string]interface{}, 0)
-	ups["view"] = viewSQL
-	err = db.AlarmUpdate(tx, obj.ID, ups)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -160,58 +73,36 @@ func Create(c *core.Context) {
 	instance, err := db.InstanceInfo(tx, tableInfo.Database.Iid)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "You need to configure alarms related to the instance first", nil)
+		c.JSONE(1, "you need to configure alarms related to the instance first: "+err.Error(), nil)
 		return
 	}
-	elog.Debug("alert", elog.Any("instance", instance))
-	client, err := kube.ClusterManager.GetClusterManager(instance.ClusterId)
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "cluster data acquisition failed: "+err.Error(), nil)
+		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	rule := make(map[string]string)
-	// exp: up{instance="localhost:9090", job="prometheus"} > 0
+	// view set
+	viewSQL, err := op.AlertViewCreate(obj, filtersDB)
+	ups := make(map[string]interface{}, 0)
+	ups["view"] = viewSQL
+	err = db.AlarmUpdate(tx, obj.ID, ups)
 
-	template := `groups:
-- name: default
-  rules:
-  - alert: %s
-    expr: %s
-    for: %s
-    labels:
-      severity: warning
-    annotations:
-      summary: "告警 {{ $labels.name }}"
-      description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
-	rule[obj.AlertRuleName()] = fmt.Sprintf(template, obj.Name, exp, obj.AlertInterval())
-
-	elog.Debug("alert", elog.Any("rule", rule))
-
-	err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rule)
+	// rule store
+	err = service.Alarm.RuleStore(tx, instance, obj, exp)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "configMap update failed", nil)
+		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-
-	go func() {
-		for i := 0; i < 100; i++ {
-			time.Sleep(time.Second)
-			data, _ := resource.ConfigmapInfo(instance.ClusterId, instance.Namespace, instance.Configmap, obj.AlertRuleName())
-			if data == "" {
-				continue
-			}
-			elog.Debug("alert", elog.Any("reload", instance.PrometheusTarget+"/-/reload"), elog.Any("data", data))
-			resp, errReload := http.Post(instance.PrometheusTarget+"/-/reload", "application/json", nil)
-			if errReload != nil {
-				elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
-				continue
-			}
-			defer resp.Body.Close()
-			break
-		}
-	}()
+	resp, errReload := http.Post(strings.TrimSuffix(instance.PrometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
+	if errReload != nil {
+		tx.Rollback()
+		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"))
+		c.JSONE(1, "create failed: prometheus reload failed", nil)
+		return
+	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()

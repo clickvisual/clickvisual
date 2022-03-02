@@ -51,12 +51,12 @@ CREATE TABLE `mogo_base_instance` (
     `datasource` varchar(32) NOT NULL COMMENT '数据源类型',
     `name` varchar(128) NOT NULL COMMENT '实例名称',
     `dsn` text COMMENT 'dsn',
-
+    `rule_store_type` int(11) DEFAULT NULL COMMENT 'rule_store_type 0 集群 1 文件',
+    `file_path` varchar(255) DEFAULT NULL COMMENT 'file_path',
     `cluster_id` int(11) DEFAULT NULL COMMENT 'cluster_id',
     `namespace` varchar(128) NOT NULL COMMENT 'namespace',
     `configmap` varchar(128) NOT NULL COMMENT 'configmap',
     `prometheus_target` varchar(128) NOT NULL COMMENT 'prometheus ip or domain, eg: https://prometheus:9090',
-
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
