@@ -57,7 +57,7 @@ const LogItemDetails = () => {
           }
           const isRawLog =
             (rawLogJson && rawLogKeys.includes(keyItem)) ||
-            keyItem === "_row_log_";
+            keyItem === "_raw_log_";
           const notQuery = ["_time_nanosecond_"].includes(keyItem);
           return (
             <div key={keyItem} className={logItemStyles.logLine}>
