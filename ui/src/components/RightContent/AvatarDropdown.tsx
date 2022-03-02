@@ -22,7 +22,7 @@ const AvatarDropdown = () => {
 
   const menuHeaderDropdown = (
     <Menu className={styles.menu} selectedKeys={[]}>
-      {currentUser.oauth === "" && currentUser.oauthId === "" && (
+      {currentUser?.oauth === "" && currentUser?.oauthId === "" && (
         <Menu.Item
           icon={<IconFont type={"icon-reset-password"} />}
           key="resetPassword"
