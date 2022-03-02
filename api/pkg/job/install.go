@@ -49,6 +49,13 @@ func installCH() error {
 	// create demo_log table
 	_, err = conn.Exec(`
 		CREATE DATABASE IF NOT EXISTS metrics;
+		`)
+	if err != nil {
+		elog.Error("create table fail", elog.FieldErr(err))
+		return err
+	}
+
+	_, err = conn.Exec(`
 		CREATE TABLE IF NOT EXISTS metrics.samples
 (
     date Date DEFAULT toDate(0),
