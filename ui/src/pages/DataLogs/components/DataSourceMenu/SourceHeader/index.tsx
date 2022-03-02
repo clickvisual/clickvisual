@@ -12,10 +12,16 @@ const SourceHeader = () => {
       <div className={sourceHeaderStyles.sourceTitle}>
         {currentDatabase ? (
           <Tooltip
-            title={`${currentDatabase.instanceName}-${currentDatabase.name}`}
+            title={i18n.formatMessage(
+              { id: "datasource.header.tip" },
+              {
+                instance: currentDatabase.instanceName,
+                database: currentDatabase.name,
+              }
+            )}
           >
             <span className={sourceHeaderStyles.titleContext}>
-              {`${currentDatabase.instanceName}-${currentDatabase.name}`}
+              {currentDatabase.name}
             </span>
           </Tooltip>
         ) : (

@@ -214,6 +214,7 @@ export default {
 
   // Data Logs
   // Data Logs-Datasource
+  "datasource.header.tip": "实例：{instance}，数据库：{database}",
   "datasource.header.databaseEmpty": "暂未选择数据库",
   "datasource.header.switch": "切换数据库",
   "datasource.logLibrary.search.placeholder": "搜索日志库",

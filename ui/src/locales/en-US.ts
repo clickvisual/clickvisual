@@ -222,6 +222,7 @@ export default {
 
   // Data Logs
   // Data Logs-Datasource
+  "datasource.header.tip": "Instance: {instance}, Database: {database}",
   "datasource.header.databaseEmpty": "DB Is Unselected",
   "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
