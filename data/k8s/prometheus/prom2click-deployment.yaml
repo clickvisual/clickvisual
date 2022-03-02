@@ -32,7 +32,7 @@ spec:
             - /usr/local/bin/prom2click
           ports:
             - name: web
-              containerPort: 9000
+              containerPort: 9201
       restartPolicy: Always
       securityContext: {}
       terminationGracePeriodSeconds: 30
