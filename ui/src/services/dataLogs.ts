@@ -75,6 +75,7 @@ export interface DatabaseResponse {
   datasourceType: string;
   id: number;
   iid: number;
+  instanceName: string;
   name: string;
   uid?: number;
 }

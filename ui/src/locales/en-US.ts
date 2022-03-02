@@ -222,6 +222,7 @@ export default {
 
   // Data Logs
   // Data Logs-Datasource
+  "datasource.header.tip": "Instance: {instance}, Database: {database}",
   "datasource.header.databaseEmpty": "DB Is Unselected",
   "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
@@ -242,7 +243,7 @@ export default {
     "Please enter the name of the data table in upper or lower case English or underscore",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
-  "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9091",
   "datasource.logLibrary.placeholder.topics":
     "Please enter Topics, support in uppercase or lowercase English or crossed",
   "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",

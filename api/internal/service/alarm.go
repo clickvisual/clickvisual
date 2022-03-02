@@ -102,12 +102,6 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 }
 
 func (i *alarm) RuleStore(tx *gorm.DB, instance db.Instance, obj *db.Alarm, exp string) (err error) {
-	elog.Debug("alert", elog.Any("instance", instance))
-	client, err := kube.ClusterManager.GetClusterManager(instance.ClusterId)
-	if err != nil {
-		tx.Rollback()
-		return
-	}
 	template := `groups:
 - name: default
   rules:
@@ -122,6 +116,11 @@ func (i *alarm) RuleStore(tx *gorm.DB, instance db.Instance, obj *db.Alarm, exp 
 	newRule := fmt.Sprintf(template, obj.Name, exp, obj.AlertInterval())
 	switch instance.RuleStoreType {
 	case RuleStoreTypeK8s:
+		elog.Debug("alert", elog.Any("instance", instance))
+		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
+		if errCluster != nil {
+			return errCluster
+		}
 		rule := make(map[string]string)
 		rule[obj.AlertRuleName()] = newRule
 		elog.Debug("alert", elog.Any("rule", rule))

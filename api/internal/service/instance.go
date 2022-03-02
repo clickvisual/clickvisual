@@ -66,6 +66,7 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	instance, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
+		elog.Error("instanceManager", elog.Any("id", id), elog.Any("error", err.Error()))
 		return nil, err
 	}
 	obj, _ := i.dss.Load(db.InstanceKey(id))

@@ -259,7 +259,7 @@ const CreatedOrUpdatedInstanceModal = (
                     name={"prometheusTarget"}
                     rules={[{ required: true }]}
                   >
-                    <Input placeholder={"http://127.0.0.1:9090"} />
+                    <Input placeholder={"http://prometheus:9090"} />
                   </Form.Item>
                 );
                 switch (type) {

@@ -214,6 +214,7 @@ export default {
 
   // Data Logs
   // Data Logs-Datasource
+  "datasource.header.tip": "实例：{instance}，数据库：{database}",
   "datasource.header.databaseEmpty": "暂未选择数据库",
   "datasource.header.switch": "切换数据库",
   "datasource.logLibrary.search.placeholder": "搜索日志库",
@@ -234,7 +235,7 @@ export default {
     "请输入数据表名称，支持小写字母、大写字母，或下划线",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
-  "datasource.logLibrary.placeholder.brokers": "127.0.0.1:9091",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9091",
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持小写字母、大写字母，或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
