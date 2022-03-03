@@ -1,4 +1,4 @@
-import conditionStyles from "@/pages/Alarm/components/FormAlarmDraw/TriggerConditionItem/index.less";
+import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/index.less";
 import { Button, Form, InputNumber, Select, Space } from "antd";
 import { useIntl } from "umi";
 import classNames from "classnames";
@@ -33,7 +33,7 @@ const TriggerConditionItem = () => {
   return (
     <Form.Item
       required
-      label={i18n.formatMessage({ id: "alarm.form.triggerCondition" })}
+      label={i18n.formatMessage({ id: "alarm.rules.form.triggerCondition" })}
     >
       <Form.List
         name={"conditions"}
@@ -44,7 +44,7 @@ const TriggerConditionItem = () => {
                 return Promise.reject(
                   new Error(
                     i18n.formatMessage({
-                      id: "alarm.form.triggerCondition.error",
+                      id: "alarm.rules.form.triggerCondition.error",
                     })
                   )
                 );

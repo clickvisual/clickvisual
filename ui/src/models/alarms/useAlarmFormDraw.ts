@@ -20,14 +20,14 @@ const useAlarmFormDraw = () => {
   const doCreatedAlarm = useRequest(api.createdAlarm, {
     loadingText: {
       loading: undefined,
-      done: formatMessage({ id: "alarm.created" }),
+      done: formatMessage({ id: "alarm.rules.created" }),
     },
   });
 
   const doUpdatedAlarm = useRequest(api.updatedAlarm, {
     loadingText: {
       loading: undefined,
-      done: formatMessage({ id: "alarm.updated" }),
+      done: formatMessage({ id: "alarm.rules.updated" }),
     },
   });
 
