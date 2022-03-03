@@ -35,4 +35,5 @@ type ReqAlarmInfo struct {
 	db.Alarm
 	Filters    []*db.AlarmFilter    `json:"filters" from:"filters"`
 	Conditions []*db.AlarmCondition `json:"conditions" from:"conditions"`
+	db.User
 }

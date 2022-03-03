@@ -1,13 +1,10 @@
 package alarm
 
 import (
-	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -50,60 +47,12 @@ func Create(c *core.Context) {
 		c.JSONE(1, "alarm create failed 01: "+err.Error(), nil)
 		return
 	}
-	filtersDB, err := service.Alarm.FilterCreate(tx, obj.ID, req.Filters)
+	err = service.Alarm.CreateOrUpdate(tx, obj, req)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 02: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 01: "+err.Error(), nil)
 		return
 	}
-	exp, err := service.Alarm.ConditionCreate(tx, obj, req.Conditions)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
-		return
-	}
-	// table info
-	tableInfo, err := db.TableInfo(invoker.Db, tid)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	// prometheus set
-	instance, err := db.InstanceInfo(tx, tableInfo.Database.Iid)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, "you need to configure alarms related to the instance first: "+err.Error(), nil)
-		return
-	}
-	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, "alarm create failed 04: "+err.Error(), nil)
-		return
-	}
-	// view set
-	viewSQL, err := op.AlertViewCreate(obj, filtersDB)
-	ups := make(map[string]interface{}, 0)
-	ups["view"] = viewSQL
-	err = db.AlarmUpdate(tx, obj.ID, ups)
-
-	// rule store
-	err = service.Alarm.RuleStore(instance, obj, exp)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, "alarm create failed 05: "+err.Error(), nil)
-		return
-	}
-	resp, errReload := http.Post(strings.TrimSuffix(instance.PrometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
-	if errReload != nil {
-		tx.Rollback()
-		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"), elog.Any("err", errReload.Error()))
-		c.JSONE(1, "create failed: prometheus reload failed", nil)
-		return
-	}
-	defer func() { _ = resp.Body.Close() }()
-
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 06: "+err.Error(), nil)
@@ -133,52 +82,35 @@ func Update(c *core.Context) {
 	ups["uid"] = c.Uid()
 	if err := db.AlarmUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "update failed: "+err.Error(), nil)
+		c.JSONE(1, "update failed 01: "+err.Error(), nil)
 		return
 	}
 	// filter
 	if err := db.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "update failed: "+err.Error(), nil)
+		c.JSONE(1, "update failed 02: "+err.Error(), nil)
 		return
-	}
-	for _, filter := range req.Filters {
-		filterObj := &db.AlarmFilter{
-			AlarmId:        id,
-			When:           filter.When,
-			SetOperatorTyp: filter.SetOperatorTyp,
-			SetOperatorExp: filter.SetOperatorExp,
-		}
-		if err := db.AlarmFilterCreate(tx, filterObj); err != nil {
-			tx.Rollback()
-			c.JSONE(1, "create failed: "+err.Error(), nil)
-			return
-		}
 	}
 	// condition
 	if err := db.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "update failed: "+err.Error(), nil)
+		c.JSONE(1, "update failed 03: "+err.Error(), nil)
 		return
 	}
-	for _, condition := range req.Conditions {
-		conditionObj := &db.AlarmCondition{
-			AlarmId:        id,
-			SetOperatorTyp: condition.SetOperatorTyp,
-			SetOperatorExp: condition.SetOperatorExp,
-			Cond:           condition.Cond,
-			Val1:           condition.Val1,
-			Val2:           condition.Val2,
-		}
-		if err := db.AlarmConditionCreate(tx, conditionObj); err != nil {
-			tx.Rollback()
-			c.JSONE(1, "create failed: "+err.Error(), nil)
-			return
-		}
-	}
-	if err := tx.Commit().Error; err != nil {
+	obj, err := db.AlarmInfo(tx, id)
+	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "update failed 04: "+err.Error(), nil)
+		return
+	}
+	if err = service.Alarm.CreateOrUpdate(tx, &obj, req); err != nil {
+		tx.Rollback()
+		c.JSONE(1, "update failed 05:"+err.Error(), nil)
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSONE(1, "update failed 06:"+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -245,11 +177,14 @@ func Info(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	user, _ := db.UserInfo(alarmInfo.Uid)
 	res := view.ReqAlarmInfo{
 		Alarm:      alarmInfo,
 		Filters:    filters,
 		Conditions: conditions,
+		User:       user,
 	}
+	res.Password = "*"
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
