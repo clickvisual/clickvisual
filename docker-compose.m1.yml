@@ -144,7 +144,7 @@ services:
       - mogo-net
     image: fhalim/prom2click:latest
     command:
-      - '-ch.dsn=tcp://clickhouse:8123'
+      - '-ch.dsn=tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeou=10&debug=true'
       - '-ch.db=metrics'
       - '-ch.table=samples'
     expose:
@@ -203,4 +203,19 @@ services:
     volumes:
       - ./data/all-in-one/mogo/config:/mogo/config
       - ./data/all-in-one/prometheus/rules:/mogo/rules
-    command: [ '/bin/sh', '-c', './bin/mogo -job install && ./bin/mogo' ]
+    command: [ '/bin/sh', '-c', './bin/mogo' ]
+  init:
+    image: sevennt/mogo:master
+    networks:
+      - mogo-net
+    environment:
+      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_LOG_WRITER: stderr
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    restart: always
+    volumes:
+      - ./data/all-in-one/mogo/config:/mogo/config
+    command: [ '/bin/sh', '-c', './bin/mogo -job install' ]
