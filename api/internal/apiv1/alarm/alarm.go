@@ -219,3 +219,8 @@ func Delete(c *core.Context) {
 	}
 	c.JSONOK()
 }
+
+func Webhook(c *core.Context) {
+	c.JSONOK()
+	return
+}

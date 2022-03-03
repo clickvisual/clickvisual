@@ -8,4 +8,4 @@ route:
 receivers:
   - name: 'webhook'
     webhook_configs:
-      - url: 'http://xxx:8080/public/prometheus/alerts'
+      - url: 'http://api:19001/api/v1/prometheus/alerts'

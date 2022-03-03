@@ -127,5 +127,8 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/alarms/:id", core.Handle(alarm.Update))
 		v1.DELETE("/alarms/:id", core.Handle(alarm.Delete))
 	}
+
+	v1.GET("/prometheus/alerts", core.Handle(alarm.Webhook))
+
 	return r
 }
