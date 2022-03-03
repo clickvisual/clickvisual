@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <yandex>
     <graphite_rollup>
         <path_column_name>tags</path_column_name>
