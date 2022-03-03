@@ -204,7 +204,7 @@ services:
       - ./data/all-in-one/mogo/config:/mogo/config
       - ./data/all-in-one/prometheus/rules:/mogo/rules
     command: [ '/bin/sh', '-c', './bin/mogo' ]
-  init:
+  mock:
     image: sevennt/mogo:master
     networks:
       - mogo-net
