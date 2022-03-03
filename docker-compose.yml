@@ -202,4 +202,19 @@ services:
     volumes:
       - ./data/all-in-one/mogo/config:/mogo/config
       - ./data/all-in-one/prometheus/rules:/mogo/rules
-    command: [ '/bin/sh', '-c', './bin/mogo -job install && ./bin/mogo' ]
+    command: [ '/bin/sh', '-c', './bin/mogo' ]
+  mock:
+    image: sevennt/mogo:master
+    networks:
+      - mogo-net
+    environment:
+      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_LOG_WRITER: stderr
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    restart: always
+    volumes:
+      - ./data/all-in-one/mogo/config:/mogo/config
+    command: [ '/bin/sh', '-c', './bin/mogo -job install' ]

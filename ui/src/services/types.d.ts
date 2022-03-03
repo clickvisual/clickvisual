@@ -18,4 +18,16 @@ declare namespace API {
     data: T[];
     pagination: Pagination;
   }
+
+  interface CurrentUser {
+    nickname?: string;
+    username?: string;
+    uid?: number;
+    id?: number;
+    email?: string;
+    avatar?: string;
+    access?: string;
+    oauth?: string | number;
+    oauthId?: string | number;
+  }
 }

@@ -15,7 +15,7 @@ import { FetchCurrentUserInfo } from "@/services/users";
 export interface InitialStateType {
   settings: ProSettings;
   menus: MenuDataItem[];
-  currentUser?: any;
+  currentUser?: API.CurrentUser;
 }
 
 const fetchMenu = async () => {

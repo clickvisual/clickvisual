@@ -13,6 +13,11 @@ permission:
         path: /api/query/tables
   - name: alarm
     path: /alarm
+    children:
+      - name: rules
+        path: /alarm/rules
+#      - name: notifications
+#        path: /alarm/notifications
   - name: configure
     path: /configure
   - name: systemSettings
