@@ -50,6 +50,8 @@ export default {
   "menu.configure": "Config",
   "menu.log": "Logs",
   "menu.alarm": "Alarm",
+  "menu.alarm.rules": "Alarm rules",
+  "menu.alarm.notifications": "Notification channel",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
@@ -227,6 +229,9 @@ export default {
   "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
   "datasource.logLibrary.search.created": "Creating a Log library",
+  "datasource.deleted.content": "Confirm deleting database: {database}?",
+  "datasource.deleted.loading": "Deleting a database: {database}...",
+  "datasource.deleted.success": "Delete database: {database} succeeded",
 
   "datasource.logLibrary.from.tableName": "Table Name",
   "datasource.logLibrary.from.rule.tableName":
@@ -352,37 +357,43 @@ export default {
   "dateTime.option.years": "{num} year{plural}",
 
   // Alarm
-  // Operations
-  "alarm.selected.placeholder.database": "Please select database",
-  "alarm.selected.placeholder.logLibrary": "Please select log library",
-  "alarm.button.created": "Create Alarm",
-  "alarm.table.alarmName": "Alarm Name",
-  "alarm.form.title": "Alarm Monitoring Rule",
-  "alarm.form.alarmName": "Alarm Name",
-  "alarm.form.description": "Alarm Description",
-  "alarm.form.placeholder.alarmName": "Please enter a alarm name",
-  "alarm.form.placeholder.description": "Please enter an alarm description",
-  "alarm.form.rule.alarmName":
+  // Rules
+  "alarm.rules.selected.placeholder.database": "Please select database",
+  "alarm.rules.selected.placeholder.logLibrary": "Please select log library",
+  "alarm.rules.button.created": "Create Alarm",
+  "alarm.rules.table.alarmName": "Alarm Name",
+  "alarm.rules.form.title": "Alarm Monitoring Rule",
+  "alarm.rules.form.alarmName": "Alarm Name",
+  "alarm.rules.form.description": "Alarm Description",
+  "alarm.rules.form.placeholder.alarmName": "Please enter a alarm name",
+  "alarm.rules.form.placeholder.description":
+    "Please enter an alarm description",
+  "alarm.rules.form.rule.alarmName":
     "Please enter lowercase letters, uppercase letters, or underscores",
-  "alarm.inspectionFrequency": "Inspection Frequency",
-  "alarm.form.inspectionStatistics": "Inspection Statistics",
-  "alarm.form.inspectionStatistics.error":
+  "alarm.rules.inspectionFrequency": "Inspection Frequency",
+  "alarm.rules.form.inspectionStatistics": "Inspection Statistics",
+  "alarm.rules.form.inspectionStatistics.error":
     "At least you need to add a inspection statistics",
-  "alarm.form.triggerCondition": "Trigger condition",
-  "alarm.form.triggerCondition.error":
+  "alarm.rules.form.triggerCondition": "Trigger condition",
+  "alarm.rules.form.triggerCondition.error":
     "At least you need to add a trigger condition",
-  "alarm.form.preview": "Preview",
-  "alarm.form.notPreview.content": "Please click preview first",
-  "alarm.inspectionFrequency.selectOption.logLibrary": "Log Library",
-  "alarm.inspectionFrequency.between": "Between",
-  "alarm.inspectionFrequency.database": "Database",
-  "alarm.inspectionFrequency.placeholder.database": "Please select database",
-  "alarm.inspectionFrequency.logLibrary": "Table",
-  "alarm.inspectionFrequency.placeholder.logLibrary": "Please select a table",
+  "alarm.rules.form.preview": "Preview",
+  "alarm.rules.form.notPreview.content": "Please click preview first",
+  "alarm.rules.inspectionFrequency.selectOption.logLibrary": "Log Library",
+  "alarm.rules.inspectionFrequency.between": "Between",
+  "alarm.rules.inspectionFrequency.database": "Database",
+  "alarm.rules.inspectionFrequency.placeholder.database":
+    "Please select database",
+  "alarm.rules.inspectionFrequency.logLibrary": "Table",
+  "alarm.rules.inspectionFrequency.placeholder.logLibrary":
+    "Please select a table",
 
-  "alarm.created": "Create alarm success",
-  "alarm.updated": "Update alarm success",
-  "alarm.deleted": "Delete alarm success",
-  "alarm.deleted.loading": "Deleting alarm...",
-  "alarm.deleted.content": "Are you sure to delete alarm: {alarm}?",
+  "alarm.rules.created": "Create alarm success",
+  "alarm.rules.updated": "Update alarm success",
+  "alarm.rules.deleted": "Delete alarm success",
+  "alarm.rules.deleted.loading": "Deleting alarm...",
+  "alarm.rules.deleted.content": "Are you sure to delete alarm: {alarm}?",
+
+  // Notifications
+  "alarm.notice.button.created": "Create Channel",
 };

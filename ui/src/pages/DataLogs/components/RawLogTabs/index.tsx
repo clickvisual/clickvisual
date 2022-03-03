@@ -4,6 +4,7 @@ import QueryResult from "@/pages/DataLogs/components/QueryResult";
 import { useModel } from "@@/plugin-model/useModel";
 import lodash from "lodash";
 import { useIntl } from "umi";
+import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 
 const { TabPane } = Tabs;
 
@@ -18,6 +19,7 @@ const RawLogTabs = () => {
   } = useModel("dataLogs");
 
   const i18n = useIntl();
+  const { handleChangeRelativeAmountAndUnit } = useTimeOptions();
 
   const onEdit = (currentKey: any, action: any) => {
     if (!currentKey || action !== "remove") return;
@@ -37,6 +39,7 @@ const RawLogTabs = () => {
         tableName: resultPanes[0].pane,
       });
       onChangeCurrentLogPane(resultPanes[0]);
+      handleChangeRelativeAmountAndUnit(resultPanes[0]);
     }
   };
 
@@ -46,7 +49,10 @@ const RawLogTabs = () => {
     onChangeLogLibrary(currentPane);
     const currentPanes = lodash.cloneDeep(logPanes);
     const tabPane = currentPanes.find((item) => item.paneId === currentPane.id);
-    if (tabPane) onChangeCurrentLogPane(tabPane);
+    if (tabPane) {
+      onChangeCurrentLogPane(tabPane);
+      handleChangeRelativeAmountAndUnit(tabPane);
+    }
   };
 
   return (

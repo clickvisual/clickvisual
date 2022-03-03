@@ -173,7 +173,7 @@ const CreatedAndUpdatedModal = ({
     if (!onClickPreview.current) {
       Modal.warning({
         content: i18n.formatMessage({
-          id: "alarm.form.notPreview.content",
+          id: "alarm.rules.form.notPreview.content",
         }),
       });
       return;
@@ -184,7 +184,6 @@ const CreatedAndUpdatedModal = ({
   useEffect(() => {
     if (visible && modalForm.current) {
       doGetDatabaseList();
-      console.log("operations: ", operations);
       if (operations.selectDid) {
         modalForm.current.setFieldsValue({ databaseId: operations.selectDid });
         getLogLibraries.run(operations.selectDid);
@@ -205,7 +204,9 @@ const CreatedAndUpdatedModal = ({
   return (
     <Modal
       centered
-      title={i18n.formatMessage({ id: "alarm.form.inspectionStatistics" })}
+      title={i18n.formatMessage({
+        id: "alarm.rules.form.inspectionStatistics",
+      })}
       visible={visible}
       width={800}
       onOk={onSubmit}
@@ -229,14 +230,14 @@ const CreatedAndUpdatedModal = ({
           <Select disabled>
             <Option value={1}>
               {i18n.formatMessage({
-                id: "alarm.inspectionFrequency.selectOption.logLibrary",
+                id: "alarm.rules.inspectionFrequency.selectOption.logLibrary",
               })}
             </Option>
           </Select>
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "alarm.inspectionFrequency.between",
+            id: "alarm.rules.inspectionFrequency.between",
           })}
           name={"between"}
           initialValue={[
@@ -248,7 +249,7 @@ const CreatedAndUpdatedModal = ({
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "alarm.inspectionFrequency.database",
+            id: "alarm.rules.inspectionFrequency.database",
           })}
           name={"databaseId"}
           rules={[{ required: true }]}
@@ -257,7 +258,7 @@ const CreatedAndUpdatedModal = ({
             disabled={isDisable}
             showSearch
             placeholder={`${i18n.formatMessage({
-              id: "alarm.inspectionFrequency.placeholder.database",
+              id: "alarm.rules.inspectionFrequency.placeholder.database",
             })}`}
             onChange={(id: number) => {
               getLogLibraries.run(id);
@@ -283,14 +284,14 @@ const CreatedAndUpdatedModal = ({
             return (
               <Form.Item
                 label={i18n.formatMessage({
-                  id: "alarm.inspectionFrequency.logLibrary",
+                  id: "alarm.rules.inspectionFrequency.logLibrary",
                 })}
                 name={"tableId"}
                 rules={[{ required: true }]}
               >
                 <Select
                   placeholder={`${i18n.formatMessage({
-                    id: "alarm.inspectionFrequency.placeholder.logLibrary",
+                    id: "alarm.rules.inspectionFrequency.placeholder.logLibrary",
                   })}`}
                   showSearch
                   onChange={() => handleChangeLogLibrary()}
@@ -328,7 +329,7 @@ const CreatedAndUpdatedModal = ({
                       handlePreview(fields);
                     }}
                   >
-                    {i18n.formatMessage({ id: "alarm.form.preview" })}
+                    {i18n.formatMessage({ id: "alarm.rules.form.preview" })}
                   </Button>
                 </Input.Group>
                 {showTable && (

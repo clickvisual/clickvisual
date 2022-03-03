@@ -1,4 +1,4 @@
-import alarmStyles from "@/pages/Alarm/styles/index.less";
+import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
 import { Button, Divider, message, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
@@ -41,13 +41,13 @@ const AlarmTable = () => {
   const handleDelete = (record: AlarmType) => {
     DeletedModal({
       content: i18n.formatMessage(
-        { id: "alarm.deleted.content" },
+        { id: "alarm.rules.deleted.content" },
         { alarm: record.alarmName }
       ),
       onOk: () => {
         const hideMessage = message.loading(
           {
-            content: i18n.formatMessage({ id: "alarm.deleted.loading" }),
+            content: i18n.formatMessage({ id: "alarm.rules.deleted.loading" }),
             key: "alarm",
           },
           0
@@ -55,11 +55,14 @@ const AlarmTable = () => {
         doDeletedAlarm
           .run(record.id)
           .then((res) => {
-            if (res?.code !== 0) hideMessage();
+            if (res?.code !== 0) {
+              hideMessage();
+              return;
+            }
             doGetAlarms.run(searchQuery);
             message.success(
               {
-                content: i18n.formatMessage({ id: "alarm.deleted" }),
+                content: i18n.formatMessage({ id: "alarm.rules.deleted" }),
                 key: "alarm",
               },
               3
@@ -76,12 +79,12 @@ const AlarmTable = () => {
 
   const column: ColumnsType<any> = [
     {
-      title: i18n.formatMessage({ id: "alarm.table.alarmName" }),
+      title: i18n.formatMessage({ id: "alarm.rules.table.alarmName" }),
       dataIndex: "alarmName",
       align: "center",
     },
     {
-      title: i18n.formatMessage({ id: "alarm.inspectionFrequency" }),
+      title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
       dataIndex: "interval",
       align: "center",
       render: (interval: number, record: AlarmType) => {

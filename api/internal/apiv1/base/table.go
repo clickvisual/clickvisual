@@ -295,6 +295,10 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	if param.Query == "" {
+		c.JSONE(core.CodeErr, "Query parameter error. Refer to the ClickHouse WHERE syntax. https://clickhouse.com/docs/zh/sql-reference/statements/select/where/", nil)
+		return
+	}
 	res, err := op.GET(param, tableInfo.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)

@@ -1,12 +1,13 @@
 import { Button, Drawer, Form, FormInstance, Input, Space, Spin } from "antd";
-import InspectionFrequencyItem from "@/pages/Alarm/components/FormAlarmDraw/InspectionFrequencyItem";
-import QueryStatisticsItem from "@/pages/Alarm/components/FormAlarmDraw/QueryStatisticsItem";
+import InspectionFrequencyItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem";
+import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useEffect, useRef } from "react";
-import TriggerConditionItem from "@/pages/Alarm/components/FormAlarmDraw/TriggerConditionItem";
+import TriggerConditionItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem";
 import TextArea from "antd/es/input/TextArea";
 import { SaveOutlined } from "@ant-design/icons";
+import { AlarmRequest } from "@/services/alarm";
 
 const FormAlarmDraw = () => {
   const {
@@ -36,14 +37,14 @@ const FormAlarmDraw = () => {
     alarmFormRef.current.submit();
   };
 
-  const doCreated = (field: any) => {
+  const doCreated = (field: AlarmRequest) => {
     alarmDraw.doCreatedAlarm.run(field).then((res) => {
       if (res?.code !== 0) return;
       doGetAlarms.run(searchQuery);
       handleClose();
     });
   };
-  const doUpdated = (field: any) => {
+  const doUpdated = (field: AlarmRequest) => {
     if (!currentRowAlarm) return;
     alarmDraw.doUpdatedAlarm.run(currentRowAlarm.id, field).then((res) => {
       if (res?.code !== 0) return;
@@ -52,7 +53,7 @@ const FormAlarmDraw = () => {
     });
   };
 
-  const handleSubmit = (field: any) => {
+  const handleSubmit = (field: AlarmRequest) => {
     !alarmDraw.isEditor ? doCreated(field) : doUpdated(field);
   };
 
@@ -77,7 +78,7 @@ const FormAlarmDraw = () => {
     <Drawer
       closable
       destroyOnClose
-      title={i18n.formatMessage({ id: "alarm.form.title" })}
+      title={i18n.formatMessage({ id: "alarm.rules.form.title" })}
       visible={alarmDraw.visibleDraw}
       placement="right"
       onClose={handleClose}
@@ -107,26 +108,26 @@ const FormAlarmDraw = () => {
       <Spin spinning={alarmDraw.doGetAlarmInfo.loading}>
         <Form layout={"vertical"} ref={alarmFormRef} onFinish={handleSubmit}>
           <Form.Item
-            label={i18n.formatMessage({ id: "alarm.form.alarmName" })}
+            label={i18n.formatMessage({ id: "alarm.rules.form.alarmName" })}
             name={"alarmName"}
             rules={[
               {
                 required: true,
                 message: i18n.formatMessage({
-                  id: "alarm.form.placeholder.alarmName",
+                  id: "alarm.rules.form.placeholder.alarmName",
                 }),
               },
               {
-                pattern: new RegExp("^[a-zA-Z_]{0,64}$"),
+                pattern: new RegExp("^[a-zA-Z1-9_]{0,64}$"),
                 message: i18n.formatMessage({
-                  id: "alarm.form.rule.alarmName",
+                  id: "alarm.rules.form.rule.alarmName",
                 }),
               },
             ]}
           >
             <Input
               placeholder={`${i18n.formatMessage({
-                id: "alarm.form.placeholder.alarmName",
+                id: "alarm.rules.form.placeholder.alarmName",
               })}`}
             />
           </Form.Item>
@@ -134,14 +135,14 @@ const FormAlarmDraw = () => {
           <QueryStatisticsItem />
           <TriggerConditionItem />
           <Form.Item
-            label={i18n.formatMessage({ id: "alarm.form.description" })}
+            label={i18n.formatMessage({ id: "alarm.rules.form.description" })}
             name={"desc"}
           >
             <TextArea
               allowClear
               autoSize={{ minRows: 5, maxRows: 5 }}
               placeholder={`${i18n.formatMessage({
-                id: "alarm.form.placeholder.description",
+                id: "alarm.rules.form.placeholder.description",
               })}`}
             />
           </Form.Item>

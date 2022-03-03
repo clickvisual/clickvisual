@@ -325,7 +325,7 @@ const DataLogsModel = () => {
     }
   };
 
-  const doGetDatabaseList = (selectedInstance?: number | undefined) => {
+  const doGetDatabaseList = (selectedInstance?: number) => {
     getDatabases.run(selectedInstance);
   };
 
