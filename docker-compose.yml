@@ -114,6 +114,7 @@ services:
       - ./data/all-in-one/clickhouse/database:/var/lib/clickhouse
       - ./data/all-in-one/clickhouse/logs:/var/log
       - ./data/all-in-one/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
+      - ./data/all-in-one/clickhouse/conf/config.d:/etc/clickhouse-server/config.d
     restart: always
     links:
       - kafka
@@ -142,7 +143,6 @@ services:
       - mogo-net
     image: fhalim/prom2click:latest
     command:
-      - /usr/local/bin/prom2click
       - '-ch.dsn=tcp://clickhouse:8123'
       - '-ch.db=metrics'
       - '-ch.table=samples'
