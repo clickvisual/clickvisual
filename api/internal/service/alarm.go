@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
 	"gorm.io/gorm"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/resource"
@@ -101,7 +103,7 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	return
 }
 
-func (i *alarm) RuleStore(instance db.Instance, obj *db.Alarm, exp string) (err error) {
+func (i *alarm) RuleStore(instance db.Instance, obj *db.Alarm, exp string) (rule string, err error) {
 	template := `groups:
 - name: default
   rules:
@@ -113,30 +115,83 @@ func (i *alarm) RuleStore(instance db.Instance, obj *db.Alarm, exp string) (err 
     annotations:
       summary: "告警 {{ $labels.name }}"
       description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
-	newRule := fmt.Sprintf(template, obj.Name, exp, obj.AlertInterval())
+	rule = fmt.Sprintf(template, obj.Name, exp, obj.AlertInterval())
 	switch instance.RuleStoreType {
 	case RuleStoreTypeK8s:
 		elog.Debug("alert", elog.Any("instance", instance))
 		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
 		if errCluster != nil {
-			return errCluster
+			return rule, errCluster
 		}
-		rule := make(map[string]string)
-		rule[obj.AlertRuleName()] = newRule
-		elog.Debug("alert", elog.Any("rule", rule))
-		err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rule)
+		rules := make(map[string]string)
+		rules[obj.AlertRuleName()] = rule
+		elog.Debug("alert", elog.Any("rules", rules))
+		err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rules)
 		if err != nil {
 			return
 		}
 	case RuleStoreTypeFile:
-		content := []byte(newRule)
+		content := []byte(rule)
 		path := strings.TrimSuffix(instance.FilePath, "/")
 		err = ioutil.WriteFile(path+"/"+obj.AlertRuleName(), content, 0644)
 		if err != nil {
 			return
 		}
 	default:
-		return constx.ErrAlarmRuleStoreIsClosed
+		return rule, constx.ErrAlarmRuleStoreIsClosed
 	}
+	return rule, nil
+}
+
+func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCreate) (err error) {
+	filtersDB, err := i.FilterCreate(tx, obj.ID, req.Filters)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "alarm create failed 02"), elog.String("err", err.Error()))
+		return
+	}
+	exp, err := i.ConditionCreate(tx, obj, req.Conditions)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "alarm create failed 03"), elog.String("err", err.Error()))
+		return
+	}
+	// table info
+	tableInfo, err := db.TableInfo(invoker.Db, obj.Tid)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
+		return
+	}
+	// prometheus set
+	instance, err := db.InstanceInfo(tx, tableInfo.Database.Iid)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
+		return
+	}
+	op, err := InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "alarm create failed 04"), elog.String("err", err.Error()))
+		return
+	}
+	// view set
+	viewSQL, err := op.AlertViewCreate(obj, filtersDB)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
+		return
+	}
+	// rule store
+	rule, err := i.RuleStore(instance, obj, exp)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "alarm create failed 06"), elog.String("err", err.Error()))
+		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["view"] = viewSQL
+	ups["alert_rule"] = rule
+	err = db.AlarmUpdate(tx, obj.ID, ups)
+	resp, errReload := http.Post(strings.TrimSuffix(instance.PrometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
+	if errReload != nil {
+		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"), elog.Any("err", errReload.Error()))
+		return
+	}
+	defer func() { _ = resp.Body.Close() }()
 	return nil
 }

@@ -11,8 +11,8 @@ const useTimeUnits = () => {
   ];
 
   const FixedTimeUnits = [
-    { key: 0, label: i18n.formatMessage({ id: "unit.minute" }) },
     { key: 1, label: i18n.formatMessage({ id: "unit.second" }) },
+    { key: 0, label: i18n.formatMessage({ id: "unit.minute" }) },
     { key: 2, label: i18n.formatMessage({ id: "unit.hour" }) },
     { key: 3, label: i18n.formatMessage({ id: "unit.day" }) },
     { key: 4, label: i18n.formatMessage({ id: "unit.week" }) },

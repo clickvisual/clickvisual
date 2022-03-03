@@ -25,7 +25,7 @@ spec:
           image: fhalim/prom2click:latest
           imagePullPolicy: IfNotPresent
           args:
-            - '-ch.dsn=tcp://127.0.0.1:8123'
+            - '-ch.dsn=tcp://127.0.0.1:9000'
             - '-ch.db=metrics'
             - '-ch.table=samples'
           command:

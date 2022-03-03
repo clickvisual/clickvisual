@@ -36,9 +36,9 @@ var typORM = map[int]string{
 }
 
 var jsonExtractORM = map[int]string{
-	0: "JSONExtractString",
-	1: "JSONExtractInt",
-	2: "JSONExtractFloat",
+	0: "toString",
+	1: "toInt64OrZero",
+	2: "toFloat64OrZero",
 }
 
 type ClickHouse struct {
@@ -65,7 +65,7 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, er
 	var jsonExtractSQL string
 	jsonExtractSQL = ","
 	for _, obj := range indexes {
-		jsonExtractSQL += fmt.Sprintf("%s(_log_, '%s') AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
+		jsonExtractSQL += fmt.Sprintf("%s(JSONExtractRaw(_log_, '%s')) AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
 	return jsonExtractSQL, nil

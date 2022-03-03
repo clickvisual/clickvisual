@@ -97,4 +97,9 @@ export default {
       data,
     });
   },
+
+  // Delete database
+  async deletedDatabase(id: number) {
+    return request(`/api/v1/databases/${id}`, { method: "DELETE" });
+  },
 };

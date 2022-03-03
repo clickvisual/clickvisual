@@ -62,7 +62,6 @@ const Configure = () => {
 
   useEffect(() => {
     setUrlQuery.run();
-    console.log("currentConfiguration", currentConfiguration);
   }, [
     selectedConfigMap,
     selectedNameSpace,

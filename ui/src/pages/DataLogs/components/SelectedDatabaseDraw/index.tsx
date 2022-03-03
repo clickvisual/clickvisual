@@ -1,5 +1,5 @@
 import databaseDrawStyle from "@/pages/DataLogs/components/SelectedDatabaseDraw/index.less";
-import { Button, Drawer, Select, Space, Table, Tooltip } from "antd";
+import { Button, Drawer, message, Select, Space, Table, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import type { DatabaseResponse } from "@/services/dataLogs";
 import type { AlignType } from "rc-table/lib/interface";
@@ -11,11 +11,15 @@ import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDr
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
+import DeletedModal from "@/components/DeletedModal";
+import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
 
 const { Option } = Select;
 const SelectedDataBaseDraw = () => {
   const {
     databaseList,
+    currentDatabase,
+    onChangeCurrentDatabase,
     getDatabases,
     visibleDataBaseDraw,
     doSelectedDatabase,
@@ -31,10 +35,55 @@ const SelectedDataBaseDraw = () => {
     selectedInstance,
     onChangeSelectedInstance,
   } = useModel("instances");
-  const { onChangeCreatedDatabaseModal } = useModel("database");
+  const { deletedDatabase, onChangeCreatedDatabaseModal } =
+    useModel("database");
   const i18n = useIntl();
 
   const datasourceTypeList = [{ name: "ClickHouse", value: "ch" }];
+
+  const doDeletedDatabase = (record: DatabaseResponse) => {
+    DeletedModal({
+      content: i18n.formatMessage(
+        { id: "datasource.deleted.content" },
+        { database: record.name }
+      ),
+      onOk: () => {
+        const hideMessage = message.loading(
+          {
+            content: i18n.formatMessage(
+              { id: "datasource.deleted.loading" },
+              { database: record.name }
+            ),
+            key: "database",
+          },
+          0
+        );
+        deletedDatabase
+          .run(record.id)
+          .then((res) => {
+            if (res?.code !== 0) {
+              hideMessage();
+              return;
+            }
+            if (currentDatabase?.id === record.id) {
+              onChangeCurrentDatabase(undefined);
+            }
+            doGetDatabaseList(selectedInstance);
+            message.success(
+              {
+                content: i18n.formatMessage(
+                  { id: "datasource.deleted.success" },
+                  { database: record.name }
+                ),
+                key: "database",
+              },
+              3
+            );
+          })
+          .catch(() => hideMessage());
+      },
+    });
+  };
 
   useEffect(() => {
     if (visibleDataBaseDraw) doGetDatabaseList(selectedInstance);
@@ -80,7 +129,7 @@ const SelectedDataBaseDraw = () => {
       title: i18n.formatMessage({ id: "datasource.draw.table.instance" }),
       dataIndex: "iid",
       align: "center" as AlignType,
-      width: "30%",
+      width: "25%",
       render: (iid: number) => {
         const instance = instanceList.find((item) => item.id === iid);
         if (!instance) return <span>-</span>;
@@ -94,7 +143,7 @@ const SelectedDataBaseDraw = () => {
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.type" }),
       dataIndex: "datasourceType",
-      width: "30%",
+      width: "25%",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
       render: (datasourceType: string) => {
@@ -119,6 +168,21 @@ const SelectedDataBaseDraw = () => {
           </Tooltip>
         );
       },
+    },
+    {
+      title: i18n.formatMessage({ id: "operation" }),
+      key: "operation",
+      align: "center" as AlignType,
+      width: "10%",
+      render: (_: any, record: DatabaseResponse) => (
+        <Tooltip title={i18n.formatMessage({ id: "delete" })}>
+          <IconFont
+            onClick={() => doDeletedDatabase(record)}
+            className={viewDrawStyles.buttonIcon}
+            type={"icon-delete"}
+          />
+        </Tooltip>
+      ),
     },
   ];
   return (
@@ -175,7 +239,7 @@ const SelectedDataBaseDraw = () => {
       closable
       visible={visibleDataBaseDraw}
       getContainer={false}
-      width={"35vw"}
+      width={"40vw"}
       onClose={() => onChangeVisibleDatabaseDraw(false)}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}

@@ -195,7 +195,7 @@ export default {
   },
 
   // Get a list of databases
-  async getDatabaseList(iid: number | undefined) {
+  async getDatabaseList(iid?: number) {
     return request<API.Res<DatabaseResponse[]>>(
       `/api/v1/instances/${iid || 0}/databases`,
       {

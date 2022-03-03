@@ -18,7 +18,9 @@ const LogItemDetails = () => {
         return item.field;
       }) || [];
 
-    let keys: string[] = Object.keys(log).sort();
+    let keys: string[] = Object.keys(log)
+      .sort()
+      .filter((key) => !hiddenFields.includes(key));
     let rawLogKeys: any[] = [];
     const rawLogJson = parseJsonObject(log["_raw_log_"]);
     let newLog: any = log;
@@ -29,12 +31,10 @@ const LogItemDetails = () => {
       );
       newLog = Object.assign(rawLogJson, log);
 
-      keys = [...keys, ...rawLogKeys]
-        .filter((key, index) => {
-          const preIdx = keys.indexOf(key);
-          return preIdx < 0 || preIdx === index;
-        })
-        .filter((key) => !hiddenFields.includes(key));
+      keys = [...keys, ...rawLogKeys].filter((key, index) => {
+        const preIdx = keys.indexOf(key);
+        return preIdx < 0 || preIdx === index;
+      });
       delete newLog._raw_log_;
       keys = keys.filter((key) => key !== "_raw_log_");
     }
@@ -50,17 +50,17 @@ const LogItemDetails = () => {
   return (
     <div className={logItemStyles.details}>
       {keys.length > 0 &&
-        keys.map((keyItem, index) => {
+        keys.map((keyItem) => {
           let flag = false;
           if (highlightKeywords) {
             flag = !!highlightKeywords.find((item) => item.key === keyItem);
           }
           const isRawLog =
             (rawLogJson && rawLogKeys.includes(keyItem)) ||
-            keyItem === "_row_log_";
+            keyItem === "_raw_log_";
           const notQuery = ["_time_nanosecond_"].includes(keyItem);
           return (
-            <div key={index} className={logItemStyles.logLine}>
+            <div key={keyItem} className={logItemStyles.logLine}>
               <div
                 className={classNames(
                   logItemStyles.logKey,

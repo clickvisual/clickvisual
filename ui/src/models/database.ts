@@ -13,12 +13,17 @@ const Database = () => {
     },
   });
 
+  const deletedDatabase = useRequest(api.deletedDatabase, {
+    loadingText: false,
+  });
+
   const onChangeCreatedDatabaseModal = (visible: boolean) => {
     setVisibleModal(visible);
   };
 
   return {
     createdDatabase,
+    deletedDatabase,
     visibleCreatedDatabaseModal: visibleModal,
     onChangeCreatedDatabaseModal,
   };

@@ -1,6 +1,6 @@
-import queryStatisticsStyles from "@/pages/Alarm/components/FormAlarmDraw/QueryStatisticsItem/index.less";
+import queryStatisticsStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem/index.less";
 import { Button, Form, Input, Space } from "antd";
-import CreatedAndUpdatedModal from "@/pages/Alarm/components/FormAlarmDraw/QueryStatisticsItem/CreatedAndUpdatedModal";
+import CreatedAndUpdatedModal from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem/CreatedAndUpdatedModal";
 import { useRef, useState } from "react";
 import { FormListOperation } from "antd/es/form/FormList";
 import { useIntl } from "umi";
@@ -21,7 +21,7 @@ const QueryStatisticsItem = () => {
     <Form.Item
       required
       label={i18n.formatMessage({
-        id: "alarm.form.inspectionStatistics",
+        id: "alarm.rules.form.inspectionStatistics",
       })}
     >
       <Form.List
@@ -33,7 +33,7 @@ const QueryStatisticsItem = () => {
                 return Promise.reject(
                   new Error(
                     i18n.formatMessage({
-                      id: "alarm.form.inspectionStatistics.error",
+                      id: "alarm.rules.form.inspectionStatistics.error",
                     })
                   )
                 );

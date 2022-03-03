@@ -1,4 +1,4 @@
-import alarmStyles from "@/pages/Alarm/styles/index.less";
+import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
 import { Button, Input, Select, Space } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
@@ -8,11 +8,13 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 const { Option } = Select;
 const Operations = () => {
-  const { databaseList, logLibraryList, getLogLibraries, doGetDatabaseList } =
-    useModel("dataLogs");
+  // const { databaseList, logLibraryList, getLogLibraries, doGetDatabaseList } =
+  //   useModel("dataLogs");
 
   const { operations, alarmDraw, doGetAlarms, currentPagination } =
     useModel("alarm");
+
+  const { tableList, databaseList, getLogLibraries, getDatabases } = operations;
 
   const i18n = useIntl();
 
@@ -35,7 +37,7 @@ const Operations = () => {
   ).run;
 
   useEffect(() => {
-    doGetDatabaseList();
+    getDatabases.run();
   }, []);
 
   return (
@@ -53,7 +55,7 @@ const Operations = () => {
           }}
           className={alarmStyles.selectedBar}
           placeholder={`${i18n.formatMessage({
-            id: "alarm.selected.placeholder.database",
+            id: "alarm.rules.selected.placeholder.database",
           })}`}
         >
           {databaseList.length > 0 &&
@@ -74,18 +76,18 @@ const Operations = () => {
           }}
           className={alarmStyles.selectedBar}
           placeholder={`${i18n.formatMessage({
-            id: "alarm.selected.placeholder.logLibrary",
+            id: "alarm.rules.selected.placeholder.logLibrary",
           })}`}
         >
-          {logLibraryList.length > 0 &&
-            logLibraryList.map((item) => (
+          {tableList.length > 0 &&
+            tableList.map((item) => (
               <Option key={item.id} value={item.id}>
                 {item.tableName}
               </Option>
             ))}
         </Select>
         <Button icon={<PlusOutlined />} type="primary" onClick={handleOpenDraw}>
-          {i18n.formatMessage({ id: "alarm.button.created" })}
+          {i18n.formatMessage({ id: "alarm.rules.button.created" })}
         </Button>
       </Space>
       <Space>
@@ -94,7 +96,7 @@ const Operations = () => {
           className={alarmStyles.selectedBar}
           value={operations.inputName}
           placeholder={`${i18n.formatMessage({
-            id: "alarm.form.placeholder.alarmName",
+            id: "alarm.rules.form.placeholder.alarmName",
           })}`}
           onChange={(env) => operations.onChangeInputName(env.target.value)}
           onPressEnter={handleSearch}

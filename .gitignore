@@ -35,3 +35,8 @@ api/internal/ui/dist/*
 .umi/
 .umi-production/
 package-lock.json
+
+data/all-in-one/clickhouse/database/
+data/all-in-one/kafka/data/
+data/all-in-one/zookeeper/data/
+data/all-in-one/zookeeper/datalog/

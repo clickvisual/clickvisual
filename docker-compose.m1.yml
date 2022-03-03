@@ -74,7 +74,8 @@ services:
       - kafka
     restart: always
   mysql:
-    image: mysql:5.7.37
+    platform: linux/x86_64
+    image: mysql:5.7
     networks:
       - mogo-net
     environment:
@@ -100,7 +101,7 @@ services:
     restart: always
     command: [ '--port 6380' ]
   clickhouse:
-    image: clickhouse/clickhouse-server:latest
+    image: lunalabsltd/clickhouse-server:21.7.2.7-arm
     networks:
       - mogo-net
     environment:
@@ -113,8 +114,8 @@ services:
     volumes:
       - ./data/all-in-one/clickhouse/database:/var/lib/clickhouse
       - ./data/all-in-one/clickhouse/logs:/var/log
-      - ./data/all-in-one/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
-      - ./data/all-in-one/clickhouse/conf/config.d:/etc/clickhouse-server/config.d
+#      - ./data/all-in-one/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
+      - ./data/all-in-one/clickhouse/conf/conf.d:/etc/clickhouse-server/conf.d
     restart: always
     links:
       - kafka
@@ -184,7 +185,7 @@ services:
       EGO_CONFIG_PATH: /mogo/config/docker.toml
       EGO_LOG_WRITER: stderr
     ports:
-      - "19001:19001"
+      - 19001:19001
     depends_on:
       - mysql
       - redis
@@ -202,4 +203,19 @@ services:
     volumes:
       - ./data/all-in-one/mogo/config:/mogo/config
       - ./data/all-in-one/prometheus/rules:/mogo/rules
-    command: [ '/bin/sh', '-c', './bin/mogo -job install && ./bin/mogo' ]
+    command: [ '/bin/sh', '-c', './bin/mogo' ]
+  init:
+    image: sevennt/mogo:master
+    networks:
+      - mogo-net
+    environment:
+      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_LOG_WRITER: stderr
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    restart: always
+    volumes:
+      - ./data/all-in-one/mogo/config:/mogo/config
+    command: [ '/bin/sh', '-c', './bin/mogo -job install' ]
