@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<yandex>
+    <graphite_rollup>
+        <path_column_name>tags</path_column_name>
+        <time_column_name>ts</time_column_name>
+        <value_column_name>val</value_column_name>
+        <version_column_name>updated</version_column_name>
+        <default>
+            <function>avg</function>
+            <retention>
+                <age>0</age>
+                <precision>10</precision>
+            </retention>
+            <retention>
+                <age>86400</age>
+                <precision>30</precision>
+            </retention>
+            <retention>
+                <age>172800</age>
+                <precision>300</precision>
+            </retention>
+        </default>
+    </graphite_rollup>
+</yandex>
