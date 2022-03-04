@@ -1,9 +1,7 @@
-package alarm
+package view
 
 import (
 	"time"
-
-	"github.com/shimohq/mogo/api/pkg/component/core"
 )
 
 type Alert struct {
@@ -25,7 +23,18 @@ type Notification struct {
 	Alerts            []Alert           `json:"alerts"`
 }
 
-func Webhook(c *core.Context) {
-	c.JSONOK()
-	return
+type At struct {
+	AtMobiles []string `json:"atMobiles"`
+	IsAtAll   bool     `json:"isAtAll"`
+}
+
+type DingTalkMarkdown struct {
+	MsgType  string    `json:"msgtype"`
+	At       *At       `json:"at"`
+	Markdown *Markdown `json:"markdown"`
+}
+
+type Markdown struct {
+	Title string `json:"title"`
+	Text  string `json:"text"`
 }
