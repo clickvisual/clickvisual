@@ -11,7 +11,7 @@ import React from "react";
 import * as Icon from "@ant-design/icons/lib/icons";
 import Logo from "../public/logo.svg";
 import { FetchCurrentUserInfo } from "@/services/users";
-import {LOGIN_PATH} from "@/config/config";
+import { LOGIN_PATH } from "@/config/config";
 
 export interface InitialStateType {
   settings: ProSettings;
