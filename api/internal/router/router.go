@@ -40,6 +40,8 @@ func GetRouter() *egin.Component {
 	r.POST("/api/admin/users/login", core.Handle(user.Login))
 	r.GET("/api/admin/login/:oauth", core.Handle(user.Oauth))
 
+	r.POST("/api/v1/prometheus/alerts", core.Handle(alarm.Webhook))
+
 	v1 := r.Group("/api/v1", middlewares.AuthChecker())
 	// User related
 	{
@@ -127,8 +129,6 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/alarms/:id", core.Handle(alarm.Update))
 		v1.DELETE("/alarms/:id", core.Handle(alarm.Delete))
 	}
-
-	v1.GET("/prometheus/alerts", core.Handle(alarm.Webhook))
 
 	return r
 }
