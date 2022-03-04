@@ -11,6 +11,7 @@ import React from "react";
 import * as Icon from "@ant-design/icons/lib/icons";
 import Logo from "../public/logo.svg";
 import { FetchCurrentUserInfo } from "@/services/users";
+import {LOGIN_PATH} from "@/config/config";
 
 export interface InitialStateType {
   settings: ProSettings;
@@ -35,7 +36,7 @@ const fetchMenu = async () => {
 };
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
-  if (window.location.pathname === "/user/login/") {
+  if (window.location.pathname === LOGIN_PATH) {
     return { menus: [], settings: defaultSettings };
   }
   const currentUser = (await FetchCurrentUserInfo()).data;
