@@ -486,8 +486,6 @@ func TagsToString(alarm *db.Alarm, withQuote bool) string {
 		tags = make(map[string]string, 0)
 	}
 	tags["uuid"] = alarm.Uuid
-	tags["name"] = alarm.Name
-	tags["desc"] = alarm.Desc
 	result := make([]string, 0)
 	for k, v := range tags {
 		if withQuote {

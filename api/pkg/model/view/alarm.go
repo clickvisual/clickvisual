@@ -12,6 +12,7 @@ type ReqAlarmCreate struct {
 	AlertRule  string                    `json:"alertRule" from:"alertRule"`                    // prometheus alert rule
 	View       string                    `json:"view" from:"view"`                              // 数据转换视图
 	Tags       map[string]string         `json:"tags" from:"tags"`                              //
+	ChannelIds []int                     `json:"channelIds" from:"channelIds" binding:"required"`
 	Filters    []ReqAlarmFilterCreate    `json:"filters" from:"filters"`
 	Conditions []ReqAlarmConditionCreate `json:"conditions" from:"conditions"`
 }
@@ -33,7 +34,20 @@ type ReqAlarmConditionCreate struct {
 
 type ReqAlarmInfo struct {
 	db.Alarm
+	db.User
 	Filters    []*db.AlarmFilter    `json:"filters" from:"filters"`
 	Conditions []*db.AlarmCondition `json:"conditions" from:"conditions"`
-	db.User
+}
+
+type ReqAlarmHistoryList struct {
+	db.ReqPage
+	AlarmId   int `json:"alarmId" from:"alarmId"`
+	StartTime int `json:"startTime" from:"startTime"`
+	EndTime   int `json:"endTime" from:"endTime"` // 0 m 1 s 2 h 3 d 4 w 5 y
+}
+
+type RespAlarmHistoryList struct {
+	Total int64              `json:"total"`
+	Succ  int64              `json:"succ"`
+	List  []*db.AlarmHistory `json:"list"`
 }
