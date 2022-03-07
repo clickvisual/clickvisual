@@ -23,7 +23,7 @@ declare namespace API {
     nickname?: string;
     username?: string;
     uid?: number;
-    id?: number;
+    id: number;
     email?: string;
     avatar?: string;
     access?: string;
