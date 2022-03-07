@@ -128,6 +128,15 @@ func GetRouter() *egin.Component {
 		v1.POST("/alarms", core.Handle(alarm.Create))
 		v1.PATCH("/alarms/:id", core.Handle(alarm.Update))
 		v1.DELETE("/alarms/:id", core.Handle(alarm.Delete))
+
+		v1.GET("/alarms-histories", core.Handle(alarm.HistoryList))
+		v1.GET("/alarms-histories/:id", core.Handle(alarm.HistoryInfo))
+
+		v1.GET("/alarms-channels", core.Handle(alarm.ChannelList))
+		v1.GET("/alarms-channels/:id", core.Handle(alarm.ChannelInfo))
+		v1.POST("/alarms-channels", core.Handle(alarm.ChannelCreate))
+		v1.PATCH("/alarms-channels/:id", core.Handle(alarm.ChannelUpdate))
+		v1.DELETE("/alarms-channels/:id", core.Handle(alarm.ChannelDelete))
 	}
 
 	return r

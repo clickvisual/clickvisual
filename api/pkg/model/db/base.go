@@ -28,6 +28,8 @@ const (
 	TableMogoAlarm          = "mogo_alarm"
 	TableMogoAlarmFilter    = "mogo_alarm_filter"
 	TableMogoAlarmCondition = "mogo_alarm_condition"
+	TableMogoAlarmHistory   = "mogo_alarm_history"
+	TableMogoAlarmChannel   = "mogo_alarm_channel"
 )
 
 type BaseModel struct {
@@ -66,5 +68,22 @@ func (t String2String) Value() (driver.Value, error) {
 }
 
 func (t *String2String) Scan(input interface{}) error {
+	return json.Unmarshal(input.([]byte), t)
+}
+
+type Ints []int
+
+func (t Ints) Value() (driver.Value, error) {
+	b, err := json.Marshal(t)
+	return string(b), err
+}
+
+func (t *Ints) Scan(input interface{}) error {
+	if len(input.([]byte)) == 0 {
+		return json.Unmarshal([]byte("[]"), t)
+	}
+	if err := json.Unmarshal(input.([]byte), t); err != nil {
+		return json.Unmarshal([]byte("[]"), t)
+	}
 	return json.Unmarshal(input.([]byte), t)
 }
