@@ -3,12 +3,19 @@ import classNames from "classnames";
 import { Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useIntl } from "umi";
+import { useModel } from "@@/plugin-model/useModel";
 const Operations = () => {
   const i18n = useIntl();
+  const { alarmChannelModal } = useModel("alarm");
+  const { setVisibleCreate } = alarmChannelModal;
   return (
     <div className={classNames(notificationStyles.operationMain)}>
-      <Button icon={<PlusOutlined />} type="primary">
-        {i18n.formatMessage({ id: "alarm.notice.button.created" })}
+      <Button
+        onClick={() => setVisibleCreate(true)}
+        icon={<PlusOutlined />}
+        type="primary"
+      >
+        {i18n.formatMessage({ id: "alarm.notify.button.created" })}
       </Button>
     </div>
   );

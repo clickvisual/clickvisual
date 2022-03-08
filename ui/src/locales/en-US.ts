@@ -20,6 +20,7 @@ export default {
   required: "Required",
 
   type: "Type",
+  dingTalk: "DingTalk",
 
   "unit.second": "seconds",
   "unit.minute": "minutes",
@@ -395,5 +396,16 @@ export default {
   "alarm.rules.deleted.content": "Are you sure to delete alarm: {alarm}?",
 
   // Notifications
-  "alarm.notice.button.created": "Create Channel",
+  "alarm.notify.button.created": "Create Channel",
+  "alarm.notify.modal.created": "Create notification channel",
+  "alarm.notify.created.success": "Create a notification channel success",
+  "alarm.notify.modal.updated": "Update notification channel",
+  "alarm.notify.updated.success": "Update notification channel success",
+  "alarm.notify.modal.title": "Delete the notification channel",
+  "alarm.notify.modal.content":
+    "Sure to delete notification channel: {channelName}?",
+  "alarm.notify.deleted.loading":
+    "Deleting notification channel {channelName}...",
+  "alarm.notify.deleted.success":
+    "Delete the notification channel {channelName} success",
 };
