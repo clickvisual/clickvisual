@@ -14,7 +14,6 @@ type Database struct {
 	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
 
 	Instance *Instance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
-
 	BaseModel
 }
 

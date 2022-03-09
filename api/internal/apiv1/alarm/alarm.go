@@ -51,12 +51,12 @@ func Create(c *core.Context) {
 	err = service.Alarm.CreateOrUpdate(tx, obj, req)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 01: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 02: "+err.Error(), nil)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 06: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -81,7 +81,7 @@ func Update(c *core.Context) {
 	ups["interval"] = req.Interval
 	ups["unit"] = req.Unit
 	ups["uid"] = c.Uid()
-	ups["channelIds"] = db.Ints(req.ChannelIds)
+	ups["channel_ids"] = db.Ints(req.ChannelIds)
 	if err := db.AlarmUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed 01: "+err.Error(), nil)

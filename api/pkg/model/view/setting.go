@@ -6,7 +6,8 @@ type ReqCreateIndex struct {
 }
 
 type IndexItem struct {
-	Field string `json:"field" form:"field"`
-	Alias string `json:"alias" form:"alias"`
-	Typ   int    `json:"typ" form:"typ"`
+	Field    string `json:"field" form:"field"`
+	Alias    string `json:"alias" form:"alias"`
+	Typ      int    `json:"typ" form:"typ"`
+	RootName string `json:"rootName" form:"rootName"`
 }

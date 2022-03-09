@@ -29,18 +29,24 @@ func IndexUpdate(c *core.Context) {
 		c.JSONE(1, "param error:"+err.Error(), nil)
 		return
 	}
+	// check repeat
+	repeatMap := make(map[string]interface{})
+	for _, r := range req.Data {
+		if _, ok := repeatMap[r.Field]; ok {
+			c.JSONE(1, "param error: repeat index field name:"+r.Field, nil)
+			return
+		}
+		repeatMap[r.Field] = struct{}{}
+	}
 	req.Tid = tid
 	addMap, delMap, newMap, err = service.Index.Diff(req)
 	if err != nil {
 		c.JSONE(1, "unknown error:"+err.Error(), nil)
 		return
 	}
+
 	elog.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
 
-	// Prefer clickhouse operation
-	// Alert Delete or Create
-	// Drop View
-	// Create View
 	err = service.Index.Sync(req, addMap, delMap, newMap)
 	if err != nil {
 		c.JSONE(1, "unknown error:"+err.Error(), nil)

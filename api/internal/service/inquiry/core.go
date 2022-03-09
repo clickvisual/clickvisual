@@ -26,7 +26,7 @@ type Operator interface {
 	Count(view.ReqQuery) uint64
 	GroupBy(view.ReqQuery) map[string]uint64
 
-	IndexUpdate(view.ReqCreateIndex, db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
+	IndexUpdate(db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 
 	AlertViewCreate(*db.Alarm, []*db.AlarmFilter) (string, error)
 	DropTable(string) error

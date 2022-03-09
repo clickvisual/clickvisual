@@ -23,6 +23,7 @@ type Alarm struct {
 	View       string        `gorm:"column:view;type:text" json:"view"`                               // 数据转换视图
 	Tags       String2String `gorm:"column:tag;type:text" json:"tag"`                                 // 标签
 	Uid        int           `gorm:"column:uid;type:int(11)" json:"uid"`                              // 操作人
+	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // 告警状态
 	ChannelIds Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // 告警方式
 
 	BaseModel

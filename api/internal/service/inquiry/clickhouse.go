@@ -2,6 +2,7 @@ package inquiry
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -169,17 +170,23 @@ func (c *ClickHouse) ID() int {
 }
 
 func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, error) {
-
 	var jsonExtractSQL string
 	jsonExtractSQL = ","
 	for _, obj := range indexes {
-		jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(_log_, '%s')) AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
+		if obj.RootName == "" {
+			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(_log_, '%s')) AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
+		} else {
+			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(JSONExtractRaw(_log_, '%s')), '%s') AS %s,", jsonExtractORM[obj.Typ], obj.Field, obj.RootName, obj.Field)
+		}
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
 	return jsonExtractSQL, nil
 }
 
 func (c *ClickHouse) whereConditionSQLCurrent(current *db.View) string {
+	if current == nil {
+		return "1=1"
+	}
 	return fmt.Sprintf("JSONHas(_log_, '%s') = 1", current.Key)
 }
 
@@ -317,17 +324,17 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 	return
 }
 
-func (c *ClickHouse) viewOperator(typ, tid int, did int, table, timestampKey string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (res string, err error) {
+func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (res string, err error) {
 	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
 	if err != nil {
 		return
 	}
-	viewName := genViewName(databaseInfo.Name, table, timestampKey)
+	viewName := genViewName(databaseInfo.Name, table, customTimeField)
 
 	defer func() {
 		if err != nil {
-			elog.Info("viewOperator", elog.Any("tid", tid), elog.Any("timestampKey", timestampKey), elog.Any("database", databaseInfo.Name), elog.Any("table", table), elog.String("step", "doViewRollback"))
-			c.viewRollback(tid, timestampKey)
+			elog.Info("viewOperator", elog.Any("tid", tid), elog.Any("customTimeField", customTimeField), elog.Any("database", databaseInfo.Name), elog.Any("table", table), elog.String("step", "doViewRollback"))
+			c.viewRollback(tid, customTimeField)
 		}
 	}()
 
@@ -350,8 +357,8 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, timestampKey str
 		return "", err
 	}
 	// create
-	if timestampKey == "" {
-		// default
+	if customTimeField == "" {
+		// default time field, use _time_
 		var dtp string
 		if typ == TableTypeTimeString {
 			dtp = defaultStringTimeParse
@@ -360,6 +367,9 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, timestampKey str
 		}
 		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, dtp, jsonExtractSQL, streamName, c.whereConditionSQLDefault(list))
 	} else {
+		if current == nil {
+			return "", errors.New("the process processes abnormal data errors, current view cannot be nil")
+		}
 		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, c.timeParseSQL(typ, current), jsonExtractSQL, streamName, c.whereConditionSQLCurrent(current))
 	}
 	if isCreate {
@@ -608,7 +618,7 @@ func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
 }
 
 // IndexUpdate Data table index operation
-func (c *ClickHouse) IndexUpdate(param view.ReqCreateIndex, database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
+func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	// step 1 drop
 	for _, del := range dels {
 		qs := fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN IF EXISTS %s;", database.Name, table.Name, del.Field)
