@@ -6,7 +6,6 @@ import { useModel } from "@@/plugin-model/useModel";
 import { Spin } from "antd";
 import classNames from "classnames";
 import RawLogsIndexes from "@/pages/DataLogs/components/RawLogsIndexes";
-import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
 import { useIntl } from "umi";
 
 const QueryResult = () => {
@@ -33,7 +32,6 @@ const QueryResult = () => {
           <RawLogs />
         </div>
       </Spin>
-      <ManageIndexModal />
     </div>
   );
 };

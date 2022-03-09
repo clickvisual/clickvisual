@@ -267,7 +267,10 @@ const CreatedAndUpdatedModal = ({
           >
             {databaseList.map((database) => (
               <Option key={database.id} value={database.id}>
-                {database.name}
+                {i18n.formatMessage(
+                  { id: "alarm.rules.inspectionFrequency.database.Option" },
+                  { instance: database.instanceName, database: database.name }
+                )}
               </Option>
             ))}
           </Select>

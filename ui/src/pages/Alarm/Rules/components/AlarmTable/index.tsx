@@ -7,8 +7,9 @@ import { useEffect } from "react";
 import useTimeUnits from "@/hooks/useTimeUnits";
 import { AlarmType } from "@/services/alarm";
 import IconFont from "@/components/IconFont";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
 import DeletedModal from "@/components/DeletedModal";
+import classNames from "classnames";
 
 const AlarmTable = () => {
   const i18n = useIntl();
@@ -17,6 +18,7 @@ const AlarmTable = () => {
   const {
     alarmList,
     operations,
+    alarmHistory,
     alarmDraw,
     doGetAlarms,
     doDeletedAlarm,
@@ -32,10 +34,26 @@ const AlarmTable = () => {
     ...currentPagination,
   };
 
+  const handleHistory = (id: number) => {
+    alarmDraw.doGetAlarmInfo.run(id).then((res) => {
+      if (res?.code !== 0) return;
+      alarmHistory.setCurrentAlarm({ ...res.data, id });
+      alarmHistory.setHistoryVisible(true);
+    });
+  };
+
   const handleEdit = (record: AlarmType) => {
     alarmDraw.onChangeIsEditor(true);
     onChangeRowAlarm(record);
     alarmDraw.onChangeVisibleDraw(true);
+  };
+
+  const handleInfo = (id: number) => {
+    alarmDraw.doGetAlarmInfo.run(id).then((res) => {
+      if (res?.code !== 0) return;
+      alarmDraw.setAlarmInfo(res.data);
+      alarmDraw.onChangeVisibleInfo(true);
+    });
   };
 
   const handleDelete = (record: AlarmType) => {
@@ -82,6 +100,22 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "alarm.rules.table.alarmName" }),
       dataIndex: "alarmName",
       align: "center",
+      ellipsis: { showTitle: true },
+      render: (alarmName: string, record: AlarmType) => (
+        <Tooltip title={alarmName}>
+          <div
+            style={{ color: "red" }}
+            className={classNames(
+              alarmStyles.columnsEllipsis,
+              alarmStyles.columnsTag
+            )}
+          >
+            <a onClick={() => handleHistory(record.id)}>
+              <span>{alarmName}</span>
+            </a>
+          </div>
+        </Tooltip>
+      ),
     },
     {
       title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
@@ -115,7 +149,7 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "operation" }),
       dataIndex: "operations",
       align: "center",
-      width: 100,
+      width: 150,
       render: (_: any, record: AlarmType) => (
         <Space>
           <Tooltip
@@ -128,6 +162,15 @@ const AlarmTable = () => {
               type={"link"}
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Divider type="vertical" />
+          <Tooltip title={i18n.formatMessage({ id: "alarm.rules.info.title" })}>
+            <Button
+              size={"small"}
+              type={"link"}
+              icon={<FileTextOutlined />}
+              onClick={() => handleInfo(record.id)}
             />
           </Tooltip>
           <Divider type="vertical" />

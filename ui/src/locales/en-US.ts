@@ -366,9 +366,12 @@ export default {
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
   "alarm.rules.form.description": "Alarm Description",
+  "alarm.rules.form.channelIds": "Notification channels",
   "alarm.rules.form.placeholder.alarmName": "Please enter a alarm name",
   "alarm.rules.form.placeholder.description":
     "Please enter an alarm description",
+  "alarm.rules.form.placeholder.channelIds":
+    "Please select notification channel",
   "alarm.rules.form.rule.alarmName":
     "Please enter lowercase letters, uppercase letters, or underscores",
   "alarm.rules.inspectionFrequency": "Inspection Frequency",
@@ -385,9 +388,16 @@ export default {
   "alarm.rules.inspectionFrequency.database": "Database",
   "alarm.rules.inspectionFrequency.placeholder.database":
     "Please select database",
+  "alarm.rules.inspectionFrequency.database.Option":
+    "Instance: {instance}, Database: {database}",
   "alarm.rules.inspectionFrequency.logLibrary": "Table",
   "alarm.rules.inspectionFrequency.placeholder.logLibrary":
     "Please select a table",
+  "alarm.rules.creator": "Creator",
+
+  "alarm.rules.info.title": "Alarm Details",
+  "alarm.rules.info.view": "View",
+  "alarm.rules.info.rule": "Rule",
 
   "alarm.rules.created": "Create alarm success",
   "alarm.rules.updated": "Update alarm success",

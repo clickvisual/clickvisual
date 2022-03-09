@@ -345,8 +345,10 @@ export default {
   "alarm.rules.form.title": "报警监控规则",
   "alarm.rules.form.alarmName": "报警名称",
   "alarm.rules.form.description": "报警描述",
+  "alarm.rules.form.channelIds": "通知方式",
   "alarm.rules.form.placeholder.alarmName": "请输入报警名称",
   "alarm.rules.form.placeholder.description": "请输入报警描述",
+  "alarm.rules.form.placeholder.channelIds": "请选择通知方式",
   "alarm.rules.form.rule.alarmName": "请输入小写字母、大写字母，或下划线",
   "alarm.rules.inspectionFrequency": "检查频率",
   "alarm.rules.form.inspectionStatistics": "检查统计",
@@ -359,8 +361,15 @@ export default {
   "alarm.rules.inspectionFrequency.between": "查询区间",
   "alarm.rules.inspectionFrequency.database": "数据库",
   "alarm.rules.inspectionFrequency.placeholder.database": "请选择数据库",
+  "alarm.rules.inspectionFrequency.database.Option":
+    "实例：{instance}，数据库：{database}",
   "alarm.rules.inspectionFrequency.logLibrary": "数据表",
   "alarm.rules.inspectionFrequency.placeholder.logLibrary": "请选择数据表",
+  "alarm.rules.creator": "创建人",
+
+  "alarm.rules.info.title": "报警详情",
+  "alarm.rules.info.view": "视图",
+  "alarm.rules.info.rule": "规则",
 
   "alarm.rules.created": "新增报警成功",
   "alarm.rules.updated": "更新报警成功",
