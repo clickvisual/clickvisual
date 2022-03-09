@@ -1,9 +1,10 @@
 import historyStyles from "@/pages/Alarm/Rules/components/AlarmHistory/index.less";
-import { Progress } from "antd";
-import { Chart, Line, Point, Tooltip } from "bizcharts";
+import { Empty, Progress } from "antd";
+// import { Chart, Line, Point, Tooltip } from "bizcharts";
 import { AlarmHistoryType } from "@/services/alarm";
 import { useMemo } from "react";
-import moment from "moment";
+// import moment from "moment";
+import { useIntl } from "umi";
 
 type HistoryBoardProps = {
   sucPublish: number;
@@ -11,6 +12,8 @@ type HistoryBoardProps = {
   dataList: AlarmHistoryType[];
 };
 const HistoryBoard = ({ sucPublish, total, dataList }: HistoryBoardProps) => {
+  const i18n = useIntl();
+
   const data = useMemo(() => {
     if (dataList?.length <= 0) return [];
     return dataList?.map((item) => {
@@ -26,11 +29,19 @@ const HistoryBoard = ({ sucPublish, total, dataList }: HistoryBoardProps) => {
       <div className={historyStyles.count}>
         <div className={historyStyles.content}>
           <div>
-            <span className={historyStyles.title}>总报警数:&nbsp;</span>
+            <span className={historyStyles.title}>
+              {i18n.formatMessage({ id: "alarm.rules.history.title.total" })}
+              :&nbsp;
+            </span>
             <span>{total}</span>
           </div>
           <div>
-            <span className={historyStyles.title}>成功推送次数:&nbsp;</span>
+            <span className={historyStyles.title}>
+              {i18n.formatMessage({
+                id: "alarm.rules.history.title.sucPublish",
+              })}
+              :&nbsp;
+            </span>
             <span>{sucPublish}</span>
           </div>
         </div>
@@ -40,29 +51,31 @@ const HistoryBoard = ({ sucPublish, total, dataList }: HistoryBoardProps) => {
       </div>
       <div className={historyStyles.divider} />
       <div className={historyStyles.chart}>
-        <Chart
-          padding={[30, 20, 60, 40]}
-          autoFit
-          height={240}
-          data={data}
-          onLineClick={console.log}
-          scale={{
-            sucPublish: {
-              min: 0,
-              alias: "是否推送报警",
-              type: "linear-strict",
-            },
-            ctime: {
-              formatter: (v: number) => {
-                return moment(v, "X").format("YYYY/MM/DD");
-              },
-            },
-          }}
-        >
-          <Line position="ctime*sucPublish" />
-          <Point position="ctime*sucPublish" />
-          <Tooltip showCrosshairs follow={false} />
-        </Chart>
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"plan...."} />
+        {/* todo: Alarm statistics line chart */}
+        {/*<Chart*/}
+        {/*  padding={[30, 20, 60, 40]}*/}
+        {/*  autoFit*/}
+        {/*  height={240}*/}
+        {/*  data={data}*/}
+        {/*  onLineClick={console.log}*/}
+        {/*  scale={{*/}
+        {/*    sucPublish: {*/}
+        {/*      min: 0,*/}
+        {/*      alias: "是否推送报警",*/}
+        {/*      type: "linear-strict",*/}
+        {/*    },*/}
+        {/*    ctime: {*/}
+        {/*      formatter: (v: number) => {*/}
+        {/*        return moment(v, "X").format("YYYY/MM/DD");*/}
+        {/*      },*/}
+        {/*    },*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  <Line position="ctime*sucPublish" />*/}
+        {/*  <Point position="ctime*sucPublish" />*/}
+        {/*  <Tooltip showCrosshairs follow={false} />*/}
+        {/*</Chart>*/}
       </div>
     </div>
   );

@@ -139,7 +139,7 @@ export default {
   },
 
   async getAlarmHistories(params: AlarmHistoryRequest & API.Pagination) {
-    return request<API.Res<AlarmHistoriesResponse>>(
+    return request<API.ResPageData<AlarmHistoriesResponse>>(
       `/api/v1/alarms-histories`,
       { method: "GET", params }
     );

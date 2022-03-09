@@ -6,14 +6,14 @@ import JsonStringValue from "@/components/JsonView/JsonStringValue";
 
 type LogContentParseProps = {
   logContent: any;
+  quickInsertLikeQuery: (key: string) => void;
 };
 
-const LogContentParse = ({ logContent }: LogContentParseProps) => {
-  const { doUpdatedQuery, highlightKeywords } = useModel("dataLogs");
-  const addQuery = (key: string) => {
-    const currentSelected = `_raw_log_ like '%${key}%'`;
-    doUpdatedQuery(currentSelected);
-  };
+const LogContentParse = ({
+  logContent,
+  quickInsertLikeQuery,
+}: LogContentParseProps) => {
+  const { highlightKeywords } = useModel("dataLogs");
 
   const isNullList = ["\n", "\r\n", "", " "];
 
@@ -25,7 +25,7 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
       content = (
         <JsonStringValue
           val={logContent.toString()}
-          onClickValue={addQuery}
+          onClickValue={quickInsertLikeQuery}
           highLightValue={highlightKeywords}
         />
       );
@@ -37,7 +37,7 @@ const LogContentParse = ({ logContent }: LogContentParseProps) => {
       <>
         <JsonView
           data={logContent}
-          onClickValue={addQuery}
+          onClickValue={quickInsertLikeQuery}
           highLightValue={highlightKeywords}
         />
       </>

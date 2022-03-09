@@ -4,6 +4,7 @@ import { ColumnsType } from "antd/es/table";
 import moment from "moment";
 import { useModel } from "@@/plugin-model/useModel";
 import { AlarmHistoryRequest, AlarmHistoryType } from "@/services/alarm";
+import { useIntl } from "umi";
 
 type HistoryTableProps = {
   dataList: AlarmHistoryType[];
@@ -11,25 +12,42 @@ type HistoryTableProps = {
 };
 const HistoryTable = ({ dataList, loadList }: HistoryTableProps) => {
   const { alarmHistory } = useModel("alarm");
-  const { currentAlarm, currentPagination, setCurrentPagination } =
-    alarmHistory;
+  const {
+    doGetAlarmHistoryList,
+    currentAlarm,
+    currentPagination,
+    setCurrentPagination,
+  } = alarmHistory;
+  const i18n = useIntl();
 
   const column: ColumnsType<any> = [
     {
-      title: "是否成功推送报警",
+      title: i18n.formatMessage({ id: "alarm.rules.history.column.isPushed" }),
       dataIndex: "isPushed",
       align: "center",
       render: (value) => {
         switch (value) {
           case 1:
-            return <span>是</span>;
+            return (
+              <span>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.true",
+                })}
+              </span>
+            );
           default:
-            return <span>否</span>;
+            return (
+              <span>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.false",
+                })}
+              </span>
+            );
         }
       },
     },
     {
-      title: "触发时间",
+      title: i18n.formatMessage({ id: "alarm.rules.history.column.ctime" }),
       dataIndex: "ctime",
       align: "center",
       render: (value: number) =>
@@ -47,6 +65,7 @@ const HistoryTable = ({ dataList, loadList }: HistoryTableProps) => {
           rowKey={"id"}
           columns={column}
           size={"small"}
+          loading={doGetAlarmHistoryList.loading}
           dataSource={dataList}
           pagination={{
             responsive: true,

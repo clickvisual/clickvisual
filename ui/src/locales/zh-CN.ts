@@ -377,6 +377,13 @@ export default {
   "alarm.rules.deleted.loading": "正在删除报警...",
   "alarm.rules.deleted.content": "确定删除报警：{alarm} 吗？",
 
+  "alarm.rules.history.column.isPushed": "是否成功推送报警",
+  "alarm.rules.history.column.ctime": "触发时间",
+  "alarm.rules.history.isPushed.true": "是",
+  "alarm.rules.history.isPushed.false": "否",
+  "alarm.rules.history.title.total": "总报警数",
+  "alarm.rules.history.title.sucPublish": "成功推送次数",
+
   // Notifications
   "alarm.notify.button.created": "新增渠道",
   "alarm.notify.modal.created": "新增通知方式",

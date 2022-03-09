@@ -16,6 +16,7 @@ const AlarmHistory = () => {
     currentAlarm,
     setCurrentAlarm,
     currentPagination,
+    setCurrentPagination,
     doGetAlarmHistoryList,
   } = alarmHistory;
 
@@ -27,10 +28,11 @@ const AlarmHistory = () => {
     doGetAlarmHistoryList
       .run({ ...currentPagination, ...params })
       .then((res) => {
-        if (res?.code !== 0) return;
+        if (!res || res?.code !== 0 || !res.pagination) return;
         setDataList(res.data.list);
         setTotal(res.data.total);
         setSucPublish(res.data.succ);
+        setCurrentPagination(res.pagination);
       });
   };
 
