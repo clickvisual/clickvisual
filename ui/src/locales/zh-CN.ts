@@ -20,6 +20,7 @@ export default {
   required: "必填",
 
   type: "类型",
+  dingTalk: "钉钉",
 
   "unit.second": "秒",
   "unit.minute": "分钟",
@@ -369,4 +370,12 @@ export default {
 
   // Notifications
   "alarm.notify.button.created": "新增渠道",
+  "alarm.notify.modal.created": "新增通知方式",
+  "alarm.notify.created.success": "新增通知方式成功",
+  "alarm.notify.modal.updated": "更新通知方式",
+  "alarm.notify.updated.success": "更新通知方式成功",
+  "alarm.notify.modal.title": "删除通知方式",
+  "alarm.notify.modal.content": "确定删除通知方式：{channelName} 吗？",
+  "alarm.notify.deleted.loading": "正在删除通知方式 {channelName}...",
+  "alarm.notify.deleted.success": "删除通知方式 {channelName} 成功",
 };
