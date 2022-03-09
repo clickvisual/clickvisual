@@ -56,6 +56,11 @@ const LogItemDetails = () => {
     doUpdatedQuery(currentSelected);
   };
 
+  const quickInsertLikeQuery = (key: string) => {
+    const currentSelected = `_raw_log_ like '%${key}%'`;
+    doUpdatedQuery(currentSelected);
+  };
+
   return (
     <div className={logItemStyles.details}>
       {keys.length > 0 &&
@@ -81,7 +86,9 @@ const LogItemDetails = () => {
                 )}
                 onClick={() => {
                   if (!isRawLog && !rawLogJson) return;
-                  onCopyRawLogDetails(newLog[keyItem]);
+                  onCopyRawLogDetails(
+                    isIndexAndRawLogKey ? rawLogJson[keyItem] : newLog[keyItem]
+                  );
                 }}
               >
                 <span
@@ -96,9 +103,14 @@ const LogItemDetails = () => {
               </div>
               {!isRawLog ? (
                 <span
-                  onClick={() =>
-                    !notQuery && !!newLog[keyItem] && quickInsertQuery(keyItem)
-                  }
+                  onClick={() => {
+                    if (notQuery || (!isIndexAndRawLogKey && !newLog[keyItem]))
+                      return;
+                    const insert = isIndexAndRawLogKey
+                      ? quickInsertLikeQuery
+                      : quickInsertQuery;
+                    insert(keyItem);
+                  }}
                   className={classNames(
                     logItemStyles.logContent,
                     flag && logItemStyles.logContentHighlight,
@@ -114,7 +126,10 @@ const LogItemDetails = () => {
                     : ""}
                 </span>
               ) : (
-                <LogContentParse logContent={newLog[keyItem]} />
+                <LogContentParse
+                  logContent={newLog[keyItem]}
+                  quickInsertLikeQuery={quickInsertLikeQuery}
+                />
               )}
             </div>
           );
