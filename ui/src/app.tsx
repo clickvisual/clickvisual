@@ -32,7 +32,7 @@ const fetchMenu = async () => {
       return item;
     });
   };
-  return menuDataRender(res.data || []);
+  return menuDataRender(res.data);
 };
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {

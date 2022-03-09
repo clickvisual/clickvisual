@@ -1,0 +1,39 @@
+.board {
+  display: flex;
+  flex: 0 0 240px;
+  align-items: center;
+  width: 100%;
+  .count {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    height: 100%;
+    margin-right: 5px;
+    .content {
+      flex: 1;
+      padding-left: 24px;
+      font-size: 24px;
+      line-height: 48px;
+      .title {
+        font-weight: bold;
+      }
+    }
+    .progress {
+      flex: 0 0 160px;
+    }
+  }
+  .divider {
+    flex: 0;
+    height: 80%;
+    border-right: 1px solid hsla(0, 0%, 0%, 0.1);
+  }
+  .chart {
+    flex: 1;
+    height: 100%;
+    margin-left: 5px;
+  }
+}
+.table {
+  flex: 1;
+  overflow-y: auto;
+}

@@ -1,0 +1,23 @@
+.details {
+  flex: 0 0 60px;
+  font-size: 14px;
+  line-height: 28px;
+  cursor: default;
+  .title {
+    font-weight: bold;
+  }
+}
+
+.configs {
+  display: flex;
+  flex: 1;
+  .tabs {
+    flex: 1;
+    :global {
+      .ant-tabs-content-holder {
+        display: flex;
+        flex: 1;
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AlarmType } from "@/services/alarm";
 import useChannel from "@/models/alarms/useChannel";
 import useChannelModal from "@/models/alarms/useChannelModal";
+import useAlarmHistory from "@/models/alarms/useAlarmHistory";
 
 const Alarm = () => {
   const operations = useAlarmOperations();
@@ -12,6 +13,7 @@ const Alarm = () => {
 
   const alarmChannel = useChannel();
   const alarmChannelModal = useChannelModal();
+  const alarmHistory = useAlarmHistory();
 
   const {
     alarmList,
@@ -35,6 +37,7 @@ const Alarm = () => {
     alarmDraw,
     alarmChannel,
     alarmChannelModal,
+    alarmHistory,
 
     onChangeRowAlarm,
 
