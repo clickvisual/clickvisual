@@ -11,7 +11,8 @@ import React from "react";
 import * as Icon from "@ant-design/icons/lib/icons";
 import Logo from "../public/logo.svg";
 import { FetchCurrentUserInfo } from "@/services/users";
-import { LOGIN_PATH } from "@/config/config";
+import { HOME_PATH, LOGIN_PATH } from "@/config/config";
+import { history } from "umi";
 
 export interface InitialStateType {
   settings: ProSettings;
@@ -36,12 +37,22 @@ const fetchMenu = async () => {
 };
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
-  if (window.location.pathname === LOGIN_PATH) {
+  if (history.location.pathname.includes(LOGIN_PATH)) {
     return { menus: [], settings: defaultSettings };
   }
-  const currentUser = (await FetchCurrentUserInfo()).data;
-  const menus = await fetchMenu();
-
+  const fetchUserInfo = async () => {
+    try {
+      const res = await FetchCurrentUserInfo();
+      if (res.code === 0) return res.data;
+      history.push(LOGIN_PATH);
+    } catch (error) {
+      history.push(LOGIN_PATH);
+    }
+    return undefined;
+  };
+  const currentUser = await fetchUserInfo();
+  let menus = [];
+  if (currentUser) menus = (await fetchMenu()) || [];
   return {
     menus,
     settings: defaultSettings,
@@ -60,6 +71,18 @@ export const layout = ({
     rightContentRender: () => <RightContent />,
     disableContentMargin: false,
     footerRender: () => <Footer />,
+    onPageChange: () => {
+      const { location } = history;
+      if (
+        !initialState?.currentUser &&
+        !location.pathname.includes(LOGIN_PATH)
+      ) {
+        history.push(LOGIN_PATH);
+      }
+      if (initialState?.currentUser && location.pathname.includes(LOGIN_PATH)) {
+        history.push(HOME_PATH);
+      }
+    },
     links: [],
     menuHeaderRender: undefined,
     logo: Logo,
