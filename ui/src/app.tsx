@@ -38,7 +38,7 @@ const fetchMenu = async () => {
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
   const pathname = history.location.pathname;
-  if (pathname === LOGIN_PATH || pathname === `${LOGIN_PATH}`) {
+  if (pathname === LOGIN_PATH || pathname === `${LOGIN_PATH}/`) {
     return { menus: [], settings: defaultSettings };
   }
   const fetchUserInfo = async () => {
