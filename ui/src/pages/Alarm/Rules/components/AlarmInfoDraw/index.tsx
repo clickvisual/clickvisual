@@ -29,7 +29,7 @@ const AlarmInfoDraw = () => {
     <Drawer
       closable
       getContainer={false}
-      width={"40vw"}
+      width={"66vw"}
       bodyStyle={{
         margin: 10,
         padding: 0,
