@@ -46,37 +46,41 @@ const HistoryBoard = ({ sucPublish, total, dataList }: HistoryBoardProps) => {
           </div>
         </div>
         <div className={historyStyles.progress}>
-          <Progress type="circle" percent={(sucPublish / total) * 100} />
+          <Progress
+            type="circle"
+            size={"small"}
+            percent={(sucPublish / total) * 100}
+          />
         </div>
       </div>
-      <div className={historyStyles.divider} />
-      <div className={historyStyles.chart}>
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"plan...."} />
-        {/* todo: Alarm statistics line chart */}
-        {/*<Chart*/}
-        {/*  padding={[30, 20, 60, 40]}*/}
-        {/*  autoFit*/}
-        {/*  height={240}*/}
-        {/*  data={data}*/}
-        {/*  onLineClick={console.log}*/}
-        {/*  scale={{*/}
-        {/*    sucPublish: {*/}
-        {/*      min: 0,*/}
-        {/*      alias: "是否推送报警",*/}
-        {/*      type: "linear-strict",*/}
-        {/*    },*/}
-        {/*    ctime: {*/}
-        {/*      formatter: (v: number) => {*/}
-        {/*        return moment(v, "X").format("YYYY/MM/DD");*/}
-        {/*      },*/}
-        {/*    },*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  <Line position="ctime*sucPublish" />*/}
-        {/*  <Point position="ctime*sucPublish" />*/}
-        {/*  <Tooltip showCrosshairs follow={false} />*/}
-        {/*</Chart>*/}
-      </div>
+      {/*<div className={historyStyles.divider} />*/}
+      {/*<div className={historyStyles.chart}>*/}
+      {/*  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"plan...."} />*/}
+      {/* todo: Alarm statistics line chart */}
+      {/*<Chart*/}
+      {/*  padding={[30, 20, 60, 40]}*/}
+      {/*  autoFit*/}
+      {/*  height={240}*/}
+      {/*  data={data}*/}
+      {/*  onLineClick={console.log}*/}
+      {/*  scale={{*/}
+      {/*    sucPublish: {*/}
+      {/*      min: 0,*/}
+      {/*      alias: "是否推送报警",*/}
+      {/*      type: "linear-strict",*/}
+      {/*    },*/}
+      {/*    ctime: {*/}
+      {/*      formatter: (v: number) => {*/}
+      {/*        return moment(v, "X").format("YYYY/MM/DD");*/}
+      {/*      },*/}
+      {/*    },*/}
+      {/*  }}*/}
+      {/*>*/}
+      {/*  <Line position="ctime*sucPublish" />*/}
+      {/*  <Point position="ctime*sucPublish" />*/}
+      {/*  <Tooltip showCrosshairs follow={false} />*/}
+      {/*</Chart>*/}
+      {/*</div>*/}
     </div>
   );
 };

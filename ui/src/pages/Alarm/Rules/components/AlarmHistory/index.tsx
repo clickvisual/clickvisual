@@ -60,7 +60,7 @@ const AlarmHistory = () => {
           title={currentAlarm.alarmName}
           visible={historyVisible}
           onClose={onClose}
-          width={"80vw"}
+          width={"40vw"}
         >
           <HistoryBoard
             sucPublish={sucPublish}

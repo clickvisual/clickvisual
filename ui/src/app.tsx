@@ -37,7 +37,8 @@ const fetchMenu = async () => {
 };
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
-  if (history.location.pathname.includes(LOGIN_PATH)) {
+  const pathname = history.location.pathname;
+  if (pathname === LOGIN_PATH || pathname === `${LOGIN_PATH}`) {
     return { menus: [], settings: defaultSettings };
   }
   const fetchUserInfo = async () => {
@@ -73,13 +74,13 @@ export const layout = ({
     footerRender: () => <Footer />,
     onPageChange: () => {
       const { location } = history;
-      if (
-        !initialState?.currentUser &&
-        !location.pathname.includes(LOGIN_PATH)
-      ) {
+      const isLogin =
+        location.pathname === LOGIN_PATH ||
+        location.pathname === `${LOGIN_PATH}/`;
+      if (!initialState?.currentUser && !isLogin) {
         history.push(LOGIN_PATH);
       }
-      if (initialState?.currentUser && location.pathname.includes(LOGIN_PATH)) {
+      if (initialState?.currentUser && isLogin) {
         history.push(HOME_PATH);
       }
     },
