@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gotomicro/ego/core/elog"
-
 	"github.com/shimohq/mogo/api/internal/apiv1/alarm"
 	"github.com/shimohq/mogo/api/internal/apiv1/base"
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
@@ -31,7 +29,7 @@ func GetRouter() *egin.Component {
 			c.JSONE(http.StatusNotFound, "", nil)
 			return
 		}
-		elog.Debug("static", elog.String("path", c.Request.URL.Path))
+		c.Header("Cache-Control", "public, max-age=3600")
 		c.FileFromFS(c.Request.URL.Path, invoker.Gin.HTTPEmbedFs())
 		return
 	}))
