@@ -30,19 +30,28 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 	nowIndexMap := make(map[string]*db.Index)
 	nowIndexArr := make([]string, 0)
 	for _, ir := range nowIndexList {
-		nowIndexMap[fmt.Sprintf("%s.%d", ir.Field, ir.Typ)] = ir
-		nowIndexArr = append(nowIndexArr, fmt.Sprintf("%s.%d", ir.Field, ir.Typ))
+		key := fmt.Sprintf("%s.%d", ir.Field, ir.Typ)
+		if ir.RootName != "" {
+			key = fmt.Sprintf("%s|%s.%d", ir.RootName, ir.Field, ir.Typ)
+		}
+		nowIndexMap[key] = ir
+		nowIndexArr = append(nowIndexArr, key)
 	}
 	newIndexMap := make(map[string]*db.Index)
 	newIndexArr := make([]string, 0)
 	for _, ir := range req.Data {
-		newIndexMap[fmt.Sprintf("%s.%d", ir.Field, ir.Typ)] = &db.Index{
-			Tid:   req.Tid,
-			Field: ir.Field,
-			Typ:   ir.Typ,
-			Alias: ir.Alias,
+		key := fmt.Sprintf("%s.%d", ir.Field, ir.Typ)
+		if ir.RootName != "" {
+			key = fmt.Sprintf("%s|%s.%d", ir.RootName, ir.Field, ir.Typ)
 		}
-		newIndexArr = append(newIndexArr, fmt.Sprintf("%s.%d", ir.Field, ir.Typ))
+		newIndexMap[key] = &db.Index{
+			Tid:      req.Tid,
+			Field:    ir.Field,
+			Typ:      ir.Typ,
+			Alias:    ir.Alias,
+			RootName: ir.RootName,
+		}
+		newIndexArr = append(newIndexArr, key)
 	}
 	elog.Debug("Diff", elog.Any("newIndexArr", newIndexArr), elog.Any("nowIndexArr", nowIndexArr))
 	addArr := kslice.Difference(newIndexArr, nowIndexArr)
@@ -68,6 +77,11 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 	return addMap, delMap, newIndexMap, nil
 }
 
+// Sync ...
+// 1. Prefer clickhouse operation
+// 2. Alert Delete or Create
+// 3. Drop View
+// 4. Create View
 func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	tx := invoker.Db.Begin()
 	err = db.IndexDeleteBatch(tx, req.Tid)
@@ -77,10 +91,11 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 	}
 	for _, d := range req.Data {
 		err = db.IndexCreate(tx, &db.Index{
-			Tid:   req.Tid,
-			Field: d.Field,
-			Typ:   d.Typ,
-			Alias: d.Alias,
+			Tid:      req.Tid,
+			Field:    d.Field,
+			Typ:      d.Typ,
+			Alias:    d.Alias,
+			RootName: d.RootName,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -93,11 +108,10 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 	op, err := InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
-		return errors.New("Corresponding configuration instance does not exist:  ")
+		return errors.New("corresponding configuration instance does not exist")
 	}
 	elog.Debug("IndexUpdate", elog.Any("newList", newList))
-
-	err = op.IndexUpdate(req, databaseInfo, tableInfo, adds, dels, newList)
+	err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
 	if err != nil {
 		tx.Rollback()
 		return

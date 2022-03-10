@@ -1,5 +1,6 @@
 import { request } from "umi";
 import { TimeBaseType } from "@/services/systemSetting";
+import { ChannelFormType } from "@/pages/Alarm/Notifications/components/ChannelFormItems";
 
 export interface AlarmsResponse {
   did?: number;
@@ -45,16 +46,59 @@ export interface AlarmInfoType extends AlarmType {
   id: number;
   filters: AlarmFilterType[];
   conditions: AlarmConditionType[];
+  channelIds: number[];
+  access: string;
+  avatar: string;
+  currentAuthority: string;
+  email: string;
+  hash: string;
+  nickname: string;
+  oa_id: number;
+  oauth: string;
+  oauthId: string;
+  password: string;
+  secret: string;
+  state: string;
+  username: string;
+  webUrl: string;
 }
 
 export interface AlarmRequest {
   alarmName: string;
   type: number;
   filters: AlarmFilterType[];
-  conditions: AlarmInfoType[];
+  conditions: AlarmConditionType[];
+  channelIds: number[];
   desc: string;
   interval: number;
   unit: number;
+}
+
+export interface ChannelType extends TimeBaseType {
+  id: number;
+  key: string;
+  name: string;
+  typ: number;
+  uid: number;
+}
+
+export interface AlarmHistoryRequest {
+  alarmId?: number;
+  startTime?: number;
+  EndTime?: number;
+}
+
+export interface AlarmHistoryType extends TimeBaseType {
+  alarmId: number;
+  isPushed: number;
+  id: number;
+}
+
+export interface AlarmHistoriesResponse {
+  total: number;
+  succ: number;
+  list: AlarmHistoryType[];
+  pagination: API.Pagination;
 }
 
 export default {
@@ -80,6 +124,43 @@ export default {
   },
   async deletedAlarm(id: number) {
     return request<API.Res<string>>(`/api/v1/alarms/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async getChannels() {
+    return request<API.Res<ChannelType[]>>(`/api/v1/alarms-channels`, {
+      method: "GET",
+    });
+  },
+
+  async getChannelInfo(id: number) {
+    return request(`/api/v1/alarms-channels/${id}`, { method: "GET" });
+  },
+
+  async getAlarmHistories(params: AlarmHistoryRequest & API.Pagination) {
+    return request<API.ResPageData<AlarmHistoriesResponse>>(
+      `/api/v1/alarms-histories`,
+      { method: "GET", params }
+    );
+  },
+
+  async createdChannel(data: ChannelFormType) {
+    return request<API.Res<string>>(`/api/v1/alarms-channels`, {
+      method: "POST",
+      data,
+    });
+  },
+
+  async updatedChannel(id: number, data: ChannelFormType) {
+    return request<API.Res<string>>(`/api/v1/alarms-channels/${id}`, {
+      method: "PATCH",
+      data,
+    });
+  },
+
+  async deletedChannel(id: number) {
+    return request<API.Res<ChannelType>>(`/api/v1/alarms-channels/${id}`, {
       method: "DELETE",
     });
   },

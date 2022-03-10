@@ -20,6 +20,7 @@ export default {
   required: "必填",
 
   type: "类型",
+  dingTalk: "钉钉",
 
   "unit.second": "秒",
   "unit.minute": "分钟",
@@ -344,8 +345,10 @@ export default {
   "alarm.rules.form.title": "报警监控规则",
   "alarm.rules.form.alarmName": "报警名称",
   "alarm.rules.form.description": "报警描述",
+  "alarm.rules.form.channelIds": "通知方式",
   "alarm.rules.form.placeholder.alarmName": "请输入报警名称",
   "alarm.rules.form.placeholder.description": "请输入报警描述",
+  "alarm.rules.form.placeholder.channelIds": "请选择通知方式",
   "alarm.rules.form.rule.alarmName": "请输入小写字母、大写字母，或下划线",
   "alarm.rules.inspectionFrequency": "检查频率",
   "alarm.rules.form.inspectionStatistics": "检查统计",
@@ -358,8 +361,15 @@ export default {
   "alarm.rules.inspectionFrequency.between": "查询区间",
   "alarm.rules.inspectionFrequency.database": "数据库",
   "alarm.rules.inspectionFrequency.placeholder.database": "请选择数据库",
+  "alarm.rules.inspectionFrequency.database.Option":
+    "实例：{instance}，数据库：{database}",
   "alarm.rules.inspectionFrequency.logLibrary": "数据表",
   "alarm.rules.inspectionFrequency.placeholder.logLibrary": "请选择数据表",
+  "alarm.rules.creator": "创建人",
+
+  "alarm.rules.info.title": "报警详情",
+  "alarm.rules.info.view": "视图",
+  "alarm.rules.info.rule": "规则",
 
   "alarm.rules.created": "新增报警成功",
   "alarm.rules.updated": "更新报警成功",
@@ -367,6 +377,21 @@ export default {
   "alarm.rules.deleted.loading": "正在删除报警...",
   "alarm.rules.deleted.content": "确定删除报警：{alarm} 吗？",
 
+  "alarm.rules.history.column.isPushed": "是否成功推送报警",
+  "alarm.rules.history.column.ctime": "触发时间",
+  "alarm.rules.history.isPushed.true": "是",
+  "alarm.rules.history.isPushed.false": "否",
+  "alarm.rules.history.title.total": "总报警数",
+  "alarm.rules.history.title.sucPublish": "成功推送次数",
+
   // Notifications
   "alarm.notify.button.created": "新增渠道",
+  "alarm.notify.modal.created": "新增通知方式",
+  "alarm.notify.created.success": "新增通知方式成功",
+  "alarm.notify.modal.updated": "更新通知方式",
+  "alarm.notify.updated.success": "更新通知方式成功",
+  "alarm.notify.modal.title": "删除通知方式",
+  "alarm.notify.modal.content": "确定删除通知方式：{channelName} 吗？",
+  "alarm.notify.deleted.loading": "正在删除通知方式 {channelName}...",
+  "alarm.notify.deleted.success": "删除通知方式 {channelName} 成功",
 };

@@ -19,11 +19,16 @@ declare namespace API {
     pagination: Pagination;
   }
 
+  interface ResPageData<T> extends Res<T> {
+    data: T;
+    pagination: Pagination;
+  }
+
   interface CurrentUser {
     nickname?: string;
     username?: string;
     uid?: number;
-    id?: number;
+    id: number;
     email?: string;
     avatar?: string;
     access?: string;

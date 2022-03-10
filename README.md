@@ -80,10 +80,12 @@ If you want to report a bug or request for a feature, create a issue [here](http
 
 ## Join Us
 
-Join us, please add the "mogo" keyword in the verification information.
+Join us, please add the "mogo" keyword in the verification information. 
+
 
  <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />
 
+Wechat id is "MEXES_"
 
 
 ## Contributors
@@ -95,7 +97,7 @@ Thanks for these wonderful people:
 <table>
   <tr>
     <td align="center"><a href="https://kl7sn.github.io"><img src="https://avatars.githubusercontent.com/u/2037801?v=4" width="64px;" alt=""/><br /><sub><b>MEX7</b></sub></a></td>
-    <td align="center"><a href="https://m1666.github.io"><img src="https://avatars.githubusercontent.com/u/39024186?v=4" width="64px;" alt=""/><br /><sub><b>m1666</b></sub></a></td>
+    <td align="center"><a href="https://github.com/m1666"><img src="https://avatars.githubusercontent.com/u/39024186?v=4" width="64px;" alt=""/><br /><sub><b>m1666</b></sub></a></td>
     <td align="center"><a href="https://github.com/askuy"><img src="https://avatars.githubusercontent.com/u/14119383?v=4" width="64px;" alt=""/><br /><sub><b>askuy</b></sub></a></td>
     <td align="center"><a href="https://github.com/sevennt"><img src="https://avatars.githubusercontent.com/u/10843736?v=4" width="64px;" alt=""/><br /><sub><b>sevennt</b></sub></a></td>
     <td align="center"><a href="http://blog.lincolnzhou.com/"><img src="https://avatars.githubusercontent.com/u/3911154?v=4" width="64px;" alt=""/><br /><sub><b>LincolnZhou</b></sub></a></td>

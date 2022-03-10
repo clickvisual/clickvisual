@@ -1,13 +1,24 @@
-import { Button, Drawer, Form, FormInstance, Input, Space, Spin } from "antd";
+import {
+  Button,
+  Drawer,
+  Form,
+  FormInstance,
+  Input,
+  Select,
+  Space,
+  Spin,
+} from "antd";
 import InspectionFrequencyItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem";
 import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import TriggerConditionItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem";
 import TextArea from "antd/es/input/TextArea";
 import { SaveOutlined } from "@ant-design/icons";
-import { AlarmRequest } from "@/services/alarm";
+import { AlarmRequest, ChannelType } from "@/services/alarm";
+
+const { Option } = Select;
 
 const FormAlarmDraw = () => {
   const {
@@ -17,9 +28,12 @@ const FormAlarmDraw = () => {
     currentPagination,
     onChangeRowAlarm,
     operations,
+    alarmChannel,
   } = useModel("alarm");
+  const { doGetChannels } = alarmChannel;
   const alarmFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
+  const [channelList, setChannelList] = useState<ChannelType[]>([]);
 
   const searchQuery = {
     name: operations.inputName,
@@ -70,9 +84,19 @@ const FormAlarmDraw = () => {
       return;
     alarmDraw.doGetAlarmInfo.run(currentRowAlarm.id).then((res) => {
       if (res?.code !== 0 || !alarmFormRef.current) return;
-      alarmFormRef.current.setFieldsValue(res.data);
+      alarmFormRef.current.setFieldsValue({
+        ...res.data,
+        channelIds: res.data.channelIds ? res.data.channelIds : undefined,
+      });
     });
   }, [alarmDraw.visibleDraw, alarmDraw.isEditor, currentRowAlarm]);
+
+  useEffect(() => {
+    if (alarmDraw.visibleDraw)
+      doGetChannels.run().then((res) => {
+        if (res?.code === 0) setChannelList(res.data);
+      });
+  }, [alarmDraw.visibleDraw]);
 
   return (
     <Drawer
@@ -118,7 +142,10 @@ const FormAlarmDraw = () => {
                 }),
               },
               {
-                pattern: new RegExp("^[a-zA-Z1-9_]{0,64}$"),
+                max: 64,
+              },
+              {
+                pattern: new RegExp("^[a-zA-Z1-9_]*$"),
                 message: i18n.formatMessage({
                   id: "alarm.rules.form.rule.alarmName",
                 }),
@@ -134,6 +161,34 @@ const FormAlarmDraw = () => {
           <InspectionFrequencyItem />
           <QueryStatisticsItem />
           <TriggerConditionItem />
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "alarm.rules.form.channelIds",
+            })}
+            name={"channelIds"}
+            rules={[
+              {
+                required: true,
+                message: i18n.formatMessage({
+                  id: "alarm.rules.form.placeholder.channelIds",
+                }),
+              },
+            ]}
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              placeholder={`${i18n.formatMessage({
+                id: "alarm.rules.form.placeholder.channelIds",
+              })}`}
+            >
+              {channelList.map((item) => (
+                <Option key={item.id} value={item.id}>
+                  {item.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
           <Form.Item
             label={i18n.formatMessage({ id: "alarm.rules.form.description" })}
             name={"desc"}

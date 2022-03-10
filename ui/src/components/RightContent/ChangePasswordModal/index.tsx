@@ -139,7 +139,9 @@ const ChangePasswordModal = () => {
                 if (
                   value !== resetFormRef.current.getFieldValue("confirmNew")
                 ) {
-                  i18n.formatMessage({ id: "password.rule.match" });
+                  return Promise.reject(
+                    i18n.formatMessage({ id: "password.rule.match" })
+                  );
                 }
                 return Promise.resolve();
               },
@@ -147,6 +149,9 @@ const ChangePasswordModal = () => {
           ]}
         >
           <Input.Password
+            onChange={() =>
+              resetFormRef.current?.validateFields(["confirmNew"])
+            }
             maxLength={32}
             minLength={5}
             placeholder={`${i18n.formatMessage({
@@ -188,6 +193,7 @@ const ChangePasswordModal = () => {
           ]}
         >
           <Input.Password
+            onChange={() => resetFormRef.current?.validateFields(["password"])}
             maxLength={32}
             minLength={5}
             placeholder={`${i18n.formatMessage({

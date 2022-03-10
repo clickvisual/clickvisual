@@ -1,6 +1,28 @@
 CREATE DATABASE mocro DEFAULT CHARSET utf8mb4;
 USE mocro;
 
+CREATE TABLE `mogo_alarm_channel` (
+    `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `name` varchar(128) NOT NULL COMMENT '告警渠道名称',
+    `key` text COMMENT '关键信息',
+    `typ` int(11) DEFAULT NULL COMMENT '告警类型：0 dd ',
+    `uid` int(11) DEFAULT NULL COMMENT '操作人',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '告警渠道' DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `mogo_alarm_history` (
+    `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
+    `alarm_id` int(11) DEFAULT NULL COMMENT 'alarm id',
+    `is_pushed` tinyint(1)  DEFAULT NULL COMMENT '推送状态',
+    `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
+    `utime` int(11) DEFAULT NULL COMMENT '更新时间',
+    `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT '告警渠道' DEFAULT CHARSET = utf8mb4;
+
 CREATE TABLE `mogo_alarm` (
     `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
     `tid` int(11) DEFAULT NULL COMMENT 'table id',
@@ -9,10 +31,12 @@ CREATE TABLE `mogo_alarm` (
     `name` varchar(64) NOT NULL COMMENT '告警名称',
     `desc` varchar(255) NOT NULL COMMENT '描述说明',
     `interval` int(11) DEFAULT NULL COMMENT '告警频率',
+    `status` int(11) DEFAULT NULL COMMENT '告警状态',
     `unit` int(11) DEFAULT NULL COMMENT '0 m 1 s 2 h 3 d 4 w 5 y',
     `alert_rule` text COMMENT 'prometheus alert rule',
     `view` text COMMENT '数据转换视图',
     `tag` text COMMENT '标签数据',
+    `channel_ids` varchar(255) NOT NULL COMMENT '推送渠道',
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
@@ -51,14 +75,12 @@ CREATE TABLE `mogo_base_instance` (
     `datasource` varchar(32) NOT NULL COMMENT '数据源类型',
     `name` varchar(128) NOT NULL COMMENT '实例名称',
     `dsn` text COMMENT 'dsn',
-
     `rule_store_type` int(11) DEFAULT NULL COMMENT 'rule_store_type 0 集群 1 文件',
     `file_path` varchar(255) DEFAULT NULL COMMENT 'file_path',
     `cluster_id` int(11) DEFAULT NULL COMMENT 'cluster_id',
     `namespace` varchar(128) NOT NULL COMMENT 'namespace',
     `configmap` varchar(128) NOT NULL COMMENT 'configmap',
     `prometheus_target` varchar(128) NOT NULL COMMENT 'prometheus ip or domain, eg: https://prometheus:9090',
-
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime` int(11) DEFAULT NULL COMMENT '删除时间',
@@ -103,6 +125,7 @@ CREATE TABLE `mogo_base_index` (
     `field` varchar(128) NOT NULL COMMENT '字段',
     `typ` int(11) NOT NULL COMMENT '字段 0 text 1 long 2 double 3 json',
     `alias` varchar(128) NOT NULL COMMENT '别名',
+    `root_name` varchar(128) NOT NULL COMMENT 'root_name',
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',
     `utime` int(11) DEFAULT NULL COMMENT '更新时间',
     `dtime` int(11) DEFAULT NULL COMMENT '删除时间',

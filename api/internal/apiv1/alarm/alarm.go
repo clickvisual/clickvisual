@@ -32,14 +32,15 @@ func Create(c *core.Context) {
 	}
 	tx := invoker.Db.Begin()
 	obj := &db.Alarm{
-		Tid:      tid,
-		Uuid:     uuid.NewString(),
-		Name:     req.Name,
-		Desc:     req.Desc,
-		Interval: req.Interval,
-		Unit:     req.Unit,
-		Tags:     req.Tags,
-		Uid:      c.Uid(),
+		Tid:        tid,
+		Uuid:       uuid.NewString(),
+		Name:       req.Name,
+		Desc:       req.Desc,
+		Interval:   req.Interval,
+		Unit:       req.Unit,
+		Tags:       req.Tags,
+		ChannelIds: db.Ints(req.ChannelIds),
+		Uid:        c.Uid(),
 	}
 	err := db.AlarmCreate(tx, obj)
 	if err != nil {
@@ -50,12 +51,12 @@ func Create(c *core.Context) {
 	err = service.Alarm.CreateOrUpdate(tx, obj, req)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 01: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 02: "+err.Error(), nil)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 06: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -80,6 +81,7 @@ func Update(c *core.Context) {
 	ups["interval"] = req.Interval
 	ups["unit"] = req.Unit
 	ups["uid"] = c.Uid()
+	ups["channel_ids"] = db.Ints(req.ChannelIds)
 	if err := db.AlarmUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed 01: "+err.Error(), nil)
@@ -218,4 +220,56 @@ func Delete(c *core.Context) {
 		return
 	}
 	c.JSONOK()
+}
+
+func HistoryList(c *core.Context) {
+	var req view.ReqAlarmHistoryList
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	conds := egorm.Conds{}
+	if req.AlarmId != 0 {
+		conds["alarm_id"] = req.AlarmId
+	}
+	if req.StartTime != 0 {
+		conds["ctime"] = egorm.Cond{Op: ">", Val: req.StartTime}
+	}
+	if req.EndTime != 0 {
+		conds["ctime"] = egorm.Cond{Op: "<", Val: req.EndTime}
+	}
+	total, list := db.AlarmHistoryPage(conds, &db.ReqPage{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+	})
+	conds["is_pushed"] = 1
+	succ, _ := db.AlarmHistoryPage(conds, &db.ReqPage{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+	})
+	c.JSONPage(view.RespAlarmHistoryList{
+		Total: total,
+		Succ:  succ,
+		List:  list,
+	}, core.Pagination{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+		Total:    total,
+	})
+	return
+}
+
+func HistoryInfo(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	res, err := db.AlarmHistoryInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
 }

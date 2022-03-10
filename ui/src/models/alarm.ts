@@ -3,10 +3,18 @@ import useAlarmFormDraw from "@/models/alarms/useAlarmFormDraw";
 import useAlarm from "@/models/alarms/useAlarm";
 import { useState } from "react";
 import { AlarmType } from "@/services/alarm";
+import useChannel from "@/models/alarms/useChannel";
+import useChannelModal from "@/models/alarms/useChannelModal";
+import useAlarmHistory from "@/models/alarms/useAlarmHistory";
 
 const Alarm = () => {
   const operations = useAlarmOperations();
   const alarmDraw = useAlarmFormDraw();
+
+  const alarmChannel = useChannel();
+  const alarmChannelModal = useChannelModal();
+  const alarmHistory = useAlarmHistory();
+
   const {
     alarmList,
     doGetAlarms,
@@ -27,6 +35,9 @@ const Alarm = () => {
     currentRowAlarm,
     operations,
     alarmDraw,
+    alarmChannel,
+    alarmChannelModal,
+    alarmHistory,
 
     onChangeRowAlarm,
 

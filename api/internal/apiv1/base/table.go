@@ -226,7 +226,18 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "Unable to delete tables not created by Mogo.", nil)
 		return
 	}
-
+	// check if these is some alarms on this table
+	conds := egorm.Conds{}
+	conds["tid"] = tableInfo.ID
+	alarms, err := db.AlarmList(conds)
+	if err != nil {
+		c.JSONE(core.CodeErr, "delete failed 02: "+err.Error(), nil)
+		return
+	}
+	if len(alarms) > 0 {
+		c.JSONE(core.CodeErr, "you should delete all alarms before delete table.", nil)
+		return
+	}
 	table := tableInfo.Name
 	iid := tableInfo.Database.Iid
 	database := tableInfo.Database.Name
@@ -244,23 +255,23 @@ func TableDelete(c *core.Context) {
 	err = db.TableDelete(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed 02: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 03: "+err.Error(), nil)
 		return
 	}
 	err = db.ViewDeleteByTableID(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed 03: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 04: "+err.Error(), nil)
 		return
 	}
 	err = db.IndexDeleteBatch(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed 04: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 06: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")
