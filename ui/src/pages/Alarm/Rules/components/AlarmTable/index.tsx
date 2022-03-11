@@ -209,18 +209,22 @@ const AlarmTable = () => {
       width: 180,
       render: (_: any, record: AlarmType) => (
         <Space>
-          <Tooltip
-            title={i18n.formatMessage({
-              id: `alarm.rules.switch.${
-                record.status === 0 ? "open" : "close"
-              }`,
-            })}
-          >
-            <a onClick={() => doUpdateStatus(record)}>
-              <PoweroffOutlined />
-            </a>
-          </Tooltip>
-          <Divider type="vertical" />
+          {record.status !== 0 && (
+            <>
+              <Tooltip
+                title={i18n.formatMessage({
+                  id: `alarm.rules.switch.${
+                    record.status === 1 ? "open" : "close"
+                  }`,
+                })}
+              >
+                <a onClick={() => doUpdateStatus(record)}>
+                  <PoweroffOutlined />
+                </a>
+              </Tooltip>
+              <Divider type="vertical" />
+            </>
+          )}
 
           <Tooltip
             title={i18n.formatMessage({

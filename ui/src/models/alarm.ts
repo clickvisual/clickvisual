@@ -12,7 +12,7 @@ const Alarm = () => {
     {
       status: 1,
       label: "未开启",
-      color: "#f50",
+      color: "#108ee9",
     },
     {
       status: 2,
@@ -22,7 +22,7 @@ const Alarm = () => {
     {
       status: 3,
       label: "正在报警",
-      color: "#108ee9",
+      color: "#f50",
     },
   ];
 
