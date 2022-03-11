@@ -419,7 +419,7 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 	}
 }
 
-// AlertViewCreate TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS
+// AlertViewGen TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS
 // SELECT
 //        toDate(_timestamp_) as date,
 //        %s as name,
@@ -428,12 +428,12 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 //        _timestamp_ as ts,
 //        toDateTime(_timestamp_) as updated
 //    FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter) (string, error) {
+func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (string, string, error) {
 	var (
+		filter          string
 		viewSQL         string
 		viewTableName   string
 		sourceTableName string
-		filter          string
 	)
 	for i, f := range filters {
 		if i == 0 {
@@ -444,7 +444,7 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, alarm.Tid)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	viewTableName = fmt.Sprintf("%s.%s_%s_view", tableInfo.Database.Name, tableInfo.Name, alarm.Name)
@@ -452,15 +452,26 @@ func (c *ClickHouse) AlertViewCreate(alarm *db.Alarm, filters []*db.AlarmFilter)
 
 	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, TagsToString(alarm, true), sourceTableName, filter)
 
-	elog.Debug("AlertViewCreate", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
+	elog.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
 	err = c.alertPrepare()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	_ = c.DropTable(viewTableName)
+	return viewTableName, viewSQL, err
+}
+
+func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL string) (err error) {
+	err = c.AlertViewDrop(viewTableName)
+	if err != nil {
+		return
+	}
 	_, err = c.db.Exec(viewSQL)
-	return viewSQL, err
+	return err
+}
+
+func (c *ClickHouse) AlertViewDrop(viewTableName string) (err error) {
+	return c.DropTable(viewTableName)
 }
 
 func (c *ClickHouse) alertPrepare() (err error) {

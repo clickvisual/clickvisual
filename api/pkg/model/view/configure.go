@@ -44,7 +44,7 @@ type ReqListConfig struct {
 // RespListConfig ..
 type RespListConfig []RespListConfigItem
 
-// RespListConfigItem Does not contain configuration content to prevent configuration from being too long
+// RespListConfigItem Does not contain configuration content to prevent configuration form being too long
 type RespListConfigItem struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`

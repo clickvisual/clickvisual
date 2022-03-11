@@ -30,6 +30,10 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 	if err = db.AlarmHistoryCreate(invoker.Db, &alarmHistory); err != nil {
 		return err
 	}
+	err = db.AlarmStatusUpdate(alarm.ID, notification.Status)
+	if err != nil {
+		return err
+	}
 	for _, channelId := range alarm.ChannelIds {
 		channelInfo, errAlarmChannelInfo := db.AlarmChannelInfo(invoker.Db, channelId)
 		if errAlarmChannelInfo != nil {

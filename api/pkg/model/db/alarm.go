@@ -13,18 +13,20 @@ import (
 
 // Alarm 告警配置
 type Alarm struct {
-	Tid        int           `gorm:"column:tid;type:int(11)" json:"tid"`                              // table id
-	Uuid       string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`              // 唯一外键
-	Name       string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`         // 告警名称
-	Desc       string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`              // 描述说明
-	Interval   int           `gorm:"column:interval;type:int(11)" json:"interval"`                    // 告警频率
-	Unit       int           `gorm:"column:unit;type:int(11)" json:"unit"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
-	AlertRule  string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                    // prometheus alert rule
-	View       string        `gorm:"column:view;type:text" json:"view"`                               // 数据转换视图
-	Tags       String2String `gorm:"column:tag;type:text" json:"tag"`                                 // 标签
-	Uid        int           `gorm:"column:uid;type:int(11)" json:"uid"`                              // 操作人
-	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // 告警状态
-	ChannelIds Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // 告警方式
+	Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                                    // table id
+	Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                                    // 唯一外键
+	Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                               // 告警名称
+	Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                                    // 描述说明
+	Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                          // 告警频率
+	Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                                  // 0 m 1 s 2 h 3 d 4 w 5 y
+	AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                          // prometheus alert rule
+	View          string        `gorm:"column:view;type:text" json:"view"`                                                     // 数据转换视图
+	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"view_table_name"`                       // 视图表名称
+	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                                       // 标签
+	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                                    // 操作人
+	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // 告警状态
+	RuleStoreType int           `gorm:"column:rule_store_type" db:"rule_store_type" json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType
+	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`                       // 告警方式
 
 	BaseModel
 }
@@ -37,6 +39,12 @@ func (m *Alarm) AlertRuleName() string {
 	return fmt.Sprintf("mogo-%s.yaml", m.Uuid)
 }
 
+const (
+	AlarmStatusClose = iota + 1
+	AlarmStatusOpen
+	AlarmStatusFiring
+)
+
 var unitMap = map[int]string{
 	0: "m",
 	1: "s",
@@ -48,6 +56,40 @@ var unitMap = map[int]string{
 
 func (m *Alarm) AlertInterval() string {
 	return fmt.Sprintf("%d%s", m.Interval, unitMap[m.Unit])
+}
+
+func GetAlarmTableInstanceInfo(id int) (instanceInfo Instance, tableInfo Table, alarmInfo Alarm, err error) {
+	alarmInfo, err = AlarmInfo(invoker.Db, id)
+	if err != nil {
+		return
+	}
+	// table info
+	tableInfo, err = TableInfo(invoker.Db, alarmInfo.Tid)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
+		return
+	}
+	// prometheus set
+	instanceInfo, err = InstanceInfo(invoker.Db, tableInfo.Database.Iid)
+	if err != nil {
+		elog.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
+		return
+	}
+	return
+}
+
+func AlarmStatusUpdate(id int, status string) (err error) {
+	ups := make(map[string]interface{}, 0)
+	if status == "firing" {
+		ups["status"] = AlarmStatusFiring
+	} else if status == "resolved" {
+		ups["status"] = AlarmStatusOpen
+	}
+	err = AlarmUpdate(invoker.Db, id, ups)
+	if err != nil {
+		return
+	}
+	return
 }
 
 func AlarmInfo(db *gorm.DB, id int) (resp Alarm, err error) {

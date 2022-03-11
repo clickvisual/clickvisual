@@ -123,7 +123,7 @@ const AlarmTable = () => {
           message.success(
             {
               content: i18n.formatMessage(
-                { id: `alarm.rules.${isOpen ? "open" : "close"}.success` },
+                { id: `alarm.rules.${isOpen ? "close" : "open"}.success` },
                 { alarmName: alarm.alarmName }
               ),
               key: "status",

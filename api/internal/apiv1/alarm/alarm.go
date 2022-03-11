@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -69,50 +70,32 @@ func Update(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view.ReqAlarmCreate
-	if err := c.Bind(&req); err != nil {
+	var (
+		req view.ReqAlarmCreate
+		err error
+	)
+	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	tx := invoker.Db.Begin()
-	ups := make(map[string]interface{}, 0)
-	ups["name"] = req.Name
-	ups["desc"] = req.Desc
-	ups["interval"] = req.Interval
-	ups["unit"] = req.Unit
-	ups["uid"] = c.Uid()
-	ups["channel_ids"] = db.Ints(req.ChannelIds)
-	if err := db.AlarmUpdate(tx, id, ups); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "update failed 01: "+err.Error(), nil)
-		return
+	switch req.Status {
+	case db.AlarmStatusOpen:
+		err = service.Alarm.OpenOperator(id)
+	case db.AlarmStatusClose:
+		instanceInfo, _, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
+		if errAlarmInfo != nil {
+			c.JSONE(1, "alarm update failed 02"+errAlarmInfo.Error(), nil)
+			return
+		}
+		if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
+			return
+		}
+		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
+	default:
+		err = service.Alarm.Update(c.Uid(), id, req)
 	}
-	// filter
-	if err := db.AlarmFilterDeleteBatch(tx, id); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "update failed 02: "+err.Error(), nil)
-		return
-	}
-	// condition
-	if err := db.AlarmConditionDeleteBatch(tx, id); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "update failed 03: "+err.Error(), nil)
-		return
-	}
-	obj, err := db.AlarmInfo(tx, id)
 	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, "update failed 04: "+err.Error(), nil)
-		return
-	}
-	if err = service.Alarm.CreateOrUpdate(tx, &obj, req); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "update failed 05:"+err.Error(), nil)
-		return
-	}
-	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
-		c.JSONE(1, "update failed 06:"+err.Error(), nil)
+		c.JSONE(1, "alarm update failed 04"+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -127,12 +110,16 @@ func List(c *core.Context) {
 	name := c.Query("name")
 	tid, _ := strconv.Atoi(c.Query("tid"))
 	did, _ := strconv.Atoi(c.Query("did"))
+	status, _ := strconv.Atoi(c.Query("status"))
 	query := egorm.Conds{}
 	if name != "" {
 		query["name"] = egorm.Cond{
 			Op:  "like",
 			Val: name,
 		}
+	}
+	if status != 0 {
+		query["status"] = status
 	}
 	if tid != 0 {
 		query["tid"] = tid
@@ -180,7 +167,7 @@ func Info(c *core.Context) {
 		return
 	}
 	user, _ := db.UserInfo(alarmInfo.Uid)
-	res := view.ReqAlarmInfo{
+	res := view.RespAlarmInfo{
 		Alarm:      alarmInfo,
 		Filters:    filters,
 		Conditions: conditions,
@@ -197,26 +184,46 @@ func Delete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
+	if err != nil {
+		c.JSONE(1, "alarm failed to delete 01"+err.Error(), nil)
+		return
+	}
 	tx := invoker.Db.Begin()
-	if err := db.AlarmDelete(tx, id); err != nil {
-		c.JSONE(1, "failed to delete: "+err.Error(), nil)
+	if err = db.AlarmDelete(tx, id); err != nil {
+		c.JSONE(1, "alarm failed to delete 02 "+err.Error(), nil)
 		return
 	}
 	// filter
-	if err := db.AlarmFilterDeleteBatch(tx, id); err != nil {
+	if err = db.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "update failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 03 "+err.Error(), nil)
 		return
 	}
 	// condition
-	if err := db.AlarmConditionDeleteBatch(tx, id); err != nil {
+	if err = db.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "update failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 04"+err.Error(), nil)
 		return
 	}
-	if err := tx.Commit().Error; err != nil {
+	if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 05"+err.Error(), nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = op.AlertViewDrop(alarmInfo.ViewTableName); err != nil {
+		tx.Rollback()
+		c.JSONE(1, "alarm failed to delete 06"+err.Error(), nil)
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSONE(1, "alarm failed to delete 07"+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -228,6 +235,7 @@ func HistoryList(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	elog.Debug("history", elog.Any("req", req))
 	conds := egorm.Conds{}
 	if req.AlarmId != 0 {
 		conds["alarm_id"] = req.AlarmId

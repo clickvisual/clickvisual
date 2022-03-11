@@ -40,3 +40,5 @@ data/all-in-one/clickhouse/database/
 data/all-in-one/kafka/data/
 data/all-in-one/zookeeper/data/
 data/all-in-one/zookeeper/datalog/
+
+rules/*

@@ -1,7 +1,6 @@
 package alarm
 
 import (
-	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/service/alertmanager"
@@ -18,12 +17,7 @@ func Webhook(c *core.Context) {
 		return
 	}
 	elog.Debug("webhook", elog.Any("notification", notification))
-	var uuid string
-	uuid = notification.CommonLabels["uuid"]
-	if econf.GetBool("debug") && uuid == "" {
-		uuid = "9f4322b9-91f4-415f-ab29-9883aef0bd1f"
-	}
-	err = alertmanager.Send(uuid, notification)
+	err = alertmanager.Send(notification.CommonLabels["uuid"], notification)
 	if err != nil {
 		c.JSONE(1, "message send failed", err.Error())
 		return

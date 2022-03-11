@@ -35,9 +35,8 @@ func GetRouter() *egin.Component {
 	}))
 
 	// non-authentication api
-	r.POST("/api/admin/users/login", core.Handle(user.Login))
 	r.GET("/api/admin/login/:oauth", core.Handle(user.Oauth))
-
+	r.POST("/api/admin/users/login", core.Handle(user.Login))
 	r.POST("/api/v1/prometheus/alerts", core.Handle(alarm.Webhook))
 
 	v1 := r.Group("/api/v1", middlewares.AuthChecker())
@@ -84,10 +83,6 @@ func GetRouter() *egin.Component {
 		v1.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
 		v1.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
 	}
-	// Trace
-	{
-		// v1.GET("/traces/:tid", core.Handle(trace.Info))
-	}
 	// Instance
 	{
 		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
@@ -105,7 +100,6 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
-		// v1.GET("/tables/:id/query", core.Handle(base.TableQuery))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
 		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
 		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
@@ -136,6 +130,5 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/alarms-channels/:id", core.Handle(alarm.ChannelUpdate))
 		v1.DELETE("/alarms-channels/:id", core.Handle(alarm.ChannelDelete))
 	}
-
 	return r
 }
