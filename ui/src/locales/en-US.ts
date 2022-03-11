@@ -20,6 +20,7 @@ export default {
   required: "Required",
 
   type: "Type",
+  status: "Status",
   dingTalk: "DingTalk",
 
   "unit.second": "seconds",
@@ -361,6 +362,7 @@ export default {
   // Rules
   "alarm.rules.selected.placeholder.database": "Please select database",
   "alarm.rules.selected.placeholder.logLibrary": "Please select log library",
+  "alarm.rules.selected.placeholder.status": "Please select alarm status",
   "alarm.rules.button.created": "Create Alarm",
   "alarm.rules.table.alarmName": "Alarm Name",
   "alarm.rules.form.title": "Alarm Monitoring Rule",
@@ -394,6 +396,8 @@ export default {
   "alarm.rules.inspectionFrequency.placeholder.logLibrary":
     "Please select a table",
   "alarm.rules.creator": "Creator",
+  "alarm.rules.switch.open": "Open",
+  "alarm.rules.switch.close": "Close",
 
   "alarm.rules.info.title": "Alarm Details",
   "alarm.rules.info.view": "View",

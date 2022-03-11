@@ -6,6 +6,7 @@ const useAlarmOperations = () => {
   const [inputName, setInputName] = useState<string>();
   const [selectDid, setSelectDid] = useState<number>();
   const [selectTid, setSelectTid] = useState<number>();
+  const [statusId, setStatusId] = useState<number>();
   const [tableList, setTableList] = useState<TablesResponse[]>([]);
   const [databaseList, setDatabaseList] = useState<DatabaseResponse[]>([]);
 
@@ -18,7 +19,7 @@ const useAlarmOperations = () => {
     onSuccess: (res) => setDatabaseList(res.data || []),
   });
 
-  const onChangeInputName = (name: string) => {
+  const onChangeInputName = (name: string | undefined) => {
     setInputName(name);
   };
 
@@ -29,17 +30,23 @@ const useAlarmOperations = () => {
   const onChangeSelectTid = (id: number | undefined) => {
     setSelectTid(id);
   };
+
+  const onChangeStatusId = (id: number | undefined) => {
+    setStatusId(id);
+  };
   return {
     inputName,
     selectDid,
     selectTid,
     tableList,
+    statusId,
     databaseList,
     getLogLibraries,
     getDatabases,
     onChangeInputName,
     onChangeSelectDid,
     onChangeSelectTid,
+    onChangeStatusId,
   };
 };
 export default useAlarmOperations;
