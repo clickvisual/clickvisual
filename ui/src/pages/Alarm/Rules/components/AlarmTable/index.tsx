@@ -1,5 +1,5 @@
 import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import { Button, Divider, message, Space, Table, Tooltip } from "antd";
+import { Divider, message, Space, Table, Tag, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
@@ -7,9 +7,14 @@ import { useEffect } from "react";
 import useTimeUnits from "@/hooks/useTimeUnits";
 import { AlarmType } from "@/services/alarm";
 import IconFont from "@/components/IconFont";
-import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  FileTextOutlined,
+  PoweroffOutlined,
+} from "@ant-design/icons";
 import DeletedModal from "@/components/DeletedModal";
 import classNames from "classnames";
+import { useDebounceFn } from "ahooks";
 
 const AlarmTable = () => {
   const i18n = useIntl();
@@ -24,6 +29,7 @@ const AlarmTable = () => {
     doDeletedAlarm,
     currentPagination,
     onChangeRowAlarm,
+    AlarmStatus,
     onChangePagination,
   } = useModel("alarm");
 
@@ -31,6 +37,7 @@ const AlarmTable = () => {
     name: operations.inputName,
     did: operations.selectDid,
     tid: operations.selectTid,
+    status: operations.statusId,
     ...currentPagination,
   };
 
@@ -91,6 +98,45 @@ const AlarmTable = () => {
     });
   };
 
+  const doUpdateStatus = useDebounceFn(
+    (alarm: AlarmType) => {
+      const isOpen = alarm.status !== 1;
+      const hideMessage = message.loading(
+        {
+          content: i18n.formatMessage(
+            {
+              id: `alarm.rules.${isOpen ? "close" : "open"}.loading`,
+            },
+            { alarmName: alarm.alarmName }
+          ),
+          key: "status",
+        },
+        0
+      );
+      alarmDraw.doUpdatedAlarm
+        .run(alarm.id, { status: isOpen ? 1 : 2 })
+        .then((res) => {
+          if (res?.code !== 0) {
+            hideMessage();
+            return;
+          }
+          message.success(
+            {
+              content: i18n.formatMessage(
+                { id: `alarm.rules.${isOpen ? "open" : "close"}.success` },
+                { alarmName: alarm.alarmName }
+              ),
+              key: "status",
+            },
+            3
+          );
+          doGetAlarms.run(searchQuery);
+        })
+        .catch(() => hideMessage());
+    },
+    { wait: 500 }
+  ).run;
+
   useEffect(() => {
     doGetAlarms.run(searchQuery);
   }, []);
@@ -146,32 +192,50 @@ const AlarmTable = () => {
       ),
     },
     {
+      title: i18n.formatMessage({ id: "status" }),
+      dataIndex: "status",
+      width: 100,
+      align: "center",
+      render: (value) => {
+        const status = AlarmStatus.find((item) => value === item.status);
+        if (!status) return <>-</>;
+        return <Tag color={status.color}>{status.label}</Tag>;
+      },
+    },
+    {
       title: i18n.formatMessage({ id: "operation" }),
       dataIndex: "operations",
       align: "center",
-      width: 150,
+      width: 180,
       render: (_: any, record: AlarmType) => (
         <Space>
+          <Tooltip
+            title={i18n.formatMessage({
+              id: `alarm.rules.switch.${
+                record.status === 0 ? "open" : "close"
+              }`,
+            })}
+          >
+            <a onClick={() => doUpdateStatus(record)}>
+              <PoweroffOutlined />
+            </a>
+          </Tooltip>
+          <Divider type="vertical" />
+
           <Tooltip
             title={i18n.formatMessage({
               id: "edit",
             })}
           >
-            <Button
-              size={"small"}
-              type={"link"}
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
+            <a onClick={() => handleEdit(record)}>
+              <EditOutlined />
+            </a>
           </Tooltip>
           <Divider type="vertical" />
           <Tooltip title={i18n.formatMessage({ id: "alarm.rules.info.title" })}>
-            <Button
-              size={"small"}
-              type={"link"}
-              icon={<FileTextOutlined />}
-              onClick={() => handleInfo(record.id)}
-            />
+            <a onClick={() => handleInfo(record.id)}>
+              <FileTextOutlined />
+            </a>
           </Tooltip>
           <Divider type="vertical" />
           <Tooltip
@@ -179,12 +243,9 @@ const AlarmTable = () => {
               id: "delete",
             })}
           >
-            <Button
-              size={"small"}
-              type={"link"}
-              icon={<IconFont type={"icon-delete"} />}
-              onClick={() => handleDelete(record)}
-            />
+            <a onClick={() => handleDelete(record)}>
+              <IconFont type={"icon-delete"} />
+            </a>
           </Tooltip>
         </Space>
       ),

@@ -93,7 +93,7 @@ const CreatedAndUpdatedModal = ({
         {
           st: parseInt(fields.between[0].format("X")),
           et: parseInt(fields.between[1].format("X")),
-          query: fields.sql,
+          query: fields.when,
           page: FIRST_PAGE,
           pageSize: PAGE_SIZE,
         },
@@ -316,9 +316,8 @@ const CreatedAndUpdatedModal = ({
             prevValues.when !== nextValues.when
           }
         >
-          {({ getFieldValue }) => {
+          {({ getFieldValue, getFieldsValue }) => {
             if (!getFieldValue("tableId")) return <></>;
-            const fields = modalForm.current?.getFieldsValue();
             return (
               <Form.Item label={i18n.formatMessage({ id: "search" })}>
                 <Input.Group compact>
@@ -329,6 +328,7 @@ const CreatedAndUpdatedModal = ({
                     style={{ width: "15%" }}
                     type={"primary"}
                     onClick={() => {
+                      const fields = getFieldsValue();
                       handlePreview(fields);
                     }}
                   >
@@ -345,8 +345,10 @@ const CreatedAndUpdatedModal = ({
                     dataSource={tableLogs}
                     pagination={{
                       ...currentPagination,
-                      onChange: (page, pageSize) =>
-                        handleChangePage(page, pageSize, fields),
+                      onChange: (page, pageSize) => {
+                        const fields = getFieldsValue();
+                        handleChangePage(page, pageSize, fields);
+                      },
                     }}
                     showSorterTooltip
                     bordered

@@ -20,6 +20,7 @@ export default {
   required: "必填",
 
   type: "类型",
+  status: "状态",
   dingTalk: "钉钉",
 
   "unit.second": "秒",
@@ -340,6 +341,7 @@ export default {
   // Rules
   "alarm.rules.selected.placeholder.database": "请选择数据库",
   "alarm.rules.selected.placeholder.logLibrary": "请选择日志库",
+  "alarm.rules.selected.placeholder.status": "请选择报警状态",
   "alarm.rules.button.created": "新增报警",
   "alarm.rules.table.alarmName": "报警名称",
   "alarm.rules.form.title": "报警监控规则",
@@ -366,6 +368,12 @@ export default {
   "alarm.rules.inspectionFrequency.logLibrary": "数据表",
   "alarm.rules.inspectionFrequency.placeholder.logLibrary": "请选择数据表",
   "alarm.rules.creator": "创建人",
+  "alarm.rules.switch.open": "开启",
+  "alarm.rules.switch.close": "关闭",
+  "alarm.rules.open.loading": "正在开启报警：{alarmName}...",
+  "alarm.rules.open.success": "开启报警：{alarmName} 成功",
+  "alarm.rules.close.loading": "正在关闭报警：{alarmName}...",
+  "alarm.rules.close.success": "关闭报警：{alarmName} 成功",
 
   "alarm.rules.info.title": "报警详情",
   "alarm.rules.info.view": "视图",

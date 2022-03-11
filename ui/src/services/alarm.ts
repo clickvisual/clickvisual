@@ -6,6 +6,7 @@ export interface AlarmsResponse {
   did?: number;
   tid?: number;
   name?: string;
+  status?: number;
   current: number;
   pageSize: number;
 }
@@ -21,6 +22,8 @@ export interface AlarmType extends TimeBaseType {
   id: number;
   tag: any;
   uid: number;
+  channelIds: number[];
+  status: number;
 }
 
 export interface AlarmFilterType extends TimeBaseType {
@@ -116,7 +119,7 @@ export default {
   async createdAlarm(data: AlarmRequest) {
     return request<API.Res<string>>(`/api/v1/alarms`, { method: "POST", data });
   },
-  async updatedAlarm(id: number, data: AlarmRequest) {
+  async updatedAlarm(id: number, data: AlarmRequest | { status: number }) {
     return request<API.Res<string>>(`/api/v1/alarms/${id}`, {
       method: "PATCH",
       data,
