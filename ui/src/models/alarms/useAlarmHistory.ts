@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlarmInfoType } from "@/services/alarm";
+import { AlarmHistoryRequest, AlarmInfoType } from "@/services/alarm";
 import api from "@/services/alarm";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { FIRST_PAGE } from "@/config/config";
@@ -7,6 +7,7 @@ import { FIRST_PAGE } from "@/config/config";
 const useAlarmHistory = () => {
   const [currentAlarm, setCurrentAlarm] = useState<AlarmInfoType>();
   const [historyVisible, setHistoryVisible] = useState<boolean>(false);
+  const [query, setQuery] = useState<AlarmHistoryRequest>();
   const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
     current: FIRST_PAGE,
     pageSize: 5,
@@ -18,6 +19,8 @@ const useAlarmHistory = () => {
   });
 
   return {
+    query,
+    setQuery,
     historyVisible,
     setHistoryVisible,
     currentAlarm,

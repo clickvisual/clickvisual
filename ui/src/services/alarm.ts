@@ -88,7 +88,9 @@ export interface ChannelType extends TimeBaseType {
 export interface AlarmHistoryRequest {
   alarmId?: number;
   startTime?: number;
-  EndTime?: number;
+  endTime?: number;
+  current?: number;
+  pageSize?: number;
 }
 
 export interface AlarmHistoryType extends TimeBaseType {
@@ -141,7 +143,7 @@ export default {
     return request(`/api/v1/alarms-channels/${id}`, { method: "GET" });
   },
 
-  async getAlarmHistories(params: AlarmHistoryRequest & API.Pagination) {
+  async getAlarmHistories(params: AlarmHistoryRequest) {
     return request<API.ResPageData<AlarmHistoriesResponse>>(
       `/api/v1/alarms-histories`,
       { method: "GET", params }

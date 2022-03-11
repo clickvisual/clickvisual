@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlarmHistoryRequest, AlarmHistoryType } from "@/services/alarm";
 import HistoryTable from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryTable";
 import HistoryBoard from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryBorad";
+import HistoryOptions from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryOptions";
 
 const AlarmHistory = () => {
   const [dataList, setDataList] = useState<AlarmHistoryType[]>([]);
@@ -11,6 +12,7 @@ const AlarmHistory = () => {
   const [sucPublish, setSucPublish] = useState<number>(0);
   const { alarmHistory } = useModel("alarm");
   const {
+    setQuery,
     setHistoryVisible,
     historyVisible,
     currentAlarm,
@@ -24,7 +26,7 @@ const AlarmHistory = () => {
     setHistoryVisible(false);
   };
 
-  const loadList = (params?: AlarmHistoryRequest | API.Pagination) => {
+  const loadList = (params?: AlarmHistoryRequest) => {
     doGetAlarmHistoryList
       .run({ ...currentPagination, ...params })
       .then((res) => {
@@ -37,7 +39,10 @@ const AlarmHistory = () => {
   };
 
   useEffect(() => {
-    if (historyVisible && currentAlarm) loadList({ alarmId: currentAlarm.id });
+    if (historyVisible && currentAlarm) {
+      setQuery({ alarmId: currentAlarm.id });
+      loadList({ alarmId: currentAlarm.id });
+    }
   }, [historyVisible, currentAlarm]);
 
   useEffect(() => {
@@ -60,13 +65,14 @@ const AlarmHistory = () => {
           title={currentAlarm.alarmName}
           visible={historyVisible}
           onClose={onClose}
-          width={"40vw"}
+          width={"55vw"}
         >
           <HistoryBoard
             sucPublish={sucPublish}
             total={total}
             dataList={dataList}
           />
+          <HistoryOptions loadList={loadList} />
           <HistoryTable loadList={loadList} dataList={dataList} />
         </Drawer>
       )}
