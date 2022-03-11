@@ -39,7 +39,7 @@ const InspectionFrequencyItem = () => {
   const FixedInterval = () => {
     return (
       <Space>
-        <Form.Item noStyle name={"interval"} initialValue={15}>
+        <Form.Item noStyle name={"interval"} initialValue={1}>
           <InputNumber min={0} />
         </Form.Item>
         <Form.Item noStyle name={"unit"} initialValue={0}>

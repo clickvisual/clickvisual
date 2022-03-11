@@ -8,7 +8,7 @@ import { useIntl } from "umi";
 
 type HistoryTableProps = {
   dataList: AlarmHistoryType[];
-  loadList: (params?: AlarmHistoryRequest | API.Pagination) => void;
+  loadList: (params?: AlarmHistoryRequest) => void;
 };
 const HistoryTable = ({ dataList, loadList }: HistoryTableProps) => {
   const { alarmHistory } = useModel("alarm");

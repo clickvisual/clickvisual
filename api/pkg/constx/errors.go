@@ -12,11 +12,12 @@ var (
 	ErrAuthUserLoginError = &kerror.KError{Code: 10004, Message: "user_login_error"}
 
 	// ErrSkipConfigureName 01 inner errors
-	ErrSkipConfigureName           = &kerror.KError{Code: 10101, Message: "skipped synchronization file name"}
-	ErrQueryFormatIllegal          = &kerror.KError{Code: 10102, Message: "query format is illegal"}
-	ErrInstanceObj                 = &kerror.KError{Code: 10103, Message: "the current database is unavailable"}
-	ErrConfigurationIsNoDifference = &kerror.KError{Code: 10104, Message: "save failed, no update at this time"}
-	ErrAlarmRuleStoreIsClosed      = &kerror.KError{Code: 10105, Message: "alarm rule store is closed"}
+	ErrSkipConfigureName               = &kerror.KError{Code: 10101, Message: "skipped synchronization file name"}
+	ErrQueryFormatIllegal              = &kerror.KError{Code: 10102, Message: "query format is illegal"}
+	ErrInstanceObj                     = &kerror.KError{Code: 10103, Message: "the current database is unavailable"}
+	ErrConfigurationIsNoDifference     = &kerror.KError{Code: 10104, Message: "save failed, no update at this time"}
+	ErrAlarmRuleStoreIsClosed          = &kerror.KError{Code: 10105, Message: "alarm rule store is closed"}
+	ErrPrometheusRuleStoreTypeNotMatch = &kerror.KError{Code: 10106, Message: "prometheus rule store type not match"}
 	// ErrGrpcUserListEmpty 02 grpc errors
 	ErrGrpcUserListEmpty = &kerror.KError{Code: 10201, Message: "svc grpc user list empty"}
 	ErrGrpcFileEmpty     = &kerror.KError{Code: 10202, Message: "svc grpc file empty"}

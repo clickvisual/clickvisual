@@ -8,10 +8,7 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 const { Option } = Select;
 const Operations = () => {
-  // const { databaseList, logLibraryList, getLogLibraries, doGetDatabaseList } =
-  //   useModel("dataLogs");
-
-  const { operations, alarmDraw, doGetAlarms, currentPagination } =
+  const { operations, alarmDraw, doGetAlarms, AlarmStatus, currentPagination } =
     useModel("alarm");
 
   const { tableList, databaseList, getLogLibraries, getDatabases } = operations;
@@ -26,6 +23,7 @@ const Operations = () => {
     name: operations.inputName,
     did: operations.selectDid,
     tid: operations.selectTid,
+    status: operations.statusId,
     ...currentPagination,
   };
 
@@ -85,6 +83,24 @@ const Operations = () => {
                 {item.tableName}
               </Option>
             ))}
+        </Select>
+        <Select
+          allowClear
+          value={operations.statusId}
+          className={alarmStyles.selectedBar}
+          placeholder={`${i18n.formatMessage({
+            id: "alarm.rules.selected.placeholder.status",
+          })}`}
+          onChange={(id) => {
+            operations.onChangeStatusId(id);
+            doGetAlarms.run({ ...searchQuery, status: id });
+          }}
+        >
+          {AlarmStatus.map((item) => (
+            <Option key={item.status} value={item.status}>
+              {item.label}
+            </Option>
+          ))}
         </Select>
         <Button icon={<PlusOutlined />} type="primary" onClick={handleOpenDraw}>
           {i18n.formatMessage({ id: "alarm.rules.button.created" })}

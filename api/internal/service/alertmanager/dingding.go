@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gotomicro/ego/core/econf"
+
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
@@ -64,6 +66,7 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		buffer.WriteString(fmt.Sprintf("##### 时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 概要: %s\n\n", annotations["summary"]))
 		buffer.WriteString(fmt.Sprintf("##### 说明: %s\n\n", annotations["description"]))
+		buffer.WriteString(fmt.Sprintf("##### 链接: %s/alarm/rules\n\n", econf.GetString("app.rootURL")))
 	}
 
 	markdown = &view.DingTalkMarkdown{
