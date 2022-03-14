@@ -184,7 +184,7 @@ const ModalCreatedLogLibrary = () => {
               }),
             },
             {
-              pattern: new RegExp(/^[a-zA-Z\-]+$/),
+              pattern: new RegExp(/^[a-zA-Z0-9\-]+$/),
               message: i18n.formatMessage({
                 id: "datasource.logLibrary.from.rule.topics",
               }),

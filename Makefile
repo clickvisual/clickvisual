@@ -6,12 +6,18 @@ SCRIPT_PATH:=$(APP_PATH)/../scripts
 COMPILE_OUT:=$(APP_PATH)/../bin/$(APP_NAME)
 HUB_USER:=sevennt
 
-build: build.api build.ui
+build: build.ui build.dist build.api
 
 build.api:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	@chmod +x $(SCRIPT_PATH)/build/*.sh
 	@cd $(APP_PATH) && $(SCRIPT_PATH)/build/gobuild.sh $(APP_NAME) $(COMPILE_OUT)
+	@echo -e "\n"
+
+build.dist:
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+	@rm -rf $(APP_PATH)/../api/internal/ui/dist
+	@mv $(APP_PATH)/../ui/dist $(APP_PATH)/../api/internal/ui/dist
 	@echo -e "\n"
 
 build.ui:

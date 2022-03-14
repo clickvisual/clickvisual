@@ -12,11 +12,11 @@ import (
 )
 
 type K8SConfigMap struct {
+	BaseModel
+
 	ClusterId int    `gorm:"column:cluster_id;type:int(11)" json:"clusterId"` // 集群ID
 	Name      string `gorm:"column:name;type:varchar(128)" json:"name"`
 	Namespace string `gorm:"column:namespace;type:varchar(128)" json:"namespace"`
-
-	BaseModel
 }
 
 func (m *K8SConfigMap) TableName() string {

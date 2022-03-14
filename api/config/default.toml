@@ -37,6 +37,16 @@ addr = "127.0.0.1:6379"
 writeTimeout = "3s"
 password = ""
 
+[session]
+mode = "redis"
+name = "mysession"
+size = 10
+debug = true
+network = "tcp"
+addr = "127.0.0.1:6379"
+password = ""
+keypairs = ""
+
 [app]
 # hashStatecode
 secretKey = "ASDFASDFASDF"
@@ -104,12 +114,3 @@ allowedDomains = []
 teamIds = []
 allowedOrganizations = []
 
-[session]
-mode = "redis"
-name = "mysession"
-size = 10
-debug = true
-network = "tcp"
-addr = "localhost:6379"
-password = ""
-keypairs = ""

@@ -7,10 +7,11 @@ import (
 	"github.com/shimohq/mogo/api/internal/apiv1/alarm"
 	"github.com/shimohq/mogo/api/internal/apiv1/base"
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
+	"github.com/shimohq/mogo/api/internal/apiv1/initialize"
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
-	"github.com/shimohq/mogo/api/internal/apiv1/sys"
+
 	"github.com/shimohq/mogo/api/internal/apiv1/user"
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/middlewares"
@@ -38,10 +39,16 @@ func GetRouter() *egin.Component {
 	r.GET("/api/admin/login/:oauth", core.Handle(user.Oauth))
 	r.POST("/api/admin/users/login", core.Handle(user.Login))
 	r.POST("/api/v1/prometheus/alerts", core.Handle(alarm.Webhook))
+	// mock
+	r.GET("/api/v1/install", core.Handle(initialize.Install))
 
 	v1 := r.Group("/api/v1", middlewares.AuthChecker())
 	// User related
 	{
+		// init
+		v1.GET("/init/migration", core.Handle(initialize.Migration))
+
+		// user
 		v1.GET("/menus/list", core.Handle(permission.MenuList))
 		v1.GET("/users/info", core.Handle(user.Info))
 		v1.POST("/users/logout", core.Handle(user.Logout))
@@ -50,10 +57,10 @@ func GetRouter() *egin.Component {
 	// System configuration
 	{
 		// Database instance configuration
-		v1.POST("/sys/instances", core.Handle(sys.InstanceCreate))
-		v1.GET("/sys/instances", core.Handle(sys.InstanceList))
-		v1.PATCH("/sys/instances/:id", core.Handle(sys.InstanceUpdate))
-		v1.DELETE("/sys/instances/:id", core.Handle(sys.InstanceDelete))
+		v1.POST("/sys/instances", core.Handle(setting.InstanceCreate))
+		v1.GET("/sys/instances", core.Handle(setting.InstanceList))
+		v1.PATCH("/sys/instances/:id", core.Handle(setting.InstanceUpdate))
+		v1.DELETE("/sys/instances/:id", core.Handle(setting.InstanceDelete))
 		// Cluster configuration
 		v1.GET("/sys/clusters/:id", core.Handle(setting.ClusterInfo))
 		v1.GET("/sys/clusters", core.Handle(setting.ClusterPageList))

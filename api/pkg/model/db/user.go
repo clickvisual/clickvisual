@@ -14,8 +14,10 @@ import (
 )
 
 type User struct {
+	BaseModel
+
 	OaId     int    `gorm:"not null;comment:'oa uid'" json:"oa_id"`
-	Username string `gorm:"not null;comment:'用户名'" json:"username"`
+	Username string `gorm:"not null;default:'';size:128;comment:英文用户名,全局唯一;uniqueIndex:uniq_idx_username;" json:"username" form:"username"`
 	Nickname string `gorm:"not null;comment:'昵称'" json:"nickname"`
 	Secret   string `gorm:"not null;comment:'秘钥'" json:"secret"`
 	Email    string `gorm:"not null;comment:'email'" json:"email"`
@@ -31,8 +33,6 @@ type User struct {
 	Access           string `json:"access"`
 
 	OauthToken OAuthToken `gorm:"type:json;comment:'OAuth Token 信息'" json:"-"`
-
-	BaseModel
 }
 
 func (User) TableName() string {

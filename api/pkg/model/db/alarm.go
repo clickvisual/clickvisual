@@ -13,6 +13,8 @@ import (
 
 // Alarm 告警配置
 type Alarm struct {
+	BaseModel
+
 	Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                                    // table id
 	Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                                    // 唯一外键
 	Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                               // 告警名称
@@ -27,8 +29,6 @@ type Alarm struct {
 	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // 告警状态
 	RuleStoreType int           `gorm:"column:rule_store_type" db:"rule_store_type" json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType
 	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`                       // 告警方式
-
-	BaseModel
 }
 
 func (m *Alarm) TableName() string {
@@ -190,13 +190,13 @@ func AlarmDelete(db *gorm.DB, id int) (err error) {
 
 // AlarmFilter 告警过滤条件
 type AlarmFilter struct {
+	BaseModel
+
 	Tid            int    `gorm:"column:tid;type:int(11)" json:"tid"`                            // table id
 	AlarmId        int    `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`                   // alarm id
 	When           string `gorm:"column:when;type:text" json:"when"`                             // 执行条件
 	SetOperatorTyp int    `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"`      // 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS
 	SetOperatorExp string `gorm:"column:set_operator_exp;type:varchar(255);NOT NULL" json:"exp"` // 操作
-
-	BaseModel
 }
 
 func (m *AlarmFilter) TableName() string {
@@ -258,14 +258,14 @@ func AlarmFilterDelete(db *gorm.DB, id int) (err error) {
 
 // AlarmCondition 告警触发条件
 type AlarmCondition struct {
+	BaseModel
+
 	AlarmId        int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`              // alarm id
 	SetOperatorTyp int `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"` // 0 WHEN 1 AND 2 OR
 	SetOperatorExp int `gorm:"column:set_operator_exp;type:int(11);NOT NULL" json:"exp"` // 0 avg 1 min 2 max 3 sum 4 count
 	Cond           int `gorm:"column:cond;type:int(11)" json:"cond"`                     // 0 above 1 below 2 outside range 3 within range
 	Val1           int `gorm:"column:val_1;type:int(11)" json:"val1"`                    // 基准值/最小值
 	Val2           int `gorm:"column:val_2;type:int(11)" json:"val2"`                    // 最大值
-
-	BaseModel
 }
 
 func (m *AlarmCondition) TableName() string {
@@ -327,12 +327,12 @@ func AlarmConditionDelete(db *gorm.DB, id int) (err error) {
 
 // AlarmChannel 告警渠道
 type AlarmChannel struct {
+	BaseModel
+
 	Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 告警渠道名称
 	Key  string `gorm:"column:key;type:text" json:"key"`                    // 关键信息
 	Typ  int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // 告警类型：0 dd
 	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
-
-	BaseModel
 }
 
 func (m *AlarmChannel) TableName() string {
@@ -394,10 +394,10 @@ func AlarmChannelDelete(db *gorm.DB, id int) (err error) {
 
 // AlarmHistory 告警渠道
 type AlarmHistory struct {
+	BaseModel
+
 	AlarmId  int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`   // alarm id
 	IsPushed int `gorm:"column:is_pushed;type:int(11)" json:"isPushed"` // alarm id
-
-	BaseModel
 }
 
 func (m *AlarmHistory) TableName() string {
