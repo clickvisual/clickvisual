@@ -4,6 +4,7 @@ import {
   Form,
   FormInstance,
   Input,
+  message,
   Select,
   Space,
   Spin,
@@ -63,6 +64,7 @@ const FormAlarmDraw = () => {
     alarmDraw.doUpdatedAlarm.run(currentRowAlarm.id, field).then((res) => {
       if (res?.code !== 0) return;
       doGetAlarms.run(searchQuery);
+      message.success(i18n.formatMessage({ id: "alarm.rules.updated" }));
       handleClose();
     });
   };

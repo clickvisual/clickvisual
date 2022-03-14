@@ -31,10 +31,7 @@ const useAlarmFormDraw = () => {
   });
 
   const doUpdatedAlarm = useRequest(api.updatedAlarm, {
-    loadingText: {
-      loading: undefined,
-      done: formatMessage({ id: "alarm.rules.updated" }),
-    },
+    loadingText: false,
   });
 
   return {
