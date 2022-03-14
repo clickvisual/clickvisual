@@ -244,7 +244,7 @@ export default {
   "datasource.logLibrary.from.topics": "Topics",
   "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
-    "Please enter lowercase letters, uppercase letters, or hyphens",
+    "Please enter numbers, letters, or hyphens",
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
@@ -252,7 +252,7 @@ export default {
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
   "datasource.logLibrary.placeholder.brokers": "kafka:9092",
   "datasource.logLibrary.placeholder.topics":
-    "Please enter Topics, support in uppercase or lowercase English or crossed",
+    "Please type Topics with numbers, letters, or hyphens",
   "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
 
   "datasource.logLibrary.empty":
