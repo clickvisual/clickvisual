@@ -193,7 +193,7 @@ const CreatedOrUpdatedInstanceModal = (
               { id: "instance.form.placeholder.dsn" },
               {
                 example:
-                  "tcp://127.0.0.1:8080?username=root&password=pass&read_timeout=10&write_timeout=20&debug=true",
+                  "tcp://127.0.0.1:9000?username=root&password=pass&read_timeout=10&write_timeout=20&debug=true",
               }
             )}
             autoSize={{ minRows: 5, maxRows: 5 }}

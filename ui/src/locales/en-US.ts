@@ -123,7 +123,7 @@ export default {
   // Cluster Management
   "cluster.button.add": "Add cluster",
   "cluster.clusterName": "Cluster Name",
-  "cluster.k8sConfiguration": "K8s configuration",
+  "cluster.k8sConfiguration": "kubeConfigFile",
   "cluster.delete.confirmTip": "Confirm deleting cluster: {clusterName}?",
   "cluster.form.title.created": "Create Cluster",
   "cluster.form.title.edit": "Edit Cluster",

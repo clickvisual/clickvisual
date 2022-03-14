@@ -98,7 +98,7 @@ const CreatedOrUpdatedClusterModal = (
             ))}
           </Select>
         </Form.Item>
-        <Form.Item label={"Api Server"} name={"apiServer"}>
+        <Form.Item label={"k8sApiServerAddr"} name={"apiServer"}>
           <Input
             placeholder={`${i18n.formatMessage({
               id: "cluster.form.placeholder.apiServer",
