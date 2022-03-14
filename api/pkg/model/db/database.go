@@ -9,12 +9,13 @@ import (
 
 // Database 数据库管理
 type Database struct {
+	BaseModel
+
 	Iid  int    `gorm:"column:iid;type:int(11)" json:"iid"`                 // 实例 id
 	Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 数据库名称
 	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
 
 	Instance *Instance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
-	BaseModel
 }
 
 func (m *Database) TableName() string {

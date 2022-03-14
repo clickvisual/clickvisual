@@ -11,6 +11,8 @@ import (
 
 // View Materialized view management
 type View struct {
+	BaseModel
+
 	Tid              int    `gorm:"column:tid;type:bigint(11)" json:"tid"`                           // table id
 	Name             string `gorm:"column:name;type:varchar(64);NOT NULL" json:"name"`               // 视图名称
 	IsUseDefaultTime int    `gorm:"column:is_use_default_time;type:int(11)" json:"isUseDefaultTime"` // 是否使用系统时间
@@ -21,8 +23,6 @@ type View struct {
 	Ctime            int    `gorm:"column:ctime;type:int(11)" json:"ctime"`                          // 创建时间
 	Utime            int    `gorm:"column:utime;type:int(11)" json:"utime"`                          // 更新时间
 	Dtime            int    `gorm:"column:dtime;type:int(11)" json:"dtime"`                          // 删除时间
-
-	BaseModel
 }
 
 func (m *View) TableName() string {

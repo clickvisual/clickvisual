@@ -30,6 +30,8 @@ const (
 	TableMogoAlarmCondition = "mogo_alarm_condition"
 	TableMogoAlarmHistory   = "mogo_alarm_history"
 	TableMogoAlarmChannel   = "mogo_alarm_channel"
+
+	TableMogoEvent = "mogo_event"
 )
 
 type BaseModel struct {

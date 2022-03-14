@@ -8,6 +8,8 @@ import (
 )
 
 type Table struct {
+	BaseModel
+
 	Did       int    `gorm:"column:did;type:bigint(20)" json:"did"`                    // 数据库 id
 	Name      string `gorm:"column:name;type:varchar(64);NOT NULL" json:"name"`        // table
 	Typ       int    `gorm:"column:typ;type:int(11)" json:"typ"`                       // table 类型 1 string 2 float
@@ -20,8 +22,6 @@ type Table struct {
 	Uid       int    `gorm:"column:uid;type:int(11)" json:"uid"`                       // 操作人
 
 	Database *Database `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
-
-	BaseModel
 }
 
 func (m *Table) TableName() string {

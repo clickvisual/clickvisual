@@ -14,6 +14,8 @@ import (
 
 // Instance 服务配置存储
 type Instance struct {
+	BaseModel
+
 	Datasource       string `gorm:"column:datasource" db:"datasource" json:"datasource" form:"datasource"`                           // 数据源类型
 	Name             string `gorm:"column:name" db:"name" json:"instanceName" form:"name"`                                           // 实例名称
 	Dsn              string `gorm:"column:dsn" db:"dsn" json:"dsn" form:"dsn"`                                                       // dsn
@@ -23,7 +25,6 @@ type Instance struct {
 	Namespace        string `gorm:"column:namespace" db:"namespace" json:"namespace" form:"namespace"`                               // namespace
 	Configmap        string `gorm:"column:configmap" db:"configmap" json:"configmap" form:"configmap"`                               // configmap
 	PrometheusTarget string `gorm:"column:prometheus_target" db:"prometheus_target" json:"prometheusTarget" form:"prometheusTarget"` // prometheus ip or domain, eg: https://prometheus:9090
-	BaseModel
 }
 
 func (t *Instance) TableName() string {

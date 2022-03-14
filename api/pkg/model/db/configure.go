@@ -12,6 +12,8 @@ import (
 )
 
 type Configuration struct {
+	BaseModel
+
 	K8SCmId     int    `gorm:"column:k8s_cm_id;type:int(11)" json:"k8sConfigmapId"` // config map id
 	Name        string `gorm:"column:name;type:varchar(64)" json:"name"`
 	Content     string `gorm:"column:content;type:longtext" json:"content"`
@@ -23,8 +25,6 @@ type Configuration struct {
 	LockAt      int64  `gorm:"column:lock_at;type:datetime" json:"lockAt"`
 
 	K8SConfigMap K8SConfigMap `gorm:"foreignKey:ID" json:"-"`
-
-	BaseModel
 }
 
 func (c *Configuration) TableName() string {
@@ -116,6 +116,7 @@ func ConfigurationListPage(conds egorm.Conds, reqList *ReqPage) (total int64, re
 }
 
 type ConfigurationHistory struct {
+	BaseModel
 	Uid             int    `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
 	ConfigurationId int    `gorm:"column:configuration_id;type:int(11) unsigned" json:"configurationId"`
 	ChangeLog       string `gorm:"column:change_log;type:longtext" json:"changeLog"`
@@ -124,8 +125,6 @@ type ConfigurationHistory struct {
 
 	User          User          `json:"user,omitempty" gorm:"foreignKey:Uid;references:ID"`
 	Configuration Configuration `json:"configuration,omitempty" gorm:"foreignKey:ConfigurationId;references:ID"`
-
-	BaseModel
 }
 
 func (m *ConfigurationHistory) TableName() string {
@@ -212,11 +211,11 @@ func ConfigurationHistoryListPage(conds egorm.Conds, reqList *ReqPage) (total in
 }
 
 type ConfigurationPublish struct {
+	BaseModel
+
 	Uid                    uint `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
 	ConfigurationId        uint `gorm:"column:configuration_id;type:int(11) unsigned" json:"configurationId"`
 	ConfigurationHistoryId uint `gorm:"column:configuration_history_id;type:int(11) unsigned" json:"configurationHistoryId"`
-
-	BaseModel
 }
 
 func (m *ConfigurationPublish) TableName() string {

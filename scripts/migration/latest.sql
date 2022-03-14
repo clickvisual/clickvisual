@@ -1,6 +1,21 @@
 CREATE DATABASE mocro DEFAULT CHARSET utf8mb4;
 USE mocro;
 
+CREATE TABLE `mogo_event` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `source` varchar(64) NOT NULL DEFAULT '' COMMENT '事件来源',
+    `user_name` varchar(32) NOT NULL DEFAULT '' COMMENT '操作用户的名字',
+    `uid` bigint(20) NOT NULL DEFAULT '0' COMMENT '操作用户的uid',
+    `operation` varchar(64) NOT NULL DEFAULT '' COMMENT '操作名',
+    `object_type` varchar(64) NOT NULL DEFAULT '' COMMENT '被操作对象的类型(一般为db.Table名)',
+    `object_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '被操作对象类型(db.Table)下的具体对象的主键(id)',
+    `metadata` text NOT NULL COMMENT '事件内容',
+    `ctime` bigint(20) NOT NULL DEFAULT '0' COMMENT '事件发生时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_source` (`source`),
+    KEY `idx_operation` (`operation`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `mogo_alarm_channel` (
     `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
     `name` varchar(128) NOT NULL COMMENT '告警渠道名称',
