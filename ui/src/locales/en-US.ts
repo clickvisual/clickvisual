@@ -252,7 +252,7 @@ export default {
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
   "datasource.logLibrary.placeholder.brokers": "kafka:9092",
   "datasource.logLibrary.placeholder.topics":
-    "Please enter Topics, support in uppercase or lowercase English or crossed",
+    "Please type Topics with numbers, letters, or hyphens",
   "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
 
   "datasource.logLibrary.empty":

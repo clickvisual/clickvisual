@@ -243,7 +243,7 @@ export default {
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
   "datasource.logLibrary.placeholder.brokers": "kafka:9092",
   "datasource.logLibrary.placeholder.topics":
-    "请输入 Topics，支持小写字母、大写字母，或中划线",
+    "请输入 Topics，支持数字、英文字母，或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
