@@ -32,11 +32,51 @@
     }
   }
   .tableBody {
-    .tableTr {
-      line-height: 48px;
-      td:last-child {
+    .jsonTd {
+      border-bottom: none;
+    }
+    .jsonChildTd {
+      padding: 0 0 10px;
+    }
+    .isJsonDiv {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 38px;
+      margin-left: 40px;
+      padding-right: 5px;
+      line-height: 38px;
+      //border-top: 1px solid hsla(0, 0%, 0%, 0.1);
+      //border-left: 1px solid hsla(0, 0%, 0%, 0.1);
+
+      &::before {
+        position: absolute;
+        left: -15px;
+        width: 15px;
+        border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
         border-left: 1px solid hsla(0, 0%, 0%, 0.1);
+        content: "";
       }
+      &:not(:first-child)::before {
+        top: -19px;
+        height: 38px;
+      }
+      &:first-child::before {
+        top: -10px;
+        height: 29px;
+      }
+      :global {
+        .ant-form-item {
+          margin: 0;
+        }
+        .ant-form-item-with-help .ant-form-item-explain {
+          height: 0;
+          min-height: 0;
+        }
+      }
+    }
+    .tableTr {
+      line-height: 52px;
       & > td {
         :global {
           .ant-form-item {
@@ -53,7 +93,7 @@
   .tableFooter {
     .tableTr {
       td {
-        height: 48px;
+        height: 52px;
         border-bottom: none;
         .context {
           display: flex;
