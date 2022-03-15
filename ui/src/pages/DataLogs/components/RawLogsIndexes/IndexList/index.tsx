@@ -22,7 +22,7 @@ const IndexList = (props: IndexListProps) => {
       {list.length > 0 ? (
         <ul>
           {list.map((index) => {
-            const isActive = activeList.indexOf(index.id) > -1;
+            const isActive = activeList.indexOf(index.id as number) > -1;
             return (
               <div
                 className={classNames(indexListStyles.indexRowMain)}
@@ -35,8 +35,11 @@ const IndexList = (props: IndexListProps) => {
                       isActive && indexListStyles.activeIndexRow
                     )}
                     onClick={() => {
-                      if (activeList.indexOf(index.id) === -1) {
-                        setActiveList(() => [...activeList, index.id]);
+                      if (activeList.indexOf(index.id as number) === -1) {
+                        setActiveList(() => [
+                          ...activeList,
+                          index.id as number,
+                        ]);
                       } else {
                         setActiveList(() =>
                           activeList.filter(
@@ -46,7 +49,12 @@ const IndexList = (props: IndexListProps) => {
                       }
                     }}
                   >
-                    <span className={indexListStyles.title}>{index.field}</span>
+                    <span className={indexListStyles.title}>
+                      {index.rootName === ""
+                        ? index.rootName
+                        : `${index.rootName}-`}
+                      {index.field}
+                    </span>
                     <div className={indexListStyles.icon}>
                       {isActive ? <CaretUpOutlined /> : <CaretDownOutlined />}
                     </div>
