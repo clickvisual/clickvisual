@@ -103,11 +103,13 @@ export interface TableSqlContent {
 }
 
 export interface IndexInfoType {
-  id: number;
-  tid: number;
+  id?: number;
+  tid?: number;
   field: string;
   alias: string;
   typ: number;
+  rootName: string;
+  jsonIndex: IndexInfoType[];
 }
 
 export interface IndexRequest {
