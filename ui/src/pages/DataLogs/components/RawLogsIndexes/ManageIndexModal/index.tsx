@@ -8,9 +8,10 @@ import TableHeader from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexM
 import TableBody from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody";
 import TableFooter from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableFooter";
 import { useDebounceFn } from "ahooks";
-import { IndexInfoType } from "@/services/dataLogs";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
+import { FieldType } from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody/IndexItem";
+import { IndexInfoType } from "@/services/dataLogs";
 
 const ManageIndexModal = () => {
   const {
@@ -23,7 +24,7 @@ const ManageIndexModal = () => {
     doParseQuery,
   } = useModel("dataLogs");
   const indexFormRef = useRef<FormInstance>(null);
-  const [indexList, setIndexList] = useState<IndexInfoType[]>([]);
+  const [indexList, setIndexList] = useState<any[]>([]);
 
   const i18n = useIntl();
 
@@ -31,28 +32,59 @@ const ManageIndexModal = () => {
     onChangeVisibleIndexModal(false);
   };
 
-  const onSubmit = useDebounceFn(
+  const handleSubmit = useDebounceFn(
     (field) => {
       if (!currentLogLibrary) return;
-
-      settingIndexes
-        .run(currentLogLibrary.id, { data: field.data })
-        .then((res) => {
-          if (res?.code === 0) {
-            cancel();
-            doGetLogs();
-            doParseQuery();
-          }
-        });
+      const params =
+        field?.data?.reduce((prev: IndexInfoType[], current: IndexInfoType) => {
+          if (current.typ === FieldType.Json) prev.push(...current.jsonIndex);
+          else prev.push({ ...current, jsonIndex: [] });
+          return prev;
+        }, []) || [];
+      settingIndexes.run(currentLogLibrary.id, { data: params }).then((res) => {
+        if (res?.code === 0) {
+          cancel();
+          doGetLogs();
+          doParseQuery();
+        }
+      });
     },
     { wait: DEBOUNCE_WAIT }
   );
+
+  const setIndexes = (response: IndexInfoType[]) => {
+    const formData = response.reduce(
+      (prev: IndexInfoType[], current: IndexInfoType) => {
+        if (current.rootName == "") {
+          return [...prev, current];
+        }
+
+        let rootIdx = prev.findIndex((item) => item.field === current.rootName);
+        if (rootIdx > -1) {
+          prev[rootIdx].jsonIndex.push(current);
+        } else {
+          prev.push({
+            field: current.rootName,
+            typ: FieldType.Json,
+            jsonIndex: [current],
+            alias: "",
+            rootName: "",
+          });
+        }
+
+        return prev;
+      },
+      []
+    );
+
+    setIndexList(formData);
+  };
 
   useEffect(() => {
     if (visibleIndexModal && currentLogLibrary) {
       getIndexList.run(currentLogLibrary.id).then((res) => {
         if (res?.code === 0) {
-          setIndexList(res.data);
+          setIndexes(res.data);
         }
       });
     } else {
@@ -86,7 +118,7 @@ const ManageIndexModal = () => {
       }
     >
       <div className={mangeIndexModalStyles.manageIndexModalMain}>
-        <Form ref={indexFormRef} onFinish={onSubmit.run}>
+        <Form ref={indexFormRef} onFinish={handleSubmit.run}>
           <Spin
             spinning={getIndexList.loading}
             tip={i18n.formatMessage({ id: "spin" })}
