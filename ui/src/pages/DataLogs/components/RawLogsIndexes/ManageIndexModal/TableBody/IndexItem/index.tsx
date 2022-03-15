@@ -49,8 +49,6 @@ const IndexItem = ({
       {({ getFieldValue, setFields }) => {
         const isJson =
           getFieldValue(["data", indexField.name, "typ"]) === FieldType.Json;
-        console.log(getFieldValue(["data", indexField.name]));
-
         return (
           <>
             <tr className={classNames(mangeIndexModalStyles.tableTr)}>
