@@ -42,9 +42,17 @@ const Index = ({
                 const list = form
                   .getFieldValue(["data", indexField.name, "jsonIndex"])
                   ?.map((item: IndexInfoType) => item.field);
-                if (list.indexOf(value) < index) {
+                const indexList = form
+                  .getFieldValue(["data"])
+                  ?.filter((item: IndexInfoType) => item.typ !== FieldType.Json)
+                  ?.map((item: IndexInfoType) => item.field);
+                if (
+                  list.indexOf(value) < index ||
+                  indexList.indexOf(value) > -1
+                ) {
                   return Promise.reject();
                 }
+
                 return Promise.resolve();
               },
             },
