@@ -46,7 +46,7 @@ func GetRouter() *egin.Component {
 	// User related
 	{
 		// init
-		v1.GET("/init/migration", core.Handle(initialize.Migration))
+		v1.GET("/migration", core.Handle(initialize.Migration))
 
 		// user
 		v1.GET("/menus/list", core.Handle(permission.MenuList))

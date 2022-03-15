@@ -24,7 +24,7 @@ func InstanceCreate(c *core.Context) {
 	conds["name"] = req.Name
 	checks, err := db.InstanceList(conds)
 	if err != nil {
-		c.JSONE(1, "creation DB failed: "+err.Error(), nil)
+		c.JSONE(1, "create DB failed: "+err.Error(), nil)
 		return
 	}
 	if len(checks) > 0 {
@@ -42,8 +42,14 @@ func InstanceCreate(c *core.Context) {
 		Configmap:        req.Configmap,
 		PrometheusTarget: req.PrometheusTarget,
 	}
+	if req.PrometheusTarget != "" {
+		if err = service.Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
+			c.JSONE(1, "create DB failed: "+err.Error(), nil)
+			return
+		}
+	}
 	if err = db.InstanceCreate(invoker.Db, &obj); err != nil {
-		c.JSONE(1, "creation DB failed: "+err.Error(), nil)
+		c.JSONE(1, "create DB failed: "+err.Error(), nil)
 		return
 	}
 	if err = service.InstanceManager.Add(&obj); err != nil {
@@ -63,6 +69,12 @@ func InstanceUpdate(c *core.Context) {
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
+	}
+	if req.PrometheusTarget != "" {
+		if err := service.Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
+			c.JSONE(1, "create DB failed: "+err.Error(), nil)
+			return
+		}
 	}
 	objBef, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {

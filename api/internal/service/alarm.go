@@ -116,10 +116,10 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	return
 }
 
-func (i *alarm) PrometheusReload(instance *db.Instance) (err error) {
-	resp, err := http.Post(strings.TrimSuffix(instance.PrometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
+func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
+	resp, err := http.Post(strings.TrimSuffix(prometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
 	if err != nil {
-		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"), elog.Any("err", err.Error()))
+		elog.Error("reload", elog.Any("reload", prometheusTarget+"/-/reload"), elog.Any("err", err.Error()))
 		return
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -156,7 +156,7 @@ func (i *alarm) PrometheusRuleCreate(instance db.Instance, obj *db.Alarm, rule s
 	default:
 		return constx.ErrAlarmRuleStoreIsClosed
 	}
-	if err = i.PrometheusReload(&instance); err != nil {
+	if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
 		return
 	}
 	return nil
@@ -191,7 +191,7 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 	default:
 		return constx.ErrAlarmRuleStoreIsClosed
 	}
-	if err = i.PrometheusReload(instance); err != nil {
+	if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
 		return
 	}
 	return nil

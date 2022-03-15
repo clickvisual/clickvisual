@@ -6,7 +6,7 @@ level = "debug"
 # HTTP server Host
 host = "0.0.0.0"
 # HTTP server Port
-port = 9001
+port = 19001
 embedPath = "dist"
 
 [server.governor]
@@ -50,7 +50,7 @@ keypairs = ""
 [app]
 # hashStatecode
 secretKey = "ASDFASDFASDF"
-rootURL = "http://localhost:9001"
+rootURL = "http://localhost:19001"
 baseURL = "/api/admin/login/"
 hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_second_", "_time_nanosecond_", "_source_"]
 defaultFields = ["_namespace_","_container_name_","_pod_name_","_time_second_"]

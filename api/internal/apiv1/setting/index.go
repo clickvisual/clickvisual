@@ -32,6 +32,10 @@ func IndexUpdate(c *core.Context) {
 	// check repeat
 	repeatMap := make(map[string]interface{})
 	for _, r := range req.Data {
+		if r.Typ == 3 {
+			c.JSONE(1, "param error: json type 3 should not in params:"+r.Field, nil)
+			return
+		}
 		if _, ok := repeatMap[r.Field]; ok {
 			c.JSONE(1, "param error: repeat index field name:"+r.Field, nil)
 			return

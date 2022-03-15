@@ -16,23 +16,21 @@ import (
 type User struct {
 	BaseModel
 
-	OaId     int    `gorm:"not null;comment:'oa uid'" json:"oa_id"`
-	Username string `gorm:"not null;default:'';size:128;comment:英文用户名,全局唯一;uniqueIndex:uniq_idx_username;" json:"username" form:"username"`
-	Nickname string `gorm:"not null;comment:'昵称'" json:"nickname"`
-	Secret   string `gorm:"not null;comment:'秘钥'" json:"secret"`
-	Email    string `gorm:"not null;comment:'email'" json:"email"`
-	Avatar   string `gorm:"not null;comment:'avatart'" json:"avatar"`
-	WebUrl   string `gorm:"not null;comment:'注释'" json:"webUrl"`
-	State    string `gorm:"not null;comment:'注释'" json:"state"`
-	Hash     string `gorm:"not null;comment:'注释'" json:"hash"`
-	Oauth    string `gorm:"not null;" json:"oauth"`   // 来源
-	OauthId  string `gorm:"not null;" json:"oauthId"` // 来源id
-	Password string `gorm:"not null;comment:'注释'" json:"password"`
-	// open source user data
-	CurrentAuthority string `json:"currentAuthority"`
-	Access           string `json:"access"`
-
-	OauthToken OAuthToken `gorm:"type:json;comment:'OAuth Token 信息'" json:"-"`
+	OaId             int64      `gorm:"column:oa_id;type:bigint(20);NOT NULL" json:"oaId"`                           // oa_id
+	Username         string     `gorm:"column:username;type:varchar(256);NOT NULL" json:"username"`                  // 用户名
+	Nickname         string     `gorm:"column:nickname;type:varchar(256);NOT NULL" json:"nickname"`                  // 昵称
+	Secret           string     `gorm:"column:secret;type:varchar(256);NOT NULL" json:"secret"`                      // 实例名称
+	Email            string     `gorm:"column:email;type:varchar(64);NOT NULL" json:"email"`                         // email
+	Avatar           string     `gorm:"column:avatar;type:varchar(256);NOT NULL" json:"avatar"`                      // avatar
+	Hash             string     `gorm:"column:hash;type:varchar(256);NOT NULL" json:"hash"`                          // hash
+	WebUrl           string     `gorm:"column:web_url;type:varchar(256);NOT NULL" json:"webUrl"`                     // webUrl
+	Oauth            string     `gorm:"column:oauth;type:varchar(256);NOT NULL" json:"oauth"`                        // oauth
+	State            string     `gorm:"column:state;type:varchar(256);NOT NULL" json:"state"`                        // state
+	OauthId          string     `gorm:"column:oauth_id;type:varchar(256);NOT NULL" json:"oauthId"`                   // oauthId
+	Password         string     `gorm:"column:password;type:varchar(256);NOT NULL" json:"password"`                  // password
+	CurrentAuthority string     `gorm:"column:current_authority;type:varchar(256);NOT NULL" json:"currentAuthority"` // currentAuthority
+	Access           string     `gorm:"column:access;type:varchar(256);NOT NULL" json:"access"`                      // access
+	OauthToken       OAuthToken `gorm:"column:oauth_token;type:text" json:"-"`                                       // oauth_token
 }
 
 func (User) TableName() string {

@@ -12,11 +12,12 @@ import (
 // Index 索引数据存储
 type Index struct {
 	BaseModel
-	Tid      int    `gorm:"column:tid;type:bigint(11)" json:"tid"` // table id
-	Field    string `gorm:"column:field" db:"field" json:"field" form:"field"`
-	Typ      int    `gorm:"column:typ" db:"typ" json:"typ" form:"typ"` // 字段 0 string 1 int 2 float
-	Alias    string `gorm:"column:alias" db:"alias" json:"alias" form:"alias"`
-	RootName string `gorm:"column:root_name" db:"root_name" json:"rootName" form:"rootName"`
+
+	Tid      int    `gorm:"column:tid;type:int(11)" json:"tid"`                          // table id
+	Field    string `gorm:"column:field;type:varchar(128);NOT NULL" json:"field"`        // 字段
+	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                 // 字段 0 text 1 long 2 double
+	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`        // 别名
+	RootName string `gorm:"column:root_name;type:varchar(128);NOT NULL" json:"rootName"` // root_name
 }
 
 func (t *Index) TableName() string {

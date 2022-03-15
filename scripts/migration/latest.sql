@@ -140,7 +140,7 @@ CREATE TABLE `mogo_base_index` (
     `id` int(11) AUTO_INCREMENT NOT NULL COMMENT 'id',
     `tid` int(11) DEFAULT NULL COMMENT 'table id',
     `field` varchar(128) NOT NULL COMMENT '字段',
-    `typ` int(11) NOT NULL COMMENT '字段 0 text 1 long 2 double 3 json',
+    `typ` int(11) NOT NULL COMMENT '字段 0 text 1 long 2 double',
     `alias` varchar(128) NOT NULL COMMENT '别名',
     `root_name` varchar(128) NOT NULL COMMENT 'root_name',
     `ctime` int(11) DEFAULT NULL COMMENT '创建时间',

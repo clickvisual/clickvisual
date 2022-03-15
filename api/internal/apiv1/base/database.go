@@ -57,14 +57,18 @@ func DatabaseList(c *core.Context) {
 	}
 	res := make([]view.RespDatabaseItem, 0)
 	for _, row := range dl {
-		res = append(res, view.RespDatabaseItem{
-			Id:             row.ID,
-			Iid:            row.Iid,
-			Name:           row.Name,
-			Uid:            row.Uid,
-			DatasourceType: row.Instance.Datasource,
-			InstanceName:   row.Instance.Name,
-		})
+		tmp := view.RespDatabaseItem{
+			Id:   row.ID,
+			Iid:  row.Iid,
+			Name: row.Name,
+			Uid:  row.Uid,
+		}
+		if row.Instance != nil {
+			tmp.DatasourceType = row.Instance.Datasource
+			tmp.InstanceName = row.Instance.Name
+		}
+		res = append(res, tmp)
+
 	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return

@@ -142,6 +142,7 @@ var typORM = map[int]string{
 	0: "String",
 	1: "Int64",
 	2: "Float64",
+	3: "JSON",
 }
 
 var jsonExtractORM = map[int]string{
@@ -176,7 +177,7 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, er
 		if obj.RootName == "" {
 			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(_log_, '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
 		} else {
-			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(JSONExtractRaw(_log_, '%s')), '%s') AS `%s`,", jsonExtractORM[obj.Typ], obj.Field, obj.RootName, obj.Field)
+			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.Field)
 		}
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
