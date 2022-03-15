@@ -44,7 +44,7 @@ const InstanceTable = (props: InstanceTableProps) => {
         id: "instance.instanceName",
       })}`,
       align: "center" as AlignType,
-      dataIndex: "instanceName",
+      dataIndex: "name",
       width: 160,
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
