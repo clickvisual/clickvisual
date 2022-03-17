@@ -151,6 +151,7 @@ func TableInfo(c *core.Context) {
 	}
 	res.SQLContent.Keys = keys
 	res.SQLContent.Data = data
+	res.CreateType = tableInfo.CreateType
 	c.JSONOK(res)
 	return
 }

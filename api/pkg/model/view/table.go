@@ -40,7 +40,8 @@ type RespTableDetail struct {
 		Keys []string          `json:"keys"`
 		Data map[string]string `json:"data"`
 	} `json:"sqlContent"`
-	Database RespDatabaseItem `json:"database"`
+	Database   RespDatabaseItem `json:"database"`
+	CreateType int              `json:"createType"`
 }
 
 type RespColumn struct {
