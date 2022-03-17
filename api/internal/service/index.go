@@ -53,10 +53,10 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 		}
 		newIndexArr = append(newIndexArr, key)
 	}
-	elog.Debug("Diff", elog.Any("newIndexArr", newIndexArr), elog.Any("nowIndexArr", nowIndexArr))
+	invoker.Logger.Debug("Diff", elog.Any("newIndexArr", newIndexArr), elog.Any("nowIndexArr", nowIndexArr))
 	addArr := kslice.Difference(newIndexArr, nowIndexArr)
 	delArr := kslice.Difference(nowIndexArr, newIndexArr)
-	elog.Debug("Diff", elog.Any("addArr", addArr), elog.Any("delArr", delArr))
+	invoker.Logger.Debug("Diff", elog.Any("addArr", addArr), elog.Any("delArr", delArr))
 
 	var (
 		addMap = make(map[string]*db.Index)
@@ -72,7 +72,7 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 			delMap[del] = obj
 		}
 	}
-	elog.Debug("Diff", elog.Any("addMap", addMap), elog.Any("delMap", delMap), elog.Any("newIndexMap", newIndexMap))
+	invoker.Logger.Debug("Diff", elog.Any("addMap", addMap), elog.Any("delMap", delMap), elog.Any("newIndexMap", newIndexMap))
 
 	return addMap, delMap, newIndexMap, nil
 }
@@ -110,7 +110,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 		tx.Rollback()
 		return errors.New("corresponding configuration instance does not exist")
 	}
-	elog.Debug("IndexUpdate", elog.Any("newList", newList))
+	invoker.Logger.Debug("IndexUpdate", elog.Any("newList", newList))
 	err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
 	if err != nil {
 		tx.Rollback()
@@ -118,7 +118,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 	}
 	// If the commit fails, the clickhouse operation is not rolled back
 	if err = tx.Commit().Error; err != nil {
-		elog.Error("Fatal", elog.String("error", err.Error()), elog.Any("step", "clickhouse db struct can't rollback"))
+		invoker.Logger.Error("Fatal", elog.String("error", err.Error()), elog.Any("step", "clickhouse db struct can't rollback"))
 		return
 	}
 	return

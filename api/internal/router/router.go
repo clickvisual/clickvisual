@@ -1,8 +1,11 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/alarm"
 	"github.com/shimohq/mogo/api/internal/apiv1/base"
@@ -30,7 +33,11 @@ func GetRouter() *egin.Component {
 			c.JSONE(http.StatusNotFound, "", nil)
 			return
 		}
-		c.Header("Cache-Control", "public, max-age=3600")
+		maxAge := econf.GetInt("server.http.maxAge")
+		if maxAge == 0 {
+			maxAge = 86400
+		}
+		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
 		c.FileFromFS(c.Request.URL.Path, invoker.Gin.HTTPEmbedFs())
 		return
 	}))
@@ -46,7 +53,7 @@ func GetRouter() *egin.Component {
 	// User related
 	{
 		// init
-		v1.GET("/init/migration", core.Handle(initialize.Migration))
+		v1.GET("/migration", core.Handle(initialize.Migration))
 
 		// user
 		v1.GET("/menus/list", core.Handle(permission.MenuList))
@@ -92,6 +99,9 @@ func GetRouter() *egin.Component {
 	}
 	// Instance
 	{
+		v1.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
+		v1.GET("/instances/:iid/columns-self-built", core.Handle(base.TableColumnsSelfBuilt))
+		v1.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
 		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
 		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
 	}
@@ -103,6 +113,7 @@ func GetRouter() *egin.Component {
 	}
 	// Table
 	{
+
 		v1.GET("/table/id", core.Handle(base.TableId))
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))

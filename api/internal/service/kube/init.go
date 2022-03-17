@@ -14,6 +14,7 @@ import (
 
 	"k8s.io/client-go/rest"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
@@ -64,7 +65,7 @@ func (s *clusterManager) load() {
 	// 读取数据库 gateway host
 	dbClusters, err := db.ClusterNormalList(egorm.Conds{})
 	if err != nil {
-		elog.Error("clusterManager", elog.String("step", "InstanceList"), elog.Any("err", err.Error()))
+		invoker.Logger.Error("clusterManager", elog.String("step", "InstanceList"), elog.Any("err", err.Error()))
 		return
 	}
 	olds := s.allKeys()
@@ -78,7 +79,7 @@ func (s *clusterManager) load() {
 	adds := kslice.Difference(news, olds)
 	dels := kslice.Difference(olds, news)
 	if len(adds) > 0 || len(dels) > 0 {
-		elog.Info("streamConns", elog.Any("adds", adds), elog.Any("dels", dels))
+		invoker.Logger.Info("streamConns", elog.Any("adds", adds), elog.Any("dels", dels))
 	}
 	for _, k := range adds {
 		s.addConn(k, newMap[k])
@@ -100,17 +101,17 @@ func (s *clusterManager) allKeys() []string {
 func (s *clusterManager) addConn(key string, cluster *db.Cluster) {
 	// deal with invalid cluster
 	if cluster.ApiServer == "" {
-		elog.Warn("cluster's apiServer is null:%s", zap.String("clusterName", cluster.Name))
+		invoker.Logger.Warn("cluster's apiServer is null:%s", zap.String("clusterName", cluster.Name))
 		return
 	}
 	clientSet, config, err := buildClient(cluster.ApiServer, cluster.KubeConfig)
 	if err != nil {
-		elog.Warn(fmt.Sprintf("build cluster (%s)'s client error.", cluster.Name), zap.Error(err))
+		invoker.Logger.Warn(fmt.Sprintf("build cluster (%s)'s client error.", cluster.Name), zap.Error(err))
 		return
 	}
 	cacheFactory, err := buildCacheController(clientSet)
 	if err != nil {
-		elog.Warn(fmt.Sprintf("build cache controller for cluster (%s) error.", cluster.Name), zap.Error(err))
+		invoker.Logger.Warn(fmt.Sprintf("build cache controller for cluster (%s) error.", cluster.Name), zap.Error(err))
 		return
 	}
 	cm := &ClusterClient{
@@ -118,12 +119,12 @@ func (s *clusterManager) addConn(key string, cluster *db.Cluster) {
 		Cluster:    cluster,
 		KubeClient: NewResourceHandler(clientSet, cacheFactory),
 	}
-	elog.Debug("addConn", elog.Any("key", key), elog.Any("cluster", cluster.Name))
+	invoker.Logger.Debug("addConn", elog.Any("key", key), elog.Any("cluster", cluster.Name))
 	s.clients.Store(key, cm)
 }
 
 func (s *clusterManager) delConn(key string) {
-	elog.Debug("delConn", elog.Any("key", key))
+	invoker.Logger.Debug("delConn", elog.Any("key", key))
 	s.clients.Delete(key)
 }
 
@@ -132,7 +133,7 @@ func (s *clusterManager) GetClusterManager(clusterId int) (*ClusterClient, error
 	if err != nil {
 		return nil, err
 	}
-	elog.Debug("GetClusterManager", elog.String("key", obj.Key()))
+	invoker.Logger.Debug("GetClusterManager", elog.String("key", obj.Key()))
 	managerInterface, exist := s.clients.Load(obj.Key())
 	// 如果不存在，则重新获取一次集群信息
 	if !exist {

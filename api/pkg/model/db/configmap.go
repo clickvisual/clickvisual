@@ -26,7 +26,7 @@ func (m *K8SConfigMap) TableName() string {
 // K8SConfigMapCreate CRUD
 func K8SConfigMapCreate(db *gorm.DB, data *K8SConfigMap) (err error) {
 	if err = db.Create(data).Error; err != nil {
-		elog.Error("create cluster error", zap.Error(err))
+		invoker.Logger.Error("create cluster error", zap.Error(err))
 		return
 	}
 	return nil
@@ -37,7 +37,7 @@ func K8SConfigMapUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (e
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameK8SConfigMap).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("update cluster error", zap.Error(err))
+		invoker.Logger.Error("update cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -48,7 +48,7 @@ func K8SConfigMapInfoX(conds map[string]interface{}) (resp K8SConfigMap, err err
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
+		invoker.Logger.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -59,7 +59,7 @@ func K8SConfigMapListX(conds map[string]interface{}) (resp []K8SConfigMap, err e
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("K8SConfigMapListX infoX error", zap.Error(err))
+		invoker.Logger.Error("K8SConfigMapListX infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -89,7 +89,7 @@ func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("cluster info error", zap.Error(err))
+		invoker.Logger.Error("cluster info error", zap.Error(err))
 		return
 	}
 	return
@@ -98,7 +98,7 @@ func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {
 // K8SConfigMapDelete 软删除
 func K8SConfigMapDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(K8SConfigMap{}).Delete(&K8SConfigMap{}, id).Error; err != nil {
-		elog.Error("cluster delete error", zap.Error(err))
+		invoker.Logger.Error("cluster delete error", zap.Error(err))
 		return
 	}
 	return
@@ -110,7 +110,7 @@ func K8SConfigMapList(conds egorm.Conds) (resp []*K8SConfigMap, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("list clusters error", elog.String("err", err.Error()))
+		invoker.Logger.Error("list clusters error", elog.String("err", err.Error()))
 		return
 	}
 	return

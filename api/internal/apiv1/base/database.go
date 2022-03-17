@@ -44,6 +44,26 @@ func DatabaseCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+func DatabaseExistList(c *core.Context) {
+	iid := cast.ToInt(c.Param("iid"))
+	if iid == 0 {
+		c.JSONE(1, "param error: missing iid", nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res, err := op.Databases()
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
 func DatabaseList(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	conds := egorm.Conds{}
@@ -57,14 +77,18 @@ func DatabaseList(c *core.Context) {
 	}
 	res := make([]view.RespDatabaseItem, 0)
 	for _, row := range dl {
-		res = append(res, view.RespDatabaseItem{
-			Id:             row.ID,
-			Iid:            row.Iid,
-			Name:           row.Name,
-			Uid:            row.Uid,
-			DatasourceType: row.Instance.Datasource,
-			InstanceName:   row.Instance.Name,
-		})
+		tmp := view.RespDatabaseItem{
+			Id:   row.ID,
+			Iid:  row.Iid,
+			Name: row.Name,
+			Uid:  row.Uid,
+		}
+		if row.Instance != nil {
+			tmp.DatasourceType = row.Instance.Datasource
+			tmp.InstanceName = row.Instance.Name
+		}
+		res = append(res, tmp)
+
 	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return

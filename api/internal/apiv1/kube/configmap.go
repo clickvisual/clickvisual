@@ -56,10 +56,10 @@ func ConfigMapList(c *core.Context) {
 
 	for _, obj := range namespaces {
 		ns := *(obj.(*corev1.Namespace))
-		elog.Debug("namespace", elog.Any("ns", ns))
+		invoker.Logger.Debug("namespace", elog.Any("ns", ns))
 		configmaps, errConfigs := client.KubeClient.List(api.ResourceNameConfigMap, ns.Name, "")
 		if errConfigs != nil {
-			elog.Error("configmaps", elog.String("err", errConfigs.Error()))
+			invoker.Logger.Error("configmaps", elog.String("err", errConfigs.Error()))
 			continue
 		}
 		for _, configMapObj := range configmaps {

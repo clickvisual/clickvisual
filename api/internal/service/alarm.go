@@ -116,10 +116,10 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	return
 }
 
-func (i *alarm) PrometheusReload(instance *db.Instance) (err error) {
-	resp, err := http.Post(strings.TrimSuffix(instance.PrometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
+func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
+	resp, err := http.Post(strings.TrimSuffix(prometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
 	if err != nil {
-		elog.Error("reload", elog.Any("reload", instance.PrometheusTarget+"/-/reload"), elog.Any("err", err.Error()))
+		invoker.Logger.Error("reload", elog.Any("reload", prometheusTarget+"/-/reload"), elog.Any("err", err.Error()))
 		return
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -131,17 +131,17 @@ func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) (rule string, err e
 	return
 }
 
-func (i *alarm) PrometheusRuleCreate(instance db.Instance, obj *db.Alarm, rule string) (err error) {
+func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm, rule string) (err error) {
 	switch instance.RuleStoreType {
 	case RuleStoreTypeK8s:
-		elog.Debug("alert", elog.Any("instance", instance))
+		invoker.Logger.Debug("alert", elog.Any("instance", instance))
 		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
 		if errCluster != nil {
 			return errCluster
 		}
 		rules := make(map[string]string)
 		rules[obj.AlertRuleName()] = rule
-		elog.Debug("alert", elog.Any("rules", rules))
+		invoker.Logger.Debug("alert", elog.Any("rules", rules))
 		err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rules)
 		if err != nil {
 			return
@@ -156,28 +156,28 @@ func (i *alarm) PrometheusRuleCreate(instance db.Instance, obj *db.Alarm, rule s
 	default:
 		return constx.ErrAlarmRuleStoreIsClosed
 	}
-	if err = i.PrometheusReload(&instance); err != nil {
+	if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
 		return
 	}
 	return nil
 }
 
 func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err error) {
-	elog.Debug("alert", elog.Any("instance", instance), elog.Any("obj", obj))
+	invoker.Logger.Debug("alert", elog.Any("instance", instance), elog.Any("obj", obj))
 
 	if obj.RuleStoreType != instance.RuleStoreType {
 		return constx.ErrPrometheusRuleStoreTypeNotMatch
 	}
 	switch instance.RuleStoreType {
 	case RuleStoreTypeK8s:
-		elog.Debug("alert", elog.Any("instance", instance))
+		invoker.Logger.Debug("alert", elog.Any("instance", instance))
 		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
 		if errCluster != nil {
 			return errCluster
 		}
 		rules := make(map[string]string)
 		delete(rules, obj.AlertRuleName())
-		elog.Debug("alert", elog.Any("rules", rules))
+		invoker.Logger.Debug("alert", elog.Any("rules", rules))
 		err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rules)
 		if err != nil {
 			return
@@ -191,7 +191,7 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 	default:
 		return constx.ErrAlarmRuleStoreIsClosed
 	}
-	if err = i.PrometheusReload(instance); err != nil {
+	if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
 		return
 	}
 	return nil
@@ -200,57 +200,57 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCreate) (err error) {
 	filtersDB, err := i.FilterCreate(tx, obj.ID, req.Filters)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "alarm create failed 02"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 02"), elog.String("err", err.Error()))
 		return
 	}
 	exp, err := i.ConditionCreate(tx, obj, req.Conditions)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "alarm create failed 03"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 03"), elog.String("err", err.Error()))
 		return
 	}
 	// table info
 	tableInfo, err := db.TableInfo(tx, obj.Tid)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
 		return
 	}
 	// prometheus set
 	instance, err := db.InstanceInfo(tx, tableInfo.Database.Iid)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
 		return
 	}
 	op, err := InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "alarm create failed 04"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 04"), elog.String("err", err.Error()))
 		return
 	}
 	if obj.ViewTableName != "" {
 		err = op.AlertViewDrop(obj.ViewTableName)
 		if err != nil {
-			elog.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
+			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
 			return
 		}
 	}
 	// gen view table name & sql
 	viewTableName, viewSQL, err := op.AlertViewGen(obj, filtersDB)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "alarm create failed 06"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 06"), elog.String("err", err.Error()))
 		return
 	}
 	// exec view sql
 	if err = op.AlertViewCreate(viewTableName, viewSQL); err != nil {
-		elog.Error("alarm", elog.String("step", "alarm create failed 07"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 07"), elog.String("err", err.Error()))
 		return
 	}
 	// rule store
 	rule, err := i.PrometheusRuleGen(obj, exp)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "alarm create failed 08"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 08"), elog.String("err", err.Error()))
 		return
 	}
-	if err = i.PrometheusRuleCreate(instance, obj, rule); err != nil {
-		elog.Error("alarm", elog.String("step", "alarm create failed 09"), elog.String("err", err.Error()))
+	if err = i.PrometheusRuleCreateOrUpdate(instance, obj, rule); err != nil {
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 09"), elog.String("err", err.Error()))
 		return
 	}
 	ups := make(map[string]interface{}, 0)
@@ -268,8 +268,8 @@ func (i *alarm) OpenOperator(id int) (err error) {
 	if err != nil {
 		return
 	}
-	if err = i.PrometheusRuleCreate(instanceInfo, &alarmInfo, alarmInfo.AlertRule); err != nil {
-		elog.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+	if err = i.PrometheusRuleCreateOrUpdate(instanceInfo, &alarmInfo, alarmInfo.AlertRule); err != nil {
+		invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 		return
 	}
 	if err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusOpen}); err != nil {

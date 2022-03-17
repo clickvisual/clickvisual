@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"gopkg.in/yaml.v3"
 )
 
@@ -28,12 +29,12 @@ func loadMenuTree(filePath string) Resource {
 
 	resourceContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		elog.Panic("Read Resource File Failed", elog.String("err", err.Error()))
+		invoker.Logger.Panic("Read Resource File Failed", elog.String("err", err.Error()))
 	}
 
 	err = yaml.Unmarshal(resourceContent, &menu)
 	if err != nil {
-		elog.Panic("Unmarshall %s failed: %s", elog.String("filePath", filePath), elog.String("err", err.Error()))
+		invoker.Logger.Panic("Unmarshall %s failed: %s", elog.String("filePath", filePath), elog.String("err", err.Error()))
 	}
 
 	return menu

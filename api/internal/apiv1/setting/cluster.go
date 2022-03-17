@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"sigs.k8s.io/yaml"
@@ -147,7 +146,7 @@ func getJsonStr(jsonOrYaml string) (jsonStr string, err error) {
 	}
 	jsonBytes, err := yaml.YAMLToJSON([]byte(jsonOrYaml))
 	if err != nil {
-		elog.Warn("Parse yaml to json failed", zap.Error(err))
+		invoker.Logger.Warn("Parse yaml to json failed", zap.Error(err))
 		return "", fmt.Errorf("Use Json or Yaml format! ")
 	}
 	return string(jsonBytes), nil
