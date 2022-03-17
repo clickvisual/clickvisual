@@ -3,9 +3,10 @@ package db
 import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
 type Table struct {
@@ -17,9 +18,9 @@ type Table struct {
 	Days       int    `gorm:"column:days;type:int(11)" json:"days"`                          // 数据过期时间
 	Brokers    string `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`      // kafka broker
 	Topic      string `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`          // kafka topic
-	SqlData    string `gorm:"column:sql_data;type:text" json:"sql_data"`                     // sql_data
-	SqlStream  string `gorm:"column:sql_stream;type:text" json:"sql_stream"`                 // sql_stream
-	SqlView    string `gorm:"column:sql_view;type:text" json:"sql_view"`                     // sql_view
+	SqlData    string `gorm:"column:sql_data;type:text" json:"sqlData"`                      // sql_data
+	SqlStream  string `gorm:"column:sql_stream;type:text" json:"sqlStream"`                  // sql_stream
+	SqlView    string `gorm:"column:sql_view;type:text" json:"sqlView"`                      // sql_view
 	Uid        int    `gorm:"column:uid;type:int(11)" json:"uid"`                            // 操作人
 	CreateType int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`          // 0 mogo建表 1 已有数据表
 	TimeField  string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"` // _time_ 自定义字段

@@ -18,7 +18,7 @@ type View struct {
 	IsUseDefaultTime int    `gorm:"column:is_use_default_time;type:int(11)" json:"isUseDefaultTime"` // 是否使用系统时间
 	Key              string `gorm:"column:key;type:varchar(64);NOT NULL" json:"key"`                 // 指定时间字段Key名称
 	Format           string `gorm:"column:format;type:varchar(64);NOT NULL" json:"format"`           // 时间转换格式
-	SqlView          string `gorm:"column:sql_view;type:text" json:"sql_view"`                       // sql_view
+	SqlView          string `gorm:"column:sql_view;type:text" json:"sqlView"`                        // sql_view
 	Uid              int    `gorm:"column:uid;type:int(11)" json:"uid"`                              // 操作人
 	Ctime            int    `gorm:"column:ctime;type:int(11)" json:"ctime"`                          // 创建时间
 	Utime            int    `gorm:"column:utime;type:int(11)" json:"utime"`                          // 更新时间
