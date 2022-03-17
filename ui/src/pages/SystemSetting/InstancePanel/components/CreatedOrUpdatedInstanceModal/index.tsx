@@ -93,6 +93,7 @@ const CreatedOrUpdatedInstanceModal = (
         cloneCurrent.configmap !== "" &&
         cloneCurrent.namespace !== ""
       ) {
+        doGetConfigMaps(cloneCurrent.clusterId);
         cloneCurrent.k8sConfig = [
           cloneCurrent.namespace,
           cloneCurrent.configmap,
