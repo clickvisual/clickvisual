@@ -78,18 +78,18 @@ func initContextWithAuthProxy(c *gin.Context) bool {
 	conds["username"] = username
 	user, err := db.UserInfoX(conds)
 	if err != nil && !errors.Is(err, egorm.ErrRecordNotFound) {
-		elog.Error("initContextWithAuthProxy", elog.String("step", "UserInfoX"), elog.String("username", "username"), elog.String("error", err.Error()))
+		invoker.Logger.Error("initContextWithAuthProxy", elog.String("step", "UserInfoX"), elog.String("username", "username"), elog.String("error", err.Error()))
 		return false
 	}
 	if user.ID == 0 {
 		user = db.User{Username: username, Nickname: username, Access: "auth.proxy"}
 		err = db.UserCreate(invoker.Db, &user)
 		if err != nil {
-			elog.Error("initContextWithAuthProxy", elog.String("step", "UserCreate"), elog.String("username", "username"), elog.String("error", err.Error()))
+			invoker.Logger.Error("initContextWithAuthProxy", elog.String("step", "UserCreate"), elog.String("username", "username"), elog.String("error", err.Error()))
 			return false
 		}
 	}
-	elog.Debug("initContextWithAuthProxy", elog.String("step", "finish"), elog.Any("user", user))
+	invoker.Logger.Debug("initContextWithAuthProxy", elog.String("step", "finish"), elog.Any("user", user))
 	session := sessions.Default(c)
 	session.Set("user", user)
 	err = session.Save()

@@ -18,8 +18,9 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-const ignoreKey = "_time_second_"
-const timeCondition = "_time_second_ >= %d AND _time_second_ < %d"
+func genTimeCondition(timeField string) string {
+	return timeField + " >= %d AND " + timeField + " < %d"
+}
 
 const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
 parseDateTimeBestEffort(_time_) AS _time_nanosecond_`
@@ -27,6 +28,7 @@ parseDateTimeBestEffort(_time_) AS _time_nanosecond_`
 const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
 fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
+// time_field 高精度数据解析选择
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
 fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
@@ -138,10 +140,28 @@ SELECT
    FROM %s WHERE %s GROUP by _time_second_;`,
 }
 
-var typORM = map[int]string{
-	0: "String",
-	1: "Int64",
-	2: "Float64",
+type typORMItem struct {
+	Filter string
+	Key    string
+}
+
+var typORM = map[int]typORMItem{
+	0: {
+		Filter: "String",
+		Key:    "String",
+	},
+	1: {
+		Filter: "Int",
+		Key:    "Int64",
+	},
+	2: {
+		Filter: "Float",
+		Key:    "Float64",
+	},
+	3: {
+		Filter: "JSON",
+		Key:    "JSON",
+	},
 }
 
 var jsonExtractORM = map[int]string{
@@ -176,7 +196,7 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, er
 		if obj.RootName == "" {
 			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(_log_, '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
 		} else {
-			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(JSONExtractRaw(_log_, '%s')), '%s') AS `%s`,", jsonExtractORM[obj.Typ], obj.Field, obj.RootName, obj.Field)
+			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.Field)
 		}
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
@@ -213,7 +233,7 @@ func (c *ClickHouse) timeParseSQL(typ int, v *db.View) string {
 	if v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, v.Key, v.Key)
 	}
-	elog.Debug("timeParseSQL", elog.Any("typ", typ))
+	invoker.Logger.Debug("timeParseSQL", elog.Any("typ", typ))
 	if typ == TableTypeTimeString {
 		return defaultStringTimeParse
 	}
@@ -236,7 +256,7 @@ func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View,
 	for _, i := range indexes {
 		indexMap[i.Field] = i
 	}
-	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
+	invoker.Logger.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
 	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
@@ -308,7 +328,7 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 	// build view statement
 	dStreamSQL = fmt.Sprintf(clickhouseTableStreamORM[ct.Typ], dStreamName, ct.Brokers, ct.Topics, database+"_"+ct.TableName, ct.Consumers)
 	dDataSQL = fmt.Sprintf(clickhouseTableDataORM[ct.Typ], dName, ct.Days)
-	elog.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
+	invoker.Logger.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
 		return
@@ -333,7 +353,7 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 
 	defer func() {
 		if err != nil {
-			elog.Info("viewOperator", elog.Any("tid", tid), elog.Any("customTimeField", customTimeField), elog.Any("database", databaseInfo.Name), elog.Any("table", table), elog.String("step", "doViewRollback"))
+			invoker.Logger.Info("viewOperator", elog.Any("tid", tid), elog.Any("customTimeField", customTimeField), elog.Any("database", databaseInfo.Name), elog.Any("table", table), elog.String("step", "doViewRollback"))
 			c.viewRollback(tid, customTimeField)
 		}
 	}()
@@ -384,7 +404,7 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 func (c *ClickHouse) DatabaseCreate(name string) error {
 	_, err := c.db.Exec(fmt.Sprintf("create database %s;", name))
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
+		invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
 		return err
 	}
 	return nil
@@ -393,7 +413,7 @@ func (c *ClickHouse) DatabaseCreate(name string) error {
 func (c *ClickHouse) viewRollback(tid int, key string) {
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
+		invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
 		return
 	}
 	var viewQuery string
@@ -407,14 +427,14 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 		condsView["key"] = key
 		viewInfo, err := db.ViewInfoX(condsView)
 		if err != nil {
-			elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
+			invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
 			return
 		}
 		viewQuery = viewInfo.SqlView
 	}
 	_, err = c.db.Exec(viewQuery)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
+		invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
 		return
 	}
 }
@@ -452,7 +472,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (s
 
 	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, TagsToString(alarm, true), sourceTableName, filter)
 
-	elog.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
+	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
 	err = c.alertPrepare()
 	if err != nil {
@@ -528,6 +548,11 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	if err != nil {
 		return
 	}
+	if param.TimeField != TimeField {
+		for k := range res.Logs {
+			res.Logs[k][TimeField] = res.Logs[k][param.TimeField]
+		}
+	}
 	res.Count = c.Count(param)
 	res.Limited = param.PageSize
 	// Read the index data
@@ -564,7 +589,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	if err != nil {
 		return
 	}
-	elog.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
+	invoker.Logger.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
 	for _, v := range sqlCountData {
 		if v["count"] != nil {
 			var key string
@@ -580,7 +605,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 			case float64:
 				key = fmt.Sprintf("%f", v["f"].(float64))
 			default:
-				elog.Info("GroupBy", elog.Any("type", reflect.TypeOf(v["f"])))
+				invoker.Logger.Info("GroupBy", elog.Any("type", reflect.TypeOf(v["f"])))
 				continue
 			}
 			res[key] = v["count"].(uint64)
@@ -589,44 +614,87 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	return
 }
 
-func (c *ClickHouse) Tables(database string) (res []string, err error) {
-	res = make([]string, 0)
-	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns a left join system.tables b on a.table = b.name where a.database = '%s' and a.name = '%s' and a.type = '%s' and b.engine != 'MaterializedView' group by table", database, ignoreKey, "DateTime"))
+func (c *ClickHouse) Databases() ([]*view.RespDatabaseSelfBuilt, error) {
+	databases := make([]*view.RespDatabaseSelfBuilt, 0)
+	dm := make(map[string][]*view.RespTablesSelfBuilt)
+	query := fmt.Sprintf("select database, name from system.tables where engine = '%s'", "MergeTree")
+	list, err := c.doQuery(query)
 	if err != nil {
-		return
+		return nil, err
 	}
 	for _, row := range list {
-		if count, ok := row["c"]; ok {
-			if count.(uint64) == 0 {
-				continue
-			}
+		d := row["database"].(string)
+		t := row["name"].(string)
+		if _, ok := dm[d]; !ok {
+			dm[d] = make([]*view.RespTablesSelfBuilt, 0)
 		}
-		res = append(res, row["table"].(string))
+		dm[d] = append(dm[d], &view.RespTablesSelfBuilt{
+			Name: t,
+		})
 	}
-	return
+	for databaseName, tables := range dm {
+		databases = append(databases, &view.RespDatabaseSelfBuilt{
+			Name:   databaseName,
+			Tables: tables,
+		})
+	}
+	return databases, nil
 }
 
-func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
-	instance, _ := db.InstanceInfo(invoker.Db, c.id)
-	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns group by database"))
+func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*view.RespColumn, err error) {
+	res = make([]*view.RespColumn, 0)
+	var query string
+	if isTimeField {
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type = '%s'", database, table, "DateTime")
+	} else {
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
+	}
+	list, err := c.doQuery(query)
 	if err != nil {
 		return
 	}
 	for _, row := range list {
-		if count, ok := row["c"]; ok {
-			if count.(uint64) == 0 {
-				continue
-			}
-		}
-		res = append(res, view.RespDatabase{
-			DatabaseName:   row["database"].(string),
-			InstanceName:   instance.Name,
-			DatasourceType: instance.Datasource,
-			InstanceId:     c.id,
+		typeDesc := row["type"].(string)
+		res = append(res, &view.RespColumn{
+			Name:     row["name"].(string),
+			TypeDesc: typeDesc,
+			Type:     fieldTypeJudgment(typeDesc),
 		})
 	}
 	return
 }
+
+func fieldTypeJudgment(typ string) int {
+	for k, v := range typORM {
+		if strings.Contains(typ, v.Filter) {
+			return k
+		}
+	}
+	return -1
+}
+
+//
+// func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
+// 	instance, _ := db.InstanceInfo(invoker.Db, c.id)
+// 	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns group by database"))
+// 	if err != nil {
+// 		return
+// 	}
+// 	for _, row := range list {
+// 		if count, ok := row["c"]; ok {
+// 			if count.(uint64) == 0 {
+// 				continue
+// 			}
+// 		}
+// 		res = append(res, view.RespDatabase{
+// 			DatabaseName:   row["database"].(string),
+// 			InstanceName:   instance.Name,
+// 			DatasourceType: instance.Datasource,
+// 			InstanceId:     c.id,
+// 		})
+// 	}
+// 	return
+// }
 
 // IndexUpdate Data table index operation
 func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
@@ -640,7 +708,7 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	}
 	// step 2 add
 	for _, add := range adds {
-		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.Field, typORM[add.Typ])
+		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.Field, typORM[add.Typ].Key)
 		_, err = c.db.Exec(qs)
 		if err != nil {
 			return err
@@ -663,7 +731,7 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
-	elog.Debug("IndexUpdate", elog.Any("viewList", viewList))
+	invoker.Logger.Debug("IndexUpdate", elog.Any("viewList", viewList))
 	for _, current := range viewList {
 		innerViewSQL, err := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if err != nil {
@@ -685,31 +753,31 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+timeCondition+" ORDER BY "+ignoreKey+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" ORDER BY "+param.TimeField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
 		param.PageSize, (param.Page-1)*param.PageSize)
-	elog.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
+	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+timeCondition,
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+genTimeCondition(param.TimeField),
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
-	elog.Debug("ClickHouse", elog.Any("step", "countSQL"), elog.Any("sql", sql))
+	invoker.Logger.Debug("ClickHouse", elog.Any("step", "countSQL"), elog.Any("sql", sql))
 	return
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+timeCondition+" group by %s",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" group by %s",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET, param.Field)
-	elog.Debug("ClickHouse", elog.Any("step", "groupBySQL"), elog.Any("sql", sql))
+	invoker.Logger.Debug("ClickHouse", elog.Any("step", "groupBySQL"), elog.Any("sql", sql))
 	return
 }
 
@@ -737,9 +805,9 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		if err = rows.Scan(values...); err != nil {
 			log.Fatal(err)
 		}
-		elog.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
+		invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
 		for k, _ := range fields {
-			elog.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
+			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
 			line[fields[k]] = values[k]
 		}
 		res = append(res, line)

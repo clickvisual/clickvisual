@@ -48,12 +48,14 @@ export default function useLogUrlParams() {
     onChangeLogLibrary({
       id: tid,
       tableName: res.data.name,
+      createType: res.data.createType,
     });
 
     const panes = [];
     panes.push({
       pane: res.data.name,
       paneId: tid,
+      paneType: res.data.createType,
       start:
         parseInt(urlState.start) ||
         moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),

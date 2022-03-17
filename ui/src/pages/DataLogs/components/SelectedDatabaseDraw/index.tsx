@@ -127,18 +127,14 @@ const SelectedDataBaseDraw = () => {
     },
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.instance" }),
-      dataIndex: "iid",
+      dataIndex: "instanceName",
       align: "center" as AlignType,
       width: "25%",
-      render: (iid: number) => {
-        const instance = instanceList.find((item) => item.id === iid);
-        if (!instance) return <span>-</span>;
-        return (
-          <Tooltip title={instance.instanceName}>
-            <span>{instance.instanceName}</span>
-          </Tooltip>
-        );
-      },
+      render: (instanceName: string) => (
+        <Tooltip title={instanceName}>
+          <span>{instanceName}</span>
+        </Tooltip>
+      ),
     },
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.type" }),

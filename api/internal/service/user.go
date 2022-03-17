@@ -21,10 +21,10 @@ func NewUser() *user {
 
 	// 三方鉴权初始化
 	_ = econf.UnmarshalKey("auth.tps", &oauthInfos)
-	elog.Info("AuthInit", elog.Any("step", "UnmarshalKey"), elog.Any("oauthInfos", oauthInfos))
+	invoker.Logger.Info("AuthInit", elog.Any("step", "UnmarshalKey"), elog.Any("oauthInfos", oauthInfos))
 	appURL, appSubURL, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
 	baseURL := econf.GetString("app.baseURL")
-	elog.Info("AuthInit", elog.Any("step", "ParseAppAndSubURL"), elog.Any("appURL", appURL), elog.Any("appSubURL", appSubURL))
+	invoker.Logger.Info("AuthInit", elog.Any("step", "ParseAppAndSubURL"), elog.Any("appURL", appURL), elog.Any("appSubURL", appSubURL))
 	kauth.NewOAuthService(appURL, baseURL, oauthInfos)
 	return u
 }
@@ -35,20 +35,20 @@ func (u *user) CreateOrUpdateOauthUser(info *db.User) (err error) {
 	err = invoker.Db.Where("oauth = ? and oauth_id = ?", info.Oauth, info.OauthId).First(&obj).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		// system error
-		elog.Error("CreateOrUpdateOauthUser", elog.String("step", "Select"), elog.String("error", err.Error()))
+		invoker.Logger.Error("CreateOrUpdateOauthUser", elog.String("step", "Select"), elog.String("error", err.Error()))
 		return
 	}
 	// not found
 	if obj.ID == 0 {
 		err = u.Create(info)
 		if err != nil {
-			elog.Error("CreateOrUpdateOauthUser", elog.String("step", "Create"), elog.String("error", err.Error()))
+			invoker.Logger.Error("CreateOrUpdateOauthUser", elog.String("step", "Create"), elog.String("error", err.Error()))
 		}
 		return
 	}
 	err = u.Update(obj.ID, info)
 	if err != nil {
-		elog.Error("CreateOrUpdateOauthUser", elog.String("step", "Update"), elog.String("error", err.Error()))
+		invoker.Logger.Error("CreateOrUpdateOauthUser", elog.String("step", "Update"), elog.String("error", err.Error()))
 		return
 	}
 	invoker.Db.Where("oauth = ? and oauth_id = ?", info.Oauth, info.OauthId).First(info)

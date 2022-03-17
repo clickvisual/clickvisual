@@ -235,7 +235,7 @@ func HistoryList(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	elog.Debug("history", elog.Any("req", req))
+	invoker.Logger.Debug("history", elog.Any("req", req))
 	conds := egorm.Conds{}
 	if req.AlarmId != 0 {
 		conds["alarm_id"] = req.AlarmId

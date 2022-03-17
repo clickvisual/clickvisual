@@ -8,7 +8,6 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 )
 
@@ -16,15 +15,15 @@ import (
 type Instance struct {
 	BaseModel
 
-	Datasource       string `gorm:"column:datasource" db:"datasource" json:"datasource" form:"datasource"`                           // 数据源类型
-	Name             string `gorm:"column:name" db:"name" json:"instanceName" form:"name"`                                           // 实例名称
-	Dsn              string `gorm:"column:dsn" db:"dsn" json:"dsn" form:"dsn"`                                                       // dsn
-	RuleStoreType    int    `gorm:"column:rule_store_type" db:"rule_store_type" json:"ruleStoreType" form:"ruleStoreType"`           // ruleStoreType
-	ClusterId        int    `gorm:"column:cluster_id" db:"cluster_id" json:"clusterId" form:"clusterId"`                             // clusterId
-	FilePath         string `gorm:"column:file_path" db:"file_path" json:"filePath" form:"filePath"`                                 // filePath
-	Namespace        string `gorm:"column:namespace" db:"namespace" json:"namespace" form:"namespace"`                               // namespace
-	Configmap        string `gorm:"column:configmap" db:"configmap" json:"configmap" form:"configmap"`                               // configmap
-	PrometheusTarget string `gorm:"column:prometheus_target" db:"prometheus_target" json:"prometheusTarget" form:"prometheusTarget"` // prometheus ip or domain, eg: https://prometheus:9090
+	Datasource       string `gorm:"column:datasource;type:varchar(32);NOT NULL" json:"datasource"`               // 数据源类型
+	Name             string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`                          // 实例名称
+	Dsn              string `gorm:"column:dsn;type:text" json:"dsn"`                                             // dsn
+	RuleStoreType    int    `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                    // rule_store_type 0 集群 1 文件
+	FilePath         string `gorm:"column:file_path;type:varchar(255)" json:"filePath"`                          // file_path
+	ClusterId        int    `gorm:"column:cluster_id;type:int(11)" json:"clusterId"`                             // cluster_id
+	Namespace        string `gorm:"column:namespace;type:varchar(128);NOT NULL" json:"namespace"`                // namespace
+	Configmap        string `gorm:"column:configmap;type:varchar(128);NOT NULL" json:"configmap"`                // configmap
+	PrometheusTarget string `gorm:"column:prometheus_target;type:varchar(128);NOT NULL" json:"prometheusTarget"` // prometheus ip or domain, eg: https://prometheus:9090
 }
 
 func (t *Instance) TableName() string {
@@ -56,7 +55,7 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*Instance, err err
 	}
 
 	if err = invoker.Db.Model(Instance{}).Where(sql, binds...).Order(sorts).Find(&resp).Error; err != nil {
-		elog.Error("ConfigMap list error", zap.Error(err))
+		invoker.Logger.Error("ConfigMap list error", zap.Error(err))
 		return
 	}
 	return
@@ -64,7 +63,7 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*Instance, err err
 
 func InstanceCreate(db *gorm.DB, data *Instance) (err error) {
 	if err = db.Model(Instance{}).Create(data).Error; err != nil {
-		elog.Error("create release error", zap.Error(err))
+		invoker.Logger.Error("create release error", zap.Error(err))
 		return
 	}
 	return
@@ -74,7 +73,7 @@ func InstanceByName(dt, name string) (resp Instance, err error) {
 	var sql = "`datasource`= ? and `name`=? and dtime = 0"
 	var binds = []interface{}{dt, name}
 	if err = invoker.Db.Model(Instance{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -84,7 +83,7 @@ func InstanceInfo(db *gorm.DB, id int) (resp Instance, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
 	if err = db.Model(Instance{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -92,7 +91,7 @@ func InstanceInfo(db *gorm.DB, id int) (resp Instance, err error) {
 
 func InstanceDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Instance{}).Unscoped().Delete(&Instance{}, id).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -102,7 +101,7 @@ func InstanceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(Instance{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		invoker.Logger.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -113,7 +112,7 @@ func InstanceInfoX(db *gorm.DB, conds map[string]interface{}) (resp Instance, er
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameInstance).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("infoX error", zap.Error(err))
+		invoker.Logger.Error("infoX error", zap.Error(err))
 		return
 	}
 	return

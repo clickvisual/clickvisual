@@ -11,49 +11,11 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/inquiry"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
-
-//
-// func TableQuery(c *core.Context) {
-// 	id := cast.ToInt(c.Param("id"))
-// 	if id == 0 {
-// 		c.JSONE(core.CodeErr, "params error", nil)
-// 		return
-// 	}
-// 	var param view.ReqQuery
-// 	err := c.Bind(&param)
-// 	if err != nil {
-// 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-// 		return
-// 	}
-// 	tableInfo, _ := db.TableInfo(invoker.Db, id)
-// 	param.Table = tableInfo.Name
-// 	param.Database = tableInfo.Database.Name
-// 	if param.Database == "" || param.Table == "" {
-// 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
-// 		return
-// 	}
-// 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
-// 	if err != nil {
-// 		c.JSONE(core.CodeErr, err.Error(), nil)
-// 		return
-// 	}
-// 	param, err = op.Prepare(param, false)
-// 	if err != nil {
-// 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-// 		return
-// 	}
-// 	res, err := op.Query(param)
-// 	if err != nil {
-// 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
-// 		return
-// 	}
-// 	c.JSONOK(res)
-// 	return
-// }
 
 func TableId(c *core.Context) {
 	var param view.ReqTableId
@@ -117,16 +79,18 @@ func TableCreate(c *core.Context) {
 		return
 	}
 	err = db.TableCreate(invoker.Db, &db.Table{
-		Did:       did,
-		Name:      param.TableName,
-		Typ:       param.Typ,
-		Days:      param.Days,
-		Brokers:   param.Brokers,
-		Topic:     param.Topics,
-		SqlData:   d,
-		SqlStream: s,
-		SqlView:   v,
-		Uid:       c.Uid(),
+		Did:        did,
+		Name:       param.TableName,
+		Typ:        param.Typ,
+		Days:       param.Days,
+		Brokers:    param.Brokers,
+		Topic:      param.Topics,
+		SqlData:    d,
+		SqlStream:  s,
+		SqlView:    v,
+		TimeField:  inquiry.TimeField,
+		CreateType: inquiry.TableCreateTypeMogo,
+		Uid:        c.Uid(),
 	})
 	if err != nil {
 		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
@@ -187,6 +151,7 @@ func TableInfo(c *core.Context) {
 	}
 	res.SQLContent.Keys = keys
 	res.SQLContent.Data = data
+	res.CreateType = tableInfo.CreateType
 	c.JSONOK(res)
 	return
 }
@@ -207,8 +172,9 @@ func TableList(c *core.Context) {
 	res := make([]view.RespTableSimple, 0)
 	for _, row := range tableList {
 		res = append(res, view.RespTableSimple{
-			Id:        row.ID,
-			TableName: row.Name,
+			Id:         row.ID,
+			TableName:  row.Name,
+			CreateType: row.CreateType,
 		})
 	}
 	c.JSONOK(res)
@@ -238,19 +204,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "you should delete all alarms before delete table.", nil)
 		return
 	}
-	table := tableInfo.Name
-	iid := tableInfo.Database.Iid
-	database := tableInfo.Database.Name
-	op, err := service.InstanceManager.Load(iid)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	err = op.TableDrop(database, table, tableInfo.ID)
-	if err != nil {
-		c.JSONE(core.CodeErr, "delete failed 01: "+err.Error(), nil)
-		return
-	}
+
 	tx := invoker.Db.Begin()
 	err = db.TableDelete(tx, tableInfo.ID)
 	if err != nil {
@@ -269,6 +223,23 @@ func TableDelete(c *core.Context) {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
 		return
+	}
+	if tableInfo.CreateType == inquiry.TableCreateTypeMogo {
+		table := tableInfo.Name
+		iid := tableInfo.Database.Iid
+		database := tableInfo.Database.Name
+		op, errLoad := service.InstanceManager.Load(iid)
+		if errLoad != nil {
+			tx.Rollback()
+			c.JSONE(core.CodeErr, errLoad.Error(), nil)
+			return
+		}
+		err = op.TableDrop(database, table, tableInfo.ID)
+		if err != nil {
+			tx.Rollback()
+			c.JSONE(core.CodeErr, "delete failed 01: "+err.Error(), nil)
+			return
+		}
 	}
 	if err = tx.Commit().Error; err != nil {
 		c.JSONE(core.CodeErr, "delete failed 06: "+err.Error(), nil)
@@ -290,6 +261,12 @@ func TableLogs(c *core.Context) {
 		return
 	}
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	// default time field
+	if tableInfo.TimeField == "" {
+		param.TimeField = inquiry.TimeField
+	} else {
+		param.TimeField = tableInfo.TimeField
+	}
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
@@ -332,6 +309,12 @@ func TableCharts(c *core.Context) {
 		return
 	}
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	// default time field
+	if tableInfo.TimeField == "" {
+		param.TimeField = inquiry.TimeField
+	} else {
+		param.TimeField = tableInfo.TimeField
+	}
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
@@ -354,7 +337,7 @@ func TableCharts(c *core.Context) {
 	}
 	interval := (param.ET - param.ST) / 50
 	isZero := true
-	elog.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
+	invoker.Logger.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
 
 	if interval == 0 {
 		row := view.HighChart{
@@ -382,6 +365,7 @@ func TableCharts(c *core.Context) {
 						ET:            et,
 						Page:          param.Page,
 						PageSize:      param.PageSize,
+						TimeField:     param.TimeField,
 					}),
 					Progress: "",
 					From:     st,
@@ -426,6 +410,11 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	if tableInfo.TimeField == "" {
+		param.TimeField = inquiry.TimeField
+	} else {
+		param.TimeField = tableInfo.TimeField
+	}
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
@@ -445,7 +434,7 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	list := op.GroupBy(param)
-	elog.Debug("Indexes", elog.Any("list", list))
+	invoker.Logger.Debug("Indexes", elog.Any("list", list))
 
 	res := make([]view.RespIndexItem, 0)
 	sum := uint64(0)
@@ -462,11 +451,140 @@ func TableIndexes(c *core.Context) {
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
-	elog.Debug("Indexes", elog.Any("res", res))
+	invoker.Logger.Debug("Indexes", elog.Any("res", res))
 	if len(res) > 10 {
 		c.JSONOK(res[:9])
 		return
 	}
 	c.JSONOK(res)
 	return
+}
+
+func TableCreateSelfBuilt(c *core.Context) {
+	iid := cast.ToInt(c.Param("iid"))
+	if iid == 0 {
+		c.JSONE(1, "param error: missing iid", nil)
+		return
+	}
+	var param view.ReqTableCreateExist
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	// check mogo exist
+	conds := egorm.Conds{}
+	conds["name"] = param.DatabaseName
+	existDatabases, err := db.DatabaseList(invoker.Db, conds)
+	if err != nil {
+		c.JSONE(core.CodeErr, "database create failed 01: "+err.Error(), nil)
+		return
+	}
+	for _, existDatabase := range existDatabases {
+		condsT := egorm.Conds{}
+		condsT["did"] = existDatabase.ID
+		existTables, errExistTables := db.TableList(invoker.Db, condsT)
+		if errExistTables != nil {
+			c.JSONE(core.CodeErr, "database create failed 02: "+errExistTables.Error(), nil)
+			return
+		}
+		for _, existTable := range existTables {
+			if existTable.Name == param.TableName {
+				c.JSONE(core.CodeErr, "database create failed 03: this table is already exist in mogo", nil)
+				return
+			}
+		}
+	}
+	tx := invoker.Db.Begin()
+	databaseInfo, err := db.DatabaseGetOrCreate(tx, c.Uid(), iid, param.DatabaseName)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "database create failed: "+err.Error(), nil)
+		return
+	}
+	// no need to operator the database
+	tableInfo := db.Table{
+		Did:        databaseInfo.ID,
+		Name:       param.TableName,
+		Uid:        c.Uid(),
+		CreateType: inquiry.TableCreateTypeExist,
+		TimeField:  param.TimeField,
+	}
+	err = db.TableCreate(tx, &tableInfo)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		return
+	}
+	// create index
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	columns, err := op.Columns(param.DatabaseName, param.TableName, false)
+	if err != nil {
+		tx.Rollback()
+		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		return
+	}
+	invoker.Logger.Debug("TableCreateSelfBuilt", elog.Any("columns", columns))
+	for _, col := range columns {
+		if col.Type == -1 {
+			continue
+		}
+		err = db.IndexCreate(tx, &db.Index{
+			Tid:      tableInfo.ID,
+			Field:    col.Name,
+			Typ:      col.Type,
+			Alias:    "",
+			RootName: "",
+		})
+		if err != nil {
+			tx.Rollback()
+			c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+			return
+		}
+	}
+	if err = tx.Commit().Error; err != nil {
+		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK()
+}
+
+func TableColumnsSelfBuilt(c *core.Context) {
+	iid := cast.ToInt(c.Param("iid"))
+	if iid == 0 {
+		c.JSONE(1, "param error: missing iid", nil)
+		return
+	}
+	var param view.ReqTableCreateExist
+	err := c.Bind(&param)
+	invoker.Logger.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	var columnsInfo struct {
+		All               []*view.RespColumn `json:"all"`
+		ConformToStandard []*view.RespColumn `json:"conformToStandard"`
+	}
+	columnsInfo.ConformToStandard, err = op.Columns(param.DatabaseName, param.TableName, true)
+	if err != nil {
+		c.JSONE(core.CodeErr, "database create failed: "+err.Error(), nil)
+		return
+	}
+	columnsInfo.All, err = op.Columns(param.DatabaseName, param.TableName, false)
+	if err != nil {
+		c.JSONE(core.CodeErr, "database create failed: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK(columnsInfo)
 }

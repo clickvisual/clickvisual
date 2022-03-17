@@ -28,8 +28,10 @@ var Configure *configure
 type configure struct{}
 
 // InitConfigure ...
-func InitConfigure() *configure {
-	return &configure{}
+func InitConfigure() {
+	Configure = &configure{}
+	go Configure.clearLockPeriodically()
+	return
 }
 
 func (s *configure) configMetadataKey(filename string) string {
@@ -159,7 +161,7 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 	configureObj, _ := db.ConfigurationInfo(history.ConfigurationId)
 	k8sConfigmap, _ := db.K8SConfigMapInfo(configureObj.K8SCmId)
 
-	elog.Debug("Publish", elog.Any("history", history))
+	invoker.Logger.Debug("Publish", elog.Any("history", history))
 
 	configData := make(map[string]string)
 	filename := configureObj.FileName()
@@ -169,11 +171,11 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 		ChangeLog:   history.ChangeLog,
 		PublishedBy: c.Uid(),
 	})
-	lock := NewConfigMapLock(k8sConfigmap.Namespace, k8sConfigmap.Name, configureObj.K8SCmId)
-	if !lock.Lock() {
-		return fmt.Errorf("configMap is being updated by another user or system. update failed")
-	}
-	defer lock.Unlock()
+	// lock := NewConfigMapLock(k8sConfigmap.Namespace, k8sConfigmap.Name, configureObj.K8SCmId)
+	// if !lock.Lock() {
+	// 	return fmt.Errorf("configMap is being updated by another user or system. update failed")
+	// }
+	// defer lock.Unlock()
 
 	client, err := kube.ClusterManager.GetClusterManager(k8sConfigmap.ClusterId)
 	if err != nil {
@@ -213,7 +215,7 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 			return errors.Wrap(err, "read configmap data failed")
 		}
 		if utils.MD5(upstreamValue) != utils.MD5(config.Content) {
-			elog.Debug("delete", elog.Any("upstreamValue", upstreamValue), elog.Any("config.Content", config.Content))
+			invoker.Logger.Debug("delete", elog.Any("upstreamValue", upstreamValue), elog.Any("config.Content", config.Content))
 			tx.Rollback()
 			return errors.New("The deleted configuration is inconsistent with the effective configuration. The effective configuration cannot be deleted.")
 		}
@@ -227,18 +229,18 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 			tx.Rollback()
 			return errKcm
 		}
-		configLock := NewConfigMapLock(kcm.Namespace, kcm.Name, kcm.ID)
-		if !configLock.Lock() {
-			tx.Rollback()
-			return errors.Errorf("failed to delete because there are other users operating the configuration")
-		}
+		// configLock := NewConfigMapLock(kcm.Namespace, kcm.Name, kcm.ID)
+		// if !configLock.Lock() {
+		// 	tx.Rollback()
+		// 	return errors.Errorf("failed to delete because there are other users operating the configuration")
+		// }
 		err = resource.ConfigmapDelete(kcm.ClusterId, kcm.Namespace, kcm.Name, config.FileName(), s.configMetadataKey(config.FileName()))
 		if err != nil {
-			configLock.Unlock()
+			// configLock.Unlock()
 			tx.Rollback()
 			return errors.Wrap(err, "configMap update failed")
 		}
-		configLock.Unlock()
+		// configLock.Unlock()
 	}
 	err = tx.Commit().Error
 	if err != nil {

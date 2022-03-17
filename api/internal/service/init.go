@@ -14,11 +14,10 @@ var (
 	User            *user
 	Index           *index
 	Alarm           *alarm
-	// AlertManagerDD  *alertmanager.DD
 )
 
 func Init() error {
-	Permission = permission.New(&permission.Config{ResFilePath: econf.GetString("permission.resourceFile")})
+	Permission = permission.New(&permission.Config{ResFilePath: econf.GetString("app.permissionFile")})
 	InstanceManager = NewInstanceManager()
 
 	User = NewUser()

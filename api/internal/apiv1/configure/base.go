@@ -329,13 +329,13 @@ func Sync(c *core.Context) {
 	var obj runtime.Object
 	obj, err = client.KubeClient.Get(api.ResourceNameConfigMap, param.K8SConfigMapNamespace, param.K8SConfigMapName)
 	if err != nil {
-		elog.Error("configmaps", elog.String("err", err.Error()), elog.String("namespace", param.K8SConfigMapNamespace), elog.String("configmap", param.K8SConfigMapName))
+		invoker.Logger.Error("configmaps", elog.String("err", err.Error()), elog.String("namespace", param.K8SConfigMapNamespace), elog.String("configmap", param.K8SConfigMapName))
 		c.JSONE(core.CodeErr, "client.KubeClient.List error: "+err.Error(), nil)
 		return
 	}
 	tx := invoker.Db.Begin()
 	cm := *(obj.(*corev1.ConfigMap))
-	elog.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
+	invoker.Logger.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
 
 	k8sCMObject := db.K8SConfigMap{
 		ClusterId: param.ClusterId,
@@ -357,7 +357,7 @@ func Sync(c *core.Context) {
 	for key, val := range cm.Data {
 		nameArr := strings.Split(key, ".")
 		if len(nameArr) < 2 {
-			elog.Warn("sync", elog.String("name", key), elog.String("err", "nameArr size error"))
+			invoker.Logger.Warn("sync", elog.String("name", key), elog.String("err", "nameArr size error"))
 			continue
 		}
 		format := nameArr[len(nameArr)-1]
@@ -391,7 +391,7 @@ func Sync(c *core.Context) {
 				return
 			}
 		}
-		elog.Debug("sync", elog.String("step", "Update"), elog.Any("configuration", configuration))
+		invoker.Logger.Debug("sync", elog.String("step", "Update"), elog.Any("configuration", configuration))
 		err = configure.Configure.Update(c, tx, view.ReqUpdateConfig{ID: configuration.ID, Message: "sync from cluster", Content: val}, configuration)
 		if err != nil {
 			if errors.Is(err, constx.ErrConfigurationIsNoDifference) {

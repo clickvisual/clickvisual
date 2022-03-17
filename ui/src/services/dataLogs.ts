@@ -83,10 +83,12 @@ export interface DatabaseResponse {
 export interface TablesResponse {
   id: number;
   tableName: string;
+  createType: number;
 }
 
 export interface TableInfoResponse {
   brokers: string;
+  createType: number;
   days: number;
   did: number;
   name: string;
@@ -103,11 +105,13 @@ export interface TableSqlContent {
 }
 
 export interface IndexInfoType {
-  id: number;
-  tid: number;
+  id?: number;
+  tid?: number;
   field: string;
   alias: string;
   typ: number;
+  rootName: string;
+  jsonIndex: IndexInfoType[];
 }
 
 export interface IndexRequest {

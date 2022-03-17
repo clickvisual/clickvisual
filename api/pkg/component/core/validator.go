@@ -11,7 +11,8 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	tzh "github.com/go-playground/validator/v10/translations/zh"
-	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
 func init() {
@@ -59,7 +60,7 @@ func newValidator() *validator.Validate {
 		return label
 	})
 	if err := tzh.RegisterDefaultTranslations(validate, trans); err != nil {
-		elog.DefaultLogger.Fatal("Gin fail to registered Translation")
+		invoker.Logger.Fatal("Gin fail to registered Translation")
 	}
 	return validate
 }

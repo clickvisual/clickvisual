@@ -28,6 +28,7 @@ import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMe
 export type PaneType = {
   pane: string;
   paneId: number;
+  paneType: number;
   start: number;
   end: number;
   keyword: string | undefined;

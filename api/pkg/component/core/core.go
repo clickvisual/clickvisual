@@ -6,6 +6,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/core/etrace"
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
@@ -131,7 +132,7 @@ func (c *Context) JSONE(code int, msg string, data interface{}) {
 	default:
 		j.Data = data
 	}
-	elog.Warn("biz warning", elog.FieldValue(msg), elog.FieldValueAny(data), elog.FieldTid(etrace.ExtractTraceID(c.Request.Context())))
+	invoker.Logger.Warn("biz warning", elog.FieldValue(msg), elog.FieldValueAny(data), elog.FieldTid(etrace.ExtractTraceID(c.Request.Context())))
 	c.Context.JSON(http.StatusOK, j)
 	return
 }

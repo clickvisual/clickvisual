@@ -7,6 +7,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -17,6 +18,9 @@ type Operator interface {
 
 	TableCreate(int, string, view.ReqTableCreate) (string, string, string, error)
 	TableDrop(string, string, int) error
+
+	Databases() ([]*view.RespDatabaseSelfBuilt, error)
+	Columns(string, string, bool) ([]*view.RespColumn, error)
 
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 
@@ -35,6 +39,13 @@ type Operator interface {
 	DropTable(string) error
 	DropDatabase(string) error
 }
+
+const TimeField = "_time_second_"
+
+const (
+	TableCreateTypeMogo  = 0
+	TableCreateTypeExist = 1
+)
 
 const (
 	TableTypeTimeString = 1
@@ -85,13 +96,13 @@ func queryEncode(in string) ([]queryItem, error) {
 			}
 		}
 	}
-	elog.Debug("queryEncode", elog.Any("step", "finish"), elog.Any("items", res))
+	invoker.Logger.Debug("queryEncode", elog.Any("step", "finish"), elog.Any("items", res))
 	return res, nil
 }
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Key == "_time_second_" {
+		if item.Key == TimeField {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
 		if index == 0 {

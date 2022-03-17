@@ -23,7 +23,7 @@ type Alarm struct {
 	Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                                  // 0 m 1 s 2 h 3 d 4 w 5 y
 	AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                          // prometheus alert rule
 	View          string        `gorm:"column:view;type:text" json:"view"`                                                     // 数据转换视图
-	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"view_table_name"`                       // 视图表名称
+	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                         // 视图表名称
 	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                                       // 标签
 	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                                    // 操作人
 	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // 告警状态
@@ -66,13 +66,13 @@ func GetAlarmTableInstanceInfo(id int) (instanceInfo Instance, tableInfo Table, 
 	// table info
 	tableInfo, err = TableInfo(invoker.Db, alarmInfo.Tid)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
 		return
 	}
 	// prometheus set
 	instanceInfo, err = InstanceInfo(invoker.Db, tableInfo.Database.Iid)
 	if err != nil {
-		elog.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
 		return
 	}
 	return
@@ -96,7 +96,7 @@ func AlarmInfo(db *gorm.DB, id int) (resp Alarm, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
 	if err = db.Model(Alarm{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -106,7 +106,7 @@ func AlarmInfoX(db *gorm.DB, conds map[string]interface{}) (resp Alarm, err erro
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Model(Alarm{}).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("infoX error", zap.Error(err))
+		invoker.Logger.Error("infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -115,7 +115,7 @@ func AlarmInfoX(db *gorm.DB, conds map[string]interface{}) (resp Alarm, err erro
 func AlarmList(conds egorm.Conds) (resp []*Alarm, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(Alarm{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("Deployment list error", zap.Error(err))
+		invoker.Logger.Error("Deployment list error", zap.Error(err))
 		return
 	}
 	return
@@ -156,7 +156,7 @@ func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 
 func AlarmCreate(db *gorm.DB, data *Alarm) (err error) {
 	if err = db.Model(Alarm{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		invoker.Logger.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -166,7 +166,7 @@ func AlarmUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(Alarm{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		invoker.Logger.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -174,7 +174,7 @@ func AlarmUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 
 func AlarmDeleteBatch(db *gorm.DB, tid int) (err error) {
 	if err = db.Model(Alarm{}).Where("`tid`=?", tid).Unscoped().Delete(&Alarm{}).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -182,7 +182,7 @@ func AlarmDeleteBatch(db *gorm.DB, tid int) (err error) {
 
 func AlarmDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Alarm{}).Unscoped().Delete(&Alarm{}, id).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -207,7 +207,7 @@ func AlarmFilterInfo(db *gorm.DB, id int) (resp AlarmFilter, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmFilter{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -216,7 +216,7 @@ func AlarmFilterInfo(db *gorm.DB, id int) (resp AlarmFilter, err error) {
 func AlarmFilterList(conds egorm.Conds) (resp []*AlarmFilter, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(AlarmFilter{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("Deployment list error", zap.Error(err))
+		invoker.Logger.Error("Deployment list error", zap.Error(err))
 		return
 	}
 	return
@@ -224,7 +224,7 @@ func AlarmFilterList(conds egorm.Conds) (resp []*AlarmFilter, err error) {
 
 func AlarmFilterCreate(db *gorm.DB, data *AlarmFilter) (err error) {
 	if err = db.Model(AlarmFilter{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		invoker.Logger.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -234,7 +234,7 @@ func AlarmFilterUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err err
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmFilter{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		invoker.Logger.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -242,7 +242,7 @@ func AlarmFilterUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err err
 
 func AlarmFilterDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 	if err = db.Model(AlarmFilter{}).Where("`alarm_id`=?", alarmId).Unscoped().Delete(&AlarmFilter{}).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -250,7 +250,7 @@ func AlarmFilterDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 
 func AlarmFilterDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(AlarmFilter{}).Unscoped().Delete(&AlarmFilter{}, id).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -276,7 +276,7 @@ func AlarmConditionInfo(db *gorm.DB, id int) (resp AlarmCondition, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmCondition{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -285,7 +285,7 @@ func AlarmConditionInfo(db *gorm.DB, id int) (resp AlarmCondition, err error) {
 func AlarmConditionList(conds egorm.Conds) (resp []*AlarmCondition, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(AlarmCondition{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("Deployment list error", zap.Error(err))
+		invoker.Logger.Error("Deployment list error", zap.Error(err))
 		return
 	}
 	return
@@ -293,7 +293,7 @@ func AlarmConditionList(conds egorm.Conds) (resp []*AlarmCondition, err error) {
 
 func AlarmConditionCreate(db *gorm.DB, data *AlarmCondition) (err error) {
 	if err = db.Model(AlarmCondition{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		invoker.Logger.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -303,7 +303,7 @@ func AlarmConditionUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err 
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmCondition{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		invoker.Logger.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -311,7 +311,7 @@ func AlarmConditionUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err 
 
 func AlarmConditionDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 	if err = db.Model(AlarmCondition{}).Where("`alarm_id`=?", alarmId).Unscoped().Delete(&AlarmCondition{}).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -319,7 +319,7 @@ func AlarmConditionDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 
 func AlarmConditionDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(AlarmCondition{}).Unscoped().Delete(&AlarmCondition{}, id).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -343,7 +343,7 @@ func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmChannel{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -352,7 +352,7 @@ func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
 func AlarmChannelList(conds egorm.Conds) (resp []*AlarmChannel, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(AlarmChannel{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("Deployment list error", zap.Error(err))
+		invoker.Logger.Error("Deployment list error", zap.Error(err))
 		return
 	}
 	return
@@ -360,7 +360,7 @@ func AlarmChannelList(conds egorm.Conds) (resp []*AlarmChannel, err error) {
 
 func AlarmChannelCreate(db *gorm.DB, data *AlarmChannel) (err error) {
 	if err = db.Model(AlarmChannel{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		invoker.Logger.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -370,7 +370,7 @@ func AlarmChannelUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmChannel{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		invoker.Logger.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -378,7 +378,7 @@ func AlarmChannelUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 
 func AlarmChannelDeleteBatch(db *gorm.DB, tid int) (err error) {
 	if err = db.Model(AlarmChannel{}).Where("`tid`=?", tid).Unscoped().Delete(&AlarmChannel{}).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -386,7 +386,7 @@ func AlarmChannelDeleteBatch(db *gorm.DB, tid int) (err error) {
 
 func AlarmChannelDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(AlarmChannel{}).Unscoped().Delete(&AlarmChannel{}, id).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -408,7 +408,7 @@ func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmHistory{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -417,7 +417,7 @@ func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {
 func AlarmHistoryList(conds egorm.Conds) (resp []*AlarmHistory, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(AlarmHistory{}).Where(sql, binds...).Order("id desc").Find(&resp).Error; err != nil {
-		elog.Error("Deployment list error", zap.Error(err))
+		invoker.Logger.Error("Deployment list error", zap.Error(err))
 		return
 	}
 	return
@@ -441,7 +441,7 @@ func AlarmHistoryPage(conds egorm.Conds, reqList *ReqPage) (total int64, respLis
 
 func AlarmHistoryCreate(db *gorm.DB, data *AlarmHistory) (err error) {
 	if err = db.Model(AlarmHistory{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		invoker.Logger.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -451,7 +451,7 @@ func AlarmHistoryUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmHistory{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		invoker.Logger.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -459,7 +459,7 @@ func AlarmHistoryUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 
 func AlarmHistoryDeleteBatch(db *gorm.DB, tid int) (err error) {
 	if err = db.Model(AlarmHistory{}).Where("`tid`=?", tid).Unscoped().Delete(&AlarmHistory{}).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -467,7 +467,7 @@ func AlarmHistoryDeleteBatch(db *gorm.DB, tid int) (err error) {
 
 func AlarmHistoryDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(AlarmHistory{}).Unscoped().Delete(&AlarmHistory{}, id).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return

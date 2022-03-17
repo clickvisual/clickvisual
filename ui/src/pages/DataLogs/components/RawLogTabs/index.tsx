@@ -38,6 +38,7 @@ const RawLogTabs = () => {
       onChangeLogLibrary({
         id: resultPanes[0].paneId,
         tableName: resultPanes[0].pane,
+        createType: resultPanes[0].paneType,
       });
       onChangeCurrentLogPane(resultPanes[0]);
       handleChangeRelativeAmountAndUnit(resultPanes[0]);
@@ -69,7 +70,11 @@ const RawLogTabs = () => {
         >
           {logPanes.map((item) => (
             <TabPane
-              key={JSON.stringify({ id: item.paneId, tableName: item.pane })}
+              key={JSON.stringify({
+                id: item.paneId,
+                tableName: item.pane,
+                createType: item.paneType,
+              })}
               tab={item.pane}
             >
               <QueryResult />

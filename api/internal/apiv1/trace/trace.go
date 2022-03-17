@@ -31,7 +31,7 @@ func Info(c *core.Context) {
 	// 	return
 	// }
 	// list := op.GroupBy(param)
-	// elog.Debug("Indexes", elog.Any("list", list))
+	// invoker.Logger.Debug("Indexes", elog.Any("list", list))
 	//
 	// res := make([]view.RespIndexItem, 0)
 	// sum := uint64(0)
@@ -48,7 +48,7 @@ func Info(c *core.Context) {
 	// sort.Slice(res, func(i, j int) bool {
 	// 	return res[i].Count > res[j].Count
 	// })
-	// elog.Debug("Indexes", elog.Any("res", res))
+	// invoker.Logger.Debug("Indexes", elog.Any("res", res))
 	// if len(res) > 10 {
 	// 	c.JSONOK(res[:9])
 	// 	return

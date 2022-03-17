@@ -25,6 +25,7 @@ import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 const defaultPane: PaneType = {
   pane: "",
   paneId: 0,
+  paneType: 0,
   start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
   end: currentTimeStamp(),
   page: FIRST_PAGE,
@@ -90,6 +91,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         ...defaultPane,
         pane: logLibrary.tableName,
         paneId: logLibrary.id,
+        paneType: logLibrary.createType,
       });
     }
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
@@ -118,19 +120,20 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       .run(logLibrary.id)
       .then((res) => {
         if (res?.code === 0) {
+          const newPanes = logPanes.filter(
+            (item) => item.paneId !== logLibrary.id
+          );
+          onChangeLogPanes(newPanes);
           if (logLibrary === currentLogLibrary) {
             resetLogs();
             resetCurrentHighChart();
-            const newPanes = logPanes.filter(
-              (item) => item.paneId !== currentLogLibrary.id
-            );
-            onChangeLogPanes(newPanes);
             if (newPanes.length > 0) {
               onChangeCurrentLogPane(newPanes[0]);
               handleChangeRelativeAmountAndUnit(newPanes[0]);
               onChangeLogLibrary({
                 id: newPanes[0].paneId,
                 tableName: newPanes[0].pane,
+                createType: newPanes[0].paneType,
               });
             }
           }

@@ -92,7 +92,7 @@ func UpdatePassword(c *core.Context) {
 		return
 	}
 
-	elog.Debug("UpdatePassword", elog.Any("uid", uid), elog.Any("param", param))
+	invoker.Logger.Debug("UpdatePassword", elog.Any("uid", uid), elog.Any("param", param))
 
 	if param.ConfirmNew != param.NewPassword {
 		c.JSONE(1, "password not match", "")
@@ -104,7 +104,7 @@ func UpdatePassword(c *core.Context) {
 	}
 	user, _ := db.UserInfo(uid)
 
-	elog.Debug("UpdatePassword", elog.Any("user", user))
+	invoker.Logger.Debug("UpdatePassword", elog.Any("user", user))
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
