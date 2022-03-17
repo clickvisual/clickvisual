@@ -92,6 +92,9 @@ func GetRouter() *egin.Component {
 	}
 	// Instance
 	{
+		v1.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
+		v1.GET("/instances/:iid/columns-self-built", core.Handle(base.TableColumnsSelfBuilt))
+		v1.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
 		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
 		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
 	}
@@ -103,6 +106,7 @@ func GetRouter() *egin.Component {
 	}
 	// Table
 	{
+
 		v1.GET("/table/id", core.Handle(base.TableId))
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))

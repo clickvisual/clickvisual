@@ -69,7 +69,14 @@ func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 		elog.Error("instanceManager", elog.Any("id", id), elog.Any("error", err.Error()))
 		return nil, err
 	}
-	obj, _ := i.dss.Load(db.InstanceKey(id))
+	obj, ok := i.dss.Load(db.InstanceKey(id))
+	if !ok {
+		// try again
+		if err = i.Add(&instance); err != nil {
+			return nil, constx.ErrInstanceObj
+		}
+		obj, _ = i.dss.Load(db.InstanceKey(id))
+	}
 	if obj == nil {
 		return nil, constx.ErrInstanceObj
 	}

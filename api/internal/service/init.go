@@ -14,7 +14,6 @@ var (
 	User            *user
 	Index           *index
 	Alarm           *alarm
-	// AlertManagerDD  *alertmanager.DD
 )
 
 func Init() error {

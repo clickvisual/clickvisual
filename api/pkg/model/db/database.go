@@ -61,6 +61,30 @@ func DatabaseInfo(db *gorm.DB, paramId int) (resp Database, err error) {
 	return
 }
 
+func DatabaseGetOrCreate(db *gorm.DB, uid, iid int, name string) (resp Database, err error) {
+	conds := egorm.Conds{}
+	conds["iid"] = iid
+	conds["name"] = name
+	d, err := DatabaseInfoX(db, conds)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return
+	}
+	if d.ID != 0 {
+		return d, nil
+	}
+	// create
+	resp = Database{
+		Iid:  iid,
+		Name: name,
+		Uid:  uid,
+	}
+	if err = DatabaseCreate(db, &resp); err != nil {
+		elog.Error("info error", zap.Error(err))
+		return
+	}
+	return
+}
+
 // DatabaseUpdate ...
 func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
@@ -76,7 +100,6 @@ func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err e
 func DatabaseList(db *gorm.DB, conds egorm.Conds) (resp []*Database, err error) {
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
-	// Fetch record with Rancher Info....
 	if err = db.Table(TableNameDatabase).Preload("Instance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		elog.Error("list error", elog.String("err", err.Error()))
 		return

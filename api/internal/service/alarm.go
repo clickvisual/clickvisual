@@ -131,7 +131,7 @@ func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) (rule string, err e
 	return
 }
 
-func (i *alarm) PrometheusRuleCreate(instance db.Instance, obj *db.Alarm, rule string) (err error) {
+func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm, rule string) (err error) {
 	switch instance.RuleStoreType {
 	case RuleStoreTypeK8s:
 		elog.Debug("alert", elog.Any("instance", instance))
@@ -249,7 +249,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 		elog.Error("alarm", elog.String("step", "alarm create failed 08"), elog.String("err", err.Error()))
 		return
 	}
-	if err = i.PrometheusRuleCreate(instance, obj, rule); err != nil {
+	if err = i.PrometheusRuleCreateOrUpdate(instance, obj, rule); err != nil {
 		elog.Error("alarm", elog.String("step", "alarm create failed 09"), elog.String("err", err.Error()))
 		return
 	}
@@ -268,7 +268,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 	if err != nil {
 		return
 	}
-	if err = i.PrometheusRuleCreate(instanceInfo, &alarmInfo, alarmInfo.AlertRule); err != nil {
+	if err = i.PrometheusRuleCreateOrUpdate(instanceInfo, &alarmInfo, alarmInfo.AlertRule); err != nil {
 		elog.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 		return
 	}

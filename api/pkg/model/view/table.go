@@ -1,5 +1,11 @@
 package view
 
+type ReqTableCreateExist struct {
+	DatabaseName string `form:"databaseName" json:"databaseName" binding:"required"`
+	TableName    string `form:"tableName" json:"tableName" binding:"required"`
+	TimeField    string `form:"timeField" json:"timeField"`
+}
+
 type ReqTableCreate struct {
 	TableName string `form:"tableName" binding:"required"`
 	Typ       int    `form:"typ" binding:"required"`
@@ -17,8 +23,9 @@ type ReqTableId struct {
 }
 
 type RespTableSimple struct {
-	Id        int    `json:"id"`
-	TableName string `json:"tableName"`
+	Id         int    `json:"id"`
+	TableName  string `json:"tableName"`
+	CreateType int    `json:"createType"`
 }
 
 type RespTableDetail struct {
@@ -34,4 +41,19 @@ type RespTableDetail struct {
 		Data map[string]string `json:"data"`
 	} `json:"sqlContent"`
 	Database RespDatabaseItem `json:"database"`
+}
+
+type RespColumn struct {
+	Name     string `json:"name"`
+	TypeDesc string `json:"typeDesc"`
+	Type     int    `json:"type"`
+}
+
+type RespDatabaseSelfBuilt struct {
+	Name   string                 `json:"name"`
+	Tables []*RespTablesSelfBuilt `json:"tables"`
+}
+
+type RespTablesSelfBuilt struct {
+	Name string `json:"name"`
 }

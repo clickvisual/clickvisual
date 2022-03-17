@@ -18,8 +18,9 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-const ignoreKey = "_time_second_"
-const timeCondition = "_time_second_ >= %d AND _time_second_ < %d"
+func genTimeCondition(timeField string) string {
+	return timeField + " >= %d AND " + timeField + " < %d"
+}
 
 const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
 parseDateTimeBestEffort(_time_) AS _time_nanosecond_`
@@ -27,6 +28,7 @@ parseDateTimeBestEffort(_time_) AS _time_nanosecond_`
 const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
 fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
+// time_field 高精度数据解析选择
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
 fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
@@ -138,11 +140,28 @@ SELECT
    FROM %s WHERE %s GROUP by _time_second_;`,
 }
 
-var typORM = map[int]string{
-	0: "String",
-	1: "Int64",
-	2: "Float64",
-	3: "JSON",
+type typORMItem struct {
+	Filter string
+	Key    string
+}
+
+var typORM = map[int]typORMItem{
+	0: {
+		Filter: "String",
+		Key:    "String",
+	},
+	1: {
+		Filter: "Int",
+		Key:    "Int64",
+	},
+	2: {
+		Filter: "Float",
+		Key:    "Float64",
+	},
+	3: {
+		Filter: "JSON",
+		Key:    "JSON",
+	},
 }
 
 var jsonExtractORM = map[int]string{
@@ -529,6 +548,11 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	if err != nil {
 		return
 	}
+	if param.TimeField != TimeField {
+		for k := range res.Logs {
+			res.Logs[k][TimeField] = res.Logs[k][param.TimeField]
+		}
+	}
 	res.Count = c.Count(param)
 	res.Limited = param.PageSize
 	// Read the index data
@@ -590,44 +614,87 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	return
 }
 
-func (c *ClickHouse) Tables(database string) (res []string, err error) {
-	res = make([]string, 0)
-	list, err := c.doQuery(fmt.Sprintf("select table, count(*) as c from system.columns a left join system.tables b on a.table = b.name where a.database = '%s' and a.name = '%s' and a.type = '%s' and b.engine != 'MaterializedView' group by table", database, ignoreKey, "DateTime"))
+func (c *ClickHouse) Databases() ([]*view.RespDatabaseSelfBuilt, error) {
+	databases := make([]*view.RespDatabaseSelfBuilt, 0)
+	dm := make(map[string][]*view.RespTablesSelfBuilt)
+	query := fmt.Sprintf("select database, name from system.tables where engine = '%s'", "MergeTree")
+	list, err := c.doQuery(query)
 	if err != nil {
-		return
+		return nil, err
 	}
 	for _, row := range list {
-		if count, ok := row["c"]; ok {
-			if count.(uint64) == 0 {
-				continue
-			}
+		d := row["database"].(string)
+		t := row["name"].(string)
+		if _, ok := dm[d]; !ok {
+			dm[d] = make([]*view.RespTablesSelfBuilt, 0)
 		}
-		res = append(res, row["table"].(string))
+		dm[d] = append(dm[d], &view.RespTablesSelfBuilt{
+			Name: t,
+		})
 	}
-	return
+	for databaseName, tables := range dm {
+		databases = append(databases, &view.RespDatabaseSelfBuilt{
+			Name:   databaseName,
+			Tables: tables,
+		})
+	}
+	return databases, nil
 }
 
-func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
-	instance, _ := db.InstanceInfo(invoker.Db, c.id)
-	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns group by database"))
+func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*view.RespColumn, err error) {
+	res = make([]*view.RespColumn, 0)
+	var query string
+	if isTimeField {
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type = '%s'", database, table, "DateTime")
+	} else {
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
+	}
+	list, err := c.doQuery(query)
 	if err != nil {
 		return
 	}
 	for _, row := range list {
-		if count, ok := row["c"]; ok {
-			if count.(uint64) == 0 {
-				continue
-			}
-		}
-		res = append(res, view.RespDatabase{
-			DatabaseName:   row["database"].(string),
-			InstanceName:   instance.Name,
-			DatasourceType: instance.Datasource,
-			InstanceId:     c.id,
+		typeDesc := row["type"].(string)
+		res = append(res, &view.RespColumn{
+			Name:     row["name"].(string),
+			TypeDesc: typeDesc,
+			Type:     fieldTypeJudgment(typeDesc),
 		})
 	}
 	return
 }
+
+func fieldTypeJudgment(typ string) int {
+	for k, v := range typORM {
+		if strings.Contains(typ, v.Filter) {
+			return k
+		}
+	}
+	return -1
+}
+
+//
+// func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
+// 	instance, _ := db.InstanceInfo(invoker.Db, c.id)
+// 	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns group by database"))
+// 	if err != nil {
+// 		return
+// 	}
+// 	for _, row := range list {
+// 		if count, ok := row["c"]; ok {
+// 			if count.(uint64) == 0 {
+// 				continue
+// 			}
+// 		}
+// 		res = append(res, view.RespDatabase{
+// 			DatabaseName:   row["database"].(string),
+// 			InstanceName:   instance.Name,
+// 			DatasourceType: instance.Datasource,
+// 			InstanceId:     c.id,
+// 		})
+// 	}
+// 	return
+// }
 
 // IndexUpdate Data table index operation
 func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
@@ -641,7 +708,7 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	}
 	// step 2 add
 	for _, add := range adds {
-		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.Field, typORM[add.Typ])
+		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.Field, typORM[add.Typ].Key)
 		_, err = c.db.Exec(qs)
 		if err != nil {
 			return err
@@ -686,7 +753,7 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+timeCondition+" ORDER BY "+ignoreKey+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" ORDER BY "+param.TimeField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -696,7 +763,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+timeCondition,
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+genTimeCondition(param.TimeField),
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
@@ -705,7 +772,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+timeCondition+" group by %s",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" group by %s",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,

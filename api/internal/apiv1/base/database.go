@@ -44,6 +44,26 @@ func DatabaseCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+func DatabaseExistList(c *core.Context) {
+	iid := cast.ToInt(c.Param("iid"))
+	if iid == 0 {
+		c.JSONE(1, "param error: missing iid", nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res, err := op.Databases()
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
 func DatabaseList(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	conds := egorm.Conds{}
