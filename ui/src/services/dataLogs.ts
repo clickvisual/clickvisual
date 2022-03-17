@@ -83,10 +83,12 @@ export interface DatabaseResponse {
 export interface TablesResponse {
   id: number;
   tableName: string;
+  createType: number;
 }
 
 export interface TableInfoResponse {
   brokers: string;
+  createType: number;
   days: number;
   did: number;
   name: string;

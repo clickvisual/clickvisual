@@ -121,7 +121,7 @@ const LogItemDetails = () => {
                 >
                   {isIndexAndRawLogKey
                     ? rawLogJson[keyItem]
-                    : newLog[keyItem]
+                    : newLog.hasOwnProperty(keyItem)
                     ? newLog[keyItem]
                     : ""}
                 </span>
