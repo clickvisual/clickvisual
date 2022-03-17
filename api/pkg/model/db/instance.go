@@ -16,7 +16,7 @@ type Instance struct {
 	BaseModel
 
 	Datasource       string `gorm:"column:datasource;type:varchar(32);NOT NULL" json:"datasource"`               // 数据源类型
-	Name             string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`                          // 实例名称
+	Name             string `gorm:"column:name;type:varchar(128);NOT NULL" json:"instanceName"`                  // 实例名称
 	Dsn              string `gorm:"column:dsn;type:text" json:"dsn"`                                             // dsn
 	RuleStoreType    int    `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                    // rule_store_type 0 集群 1 文件
 	FilePath         string `gorm:"column:file_path;type:varchar(255)" json:"filePath"`                          // file_path

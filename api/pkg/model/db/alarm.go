@@ -23,7 +23,7 @@ type Alarm struct {
 	Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                                  // 0 m 1 s 2 h 3 d 4 w 5 y
 	AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                          // prometheus alert rule
 	View          string        `gorm:"column:view;type:text" json:"view"`                                                     // 数据转换视图
-	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"view_table_name"`                       // 视图表名称
+	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                         // 视图表名称
 	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                                       // 标签
 	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                                    // 操作人
 	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // 告警状态
