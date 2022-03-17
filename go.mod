@@ -12,8 +12,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gotomicro/ego v0.8.3-0.20220107063841-9459da2415f1
 	github.com/gotomicro/ego-component/egorm v0.4.0
-	github.com/gotomicro/ego-component/eredis v0.3.0
-	github.com/gotomicro/ego-component/esession v0.0.0-20220106091512-0c5abf687773
 	github.com/jonboulle/clockwork v0.2.2
 	github.com/kl7sn/toolkit v0.1.3-0.20211227125910-4da942aabe37
 	github.com/link-duan/toml v0.3.2
@@ -52,7 +50,6 @@ require (
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/felixge/fgprof v0.9.1 // indirect
@@ -66,7 +63,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
-	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

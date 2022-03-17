@@ -336,7 +336,7 @@ func TableCharts(c *core.Context) {
 	}
 	interval := (param.ET - param.ST) / 50
 	isZero := true
-	elog.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
+	invoker.Logger.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
 
 	if interval == 0 {
 		row := view.HighChart{
@@ -433,7 +433,7 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	list := op.GroupBy(param)
-	elog.Debug("Indexes", elog.Any("list", list))
+	invoker.Logger.Debug("Indexes", elog.Any("list", list))
 
 	res := make([]view.RespIndexItem, 0)
 	sum := uint64(0)
@@ -450,7 +450,7 @@ func TableIndexes(c *core.Context) {
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
-	elog.Debug("Indexes", elog.Any("res", res))
+	invoker.Logger.Debug("Indexes", elog.Any("res", res))
 	if len(res) > 10 {
 		c.JSONOK(res[:9])
 		return
@@ -528,7 +528,7 @@ func TableCreateSelfBuilt(c *core.Context) {
 		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
 		return
 	}
-	elog.Debug("TableCreateSelfBuilt", elog.Any("columns", columns))
+	invoker.Logger.Debug("TableCreateSelfBuilt", elog.Any("columns", columns))
 	for _, col := range columns {
 		if col.Type == -1 {
 			continue
@@ -561,7 +561,7 @@ func TableColumnsSelfBuilt(c *core.Context) {
 	}
 	var param view.ReqTableCreateExist
 	err := c.Bind(&param)
-	elog.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
+	invoker.Logger.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return

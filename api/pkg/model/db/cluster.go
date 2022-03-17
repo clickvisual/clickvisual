@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"sigs.k8s.io/yaml"
@@ -41,7 +40,7 @@ func (m *Cluster) Key() string {
 // ClusterCreate CRUD
 func ClusterCreate(db *gorm.DB, data *Cluster) (err error) {
 	if err = db.Create(data).Error; err != nil {
-		elog.Error("create cluster error", zap.Error(err))
+		invoker.Logger.Error("create cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -52,7 +51,7 @@ func ClusterUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err er
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameCluster).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("update cluster error", zap.Error(err))
+		invoker.Logger.Error("update cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -62,7 +61,7 @@ func ClusterInfo(paramId int) (resp Cluster, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("cluster info error", zap.Error(err))
+		invoker.Logger.Error("cluster info error", zap.Error(err))
 		return
 	}
 	resp.KubeConfig = json2yaml(resp.KubeConfig)
@@ -73,7 +72,7 @@ func ClusterNormalInfo(paramId int) (resp Cluster, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("cluster info error", zap.Error(err))
+		invoker.Logger.Error("cluster info error", zap.Error(err))
 		return
 	}
 	return
@@ -82,7 +81,7 @@ func ClusterNormalInfo(paramId int) (resp Cluster, err error) {
 func ClusterUpdateX(db *gorm.DB, conds egorm.Conds, ups map[string]interface{}) (err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameCluster).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("updateX cluster error", zap.Error(err))
+		invoker.Logger.Error("updateX cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -96,7 +95,7 @@ func ClusterInfoX(db *gorm.DB, conds map[string]interface{}) (resp Cluster, err 
 	sql, binds := egorm.BuildQuery(conds)
 
 	if err = db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("cluster infoX error", zap.Error(err))
+		invoker.Logger.Error("cluster infoX error", zap.Error(err))
 		return
 	}
 	resp.KubeConfig = json2yaml(resp.KubeConfig)
@@ -110,7 +109,7 @@ func ClusterList(conds egorm.Conds) (resp []*Cluster, err error) {
 
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("list clusters error", zap.Error(err))
+		invoker.Logger.Error("list clusters error", zap.Error(err))
 		return
 	}
 	for _, cluster := range resp {
@@ -125,7 +124,7 @@ func ClusterNormalList(conds egorm.Conds) (resp []*Cluster, err error) {
 
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("list clusters error", zap.Error(err))
+		invoker.Logger.Error("list clusters error", zap.Error(err))
 		return
 	}
 	return
@@ -139,7 +138,7 @@ func GetAllNormalClusters() (result []*Cluster, err error) {
 	}
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&result).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("get all normal clusters failed", zap.Error(err))
+		invoker.Logger.Error("get all normal clusters failed", zap.Error(err))
 		return
 	}
 	return
@@ -151,7 +150,7 @@ func ClusterListHideSensitiveInfo(conds egorm.Conds) (resp []*Cluster, err error
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("list clusters error", zap.Error(err))
+		invoker.Logger.Error("list clusters error", zap.Error(err))
 		return
 	}
 	for _, cluster := range resp {
@@ -186,7 +185,7 @@ func ClusterListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList
 // ClusterDelete 软删除
 func ClusterDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Cluster{}).Delete(&Cluster{}, id).Error; err != nil {
-		elog.Error("cluster delete error", zap.Error(err))
+		invoker.Logger.Error("cluster delete error", zap.Error(err))
 		return
 	}
 	return

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -95,7 +96,7 @@ func queryEncode(in string) ([]queryItem, error) {
 			}
 		}
 	}
-	elog.Debug("queryEncode", elog.Any("step", "finish"), elog.Any("items", res))
+	invoker.Logger.Debug("queryEncode", elog.Any("step", "finish"), elog.Any("items", res))
 	return res, nil
 }
 

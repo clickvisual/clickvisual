@@ -35,7 +35,7 @@ func NewInstanceManager() *instanceManager {
 			// Test connection, storage
 			chDb, err := clickHouseLink(ds.Dsn)
 			if err != nil {
-				elog.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
+				invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 				continue
 			}
 			m.dss.Store(ds.DsKey(), inquiry.NewClickHouse(chDb, ds.ID))
@@ -55,7 +55,7 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 		// Test connection, storage
 		chDb, err := clickHouseLink(obj.Dsn)
 		if err != nil {
-			elog.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
+			invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 			return err
 		}
 		i.dss.Store(obj.DsKey(), inquiry.NewClickHouse(chDb, obj.ID))
@@ -66,7 +66,7 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	instance, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		elog.Error("instanceManager", elog.Any("id", id), elog.Any("error", err.Error()))
+		invoker.Logger.Error("instanceManager", elog.Any("id", id), elog.Any("error", err.Error()))
 		return nil, err
 	}
 	obj, ok := i.dss.Load(db.InstanceKey(id))
@@ -105,18 +105,18 @@ func clickHouseLink(dsn string) (db *sql.DB, err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	elog.Debug("ClickHouse", elog.Any("step", "ch process"), elog.String("dsn", econf.GetString("clickhouse.dsn")))
+	invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process"), elog.String("dsn", econf.GetString("clickhouse.dsn")))
 	if err = db.Ping(); err != nil {
-		elog.Debug("ClickHouse", elog.Any("step", "ch process 1"))
+		invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process 1"))
 		if exception, ok := err.(*clickhouse.Exception); ok {
-			elog.Debug("ClickHouse", elog.Any("step", "ch process 2"))
+			invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process 2"))
 			fmt.Printf("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
 		} else {
-			elog.Debug("ClickHouse", elog.Any("step", "ch process 3"))
+			invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process 3"))
 			fmt.Println(err)
 		}
 		return
 	}
-	elog.Debug("ClickHouse", elog.Any("step", "ch finish"))
+	invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch finish"))
 	return
 }

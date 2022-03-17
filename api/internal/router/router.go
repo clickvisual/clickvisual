@@ -1,8 +1,11 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/alarm"
 	"github.com/shimohq/mogo/api/internal/apiv1/base"
@@ -30,7 +33,11 @@ func GetRouter() *egin.Component {
 			c.JSONE(http.StatusNotFound, "", nil)
 			return
 		}
-		c.Header("Cache-Control", "public, max-age=3600")
+		maxAge := econf.GetInt("server.http.maxAge")
+		if maxAge == 0 {
+			maxAge = 86400
+		}
+		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
 		c.FileFromFS(c.Request.URL.Path, invoker.Gin.HTTPEmbedFs())
 		return
 	}))

@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -33,7 +34,7 @@ func (m *Table) TableName() string {
 // TableCreate ...
 func TableCreate(db *gorm.DB, data *Table) (err error) {
 	if err = db.Model(Table{}).Create(data).Error; err != nil {
-		elog.Error("release error", zap.Error(err))
+		invoker.Logger.Error("release error", zap.Error(err))
 		return
 	}
 	return
@@ -42,7 +43,7 @@ func TableCreate(db *gorm.DB, data *Table) (err error) {
 // TableDelete Soft delete
 func TableDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Table{}).Unscoped().Delete(&Table{}, id).Error; err != nil {
-		elog.Error("delete error", zap.Error(err))
+		invoker.Logger.Error("delete error", zap.Error(err))
 		return
 	}
 	return
@@ -53,7 +54,7 @@ func TableInfoX(db *gorm.DB, conds map[string]interface{}) (resp Table, err erro
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameTable).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("infoX error", zap.Error(err))
+		invoker.Logger.Error("infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -63,7 +64,7 @@ func TableInfo(db *gorm.DB, paramId int) (resp Table, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameTable).Preload("Database").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("info error", zap.Error(err))
+		invoker.Logger.Error("info error", zap.Error(err))
 		return
 	}
 	return
@@ -74,7 +75,7 @@ func TableUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err erro
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameTable).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("update error", zap.Error(err))
+		invoker.Logger.Error("update error", zap.Error(err))
 		return
 	}
 	return
@@ -86,7 +87,7 @@ func TableList(db *gorm.DB, conds egorm.Conds) (resp []*Table, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = db.Table(TableNameTable).Preload("Database").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("list error", elog.String("err", err.Error()))
+		invoker.Logger.Error("list error", elog.String("err", err.Error()))
 		return
 	}
 	return

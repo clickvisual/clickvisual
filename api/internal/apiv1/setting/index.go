@@ -5,6 +5,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 
@@ -49,7 +50,7 @@ func IndexUpdate(c *core.Context) {
 		return
 	}
 
-	elog.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
+	invoker.Logger.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
 
 	err = service.Index.Sync(req, addMap, delMap, newMap)
 	if err != nil {

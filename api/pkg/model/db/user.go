@@ -53,7 +53,7 @@ func (t *OAuthToken) Scan(input interface{}) error {
 // UserCreate CRUD
 func UserCreate(db *gorm.DB, data *User) (err error) {
 	if err = db.Create(data).Error; err != nil {
-		elog.Error("create cluster error", zap.Error(err))
+		invoker.Logger.Error("create cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -64,7 +64,7 @@ func UserUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameUser).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("update cluster error", zap.Error(err))
+		invoker.Logger.Error("update cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -74,7 +74,7 @@ func UserInfo(paramId int) (resp User, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("cluster info error", zap.Error(err))
+		invoker.Logger.Error("cluster info error", zap.Error(err))
 		return
 	}
 	return
@@ -85,7 +85,7 @@ func UserInfoX(conds map[string]interface{}) (resp User, err error) {
 	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("UserInfoX infoX error", zap.Error(err))
+		invoker.Logger.Error("UserInfoX infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -94,7 +94,7 @@ func UserInfoX(conds map[string]interface{}) (resp User, err error) {
 // UserDelete 软删除
 func UserDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(User{}).Delete(&User{}, id).Error; err != nil {
-		elog.Error("cluster delete error", zap.Error(err))
+		invoker.Logger.Error("cluster delete error", zap.Error(err))
 		return
 	}
 	return
@@ -106,7 +106,7 @@ func UserList(conds egorm.Conds) (resp []*User, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		elog.Error("list clusters error", elog.String("err", err.Error()))
+		invoker.Logger.Error("list clusters error", elog.String("err", err.Error()))
 		return
 	}
 	return

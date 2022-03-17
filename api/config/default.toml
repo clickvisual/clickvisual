@@ -1,6 +1,11 @@
-[logger.default]
-# log level, avaliable level: "debug", "info", "warn", "error", "panic", "fatal"
-level = "debug"
+[app]
+# hashStatecode
+secretKey = "secretKey"
+rootURL = "http://localhost:19001"
+baseURL = "/api/admin/login/"
+hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_second_", "_time_nanosecond_", "_source_"]
+defaultFields = ["_namespace_","_container_name_","_pod_name_","_time_second_"]
+permissionFile = './api/config/resource.yaml'
 
 [server.http]
 # HTTP server Host
@@ -8,17 +13,20 @@ host = "0.0.0.0"
 # HTTP server Port
 port = 19001
 embedPath = "dist"
+maxAge = 86400
 
 [server.governor]
 # Governor server host
 host = "0.0.0.0"
 # Governor server port
-port = 9003
+port = 19011
 
-[permission]
-resourceFile = './config/resource.yaml'
+[logger]
+# log level, avaliable level: "debug", "info", "warn", "error", "panic", "fatal"
+level = "debug"
+name = "mogo.log"
 
-[mysql.default]
+[mysql]
 debug = true
 # database DSN
 dsn = "root:root@tcp(localhost:3306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
@@ -31,52 +39,16 @@ maxOpenConns = 10
 # maximum amount of time a connection
 connMaxLifetime = "300s"
 
-[redis.default]
-# your redis address
-addr = "127.0.0.1:6379"
-writeTimeout = "3s"
-password = ""
-
-[session]
-mode = "redis"
-name = "mysession"
-size = 10
-debug = true
-network = "tcp"
-addr = "127.0.0.1:6379"
-password = ""
-keypairs = ""
-
-[app]
-# hashStatecode
-secretKey = "ASDFASDFASDF"
-rootURL = "http://localhost:19001"
-baseURL = "/api/admin/login/"
-hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_second_", "_time_nanosecond_", "_source_"]
-defaultFields = ["_namespace_","_container_name_","_pod_name_","_time_second_"]
-
 [auth]
-# Login cookie name
-loginCookieName = "mogo_session"
-# The lifetime (days) an authenticated user can be inactive before being required to login at next visit. Default is 7 days.
-loginMaximumInactiveLifetimeDays = 7
-# The maximum lifetime (days) an authenticated user can be logged in since login time before being required to login. Default is 30 days.
-loginMaximumLifetimeDays = 30
-# How often should auth tokens be rotated for authenticated users when being active. The default is each 10 minutes.
-tokenRotationIntervalMinutes = 10
-# Set to true to disable (hide) the login form, useful if you use OAuth
-disableLoginForm = false
-# Set to true to disable the signout link in the side menu. useful if you use auth.proxy
-disableSignoutMenu = false
-# URL to redirect the user to after sign out
-signoutRedirectUrl = ""
-# Set to true to attempt login with OAuth automatically, skipping the login screen.
-# This setting is ignored if multiple OAuth providers are configured.
-oauthAutoLogin = false
-# OAuth state max age cookie duration. Defaults to 60 seconds.
-oauthStateCookieMaxAge = 60
-# limit of api_key seconds to live before expiration
-apiKeyMaxSecondsToLive = -1
+mode = "memstore" # redis memstore
+name = "mogo_session"
+debug = true
+Keypairs = "secret"
+# if use mode redis
+# redisSize = 10
+# redisNetwork = "tcp"
+# redisAddr = ""
+# redisPassword = ""
 
 [auth.anonymous]
 # enable anonymous access
@@ -89,9 +61,9 @@ headerName = "X-WEBAUTH-USER"
 [[auth.tps]]
 typ = "github"
 enable = true
-allowSignUp = true
 clientId = ""
 clientSecret = ""
+allowSignUp = true
 scopes = ["user:email", "read:org"]
 authUrl = "https://github.com/login/oauth/authorize"
 tokenUrl = "https://github.com/login/oauth/access_token"
@@ -103,9 +75,9 @@ allowedOrganizations = []
 [[auth.tps]]
 typ = "gitlab"
 enable = true
-allowSignUp = true
 clientId = ""
 clientSecret = ""
+allowSignUp = true
 scopes = ["api"]
 authUrl = "https://gitlab.com/oauth/authorize"
 tokenUrl = "https://gitlab.com/oauth/token"
@@ -113,4 +85,3 @@ apiUrl = "https://gitlab.com/api/v4"
 allowedDomains = []
 teamIds = []
 allowedOrganizations = []
-

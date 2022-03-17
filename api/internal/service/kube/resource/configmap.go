@@ -12,6 +12,7 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/api"
 )
@@ -20,7 +21,7 @@ func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string,
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
 	if NotFound(err) {
 		if err = configmapCreate(client, namespace, name, data); err != nil {
-			elog.Error("ConfigmapCreateOrUpdate", elog.String("namespace", namespace), elog.String("name", name), elog.Any("data", data), elog.String("err", err.Error()))
+			invoker.Logger.Error("ConfigmapCreateOrUpdate", elog.String("namespace", namespace), elog.String("name", name), elog.Any("data", data), elog.String("err", err.Error()))
 			return err
 		}
 		return nil
@@ -45,20 +46,20 @@ func ConfigmapDelete(clusterId int, namespace, name string, keys ...string) erro
 		return errors.Wrap(err, fmt.Sprintf("cluster data acquisition failed: %s, cluster id: %d", err.Error(), clusterId))
 	}
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
-	elog.Debug("ConfigmapDelete", elog.String("step", "Get"))
+	invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "Get"))
 	if err != nil {
 		if NotFound(err) {
-			elog.Debug("ConfigmapDelete", elog.String("step", "NotFound"))
+			invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "NotFound"))
 			return nil
 		}
 		return errors.Wrap(err, "Get ConfigMap failed, in cluster")
 	}
 	configMap := obj.(*corev1.ConfigMap)
-	elog.Debug("ConfigmapDelete", elog.String("step", "configMap"))
+	invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "configMap"))
 	for _, k := range keys {
 		delete(configMap.Data, k)
 	}
-	elog.Debug("ConfigmapDelete", elog.String("step", "delete"), elog.Any("configMap", configMap))
+	invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "delete"), elog.Any("configMap", configMap))
 	return configmapUpdate(client, namespace, name, configMap)
 }
 
@@ -68,7 +69,7 @@ func ConfigmapInfo(clusterId int, namespace, name string, key string) (data stri
 		err = errors.Wrap(err, "cluster data acquisition failed")
 		return
 	}
-	elog.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
+	invoker.Logger.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
 	if err != nil {
 		if err.Error() == apierrors.NewNotFound(corev1.Resource("configmaps"), name).Error() {

@@ -10,8 +10,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gotomicro/ego/core/elog"
-
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/kube/api"
 	"github.com/shimohq/mogo/api/internal/service/kube/patcher"
 
@@ -165,7 +164,7 @@ func (h *resourceHandler) List(kind string, namespace string, labelSelector stri
 	}
 	selectors, err := labels.Parse(labelSelector)
 	if err != nil {
-		elog.Error("Build label selector error.", zap.Error(err))
+		invoker.Logger.Error("Build label selector error.", zap.Error(err))
 		return nil, err
 	}
 

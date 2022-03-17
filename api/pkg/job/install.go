@@ -27,7 +27,7 @@ func installDB() error {
 	}
 	err := db.InstanceCreate(invoker.Db, &ins)
 	if err != nil {
-		elog.Error("insert to index fail", elog.FieldErr(err))
+		invoker.Logger.Error("insert to index fail", elog.FieldErr(err))
 		return err
 	}
 	return nil
@@ -36,11 +36,11 @@ func installDB() error {
 func installCH() error {
 	//	conn, err := sql.Open("clickhouse", econf.GetString("defaultCh.dsn"))
 	//	if err != nil {
-	//		elog.Error("conn to clickhouse fail", elog.String("dsn", econf.GetString("defaultCh.dsn")), elog.FieldErr(err))
+	//		invoker.Logger.Error("conn to clickhouse fail", elog.String("dsn", econf.GetString("defaultCh.dsn")), elog.FieldErr(err))
 	//		return err
 	//	}
 	//	if err := conn.Ping(); err != nil {
-	//		elog.Error("ping clickhouse fail", elog.FieldErr(err))
+	//		invoker.Logger.Error("ping clickhouse fail", elog.FieldErr(err))
 	//		return err
 	//	}
 	//
@@ -49,7 +49,7 @@ func installCH() error {
 	//		CREATE DATABASE IF NOT EXISTS metrics;
 	//		`)
 	//	if err != nil {
-	//		elog.Error("create table fail", elog.FieldErr(err))
+	//		invoker.Logger.Error("create table fail", elog.FieldErr(err))
 	//		return err
 	//	}
 	//
@@ -65,7 +65,7 @@ func installCH() error {
 	//)ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup');
 	//	`)
 	//	if err != nil {
-	//		elog.Error("create table fail", elog.FieldErr(err))
+	//		invoker.Logger.Error("create table fail", elog.FieldErr(err))
 	//		return err
 	//	}
 
@@ -83,12 +83,12 @@ func installCH() error {
 	//
 	//for _, val := range vals {
 	//	if _, err := stmt.Exec(val...); err != nil {
-	//		elog.Error("exec fail", elog.FieldErr(err))
+	//		invoker.Logger.Error("exec fail", elog.FieldErr(err))
 	//		return err
 	//	}
 	//}
 	//if err := tx.Commit(); err != nil {
-	//	elog.Error("exec fail", elog.FieldErr(err))
+	//	invoker.Logger.Error("exec fail", elog.FieldErr(err))
 	//	return err
 	//}
 	return nil
