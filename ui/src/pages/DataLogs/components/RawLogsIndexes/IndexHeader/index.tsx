@@ -6,7 +6,7 @@ import { useIntl } from "umi";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 
 const IndexHeader = () => {
-  const { onChangeVisibleIndexModal } = useModel("dataLogs");
+  const { onChangeVisibleIndexModal, currentLogLibrary } = useModel("dataLogs");
   const i18n = useIntl();
   return (
     <div className={indexHeaderStyles.indexHeaderMain}>
@@ -25,19 +25,21 @@ const IndexHeader = () => {
           </Tooltip>
         </div>
       </Space>
-      <div className={indexHeaderStyles.icon}>
-        <Button
-          onClick={() => {
-            onChangeVisibleIndexModal(true);
-          }}
-          type={"link"}
-          icon={
-            <Tooltip title={i18n.formatMessage({ id: "log.index.manage" })}>
-              <IconFont type={"icon-setting"} />
-            </Tooltip>
-          }
-        />
-      </div>
+      {currentLogLibrary?.createType === 0 && (
+        <div className={indexHeaderStyles.icon}>
+          <Button
+            onClick={() => {
+              onChangeVisibleIndexModal(true);
+            }}
+            type={"link"}
+            icon={
+              <Tooltip title={i18n.formatMessage({ id: "log.index.manage" })}>
+                <IconFont type={"icon-setting"} />
+              </Tooltip>
+            }
+          />
+        </div>
+      )}
     </div>
   );
 };

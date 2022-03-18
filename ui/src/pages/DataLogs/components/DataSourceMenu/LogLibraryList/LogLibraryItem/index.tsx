@@ -174,6 +174,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           {logLibrary.tableName}
         </span>
       </Tooltip>
+
       <Tooltip
         title={i18n.formatMessage({
           id: "datasource.tooltip.icon.info",
@@ -187,19 +188,22 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           className={classNames(logLibraryListStyles.icon)}
         />
       </Tooltip>
-      <Tooltip
-        title={i18n.formatMessage({
-          id: "datasource.tooltip.icon.view",
-        })}
-      >
-        <FundViewOutlined
-          onClick={() => {
-            onChange(logLibrary);
-            onChangeViewsVisibleDraw(true);
-          }}
-          className={classNames(logLibraryListStyles.icon)}
-        />
-      </Tooltip>
+
+      {logLibrary.createType === 0 && (
+        <Tooltip
+          title={i18n.formatMessage({
+            id: "datasource.tooltip.icon.view",
+          })}
+        >
+          <FundViewOutlined
+            onClick={() => {
+              onChange(logLibrary);
+              onChangeViewsVisibleDraw(true);
+            }}
+            className={classNames(logLibraryListStyles.icon)}
+          />
+        </Tooltip>
+      )}
       <Tooltip
         title={i18n.formatMessage({
           id: "datasource.tooltip.icon.deleted",
