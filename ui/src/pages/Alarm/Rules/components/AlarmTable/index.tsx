@@ -15,6 +15,7 @@ import {
 import DeletedModal from "@/components/DeletedModal";
 import classNames from "classnames";
 import { useDebounceFn } from "ahooks";
+import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
 
 const AlarmTable = () => {
   const i18n = useIntl();
@@ -23,7 +24,6 @@ const AlarmTable = () => {
   const {
     alarmList,
     operations,
-    alarmHistory,
     alarmDraw,
     doGetAlarms,
     doDeletedAlarm,
@@ -39,14 +39,6 @@ const AlarmTable = () => {
     tid: operations.selectTid,
     status: operations.statusId,
     ...currentPagination,
-  };
-
-  const handleHistory = (id: number) => {
-    alarmDraw.doGetAlarmInfo.run(id).then((res) => {
-      if (res?.code !== 0) return;
-      alarmHistory.setCurrentAlarm({ ...res.data, id });
-      alarmHistory.setHistoryVisible(true);
-    });
   };
 
   const handleEdit = (record: AlarmType) => {
@@ -156,7 +148,10 @@ const AlarmTable = () => {
               alarmStyles.columnsTag
             )}
           >
-            <a onClick={() => handleHistory(record.id)}>
+            <a
+              href={`${ALARM_HISTORY_PATH}${record.id}`}
+              target={`alarm-${record.id}`}
+            >
               <span>{alarmName}</span>
             </a>
           </div>
