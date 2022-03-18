@@ -20,11 +20,16 @@ export default [
     name: "alarm",
     path: "/alarm",
     routes: [
-      { path: "/alarm/rules", name: "rules", component: "./Alarm/Rules" },
       {
-        path: "/alarm/info",
-        name: "ruleInfo",
-        component: "./Alarm/Rules/components/AlarmInfoDraw",
+        path: "/alarm/rules",
+        name: "rules",
+        component: "./Alarm/Rules",
+      },
+      {
+        path: "/alarm/rules/history",
+        component: "./Alarm/Rules/components/AlarmHistory",
+        layout: false,
+        hideInMenu: true,
       },
       {
         path: "/alarm/notifications",

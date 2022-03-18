@@ -4,9 +4,9 @@ import api from "@/services/alarm";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { FIRST_PAGE } from "@/config/config";
 
+export const ALARM_HISTORY_PATH = "/alarm/rules/history?id=";
 const useAlarmHistory = () => {
   const [currentAlarm, setCurrentAlarm] = useState<AlarmInfoType>();
-  const [historyVisible, setHistoryVisible] = useState<boolean>(false);
   const [query, setQuery] = useState<AlarmHistoryRequest>();
   const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
     current: FIRST_PAGE,
@@ -21,8 +21,6 @@ const useAlarmHistory = () => {
   return {
     query,
     setQuery,
-    historyVisible,
-    setHistoryVisible,
     currentAlarm,
     setCurrentAlarm,
     currentPagination,
