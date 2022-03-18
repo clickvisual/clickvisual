@@ -20,8 +20,7 @@ services:
       - ./scripts/migration:/data/all-in-one/migration
     restart: always
   mogo:
-    image: mixmore/mogo:v0.0.3
-#    image: sevennt/mogo:master
+    image: sevennt/mogo:master
     container_name: mogo
     environment:
       EGO_CONFIG_PATH: /mogo/config/docker.toml

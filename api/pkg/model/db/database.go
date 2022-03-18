@@ -3,18 +3,19 @@ package db
 import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
 // Database 数据库管理
 type Database struct {
 	BaseModel
 
-	Iid  int    `gorm:"column:iid;type:int(11)" json:"iid"`                 // 实例 id
-	Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 数据库名称
-	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
+	Iid  int    `gorm:"column:iid;type:int(11);index:uix_iid_name,unique" json:"iid"`                 // 实例 id
+	Name string `gorm:"column:name;type:varchar(128);index:uix_iid_name,unique;NOT NULL" json:"name"` // 数据库名称
+	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // 操作人
 
 	Instance *Instance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
 }

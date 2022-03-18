@@ -45,6 +45,7 @@ func GetRouter() *egin.Component {
 	// non-authentication api
 	r.GET("/api/admin/login/:oauth", core.Handle(user.Oauth))
 	r.POST("/api/admin/users/login", core.Handle(user.Login))
+	// webhook
 	r.POST("/api/v1/prometheus/alerts", core.Handle(alarm.Webhook))
 	// mock
 	r.POST("/api/v1/install", core.Handle(initialize.Install))

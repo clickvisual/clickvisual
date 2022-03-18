@@ -215,7 +215,7 @@ services:
       - mysql
     links:
       - mysql
-    restart: always
+    restart: 'no'
     volumes:
       - ./data/all-in-one/mogo/config:/mogo/config
     command: [ '/bin/sh', '-c', './bin/mogo -job install' ]

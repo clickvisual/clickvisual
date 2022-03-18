@@ -13,16 +13,16 @@ import (
 type View struct {
 	BaseModel
 
-	Tid              int    `gorm:"column:tid;type:bigint(11)" json:"tid"`                           // table id
-	Name             string `gorm:"column:name;type:varchar(64);NOT NULL" json:"name"`               // 视图名称
-	IsUseDefaultTime int    `gorm:"column:is_use_default_time;type:int(11)" json:"isUseDefaultTime"` // 是否使用系统时间
-	Key              string `gorm:"column:key;type:varchar(64);NOT NULL" json:"key"`                 // 指定时间字段Key名称
-	Format           string `gorm:"column:format;type:varchar(64);NOT NULL" json:"format"`           // 时间转换格式
-	SqlView          string `gorm:"column:sql_view;type:text" json:"sqlView"`                        // sql_view
-	Uid              int    `gorm:"column:uid;type:int(11)" json:"uid"`                              // 操作人
-	Ctime            int    `gorm:"column:ctime;type:int(11)" json:"ctime"`                          // 创建时间
-	Utime            int    `gorm:"column:utime;type:int(11)" json:"utime"`                          // 更新时间
-	Dtime            int    `gorm:"column:dtime;type:int(11)" json:"dtime"`                          // 删除时间
+	Tid              int    `gorm:"column:tid;type:bigint(11);index:uix_tid_name,unique" json:"tid"`             // table id
+	Name             string `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_tid_name,unique" json:"name"` // 视图名称
+	IsUseDefaultTime int    `gorm:"column:is_use_default_time;type:int(11)" json:"isUseDefaultTime"`             // 是否使用系统时间
+	Key              string `gorm:"column:key;type:varchar(64);NOT NULL" json:"key"`                             // 指定时间字段Key名称
+	Format           string `gorm:"column:format;type:varchar(64);NOT NULL" json:"format"`                       // 时间转换格式
+	SqlView          string `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
+	Uid              int    `gorm:"column:uid;type:int(11)" json:"uid"`                                          // 操作人
+	Ctime            int    `gorm:"column:ctime;type:int(11)" json:"ctime"`                                      // 创建时间
+	Utime            int    `gorm:"column:utime;type:int(11)" json:"utime"`                                      // 更新时间
+	Dtime            int    `gorm:"column:dtime;type:int(11)" json:"dtime"`                                      // 删除时间
 }
 
 func (m *View) TableName() string {
