@@ -8,18 +8,21 @@ const useAlarmEnums = () => {
   const AlarmStatus = [
     {
       status: 1,
-      label: "未开启",
-      color: "#108ee9",
+      label: i18n.formatMessage({ id: "alarm.rules.state.paused" }),
+      color: "#7d8085",
+      icon: "icon-play",
     },
     {
       status: 2,
-      label: "已开启",
+      label: i18n.formatMessage({ id: "alarm.rules.state.ok" }),
       color: "#87d068",
+      icon: "icon-love-successful",
     },
     {
       status: 3,
-      label: "正在报警",
-      color: "#f50",
+      label: i18n.formatMessage({ id: "alarm.rules.state.alerting" }),
+      color: "#b22e33",
+      icon: "icon-love-failure",
     },
   ];
   return { ChannelTypes, AlarmStatus };

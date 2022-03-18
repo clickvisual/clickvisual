@@ -396,8 +396,8 @@ export default {
   "alarm.rules.inspectionFrequency.placeholder.logLibrary":
     "Please select a table",
   "alarm.rules.creator": "Creator",
-  "alarm.rules.switch.open": "Open",
-  "alarm.rules.switch.close": "Close",
+  "alarm.rules.switch.open": "Pause",
+  "alarm.rules.switch.close": "Resume",
 
   "alarm.rules.info.title": "Alarm Details",
   "alarm.rules.info.view": "View",
@@ -408,6 +408,18 @@ export default {
   "alarm.rules.deleted": "Delete alarm success",
   "alarm.rules.deleted.loading": "Deleting alarm...",
   "alarm.rules.deleted.content": "Are you sure to delete alarm: {alarm}?",
+
+  "alarm.rules.history.column.isPushed":
+    "Whether the alarm is pushed successfully",
+  "alarm.rules.history.column.ctime": "Triggering time",
+  "alarm.rules.history.isPushed.true": "Yes",
+  "alarm.rules.history.isPushed.false": "No",
+  "alarm.rules.history.title.total": "The total number of alarm",
+  "alarm.rules.history.title.sucPublish": "Times of successful push",
+
+  "alarm.rules.state.alerting": "alerting",
+  "alarm.rules.state.ok": "ok",
+  "alarm.rules.state.paused": "paused",
 
   // Notifications
   "alarm.notify.button.created": "Create Channel",
