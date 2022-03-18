@@ -1,20 +1,21 @@
-import { Drawer } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect, useState } from "react";
 import { AlarmHistoryRequest, AlarmHistoryType } from "@/services/alarm";
 import HistoryTable from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryTable";
 import HistoryBoard from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryBorad";
 import HistoryOptions from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryOptions";
+import useUrlState from "@ahooksjs/use-url-state";
+import { Card } from "antd";
 
 const AlarmHistory = () => {
+  const [urlState] = useUrlState();
   const [dataList, setDataList] = useState<AlarmHistoryType[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [sucPublish, setSucPublish] = useState<number>(0);
-  const { alarmHistory } = useModel("alarm");
+  const { alarmHistory, alarmDraw } = useModel("alarm");
+  const { doGetAlarmInfo } = alarmDraw;
   const {
     setQuery,
-    setHistoryVisible,
-    historyVisible,
     currentAlarm,
     setCurrentAlarm,
     currentPagination,
@@ -22,9 +23,17 @@ const AlarmHistory = () => {
     doGetAlarmHistoryList,
   } = alarmHistory;
 
-  const onClose = () => {
-    setHistoryVisible(false);
-  };
+  useEffect(() => {
+    if (!urlState?.id) return;
+
+    doGetAlarmInfo.run(parseInt(urlState.id)).then((res) => {
+      if (res?.code !== 0) return;
+      alarmHistory.setCurrentAlarm({ ...res.data, id: parseInt(urlState.id) });
+      setQuery({ alarmId: parseInt(urlState.id) });
+      loadList({ alarmId: parseInt(urlState.id) });
+    });
+    return () => setCurrentAlarm(undefined);
+  }, []);
 
   const loadList = (params?: AlarmHistoryRequest) => {
     doGetAlarmHistoryList
@@ -38,35 +47,10 @@ const AlarmHistory = () => {
       });
   };
 
-  useEffect(() => {
-    if (historyVisible && currentAlarm) {
-      setQuery({ alarmId: currentAlarm.id });
-      loadList({ alarmId: currentAlarm.id });
-    }
-  }, [historyVisible, currentAlarm]);
-
-  useEffect(() => {
-    if (!historyVisible) setCurrentAlarm(undefined);
-  }, [historyVisible]);
   return (
     <>
       {currentAlarm && (
-        <Drawer
-          closable
-          destroyOnClose
-          getContainer={false}
-          bodyStyle={{
-            margin: 10,
-            padding: 0,
-            display: "flex",
-            flexDirection: "column",
-          }}
-          headerStyle={{ padding: 10 }}
-          title={currentAlarm.alarmName}
-          visible={historyVisible}
-          onClose={onClose}
-          width={"55vw"}
-        >
+        <Card title={currentAlarm?.alarmName} bordered={false}>
           <HistoryBoard
             sucPublish={sucPublish}
             total={total}
@@ -74,7 +58,7 @@ const AlarmHistory = () => {
           />
           <HistoryOptions loadList={loadList} />
           <HistoryTable loadList={loadList} dataList={dataList} />
-        </Drawer>
+        </Card>
       )}
     </>
   );
