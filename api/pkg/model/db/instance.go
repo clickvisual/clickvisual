@@ -53,7 +53,6 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*Instance, err err
 	if sorts == "" {
 		sorts = "id desc"
 	}
-
 	if err = invoker.Db.Model(Instance{}).Where(sql, binds...).Order(sorts).Find(&resp).Error; err != nil {
 		invoker.Logger.Error("ConfigMap list error", zap.Error(err))
 		return

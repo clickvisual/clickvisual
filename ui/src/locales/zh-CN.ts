@@ -120,7 +120,7 @@ export default {
 
   // Cluster Management
   "cluster.button.add": "新增集群",
-  "cluster.clusterName": "实例名称",
+  "cluster.clusterName": "集群名称",
   "cluster.k8sConfiguration": "k8s 配置",
   "cluster.delete.confirmTip": "确认删集群：{clusterName} 吗？",
   "cluster.form.title.created": "新增集群",
@@ -236,6 +236,19 @@ export default {
   "datasource.logLibrary.from.topics": "Topics",
   "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics": "请输入数字、英文字母，或中划线",
+  "datasource.logLibrary.from.creationMode": "创建方式",
+
+  "datasource.logLibrary.from.creationMode.option.newLogLibrary":
+    "基于 Mogo 新建日志库",
+  "datasource.logLibrary.from.creationMode.option.logLibrary": "选择已有日志库",
+  "datasource.logLibrary.from.newLogLibrary.instance": "实例",
+  "datasource.logLibrary.from.newLogLibrary.instance.defaultOption":
+    "请选择实例",
+  "datasource.logLibrary.from.newLogLibrary.timeResolutionField":
+    "时间解析字段",
+  "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder":
+    "请输入时间解析字段",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "表中字段",
 
   "datasource.logLibrary.placeholder.tableName":
     "请输入数据表名称，支持小写字母、大写字母，或下划线",

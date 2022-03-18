@@ -48,12 +48,19 @@ func InstanceCreate(c *core.Context) {
 			return
 		}
 	}
+	tx := invoker.Db.Begin()
+	if err = db.InstanceCreate(tx, &obj); err != nil {
+		tx.Rollback()
+		c.JSONE(1, "create DB failed: "+err.Error(), nil)
+		return
+	}
 	if err = service.InstanceManager.Add(&obj); err != nil {
+		tx.Rollback()
 		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
 		return
 	}
-	if err = db.InstanceCreate(invoker.Db, &obj); err != nil {
-		c.JSONE(1, "create DB failed: "+err.Error(), nil)
+	if err = tx.Commit().Error; err != nil {
+		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()

@@ -673,29 +673,6 @@ func fieldTypeJudgment(typ string) int {
 	return -1
 }
 
-//
-// func (c *ClickHouse) Databases() (res []view.RespDatabase, err error) {
-// 	instance, _ := db.InstanceInfo(invoker.Db, c.id)
-// 	list, err := c.doQuery(fmt.Sprintf("select database, count(*) as c from system.columns group by database"))
-// 	if err != nil {
-// 		return
-// 	}
-// 	for _, row := range list {
-// 		if count, ok := row["c"]; ok {
-// 			if count.(uint64) == 0 {
-// 				continue
-// 			}
-// 		}
-// 		res = append(res, view.RespDatabase{
-// 			DatabaseName:   row["database"].(string),
-// 			InstanceName:   instance.Name,
-// 			DatasourceType: instance.Datasource,
-// 			InstanceId:     c.id,
-// 		})
-// 	}
-// 	return
-// }
-
 // IndexUpdate Data table index operation
 func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	// step 1 drop

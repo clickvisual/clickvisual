@@ -118,13 +118,24 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
             return (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={"请选择日志库"}
+                description={i18n.formatMessage({
+                  id: "alarm.rules.selected.placeholder.logLibrary",
+                })}
               />
             );
           return (
             <>
-              <Form.Item label={"时间解析字段"} name={"timeField"}>
-                <Select>
+              <Form.Item
+                label={i18n.formatMessage({
+                  id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField",
+                })}
+                name={"timeField"}
+              >
+                <Select
+                  placeholder={i18n.formatMessage({
+                    id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder",
+                  })}
+                >
                   {conformToStandard.map((item) => (
                     <Option key={item.name} value={item.name}>
                       {item.name}
@@ -132,7 +143,11 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item label={"表中字段"}>
+              <Form.Item
+                label={i18n.formatMessage({
+                  id: "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable",
+                })}
+              >
                 <Table
                   size={"small"}
                   loading={getTableColumns.loading}
