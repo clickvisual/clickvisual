@@ -367,8 +367,8 @@ export default {
   "alarm.rules.inspectionFrequency.logLibrary": "数据表",
   "alarm.rules.inspectionFrequency.placeholder.logLibrary": "请选择数据表",
   "alarm.rules.creator": "创建人",
-  "alarm.rules.switch.open": "开启",
-  "alarm.rules.switch.close": "关闭",
+  "alarm.rules.switch.open": "重新开始",
+  "alarm.rules.switch.close": "暂停",
   "alarm.rules.open.loading": "正在开启报警：{alarmName}...",
   "alarm.rules.open.success": "开启报警：{alarmName} 成功",
   "alarm.rules.close.loading": "正在关闭报警：{alarmName}...",
@@ -390,6 +390,10 @@ export default {
   "alarm.rules.history.isPushed.false": "否",
   "alarm.rules.history.title.total": "总报警数",
   "alarm.rules.history.title.sucPublish": "成功推送次数",
+
+  "alarm.rules.state.alerting": "正在报警",
+  "alarm.rules.state.ok": "已开启",
+  "alarm.rules.state.paused": "未开启",
 
   // Notifications
   "alarm.notify.button.created": "新增渠道",

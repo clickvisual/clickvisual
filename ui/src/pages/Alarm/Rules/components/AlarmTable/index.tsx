@@ -15,6 +15,9 @@ import {
 import DeletedModal from "@/components/DeletedModal";
 import classNames from "classnames";
 import { useDebounceFn } from "ahooks";
+import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
+import Item from "antd/lib/list/Item";
+import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
 
 const AlarmTable = () => {
   const i18n = useIntl();
@@ -23,15 +26,14 @@ const AlarmTable = () => {
   const {
     alarmList,
     operations,
-    alarmHistory,
     alarmDraw,
     doGetAlarms,
     doDeletedAlarm,
     currentPagination,
     onChangeRowAlarm,
-    AlarmStatus,
     onChangePagination,
   } = useModel("alarm");
+  const { AlarmStatus } = useAlarmEnums();
 
   const searchQuery = {
     name: operations.inputName,
@@ -39,14 +41,6 @@ const AlarmTable = () => {
     tid: operations.selectTid,
     status: operations.statusId,
     ...currentPagination,
-  };
-
-  const handleHistory = (id: number) => {
-    alarmDraw.doGetAlarmInfo.run(id).then((res) => {
-      if (res?.code !== 0) return;
-      alarmHistory.setCurrentAlarm({ ...res.data, id });
-      alarmHistory.setHistoryVisible(true);
-    });
   };
 
   const handleEdit = (record: AlarmType) => {
@@ -156,7 +150,10 @@ const AlarmTable = () => {
               alarmStyles.columnsTag
             )}
           >
-            <a onClick={() => handleHistory(record.id)}>
+            <a
+              href={`${ALARM_HISTORY_PATH}${record.id}`}
+              target={`alarm-${record.id}`}
+            >
               <span>{alarmName}</span>
             </a>
           </div>
@@ -199,7 +196,17 @@ const AlarmTable = () => {
       render: (value) => {
         const status = AlarmStatus.find((item) => value === item.status);
         if (!status) return <>-</>;
-        return <Tag color={status.color}>{status.label}</Tag>;
+        return (
+          <div>
+            <IconFont
+              type={status.icon}
+              size={100}
+              style={{ color: status.color, marginRight: "10px" }}
+            />
+            <a>{status.label}</a>
+          </div>
+        );
+        // return <Tag color={status.color}>{status.label}</Tag>;
       },
     },
     {
@@ -219,7 +226,9 @@ const AlarmTable = () => {
                 })}
               >
                 <a onClick={() => doUpdateStatus(record)}>
-                  <PoweroffOutlined />
+                  <IconFont
+                    type={record.status === 1 ? "icon-play" : "icon-suspended"}
+                  />
                 </a>
               </Tooltip>
               <Divider type="vertical" />
