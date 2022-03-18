@@ -11,7 +11,7 @@ import React from "react";
 import * as Icon from "@ant-design/icons/lib/icons";
 import Logo from "../public/logo.svg";
 import { FetchCurrentUserInfo } from "@/services/users";
-import { HOME_PATH, LOGIN_PATH } from "@/config/config";
+import { AVOID_CLOSE_ROUTING, HOME_PATH, LOGIN_PATH } from "@/config/config";
 import { history } from "umi";
 
 export interface InitialStateType {
@@ -38,7 +38,7 @@ const fetchMenu = async () => {
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
   const pathname = history.location.pathname;
-  if (pathname === LOGIN_PATH || pathname === `${LOGIN_PATH}/`) {
+  if (AVOID_CLOSE_ROUTING.indexOf(pathname) > -1) {
     return { menus: [], settings: defaultSettings };
   }
   const fetchUserInfo = async () => {
@@ -74,9 +74,7 @@ export const layout = ({
     footerRender: () => <Footer />,
     onPageChange: () => {
       const { location } = history;
-      const isLogin =
-        location.pathname === LOGIN_PATH ||
-        location.pathname === `${LOGIN_PATH}/`;
+      const isLogin = AVOID_CLOSE_ROUTING.indexOf(location.pathname) > -1;
       if (!initialState?.currentUser && !isLogin) {
         history.push(LOGIN_PATH);
       }

@@ -5,6 +5,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 export default function useLogLibrary() {
   const [createdVisible, setCreatedVisible] = useState<boolean>(false);
   const [infoVisible, setInfoVisible] = useState<boolean>(false);
+
   const onChangeCreatedVisible = (visible: boolean) => {
     setCreatedVisible(visible);
   };
@@ -16,10 +17,22 @@ export default function useLogLibrary() {
     loadingText: false,
   });
 
+  const doCreatedLocalLogLibrary = useRequest(api.createdLocalTable, {
+    loadingText: false,
+  });
+
   const deletedLogLibrary = useRequest(api.deletedTable, {
     loadingText: false,
   });
   const getLogLibrary = useRequest(api.getTableInfo, {
+    loadingText: false,
+  });
+
+  const getLocalTables = useRequest(api.getLocalDatabasesAndTables, {
+    loadingText: false,
+  });
+
+  const getTableColumns = useRequest(api.getTableColumns, {
     loadingText: false,
   });
 
@@ -32,5 +45,8 @@ export default function useLogLibrary() {
     doCreatedLogLibrary: createdLogLibrary,
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
+    getLocalTables,
+    getTableColumns,
+    doCreatedLocalLogLibrary,
   };
 }
