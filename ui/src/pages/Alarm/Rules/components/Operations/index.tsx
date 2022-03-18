@@ -6,13 +6,15 @@ import { useIntl } from "umi";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 const { Option } = Select;
 const Operations = () => {
-  const { operations, alarmDraw, doGetAlarms, AlarmStatus, currentPagination } =
+  const { operations, alarmDraw, doGetAlarms, currentPagination } =
     useModel("alarm");
 
   const { tableList, databaseList, getLogLibraries, getDatabases } = operations;
 
+  const { AlarmStatus } = useAlarmEnums();
   const i18n = useIntl();
 
   const handleOpenDraw = () => {

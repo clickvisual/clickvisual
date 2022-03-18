@@ -15,6 +15,7 @@ import {
 import DeletedModal from "@/components/DeletedModal";
 import classNames from "classnames";
 import { useDebounceFn } from "ahooks";
+import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 
 const AlarmTable = () => {
   const i18n = useIntl();
@@ -29,9 +30,9 @@ const AlarmTable = () => {
     doDeletedAlarm,
     currentPagination,
     onChangeRowAlarm,
-    AlarmStatus,
     onChangePagination,
   } = useModel("alarm");
+  const { AlarmStatus } = useAlarmEnums();
 
   const searchQuery = {
     name: operations.inputName,

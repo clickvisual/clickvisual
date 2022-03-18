@@ -1,7 +1,8 @@
 export default {
   dev: {
     "/api/": {
-      target: "http://127.0.0.1:9001",
+      target: "https://ch-dev.shimo.run",
+      // target: "http://127.0.0.1:9001",
       changeOrigin: true,
       pathRewrite: { "^": "" },
     },

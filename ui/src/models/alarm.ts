@@ -8,24 +8,6 @@ import useChannelModal from "@/models/alarms/useChannelModal";
 import useAlarmHistory from "@/models/alarms/useAlarmHistory";
 
 const Alarm = () => {
-  const AlarmStatus = [
-    {
-      status: 1,
-      label: "未开启",
-      color: "#108ee9",
-    },
-    {
-      status: 2,
-      label: "已开启",
-      color: "#87d068",
-    },
-    {
-      status: 3,
-      label: "正在报警",
-      color: "#f50",
-    },
-  ];
-
   const operations = useAlarmOperations();
   const alarmDraw = useAlarmFormDraw();
 
@@ -64,8 +46,6 @@ const Alarm = () => {
     doDeletedAlarm,
     currentPagination,
     onChangePagination,
-
-    AlarmStatus,
   };
 };
 export default Alarm;
