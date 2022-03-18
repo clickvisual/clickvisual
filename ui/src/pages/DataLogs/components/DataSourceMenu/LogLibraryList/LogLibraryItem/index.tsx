@@ -159,7 +159,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         mouseEnter && logLibraryListStyles.LogLibraryHover
       )}
     >
-      <Tooltip title={logLibrary.tableName} placement={"right"}>
+      <Tooltip title={logLibrary.tableName}>
         <span
           onClick={() => {
             if (currentLogLibrary?.id === logLibrary.id) return;
