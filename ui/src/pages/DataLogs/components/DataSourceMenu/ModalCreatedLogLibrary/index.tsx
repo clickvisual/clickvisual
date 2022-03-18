@@ -93,10 +93,24 @@ const ModalCreatedLogLibrary = () => {
         ref={logFormRef}
         onFinish={onSubmitHandle}
       >
-        <Form.Item label={"Creation Mode"} name={"mode"} initialValue={0}>
+        <Form.Item
+          label={i18n.formatMessage({
+            id: "datasource.logLibrary.from.creationMode",
+          })}
+          name={"mode"}
+          initialValue={0}
+        >
           <Select>
-            <Option value={0}>创建方式-新建日志库</Option>
-            <Option value={1}>创建方式-选择已有日志库</Option>
+            <Option value={0}>
+              {i18n.formatMessage({
+                id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
+              })}
+            </Option>
+            <Option value={1}>
+              {i18n.formatMessage({
+                id: "datasource.logLibrary.from.creationMode.option.logLibrary",
+              })}
+            </Option>
           </Select>
         </Form.Item>
         <Form.Item
