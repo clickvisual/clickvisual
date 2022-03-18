@@ -22,11 +22,11 @@ const (
 type Cluster struct {
 	BaseModel
 
-	Name        string `gorm:"column:name;type:varchar(255);NOT NULL" json:"clusterName"`     // k8s集群英文唯一标识名
-	Description string `gorm:"column:description;type:varchar(128)" json:"description"`       // 对k8s集群的简要描述
-	Status      int    `gorm:"column:status;type:tinyint(1)" json:"status"`                   // 集群状态,0:正常, 非0:不正常
-	ApiServer   string `gorm:"column:api_server;type:varchar(255);NOT NULL" json:"apiServer"` // k8s集群的ApiServer地址
-	KubeConfig  string `gorm:"column:kube_config;type:mediumtext;NOT NULL" json:"kubeConfig"` // admin权限的kubeconfig文件
+	Name        string `gorm:"column:name;type:varchar(255);NOT NULL;index:uix_cluster_name,unique" json:"clusterName"` // k8s集群英文唯一标识名
+	Description string `gorm:"column:description;type:varchar(128)" json:"description"`                                 // 对k8s集群的简要描述
+	Status      int    `gorm:"column:status;type:tinyint(1)" json:"status"`                                             // 集群状态,0:正常, 非0:不正常
+	ApiServer   string `gorm:"column:api_server;type:varchar(255);NOT NULL" json:"apiServer"`                           // k8s集群的ApiServer地址
+	KubeConfig  string `gorm:"column:kube_config;type:mediumtext;NOT NULL" json:"kubeConfig"`                           // admin权限的kubeconfig文件
 }
 
 func (m *Cluster) TableName() string {

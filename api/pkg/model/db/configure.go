@@ -14,8 +14,8 @@ import (
 type Configuration struct {
 	BaseModel
 
-	K8SCmId     int    `gorm:"column:k8s_cm_id;type:int(11)" json:"k8sConfigmapId"` // config map id
-	Name        string `gorm:"column:name;type:varchar(64)" json:"name"`
+	K8SCmId     int    `gorm:"column:k8s_cm_id;type:int(11);index:uix_k8s_cm_id_name,unique" json:"k8sConfigmapId"` // config map id
+	Name        string `gorm:"column:name;type:varchar(64);index:uix_k8s_cm_id_name,unique" json:"name"`
 	Content     string `gorm:"column:content;type:longtext" json:"content"`
 	Format      string `gorm:"column:format;type:varchar(32)" json:"format"`
 	Version     string `gorm:"column:version;type:varchar(64)" json:"version"`

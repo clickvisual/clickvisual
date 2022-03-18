@@ -21,9 +21,15 @@ func RunInstall(ctx ejob.Context) error {
 
 func installDB() error {
 	ins := db.Instance{
-		Datasource: "ch",
-		Name:       "default-ch",
-		Dsn:        econf.GetString("defaultCh.dsn"),
+		Datasource:       "ch",
+		Name:             "default-ch",
+		Dsn:              econf.GetString("defaultCh.dsn"),
+		RuleStoreType:    0,
+		FilePath:         "",
+		ClusterId:        0,
+		Namespace:        "",
+		Configmap:        "",
+		PrometheusTarget: "",
 	}
 	err := db.InstanceCreate(invoker.Db, &ins)
 	if err != nil {

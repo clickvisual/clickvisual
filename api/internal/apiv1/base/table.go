@@ -116,13 +116,14 @@ func TableInfo(c *core.Context) {
 		return
 	}
 	res := view.RespTableDetail{
-		Did:     tableInfo.Did,
-		Name:    tableInfo.Name,
-		Typ:     tableInfo.Typ,
-		Days:    tableInfo.Days,
-		Brokers: tableInfo.Brokers,
-		Topic:   tableInfo.Topic,
-		Uid:     tableInfo.Uid,
+		Did:       tableInfo.Did,
+		Name:      tableInfo.Name,
+		Typ:       tableInfo.Typ,
+		Days:      tableInfo.Days,
+		Brokers:   tableInfo.Brokers,
+		Topic:     tableInfo.Topic,
+		Uid:       tableInfo.Uid,
+		TimeField: tableInfo.TimeField,
 		Database: view.RespDatabaseItem{
 			Id:             tableInfo.Database.ID,
 			Iid:            tableInfo.Database.Iid,
