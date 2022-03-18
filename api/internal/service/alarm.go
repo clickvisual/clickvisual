@@ -171,14 +171,7 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 	switch instance.RuleStoreType {
 	case RuleStoreTypeK8s:
 		invoker.Logger.Debug("alert", elog.Any("instance", instance))
-		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
-		if errCluster != nil {
-			return errCluster
-		}
-		rules := make(map[string]string)
-		delete(rules, obj.AlertRuleName())
-		invoker.Logger.Debug("alert", elog.Any("rules", rules))
-		err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rules)
+		err = resource.ConfigmapDelete(instance.ClusterId, instance.Namespace, instance.Configmap, obj.AlertRuleName())
 		if err != nil {
 			return
 		}

@@ -55,7 +55,6 @@ func ConfigmapDelete(clusterId int, namespace, name string, keys ...string) erro
 		return errors.Wrap(err, "Get ConfigMap failed, in cluster")
 	}
 	configMap := obj.(*corev1.ConfigMap)
-	invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "configMap"))
 	for _, k := range keys {
 		delete(configMap.Data, k)
 	}
