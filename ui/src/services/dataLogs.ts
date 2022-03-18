@@ -89,6 +89,7 @@ export interface TablesResponse {
 export interface TableInfoResponse {
   brokers: string;
   createType: number;
+  timeField: string;
   days: number;
   did: number;
   name: string;
@@ -102,6 +103,33 @@ export interface TableInfoResponse {
 export interface TableSqlContent {
   keys: string[];
   data: any;
+}
+
+export interface LocalTables {
+  name: string;
+  tables: { name: string }[];
+}
+
+export interface TableColumnsRequest {
+  databaseName: string;
+  tableName: string;
+}
+
+export interface TableColumn {
+  name: string;
+  type: number;
+  typeDesc: string;
+}
+
+export interface TableColumnsResponse {
+  all: TableColumn[];
+  conformToStandard: TableColumn[];
+}
+
+export interface CreateLocalTableRequest {
+  databaseName: string;
+  tableName: string;
+  timeField: string;
 }
 
 export interface IndexInfoType {
@@ -168,9 +196,37 @@ export default {
     );
   },
 
+  // Get local database and table
+  async getLocalDatabasesAndTables(iid: number) {
+    return request<API.Res<LocalTables[]>>(
+      `/api/v1/instances/${iid}/databases-exist`,
+      {
+        method: "GET",
+      }
+    );
+  },
+
+  // Get local table columns
+  async getTableColumns(iid: number, params: TableColumnsRequest) {
+    return request<API.Res<TableColumnsResponse>>(
+      `/api/v1/instances/${iid}/columns-self-built`,
+      {
+        method: "GET",
+        params,
+      }
+    );
+  },
+
   // Create a log library
   async createdTable(did: number, data: CreatedLogLibraryRequest) {
     return request<API.Res<string>>(`/api/v1/databases/${did}/tables`, {
+      method: "POST",
+      data,
+    });
+  },
+
+  async createdLocalTable(iid: number, data: CreateLocalTableRequest) {
+    return request(`/api/v1/instances/${iid}/tables-exist`, {
       method: "POST",
       data,
     });

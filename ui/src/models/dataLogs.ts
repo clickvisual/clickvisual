@@ -112,6 +112,9 @@ const DataLogsModel = () => {
     doCreatedLogLibrary,
     doGetLogLibrary,
     doDeletedLogLibrary,
+    getLocalTables,
+    getTableColumns,
+    doCreatedLocalLogLibrary,
   } = useLogLibrary();
 
   const {
@@ -495,6 +498,9 @@ const DataLogsModel = () => {
     doCreatedLogLibrary,
     doDeletedLogLibrary,
     doGetLogLibrary,
+    getLocalTables,
+    getTableColumns,
+    doCreatedLocalLogLibrary,
 
     viewsVisibleDraw,
     getViewList,

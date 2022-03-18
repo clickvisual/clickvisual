@@ -12,11 +12,11 @@ import (
 type Index struct {
 	BaseModel
 
-	Tid      int    `gorm:"column:tid;type:int(11)" json:"tid"`                          // table id
-	Field    string `gorm:"column:field;type:varchar(128);NOT NULL" json:"field"`        // 字段
-	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                 // 字段 0 text 1 long 2 double
-	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`        // 别名
-	RootName string `gorm:"column:root_name;type:varchar(128);NOT NULL" json:"rootName"` // root_name
+	Tid      int    `gorm:"column:tid;type:int(11);index:uix_tid_field,unique" json:"tid"`                   // table id
+	Field    string `gorm:"column:field;type:varchar(128);NOT NULL;index:uix_tid_field,unique" json:"field"` // 字段
+	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                     // 字段 0 text 1 long 2 double
+	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                            // 别名
+	RootName string `gorm:"column:root_name;type:varchar(128);NOT NULL" json:"rootName"`                     // root_name
 }
 
 func (t *Index) TableName() string {

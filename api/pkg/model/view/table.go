@@ -42,6 +42,7 @@ type RespTableDetail struct {
 	} `json:"sqlContent"`
 	Database   RespDatabaseItem `json:"database"`
 	CreateType int              `json:"createType"`
+	TimeField  string           `json:"timeField"`
 }
 
 type RespColumn struct {

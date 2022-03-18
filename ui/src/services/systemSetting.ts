@@ -8,6 +8,7 @@ export interface InstanceType extends TimeBaseType {
   id?: number;
   datasource: string;
   dsn: string;
+  name: string;
   instanceName: string;
   clusterId?: number;
   configmap?: string;
