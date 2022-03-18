@@ -4,7 +4,7 @@ import api from "@/services/alarm";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { FIRST_PAGE } from "@/config/config";
 
-export const ALARM_HISTORY_PATH = "/alarm/history?id=";
+export const ALARM_HISTORY_PATH = "/alarm/rules/history?id=";
 const useAlarmHistory = () => {
   const [currentAlarm, setCurrentAlarm] = useState<AlarmInfoType>();
   const [query, setQuery] = useState<AlarmHistoryRequest>();
