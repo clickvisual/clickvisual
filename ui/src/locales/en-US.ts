@@ -448,4 +448,15 @@ export default {
     "Deleting notification channel {channelName}...",
   "alarm.notify.deleted.success":
     "Delete the notification channel {channelName} success",
+
+  // install
+  "install.init.text.databaseInit":
+    "To initialize the database, click the install button below",
+
+  "install.init.btn.databaseInit": "Database initialization",
+
+  "install.init.model.databaseInit.successTitle": "Initialization completed",
+  "install.init.model.databaseInit.successContent":
+    "When the database is initialized, click 'OK' to jump to the login page",
+  "install.init.model.databaseInit.successOkText": "OK",
 };
