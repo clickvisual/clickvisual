@@ -27,6 +27,17 @@ export const DEBOUNCE_WAIT = 500;
 // 登录路由
 export const LOGIN_PATH = "/user/login";
 
+// 安装流程路由
+export const INSTALL_INIT = "/install/init";
+
+// 免登录路由
+export const AVOID_CLOSE_ROUTING = [
+  "/user/login",
+  "/user/login/",
+  "/install/init",
+  "/install/init/",
+];
+
 // 首页路由
 export const HOME_PATH = "/";
 

@@ -209,7 +209,7 @@ const SelectedDataBaseDraw = () => {
             >
               {instanceList.map((item: InstanceType, index: number) => (
                 <Option key={index} value={item.id as number}>
-                  {item.instanceName}
+                  {item.name}
                 </Option>
               ))}
             </Select>

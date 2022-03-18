@@ -1,19 +1,14 @@
 import CustomModal from "@/components/CustomModal";
-import {
-  Button,
-  Form,
-  FormInstance,
-  Input,
-  InputNumber,
-  message,
-  Select,
-} from "antd";
+import { Button, Form, FormInstance, message, Select } from "antd";
 import { useEffect, useRef } from "react";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { SaveOutlined } from "@ant-design/icons";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
+import LocalTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/LocalTable";
+
 const { Option } = Select;
 
 export const logLibraryTypes = [
@@ -30,13 +25,24 @@ const ModalCreatedLogLibrary = () => {
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibrary,
     doGetLogLibraryList,
+    doCreatedLocalLogLibrary,
   } = useModel("dataLogs");
+
+  const { doGetInstanceList } = useModel("instances");
 
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
       if (!currentDatabase) return;
-      doCreatedLogLibrary
-        .run(currentDatabase.id, field)
+
+      const response =
+        field.mode === 1
+          ? doCreatedLocalLogLibrary.run(field.instance, {
+              ...field,
+              databaseName: field.localTables[0],
+              tableName: field.localTables[1],
+            })
+          : doCreatedLogLibrary.run(currentDatabase.id, field);
+      response
         .then((res) => {
           if (res?.code === 0) {
             message.success(
@@ -58,6 +64,10 @@ const ModalCreatedLogLibrary = () => {
       logFormRef.current.resetFields();
   }, [logLibraryCreatedModalVisible]);
 
+  useEffect(() => {
+    if (logLibraryCreatedModalVisible) doGetInstanceList();
+  }, [logLibraryCreatedModalVisible]);
+
   return (
     <CustomModal
       title={i18n.formatMessage({ id: "datasource.logLibrary.search.created" })}
@@ -66,7 +76,9 @@ const ModalCreatedLogLibrary = () => {
       onCancel={() => onChangeLogLibraryCreatedModalVisible(false)}
       footer={
         <Button
-          loading={doCreatedLogLibrary.loading}
+          loading={
+            doCreatedLogLibrary.loading || doCreatedLocalLogLibrary.loading
+          }
           type="primary"
           onClick={() => logFormRef.current?.submit()}
           icon={<SaveOutlined />}
@@ -81,144 +93,29 @@ const ModalCreatedLogLibrary = () => {
         ref={logFormRef}
         onFinish={onSubmitHandle}
       >
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "datasource.logLibrary.from.tableName",
-          })}
-          name={"tableName"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.placeholder.tableName",
-              }),
-            },
-            {
-              pattern: new RegExp(/^[a-zA-Z_]+$/),
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.from.rule.tableName",
-              }),
-            },
-          ]}
-        >
-          <Input
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.tableName",
-            })}`}
-          />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({ id: "datasource.logLibrary.from.type" })}
-          name={"typ"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.placeholder.type",
-              }),
-            },
-          ]}
-        >
-          <Select
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.type",
-            })}`}
-          >
-            {logLibraryTypes.map((item) => (
-              <Option key={item.value} value={item.value}>
-                {item.type}
-              </Option>
-            ))}
+        <Form.Item label={"Creation Mode"} name={"mode"} initialValue={0}>
+          <Select>
+            <Option value={0}>创建方式-新建日志库</Option>
+            <Option value={1}>创建方式-选择已有日志库</Option>
           </Select>
         </Form.Item>
         <Form.Item
-          label={i18n.formatMessage({ id: "datasource.logLibrary.from.days" })}
-          name={"days"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.placeholder.days",
-              }),
-            },
-          ]}
+          noStyle
+          shouldUpdate={(prevValues, nextValues) =>
+            prevValues.mode !== nextValues.mode
+          }
         >
-          <InputNumber
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.days",
-            })}`}
-            min={0}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "datasource.logLibrary.from.brokers",
-          })}
-          name={"brokers"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.placeholder.brokers",
-              }),
-            },
-          ]}
-        >
-          <Input
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.brokers",
-            })}`}
-          />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "datasource.logLibrary.from.topics",
-          })}
-          name={"topics"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.placeholder.topics",
-              }),
-            },
-            {
-              pattern: new RegExp(/^[a-zA-Z0-9\-]+$/),
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.from.rule.topics",
-              }),
-            },
-          ]}
-        >
-          <Input
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.topics",
-            })}`}
-          />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "datasource.logLibrary.from.consumers",
-          })}
-          name={"consumers"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "datasource.logLibrary.placeholder.consumers",
-              }),
-            },
-          ]}
-          initialValue={1}
-        >
-          <InputNumber
-            min={0}
-            style={{ width: "100%" }}
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.consumers",
-            })}`}
-          />
+          {({ getFieldValue }) => {
+            const mode = getFieldValue("mode");
+            switch (mode) {
+              case 0:
+                return <NewTable />;
+              case 1:
+                return <LocalTable formRef={logFormRef.current} />;
+              default:
+                return <NewTable />;
+            }
+          }}
         </Form.Item>
       </Form>
     </CustomModal>

@@ -48,7 +48,7 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
 
   return (
     <Drawer
-      title={libraryInfo.name}
+      title={`${libraryInfo.name}`}
       placement="right"
       closable
       getContainer={false}

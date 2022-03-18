@@ -22,6 +22,11 @@ export default [
     routes: [
       { path: "/alarm/rules", name: "rules", component: "./Alarm/Rules" },
       {
+        path: "/alarm/info",
+        name: "ruleInfo",
+        component: "./Alarm/Rules/components/AlarmInfoDraw",
+      },
+      {
         path: "/alarm/notifications",
         name: "notifications",
         component: "./Alarm/Notifications",
@@ -57,6 +62,17 @@ export default [
         path: "/user/login",
         component: "./User/Login",
       },
+      {
+        redirect: "/",
+      },
+    ],
+  },
+  {
+    path: "install",
+    layout: false,
+    component: "../layouts/User",
+    routes: [
+      { path: "/install/init", component: "./Install/Init" },
       {
         redirect: "/",
       },
