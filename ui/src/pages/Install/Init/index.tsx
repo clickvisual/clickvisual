@@ -17,9 +17,15 @@ const Init = () => {
       doInstall.run().then((res) => {
         if (res?.code !== 0) return;
         Modal.success({
-          title: "初始化完成",
-          content: "数据库初始化完成，点击'确定'按钮跳转到登录页面",
-          okText: "确定",
+          title: i18n.formatMessage({
+            id: "install.init.model.databaseInit.successTitle",
+          }),
+          content: i18n.formatMessage({
+            id: "install.init.model.databaseInit.successContent",
+          }),
+          okText: i18n.formatMessage({
+            id: "nstall.init.model.databaseInit.successOkText",
+          }),
           closable: true,
           onOk: () => {
             history.push(LOGIN_PATH);
@@ -32,7 +38,9 @@ const Init = () => {
   return (
     <div className={classNames(initStyles.installMain)}>
       <div className={initStyles.installTip}>
-        <span>需要进行数据库初始化，请点击下方安装按钮</span>
+        <span>
+          {i18n.formatMessage({ id: "install.init.text.databaseInit" })}
+        </span>
       </div>
       <div className={initStyles.installBtnBox}>
         <Button
@@ -43,7 +51,7 @@ const Init = () => {
           size={"large"}
           onClick={doInstallInit}
         >
-          数据库初始化
+          {i18n.formatMessage({ id: "install.init.btn.databaseInit" })}
         </Button>
       </div>
     </div>

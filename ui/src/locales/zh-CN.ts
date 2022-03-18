@@ -418,4 +418,14 @@ export default {
   "alarm.notify.modal.content": "确定删除通知方式：{channelName} 吗？",
   "alarm.notify.deleted.loading": "正在删除通知方式 {channelName}...",
   "alarm.notify.deleted.success": "删除通知方式 {channelName} 成功",
+
+  // install
+  "install.init.text.databaseInit": "需要进行数据库初始化，请点击下方安装按钮",
+
+  "install.init.btn.databaseInit": "数据库初始化",
+
+  "install.init.model.databaseInit.successTitle": "初始化完成",
+  "install.init.model.databaseInit.successContent":
+    "数据库初始化完成，点击'确定'按钮跳转到登录页面",
+  "install.init.model.databaseInit.successOkText": "确定",
 };
