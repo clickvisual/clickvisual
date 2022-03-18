@@ -808,6 +808,9 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
 		for k, _ := range fields {
 			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
+			if isEmpty(values[k]) {
+				continue
+			}
 			line[fields[k]] = values[k]
 		}
 		res = append(res, line)
@@ -816,4 +819,33 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		log.Fatal(err)
 	}
 	return
+}
+
+// isEmpty filter empty index value
+func isEmpty(input interface{}) bool {
+	var key string
+	switch input.(type) {
+	case string:
+		key = input.(string)
+	case uint16:
+		key = fmt.Sprintf("%d", input.(uint16))
+	case uint64:
+		key = fmt.Sprintf("%d", input.(uint64))
+	case int32:
+		key = fmt.Sprintf("%d", input.(int32))
+	case int64:
+		key = fmt.Sprintf("%d", input.(int64))
+	case float64:
+		key = fmt.Sprintf("%f", input.(float64))
+	default:
+		if reflect.TypeOf(input) == nil {
+			return true
+		}
+		elog.Warn("isEmpty", elog.String("key", key), elog.Any("type", reflect.TypeOf(input)))
+		return false
+	}
+	if key == "" {
+		return true
+	}
+	return false
 }
