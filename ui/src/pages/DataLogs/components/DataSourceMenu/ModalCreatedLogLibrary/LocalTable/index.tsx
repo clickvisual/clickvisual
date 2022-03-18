@@ -37,6 +37,14 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
       <Form.Item
         label={i18n.formatMessage({ id: "datasource.draw.table.instance" })}
         name={"instance"}
+        rules={[
+          {
+            required: true,
+            message: i18n.formatMessage({
+              id: "datasource.draw.selected",
+            }),
+          },
+        ]}
       >
         <Select
           placeholder={`${i18n.formatMessage({
@@ -75,6 +83,14 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
                   id: "alarm.rules.inspectionFrequency.selectOption.logLibrary",
                 })}`}
                 name={"localTables"}
+                rules={[
+                  {
+                    required: true,
+                    message: i18n.formatMessage({
+                      id: "alarm.rules.selected.placeholder.database",
+                    }),
+                  },
+                ]}
               >
                 <Cascader
                   showSearch
@@ -130,11 +146,19 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
                   id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField",
                 })}
                 name={"timeField"}
+                rules={[
+                  {
+                    required: true,
+                    message: i18n.formatMessage({
+                      id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder",
+                    }),
+                  },
+                ]}
               >
                 <Select
-                  placeholder={i18n.formatMessage({
+                  placeholder={`${i18n.formatMessage({
                     id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder",
-                  })}
+                  })}`}
                 >
                   {conformToStandard.map((item) => (
                     <Option key={item.name} value={item.name}>

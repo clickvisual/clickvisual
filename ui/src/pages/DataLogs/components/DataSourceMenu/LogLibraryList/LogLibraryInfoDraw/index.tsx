@@ -67,6 +67,32 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
         <div className={infoStyles.firstLine}>
           <div>
             <span className={classNames(infoStyles.title)}>
+              {i18n.formatMessage({
+                id: "datasource.logLibrary.from.creationMode",
+              })}
+            </span>
+            <span>:&nbsp;</span>
+            <span>
+              {i18n.formatMessage({
+                id: `datasource.logLibrary.from.creationMode.option.${
+                  logLibrary.createType === 0 ? "newLogLibrary" : "logLibrary"
+                }`,
+              })}
+            </span>
+          </div>
+          <div>
+            <span className={classNames(infoStyles.title)}>
+              {i18n.formatMessage({
+                id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField",
+              })}
+            </span>
+            <span>:&nbsp;</span>
+            <span>{libraryInfo.timeField}</span>
+          </div>
+        </div>
+        <div className={infoStyles.firstLine}>
+          <div>
+            <span className={classNames(infoStyles.title)}>
               {i18n.formatMessage({ id: "datasource.logLibrary.from.type" })}
             </span>
             <span>:&nbsp;</span>
