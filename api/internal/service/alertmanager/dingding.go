@@ -54,12 +54,10 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	annotations := notification.CommonAnnotations
 
 	var buffer bytes.Buffer
-
 	buffer.WriteString(fmt.Sprintf("### 告警: %s \n", alarm.Name))
 	if alarm.Desc != "" {
 		buffer.WriteString(fmt.Sprintf("##### 备注: %s\n", alarm.Desc))
 	}
-	// buffer.WriteString(fmt.Sprintf("##### alertname: %s \n", notification.GroupLabels["alertname"]))
 
 	for _, alert := range notification.Alerts {
 		annotations = alert.Annotations
@@ -67,7 +65,7 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		buffer.WriteString(fmt.Sprintf("##### 时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 概要: %s\n\n", annotations["summary"]))
 		buffer.WriteString(fmt.Sprintf("##### 说明: %s\n\n", annotations["description"]))
-		buffer.WriteString(fmt.Sprintf("##### 链接: %s/alarm/rules\n\n", strings.TrimRight(econf.GetString("app.rootURL"), "/")))
+		buffer.WriteString(fmt.Sprintf("##### 链接: %s/alarm/rules/history?id=%d\n\n", strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID))
 	}
 
 	markdown = &view.DingTalkMarkdown{
@@ -80,6 +78,5 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 			IsAtAll: false,
 		},
 	}
-
 	return
 }

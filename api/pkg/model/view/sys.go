@@ -2,7 +2,7 @@ package view
 
 type ReqCreateInstance struct {
 	Datasource       string `json:"datasource" binding:"required"`
-	Name             string `json:"instanceName" binding:"required"`
+	Name             string `json:"name" binding:"required"`
 	Dsn              string `json:"dsn" binding:"required"`
 	RuleStoreType    int    `json:"ruleStoreType"`
 	FilePath         string `json:"filePath"`

@@ -137,7 +137,7 @@ const CreatedOrUpdatedInstanceModal = (
         onFinish={run}
       >
         <Form.Item
-          name={"instanceName"}
+          name={"name"}
           label={i18n.formatMessage({ id: "instance.instanceName" })}
           rules={[
             {
