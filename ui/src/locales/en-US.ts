@@ -245,6 +245,20 @@ export default {
   "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
     "Please enter numbers, letters, or hyphens",
+  "datasource.logLibrary.from.creationMode": "Creation Mode",
+
+  "datasource.logLibrary.from.creationMode.option.newLogLibrary":
+    "Create a log library based on Mogo",
+  "datasource.logLibrary.from.creationMode.option.logLibrary":
+    "Select an existing log library",
+  "datasource.logLibrary.from.newLogLibrary.instance": "instance",
+  "datasource.logLibrary.from.newLogLibrary.instance.defaultOption":
+    "Please select an instance",
+  "datasource.logLibrary.from.newLogLibrary.timeResolutionField":
+    "Time Resolution Field",
+  "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder":
+    "Please enter the time resolution field",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Table Field",
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
