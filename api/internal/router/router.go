@@ -47,7 +47,8 @@ func GetRouter() *egin.Component {
 	r.POST("/api/admin/users/login", core.Handle(user.Login))
 	r.POST("/api/v1/prometheus/alerts", core.Handle(alarm.Webhook))
 	// mock
-	r.GET("/api/v1/install", core.Handle(initialize.Install))
+	r.POST("/api/v1/install", core.Handle(initialize.Install))
+	r.GET("/api/v1/install", core.Handle(initialize.IsInstall))
 
 	v1 := r.Group("/api/v1", middlewares.AuthChecker())
 	// User related

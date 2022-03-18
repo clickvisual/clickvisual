@@ -166,8 +166,8 @@ var typORM = map[int]typORMItem{
 
 var jsonExtractORM = map[int]string{
 	0: "toString",
-	1: "toInt64OrZero",
-	2: "toFloat64OrZero",
+	1: "toInt64OrNull",
+	2: "toFloat64OrNull",
 }
 
 type ClickHouse struct {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kslice"
 
@@ -111,7 +112,8 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 		return errors.New("corresponding configuration instance does not exist")
 	}
 	invoker.Logger.Debug("IndexUpdate", elog.Any("newList", newList))
-	err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
+	// err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
+	err = op.IndexUpdate(databaseInfo, tableInfo, filterInnerField(adds), filterInnerField(dels), filterInnerField(newList))
 	if err != nil {
 		tx.Rollback()
 		return
@@ -122,4 +124,29 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 		return
 	}
 	return
+}
+
+func filterInnerField(input map[string]*db.Index) (out map[string]*db.Index) {
+	out = make(map[string]*db.Index)
+	for key, val := range input {
+		if isInnerField(val.Field) {
+			continue
+		}
+		out[key] = val
+	}
+	return out
+}
+
+func isInnerField(input string) bool {
+	innerFieldMap := make(map[string]interface{}, 0)
+	for _, hidden := range econf.GetStringSlice("app.hiddenFields") {
+		innerFieldMap[hidden] = struct{}{}
+	}
+	for _, show := range econf.GetStringSlice("app.defaultFields") {
+		innerFieldMap[show] = struct{}{}
+	}
+	if _, ok := innerFieldMap[input]; ok {
+		return true
+	}
+	return false
 }

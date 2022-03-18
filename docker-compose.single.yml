@@ -1,0 +1,44 @@
+version: "3"
+services:
+  mysql:
+    platform: linux/x86_64
+    image: mysql:5.7
+    networks:
+      - net
+    environment:
+      MYSQL_ROOT_PASSWORD: shimo
+      MYSQL_ROOT_HOST: '%'
+    command: [
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_general_ci',
+        '--port=13306',
+        '--init-file=/data/all-in-one/migration/latest.sql',
+    ]
+    ports:
+      - 13306:13306
+    volumes:
+      - ./scripts/migration:/data/all-in-one/migration
+    restart: always
+  mogo:
+    image: mixmore/mogo:v0.0.3
+#    image: sevennt/mogo:master
+    container_name: mogo
+    environment:
+      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_LOG_WRITER: stderr
+    ports:
+      - "19001:19001"
+      - "19011:19011"
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    restart: always
+    volumes:
+      - ./data/all-in-one/mogo/config:/mogo/config
+    command: [ '/bin/sh', '-c', './bin/mogo' ]
+    networks:
+      - net
+networks:
+  net:
+    driver: bridge

@@ -7,6 +7,7 @@ import (
 	m "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
@@ -35,10 +36,25 @@ var models = []interface{}{
 	db.AlarmChannel{},
 }
 
-// Install 根据分页获取Cluster列表
+// IsInstall Determine whether the installation process is required
+func IsInstall(c *core.Context) {
+	var u db.User
+	err := invoker.Db.Table(db.TableNameUser).Select("id, username").Limit(1).First(&u).Error
+	if err != nil {
+		c.JSONOK(0)
+		return
+	}
+	if u.ID == 0 {
+		c.JSONOK(0)
+		return
+	}
+	c.JSONOK(1)
+}
+
+// Install Perform the installation process
 func Install(c *core.Context) {
 	d, e := gorm.Open(
-		m.Open(econf.GetString("mysql.default.dsn")), &gorm.Config{
+		m.Open(econf.GetString("mysql.dsn")), &gorm.Config{
 			DisableForeignKeyConstraintWhenMigrating: true},
 	)
 	fmt.Println(`e--------------->`, e)
@@ -51,7 +67,7 @@ func Install(c *core.Context) {
 
 func Migration(c *core.Context) {
 	d, e := gorm.Open(
-		m.Open(econf.GetString("mysql.default.dsn")), &gorm.Config{
+		m.Open(econf.GetString("mysql.dsn")), &gorm.Config{
 			DisableForeignKeyConstraintWhenMigrating: true},
 	)
 	fmt.Println(`e--------------->`, e)
