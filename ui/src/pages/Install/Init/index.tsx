@@ -24,7 +24,7 @@ const Init = () => {
             id: "install.init.model.databaseInit.successContent",
           }),
           okText: i18n.formatMessage({
-            id: "nstall.init.model.databaseInit.successOkText",
+            id: "install.init.model.databaseInit.successOkText",
           }),
           closable: true,
           onOk: () => {
