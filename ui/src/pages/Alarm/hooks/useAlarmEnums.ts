@@ -10,7 +10,7 @@ const useAlarmEnums = () => {
       status: 1,
       label: i18n.formatMessage({ id: "alarm.rules.state.paused" }),
       color: "#7d8085",
-      icon: "icon-play",
+      icon: "icon-suspended",
     },
     {
       status: 2,
