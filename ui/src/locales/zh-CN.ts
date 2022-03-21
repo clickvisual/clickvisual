@@ -405,8 +405,8 @@ export default {
   "alarm.rules.history.title.sucPublish": "成功推送次数",
 
   "alarm.rules.state.alerting": "正在报警",
-  "alarm.rules.state.ok": "已开启",
-  "alarm.rules.state.paused": "未开启",
+  "alarm.rules.state.ok": "正常",
+  "alarm.rules.state.paused": "暂停",
 
   // Notifications
   "alarm.notify.button.created": "新增渠道",

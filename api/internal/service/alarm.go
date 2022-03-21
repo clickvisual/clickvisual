@@ -8,7 +8,9 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"gorm.io/gorm"
 
@@ -19,11 +21,6 @@ import (
 	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
-)
-
-const (
-	RuleStoreTypeFile = 1
-	RuleStoreTypeK8s  = 2
 )
 
 const prometheusRuleTemplate = `groups:
@@ -38,11 +35,28 @@ const prometheusRuleTemplate = `groups:
       summary: "告警 {{ $labels.name }}"
       description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
 
-type alarm struct{}
+const (
+	reloadTimes    = 30
+	reloadInterval = time.Second * 10
+)
+
+type alarm struct {
+	reloadChan chan int64
+}
 
 // NewAlarm ...
 func NewAlarm() *alarm {
-	return &alarm{}
+	a := &alarm{
+		reloadChan: make(chan int64, reloadTimes),
+	}
+	go func() {
+		for r := range a.reloadChan {
+			invoker.Logger.Info("AllPrometheusReload", elog.Int("times", len(a.reloadChan)), elog.Int64("r", r), elog.Int64("now", time.Now().Unix()))
+			AllPrometheusReload()
+			time.Sleep(reloadInterval)
+		}
+	}()
+	return a
 }
 
 func (i *alarm) FilterCreate(tx *gorm.DB, alertID int, filters []view.ReqAlarmFilterCreate) (res []*db.AlarmFilter, err error) {
@@ -133,7 +147,7 @@ func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) (rule string, err e
 
 func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm, rule string) (err error) {
 	switch instance.RuleStoreType {
-	case RuleStoreTypeK8s:
+	case db.RuleStoreTypeK8s:
 		invoker.Logger.Debug("alert", elog.Any("instance", instance))
 		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
 		if errCluster != nil {
@@ -146,7 +160,7 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm
 		if err != nil {
 			return
 		}
-	case RuleStoreTypeFile:
+	case db.RuleStoreTypeFile:
 		content := []byte(rule)
 		path := strings.TrimSuffix(instance.FilePath, "/")
 		err = ioutil.WriteFile(path+"/"+obj.AlertRuleName(), content, 0644)
@@ -156,9 +170,10 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm
 	default:
 		return constx.ErrAlarmRuleStoreIsClosed
 	}
-	if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
-		return
-	}
+	i.AddPrometheusReloadChan()
+	// if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
+	// 	return
+	// }
 	return nil
 }
 
@@ -169,13 +184,13 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 		return constx.ErrPrometheusRuleStoreTypeNotMatch
 	}
 	switch instance.RuleStoreType {
-	case RuleStoreTypeK8s:
+	case db.RuleStoreTypeK8s:
 		invoker.Logger.Debug("alert", elog.Any("instance", instance))
 		err = resource.ConfigmapDelete(instance.ClusterId, instance.Namespace, instance.Configmap, obj.AlertRuleName())
 		if err != nil {
 			return
 		}
-	case RuleStoreTypeFile:
+	case db.RuleStoreTypeFile:
 		path := strings.TrimSuffix(instance.FilePath, "/")
 		err = os.Remove(path + "/" + obj.AlertRuleName())
 		if err != nil {
@@ -184,9 +199,10 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 	default:
 		return constx.ErrAlarmRuleStoreIsClosed
 	}
-	if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
-		return
-	}
+	i.AddPrometheusReloadChan()
+	// if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
+	// 	return
+	// }
 	return nil
 }
 
@@ -310,6 +326,37 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return
+	}
+	return
+}
+
+func (i *alarm) AddPrometheusReloadChan() {
+	// 10 times
+	for k := 0; k < reloadTimes; k++ {
+		if len(i.reloadChan) < reloadTimes {
+			invoker.Logger.Debug("AllPrometheusReload", elog.String("step", "AddPrometheusReloadChan"), elog.Any("k", k))
+			i.reloadChan <- time.Now().Unix()
+		}
+	}
+}
+
+func AllPrometheusReload() {
+	instances, err := db.InstanceList(egorm.Conds{})
+	if err != nil {
+		invoker.Logger.Error("AllPrometheusReload", elog.String("step", "InstanceList"), elog.String("error", err.Error()))
+		return
+	}
+	pm := make(map[string]interface{})
+	for _, ins := range instances {
+		if ins.PrometheusTarget != "" {
+			pm[ins.PrometheusTarget] = struct{}{}
+		}
+	}
+	for target := range pm {
+		errReload := Alarm.PrometheusReload(target)
+		if errReload != nil {
+			invoker.Logger.Error("AllPrometheusReload", elog.String("step", "PrometheusReload"), elog.String("error", errReload.Error()))
+		}
 	}
 	return
 }

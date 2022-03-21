@@ -43,6 +43,11 @@ const (
 	DatasourceClickHouse = "ch"
 )
 
+const (
+	RuleStoreTypeFile = 1
+	RuleStoreTypeK8s  = 2
+)
+
 // InstanceList ..
 func InstanceList(conds egorm.Conds, extra ...string) (resp []*Instance, err error) {
 	sql, binds := egorm.BuildQuery(conds)
