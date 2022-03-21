@@ -17,4 +17,4 @@ data:
     receivers:
     - name: 'webhook'
       webhook_configs:
-      - url: 'http://xxx:8080/public/prometheus/alerts'
+      - url: 'http://mogo:19001/public/prometheus/alerts'
