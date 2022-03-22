@@ -10,8 +10,8 @@ type Event struct {
 	ObjectId      int    `gorm:"not null;default:0;comment:被操作对象类型(db.Table)下的具体对象的主键(id)" json:"ObjectId"`
 	Metadata      string `gorm:"not null;type:text;comment:事件内容" json:"metadata"`
 	Ctime         int64  `gorm:"not null;default:0;type:bigint;autoCreateTime;comment:事件发生时间" json:"ctime"`
-	OperationName string `gorm:"-" json:"operationName"` // 操作中文名称
-	SourceName    string `gorm:"-" json:"sourceName"`    // 事件来源的中文名称
+	OperationName string `gorm:"-" json:"operationName"`
+	SourceName    string `gorm:"-" json:"sourceName"`
 }
 
 func (Event) TableName() string {

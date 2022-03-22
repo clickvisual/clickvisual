@@ -11,24 +11,24 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
-// Alarm 告警配置
+// Alarm defines alarm table structure
 type Alarm struct {
 	BaseModel
 
 	Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                                    // table id
-	Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                                    // 唯一外键
-	Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                               // 告警名称
-	Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                                    // 描述说明
-	Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                          // 告警频率
+	Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                                    // foreign key
+	Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                               // name of an alarm
+	Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                                    // description
+	Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                          // interval second between alarm
 	Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                                  // 0 m 1 s 2 h 3 d 4 w 5 y
 	AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                          // prometheus alert rule
-	View          string        `gorm:"column:view;type:text" json:"view"`                                                     // 数据转换视图
-	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                         // 视图表名称
-	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                                       // 标签
-	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                                    // 操作人
-	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // 告警状态
+	View          string        `gorm:"column:view;type:text" json:"view"`                                                     // view table ddl
+	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                         // name of view table
+	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                                       // tags
+	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                                    // uid of alarm operator
+	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // status
 	RuleStoreType int           `gorm:"column:rule_store_type" db:"rule_store_type" json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType
-	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`                       // 告警方式
+	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`                       // channel of an alarm
 }
 
 func (m *Alarm) TableName() string {
@@ -93,7 +93,7 @@ func AlarmStatusUpdate(id int, status string) (err error) {
 }
 
 func AlarmInfo(db *gorm.DB, id int) (resp Alarm, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(Alarm{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
@@ -103,7 +103,6 @@ func AlarmInfo(db *gorm.DB, id int) (resp Alarm, err error) {
 }
 
 func AlarmInfoX(db *gorm.DB, conds map[string]interface{}) (resp Alarm, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Model(Alarm{}).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("infoX error", zap.Error(err))
@@ -121,10 +120,9 @@ func AlarmList(conds egorm.Conds) (resp []*Alarm, err error) {
 	return
 }
 
-// AlarmListPage 根据分页条件查询list
+// AlarmListPage return item list by pagination
 func AlarmListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*Alarm) {
 	respList = make([]*Alarm, 0)
-	conds["dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}
@@ -204,7 +202,7 @@ func (m *AlarmFilter) TableName() string {
 }
 
 func AlarmFilterInfo(db *gorm.DB, id int) (resp AlarmFilter, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmFilter{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
@@ -273,7 +271,7 @@ func (m *AlarmCondition) TableName() string {
 }
 
 func AlarmConditionInfo(db *gorm.DB, id int) (resp AlarmCondition, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmCondition{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
@@ -340,7 +338,7 @@ func (m *AlarmChannel) TableName() string {
 }
 
 func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmChannel{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
@@ -405,7 +403,7 @@ func (m *AlarmHistory) TableName() string {
 }
 
 func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmHistory{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
@@ -425,7 +423,6 @@ func AlarmHistoryList(conds egorm.Conds) (resp []*AlarmHistory, err error) {
 
 func AlarmHistoryPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*AlarmHistory) {
 	respList = make([]*AlarmHistory, 0)
-	conds["dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}
