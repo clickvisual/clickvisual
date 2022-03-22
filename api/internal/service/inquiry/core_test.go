@@ -68,6 +68,27 @@ func Test_queryTransformer(t *testing.T) {
 			},
 			wantOut: "_namespace_ = '=====kube-system%'",
 			wantErr: false,
+		}, {
+			name: "test-5",
+			args: args{
+				in: "reqAid = 'androidxlv'",
+			},
+			wantOut: "reqAid = 'androidxlv'",
+			wantErr: false,
+		}, {
+			name: "test-6",
+			args: args{
+				in: "andreqAid = 'androidxlv'",
+			},
+			wantOut: "andreqAid = 'androidxlv'",
+			wantErr: false,
+		}, {
+			name: "test-4",
+			args: args{
+				in: "==_namespace_ = '=====kube-system%'",
+			},
+			wantOut: "==_namespace_ = '=====kube-system%'",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

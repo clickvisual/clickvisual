@@ -73,31 +73,33 @@ const DatabaseViewsDraw = (props: DatabaseViewsDrawProps) => {
       width: "30%",
       align: "center" as AlignType,
       render: (_: any, record: any) => {
-        if (record.id == -1) {
-          return (
-            <Space>
-              <StopOutlined />
-            </Space>
-          );
-        } else {
-          return (
-            <Space>
-              <Button onClick={() => doEdit(record.id)} type={"link"}>
-                <Tooltip title={i18n.formatMessage({ id: "edit" })}>
-                  <EditOutlined />
-                </Tooltip>
-              </Button>
-              <Divider type="vertical" />
-              <Tooltip title={i18n.formatMessage({ id: "delete" })}>
-                <IconFont
-                  onClick={() => doDelete(record)}
-                  className={viewDrawStyles.buttonIcon}
-                  type={"icon-delete"}
-                />
+        // if (true) {
+        //  return (
+        //       <StopOutlined />
+        //   );
+        // }
+          //   return (
+          //   <Space>
+          //     <StopOutlined />
+          //   </Space>
+          // );
+        return (
+          <Space>
+            <Button onClick={() => doEdit(record.id)} type={"link"}>
+              <Tooltip title={i18n.formatMessage({ id: "edit" })}>
+                <EditOutlined />
               </Tooltip>
-            </Space>
-          );
-        }
+            </Button>
+            <Divider type="vertical" />
+            <Tooltip title={i18n.formatMessage({ id: "delete" })}>
+              <IconFont
+                onClick={() => doDelete(record)}
+                className={viewDrawStyles.buttonIcon}
+                type={"icon-delete"}
+              />
+            </Tooltip>
+          </Space>
+        );
       },
     },
   ];
