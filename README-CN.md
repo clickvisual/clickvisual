@@ -67,7 +67,7 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 # 默认登录密码: shimo
 ```
 
-## 文档 
+## 文档
 
 访问 <https://mogo.shimo.im> 查看最新文档。
 
