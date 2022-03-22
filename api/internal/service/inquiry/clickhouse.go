@@ -194,9 +194,9 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) (string, er
 	jsonExtractSQL = ","
 	for _, obj := range indexes {
 		if obj.RootName == "" {
-			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(_log_, '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.Field, obj.Field)
+			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(_log_, '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.Field, obj.GetFieldName())
 		} else {
-			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.Field)
+			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.GetFieldName())
 		}
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",")
@@ -677,7 +677,7 @@ func fieldTypeJudgment(typ string) int {
 func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	// step 1 drop
 	for _, del := range dels {
-		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, del.Field)
+		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, del.GetFieldName())
 		_, err = c.db.Exec(qs)
 		if err != nil {
 			return err
@@ -685,7 +685,7 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	}
 	// step 2 add
 	for _, add := range adds {
-		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.Field, typORM[add.Typ].Key)
+		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.GetFieldName(), typORM[add.Typ].Key)
 		_, err = c.db.Exec(qs)
 		if err != nil {
 			return err

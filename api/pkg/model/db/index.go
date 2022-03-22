@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -23,8 +25,15 @@ func (t *Index) TableName() string {
 	return TableNameIndex
 }
 
+func (t *Index) GetFieldName() string {
+	if t.RootName == "" {
+		return t.Field
+	}
+	return fmt.Sprintf("%s.%s", t.RootName, t.Field)
+}
+
 func IndexInfo(db *gorm.DB, id int) (resp Index, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(Index{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))

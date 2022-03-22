@@ -423,7 +423,7 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	indexInfo, _ := db.IndexInfo(invoker.Db, indexId)
-	param.Field = indexInfo.Field
+	param.Field = indexInfo.GetFieldName()
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
