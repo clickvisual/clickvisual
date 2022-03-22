@@ -71,7 +71,7 @@ func UserUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error
 }
 
 func UserInfo(paramId int) (resp User, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("cluster info error", zap.Error(err))
@@ -80,9 +80,8 @@ func UserInfo(paramId int) (resp User, err error) {
 	return
 }
 
-// UserInfoX Info的扩展方法，根据Cond查询单条记录
+// UserInfoX get single item by condition
 func UserInfoX(conds map[string]interface{}) (resp User, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("UserInfoX infoX error", zap.Error(err))
@@ -91,7 +90,7 @@ func UserInfoX(conds map[string]interface{}) (resp User, err error) {
 	return
 }
 
-// UserDelete 软删除
+// UserDelete soft delete item by id
 func UserDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(User{}).Delete(&User{}, id).Error; err != nil {
 		invoker.Logger.Error("cluster delete error", zap.Error(err))
@@ -100,9 +99,8 @@ func UserDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
-// UserList 获取当前所有未删除的clusters. 主要供 前端用
+// UserList return item list by condition
 func UserList(conds egorm.Conds) (resp []*User, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
@@ -112,10 +110,9 @@ func UserList(conds egorm.Conds) (resp []*User, err error) {
 	return
 }
 
-// UserListPage 根据分页条件查询list
+// UserListPage return item list by pagination
 func UserListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*User) {
 	respList = make([]*User, 0)
-	conds["dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}

@@ -2,7 +2,7 @@ package session
 
 // config
 type config struct {
-	Mode     string // session模式，默认redis，目前只支持redis和memstore
+	Mode     string // session mod, "redis" by default, you can set it to "memstore"
 	Name     string // session名称
 	Debug    bool   // debug变量
 	Keypairs string
@@ -13,7 +13,7 @@ type config struct {
 	RedisPassword string
 }
 
-// DefaultConfig 定义了esession默认配置
+// DefaultConfig returns a default config of session container
 func DefaultConfig() *config {
 	return &config{
 		Mode: "memstore",

@@ -43,9 +43,8 @@ func K8SConfigMapUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (e
 	return
 }
 
-// K8SConfigMapInfoX Info的扩展方法，根据Cond查询单条记录
+// K8SConfigMapInfoX get single item by condition
 func K8SConfigMapInfoX(conds map[string]interface{}) (resp K8SConfigMap, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
@@ -54,9 +53,8 @@ func K8SConfigMapInfoX(conds map[string]interface{}) (resp K8SConfigMap, err err
 	return
 }
 
-// K8SConfigMapListX Info的扩展方法，根据Cond查询单条记录
+// K8SConfigMapListX get single item by condition
 func K8SConfigMapListX(conds map[string]interface{}) (resp []K8SConfigMap, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("K8SConfigMapListX infoX error", zap.Error(err))
@@ -86,7 +84,7 @@ func K8SConfigMapLoadOrSave(db *gorm.DB, data *K8SConfigMap) (resp *K8SConfigMap
 }
 
 func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("cluster info error", zap.Error(err))
@@ -95,7 +93,7 @@ func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {
 	return
 }
 
-// K8SConfigMapDelete 软删除
+// K8SConfigMapDelete soft delete item by id
 func K8SConfigMapDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(K8SConfigMap{}).Delete(&K8SConfigMap{}, id).Error; err != nil {
 		invoker.Logger.Error("cluster delete error", zap.Error(err))
@@ -104,9 +102,8 @@ func K8SConfigMapDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
-// K8SConfigMapList 获取当前所有未删除的clusters. 主要供 前端用
+// K8SConfigMapList return item list by condition
 func K8SConfigMapList(conds egorm.Conds) (resp []*K8SConfigMap, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
@@ -116,10 +113,9 @@ func K8SConfigMapList(conds egorm.Conds) (resp []*K8SConfigMap, err error) {
 	return
 }
 
-// K8SConfigMapListPage 根据分页条件查询list
+// K8SConfigMapListPage return item list by pagination
 func K8SConfigMapListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*K8SConfigMap) {
 	respList = make([]*K8SConfigMap, 0)
-	conds["dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}

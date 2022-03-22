@@ -35,7 +35,7 @@ const (
 )
 
 type BaseModel struct {
-	ID    int               `gorm:"not null;primary_key;AUTO_INCREMENT" json:"id"` // 主键
+	ID    int               `gorm:"not null;primary_key;AUTO_INCREMENT" json:"id"`
 	Ctime int64             `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
 	Utime int64             `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
 	Dtime sdelete.DeletedAt `gorm:"bigint;comment:删除时间" json:"dtime"`

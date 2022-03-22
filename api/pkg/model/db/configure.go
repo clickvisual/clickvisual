@@ -68,7 +68,7 @@ func ConfigurationInfoX(conds map[string]interface{}) (resp Configuration, err e
 }
 
 func ConfigurationInfo(paramId int) (resp Configuration, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameConfiguration).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("cluster info error", zap.Error(err))
@@ -86,9 +86,8 @@ func ConfigurationDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
-// ConfigurationList 获取当前所有未删除的clusters. 主要供 前端用
+// ConfigurationList return item list by condition
 func ConfigurationList(conds egorm.Conds) (resp []*Configuration, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameConfiguration).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
@@ -98,10 +97,9 @@ func ConfigurationList(conds egorm.Conds) (resp []*Configuration, err error) {
 	return
 }
 
-// ConfigurationListPage 根据分页条件查询list
+// ConfigurationListPage return item list by pagination
 func ConfigurationListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*Configuration) {
 	respList = make([]*Configuration, 0)
-	conds["dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}
@@ -152,7 +150,7 @@ func ConfigurationHistoryUpdate(db *gorm.DB, paramId int, ups map[string]interfa
 }
 
 func ConfigurationHistoryInfo(paramId int) (resp ConfigurationHistory, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("ConfigurationHistoryInfo info error", zap.Error(err))
@@ -161,9 +159,8 @@ func ConfigurationHistoryInfo(paramId int) (resp ConfigurationHistory, err error
 	return
 }
 
-// ConfigurationHistoryInfoX Info的扩展方法，根据Cond查询单条记录
+// ConfigurationHistoryInfoX get single item by condition
 func ConfigurationHistoryInfoX(conds map[string]interface{}) (resp ConfigurationHistory, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("ConfigurationHistoryInfoX infoX error", zap.Error(err))
@@ -172,7 +169,7 @@ func ConfigurationHistoryInfoX(conds map[string]interface{}) (resp Configuration
 	return
 }
 
-// ConfigurationHistoryDelete 软删除
+// ConfigurationHistoryDelete soft delete item by id
 func ConfigurationHistoryDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(ConfigurationHistory{}).Delete(&ConfigurationHistory{}, id).Error; err != nil {
 		invoker.Logger.Error("ConfigurationHistoryDelete delete error", zap.Error(err))
@@ -181,9 +178,8 @@ func ConfigurationHistoryDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
-// ConfigurationHistoryList 获取当前所有未删除的clusters. 主要供 前端用
+// ConfigurationHistoryList return item list by condition
 func ConfigurationHistoryList(conds egorm.Conds) (resp []*ConfigurationHistory, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
@@ -193,10 +189,9 @@ func ConfigurationHistoryList(conds egorm.Conds) (resp []*ConfigurationHistory, 
 	return
 }
 
-// ConfigurationHistoryListPage 根据分页条件查询list
+// ConfigurationHistoryListPage return item list by pagination
 func ConfigurationHistoryListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*ConfigurationHistory) {
 	respList = make([]*ConfigurationHistory, 0)
-	conds["dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}
@@ -243,7 +238,7 @@ func ConfigurationPublishUpdate(db *gorm.DB, paramId int, ups map[string]interfa
 }
 
 func ConfigurationPublishInfo(paramId int) (resp ConfigurationPublish, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameConfigurationPublish).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("ConfigurationPublishInfo info error", zap.Error(err))
@@ -252,7 +247,7 @@ func ConfigurationPublishInfo(paramId int) (resp ConfigurationPublish, err error
 	return
 }
 
-// ConfigurationPublishDelete 软删除
+// ConfigurationPublishDelete soft delete item by id
 func ConfigurationPublishDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(ConfigurationPublish{}).Delete(&ConfigurationPublish{}, id).Error; err != nil {
 		invoker.Logger.Error("ConfigurationPublishDelete delete error", zap.Error(err))
@@ -261,9 +256,8 @@ func ConfigurationPublishDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
-// ConfigurationPublishList 获取当前所有未删除的clusters. 主要供 前端用
+// ConfigurationPublishList return item list by condition
 func ConfigurationPublishList(conds egorm.Conds) (resp []*ConfigurationPublish, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameConfigurationPublish).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
@@ -273,10 +267,9 @@ func ConfigurationPublishList(conds egorm.Conds) (resp []*ConfigurationPublish, 
 	return
 }
 
-// ConfigurationPublishListPage 根据分页条件查询list
+// ConfigurationPublishListPage return item list by pagination
 func ConfigurationPublishListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*ConfigurationPublish) {
 	respList = make([]*ConfigurationPublish, 0)
-	conds["dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}
