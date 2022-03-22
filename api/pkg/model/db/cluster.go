@@ -12,7 +12,7 @@ import (
 	"github.com/shimohq/mogo/api/pkg/utils"
 )
 
-// k8s集群状态相关常量:
+// status of kubernetes cluster
 const (
 	ClusterStatusNormal = iota
 	ClusterStatusMaintaining
@@ -22,11 +22,11 @@ const (
 type Cluster struct {
 	BaseModel
 
-	Name        string `gorm:"column:name;type:varchar(255);NOT NULL;index:uix_cluster_name,unique" json:"clusterName"` // k8s集群英文唯一标识名
-	Description string `gorm:"column:description;type:varchar(128)" json:"description"`                                 // 对k8s集群的简要描述
-	Status      int    `gorm:"column:status;type:tinyint(1)" json:"status"`                                             // 集群状态,0:正常, 非0:不正常
-	ApiServer   string `gorm:"column:api_server;type:varchar(255);NOT NULL" json:"apiServer"`                           // k8s集群的ApiServer地址
-	KubeConfig  string `gorm:"column:kube_config;type:mediumtext;NOT NULL" json:"kubeConfig"`                           // admin权限的kubeconfig文件
+	Name        string `gorm:"column:name;type:varchar(255);NOT NULL;index:uix_cluster_name,unique" json:"clusterName"` // unique name of cluster
+	Description string `gorm:"column:description;type:varchar(128)" json:"description"`                                 // brief description of cluster
+	Status      int    `gorm:"column:status;type:tinyint(1)" json:"status"`                                             // 0 means Well-Running, others mean not running
+	ApiServer   string `gorm:"column:api_server;type:varchar(255);NOT NULL" json:"apiServer"`                           // address of cluster API server
+	KubeConfig  string `gorm:"column:kube_config;type:mediumtext;NOT NULL" json:"kubeConfig"`                           // raw content of kube config
 }
 
 func (m *Cluster) TableName() string {
@@ -58,7 +58,7 @@ func ClusterUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err er
 }
 
 func ClusterInfo(paramId int) (resp Cluster, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("cluster info error", zap.Error(err))
@@ -69,7 +69,7 @@ func ClusterInfo(paramId int) (resp Cluster, err error) {
 }
 
 func ClusterNormalInfo(paramId int) (resp Cluster, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("cluster info error", zap.Error(err))
@@ -87,13 +87,9 @@ func ClusterUpdateX(db *gorm.DB, conds egorm.Conds, ups map[string]interface{}) 
 	return
 }
 
-// ClusterInfoX Info的扩展方法，根据Cond查询单条记录
+// ClusterInfoX get single item by condition
 func ClusterInfoX(db *gorm.DB, conds map[string]interface{}) (resp Cluster, err error) {
-
-	conds["dtime"] = 0
-
 	sql, binds := egorm.BuildQuery(conds)
-
 	if err = db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("cluster infoX error", zap.Error(err))
 		return
@@ -102,11 +98,9 @@ func ClusterInfoX(db *gorm.DB, conds map[string]interface{}) (resp Cluster, err 
 	return
 }
 
-// ClusterList 获取当前所有未删除的clusters. 主要供 前端用
+// ClusterList return item list by condition
 func ClusterList(conds egorm.Conds) (resp []*Cluster, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
-
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("list clusters error", zap.Error(err))
@@ -119,9 +113,7 @@ func ClusterList(conds egorm.Conds) (resp []*Cluster, err error) {
 }
 
 func ClusterNormalList(conds egorm.Conds) (resp []*Cluster, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
-
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("list clusters error", zap.Error(err))
@@ -133,7 +125,6 @@ func ClusterNormalList(conds egorm.Conds) (resp []*Cluster, err error) {
 // GetAllNormalClusters 获取当前所有未删除且状态正常的clusters; 主要供后端调用.
 func GetAllNormalClusters() (result []*Cluster, err error) {
 	conds := egorm.Conds{
-		"dtime":  0,
 		"status": ClusterStatusNormal,
 	}
 	sql, binds := egorm.BuildQuery(conds)
@@ -142,11 +133,9 @@ func GetAllNormalClusters() (result []*Cluster, err error) {
 		return
 	}
 	return
-
 }
 
 func ClusterListHideSensitiveInfo(conds egorm.Conds) (resp []*Cluster, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
@@ -159,12 +148,9 @@ func ClusterListHideSensitiveInfo(conds egorm.Conds) (resp []*Cluster, err error
 	return
 }
 
-// ClusterListPage 根据分页条件查询list
+// ClusterListPage return item list by pagination
 func ClusterListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*Cluster) {
 	respList = make([]*Cluster, 0)
-
-	conds["dtime"] = 0
-
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}
@@ -182,7 +168,7 @@ func ClusterListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList
 	return
 }
 
-// ClusterDelete 软删除
+// ClusterDelete soft delete item by id
 func ClusterDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Cluster{}).Delete(&Cluster{}, id).Error; err != nil {
 		invoker.Logger.Error("cluster delete error", zap.Error(err))

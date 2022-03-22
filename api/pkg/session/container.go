@@ -35,7 +35,6 @@ func Load(key string) *Container {
 	return c
 }
 
-// Build 构建mpms.Config实例
 func (c *Container) Build(options ...Option) gin.HandlerFunc {
 	for _, option := range options {
 		option(c)
