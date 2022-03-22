@@ -5,9 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gotomicro/ego/core/elog"
-
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -94,7 +91,6 @@ func queryEncode(in string) ([]queryItem, error) {
 			}
 		}
 	}
-	invoker.Logger.Debug("queryEncode", elog.Any("step", "finish"), elog.Any("items", res))
 	return res, nil
 }
 
@@ -125,7 +121,7 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	if !strings.Contains(a, op) {
 		return nil
 	}
-	opArr := strings.Split(strings.TrimSpace(a), op)
+	opArr := strings.SplitN(strings.TrimSpace(a), op, 2)
 	if len(opArr) != 2 {
 		return constx.ErrQueryFormatIllegal
 	}
