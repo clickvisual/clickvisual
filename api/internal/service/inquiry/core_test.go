@@ -43,9 +43,9 @@ func Test_queryTransformer(t *testing.T) {
 		{
 			name: "test-1",
 			args: args{
-				in: "_namespace_='kube-system' and _log_agent_='fluent-bit-8w7qh' and _time_='2022-01-11T17:39:49+08:00'",
+				in: "_namespace_='kube-system' and _log_agent_='fluent-bit-8w7qh' and _time_second_='2022-01-11T17:39:49+08:00'",
 			},
-			wantOut: "_namespace_='kube-system' and _log_agent_='fluent-bit-8w7qh' and _time_='1641893989'",
+			wantOut: "_namespace_='kube-system' and _log_agent_='fluent-bit-8w7qh' and _time_second_='1641893989'",
 			wantErr: false,
 		}, {
 			name: "test-2",
@@ -61,13 +61,20 @@ func Test_queryTransformer(t *testing.T) {
 			},
 			wantOut: "_namespace_ like '%kube-system%'",
 			wantErr: false,
+		}, {
+			name: "test-4",
+			args: args{
+				in: "_namespace_ = '=====kube-system%'",
+			},
+			wantOut: "_namespace_ = '=====kube-system%'",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotOut, err := queryTransformer(tt.args.in)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("queryTransformer() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("queryTransformer() got = %v, error = %v, wantErr %v", gotOut, err, tt.wantErr)
 				return
 			}
 			if gotOut != tt.wantOut {

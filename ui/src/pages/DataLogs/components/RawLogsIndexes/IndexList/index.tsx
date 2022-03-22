@@ -52,7 +52,7 @@ const IndexList = (props: IndexListProps) => {
                     <span className={indexListStyles.title}>
                       {index.rootName === ""
                         ? index.rootName
-                        : `${index.rootName}-`}
+                        : `${index.rootName}.`}
                       {index.field}
                     </span>
                     <div className={indexListStyles.icon}>

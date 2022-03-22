@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/alarm"
 	"github.com/shimohq/mogo/api/internal/apiv1/base"
@@ -14,6 +15,7 @@ import (
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
+	"github.com/shimohq/mogo/api/pkg/utils"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/user"
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -25,11 +27,28 @@ import (
 )
 
 func GetRouter() *egin.Component {
+
+	appUrl, appSubUrl, err := utils.ParseAppUrlAndSubUrl(econf.GetString("app.rootURL"))
+	if err != nil {
+		panic(err.Error())
+	}
+	invoker.Logger.Info("ParseAppUrlAndSubUrl", elog.String("appUrl", appUrl), elog.String("appSubUrl", appSubUrl))
+
+	serveFromSubPath := econf.GetBool("app.serveFromSubPath")
+
 	r := invoker.Gin
 	r.Use(invoker.Session)
 
 	r.NoRoute(core.Handle(func(c *core.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+		prefix := "/api/"
+		if serveFromSubPath {
+			prefix = appSubUrl + prefix
+			// if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			// 	c.Redirect(302, strings.TrimRight(appUrl, "/")+c.Request.URL.Path)
+			// 	return
+			// }
+		}
+		if strings.HasPrefix(c.Request.URL.Path, prefix) {
 			c.JSONE(http.StatusNotFound, "", nil)
 			return
 		}
@@ -38,20 +57,35 @@ func GetRouter() *egin.Component {
 			maxAge = 86400
 		}
 		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
+
+		// path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
+		// path := appSubUrl + c.Request.URL.Path
+		// invoker.Logger.Debug("ParseAppUrlAndSubUrl", elog.String("queryPath", c.Request.URL.Path), elog.String("filterPath", path))
 		c.FileFromFS(c.Request.URL.Path, invoker.Gin.HTTPEmbedFs())
 		return
 	}))
 
-	// non-authentication api
-	r.GET("/api/admin/login/:oauth", core.Handle(user.Oauth))
-	r.POST("/api/admin/users/login", core.Handle(user.Login))
-	// webhook
-	r.POST("/api/v1/prometheus/alerts", core.Handle(alarm.Webhook))
-	// mock
-	r.POST("/api/v1/install", core.Handle(initialize.Install))
-	r.GET("/api/v1/install", core.Handle(initialize.IsInstall))
+	apiPrefix := "/api"
+	if serveFromSubPath {
+		apiPrefix = appSubUrl + apiPrefix
+	}
+	admin := r.Group(apiPrefix + "/admin")
+	{
+		// non-authentication api
+		admin.GET("/login/:oauth", core.Handle(user.Oauth))
+		admin.POST("/users/login", core.Handle(user.Login))
+	}
 
-	v1 := r.Group("/api/v1", middlewares.AuthChecker())
+	v1Open := r.Group(apiPrefix + "/v1")
+	{
+		// webhook
+		v1Open.POST("/prometheus/alerts", core.Handle(alarm.Webhook))
+		// mock
+		v1Open.POST("/install", core.Handle(initialize.Install))
+		v1Open.GET("/install", core.Handle(initialize.IsInstall))
+	}
+
+	v1 := r.Group(apiPrefix+"/v1", middlewares.AuthChecker())
 	// User related
 	{
 		// init

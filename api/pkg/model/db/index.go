@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -21,6 +23,13 @@ type Index struct {
 
 func (t *Index) TableName() string {
 	return TableNameIndex
+}
+
+func (t *Index) GetFieldName() string {
+	if t.RootName == "" {
+		return t.Field
+	}
+	return fmt.Sprintf("%s.%s", t.RootName, t.Field)
 }
 
 func IndexInfo(db *gorm.DB, id int) (resp Index, err error) {

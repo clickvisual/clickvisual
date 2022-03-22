@@ -1,7 +1,7 @@
 import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
 import { Button, Divider, Drawer, Space, Table, Tooltip } from "antd";
 import classNames from "classnames";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined, StopOutlined } from "@ant-design/icons";
 import { useIntl } from "umi";
 import { AlignType } from "rc-table/lib/interface";
 import IconFont from "@/components/IconFont";
@@ -72,23 +72,33 @@ const DatabaseViewsDraw = (props: DatabaseViewsDrawProps) => {
       dataIndex: "operation",
       width: "30%",
       align: "center" as AlignType,
-      render: (_: any, record: any) => (
-        <Space>
-          <Button onClick={() => doEdit(record.id)} type={"link"}>
-            <Tooltip title={i18n.formatMessage({ id: "edit" })}>
-              <EditOutlined />
-            </Tooltip>
-          </Button>
-          <Divider type="vertical" />
-          <Tooltip title={i18n.formatMessage({ id: "delete" })}>
-            <IconFont
-              onClick={() => doDelete(record)}
-              className={viewDrawStyles.buttonIcon}
-              type={"icon-delete"}
-            />
-          </Tooltip>
-        </Space>
-      ),
+      render: (_: any, record: any) => {
+        if (record.id == -1) {
+          return (
+            <Space>
+              <StopOutlined />
+            </Space>
+          );
+        } else {
+          return (
+            <Space>
+              <Button onClick={() => doEdit(record.id)} type={"link"}>
+                <Tooltip title={i18n.formatMessage({ id: "edit" })}>
+                  <EditOutlined />
+                </Tooltip>
+              </Button>
+              <Divider type="vertical" />
+              <Tooltip title={i18n.formatMessage({ id: "delete" })}>
+                <IconFont
+                  onClick={() => doDelete(record)}
+                  className={viewDrawStyles.buttonIcon}
+                  type={"icon-delete"}
+                />
+              </Tooltip>
+            </Space>
+          );
+        }
+      },
     },
   ];
 

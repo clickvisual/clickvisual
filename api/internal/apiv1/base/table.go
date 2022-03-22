@@ -88,7 +88,7 @@ func TableCreate(c *core.Context) {
 		SqlData:    d,
 		SqlStream:  s,
 		SqlView:    v,
-		TimeField:  inquiry.TimeField,
+		TimeField:  db.TimeField,
 		CreateType: inquiry.TableCreateTypeMogo,
 		Uid:        c.Uid(),
 	})
@@ -264,7 +264,7 @@ func TableLogs(c *core.Context) {
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
 	if tableInfo.TimeField == "" {
-		param.TimeField = inquiry.TimeField
+		param.TimeField = db.TimeField
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -312,7 +312,7 @@ func TableCharts(c *core.Context) {
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
 	if tableInfo.TimeField == "" {
-		param.TimeField = inquiry.TimeField
+		param.TimeField = db.TimeField
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -412,7 +412,7 @@ func TableIndexes(c *core.Context) {
 	}
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
 	if tableInfo.TimeField == "" {
-		param.TimeField = inquiry.TimeField
+		param.TimeField = db.TimeField
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -423,7 +423,7 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	indexInfo, _ := db.IndexInfo(invoker.Db, indexId)
-	param.Field = indexInfo.Field
+	param.Field = indexInfo.GetFieldName()
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)

@@ -132,7 +132,6 @@ const ModalCreatedAndUpdatedView = ({
           ]}
         >
           <Input
-            hidden={true}
             disabled={viewIsEdit}
             placeholder={`${i18n.formatMessage({
               id: "datasource.logLibrary.views.placeholder.viewName",
