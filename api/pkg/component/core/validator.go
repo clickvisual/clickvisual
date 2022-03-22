@@ -11,7 +11,6 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	tzh "github.com/go-playground/validator/v10/translations/zh"
-
 	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
