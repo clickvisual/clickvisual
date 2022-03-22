@@ -84,7 +84,7 @@ func queryTransformer(in string) (out string, err error) {
 
 func queryEncode(in string) ([]queryItem, error) {
 	res := make([]queryItem, 0)
-	for _, a := range strings.Split(in, "and") {
+	for _, a := range strings.Split(in, " and ") {
 		for _, op := range queryOperatorArr {
 			if err := queryEncodeOperation(a, op, &res); err != nil {
 				return nil, err

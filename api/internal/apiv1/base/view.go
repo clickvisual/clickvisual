@@ -20,6 +20,10 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(1, "error id", nil)
 		return
 	}
+	if id == -1 {
+		c.JSONE(0, "default time field not support delete", nil)
+		return
+	}
 	tx := invoker.Db.Begin()
 	var viewInfo db.View
 	viewInfo, err = db.ViewInfo(tx, id)
@@ -262,6 +266,10 @@ func ViewInfo(c *core.Context) {
 		c.JSONE(1, "error id", nil)
 		return
 	}
+	if id == -1 {
+		c.JSONE(0, "default time field not support modify", nil)
+		return
+	}
 	info, err := db.ViewInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -298,7 +306,7 @@ func ViewList(c *core.Context) {
 	// add default val
 	res = append(res, view.ReqViewList{
 		ID:   -1,
-		Name: tableInfo.TimeField,
+		Name: tableInfo.GetTimeField(),
 	})
 
 	for _, v := range views {
