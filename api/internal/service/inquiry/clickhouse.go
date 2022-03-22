@@ -548,9 +548,9 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	if err != nil {
 		return
 	}
-	if param.TimeField != TimeField {
+	if param.TimeField != db.TimeField {
 		for k := range res.Logs {
-			res.Logs[k][TimeField] = res.Logs[k][param.TimeField]
+			res.Logs[k][db.TimeField] = res.Logs[k][param.TimeField]
 		}
 	}
 	res.Count = c.Count(param)

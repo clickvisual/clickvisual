@@ -32,6 +32,15 @@ func (m *Table) TableName() string {
 	return TableNameTable
 }
 
+const TimeField = "_time_second_"
+
+func (m *Table) GetTimeField() string {
+	if m.TimeField != "" {
+		return m.TimeField
+	}
+	return TimeField
+}
+
 // TableCreate ...
 func TableCreate(db *gorm.DB, data *Table) (err error) {
 	if err = db.Model(Table{}).Create(data).Error; err != nil {

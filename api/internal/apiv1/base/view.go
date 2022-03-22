@@ -294,6 +294,13 @@ func ViewList(c *core.Context) {
 	}
 	var res []view.ReqViewList
 	res = make([]view.ReqViewList, 0)
+
+	// add default val
+	res = append(res, view.ReqViewList{
+		ID:   -1,
+		Name: tableInfo.TimeField,
+	})
+
 	for _, v := range views {
 		res = append(res, view.ReqViewList{
 			ID:   v.ID,
