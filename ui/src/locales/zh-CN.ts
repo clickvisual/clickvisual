@@ -17,6 +17,7 @@ export default {
   spin: "加载中...",
   "table.column.filter.placeholder": "请输入查询条件",
   "table.column.filter.reset": "重置",
+  "table.column.filter.refresh": "刷新",
   required: "必填",
 
   type: "类型",
@@ -346,6 +347,7 @@ export default {
   "dateTime.option.minutes": "{num} 分钟",
   "dateTime.option.hours": "{num} 小时",
   "dateTime.option.days": "{num} 天",
+  "dateTime.option.weeks": "{num} 周",
   "dateTime.option.months": "{num} 月",
   "dateTime.option.years": "{num} 年",
 
@@ -407,6 +409,18 @@ export default {
   "alarm.rules.state.alerting": "正在报警",
   "alarm.rules.state.ok": "正常",
   "alarm.rules.state.paused": "暂停",
+
+  "alarm.rules.historyBorad.theLog": "日志",
+  "alarm.rules.historyBorad.toView": "查看",
+  "alarm.rules.historyBorad.ctime": "创建时间",
+  "alarm.rules.historyBorad.lastUpdateTime": "上次更新时间",
+  "alarm.rules.historyBorad.checkFrequency": "检查频率",
+  "alarm.rules.historyBorad.status": "状态",
+  "alarm.rules.historyBorad.clickOnTheCopy": "点击复制",
+  "alarm.rules.historyBorad.user": "用户",
+  "alarm.rules.historyBorad.successPushRate": "成功推送率",
+  "alarm.rules.historyBorad.basicInformation": "基础信息",
+  "alarm.rules.historyBorad.historicalAlarmStatistics": "告警历史统计",
 
   // Notifications
   "alarm.notify.button.created": "新增渠道",

@@ -1,45 +1,66 @@
+@import "../../../../../styles/var.less";
 .board {
   display: flex;
   flex: 0 0 240px;
-  align-items: center;
+  flex-direction: column;
   width: 100%;
-  .count {
+  padding-bottom: 20px;
+  .header {
+    position: relative;
+    margin-left: 10px;
+    font-weight: 500;
+    font-size: 18px;
     display: flex;
-    flex: 1;
+    justify-content: space-between;
+    &::before {
+      position: absolute;
+      top: 5px;
+      left: -10px;
+      width: 4px;
+      height: 17px;
+      background-color: @primary-color;
+      border-radius: 1px;
+      content: "";
+    }
+  }
+  .table {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    height: 100%;
-    margin-right: 5px;
-    text-align: center;
-    .content {
-      flex: 1;
-      padding-left: 24px;
-      font-size: 18px;
-      line-height: 36px;
+    justify-content: space-between;
+    width: 100%;
+    padding-bottom: 14px;
+    .item {
+      display: flex;
+      justify-content: space-between;
+      width: calc(50% - 20px);
+      margin-left: 20px;
+      margin-top: 14px;
       .title {
-        font-weight: bold;
+        width: 180px;
+        color: rgba(0, 0, 0, 0.5);
+      }
+      .content {
+        flex: 1;
+        color: rgba(0, 0, 0, 1);
       }
     }
-    .progress {
-      flex: 1;
-    }
-  }
-  .divider {
-    flex: 0;
-    height: 80%;
-    border-right: 1px solid hsla(0, 0%, 0%, 0.1);
-  }
-  .chart {
-    flex: 1;
-    height: 100%;
-    margin-left: 5px;
   }
 }
+
 
 .options {
-  flex: 0 0 42px;
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 20px;
 }
 
-.table {
-  flex: 1;
-  overflow-y: auto;
+.copy {
+  cursor: pointer;
+}
+
+.lang {
+  position: absolute;
+  top: 5px;
+  right: 10px;
 }

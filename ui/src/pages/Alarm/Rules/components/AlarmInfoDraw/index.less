@@ -1,16 +1,34 @@
 .details {
+  display: flex;
   flex: 0 0 60px;
+  flex-wrap: wrap;
   font-size: 14px;
   line-height: 28px;
+  padding: 20px 20px 0;
+  box-sizing: border-box;
   cursor: default;
-  .title {
-    font-weight: bold;
+  .item {
+    width: 50%;
+    display: flex;
+    margin-bottom: 20px;
+    .title {
+      padding-right: 5px;
+      font-weight: bold;
+      width: 160px;
+    }
+    .content {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 }
 
 .configs {
   display: flex;
   flex: 1;
+  padding: 0 20px;
   .tabs {
     flex: 1;
     :global {
