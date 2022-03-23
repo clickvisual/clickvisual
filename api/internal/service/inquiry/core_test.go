@@ -83,11 +83,18 @@ func Test_queryTransformer(t *testing.T) {
 			wantOut: "andreqAid = 'androidxlv'",
 			wantErr: false,
 		}, {
-			name: "test-4",
+			name: "test-7",
 			args: args{
 				in: "==_namespace_ = '=====kube-system%'",
 			},
 			wantOut: "==_namespace_ = '=====kube-system%'",
+			wantErr: false,
+		}, {
+			name: "test-8",
+			args: args{
+				in: "==_namespace_ = '=====kube-system%' and andreqAid = 'xx and roidxlv'",
+			},
+			wantOut: "==_namespace_ = '=====kube-system%' and andreqAid = 'xx and roidxlv'",
 			wantErr: false,
 		},
 	}
