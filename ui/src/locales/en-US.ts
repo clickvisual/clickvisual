@@ -245,7 +245,7 @@ export default {
   "datasource.logLibrary.from.topics": "Topics",
   "datasource.logLibrary.from.consumers": "Consumers",
   "datasource.logLibrary.from.rule.topics":
-    "Please enter numbers, letters, or hyphens",
+    "Please enter numbers/letters/hyphens/underline",
   "datasource.logLibrary.from.creationMode": "Creation Mode",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary":

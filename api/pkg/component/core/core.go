@@ -12,10 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// HandlerFunc core封装后的handler
+// HandlerFunc defines the handler to wrap gin.Context
 type HandlerFunc func(c *Context)
 
-// Handle 将core.HandlerFunc转换为gin.HandlerFunc
+// Handle convert HandlerFunc to gin.HandlerFunc
 func Handle(h HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := &Context{
@@ -25,44 +25,44 @@ func Handle(h HandlerFunc) gin.HandlerFunc {
 	}
 }
 
-// Context core封装后的Context
+// Context a wrapper of gin.Context
 type Context struct {
 	*gin.Context
 }
 
 const (
-	// CodeOK 表示响应成功状态码
+	// CodeOK means a successful response
 	CodeOK = 0
-	// CodeErr 表示默认响应失败状态码
+	// CodeErr means a failure response
 	CodeErr = 1
-	// DefaultPaginationSize ...
+	// DefaultPaginationSize defines pagination size of an item list response
 	DefaultPaginationSize = 20
 )
 
-// Res 标准JSON输出格式
+// Res defines HTTP JSON response
 type Res struct {
-	// Code 响应的业务错误码。0表示业务执行成功，非0表示业务执行失败。
+	// Code means response business code
 	Code int `json:"code"`
-	// Msg 响应的参考消息。前端可使用msg来做提示
+	// Msg means response extra message
 	Msg string `json:"msg"`
-	// Data 响应的具体数据
+	// Data means response data payload
 	Data interface{} `json:"data"`
 }
 
-// ResPage 带分页的标准JSON输出格式
+// ResPage defines HTTP JSON response with extra pagination data
 type ResPage struct {
 	Res
 	Pagination Pagination `json:"pagination"`
 }
 
 type Pagination struct {
-	// Current 总记录数
+	// Current means current page number
 	Current int `json:"current" form:"current"`
-	// PageSize 每页记录数
+	// PageSize means max item count of a page
 	PageSize int `json:"pageSize" form:"pageSize"`
-	// Total 总页数
+	// Total means total page count
 	Total int64 `json:"total" form:"total"`
-	// Sort 顺序
+	// Sort means sort expression
 	Sort string `json:"sort"  form:"sort"`
 }
 
@@ -99,14 +99,14 @@ func (p *Pagination) List(db *gorm.DB, list interface{}) {
 	return
 }
 
-// JSON 输出响应JSON
-// 形如 {"code":<code>, "msg":<msg>, "data":<data>}
+// JSON returns JSON response
+// e.x. {"code":<code>, "msg":<msg>, "data":<data>}
 func (c *Context) JSON(httpStatus int, res Res) {
 	c.Context.JSON(httpStatus, res)
 }
 
-// JSONOK 输出响应成功JSON，如果data不为零值，则输出data
-// 形如 {"code":0, "msg":"成功", "data":<data>}
+// JSONOK returns JSON response with successful business code and data
+// e.x. {"code":0, "msg":"成功", "data":<data>}
 func (c *Context) JSONOK(data ...interface{}) {
 	j := new(Res)
 	j.Code = CodeOK
@@ -120,8 +120,8 @@ func (c *Context) JSONOK(data ...interface{}) {
 	return
 }
 
-// JSONE 输出失败响应
-// 形如 {"code":<code>, "msg":<msg>, "data":<data>}
+// JSONE returns JSON response with failure business code ,msg and data
+// e.x. {"code":<code>, "msg":<msg>, "data":<data>}
 func (c *Context) JSONE(code int, msg string, data interface{}) {
 	j := new(Res)
 	j.Code = code
@@ -137,8 +137,8 @@ func (c *Context) JSONE(code int, msg string, data interface{}) {
 	return
 }
 
-// JSONPage 输出带分页信息的JSON
-// 形如 {"code":<code>, "msg":<msg>, "data":<data>, "pagination":<pagination>}
+// JSONPage returns JSON response with pagination
+// e.x. {"code":<code>, "msg":<msg>, "data":<data>, "pagination":<pagination>}
 // <pagination> { "current":1, "pageSize":20, "total": 9 }
 func (c *Context) JSONPage(data interface{}, pagination Pagination) {
 	j := new(ResPage)
@@ -148,14 +148,12 @@ func (c *Context) JSONPage(data interface{}, pagination Pagination) {
 	c.Context.JSON(http.StatusOK, j)
 }
 
-// Bind 将请求消息绑定到指定对象中，并做数据校验。如果校验失败，则返回校验失败错误中文文案
-// 并将HTTP状态码设置成400
+// Bind wraps gin context.Bind() with custom validator
 func (c *Context) Bind(obj interface{}) (err error) {
 	return validate(c.Context.Bind(obj))
 }
 
-// ShouldBind 将请求消息绑定到指定对象中，并做数据校验。如果校验失败，则返回校验失败错误中文文案
-// 类似Bind，但是不会将HTTP状态码设置成400
+// ShouldBind wraps gin context.ShouldBind() with custom validator
 func (c *Context) ShouldBind(obj interface{}) (err error) {
 	return validate(c.Context.ShouldBind(obj))
 }

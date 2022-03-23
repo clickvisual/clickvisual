@@ -16,7 +16,7 @@ const useTimeUnits = () => {
     { key: 2, label: i18n.formatMessage({ id: "unit.hour" }) },
     { key: 3, label: i18n.formatMessage({ id: "unit.day" }) },
     { key: 4, label: i18n.formatMessage({ id: "unit.week" }) },
-    { key: 5, label: i18n.formatMessage({ id: "unit.year" }) },
+    // { key: 5, label: i18n.formatMessage({ id: "unit.year" }) },
   ];
 
   const weekList = [

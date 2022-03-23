@@ -15,8 +15,8 @@ import (
 type Instance struct {
 	BaseModel
 
-	Datasource       string `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // 数据源类型
-	Name             string `gorm:"column:name;type:varchar(128);NOT NULL;index:idx_datasource_name,unique" json:"name"`            // 实例名称
+	Datasource       string `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // datasource type
+	Name             string `gorm:"column:name;type:varchar(128);NOT NULL;index:idx_datasource_name,unique" json:"name"`            // datasource instance name
 	Dsn              string `gorm:"column:dsn;type:text" json:"dsn"`                                                                // dsn
 	RuleStoreType    int    `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                                       // rule_store_type 0 集群 1 文件
 	FilePath         string `gorm:"column:file_path;type:varchar(255)" json:"filePath"`                                             // file_path
@@ -74,7 +74,7 @@ func InstanceCreate(db *gorm.DB, data *Instance) (err error) {
 }
 
 func InstanceByName(dt, name string) (resp Instance, err error) {
-	var sql = "`datasource`= ? and `name`=? and dtime = 0"
+	var sql = "`datasource`= ? and `name`= ?"
 	var binds = []interface{}{dt, name}
 	if err = invoker.Db.Model(Instance{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
@@ -84,7 +84,7 @@ func InstanceByName(dt, name string) (resp Instance, err error) {
 }
 
 func InstanceInfo(db *gorm.DB, id int) (resp Instance, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(Instance{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
@@ -113,7 +113,6 @@ func InstanceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 
 // InstanceInfoX Info extension method to query a single record according to Cond
 func InstanceInfoX(db *gorm.DB, conds map[string]interface{}) (resp Instance, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameInstance).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("infoX error", zap.Error(err))

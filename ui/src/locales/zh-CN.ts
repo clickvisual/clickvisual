@@ -236,7 +236,8 @@ export default {
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
   "datasource.logLibrary.from.consumers": "Consumers",
-  "datasource.logLibrary.from.rule.topics": "请输入数字、英文字母，或中划线",
+  "datasource.logLibrary.from.rule.topics":
+    "请输入数字、英文字母，中划线、下划线或 . ",
   "datasource.logLibrary.from.creationMode": "创建方式",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary":

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import useRequest from "@/hooks/useRequest/useRequest";
-import api, { CreatedViewRequest } from "@/services/dataLogs";
+import api, { CreatedViewRequest, ViewResponse } from "@/services/dataLogs";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 
@@ -9,7 +9,7 @@ export default function useLogLibraryViews() {
   const [visibleFormModal, setVisibleFormModal] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [editView, setEditView] = useState<CreatedViewRequest | undefined>();
-  const [viewList, setViewList] = useState<any[]>([]);
+  const [viewList, setViewList] = useState<ViewResponse[]>([]);
 
   const onChangeVisibleDraw = (visible: boolean) => {
     setVisibleDraw(visible);

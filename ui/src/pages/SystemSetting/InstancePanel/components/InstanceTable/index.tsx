@@ -12,6 +12,7 @@ import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
 import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
+import { ColumnsType } from "antd/es/table";
 
 type InstanceTableProps = {
   list: InstanceType[];
@@ -38,7 +39,7 @@ const InstanceTable = (props: InstanceTableProps) => {
 
   const i18n = useIntl();
 
-  const column = [
+  const column: ColumnsType<any> = [
     {
       title: `${i18n.formatMessage({
         id: "instance.instanceName",

@@ -109,7 +109,7 @@ const NewTable = () => {
             }),
           },
           {
-            pattern: new RegExp(/^[a-zA-Z0-9\-]+$/),
+            pattern: new RegExp(/^[a-zA-Z0-9\-\_\.]+$/),
             message: i18n.formatMessage({
               id: "datasource.logLibrary.from.rule.topics",
             }),

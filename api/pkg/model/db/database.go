@@ -13,9 +13,9 @@ import (
 type Database struct {
 	BaseModel
 
-	Iid  int    `gorm:"column:iid;type:int(11);index:uix_iid_name,unique" json:"iid"`                 // 实例 id
-	Name string `gorm:"column:name;type:varchar(128);index:uix_iid_name,unique;NOT NULL" json:"name"` // 数据库名称
-	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // 操作人
+	Iid  int    `gorm:"column:iid;type:int(11);index:uix_iid_name,unique" json:"iid"`                 // datasource instance id
+	Name string `gorm:"column:name;type:varchar(128);index:uix_iid_name,unique;NOT NULL" json:"name"` // datasource database name
+	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // datasource operator uid
 
 	Instance *Instance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
 }
@@ -44,7 +44,6 @@ func DatabaseDelete(db *gorm.DB, id int) (err error) {
 
 // DatabaseInfoX Info extension method to query a single record according to Cond
 func DatabaseInfoX(db *gorm.DB, conds map[string]interface{}) (resp Database, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("infoX error", zap.Error(err))
@@ -54,7 +53,7 @@ func DatabaseInfoX(db *gorm.DB, conds map[string]interface{}) (resp Database, er
 }
 
 func DatabaseInfo(db *gorm.DB, paramId int) (resp Database, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("info error", zap.Error(err))
@@ -100,7 +99,6 @@ func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err e
 
 // DatabaseList Get all currently undeleted clusters. Mainly used for front end
 func DatabaseList(db *gorm.DB, conds egorm.Conds) (resp []*Database, err error) {
-	conds["dtime"] = 0
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameDatabase).Preload("Instance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("list error", elog.String("err", err.Error()))

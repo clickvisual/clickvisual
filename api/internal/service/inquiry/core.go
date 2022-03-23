@@ -5,9 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gotomicro/ego/core/elog"
-
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -39,8 +36,6 @@ type Operator interface {
 	DropTable(string) error
 	DropDatabase(string) error
 }
-
-const TimeField = "_time_second_"
 
 const (
 	TableCreateTypeMogo  = 0
@@ -89,20 +84,19 @@ func queryTransformer(in string) (out string, err error) {
 
 func queryEncode(in string) ([]queryItem, error) {
 	res := make([]queryItem, 0)
-	for _, a := range strings.Split(in, "and") {
+	for _, a := range strings.Split(in, "' and ") {
 		for _, op := range queryOperatorArr {
 			if err := queryEncodeOperation(a, op, &res); err != nil {
 				return nil, err
 			}
 		}
 	}
-	invoker.Logger.Debug("queryEncode", elog.Any("step", "finish"), elog.Any("items", res))
 	return res, nil
 }
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Key == TimeField {
+		if item.Key == db.TimeField {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
 		if index == 0 {
@@ -127,14 +121,18 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	if !strings.Contains(a, op) {
 		return nil
 	}
-	opArr := strings.Split(strings.TrimSpace(a), op)
+	opArr := strings.SplitN(strings.TrimSpace(a), op, 2)
 	if len(opArr) != 2 {
 		return constx.ErrQueryFormatIllegal
+	}
+	val := opArr[1]
+	if strings.Contains(val, "'") {
+		val = strings.TrimSuffix(val, "'") + "'"
 	}
 	*res = append(*res, queryItem{
 		Key:      opArr[0],
 		Operator: op,
-		Value:    opArr[1],
+		Value:    val,
 	})
 	return nil
 }

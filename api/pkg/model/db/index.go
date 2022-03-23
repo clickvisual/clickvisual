@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -13,9 +15,9 @@ type Index struct {
 	BaseModel
 
 	Tid      int    `gorm:"column:tid;type:int(11);index:uix_tid_field,unique" json:"tid"`                   // table id
-	Field    string `gorm:"column:field;type:varchar(128);NOT NULL;index:uix_tid_field,unique" json:"field"` // 字段
-	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                     // 字段 0 text 1 long 2 double
-	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                            // 别名
+	Field    string `gorm:"column:field;type:varchar(128);NOT NULL;index:uix_tid_field,unique" json:"field"` // index field name
+	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                     // index field type, 0 text 1 long 2 double
+	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                            // index filed alias name
 	RootName string `gorm:"column:root_name;type:varchar(128);NOT NULL" json:"rootName"`                     // root_name
 }
 
@@ -23,8 +25,15 @@ func (t *Index) TableName() string {
 	return TableNameIndex
 }
 
+func (t *Index) GetFieldName() string {
+	if t.RootName == "" {
+		return t.Field
+	}
+	return fmt.Sprintf("%s.%s", t.RootName, t.Field)
+}
+
 func IndexInfo(db *gorm.DB, id int) (resp Index, err error) {
-	var sql = "`id`= ? and dtime = 0"
+	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(Index{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
