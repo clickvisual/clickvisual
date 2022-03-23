@@ -11,6 +11,7 @@ import type { ClusterType } from "@/services/systemSetting";
 import { ClustersPanelContext } from "@/pages/SystemSetting/ClustersPanel";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
+import { ColumnsType } from "antd/es/table";
 
 const ClustersTable = () => {
   const { onChangeVisible, onChangeIsEditor, onChangeCurrentCluster } =
@@ -24,7 +25,7 @@ const ClustersTable = () => {
     doDeletedCluster,
   } = useModel("clusters");
 
-  const column = [
+  const column: ColumnsType<any> = [
     {
       title: `${i18n.formatMessage({ id: "cluster.clusterName" })}`,
       dataIndex: "clusterName",
