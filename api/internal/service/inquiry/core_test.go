@@ -96,13 +96,27 @@ func Test_queryTransformer(t *testing.T) {
 			},
 			wantOut: "==_namespace_ = '=====kube-system%' and andreqAid = 'xx and roidxlv'",
 			wantErr: false,
+		}, {
+			name: "test-9",
+			args: args{
+				in: "1='1'",
+			},
+			wantOut: "1='1'",
+			wantErr: false,
+		}, {
+			name: "test-10",
+			args: args{
+				in: "1=1",
+			},
+			wantOut: "1=1",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotOut, err := queryTransformer(tt.args.in)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("queryTransformer() got = %v, error = %v, wantErr %v", gotOut, err, tt.wantErr)
+				t.Errorf("queryTransformer() got %v, error %v, wantErr %v", gotOut, err, tt.wantErr)
 				return
 			}
 			if gotOut != tt.wantOut {

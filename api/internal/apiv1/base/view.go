@@ -21,7 +21,7 @@ func ViewDelete(c *core.Context) {
 		return
 	}
 	if id == -1 {
-		c.JSONE(0, "default time field not support delete", nil)
+		c.JSONE(1, "default time field not support delete", nil)
 		return
 	}
 	tx := invoker.Db.Begin()
@@ -267,7 +267,7 @@ func ViewInfo(c *core.Context) {
 		return
 	}
 	if id == -1 {
-		c.JSONE(0, "default time field not support modify", nil)
+		c.JSONE(1, "default time field not support modify", nil)
 		return
 	}
 	info, err := db.ViewInfo(invoker.Db, id)

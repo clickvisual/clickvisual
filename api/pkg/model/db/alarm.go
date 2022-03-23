@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -45,17 +46,36 @@ const (
 	AlarmStatusFiring
 )
 
-var unitMap = map[int]string{
-	0: "m",
-	1: "s",
-	2: "h",
-	3: "d",
-	4: "w",
-	5: "y",
+type UnitItem struct {
+	Alias    string        `json:"alias"`
+	Duration time.Duration `json:"duration"`
+}
+
+var UnitMap = map[int]UnitItem{
+	0: {
+		Alias:    "m",
+		Duration: time.Minute,
+	},
+	1: {
+		Alias:    "s",
+		Duration: time.Second,
+	},
+	2: {
+		Alias:    "h",
+		Duration: time.Hour,
+	},
+	3: {
+		Alias:    "d",
+		Duration: time.Hour * 24,
+	},
+	4: {
+		Alias:    "w",
+		Duration: time.Hour * 24 * 7,
+	},
 }
 
 func (m *Alarm) AlertInterval() string {
-	return fmt.Sprintf("%d%s", m.Interval, unitMap[m.Unit])
+	return fmt.Sprintf("%d%s", m.Interval, UnitMap[m.Unit].Alias)
 }
 
 func GetAlarmTableInstanceInfo(id int) (instanceInfo Instance, tableInfo Table, alarmInfo Alarm, err error) {

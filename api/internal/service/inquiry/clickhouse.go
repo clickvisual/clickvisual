@@ -276,7 +276,7 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 		res.PageSize = 20
 	}
 	if res.Query == "" {
-		res.Query = "1=1"
+		res.Query = "1='1'"
 	}
 	if res.ST == 0 {
 		res.ST = time.Now().Add(-time.Hour).Unix()

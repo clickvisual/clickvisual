@@ -125,10 +125,14 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	if len(opArr) != 2 {
 		return constx.ErrQueryFormatIllegal
 	}
+	val := opArr[1]
+	if strings.Contains(val, "'") {
+		val = strings.TrimSuffix(val, "'") + "'"
+	}
 	*res = append(*res, queryItem{
 		Key:      opArr[0],
 		Operator: op,
-		Value:    strings.TrimSuffix(opArr[1], "'") + "'",
+		Value:    val,
 	})
 	return nil
 }
