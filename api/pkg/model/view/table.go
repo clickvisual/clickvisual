@@ -43,8 +43,8 @@ type RespTableDetail struct {
 	Database   RespDatabaseItem `json:"database"`
 	CreateType int              `json:"createType"`
 	TimeField  string           `json:"timeField"`
-	CTime      int64            `json:"ctime"`
-	UTime      int64            `json:"utime"`
+	Ctime      int64            `json:"ctime"`
+	Utime      int64            `json:"utime"`
 }
 
 type RespColumn struct {
