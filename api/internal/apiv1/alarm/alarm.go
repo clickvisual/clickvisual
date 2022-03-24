@@ -87,6 +87,15 @@ func Update(c *core.Context) {
 			c.JSONE(1, "alarm update failed 02"+errAlarmInfo.Error(), nil)
 			return
 		}
+		op, errInstanceManager := service.InstanceManager.Load(instanceInfo.ID)
+		if errInstanceManager != nil {
+			c.JSONE(core.CodeErr, errInstanceManager.Error(), nil)
+			return
+		}
+		if err = op.AlertViewDrop(alarmInfo.ViewTableName); err != nil {
+			c.JSONE(1, "alarm update failed when delete metrics view"+err.Error(), nil)
+			return
+		}
 		if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
 			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed", nil)
 			return

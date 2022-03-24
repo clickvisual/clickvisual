@@ -2,7 +2,7 @@ import infoStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryLis
 import { TableInfoResponse, TablesResponse } from "@/services/dataLogs";
 import { useEffect, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
-import { Drawer, Select } from "antd";
+import { Drawer, Select, Tooltip } from "antd";
 import MonacoEditor from "react-monaco-editor";
 import { useIntl } from "umi";
 import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
@@ -32,6 +32,77 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
 
   const { logLibrary } = props;
 
+  const infoData = [
+    {
+      id: 101,
+      title: i18n.formatMessage({
+        id: "datasource.logLibrary.from.creationMode",
+      }),
+      content: i18n.formatMessage({
+        id: `datasource.logLibrary.from.creationMode.option.${
+          logLibrary?.createType === 0 ? "newLogLibrary" : "logLibrary"
+        }`,
+      }),
+      tooltip: false,
+    },
+    {
+      id: 102,
+      title: i18n.formatMessage({
+        id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField",
+      }),
+      content: libraryInfo?.timeField,
+      tooltip: true,
+    },
+    {
+      id: 103,
+      title: i18n.formatMessage({ id: "datasource.logLibrary.from.type" }),
+      content: logLibraryTypes.find((item) => item.value === libraryInfo?.typ)
+        ?.type,
+      tooltip: false,
+    },
+    {
+      id: 104,
+      title: i18n.formatMessage({ id: "datasource.logLibrary.from.days" }),
+      content: libraryInfo?.days,
+      tooltip: false,
+    },
+    {
+      id: 105,
+      title: i18n.formatMessage({ id: "datasource.logLibrary.from.topics" }),
+      content: libraryInfo?.topic,
+      tooltip: false,
+    },
+    {
+      id: 106,
+      title: i18n.formatMessage({ id: "datasource.logLibrary.from.brokers" }),
+      content: libraryInfo?.brokers,
+      tooltip: false,
+    },
+    {
+      id: 107,
+      title: i18n.formatMessage({ id: "datasource.logLibrary.info.sql" }),
+      content: "",
+      tooltip: false,
+      Select: (
+        <Select
+          value={selectSql}
+          onChange={onChangeSelectSql}
+          showSearch
+          className={classNames(infoStyles.selectBar)}
+          placeholder={`${i18n.formatMessage({
+            id: "datasource.logLibrary.info.placeholder.sql",
+          })}`}
+        >
+          {libraryInfo?.sqlContent.keys.map((item) => (
+            <Option key={item} value={item}>
+              {item}
+            </Option>
+          ))}
+        </Select>
+      ),
+    },
+  ];
+
   useEffect(() => {
     if (logLibraryInfoDrawVisible) {
       doGetLogLibrary.run(logLibrary?.id).then((res) => {
@@ -52,7 +123,7 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
       placement="right"
       closable
       getContainer={false}
-      width={"40vw"}
+      width={"60vw"}
       bodyStyle={{
         margin: 10,
         padding: 0,
@@ -64,88 +135,21 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
       onClose={() => onChangeLogLibraryInfoDrawVisible(false)}
     >
       <div className={infoStyles.infoMain}>
-        <div className={infoStyles.firstLine}>
-          <div>
-            <span className={classNames(infoStyles.title)}>
-              {i18n.formatMessage({
-                id: "datasource.logLibrary.from.creationMode",
-              })}
-            </span>
-            <span>:&nbsp;</span>
-            <span>
-              {i18n.formatMessage({
-                id: `datasource.logLibrary.from.creationMode.option.${
-                  logLibrary.createType === 0 ? "newLogLibrary" : "logLibrary"
-                }`,
-              })}
-            </span>
+        {infoData.map((item: any) => (
+          <div className={infoStyles.item} key={item.id}>
+            <div className={infoStyles.title}>{item.title}: </div>
+            {item.Select ||
+              (item.tooltip ? (
+                <Tooltip title={item.content}>
+                  <div className={infoStyles.content}>
+                    {item.content || "-"}
+                  </div>
+                </Tooltip>
+              ) : (
+                <div className={infoStyles.content}>{item.content || "-"}</div>
+              ))}
           </div>
-          <div>
-            <span className={classNames(infoStyles.title)}>
-              {i18n.formatMessage({
-                id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField",
-              })}
-            </span>
-            <span>:&nbsp;</span>
-            <span>{libraryInfo.timeField}</span>
-          </div>
-        </div>
-        <div className={infoStyles.firstLine}>
-          <div>
-            <span className={classNames(infoStyles.title)}>
-              {i18n.formatMessage({ id: "datasource.logLibrary.from.type" })}
-            </span>
-            <span>:&nbsp;</span>
-            <span>
-              {
-                logLibraryTypes.find((item) => item.value === libraryInfo.typ)
-                  ?.type
-              }
-            </span>
-          </div>
-          <div>
-            <span className={classNames(infoStyles.title)}>
-              {i18n.formatMessage({ id: "datasource.logLibrary.from.days" })}
-            </span>
-            <span>:&nbsp;</span>
-            <span>{libraryInfo.days}</span>
-          </div>
-          <div>
-            <span className={classNames(infoStyles.title)}>
-              {i18n.formatMessage({ id: "datasource.logLibrary.from.topics" })}
-            </span>
-            <span>:&nbsp;</span>
-            <span>{libraryInfo.topic}</span>
-          </div>
-        </div>
-        <div>
-          <span className={classNames(infoStyles.title)}>
-            {i18n.formatMessage({ id: "datasource.logLibrary.from.brokers" })}
-          </span>
-          <span>:&nbsp;</span>
-          <span>{libraryInfo.brokers}</span>
-        </div>
-        <div>
-          <span className={classNames(infoStyles.title)}>
-            {i18n.formatMessage({ id: "datasource.logLibrary.info.sql" })}
-          </span>
-          <span>:&nbsp;</span>
-          <Select
-            value={selectSql}
-            onChange={onChangeSelectSql}
-            showSearch
-            className={classNames(infoStyles.selectBar)}
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.info.placeholder.sql",
-            })}`}
-          >
-            {libraryInfo.sqlContent.keys.map((item) => (
-              <Option key={item} value={item}>
-                {item}
-              </Option>
-            ))}
-          </Select>
-        </div>
+        ))}
       </div>
       <div className={infoStyles.infoEditor}>
         <MonacoEditor

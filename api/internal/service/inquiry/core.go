@@ -11,30 +11,22 @@ import (
 )
 
 type Operator interface {
-	DatabaseCreate(string) error
-
-	TableCreate(int, string, view.ReqTableCreate) (string, string, string, error)
-	TableDrop(string, string, int) error
-
-	Databases() ([]*view.RespDatabaseSelfBuilt, error)
-	Columns(string, string, bool) ([]*view.RespColumn, error)
-
-	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
-
-	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
-	GET(view.ReqQuery, int) (view.RespQuery, error)
-
-	Count(view.ReqQuery) uint64
-	GroupBy(view.ReqQuery) map[string]uint64
-
-	IndexUpdate(db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
-
-	AlertViewGen(*db.Alarm, []*db.AlarmFilter) (string, string, error)
-	AlertViewCreate(string, string) error
-	AlertViewDrop(string) error
-
 	DropTable(string) error
 	DropDatabase(string) error
+	AlertViewDrop(string) error
+	DatabaseCreate(string) error
+	Count(view.ReqQuery) uint64
+	TableDrop(string, string, int) error
+	AlertViewCreate(string, string) error
+	GroupBy(view.ReqQuery) map[string]uint64
+	GET(view.ReqQuery, int) (view.RespQuery, error)
+	Databases() ([]*view.RespDatabaseSelfBuilt, error)
+	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
+	Columns(string, string, bool) ([]*view.RespColumn, error)
+	AlertViewGen(*db.Alarm, []*db.AlarmFilter) (string, string, error)
+	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
+	TableCreate(int, string, view.ReqTableCreate) (string, string, string, error)
+	IndexUpdate(db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 }
 
 const (
@@ -43,9 +35,8 @@ const (
 )
 
 const (
-	TableTypeTimeString = 1
-	TableTypeTimeFloat  = 2
-
+	TableTypeTimeString       = 1
+	TableTypeTimeFloat        = 2
 	TableTypePrometheusMetric = 999
 )
 
