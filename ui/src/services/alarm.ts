@@ -64,6 +64,8 @@ export interface AlarmInfoType extends AlarmType, TimeBaseType {
   state: string;
   username: string;
   webUrl: string;
+  table: any;
+  instance: any;
 }
 
 export interface AlarmRequest {

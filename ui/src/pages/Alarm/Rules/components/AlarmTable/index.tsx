@@ -1,5 +1,5 @@
 import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import { Divider, message, Space, Table, Tag, Tooltip } from "antd";
+import { Divider, message, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
@@ -7,16 +7,11 @@ import { useEffect } from "react";
 import useTimeUnits from "@/hooks/useTimeUnits";
 import { AlarmType } from "@/services/alarm";
 import IconFont from "@/components/IconFont";
-import {
-  EditOutlined,
-  FileTextOutlined,
-  PoweroffOutlined,
-} from "@ant-design/icons";
+import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
 import DeletedModal from "@/components/DeletedModal";
 import classNames from "classnames";
 import { useDebounceFn } from "ahooks";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
-import Item from "antd/lib/list/Item";
 import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
 
 const AlarmTable = () => {
@@ -206,7 +201,6 @@ const AlarmTable = () => {
             <a>{status.label}</a>
           </div>
         );
-        // return <Tag color={status.color}>{status.label}</Tag>;
       },
     },
     {

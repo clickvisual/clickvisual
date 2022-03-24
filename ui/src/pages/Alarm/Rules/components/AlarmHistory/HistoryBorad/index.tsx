@@ -34,6 +34,8 @@ const HistoryBoard = ({
     unit,
     interval,
     uid,
+    instance,
+    table,
   } = currentAlarm;
   const { AlarmStatus } = useAlarmEnums();
   const status = AlarmStatus.find((item) => value === item.status);
@@ -65,20 +67,6 @@ const HistoryBoard = ({
     },
     {
       id: 102,
-      title: i18n.formatMessage({ id: "alarm.rules.historyBorad.ctime" }),
-      content: ctime && moment(ctime * 1000).format("YYYY-MM-DD hh:mm:ss"),
-      isCopy: false,
-    },
-    {
-      id: 103,
-      title: i18n.formatMessage({
-        id: "alarm.rules.historyBorad.lastUpdateTime",
-      }),
-      content: utime && moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss"),
-      isCopy: false,
-    },
-    {
-      id: 104,
       title: i18n.formatMessage({
         id: "alarm.rules.historyBorad.checkFrequency",
       }),
@@ -86,7 +74,7 @@ const HistoryBoard = ({
       isCopy: false,
     },
     {
-      id: 105,
+      id: 103,
       title: i18n.formatMessage({
         id: "alarm.rules.historyBorad.status",
       }),
@@ -104,7 +92,37 @@ const HistoryBoard = ({
       color: status?.color,
     },
     {
-      id: 106,
+      id: 104,
+      title: i18n.formatMessage({ id: "alarm.rules.historyBorad.ctime" }),
+      content: ctime && moment(ctime * 1000).format("YYYY-MM-DD hh:mm:ss"),
+      isCopy: false,
+    },
+    {
+      id: 105,
+      title: i18n.formatMessage({
+        id: "alarm.rules.historyBorad.table",
+      }),
+      content: table.name,
+      isCopy: false,
+    },
+    {
+      id: 108,
+      title: i18n.formatMessage({
+        id: "alarm.rules.historyBorad.lastUpdateTime",
+      }),
+      content: utime && moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss"),
+      isCopy: false,
+    },
+    {
+      id: 107,
+      title: i18n.formatMessage({
+        id: "alarm.rules.historyBorad.database",
+      }),
+      content: table.database.name,
+      isCopy: false,
+    },
+    {
+      id: 108,
       title: "UUID",
       copyText: uuid,
       content: (
@@ -119,7 +137,16 @@ const HistoryBoard = ({
       isCopy: true,
     },
     {
-      id: 107,
+      id: 109,
+      // title: i18n.formatMessage({
+      //   id: "alarm.rules.historyBorad.database",
+      // }),
+      title: "实例",
+      content: instance.name,
+      isCopy: false,
+    },
+    {
+      id: 110,
       title: i18n.formatMessage({ id: "alarm.rules.historyBorad.user" }),
       content: <Tooltip title={`uid: ${uid}`}>{username}</Tooltip>,
       isCopy: false,
