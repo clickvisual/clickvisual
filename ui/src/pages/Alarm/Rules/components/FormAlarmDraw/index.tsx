@@ -147,7 +147,7 @@ const FormAlarmDraw = () => {
                 max: 64,
               },
               {
-                pattern: new RegExp("^[a-zA-Z1-9_]*$"),
+                // pattern: new RegExp("^[a-zA-Z1-9_]*$"),
                 message: i18n.formatMessage({
                   id: "alarm.rules.form.rule.alarmName",
                 }),

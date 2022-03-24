@@ -14,6 +14,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
@@ -467,10 +468,10 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (s
 		return "", "", err
 	}
 
-	viewTableName = fmt.Sprintf("%s.%s_%s_view", tableInfo.Database.Name, tableInfo.Name, alarm.Name)
+	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
 
-	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, alarm.Name, TagsToString(alarm, true), sourceTableName, filter)
+	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, constx.PrometheusMetricsName, TagsToString(alarm, true), sourceTableName, filter)
 
 	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create

@@ -82,7 +82,7 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alertID int, filters []view.ReqAlarmFi
 }
 
 func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate) (exp string, err error) {
-	expVal := fmt.Sprintf("%s{%s}", obj.Name, inquiry.TagsToString(obj, false))
+	expVal := fmt.Sprintf("%s{%s}", constx.PrometheusMetricsName, inquiry.TagsToString(obj, false))
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].SetOperatorTyp < conditions[j].SetOperatorTyp
 	})
@@ -141,7 +141,7 @@ func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
 }
 
 func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) (rule string, err error) {
-	rule = fmt.Sprintf(prometheusRuleTemplate, obj.Name, exp, obj.AlertInterval())
+	rule = fmt.Sprintf(prometheusRuleTemplate, obj.AlertUniqueName(), exp, obj.AlertInterval())
 	return
 }
 
@@ -171,9 +171,6 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm
 		return constx.ErrAlarmRuleStoreIsClosed
 	}
 	i.AddPrometheusReloadChan()
-	// if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
-	// 	return
-	// }
 	return nil
 }
 
@@ -275,6 +272,13 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 func (i *alarm) OpenOperator(id int) (err error) {
 	instanceInfo, _, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
+		return
+	}
+	op, errInstanceManager := InstanceManager.Load(instanceInfo.ID)
+	if errInstanceManager != nil {
+		return
+	}
+	if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View); err != nil {
 		return
 	}
 	if err = i.PrometheusRuleCreateOrUpdate(instanceInfo, &alarmInfo, alarmInfo.AlertRule); err != nil {

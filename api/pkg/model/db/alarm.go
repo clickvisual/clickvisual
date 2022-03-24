@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
@@ -38,6 +39,14 @@ func (m *Alarm) TableName() string {
 
 func (m *Alarm) AlertRuleName() string {
 	return fmt.Sprintf("mogo-%s.yaml", m.Uuid)
+}
+
+func (m *Alarm) AlertViewName(database, table string) string {
+	return fmt.Sprintf("%s.%s_%s", database, table, m.AlertUniqueName())
+}
+
+func (m *Alarm) AlertUniqueName() string {
+	return strings.ReplaceAll(m.Uuid, "-", "_")
 }
 
 const (
@@ -158,7 +167,6 @@ func AlarmListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList [
 
 func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*Alarm) {
 	respList = make([]*Alarm, 0)
-	conds["mogo_alarm.dtime"] = 0
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
 	}
@@ -166,7 +174,7 @@ func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 		reqList.Current = 1
 	}
 	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Select("*, mogo_alarm.id as id").Model(Alarm{}).Joins("JOIN mogo_base_table ON mogo_alarm.tid = mogo_base_table.id").Where(sql, binds...)
+	db := invoker.Db.Select("*, mogo_alarm.id as id, mogo_alarm.name as name").Model(Alarm{}).Joins("JOIN mogo_base_table ON mogo_alarm.tid = mogo_base_table.id").Where(sql, binds...)
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
