@@ -36,9 +36,12 @@ type ReqAlarmConditionCreate struct {
 type RespAlarmInfo struct {
 	Filters    []*db.AlarmFilter    `json:"filters" form:"filters"`
 	Conditions []*db.AlarmCondition `json:"conditions" form:"conditions"`
-
+	Ctime      int64                `json:"ctime"`
+	Utime      int64                `json:"utime"`
 	db.Alarm
 	db.User
+	Table    db.Table    `json:"table"`
+	Instance db.Instance `json:"instance"`
 }
 
 type ReqAlarmHistoryList struct {

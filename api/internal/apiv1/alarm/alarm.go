@@ -159,7 +159,7 @@ func Info(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	alarmInfo, err := db.AlarmInfo(invoker.Db, id)
+	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -177,13 +177,20 @@ func Info(c *core.Context) {
 		return
 	}
 	user, _ := db.UserInfo(alarmInfo.Uid)
+
+	instanceInfo.Dsn = "*"
+	user.Password = "*"
+
 	res := view.RespAlarmInfo{
 		Alarm:      alarmInfo,
 		Filters:    filters,
 		Conditions: conditions,
 		User:       user,
+		Ctime:      alarmInfo.Ctime,
+		Utime:      alarmInfo.Utime,
+		Instance:   instanceInfo,
+		Table:      tableInfo,
 	}
-	res.Password = "*"
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }

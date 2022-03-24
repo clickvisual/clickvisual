@@ -124,8 +124,8 @@ func TableInfo(c *core.Context) {
 		Topic:     tableInfo.Topic,
 		Uid:       tableInfo.Uid,
 		TimeField: tableInfo.TimeField,
-		CTime:     tableInfo.Ctime,
-		UTime:     tableInfo.Utime,
+		Ctime:     tableInfo.Ctime,
+		Utime:     tableInfo.Utime,
 		Database: view.RespDatabaseItem{
 			Id:             tableInfo.Database.ID,
 			Iid:            tableInfo.Database.Iid,
