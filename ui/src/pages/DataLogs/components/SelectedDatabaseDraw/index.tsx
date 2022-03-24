@@ -13,6 +13,7 @@ import classNames from "classnames";
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
 import DeletedModal from "@/components/DeletedModal";
 import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
+import { ColumnsType } from "antd/es/table";
 
 const { Option } = Select;
 const SelectedDataBaseDraw = () => {
@@ -97,7 +98,7 @@ const SelectedDataBaseDraw = () => {
     }
   }, [visibleDataBaseDraw]);
 
-  const column = [
+  const column: ColumnsType<any> = [
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.datasource" }),
       dataIndex: "name",

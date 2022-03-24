@@ -1,10 +1,11 @@
 import infoStyles from "@/pages/Alarm/Rules/components/AlarmInfoDraw/index.less";
-import { Drawer, Space, Tabs, Tooltip } from "antd";
+import { Drawer, message, Tabs, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import { useIntl } from "umi";
 import useTimeUnits from "@/hooks/useTimeUnits";
 import MonacoEditor from "react-monaco-editor";
+import copy from "copy-to-clipboard";
 
 const { TabPane } = Tabs;
 
@@ -17,6 +18,52 @@ const AlarmInfoDraw = () => {
   const onClose = () => {
     onChangeVisibleInfo(false);
   };
+
+  const infoData: any = [
+    {
+      id: 101,
+      title: i18n.formatMessage({ id: "alarm.rules.table.alarmName" }),
+      content: alarmInfo?.alarmName || "-",
+    },
+    {
+      id: 102,
+      title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
+      content:
+        `${alarmInfo?.interval} ${
+          FixedTimeUnits.filter((item) => item.key === alarmInfo?.unit)[0]
+            ?.label
+        }` || "-",
+    },
+    {
+      id: 103,
+      title: "UUID",
+      content:
+        (
+          <span
+            style={{ cursor: "pointer" }}
+            onClick={() =>
+              copy(alarmInfo?.uuid || "") &&
+              message.success(
+                i18n.formatMessage({ id: "log.item.copy.success" })
+              )
+            }
+          >
+            {alarmInfo?.uuid}
+          </span>
+        ) || "-",
+      tooltipTitle: i18n.formatMessage({
+        id: "alarm.rules.historyBorad.clickOnTheCopy",
+      }),
+      tooltipText: alarmInfo?.uuid || "nil",
+    },
+    {
+      id: 104,
+      title: i18n.formatMessage({ id: "alarm.rules.creator" }),
+      content: alarmInfo?.nickname || "-",
+      tooltipTitle: "UID",
+      tooltipText: alarmInfo?.uid || "nil",
+    },
+  ];
 
   useEffect(() => {
     if (!visibleInfo) setAlarmInfo(undefined);
@@ -43,64 +90,38 @@ const AlarmInfoDraw = () => {
       onClose={onClose}
     >
       <div className={infoStyles.details}>
-        <div>
-          <span className={infoStyles.title}>
-            {i18n.formatMessage({ id: "alarm.rules.table.alarmName" })}
-            :&nbsp;
-          </span>
-          <Tooltip
-            color={"#fff"}
-            placement={"left"}
-            overlayInnerStyle={{
-              color: "#41464beb",
-              fontSize: 12,
-              lineHeight: "24px",
-            }}
-            title={
-              <div>
-                <span className={infoStyles.title}>UID:&nbsp;</span>
-                <span>{alarmInfo?.uuid ? alarmInfo?.uuid : "nil"}</span>
-              </div>
-            }
-          >
-            <span>{alarmInfo?.alarmName}</span>
-          </Tooltip>
-        </div>
-        <Space>
-          <div>
-            <span className={infoStyles.title}>
-              {i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" })}
-              :&nbsp;
-            </span>
-            <span>{`${alarmInfo?.interval} ${
-              FixedTimeUnits.filter((item) => item.key === alarmInfo?.unit)[0]
-                ?.label
-            }`}</span>
-          </div>
-          <div>
-            <span className={infoStyles.title}>
-              {i18n.formatMessage({ id: "alarm.rules.creator" })}:&nbsp;
-            </span>
-            <Tooltip
-              color={"#fff"}
-              placement={"left"}
-              overlayInnerStyle={{
-                color: "#41464beb",
-                fontSize: 12,
-                lineHeight: "24px",
-              }}
-              title={
-                <div>
-                  <span className={infoStyles.title}>UID:&nbsp;</span>
-                  <span>{alarmInfo?.uid ? alarmInfo?.uid : "nil"}</span>
-                </div>
-              }
-            >
-              <span>{alarmInfo?.nickname}</span>
-            </Tooltip>
-          </div>
-        </Space>
+        {infoData.map((item: any) => {
+          return (
+            <div className={infoStyles.item} key={item.id}>
+              <div className={infoStyles.title}>{item.title}: </div>
+              {item.tooltipTitle ? (
+                <Tooltip
+                  color={"#fff"}
+                  placement={"left"}
+                  overlayInnerStyle={{
+                    color: "#41464beb",
+                    fontSize: 12,
+                    lineHeight: "24px",
+                  }}
+                  title={
+                    <div>
+                      <span className={infoStyles.title}>
+                        {item.tooltipTitle}:&nbsp;
+                      </span>
+                      <span>{item.tooltipText}</span>
+                    </div>
+                  }
+                >
+                  <div className={infoStyles.content}>{item.content}</div>
+                </Tooltip>
+              ) : (
+                <div className={infoStyles.content}>{item.content}</div>
+              )}
+            </div>
+          );
+        })}
       </div>
+
       <div className={infoStyles.configs}>
         <Tabs defaultActiveKey="view" size="small" className={infoStyles.tabs}>
           <TabPane

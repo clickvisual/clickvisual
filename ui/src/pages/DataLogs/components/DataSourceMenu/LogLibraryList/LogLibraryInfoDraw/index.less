@@ -1,17 +1,31 @@
 .infoMain {
   margin-bottom: 10px;
   line-height: 32px;
-  .firstLine {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 20px;
+  
+  .item {
     display: flex;
-    justify-content: space-between;
+    width: 50%;
+    margin-bottom: 10px;
+    .title {
+      width: 160px;
+      font-weight: bold;
+    }
+    .content {
+      flex: 1;
+      text-overflow: ellipsis;
+      word-wrap: normal;
+      overflow: hidden;
+    }
   }
-  .title {
-    font-weight: bold;
-  }
+  
   .selectBar {
     width: 240px;
   }
 }
 .infoEditor {
   flex: 1;
+  padding: 0 20px;
 }

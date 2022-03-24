@@ -17,6 +17,7 @@ export default {
   spin: "loading...",
   "table.column.filter.placeholder": "Please input conditions",
   "table.column.filter.reset": "Reset",
+  "table.column.filter.refresh": "Refresh",
   required: "Required",
 
   type: "Type",
@@ -369,6 +370,7 @@ export default {
   "dateTime.option.minutes": "{num} minute{plural}",
   "dateTime.option.hours": "{num} hour{plural}",
   "dateTime.option.days": "{num} day{plural}",
+  "dateTime.option.weeks": "{num} week{plural}",
   "dateTime.option.months": "{num} months",
   "dateTime.option.years": "{num} year{plural}",
 
@@ -434,6 +436,19 @@ export default {
   "alarm.rules.state.alerting": "alerting",
   "alarm.rules.state.ok": "ok",
   "alarm.rules.state.paused": "paused",
+
+  "alarm.rules.historyBorad.theLog": "The log",
+  "alarm.rules.historyBorad.toView": "To view",
+  "alarm.rules.historyBorad.ctime": "Creation time",
+  "alarm.rules.historyBorad.lastUpdateTime": "Last updated",
+  "alarm.rules.historyBorad.checkFrequency": "Check the frequency",
+  "alarm.rules.historyBorad.status": "Status",
+  "alarm.rules.historyBorad.clickOnTheCopy": "Click on the copy",
+  "alarm.rules.historyBorad.user": "User",
+  "alarm.rules.historyBorad.successPushRate": "Success push rate",
+  "alarm.rules.historyBorad.basicInformation": "Basic information",
+  "alarm.rules.historyBorad.historicalAlarmStatistics":
+    "Historical Alarm Statistics",
 
   // Notifications
   "alarm.notify.button.created": "Create Channel",

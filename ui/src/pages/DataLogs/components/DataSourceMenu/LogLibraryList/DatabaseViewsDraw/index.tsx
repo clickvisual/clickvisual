@@ -1,15 +1,15 @@
 import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
 import { Button, Divider, Drawer, Space, Table, Tooltip } from "antd";
 import classNames from "classnames";
-import { EditOutlined, PlusOutlined, StopOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { useIntl } from "umi";
-import { AlignType } from "rc-table/lib/interface";
-import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import ModalCreatedAndUpdatedView from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/ModalCreatedAndUpdatedView";
 import DeletedModal from "@/components/DeletedModal";
 import { TablesResponse, ViewResponse } from "@/services/dataLogs";
+import IconFont from "@/components/IconFont";
+import { ColumnsType } from "antd/es/table";
 
 type DatabaseViewsDrawProps = {
   logLibrary: TablesResponse;
@@ -59,45 +59,41 @@ const DatabaseViewsDraw = (props: DatabaseViewsDrawProps) => {
       ),
     });
   };
-  const column = [
+  const column: ColumnsType<any> = [
     {
       title: i18n.formatMessage({ id: "datasource.view.table.viewName" }),
       dataIndex: "viewName",
       width: "70%",
-      align: "center" as AlignType,
+      align: "center",
       ellipsis: { showTitle: false },
     },
     {
       title: i18n.formatMessage({ id: "operation" }),
       dataIndex: "operation",
       width: "30%",
-      align: "center" as AlignType,
-      render: (_: any, record: any) => {
-        // if (true) {
-        //  return (
-        //       <StopOutlined />
-        //   );
-        // }
-          //   return (
-          //   <Space>
-          //     <StopOutlined />
-          //   </Space>
-          // );
+      align: "center",
+      render: (_: any, record: ViewResponse) => {
         return (
           <Space>
-            <Button onClick={() => doEdit(record.id)} type={"link"}>
-              <Tooltip title={i18n.formatMessage({ id: "edit" })}>
-                <EditOutlined />
-              </Tooltip>
-            </Button>
-            <Divider type="vertical" />
-            <Tooltip title={i18n.formatMessage({ id: "delete" })}>
-              <IconFont
-                onClick={() => doDelete(record)}
-                className={viewDrawStyles.buttonIcon}
-                type={"icon-delete"}
-              />
-            </Tooltip>
+            {record.id === -1 ? (
+              <IconFont type={"icon-stop"} />
+            ) : (
+              <div>
+                <Tooltip title={i18n.formatMessage({ id: "edit" })}>
+                  <a onClick={() => doEdit(record.id)}>
+                    <EditOutlined />
+                  </a>
+                </Tooltip>
+                <Divider type="vertical" />
+                <Tooltip title={i18n.formatMessage({ id: "delete" })}>
+                  <IconFont
+                    onClick={() => doDelete(record)}
+                    className={viewDrawStyles.buttonIcon}
+                    type={"icon-delete"}
+                  />
+                </Tooltip>
+              </div>
+            )}
           </Space>
         );
       },
