@@ -18,11 +18,11 @@ func (b *DataBuilder) NewProject(params bumo.Params) {
 }
 
 func (b *DataBuilder) BuilderCreate() {
-	b.QueryAssembly.Create = fmt.Sprintf("CREATE TABLE %s\n", b.QueryAssembly.Params.TableName)
+	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE %s\n", b.QueryAssembly.Params.Data.TableName)
 }
 
 func (b *DataBuilder) BuilderFields() {
-	b.QueryAssembly.Fields = `(
+	b.QueryAssembly.Result += `(
   _time_second_ DateTime,
   _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
   _source_ String,
@@ -42,19 +42,19 @@ func (b *DataBuilder) BuilderWhere() {
 }
 
 func (b *DataBuilder) BuilderEngine() {
-	b.QueryAssembly.Engine = "ENGINE = MergeTree PARTITION BY toYYYYMMDD(_time_second_)\n"
+	b.QueryAssembly.Result += "ENGINE = MergeTree PARTITION BY toYYYYMMDD(_time_second_)\n"
 }
 
 func (b *DataBuilder) BuilderOrder() {
-	b.QueryAssembly.Order = "ORDER BY _time_second_\n"
+	b.QueryAssembly.Result += "ORDER BY _time_second_\n"
 }
 
 func (b *DataBuilder) BuilderTTL() {
-	b.QueryAssembly.TTL = fmt.Sprintf("TTL toDateTime(_time_second_) + INTERVAL %d DAY\n", b.QueryAssembly.Params.Days)
+	b.QueryAssembly.Result += fmt.Sprintf("TTL toDateTime(_time_second_) + INTERVAL %d DAY\n", b.QueryAssembly.Params.Data.Days)
 }
 
 func (b *DataBuilder) BuilderSetting() {
-	b.QueryAssembly.Setting = "SETTINGS index_granularity = 8192\n"
+	b.QueryAssembly.Result += "SETTINGS index_granularity = 8192\n"
 }
 
 func (b *DataBuilder) GetResult() interface{} { return b.QueryAssembly }

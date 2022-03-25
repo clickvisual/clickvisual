@@ -35,10 +35,10 @@ func (m *Table) TableName() string {
 const TimeField = "_time_second_"
 
 func (m *Table) GetTimeField() string {
-	if m.TimeField != "" {
-		return m.TimeField
+	if m.TimeField == "" {
+		return TimeField
 	}
-	return TimeField
+	return m.TimeField
 }
 
 // TableCreate ...

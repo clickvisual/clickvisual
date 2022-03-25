@@ -16,7 +16,7 @@ type Builder interface {
 	GetResult() interface{}
 }
 
-func Standalone(params bumo.Params, builder Builder) string {
+func Standalone(builder Builder, params bumo.Params) string {
 	director := new(Director)
 	director.SetBuilder(builder)
 	obj := director.Generate(params)
