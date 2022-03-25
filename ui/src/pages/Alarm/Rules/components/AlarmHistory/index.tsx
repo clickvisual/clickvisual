@@ -15,6 +15,7 @@ const AlarmHistory = () => {
   const [total, setTotal] = useState<number>(0);
   const [sucPublish, setSucPublish] = useState<number>(0);
   const [dashboardUrl, setDashboardUrl] = useState<string>("");
+  const [kw, setKw] = useState<string>("");
   const [tid, setTid] = useState<number>(0);
   const { alarmHistory, alarmDraw } = useModel("alarm");
   const { doGetAlarmInfo } = alarmDraw;
@@ -35,7 +36,7 @@ const AlarmHistory = () => {
         ...res.data,
         id: parseInt(urlState.id),
       });
-      let dashboardPath = "/query?";
+      let dashboardPath = "/share?";
       if (urlState.end && urlState.start) {
         setQuery({
           alarmId: parseInt(urlState.id),
@@ -52,7 +53,9 @@ const AlarmHistory = () => {
         setQuery({ alarmId: parseInt(urlState.id) });
         loadList({ alarmId: parseInt(urlState.id) });
       }
-      setTid(res.data.tid);
+      const { tid: tids, filters: filterss } = res.data;
+      setTid(tids);
+      setKw(filterss[0].when);
       setDashboardUrl(dashboardPath);
       let urlData = { id: urlState.id };
       setUrlState(urlData);
@@ -72,7 +75,7 @@ const AlarmHistory = () => {
         params?.endTime &&
           params?.startTime &&
           setDashboardUrl(
-            `/query?end=${params?.endTime}&start=${params?.startTime}`
+            `/share?end=${params?.endTime}&start=${params?.startTime}`
           );
         let urlData: any = { ...urlState };
         urlData.end = params?.endTime;
@@ -84,6 +87,10 @@ const AlarmHistory = () => {
   useEffect(() => {
     tid && !getUrlParam("tid") && setDashboardUrl(dashboardUrl + "&tid=" + tid);
   }, [tid, dashboardUrl]);
+
+  useEffect(() => {
+    kw && !getUrlParam("kw") && setDashboardUrl(dashboardUrl + "&kw=" + kw);
+  }, [kw, dashboardUrl]);
 
   function getUrlParam(name: string) {
     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象

@@ -35,8 +35,8 @@ const (
 )
 
 const (
-	TableTypeTimeString       = 1
-	TableTypeTimeFloat        = 2
+	TimeTypeString            = 1
+	TimeTypeFloat             = 2
 	TableTypePrometheusMetric = 999
 )
 

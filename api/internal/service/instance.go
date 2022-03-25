@@ -2,14 +2,11 @@ package service
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
 	"strconv"
 	"sync"
 
 	"github.com/ClickHouse/clickhouse-go"
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -103,20 +100,16 @@ func (i *instanceManager) All() []inquiry.Operator {
 func clickHouseLink(dsn string) (db *sql.DB, err error) {
 	db, err = sql.Open("clickhouse", dsn)
 	if err != nil {
-		log.Fatal(err)
+		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
+		return
 	}
-	invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process"), elog.String("dsn", econf.GetString("clickhouse.dsn")))
 	if err = db.Ping(); err != nil {
-		invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process 1"))
 		if exception, ok := err.(*clickhouse.Exception); ok {
-			invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process 2"))
-			fmt.Printf("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
+			invoker.Logger.Error("ClickHouse", elog.String("step", "exception"), elog.Any("Code", exception.Code), elog.Any("Message", exception.Message), elog.Any("StackTrace", exception.StackTrace))
 		} else {
-			invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch process 3"))
-			fmt.Println(err)
+			invoker.Logger.Error("ClickHouse", elog.String("step", "notException"), elog.Any("error", err.Error()))
 		}
 		return
 	}
-	invoker.Logger.Debug("ClickHouse", elog.Any("step", "ch finish"))
 	return
 }

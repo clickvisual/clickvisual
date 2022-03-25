@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"time"
@@ -14,6 +13,9 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service/inquiry/builder"
+	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
+	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/standalone"
 	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -33,78 +35,8 @@ fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nan
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
 fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
-var clickhouseTableDataORM = map[int]string{
-	TableTypeTimeString: `create table %s
-(
-	_time_second_ DateTime,
-	_time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
-	_source_ String,
-	_cluster_ String,
-	_log_agent_ String,
-	_namespace_ String,
-	_node_name_ String,
-	_node_ip_ String,
-	_container_name_ String,
-	_pod_name_ String,
-	_raw_log_ String
-)
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_second_)
-ORDER BY _time_second_
-TTL toDateTime(_time_second_) + INTERVAL %d DAY 
-SETTINGS index_granularity = 8192;`,
-	TableTypeTimeFloat: `create table %s
-(
-	_time_second_ DateTime,
-	_time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
-	_source_ String,
-	_cluster_ String,
-	_log_agent_ String,
-	_namespace_ String,
-	_node_name_ String,
-	_node_ip_ String,
-	_container_name_ String,
-	_pod_name_ String,
-	_raw_log_ String
-)
-engine = MergeTree PARTITION BY toYYYYMMDD(_time_second_)
-ORDER BY _time_second_
-TTL toDateTime(_time_second_) + INTERVAL %d DAY
-SETTINGS index_granularity = 8192;`,
-}
-
-var clickhouseTableStreamORM = map[int]string{
-	TableTypeTimeString: `create table %s
-(
-	_source_ String,
-	_pod_name_ String,
-	_namespace_ String,
-	_node_name_ String,
-	_container_name_ String,
-	_cluster_ String,
-	_log_agent_ String,
-	_node_ip_ String,
-	_time_ String,
-	_log_ String
-)
-engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d;`,
-	TableTypeTimeFloat: `create table %s
-(
-	_source_ String,
-	_pod_name_ String,
-	_namespace_ String,
-	_node_name_ String,
-	_container_name_ String,
-	_cluster_ String,
-	_log_agent_ String,
-	_node_ip_ String,
-	_time_ Float64,
-	_log_ String
-)
-engine = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d;`,
-}
-
 var clickhouseViewORM = map[int]string{
-	TableTypeTimeString: `CREATE MATERIALIZED VIEW %s TO %s AS
+	TimeTypeString: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
     _source_,
@@ -117,17 +49,17 @@ SELECT
     _pod_name_,
 	_log_ AS _raw_log_%s
 	FROM %s where %s;`,
-	TableTypeTimeFloat: `CREATE MATERIALIZED VIEW %s TO %s AS
+	TimeTypeFloat: `CREATE MATERIALIZED VIEW %s TO %s AS
 SELECT
     %s,
-	_pod_name_,
-	_namespace_,
-	_node_name_,
-	_container_name_,
+	_source_,
 	_cluster_,
 	_log_agent_,
+	_namespace_,
+	_node_name_,
 	_node_ip_,
-	_source_,
+	_container_name_,
+	_pod_name_,
 	_log_ AS _raw_log_%s
 	FROM %s WHERE %s;`,
 	TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS 
@@ -235,7 +167,7 @@ func (c *ClickHouse) timeParseSQL(typ int, v *db.View) string {
 		return fmt.Sprintf(nanosecondTimeParse, v.Key, v.Key)
 	}
 	invoker.Logger.Debug("timeParseSQL", elog.Any("typ", typ))
-	if typ == TableTypeTimeString {
+	if typ == TimeTypeString {
 		return defaultStringTimeParse
 	}
 	return defaultFloatTimeParse
@@ -327,8 +259,28 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 	dName := genName(database, ct.TableName)
 	dStreamName := genStreamName(database, ct.TableName)
 	// build view statement
-	dStreamSQL = fmt.Sprintf(clickhouseTableStreamORM[ct.Typ], dStreamName, ct.Brokers, ct.Topics, database+"_"+ct.TableName, ct.Consumers)
-	dDataSQL = fmt.Sprintf(clickhouseTableDataORM[ct.Typ], dName, ct.Days)
+	var timeTyp = "String"
+	if ct.Typ == TimeTypeString {
+		timeTyp = "String"
+	} else if ct.Typ == TimeTypeFloat {
+		timeTyp = "Float64"
+	} else {
+		err = errors.New("invalid time type")
+		return
+	}
+	dStreamSQL = builder.Standalone(bumo.Params{
+		TableName:   dStreamName,
+		TimeTyp:     timeTyp,
+		Brokers:     ct.Brokers,
+		Topic:       ct.Topics,
+		Group:       database + "_" + ct.TableName,
+		ConsumerNum: ct.Consumers,
+	}, new(standalone.StreamBuilder))
+	dDataSQL = builder.Standalone(bumo.Params{
+		TableName: dName,
+		Days:      ct.Days,
+	}, new(standalone.DataBuilder))
+
 	invoker.Logger.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
@@ -381,7 +333,7 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	if customTimeField == "" {
 		// default time field, use _time_
 		var dtp string
-		if typ == TableTypeTimeString {
+		if typ == TimeTypeString {
 			dtp = defaultStringTimeParse
 		} else {
 			dtp = defaultFloatTimeParse
@@ -781,7 +733,8 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 			values[idx] = fieldValue.Addr().Interface()
 		}
 		if err = rows.Scan(values...); err != nil {
-			log.Fatal(err)
+			invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
+			return
 		}
 		invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
 		for k, _ := range fields {
@@ -794,7 +747,8 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		res = append(res, line)
 	}
 	if err = rows.Err(); err != nil {
-		log.Fatal(err)
+		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
+		return
 	}
 	return
 }

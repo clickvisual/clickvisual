@@ -1,13 +1,24 @@
 package builder
 
-type Builder struct {
-	SQL *SQL
+import (
+	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
+)
+
+type Builder interface {
+	NewProject(params bumo.Params)
+	BuilderCreate()
+	BuilderFields()
+	BuilderWhere()
+	BuilderEngine()
+	BuilderOrder()
+	BuilderTTL()
+	BuilderSetting()
+	GetResult() interface{}
 }
 
-func (b *Builder) New() {
-	b.SQL = new(SQL)
-}
-
-func (b *Builder) Where() {
-	b.SQL.Where = "1=1"
+func Standalone(params bumo.Params, builder Builder) string {
+	director := new(Director)
+	director.SetBuilder(builder)
+	obj := director.Generate(params)
+	return obj.Gen()
 }

@@ -445,6 +445,9 @@ export default {
   "alarm.rules.historyBorad.status": "Status",
   "alarm.rules.historyBorad.clickOnTheCopy": "Click on the copy",
   "alarm.rules.historyBorad.user": "User",
+  "alarm.rules.historyBorad.table": "Table",
+  "alarm.rules.historyBorad.database": "Database",
+  "alarm.rules.historyBorad.instance": "Instance",
   "alarm.rules.historyBorad.successPushRate": "Success push rate",
   "alarm.rules.historyBorad.basicInformation": "Basic information",
   "alarm.rules.historyBorad.historicalAlarmStatistics":
