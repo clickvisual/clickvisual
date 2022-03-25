@@ -16,6 +16,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
+	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/resource"
 	"github.com/shimohq/mogo/api/pkg/constx"
@@ -82,7 +83,7 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alertID int, filters []view.ReqAlarmFi
 }
 
 func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate) (exp string, err error) {
-	expVal := fmt.Sprintf("%s{%s}", constx.PrometheusMetricsName, inquiry.TagsToString(obj, false))
+	expVal := fmt.Sprintf("%s{%s}", bumo.PrometheusMetricName, inquiry.TagsToString(obj, false))
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].SetOperatorTyp < conditions[j].SetOperatorTyp
 	})
@@ -94,7 +95,7 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 		case 1:
 			innerCond = fmt.Sprintf("%s<%d", expVal, condition.Val1)
 		case 2:
-			innerCond = fmt.Sprintf("%s<%d and %s>%d", expVal, condition.Val1, expVal, condition.Val2)
+			innerCond = fmt.Sprintf("%s<%d or %s>%d", expVal, condition.Val1, expVal, condition.Val2)
 		case 3:
 			innerCond = fmt.Sprintf("%s>=%d and %s<=%d", expVal, condition.Val1, expVal, condition.Val2)
 		}

@@ -17,27 +17,57 @@ func (b *ViewBuilder) NewProject(params bumo.Params) {
 }
 
 func (b *ViewBuilder) BuilderCreate() {
-	b.QueryAssembly.Create = fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO %s AS\n", b.QueryAssembly.Params.ViewTable, b.QueryAssembly.Params.TargetTable)
+	switch b.QueryAssembly.Params.View.ViewType {
+	case bumo.ViewTypePrometheusMetric:
+		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO metrics.samples AS\n", b.QueryAssembly.Params.View.ViewTable)
+	default:
+		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO %s AS\n", b.QueryAssembly.Params.View.ViewTable, b.QueryAssembly.Params.View.TargetTable)
+
+	}
 }
 
 func (b *ViewBuilder) BuilderFields() {
-	b.QueryAssembly.Fields = fmt.Sprintf(`SELECT
-    %s,
-    _source_,
-    _cluster_,
-    _log_agent_,
-    _namespace_,
-    _node_name_,
-    _node_ip_,
-    _container_name_,
-    _pod_name_,
-    _log_ AS _raw_log_%s
-    FROM %s 
-`, b.QueryAssembly.Params.TimeField, b.QueryAssembly.Params.CommonFields, b.QueryAssembly.Params.SourceTable)
+	switch b.QueryAssembly.Params.View.ViewType {
+	case bumo.ViewTypePrometheusMetric:
+		b.QueryAssembly.Result += fmt.Sprintf(`SELECT
+  toDate(%s) as date,
+  '%s' as name,
+  array(%s) as tags,
+  toFloat64(count(*)) as val,
+  %s as ts,
+  toDateTime(%s) as updated
+FROM %s
+`,
+			b.QueryAssembly.Params.View.TimeField,
+			bumo.PrometheusMetricName,
+			b.QueryAssembly.Params.View.CommonFields,
+			b.QueryAssembly.Params.View.TimeField,
+			b.QueryAssembly.Params.View.TimeField,
+			b.QueryAssembly.Params.View.SourceTable)
+	default:
+		b.QueryAssembly.Result += fmt.Sprintf(`SELECT
+  %s,
+  _source_,
+  _cluster_,
+  _log_agent_,
+  _namespace_,
+  _node_name_,
+  _node_ip_,
+  _container_name_,
+  _pod_name_,
+  _log_ AS _raw_log_%s
+FROM %s
+`, b.QueryAssembly.Params.View.TimeField, b.QueryAssembly.Params.View.CommonFields, b.QueryAssembly.Params.View.SourceTable)
+	}
 }
 
 func (b *ViewBuilder) BuilderWhere() {
-	b.QueryAssembly.Where = fmt.Sprintf("WHERE %s\n", b.QueryAssembly.Params.Where)
+	switch b.QueryAssembly.Params.View.ViewType {
+	case bumo.ViewTypePrometheusMetric:
+		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s GROUP by %s\n", b.QueryAssembly.Params.View.Where, b.QueryAssembly.Params.View.TimeField)
+	default:
+		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s\n", b.QueryAssembly.Params.View.Where)
+	}
 }
 
 func (b *ViewBuilder) BuilderEngine() {}

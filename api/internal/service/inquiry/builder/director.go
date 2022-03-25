@@ -16,6 +16,7 @@ func (d *Director) Generate(params bumo.Params) *bumo.QueryAssembly {
 	d.builder.NewProject(params)
 	d.builder.BuilderCreate()
 	d.builder.BuilderFields()
+	d.builder.BuilderWhere()
 	d.builder.BuilderEngine()
 	d.builder.BuilderOrder()
 	d.builder.BuilderTTL()

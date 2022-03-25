@@ -17,11 +17,11 @@ func (b *StreamBuilder) NewProject(params bumo.Params) {
 }
 
 func (b *StreamBuilder) BuilderCreate() {
-	b.QueryAssembly.Create = fmt.Sprintf("CREATE TABLE %s\n", b.QueryAssembly.Params.TableName)
+	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE %s\n", b.QueryAssembly.Params.Stream.TableName)
 }
 
 func (b *StreamBuilder) BuilderFields() {
-	b.QueryAssembly.Fields = fmt.Sprintf(`(
+	b.QueryAssembly.Result += fmt.Sprintf(`(
   _source_ String,
   _pod_name_ String,
   _namespace_ String,
@@ -33,16 +33,16 @@ func (b *StreamBuilder) BuilderFields() {
   _time_ %s,
   _log_ String
 )
-`, b.QueryAssembly.Params.TimeTyp)
+`, b.QueryAssembly.Params.Stream.TimeTyp)
 }
 
 func (b *StreamBuilder) BuilderWhere() {
 }
 
 func (b *StreamBuilder) BuilderEngine() {
-	b.QueryAssembly.Engine = fmt.Sprintf("ENGINE = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d\n",
-		b.QueryAssembly.Params.Brokers, b.QueryAssembly.Params.Topic,
-		b.QueryAssembly.Params.Group, b.QueryAssembly.Params.ConsumerNum)
+	b.QueryAssembly.Result += fmt.Sprintf("ENGINE = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d\n",
+		b.QueryAssembly.Params.Stream.Brokers, b.QueryAssembly.Params.Stream.Topic,
+		b.QueryAssembly.Params.Stream.Group, b.QueryAssembly.Params.Stream.ConsumerNum)
 }
 
 func (b *StreamBuilder) BuilderOrder() {}
