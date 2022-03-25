@@ -35,9 +35,8 @@ const (
 )
 
 const (
-	TimeTypeString            = 1
-	TimeTypeFloat             = 2
-	TableTypePrometheusMetric = 999
+	TimeTypeString = 1
+	TimeTypeFloat  = 2
 )
 
 func genName(database, tableName string) string {
