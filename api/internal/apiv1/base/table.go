@@ -88,7 +88,7 @@ func TableCreate(c *core.Context) {
 		SqlData:    d,
 		SqlStream:  s,
 		SqlView:    v,
-		TimeField:  db.TimeField,
+		TimeField:  db.TimeFieldSecond,
 		CreateType: inquiry.TableCreateTypeMogo,
 		Uid:        c.Uid(),
 	})
@@ -266,7 +266,7 @@ func TableLogs(c *core.Context) {
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
 	if tableInfo.TimeField == "" {
-		param.TimeField = db.TimeField
+		param.TimeField = db.TimeFieldSecond
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -315,7 +315,7 @@ func TableCharts(c *core.Context) {
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
 	if tableInfo.TimeField == "" {
-		param.TimeField = db.TimeField
+		param.TimeField = db.TimeFieldSecond
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -415,7 +415,7 @@ func TableIndexes(c *core.Context) {
 	}
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
 	if tableInfo.TimeField == "" {
-		param.TimeField = db.TimeField
+		param.TimeField = db.TimeFieldSecond
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -438,28 +438,36 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	list := op.GroupBy(param)
+
 	invoker.Logger.Debug("Indexes", elog.Any("list", list))
 
 	res := make([]view.RespIndexItem, 0)
-	sum := uint64(0)
-	for _, row := range list {
-		sum += row
-	}
+	sum := op.Count(param)
+	var count uint64
 	for k, v := range list {
+		count += v
 		res = append(res, view.RespIndexItem{
 			IndexName: k,
 			Count:     v,
 			Percent:   kfloat.Decimal(float64(v) * 100 / float64(sum)),
 		})
 	}
+	// if others := sum - count; others > 0 {
+	// 	res = append(res, view.RespIndexItem{
+	// 		IndexName: "others",
+	// 		Count:     others,
+	// 		Percent:   kfloat.Decimal(float64(others) * 100 / float64(sum)),
+	// 	})
+	// }
+
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
 	invoker.Logger.Debug("Indexes", elog.Any("res", res))
-	if len(res) > 10 {
-		c.JSONOK(res[:9])
-		return
-	}
+	// if len(res) > 10 {
+	// 	c.JSONOK(res[:9])
+	// 	return
+	// }
 	c.JSONOK(res)
 	return
 }

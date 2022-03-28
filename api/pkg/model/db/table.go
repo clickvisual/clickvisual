@@ -32,16 +32,17 @@ func (m *Table) TableName() string {
 	return TableNameTable
 }
 
+const TimeFieldSecond = "_time_second_"
+const TimeFieldNanoseconds = "_time_nanosecond_"
 const (
-	TimeField         = "_time_second_"
 	TimeFieldTypeDT   = 0 // dateTime
-	TimeFieldTypeTs   = 1 // 10位unix时间戳
-	TimeFieldTypeTsMs = 2 // 13位unix时间戳
+	TimeFieldTypeTs   = 1 // unix seconds
+	TimeFieldTypeTsMs = 2 // unix ms
 )
 
 func (m *Table) GetTimeField() string {
 	if m.TimeField == "" {
-		return TimeField
+		return TimeFieldSecond
 	}
 	return m.TimeField
 }

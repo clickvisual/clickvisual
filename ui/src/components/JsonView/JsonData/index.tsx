@@ -3,6 +3,7 @@ import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import JsonValue from "@/components/JsonView/JsonValue";
 import classNames from "classnames";
+import JsonArray from "@/components/JsonView/JsonArray";
 
 /**
  * 对数据进行格式化展示
@@ -41,6 +42,9 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   };
 
   if (!data) return <div style={indentStyle} />;
+
+  if (data instanceof Array) return <JsonArray data={data} />;
+
   let keys = Object.keys(data);
 
   let kvList: JSX.Element[] = [];

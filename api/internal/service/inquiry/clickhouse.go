@@ -491,13 +491,13 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Keys = make([]*db.Index, 0)
 	res.Terms = make([][]string, 0)
 
-	res.Logs, err = c.doQuery(c.logsSQL(param))
+	res.Logs, err = c.doQuery(c.logsSQL(param, tid))
 	if err != nil {
 		return
 	}
-	if param.TimeField != db.TimeField {
+	if param.TimeField != db.TimeFieldSecond {
 		for k := range res.Logs {
-			res.Logs[k][db.TimeField] = res.Logs[k][param.TimeField]
+			res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
 		}
 	}
 	res.Count = c.Count(param)
@@ -676,8 +676,16 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	return nil
 }
 
-func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+param.TimeField+" DESC LIMIT %d OFFSET %d",
+func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
+	// check is use _time_nanosecond_
+	conds := egorm.Conds{}
+	conds["tid"] = tid
+	views, _ := db.ViewList(invoker.Db, conds)
+	orderByField := param.TimeField
+	if len(views) > 0 {
+		orderByField = db.TimeFieldNanoseconds
+	}
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -696,7 +704,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param)+" group by %s",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param)+" group by %s  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,
@@ -744,7 +752,29 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
 		return
 	}
+	// sort by _time_second_
+	// sort.Slice(res, func(i, j int) bool {
+	// 	vi, oki := getUnixTime(res[i])
+	// 	vj, okj := getUnixTime(res[j])
+	// 	if oki && okj {
+	// 		return vi > vj
+	// 	}
+	// 	invoker.Logger.Error("doQuery", elog.Any("TimeFieldNanoseconds", res[i][db.TimeFieldNanoseconds]), elog.Any("type", reflect.TypeOf(res[i][db.TimeFieldNanoseconds])))
+	// 	return false
+	// })
 	return
+}
+
+func getUnixTime(val map[string]interface{}) (int64, bool) {
+	v, ok := val[db.TimeFieldNanoseconds]
+	if !ok {
+		return 0, false
+	}
+	switch v.(type) {
+	case time.Time:
+		return v.(time.Time).UnixNano(), true
+	}
+	return 0, false
 }
 
 // isEmpty filter empty index value

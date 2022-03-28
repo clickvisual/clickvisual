@@ -7,8 +7,10 @@ import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
+import useUrlState from "@ahooksjs/use-url-state";
 const { Option } = Select;
 const Operations = () => {
+  const [urlState] = useUrlState<any>();
   const { operations, alarmDraw, doGetAlarms, currentPagination } =
     useModel("alarm");
 
@@ -38,6 +40,7 @@ const Operations = () => {
 
   useEffect(() => {
     getDatabases.run();
+    urlState && urlState.name && operations.onChangeInputName(urlState.name);
   }, []);
 
   return (
