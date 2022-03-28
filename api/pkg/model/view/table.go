@@ -1,9 +1,10 @@
 package view
 
 type ReqTableCreateExist struct {
-	DatabaseName string `form:"databaseName" json:"databaseName" binding:"required"`
-	TableName    string `form:"tableName" json:"tableName" binding:"required"`
-	TimeField    string `form:"timeField" json:"timeField"`
+	DatabaseName  string `form:"databaseName" json:"databaseName" binding:"required"`
+	TableName     string `form:"tableName" json:"tableName" binding:"required"`
+	TimeField     string `form:"timeField" json:"timeField"`
+	TimeFieldType int    `form:"timeFieldType" json:"timeFieldType"`
 }
 
 type ReqTableCreate struct {

@@ -1,5 +1,5 @@
 import { useIntl } from "umi";
-import { Select, Form, Empty, Cascader, FormInstance, Table } from "antd";
+import { Select, Form, Empty, Cascader, FormInstance, Table, Radio } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { InstanceType } from "@/services/systemSetting";
 import { LocalTables, TableColumn } from "@/services/dataLogs";
@@ -17,6 +17,7 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
   const [options, setOptions] = useState<any[]>([]);
   const [allColumns, setAllColumns] = useState<TableColumn[]>([]);
   const [conformToStandard, setConformToStandard] = useState<TableColumn[]>([]);
+  const [timeFieldType, setTimeFieldType] = useState<number>(0);
 
   const formatOptions = (list: LocalTables[]) => {
     setOptions(
@@ -159,6 +160,14 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
                   placeholder={`${i18n.formatMessage({
                     id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder",
                   })}`}
+                  onChange={(value, option)=>{
+                      if (value) {
+                          const item = conformToStandard.filter((item) => item.name === value).at(0)
+                          if (item) {
+                              setTimeFieldType(item.type)
+                          }
+                      }
+                  }}
                 >
                   {conformToStandard.map((item) => (
                     <Option key={item.name} value={item.name}>
@@ -167,6 +176,25 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
                   ))}
                 </Select>
               </Form.Item>
+                {timeFieldType === 1 && (
+                    <Form.Item name={"timeFieldType"} label={i18n.formatMessage({
+                        id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
+                    })} rules={[{
+                            required: true,
+                            message: i18n.formatMessage({
+                                id: "datasource.logLibrary.from.newLogLibrary.timeResolutionFieldType.placeholder",
+                            }),
+                        }]}>
+                        <Radio.Group>
+                            <Radio value={1}>{i18n.formatMessage({
+                                id: "datasource.logLibrary.from.newLogLibrary.timeType.seconds",
+                            })}</Radio>
+                            <Radio value={2}>{i18n.formatMessage({
+                                id: "datasource.logLibrary.from.newLogLibrary.timeType.millisecond",
+                            })}</Radio>
+                        </Radio.Group>
+                    </Form.Item>
+                )}
               <Form.Item
                 label={i18n.formatMessage({
                   id: "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable",
