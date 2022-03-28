@@ -335,21 +335,21 @@ export default {
   "log.search.quickSearch.value.placeholder": "Please enter a value",
 
   "log.index.header.title": "Analysis",
-  "log.index.search.placeholder": "Search index",
-  "log.index.empty": "Temporarily not create indexes",
+  "log.index.search.placeholder": "Search field",
+  "log.index.empty": "Temporarily not create fields",
   "log.index.item.empty": "No Data",
   "log.index.manage":
     "Index Management(This function is available when the _RAW_log_ field format is JSON)",
   "log.index.help":
     "Fields with an orange background color are system fields or index fields, and fields with a gray background color are fields that are not indexed. Index statistics take effect only for data that has been indexed",
-  "log.index.manage.table.header.indexName": "Index Name",
+  "log.index.manage.table.header.indexName": "Field Name",
   "log.index.manage.table.header.query": "Enable Query",
-  "log.index.manage.table.header.indexType": "Index Type",
+  "log.index.manage.table.header.indexType": "Field Type",
   "log.index.manage.placeholder.indexName":
-    "Mandatory and not repeatable, please enter the index name",
-  "log.index.manage.placeholder.alias": "Please enter an index description",
-  "log.index.manage.button.deleted": "Drop Index",
-  "log.index.manage.button.created": "Created Index",
+    "Mandatory and not repeatable, please enter the field name",
+  "log.index.manage.placeholder.alias": "Please enter an field description",
+  "log.index.manage.button.deleted": "Drop Field",
+  "log.index.manage.button.created": "Created Field",
   "log.index.manage.message.save.success": "Save success",
 
   "log.highChart.tooltip.startTime": "start time: ",
