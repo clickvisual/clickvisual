@@ -17,7 +17,6 @@ FROM golang:1.17.3-alpine3.14 as go-builder
 ENV GOPROXY=https://goproxy.cn,direct
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk add --no-cache make bash git tzdata
-ENV TZ Asia/Shanghai
 
 WORKDIR /mogo
 
@@ -42,6 +41,5 @@ EXPOSE 9001
 EXPOSE 9003
 
 RUN apk add --no-cache tzdata
-ENV TZ Asia/Shanghai
 
 CMD ["sh", "-c", "./bin/mogo"]
