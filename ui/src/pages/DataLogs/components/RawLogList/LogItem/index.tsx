@@ -22,7 +22,9 @@ const LogItem = (props: LogItemProps) => {
         </div>
         <div>
           <div className={logItemStyles.dateTime}>
-            {moment(log._time_nanosecond_).format("MM-DD HH:mm:ss.SSS")}
+            {moment(log._time_nanosecond_ || log._time_second_).format(
+              "MM-DD HH:mm:ss.SSS"
+            )}
           </div>
           <LogItemOperation />
         </div>
