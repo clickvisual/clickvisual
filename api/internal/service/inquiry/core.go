@@ -35,9 +35,8 @@ const (
 )
 
 const (
-	TimeTypeString            = 1
-	TimeTypeFloat             = 2
-	TableTypePrometheusMetric = 999
+	TimeTypeString = 1
+	TimeTypeFloat  = 2
 )
 
 func genName(database, tableName string) string {
@@ -87,7 +86,7 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Key == db.TimeField {
+		if item.Key == db.TimeFieldSecond {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
 		if index == 0 {

@@ -56,11 +56,11 @@ func InstanceCreate(c *core.Context) {
 	}
 	if err = service.InstanceManager.Add(&obj); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
+		c.JSONE(1, "DNS configuration exception, database connection failure 01: "+err.Error(), nil)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
-		c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
+		c.JSONE(1, "DNS configuration exception, database connection failure 02: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -100,7 +100,7 @@ func InstanceUpdate(c *core.Context) {
 		objUpdate.ID = id
 		if err = service.InstanceManager.Add(&objUpdate); err != nil {
 			_ = service.InstanceManager.Add(&objBef)
-			c.JSONE(1, "DNS configuration exception, database connection failure: "+err.Error(), nil)
+			c.JSONE(1, "DNS configuration exception, database connection failure 03: "+err.Error(), nil)
 			return
 		}
 		ups["dsn"] = req.Dsn

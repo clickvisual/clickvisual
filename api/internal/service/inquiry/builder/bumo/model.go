@@ -8,28 +8,39 @@ import (
 
 // QueryAssembly all in one
 type QueryAssembly struct {
-	Params  Params
-	Create  string
-	Fields  string
-	Where   string
-	Engine  string
-	Order   string
-	TTL     string
-	Setting string
-	result  string
+	Params Params
+	Result string
 }
 
 type Params struct {
-	// data
+	Data   ParamsData
+	Stream ParamsStream
+	View   ParamsView
+}
+
+type ParamsData struct {
 	TableName string
 	Days      int
-	// stream
+}
+
+type ParamsStream struct {
+	TableName   string
 	TimeTyp     string
 	Brokers     string
 	Topic       string
 	Group       string
 	ConsumerNum int
-	// view
+}
+
+const PrometheusMetricName = "mogo_alert_metrics"
+
+const (
+	ViewTypeDefault = iota
+	ViewTypePrometheusMetric
+)
+
+type ParamsView struct {
+	ViewType     int
 	ViewTable    string
 	TargetTable  string
 	TimeField    string
@@ -40,28 +51,7 @@ type Params struct {
 
 func (q *QueryAssembly) Gen() string {
 	var res string
-	if q.Create != "" {
-		res += q.Create
-	}
-	if q.Fields != "" {
-		res += q.Fields
-	}
-	if q.Where != "" {
-		res += q.Where
-	}
-	if q.Engine != "" {
-		res += q.Engine
-	}
-	if q.Order != "" {
-		res += q.Order
-	}
-	if q.TTL != "" {
-		res += q.TTL
-	}
-	if q.Setting != "" {
-		res += q.Setting
-	}
-	res = strings.TrimSuffix(res, "\n")
+	res = strings.TrimSuffix(q.Result, "\n")
 	res += ";"
 	return res
 }

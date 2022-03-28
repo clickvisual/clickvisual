@@ -16,7 +16,6 @@ import (
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder"
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/standalone"
-	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
@@ -34,44 +33,6 @@ fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nan
 // time_field 高精度数据解析选择
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
 fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
-
-var clickhouseViewORM = map[int]string{
-	TimeTypeString: `CREATE MATERIALIZED VIEW %s TO %s AS
-SELECT
-    %s,
-    _source_,
-    _cluster_,
-    _log_agent_,
-    _namespace_,
-    _node_name_,
-    _node_ip_,
-    _container_name_,
-    _pod_name_,
-	_log_ AS _raw_log_%s
-	FROM %s where %s;`,
-	TimeTypeFloat: `CREATE MATERIALIZED VIEW %s TO %s AS
-SELECT
-    %s,
-	_source_,
-	_cluster_,
-	_log_agent_,
-	_namespace_,
-	_node_name_,
-	_node_ip_,
-	_container_name_,
-	_pod_name_,
-	_log_ AS _raw_log_%s
-	FROM %s WHERE %s;`,
-	TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS 
-SELECT
-       toDate(_time_second_) as date,
-       '%s' as name,
-       array(%s) as tags,
-       toFloat64(count(*)) as val,
-       _time_second_ as ts,
-       toDateTime(_time_second_) as updated
-   FROM %s WHERE %s GROUP by _time_second_;`,
-}
 
 type typORMItem struct {
 	Filter string
@@ -268,18 +229,22 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 		err = errors.New("invalid time type")
 		return
 	}
-	dStreamSQL = builder.Standalone(bumo.Params{
-		TableName:   dStreamName,
-		TimeTyp:     timeTyp,
-		Brokers:     ct.Brokers,
-		Topic:       ct.Topics,
-		Group:       database + "_" + ct.TableName,
-		ConsumerNum: ct.Consumers,
-	}, new(standalone.StreamBuilder))
-	dDataSQL = builder.Standalone(bumo.Params{
-		TableName: dName,
-		Days:      ct.Days,
-	}, new(standalone.DataBuilder))
+	dStreamSQL = builder.Standalone(new(standalone.StreamBuilder), bumo.Params{
+		Stream: bumo.ParamsStream{
+			TableName:   dStreamName,
+			TimeTyp:     timeTyp,
+			Brokers:     ct.Brokers,
+			Topic:       ct.Topics,
+			Group:       database + "_" + ct.TableName,
+			ConsumerNum: ct.Consumers,
+		},
+	})
+	dDataSQL = builder.Standalone(new(standalone.DataBuilder), bumo.Params{
+		Data: bumo.ParamsData{
+			TableName: dName,
+			Days:      ct.Days,
+		},
+	})
 
 	invoker.Logger.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
 	_, err = c.db.Exec(dStreamSQL)
@@ -338,12 +303,30 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 		} else {
 			dtp = defaultFloatTimeParse
 		}
-		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, dtp, jsonExtractSQL, streamName, c.whereConditionSQLDefault(list))
+		viewSQL = builder.Standalone(new(standalone.ViewBuilder), bumo.Params{
+			View: bumo.ParamsView{
+				ViewTable:    viewName,
+				TargetTable:  dName,
+				TimeField:    dtp,
+				CommonFields: jsonExtractSQL,
+				SourceTable:  streamName,
+				Where:        c.whereConditionSQLDefault(list),
+			},
+		})
 	} else {
 		if current == nil {
 			return "", errors.New("the process processes abnormal data errors, current view cannot be nil")
 		}
-		viewSQL = fmt.Sprintf(clickhouseViewORM[typ], viewName, dName, c.timeParseSQL(typ, current), jsonExtractSQL, streamName, c.whereConditionSQLCurrent(current))
+		viewSQL = builder.Standalone(new(standalone.ViewBuilder), bumo.Params{
+			View: bumo.ParamsView{
+				ViewTable:    viewName,
+				TargetTable:  dName,
+				TimeField:    c.timeParseSQL(typ, current),
+				CommonFields: jsonExtractSQL,
+				SourceTable:  streamName,
+				Where:        c.whereConditionSQLCurrent(current),
+			},
+		})
 	}
 	if isCreate {
 		_, err = c.db.Exec(viewSQL)
@@ -423,7 +406,15 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (s
 	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
 
-	viewSQL = fmt.Sprintf(clickhouseViewORM[TableTypePrometheusMetric], viewTableName, constx.PrometheusMetricsName, TagsToString(alarm, true), sourceTableName, filter)
+	viewSQL = builder.Standalone(new(standalone.ViewBuilder), bumo.Params{
+		View: bumo.ParamsView{
+			ViewType:     bumo.ViewTypePrometheusMetric,
+			ViewTable:    viewTableName,
+			TimeField:    tableInfo.GetTimeField(),
+			CommonFields: TagsToString(alarm, true),
+			SourceTable:  sourceTableName,
+			Where:        filter,
+		}})
 
 	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
@@ -497,13 +488,13 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Keys = make([]*db.Index, 0)
 	res.Terms = make([][]string, 0)
 
-	res.Logs, err = c.doQuery(c.logsSQL(param))
+	res.Logs, err = c.doQuery(c.logsSQL(param, tid))
 	if err != nil {
 		return
 	}
-	if param.TimeField != db.TimeField {
+	if param.TimeField != db.TimeFieldSecond {
 		for k := range res.Logs {
-			res.Logs[k][db.TimeField] = res.Logs[k][param.TimeField]
+			res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
 		}
 	}
 	res.Count = c.Count(param)
@@ -570,7 +561,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 func (c *ClickHouse) Databases() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
 	dm := make(map[string][]*view.RespTablesSelfBuilt)
-	query := fmt.Sprintf("select database, name from system.tables where engine = '%s'", "MergeTree")
+	query := fmt.Sprintf("select database, name from system.tables")
 	list, err := c.doQuery(query)
 	if err != nil {
 		return nil, err
@@ -682,8 +673,16 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	return nil
 }
 
-func (c *ClickHouse) logsSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" ORDER BY "+param.TimeField+" DESC LIMIT %d OFFSET %d",
+func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
+	// check is use _time_nanosecond_
+	conds := egorm.Conds{}
+	conds["tid"] = tid
+	views, _ := db.ViewList(invoker.Db, conds)
+	orderByField := param.TimeField
+	if len(views) > 0 {
+		orderByField = db.TimeFieldNanoseconds
+	}
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -750,7 +749,29 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
 		return
 	}
+	// sort by _time_second_
+	// sort.Slice(res, func(i, j int) bool {
+	// 	vi, oki := getUnixTime(res[i])
+	// 	vj, okj := getUnixTime(res[j])
+	// 	if oki && okj {
+	// 		return vi > vj
+	// 	}
+	// 	invoker.Logger.Error("doQuery", elog.Any("TimeFieldNanoseconds", res[i][db.TimeFieldNanoseconds]), elog.Any("type", reflect.TypeOf(res[i][db.TimeFieldNanoseconds])))
+	// 	return false
+	// })
 	return
+}
+
+func getUnixTime(val map[string]interface{}) (int64, bool) {
+	v, ok := val[db.TimeFieldNanoseconds]
+	if !ok {
+		return 0, false
+	}
+	switch v.(type) {
+	case time.Time:
+		return v.(time.Time).UnixNano(), true
+	}
+	return 0, false
 }
 
 // isEmpty filter empty index value

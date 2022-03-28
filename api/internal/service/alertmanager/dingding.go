@@ -59,10 +59,9 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		buffer.WriteString(fmt.Sprintf("##### 备注: %s\n", alarm.Desc))
 	}
 
-	end := time.Now().Unix()
-	start := time.Now().Add(-db.UnitMap[alarm.Unit].Duration).Unix()
-
 	for _, alert := range notification.Alerts {
+		end := alert.StartsAt.Add(time.Minute).Unix()
+		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
 		annotations = alert.Annotations
 		buffer.WriteString(fmt.Sprintf("##### 状态：%s\n", status))
 		buffer.WriteString(fmt.Sprintf("##### 时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("15:04:05")))
