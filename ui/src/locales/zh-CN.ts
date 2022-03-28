@@ -320,7 +320,7 @@ export default {
   "log.index.item.empty": "暂无数据",
   "log.index.manage": "字段管理（该功能在 _raw_log_ 字段格式为 JSON 时可用）",
   "log.index.help":
-    "橙色背景色的字段是系统字段或字段字段，灰色背景色的字段是未设置字段的字段，字段统计只对设置字段后的数据生效",
+    "橙色背景色的字段是系统字段或用户字段，灰色背景色的字段是未设置字段，统计只对配置的字段生效",
   "log.index.manage.table.header.indexName": "字段名称",
   "log.index.manage.table.header.query": "开启查询",
   "log.index.manage.table.header.indexType": "字段类型",
