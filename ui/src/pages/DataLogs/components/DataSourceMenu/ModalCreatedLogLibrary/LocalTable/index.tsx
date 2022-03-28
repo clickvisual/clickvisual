@@ -161,11 +161,10 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
                     id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder",
                   })}`}
                   onChange={(value, option)=>{
-                      if (value) {
-                          const item = conformToStandard.filter((item) => item.name === value).at(0)
-                          if (item) {
-                              setTimeFieldType(item.type)
-                          }
+                      if (!value) return
+                      const item = conformToStandard.filter((item) => item.name === value).at(0)
+                      if (item) {
+                          setTimeFieldType(item.type)
                       }
                   }}
                 >
