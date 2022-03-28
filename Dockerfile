@@ -1,5 +1,3 @@
-ARG GOPROXY=goproxy.cn
-
 # UI build stage
 FROM node:16-alpine3.14 as js-builder
 
@@ -15,6 +13,7 @@ RUN yarn build
 
 # API build stage
 FROM golang:1.17.3-alpine3.14 as go-builder
+ARG GOPROXY=goproxy.cn
 
 ENV GOPROXY=https://${GOPROXY},direct
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
