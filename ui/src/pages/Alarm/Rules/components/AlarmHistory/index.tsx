@@ -105,7 +105,11 @@ const AlarmHistory = () => {
     <>
       {currentAlarm && (
         <Card
-          title={currentAlarm?.alarmName}
+          title={
+            <a href={"/alarm/rules?name=" + currentAlarm?.alarmName}>
+              {currentAlarm?.alarmName}
+            </a>
+          }
           bordered={false}
           extra={<SelectLang className={historyStyles.lang} reload={false} />}
         >

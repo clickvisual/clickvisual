@@ -13,8 +13,10 @@ import classNames from "classnames";
 import { useDebounceFn } from "ahooks";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const AlarmTable = () => {
+  const [urlState] = useUrlState<any>();
   const i18n = useIntl();
   const { FixedTimeUnits } = useTimeUnits();
 
@@ -127,6 +129,7 @@ const AlarmTable = () => {
   ).run;
 
   useEffect(() => {
+    urlState && urlState.name && (searchQuery.name = urlState.name);
     doGetAlarms.run(searchQuery);
   }, []);
 
