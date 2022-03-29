@@ -259,13 +259,14 @@ export default {
     "Time Resolution Field",
   "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder":
     "Please enter the time resolution field",
-  "datasource.logLibrary.from.newLogLibrary.timeResolutionFieldType.placeholder":
-      "Please enter the time resolution field Type",
+  "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType":
+    "Please enter the time resolution field Type",
   "datasource.logLibrary.from.newLogLibrary.timeResolutionFieldType":
-      "Time Resolution Field Type",
+    "Time Resolution Field Type",
   "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Table Field",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "seconds",
-  "datasource.logLibrary.from.newLogLibrary.timeType.millisecond": "millisecond",
+  "datasource.logLibrary.from.newLogLibrary.timeType.millisecond":
+    "millisecond",
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
