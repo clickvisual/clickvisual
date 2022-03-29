@@ -73,27 +73,28 @@ func TableCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	s, d, v, err := op.TableCreate(did, databaseInfo.Name, param)
+	s, d, v, a, err := op.TableCreate(did, databaseInfo, param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "create failed 01: "+err.Error(), nil)
 		return
 	}
 	err = db.TableCreate(invoker.Db, &db.Table{
-		Did:        did,
-		Name:       param.TableName,
-		Typ:        param.Typ,
-		Days:       param.Days,
-		Brokers:    param.Brokers,
-		Topic:      param.Topics,
-		SqlData:    d,
-		SqlStream:  s,
-		SqlView:    v,
-		TimeField:  db.TimeFieldSecond,
-		CreateType: inquiry.TableCreateTypeMogo,
-		Uid:        c.Uid(),
+		Did:            did,
+		Name:           param.TableName,
+		Typ:            param.Typ,
+		Days:           param.Days,
+		Brokers:        param.Brokers,
+		Topic:          param.Topics,
+		SqlData:        d,
+		SqlStream:      s,
+		SqlView:        v,
+		SqlDistributed: a,
+		TimeField:      db.TimeFieldSecond,
+		CreateType:     inquiry.TableCreateTypeMogo,
+		Uid:            c.Uid(),
 	})
 	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "create failed 02: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()

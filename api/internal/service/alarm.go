@@ -178,9 +178,9 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm
 func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err error) {
 	invoker.Logger.Debug("alert", elog.Any("instance", instance), elog.Any("obj", obj))
 
-	if obj.RuleStoreType != instance.RuleStoreType {
-		return constx.ErrPrometheusRuleStoreTypeNotMatch
-	}
+	// if obj.RuleStoreType != instance.RuleStoreType {
+	// 	return constx.ErrPrometheusRuleStoreTypeNotMatch
+	// }
 	switch instance.RuleStoreType {
 	case db.RuleStoreTypeK8s:
 		invoker.Logger.Debug("alert", elog.Any("instance", instance))
@@ -195,7 +195,7 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 			return
 		}
 	default:
-		return constx.ErrAlarmRuleStoreIsClosed
+		return nil
 	}
 	i.AddPrometheusReloadChan()
 	// if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {

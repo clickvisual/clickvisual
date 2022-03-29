@@ -10,6 +10,9 @@ type ReqCreateInstance struct {
 	Namespace        string `json:"namespace"`
 	Configmap        string `json:"configmap"`
 	PrometheusTarget string `json:"prometheusTarget"`
+
+	Mode     int      `json:"mode"`
+	Clusters []string `json:"clusters"`
 }
 
 type ReqCreateCluster struct {

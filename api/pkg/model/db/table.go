@@ -12,18 +12,19 @@ import (
 type Table struct {
 	BaseModel
 
-	Did        int    `gorm:"column:did;type:bigint(20);index:uix_did_name,unique" json:"did"`             // database id
-	Name       string `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_did_name,unique" json:"name"` // table
-	Typ        int    `gorm:"column:typ;type:int(11)" json:"typ"`                                          // table type, 1 string 2 float
-	Days       int    `gorm:"column:days;type:int(11)" json:"days"`                                        // data expire days
-	Brokers    string `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`                    // kafka broker
-	Topic      string `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`                        // kafka topic
-	SqlData    string `gorm:"column:sql_data;type:text" json:"sqlData"`                                    // sql_data
-	SqlStream  string `gorm:"column:sql_stream;type:text" json:"sqlStream"`                                // sql_stream
-	SqlView    string `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
-	Uid        int    `gorm:"column:uid;type:int(11)" json:"uid"`                                          // 操作人
-	CreateType int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create mogo fresh table, 1 means use exists table
-	TimeField  string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
+	Did            int    `gorm:"column:did;type:bigint(20);index:uix_did_name,unique" json:"did"`             // database id
+	Name           string `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_did_name,unique" json:"name"` // table
+	Typ            int    `gorm:"column:typ;type:int(11)" json:"typ"`                                          // table type, 1 string 2 float
+	Days           int    `gorm:"column:days;type:int(11)" json:"days"`                                        // data expire days
+	Brokers        string `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`                    // kafka broker
+	Topic          string `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`                        // kafka topic
+	SqlData        string `gorm:"column:sql_data;type:text" json:"sqlData"`                                    // sql_data
+	SqlStream      string `gorm:"column:sql_stream;type:text" json:"sqlStream"`                                // sql_stream
+	SqlView        string `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
+	SqlDistributed string `gorm:"column:sql_distributed;type:text" json:"sqlDistributed"`                      // sql_distributed
+	Uid            int    `gorm:"column:uid;type:int(11)" json:"uid"`                                          // operation
+	CreateType     int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create mogo fresh table, 1 means use exists table
+	TimeField      string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
 
 	Database *Database `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
 }
