@@ -10,6 +10,7 @@ import {
   Row,
   Select,
   Space,
+  Switch,
   Tooltip,
 } from "antd";
 import { useDebounceFn } from "ahooks";
@@ -45,6 +46,7 @@ const CreatedOrUpdatedInstanceModal = (
   const { options, clusters, doGetClusters, doGetConfigMaps } =
     useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
+  const [isClusters, setIsClusters] = useState<boolean>(false);
   const i18n = useIntl();
   const { AlarmStorages } = useAlarmStorages();
 
@@ -59,6 +61,7 @@ const CreatedOrUpdatedInstanceModal = (
       ...field,
       namespace: field?.k8sConfig?.[0],
       configmap: field?.k8sConfig?.[1],
+      mode: isClusters ? field.mode * 1 : undefined,
     };
     delete params.k8sConfig;
     if (isEditor && current?.id) {
@@ -177,6 +180,68 @@ const CreatedOrUpdatedInstanceModal = (
             <Option value={"ch"}>ClickHouse</Option>
           </Select>
         </Form.Item>
+
+        <Form.Item
+          label={i18n.formatMessage({ id: "instance.form.title.mode" })}
+        >
+          <Form.Item
+            name={"mode"}
+            noStyle
+            initialValue={isClusters}
+            valuePropName="checked"
+          >
+            <Switch
+              onChange={(flag) => {
+                setIsClusters(flag);
+              }}
+            />
+          </Form.Item>
+          <span style={{ lineHeight: "24px", marginLeft: "10px" }}>
+            {isClusters
+              ? i18n.formatMessage({
+                  id: "instance.form.title.cluster",
+                })
+              : i18n.formatMessage({
+                  id: "instance.form.title.modeType.single",
+                })}
+          </span>
+        </Form.Item>
+
+        <Form.Item
+          name={"clusters"}
+          hidden={!isClusters}
+          label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
+          rules={
+            isClusters
+              ? [
+                  {
+                    required: true,
+                    message: i18n.formatMessage({
+                      id: "instance.form.placeholder.cluster",
+                    }),
+                  },
+                ]
+              : []
+          }
+        >
+          <Select
+            placeholder={i18n.formatMessage({
+              id: "instance.form.placeholder.cluster",
+            })}
+            mode="multiple"
+            allowClear
+            showSearch
+          >
+            {clusters.map((item: any) => {
+              return (
+                <Option value={item.id} key={item.id}>
+                  {item.clusterName}
+                </Option>
+              );
+            })}
+          </Select>
+        </Form.Item>
+
         <Form.Item
           name={"dsn"}
           label={"DSN"}
