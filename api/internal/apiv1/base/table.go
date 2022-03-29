@@ -319,6 +319,7 @@ func TableCharts(c *core.Context) {
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
+	param.TimeFieldType = tableInfo.TimeFieldType
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
@@ -370,6 +371,7 @@ func TableCharts(c *core.Context) {
 						Page:          param.Page,
 						PageSize:      param.PageSize,
 						TimeField:     param.TimeField,
+						TimeFieldType: param.TimeFieldType,
 					}),
 					Progress: "",
 					From:     st,
