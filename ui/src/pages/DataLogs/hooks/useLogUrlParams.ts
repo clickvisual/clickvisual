@@ -117,7 +117,7 @@ export default function useLogUrlParams() {
   );
 
   useEffect(() => {
-    setUrlQuery.run();
+    if (currentLogLibrary) setUrlQuery.run();
   }, [
     currentLogLibrary,
     startDateTime,

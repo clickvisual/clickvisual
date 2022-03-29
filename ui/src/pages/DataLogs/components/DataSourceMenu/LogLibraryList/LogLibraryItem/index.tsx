@@ -21,6 +21,7 @@ import { useState } from "react";
 import DeletedModal from "@/components/DeletedModal";
 import { TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const defaultPane: PaneType = {
   pane: "",
@@ -41,6 +42,7 @@ type LogLibraryItemProps = {
 };
 
 const LogLibraryItem = (props: LogLibraryItemProps) => {
+  const [_, setUrlState] = useUrlState();
   const { onChange, logLibrary } = props;
   const {
     logPanes,
@@ -125,15 +127,26 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           );
           onChangeLogPanes(newPanes);
           if (logLibrary === currentLogLibrary) {
-            resetLogs();
             resetCurrentHighChart();
             if (newPanes.length > 0) {
+              resetLogs();
               onChangeCurrentLogPane(newPanes[0]);
               handleChangeRelativeAmountAndUnit(newPanes[0]);
               onChangeLogLibrary({
                 id: newPanes[0].paneId,
                 tableName: newPanes[0].pane,
                 createType: newPanes[0].paneType,
+              });
+            } else {
+              onChangeLogLibrary(undefined);
+              setUrlState({
+                start: undefined,
+                end: undefined,
+                page: undefined,
+                size: undefined,
+                tab: undefined,
+                index: undefined,
+                tid: undefined,
               });
             }
           }

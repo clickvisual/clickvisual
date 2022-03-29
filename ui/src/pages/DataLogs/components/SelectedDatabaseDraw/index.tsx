@@ -14,9 +14,11 @@ import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/
 import DeletedModal from "@/components/DeletedModal";
 import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
 import { ColumnsType } from "antd/es/table";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const { Option } = Select;
 const SelectedDataBaseDraw = () => {
+  const [_, setUrlState] = useUrlState();
   const {
     databaseList,
     currentDatabase,
@@ -114,6 +116,15 @@ const SelectedDataBaseDraw = () => {
               onChangeLogLibrary(undefined);
               onChangeVisibleDatabaseDraw(false);
               onChangeLogPanes([]);
+              setUrlState({
+                start: undefined,
+                end: undefined,
+                page: undefined,
+                size: undefined,
+                tab: undefined,
+                index: undefined,
+                tid: undefined,
+              });
             }}
             size={"small"}
             type={"link"}
