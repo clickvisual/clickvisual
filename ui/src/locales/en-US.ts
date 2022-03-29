@@ -91,7 +91,7 @@ export default {
   "instance.instanceName": "Instance Name",
   "instance.datasource": "Datasource",
   "instance.storagePah": "Storage Path",
-  "instance.delete.confirmTip": "Confirm deleting instance: {instanceName} ?",
+  "instance.delete.confirmTip": "Confirm deleting instance: {name} ?",
   "instance.form.title.created": "Create Instance",
   "instance.form.title.edit": "Edit Instance",
   "instance.form.title.cluster": "Cluster",

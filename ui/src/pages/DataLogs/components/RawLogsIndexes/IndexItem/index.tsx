@@ -24,7 +24,12 @@ const IndexItem = (props: IndexItemProps) => {
   const [details, setDetails] = useState<IndexDetail[]>([]);
 
   const insertQuery = (name: string) => {
-    const currentSelected = `${index.field}='${name}'`;
+    let currentSelected =""
+    if(index.rootName != ""){
+      currentSelected = `${index.rootName}.${index.field}='${name}'`;
+    } else {
+      currentSelected = `${index.field}='${name}'`;
+    }
     doUpdatedQuery(currentSelected);
   };
 
