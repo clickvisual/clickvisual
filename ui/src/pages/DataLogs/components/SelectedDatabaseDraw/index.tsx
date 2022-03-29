@@ -18,7 +18,7 @@ import useUrlState from "@ahooksjs/use-url-state";
 
 const { Option } = Select;
 const SelectedDataBaseDraw = () => {
-  const [_, setUrlState] = useUrlState();
+  const [, setUrlState] = useUrlState();
   const {
     databaseList,
     currentDatabase,

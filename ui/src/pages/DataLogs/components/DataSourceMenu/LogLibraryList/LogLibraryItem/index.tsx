@@ -42,7 +42,7 @@ type LogLibraryItemProps = {
 };
 
 const LogLibraryItem = (props: LogLibraryItemProps) => {
-  const [_, setUrlState] = useUrlState();
+  const [, setUrlState] = useUrlState();
   const { onChange, logLibrary } = props;
   const {
     logPanes,
