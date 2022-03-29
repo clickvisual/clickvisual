@@ -261,7 +261,7 @@ export default {
     "Please enter the time resolution field",
   "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType":
     "Please enter the time resolution field Type",
-  "datasource.logLibrary.from.newLogLibrary.timeResolutionFieldType":
+  "datasource.logLibrary.from.newLogLibrary.timeFieldType":
     "Time Resolution Field Type",
   "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Table Field",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "seconds",
