@@ -106,7 +106,7 @@ export default {
   "instance.form.placeholder.instanceName": "Please enter an instance name",
   "instance.form.placeholder.datasource": "Please select datasource",
   "instance.form.placeholder.mode": "Please select a type",
-  "instance.form.placeholder.cluster": "Please select a cluster",
+  "instance.form.placeholder.clusterName": "Please enter a cluster name",
   "instance.form.placeholder.dsn": "Please enter DSN, for example: {example}",
   "instance.form.placeholder.filePath": "Please enter the file path",
   "instance.form.moreOptions": "More Options",
@@ -331,6 +331,7 @@ export default {
   "datasource.draw.selected": "Please select an instance",
   "datasource.draw.table.datasource": "Database",
   "datasource.draw.table.instance": "Instance",
+  "datasource.draw.table.deployment": "Deployment way",
   "datasource.draw.table.type": "Database Type",
   "datasource.draw.table.empty.type.tip": "None Database type",
 

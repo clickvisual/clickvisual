@@ -149,6 +149,36 @@ const SelectedDataBaseDraw = () => {
       ),
     },
     {
+      title: i18n.formatMessage({ id: "datasource.draw.table.deployment" }),
+      dataIndex: "mode",
+      align: "center" as AlignType,
+      width: "25%",
+      render: (mode: number) => (
+        <Tooltip title={mode}>
+          <span>
+            {mode
+              ? i18n.formatMessage({ id: "instance.form.title.cluster" })
+              : i18n.formatMessage({
+                  id: "instance.form.title.modeType.single",
+                })}
+          </span>
+        </Tooltip>
+      ),
+    },
+    {
+      title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
+      dataIndex: "clusters",
+      align: "center" as AlignType,
+      width: "25%",
+      render: (clusters: string[]) => (
+        <Tooltip title={clusters}>
+          {clusters?.map((item: string, val: any) => {
+              return <span>{item}</span>;
+          })}
+        </Tooltip>
+      ),
+    },
+    {
       title: i18n.formatMessage({ id: "datasource.draw.table.type" }),
       dataIndex: "datasourceType",
       width: "25%",
@@ -243,7 +273,7 @@ const SelectedDataBaseDraw = () => {
         </div>
       }
       className={databaseDrawStyle.databaseDrawMain}
-      placement="right"
+      placement="left"
       closable
       visible={visibleDataBaseDraw}
       getContainer={false}

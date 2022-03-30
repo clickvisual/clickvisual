@@ -81,7 +81,11 @@ func (t Strings) Value() (driver.Value, error) {
 }
 
 func (t *Strings) Scan(input interface{}) error {
-	return json.Unmarshal(input.([]byte), t)
+	in := input.([]byte)
+	if len(in) == 0 {
+		in = []byte("[]")
+	}
+	return json.Unmarshal(in, t)
 }
 
 type Ints []int

@@ -5,6 +5,7 @@ export interface TimeBaseType {
   dtime?: number;
 }
 export interface InstanceType extends TimeBaseType {
+  mode: number;
   id?: number;
   datasource: string;
   dsn: string;
@@ -13,6 +14,7 @@ export interface InstanceType extends TimeBaseType {
   configmap?: string;
   namespace?: string;
   prometheusTarget?: string;
+  clusters?: string[];
 }
 
 export interface ClustersRequest {

@@ -1,5 +1,9 @@
 package view
 
+import (
+	"github.com/shimohq/mogo/api/pkg/model/db"
+)
+
 type ReqCreateInstance struct {
 	Datasource       string `json:"datasource" binding:"required"`
 	Name             string `json:"name" binding:"required"`
@@ -11,8 +15,8 @@ type ReqCreateInstance struct {
 	Configmap        string `json:"configmap"`
 	PrometheusTarget string `json:"prometheusTarget"`
 
-	Mode     int      `json:"mode"`
-	Clusters []string `json:"clusters"`
+	Mode     int        `json:"mode"`
+	Clusters db.Strings `json:"clusters"`
 }
 
 type ReqCreateCluster struct {

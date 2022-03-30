@@ -88,6 +88,8 @@ func DatabaseList(c *core.Context) {
 		if row.Instance != nil {
 			tmp.DatasourceType = row.Instance.Datasource
 			tmp.InstanceName = row.Instance.Name
+			tmp.Mode = row.Instance.Mode
+			tmp.Clusters = row.Instance.Clusters
 		}
 		res = append(res, tmp)
 

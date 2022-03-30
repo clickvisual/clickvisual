@@ -1,5 +1,6 @@
 import instanceModalStyle from "@/pages/SystemSetting/InstancePanel/components/CreatedOrUpdatedInstanceModal/index.less";
 import {
+  Button,
   Cascader,
   Col,
   Form,
@@ -22,6 +23,8 @@ import { useIntl } from "umi";
 import {
   CaretDownOutlined,
   CaretRightOutlined,
+  MinusCircleOutlined,
+  PlusOutlined,
   QuestionCircleOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
@@ -61,7 +64,7 @@ const CreatedOrUpdatedInstanceModal = (
       ...field,
       namespace: field?.k8sConfig?.[0],
       configmap: field?.k8sConfig?.[1],
-      mode: isClusters ? field.mode * 1 : undefined,
+      mode: field.mode * 1,
     };
     delete params.k8sConfig;
     if (isEditor && current?.id) {
@@ -106,6 +109,24 @@ const CreatedOrUpdatedInstanceModal = (
       instanceFormRef.current?.setFieldsValue(cloneCurrent);
     }
   }, [visible, isEditor, current]);
+
+  const formItemLayout = {
+    labelCol: {
+      xs: { span: 24 },
+      sm: { span: 4 },
+    },
+    wrapperCol: {
+      xs: { span: 24 },
+      sm: { span: 20 },
+    },
+  };
+
+  const formItemLayoutWithOutLabel = {
+    wrapperCol: {
+      xs: { span: 24, offset: 0 },
+      sm: { span: 20, offset: 4 },
+    },
+  };
 
   useEffect(() => {
     if (!visible) {
@@ -184,62 +205,113 @@ const CreatedOrUpdatedInstanceModal = (
         <Form.Item
           label={i18n.formatMessage({ id: "instance.form.title.mode" })}
         >
-          <Form.Item
-            name={"mode"}
-            noStyle
-            initialValue={isClusters}
-            valuePropName="checked"
-          >
-            <Switch
-              onChange={(flag) => {
-                setIsClusters(flag);
-              }}
-            />
-          </Form.Item>
-          <span style={{ lineHeight: "24px", marginLeft: "10px" }}>
-            {isClusters
-              ? i18n.formatMessage({
-                  id: "instance.form.title.cluster",
-                })
-              : i18n.formatMessage({
-                  id: "instance.form.title.modeType.single",
-                })}
-          </span>
+          <Space>
+            <Form.Item name={"mode"} noStyle valuePropName="checked">
+              <Switch
+                onChange={(flag) => {
+                  instanceFormRef.current?.setFields([
+                    { name: "clusters", value: [""] },
+                  ]);
+                }}
+              />
+            </Form.Item>
+            <Form.Item
+              shouldUpdate={(prevValues, nextValues) =>
+                prevValues.mode !== nextValues.mode
+              }
+              noStyle
+            >
+              {({ getFieldValue }) => (
+                <span>
+                  {getFieldValue("mode")
+                    ? i18n.formatMessage({
+                        id: "instance.form.title.cluster",
+                      })
+                    : i18n.formatMessage({
+                        id: "instance.form.title.modeType.single",
+                      })}
+                </span>
+              )}
+            </Form.Item>
+          </Space>
         </Form.Item>
-
         <Form.Item
-          name={"clusters"}
-          hidden={!isClusters}
-          label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
-          rules={
-            isClusters
-              ? [
-                  {
-                    required: true,
-                    message: i18n.formatMessage({
-                      id: "instance.form.placeholder.cluster",
-                    }),
-                  },
-                ]
-              : []
+          noStyle
+          shouldUpdate={(prevValues, nextValues) =>
+            prevValues.mode !== nextValues.mode
           }
         >
-          <Select
-            placeholder={i18n.formatMessage({
-              id: "instance.form.placeholder.cluster",
-            })}
-            mode="multiple"
-            allowClear
-            showSearch
-          >
-            {clusters.map((item: any) => {
-              return (
-                <Option value={item.id} key={item.id}>
-                  {item.clusterName}
-                </Option>
-              );
-            })}
-          </Select>
+          {({ getFieldValue }) => {
+            const mode = getFieldValue("mode");
+            if (!mode) {
+              return <></>;
+            }
+            return (
+              <Form.List name="clusters">
+                {(fields, { add, remove }, { errors }) => {
+                  return (
+                    <>
+                      {fields.map((field, index) => (
+                        <Form.Item
+                          key={field.key}
+                          {...(index === 0
+                            ? formItemLayout
+                            : formItemLayoutWithOutLabel)}
+                          required
+                          label={
+                            index === 0
+                              ? i18n.formatMessage({
+                                  id: "instance.form.title.cluster",
+                                })
+                              : ""
+                          }
+                        >
+                          <Form.Item
+                            {...field}
+                            validateTrigger={["onChange", "onBlur"]}
+                            rules={[
+                              {
+                                required: true,
+                                whitespace: true,
+                                message: i18n.formatMessage({
+                                  id: "instance.form.placeholder.clusterName",
+                                }),
+                              },
+                            ]}
+                            noStyle
+                          >
+                            <Input
+                              placeholder={i18n.formatMessage({
+                                id: "instance.form.placeholder.clusterName",
+                              })}
+                              style={{ width: "90%", marginRight: "10px" }}
+                            />
+                          </Form.Item>
+                          {fields.length > 1 ? (
+                            <MinusCircleOutlined
+                              className="dynamic-delete-button"
+                              onClick={() => remove(field.name)}
+                            />
+                          ) : null}
+                        </Form.Item>
+                      ))}
+                      <Form.Item {...formItemLayoutWithOutLabel}>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          style={{ width: "100px" }}
+                          icon={<PlusOutlined />}
+                        >
+                          Add
+                        </Button>
+                        <Form.ErrorList errors={errors} />
+                      </Form.Item>
+                    </>
+                  );
+                }}
+              </Form.List>
+            );
+          }}
         </Form.Item>
 
         <Form.Item

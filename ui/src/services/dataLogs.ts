@@ -78,6 +78,8 @@ export interface DatabaseResponse {
   instanceName: string;
   name: string;
   uid?: number;
+  mode: number;
+  cluster?: string[];
 }
 
 export interface TablesResponse {
