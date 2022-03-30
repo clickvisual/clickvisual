@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}
+data:
+  {{- $files := .Files }}
+    {{- range tuple "default.toml" }}
+    {{ . }}: |-
+    {{ $files.Get . | nindent 6 }}
+    {{- end }}
