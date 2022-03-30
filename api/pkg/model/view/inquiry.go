@@ -11,6 +11,7 @@ type ReqQuery struct {
 	Field         string `form:"field"`
 	Query         string `form:"query"`
 	TimeField     string `form:"timeField"`
+	TimeFieldType int    `form:"timeFieldType"`
 	ST            int64  `form:"st"`
 	ET            int64  `form:"et"`
 	Page          uint32 `form:"page"`

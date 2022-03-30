@@ -271,6 +271,7 @@ func TableLogs(c *core.Context) {
 		param.TimeField = tableInfo.TimeField
 	}
 	param.Table = tableInfo.Name
+	param.TimeFieldType = tableInfo.TimeFieldType
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
@@ -318,6 +319,7 @@ func TableCharts(c *core.Context) {
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
+	param.TimeFieldType = tableInfo.TimeFieldType
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
@@ -369,6 +371,7 @@ func TableCharts(c *core.Context) {
 						Page:          param.Page,
 						PageSize:      param.PageSize,
 						TimeField:     param.TimeField,
+						TimeFieldType: param.TimeFieldType,
 					}),
 					Progress: "",
 					From:     st,
@@ -515,11 +518,12 @@ func TableCreateSelfBuilt(c *core.Context) {
 	}
 	// no need to operator the database
 	tableInfo := db.Table{
-		Did:        databaseInfo.ID,
-		Name:       param.TableName,
-		Uid:        c.Uid(),
-		CreateType: inquiry.TableCreateTypeExist,
-		TimeField:  param.TimeField,
+		Did:           databaseInfo.ID,
+		Name:          param.TableName,
+		Uid:           c.Uid(),
+		CreateType:    inquiry.TableCreateTypeExist,
+		TimeField:     param.TimeField,
+		TimeFieldType: param.TimeFieldType,
 	}
 	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {

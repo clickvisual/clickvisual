@@ -1,5 +1,13 @@
 import { useIntl } from "umi";
-import { Select, Form, Empty, Cascader, FormInstance, Table } from "antd";
+import {
+  Select,
+  Form,
+  Empty,
+  Cascader,
+  FormInstance,
+  Table,
+  Radio,
+} from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { InstanceType } from "@/services/systemSetting";
 import { LocalTables, TableColumn } from "@/services/dataLogs";
@@ -167,6 +175,50 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
                   ))}
                 </Select>
               </Form.Item>
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, nextValues) =>
+                  prevValues.timeField !== nextValues.timeField
+                }
+              >
+                {({ getFieldValue }) => {
+                  const timeField = getFieldValue("timeField");
+                  const selectedField = conformToStandard.find(
+                    (item) => item.name === timeField
+                  );
+                  if (selectedField?.type !== 1) return <></>;
+                  return (
+                    <Form.Item
+                      name={"timeFieldType"}
+                      label={i18n.formatMessage({
+                        id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
+                      })}
+                      rules={[
+                        {
+                          required: true,
+                          message: i18n.formatMessage({
+                            id: "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType",
+                          }),
+                        },
+                      ]}
+                    >
+                      <Radio.Group>
+                        <Radio value={1}>
+                          {i18n.formatMessage({
+                            id: "datasource.logLibrary.from.newLogLibrary.timeType.seconds",
+                          })}
+                        </Radio>
+                        <Radio value={2}>
+                          {i18n.formatMessage({
+                            id: "datasource.logLibrary.from.newLogLibrary.timeType.millisecond",
+                          })}
+                        </Radio>
+                      </Radio.Group>
+                    </Form.Item>
+                  );
+                }}
+              </Form.Item>
+
               <Form.Item
                 label={i18n.formatMessage({
                   id: "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable",
