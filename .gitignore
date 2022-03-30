@@ -42,3 +42,5 @@ data/all-in-one/zookeeper/data/
 data/all-in-one/zookeeper/datalog/
 
 rules/*
+/data/helm/mogo/default.toml
+/data/helm/mogo/resource.yaml
