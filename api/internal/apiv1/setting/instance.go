@@ -8,6 +8,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/inquiry"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -31,6 +32,10 @@ func InstanceCreate(c *core.Context) {
 		c.JSONE(1, "data source configuration with duplicate name", nil)
 		return
 	}
+	if req.Mode == inquiry.ModeCluster && len(req.Clusters) == 0 {
+		c.JSONE(1, "you need to fill in the cluster information", nil)
+		return
+	}
 	obj := db.Instance{
 		Datasource:       req.Datasource,
 		Name:             req.Name,
@@ -41,6 +46,9 @@ func InstanceCreate(c *core.Context) {
 		Namespace:        req.Namespace,
 		Configmap:        req.Configmap,
 		PrometheusTarget: req.PrometheusTarget,
+
+		Mode:     req.Mode,
+		Clusters: req.Clusters,
 	}
 	if req.PrometheusTarget != "" {
 		if err = service.Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
@@ -96,6 +104,8 @@ func InstanceUpdate(c *core.Context) {
 			Datasource: req.Datasource,
 			Name:       req.Name,
 			Dsn:        req.Dsn,
+			Mode:       req.Mode,
+			Clusters:   req.Clusters,
 		}
 		objUpdate.ID = id
 		if err = service.InstanceManager.Add(&objUpdate); err != nil {
@@ -120,6 +130,7 @@ func InstanceUpdate(c *core.Context) {
 	if req.Configmap != "" {
 		ups["configmap"] = req.Configmap
 	}
+
 	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)

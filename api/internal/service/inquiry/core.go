@@ -14,7 +14,7 @@ type Operator interface {
 	DropTable(string) error
 	DropDatabase(string) error
 	AlertViewDrop(string) error
-	DatabaseCreate(string) error
+	DatabaseCreate(string, string) error
 	Count(view.ReqQuery) uint64
 	TableDrop(string, string, int) error
 	AlertViewCreate(string, string) error
@@ -25,7 +25,7 @@ type Operator interface {
 	Columns(string, string, bool) ([]*view.RespColumn, error)
 	AlertViewGen(*db.Alarm, []*db.AlarmFilter) (string, string, error)
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
-	TableCreate(int, string, view.ReqTableCreate) (string, string, string, error)
+	TableCreate(int, db.Database, view.ReqTableCreate) (string, string, string, string, error)
 	IndexUpdate(db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 }
 

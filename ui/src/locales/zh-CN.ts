@@ -91,7 +91,7 @@ export default {
   "instance.instanceName": "实例名称",
   "instance.datasource": "数据源",
   "instance.storagePah": "存储路径",
-  "instance.delete.confirmTip": "确认删除实例：{instanceName} 吗？",
+  "instance.delete.confirmTip": "确认删除实例：{name} 吗？",
   "instance.form.title.created": "新增实例",
   "instance.form.title.edit": "编辑实例",
   "instance.form.title.mode": "类型",
@@ -254,7 +254,12 @@ export default {
     "时间解析字段",
   "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder":
     "请输入时间解析字段",
-  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "表中字段",
+  "datasource.logLibrary.from.newLogLibrary.timeFieldType": "时间字段类型",
+  "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType":
+    "请选择时间戳类型",
+  "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "秒",
+  "datasource.logLibrary.from.newLogLibrary.timeType.millisecond": "毫秒",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "分析字段",
 
   "datasource.logLibrary.placeholder.tableName":
     "请输入数据表名称，支持小写字母、大写字母，或下划线",

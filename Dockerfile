@@ -13,8 +13,9 @@ RUN yarn build
 
 # API build stage
 FROM golang:1.17.3-alpine3.14 as go-builder
+ARG GOPROXY=goproxy.cn
 
-ENV GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=https://${GOPROXY},direct
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk add --no-cache make bash git tzdata
 

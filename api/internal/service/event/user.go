@@ -1,7 +1,7 @@
 package event
 
 import (
-	"mdp/pkg/model/db"
+	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
 func (a *event) RecordLocalUserEvent(opUser *db.User, operation string, tgtUid int, metaData string) {
@@ -14,7 +14,7 @@ func (a *event) RecordLocalUserEvent(opUser *db.User, operation string, tgtUid i
 	}
 	if opUser != nil {
 		userEvent.UserName = opUser.Username
-		userEvent.UID = opUser.Uid
+		userEvent.UID = opUser.ID
 	}
 	a.PutEvent(userEvent)
 }

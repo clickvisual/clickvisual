@@ -132,6 +132,7 @@ export interface CreateLocalTableRequest {
   databaseName: string;
   tableName: string;
   timeField: string;
+  timeFieldType: number;
 }
 
 export interface IndexInfoType {

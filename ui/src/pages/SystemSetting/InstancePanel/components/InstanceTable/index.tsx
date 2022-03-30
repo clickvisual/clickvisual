@@ -147,7 +147,7 @@ const InstanceTable = (props: InstanceTableProps) => {
                         {
                           id: "instance.delete.confirmTip",
                         },
-                        { instanceName: record.instanceName }
+                        { instanceName: record.name }
                       ),
                     },
                     doDeletedInstance.loading

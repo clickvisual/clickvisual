@@ -149,7 +149,6 @@ func GetRouter() *egin.Component {
 	}
 	// Table
 	{
-
 		v1.GET("/table/id", core.Handle(base.TableId))
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))

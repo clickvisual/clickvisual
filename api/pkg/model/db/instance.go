@@ -15,15 +15,17 @@ import (
 type Instance struct {
 	BaseModel
 
-	Datasource       string `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // datasource type
-	Name             string `gorm:"column:name;type:varchar(128);NOT NULL;index:idx_datasource_name,unique" json:"name"`            // datasource instance name
-	Dsn              string `gorm:"column:dsn;type:text" json:"dsn"`                                                                // dsn
-	RuleStoreType    int    `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                                       // rule_store_type 0 集群 1 文件
-	FilePath         string `gorm:"column:file_path;type:varchar(255)" json:"filePath"`                                             // file_path
-	ClusterId        int    `gorm:"column:cluster_id;type:int(11)" json:"clusterId"`                                                // cluster_id
-	Namespace        string `gorm:"column:namespace;type:varchar(128);NOT NULL" json:"namespace"`                                   // namespace
-	Configmap        string `gorm:"column:configmap;type:varchar(128);NOT NULL" json:"configmap"`                                   // configmap
-	PrometheusTarget string `gorm:"column:prometheus_target;type:varchar(128);NOT NULL" json:"prometheusTarget"`                    // prometheus ip or domain, eg: https://prometheus:9090
+	Datasource       string  `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // datasource type
+	Name             string  `gorm:"column:name;type:varchar(128);NOT NULL;index:idx_datasource_name,unique" json:"name"`            // datasource instance name
+	Dsn              string  `gorm:"column:dsn;type:text" json:"dsn"`                                                                // dsn
+	RuleStoreType    int     `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                                       // rule_store_type 0 集群 1 文件
+	FilePath         string  `gorm:"column:file_path;type:varchar(255)" json:"filePath"`                                             // file_path
+	ClusterId        int     `gorm:"column:cluster_id;type:int(11)" json:"clusterId"`                                                // cluster_id
+	Namespace        string  `gorm:"column:namespace;type:varchar(128)" json:"namespace"`                                            // namespace
+	Configmap        string  `gorm:"column:configmap;type:varchar(128)" json:"configmap"`                                            // configmap
+	PrometheusTarget string  `gorm:"column:prometheus_target;type:varchar(128)" json:"prometheusTarget"`                             // prometheus ip or domain, eg: https://prometheus:9090
+	Mode             int     `gorm:"column:mode;type:tinyint(1)" json:"mode"`                                                        // 0 standalone 1 cluster
+	Clusters         Strings `gorm:"column:clusters;type:text" json:"clusters"`
 }
 
 func (t *Instance) TableName() string {

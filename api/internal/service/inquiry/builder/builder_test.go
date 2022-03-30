@@ -43,7 +43,8 @@ func TestStandaloneData(t *testing.T) {
   _pod_name_ String,
   _raw_log_ String
 )
-ENGINE = MergeTree PARTITION BY toYYYYMMDD(_time_second_)
+ENGINE = MergeTree
+PARTITION BY toYYYYMMDD(_time_second_)
 ORDER BY _time_second_
 TTL toDateTime(_time_second_) + INTERVAL 3 DAY
 SETTINGS index_granularity = 8192;`,
@@ -133,7 +134,7 @@ WHERE 1=1 GROUP by _time_second_;`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Standalone(tt.args.builder, tt.args.params); got != tt.want {
+			if got := Do(tt.args.builder, tt.args.params); got != tt.want {
 				t.Errorf("StandaloneData() = %v, want %v", got, tt.want)
 			}
 		})

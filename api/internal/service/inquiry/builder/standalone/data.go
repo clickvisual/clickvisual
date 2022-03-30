@@ -42,7 +42,7 @@ func (b *DataBuilder) BuilderWhere() {
 }
 
 func (b *DataBuilder) BuilderEngine() {
-	b.QueryAssembly.Result += "ENGINE = MergeTree PARTITION BY toYYYYMMDD(_time_second_)\n"
+	b.QueryAssembly.Result += "ENGINE = MergeTree\nPARTITION BY toYYYYMMDD(_time_second_)\n"
 }
 
 func (b *DataBuilder) BuilderOrder() {

@@ -15,13 +15,17 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder"
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
+	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/cluster"
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/standalone"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-func genTimeCondition(timeField string) string {
-	return timeField + " >= %d AND " + timeField + " < %d"
+func genTimeCondition(param view.ReqQuery) string {
+	if param.TimeFieldType == db.TimeFieldTypeTsMs {
+		return fmt.Sprintf("intDiv(%s,1000) >= %s and intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
+	}
+	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
 }
 
 const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
@@ -64,18 +68,25 @@ var jsonExtractORM = map[int]string{
 	2: "toFloat64OrNull",
 }
 
+const (
+	ModeStandalone int = iota
+	ModeCluster
+)
+
 type ClickHouse struct {
-	id int
-	db *sql.DB
+	id   int
+	mode int
+	db   *sql.DB
 }
 
-func NewClickHouse(db *sql.DB, id int) *ClickHouse {
-	if id == 0 {
+func NewClickHouse(db *sql.DB, ins *db.Instance) *ClickHouse {
+	if ins.ID == 0 {
 		panic("clickhouse add err, id is 0")
 	}
 	return &ClickHouse{
-		db: db,
-		id: id,
+		db:   db,
+		id:   ins.ID,
+		mode: ins.Mode,
 	}
 }
 
@@ -190,10 +201,21 @@ func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
 	var (
 		views []*db.View
 	)
+	if c.mode == ModeCluster {
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table))
+		if err != nil {
+			return err
+		}
+		table = table + "_local"
+	}
+
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, err = db.ViewList(invoker.Db, conds)
-	_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s;", genViewName(database, table, "")))
+	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
+	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
+	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table)
+	_, err = c.db.Exec(delViewSQL)
 	if err != nil {
 		return err
 	}
@@ -204,11 +226,11 @@ func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
 			return err
 		}
 	}
-	_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s;", genStreamName(database, table)))
+	_, err = c.db.Exec(delStreamSQL)
 	if err != nil {
 		return err
 	}
-	_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s.%s;", database, table))
+	_, err = c.db.Exec(delDataSQL)
 	if err != nil {
 		return err
 	}
@@ -216,9 +238,14 @@ func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
 }
 
 // TableCreate create default stream data table and view
-func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL string, err error) {
-	dName := genName(database, ct.TableName)
-	dStreamName := genStreamName(database, ct.TableName)
+func (c *ClickHouse) TableCreate(did int, database db.Database, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+	dName := genName(database.Name, ct.TableName)
+	dStreamName := genStreamName(database.Name, ct.TableName)
+
+	if c.mode == ModeCluster {
+		dName = genName(database.Name, ct.TableName+"_local")
+		dStreamName = genStreamName(database.Name, ct.TableName+"_local")
+	}
 	// build view statement
 	var timeTyp = "String"
 	if ct.Typ == TimeTypeString {
@@ -229,24 +256,37 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 		err = errors.New("invalid time type")
 		return
 	}
-	dStreamSQL = builder.Standalone(new(standalone.StreamBuilder), bumo.Params{
+	dataParams := bumo.Params{
+		Data: bumo.ParamsData{
+			TableName: dName,
+			Days:      ct.Days,
+		},
+	}
+	streamParams := bumo.Params{
 		Stream: bumo.ParamsStream{
 			TableName:   dStreamName,
 			TimeTyp:     timeTyp,
 			Brokers:     ct.Brokers,
 			Topic:       ct.Topics,
-			Group:       database + "_" + ct.TableName,
+			Group:       database.Name + "_" + ct.TableName,
 			ConsumerNum: ct.Consumers,
 		},
-	})
-	dDataSQL = builder.Standalone(new(standalone.DataBuilder), bumo.Params{
-		Data: bumo.ParamsData{
-			TableName: dName,
-			Days:      ct.Days,
-		},
-	})
+	}
 
-	invoker.Logger.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL), elog.Any("dViewSQL", dViewSQL))
+	if c.mode == ModeCluster {
+		dataParams.Cluster = database.Cluster
+		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
+
+		streamParams.Cluster = database.Cluster
+		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+	} else {
+		dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
+		dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+	}
+
+	invoker.Logger.Debug("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("dDataSQL", dDataSQL),
+		elog.Any("dViewSQL", dViewSQL), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
 		return
@@ -259,6 +299,21 @@ func (c *ClickHouse) TableCreate(did int, database string, ct view.ReqTableCreat
 	if err != nil {
 		return
 	}
+	if c.mode == ModeCluster {
+		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
+			Cluster: database.Cluster,
+			Data: bumo.ParamsData{
+				DataType:    bumo.DataTypeDistributed,
+				TableName:   genName(database.Name, ct.TableName),
+				SourceTable: dName,
+			},
+		})
+		invoker.Logger.Debug("TableCreate", elog.Any("distributeSQL", dDistributedSQL))
+		_, err = c.db.Exec(dDistributedSQL)
+		if err != nil {
+			return
+		}
+	}
 	return
 }
 
@@ -266,6 +321,9 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
 	if err != nil {
 		return
+	}
+	if c.mode == ModeCluster {
+		table += "_local"
 	}
 	viewName := genViewName(databaseInfo.Name, table, customTimeField)
 
@@ -290,6 +348,9 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	streamName := genStreamName(databaseInfo.Name, table)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
+	if c.mode == ModeCluster {
+		viewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s' ;", viewName, databaseInfo.Cluster)
+	}
 	_, err = c.db.Exec(viewDropSQL)
 	if err != nil {
 		return "", err
@@ -303,7 +364,8 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 		} else {
 			dtp = defaultFloatTimeParse
 		}
-		viewSQL = builder.Standalone(new(standalone.ViewBuilder), bumo.Params{
+		viewSQL = c.ViewDo(bumo.Params{
+			Cluster: databaseInfo.Cluster,
 			View: bumo.ParamsView{
 				ViewTable:    viewName,
 				TargetTable:  dName,
@@ -317,7 +379,8 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 		if current == nil {
 			return "", errors.New("the process processes abnormal data errors, current view cannot be nil")
 		}
-		viewSQL = builder.Standalone(new(standalone.ViewBuilder), bumo.Params{
+		viewSQL = c.ViewDo(bumo.Params{
+			Cluster: databaseInfo.Cluster,
 			View: bumo.ParamsView{
 				ViewTable:    viewName,
 				TargetTable:  dName,
@@ -337,8 +400,15 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	return viewSQL, nil
 }
 
-func (c *ClickHouse) DatabaseCreate(name string) error {
-	_, err := c.db.Exec(fmt.Sprintf("create database %s;", name))
+func (c *ClickHouse) DatabaseCreate(name, cluster string) error {
+
+	query := fmt.Sprintf("create database %s;", name)
+	if c.mode == ModeCluster {
+		query = fmt.Sprintf("create database %s on cluster '%s';", name, cluster)
+	}
+	invoker.Logger.Error("TableCreate", elog.String("query", query))
+
+	_, err := c.db.Exec(query)
 	if err != nil {
 		invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
 		return err
@@ -375,6 +445,17 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 	}
 }
 
+func (c *ClickHouse) ViewDo(params bumo.Params) string {
+	var obj builder.Builder
+	switch c.mode {
+	case ModeCluster:
+		obj = new(cluster.ViewBuilder)
+	default:
+		obj = new(standalone.ViewBuilder)
+	}
+	return builder.Do(obj, params)
+}
+
 // AlertViewGen TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS
 // SELECT
 //        toDate(_timestamp_) as date,
@@ -406,16 +487,15 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (s
 	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
 
-	viewSQL = builder.Standalone(new(standalone.ViewBuilder), bumo.Params{
+	viewSQL = c.ViewDo(bumo.Params{
+		Cluster: tableInfo.Database.Cluster,
 		View: bumo.ParamsView{
 			ViewType:     bumo.ViewTypePrometheusMetric,
 			ViewTable:    viewTableName,
 			TimeField:    tableInfo.GetTimeField(),
 			CommonFields: TagsToString(alarm, true),
 			SourceTable:  sourceTableName,
-			Where:        filter,
-		}})
-
+			Where:        filter}})
 	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
 	err = c.alertPrepare()
@@ -494,7 +574,11 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	}
 	if param.TimeField != db.TimeFieldSecond {
 		for k := range res.Logs {
-			res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
+			if param.TimeFieldType == db.TimeFieldTypeTsMs {
+				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
+			} else {
+				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
+			}
 		}
 	}
 	res.Count = c.Count(param)
@@ -589,7 +673,7 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
-		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type = '%s'", database, table, "DateTime")
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime'", "'Int32'", "'Int64'"}, ","))
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
@@ -621,18 +705,38 @@ func fieldTypeJudgment(typ string) int {
 func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
 	// step 1 drop
 	for _, del := range dels {
-		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, del.GetFieldName())
-		_, err = c.db.Exec(qs)
-		if err != nil {
-			return err
+		if c.mode == ModeCluster {
+			_, err = c.db.Exec(fmt.Sprintf("ALTER TABLE `%s`.`%s` ON CLUSTER `%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, database.Cluster, del.GetFieldName()))
+			if err != nil {
+				return err
+			}
+			_, err = c.db.Exec(fmt.Sprintf("ALTER TABLE `%s`.`%s_local` ON CLUSTER `%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, database.Cluster, del.GetFieldName()))
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = c.db.Exec(fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, del.GetFieldName()))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	// step 2 add
 	for _, add := range adds {
-		qs := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.GetFieldName(), typORM[add.Typ].Key)
-		_, err = c.db.Exec(qs)
-		if err != nil {
-			return err
+		if c.mode == ModeCluster {
+			_, err = c.db.Exec(fmt.Sprintf("ALTER TABLE `%s`.`%s_local` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, database.Cluster, add.GetFieldName(), typORM[add.Typ].Key))
+			if err != nil {
+				return err
+			}
+			_, err = c.db.Exec(fmt.Sprintf("ALTER TABLE `%s`.`%s` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, database.Cluster, add.GetFieldName(), typORM[add.Typ].Key))
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = c.db.Exec(fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.GetFieldName(), typORM[add.Typ].Key))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	tx := invoker.Db.Begin()
@@ -654,17 +758,17 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	viewList, err := db.ViewList(invoker.Db, condsViews)
 	invoker.Logger.Debug("IndexUpdate", elog.Any("viewList", viewList))
 	for _, current := range viewList {
-		innerViewSQL, err := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
-		if err != nil {
+		innerViewSQL, errViewOperator := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
+		if errViewOperator != nil {
 			tx.Rollback()
-			return err
+			return errViewOperator
 		}
 		upsView := make(map[string]interface{}, 0)
 		upsView["sql_view"] = innerViewSQL
-		err = db.ViewUpdate(tx, current.ID, upsView)
-		if err != nil {
+		errViewUpdate := db.ViewUpdate(tx, current.ID, upsView)
+		if errViewUpdate != nil {
 			tx.Rollback()
-			return err
+			return errViewUpdate
 		}
 	}
 	if err = tx.Commit().Error; err != nil {
@@ -682,7 +786,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -692,7 +796,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+genTimeCondition(param.TimeField),
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+genTimeCondition(param),
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
@@ -701,7 +805,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" group by %s order by count desc limit 10",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param)+" group by %s  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,

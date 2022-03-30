@@ -73,27 +73,28 @@ func TableCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	s, d, v, err := op.TableCreate(did, databaseInfo.Name, param)
+	s, d, v, a, err := op.TableCreate(did, databaseInfo, param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "create failed 01: "+err.Error(), nil)
 		return
 	}
 	err = db.TableCreate(invoker.Db, &db.Table{
-		Did:        did,
-		Name:       param.TableName,
-		Typ:        param.Typ,
-		Days:       param.Days,
-		Brokers:    param.Brokers,
-		Topic:      param.Topics,
-		SqlData:    d,
-		SqlStream:  s,
-		SqlView:    v,
-		TimeField:  db.TimeFieldSecond,
-		CreateType: inquiry.TableCreateTypeMogo,
-		Uid:        c.Uid(),
+		Did:            did,
+		Name:           param.TableName,
+		Typ:            param.Typ,
+		Days:           param.Days,
+		Brokers:        param.Brokers,
+		Topic:          param.Topics,
+		SqlData:        d,
+		SqlStream:      s,
+		SqlView:        v,
+		SqlDistributed: a,
+		TimeField:      db.TimeFieldSecond,
+		CreateType:     inquiry.TableCreateTypeMogo,
+		Uid:            c.Uid(),
 	})
 	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "create failed 02: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -271,6 +272,7 @@ func TableLogs(c *core.Context) {
 		param.TimeField = tableInfo.TimeField
 	}
 	param.Table = tableInfo.Name
+	param.TimeFieldType = tableInfo.TimeFieldType
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
@@ -318,6 +320,7 @@ func TableCharts(c *core.Context) {
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
+	param.TimeFieldType = tableInfo.TimeFieldType
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	if param.Database == "" || param.Table == "" {
@@ -369,6 +372,7 @@ func TableCharts(c *core.Context) {
 						Page:          param.Page,
 						PageSize:      param.PageSize,
 						TimeField:     param.TimeField,
+						TimeFieldType: param.TimeFieldType,
 					}),
 					Progress: "",
 					From:     st,
@@ -515,11 +519,12 @@ func TableCreateSelfBuilt(c *core.Context) {
 	}
 	// no need to operator the database
 	tableInfo := db.Table{
-		Did:        databaseInfo.ID,
-		Name:       param.TableName,
-		Uid:        c.Uid(),
-		CreateType: inquiry.TableCreateTypeExist,
-		TimeField:  param.TimeField,
+		Did:           databaseInfo.ID,
+		Name:          param.TableName,
+		Uid:           c.Uid(),
+		CreateType:    inquiry.TableCreateTypeExist,
+		TimeField:     param.TimeField,
+		TimeFieldType: param.TimeFieldType,
 	}
 	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
