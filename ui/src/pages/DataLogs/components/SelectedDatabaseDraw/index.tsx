@@ -167,13 +167,13 @@ const SelectedDataBaseDraw = () => {
     },
     {
       title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
-      dataIndex: "cluster",
+      dataIndex: "clusters",
       align: "center" as AlignType,
       width: "25%",
-      render: (cluster: string[]) => (
-        <Tooltip title={cluster}>
-          {cluster?.map((item: string) => {
-            return <span>{item}</span>;
+      render: (clusters: string[]) => (
+        <Tooltip title={clusters}>
+          {clusters?.map((item: string, val: any) => {
+              return <span>{item}</span>;
           })}
         </Tooltip>
       ),

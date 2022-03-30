@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -50,6 +51,7 @@ func InstanceCreate(c *core.Context) {
 		Mode:     req.Mode,
 		Clusters: req.Clusters,
 	}
+	invoker.Logger.Debug("instanceCreate", elog.Any("obj", obj))
 	if req.PrometheusTarget != "" {
 		if err = service.Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
 			c.JSONE(1, "create DB failed: "+err.Error(), nil)
@@ -115,9 +117,12 @@ func InstanceUpdate(c *core.Context) {
 		}
 		ups["dsn"] = req.Dsn
 	}
-	ups["datasource"] = req.Datasource
+
 	ups["name"] = req.Name
+	ups["mode"] = req.Mode
+	ups["datasource"] = req.Datasource
 	ups["rule_store_type"] = req.RuleStoreType
+
 	if req.FilePath != "" {
 		ups["file_path"] = req.FilePath
 	}
@@ -130,7 +135,9 @@ func InstanceUpdate(c *core.Context) {
 	if req.Configmap != "" {
 		ups["configmap"] = req.Configmap
 	}
-
+	if len(req.Clusters) != 0 {
+		ups["clusters"] = req.Clusters
+	}
 	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
