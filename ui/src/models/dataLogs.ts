@@ -380,6 +380,10 @@ const DataLogsModel = () => {
     setIsHiddenHighChart(false);
   };
 
+  // const resetUrlParams = () => {
+  //   onChangeLogLibrary(undefined);
+  // };
+
   const setChangeTabPane = (tabPane: PaneType) => {
     onChangeLogsPage(tabPane.page, tabPane.pageSize);
     onChangeActiveTabKey(tabPane.activeTabKey);

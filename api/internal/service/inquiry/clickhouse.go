@@ -21,8 +21,11 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-func genTimeCondition(timeField string) string {
-	return timeField + " >= %d AND " + timeField + " < %d"
+func genTimeCondition(param view.ReqQuery) string {
+	if param.TimeFieldType == db.TimeFieldTypeTsMs {
+		return fmt.Sprintf("intDiv(%s,1000) >= %s and intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
+	}
+	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
 }
 
 const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
@@ -571,7 +574,11 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	}
 	if param.TimeField != db.TimeFieldSecond {
 		for k := range res.Logs {
-			res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
+			if param.TimeFieldType == db.TimeFieldTypeTsMs {
+				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
+			} else {
+				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
+			}
 		}
 	}
 	res.Count = c.Count(param)
@@ -666,7 +673,7 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
-		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type = '%s'", database, table, "DateTime")
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime'", "'Int32'", "'Int64'"}, ","))
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
@@ -779,7 +786,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -789,7 +796,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+genTimeCondition(param.TimeField),
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+genTimeCondition(param),
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
@@ -798,7 +805,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param.TimeField)+" group by %s order by count desc limit 10",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param)+" group by %s  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,

@@ -254,6 +254,11 @@ export default {
     "时间解析字段",
   "datasource.logLibrary.from.newLogLibrary.timeResolutionField.placeholder":
     "请输入时间解析字段",
+  "datasource.logLibrary.from.newLogLibrary.timeFieldType": "时间字段类型",
+  "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType":
+    "请选择时间戳类型",
+  "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "秒",
+  "datasource.logLibrary.from.newLogLibrary.timeType.millisecond": "毫秒",
   "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "表中字段",
 
   "datasource.logLibrary.placeholder.tableName":

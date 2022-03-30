@@ -2,6 +2,8 @@ import { Form, Input, InputNumber, Select } from "antd";
 import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import { useIntl } from "umi";
 
+const { Option } = Select;
+
 const NewTable = () => {
   const i18n = useIntl();
   return (
@@ -109,7 +111,7 @@ const NewTable = () => {
             }),
           },
           {
-            pattern: new RegExp(/^[a-zA-Z0-9\-\_\.]+$/),
+            pattern: new RegExp(/^[a-zA-Z0-9\-_.]+$/),
             message: i18n.formatMessage({
               id: "datasource.logLibrary.from.rule.topics",
             }),
