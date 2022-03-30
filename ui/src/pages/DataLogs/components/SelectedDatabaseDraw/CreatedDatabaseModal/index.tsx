@@ -1,7 +1,7 @@
 import databaseModalStyles from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal/index.less";
 import { Button, Form, FormInstance, Input, Select } from "antd";
 import { useIntl } from "umi";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import CustomModal from "@/components/CustomModal";
 import { useModel } from "@@/plugin-model/useModel";
 import { SaveOutlined } from "@ant-design/icons";
@@ -20,6 +20,8 @@ const CreatedDatabaseModal = () => {
   const { doGetDatabaseList } = useModel("dataLogs");
   const { selectedInstance, instanceList } = useModel("instances");
   const databaseFormRef = useRef<FormInstance>(null);
+
+  const [clustersList, steClustersList] = useState<any>([]);
 
   const i18n = useIntl();
 
@@ -87,6 +89,14 @@ const CreatedDatabaseModal = () => {
             placeholder={`${i18n.formatMessage({
               id: "datasource.draw.selected",
             })}`}
+            onChange={(id: any) => {
+              const dataList = instanceList.filter((item) => item.id == id);
+              if (dataList[0].mode == 0) {
+                steClustersList([]);
+              } else {
+                steClustersList(dataList[0].clusters);
+              }
+            }}
           >
             {instanceList.map((item: InstanceType, index: number) => (
               <Option key={index} value={item.id as number}>
@@ -116,6 +126,37 @@ const CreatedDatabaseModal = () => {
               id: "database.form.placeholder.name",
             })}`}
           />
+        </Form.Item>
+        <Form.Item
+          label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
+          name={"clusters"}
+          hidden={!clustersList.length}
+          rules={
+            !clustersList.length
+              ? []
+              : [
+                  {
+                    required: true,
+                    message: i18n.formatMessage({
+                      id: "config.selectedBar.cluster",
+                    }),
+                  },
+                ]
+          }
+        >
+          <Select
+            style={{ width: "100%" }}
+            mode="multiple"
+            placeholder={`${i18n.formatMessage({
+              id: "config.selectedBar.cluster",
+            })}`}
+          >
+            {clustersList.map((item: string, index: number) => (
+              <Option key={index} value={item}>
+                {item}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
         <Form.Item noStyle>
           <div className={databaseModalStyles.submitBtn}>

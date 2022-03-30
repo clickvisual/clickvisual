@@ -105,7 +105,7 @@ export default {
   "instance.form.placeholder.instanceName": "请输入实例名称",
   "instance.form.placeholder.datasource": "请选择数据源",
   "instance.form.placeholder.mode": "请选择类型",
-  "instance.form.placeholder.cluster": "请选择集群",
+  "instance.form.placeholder.clusterName": "请输入集群名称",
   "instance.form.placeholder.dsn": "请输入数据源连接串，例如：{example}",
   "instance.form.placeholder.filePath": "请输入文件路径",
   "instance.form.moreOptions": "更多设置",
@@ -304,6 +304,7 @@ export default {
   "datasource.draw.selected": "请选择实例",
   "datasource.draw.table.datasource": "数据库",
   "datasource.draw.table.instance": "实例",
+  "datasource.draw.table.deployment": "部署方式",
   "datasource.draw.table.type": "数据库类型",
   "datasource.draw.table.empty.type.tip": "无数据库类型",
 
