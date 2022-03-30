@@ -23,16 +23,18 @@ func DatabaseCreate(c *core.Context) {
 		return
 	}
 	obj := db.Database{
-		Iid:  iid,
-		Name: req.Name,
-		Uid:  c.Uid(),
+		Iid:            iid,
+		Name:           req.Name,
+		Cluster:        req.Cluster,
+		Uid:            c.Uid(),
+		IsCreateByMogo: 1,
 	}
 	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	err = op.DatabaseCreate(req.Name)
+	err = op.DatabaseCreate(req.Name, req.Cluster)
 	if err != nil {
 		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
 		return
@@ -112,15 +114,17 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete database: "+err.Error(), nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(database.Iid)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	err = op.DropDatabase(database.Name)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
+	if database.IsCreateByMogo == 1 {
+		op, errLoad := service.InstanceManager.Load(database.Iid)
+		if errLoad != nil {
+			c.JSONE(core.CodeErr, errLoad.Error(), nil)
+			return
+		}
+		err = op.DropDatabase(database.Name)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
 	}
 	err = db.DatabaseDelete(invoker.Db, id)
 	if err != nil {

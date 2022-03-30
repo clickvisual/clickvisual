@@ -35,7 +35,7 @@ func NewInstanceManager() *instanceManager {
 				invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 				continue
 			}
-			m.dss.Store(ds.DsKey(), inquiry.NewClickHouse(chDb, ds.ID))
+			m.dss.Store(ds.DsKey(), inquiry.NewClickHouse(chDb, ds))
 		}
 	}
 	return m
@@ -55,7 +55,7 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 			invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 			return err
 		}
-		i.dss.Store(obj.DsKey(), inquiry.NewClickHouse(chDb, obj.ID))
+		i.dss.Store(obj.DsKey(), inquiry.NewClickHouse(chDb, obj))
 	}
 	return nil
 }

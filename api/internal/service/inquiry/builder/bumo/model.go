@@ -13,14 +13,17 @@ type QueryAssembly struct {
 }
 
 type Params struct {
-	Data   ParamsData
-	Stream ParamsStream
-	View   ParamsView
+	Cluster string
+	Data    ParamsData
+	View    ParamsView
+	Stream  ParamsStream
 }
 
 type ParamsData struct {
-	TableName string
-	Days      int
+	DataType    int
+	TableName   string
+	Days        int
+	SourceTable string
 }
 
 type ParamsStream struct {
@@ -32,13 +35,6 @@ type ParamsStream struct {
 	ConsumerNum int
 }
 
-const PrometheusMetricName = "mogo_alert_metrics"
-
-const (
-	ViewTypeDefault = iota
-	ViewTypePrometheusMetric
-)
-
 type ParamsView struct {
 	ViewType     int
 	ViewTable    string
@@ -48,6 +44,18 @@ type ParamsView struct {
 	SourceTable  string
 	Where        string
 }
+
+const PrometheusMetricName = "mogo_alert_metrics"
+
+const (
+	ViewTypeDefault = iota
+	ViewTypePrometheusMetric
+)
+
+const (
+	DataTypeDefault = iota
+	DataTypeDistributed
+)
 
 func (q *QueryAssembly) Gen() string {
 	var res string

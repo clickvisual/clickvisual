@@ -203,29 +203,29 @@ func Delete(c *core.Context) {
 	}
 	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
-		c.JSONE(1, "alarm failed to delete 01"+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 01: "+err.Error(), nil)
 		return
 	}
 	tx := invoker.Db.Begin()
 	if err = db.AlarmDelete(tx, id); err != nil {
-		c.JSONE(1, "alarm failed to delete 02 "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 02: "+err.Error(), nil)
 		return
 	}
 	// filter
 	if err = db.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 03 "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 03: "+err.Error(), nil)
 		return
 	}
 	// condition
 	if err = db.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 04"+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 04: "+err.Error(), nil)
 		return
 	}
 	if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 05"+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 05: "+err.Error(), nil)
 		return
 	}
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
@@ -235,7 +235,7 @@ func Delete(c *core.Context) {
 	}
 	if err = op.AlertViewDrop(alarmInfo.ViewTableName); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 06"+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 06: "+err.Error(), nil)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {

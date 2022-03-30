@@ -129,8 +129,23 @@ const AlarmTable = () => {
   ).run;
 
   useEffect(() => {
-    urlState && urlState.name && (searchQuery.name = urlState.name);
-    doGetAlarms.run(searchQuery);
+    if (urlState && urlState.name) {
+      searchQuery.name = urlState.name;
+      if (urlState.did || urlState.status) {
+        const data = {
+          ...searchQuery,
+          ...urlState,
+        };
+        doGetAlarms.run(data);
+        searchQuery.did = urlState.did * 1 || undefined;
+        searchQuery.tid = urlState.tid * 1 || undefined;
+        searchQuery.status = urlState.status * 1 || undefined;
+      } else {
+        doGetAlarms.run(searchQuery);
+      }
+    } else {
+      doGetAlarms.run(searchQuery);
+    }
   }, []);
 
   const column: ColumnsType<any> = [

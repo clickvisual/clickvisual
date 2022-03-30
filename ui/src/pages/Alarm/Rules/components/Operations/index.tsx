@@ -10,7 +10,7 @@ import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import useUrlState from "@ahooksjs/use-url-state";
 const { Option } = Select;
 const Operations = () => {
-  const [urlState] = useUrlState<any>();
+  const [urlState, setUrlState] = useUrlState<any>();
   const { operations, alarmDraw, doGetAlarms, currentPagination } =
     useModel("alarm");
 
@@ -34,12 +34,26 @@ const Operations = () => {
   const handleSearch = useDebounceFn(
     () => {
       doGetAlarms.run(searchQuery);
+      urlChange("name", operations.inputName || undefined);
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
+  /**
+   * 该函数不支持连续调用两次，因为两个时间的...urlState做不到同步更新
+   */
+  const urlChange = (key: string, value: any) => {
+    const data = { ...urlState, [key]: value };
+    setUrlState(data);
+  };
 
   useEffect(() => {
     getDatabases.run();
+    urlState && urlState.did && getLogLibraries.run(urlState.did * 1);
+    urlState && urlState.did && operations.onChangeSelectDid(urlState.did * 1);
+    urlState && urlState.tid && operations.onChangeSelectTid(urlState.tid * 1);
+    urlState &&
+      urlState.status &&
+      operations.onChangeStatusId(urlState.status * 1);
     urlState && urlState.name && operations.onChangeInputName(urlState.name);
   }, []);
 
@@ -53,8 +67,11 @@ const Operations = () => {
           onChange={(id) => {
             operations.onChangeSelectDid(id);
             operations.onChangeSelectTid(undefined);
+            // urlChange("did", id);
+            // urlChange("tid", undefined);
             if (id) getLogLibraries.run(id);
             doGetAlarms.run({ ...searchQuery, did: id });
+            setUrlState({ ...urlState, did: id, tid: undefined });
           }}
           className={alarmStyles.selectedBar}
           placeholder={`${i18n.formatMessage({
@@ -76,6 +93,7 @@ const Operations = () => {
           onChange={(id) => {
             operations.onChangeSelectTid(id);
             doGetAlarms.run({ ...searchQuery, tid: id });
+            urlChange("tid", id);
           }}
           className={alarmStyles.selectedBar}
           placeholder={`${i18n.formatMessage({
@@ -99,6 +117,7 @@ const Operations = () => {
           onChange={(id) => {
             operations.onChangeStatusId(id);
             doGetAlarms.run({ ...searchQuery, status: id });
+            urlChange("status", id);
           }}
         >
           {AlarmStatus.map((item) => (

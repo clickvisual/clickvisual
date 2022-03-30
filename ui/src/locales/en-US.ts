@@ -91,9 +91,11 @@ export default {
   "instance.instanceName": "Instance Name",
   "instance.datasource": "Datasource",
   "instance.storagePah": "Storage Path",
-  "instance.delete.confirmTip": "Confirm deleting instance: {instanceName} ?",
+  "instance.delete.confirmTip": "Confirm deleting instance: {name} ?",
   "instance.form.title.created": "Create Instance",
   "instance.form.title.edit": "Edit Instance",
+  "instance.form.title.mode": "Type",
+  "instance.form.title.modeType.single": "Single",
   "instance.form.title.cluster": "Cluster",
   "instance.form.title.ruleStoreType": "Alarm Storage",
   "instance.form.title.ruleStoreType.tip":
@@ -103,6 +105,8 @@ export default {
   "instance.form.title.filePath": "File Path",
   "instance.form.placeholder.instanceName": "Please enter an instance name",
   "instance.form.placeholder.datasource": "Please select datasource",
+  "instance.form.placeholder.mode": "Please select a type",
+  "instance.form.placeholder.cluster": "Please select a cluster",
   "instance.form.placeholder.dsn": "Please enter DSN, for example: {example}",
   "instance.form.placeholder.filePath": "Please enter the file path",
   "instance.form.moreOptions": "More Options",
@@ -263,7 +267,7 @@ export default {
     "Please enter the time resolution field Type",
   "datasource.logLibrary.from.newLogLibrary.timeFieldType":
     "Time Resolution Field Type",
-  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Table Field",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Analysis Field",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "seconds",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond":
     "millisecond",

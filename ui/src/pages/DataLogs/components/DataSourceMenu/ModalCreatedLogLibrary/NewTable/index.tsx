@@ -21,7 +21,7 @@ const NewTable = () => {
             }),
           },
           {
-            pattern: new RegExp(/^[a-zA-Z_]+$/),
+            pattern: new RegExp(/^[a-zA-Z_0-9]+$/),
             message: i18n.formatMessage({
               id: "datasource.logLibrary.from.rule.tableName",
             }),

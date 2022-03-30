@@ -73,6 +73,17 @@ func (t *String2String) Scan(input interface{}) error {
 	return json.Unmarshal(input.([]byte), t)
 }
 
+type Strings []string
+
+func (t Strings) Value() (driver.Value, error) {
+	b, err := json.Marshal(t)
+	return string(b), err
+}
+
+func (t *Strings) Scan(input interface{}) error {
+	return json.Unmarshal(input.([]byte), t)
+}
+
 type Ints []int
 
 func (t Ints) Value() (driver.Value, error) {
