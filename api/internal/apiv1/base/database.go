@@ -2,6 +2,7 @@ package base
 
 import (
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/kl7sn/toolkit/xgo"
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -34,14 +35,23 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	err = op.DatabaseCreate(req.Name, req.Cluster)
-	if err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-		return
-	}
-	if err = db.DatabaseCreate(invoker.Db, &obj); err != nil {
+	tx := invoker.Db.Begin()
+	if err = db.DatabaseCreate(tx, &obj); err != nil {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
+	}
+	if req.Cluster != "" {
+		xgo.Go(func() {
+			_ = op.DatabaseCreate(req.Name, req.Cluster)
+		})
+		c.JSONOK("cluster database creation takes more time")
+		return
+	} else {
+		err = op.DatabaseCreate(req.Name, req.Cluster)
+		if err != nil {
+			c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
+			return
+		}
 	}
 	c.JSONOK()
 }
