@@ -8,7 +8,7 @@ spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
-  selector
+  selector:
     matchLabels:
       {{- include "mogo.selectorLabels" . | nindent 6 }}
   template:
