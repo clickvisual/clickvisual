@@ -7,8 +7,12 @@ import MonacoEditorWebpackPlugin from "monaco-editor-webpack-plugin";
 const { REACT_APP_ENV } = process.env;
 
 export default defineConfig({
+  define: {
+    "process.env.PUBLIC_PATH": process.env.PUBLIC_PATH || "/",
+  },
   hash: true,
   publicPath: process.env.PUBLIC_PATH || "/",
+  base: process.env.PUBLIC_PATH || "/",
   antd: {},
   dva: {
     hmr: true,

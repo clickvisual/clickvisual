@@ -58,10 +58,10 @@ func GetRouter() *egin.Component {
 		}
 		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
 
-		// path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
+		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
 		// path := appSubUrl + c.Request.URL.Path
-		// invoker.Logger.Debug("ParseAppUrlAndSubUrl", elog.String("queryPath", c.Request.URL.Path), elog.String("filterPath", path))
-		c.FileFromFS(c.Request.URL.Path, invoker.Gin.HTTPEmbedFs())
+		invoker.Logger.Debug("ParseAppUrlAndSubUrl", elog.String("queryPath", c.Request.URL.Path), elog.String("filterPath", path))
+		c.FileFromFS(path, invoker.Gin.HTTPEmbedFs())
 		return
 	}))
 
