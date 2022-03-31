@@ -129,7 +129,7 @@ const CreatedDatabaseModal = () => {
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
-          name={"clusters"}
+          name={"cluster"}
           hidden={!clustersList.length}
           rules={
             !clustersList.length
@@ -146,7 +146,6 @@ const CreatedDatabaseModal = () => {
         >
           <Select
             style={{ width: "100%" }}
-            mode="multiple"
             placeholder={`${i18n.formatMessage({
               id: "config.selectedBar.cluster",
             })}`}
