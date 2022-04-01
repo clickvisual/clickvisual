@@ -1,5 +1,14 @@
 import databaseDrawStyle from "@/pages/DataLogs/components/SelectedDatabaseDraw/index.less";
-import { Button, Drawer, message, Select, Space, Table, Tooltip } from "antd";
+import {
+  Button,
+  Drawer,
+  message,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+} from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import type { DatabaseResponse } from "@/services/dataLogs";
 import type { AlignType } from "rc-table/lib/interface";
@@ -169,11 +178,11 @@ const SelectedDataBaseDraw = () => {
       title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
       dataIndex: "clusters",
       align: "center" as AlignType,
-      width: "25%",
+      width: "50%",
       render: (clusters: string[]) => (
         <Tooltip title={clusters}>
-          {clusters?.map((item: string, val: any) => {
-              return <span>{item}</span>;
+          {clusters?.map((item: string) => {
+            return <Tag color="lime">{item}</Tag>;
           })}
         </Tooltip>
       ),
@@ -277,7 +286,7 @@ const SelectedDataBaseDraw = () => {
       closable
       visible={visibleDataBaseDraw}
       getContainer={false}
-      width={"40vw"}
+      width={"50vw"}
       onClose={() => onChangeVisibleDatabaseDraw(false)}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
