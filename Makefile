@@ -22,7 +22,7 @@ build.dist:
 
 build.ui:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@cd $(APP_PATH)/../ui && yarn install --frozen-lockfile &&  yarn run build
+	@cd $(APP_PATH)/../ui && yarn install --frozen-lockfile && yarn run build
 	@echo -e "\n"
 
 docker:docker.build docker.push

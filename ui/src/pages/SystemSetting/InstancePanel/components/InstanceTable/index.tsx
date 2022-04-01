@@ -58,6 +58,36 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
+      title: i18n.formatMessage({ id: "datasource.draw.table.deployment" }),
+      dataIndex: "mode",
+      align: "center" as AlignType,
+      width: 100,
+      render: (mode: number) => (
+          <Tooltip title={mode}>
+          <span>
+            {mode
+                ? i18n.formatMessage({ id: "instance.form.title.cluster" })
+                : i18n.formatMessage({
+                  id: "instance.form.title.modeType.single",
+                })}
+          </span>
+          </Tooltip>
+      ),
+    },
+    {
+      title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
+      dataIndex: "clusters",
+      align: "center" as AlignType,
+      width: 100,
+      render: (clusters: string[]) => (
+          <Tooltip title={clusters}>
+            {clusters?.map((item: string) => {
+              return <span>{item}</span>;
+            })}
+          </Tooltip>
+      ),
+    },
+    {
       width: 120,
       title: i18n.formatMessage({ id: "instance.form.title.ruleStoreType" }),
       align: "center" as AlignType,

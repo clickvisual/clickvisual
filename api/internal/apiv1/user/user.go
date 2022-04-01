@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 	"golang.org/x/crypto/bcrypt"
@@ -89,6 +90,11 @@ func UpdatePassword(c *core.Context) {
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	if econf.GetString("app.mode") == "demo" {
+		c.JSONE(1, "The password cannot be changed in demo mode", "")
 		return
 	}
 

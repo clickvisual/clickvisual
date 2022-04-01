@@ -5,6 +5,7 @@ type (
 		Uid      int
 		Username string
 	}
+
 	RespAllEnums struct {
 		SourceEnums    map[string]string `json:"sourceEnums"`
 		OperationEnums map[string]string `json:"operationEnums"`

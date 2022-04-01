@@ -1,9 +1,9 @@
 import request from "@/utils/requestUtils/request";
 
 export async function environmentalAudit() {
-  return request(`/api/v1/install`, { method: "GET" });
+  return request(process.env.PUBLIC_PATH+`api/v1/install`, { method: "GET" });
 }
 
 export async function installEnv() {
-  return request(`/api/v1/install`, { method: "POST" });
+  return request(process.env.PUBLIC_PATH+`api/v1/install`, { method: "POST" });
 }

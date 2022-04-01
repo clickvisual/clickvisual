@@ -404,6 +404,9 @@ func (c *ClickHouse) DatabaseCreate(name, cluster string) error {
 
 	query := fmt.Sprintf("create database %s;", name)
 	if c.mode == ModeCluster {
+		if cluster == "" {
+			return errors.New("cluster is required")
+		}
 		query = fmt.Sprintf("create database %s on cluster '%s';", name, cluster)
 	}
 	invoker.Logger.Error("TableCreate", elog.String("query", query))

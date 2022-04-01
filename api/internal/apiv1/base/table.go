@@ -142,6 +142,12 @@ func TableInfo(c *core.Context) {
 	data["data_sql"] = tableInfo.SqlData
 	data["stream_sql"] = tableInfo.SqlStream
 	data["view_sql"] = tableInfo.SqlView
+
+	if tableInfo.SqlDistributed != "" {
+		keys = append(keys, "distribute_sql")
+		data["distribute_sql"] = tableInfo.SqlDistributed
+	}
+
 	conds := egorm.Conds{}
 	conds["tid"] = tableInfo.ID
 	viewList, err := db.ViewList(invoker.Db, conds)
@@ -424,6 +430,7 @@ func TableIndexes(c *core.Context) {
 	}
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
+	param.TimeFieldType = tableInfo.TimeFieldType
 	if param.Database == "" || param.Table == "" {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return

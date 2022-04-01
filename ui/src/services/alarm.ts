@@ -110,64 +110,64 @@ export interface AlarmHistoriesResponse {
 
 export default {
   async getAlarmList(params: AlarmsResponse) {
-    return request<API.Res<AlarmType[]>>(`/api/v1/alarms`, {
+    return request<API.Res<AlarmType[]>>(process.env.PUBLIC_PATH+`api/v1/alarms`, {
       method: "GET",
       params,
     });
   },
   async getAlarmInfo(id: number) {
-    return request<API.Res<AlarmInfoType>>(`/api/v1/alarms/${id}`, {
+    return request<API.Res<AlarmInfoType>>(process.env.PUBLIC_PATH+`api/v1/alarms/${id}`, {
       method: "GET",
     });
   },
   async createdAlarm(data: AlarmRequest) {
-    return request<API.Res<string>>(`/api/v1/alarms`, { method: "POST", data });
+    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/alarms`, { method: "POST", data });
   },
   async updatedAlarm(id: number, data: AlarmRequest | { status: number }) {
-    return request<API.Res<string>>(`/api/v1/alarms/${id}`, {
+    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/alarms/${id}`, {
       method: "PATCH",
       data,
     });
   },
   async deletedAlarm(id: number) {
-    return request<API.Res<string>>(`/api/v1/alarms/${id}`, {
+    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/alarms/${id}`, {
       method: "DELETE",
     });
   },
 
   async getChannels() {
-    return request<API.Res<ChannelType[]>>(`/api/v1/alarms-channels`, {
+    return request<API.Res<ChannelType[]>>(process.env.PUBLIC_PATH+`api/v1/alarms-channels`, {
       method: "GET",
     });
   },
 
   async getChannelInfo(id: number) {
-    return request(`/api/v1/alarms-channels/${id}`, { method: "GET" });
+    return request(process.env.PUBLIC_PATH+`api/v1/alarms-channels/${id}`, { method: "GET" });
   },
 
   async getAlarmHistories(params: AlarmHistoryRequest) {
     return request<API.ResPageData<AlarmHistoriesResponse>>(
-      `/api/v1/alarms-histories`,
+      process.env.PUBLIC_PATH+`api/v1/alarms-histories`,
       { method: "GET", params }
     );
   },
 
   async createdChannel(data: ChannelFormType) {
-    return request<API.Res<string>>(`/api/v1/alarms-channels`, {
+    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/alarms-channels`, {
       method: "POST",
       data,
     });
   },
 
   async updatedChannel(id: number, data: ChannelFormType) {
-    return request<API.Res<string>>(`/api/v1/alarms-channels/${id}`, {
+    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/alarms-channels/${id}`, {
       method: "PATCH",
       data,
     });
   },
 
   async deletedChannel(id: number) {
-    return request<API.Res<ChannelType>>(`/api/v1/alarms-channels/${id}`, {
+    return request<API.Res<ChannelType>>(process.env.PUBLIC_PATH+`api/v1/alarms-channels/${id}`, {
       method: "DELETE",
     });
   },

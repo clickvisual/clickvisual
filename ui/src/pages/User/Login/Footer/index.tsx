@@ -31,7 +31,7 @@ const LoginFooter = () => {
             <Button
               onClick={() => {
                 window.open(
-                  `/api/admin/login/${channel.name.toLowerCase()}`,
+                  process.env.PUBLIC_PATH+`api/admin/login/${channel.name.toLowerCase()}`,
                   "_self"
                 );
               }}
