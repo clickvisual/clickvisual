@@ -11,6 +11,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
@@ -78,7 +79,7 @@ func TableCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "create failed 01: "+err.Error(), nil)
 		return
 	}
-	err = db.TableCreate(invoker.Db, &db.Table{
+	tableInfo := db.Table{
 		Did:            did,
 		Name:           param.TableName,
 		Typ:            param.Typ,
@@ -92,11 +93,13 @@ func TableCreate(c *core.Context) {
 		TimeField:      db.TimeFieldSecond,
 		CreateType:     inquiry.TableCreateTypeMogo,
 		Uid:            c.Uid(),
-	})
+	}
+	err = db.TableCreate(invoker.Db, &tableInfo)
 	if err != nil {
 		c.JSONE(core.CodeErr, "create failed 02: "+err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"tableInfo": tableInfo})
 	c.JSONOK()
 }
 
@@ -255,6 +258,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 06: "+err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesDelete, map[string]interface{}{"tableInfo": tableInfo})
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")
 }
 
@@ -303,6 +307,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
 }
@@ -462,22 +467,10 @@ func TableIndexes(c *core.Context) {
 			Percent:   kfloat.Decimal(float64(v) * 100 / float64(sum)),
 		})
 	}
-	// if others := sum - count; others > 0 {
-	// 	res = append(res, view.RespIndexItem{
-	// 		IndexName: "others",
-	// 		Count:     others,
-	// 		Percent:   kfloat.Decimal(float64(others) * 100 / float64(sum)),
-	// 	})
-	// }
-
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
 	invoker.Logger.Debug("Indexes", elog.Any("res", res))
-	// if len(res) > 10 {
-	// 	c.JSONOK(res[:9])
-	// 	return
-	// }
 	c.JSONOK(res)
 	return
 }
@@ -574,6 +567,7 @@ func TableCreateSelfBuilt(c *core.Context) {
 		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": tableInfo})
 	c.JSONOK()
 }
 

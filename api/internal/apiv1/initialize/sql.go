@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
@@ -70,9 +71,13 @@ func Migration(c *core.Context) {
 		m.Open(econf.GetString("mysql.dsn")), &gorm.Config{
 			DisableForeignKeyConstraintWhenMigrating: true},
 	)
+
 	fmt.Println(`e--------------->`, e)
 	d = d.Debug()
 	d.Migrator()
 	d.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
+
+	event.Event.SystemMigration(c.User(), "")
+
 	c.JSONOK("migration finish")
 }

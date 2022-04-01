@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
@@ -21,6 +22,7 @@ func ChannelCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsChannelsCreate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -44,6 +46,7 @@ func ChannelUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsChannelsUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -63,10 +66,12 @@ func ChannelDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	alarmInfo, _ := db.AlarmChannelInfo(invoker.Db, id)
 	if err := db.AlarmChannelDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsChannelsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
 	c.JSONOK()
 }
 

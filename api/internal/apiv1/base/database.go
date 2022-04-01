@@ -7,6 +7,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -64,6 +65,8 @@ func DatabaseCreate(c *core.Context) {
 		}
 		c.JSONOK()
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"database": obj})
+	return
 }
 
 func DatabaseExistList(c *core.Context) {
@@ -153,5 +156,6 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete database, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesDelete, map[string]interface{}{"database": database})
 	c.JSONOK()
 }

@@ -49,21 +49,21 @@ func (a *event) insert(event db.Event) error {
 	return nil
 }
 
-func (a *event) GetAllEnums() RespAllEnums {
-	resp := RespAllEnums{
+func (a *event) GetAllEnums() db.RespAllEnums {
+	resp := db.RespAllEnums{
 		SourceEnums:    db.SourceMap,
 		OperationEnums: db.OperationMap,
 	}
 	resp.UserEnums = make(map[int]string)
-	usersBase := make([]UserIdName, 0)
-	invoker.Db.Table(db.TableNameUser).Select("uid, username").Find(&usersBase)
+	usersBase := make([]db.UserIdName, 0)
+	invoker.Db.Table(db.TableNameUser).Select("id, username").Find(&usersBase)
 	for _, userBase := range usersBase {
-		resp.UserEnums[userBase.Uid] = userBase.Username
+		resp.UserEnums[userBase.ID] = userBase.Username
 	}
 	return resp
 }
 
-func (a *event) GetEnumsOfSource(source string) (resp RespEnumsOfSource, err error) {
+func (a *event) GetEnumsOfSource(source string) (resp db.RespEnumsOfSource, err error) {
 	resp.TargetSource = source
 	resp.OperationEnums = make(map[string]string)
 	sourceOpList, exist := db.SourceOpnMap[source]
@@ -78,7 +78,6 @@ func (a *event) GetEnumsOfSource(source string) (resp RespEnumsOfSource, err err
 
 func (a *event) List(param view.ReqEventList) (res []db.Event, page *view.Pagination, err error) {
 	page = view.NewPagination(param.Current, param.PageSize)
-
 	query := invoker.Db.Table(db.TableMogoEvent)
 	if param.Source != "" {
 		query = query.Where("source = ?", param.Source)
@@ -89,7 +88,6 @@ func (a *event) List(param view.ReqEventList) (res []db.Event, page *view.Pagina
 	if param.Uid > 0 {
 		query = query.Where("uid = ?", param.Uid)
 	}
-
 	res = make([]db.Event, 0)
 	err = query.Count(&page.Total).
 		Order("ctime desc").
@@ -99,12 +97,10 @@ func (a *event) List(param view.ReqEventList) (res []db.Event, page *view.Pagina
 	if err != nil {
 		return nil, nil, fmt.Errorf("查询事件列表失败")
 	}
-
 	for index, item := range res {
 		item.HandleOperationName()
 		item.HandleSourceName()
 		res[index] = item
 	}
-
 	return
 }

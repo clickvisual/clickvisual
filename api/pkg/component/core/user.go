@@ -21,6 +21,10 @@ func (c *Context) Uid() int {
 	return Uid(c.Context)
 }
 
+func (c *Context) User() *User {
+	return ContextUser(c.Context)
+}
+
 // Uid get uid from gin.Context
 func Uid(c *gin.Context) int {
 	return int(ContextUser(c).Uid)

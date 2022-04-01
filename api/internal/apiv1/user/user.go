@@ -12,6 +12,7 @@ import (
 	"github.com/gin-contrib/sessions"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
@@ -129,6 +130,7 @@ func UpdatePassword(c *core.Context) {
 		c.JSONE(1, "password update error", err.Error())
 		return
 	}
+	event.Event.UsersPwdChange(c.User(), "")
 	c.JSONOK("")
 	return
 }

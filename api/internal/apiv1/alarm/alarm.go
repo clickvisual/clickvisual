@@ -10,6 +10,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -60,6 +61,7 @@ func Create(c *core.Context) {
 		c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
 		return
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 	return
 }
@@ -108,6 +110,7 @@ func Update(c *core.Context) {
 		c.JSONE(1, "alarm update failed 04"+err.Error(), nil)
 		return
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -243,6 +246,7 @@ func Delete(c *core.Context) {
 		c.JSONE(1, "alarm failed to delete 07"+err.Error(), nil)
 		return
 	}
+	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
 	c.JSONOK()
 }
 

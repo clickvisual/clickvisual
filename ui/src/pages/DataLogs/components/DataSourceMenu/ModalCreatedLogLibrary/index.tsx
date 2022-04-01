@@ -28,6 +28,8 @@ const ModalCreatedLogLibrary = () => {
     doCreatedLocalLogLibrary,
   } = useModel("dataLogs");
 
+  const instanceName = currentDatabase?.instanceName;
+
   const { doGetInstanceList } = useModel("instances");
 
   const onSubmitHandle = useDebounceFn(
@@ -125,7 +127,12 @@ const ModalCreatedLogLibrary = () => {
               case 0:
                 return <NewTable />;
               case 1:
-                return <LocalTable formRef={logFormRef.current} />;
+                return (
+                  <LocalTable
+                    formRef={logFormRef.current}
+                    instanceName={instanceName}
+                  />
+                );
               default:
                 return <NewTable />;
             }

@@ -4,6 +4,7 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/shimohq/mogo/api/internal/service/configure"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/permission"
 )
@@ -28,5 +29,7 @@ func Init() error {
 	configure.InitConfigure()
 	kube.InitClusterManager()
 
+	// event
+	event.InitService()
 	return nil
 }

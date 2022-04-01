@@ -11,14 +11,15 @@ import {
 import { useModel } from "@@/plugin-model/useModel";
 import { InstanceType } from "@/services/systemSetting";
 import { LocalTables, TableColumn } from "@/services/dataLogs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const { Option } = Select;
 
 type LocalTableProps = {
   formRef: FormInstance | null;
+  instanceName: string | undefined;
 };
-const LocalTable = ({ formRef }: LocalTableProps) => {
+const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
   const i18n = useIntl();
   const { getLocalTables, getTableColumns } = useModel("dataLogs");
   const { instanceList } = useModel("instances");
@@ -39,6 +40,19 @@ const LocalTable = ({ formRef }: LocalTableProps) => {
       })) || []
     );
   };
+
+  useEffect(() => {
+    const instanceObj = instanceList.find(
+      (item: any) => item.name == instanceName
+    );
+    formRef?.setFieldsValue({
+      instance: instanceObj?.id,
+    });
+    getLocalTables.run(instanceObj?.id as number).then((res) => {
+      if (res?.code !== 0) return;
+      formatOptions(res.data);
+    });
+  }, []);
 
   return (
     <>

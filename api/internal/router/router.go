@@ -7,23 +7,21 @@ import (
 
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/gotomicro/ego/server/egin"
 
 	"github.com/shimohq/mogo/api/internal/apiv1/alarm"
 	"github.com/shimohq/mogo/api/internal/apiv1/base"
 	"github.com/shimohq/mogo/api/internal/apiv1/configure"
+	"github.com/shimohq/mogo/api/internal/apiv1/event"
 	"github.com/shimohq/mogo/api/internal/apiv1/initialize"
 	"github.com/shimohq/mogo/api/internal/apiv1/kube"
 	"github.com/shimohq/mogo/api/internal/apiv1/permission"
 	"github.com/shimohq/mogo/api/internal/apiv1/setting"
-	"github.com/shimohq/mogo/api/pkg/utils"
-
 	"github.com/shimohq/mogo/api/internal/apiv1/user"
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/middlewares"
-
-	"github.com/gotomicro/ego/server/egin"
-
 	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/shimohq/mogo/api/pkg/utils"
 )
 
 func GetRouter() *egin.Component {
@@ -90,7 +88,6 @@ func GetRouter() *egin.Component {
 	{
 		// init
 		v1.GET("/migration", core.Handle(initialize.Migration))
-
 		// user
 		v1.GET("/menus/list", core.Handle(permission.MenuList))
 		v1.GET("/users/info", core.Handle(user.Info))
@@ -100,10 +97,10 @@ func GetRouter() *egin.Component {
 	// System configuration
 	{
 		// Database instance configuration
-		v1.POST("/sys/instances", core.Handle(setting.InstanceCreate))
-		v1.GET("/sys/instances", core.Handle(setting.InstanceList))
-		v1.PATCH("/sys/instances/:id", core.Handle(setting.InstanceUpdate))
-		v1.DELETE("/sys/instances/:id", core.Handle(setting.InstanceDelete))
+		v1.POST("/sys/instances", core.Handle(base.InstanceCreate))
+		v1.GET("/sys/instances", core.Handle(base.InstanceList))
+		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))
+		v1.DELETE("/sys/instances/:id", core.Handle(base.InstanceDelete))
 		// Cluster configuration
 		v1.GET("/sys/clusters/:id", core.Handle(setting.ClusterInfo))
 		v1.GET("/sys/clusters", core.Handle(setting.ClusterPageList))
@@ -156,9 +153,9 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
 		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
 		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
-		v1.GET("/tables/:id/indexes", core.Handle(setting.Indexes))
+		v1.GET("/tables/:id/indexes", core.Handle(base.Indexes))
 		v1.GET("/tables/:id/indexes/:idx", core.Handle(base.TableIndexes))
-		v1.PATCH("/tables/:id/indexes", core.Handle(setting.IndexUpdate))
+		v1.PATCH("/tables/:id/indexes", core.Handle(base.IndexUpdate))
 	}
 	// view
 	{
@@ -173,15 +170,19 @@ func GetRouter() *egin.Component {
 		v1.POST("/alarms", core.Handle(alarm.Create))
 		v1.PATCH("/alarms/:id", core.Handle(alarm.Update))
 		v1.DELETE("/alarms/:id", core.Handle(alarm.Delete))
-
 		v1.GET("/alarms-histories", core.Handle(alarm.HistoryList))
 		v1.GET("/alarms-histories/:id", core.Handle(alarm.HistoryInfo))
-
 		v1.GET("/alarms-channels", core.Handle(alarm.ChannelList))
 		v1.GET("/alarms-channels/:id", core.Handle(alarm.ChannelInfo))
 		v1.POST("/alarms-channels", core.Handle(alarm.ChannelCreate))
 		v1.PATCH("/alarms-channels/:id", core.Handle(alarm.ChannelUpdate))
 		v1.DELETE("/alarms-channels/:id", core.Handle(alarm.ChannelDelete))
+	}
+	// OpEvent Operation event interface
+	{
+		v1.GET("/event/enums", core.Handle(event.GetAllEnums))
+		v1.GET("/event/source/:name/enums", core.Handle(event.GetEnumsOfSource))
+		v1.GET("/events", core.Handle(event.ListPage))
 	}
 	return r
 }
