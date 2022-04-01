@@ -8,6 +8,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -89,6 +90,7 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnViewsDelete, map[string]interface{}{"viewInfo": viewInfo})
 	c.JSONOK()
 	return
 }
@@ -167,6 +169,7 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnViewsCreate, map[string]interface{}{"viewInfo": current})
 	c.JSONOK()
 	return
 }
@@ -224,14 +227,12 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-
 	dSQL, cQSL, err := op.ViewSync(tableInfo, &viewInfo, viewList, true)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-
 	ups1 := make(map[string]interface{}, 0)
 	ups1["sql_view"] = cQSL
 	ups1["uid"] = c.Uid()
@@ -241,7 +242,6 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-
 	ups2 := make(map[string]interface{}, 0)
 	ups2["sql_view"] = dSQL
 	ups2["uid"] = c.Uid()
@@ -251,11 +251,11 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-
 	if err = tx.Commit().Error; err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnViewsUpdate, map[string]interface{}{"params": params})
 	c.JSONOK()
 	return
 }

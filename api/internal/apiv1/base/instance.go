@@ -1,4 +1,4 @@
-package setting
+package base
 
 import (
 	"strings"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
@@ -73,6 +74,7 @@ func InstanceCreate(c *core.Context) {
 		c.JSONE(1, "DNS configuration exception, database connection failure 02: "+err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnInstancesCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -143,6 +145,7 @@ func InstanceUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnInstancesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -172,5 +175,6 @@ func InstanceDelete(c *core.Context) {
 		return
 	}
 	service.InstanceManager.Delete(obj.DsKey())
+	event.Event.InquiryCMDB(c.User(), db.OpnInstancesDelete, map[string]interface{}{"instanceInfo": obj})
 	c.JSONOK()
 }

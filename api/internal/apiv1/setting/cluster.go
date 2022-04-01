@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -82,6 +83,7 @@ func ClusterCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersCreate, map[string]interface{}{"param": params})
 	c.JSONOK()
 }
 
@@ -116,6 +118,7 @@ func ClusterUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersUpdate, map[string]interface{}{"param": params})
 	c.JSONOK()
 }
 
@@ -129,11 +132,13 @@ func ClusterDelete(c *core.Context) {
 		c.JSONE(1, "error cluster id", nil)
 		return
 	}
+	clusterInfo, _ := db.ClusterInfo(clusterId)
 	err = db.ClusterDelete(invoker.Db, clusterId)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersDelete, map[string]interface{}{"clusterInfo": clusterInfo})
 	c.JSONOK()
 }
 

@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/api"
 	"github.com/shimohq/mogo/api/internal/service/kube/resource"
@@ -112,6 +113,7 @@ func ConfigMapCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersConfigMapCreate, map[string]interface{}{"param": param})
 	c.JSONOK(resp)
 }
 

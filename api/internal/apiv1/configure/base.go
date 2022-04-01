@@ -13,6 +13,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/configure"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/kube/api"
 	"github.com/shimohq/mogo/api/pkg/component/core"
@@ -107,6 +108,7 @@ func Create(c *core.Context) {
 		c.JSONE(1, "create failed, configuration with same name exist: ", err)
 		return
 	}
+	event.Event.ConfigCMDB(c.User(), db.OpnConfigsCreate, map[string]interface{}{"params": param})
 	c.JSONOK()
 }
 
@@ -140,6 +142,7 @@ func Update(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
+	event.Event.ConfigCMDB(c.User(), db.OpnConfigsUpdate, map[string]interface{}{"params": param})
 	c.JSONOK()
 }
 
@@ -168,6 +171,7 @@ func Publish(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.ConfigCMDB(c.User(), db.OpnConfigsPublish, map[string]interface{}{"params": param})
 	c.JSONOK("succ")
 }
 
@@ -261,11 +265,13 @@ func Delete(c *core.Context) {
 		c.JSONE(1, "error param id", nil)
 		return
 	}
+	configInfo, _ := db.ConfigurationInfo(id)
 	err := configure.Configure.Delete(c, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.ConfigCMDB(c.User(), db.OpnConfigsDelete, map[string]interface{}{"configInfo": configInfo})
 	c.JSONOK()
 }
 
@@ -408,5 +414,6 @@ func Sync(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
+	event.Event.ConfigCMDB(c.User(), db.OpnConfigsSync, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 }

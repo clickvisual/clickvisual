@@ -1,20 +1,19 @@
 package event
 
 import (
+	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
-func (a *event) RecordLocalUserEvent(opUser *db.User, operation string, tgtUid int, metaData string) {
-	userEvent := db.Event{
+func (a *event) UsersPwdChange(opUser *core.User, metaData string) {
+	obj := db.Event{
 		Source:     db.SourceUserMgtCenter,
-		Operation:  operation,
+		Operation:  db.OpnLocalUsersPwdChange,
 		ObjectType: db.TableNameUser,
-		ObjectId:   tgtUid,
+		ObjectId:   0,
 		Metadata:   metaData,
+		UserName:   opUser.Username,
+		UID:        opUser.Uid,
 	}
-	if opUser != nil {
-		userEvent.UserName = opUser.Username
-		userEvent.UID = opUser.ID
-	}
-	a.PutEvent(userEvent)
+	a.PutEvent(obj)
 }

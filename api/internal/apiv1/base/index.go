@@ -1,4 +1,4 @@
-package setting
+package base
 
 import (
 	"github.com/gotomicro/ego-component/egorm"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
+	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 
 	"github.com/shimohq/mogo/api/pkg/model/db"
@@ -57,6 +58,8 @@ func IndexUpdate(c *core.Context) {
 		c.JSONE(1, "unknown error:"+err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesIndexUpdate,
+		map[string]interface{}{"addMap": addMap, "delMap": delMap, "newMap": newMap})
 	c.JSONOK()
 }
 

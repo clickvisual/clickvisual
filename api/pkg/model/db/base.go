@@ -9,29 +9,23 @@ import (
 )
 
 const (
-	TableNameView     = "mogo_base_view"
-	TableNameTable    = "mogo_base_table"
-	TableNameIndex    = "mogo_base_index"
-	TableNameDatabase = "mogo_base_database"
-	TableNameInstance = "mogo_base_instance"
-
-	TableNameUser = "mogo_user"
-
-	TableNameCluster = "mogo_cluster"
-
+	TableMogoAlarm                = "mogo_alarm"
+	TableNameUser                 = "mogo_user"
+	TableMogoEvent                = "mogo_event"
+	TableNameK8SConfigMap         = "mogo_k8s_cm"
+	TableNameCluster              = "mogo_cluster"
+	TableNameView                 = "mogo_base_view"
+	TableNameTable                = "mogo_base_table"
+	TableNameIndex                = "mogo_base_index"
+	TableMogoAlarmFilter          = "mogo_alarm_filter"
+	TableNameDatabase             = "mogo_base_database"
+	TableNameInstance             = "mogo_base_instance"
 	TableNameConfiguration        = "mogo_configuration"
+	TableMogoAlarmHistory         = "mogo_alarm_history"
+	TableMogoAlarmChannel         = "mogo_alarm_channel"
+	TableMogoAlarmCondition       = "mogo_alarm_condition"
 	TableNameConfigurationHistory = "mogo_configuration_history"
 	TableNameConfigurationPublish = "mogo_configuration_publish"
-
-	TableNameK8SConfigMap = "mogo_k8s_cm"
-
-	TableMogoAlarm          = "mogo_alarm"
-	TableMogoAlarmFilter    = "mogo_alarm_filter"
-	TableMogoAlarmCondition = "mogo_alarm_condition"
-	TableMogoAlarmHistory   = "mogo_alarm_history"
-	TableMogoAlarmChannel   = "mogo_alarm_channel"
-
-	TableMogoEvent = "mogo_event"
 )
 
 type BaseModel struct {
@@ -104,43 +98,3 @@ func (t *Ints) Scan(input interface{}) error {
 	}
 	return json.Unmarshal(input.([]byte), t)
 }
-
-// abbr.  ->  fullName
-// "Opn"  ->  "Operation"
-// "mgt"  ->  "management"
-const (
-	// Operations of SourceUserMgtCenter
-	OpnLocalUserCreate    = "local_user_create"
-	OpnLocalUserDelete    = "local_user_delete"
-	OpnLocalUserUpdate    = "local_user_update"
-	OpnLocalUserPwdChange = "local_user_pwd_change"
-	OpnLocalUserPwdReset  = "local_user_pwd_reset"
-
-	OpnLogTableDelete = "log_table_delete"
-)
-
-var OperationMap = map[string]string{
-	OpnLocalUserCreate:    "本地用户新增",
-	OpnLocalUserDelete:    "本地用户删除",
-	OpnLocalUserUpdate:    "本地用户更新",
-	OpnLocalUserPwdChange: "本地用户密码更改",
-	OpnLocalUserPwdReset:  "本地用户密码重制",
-	OpnLogTableDelete:     "数据表删除",
-}
-
-const (
-	SourceLogMgtCenter  = "log_mgt"
-	SourceUserMgtCenter = "user_mgt"
-)
-
-var (
-	SourceMap = map[string]string{
-		SourceLogMgtCenter:  "日志管理中心",
-		SourceUserMgtCenter: "用户管理中心",
-	}
-	SourceOpnMap = map[string][]string{
-		SourceLogMgtCenter: {OpnLogTableDelete},
-		SourceUserMgtCenter: {OpnLocalUserCreate, OpnLocalUserDelete, OpnLocalUserUpdate,
-			OpnLocalUserPwdChange, OpnLocalUserPwdReset},
-	}
-)
