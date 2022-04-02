@@ -8,10 +8,14 @@
 
 Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse or MySQL).
 
-**log search page**
+### Documentation
+
+See <https://mogo.shimo.im>
+
+### log search page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LUV5QCS01CHG.png)
 
-**configuration page**
+### configuration page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
 
 ## Features
@@ -68,9 +72,6 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 # login password: shimo
 ```
 
-## Documentation
-
-See <https://mogo.shimo.im>
 
 ## Main Tasks
 
