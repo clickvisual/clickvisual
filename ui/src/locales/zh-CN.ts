@@ -58,7 +58,7 @@ export default {
   "menu.systemSettings": "系统管理",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
-  "menu.event": "事件中心",
+  "menu.systemSettings.events": "事件中心",
 
   // user
   "login.header": "欢迎来到 MOGO",
