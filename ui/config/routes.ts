@@ -54,6 +54,11 @@ export default [
         component: "./SystemSetting/ClustersPanel",
       },
       {
+        path: "/sys/events",
+        name: "events",
+        component: "./SystemSetting/Events",
+      },
+      {
         redirect: "/",
       },
     ],
