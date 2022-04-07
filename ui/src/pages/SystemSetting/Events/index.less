@@ -1,0 +1,27 @@
+.eventMain {
+  flex-direction: column;
+  height: calc(100vh - 128px);
+  .operations {
+    flex: 0 0 42px;
+    .select {
+      width: 240px;
+    }
+  }
+  .eventList {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+@white: hsl(0, 0%, 255%);
+@aTag: hsl(209, 100%, 55%);
+
+.layoutContentMain {
+  display: flex;
+  flex: 1;
+  padding: 10px;
+  background-color: @white;
+  border-radius: 8px;
+}
+

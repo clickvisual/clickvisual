@@ -1,17 +1,21 @@
 # mogo
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [English](https://github.com/shimohq/mogo/blob/master/README.md) | [中文](https://github.com/shimohq/mogo/blob/master/README-CN.md)
 
 Mogo is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse or MySQL).
 
-**log search page**
+### Documentation
+
+See <https://mogo.shimo.im>
+
+### log search page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LUV5QCS01CHG.png)
 
-**configuration page**
+### configuration page
 ![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
 
 ## Features
@@ -68,9 +72,6 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 # login password: shimo
 ```
 
-## Documentation
-
-See <https://mogo.shimo.im>
 
 ## Main Tasks
 
@@ -106,6 +107,7 @@ Thanks for these wonderful people:
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/qingbozhang"><img src="https://avatars.githubusercontent.com/u/14026937?v=4" width="64px;" alt=""/><br /><sub><b>qingbozhang</b></sub></a></td>
+    <td align="center"><a href="https://github.com/qianque7"><img src="https://avatars.githubusercontent.com/u/68426635?v=4" width="64px;" alt=""/><br /><sub><b>qianque7</b></sub></a></td>
   </tr>
 </table>
 
