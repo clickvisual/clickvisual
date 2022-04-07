@@ -27,13 +27,34 @@ const LogLibraryList = (props: LogLibraryListProps) => {
 
   const i18n = useIntl();
 
+  if (list?.length <=0) {
+      return <>
+          <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              style={{ marginBottom: 10 }}
+              description={i18n.formatMessage({
+                  id: "datasource.logLibrary.empty",
+              })}
+          />
+          <div className={logLibraryListStyles.emptyBtn}>
+              <Button
+                  onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
+                  type={"primary"}
+                  icon={<PlusOutlined />}
+              >
+                  {i18n.formatMessage({ id: "datasource.logLibrary.quickAdd" })}
+              </Button>
+          </div>
+      </>
+  }
+
   return (
     <div className={logLibraryListStyles.logLibraryListMain}>
       <Spin
         spinning={getLogLibraries.loading}
         tip={i18n.formatMessage({ id: "spin" })}
       >
-        {list.length > 0 ? (
+        {list.length > 0 && (
           <ul>
             {list.map((item, index) => (
               <LogLibraryItem
@@ -43,25 +64,6 @@ const LogLibraryList = (props: LogLibraryListProps) => {
               />
             ))}
           </ul>
-        ) : (
-          <>
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              style={{ marginBottom: 10 }}
-              description={i18n.formatMessage({
-                id: "datasource.logLibrary.empty",
-              })}
-            />
-            <div className={logLibraryListStyles.emptyBtn}>
-              <Button
-                onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
-                type={"primary"}
-                icon={<PlusOutlined />}
-              >
-                {i18n.formatMessage({ id: "datasource.logLibrary.quickAdd" })}
-              </Button>
-            </div>
-          </>
         )}
       </Spin>
       <DatabaseViewsDraw logLibrary={selectedLogLibrary as TablesResponse} />
