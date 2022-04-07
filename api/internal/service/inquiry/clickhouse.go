@@ -29,7 +29,7 @@ func genTimeCondition(param view.ReqQuery) string {
 }
 
 const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
-parseDateTimeBestEffort(_time_) AS _time_nanosecond_`
+toDateTime64(parseDateTimeBestEffort(_time_), 9, 'Asia/Shanghai') AS _time_nanosecond_`
 
 const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
 fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
