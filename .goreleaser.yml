@@ -28,7 +28,7 @@ archives:
       - LICENSE
       - scripts/migration
       - docker-compose.yml
-      - src: api/config/*
+      - src: config/*
         dst: config
         strip_parent: true
 checksum:
