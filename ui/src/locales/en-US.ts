@@ -58,6 +58,7 @@ export default {
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
+  "menu.event": "Event center",
 
   // user
   "login.header": "Welcome to MOGO",
@@ -228,6 +229,11 @@ export default {
 
   // configure-modal-history-diff
   "config.historyDiff.title": "Historical Version Comparison",
+
+  // events
+  "events.input.placeholder": "Please select a {value}",
+  "events.form.queryBtn": "The query",
+  "events.list.noMore": "No more",
 
   // Data Logs
   // Data Logs-Datasource
