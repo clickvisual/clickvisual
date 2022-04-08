@@ -34,8 +34,6 @@ const ModalCreatedLogLibrary = () => {
 
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
-      if (!currentDatabase) return;
-
       const response =
         field.mode === 1
           ? doCreatedLocalLogLibrary.run(field.instance, {
@@ -43,7 +41,7 @@ const ModalCreatedLogLibrary = () => {
               databaseName: field.localTables[0],
               tableName: field.localTables[1],
             })
-          : doCreatedLogLibrary.run(currentDatabase.id, field);
+          : doCreatedLogLibrary.run(currentDatabase?.id as number, field);
       response
         .then((res) => {
           if (res?.code === 0) {

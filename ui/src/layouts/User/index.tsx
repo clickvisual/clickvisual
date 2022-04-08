@@ -1,20 +1,13 @@
 import userStyles from "@/layouts/User/styles/index.less";
 import UserCardHeader from "@/layouts/User/UserCardHeader";
 import React from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import { history, SelectLang } from "umi";
-import { HOME_PATH } from "@/config/config";
+import { SelectLang } from "umi";
 
 type UserProps = {
   children: React.ReactNode;
 };
 
 const LoginLayout = ({ children }: UserProps) => {
-  const { currentUser } = useModel("@@initialState").initialState || {};
-  if (currentUser) {
-    history.push(HOME_PATH);
-  }
-
   return (
     <div className={userStyles.userMain}>
       <div className={userStyles.userCard}>
