@@ -22,7 +22,6 @@ func (b *ViewBuilder) BuilderCreate() {
 		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO metrics.samples AS\n", b.QueryAssembly.Params.View.ViewTable)
 	default:
 		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO %s AS\n", b.QueryAssembly.Params.View.ViewTable, b.QueryAssembly.Params.View.TargetTable)
-
 	}
 }
 

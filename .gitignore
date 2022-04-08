@@ -44,3 +44,5 @@ data/all-in-one/zookeeper/datalog/
 rules/*
 /data/helm/mogo/default.toml
 /data/helm/mogo/resource.yaml
+
+/data/k8s/fluent-bit/

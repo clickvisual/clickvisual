@@ -40,18 +40,18 @@ const (
 )
 
 func genName(database, tableName string) string {
-	return fmt.Sprintf("%s.%s", database, tableName)
+	return fmt.Sprintf("`%s`.`%s`", database, tableName)
 }
 
 func genStreamName(database, tableName string) string {
-	return fmt.Sprintf("%s.%s_stream", database, tableName)
+	return fmt.Sprintf("`%s`.`%s_stream`", database, tableName)
 }
 
 func genViewName(database, tableName string, timeKey string) string {
 	if timeKey == "" {
-		return fmt.Sprintf("%s.%s_view", database, tableName)
+		return fmt.Sprintf("`%s`.`%s_view`", database, tableName)
 	}
-	return fmt.Sprintf("%s.%s_%s_view", database, tableName, timeKey)
+	return fmt.Sprintf("`%s`.`%s_%s_view`", database, tableName, timeKey)
 }
 
 var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "like"}

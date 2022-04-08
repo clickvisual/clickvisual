@@ -13,7 +13,7 @@ const UserActions = () => {
     loadingText: false,
     onSuccess: () => {
       message.success(formatMessage({ id: "login.message.success" }));
-      history.push(HOME_PATH);
+      document.location = HOME_PATH;
     },
   });
 
