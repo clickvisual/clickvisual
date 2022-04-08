@@ -66,7 +66,7 @@ export const layout = ({
 }: {
   initialState: InitialStateType;
 }): BasicLayoutProps => {
-  const { menus, settings } = initialState;
+  const { menus, settings, currentUser } = initialState;
   return {
     menuDataRender: () => menus,
     rightContentRender: () => <RightContent />,
@@ -75,10 +75,10 @@ export const layout = ({
     onPageChange: () => {
       const { location } = history;
       const isLogin = AVOID_CLOSE_ROUTING.indexOf(location.pathname) > -1;
-      if (!initialState?.currentUser && !isLogin) {
+      if (!currentUser && !isLogin) {
         history.push(LOGIN_PATH);
       }
-      if (initialState?.currentUser && isLogin) {
+      if (currentUser && isLogin) {
         history.push(HOME_PATH);
       }
     },
