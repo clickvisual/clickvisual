@@ -133,6 +133,7 @@ func GetRouter() *egin.Component {
 	// Instance
 	{
 		v1.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
+		v1.POST("/instances/:iid/tables-exist-batch", core.Handle(base.TableCreateSelfBuiltBatch))
 		v1.GET("/instances/:iid/columns-self-built", core.Handle(base.TableColumnsSelfBuilt))
 		v1.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
 		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))

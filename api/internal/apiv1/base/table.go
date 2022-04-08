@@ -1,6 +1,7 @@
 package base
 
 import (
+	"errors"
 	"sort"
 	"sync"
 
@@ -487,41 +488,70 @@ func TableCreateSelfBuilt(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	err = tableCreateSelfBuilt(c.Uid(), iid, param)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": param})
+	c.JSONOK()
+}
+
+func TableCreateSelfBuiltBatch(c *core.Context) {
+	iid := cast.ToInt(c.Param("iid"))
+	if iid == 0 {
+		c.JSONE(1, "param error: missing iid", nil)
+		return
+	}
+	var params view.ReqTableCreateExistBatch
+	err := c.Bind(&params)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	for _, param := range params.TableList {
+		err = tableCreateSelfBuilt(c.Uid(), iid, param)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": params})
+	c.JSONOK()
+}
+
+func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 	// check mogo exist
 	conds := egorm.Conds{}
 	conds["name"] = param.DatabaseName
 	existDatabases, err := db.DatabaseList(invoker.Db, conds)
 	if err != nil {
-		c.JSONE(core.CodeErr, "database create failed 01: "+err.Error(), nil)
-		return
+		return errors.New("database create failed 01: " + err.Error())
 	}
 	for _, existDatabase := range existDatabases {
 		condsT := egorm.Conds{}
 		condsT["did"] = existDatabase.ID
 		existTables, errExistTables := db.TableList(invoker.Db, condsT)
 		if errExistTables != nil {
-			c.JSONE(core.CodeErr, "database create failed 02: "+errExistTables.Error(), nil)
-			return
+			return errors.New("database create failed 02: " + errExistTables.Error())
 		}
 		for _, existTable := range existTables {
 			if existTable.Name == param.TableName {
-				c.JSONE(core.CodeErr, "database create failed 03: this table is already exist in mogo", nil)
-				return
+				return errors.New("database create failed 03: this table is already exist in mogo")
 			}
 		}
 	}
 	tx := invoker.Db.Begin()
-	databaseInfo, err := db.DatabaseGetOrCreate(tx, c.Uid(), iid, param.DatabaseName)
+	databaseInfo, err := db.DatabaseGetOrCreate(tx, uid, iid, param.DatabaseName)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "database create failed: "+err.Error(), nil)
-		return
+		return errors.New("database create failed: " + err.Error())
 	}
 	// no need to operator the database
 	tableInfo := db.Table{
 		Did:           databaseInfo.ID,
 		Name:          param.TableName,
-		Uid:           c.Uid(),
+		Uid:           uid,
 		CreateType:    inquiry.TableCreateTypeExist,
 		TimeField:     param.TimeField,
 		TimeFieldType: param.TimeFieldType,
@@ -529,21 +559,18 @@ func TableCreateSelfBuilt(c *core.Context) {
 	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-		return
+		return err
 	}
 	// create index
 	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
+		return err
 	}
 	columns, err := op.Columns(param.DatabaseName, param.TableName, false)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-		return
+		return errors.New("create failed: " + err.Error())
 	}
 	invoker.Logger.Debug("TableCreateSelfBuilt", elog.Any("columns", columns))
 	for _, col := range columns {
@@ -559,16 +586,13 @@ func TableCreateSelfBuilt(c *core.Context) {
 		})
 		if err != nil {
 			tx.Rollback()
-			c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-			return
+			return errors.New("create failed: " + err.Error())
 		}
 	}
 	if err = tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-		return
+		return errors.New("create failed: " + err.Error())
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": tableInfo})
-	c.JSONOK()
+	return nil
 }
 
 func TableColumnsSelfBuilt(c *core.Context) {
