@@ -53,7 +53,7 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
       if (res?.code !== 0) return;
       formatOptions(res.data);
     });
-  }, [instanceList, formatOptions]);
+  }, [instanceList]);
 
   return (
     <>
