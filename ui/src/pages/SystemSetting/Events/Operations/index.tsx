@@ -1,11 +1,13 @@
 import eventStyles from "@/pages/SystemSetting/Events/index.less";
 import { Button, Form, FormInstance, Select, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { getSourceOptions } from "@/services/events";
 import { useIntl } from "umi";
+import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const { Option } = Select;
 
@@ -14,9 +16,10 @@ type OperationsProps = {
   onChangeData: (data: any[]) => void;
 };
 const Operations = ({ loadList, onChangeData }: OperationsProps) => {
-  const { eventEnums, setQuery } = useModel("events");
+  const { setCurrentPagination, eventEnums, setQuery } = useModel("events");
   const formRef = useRef<FormInstance>(null);
   const [options, setOptions] = useState<any[]>([]);
+  const [urlState, setUrlState] = useUrlState<any>({});
 
   const doGetOptions = useRequest(getSourceOptions, {
     loadingText: false,
@@ -41,10 +44,22 @@ const Operations = ({ loadList, onChangeData }: OperationsProps) => {
       return { name: eventEnums.userEnums[item], value: item };
     });
   }, [eventEnums]);
+  useEffect(() => {
+    formRef.current?.setFieldsValue({ ...urlState });
+    if (urlState.source) {
+      doGetOptions.run(urlState.source);
+    }
+  }, []);
 
   const onFinish = (fields: any) => {
+    setUrlState(fields);
+    setCurrentPagination({
+      pageSize: PAGE_SIZE,
+      current: FIRST_PAGE,
+      total: 0,
+    });
     onChangeData([]);
-    loadList(fields);
+    loadList({ ...fields, current: 1 });
     setQuery(fields);
   };
   const i18n = useIntl();

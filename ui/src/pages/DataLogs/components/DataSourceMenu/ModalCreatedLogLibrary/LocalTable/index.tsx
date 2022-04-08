@@ -45,14 +45,15 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
     const instanceObj = instanceList.find(
       (item: any) => item.name == instanceName
     );
+    if (!instanceObj || !instanceObj.id) return;
     formRef?.setFieldsValue({
-      instance: instanceObj?.id,
+      instance: instanceObj.id,
     });
-    getLocalTables.run(instanceObj?.id as number).then((res) => {
+    getLocalTables.run(instanceObj.id as number).then((res) => {
       if (res?.code !== 0) return;
       formatOptions(res.data);
     });
-  }, []);
+  }, [instanceList, formatOptions]);
 
   return (
     <>

@@ -4,6 +4,7 @@ import EventList from "@/pages/SystemSetting/Events/EventList";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect, useState } from "react";
 import Operations from "@/pages/SystemSetting/Events/Operations";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const Events = () => {
   const {
@@ -14,6 +15,7 @@ const Events = () => {
   } = useModel("events");
   const [loading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<any[]>([]);
+  const [uslState] = useUrlState<any[]>([]);
 
   const loadMoreData = (params?: any) => {
     if (loading) {
@@ -28,7 +30,11 @@ const Events = () => {
           setLoading(false);
           return;
         }
-        setData(() => [...data, ...res.data.list]);
+        if (params.current == 1) {
+          setData(() => [...res.data.list]);
+        } else {
+          setData(() => [...data, ...res.data.list]);
+        }
         setCurrentPagination(res.data.pagination);
         setLoading(false);
       })
@@ -39,7 +45,7 @@ const Events = () => {
 
   useEffect(() => {
     doGetEventEnums.run();
-    loadMoreData();
+    loadMoreData({ ...uslState, current: 1 });
   }, []);
   return (
     <div
