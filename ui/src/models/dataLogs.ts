@@ -351,6 +351,13 @@ const DataLogsModel = () => {
   };
 
   const doUpdatedQuery = (currentSelected: string) => {
+    if (currentSelected.endsWith("+08:00'")) {
+      currentSelected = currentSelected.substring(
+        0,
+        currentSelected.length - 7
+      );
+      currentSelected += "'";
+    }
     const defaultValueArr =
       lodash.cloneDeep(keywordInput)?.split(" and ") || [];
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "")

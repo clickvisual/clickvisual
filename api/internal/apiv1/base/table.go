@@ -293,7 +293,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	param, err = op.Prepare(param, true)
+	param, err = op.Prepare(param, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -347,7 +347,7 @@ func TableCharts(c *core.Context) {
 	res := view.HighCharts{
 		Histograms: make([]view.HighChart, 0),
 	}
-	param, err = op.Prepare(param, true)
+	param, err = op.Prepare(param, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -447,7 +447,7 @@ func TableIndexes(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	param, err = op.Prepare(param, true)
+	param, err = op.Prepare(param, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter. "+err.Error(), nil)
 		return

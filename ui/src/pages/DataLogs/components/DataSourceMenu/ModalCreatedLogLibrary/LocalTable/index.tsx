@@ -200,36 +200,79 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
                   const selectedField = conformToStandard.find(
                     (item) => item.name === timeField
                   );
-                  if (selectedField?.type !== 1) return <></>;
-                  return (
-                    <Form.Item
-                      name={"timeFieldType"}
-                      label={i18n.formatMessage({
-                        id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
-                      })}
-                      rules={[
-                        {
-                          required: true,
-                          message: i18n.formatMessage({
-                            id: "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType",
-                          }),
-                        },
-                      ]}
-                    >
-                      <Radio.Group>
-                        <Radio value={1}>
-                          {i18n.formatMessage({
-                            id: "datasource.logLibrary.from.newLogLibrary.timeType.seconds",
-                          })}
-                        </Radio>
-                        <Radio value={2}>
-                          {i18n.formatMessage({
-                            id: "datasource.logLibrary.from.newLogLibrary.timeType.millisecond",
-                          })}
-                        </Radio>
-                      </Radio.Group>
-                    </Form.Item>
-                  );
+                  console.log("selectedField?.type", selectedField?.type);
+                  if (selectedField?.type == -1)
+                    return (
+                      <Form.Item
+                        name={"timeFieldType"}
+                        label={i18n.formatMessage({
+                          id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
+                        })}
+                        rules={[
+                          {
+                            required: true,
+                            message: i18n.formatMessage({
+                              id: "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType",
+                            }),
+                          },
+                        ]}
+                      >
+                        <Radio.Group>
+                          <Radio value={0}>DateTime</Radio>
+                        </Radio.Group>
+                      </Form.Item>
+                    );
+                  if (selectedField?.type == -2)
+                    return (
+                      <Form.Item
+                        name={"timeFieldType"}
+                        label={i18n.formatMessage({
+                          id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
+                        })}
+                        rules={[
+                          {
+                            required: true,
+                            message: i18n.formatMessage({
+                              id: "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType",
+                            }),
+                          },
+                        ]}
+                      >
+                        <Radio.Group>
+                          <Radio value={3}>DateTime64(3)</Radio>
+                        </Radio.Group>
+                      </Form.Item>
+                    );
+                  if (selectedField?.type == 1)
+                    return (
+                      <Form.Item
+                        name={"timeFieldType"}
+                        label={i18n.formatMessage({
+                          id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
+                        })}
+                        rules={[
+                          {
+                            required: true,
+                            message: i18n.formatMessage({
+                              id: "datasource.logLibrary.from.newLogLibrary.rule.timeResolutionFieldType",
+                            }),
+                          },
+                        ]}
+                      >
+                        <Radio.Group>
+                          <Radio value={1}>
+                            {i18n.formatMessage({
+                              id: "datasource.logLibrary.from.newLogLibrary.timeType.seconds",
+                            })}
+                          </Radio>
+                          <Radio value={2}>
+                            {i18n.formatMessage({
+                              id: "datasource.logLibrary.from.newLogLibrary.timeType.millisecond",
+                            })}
+                          </Radio>
+                        </Radio.Group>
+                      </Form.Item>
+                    );
                 }}
               </Form.Item>
 

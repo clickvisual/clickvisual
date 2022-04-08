@@ -22,7 +22,6 @@ func (b *ViewBuilder) BuilderCreate() {
 		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO metrics.samples AS\n", b.QueryAssembly.Params.View.ViewTable)
 	default:
 		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO %s AS\n", b.QueryAssembly.Params.View.ViewTable, b.QueryAssembly.Params.View.TargetTable)
-
 	}
 }
 
@@ -36,7 +35,7 @@ func (b *ViewBuilder) BuilderFields() {
   toFloat64(count(*)) as val,
   %s as ts,
   toDateTime(%s) as updated
-FROM '%s'
+FROM %s
 `,
 			b.QueryAssembly.Params.View.TimeField,
 			bumo.PrometheusMetricName,
@@ -56,7 +55,7 @@ FROM '%s'
   _container_name_,
   _pod_name_,
   _log_ AS _raw_log_%s
-FROM '%s'
+FROM %s
 `, b.QueryAssembly.Params.View.TimeField, b.QueryAssembly.Params.View.CommonFields, b.QueryAssembly.Params.View.SourceTable)
 	}
 }
