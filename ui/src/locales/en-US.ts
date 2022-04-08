@@ -58,7 +58,7 @@ export default {
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
-  "menu.event": "Event center",
+  "menu.systemSettings.events": "Event center",
 
   // user
   "login.header": "Welcome to MOGO",
