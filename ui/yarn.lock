@@ -12866,6 +12866,13 @@ react-immutable-pure-component@^1.1.1:
   resolved "https://registry.nlark.com/react-immutable-pure-component/download/react-immutable-pure-component-1.2.4.tgz#ad2cdbd074fedecc799e5723d5e8e57b429e3e2c"
   integrity sha1-rSzb0HT+3sx5nlcj1ejle0KePiw=
 
+react-infinite-scroll-component@6.1.0:
+  version "6.1.0"
+  resolved "https://registry.npmmirror.com/react-infinite-scroll-component/-/react-infinite-scroll-component-6.1.0.tgz#7e511e7aa0f728ac3e51f64a38a6079ac522407f"
+  integrity sha512-SQu5nCqy8DxQWpnUVLx7V7b7LcA37aM7tvoWjTLZp1dk6EJibM5/4EJKzOnl07/BsM1Y40sKLuqjCwwH/xV0TQ==
+  dependencies:
+    throttle-debounce "^2.1.0"
+
 react-inspector@^2.3.0:
   version "2.3.1"
   resolved "https://registry.npm.taobao.org/react-inspector/download/react-inspector-2.3.1.tgz#f0eb7f520669b545b441af9d38ec6d706e5f649c"
@@ -15151,6 +15158,11 @@ throat@^5.0.0:
   version "5.0.0"
   resolved "https://registry.nlark.com/throat/download/throat-5.0.0.tgz#c5199235803aad18754a667d659b5e72ce16764b"
   integrity sha1-xRmSNYA6rRh1SmZ9ZZtecs4Wdks=
+
+throttle-debounce@^2.1.0:
+  version "2.3.0"
+  resolved "https://registry.npmmirror.com/throttle-debounce/-/throttle-debounce-2.3.0.tgz#fd31865e66502071e411817e241465b3e9c372e2"
+  integrity sha512-H7oLPV0P7+jgvrk+6mwwwBDmxTaxnu9HMXmloNLXwnNO0ZxZ31Orah2n8lU1eMPvsaowP2CX+USCgyovXfdOFQ==
 
 through2@^3.0.0, through2@^3.0.1:
   version "3.0.2"

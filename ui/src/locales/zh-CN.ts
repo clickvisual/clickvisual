@@ -55,9 +55,10 @@ export default {
   "menu.alarm": "报警",
   "menu.alarm.rules": "报警规则",
   "menu.alarm.notifications": "通知方式",
-  "menu.systemSettings": "系统设置",
+  "menu.systemSettings": "系统管理",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
+  "menu.event": "事件中心",
 
   // user
   "login.header": "欢迎来到 MOGO",
@@ -220,6 +221,11 @@ export default {
 
   // configure-modal-history-diff
   "config.historyDiff.title": "历史版本比对",
+
+  // events
+  "events.input.placeholder": "请选择{value}",
+  "events.form.queryBtn": "查询",
+  "events.list.noMore": "没有更多了",
 
   // Data Logs
   // Data Logs-Datasource
