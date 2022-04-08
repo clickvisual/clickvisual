@@ -347,9 +347,9 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	dName := genName(databaseInfo.Name, table)
 	streamName := genStreamName(databaseInfo.Name, table)
 	// drop
-	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
+	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`;", viewName)
 	if c.mode == ModeCluster {
-		viewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s' ;", viewName, databaseInfo.Cluster)
+		viewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS `%s` ON CLUSTER `%s` ;", viewName, databaseInfo.Cluster)
 	}
 	_, err = c.db.Exec(viewDropSQL)
 	if err != nil {
@@ -789,7 +789,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT * FROM `%s` WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET,
@@ -799,7 +799,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE %s AND "+genTimeCondition(param),
+	sql = fmt.Sprintf("SELECT count(*) as count FROM `%s` WHERE %s AND "+genTimeCondition(param),
 		param.DatabaseTable,
 		param.Query,
 		param.ST, param.ET)
@@ -808,7 +808,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param)+" group by %s  order by count desc limit 10",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM `%s` WHERE %s AND "+genTimeCondition(param)+" group by %s  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
 		param.Query,
