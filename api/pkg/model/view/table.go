@@ -7,6 +7,10 @@ type ReqTableCreateExist struct {
 	TimeFieldType int    `form:"timeFieldType" json:"timeFieldType"`
 }
 
+type ReqTableCreateExistBatch struct {
+	TableList []ReqTableCreateExist `form:"tableList" json:"tableList"`
+}
+
 type ReqTableCreate struct {
 	TableName string `form:"tableName" binding:"required"`
 	Typ       int    `form:"typ" binding:"required"`
