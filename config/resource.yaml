@@ -53,3 +53,5 @@ permission:
         - name: 删除数据库连接
           method: DELETE
           path: /api/v1/sys/clusters/:id
+      - path: /sys/events
+        name: events
