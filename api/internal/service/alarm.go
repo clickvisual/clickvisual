@@ -233,7 +233,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 		return
 	}
 	if obj.ViewTableName != "" {
-		err = op.AlertViewDrop(obj.ViewTableName)
+		err = op.AlertViewDrop(obj.ViewTableName, tableInfo.Database.Cluster)
 		if err != nil {
 			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
 			return
@@ -246,7 +246,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 		return
 	}
 	// exec view sql
-	if err = op.AlertViewCreate(viewTableName, viewSQL); err != nil {
+	if err = op.AlertViewCreate(viewTableName, viewSQL, tableInfo.Database.Cluster); err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 07"), elog.String("err", err.Error()))
 		return
 	}
@@ -271,7 +271,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 }
 
 func (i *alarm) OpenOperator(id int) (err error) {
-	instanceInfo, _, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
+	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
 		return
 	}
@@ -279,7 +279,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 	if errInstanceManager != nil {
 		return
 	}
-	if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View); err != nil {
+	if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View, tableInfo.Database.Cluster); err != nil {
 		return
 	}
 	if err = i.PrometheusRuleCreateOrUpdate(instanceInfo, &alarmInfo, alarmInfo.AlertRule); err != nil {

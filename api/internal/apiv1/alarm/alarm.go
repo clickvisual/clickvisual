@@ -84,7 +84,7 @@ func Update(c *core.Context) {
 	case db.AlarmStatusOpen:
 		err = service.Alarm.OpenOperator(id)
 	case db.AlarmStatusClose:
-		instanceInfo, _, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
+		instanceInfo, tableInfo, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
 		if errAlarmInfo != nil {
 			c.JSONE(1, "alarm update failed 02"+errAlarmInfo.Error(), nil)
 			return
@@ -94,7 +94,7 @@ func Update(c *core.Context) {
 			c.JSONE(core.CodeErr, errInstanceManager.Error(), nil)
 			return
 		}
-		if err = op.AlertViewDrop(alarmInfo.ViewTableName); err != nil {
+		if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
 			c.JSONE(1, "alarm update failed when delete metrics view"+err.Error(), nil)
 			return
 		}
@@ -236,7 +236,7 @@ func Delete(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = op.AlertViewDrop(alarmInfo.ViewTableName); err != nil {
+	if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm failed to delete 06: "+err.Error(), nil)
 		return

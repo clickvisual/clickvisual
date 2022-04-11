@@ -248,7 +248,7 @@ func TableDelete(c *core.Context) {
 			c.JSONE(core.CodeErr, errLoad.Error(), nil)
 			return
 		}
-		err = op.TableDrop(database, table, tableInfo.ID)
+		err = op.TableDrop(database, table, tableInfo.Database.Cluster, tableInfo.ID)
 		if err != nil {
 			tx.Rollback()
 			c.JSONE(core.CodeErr, "delete failed 01: "+err.Error(), nil)

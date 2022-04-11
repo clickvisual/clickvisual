@@ -17,6 +17,7 @@ import (
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/cluster"
 	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/standalone"
+	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
@@ -212,12 +213,17 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 }
 
 // TableDrop data view stream
-func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
+func (c *ClickHouse) TableDrop(database, table, cluster string, tid int) (err error) {
 	var (
 		views []*db.View
 	)
+
 	if c.mode == ModeCluster {
-		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table))
+		if cluster == "" {
+			err = constx.ErrClusterNameEmpty
+			return
+		}
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s ON CLUSTER '%s';", database, table, cluster))
 		if err != nil {
 			return err
 		}
@@ -230,13 +236,22 @@ func (c *ClickHouse) TableDrop(database, table string, tid int) (err error) {
 	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
 	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
 	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table)
+	if c.mode == ModeCluster {
+		delViewSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genViewName(database, table, ""), cluster)
+		delStreamSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genStreamName(database, table), cluster)
+		delDataSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s.%s ON CLUSTER '%s';", database, table, cluster)
+	}
 	_, err = c.db.Exec(delViewSQL)
 	if err != nil {
 		return err
 	}
 	// query all view
 	for _, v := range views {
-		_, err = c.db.Exec(fmt.Sprintf("drop table IF EXISTS %s;", genViewName(database, table, v.Key)))
+		userViewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, v.Key))
+		if c.mode == ModeCluster {
+			userViewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genViewName(database, table, v.Key), cluster)
+		}
+		_, err = c.db.Exec(userViewDropSQL)
 		if err != nil {
 			return err
 		}
@@ -359,6 +374,10 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
 	if c.mode == ModeCluster {
+		if databaseInfo.Cluster == "" {
+			err = constx.ErrClusterNameEmpty
+			return
+		}
 		viewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER `%s` ;", viewName, databaseInfo.Cluster)
 	}
 	_, err = c.db.Exec(viewDropSQL)
@@ -522,8 +541,8 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (s
 	return viewTableName, viewSQL, err
 }
 
-func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL string) (err error) {
-	err = c.AlertViewDrop(viewTableName)
+func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL, cluster string) (err error) {
+	err = c.AlertViewDrop(viewTableName, cluster)
 	if err != nil {
 		return
 	}
@@ -531,8 +550,17 @@ func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL string) (err error) 
 	return err
 }
 
-func (c *ClickHouse) AlertViewDrop(viewTableName string) (err error) {
-	return c.DropTable(viewTableName)
+func (c *ClickHouse) AlertViewDrop(viewTableName, cluster string) (err error) {
+	if c.mode == ModeCluster {
+		if cluster == "" {
+			err = constx.ErrClusterNameEmpty
+			return
+		}
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", viewTableName, cluster))
+	} else {
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewTableName))
+	}
+	return err
 }
 
 func (c *ClickHouse) alertPrepare() (err error) {
@@ -552,13 +580,12 @@ func (c *ClickHouse) alertPrepare() (err error) {
 	return
 }
 
-func (c *ClickHouse) DropTable(name string) error {
-	_, err := c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", name))
-	return err
-}
-
-func (c *ClickHouse) DropDatabase(name string) error {
-	_, err := c.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s;", name))
+func (c *ClickHouse) DropDatabase(name string, cluster string) (err error) {
+	if cluster == "" {
+		_, err = c.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s;", name))
+	} else {
+		_, err = c.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s ON CLUSTER '%s';", name, cluster))
+	}
 	return err
 }
 

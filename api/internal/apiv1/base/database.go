@@ -145,7 +145,7 @@ func DatabaseDelete(c *core.Context) {
 			c.JSONE(core.CodeErr, errLoad.Error(), nil)
 			return
 		}
-		err = op.DropDatabase(database.Name)
+		err = op.DropDatabase(database.Name, database.Cluster)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), nil)
 			return
