@@ -127,7 +127,7 @@ export default {
   // Cluster Management
   "cluster.button.add": "新增集群",
   "cluster.clusterName": "集群名称",
-  "cluster.k8sConfiguration": "k8s 配置",
+  "cluster.k8sConfiguration": "Kubeconfig",
   "cluster.delete.confirmTip": "确认删集群：{clusterName} 吗？",
   "cluster.form.title.created": "新增集群",
   "cluster.form.title.edit": "编辑集群",
@@ -136,7 +136,16 @@ export default {
   "cluster.form.status.anomaly": "异常",
   "cluster.form.placeholder.clusterName": "请输入集群名称",
   "cluster.form.placeholder.apiServer": "http://localhost:6443",
-  "cluster.form.placeholder.k8sConfiguration": "请输入集群的 k8s 配置",
+  "cluster.form.placeholder.k8sConfiguration": `apiVersion: v1
+  kind: Config
+  clusters:
+  - cluster:
+    name: development
+  users:
+  - name: developer
+  contexts:
+  - context:
+    name: development`,
   "cluster.form.placeholder.description": "请输入集群的描述",
   "cluster.success.created": "新增集群成功",
   "cluster.success.updated": "更新集群成功",

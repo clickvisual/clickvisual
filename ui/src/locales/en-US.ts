@@ -129,7 +129,7 @@ export default {
   // Cluster Management
   "cluster.button.add": "Add cluster",
   "cluster.clusterName": "Cluster Name",
-  "cluster.k8sConfiguration": "kubeConfigFile",
+  "cluster.k8sConfiguration": "Kubeconfig",
   "cluster.delete.confirmTip": "Confirm deleting cluster: {clusterName}?",
   "cluster.form.title.created": "Create Cluster",
   "cluster.form.title.edit": "Edit Cluster",
@@ -138,8 +138,16 @@ export default {
   "cluster.form.status.anomaly": "Anomaly",
   "cluster.form.placeholder.clusterName": "Please enter a cluster name",
   "cluster.form.placeholder.apiServer": "http://localhost:6443",
-  "cluster.form.placeholder.k8sConfiguration":
-    "Please enter k8s cluster configuration",
+  "cluster.form.placeholder.k8sConfiguration": `apiVersion: v1
+  kind: Config
+  clusters:
+  - cluster:
+    name: development
+  users:
+  - name: developer
+  contexts:
+  - context:
+    name: development`,
   "cluster.form.placeholder.description":
     "Please enter a description of the cluster",
   "cluster.success.created": "Created cluster succeeded",
