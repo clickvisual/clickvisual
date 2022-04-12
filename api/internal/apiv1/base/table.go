@@ -17,6 +17,7 @@ import (
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
+	"github.com/shimohq/mogo/api/pkg/utils"
 )
 
 func TableId(c *core.Context) {
@@ -313,6 +314,11 @@ func TableLogs(c *core.Context) {
 	return
 }
 
+func TableTables(c *core.Context) {
+	c.JSONOK()
+	return
+}
+
 func TableCharts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
@@ -353,7 +359,7 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	interval := (param.ET - param.ST) / 50
+	interval := utils.CalculateInterval(param.ET - param.ST)
 	isZero := true
 	invoker.Logger.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
 
@@ -369,9 +375,9 @@ func TableCharts(c *core.Context) {
 		}
 		res.Histograms = append(res.Histograms, row)
 	} else {
-		limiter := make(chan view.HighChart, 100)
+		limiter := make(chan view.HighChart, 200)
 		wg := &sync.WaitGroup{}
-		for i := param.ST; i <= param.ET; i += interval {
+		for i := param.ST; i < param.ET; i += interval {
 			wg.Add(1)
 			go func(st, et int64, wg *sync.WaitGroup) {
 				row := view.HighChart{

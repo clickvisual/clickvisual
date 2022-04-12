@@ -31,6 +31,8 @@ type Alarm struct {
 	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // status
 	RuleStoreType int           `gorm:"column:rule_store_type" db:"rule_store_type" json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType
 	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`                       // channel of an alarm
+
+	User *User `json:"user,omitempty" gorm:"foreignKey:Uid;references:ID"`
 }
 
 func (m *Alarm) TableName() string {
@@ -142,7 +144,7 @@ func AlarmInfoX(db *gorm.DB, conds map[string]interface{}) (resp Alarm, err erro
 
 func AlarmList(conds egorm.Conds) (resp []*Alarm, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(Alarm{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+	if err = invoker.Db.Model(Alarm{}).Preload("User").Where(sql, binds...).Find(&resp).Error; err != nil {
 		invoker.Logger.Error("Deployment list error", zap.Error(err))
 		return
 	}
@@ -159,7 +161,7 @@ func AlarmListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList [
 		reqList.Current = 1
 	}
 	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Model(Alarm{}).Where(sql, binds...).Order("utime desc")
+	db := invoker.Db.Model(Alarm{}).Preload("User").Where(sql, binds...).Order("utime desc")
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
@@ -174,7 +176,7 @@ func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 		reqList.Current = 1
 	}
 	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Select("*, mogo_alarm.id as id, mogo_alarm.name as name").Model(Alarm{}).Joins("JOIN mogo_base_table ON mogo_alarm.tid = mogo_base_table.id").Where(sql, binds...)
+	db := invoker.Db.Select("*, mogo_alarm.id as id, mogo_alarm.name as name").Model(Alarm{}).Preload("User").Joins("JOIN mogo_base_table ON mogo_alarm.tid = mogo_base_table.id").Where(sql, binds...)
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return

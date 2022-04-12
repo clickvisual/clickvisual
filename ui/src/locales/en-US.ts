@@ -24,6 +24,9 @@ export default {
   status: "Status",
   dingTalk: "DingTalk",
 
+  user: "User",
+  utime: "Update Time",
+
   "unit.second": "seconds",
   "unit.minute": "minutes",
   "unit.hour": "hours",
