@@ -24,6 +24,9 @@ export default {
   status: "状态",
   dingTalk: "钉钉",
 
+  user: "用户",
+  utime: "更新时间",
+
   "unit.second": "秒",
   "unit.minute": "分钟",
   "unit.hour": "小时",

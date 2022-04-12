@@ -140,7 +140,7 @@ func List(c *core.Context) {
 	if did != 0 {
 		query["mogo_base_table.did"] = did
 		total, list := db.AlarmListByDidPage(query, req)
-		c.JSONPage(list, core.Pagination{
+		c.JSONPage(filterSensitiveInfo(list), core.Pagination{
 			Current:  req.Current,
 			PageSize: req.PageSize,
 			Total:    total,
@@ -148,12 +148,19 @@ func List(c *core.Context) {
 		return
 	}
 	total, list := db.AlarmListPage(query, req)
-	c.JSONPage(list, core.Pagination{
+	c.JSONPage(filterSensitiveInfo(list), core.Pagination{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 		Total:    total,
 	})
 	return
+}
+
+func filterSensitiveInfo(respList []*db.Alarm) []*db.Alarm {
+	for k := range respList {
+		respList[k].User.Password = "*"
+	}
+	return respList
 }
 
 func Info(c *core.Context) {

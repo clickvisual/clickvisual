@@ -313,6 +313,11 @@ func TableLogs(c *core.Context) {
 	return
 }
 
+func TableTables(c *core.Context) {
+	c.JSONOK()
+	return
+}
+
 func TableCharts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)

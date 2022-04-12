@@ -14,6 +14,7 @@ import { useDebounceFn } from "ahooks";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
 import useUrlState from "@ahooksjs/use-url-state";
+import moment from "moment";
 
 const AlarmTable = () => {
   const [urlState] = useUrlState<any>();
@@ -189,9 +190,21 @@ const AlarmTable = () => {
       },
     },
     {
+      title: i18n.formatMessage({ id: "user" }),
+      dataIndex: "user",
+      ellipsis: { showTitle: true },
+      render: (user: any) => (
+        <Tooltip title={user.nickname}>
+          <div className={alarmStyles.columnsEllipsis}>
+            <span>{user.username}</span>
+          </div>
+        </Tooltip>
+      ),
+    },
+    {
       title: i18n.formatMessage({ id: "description" }),
       dataIndex: "desc",
-      width: "50%",
+      width: "40%",
       ellipsis: { showTitle: true },
       render: (desc: string) => (
         <Tooltip title={desc}>
@@ -199,6 +212,16 @@ const AlarmTable = () => {
             <span>{desc}</span>
           </div>
         </Tooltip>
+      ),
+    },
+    {
+      title: i18n.formatMessage({ id: "utime" }),
+      dataIndex: "utime",
+      ellipsis: { showTitle: true },
+      render: (utime: any) => (
+        <div className={alarmStyles.columnsEllipsis}>
+          <span>{moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss")}</span>
+        </div>
       ),
     },
     {
