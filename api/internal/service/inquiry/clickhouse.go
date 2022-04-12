@@ -23,7 +23,10 @@ import (
 )
 
 func genTimeCondition(param view.ReqQuery) string {
-	if param.TimeFieldType == db.TimeFieldTypeTsMs {
+	switch param.TimeFieldType {
+	case db.TimeFieldTypeDT:
+		return fmt.Sprintf("%s >= toDateTime(%s) and %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
+	case db.TimeFieldTypeTsMs:
 		return fmt.Sprintf("intDiv(%s,1000) >= %s and intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
 	}
 	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
@@ -717,7 +720,7 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
-		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'Int64'"}, ","))
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'UInt32'", "'Int64'", "'UInt64'"}, ","))
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
