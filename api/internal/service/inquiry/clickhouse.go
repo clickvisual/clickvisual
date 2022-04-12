@@ -717,7 +717,7 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
-		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'Int64'"}, ","))
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'UInt32'", "'Int64'", "'UInt64'"}, ","))
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
