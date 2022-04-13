@@ -62,11 +62,11 @@ func (b *DataBuilder) BuilderEngine() {
 		}
 		b.QueryAssembly.Result += fmt.Sprintf("ENGINE = Distributed('%s', '%s', '%s', rand())",
 			b.QueryAssembly.Params.Cluster,
-			arr[0],
-			arr[1])
+			strings.ReplaceAll(arr[0], "`", ""),
+			strings.ReplaceAll(arr[1], "`", ""))
 	default:
 		b.QueryAssembly.Result += fmt.Sprintf("ENGINE = ReplicatedMergeTree('/clickhouse/tables/%s/{shard}', '{replica}')\nPARTITION BY toYYYYMMDD(_time_second_)\n",
-			b.QueryAssembly.Params.Data.TableName)
+			strings.ReplaceAll(b.QueryAssembly.Params.Data.TableName, "`", ""))
 	}
 
 }

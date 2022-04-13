@@ -5,6 +5,7 @@ type ReqTableCreateExist struct {
 	TableName     string `form:"tableName" json:"tableName" binding:"required"`
 	TimeField     string `form:"timeField" json:"timeField"`
 	TimeFieldType int    `form:"timeFieldType" json:"timeFieldType"`
+	Desc          string `form:"desc" json:"desc"`
 }
 
 type ReqTableCreateExistBatch struct {
@@ -18,6 +19,7 @@ type ReqTableCreate struct {
 	Brokers   string `form:"brokers" binding:"required"`
 	Topics    string `form:"topics" binding:"required"`
 	Consumers int    `form:"consumers" binding:"required"`
+	Desc      string `form:"desc"`
 }
 
 type ReqTableId struct {

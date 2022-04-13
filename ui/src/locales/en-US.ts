@@ -270,7 +270,7 @@ export default {
   "datasource.logLibrary.from.creationMode": "Creation Mode",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary":
-    "Create a log library based on Mogo",
+    "Create a log library",
   "datasource.logLibrary.from.creationMode.option.logLibrary":
     "Select an existing log library",
   "datasource.logLibrary.from.newLogLibrary.instance": "instance",

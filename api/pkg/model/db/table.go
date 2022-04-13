@@ -26,6 +26,7 @@ type Table struct {
 	CreateType     int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create mogo fresh table, 1 means use exists table
 	TimeField      string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
 	TimeFieldType  int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"` // custom time filed type name of _time_
+	Desc           string `gorm:"column:desc;type:varchar(255)" json:"desc"`
 
 	Database *Database `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
 }
