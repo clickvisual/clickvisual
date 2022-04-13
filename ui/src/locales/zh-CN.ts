@@ -262,9 +262,8 @@ export default {
     "请输入数字、英文字母，中划线、下划线或 . ",
   "datasource.logLibrary.from.creationMode": "创建方式",
 
-  "datasource.logLibrary.from.creationMode.option.newLogLibrary":
-    "基于 Mogo 新建日志库",
-  "datasource.logLibrary.from.creationMode.option.logLibrary": "选择已有日志库",
+  "datasource.logLibrary.from.creationMode.option.newLogLibrary": "新建日志库",
+  "datasource.logLibrary.from.creationMode.option.logLibrary": "接入日志库",
   "datasource.logLibrary.from.newLogLibrary.instance": "实例",
   "datasource.logLibrary.from.newLogLibrary.instance.defaultOption":
     "请选择实例",
