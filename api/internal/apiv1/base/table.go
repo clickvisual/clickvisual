@@ -4,10 +4,12 @@ import (
 	"errors"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfloat"
+	"github.com/kl7sn/toolkit/ktime"
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -82,12 +84,14 @@ func TableCreate(c *core.Context) {
 		return
 	}
 	tableInfo := db.Table{
-		Did:            did,
-		Name:           param.TableName,
-		Typ:            param.Typ,
-		Days:           param.Days,
-		Brokers:        param.Brokers,
-		Topic:          param.Topics,
+		Did:     did,
+		Name:    param.TableName,
+		Typ:     param.Typ,
+		Days:    param.Days,
+		Brokers: param.Brokers,
+		Topic:   param.Topics,
+		Desc:    param.Desc,
+
 		SqlData:        d,
 		SqlStream:      s,
 		SqlView:        v,
@@ -265,6 +269,7 @@ func TableDelete(c *core.Context) {
 }
 
 func TableLogs(c *core.Context) {
+	now := time.Now()
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
@@ -276,6 +281,8 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
+	ktime.Cost(now, "TableLogs", "params")
+
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
 	if tableInfo.TimeField == "" {
@@ -290,6 +297,8 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
+	ktime.Cost(now, "TableLogs", "tableInfoInfo")
+
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -304,11 +313,15 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "Query parameter error. Refer to the ClickHouse WHERE syntax. https://clickhouse.com/docs/zh/sql-reference/statements/select/where/", nil)
 		return
 	}
+	ktime.Cost(now, "TableLogs", "Prepare")
+
 	res, err := op.GET(param, tableInfo.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
 	}
+	ktime.Cost(now, "TableLogs", "GET")
+
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
@@ -561,6 +574,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		CreateType:    inquiry.TableCreateTypeExist,
 		TimeField:     param.TimeField,
 		TimeFieldType: param.TimeFieldType,
+		Desc:          param.Desc,
 	}
 	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
