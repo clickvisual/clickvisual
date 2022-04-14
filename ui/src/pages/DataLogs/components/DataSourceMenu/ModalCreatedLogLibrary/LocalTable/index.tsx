@@ -227,7 +227,7 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
                       return (
                         <Collapse
                           defaultActiveKey={[field.fieldKey]}
-                          style={{ marginTop: "10px" }}
+                          style={{ marginBottom: "10px" }}
                         >
                           <Panel
                             header={`${item.databaseName}-${item.tableName}`}
