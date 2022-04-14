@@ -266,6 +266,7 @@ export default {
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "秒",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond": "毫秒",
   "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "分析字段",
+  "datasource.logLibrary.from.newLogLibrary.desc.placeholder": "请输入描述",
 
   "datasource.logLibrary.placeholder.tableName":
     "请输入数据表名称，支持小写字母、大写字母，或下划线",
