@@ -138,6 +138,8 @@ func GetRouter() *egin.Component {
 		v1.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
 		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
 		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
+
+		v1.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
 	}
 	// Database
 	{
@@ -151,7 +153,6 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
-		v1.GET("/tables/:id/tables", core.Handle(base.TableTables))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
 		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
 		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))

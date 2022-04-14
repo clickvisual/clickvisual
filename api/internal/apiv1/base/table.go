@@ -327,8 +327,30 @@ func TableLogs(c *core.Context) {
 	return
 }
 
-func TableTables(c *core.Context) {
-	c.JSONOK()
+func QueryComplete(c *core.Context) {
+	var param view.ReqComplete
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	iid := cast.ToInt(c.Param("iid"))
+	if iid == 0 {
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	invoker.Logger.Debug("Complete", elog.Any("param", param))
+	res, err := op.Complete(param.Query)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONOK(res)
 	return
 }
 

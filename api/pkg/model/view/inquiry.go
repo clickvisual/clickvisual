@@ -29,6 +29,14 @@ type RespQuery struct {
 	Logs          []map[string]interface{} `json:"logs"`
 }
 
+type ReqComplete struct {
+	Query string `form:"query" binding:"required"`
+}
+
+type RespComplete struct {
+	Logs []map[string]interface{} `json:"logs"`
+}
+
 type HighCharts struct {
 	Histograms []HighChart `json:"histograms"`
 	Count      int         `json:"count"`
