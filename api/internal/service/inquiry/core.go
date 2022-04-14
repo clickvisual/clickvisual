@@ -11,13 +11,14 @@ import (
 )
 
 type Operator interface {
+	Count(view.ReqQuery) uint64
 	DropDatabase(string, string) error
 	AlertViewDrop(string, string) error
 	DatabaseCreate(string, string) error
-	Count(view.ReqQuery) uint64
+	GroupBy(view.ReqQuery) map[string]uint64
+	Complete(string) (view.RespComplete, error)
 	TableDrop(string, string, string, int) error
 	AlertViewCreate(string, string, string) error
-	GroupBy(view.ReqQuery) map[string]uint64
 	GET(view.ReqQuery, int) (view.RespQuery, error)
 	Databases() ([]*view.RespDatabaseSelfBuilt, error)
 	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing

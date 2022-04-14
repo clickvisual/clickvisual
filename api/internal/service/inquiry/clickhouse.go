@@ -609,6 +609,17 @@ func TagsToString(alarm *db.Alarm, withQuote bool) string {
 	return strings.Join(result, ",")
 }
 
+func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
+	// Initialization
+	res.Logs = make([]map[string]interface{}, 0)
+	res.Logs, err = c.doQuery(sql)
+	if err != nil {
+		return
+	}
+	invoker.Logger.Debug("Complete", elog.String("sql", sql), elog.Any("logs", res.Logs))
+	return
+}
+
 func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
 	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)
@@ -951,7 +962,7 @@ func isEmpty(input interface{}) bool {
 		if reflect.TypeOf(input) == nil {
 			return true
 		}
-		elog.Warn("isEmpty", elog.String("key", key), elog.Any("type", reflect.TypeOf(input)))
+		invoker.Logger.Warn("isEmpty", elog.String("key", key), elog.Any("type", reflect.TypeOf(input)))
 		return false
 	}
 	if key == "" {
