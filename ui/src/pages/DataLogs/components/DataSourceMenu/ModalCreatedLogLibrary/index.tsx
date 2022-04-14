@@ -1,9 +1,7 @@
-import CustomModal from "@/components/CustomModal";
-import { Button, Form, FormInstance, message, Select } from "antd";
+import { Form, FormInstance, message, Modal, Select } from "antd";
 import { useEffect, useRef } from "react";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
-import { SaveOutlined } from "@ant-design/icons";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
@@ -25,7 +23,7 @@ const ModalCreatedLogLibrary = () => {
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibrary,
     doGetLogLibraryList,
-    doCreatedLocalLogLibrary,
+    doCreatedLocalLogLibraryBatch,
   } = useModel("dataLogs");
 
   const instanceName = currentDatabase?.instanceName;
@@ -36,10 +34,12 @@ const ModalCreatedLogLibrary = () => {
     (field: any) => {
       const response =
         field.mode === 1
-          ? doCreatedLocalLogLibrary.run(field.instance, {
-              ...field,
-              databaseName: field.localTables[0],
-              tableName: field.localTables[1],
+          ? doCreatedLocalLogLibraryBatch.run(field.instance, {
+              // ...field,
+              mode: field.mode,
+              timeField: field.timeField,
+              instance: field.instance,
+              tableList: field.tableList,
             })
           : doCreatedLogLibrary.run(currentDatabase?.id as number, field);
       response
@@ -69,23 +69,17 @@ const ModalCreatedLogLibrary = () => {
   }, [logLibraryCreatedModalVisible]);
 
   return (
-    <CustomModal
+    <Modal
+      centered
       title={i18n.formatMessage({ id: "datasource.logLibrary.search.created" })}
-      width={700}
+      width={900}
+      bodyStyle={{ overflowY: "scroll", maxHeight: "80vh" }}
       visible={logLibraryCreatedModalVisible}
       onCancel={() => onChangeLogLibraryCreatedModalVisible(false)}
-      footer={
-        <Button
-          loading={
-            doCreatedLogLibrary.loading || doCreatedLocalLogLibrary.loading
-          }
-          type="primary"
-          onClick={() => logFormRef.current?.submit()}
-          icon={<SaveOutlined />}
-        >
-          {i18n.formatMessage({ id: "submit" })}
-        </Button>
+      confirmLoading={
+        doCreatedLogLibrary.loading || doCreatedLocalLogLibraryBatch.loading
       }
+      onOk={() => logFormRef.current?.submit()}
     >
       <Form
         labelCol={{ span: 6 }}
@@ -137,7 +131,7 @@ const ModalCreatedLogLibrary = () => {
           }}
         </Form.Item>
       </Form>
-    </CustomModal>
+    </Modal>
   );
 };
 export default ModalCreatedLogLibrary;
