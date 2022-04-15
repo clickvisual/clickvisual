@@ -39,7 +39,7 @@ type RespComplete struct {
 
 type HighCharts struct {
 	Histograms []HighChart `json:"histograms"`
-	Count      int         `json:"count"`
+	Count      uint64      `json:"count"`
 	Progress   string      `json:"progress"`
 }
 

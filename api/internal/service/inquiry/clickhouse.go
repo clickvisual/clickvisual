@@ -32,6 +32,16 @@ func genTimeCondition(param view.ReqQuery) string {
 	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
 }
 
+func genTimeConditionEqual(param view.ReqQuery, t int64) string {
+	switch param.TimeFieldType {
+	case db.TimeFieldTypeDT:
+		return fmt.Sprintf("%s = toDateTime(%d)", param.TimeField, t)
+	case db.TimeFieldTypeTsMs:
+		return fmt.Sprintf("intDiv(%s,1000) = %d", param.TimeField, t)
+	}
+	return fmt.Sprintf("%s = %d", param.TimeField, t)
+}
+
 const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
   toDateTime64(parseDateTimeBestEffort(_time_), 9, 'Asia/Shanghai') AS _time_nanosecond_`
 
@@ -639,7 +649,6 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 			}
 		}
 	}
-	res.Count = c.Count(param)
 	res.Limited = param.PageSize
 	// Read the index data
 	conds := egorm.Conds{}
@@ -651,6 +660,34 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 		res.DefaultFields = append(res.DefaultFields, k.Field)
 	}
 	return
+}
+
+func (c *ClickHouse) TimeFieldEqual(param view.ReqQuery, tid int) string {
+	var res string
+	out, err := c.doQuery(c.logsTimelineSQL(param, tid))
+	if err != nil {
+		return res
+	}
+	for _, v := range out {
+		if v[param.TimeField] != nil {
+			switch v[param.TimeField].(type) {
+			case time.Time:
+				t := v[param.TimeField].(time.Time)
+				if res == "" {
+					res = genTimeConditionEqual(param, t.Unix())
+				} else {
+					res = fmt.Sprintf("%s or %s", res, genTimeConditionEqual(param, t.Unix()))
+				}
+			default:
+				invoker.Logger.Warn("TimeFieldEqual", elog.Any("type", reflect.TypeOf(v[param.TimeField])))
+			}
+		}
+	}
+	invoker.Logger.Warn("TimeFieldEqual", elog.Any("res", "("+res+")"))
+	if res == "" {
+		return res
+	}
+	return "(" + res + ")"
 }
 
 func (c *ClickHouse) Count(param view.ReqQuery) (res uint64) {
@@ -851,14 +888,43 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	return nil
 }
 
-func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
-	// check is use _time_nanosecond_
+func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) {
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, _ := db.ViewList(invoker.Db, conds)
 	orderByField := param.TimeField
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
+	}
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d",
+		param.TimeField,
+		param.DatabaseTable,
+		param.Query,
+		param.ST, param.ET,
+		param.PageSize*param.Page)
+	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
+	return
+}
+
+func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
+	conds := egorm.Conds{}
+	conds["tid"] = tid
+	views, _ := db.ViewList(invoker.Db, conds)
+	orderByField := param.TimeField
+	if len(views) > 0 {
+		orderByField = db.TimeFieldNanoseconds
+	}
+	if param.Page*param.PageSize <= 100 {
+		timeFieldEqual := c.TimeFieldEqual(param, tid)
+		if timeFieldEqual != "" {
+			sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+				param.DatabaseTable,
+				param.Query,
+				timeFieldEqual,
+				param.PageSize, (param.Page-1)*param.PageSize)
+			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
+			return
+		}
 	}
 	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		param.DatabaseTable,
@@ -867,6 +933,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 		param.PageSize, (param.Page-1)*param.PageSize)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
+
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {

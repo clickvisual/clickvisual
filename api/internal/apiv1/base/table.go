@@ -403,6 +403,7 @@ func TableCharts(c *core.Context) {
 		if row.Count > 0 {
 			isZero = false
 		}
+		res.Count = row.Count
 		res.Histograms = append(res.Histograms, row)
 	} else {
 		invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "start"), elog.Any("cost", time.Since(t)))
@@ -441,6 +442,7 @@ func TableCharts(c *core.Context) {
 		invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
 		for d := range limiter {
 			res.Histograms = append(res.Histograms, d)
+			res.Count += d.Count
 		}
 	}
 	if isZero {
