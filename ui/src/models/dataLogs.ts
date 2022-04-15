@@ -40,6 +40,8 @@ const DataLogsModel = () => {
   const [keywordInput, setKeywordInput] = useState<string | undefined>();
   // 是否隐藏 Highcharts
   const [isHiddenHighChart, setIsHiddenHighChart] = useState<boolean>(false);
+  // 日志总条数
+  const [logCount, setLogCount] = useState<number>(0);
   // 海图数据列表
   const [highChartList, setHighChartList] = useState<HighCharts[]>([]);
   // 日志信息
@@ -250,7 +252,10 @@ const DataLogsModel = () => {
       }
       return;
     },
-    onSuccess: (res) => setHighChartList(res.data?.histograms || []),
+    onSuccess: (res) => {
+      setLogCount(res.data?.count);
+      setHighChartList(res.data?.histograms ?? []);
+    },
   });
 
   const getLogLibraries = useRequest(api.getTableList, {
@@ -314,24 +319,26 @@ const DataLogsModel = () => {
     if (!id) return;
     cancelTokenLogsRef.current?.();
     cancelTokenHighChartsRef.current?.();
-    const logsResponse = await getLogs.run(
-      id,
-      logsAndHighChartsPayload(params),
-      new CancelToken(function executor(c) {
-        cancelTokenLogsRef.current = c;
-      })
-    );
-    const highChartsResponse = await getHighCharts.run(
-      id,
-      logsAndHighChartsPayload(params),
-      new CancelToken(function executor(c) {
-        cancelTokenHighChartsRef.current = c;
-      })
-    );
-    if (logsResponse?.code === 0 && highChartsResponse?.code === 0) {
+    const [logsRes, highChartsRes] = await Promise.all([
+      getLogs.run(
+        id,
+        logsAndHighChartsPayload(params),
+        new CancelToken(function executor(c) {
+          cancelTokenLogsRef.current = c;
+        })
+      ),
+      getHighCharts.run(
+        id,
+        logsAndHighChartsPayload(params),
+        new CancelToken(function executor(c) {
+          cancelTokenHighChartsRef.current = c;
+        })
+      ),
+    ]);
+    if (logsRes?.code === 0 && highChartsRes?.code === 0) {
       return {
-        logs: logsResponse.data,
-        highCharts: highChartsResponse?.data?.histograms ?? [],
+        logs: logsRes.data,
+        highCharts: highChartsRes?.data?.histograms || [],
       };
     }
     return;
@@ -436,6 +443,7 @@ const DataLogsModel = () => {
     databaseList,
     currentDatabase,
     logs,
+    logCount,
     startDateTime,
     endDateTime,
     pageSize,
