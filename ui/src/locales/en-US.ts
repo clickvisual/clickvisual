@@ -99,8 +99,9 @@ export default {
   "instance.form.title.created": "Create Instance",
   "instance.form.title.edit": "Edit Instance",
   "instance.form.title.mode": "Type",
-  "instance.form.title.modeType.single": "Single",
+  "instance.form.title.clusterWithDuplicate": "Cluster(With Duplicate)",
   "instance.form.title.cluster": "Cluster",
+  "instance.form.title.k8s": "K8s",
   "instance.form.title.ruleStoreType": "Alarm Storage",
   "instance.form.title.ruleStoreType.tip":
     "The storage method of the alarm rules of the alarm center",

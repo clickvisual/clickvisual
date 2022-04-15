@@ -55,6 +55,7 @@ const (
 const (
 	DataTypeDefault = iota
 	DataTypeDistributed
+	DataTypeClusterNoReplicas
 )
 
 func (q *QueryAssembly) Gen() string {

@@ -9,7 +9,6 @@ import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/kl7sn/toolkit/kfloat"
-	"github.com/kl7sn/toolkit/ktime"
 	"github.com/spf13/cast"
 
 	"github.com/shimohq/mogo/api/internal/invoker"
@@ -269,7 +268,7 @@ func TableDelete(c *core.Context) {
 }
 
 func TableLogs(c *core.Context) {
-	now := time.Now()
+	t := time.Now()
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
@@ -281,8 +280,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	ktime.Cost(now, "TableLogs", "params")
-
+	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "params"), elog.Any("cost", time.Since(t)))
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
 	if tableInfo.TimeField == "" {
@@ -297,8 +295,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	ktime.Cost(now, "TableLogs", "tableInfoInfo")
-
+	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "TableInfo"), elog.Any("cost", time.Since(t)))
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -313,15 +310,13 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "Query parameter error. Refer to the ClickHouse WHERE syntax. https://clickhouse.com/docs/zh/sql-reference/statements/select/where/", nil)
 		return
 	}
-	ktime.Cost(now, "TableLogs", "Prepare")
-
+	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "Prepare"), elog.Any("cost", time.Since(t)))
 	res, err := op.GET(param, tableInfo.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
 	}
-	ktime.Cost(now, "TableLogs", "GET")
-
+	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "GET"), elog.Any("cost", time.Since(t)))
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
@@ -355,6 +350,7 @@ func QueryComplete(c *core.Context) {
 }
 
 func TableCharts(c *core.Context) {
+	t := time.Now()
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
@@ -385,7 +381,7 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	// Calculate 50 intervals
+	invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "load"), elog.Any("cost", time.Since(t)))
 	res := view.HighCharts{
 		Histograms: make([]view.HighChart, 0),
 	}
@@ -397,7 +393,6 @@ func TableCharts(c *core.Context) {
 	interval := utils.CalculateInterval(param.ET - param.ST)
 	isZero := true
 	invoker.Logger.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
-
 	if interval == 0 {
 		row := view.HighChart{
 			Count:    op.Count(param),
@@ -408,8 +403,11 @@ func TableCharts(c *core.Context) {
 		if row.Count > 0 {
 			isZero = false
 		}
+		res.Count = row.Count
 		res.Histograms = append(res.Histograms, row)
 	} else {
+		invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "start"), elog.Any("cost", time.Since(t)))
+
 		limiter := make(chan view.HighChart, 200)
 		wg := &sync.WaitGroup{}
 		for i := param.ST; i < param.ET; i += interval {
@@ -441,8 +439,10 @@ func TableCharts(c *core.Context) {
 		}
 		wg.Wait()
 		close(limiter)
+		invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
 		for d := range limiter {
 			res.Histograms = append(res.Histograms, d)
+			res.Count += d.Count
 		}
 	}
 	if isZero {
