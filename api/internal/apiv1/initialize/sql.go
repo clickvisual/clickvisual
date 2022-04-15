@@ -75,9 +75,7 @@ func Migration(c *core.Context) {
 	fmt.Println(`e--------------->`, e)
 	d = d.Debug()
 	d.Migrator()
-	d.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
-
+	res := d.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
 	event.Event.SystemMigration(c.User(), "")
-
-	c.JSONOK("migration finish")
+	c.JSONOK("migration finish", res.Error())
 }
