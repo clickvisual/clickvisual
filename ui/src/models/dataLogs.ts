@@ -191,7 +191,8 @@ const DataLogsModel = () => {
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
     setLogs(tabPane.logs);
-    setHighChartList(tabPane?.highCharts ?? []);
+    setHighChartList(tabPane?.highCharts?.histograms ?? []);
+    setLogCount(tabPane?.highCharts?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
   };
 
@@ -225,7 +226,7 @@ const DataLogsModel = () => {
         const pane =
           logPanesHelper.logPanes[currentLogLibrary?.id.toString() as string];
         if (pane) {
-          const newPane = { ...pane, logs: undefined, highCharts: [] };
+          const newPane = { ...pane, logs: undefined, highCharts: undefined };
           onChangeCurrentLogPane(newPane);
         }
         onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
@@ -245,7 +246,7 @@ const DataLogsModel = () => {
         const pane =
           logPanesHelper.logPanes[currentLogLibrary?.id.toString() as string];
         if (pane) {
-          const newPane = { ...pane, logs: undefined, highCharts: [] };
+          const newPane = { ...pane, logs: undefined, highCharts: undefined };
           onChangeCurrentLogPane(newPane);
         }
         onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
@@ -338,7 +339,7 @@ const DataLogsModel = () => {
     if (logsRes?.code === 0 && highChartsRes?.code === 0) {
       return {
         logs: logsRes.data,
-        highCharts: highChartsRes?.data?.histograms || [],
+        highCharts: highChartsRes?.data,
       };
     }
     return;
