@@ -115,6 +115,7 @@ const DataLogsModel = () => {
     getLocalTables,
     getTableColumns,
     doCreatedLocalLogLibrary,
+    doCreatedLocalLogLibraryBatch,
   } = useLogLibrary();
 
   const {
@@ -512,6 +513,7 @@ const DataLogsModel = () => {
     getLocalTables,
     getTableColumns,
     doCreatedLocalLogLibrary,
+    doCreatedLocalLogLibraryBatch,
 
     viewsVisibleDraw,
     getViewList,

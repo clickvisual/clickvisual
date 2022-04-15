@@ -21,6 +21,10 @@ export default function useLogLibrary() {
     loadingText: false,
   });
 
+  const doCreatedLocalLogLibraryBatch = useRequest(api.createdLocalTableBatch, {
+    loadingText: false,
+  });
+
   const deletedLogLibrary = useRequest(api.deletedTable, {
     loadingText: false,
   });
@@ -48,5 +52,6 @@ export default function useLogLibrary() {
     getLocalTables,
     getTableColumns,
     doCreatedLocalLogLibrary,
+    doCreatedLocalLogLibraryBatch,
   };
 }
