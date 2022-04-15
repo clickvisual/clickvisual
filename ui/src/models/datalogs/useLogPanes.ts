@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HighCharts, LogsResponse } from "@/services/dataLogs";
+import { HighChartsResponse, LogsResponse } from "@/services/dataLogs";
 import {
   ACTIVE_TIME_INDEX,
   FIFTEEN_TIME,
@@ -23,7 +23,7 @@ export type PaneType = {
   page?: number;
   pageSize?: number;
   logs: LogsResponse | undefined;
-  highCharts: HighCharts[];
+  highCharts: HighChartsResponse | undefined;
 };
 
 export const DefaultPane = {
@@ -34,7 +34,7 @@ export const DefaultPane = {
   keyword: undefined,
   activeIndex: ACTIVE_TIME_INDEX,
   activeTabKey: TimeRangeType.Relative,
-  highCharts: [],
+  highCharts: undefined,
   logs: undefined,
 };
 
