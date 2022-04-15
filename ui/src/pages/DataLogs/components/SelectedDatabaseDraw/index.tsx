@@ -2,8 +2,9 @@ import databaseDrawStyle from "@/pages/DataLogs/components/SelectedDatabaseDraw/
 import {
   Button,
   Drawer,
+  Input,
   message,
-  Select,
+  // Select,
   Space,
   Table,
   Tag,
@@ -12,9 +13,9 @@ import {
 import { useModel } from "@@/plugin-model/useModel";
 import type { DatabaseResponse } from "@/services/dataLogs";
 import type { AlignType } from "rc-table/lib/interface";
-import { useEffect } from "react";
-import type { InstanceType } from "@/services/systemSetting";
-import FilterTableColumn from "@/components/FilterTableColumn";
+import { useEffect, useState } from "react";
+// import type { InstanceType } from "@/services/systemSetting";
+// import FilterTableColumn from "@/components/FilterTableColumn";
 import { useIntl } from "umi";
 import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
 import IconFont from "@/components/IconFont";
@@ -25,9 +26,11 @@ import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibrar
 import { ColumnsType } from "antd/es/table";
 import useUrlState from "@ahooksjs/use-url-state";
 
-const { Option } = Select;
+// const { Option } = Select;
+const { Search } = Input;
 const SelectedDataBaseDraw = () => {
   const [, setUrlState] = useUrlState();
+  const [treeDatabaseList, setTreeDatabaseList] = useState<any>([]);
   const {
     databaseList,
     currentDatabase,
@@ -96,6 +99,50 @@ const SelectedDataBaseDraw = () => {
       },
     });
   };
+  // lodash.cloneDeep(logPanes)
+
+  useEffect(() => {
+    getTreeDatabaseList(databaseList);
+  }, [databaseList, visibleDataBaseDraw]);
+
+  /**
+   * 搜索事件
+   * @param str
+   */
+  const handleSearch = (str: any) => {
+    // console.log(str);
+    // return;
+    let arrList: any = [];
+    databaseList.map((item: any) => {
+      item.name.indexOf(str) != -1 && arrList.push(item);
+    });
+    getTreeDatabaseList(arrList);
+  };
+
+  /**
+   * 将原始数据库接口转换成树状的数据库接口
+   * @param dataList 数据源
+   */
+  const getTreeDatabaseList = (dataList: any) => {
+    let arrList: any[] = [];
+    instanceList.map((item: any) => {
+      arrList.push({ newInstanceName: item.name, key: item.id });
+    });
+    dataList.map((item: any) => {
+      arrList.map((items: any) => {
+        if (item.instanceName == items.newInstanceName) {
+          items.children
+            ? items.children.push(item)
+            : (items.children = [item]);
+        }
+      });
+    });
+    let newArrList: any[] = [];
+    arrList.map((item: any) => {
+      !!item.children && newArrList.push(item);
+    });
+    setTreeDatabaseList(newArrList);
+  };
 
   useEffect(() => {
     if (visibleDataBaseDraw) doGetDatabaseList(selectedInstance);
@@ -111,12 +158,23 @@ const SelectedDataBaseDraw = () => {
 
   const column: ColumnsType<any> = [
     {
+      title: i18n.formatMessage({ id: "datasource.draw.table.instance" }),
+      dataIndex: "newInstanceName",
+      align: "center" as AlignType,
+      width: "25%",
+      render: (instanceName: string) => (
+        <Tooltip title={instanceName}>
+          <span>{instanceName}</span>
+        </Tooltip>
+      ),
+    },
+    {
       title: i18n.formatMessage({ id: "datasource.draw.table.datasource" }),
       dataIndex: "name",
       width: "40%",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
-      ...FilterTableColumn("databaseName"),
+      // ...FilterTableColumn("databaseName"),
       render: (databaseName: string, record: DatabaseResponse) => (
         <Tooltip title={databaseName}>
           <Button
@@ -147,17 +205,6 @@ const SelectedDataBaseDraw = () => {
       ),
     },
     {
-      title: i18n.formatMessage({ id: "datasource.draw.table.instance" }),
-      dataIndex: "instanceName",
-      align: "center" as AlignType,
-      width: "25%",
-      render: (instanceName: string) => (
-        <Tooltip title={instanceName}>
-          <span>{instanceName}</span>
-        </Tooltip>
-      ),
-    },
-    {
       title: i18n.formatMessage({ id: "datasource.draw.table.deployment" }),
       dataIndex: "mode",
       align: "center" as AlignType,
@@ -165,11 +212,13 @@ const SelectedDataBaseDraw = () => {
       render: (mode: number) => (
         <Tooltip title={mode}>
           <span>
-            {mode
+            {mode == 1
               ? i18n.formatMessage({ id: "instance.form.title.cluster" })
-              : i18n.formatMessage({
+              : mode == 0
+              ? i18n.formatMessage({
                   id: "instance.form.title.modeType.single",
-                })}
+                })
+              : ""}
           </span>
         </Tooltip>
       ),
@@ -199,36 +248,45 @@ const SelectedDataBaseDraw = () => {
             (item: { name: string; value: string }) =>
               item.value === datasourceType
           ) || [];
-        if (result.length > 0)
+        if (result.length > 0) {
           return (
             <Tooltip title={result[0].name}>
               <span>{result[0].name}</span>
             </Tooltip>
           );
-        return (
-          <Tooltip
-            title={i18n.formatMessage({
-              id: "datasource.draw.table.empty.type.tip",
-            })}
-          >
-            <span>-</span>
-          </Tooltip>
-        );
+        } else if (result == null) {
+          return (
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "datasource.draw.table.empty.type.tip",
+              })}
+            >
+              <span>-</span>
+            </Tooltip>
+          );
+        } else {
+          return <></>;
+        }
       },
     },
     {
       title: i18n.formatMessage({ id: "operation" }),
+      dataIndex: "name",
       key: "operation",
       align: "center" as AlignType,
       width: "10%",
-      render: (_: any, record: DatabaseResponse) => (
-        <Tooltip title={i18n.formatMessage({ id: "delete" })}>
-          <IconFont
-            onClick={() => doDeletedDatabase(record)}
-            className={viewDrawStyles.buttonIcon}
-            type={"icon-delete"}
-          />
-        </Tooltip>
+      render: (name: any, record: DatabaseResponse) => (
+        <>
+          {name && (
+            <Tooltip title={i18n.formatMessage({ id: "delete" })}>
+              <IconFont
+                onClick={() => doDeletedDatabase(record)}
+                className={viewDrawStyles.buttonIcon}
+                type={"icon-delete"}
+              />
+            </Tooltip>
+          )}
+        </>
       ),
     },
   ];
@@ -247,23 +305,14 @@ const SelectedDataBaseDraw = () => {
             <span>{i18n.formatMessage({ id: "datasource.draw.title" })}</span>
           </div>
           <Space style={{ width: "60%" }}>
-            <Select
+            <Search
+              placeholder={i18n.formatMessage({
+                id: "datasource.draw.search",
+              })}
+              enterButton
               allowClear
-              value={selectedInstance}
-              style={{ width: "100%" }}
-              placeholder={`${i18n.formatMessage({
-                id: "datasource.draw.selected",
-              })}`}
-              onChange={(value: number) => {
-                onChangeSelectedInstance(value);
-              }}
-            >
-              {instanceList.map((item: InstanceType, index: number) => (
-                <Option key={index} value={item.id as number}>
-                  {item.name}
-                </Option>
-              ))}
-            </Select>
+              onSearch={handleSearch}
+            />
             <Tooltip
               title={i18n.formatMessage({
                 id: "instance.operation.addDatabase",
@@ -291,15 +340,22 @@ const SelectedDataBaseDraw = () => {
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
     >
-      <Table
-        loading={getInstanceList.loading || getDatabases.loading}
-        bordered
-        rowKey={(record: DatabaseResponse) => `${record.iid}-${record.id}`}
-        size={"small"}
-        columns={column}
-        dataSource={databaseList}
-        pagination={{ responsive: true, showSizeChanger: true, size: "small" }}
-      />
+      <div className={databaseDrawStyle.tableWrap}>
+        <Table
+          loading={getInstanceList.loading || getDatabases.loading}
+          bordered
+          rowKey={(record: any) => record.key || `${record.iid}-${record.id}`}
+          // rowKey={(record: DatabaseResponse) => `${record.iid}-${record.id}`}
+          size={"small"}
+          columns={column}
+          dataSource={treeDatabaseList}
+          pagination={{
+            responsive: true,
+            showSizeChanger: true,
+            size: "small",
+          }}
+        />
+      </div>
       <CreatedDatabaseModal />
     </Drawer>
   );
