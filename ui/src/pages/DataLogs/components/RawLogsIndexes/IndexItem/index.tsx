@@ -24,8 +24,8 @@ const IndexItem = (props: IndexItemProps) => {
   const [details, setDetails] = useState<IndexDetail[]>([]);
 
   const insertQuery = (name: string) => {
-    let currentSelected =""
-    if(index.rootName != ""){
+    let currentSelected = "";
+    if (index.rootName != "") {
       currentSelected = `${index.rootName}.${index.field}='${name}'`;
     } else {
       currentSelected = `${index.field}='${name}'`;
@@ -34,7 +34,14 @@ const IndexItem = (props: IndexItemProps) => {
   };
 
   useEffect(() => {
-    if (!isActive || !index || !startDateTime || !endDateTime) return;
+    if (
+      !isActive ||
+      !index?.tid ||
+      !index?.id ||
+      !startDateTime ||
+      !endDateTime
+    )
+      return;
     const params = {
       st: startDateTime,
       et: endDateTime,

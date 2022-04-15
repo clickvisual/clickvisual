@@ -5,27 +5,29 @@ import RelativeTime from "@/pages/DataLogs/components/DateTimeSelected/RelativeT
 import { useModel } from "@@/plugin-model/useModel";
 import { TimeRangeType } from "@/config/config";
 import { DarkTimeContext } from "@/pages/DataLogs/components/DateTimeSelected";
-import { useContext } from "react";
-import { PaneType } from "@/models/dataLogs";
+import { useContext, useMemo } from "react";
+import { PaneType } from "@/models/datalogs/useLogPanes";
 const { TabPane } = Tabs;
 
 const DateTimeSelectedCard = () => {
   const {
-    logPanes,
+    logPanesHelper,
     activeTabKey,
     currentLogLibrary,
     onChangeActiveTabKey,
-    onChangeLogPane,
+    onChangeCurrentLogPane,
   } = useModel("dataLogs");
+  const { logPanes } = logPanesHelper;
   const { TabName } = useContext(DarkTimeContext);
 
-  const oldPane = logPanes.find(
-    (item) => item.paneId === currentLogLibrary?.id
-  ) as PaneType;
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
 
   const onChangeActiveTab = (key: string) => {
     onChangeActiveTabKey(key);
-    onChangeLogPane({ ...oldPane, activeTabKey: key });
+    onChangeCurrentLogPane({ ...(oldPane as PaneType), activeTabKey: key });
   };
   return (
     <div className={darkTimeStyles.darkTimeSelectCard}>

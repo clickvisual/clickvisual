@@ -4,12 +4,14 @@ import RawLogList from "@/pages/DataLogs/components/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
 import { Empty } from "antd";
 import { useIntl } from "umi";
+import { useMemo } from "react";
 
 const RawLogs = () => {
   const { logs } = useModel("dataLogs");
   const i18n = useIntl();
 
-  const logList = logs?.logs || [];
+  const logList = useMemo(() => logs?.logs || [], [logs?.logs]);
+
   return (
     <div className={rawLogsStyles.rawLogsMain}>
       <div className={rawLogsStyles.rawLogs}>

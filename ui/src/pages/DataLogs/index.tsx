@@ -12,14 +12,14 @@ const DataLogs = () => {
   const {
     onChangeCurrentDatabase,
     onChangeVisibleDatabaseDraw,
-    onChangeLogPanes,
+    // onChangeLogPanes,
   } = useModel("dataLogs");
   useLogUrlParams();
   useEffect(() => {
     return () => {
       onChangeVisibleDatabaseDraw(false);
       onChangeCurrentDatabase(undefined);
-      onChangeLogPanes([]);
+      // onChangeLogPanes([]);
     };
   }, []);
 

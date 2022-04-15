@@ -289,6 +289,8 @@ export default {
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "seconds",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond":
     "millisecond",
+  "datasource.logLibrary.from.newLogLibrary.desc.placeholder":
+    "Please enter a description",
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
