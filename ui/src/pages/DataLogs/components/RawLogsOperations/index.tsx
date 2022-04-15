@@ -8,7 +8,7 @@ import { PaneType } from "@/models/datalogs/useLogPanes";
 
 const RawLogsOperations = () => {
   const {
-    logs,
+    logCount,
     pageSize,
     currentPage,
     onChangeLogsPage,
@@ -31,7 +31,7 @@ const RawLogsOperations = () => {
       <div className={rawLogsOperationsStyles.pagination}>
         <Pagination
           size={"small"}
-          total={logs?.count}
+          total={logCount}
           pageSize={pageSize}
           current={currentPage}
           showTotal={(total) =>
