@@ -3,29 +3,27 @@ import { Chart, Tooltip, Interval, Interaction } from "bizcharts";
 import { Empty } from "antd";
 import classNames from "classnames";
 import { useModel } from "@@/plugin-model/useModel";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import HighChartsTooltip from "@/pages/DataLogs/components/HighCharts/HighChartsTooltip";
 import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
-import { PaneType } from "@/models/dataLogs";
+import { PaneType } from "@/models/datalogs/useLogPanes";
 
 const HighCharts = () => {
   const {
-    logPanes,
     currentLogLibrary,
-    doGetLogs,
-    onChangeStartDateTime,
-    onChangeEndDateTime,
-    onChangeActiveTimeOptionIndex,
-    onChangeActiveTabKey,
-    doGetHighCharts,
+    doGetLogsAndHighCharts,
     isHiddenHighChart,
     highChartList,
     onChangeLogPane,
+    onChangeCurrentLogPane,
     doParseQuery,
     currentRelativeUnit,
+    logPanesHelper,
   } = useModel("dataLogs");
+  const { logPanes } = logPanesHelper;
+
   const [highChartPosition, setHighChartPosition] = useState<"left" | "right">(
     "left"
   );
@@ -46,9 +44,10 @@ const HighCharts = () => {
     years: "YYYY/MM",
   };
 
-  const oldPane = logPanes.find(
-    (item) => item.paneId === currentLogLibrary?.id
-  ) as PaneType;
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
 
   const scale = {
     from: {
@@ -100,23 +99,26 @@ const HighCharts = () => {
       isSelectRange.current = false;
     }
     const data = getChartDate(view, x, y);
-    if (downTime.current && data) {
+    if (downTime.current && data && currentLogLibrary?.id) {
       const start = downTime.current < data.to ? downTime.current : data.to;
       const end = downTime.current < data.to ? data.to : downTime.current;
-      onChangeStartDateTime(start);
-      onChangeEndDateTime(end);
-      doGetLogs({ st: start, et: end });
-      doGetHighCharts({ st: start, et: end });
-      onChangeActiveTimeOptionIndex(ACTIVE_TIME_NOT_INDEX);
-      onChangeActiveTabKey(TimeRangeType.Custom);
-      doParseQuery();
-      onChangeLogPane({
-        ...oldPane,
+      const pane = {
+        ...(oldPane as PaneType),
         start,
         end,
         activeIndex: ACTIVE_TIME_NOT_INDEX,
         activeTabKey: TimeRangeType.Custom,
-      });
+      };
+      onChangeCurrentLogPane(pane);
+      doGetLogsAndHighCharts(currentLogLibrary.id, { st: start, et: end }).then(
+        (res) => {
+          if (!res) return;
+          pane.logs = res.logs;
+          pane.highCharts = res.highCharts;
+          onChangeLogPane(pane);
+          doParseQuery();
+        }
+      );
     }
   };
 

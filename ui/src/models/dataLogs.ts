@@ -24,19 +24,7 @@ import { formatMessage } from "@@/plugin-locale/localeExports";
 import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
-
-export type PaneType = {
-  pane: string;
-  paneId: number;
-  paneType: number;
-  start: number;
-  end: number;
-  keyword: string | undefined;
-  activeTabKey: string;
-  activeIndex: number;
-  page: number;
-  pageSize: number;
-};
+import useLogPanes, { PaneType } from "@/models/datalogs/useLogPanes";
 
 export type QueryParams = {
   logLibrary?: TablesResponse;
@@ -52,6 +40,8 @@ const DataLogsModel = () => {
   const [keywordInput, setKeywordInput] = useState<string | undefined>();
   // 是否隐藏 Highcharts
   const [isHiddenHighChart, setIsHiddenHighChart] = useState<boolean>(false);
+  // 日志总条数
+  const [logCount, setLogCount] = useState<number>(0);
   // 海图数据列表
   const [highChartList, setHighChartList] = useState<HighCharts[]>([]);
   // 日志信息
@@ -92,10 +82,6 @@ const DataLogsModel = () => {
     useState<number>(15);
   const [currentRelativeUnit, setCurrentRelativeUnit] =
     useState<string>("minutes");
-
-  // 日志 Tab 标签
-  const [logPanes, setLogPanes] = useState<PaneType[]>([]);
-
   // 是否展示索引列表
   const [visibleIndexModal, setVisibleIndexModal] = useState<boolean>(false);
 
@@ -133,6 +119,8 @@ const DataLogsModel = () => {
     onChangeViewVisibleModal,
     onChangeViewIsEdit,
   } = useLogLibraryViews();
+
+  const logPanesHelper = useLogPanes();
 
   const { foldingState, onChangeFoldingState } = useCollapseDatasourceMenu();
 
@@ -179,39 +167,32 @@ const DataLogsModel = () => {
     setCurrentRelativeUnit(unit);
   };
 
-  const onChangeLogPanes = (panes: PaneType[]) => {
-    setLogPanes(panes);
-  };
-
   const onChangeVisibleIndexModal = (visible: boolean) => {
     setVisibleIndexModal(visible);
   };
 
-  const onChangeLogPane = (newPane: PaneType) => {
-    const currentLogPanes = lodash
-      .cloneDeep(logPanes)
-      .map((item) => (item.pane === newPane.pane ? newPane : item));
-    onChangeLogPanes(currentLogPanes);
+  const onChangeLogPane = (tabPane: PaneType) => {
+    onChangeLogLibrary({
+      id: parseInt(tabPane.paneId),
+      tableName: tabPane.pane,
+      createType: tabPane.paneType,
+    });
+    onChangeCurrentLogPane(tabPane);
   };
 
-  const onChangeCurrentLogPane = (tabPane: PaneType) => {
-    const queryParam: QueryParams = {
-      page: tabPane?.page,
-      pageSize: tabPane?.pageSize,
-      st: tabPane?.start,
-      et: tabPane?.end,
-      kw: tabPane?.keyword,
-    };
+  const onChangeCurrentLogPane = (
+    tabPane: PaneType,
+    panes?: { [Key: string]: PaneType }
+  ) => {
     onChangeLogsPage(tabPane?.page as number, tabPane?.pageSize as number);
     onChangeEndDateTime(tabPane?.end as number);
     onChangeStartDateTime(tabPane?.start as number);
     onChangeKeywordInput(tabPane?.keyword as string);
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
-    onChangeActiveTimeOptionIndex(tabPane?.activeIndex || ACTIVE_TIME_INDEX);
-    resetCurrentHighChart();
-    doGetLogs(queryParam);
-    doGetHighCharts(queryParam);
-    doParseQuery(queryParam?.kw);
+    onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
+    setLogs(tabPane.logs);
+    setHighChartList(tabPane?.highCharts ?? []);
+    logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
   };
 
   const onCopyRawLogDetails = (log: any) => {
@@ -232,11 +213,6 @@ const DataLogsModel = () => {
     }
   };
 
-  const onChangeLogsPageByUrl = (page: number, size: number) => {
-    setCurrentPage(page);
-    setPageSize(size);
-  };
-
   const getTableId = useRequest(api.getTableId, { loadingText: false }).run;
 
   const getLogs = useRequest(api.getLogs, {
@@ -246,7 +222,13 @@ const DataLogsModel = () => {
         return false;
       } else {
         setLogs(undefined);
-        onChangeLogsPage(1, 10);
+        const pane =
+          logPanesHelper.logPanes[currentLogLibrary?.id.toString() as string];
+        if (pane) {
+          const newPane = { ...pane, logs: undefined, highCharts: [] };
+          onChangeCurrentLogPane(newPane);
+        }
+        onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
       }
       return;
     },
@@ -260,11 +242,20 @@ const DataLogsModel = () => {
         return false;
       } else {
         setHighChartList([]);
-        onChangeLogsPage(1, 10);
+        const pane =
+          logPanesHelper.logPanes[currentLogLibrary?.id.toString() as string];
+        if (pane) {
+          const newPane = { ...pane, logs: undefined, highCharts: [] };
+          onChangeCurrentLogPane(newPane);
+        }
+        onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
       }
       return;
     },
-    onSuccess: (res) => setHighChartList(res.data?.histograms || []),
+    onSuccess: (res) => {
+      setLogCount(res.data?.count);
+      setHighChartList(res.data?.histograms ?? []);
+    },
   });
 
   const getLogLibraries = useRequest(api.getTableList, {
@@ -293,7 +284,7 @@ const DataLogsModel = () => {
     return {
       st: params?.st || (startDateTime as number),
       et: params?.et || (endDateTime as number),
-      query: params?.kw || keywordInput,
+      query: params?.kw ?? keywordInput,
       pageSize: params?.pageSize || pageSize,
       page: params?.page || currentPage,
     };
@@ -324,6 +315,35 @@ const DataLogsModel = () => {
     }
   };
 
+  const doGetLogsAndHighCharts = async (id: number, params?: QueryParams) => {
+    if (!id) return;
+    cancelTokenLogsRef.current?.();
+    cancelTokenHighChartsRef.current?.();
+    const [logsRes, highChartsRes] = await Promise.all([
+      getLogs.run(
+        id,
+        logsAndHighChartsPayload(params),
+        new CancelToken(function executor(c) {
+          cancelTokenLogsRef.current = c;
+        })
+      ),
+      getHighCharts.run(
+        id,
+        logsAndHighChartsPayload(params),
+        new CancelToken(function executor(c) {
+          cancelTokenHighChartsRef.current = c;
+        })
+      ),
+    ]);
+    if (logsRes?.code === 0 && highChartsRes?.code === 0) {
+      return {
+        logs: logsRes.data,
+        highCharts: highChartsRes?.data?.histograms || [],
+      };
+    }
+    return;
+  };
+
   const doGetLogLibraryList = () => {
     if (currentDatabase) {
       getLogLibraries.run(currentDatabase.id);
@@ -352,6 +372,8 @@ const DataLogsModel = () => {
   };
 
   const doUpdatedQuery = (currentSelected: string) => {
+    if (!currentLogLibrary?.id) return;
+
     if (currentSelected.endsWith("+08:00'")) {
       currentSelected = currentSelected.substring(
         0,
@@ -364,10 +386,22 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
       defaultValueArr.pop();
     defaultValueArr.push(currentSelected);
+
     const kw = defaultValueArr.join(" and ");
-    onChangeKeywordInput(kw);
-    doGetLogs({ kw });
-    doGetHighCharts({ kw });
+    const pane = logPanesHelper.logPanes[currentLogLibrary.id.toString()];
+    const newPane = Object.assign({}, pane, {
+      keyword: kw,
+      page: FIRST_PAGE,
+    });
+    doGetLogsAndHighCharts(currentLogLibrary.id, {
+      kw,
+      page: FIRST_PAGE,
+    }).then((res) => {
+      if (!res) return;
+      newPane.logs = res.logs;
+      newPane.highCharts = res.highCharts;
+      onChangeCurrentLogPane(newPane);
+    });
     doParseQuery(kw);
   };
 
@@ -388,39 +422,6 @@ const DataLogsModel = () => {
     setIsHiddenHighChart(false);
   };
 
-  // const resetUrlParams = () => {
-  //   onChangeLogLibrary(undefined);
-  // };
-
-  const setChangeTabPane = (tabPane: PaneType) => {
-    onChangeLogsPage(tabPane.page, tabPane.pageSize);
-    onChangeActiveTabKey(tabPane.activeTabKey);
-    onChangeActiveTimeOptionIndex(tabPane.activeIndex);
-    onChangeStartDateTime(tabPane.start);
-    onChangeEndDateTime(tabPane.end);
-  };
-
-  useEffect(() => {
-    if (currentLogLibrary && pageSize && currentPage) {
-      cancelTokenLogsRef.current?.();
-      cancelTokenHighChartsRef.current?.();
-      getLogs.run(
-        currentLogLibrary.id,
-        logsAndHighChartsPayload(),
-        new CancelToken(function executor(c) {
-          cancelTokenLogsRef.current = c;
-        })
-      );
-      getHighCharts.run(
-        currentLogLibrary.id,
-        logsAndHighChartsPayload(),
-        new CancelToken(function executor(c) {
-          cancelTokenHighChartsRef.current = c;
-        })
-      );
-    }
-  }, [pageSize, currentPage, currentLogLibrary]);
-
   useEffect(() => {
     if (!currentDatabase) {
       setLogs(undefined);
@@ -433,12 +434,6 @@ const DataLogsModel = () => {
     }
   }, [currentDatabase]);
 
-  useEffect(() => {
-    if (databaseList.length > 0 && !currentDatabase) {
-      onChangeCurrentDatabase(databaseList[0]);
-    }
-  }, [databaseList, currentDatabase]);
-
   return {
     keywordInput,
     isHiddenHighChart,
@@ -448,6 +443,7 @@ const DataLogsModel = () => {
     databaseList,
     currentDatabase,
     logs,
+    logCount,
     startDateTime,
     endDateTime,
     pageSize,
@@ -459,12 +455,12 @@ const DataLogsModel = () => {
     currentRelativeUnit,
     activeTimeOptionIndex,
     highlightKeywords,
-    logPanes,
     visibleDataBaseDraw,
     visibleIndexModal,
 
     doGetLogs,
     doGetHighCharts,
+    doGetLogsAndHighCharts,
     doGetLogLibraryList,
     doGetDatabaseList,
 
@@ -475,12 +471,10 @@ const DataLogsModel = () => {
     onChangeStartDateTime,
     onChangeEndDateTime,
     onChangeLogsPage,
-    onChangeLogsPageByUrl,
     onChangeActiveTabKey,
     onChangeActiveTimeOptionIndex,
     onChangeCurrentRelativeAmount,
     onChangeCurrentRelativeUnit,
-    onChangeLogPanes,
     onChangeLogPane,
     onChangeVisibleDatabaseDraw,
     onChangeVisibleIndexModal,
@@ -493,7 +487,6 @@ const DataLogsModel = () => {
 
     resetLogs,
     resetCurrentHighChart,
-    setChangeTabPane,
 
     getTableId,
     getDatabases,
@@ -531,6 +524,8 @@ const DataLogsModel = () => {
 
     foldingState,
     onChangeFoldingState,
+
+    logPanesHelper,
   };
 };
 export default DataLogsModel;

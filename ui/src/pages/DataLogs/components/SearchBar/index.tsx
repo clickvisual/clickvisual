@@ -4,30 +4,25 @@ import { useIntl, useModel } from "umi";
 import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
 import { useDebounceFn } from "ahooks";
 import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
-import { PaneType, QueryParams } from "@/models/dataLogs";
-import {
-  DEBOUNCE_WAIT,
-  FIRST_PAGE,
-  PAGE_SIZE,
-  TimeRangeType,
-} from "@/config/config";
+import { QueryParams } from "@/models/dataLogs";
+import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment from "moment";
 import type { DurationInputArg2, DurationInputArg1 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import IconFont from "@/components/IconFont";
+import { PaneType } from "@/models/datalogs/useLogPanes";
+import { useMemo } from "react";
 
 const SearchBar = () => {
   const {
     currentLogLibrary,
-    logPanes,
+    logPanesHelper,
     keywordInput,
     onChangeKeywordInput,
-    doGetLogs,
-    doGetHighCharts,
-    onChangeLogsPageByUrl,
-    onChangeLogPane,
-    onChangeStartDateTime,
-    onChangeEndDateTime,
+    doGetLogsAndHighCharts,
+    startDateTime,
+    endDateTime,
+    onChangeCurrentLogPane,
     logsLoading,
     highChartLoading,
     activeTabKey,
@@ -35,16 +30,21 @@ const SearchBar = () => {
     currentRelativeUnit,
     doParseQuery,
   } = useModel("dataLogs");
+  const { logPanes } = logPanesHelper;
 
   const i18n = useIntl();
 
-  const oldPane = logPanes.find(
-    (item) => item.paneId === currentLogLibrary?.id
-  ) as PaneType;
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
 
   const doSearch = useDebounceFn(
     () => {
-      const params: QueryParams = { page: FIRST_PAGE, pageSize: PAGE_SIZE };
+      if (!currentLogLibrary) return;
+      const params: QueryParams = {
+        page: FIRST_PAGE,
+      };
       if (activeTabKey === TimeRangeType.Relative) {
         const start = moment()
           .subtract(
@@ -53,16 +53,27 @@ const SearchBar = () => {
           )
           .unix();
         const end = currentTimeStamp();
-        onChangeStartDateTime(start);
-        onChangeEndDateTime(end);
         params.st = start;
         params.et = end;
-        onChangeLogPane({ ...oldPane, start, end });
       }
-      onChangeLogsPageByUrl(FIRST_PAGE, PAGE_SIZE);
-      doGetHighCharts(params);
-      doGetLogs(params);
-      doParseQuery();
+      if (activeTabKey === TimeRangeType.Custom) {
+        params.st = startDateTime;
+        params.et = endDateTime;
+      }
+      doGetLogsAndHighCharts(currentLogLibrary?.id, params).then((res) => {
+        if (!res) return;
+        const pane: PaneType = {
+          ...(oldPane as PaneType),
+          start: params?.st ?? oldPane?.start,
+          end: params?.et ?? oldPane?.end,
+          keyword: keywordInput,
+          page: params.page,
+          logs: res.logs,
+          highCharts: res.highCharts,
+        };
+        onChangeCurrentLogPane(pane);
+        doParseQuery();
+      });
     },
     { wait: DEBOUNCE_WAIT }
   );
@@ -77,7 +88,7 @@ const SearchBar = () => {
         onChange={(e) => {
           const keyword = e.target.value;
           onChangeKeywordInput(keyword);
-          onChangeLogPane({ ...oldPane, keyword });
+          onChangeCurrentLogPane({ ...(oldPane as PaneType), keyword });
         }}
         onPressEnter={() => {
           doSearch.run();
