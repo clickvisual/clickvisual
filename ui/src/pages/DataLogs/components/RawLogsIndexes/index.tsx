@@ -10,6 +10,7 @@ import { IndexInfoType } from "@/services/dataLogs";
 const RawLogsIndexes = () => {
   const { logs } = useModel("dataLogs");
   const [indexList, setIndexList] = useState<IndexInfoType[]>(logs?.keys || []);
+
   const onSearch = (val: string) => {
     const list = logs?.keys || [];
     setIndexList(
@@ -18,9 +19,11 @@ const RawLogsIndexes = () => {
       ) || []
     );
   };
+
   useEffect(() => {
     setIndexList(logs?.keys || []);
   }, [logs]);
+
   return (
     <div className={classNames(logsIndexStyles.logsIndexMain)}>
       <IndexHeader />
