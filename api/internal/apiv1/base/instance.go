@@ -137,9 +137,7 @@ func InstanceUpdate(c *core.Context) {
 	if req.Configmap != "" {
 		ups["configmap"] = req.Configmap
 	}
-	if len(req.Clusters) != 0 {
-		ups["clusters"] = req.Clusters
-	}
+	ups["clusters"] = req.Clusters
 	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
