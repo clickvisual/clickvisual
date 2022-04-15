@@ -5,18 +5,23 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+  .tableWrap {
+    :global {
+      .ant-btn {
+        height: 22px;
+        line-height: 22px;
+        border: none;
+      }
+      .ant-table-cell {
+        line-height: 14px;
+      }
+      .ant-table-pagination.ant-pagination {
+        margin: 10px 0;
+      }
+    }
+  }
+
   :global {
-    .ant-btn {
-      height: 22px;
-      line-height: 22px;
-      border: none;
-    }
-    .ant-table-cell {
-      line-height: 14px;
-    }
-    .ant-table-pagination.ant-pagination {
-      margin: 10px 0;
-    }
     .ant-space-item:first-child {
       flex: 1;
     }

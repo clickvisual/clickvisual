@@ -349,6 +349,7 @@ export default {
   // Data Logs-Datasource-Draw
   "datasource.draw.title": "Database Switching",
   "datasource.draw.selected": "Please select an instance",
+  "datasource.draw.search": "Search the database",
   "datasource.draw.table.datasource": "Database",
   "datasource.draw.table.instance": "Instance",
   "datasource.draw.table.deployment": "Deployment way",
