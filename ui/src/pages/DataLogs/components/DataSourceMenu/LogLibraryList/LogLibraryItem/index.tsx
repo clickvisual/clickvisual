@@ -3,14 +3,11 @@ import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/Log
 import { message, Tooltip } from "antd";
 import { FileTextOutlined, FundViewOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
-import { PaneType, QueryParams } from "@/models/dataLogs";
 import {
-  ACTIVE_TIME_INDEX,
   FIFTEEN_TIME,
   FIRST_PAGE,
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
-  TimeRangeType,
 } from "@/config/config";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
@@ -21,20 +18,9 @@ import { useState } from "react";
 import DeletedModal from "@/components/DeletedModal";
 import { TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
+import { DefaultPane, PaneType } from "@/models/datalogs/useLogPanes";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
-
-const defaultPane: PaneType = {
-  pane: "",
-  paneId: 0,
-  paneType: 0,
-  start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-  end: currentTimeStamp(),
-  page: FIRST_PAGE,
-  pageSize: PAGE_SIZE,
-  keyword: undefined,
-  activeIndex: ACTIVE_TIME_INDEX,
-  activeTabKey: TimeRangeType.Relative,
-};
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;
@@ -42,28 +28,25 @@ type LogLibraryItemProps = {
 };
 
 const LogLibraryItem = (props: LogLibraryItemProps) => {
-  const [, setUrlState] = useUrlState();
   const { onChange, logLibrary } = props;
+  const [, setUrlState] = useUrlState();
   const {
-    logPanes,
-    onChangeLogPanes,
+    doGetLogLibraryList,
+    doDeletedLogLibrary,
     onChangeLogLibrary,
-    setChangeTabPane,
     currentLogLibrary,
     currentDatabase,
-    doGetLogs,
-    doGetHighCharts,
-    doParseQuery,
-    resetLogs,
+    logPanesHelper,
     resetCurrentHighChart,
-    onChangeActiveTabKey,
-    onChangeActiveTimeOptionIndex,
     onChangeLogLibraryInfoDrawVisible,
-    doDeletedLogLibrary,
-    doGetLogLibraryList,
+    doGetLogsAndHighCharts,
+    onChangeLogPane,
     onChangeCurrentLogPane,
     onChangeViewsVisibleDraw,
+    resetLogs,
   } = useModel("dataLogs");
+  const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
+
   const [mouseEnter, setMouseEnter] = useState<boolean>(false);
 
   const i18n = useIntl();
@@ -71,37 +54,33 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
 
   const onChangePanes = () => {
     const currentPanes = lodash.cloneDeep(logPanes);
-    const tabPane = currentPanes.find((item) => item.paneId === logLibrary.id);
-    let queryParam: undefined | QueryParams;
-    if (tabPane) {
-      setChangeTabPane(tabPane);
-      queryParam = {
-        page: tabPane.page,
-        pageSize: tabPane.pageSize,
-        st: tabPane.start,
-        et: tabPane.end,
-        kw: tabPane.keyword,
-      };
-    } else {
-      resetLogs();
-      queryParam = {
-        ...defaultPane,
-        st: defaultPane.start,
-        et: defaultPane.end,
-      };
-      currentPanes.push({
-        ...defaultPane,
+    const paneId = logLibrary.id.toString();
+    const tabPane = currentPanes[paneId];
+    if (!tabPane) {
+      const pane: PaneType = {
+        ...DefaultPane,
         pane: logLibrary.tableName,
-        paneId: logLibrary.id,
+        paneId,
         paneType: logLibrary.createType,
+      };
+      addLogPane(paneId, pane);
+      onChangeCurrentLogPane(pane);
+      doGetLogsAndHighCharts(logLibrary.id, {
+        st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+        et: currentTimeStamp(),
+        page: FIRST_PAGE,
+        pageSize: PAGE_SIZE,
+        kw: "",
+      }).then((res) => {
+        if (!res) return;
+        pane.logs = res.logs;
+        pane.highCharts = res.highCharts;
+        onChangeLogPane(pane);
       });
+    } else {
+      onChangeLogPane(tabPane);
+      handleChangeRelativeAmountAndUnit(tabPane);
     }
-    onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
-    onChangeActiveTimeOptionIndex(tabPane?.activeIndex || ACTIVE_TIME_INDEX);
-    onChangeLogPanes(currentPanes);
-    doGetLogs(queryParam);
-    doGetHighCharts(queryParam);
-    doParseQuery(queryParam?.kw);
   };
 
   const doDeleted = () => {
@@ -122,34 +101,8 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       .run(logLibrary.id)
       .then((res) => {
         if (res?.code === 0) {
-          const newPanes = logPanes.filter(
-            (item) => item.paneId !== logLibrary.id
-          );
-          onChangeLogPanes(newPanes);
-          if (logLibrary === currentLogLibrary) {
-            resetCurrentHighChart();
-            if (newPanes.length > 0) {
-              resetLogs();
-              onChangeCurrentLogPane(newPanes[0]);
-              handleChangeRelativeAmountAndUnit(newPanes[0]);
-              onChangeLogLibrary({
-                id: newPanes[0].paneId,
-                tableName: newPanes[0].pane,
-                createType: newPanes[0].paneType,
-              });
-            } else {
-              onChangeLogLibrary(undefined);
-              setUrlState({
-                start: undefined,
-                end: undefined,
-                page: undefined,
-                size: undefined,
-                tab: undefined,
-                index: undefined,
-                tid: undefined,
-              });
-            }
-          }
+          const currentKey = logLibrary.id.toString();
+          // 判断日志库是否打开
           message.success(
             {
               content: i18n.formatMessage({
@@ -160,6 +113,34 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             3
           );
           doGetLogLibraryList();
+          // 不在打开的日志库中
+          if (!paneKeys.includes(currentKey)) return;
+
+          // 日志库打开，当前选中日志库是需要删除的日志库
+          const resultKeys = paneKeys.filter((key) => key !== currentKey);
+          const len = resultKeys.length;
+          // 删除日志库
+          removeLogPane(currentKey);
+
+          // 只打开了当前日志库
+          if (len === 0) {
+            resetLogs();
+            onChangeLogLibrary(undefined);
+            setUrlState(RestUrlStates);
+          }
+          // 如果还有其他日志库，则切换到第一条
+          if (len > 0 && parseInt(currentKey) === currentLogLibrary?.id) {
+            const currentPanes = lodash.cloneDeep(logPanes);
+            const currentPane = currentPanes[resultKeys[0]];
+            delete currentPanes[currentKey];
+            handleChangeRelativeAmountAndUnit(currentPane);
+            onChangeCurrentLogPane(currentPane, currentPanes);
+            onChangeLogLibrary({
+              id: parseInt(currentPane.paneId),
+              tableName: currentPane.pane,
+              createType: currentPane.paneType,
+            });
+          }
         } else hideMessage();
       })
       .catch(() => hideMessage());

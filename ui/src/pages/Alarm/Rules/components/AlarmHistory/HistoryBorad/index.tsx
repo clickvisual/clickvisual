@@ -1,7 +1,6 @@
 import historyStyles from "@/pages/Alarm/Rules/components/AlarmHistory/index.less";
-import { Progress, message, Tooltip } from "antd";
+import { message, Progress, Tooltip } from "antd";
 import { AlarmHistoryType, AlarmInfoType } from "@/services/alarm";
-import { useMemo } from "react";
 import { useIntl } from "umi";
 import copy from "copy-to-clipboard";
 import "@/styles/var.less";
@@ -20,7 +19,6 @@ type HistoryBoardProps = {
 const HistoryBoard = ({
   sucPublish,
   total,
-  dataList,
   currentAlarm,
   dashboardUrl,
 }: HistoryBoardProps) => {
@@ -41,16 +39,6 @@ const HistoryBoard = ({
   const status = AlarmStatus.find((item) => value === item.status);
   const { FixedTimeUnits } = useTimeUnits();
   const unitItem = FixedTimeUnits.filter((item) => item.key === unit)[0];
-
-  const data = useMemo(() => {
-    if (dataList?.length <= 0) return [];
-    return dataList?.map((item) => {
-      return {
-        ctime: item.ctime,
-        sucPublish: item.isPushed,
-      };
-    });
-  }, [dataList]);
 
   const basicInfo = [
     {
@@ -138,10 +126,9 @@ const HistoryBoard = ({
     },
     {
       id: 109,
-      // title: i18n.formatMessage({
-      //   id: "alarm.rules.historyBorad.database",
-      // }),
-      title: "实例",
+      title: i18n.formatMessage({
+        id: "datasource.logLibrary.from.newLogLibrary.instance",
+      }),
       content: instance.name,
       isCopy: false,
     },

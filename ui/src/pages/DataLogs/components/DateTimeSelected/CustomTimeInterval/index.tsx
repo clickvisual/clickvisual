@@ -3,25 +3,30 @@ import { DatePicker } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { PaneType } from "@/models/dataLogs";
 import { FIFTEEN_TIME, MINUTES_UNIT_TIME } from "@/config/config";
+import { PaneType } from "@/models/datalogs/useLogPanes";
+import { useMemo } from "react";
 
 const { RangePicker } = DatePicker;
 
 const CustomTimeInterval = () => {
   const {
-    logPanes,
+    logPanesHelper,
     currentLogLibrary,
     startDateTime,
     endDateTime,
     onChangeStartDateTime,
     onChangeEndDateTime,
     onChangeActiveTimeOptionIndex,
-    onChangeLogPane,
+    onChangeCurrentLogPane,
   } = useModel("dataLogs");
-  const oldPane = logPanes.find(
-    (item) => item.paneId === currentLogLibrary?.id
-  ) as PaneType;
+  const { logPanes } = logPanesHelper;
+
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
+
   return (
     <div className={darkTimeStyles.tabCard}>
       <RangePicker
@@ -34,16 +39,22 @@ const CustomTimeInterval = () => {
             onChangeStartDateTime(start);
             onChangeEndDateTime(end);
             onChangeActiveTimeOptionIndex(-1);
-            onChangeLogPane({ ...oldPane, start, end, activeIndex: -1 });
+            onChangeCurrentLogPane({
+              ...(oldPane as PaneType),
+              activeIndex: -1,
+            });
           } else {
             const start = moment()
               .subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME)
               .unix();
             const end = currentTimeStamp();
-            onChangeActiveTimeOptionIndex(2);
             onChangeStartDateTime(start);
             onChangeEndDateTime(end);
-            onChangeLogPane({ ...oldPane, start, end, activeIndex: 2 });
+            onChangeActiveTimeOptionIndex(2);
+            onChangeCurrentLogPane({
+              ...(oldPane as PaneType),
+              activeIndex: 2,
+            });
           }
         }}
       />

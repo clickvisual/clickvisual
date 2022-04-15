@@ -24,10 +24,11 @@ import DeletedModal from "@/components/DeletedModal";
 import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
 import { ColumnsType } from "antd/es/table";
 import useUrlState from "@ahooksjs/use-url-state";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 
 const { Option } = Select;
 const SelectedDataBaseDraw = () => {
-  const [, setUrlState] = useUrlState();
+  const [_, setUrlState] = useUrlState();
   const {
     databaseList,
     currentDatabase,
@@ -38,8 +39,9 @@ const SelectedDataBaseDraw = () => {
     doGetDatabaseList,
     onChangeLogLibrary,
     onChangeVisibleDatabaseDraw,
-    onChangeLogPanes,
+    logPanesHelper,
   } = useModel("dataLogs");
+  const { resetPane } = logPanesHelper;
   const {
     doGetInstanceList,
     getInstanceList,
@@ -124,16 +126,8 @@ const SelectedDataBaseDraw = () => {
               doSelectedDatabase(record);
               onChangeLogLibrary(undefined);
               onChangeVisibleDatabaseDraw(false);
-              onChangeLogPanes([]);
-              setUrlState({
-                start: undefined,
-                end: undefined,
-                page: undefined,
-                size: undefined,
-                tab: undefined,
-                index: undefined,
-                tid: undefined,
-              });
+              resetPane();
+              setUrlState(RestUrlStates);
             }}
             size={"small"}
             type={"link"}
@@ -294,7 +288,7 @@ const SelectedDataBaseDraw = () => {
       <Table
         loading={getInstanceList.loading || getDatabases.loading}
         bordered
-        rowKey={(record: DatabaseResponse) => `${record.iid}-${record.id}`}
+        rowKey={"id"}
         size={"small"}
         columns={column}
         dataSource={databaseList}

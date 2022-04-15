@@ -2,26 +2,24 @@ import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.l
 import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
 import { currentTimeStamp, timeStampFormat } from "@/utils/momentUtils";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import classNames from "classnames";
 import {
   DarkTimeContext,
   TimeUnit,
 } from "@/pages/DataLogs/components/DateTimeSelected";
-import { PaneType } from "@/models/dataLogs";
+import { PaneType } from "@/models/datalogs/useLogPanes";
+import { FIRST_PAGE } from "@/config/config";
 
 const RelativeTime = () => {
   const {
-    logPanes,
+    logPanesHelper,
     currentLogLibrary,
     startDateTime,
     endDateTime,
-    onChangeStartDateTime,
-    onChangeEndDateTime,
     activeTimeOptionIndex,
-    onChangeLogPane,
-    doGetLogs,
-    doGetHighCharts,
+    onChangeCurrentLogPane,
+    doGetLogsAndHighCharts,
     onChangeCurrentRelativeAmount,
     onChangeCurrentRelativeUnit,
     onChangeActiveTimeOptionIndex,
@@ -29,24 +27,40 @@ const RelativeTime = () => {
   const [startTime, setStartTime] = useState<number>(startDateTime as number);
   const [endTime, setEndTime] = useState<number>(endDateTime as number);
   const { timeOptions } = useContext(DarkTimeContext);
+  const { logPanes } = logPanesHelper;
 
-  const oldPane = logPanes.find(
-    (item) => item.paneId === currentLogLibrary?.id
-  ) as PaneType;
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
 
   const handleSelect = (
     relativeAmount: number,
     relativeUnit: TimeUnit,
     index: number
   ) => {
+    if (!currentLogLibrary?.id) return;
     const start = moment().subtract(relativeAmount, relativeUnit).unix();
     const end = currentTimeStamp();
-    onChangeStartDateTime(start);
-    onChangeEndDateTime(end);
-    const params = { st: start, et: end };
-    doGetLogs(params);
-    doGetHighCharts(params);
-    onChangeLogPane({ ...oldPane, start, end, activeIndex: index });
+    const params = {
+      st: start,
+      et: end,
+      page: FIRST_PAGE,
+    };
+    const pane: PaneType = {
+      ...(oldPane as PaneType),
+      start,
+      end,
+      page: FIRST_PAGE,
+      activeIndex: index,
+    };
+    onChangeCurrentLogPane(pane);
+    doGetLogsAndHighCharts(currentLogLibrary.id, params).then((res) => {
+      if (!res) return;
+      pane.logs = res.logs;
+      pane.highCharts = res.highCharts;
+      onChangeCurrentLogPane(pane);
+    });
   };
 
   const handleMouseEnter = (relativeAmount: number, relativeUnit: TimeUnit) => {

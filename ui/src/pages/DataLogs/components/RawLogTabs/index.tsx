@@ -6,18 +6,22 @@ import lodash from "lodash";
 import { useIntl } from "umi";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
+import useUrlState from "@ahooksjs/use-url-state";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 
 const { TabPane } = Tabs;
 
 const RawLogTabs = () => {
+  const [_, setUrlState] = useUrlState();
   const {
-    logPanes,
     currentLogLibrary,
-    onChangeLogPanes,
+    onChangeLogPane,
     onChangeLogLibrary,
     resetLogs,
+    logPanesHelper,
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
+  const { logPanes, paneKeys, removeLogPane } = logPanesHelper;
 
   const i18n = useIntl();
   const { handleChangeRelativeAmountAndUnit } = useTimeOptions();
@@ -25,61 +29,57 @@ const RawLogTabs = () => {
   const onEdit = (currentKey: any, action: any) => {
     if (!currentKey || action !== "remove") return;
     const currentPanes = lodash.cloneDeep(logPanes);
-    const keyObj = JSON.parse(currentKey);
-    const resultPanes =
-      currentPanes.filter((item) => item.paneId !== keyObj.id) || [];
-    onChangeLogPanes(resultPanes);
-    if (resultPanes.length === 0) {
+    const resultKeys = paneKeys.filter((key) => key !== currentKey) || [];
+    const len = resultKeys.length;
+    removeLogPane(currentKey);
+    if (len === 0) {
       resetLogs();
+      setUrlState(RestUrlStates);
       onChangeLogLibrary(undefined);
-      return;
     }
-    if (keyObj.id === currentLogLibrary?.id) {
+    if (len > 0 && parseInt(currentKey) === currentLogLibrary?.id) {
+      const currentPane = currentPanes[resultKeys[0]];
+      delete currentPanes[currentKey];
+      handleChangeRelativeAmountAndUnit(currentPane);
+      onChangeCurrentLogPane(currentPane, currentPanes);
       onChangeLogLibrary({
-        id: resultPanes[0].paneId,
-        tableName: resultPanes[0].pane,
-        createType: resultPanes[0].paneType,
+        id: parseInt(currentPane.paneId),
+        tableName: currentPane.pane,
+        createType: currentPane.paneType,
       });
-      onChangeCurrentLogPane(resultPanes[0]);
-      handleChangeRelativeAmountAndUnit(resultPanes[0]);
     }
   };
 
   const handleChangeTab = (key: string) => {
-    const currentPane = JSON.parse(key);
-    if (currentPane.id === currentLogLibrary?.id) return;
-    onChangeLogLibrary(currentPane);
-    const currentPanes = lodash.cloneDeep(logPanes);
-    const tabPane = currentPanes.find((item) => item.paneId === currentPane.id);
-    if (tabPane) {
-      onChangeCurrentLogPane(tabPane);
-      handleChangeRelativeAmountAndUnit(tabPane);
-    }
+    const logLibraryId = parseInt(key);
+    if (logLibraryId === currentLogLibrary?.id) return;
+    const tabPane = logPanes[key];
+    if (!tabPane) return;
+    handleChangeRelativeAmountAndUnit(tabPane);
+    onChangeLogPane(tabPane);
   };
 
   return (
     <div className={rawLogTabsStyles.rawLogTabsMain}>
-      {logPanes.length > 0 ? (
+      {paneKeys.length > 0 ? (
         <Tabs
           hideAdd
           type="editable-card"
-          activeKey={JSON.stringify(currentLogLibrary)}
+          activeKey={currentLogLibrary?.id.toString()}
           onChange={handleChangeTab}
           className={rawLogTabsStyles.tabs}
           onEdit={onEdit}
         >
-          {logPanes.map((item) => (
-            <TabPane
-              key={JSON.stringify({
-                id: item.paneId,
-                tableName: item.pane,
-                createType: item.paneType,
-              })}
-              tab={item.pane}
-            >
-              <QueryResult />
-            </TabPane>
-          ))}
+          {paneKeys.map((item) => {
+            const pane = logPanes[item];
+            return (
+              pane && (
+                <TabPane key={pane.paneId} tab={pane.pane}>
+                  <QueryResult />
+                </TabPane>
+              )
+            );
+          })}
         </Tabs>
       ) : (
         <Empty
