@@ -19,6 +19,7 @@ const ModalCreatedLogLibrary = () => {
   const i18n = useIntl();
   const {
     currentDatabase,
+    addLogToDatabase,
     logLibraryCreatedModalVisible,
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibrary,
@@ -41,7 +42,11 @@ const ModalCreatedLogLibrary = () => {
               instance: field.instance,
               tableList: field.tableList,
             })
-          : doCreatedLogLibrary.run(currentDatabase?.id as number, field);
+          : doCreatedLogLibrary.run(
+              (addLogToDatabase?.id as number) ||
+                (currentDatabase?.id as number),
+              field
+            );
       response
         .then((res) => {
           if (res?.code === 0) {
