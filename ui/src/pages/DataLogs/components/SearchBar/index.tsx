@@ -29,7 +29,6 @@ const SearchBar = () => {
     activeTabKey,
     currentRelativeAmount,
     currentRelativeUnit,
-    doParseQuery,
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
@@ -79,7 +78,6 @@ const SearchBar = () => {
             pane.logs = res.logs;
             pane.highCharts = res.highCharts;
             onChangeCurrentLogPane(pane);
-            doParseQuery();
           }
         })
         .catch(() => resetLogPaneLogsAndHighCharts(pane));

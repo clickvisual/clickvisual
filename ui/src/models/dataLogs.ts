@@ -194,6 +194,7 @@ const DataLogsModel = () => {
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
     setLogCount(tabPane?.highCharts?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
+    doParseQuery(tabPane?.keyword || keywordInput);
   };
 
   const onCopyRawLogDetails = (log: any) => {

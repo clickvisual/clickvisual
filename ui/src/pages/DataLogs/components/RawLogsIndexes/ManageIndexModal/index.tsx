@@ -22,7 +22,6 @@ const ManageIndexModal = () => {
     settingIndexes,
     getIndexList,
     doGetLogsAndHighCharts,
-    doParseQuery,
     logPanesHelper,
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
@@ -61,7 +60,6 @@ const ManageIndexModal = () => {
               highCharts: res.highCharts,
             });
           });
-          doParseQuery();
         }
       });
     },

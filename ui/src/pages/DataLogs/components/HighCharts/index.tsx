@@ -18,7 +18,6 @@ const HighCharts = () => {
     highChartList,
     onChangeLogPane,
     onChangeCurrentLogPane,
-    doParseQuery,
     currentRelativeUnit,
     logPanesHelper,
     resetLogPaneLogsAndHighCharts,
@@ -120,7 +119,6 @@ const HighCharts = () => {
             pane.highCharts = res.highCharts;
             onChangeLogPane(pane);
           }
-          doParseQuery();
         })
         .catch(() => resetLogPaneLogsAndHighCharts(pane));
     }
