@@ -394,8 +394,13 @@ func TableCharts(c *core.Context) {
 	isZero := true
 	invoker.Logger.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
 	if interval == 0 {
+		count, errCount := op.Count(param)
+		if errCount != nil {
+			c.JSONE(core.CodeErr, "query error: "+errCount.Error(), nil)
+			return
+		}
 		row := view.HighChart{
-			Count:    op.Count(param),
+			Count:    count,
 			Progress: "",
 			From:     param.ST,
 			To:       param.ET,
@@ -408,23 +413,30 @@ func TableCharts(c *core.Context) {
 	} else {
 		invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "start"), elog.Any("cost", time.Since(t)))
 
-		limiter := make(chan view.HighChart, 200)
+		limiter := make(chan view.HighChart, 100)
+		errorChan := make(chan error, 100)
 		wg := &sync.WaitGroup{}
+		sum := 0
 		for i := param.ST; i < param.ET; i += interval {
 			wg.Add(1)
+			sum++
 			go func(st, et int64, wg *sync.WaitGroup) {
+				count, countErr := op.Count(view.ReqQuery{
+					Table:         param.Table,
+					DatabaseTable: param.DatabaseTable,
+					Query:         param.Query,
+					ST:            st,
+					ET:            et,
+					Page:          param.Page,
+					PageSize:      param.PageSize,
+					TimeField:     param.TimeField,
+					TimeFieldType: param.TimeFieldType,
+				})
+				if countErr != nil {
+					errorChan <- countErr
+				}
 				row := view.HighChart{
-					Count: op.Count(view.ReqQuery{
-						Table:         param.Table,
-						DatabaseTable: param.DatabaseTable,
-						Query:         param.Query,
-						ST:            st,
-						ET:            et,
-						Page:          param.Page,
-						PageSize:      param.PageSize,
-						TimeField:     param.TimeField,
-						TimeFieldType: param.TimeFieldType,
-					}),
+					Count:    count,
 					Progress: "",
 					From:     st,
 					To:       et,
@@ -438,12 +450,21 @@ func TableCharts(c *core.Context) {
 			}(i, i+interval, wg)
 		}
 		wg.Wait()
+		close(errorChan)
+		invoker.Logger.Debug("optimize", elog.Int("sum", sum), elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
+
+		for e := range errorChan {
+			if e != nil {
+				c.JSONE(core.CodeErr, "query error: "+e.Error(), nil)
+				return
+			}
+		}
 		close(limiter)
-		invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
 		for d := range limiter {
 			res.Histograms = append(res.Histograms, d)
 			res.Count += d.Count
 		}
+
 	}
 	if isZero {
 		c.JSONE(core.CodeOK, "the query data is empty", nil)
@@ -499,7 +520,11 @@ func TableIndexes(c *core.Context) {
 	invoker.Logger.Debug("Indexes", elog.Any("list", list))
 
 	res := make([]view.RespIndexItem, 0)
-	sum := op.Count(param)
+	sum, err := op.Count(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "query error: "+err.Error(), nil)
+		return
+	}
 	var count uint64
 	for k, v := range list {
 		count += v

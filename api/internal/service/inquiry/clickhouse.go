@@ -690,20 +690,20 @@ func (c *ClickHouse) TimeFieldEqual(param view.ReqQuery, tid int) string {
 	return "(" + res + ")"
 }
 
-func (c *ClickHouse) Count(param view.ReqQuery) (res uint64) {
+func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {
 	sqlCountData, err := c.doQuery(c.countSQL(param))
 	if err != nil {
-		return
+		return 0, err
 	}
 	if len(sqlCountData) > 0 {
 		if sqlCountData[0]["count"] != nil {
 			switch sqlCountData[0]["count"].(type) {
 			case uint64:
-				return sqlCountData[0]["count"].(uint64)
+				return sqlCountData[0]["count"].(uint64), nil
 			}
 		}
 	}
-	return 0
+	return 0, nil
 }
 
 func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
