@@ -11,7 +11,7 @@ import (
 )
 
 type Operator interface {
-	Count(view.ReqQuery) uint64
+	Count(view.ReqQuery) (uint64, error)
 	DropDatabase(string, string) error
 	AlertViewDrop(string, string) error
 	DatabaseCreate(string, string) error

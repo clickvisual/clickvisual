@@ -98,7 +98,7 @@ func (i *instanceManager) All() []inquiry.Operator {
 }
 
 func clickHouseLink(dsn string) (db *sql.DB, err error) {
-	db, err = sql.Open("clickhouse", dsn)
+	db, err = sql.Open("clickhouse", dsn+"&max_execution_time=60")
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
 		return
