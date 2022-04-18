@@ -2,21 +2,21 @@ permission:
   - name: log
     path: /query
     api:
-      - name: 获取日志列表
+      - name: Get list of logs
         method: GET
         path: /api/query/logs
-      - name: 获取日志图表
+      - name: Get list of logs charts
         method: GET
         path: /api/query/charts
-      - name: 获取日志tables
+      - name: Get list of logs tables
         method: GET
         path: /api/query/tables
   - name: alarm
     path: /alarm
     children:
-      - name: rules
+      - name: Get list of rules
         path: /alarm/rules
-      - name: notifications
+      - name: Get list of notifications
         path: /alarm/notifications
   - name: configure
     path: /configure
@@ -26,31 +26,31 @@ permission:
       - path: /sys/instances
         name: database
         api:
-        - name: 查询数据库连接
+        - name: Get list of ClickHouse instances
           method: GET
           path: /api/sys/instances
-        - name: 新增数据库连接
+        - name: Create a new ClickHouse instance
           method: POST
           path: /api/sys/instances
-        - name: 更新数据库连接
+        - name: Update a ClickHouse instance
           method: PATCH
           path: /api/sys/instances/:id
-        - name: 删除数据库连接
+        - name: Delete a ClickHouse instance
           method: DELETE
           path: /api/sys/instances/:id
       - path: /sys/clusters
         name: cluster
         api:
-        - name: 查询数据库连接
+        - name: Get Kubernetes Clusters
           method: GET
           path: /api/v1/sys/clusters
-        - name: 新增数据库连接
+        - name: Create a new Cluster
           method: POST
           path: /api/v1/sys/clusters
-        - name: 更新数据库连接
+        - name: Update a Cluster
           method: PATCH
           path: /api/v1/sys/clusters/:id
-        - name: 删除数据库连接
+        - name: Delete a Cluster
           method: DELETE
           path: /api/v1/sys/clusters/:id
       - path: /sys/events

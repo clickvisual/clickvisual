@@ -1,3 +1,4 @@
+# visit https://mogo.shimo.im/doc/AWHHO2RRABTK6 for details about mogo configuration.
 [app]
 # hashStatecode
 secretKey = "secretKey"
@@ -30,7 +31,7 @@ name = "mogo.log"
 [mysql]
 debug = true
 # database DSN
-dsn = "root:root@tcp(localhost:3306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+dsn = "root:root@tcp(localhost:3306)/mogo?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
 # log level
 level = "debug"
 # maximum number of connections in the idle connection pool for database
@@ -39,6 +40,7 @@ maxIdleConns = 5
 maxOpenConns = 10
 # maximum amount of time a connection
 connMaxLifetime = "300s"
+
 
 [auth]
 mode = "memstore" # redis memstore
