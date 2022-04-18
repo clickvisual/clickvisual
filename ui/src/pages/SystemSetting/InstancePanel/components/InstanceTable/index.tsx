@@ -63,15 +63,15 @@ const InstanceTable = (props: InstanceTableProps) => {
       align: "center" as AlignType,
       width: 100,
       render: (mode: number) => (
-          <Tooltip title={mode}>
+        <Tooltip title={mode}>
           <span>
             {mode
-                ? i18n.formatMessage({ id: "instance.form.title.cluster" })
-                : i18n.formatMessage({
+              ? i18n.formatMessage({ id: "instance.form.title.cluster" })
+              : i18n.formatMessage({
                   id: "instance.form.title.modeType.single",
                 })}
           </span>
-          </Tooltip>
+        </Tooltip>
       ),
     },
     {
@@ -80,11 +80,11 @@ const InstanceTable = (props: InstanceTableProps) => {
       align: "center" as AlignType,
       width: 100,
       render: (clusters: string[]) => (
-          <Tooltip title={clusters}>
-            {clusters?.map((item: string) => {
-              return <span>{item}</span>;
-            })}
-          </Tooltip>
+        <Tooltip title={clusters}>
+          {clusters?.map((item: string) => {
+            return <span>{item}</span>;
+          })}
+        </Tooltip>
       ),
     },
     {
@@ -177,7 +177,7 @@ const InstanceTable = (props: InstanceTableProps) => {
                         {
                           id: "instance.delete.confirmTip",
                         },
-                        { instanceName: record.name }
+                        { name: record.name }
                       ),
                     },
                     doDeletedInstance.loading

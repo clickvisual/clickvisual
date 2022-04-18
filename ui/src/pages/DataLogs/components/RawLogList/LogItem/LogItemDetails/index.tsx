@@ -6,6 +6,9 @@ import classNames from "classnames";
 import LogContentParse from "@/pages/DataLogs/components/RawLogList/LogItem/LogContentParse";
 import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
+import JsonStringValue, {
+  REG_SEPARATORS,
+} from "@/components/JsonView/JsonStringValue";
 
 const LogItemDetails = () => {
   const { log } = useContext(LogItemContext);
@@ -33,7 +36,6 @@ const LogItemDetails = () => {
       let indexRawLogKeys: any[] = [];
       // 取出 rawLog 日志字段并转成 Json ，parseJsonObject 回参数 Json || false
       const rawLogJson = parseJsonObject(log["_raw_log_"]);
-
       // 初始化新日志数组，初始化为 log
       let newLog: any = log;
 
@@ -58,7 +60,7 @@ const LogItemDetails = () => {
         newLog = Object.assign(cloneRawLogJson, oldLog);
 
         // 合并 log 和 rawLog 的 key，并去重
-        keys = [...keys, ...rawLogKeys].filter((key, index) => {
+        keys = [...keys, ...indexList, ...rawLogKeys].filter((key, index) => {
           const preIdx = keys.indexOf(key);
           return preIdx < 0 || preIdx === index;
         });
@@ -70,16 +72,24 @@ const LogItemDetails = () => {
         keys = keys.filter((key) => key !== "_raw_log_");
       }
 
-      return { keys, newLog, rawLogJson, rawLogKeys, indexRawLogKeys };
-    }, [logs, log]);
+      return {
+        keys,
+        newLog,
+        rawLogJson,
+        rawLogKeys,
+        indexRawLogKeys,
+      };
+    }, [logs, logs?.keys, log]);
 
   const quickInsertQuery = (keyItem: string) => {
     const currentSelected = `${keyItem}='${log[keyItem]}'`;
     doUpdatedQuery(currentSelected);
   };
 
-  const quickInsertLikeQuery = (key: string) => {
-    const currentSelected = `_raw_log_ like '%${key}%'`;
+  const quickInsertLikeQuery = (value: string, extra?: { key?: string }) => {
+    const currentSelected = `${
+      extra?.key ? extra?.key : "_raw_log_"
+    } like '%${value}%'`;
     doUpdatedQuery(currentSelected);
   };
 
@@ -95,81 +105,125 @@ const LogItemDetails = () => {
     insert(keyItem);
   };
 
-  const handleCopyLog = (
-    keyItem: string,
-    isRawLog: boolean,
-    isIndexAndRawLogKey: boolean
-  ) => {
-    if (!isRawLog && !rawLogJson) return;
+  const handleCopyLog = (keyItem: string, isIndexAndRawLogKey: boolean) => {
     onCopyRawLogDetails(
       isIndexAndRawLogKey ? rawLogJson[keyItem] : newLog[keyItem]
     );
   };
 
+  const logItemList = useMemo(() => {
+    if (keys.length <= 0) return [];
+    return keys.map((keyItem) => {
+      let highlightFlag = false;
+      if (highlightKeywords) {
+        highlightFlag = !!highlightKeywords.find(
+          (item) => item.key === keyItem
+        );
+      }
+      const isIndexAndRawLogKey =
+        indexRawLogKeys.includes(keyItem) &&
+        (!newLog[keyItem] || newLog[keyItem] === "") &&
+        !!rawLogJson[keyItem];
+      const isRawLog =
+        (rawLogJson && rawLogKeys.includes(keyItem)) || keyItem === "_raw_log_";
+
+      const isNotTimeKey = !["_time_nanosecond_"].includes(keyItem);
+
+      const content = isIndexAndRawLogKey
+        ? rawLogJson[keyItem]
+        : newLog.hasOwnProperty(keyItem)
+        ? newLog[keyItem]
+        : "";
+      let regSpeFlag = false;
+      if (!isRawLog) {
+        REG_SEPARATORS.forEach((item) => {
+          if (content.toString().includes(item)) {
+            regSpeFlag = content.toString().includes(item);
+          }
+        });
+      }
+
+      return {
+        highlightFlag,
+        isIndexAndRawLogKey,
+        isRawLog,
+        key: keyItem,
+        content,
+        isNotTimeKey,
+        regSpeFlag,
+      };
+    });
+  }, [
+    keys,
+    newLog,
+    rawLogJson,
+    rawLogKeys,
+    indexRawLogKeys,
+    logs,
+    logs?.keys,
+    log,
+  ]);
+
   return (
     <div className={logItemStyles.details}>
-      {keys.length > 0 &&
-        keys.map((keyItem) => {
-          let flag = false;
-          if (highlightKeywords) {
-            flag = !!highlightKeywords.find((item) => item.key === keyItem);
-          }
-          const isIndexAndRawLogKey =
-            indexRawLogKeys.includes(keyItem) &&
-            (!newLog[keyItem] || newLog[keyItem] === "") &&
-            !!rawLogJson[keyItem];
-          const isRawLog =
-            (rawLogJson && rawLogKeys.includes(keyItem)) ||
-            keyItem === "_raw_log_";
-          return (
-            <div key={keyItem} className={logItemStyles.logLine}>
+      {logItemList.length > 0 &&
+        logItemList.map(
+          ({
+            regSpeFlag,
+            highlightFlag,
+            isIndexAndRawLogKey,
+            isRawLog,
+            key,
+            content,
+            isNotTimeKey,
+          }) => (
+            <div key={key} className={logItemStyles.logLine}>
               <div
                 className={classNames(
                   logItemStyles.logKey,
-                  isRawLog && logItemStyles.logKeyHover
+                  logItemStyles.logKeyHover
                 )}
-                onClick={() =>
-                  handleCopyLog(keyItem, isRawLog, isIndexAndRawLogKey)
-                }
+                onClick={() => handleCopyLog(key, isIndexAndRawLogKey)}
               >
                 <span
                   className={classNames(
-                    rawLogKeys.includes(keyItem) &&
-                      logItemStyles.notIndexContent
+                    rawLogKeys.includes(key) && logItemStyles.notIndexContent
                   )}
                 >
-                  {keyItem}
+                  {key}
                 </span>
                 :
               </div>
               {!isRawLog ? (
-                <span
-                  onClick={() =>
-                    handleInsertQuery(keyItem, isIndexAndRawLogKey)
-                  }
-                  className={classNames(
-                    logItemStyles.logContent,
-                    flag && logItemStyles.logContentHighlight,
+                regSpeFlag ? (
+                  <JsonStringValue
+                    val={content.toString()}
+                    keyItem={key}
+                    onClickValue={quickInsertLikeQuery}
+                    highLightValue={highlightKeywords}
+                  />
+                ) : (
+                  <span
+                    onClick={() => handleInsertQuery(key, isIndexAndRawLogKey)}
+                    className={classNames(
+                      logItemStyles.logContent,
+                      highlightFlag && logItemStyles.logContentHighlight,
 
-                    !["_time_nanosecond_"].includes(keyItem) &&
-                      logItemStyles.logHover
-                  )}
-                >
-                  {isIndexAndRawLogKey
-                    ? rawLogJson[keyItem]
-                    : newLog.hasOwnProperty(keyItem)
-                    ? newLog[keyItem]
-                    : ""}
-                </span>
+                      isNotTimeKey && logItemStyles.logHover
+                    )}
+                  >
+                    {content}
+                  </span>
+                )
               ) : (
                 <LogContentParse
-                  logContent={newLog[keyItem]}
+                  logContent={newLog[key]}
                   quickInsertLikeQuery={quickInsertLikeQuery}
                 />
               )}
             </div>
-          );
-        })}
+          )
+        )}
     </div>
   );
 };

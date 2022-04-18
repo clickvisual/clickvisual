@@ -16,6 +16,7 @@ const RawLogsOperations = () => {
     doGetLogsAndHighCharts,
     onChangeLogPane,
     logPanesHelper,
+    resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
   const i18n = useIntl();
@@ -43,20 +44,32 @@ const RawLogsOperations = () => {
               page: size === pageSize ? current : FIRST_PAGE,
               pageSize: size,
             };
-            doGetLogsAndHighCharts(
-              currentLogLibrary?.id as number,
-              params
-            ).then((res) => {
-              if (!res) return;
-              const pane: PaneType = {
-                ...(oldPane as PaneType),
-                page: size === pageSize ? current : FIRST_PAGE,
-                pageSize: size,
-                logs: res.logs,
-                highCharts: res.highCharts,
-              };
-              onChangeLogPane(pane);
-            });
+            doGetLogsAndHighCharts(currentLogLibrary?.id as number, params)
+              .then((res) => {
+                if (!res) {
+                  resetLogPaneLogsAndHighCharts({
+                    ...(oldPane as PaneType),
+                    page: size === pageSize ? current : FIRST_PAGE,
+                    pageSize: size,
+                  });
+                } else {
+                  const pane: PaneType = {
+                    ...(oldPane as PaneType),
+                    page: size === pageSize ? current : FIRST_PAGE,
+                    pageSize: size,
+                    logs: res.logs,
+                    highCharts: res.highCharts,
+                  };
+                  onChangeLogPane(pane);
+                }
+              })
+              .catch(() =>
+                resetLogPaneLogsAndHighCharts({
+                  ...(oldPane as PaneType),
+                  page: size === pageSize ? current : FIRST_PAGE,
+                  pageSize: size,
+                })
+              );
           }}
           showSizeChanger
         />
