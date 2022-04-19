@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/ClickHouse/clickhouse-go"
@@ -98,7 +99,10 @@ func (i *instanceManager) All() []inquiry.Operator {
 }
 
 func clickHouseLink(dsn string) (db *sql.DB, err error) {
-	db, err = sql.Open("clickhouse", dsn+"&max_execution_time=60")
+	if strings.Contains(dsn, "?") {
+		dsn = dsn + "&max_execution_time=60"
+	}
+	db, err = sql.Open("clickhouse", dsn)
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
 		return
@@ -111,5 +115,7 @@ func clickHouseLink(dsn string) (db *sql.DB, err error) {
 		}
 		return
 	}
+	db.SetMaxIdleConns(100)
+	db.SetMaxOpenConns(50)
 	return
 }
