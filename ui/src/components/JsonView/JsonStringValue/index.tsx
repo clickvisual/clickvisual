@@ -3,13 +3,13 @@ import classNames from "classnames";
 
 type JsonStringValueProps = {
   val: string;
+  keyItem?: string;
 } & _CommonProps;
-const REG_SEPARATORS = [
+export const REG_SEPARATORS = [
   " ",
   "|", //  Ab<span> || </span><span>Bc</span>
   ":",
   ",",
-  "-",
   "/",
   '"',
   "[",
@@ -17,12 +17,17 @@ const REG_SEPARATORS = [
   "{",
   "}",
   "'",
+  "=",
   "\u001b",
   "\t",
   "\n",
 ];
 
-const JsonStringValue = ({ val, ...restProps }: JsonStringValueProps) => {
+const JsonStringValue = ({
+  val,
+  keyItem,
+  ...restProps
+}: JsonStringValueProps) => {
   const { onClickValue, highLightValue } = restProps;
   const strListByReg: string[] = splitRawLogString(val);
   if (strListByReg.length <= 0) return <></>;
@@ -35,14 +40,16 @@ const JsonStringValue = ({ val, ...restProps }: JsonStringValueProps) => {
         let highLightFlag = false;
         if (highLightValue) {
           highLightFlag = !!highLightValue.find(
-            (item) => item.key === "_raw_log_" && item.value === `%${value}%`
+            (item) =>
+              (keyItem ? item.key === keyItem : item.key === "_raw_log_") &&
+              item.value === `%${value}%`
           );
         }
 
         return (
           <span
             key={index}
-            onClick={() => isValue && onClickValue?.(value)}
+            onClick={() => isValue && onClickValue?.(value, { key: keyItem })}
             className={classNames(
               isValue && jsonViewStyles.jsonViewValueHover,
               highLightFlag && jsonViewStyles.jsonViewHighlight

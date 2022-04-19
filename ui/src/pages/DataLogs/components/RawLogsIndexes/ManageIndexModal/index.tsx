@@ -2,7 +2,7 @@ import mangeIndexModalStyles from "@/pages/DataLogs/components/RawLogsIndexes/Ma
 import CustomModal from "@/components/CustomModal";
 import { useModel } from "@@/plugin-model/useModel";
 import { Button, Form, FormInstance, Spin } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SaveOutlined } from "@ant-design/icons";
 import TableHeader from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableHeader";
 import TableBody from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody";
@@ -12,6 +12,7 @@ import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
 import { FieldType } from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody/IndexItem";
 import { IndexInfoType } from "@/services/dataLogs";
+import { PaneType } from "@/models/datalogs/useLogPanes";
 
 const ManageIndexModal = () => {
   const {
@@ -20,13 +21,20 @@ const ManageIndexModal = () => {
     currentLogLibrary,
     settingIndexes,
     getIndexList,
-    doGetLogs,
-    doParseQuery,
+    doGetLogsAndHighCharts,
+    logPanesHelper,
+    onChangeCurrentLogPane,
   } = useModel("dataLogs");
+  const { logPanes } = logPanesHelper;
   const indexFormRef = useRef<FormInstance>(null);
   const [indexList, setIndexList] = useState<any[]>([]);
 
   const i18n = useIntl();
+
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
 
   const cancel = () => {
     onChangeVisibleIndexModal(false);
@@ -44,8 +52,14 @@ const ManageIndexModal = () => {
       settingIndexes.run(currentLogLibrary.id, { data: params }).then((res) => {
         if (res?.code === 0) {
           cancel();
-          doGetLogs();
-          doParseQuery();
+          doGetLogsAndHighCharts(currentLogLibrary.id).then((res) => {
+            if (!res) return;
+            onChangeCurrentLogPane({
+              ...(oldPane as PaneType),
+              logs: res.logs,
+              highCharts: res.highCharts,
+            });
+          });
         }
       });
     },

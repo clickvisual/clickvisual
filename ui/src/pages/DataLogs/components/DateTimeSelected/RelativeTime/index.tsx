@@ -23,6 +23,7 @@ const RelativeTime = () => {
     onChangeCurrentRelativeAmount,
     onChangeCurrentRelativeUnit,
     onChangeActiveTimeOptionIndex,
+    resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const [startTime, setStartTime] = useState<number>(startDateTime as number);
   const [endTime, setEndTime] = useState<number>(endDateTime as number);
@@ -55,12 +56,17 @@ const RelativeTime = () => {
       activeIndex: index,
     };
     onChangeCurrentLogPane(pane);
-    doGetLogsAndHighCharts(currentLogLibrary.id, params).then((res) => {
-      if (!res) return;
-      pane.logs = res.logs;
-      pane.highCharts = res.highCharts;
-      onChangeCurrentLogPane(pane);
-    });
+    doGetLogsAndHighCharts(currentLogLibrary.id, params)
+      .then((res) => {
+        if (!res) {
+          resetLogPaneLogsAndHighCharts(pane);
+        } else {
+          pane.logs = res.logs;
+          pane.highCharts = res.highCharts;
+          onChangeCurrentLogPane(pane);
+        }
+      })
+      .catch(() => resetLogPaneLogsAndHighCharts(pane));
   };
 
   const handleMouseEnter = (relativeAmount: number, relativeUnit: TimeUnit) => {

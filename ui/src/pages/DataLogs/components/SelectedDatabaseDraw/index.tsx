@@ -112,8 +112,6 @@ const SelectedDataBaseDraw = () => {
    * @param str
    */
   const handleSearch = (str: any) => {
-    // console.log(str);
-    // return;
     let arrList: any = [];
     databaseList.map((item: any) => {
       item.name.indexOf(str) != -1 && arrList.push(item);

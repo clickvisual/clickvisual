@@ -3,14 +3,13 @@ import SearchBar from "@/pages/DataLogs/components/SearchBar";
 import HighCharts from "@/pages/DataLogs/components/HighCharts";
 import RawLogs from "@/pages/DataLogs/components/RawLogs";
 import { useModel } from "@@/plugin-model/useModel";
-import { Spin } from "antd";
 import classNames from "classnames";
 import RawLogsIndexes from "@/pages/DataLogs/components/RawLogsIndexes";
-import { useIntl } from "umi";
+import { SpinWrap } from "@/pages/DataLogs/components/QueryResult/SpinWrap";
 
 const QueryResult = () => {
-  const i18n = useIntl();
-  const { logsLoading, highChartLoading } = useModel("dataLogs");
+  const { logsLoading, highChartLoading, isHiddenHighChart } =
+    useModel("dataLogs");
   const isShare = document.location.pathname === "/share" || "/share/";
 
   return (
@@ -21,17 +20,24 @@ const QueryResult = () => {
       )}
     >
       <SearchBar />
-      <Spin
-        spinning={logsLoading || highChartLoading}
-        tip={i18n.formatMessage({ id: "spin" })}
-        wrapperClassName={queryResultStyles.querySpinning}
-      >
+      <div className={queryResultStyles.content}>
         <RawLogsIndexes />
         <div className={queryResultStyles.queryDetail}>
-          <HighCharts />
-          <RawLogs />
+          <SpinWrap
+            loading={highChartLoading}
+            className={classNames(
+              isHiddenHighChart
+                ? queryResultStyles.highChartsHidden
+                : queryResultStyles.highCharts
+            )}
+          >
+            <HighCharts />
+          </SpinWrap>
+          <SpinWrap loading={logsLoading} className={queryResultStyles.logs}>
+            <RawLogs />
+          </SpinWrap>
         </div>
-      </Spin>
+      </div>
     </div>
   );
 };

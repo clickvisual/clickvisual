@@ -22,13 +22,14 @@ const SearchBar = () => {
     doGetLogsAndHighCharts,
     startDateTime,
     endDateTime,
+    activeTimeOptionIndex,
     onChangeCurrentLogPane,
     logsLoading,
     highChartLoading,
     activeTabKey,
     currentRelativeAmount,
     currentRelativeUnit,
-    doParseQuery,
+    resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -60,20 +61,26 @@ const SearchBar = () => {
         params.st = startDateTime;
         params.et = endDateTime;
       }
-      doGetLogsAndHighCharts(currentLogLibrary?.id, params).then((res) => {
-        if (!res) return;
-        const pane: PaneType = {
-          ...(oldPane as PaneType),
-          start: params?.st ?? oldPane?.start,
-          end: params?.et ?? oldPane?.end,
-          keyword: keywordInput,
-          page: params.page,
-          logs: res.logs,
-          highCharts: res.highCharts,
-        };
-        onChangeCurrentLogPane(pane);
-        doParseQuery();
-      });
+      const pane: PaneType = {
+        ...(oldPane as PaneType),
+        start: params?.st ?? oldPane?.start,
+        end: params?.et ?? oldPane?.end,
+        keyword: keywordInput,
+        page: params.page,
+        activeIndex: activeTimeOptionIndex,
+      };
+      onChangeCurrentLogPane(pane);
+      doGetLogsAndHighCharts(currentLogLibrary?.id, params)
+        .then((res) => {
+          if (!res) {
+            resetLogPaneLogsAndHighCharts(pane);
+          } else {
+            pane.logs = res.logs;
+            pane.highCharts = res.highCharts;
+            onChangeCurrentLogPane(pane);
+          }
+        })
+        .catch(() => resetLogPaneLogsAndHighCharts(pane));
     },
     { wait: DEBOUNCE_WAIT }
   );

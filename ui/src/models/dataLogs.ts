@@ -194,6 +194,7 @@ const DataLogsModel = () => {
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
     setLogCount(tabPane?.highCharts?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
+    doParseQuery(tabPane?.keyword || keywordInput);
   };
 
   const onCopyRawLogDetails = (log: any) => {
@@ -223,13 +224,6 @@ const DataLogsModel = () => {
         return false;
       } else {
         setLogs(undefined);
-        const pane =
-          logPanesHelper.logPanes[currentLogLibrary?.id.toString() as string];
-        if (pane) {
-          const newPane = { ...pane, logs: undefined, highCharts: undefined };
-          onChangeCurrentLogPane(newPane);
-        }
-        onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
       }
       return;
     },
@@ -243,13 +237,6 @@ const DataLogsModel = () => {
         return false;
       } else {
         setHighChartList([]);
-        const pane =
-          logPanesHelper.logPanes[currentLogLibrary?.id.toString() as string];
-        if (pane) {
-          const newPane = { ...pane, logs: undefined, highCharts: undefined };
-          onChangeCurrentLogPane(newPane);
-        }
-        onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
       }
       return;
     },
@@ -384,8 +371,9 @@ const DataLogsModel = () => {
     }
     const defaultValueArr =
       lodash.cloneDeep(keywordInput)?.split(" and ") || [];
-    if (defaultValueArr.length === 1 && defaultValueArr[0] === "")
+    if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
+    }
     defaultValueArr.push(currentSelected);
 
     const kw = defaultValueArr.join(" and ");
@@ -394,15 +382,23 @@ const DataLogsModel = () => {
       keyword: kw,
       page: FIRST_PAGE,
     });
+    onChangeCurrentLogPane(newPane);
     doGetLogsAndHighCharts(currentLogLibrary.id, {
       kw,
       page: FIRST_PAGE,
-    }).then((res) => {
-      if (!res) return;
-      newPane.logs = res.logs;
-      newPane.highCharts = res.highCharts;
-      onChangeCurrentLogPane(newPane);
-    });
+    })
+      .then((res) => {
+        if (!res) {
+          resetLogPaneLogsAndHighCharts(newPane);
+        } else {
+          newPane.logs = res.logs;
+          newPane.highCharts = res.highCharts;
+          onChangeCurrentLogPane(newPane);
+        }
+      })
+      .catch(() => {
+        resetLogPaneLogsAndHighCharts(newPane);
+      });
     doParseQuery(kw);
   };
 
@@ -421,6 +417,12 @@ const DataLogsModel = () => {
     setLogs(undefined);
     setHighChartList([]);
     setIsHiddenHighChart(false);
+  };
+
+  const resetLogPaneLogsAndHighCharts = (pane: PaneType) => {
+    pane.logs = undefined;
+    pane.highCharts = undefined;
+    onChangeCurrentLogPane(pane);
   };
 
   useEffect(() => {
@@ -488,6 +490,7 @@ const DataLogsModel = () => {
 
     resetLogs,
     resetCurrentHighChart,
+    resetLogPaneLogsAndHighCharts,
 
     getTableId,
     getDatabases,

@@ -44,6 +44,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeCurrentLogPane,
     onChangeViewsVisibleDraw,
     resetLogs,
+    resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
 
@@ -71,12 +72,17 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         page: FIRST_PAGE,
         pageSize: PAGE_SIZE,
         kw: "",
-      }).then((res) => {
-        if (!res) return;
-        pane.logs = res.logs;
-        pane.highCharts = res.highCharts;
-        onChangeLogPane(pane);
-      });
+      })
+        .then((res) => {
+          if (!res) {
+            resetLogPaneLogsAndHighCharts(pane);
+          } else {
+            pane.logs = res.logs;
+            pane.highCharts = res.highCharts;
+            onChangeLogPane(pane);
+          }
+        })
+        .catch(() => resetLogPaneLogsAndHighCharts(pane));
     } else {
       onChangeLogPane(tabPane);
       handleChangeRelativeAmountAndUnit(tabPane);

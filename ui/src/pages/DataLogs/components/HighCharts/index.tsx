@@ -18,9 +18,9 @@ const HighCharts = () => {
     highChartList,
     onChangeLogPane,
     onChangeCurrentLogPane,
-    doParseQuery,
     currentRelativeUnit,
     logPanesHelper,
+    resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -110,15 +110,17 @@ const HighCharts = () => {
         activeTabKey: TimeRangeType.Custom,
       };
       onChangeCurrentLogPane(pane);
-      doGetLogsAndHighCharts(currentLogLibrary.id, { st: start, et: end }).then(
-        (res) => {
-          if (!res) return;
-          pane.logs = res.logs;
-          pane.highCharts = res.highCharts;
-          onChangeLogPane(pane);
-          doParseQuery();
-        }
-      );
+      doGetLogsAndHighCharts(currentLogLibrary.id, { st: start, et: end })
+        .then((res) => {
+          if (!res) {
+            resetLogPaneLogsAndHighCharts(pane);
+          } else {
+            pane.logs = res.logs;
+            pane.highCharts = res.highCharts;
+            onChangeLogPane(pane);
+          }
+        })
+        .catch(() => resetLogPaneLogsAndHighCharts(pane));
     }
   };
 
