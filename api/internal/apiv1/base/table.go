@@ -288,6 +288,7 @@ func TableLogs(c *core.Context) {
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
+	param.Tid = tableInfo.ID
 	param.Table = tableInfo.Name
 	param.TimeFieldType = tableInfo.TimeFieldType
 	param.Database = tableInfo.Database.Name
@@ -369,6 +370,7 @@ func TableCharts(c *core.Context) {
 	} else {
 		param.TimeField = tableInfo.TimeField
 	}
+	param.Tid = tableInfo.ID
 	param.TimeFieldType = tableInfo.TimeFieldType
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
@@ -417,11 +419,13 @@ func TableCharts(c *core.Context) {
 		errorChan := make(chan error, 100)
 		wg := &sync.WaitGroup{}
 		sum := 0
+
 		for i := param.ST; i < param.ET; i += interval {
 			wg.Add(1)
 			sum++
 			go func(st, et int64, wg *sync.WaitGroup) {
 				count, countErr := op.Count(view.ReqQuery{
+					Tid:           tableInfo.ID,
 					Table:         param.Table,
 					DatabaseTable: param.DatabaseTable,
 					Query:         param.Query,
@@ -450,9 +454,9 @@ func TableCharts(c *core.Context) {
 			}(i, i+interval, wg)
 		}
 		wg.Wait()
-		close(errorChan)
-		invoker.Logger.Debug("optimize", elog.Int("sum", sum), elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
 
+		invoker.Logger.Debug("optimize", elog.Int("sum", sum), elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
+		close(errorChan)
 		for e := range errorChan {
 			if e != nil {
 				c.JSONE(core.CodeErr, "query error: "+e.Error(), nil)

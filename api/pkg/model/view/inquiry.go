@@ -5,6 +5,7 @@ import (
 )
 
 type ReqQuery struct {
+	Tid           int    `json:"tid" form:"tid"`
 	Database      string `form:"database"`
 	Table         string `form:"table"`
 	DatabaseTable string `form:"databaseTable"`

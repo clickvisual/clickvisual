@@ -39,7 +39,7 @@ export const AVOID_CLOSE_ROUTING = [
 ];
 
 // 首页路由
-export const HOME_PATH = "/";
+export const HOME_PATH = process.env.PUBLIC_PATH;
 
 // 语言：中文
 export const LANG_CN = "zh-CN";

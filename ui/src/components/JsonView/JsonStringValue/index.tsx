@@ -10,7 +10,6 @@ export const REG_SEPARATORS = [
   "|", //  Ab<span> || </span><span>Bc</span>
   ":",
   ",",
-  "/",
   '"',
   "[",
   "]",
