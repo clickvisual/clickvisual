@@ -79,7 +79,7 @@ export const layout = ({
         history.push(LOGIN_PATH);
       }
       if (currentUser && isLogin) {
-        history.push(HOME_PATH);
+        history.push("/");
       }
     },
     links: [],
