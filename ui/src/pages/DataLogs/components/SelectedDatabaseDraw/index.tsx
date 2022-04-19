@@ -4,7 +4,6 @@ import {
   Drawer,
   Input,
   message,
-  // Select,
   Space,
   Table,
   Tag,
@@ -14,8 +13,6 @@ import { useModel } from "@@/plugin-model/useModel";
 import type { DatabaseResponse } from "@/services/dataLogs";
 import type { AlignType } from "rc-table/lib/interface";
 import { useEffect, useState } from "react";
-// import type { InstanceType } from "@/services/systemSetting";
-// import FilterTableColumn from "@/components/FilterTableColumn";
 import { useIntl } from "umi";
 import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
 import IconFont from "@/components/IconFont";
@@ -26,8 +23,8 @@ import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibrar
 import { ColumnsType } from "antd/es/table";
 import useUrlState from "@ahooksjs/use-url-state";
 import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
+import { PlusSquareOutlined } from "@ant-design/icons";
 
-// const { Option } = Select;
 const { Search } = Input;
 const SelectedDataBaseDraw = () => {
   const [, setUrlState] = useUrlState();
@@ -43,6 +40,8 @@ const SelectedDataBaseDraw = () => {
     onChangeLogLibrary,
     onChangeVisibleDatabaseDraw,
     logPanesHelper,
+    onChangeLogLibraryCreatedModalVisible,
+    onChangeAddLogToDatabase,
   } = useModel("dataLogs");
   const { resetPane } = logPanesHelper;
   const {
@@ -105,12 +104,12 @@ const SelectedDataBaseDraw = () => {
 
   useEffect(() => {
     getTreeDatabaseList(databaseList);
-  }, [databaseList, visibleDataBaseDraw]);
+  }, [databaseList, instanceList, visibleDataBaseDraw]);
 
-  /**
-   * 搜索事件
-   * @param str
-   */
+  useEffect(() => {
+    !visibleDataBaseDraw && onChangeAddLogToDatabase(undefined);
+  }, [visibleDataBaseDraw]);
+
   const handleSearch = (str: any) => {
     let arrList: any = [];
     databaseList.map((item: any) => {
@@ -119,10 +118,6 @@ const SelectedDataBaseDraw = () => {
     getTreeDatabaseList(arrList);
   };
 
-  /**
-   * 将原始数据库接口转换成树状的数据库接口
-   * @param dataList 数据源
-   */
   const getTreeDatabaseList = (dataList: any) => {
     let arrList: any[] = [];
     instanceList.map((item: any) => {
@@ -137,11 +132,7 @@ const SelectedDataBaseDraw = () => {
         }
       });
     });
-    let newArrList: any[] = [];
-    arrList.map((item: any) => {
-      !!item.children && newArrList.push(item);
-    });
-    setTreeDatabaseList(newArrList);
+    setTreeDatabaseList(arrList);
   };
 
   useEffect(() => {
@@ -179,6 +170,7 @@ const SelectedDataBaseDraw = () => {
         <Tooltip title={databaseName}>
           <Button
             onClick={() => {
+              if (!databaseName) return;
               doSelectedDatabase(record);
               onChangeLogLibrary(undefined);
               onChangeVisibleDatabaseDraw(false);
@@ -266,9 +258,9 @@ const SelectedDataBaseDraw = () => {
       dataIndex: "name",
       key: "operation",
       align: "center" as AlignType,
-      width: "10%",
+      width: "20%",
       render: (name: any, record: DatabaseResponse) => (
-        <>
+        <Space>
           {name && (
             <Tooltip title={i18n.formatMessage({ id: "delete" })}>
               <IconFont
@@ -278,7 +270,22 @@ const SelectedDataBaseDraw = () => {
               />
             </Tooltip>
           )}
-        </>
+          {name && (
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "datasource.draw.table.operation.tip",
+              })}
+            >
+              <PlusSquareOutlined
+                onClick={() => {
+                  onChangeAddLogToDatabase(record);
+                  onChangeLogLibraryCreatedModalVisible(true);
+                }}
+                className={databaseDrawStyle.addIcon}
+              />
+            </Tooltip>
+          )}
+        </Space>
       ),
     },
   ];
@@ -341,11 +348,7 @@ const SelectedDataBaseDraw = () => {
           size={"small"}
           columns={column}
           dataSource={treeDatabaseList}
-          pagination={{
-            responsive: true,
-            showSizeChanger: true,
-            size: "small",
-          }}
+          pagination={false}
         />
       </div>
       <CreatedDatabaseModal />

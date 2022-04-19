@@ -355,6 +355,8 @@ export default {
   "datasource.draw.table.deployment": "Deployment way",
   "datasource.draw.table.type": "Database Type",
   "datasource.draw.table.empty.type.tip": "None Database type",
+  "datasource.draw.table.operation.tip":
+    "Add a log library under this database",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",

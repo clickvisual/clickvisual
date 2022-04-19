@@ -1,6 +1,7 @@
 import { Form, Input, InputNumber, Select } from "antd";
 import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import { useIntl } from "umi";
+import TextArea from "antd/lib/input/TextArea";
 
 const { Option } = Select;
 
@@ -146,6 +147,19 @@ const NewTable = () => {
             id: "datasource.logLibrary.placeholder.consumers",
           })}`}
         />
+      </Form.Item>
+      <Form.Item
+        label={i18n.formatMessage({
+          id: "description",
+        })}
+        name="desc"
+      >
+        <TextArea
+          rows={3}
+          placeholder={i18n.formatMessage({
+            id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
+          })}
+        ></TextArea>
       </Form.Item>
     </>
   );

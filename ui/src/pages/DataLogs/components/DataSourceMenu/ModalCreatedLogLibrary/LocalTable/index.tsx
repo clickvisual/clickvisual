@@ -392,14 +392,6 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
                               })}
                               name={[field.name, "desc"]}
                               fieldKey={[field.fieldKey, "desc"]}
-                              rules={[
-                                {
-                                  required: true,
-                                  message: i18n.formatMessage({
-                                    id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
-                                  }),
-                                },
-                              ]}
                             >
                               <TextArea
                                 rows={3}

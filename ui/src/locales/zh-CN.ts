@@ -333,6 +333,7 @@ export default {
   "datasource.draw.table.deployment": "部署方式",
   "datasource.draw.table.type": "数据库类型",
   "datasource.draw.table.empty.type.tip": "无数据库类型",
+  "datasource.draw.table.operation.tip": "在此数据库下新增日志库",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",

@@ -68,6 +68,10 @@ const DataLogsModel = () => {
   const [currentDatabase, setCurrentDatabase] = useState<
     DatabaseResponse | undefined
   >();
+  // 从数据库列表选择
+  const [addLogToDatabase, setAddLogToDatabase] = useState<
+    DatabaseResponse | undefined
+  >();
 
   // 是否展示日志切换抽屉
   const [visibleDataBaseDraw, setVisibleDataBaseDraw] =
@@ -141,6 +145,10 @@ const DataLogsModel = () => {
 
   const onChangeCurrentDatabase = (database: DatabaseResponse | undefined) => {
     setCurrentDatabase(database);
+  };
+
+  const onChangeAddLogToDatabase = (database: DatabaseResponse | undefined) => {
+    setAddLogToDatabase(database);
   };
 
   const onChangeLogLibrary = (logLibrary: TablesResponse | undefined) => {
@@ -445,6 +453,7 @@ const DataLogsModel = () => {
     currentLogLibrary,
     databaseList,
     currentDatabase,
+    addLogToDatabase,
     logs,
     logCount,
     startDateTime,
@@ -483,6 +492,7 @@ const DataLogsModel = () => {
     onChangeVisibleIndexModal,
     onChangeHiddenHighChart,
     onChangeCurrentLogPane,
+    onChangeAddLogToDatabase,
 
     doSelectedDatabase,
     doParseQuery,
