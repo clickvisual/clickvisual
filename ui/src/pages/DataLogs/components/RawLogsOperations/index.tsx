@@ -4,7 +4,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { FIRST_PAGE } from "@/config/config";
 import { useMemo } from "react";
-import { PaneType } from "@/models/datalogs/useLogPanes";
+import { PaneType } from "@/models/datalogs/types";
 
 const RawLogsOperations = () => {
   const {
@@ -44,7 +44,10 @@ const RawLogsOperations = () => {
               page: size === pageSize ? current : FIRST_PAGE,
               pageSize: size,
             };
-            doGetLogsAndHighCharts(currentLogLibrary?.id as number, params)
+            doGetLogsAndHighCharts(currentLogLibrary?.id as number, {
+              isPaging: true,
+              reqParams: params,
+            })
               .then((res) => {
                 if (!res) {
                   resetLogPaneLogsAndHighCharts({

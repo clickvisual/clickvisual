@@ -6,7 +6,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { TimeRangeType } from "@/config/config";
 import { DarkTimeContext } from "@/pages/DataLogs/components/DateTimeSelected";
 import { useContext, useMemo } from "react";
-import { PaneType } from "@/models/datalogs/useLogPanes";
+import { PaneType } from "@/models/datalogs/types";
 const { TabPane } = Tabs;
 
 const DateTimeSelectedCard = () => {

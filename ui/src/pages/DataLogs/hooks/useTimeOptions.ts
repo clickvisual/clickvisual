@@ -2,7 +2,7 @@ import { TimeOption } from "@/pages/DataLogs/components/DateTimeSelected";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { ACTIVE_TIME_INDEX, TimeRangeType } from "@/config/config";
-import { PaneType } from "@/models/datalogs/useLogPanes";
+import { PaneType } from "@/models/datalogs/types";
 
 const useTimeOptions = () => {
   const i18n = useIntl();
