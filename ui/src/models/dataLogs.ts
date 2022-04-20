@@ -311,15 +311,30 @@ const DataLogsModel = () => {
     if (!id) return;
     cancelTokenLogsRef.current?.();
     cancelTokenHighChartsRef.current?.();
-    const [logsRes, highChartsRes] = await Promise.all([
-      getLogs.run(
+    if (!!extra?.isPaging) {
+      const logsRes = await getLogs.run(
         id,
         logsAndHighChartsPayload(extra?.reqParams),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
         })
-      ),
-      !extra?.isPaging &&
+      );
+      if (extra?.isPaging && logsRes?.code === 0) {
+        const currentPane = logPanesHelper.logPanes[id.toString()];
+        return {
+          logs: logsRes.data,
+          highCharts: currentPane.highCharts,
+        };
+      }
+    } else {
+      const [logsRes, highChartsRes] = await Promise.all([
+        getLogs.run(
+          id,
+          logsAndHighChartsPayload(extra?.reqParams),
+          new CancelToken(function executor(c) {
+            cancelTokenLogsRef.current = c;
+          })
+        ),
         getHighCharts.run(
           id,
           logsAndHighChartsPayload(extra?.reqParams),
@@ -327,19 +342,13 @@ const DataLogsModel = () => {
             cancelTokenHighChartsRef.current = c;
           })
         ),
-    ]);
-    if (extra?.isPaging && logsRes?.code === 0) {
-      const currentPane = logPanesHelper.logPanes[id.toString()];
-      return {
-        logs: logsRes.data,
-        highCharts: currentPane.highCharts,
-      };
-    }
-    if (logsRes?.code === 0 && highChartsRes && highChartsRes?.code === 0) {
-      return {
-        logs: logsRes.data,
-        highCharts: highChartsRes?.data,
-      };
+      ]);
+      if (logsRes?.code === 0 && highChartsRes?.code === 0) {
+        return {
+          logs: logsRes.data,
+          highCharts: highChartsRes?.data,
+        };
+      }
     }
     return;
   };
