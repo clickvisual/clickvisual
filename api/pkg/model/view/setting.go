@@ -10,4 +10,5 @@ type IndexItem struct {
 	Alias    string `json:"alias" form:"alias"`
 	Typ      int    `json:"typ" form:"typ"`
 	RootName string `json:"rootName" form:"rootName"`
+	HashTyp  int    `json:"hashTyp" form:"hashTyp"`
 }

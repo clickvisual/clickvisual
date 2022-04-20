@@ -31,9 +31,9 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 	nowIndexMap := make(map[string]*db.Index)
 	nowIndexArr := make([]string, 0)
 	for _, ir := range nowIndexList {
-		key := fmt.Sprintf("%s.%d", ir.Field, ir.Typ)
+		key := fmt.Sprintf("%s.%d.%d", ir.Field, ir.Typ, ir.HashTyp)
 		if ir.RootName != "" {
-			key = fmt.Sprintf("%s|%s.%d", ir.RootName, ir.Field, ir.Typ)
+			key = fmt.Sprintf("%s|%s.%d.%d", ir.RootName, ir.Field, ir.Typ, ir.HashTyp)
 		}
 		nowIndexMap[key] = ir
 		nowIndexArr = append(nowIndexArr, key)
@@ -41,9 +41,9 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 	newIndexMap := make(map[string]*db.Index)
 	newIndexArr := make([]string, 0)
 	for _, ir := range req.Data {
-		key := fmt.Sprintf("%s.%d", ir.Field, ir.Typ)
+		key := fmt.Sprintf("%s.%d.%d", ir.Field, ir.Typ, ir.HashTyp)
 		if ir.RootName != "" {
-			key = fmt.Sprintf("%s|%s.%d", ir.RootName, ir.Field, ir.Typ)
+			key = fmt.Sprintf("%s|%s.%d.%d", ir.RootName, ir.Field, ir.Typ, ir.HashTyp)
 		}
 		newIndexMap[key] = &db.Index{
 			Tid:      req.Tid,
@@ -51,6 +51,7 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 			Typ:      ir.Typ,
 			Alias:    ir.Alias,
 			RootName: ir.RootName,
+			HashTyp:  ir.HashTyp,
 		}
 		newIndexArr = append(newIndexArr, key)
 	}
@@ -97,6 +98,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 			Typ:      d.Typ,
 			Alias:    d.Alias,
 			RootName: d.RootName,
+			HashTyp:  d.HashTyp,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -113,7 +115,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 	}
 	invoker.Logger.Debug("IndexUpdate", elog.Any("newList", newList))
 	// err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
-	err = op.IndexUpdate(databaseInfo, tableInfo, filterInnerField(adds), filterInnerField(dels), filterInnerField(newList))
+	err = op.IndexUpdate(databaseInfo, tableInfo, filterSystemField(adds), filterSystemField(dels), filterSystemField(newList))
 	if err != nil {
 		tx.Rollback()
 		return
@@ -126,10 +128,10 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 	return
 }
 
-func filterInnerField(input map[string]*db.Index) (out map[string]*db.Index) {
+func filterSystemField(input map[string]*db.Index) (out map[string]*db.Index) {
 	out = make(map[string]*db.Index)
 	for key, val := range input {
-		if isInnerField(val.Field) {
+		if isSystemField(val.Field) {
 			continue
 		}
 		out[key] = val
@@ -137,7 +139,7 @@ func filterInnerField(input map[string]*db.Index) (out map[string]*db.Index) {
 	return out
 }
 
-func isInnerField(input string) bool {
+func isSystemField(input string) bool {
 	innerFieldMap := make(map[string]interface{}, 0)
 	for _, hidden := range econf.GetStringSlice("app.hiddenFields") {
 		innerFieldMap[hidden] = struct{}{}

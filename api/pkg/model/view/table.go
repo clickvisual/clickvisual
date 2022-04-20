@@ -43,6 +43,7 @@ type RespTableDetail struct {
 	Brokers    string `json:"brokers"` // kafka broker
 	Topic      string `json:"topic"`   // kafka topic
 	Uid        int    `json:"uid"`     // 操作人
+	Desc       string `json:"desc"`    //
 	SQLContent struct {
 		Keys []string          `json:"keys"`
 		Data map[string]string `json:"data"`
