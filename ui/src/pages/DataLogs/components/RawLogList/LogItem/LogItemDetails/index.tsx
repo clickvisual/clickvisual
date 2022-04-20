@@ -6,9 +6,7 @@ import classNames from "classnames";
 import LogContentParse from "@/pages/DataLogs/components/RawLogList/LogItem/LogContentParse";
 import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
-import JsonStringValue, {
-  REG_SEPARATORS,
-} from "@/components/JsonView/JsonStringValue";
+import { REG_SEPARATORS } from "@/components/JsonView/JsonStringValue";
 
 const LogItemDetails = () => {
   const { log } = useContext(LogItemContext);
@@ -196,11 +194,10 @@ const LogItemDetails = () => {
               </div>
               {!isRawLog ? (
                 regSpeFlag ? (
-                  <JsonStringValue
-                    val={content.toString()}
+                  <LogContentParse
+                    logContent={content.toString()}
                     keyItem={key}
-                    onClickValue={quickInsertLikeQuery}
-                    highLightValue={highlightKeywords}
+                    quickInsertLikeQuery={quickInsertLikeQuery}
                   />
                 ) : (
                   <span

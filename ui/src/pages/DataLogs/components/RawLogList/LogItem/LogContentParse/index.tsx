@@ -6,11 +6,13 @@ import JsonStringValue from "@/components/JsonView/JsonStringValue";
 
 type LogContentParseProps = {
   logContent: any;
+  keyItem?: string;
   quickInsertLikeQuery: (key: string) => void;
 };
 
 const LogContentParse = ({
   logContent,
+  keyItem,
   quickInsertLikeQuery,
 }: LogContentParseProps) => {
   const { highlightKeywords } = useModel("dataLogs");
@@ -25,6 +27,7 @@ const LogContentParse = ({
       content = (
         <JsonStringValue
           val={logContent.toString()}
+          keyItem={keyItem}
           onClickValue={quickInsertLikeQuery}
           highLightValue={highlightKeywords}
         />
