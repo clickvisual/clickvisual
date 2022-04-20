@@ -12,7 +12,7 @@ import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
 import { FieldType } from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody/IndexItem";
 import { IndexInfoType } from "@/services/dataLogs";
-import { PaneType } from "@/models/datalogs/useLogPanes";
+import { PaneType } from "@/models/datalogs/types";
 
 const ManageIndexModal = () => {
   const {

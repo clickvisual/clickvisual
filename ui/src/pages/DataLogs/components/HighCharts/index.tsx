@@ -8,7 +8,7 @@ import HighChartsTooltip from "@/pages/DataLogs/components/HighCharts/HighCharts
 import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
-import { PaneType } from "@/models/datalogs/useLogPanes";
+import { PaneType } from "@/models/datalogs/types";
 
 const HighCharts = () => {
   const {
@@ -110,7 +110,9 @@ const HighCharts = () => {
         activeTabKey: TimeRangeType.Custom,
       };
       onChangeCurrentLogPane(pane);
-      doGetLogsAndHighCharts(currentLogLibrary.id, { st: start, et: end })
+      doGetLogsAndHighCharts(currentLogLibrary.id, {
+        reqParams: { st: start, et: end },
+      })
         .then((res) => {
           if (!res) {
             resetLogPaneLogsAndHighCharts(pane);

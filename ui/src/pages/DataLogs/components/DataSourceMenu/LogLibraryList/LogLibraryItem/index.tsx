@@ -18,9 +18,10 @@ import { useState } from "react";
 import DeletedModal from "@/components/DeletedModal";
 import { TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
-import { DefaultPane, PaneType } from "@/models/datalogs/useLogPanes";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
 import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
+import { PaneType } from "@/models/datalogs/types";
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;
@@ -67,11 +68,13 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       addLogPane(paneId, pane);
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(logLibrary.id, {
-        st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-        et: currentTimeStamp(),
-        page: FIRST_PAGE,
-        pageSize: PAGE_SIZE,
-        kw: "",
+        reqParams: {
+          st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+          et: currentTimeStamp(),
+          page: FIRST_PAGE,
+          pageSize: PAGE_SIZE,
+          kw: "",
+        },
       })
         .then((res) => {
           if (!res) {
