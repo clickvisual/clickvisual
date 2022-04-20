@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { HighChartsResponse, LogsResponse } from "@/services/dataLogs";
 import {
   ACTIVE_TIME_INDEX,
   FIFTEEN_TIME,
@@ -10,21 +9,7 @@ import {
 } from "@/config/config";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import moment from "moment";
-
-export type PaneType = {
-  pane: string;
-  paneId: string;
-  paneType: number;
-  start?: number;
-  end?: number;
-  keyword?: string;
-  activeTabKey?: string;
-  activeIndex?: number;
-  page?: number;
-  pageSize?: number;
-  logs: LogsResponse | undefined;
-  highCharts: HighChartsResponse | undefined;
-};
+import { PaneType } from "@/models/datalogs/types";
 
 export const DefaultPane = {
   start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),

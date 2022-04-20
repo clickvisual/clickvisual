@@ -24,16 +24,8 @@ import { formatMessage } from "@@/plugin-locale/localeExports";
 import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
-import useLogPanes, { PaneType } from "@/models/datalogs/useLogPanes";
-
-export type QueryParams = {
-  logLibrary?: TablesResponse;
-  page?: number;
-  pageSize?: number;
-  st?: number;
-  et?: number;
-  kw?: string;
-};
+import useLogPanes from "@/models/datalogs/useLogPanes";
+import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 
 const DataLogsModel = () => {
   // 查询关键字
@@ -192,7 +184,7 @@ const DataLogsModel = () => {
     tabPane: PaneType,
     panes?: { [Key: string]: PaneType }
   ) => {
-    onChangeLogsPage(tabPane?.page as number, tabPane?.pageSize as number);
+    onSetLogsPage(tabPane?.page as number, tabPane?.pageSize as number);
     onChangeEndDateTime(tabPane?.end as number);
     onChangeStartDateTime(tabPane?.start as number);
     onChangeKeywordInput(tabPane?.keyword as string);
@@ -221,6 +213,10 @@ const DataLogsModel = () => {
     } else {
       setCurrentPage(current);
     }
+  };
+  const onSetLogsPage = (current: number, size: number) => {
+    setPageSize(size);
+    setCurrentPage(current);
   };
 
   const getTableId = useRequest(api.getTableId, { loadingText: false }).run;
@@ -311,27 +307,35 @@ const DataLogsModel = () => {
     }
   };
 
-  const doGetLogsAndHighCharts = async (id: number, params?: QueryParams) => {
+  const doGetLogsAndHighCharts = async (id: number, extra?: Extra) => {
     if (!id) return;
     cancelTokenLogsRef.current?.();
     cancelTokenHighChartsRef.current?.();
     const [logsRes, highChartsRes] = await Promise.all([
       getLogs.run(
         id,
-        logsAndHighChartsPayload(params),
+        logsAndHighChartsPayload(extra?.reqParams),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
         })
       ),
-      getHighCharts.run(
-        id,
-        logsAndHighChartsPayload(params),
-        new CancelToken(function executor(c) {
-          cancelTokenHighChartsRef.current = c;
-        })
-      ),
+      !extra?.isPaging &&
+        getHighCharts.run(
+          id,
+          logsAndHighChartsPayload(extra?.reqParams),
+          new CancelToken(function executor(c) {
+            cancelTokenHighChartsRef.current = c;
+          })
+        ),
     ]);
-    if (logsRes?.code === 0 && highChartsRes?.code === 0) {
+    if (extra?.isPaging && logsRes?.code === 0) {
+      const currentPane = logPanesHelper.logPanes[id.toString()];
+      return {
+        logs: logsRes.data,
+        highCharts: currentPane.highCharts,
+      };
+    }
+    if (logsRes?.code === 0 && highChartsRes && highChartsRes?.code === 0) {
       return {
         logs: logsRes.data,
         highCharts: highChartsRes?.data,
@@ -392,8 +396,10 @@ const DataLogsModel = () => {
     });
     onChangeCurrentLogPane(newPane);
     doGetLogsAndHighCharts(currentLogLibrary.id, {
-      kw,
-      page: FIRST_PAGE,
+      reqParams: {
+        kw,
+        page: FIRST_PAGE,
+      },
     })
       .then((res) => {
         if (!res) {

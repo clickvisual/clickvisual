@@ -8,8 +8,8 @@ import {
   DarkTimeContext,
   TimeUnit,
 } from "@/pages/DataLogs/components/DateTimeSelected";
-import { PaneType } from "@/models/datalogs/useLogPanes";
 import { FIRST_PAGE } from "@/config/config";
+import { PaneType } from "@/models/datalogs/types";
 
 const RelativeTime = () => {
   const {
@@ -56,7 +56,7 @@ const RelativeTime = () => {
       activeIndex: index,
     };
     onChangeCurrentLogPane(pane);
-    doGetLogsAndHighCharts(currentLogLibrary.id, params)
+    doGetLogsAndHighCharts(currentLogLibrary.id, { reqParams: params })
       .then((res) => {
         if (!res) {
           resetLogPaneLogsAndHighCharts(pane);

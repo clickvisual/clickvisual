@@ -15,7 +15,8 @@ import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect } from "react";
 import { TableInfoResponse } from "@/services/dataLogs";
 import { BaseRes } from "@/hooks/useRequest/useRequest";
-import { DefaultPane, PaneType } from "@/models/datalogs/useLogPanes";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import { PaneType } from "@/models/datalogs/types";
 
 interface UrlStateType {
   tid?: string;
@@ -106,11 +107,13 @@ export default function useLogUrlParams() {
     onChangeLogPane(pane);
 
     doGetLogsAndHighCharts(tid, {
-      st: pane.start,
-      et: pane.end,
-      kw: pane.keyword,
-      page: pane.page,
-      pageSize: pane.pageSize,
+      reqParams: {
+        st: pane.start,
+        et: pane.end,
+        kw: pane.keyword,
+        page: pane.page,
+        pageSize: pane.pageSize,
+      },
     })
       .then((res) => {
         if (!res) return;

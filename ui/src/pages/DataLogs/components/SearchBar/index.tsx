@@ -4,14 +4,13 @@ import { useIntl, useModel } from "umi";
 import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
 import { useDebounceFn } from "ahooks";
 import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
-import { QueryParams } from "@/models/dataLogs";
 import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment from "moment";
 import type { DurationInputArg2, DurationInputArg1 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import IconFont from "@/components/IconFont";
-import { PaneType } from "@/models/datalogs/useLogPanes";
 import { useMemo } from "react";
+import { PaneType, QueryParams } from "@/models/datalogs/types";
 
 const SearchBar = () => {
   const {
@@ -70,7 +69,7 @@ const SearchBar = () => {
         activeIndex: activeTimeOptionIndex,
       };
       onChangeCurrentLogPane(pane);
-      doGetLogsAndHighCharts(currentLogLibrary?.id, params)
+      doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params })
         .then((res) => {
           if (!res) {
             resetLogPaneLogsAndHighCharts(pane);
