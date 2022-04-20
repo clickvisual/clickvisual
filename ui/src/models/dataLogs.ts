@@ -343,7 +343,7 @@ const DataLogsModel = () => {
           })
         ),
       ]);
-      if (logsRes?.code === 0 && highChartsRes && highChartsRes?.code === 0) {
+      if (logsRes?.code === 0 && highChartsRes?.code === 0) {
         return {
           logs: logsRes.data,
           highCharts: highChartsRes?.data,
