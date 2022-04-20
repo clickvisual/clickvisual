@@ -53,36 +53,14 @@ const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
   fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
-type typORMItem struct {
-	Filter string
-	Key    string
-}
-
-var typORM = map[int]typORMItem{
-	-2: {
-		Filter: "DateTime64(3)",
-		Key:    "DateTime64(3)",
-	},
-	-1: {
-		Filter: "DateTime",
-		Key:    "DateTime",
-	},
-	0: {
-		Filter: "String",
-		Key:    "String",
-	},
-	1: {
-		Filter: "Int",
-		Key:    "Int64",
-	},
-	2: {
-		Filter: "Float",
-		Key:    "Float64",
-	},
-	3: {
-		Filter: "JSON",
-		Key:    "JSON",
-	},
+var typORM = map[int]string{
+	-2: "DateTime64(3)",
+	-1: "DateTime",
+	0:  "String",
+	1:  "Int64",
+	2:  "Float64",
+	3:  "JSON",
+	4:  "UInt64",
 }
 
 var jsonExtractORM = map[int]string{
@@ -121,12 +99,28 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) string {
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
 		if obj.RootName == "" {
+			if hashFieldName, ok := obj.GetHashFieldName(); ok {
+				switch obj.HashTyp {
+				case db.HashTypeSip:
+					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(_log_, '%s')) AS `%s`,\n", obj.Field, hashFieldName)
+				case db.HashTypeURL:
+					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(_log_, '%s')) AS `%s`,\n", obj.Field, hashFieldName)
+				}
+			}
 			if obj.Typ == 0 {
 				jsonExtractSQL += fmt.Sprintf("toNullable(%s(JSONExtractString(_log_, '%s'))) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.Field, obj.GetFieldName())
 				continue
 			}
 			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractString(_log_, '%s')) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.Field, obj.GetFieldName())
 		} else {
+			if hashFieldName, ok := obj.GetHashFieldName(); ok {
+				switch obj.HashTyp {
+				case db.HashTypeSip:
+					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,\n", obj.RootName, obj.Field, hashFieldName)
+				case db.HashTypeURL:
+					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,\n", obj.RootName, obj.Field, hashFieldName)
+				}
+			}
 			if obj.Typ == 0 {
 				jsonExtractSQL += fmt.Sprintf("toNullable(%s(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s'))) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.GetFieldName())
 				continue
@@ -658,6 +652,21 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	res.Keys, _ = db.IndexList(conds)
+
+	// hash keys
+	hashKeys := make([]string, 0)
+	for _, k := range res.Keys {
+		if hashKey, ok := k.GetHashFieldName(); ok {
+			hashKeys = append(hashKeys, hashKey)
+		}
+	}
+	if len(hashKeys) > 0 {
+		for k := range res.Logs {
+			for _, hashKey := range hashKeys {
+				delete(res.Logs[k], hashKey)
+			}
+		}
+	}
 	res.HiddenFields = econf.GetStringSlice("app.hiddenFields")
 	res.DefaultFields = econf.GetStringSlice("app.defaultFields")
 	for _, k := range res.Keys {
@@ -775,7 +784,7 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
-		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'UInt32'", "'Int64'", "'UInt64'"}, ","))
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'UInt32'", "'Nullable(Int64)'", "'Int64'", "'UInt64'"}, ","))
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
@@ -795,9 +804,9 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 }
 
 func fieldTypeJudgment(typ string) int {
-	for k, v := range typORM {
-		if strings.Contains(typ, v.Filter) {
-			return k
+	for key, val := range typORM {
+		if strings.Contains(typ, val) {
+			return key
 		}
 	}
 	return -1
@@ -809,6 +818,23 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	alertSQL := ""
 	for _, del := range dels {
 		if c.mode == ModeCluster {
+			if del.HashTyp == db.HashTypeSip || del.HashTyp == db.HashTypeURL {
+				hashFieldName, ok := del.GetHashFieldName()
+				if ok {
+					sql1 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ON CLUSTER `%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, database.Cluster, hashFieldName)
+					_, err = c.db.Exec(sql1)
+					if err != nil {
+						return err
+					}
+					alertSQL += fmt.Sprintf("%s\n", sql1)
+					sql2 := fmt.Sprintf("ALTER TABLE `%s`.`%s_local` ON CLUSTER `%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, database.Cluster, hashFieldName)
+					_, err = c.db.Exec(sql2)
+					if err != nil {
+						return err
+					}
+					alertSQL += fmt.Sprintf("%s\n", sql2)
+				}
+			}
 			sql1 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ON CLUSTER `%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, database.Cluster, del.GetFieldName())
 			_, err = c.db.Exec(sql1)
 			if err != nil {
@@ -822,6 +848,17 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 			}
 			alertSQL += fmt.Sprintf("%s\n", sql2)
 		} else {
+			if del.HashTyp == db.HashTypeSip || del.HashTyp == db.HashTypeURL {
+				hashFieldName, ok := del.GetHashFieldName()
+				if ok {
+					sql3 := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, hashFieldName)
+					_, err = c.db.Exec(sql3)
+					if err != nil {
+						return err
+					}
+					alertSQL += fmt.Sprintf("%s\n", sql3)
+				}
+			}
 			sql3 := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, del.GetFieldName())
 			_, err = c.db.Exec(sql3)
 			if err != nil {
@@ -833,20 +870,48 @@ func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[
 	// step 2 add
 	for _, add := range adds {
 		if c.mode == ModeCluster {
-			sql1 := fmt.Sprintf("ALTER TABLE `%s`.`%s_local` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, database.Cluster, add.GetFieldName(), typORM[add.Typ].Key)
+			if add.HashTyp == db.HashTypeSip || add.HashTyp == db.HashTypeURL {
+				hashFieldName, ok := add.GetHashFieldName()
+				if ok {
+					sql1 := fmt.Sprintf("ALTER TABLE `%s`.`%s_local` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` %s;", database.Name, table.Name, database.Cluster, hashFieldName, typORM[4])
+					_, err = c.db.Exec(sql1)
+					if err != nil {
+						return err
+					}
+					alertSQL += fmt.Sprintf("%s\n", sql1)
+					sql2 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` %s;", database.Name, table.Name, database.Cluster, hashFieldName, typORM[4])
+					_, err = c.db.Exec(sql2)
+					if err != nil {
+						return err
+					}
+					alertSQL += fmt.Sprintf("%s\n", sql2)
+				}
+			}
+			sql1 := fmt.Sprintf("ALTER TABLE `%s`.`%s_local` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, database.Cluster, add.GetFieldName(), typORM[add.Typ])
 			_, err = c.db.Exec(sql1)
 			if err != nil {
 				return err
 			}
 			alertSQL += fmt.Sprintf("%s\n", sql1)
-			sql2 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, database.Cluster, add.GetFieldName(), typORM[add.Typ].Key)
+			sql2 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ON CLUSTER `%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, database.Cluster, add.GetFieldName(), typORM[add.Typ])
 			_, err = c.db.Exec(sql2)
 			if err != nil {
 				return err
 			}
 			alertSQL += fmt.Sprintf("%s\n", sql2)
 		} else {
-			sql3 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.GetFieldName(), typORM[add.Typ].Key)
+			if add.HashTyp == db.HashTypeSip || add.HashTyp == db.HashTypeURL {
+				hashFieldName, ok := add.GetHashFieldName()
+				if ok {
+					sql3 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` %s;", database.Name, table.Name, hashFieldName, typORM[4])
+					_, err = c.db.Exec(sql3)
+					if err != nil {
+						return err
+					}
+					alertSQL += fmt.Sprintf("%s\n", sql3)
+				}
+			}
+			sql3 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` Nullable(%s);", database.Name, table.Name, add.GetFieldName(), typORM[add.Typ])
 			_, err = c.db.Exec(sql3)
 			if err != nil {
 				return err
@@ -950,28 +1015,33 @@ func (c *ClickHouse) queryHashTransform(params view.ReqQuery) string {
 	conds["hash_typ"] = egorm.Cond{Op: "!=", Val: 0}
 	indexes, _ := db.IndexList(conds)
 	for _, index := range indexes {
-		if index.HashType == 0 {
+		if index.HashTyp == 0 {
 			continue
 		}
-		query = hashTransform(query, index.Field, index.HashType)
+		query = hashTransform(query, index)
 	}
 	invoker.Logger.Debug("countSQL", elog.Any("step", "queryHashTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
 	return query
 }
 
-func hashTransform(query string, key string, hashTyp int) string {
+func hashTransform(query string, index *db.Index) string {
+	var (
+		key              = index.Field
+		hashTyp          = index.HashTyp
+		hashFieldName, _ = index.GetHashFieldName()
+	)
 	if strings.Contains(query, key+"=") && (hashTyp == 1 || hashTyp == 2) {
-		r, _ := regexp.Compile(key + "='(.*)'")
+		r, _ := regexp.Compile(key + "='(\\S*)'")
 		val := r.FindString(query)
+		fmt.Println("val", val)
 		val = strings.Replace(val, key+"=", "", 1)
-		query = strings.Replace(query, key+"=", "_inner_hash_url=", 1)
-		if hashTyp == 1 {
+		query = strings.Replace(query, key+"=", hashFieldName+"=", 1)
+		if hashTyp == db.HashTypeSip {
 			query = strings.Replace(query, val, fmt.Sprintf("sipHash64(%s)", val), 1)
 		}
-		if hashTyp == 2 {
+		if hashTyp == db.HashTypeURL {
 			query = strings.Replace(query, val, fmt.Sprintf("URLHash(%s)", val), 1)
 		}
-		invoker.Logger.Debug("countSQL", elog.Any("step", "regexp"), elog.Any("val", val))
 	}
 	return query
 }
