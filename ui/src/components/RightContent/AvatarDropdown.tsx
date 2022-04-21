@@ -45,6 +45,8 @@ const AvatarDropdown = () => {
       <ChangePasswordModal />
     </Menu>
   );
+  if (currentUser && currentUser.id === 0) return <></>;
+
   return currentUser && currentUser.nickname ? (
     <HeaderDropdown overlay={menuHeaderDropdown}>
       <span className={`${styles.action} ${styles.account}`}>
