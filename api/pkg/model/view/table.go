@@ -33,6 +33,7 @@ type RespTableSimple struct {
 	Id         int    `json:"id"`
 	TableName  string `json:"tableName"`
 	CreateType int    `json:"createType"`
+	Desc       string `json:"desc"`
 }
 
 type RespTableDetail struct {

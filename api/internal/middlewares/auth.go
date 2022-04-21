@@ -14,7 +14,6 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/component/core"
-
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
@@ -22,79 +21,82 @@ func AuthChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		switch {
-		case initContextWithAuthProxy(c):
-		case initContextWithAnonymousUser(c):
-		}
-
-		session := sessions.Default(c)
-		user := session.Get("user")
-		if user == nil {
-			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
-			c.Abort()
+		case !isNotAnonymousUser(c):
+		case !isNotAuthProxy(c):
+		default:
+			session := sessions.Default(c)
+			user := session.Get("user")
+			if user == nil {
+				appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
+				c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
+				c.Abort()
+				return
+			}
+			u := db.User{}
+			userBytes, _ := json.Marshal(user)
+			if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
+				appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
+				c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 2)"})
+				c.Abort()
+				return
+			}
+			ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
+			c.Set(core.UserContextKey, ctxUser)
+			c.Next()
 			return
 		}
-		u := db.User{}
-		userBytes, _ := json.Marshal(user)
-		if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
-			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
-			c.Abort()
-			return
-		}
-		ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
-		c.Set(core.UserContextKey, ctxUser)
-		c.Next()
-		return
 	}
 }
 
-func initContextWithAnonymousUser(c *gin.Context) bool {
+func isNotAnonymousUser(c *gin.Context) bool {
 	if !econf.GetBool("auth.anonymous.enabled") {
-		return false
-	}
-	u := &db.User{Username: "admin", Nickname: "admin", BaseModel: db.BaseModel{ID: 999}}
-	session := sessions.Default(c)
-	session.Set("user", u)
-	err := session.Save()
-	if err == nil {
 		return true
 	}
+	u := &db.User{Username: "anonymous", Nickname: "anonymous", BaseModel: db.BaseModel{ID: 999999}}
+	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
+	c.Set(core.UserContextKey, ctxUser)
+	c.Next()
 	return false
 }
 
-func initContextWithAuthProxy(c *gin.Context) bool {
+func isNotAuthProxy(c *gin.Context) bool {
 	username := c.GetHeader(econf.GetString("auth.proxy.headerName"))
 	// Bail if auth proxy is not enabled
 	if !econf.GetBool("auth.proxy.enabled") {
-		return false
+		return true
 	}
 	// If there is no header - we can't move forward
 	if username == "" {
-		return false
+		return true
 	}
 	// User login
 	conds := egorm.Conds{}
 	conds["username"] = username
-	user, err := db.UserInfoX(conds)
+	u, err := db.UserInfoX(conds)
 	if err != nil && !errors.Is(err, egorm.ErrRecordNotFound) {
-		invoker.Logger.Error("initContextWithAuthProxy", elog.String("step", "UserInfoX"), elog.String("username", "username"), elog.String("error", err.Error()))
-		return false
-	}
-	if user.ID == 0 {
-		user = db.User{Username: username, Nickname: username, Access: "auth.proxy"}
-		err = db.UserCreate(invoker.Db, &user)
-		if err != nil {
-			invoker.Logger.Error("initContextWithAuthProxy", elog.String("step", "UserCreate"), elog.String("username", "username"), elog.String("error", err.Error()))
-			return false
-		}
-	}
-	invoker.Logger.Debug("initContextWithAuthProxy", elog.String("step", "finish"), elog.Any("user", user))
-	session := sessions.Default(c)
-	session.Set("user", user)
-	err = session.Save()
-	if err == nil {
+		invoker.Logger.Error("isNotAuthProxy", elog.String("step", "UserInfoX"), elog.String("username", username), elog.String("error", err.Error()))
 		return true
 	}
+	if u.ID == 0 {
+		u = db.User{Username: username, Nickname: username, Access: "auth.proxy"}
+		err = db.UserCreate(invoker.Db, &u)
+		if err != nil {
+			invoker.Logger.Error("isNotAuthProxy", elog.String("step", "UserCreate"), elog.String("username", username), elog.String("error", err.Error()))
+			return true
+		}
+	}
+	if econf.GetBool("auth.proxy.isAutoLogin") {
+		session := sessions.Default(c)
+		session.Set("user", u)
+		errSave := session.Save()
+		if errSave != nil {
+			invoker.Logger.Error("isNotAuthProxy", elog.String("step", "sessionSave"), elog.Any("username", u), elog.String("error", err.Error()))
+			return true
+		}
+	}
+	invoker.Logger.Debug("initContextWithAuthProxy", elog.String("step", "finish"), elog.Any("user", u))
+	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
+	c.Set(core.UserContextKey, ctxUser)
+	c.Next()
 	return false
 }

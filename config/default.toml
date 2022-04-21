@@ -57,6 +57,7 @@ enabled = false
 
 [auth.proxy]
 enabled = false
+isAutoLogin = false
 headerName = "X-WEBAUTH-USER"
 
 [[auth.tps]]
