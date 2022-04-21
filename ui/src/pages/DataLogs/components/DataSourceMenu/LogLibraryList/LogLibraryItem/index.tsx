@@ -1,7 +1,11 @@
 import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import { message, Tooltip } from "antd";
-import { FileTextOutlined, FundViewOutlined } from "@ant-design/icons";
+import { Dropdown, Menu, message, Tooltip } from "antd";
+import {
+  FileTextOutlined,
+  FundViewOutlined,
+  MoreOutlined,
+} from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import {
   FIFTEEN_TIME,
@@ -22,6 +26,7 @@ import { DefaultPane } from "@/models/datalogs/useLogPanes";
 import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
 import { PaneType } from "@/models/datalogs/types";
+import MenuItem from "antd/es/menu/MenuItem";
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;
@@ -154,15 +159,89 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       })
       .catch(() => hideMessage());
   };
+
+  const menu = (
+    <Menu>
+      <MenuItem
+        icon={<FileTextOutlined />}
+        onClick={() => {
+          onChange(logLibrary);
+          onChangeLogLibraryInfoDrawVisible(true);
+        }}
+      >
+        <span>
+          {i18n.formatMessage({
+            id: "datasource.tooltip.icon.info",
+          })}
+        </span>
+      </MenuItem>
+      <MenuItem
+        icon={<FundViewOutlined />}
+        disabled={logLibrary.createType !== 0}
+        onClick={() => {
+          onChange(logLibrary);
+          onChangeViewsVisibleDraw(true);
+        }}
+      >
+        <span>
+          {i18n.formatMessage({
+            id: "datasource.tooltip.icon.view",
+          })}
+        </span>
+      </MenuItem>
+      <MenuItem
+        icon={<IconFont type={"icon-delete"} />}
+        onClick={() => {
+          DeletedModal({
+            onOk: () => {
+              doDeleted();
+            },
+            content: i18n.formatMessage(
+              {
+                id: "datasource.logLibrary.deleted.content",
+              },
+              { logLibrary: logLibrary.tableName }
+            ),
+          });
+        }}
+      >
+        <span className={logLibraryListStyles.deletedSpan}>
+          {i18n.formatMessage({
+            id: "datasource.tooltip.icon.deleted",
+          })}
+        </span>
+      </MenuItem>
+    </Menu>
+  );
+
+  const tooltipTitle = (
+    <div>
+      <div>
+        <span>
+          {i18n.formatMessage({ id: "datasource.logLibrary.from.tableName" })}
+          :&nbsp;
+        </span>
+        <span>{logLibrary.tableName}</span>
+      </div>
+      <div>
+        <div>
+          {i18n.formatMessage({ id: "description" })}
+          :&nbsp;
+        </div>
+        <div>{!logLibrary?.desc ? "" : logLibrary.desc}</div>
+      </div>
+    </div>
+  );
+
   return (
-    <li
-      className={classNames(
-        currentLogLibrary?.id === logLibrary.id &&
-          logLibraryListStyles.activeLogLibrary,
-        mouseEnter && logLibraryListStyles.LogLibraryHover
-      )}
-    >
-      <Tooltip title={logLibrary.tableName}>
+    <Tooltip title={tooltipTitle} placement="right">
+      <li
+        className={classNames(
+          currentLogLibrary?.id === logLibrary.id &&
+            logLibraryListStyles.activeLogLibrary,
+          mouseEnter && logLibraryListStyles.LogLibraryHover
+        )}
+      >
         <span
           onClick={() => {
             if (currentLogLibrary?.id === logLibrary.id) return;
@@ -176,65 +255,14 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         >
           {logLibrary.tableName}
         </span>
-      </Tooltip>
 
-      <Tooltip
-        title={i18n.formatMessage({
-          id: "datasource.tooltip.icon.info",
-        })}
-      >
-        <FileTextOutlined
-          onClick={() => {
-            onChange(logLibrary);
-            onChangeLogLibraryInfoDrawVisible(true);
-          }}
-          className={classNames(logLibraryListStyles.icon)}
-        />
-      </Tooltip>
-
-      {logLibrary.createType === 0 && (
-        <Tooltip
-          title={i18n.formatMessage({
-            id: "datasource.tooltip.icon.view",
-          })}
-        >
-          <FundViewOutlined
-            onClick={() => {
-              onChange(logLibrary);
-              onChangeViewsVisibleDraw(true);
-            }}
-            className={classNames(logLibraryListStyles.icon)}
-          />
-        </Tooltip>
-      )}
-      <Tooltip
-        title={i18n.formatMessage({
-          id: "datasource.tooltip.icon.deleted",
-        })}
-      >
-        <IconFont
-          onClick={() => {
-            DeletedModal({
-              onOk: () => {
-                doDeleted();
-              },
-              content: i18n.formatMessage(
-                {
-                  id: "datasource.logLibrary.deleted.content",
-                },
-                { logLibrary: logLibrary.tableName }
-              ),
-            });
-          }}
-          className={classNames(logLibraryListStyles.icon)}
-          type={
-            currentLogLibrary?.id === logLibrary.id
-              ? "icon-log-delete"
-              : "icon-delete"
-          }
-        />
-      </Tooltip>
-    </li>
+        <Dropdown overlay={menu} trigger={["click"]}>
+          <div>
+            <MoreOutlined className={classNames(logLibraryListStyles.icon)} />
+          </div>
+        </Dropdown>
+      </li>
+    </Tooltip>
   );
 };
 

@@ -80,6 +80,15 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
     },
     {
       id: 107,
+      title: i18n.formatMessage({ id: "description" }),
+      content: libraryInfo?.desc,
+      tooltip: false,
+      Desc: (
+        <div className={infoStyles.descContent}>{libraryInfo?.desc || "-"}</div>
+      ),
+    },
+    {
+      id: 108,
       title: i18n.formatMessage({ id: "datasource.logLibrary.info.sql" }),
       content: "",
       tooltip: false,
@@ -136,9 +145,16 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
     >
       <div className={infoStyles.infoMain}>
         {infoData.map((item: any) => (
-          <div className={infoStyles.item} key={item.id}>
-            <div className={infoStyles.title}>{item.title}: </div>
+          <div
+            className={classNames(
+              infoStyles.item,
+              item.Desc && infoStyles.itemDesc
+            )}
+            key={item.id}
+          >
+            <div className={infoStyles.title}>{item.title}:&nbsp;</div>
             {item.Select ||
+              item.Desc ||
               (item.tooltip ? (
                 <Tooltip title={item.content}>
                   <div className={infoStyles.content}>

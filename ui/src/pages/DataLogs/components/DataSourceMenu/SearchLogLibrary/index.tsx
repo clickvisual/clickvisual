@@ -43,6 +43,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
           title={i18n.formatMessage({
             id: "datasource.logLibrary.search.created",
           })}
+          placement="right"
         >
           <Button
             disabled={!currentDatabase}

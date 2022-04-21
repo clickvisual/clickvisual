@@ -86,6 +86,7 @@ export interface TablesResponse {
   id: number;
   tableName: string;
   createType: number;
+  desc?: string;
 }
 
 export interface TableInfoResponse {
@@ -99,6 +100,7 @@ export interface TableInfoResponse {
   topic: string;
   typ: number;
   uid: number;
+  desc?: string;
   database: DatabaseResponse;
 }
 
