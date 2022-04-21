@@ -194,6 +194,7 @@ func TableList(c *core.Context) {
 			Id:         row.ID,
 			TableName:  row.Name,
 			CreateType: row.CreateType,
+			Desc:       row.Desc,
 		})
 	}
 	c.JSONOK(res)

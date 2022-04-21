@@ -90,7 +90,7 @@ func (a *event) List(param view.ReqEventList) (res []db.Event, page *view.Pagina
 	}
 	res = make([]db.Event, 0)
 	err = query.Count(&page.Total).
-		Order("ctime desc").
+		Order("id desc").
 		Offset((page.Current - 1) * page.PageSize).
 		Limit(page.PageSize).
 		Find(&res).Error
