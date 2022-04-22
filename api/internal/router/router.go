@@ -187,5 +187,18 @@ func GetRouter() *egin.Component {
 		v1.GET("/event/source/:name/enums", core.Handle(event.GetEnumsOfSource))
 		v1.GET("/events", core.Handle(event.ListPage))
 	}
+	{
+		v1.GET("/pms/commonInfo", core.Handle(permission.GetPmsCommonInfo))
+		v1.GET("/pms/role", core.Handle(permission.PmsRoleList))
+		v1.GET("/pms/role/:id", core.Handle(permission.PmsRoleInfo))
+		v1.GET("/pms/app/:id/role/grant", core.Handle(permission.GetTablePmsRolesGrant))
+		v1.GET("/pms/root/uids", core.Handle(permission.GetRootUids))
+		v1.PATCH("/pms/app/:id/role/grant", core.Handle(permission.UpdateAppPmsRolesGrant))
+		v1.PATCH("/pms/role/:id", core.Handle(permission.UpdatePmsRole))
+		v1.DELETE("/pms/role/:id", core.Handle(permission.DeletePmsRole))
+		v1.POST("/pms/role", core.Handle(permission.CreatePmsRole))
+		v1.POST("/pms/root/grant", core.Handle(permission.GrantRootUids))
+		v1.POST("/pms/check", core.Handle(permission.CheckPermission))
+	}
 	return r
 }
