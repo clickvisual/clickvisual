@@ -53,5 +53,44 @@ permission:
         - name: 删除数据库连接
           method: DELETE
           path: /api/v1/sys/clusters/:id
-      - path: /sys/events
-        name: events
+      - name: events
+        path: /sys/events
+      - name: pms
+        path: /sys/pms/role
+        api:
+          - path: /api/v1/pms/commonInfo
+            name: 获取权限常量信息
+            method: GET
+          - path: /api/v1/pms/defaultRole/list
+            name: 全局默认角色列表
+            method: GET
+          - path: /api/v1/pms/app/:id/role/grant
+            name: 获取应用的角色授权信息
+            method: GET
+          - path: /api/v1/pms/app/:id/role/grant
+            name: 获取应用的角色授权信息
+            method: PUT
+          - path: /api/v1/pms/role
+            name: 获取权限角色列表
+            method: GET
+          - path: /api/v1/pms/role/:id
+            name: 获取指定权限角色
+            method: GET
+          - path: /api/v1/pms/role
+            name: 创建权限角色
+            method: POST
+          - path: /api/v1/pms/role/:id
+            name: 更新指定权限角色
+            method: PUT
+          - path: /api/v1/pms/role/:id
+            name: 删除权限角色
+            method: DELETE
+          - path: /api/v1/pms/root/uids
+            name: 获取超级管理员用户id
+            method: GET
+          - path: /api/v1/pms/root/grant
+            name: 授权超级管理员
+            method: POST
+          - path: /api/v1/pms/check
+            name: 查询权限
+            method: POST

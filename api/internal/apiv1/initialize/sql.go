@@ -30,7 +30,7 @@ func Install(c *core.Context) {
 		return
 	}
 
-	c.JSONOK("migration finish")
+	c.JSONOK("install finish")
 }
 
 func Migration(c *core.Context) {
