@@ -51,7 +51,7 @@ const Index: React.FC<ListFormProps> = (props) => {
       fetchPmsCommonInfo();
     }
     const selectedBelongType = form.getFieldValue('belong_type');
-    if (selectedBelongType === 'app') {
+    if (selectedBelongType === 'table') {
       setSubResource(commonInfo?.app_subResources_info);
     } else if (selectedBelongType === 'configResource') {
       setSubResource(commonInfo?.configRsrc_subResources_info);
@@ -86,7 +86,7 @@ const Index: React.FC<ListFormProps> = (props) => {
             style={{ width: 200 }}
             onChange={handleChangeBelongType}
           >
-            <Select.Option value={'app'}>app 应用</Select.Option>
+            <Select.Option value={'table'}>日志库</Select.Option>
             <Select.Option value={'configResource'}>配置资源</Select.Option>
           </Select>
         </Form.Item>

@@ -387,6 +387,8 @@ func AddRule(ruleType string, params ...interface{}) (bool, error) {
 		if len(params) < 2 {
 			return false, errors.New("add rule failed, g3 rule must have 2 items")
 		}
+		invoker.Logger.Debug("pms", elog.Any("ruleType", ruleType), elog.Any("params[:2]", params[:2]))
+
 		return enforcer.AddNamedGroupingPolicy(ruleType, params[:2]...)
 	default:
 		return false, errors.New("add rule failed, invalid rule type")
@@ -684,7 +686,7 @@ func GetPmsCommonInfo() view.ResPmsCommonInfo {
 		})
 	}
 
-	for _, name := range PermittedAppSubResourceList {
+	for _, name := range PermittedTableSubResourceList {
 		appSubResrcInfo = append(appSubResrcInfo, view.InfoItem{
 			Name: name,
 			Desc: PermittedAppSubResource[name],
@@ -715,7 +717,10 @@ func IsRootWithoutCheckingSysLock(uid int) bool {
 	if err != nil { // if userId is empty, then will return err
 		return false
 	}
+	invoker.Logger.Debug("pmsplugin", elog.Any("uid", uid), elog.Any("subjectFieldStr", subjectFieldStr))
+
 	g3s := enforcer.GetFilteredNamedGroupingPolicy(RuleTypeG3, 0, subjectFieldStr, "role__root")
+	invoker.Logger.Debug("pmsplugin", elog.Any("g3s", g3s))
 	return len(g3s) > 0
 }
 

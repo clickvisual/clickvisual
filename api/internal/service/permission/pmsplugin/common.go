@@ -199,26 +199,20 @@ const (
 
 // Action相关常量
 const (
-	ActFull     = "*"
-	ActView     = "view"
-	ActEdit     = "edit"
-	ActDelete   = "delete"
-	ActGrant    = "grant"
-	ActAudit    = "audit"
-	ActExec     = "exec"
-	ActRollback = "rollback"
+	ActFull   = "*"
+	ActView   = "view"
+	ActEdit   = "edit"
+	ActDelete = "delete"
+	ActGrant  = "grant"
 )
 
-var PermittedActLst = []string{ActFull, ActView, ActEdit, ActDelete, ActGrant, ActAudit, ActExec, ActRollback}
+var PermittedActLst = []string{ActFull, ActView, ActEdit, ActDelete, ActGrant}
 var PermittedActMap = map[string]string{
-	ActFull:     "All(全部)",
-	ActView:     "只读",
-	ActEdit:     "编辑",
-	ActDelete:   "删除",
-	ActGrant:    "授权",
-	ActAudit:    "审计",
-	ActExec:     "执行",
-	ActRollback: "回滚",
+	ActFull:   "All(全部)",
+	ActView:   "只读",
+	ActEdit:   "编辑",
+	ActDelete: "删除",
+	ActGrant:  "授权",
 }
 
 func GetActCnName(enAct string) string {
@@ -229,7 +223,7 @@ func GetActCnName(enAct string) string {
 }
 
 var NormalAct = []string{ActFull, ActView, ActEdit}
-var AppDeployAct = []string{ActFull, ActEdit, ActView, ActAudit, ActExec, ActRollback}
+var AppDeployAct = []string{ActFull, ActEdit, ActView}
 
 // ActionCheck in matchers of model file:  (p.act == 'edit' && r.act == 'view' || keyMatch(r.act, p.act) || regexMatch(r.act,p.act))
 func IsActMatched(reqAct string, policyAct string) bool {
@@ -273,39 +267,18 @@ func JointActs2RuleActStr(acts ...string) string {
 	return strings.Join(validActs, "|")
 }
 
-// App应用下的资源 常量
+// 资源 常量
 const (
-	AppAllRsrc       = "*"         // 应用下的所有资源, i.e. 下述全部
-	TableBaseInfo    = "baseInfo"  // 应用的基础信息
-	TableRole        = "role"      // 应用下的角色
-	AppConfig        = "configMap" // 应用的配置文件
-	AppK8sDeployment = "k8sDeployment"
-	AppK8sService    = "k8sService"
-	AppK8sIngress    = "k8sIngress"
-	AppRelease       = "release" // 应用部署任务;  对应的act可能是 edit(create), delete, view, audit, exec, rollback
-	AppJenkinsJob    = "jenkinsJob"
-	AppJenkinsCache  = "jenkinsCache"
-	AppAutoDeploy    = "autoDeploy"
-	AppPodTerminal   = "podTerminal"
-	AppReleaseCtl    = "releaseCtl"
+	AllRsrc  = "*"
+	Table    = "table"
+	Database = "database"
 )
 
-var PermittedAppSubResourceList = []string{AppAllRsrc, TableBaseInfo, TableRole, AppConfig, AppK8sDeployment, AppK8sService,
-	AppK8sIngress, AppRelease, AppJenkinsJob, AppJenkinsCache, AppAutoDeploy, AppPodTerminal, AppReleaseCtl}
+var PermittedTableSubResourceList = []string{AllRsrc, Table, Database}
 var PermittedAppSubResource = map[string]string{
-	AppAllRsrc:       "All(全部)",
-	TableRole:        "App 角色",
-	TableBaseInfo:    "App 基础信息",
-	AppConfig:        "App 配置文件",
-	AppK8sDeployment: "App K8sDeployment",
-	AppK8sService:    "App K8sSvc",
-	AppK8sIngress:    "App K8sIngress",
-	AppRelease:       "App 发布单",
-	AppJenkinsJob:    "App Jenkins流水线",
-	AppJenkinsCache:  "App Jenkins缓存",
-	AppAutoDeploy:    "App 自动部署配置",
-	AppPodTerminal:   "App Pod容器终端",
-	AppReleaseCtl:    "App 发布控制",
+	AllRsrc:  "All(全部)",
+	Table:    "Table",
+	Database: "Database",
 }
 
 var PermittedAppAdminGrantSubResource = map[string]string{}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Form, message, Modal } from "antd";
 import { reqRootUids } from "@/services/pms";
-
+import UserSelect from "../UserSelect";
 interface ListFormProps {
   modalVisible: boolean;
   formTitle: string;
@@ -84,7 +84,9 @@ const RootUsersForm: React.FC<ListFormProps> = (props) => {
                 message: "请至少选择一个用户!",
               },
             ]}
-          ></Form.Item>
+          >
+            <UserSelect multiple mode={"list"} />
+          </Form.Item>
         </Form>
       )}
     </Modal>

@@ -4,8 +4,9 @@ import (
 	"io/ioutil"
 
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"gopkg.in/yaml.v3"
+
+	"github.com/shimohq/mogo/api/internal/invoker"
 )
 
 type Service struct {
@@ -40,6 +41,16 @@ func loadMenuTree(filePath string) Resource {
 	return menu
 }
 
-func (s *Service) MenuList() []MenuTreeItem {
+func (s *Service) AdminMenuList() []MenuTreeItem {
 	return s.resource.Permission
+}
+
+func (s *Service) UserMenuList() []MenuTreeItem {
+	res := make([]MenuTreeItem, 0)
+	for _, p := range s.resource.Permission {
+		if p.Name == "log" || p.Name == "alarm" {
+			res = append(res, p)
+		}
+	}
+	return res
 }

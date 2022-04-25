@@ -71,12 +71,12 @@ func CreatePmsRole(c *core.Context) {
 	reqModel := view.ReqNewPmsRole{}
 	err = c.Bind(&reqModel)
 	if err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "params invalid: "+err.Error(), nil)
 		return
 	}
 	if reqModel.RoleType == db.PmsRoleTypeDefault {
 		if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-			c.JSONE(1, err.Error(), nil)
+			c.JSONE(1, "IsRootUser: "+err.Error(), nil)
 			return
 		}
 	} else if reqModel.RoleType == db.PmsRoleTypeCustom {
@@ -89,12 +89,12 @@ func CreatePmsRole(c *core.Context) {
 			UserId:      c.Uid(),
 			ObjectType:  reqModel.BelongResource,
 			ObjectIdx:   strconv.Itoa(reqModel.ResourceId),
-			SubResource: pmsplugin.TableRole,
+			SubResource: pmsplugin.Database,
 			Acts:        []string{pmsplugin.ActEdit},
 			DomainType:  pmsplugin.SystemDom,
 		})
 		if err != nil {
-			c.JSONE(1, err.Error(), nil)
+			c.JSONE(1, "CheckNormalPermission: "+err.Error(), nil)
 			return
 		}
 	} else {
@@ -103,7 +103,7 @@ func CreatePmsRole(c *core.Context) {
 	}
 	err = permission.Manager.CreatePmsRole(&reqModel)
 	if err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "CreatePmsRole: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
@@ -132,7 +132,7 @@ func UpdatePmsRole(c *core.Context) {
 			UserId:      c.Uid(),
 			ObjectType:  reqModel.BelongResource,
 			ObjectIdx:   strconv.Itoa(reqModel.ResourceId),
-			SubResource: pmsplugin.TableRole,
+			SubResource: pmsplugin.Database,
 			Acts:        []string{pmsplugin.ActEdit},
 			DomainType:  pmsplugin.SystemDom,
 		})
@@ -181,7 +181,7 @@ func DeletePmsRole(c *core.Context) {
 			UserId:      c.Uid(),
 			ObjectType:  reqModel.BelongResource,
 			ObjectIdx:   strconv.Itoa(reqModel.ResourceId),
-			SubResource: pmsplugin.TableRole,
+			SubResource: pmsplugin.Database,
 			Acts:        []string{pmsplugin.ActEdit},
 			DomainType:  pmsplugin.SystemDom,
 		})

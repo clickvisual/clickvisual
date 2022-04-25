@@ -62,7 +62,8 @@ export default {
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
   "menu.systemSettings.events": "事件中心",
-
+  "menu.systemSettings.pms": "权限管理",
+  "menu.systemSettings.role": "角色管理",
   // user
   "login.header": "欢迎来到 MOGO",
   "login.title": "登  录",
@@ -101,9 +102,9 @@ export default {
   "instance.form.title.mode": "类型",
   "instance.form.title.modeType.single": "单机",
   "instance.form.title.clusterWithDuplicate": "集群版（带副本）",
-  "instance.form.title.cluster": "集群版",
+  "instance.form.title.cluster": "集群",
   "instance.form.title.k8s": "K8s",
-  "instance.form.title.ruleStoreType": "报警存储",
+  "instance.form.title.ruleStoreType": "告警",
   "instance.form.title.ruleStoreType.tip": "报警中心的报警规则存储方式",
   "instance.form.title.ruleStoreType.radio.file": "文件",
   "instance.form.title.ruleStoreType.radio.enable": "关闭",

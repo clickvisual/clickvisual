@@ -29,6 +29,20 @@ func Info(c *core.Context) {
 	return
 }
 
+// List 根据分页获取Cluster列表
+func List(c *core.Context) {
+	res, err := db.UserList(egorm.Conds{})
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	for k, _ := range res {
+		res[k].Password = "*"
+		res[k].Uid = res[k].ID
+	}
+	c.JSONOK(res)
+}
+
 type login struct {
 	Username string `form:"username" binding:"required"`
 	Password string `form:"password" binding:"required"`

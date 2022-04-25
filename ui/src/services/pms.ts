@@ -80,24 +80,24 @@ export async function reqDeleteRole(roleId: number) {
 }
 
 export async function reqUpdatePmsRole(roleId: number, params: any) {
-  return request(process.env.PUBLIC_PATH + `api/admin/pms/role/${roleId}`, {
+  return request(process.env.PUBLIC_PATH + `api/v1/pms/role/${roleId}`, {
     method: "PUT",
     data: params,
   });
 }
 
 export async function reqCreatedPmsRole(data: any) {
-  return request(process.env.PUBLIC_PATH + `api/admin/pms/role`, {
+  return request(process.env.PUBLIC_PATH + `api/v1/pms/role`, {
     method: "POST",
     data,
   });
 }
 
 export async function reqUpdatePmsGrant(aid: number, params: any) {
-  return request(
-    process.env.PUBLIC_PATH + `api/admin/pms/app/${aid}/role/grant`,
-    { method: "PUT", data: params }
-  );
+  return request(process.env.PUBLIC_PATH + `api/v1/pms/app/${aid}/role/grant`, {
+    method: "PUT",
+    data: params,
+  });
 }
 
 export async function reqGetPmsGrant(aid: number) {

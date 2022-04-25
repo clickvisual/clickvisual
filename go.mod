@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.5.1
-	github.com/casbin/casbin/v2 v2.37.4
-	github.com/casbin/gorm-adapter/v3 v3.5.1
+	github.com/casbin/casbin/v2 v2.28.3
+	github.com/casbin/gorm-adapter/v3 v3.2.12
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/locales v0.14.0
@@ -150,7 +150,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/postgres v1.2.2 // indirect
 	gorm.io/driver/sqlserver v1.2.1 // indirect
-	gorm.io/plugin/dbresolver v1.1.0 // indirect
 	k8s.io/component-base v0.23.1 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect

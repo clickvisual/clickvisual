@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -14,8 +15,7 @@ import (
 	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
-type pms struct {
-}
+type pms struct{}
 
 var Manager *pms
 
@@ -653,9 +653,14 @@ func (p *pms) GrantRootUsers(newRootUids []int) {
 	if isEqual {
 		return
 	}
+	invoker.Logger.Debug("pms", elog.Any("uidsNeed2Add", uidsNeed2Add), elog.Any("uidsNeed2Add", uidsNeed2Rm))
 	for _, newUid := range uidsNeed2Add {
 		userStr, _ := pmsplugin.Assemble2CasbinStr(pmsplugin.PrefixUser, strconv.Itoa(newUid))
-		_, _ = pmsplugin.AddRule(pmsplugin.RuleTypeG3, userStr, "role__root")
+		res, err := pmsplugin.AddRule(pmsplugin.RuleTypeG3, userStr, "role__root")
+		if err != nil {
+			invoker.Logger.Error("pms", elog.Any("err", err.Error()), elog.Any("res", res))
+		}
+		invoker.Logger.Debug("pms", elog.Any("res", res))
 	}
 	for _, rmUid := range uidsNeed2Rm {
 		userStr, _ := pmsplugin.Assemble2CasbinStr(pmsplugin.PrefixUser, strconv.Itoa(rmUid))

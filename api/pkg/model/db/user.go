@@ -15,7 +15,7 @@ import (
 
 type User struct {
 	BaseModel
-
+	Uid              int        `gorm:"-" json:"uid"`
 	OaId             int64      `gorm:"column:oa_id;type:bigint(20);NOT NULL" json:"oaId"`                           // oa_id
 	Username         string     `gorm:"column:username;type:varchar(256);NOT NULL" json:"username"`                  // 用户名
 	Nickname         string     `gorm:"column:nickname;type:varchar(256);NOT NULL" json:"nickname"`                  // 昵称

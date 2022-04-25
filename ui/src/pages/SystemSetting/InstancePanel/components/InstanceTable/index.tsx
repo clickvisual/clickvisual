@@ -1,5 +1,5 @@
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import { Divider, Space, Table, Tooltip } from "antd";
+import { Divider, Space, Table, Tooltip,Tag } from "antd";
 import type { AlignType, FixedType } from "rc-table/lib/interface";
 import { EditOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
@@ -50,15 +50,15 @@ const InstanceTable = (props: InstanceTableProps) => {
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
     },
+    // {
+    //   title: "DSN",
+    //   align: "center" as AlignType,
+    //   dataIndex: "dsn",
+    //   ellipsis: { showTitle: false },
+    //   render: TooltipRender({ placement: "right" }),
+    // },
     {
-      title: "DSN",
-      align: "center" as AlignType,
-      dataIndex: "dsn",
-      ellipsis: { showTitle: false },
-      render: TooltipRender({ placement: "right" }),
-    },
-    {
-      title: i18n.formatMessage({ id: "datasource.draw.table.deployment" }),
+      title: i18n.formatMessage({ id: "instance.form.title.mode" }),
       dataIndex: "mode",
       align: "center" as AlignType,
       width: 100,
@@ -82,7 +82,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: (clusters: string[]) => (
         <Tooltip title={clusters}>
           {clusters?.map((item: string) => {
-            return <span>{item}</span>;
+            return <Tag color="lime">{item}</Tag>;
           })}
         </Tooltip>
       ),
@@ -99,7 +99,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       ),
     },
     {
-      title: "Prometheus Target",
+      title: "Prometheus",
       align: "center" as AlignType,
       dataIndex: "prometheusTarget",
       ellipsis: { showTitle: false },
@@ -109,23 +109,23 @@ const InstanceTable = (props: InstanceTableProps) => {
         return TooltipUtil(_);
       },
     },
-    {
-      title: i18n.formatMessage({ id: "instance.storagePah" }),
-      align: "center" as AlignType,
-      dataIndex: "configmap",
-      ellipsis: { showTitle: false },
-      width: 200,
-      render: (_: any, record: any) => {
-        switch (record.ruleStoreType) {
-          case 1:
-            return TooltipUtil(record.filePath);
-          case 2:
-            return TooltipUtil(_);
-          default:
-            return <>-</>;
-        }
-      },
-    },
+    // {
+    //   title: i18n.formatMessage({ id: "instance.storagePah" }),
+    //   align: "center" as AlignType,
+    //   dataIndex: "configmap",
+    //   ellipsis: { showTitle: false },
+    //   width: 200,
+    //   render: (_: any, record: any) => {
+    //     switch (record.ruleStoreType) {
+    //       case 1:
+    //         return TooltipUtil(record.filePath);
+    //       case 2:
+    //         return TooltipUtil(_);
+    //       default:
+    //         return <>-</>;
+    //     }
+    //   },
+    // },
     {
       title: `${i18n.formatMessage({
         id: "operation",

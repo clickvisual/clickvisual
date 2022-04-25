@@ -7,11 +7,12 @@ import (
 
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
+
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
-	"gorm.io/gorm"
 )
 
 func (p *pms) CheckPmsRole(role *db.PmsRole) (isValid bool, err error) {
@@ -102,7 +103,7 @@ func (p *pms) CreatePmsRole(newPmsRole *view.ReqNewPmsRole) (err error) {
 	// 1. check newPmsRole.Details is valid or not
 	isValid, err := p.CheckPmsRole(&newPmsRole.PmsRole)
 	if !isValid {
-		return errors.Errorf("reqNewPmsRole is not valid. %w", err)
+		return errors.Errorf("reqNewPmsRole is not valid. %v", err)
 	}
 	// 2. check the existence of current pmsRoles with same belongResource, if role_type is defaultType
 	if newPmsRole.RoleType == db.PmsRoleTypeDefault {

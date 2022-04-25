@@ -6,7 +6,7 @@ import DetailList from './detailList';
 const { Option } = Select;
 
 const belongSourceList = [
-  { value: 'app', name: 'app 应用' },
+  { value: 'table', name: '日志库' },
   { value: 'configResource', name: '配置资源' },
 ];
 
