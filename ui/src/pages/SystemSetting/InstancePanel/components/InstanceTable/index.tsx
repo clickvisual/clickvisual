@@ -1,7 +1,7 @@
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import { Divider, Space, Table, Tooltip,Tag } from "antd";
+import { Divider, Space, Table, Tooltip, Tag, message } from "antd";
 import type { AlignType, FixedType } from "rc-table/lib/interface";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
 import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
@@ -13,6 +13,9 @@ import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
 import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 import { ColumnsType } from "antd/es/table";
+import React, { useEffect, useState } from "react";
+import { CheckPermission, CheckRoot } from "@/services/pms";
+import AppRoleAssignListForm from "@/components/RoleAssign";
 
 type InstanceTableProps = {
   list: InstanceType[];
@@ -24,6 +27,12 @@ const InstanceTable = (props: InstanceTableProps) => {
     useContext(InstancePanelContext);
   const { doDeletedInstance, doGetInstanceList, listLoading } =
     useModel("instances");
+
+  const [instance, setInstance] = useState<any>();
+  const [iid, setIID] = useState<any>(0);
+  const [roleAssignVisible, setRoleAssignVisible] = useState<true | false>(
+    false
+  );
 
   const { AlarmStorages } = useAlarmStorages();
 
@@ -38,6 +47,10 @@ const InstanceTable = (props: InstanceTableProps) => {
   );
 
   const i18n = useIntl();
+
+  const onChange = (flag: boolean) => {
+    setRoleAssignVisible(flag);
+  };
 
   const column: ColumnsType<any> = [
     {
@@ -158,6 +171,30 @@ const InstanceTable = (props: InstanceTableProps) => {
               />
             </Tooltip>
             <Divider type="vertical" />
+            <a
+              onClick={() => {
+                CheckPermission({
+                  userId: 0,
+                  objectType: "instance",
+                  objectIdx: `${record.id}`,
+                  acts: ["edit"],
+                  domainType: "system",
+                }).then((r: any) => {
+                  if (r.code !== 0) {
+                    message.error(r.msg);
+                    return;
+                  }
+                  setInstance(record);
+                  setIID(record.id);
+                  setRoleAssignVisible(true);
+                });
+              }}
+            >
+              <Tooltip title="修改权限">
+                <UsergroupAddOutlined />
+              </Tooltip>
+            </a>
+            <Divider type="vertical" />
             <Tooltip
               title={i18n.formatMessage({
                 id: "delete",
@@ -202,6 +239,12 @@ const InstanceTable = (props: InstanceTableProps) => {
         columns={column}
         dataSource={list}
         pagination={{ responsive: true, showSizeChanger: true, size: "small" }}
+      />
+      <AppRoleAssignListForm
+        iid={iid}
+        instanceName={instance?.name}
+        drawerVisible={roleAssignVisible}
+        onChangeDrawerVisible={onChange}
       />
     </div>
   );

@@ -190,13 +190,18 @@ type (
 		DomainId    string   `json:"domainId"`                    // envId or entId based on DomainType respectively
 	}
 
+	ReqPmsCommonInfo struct {
+		Iid int `json:"iid" form:"iid"` // request instance id
+	}
+
 	ResPmsCommonInfo struct {
-		RulesInfo                  []InfoItem `json:"rules_info"`
-		PrefixesInfo               []InfoItem `json:"prefixes_info"`
-		AllActsInfo                []InfoItem `json:"all_acts_info"`
-		NormalActsInfo             []InfoItem `json:"normal_acts_info"`
-		AppSubResourcesInfo        []InfoItem `json:"app_subResources_info"`
-		ConfigRsrcSubResourcesInfo []InfoItem `json:"configRsrc_subResources_info"`
+		RulesInfo                  []InfoItem     `json:"rules_info"`
+		PrefixesInfo               []InfoItem     `json:"prefixes_info"`
+		AllActsInfo                []InfoItem     `json:"all_acts_info"`
+		NormalActsInfo             []InfoItem     `json:"normal_acts_info"`
+		AppSubResourcesInfo        []InfoItem     `json:"app_subResources_info"`
+		ConfigRsrcSubResourcesInfo []InfoItem     `json:"configRsrc_subResources_info"`
+		DomainCascader             []CascaderItem `json:"domainCascader"`
 	}
 
 	RootUsers struct {

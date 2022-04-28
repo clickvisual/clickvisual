@@ -21,9 +21,9 @@ func GetTableCurrentRoleAssignInAllDom(c *core.Context) {
 	}
 	reqPerm := view.ReqPermission{
 		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixTable,
+		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   aidStr,
-		SubResource: pmsplugin.Database,
+		SubResource: pmsplugin.Role,
 		Acts:        []string{pmsplugin.ActView},
 		DomainType:  pmsplugin.SystemDom,
 		DomainId:    "",
@@ -60,9 +60,9 @@ func ReAssignTableRolesUser(c *core.Context) {
 	var appId = reqModel.AppId
 	reqPerm := view.ReqPermission{
 		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixTable,
+		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(appId),
-		SubResource: pmsplugin.Table,
+		SubResource: pmsplugin.InstanceBase,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.SystemDom,
 		DomainId:    "",
@@ -73,7 +73,7 @@ func ReAssignTableRolesUser(c *core.Context) {
 	}
 
 	for i, reqRole := range reqModel.RolesInfo {
-		reqModel.RolesInfo[i].BelongType = pmsplugin.PrefixTable
+		reqModel.RolesInfo[i].BelongType = pmsplugin.PrefixInstance
 		reqModel.RolesInfo[i].ReferId = appId
 		if reqRole.DomainId == 0 {
 			reqModel.RolesInfo[i].DomainType = ""

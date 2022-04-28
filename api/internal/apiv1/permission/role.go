@@ -89,7 +89,7 @@ func CreatePmsRole(c *core.Context) {
 			UserId:      c.Uid(),
 			ObjectType:  reqModel.BelongResource,
 			ObjectIdx:   strconv.Itoa(reqModel.ResourceId),
-			SubResource: pmsplugin.Database,
+			SubResource: pmsplugin.Role,
 			Acts:        []string{pmsplugin.ActEdit},
 			DomainType:  pmsplugin.SystemDom,
 		})
@@ -132,7 +132,7 @@ func UpdatePmsRole(c *core.Context) {
 			UserId:      c.Uid(),
 			ObjectType:  reqModel.BelongResource,
 			ObjectIdx:   strconv.Itoa(reqModel.ResourceId),
-			SubResource: pmsplugin.Database,
+			SubResource: pmsplugin.Role,
 			Acts:        []string{pmsplugin.ActEdit},
 			DomainType:  pmsplugin.SystemDom,
 		})
@@ -181,7 +181,7 @@ func DeletePmsRole(c *core.Context) {
 			UserId:      c.Uid(),
 			ObjectType:  reqModel.BelongResource,
 			ObjectIdx:   strconv.Itoa(reqModel.ResourceId),
-			SubResource: pmsplugin.Database,
+			SubResource: pmsplugin.Role,
 			Acts:        []string{pmsplugin.ActEdit},
 			DomainType:  pmsplugin.SystemDom,
 		})

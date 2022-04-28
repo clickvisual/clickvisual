@@ -2,9 +2,12 @@ package permission
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
+	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
 type (
@@ -48,24 +51,24 @@ type (
 		SubResources []string `json:"sub_resources"`
 		Acts         []string `json:"acts"`
 	}
-	Domain4Fe           []string
-	AppPmsRoleGrantItem struct {
+	Domain4Fe                []string
+	InstancePmsRoleGrantItem struct {
 		Created int       `json:"created"`
 		Domain  Domain4Fe `json:"domain"`
 		UserIds []int     `json:"userIds"`
 	}
-	AppPmsRole struct {
-		Id       int                    `json:"id"`
-		RoleType int                    `json:"roleType"`
-		Name     string                 `json:"name"`
-		Desc     string                 `json:"desc"`
-		Details  []PmsRoleDetail        `json:"details"`
-		Grant    []*AppPmsRoleGrantItem `json:"grant"`
+	InstancePmsRole struct {
+		Id       int                         `json:"id"`
+		RoleType int                         `json:"roleType"`
+		Name     string                      `json:"name"`
+		Desc     string                      `json:"desc"`
+		Details  []PmsRoleDetail             `json:"details"`
+		Grant    []*InstancePmsRoleGrantItem `json:"grant"`
 	}
 
-	AppPmsRolesWithGrantInfo struct {
-		Aid   int           `json:"aid"`
-		Roles []*AppPmsRole `json:"roles"`
+	InstancePmsRolesWithGrantInfo struct {
+		Iid   int                `json:"iid"`
+		Roles []*InstancePmsRole `json:"roles"`
 	}
 )
 
@@ -82,6 +85,22 @@ func (df Domain4Fe) GetDomainTypeAndId() (domType string, domId int, err error) 
 		}
 		err = invalidErr
 		return
+	case 2:
+		if df[0] != pmsplugin.PrefixDatabase {
+			err = invalidErr
+			return
+		}
+		domType = df[0]
+		domId, err = strconv.Atoi(df[1])
+		return
+	case 3:
+		if df[0] != pmsplugin.PrefixTable {
+			err = invalidErr
+			return
+		}
+		domType = df[0]
+		domId, err = strconv.Atoi(df[2])
+		return
 	default:
 		err = invalidErr
 		return
@@ -92,6 +111,15 @@ func Trans2Domain4Fe(domType string, domId int) Domain4Fe {
 	switch strings.TrimSpace(domType) {
 	case "", "*":
 		return []string{pmsplugin.AllDom}
+	case pmsplugin.PrefixDatabase:
+		return []string{pmsplugin.PrefixDatabase, strconv.Itoa(domId)}
+	case pmsplugin.PrefixTable:
+		table, err := db.TableInfo(invoker.Db, domId)
+		if err != nil {
+			return []string{}
+		}
+		return []string{pmsplugin.PrefixTable, strconv.Itoa(table.Database.ID), strconv.Itoa(domId)}
+
 	default:
 		return []string{}
 	}

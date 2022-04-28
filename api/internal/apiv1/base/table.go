@@ -3,6 +3,7 @@ package base
 import (
 	"errors"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
+	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -72,6 +75,20 @@ func TableCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(databaseInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -119,6 +136,20 @@ func TableInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
 		return
 	}
+
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	instance, err := db.InstanceInfo(invoker.Db, tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
@@ -176,7 +207,7 @@ func TableInfo(c *core.Context) {
 }
 
 func TableList(c *core.Context) {
-	did := int64(cast.ToInt(c.Param("did")))
+	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
@@ -190,6 +221,9 @@ func TableList(c *core.Context) {
 	}
 	res := make([]view.RespTableSimple, 0)
 	for _, row := range tableList {
+		if !service.InstanceManager.ReadPermissionTable(c.Uid(), row.Database.Iid, row.ID) {
+			continue
+		}
 		res = append(res, view.RespTableSimple{
 			Id:         row.ID,
 			TableName:  row.Name,
@@ -212,6 +246,19 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "Unable to delete tables not created by Mogo.", nil)
 		return
 	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActDelete},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	// check if these is some alarms on this table
 	conds := egorm.Conds{}
 	conds["tid"] = tableInfo.ID
@@ -298,6 +345,20 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
+
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "TableInfo"), elog.Any("cost", time.Since(t)))
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
@@ -335,6 +396,16 @@ func QueryComplete(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	op, err := service.InstanceManager.Load(iid)
@@ -380,6 +451,20 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
+
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -509,6 +594,20 @@ func TableIndexes(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
+	// permission check
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	indexInfo, _ := db.IndexInfo(invoker.Db, indexId)
 	param.Field = indexInfo.GetFieldName()
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
@@ -560,6 +659,16 @@ func TableCreateSelfBuilt(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	err = tableCreateSelfBuilt(c.Uid(), iid, param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -579,6 +688,16 @@ func TableCreateSelfBuiltBatch(c *core.Context) {
 	err := c.Bind(&params)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	for _, param := range params.TableList {

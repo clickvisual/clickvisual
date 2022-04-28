@@ -1,6 +1,7 @@
 package base
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/gotomicro/ego-component/egorm"
@@ -9,6 +10,8 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/internal/service/event"
+	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -25,14 +28,30 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(1, "default time field not support delete", nil)
 		return
 	}
-	tx := invoker.Db.Begin()
 	var viewInfo db.View
-	viewInfo, err = db.ViewInfo(tx, id)
+	viewInfo, err = db.ViewInfo(invoker.Db, id)
 	if err != nil {
-		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	tableInfo, err := db.TableInfo(invoker.Db, viewInfo.Tid)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.CollectionRules,
+		Acts:        []string{pmsplugin.ActDelete},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	tx := invoker.Db.Begin()
 	err = db.ViewDelete(tx, id)
 	if err != nil {
 		tx.Rollback()
@@ -48,12 +67,7 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(tx, viewInfo.Tid)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, err.Error(), nil)
-		return
-	}
+
 	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
 	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
@@ -107,6 +121,19 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
+	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.CollectionRules,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	current := db.View{
 		Tid:              tid,
 		Name:             params.Name,
@@ -129,7 +156,6 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(tx, tid)
 	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
 	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
@@ -205,16 +231,28 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewList []*db.View
-	conds := egorm.Conds{}
-	conds["tid"] = viewInfo.Tid
-	viewList, err = db.ViewList(tx, conds)
+	tableInfo, err := db.TableInfo(tx, viewInfo.Tid)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(tx, viewInfo.Tid)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.CollectionRules,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	var viewList []*db.View
+	conds := egorm.Conds{}
+	conds["tid"] = viewInfo.Tid
+	viewList, err = db.ViewList(tx, conds)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
@@ -270,12 +308,29 @@ func ViewInfo(c *core.Context) {
 		c.JSONE(1, "default time field not support modify", nil)
 		return
 	}
-	info, err := db.ViewInfo(invoker.Db, id)
+	viewInfo, err := db.ViewInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	c.JSONOK(info)
+	tableInfo, err := db.TableInfo(invoker.Db, viewInfo.Tid)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.CollectionRules,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(viewInfo)
 	return
 }
 
@@ -291,6 +346,18 @@ func ViewList(c *core.Context) {
 	table := tableInfo.Name
 	if iid == 0 || database == "" || table == "" {
 		c.JSONE(core.CodeErr, "params error", nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.CollectionRules,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	condsView := egorm.Conds{}

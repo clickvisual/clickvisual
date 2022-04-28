@@ -11,6 +11,8 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/internal/service/event"
+	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -32,6 +34,19 @@ func Create(c *core.Context) {
 			tid = f.Tid
 		}
 	}
+	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Alarm,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	tx := invoker.Db.Begin()
 	obj := &db.Alarm{
 		Tid:        tid,
@@ -44,8 +59,7 @@ func Create(c *core.Context) {
 		ChannelIds: db.Ints(req.ChannelIds),
 		Uid:        c.Uid(),
 	}
-	err := db.AlarmCreate(tx, obj)
-	if err != nil {
+	if err = db.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 01: "+err.Error(), nil)
 		return
@@ -80,11 +94,25 @@ func Update(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+
+	instanceInfo, tableInfo, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Alarm,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	switch req.Status {
 	case db.AlarmStatusOpen:
 		err = service.Alarm.OpenOperator(id)
 	case db.AlarmStatusClose:
-		instanceInfo, tableInfo, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
 		if errAlarmInfo != nil {
 			c.JSONE(1, "alarm update failed 02"+errAlarmInfo.Error(), nil)
 			return
@@ -174,6 +202,18 @@ func Info(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Alarm,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	conds := egorm.Conds{}
 	conds["alarm_id"] = alarmInfo.ID
 	filters, err := db.AlarmFilterList(conds)
@@ -214,6 +254,18 @@ func Delete(c *core.Context) {
 	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
 		c.JSONE(1, "alarm failed to delete 01: "+err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Alarm,
+		Acts:        []string{pmsplugin.ActDelete},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	tx := invoker.Db.Begin()

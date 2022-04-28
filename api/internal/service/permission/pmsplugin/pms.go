@@ -657,7 +657,7 @@ func GetUidBySubjectStr(subjectStr string) (uid int) {
 }
 
 // GetPmsCommonInfo:  trans permitted_maps to viewStruct
-func GetPmsCommonInfo() view.ResPmsCommonInfo {
+func GetPmsCommonInfo(iid int) view.ResPmsCommonInfo {
 	var rulesInfo, prefixesInfo, allActsInfo, normalActsInfo, appSubResrcInfo, configRsrcResrcInfo []view.InfoItem
 	for rName, rDesc := range PermittedRuleTypes {
 		rulesInfo = append(rulesInfo, view.InfoItem{
@@ -686,10 +686,10 @@ func GetPmsCommonInfo() view.ResPmsCommonInfo {
 		})
 	}
 
-	for _, name := range PermittedTableSubResourceList {
+	for _, name := range PermittedSubResourceList {
 		appSubResrcInfo = append(appSubResrcInfo, view.InfoItem{
 			Name: name,
-			Desc: PermittedAppSubResource[name],
+			Desc: PermittedSubResource[name],
 		})
 	}
 
@@ -707,6 +707,7 @@ func GetPmsCommonInfo() view.ResPmsCommonInfo {
 		NormalActsInfo:             normalActsInfo,
 		AppSubResourcesInfo:        appSubResrcInfo,
 		ConfigRsrcSubResourcesInfo: configRsrcResrcInfo,
+		DomainCascader:             GetDomainCascaderOptions(iid),
 	}
 }
 

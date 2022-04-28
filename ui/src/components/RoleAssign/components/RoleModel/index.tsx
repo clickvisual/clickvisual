@@ -82,7 +82,7 @@ const RoleModel = () => {
           rules={[{ required: true, message: '请选择所属资源' }]}
           name={'belongResource'}
         >
-          <Select disabled={isEditor || openModalType === 'app'} placeholder={'请选择所属资源'}>
+          <Select disabled={isEditor || openModalType === 'instance'} placeholder={'请选择所属资源'}>
             {belongSourceList.map((item) => (
               <Option key={item.value} value={item.value}>
                 {item.name}

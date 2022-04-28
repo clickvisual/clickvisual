@@ -86,8 +86,8 @@ const Index: React.FC<ListFormProps> = (props) => {
             style={{ width: 200 }}
             onChange={handleChangeBelongType}
           >
-            <Select.Option value={'table'}>日志库</Select.Option>
-            <Select.Option value={'configResource'}>配置资源</Select.Option>
+            <Select.Option value={'instance'}>实例</Select.Option>
+            {/*<Select.Option value={'configResource'}>配置资源</Select.Option>*/}
           </Select>
         </Form.Item>
         <Form.Item

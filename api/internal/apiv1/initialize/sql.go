@@ -3,6 +3,7 @@ package initialize
 import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/install"
+	"github.com/shimohq/mogo/api/internal/service/permission"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 )
@@ -34,6 +35,10 @@ func Install(c *core.Context) {
 }
 
 func Migration(c *core.Context) {
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	err := install.Migration()
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)

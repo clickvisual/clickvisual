@@ -1,12 +1,12 @@
-import { message } from 'antd';
+import { message } from "antd";
 import {
   reqCreatedPmsRole,
   reqGetPmsGrant,
   reqGetPmsRole,
   reqPmsCommonInfo,
   reqUpdatePmsRole,
-} from '@/services/pms';
-import { useEffect, useState } from 'react';
+} from "@/services/pms";
+import { useEffect, useState } from "react";
 import useRequest from "@/hooks/useRequest/useRequest";
 
 export interface PermissionCheck {
@@ -90,12 +90,14 @@ export interface RoleGrantInfo {
 
 const usePmsCommonModel = () => {
   // const appId: number = parseInt(history.location.query?.aid as string);
-  const [commonInfo, setCommonInfo] = useState<CommonInfo | undefined>(undefined);
+  const [commonInfo, setCommonInfo] = useState<CommonInfo | undefined>(
+    undefined
+  );
   const [roleModal, setRoleModal] = useState<boolean>(false);
   const [roleType, setRoleType] = useState<number>(1);
   const [callBack, setCallBack] = useState<(params?: any) => void>();
-  const [openModalType, setOpenModalTyle] = useState<string>('');
-  const [aid, setAid] = useState<number>(0);
+  const [openModalType, setOpenModalTyle] = useState<string>("");
+  const [iid, setIID] = useState<number>(0);
   const [pmsGrant, setPmsGrant] = useState<any>();
   const [selectedRole, setSelectedRole] = useState<any>();
   const [isEditor, setIsEditor] = useState<boolean>(false);
@@ -104,7 +106,7 @@ const usePmsCommonModel = () => {
     flag: boolean,
     roleType: number,
     openType: string,
-    callBackFuc?: (params?: any) => void,
+    callBackFuc?: (params?: any) => void
   ) => {
     setRoleType(roleType);
     setOpenModalTyle(openType);
@@ -112,12 +114,12 @@ const usePmsCommonModel = () => {
     setCallBack(() => callBackFuc);
   };
 
-  const onChangeAid = (id: number) => {
-    setAid(id);
+  const onChangeIid = (id: number) => {
+    setIID(id);
   };
 
   const getPmsRole = useRequest(reqGetPmsRole, {
-    loadingText: { loading: '加载中...', done: undefined },
+    loadingText: { loading: "加载中...", done: undefined },
     onSuccess: (res) => {
       setSelectedRole(res.data);
       setIsEditor(true);
@@ -131,26 +133,26 @@ const usePmsCommonModel = () => {
   });
 
   const createdPmsRole = useRequest(reqCreatedPmsRole, {
-    loadingText: { loading: '创建中...', done: '创建成功' },
+    loadingText: { loading: "创建中...", done: "创建成功" },
     onSuccess: (res) => {
       resetRole();
-      if (openModalType === 'app') {
-        doGetPmsGrant();
+      if (openModalType === "instance") {
+        doGetPmsGrant(iid);
       }
-      if (openModalType === 'global') {
+      if (openModalType === "global") {
         callBack?.();
       }
     },
   });
 
   const updatePmsRole = useRequest(reqUpdatePmsRole, {
-    loadingText: { loading: '更新中...', done: '更新成功' },
+    loadingText: { loading: "更新中...", done: "更新成功" },
     onSuccess: (res) => {
       resetRole();
-      if (openModalType === 'app') {
-        doGetPmsGrant();
+      if (openModalType === "instance") {
+        doGetPmsGrant(iid);
       }
-      if (openModalType === 'global') {
+      if (openModalType === "global") {
         callBack?.();
       }
     },
@@ -160,8 +162,8 @@ const usePmsCommonModel = () => {
     return getPmsRole.run(roleId);
   };
 
-  const doGetPmsGrant = () => {
-    getPmsGrant.run(aid);
+  const doGetPmsGrant = (iid: number) => {
+    getPmsGrant.run(iid);
   };
 
   const doCreatedPmsRole = (role: any) => {
@@ -178,23 +180,19 @@ const usePmsCommonModel = () => {
     setRoleModal(false);
   };
 
-  const fetchPmsCommonInfo = () => {
-    if (!commonInfo) {
-      reqPmsCommonInfo().then((r) => {
-        if (r.code !== 0) {
-          message.error(`获取权限相关基础信息失败 ${r.msg}`);
-          return;
-        }
-        setCommonInfo(r.data);
-      });
-    }
+  const fetchPmsCommonInfo = (iid: number) => {
+    reqPmsCommonInfo(iid).then((r) => {
+      if (r.code !== 0) {
+        message.error(`获取权限相关基础信息失败 ${r.msg}`);
+        return;
+      }
+      setCommonInfo(r.data);
+    });
   };
 
   useEffect(() => {
-    if (commonInfo === undefined) {
-      fetchPmsCommonInfo();
-    }
-  }, [commonInfo]);
+    fetchPmsCommonInfo(iid);
+  }, [iid]);
 
   return {
     commonInfo,
@@ -204,8 +202,8 @@ const usePmsCommonModel = () => {
     isEditor,
     pmsGrant,
     roleType,
-    aid,
-    onChangeAid,
+    iid,
+    onChangeIid,
     fetchPmsCommonInfo,
     onChangeRoleModal,
     doGetPmsRole,

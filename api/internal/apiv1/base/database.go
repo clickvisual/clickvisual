@@ -1,6 +1,8 @@
 package base
 
 import (
+	"strconv"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/kl7sn/toolkit/xgo"
 	"github.com/spf13/cast"
@@ -8,6 +10,8 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/internal/service/event"
+	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -24,6 +28,18 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
 	obj := db.Database{
 		Iid:            iid,
 		Name:           req.Name,
@@ -102,6 +118,9 @@ func DatabaseList(c *core.Context) {
 	}
 	res := make([]view.RespDatabaseItem, 0)
 	for _, row := range dl {
+		if !service.InstanceManager.ReadPermissionDatabase(c.Uid(), row.Iid, row.ID) {
+			continue
+		}
 		tmp := view.RespDatabaseItem{
 			Id:   row.ID,
 			Iid:  row.Iid,
@@ -115,7 +134,6 @@ func DatabaseList(c *core.Context) {
 			tmp.Clusters = row.Instance.Clusters
 		}
 		res = append(res, tmp)
-
 	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return
@@ -127,16 +145,28 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	database, err := db.DatabaseInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "failed to delete database: "+err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActDelete},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(database.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	conds := egorm.Conds{}
 	conds["did"] = id
 	tables, err := db.TableList(invoker.Db, conds)
 	if len(tables) > 0 {
 		c.JSONE(1, "you should delete all tables before delete database", nil)
-		return
-	}
-	database, err := db.DatabaseInfo(invoker.Db, id)
-	if err != nil {
-		c.JSONE(1, "failed to delete database: "+err.Error(), nil)
 		return
 	}
 	if database.IsCreateByMogo == 1 {

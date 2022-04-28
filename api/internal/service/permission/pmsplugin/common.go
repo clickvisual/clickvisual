@@ -6,8 +6,12 @@ import (
 	"strings"
 
 	casbin_util "github.com/casbin/casbin/v2/util"
+	"github.com/gotomicro/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
+	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
 	"github.com/shimohq/mogo/api/pkg/utils"
@@ -77,24 +81,28 @@ const SEP = "__" // the Separator using in sub, obj and dom
 
 // prefix const
 const (
-	PrefixRoute   = "route"
-	PrefixTable   = "table"       // using in obj or g2;
-	PrefixMenu    = "menu"        // using in obj
-	PrefixSubRsrc = "subResource" // using in obj of p rule.
-	PrefixUser    = "user"        // using in sub, g, g2, g3; e.g. PrefixUser +  SEP + UID, i.e. user__123
-	PrefixRole    = "role"        // using in sub, g or g3;   e.g. PrefixRole +  SEP + R-NAME + [...], i.e. "role__root" or "role__admin__app__svc-user"
-	PrefixGroup   = "group"       // using in p.obj or g2;	e.g. PrefixGroup + SEP + G-NAME + [...], i.e. group__admin
+	PrefixRoute    = "route"
+	PrefixInstance = "instance"    // using in obj or g2;
+	PrefixMenu     = "menu"        // using in obj
+	PrefixSubRsrc  = "subResource" // using in obj of p rule.
+	PrefixUser     = "user"        // using in sub, g, g2, g3; e.g. PrefixUser +  SEP + UID, i.e. user__123
+	PrefixRole     = "role"        // using in sub, g or g3;   e.g. PrefixRole +  SEP + R-NAME + [...], i.e. "role__root" or "role__admin__app__svc-user"
+	PrefixGroup    = "group"       // using in p.obj or g2;	e.g. PrefixGroup + SEP + G-NAME + [...], i.e. group__admin
+	PrefixDatabase = "Database"    // using            			e.g. PrefixEnt +   SEP + ENT-ID, i.e. ent__1
+	PrefixTable    = "Table"       // using in dom;
 )
 
 // 对于以下这个Map,  其key: 当前Casbin的sub, obj, dom字符中允许的prefix;  value: 对应的中文名
 var PermittedPrefixMap = map[string]string{
-	PrefixRoute:   "路由",
-	PrefixTable:   "日志库",
-	PrefixSubRsrc: "子资源",
-	PrefixMenu:    "菜单",
-	PrefixUser:    "用户",
-	PrefixRole:    "角色",
-	PrefixGroup:   "组",
+	PrefixRoute:    "路由",
+	PrefixInstance: "实例",
+	PrefixSubRsrc:  "子资源",
+	PrefixMenu:     "菜单",
+	PrefixUser:     "用户",
+	PrefixRole:     "角色",
+	PrefixGroup:    "组",
+	PrefixDatabase: "数据库",
+	PrefixTable:    "日志表",
 }
 
 func GetPrefixCnName(enPrefix string) string {
@@ -111,7 +119,9 @@ var PermittedPrefixInP0 = map[string]string{
 
 // current only support ent and env in dom.  TODO: support other types in dom
 var PermittedDomPrefixMap = map[string]string{
-	SystemDom: "系统",
+	SystemDom:      "系统",
+	PrefixDatabase: "数据库",
+	PrefixTable:    "日志表",
 }
 
 const SystemDom = "system"
@@ -269,16 +279,22 @@ func JointActs2RuleActStr(acts ...string) string {
 
 // 资源 常量
 const (
-	AllRsrc  = "*"
-	Table    = "table"
-	Database = "database"
+	AllRsrc         = "*"
+	Role            = "role"
+	InstanceBase    = "base"
+	Alarm           = "alarm"
+	CollectionRules = "collectionRules"
+	FieldManagement = "fieldManagement"
 )
 
-var PermittedTableSubResourceList = []string{AllRsrc, Table, Database}
-var PermittedAppSubResource = map[string]string{
-	AllRsrc:  "All(全部)",
-	Table:    "Table",
-	Database: "Database",
+var PermittedSubResourceList = []string{AllRsrc, Role, InstanceBase, Alarm, CollectionRules, FieldManagement}
+var PermittedSubResource = map[string]string{
+	AllRsrc:         "All(全部)",
+	InstanceBase:    "基础操作",
+	Alarm:           "告警操作",
+	CollectionRules: "数据采集规则",
+	FieldManagement: "分析字段配置",
+	Role:            "角色操作",
 }
 
 var PermittedAppAdminGrantSubResource = map[string]string{}
@@ -292,7 +308,7 @@ var PermittedConfigRsrcSubResource = map[string]string{
 }
 
 func GetAppSubResourceCnName(enSubR string) string {
-	if cnName, ok := PermittedAppSubResource[enSubR]; ok {
+	if cnName, ok := PermittedSubResource[enSubR]; ok {
 		return cnName
 	}
 	return ""
@@ -411,4 +427,68 @@ func Convert2InterfaceSlice(builtinItems ...interface{}) (res []interface{}) {
 		res[idx] = v
 	}
 	return res
+}
+
+func GetDomainCascaderOptions(iid int) (resp view.RespDomainCascader) {
+	resp = append(resp, view.CascaderItem{
+		Value: AllDom,
+		Label: "全部",
+	})
+	condsDatabases := egorm.Conds{}
+	if iid != 0 {
+		condsDatabases["iid"] = iid
+	}
+	entWithDatabase, err := db.DatabaseList(invoker.Db, condsDatabases)
+	if err != nil {
+		invoker.Logger.Error("Get all enterprise for domain cascade selector error.", zap.Error(err))
+		return
+	}
+	if len(entWithDatabase) <= 0 {
+		return
+	}
+	entCascade := view.CascaderItem{
+		Value:    PrefixDatabase,
+		Label:    "数据库",
+		Children: make([]view.CascaderItem, 0),
+	}
+	envCascade := view.CascaderItem{
+		Value:    PrefixTable,
+		Label:    "日志库",
+		Children: make([]view.CascaderItem, 0),
+	}
+	for _, ent := range entWithDatabase {
+		invoker.Logger.Debug("entWithDatabase", elog.Any("ent", ent))
+		if ent.Instance == nil {
+			continue
+		}
+		entCascade.Children = append(entCascade.Children, view.CascaderItem{
+			Value: strconv.Itoa(ent.ID),
+			Label: ent.Name,
+		})
+		conds := egorm.Conds{}
+		conds["did"] = ent.ID
+		tables, _ := db.TableList(invoker.Db, conds)
+		if len(tables) <= 0 {
+			continue
+		}
+		childrenEnt := view.CascaderItem{
+			Value:    strconv.Itoa(ent.ID),
+			Label:    ent.Name,
+			Children: make([]view.CascaderItem, 0),
+		}
+		for _, env := range tables {
+			childrenEnt.Children = append(childrenEnt.Children, view.CascaderItem{
+				Value: strconv.Itoa(env.ID),
+				Label: env.Name,
+			})
+		}
+		envCascade.Children = append(envCascade.Children, childrenEnt)
+	}
+	if len(entCascade.Children) > 0 {
+		resp = append(resp, entCascade)
+	}
+	if len(envCascade.Children) > 0 {
+		resp = append(resp, envCascade)
+	}
+	return
 }

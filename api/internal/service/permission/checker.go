@@ -38,6 +38,8 @@ func (b *baseChecker) CheckDomLockIfActWrite(reqParam *view.ReqPermission) error
 	switch reqParam.DomainType {
 	case pmsplugin.SystemDom:
 		reqParam.DomainType = ""
+	case pmsplugin.PrefixDatabase:
+	case pmsplugin.PrefixTable:
 	default:
 		return fmt.Errorf("target reqDomType %s has not been supported checking in pms yet", reqParam.DomainType)
 	}

@@ -53,8 +53,11 @@ export async function CheckRoot() {
   });
 }
 
-export async function reqPmsCommonInfo() {
-  return request(process.env.PUBLIC_PATH + `api/v1/pms/commonInfo`);
+export async function reqPmsCommonInfo(iid: number) {
+  if(iid == undefined){
+    iid = 0
+  }
+  return request(process.env.PUBLIC_PATH + `api/v1/pms/commonInfo?iid=${iid}`);
 }
 
 export async function reqGetPmsRole(roleId: number) {
@@ -93,16 +96,19 @@ export async function reqCreatedPmsRole(data: any) {
   });
 }
 
-export async function reqUpdatePmsGrant(aid: number, params: any) {
-  return request(process.env.PUBLIC_PATH + `api/v1/pms/app/${aid}/role/grant`, {
-    method: "PUT",
-    data: params,
-  });
+export async function reqUpdatePmsGrant(iid: number, params: any) {
+  return request(
+    process.env.PUBLIC_PATH + `api/v1/pms/instance/${iid}/role/grant`,
+    {
+      method: "PUT",
+      data: params,
+    }
+  );
 }
 
-export async function reqGetPmsGrant(aid: number) {
+export async function reqGetPmsGrant(iid: number) {
   return request<API.Res<PmsGrantRes>>(
-    process.env.PUBLIC_PATH + `api/v1/pms/app/${aid}/role/grant`,
+    process.env.PUBLIC_PATH + `api/v1/pms/instance/${iid}/role/grant`,
     { method: "GET" }
   );
 }

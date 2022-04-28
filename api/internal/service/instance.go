@@ -12,8 +12,11 @@ import (
 
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
+	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/constx"
 	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/shimohq/mogo/api/pkg/model/view"
 )
 
 type instanceManager struct {
@@ -96,6 +99,78 @@ func (i *instanceManager) All() []inquiry.Operator {
 		return true
 	})
 	return res
+}
+
+func (i *instanceManager) ReadPermissionInstance(uid int, iid int) bool {
+	// check instance permission
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      uid,
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+	}); err == nil {
+		return true
+	}
+	// check databases permission
+	conds := egorm.Conds{}
+	conds["iid"] = iid
+	databases, err := db.DatabaseList(invoker.Db, conds)
+	if err != nil {
+		invoker.Logger.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
+		return false
+	}
+	for _, d := range databases {
+		if i.ReadPermissionDatabase(uid, iid, d.ID) {
+			return true
+		}
+	}
+	return false
+}
+
+func (i *instanceManager) ReadPermissionDatabase(uid, iid, did int) bool {
+	// check database permission
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      uid,
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(did),
+	}); err == nil {
+		return true
+	}
+	// check databases permission
+	conds := egorm.Conds{}
+	conds["did"] = did
+	tables, err := db.TableList(invoker.Db, conds)
+	if err != nil {
+		invoker.Logger.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
+		return false
+	}
+	for _, t := range tables {
+		if i.ReadPermissionTable(uid, iid, t.ID) {
+			return true
+		}
+	}
+	return false
+}
+
+func (i *instanceManager) ReadPermissionTable(uid, iid, tid int) bool {
+	// check database permission
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      uid,
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tid),
+	}); err == nil {
+		return true
+	}
+	return false
 }
 
 func clickHouseLink(dsn string) (db *sql.DB, err error) {

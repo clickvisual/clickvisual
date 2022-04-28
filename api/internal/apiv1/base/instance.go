@@ -1,6 +1,7 @@
 package base
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/gotomicro/ego-component/egorm"
@@ -11,6 +12,8 @@ import (
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/inquiry"
+	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 	"github.com/shimohq/mogo/api/pkg/model/db"
 	"github.com/shimohq/mogo/api/pkg/model/view"
@@ -20,6 +23,10 @@ func InstanceCreate(c *core.Context) {
 	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
@@ -89,6 +96,16 @@ func InstanceUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(id),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	if req.PrometheusTarget != "" {
 		if err := service.Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
 			c.JSONE(1, "create DB failed: "+err.Error(), nil)
@@ -148,7 +165,14 @@ func InstanceUpdate(c *core.Context) {
 }
 
 func InstanceList(c *core.Context) {
-	res, err := db.InstanceList(egorm.Conds{})
+	res := make([]*db.Instance, 0)
+	tmp, err := db.InstanceList(egorm.Conds{})
+	for _, row := range tmp {
+		if !service.InstanceManager.ReadPermissionInstance(c.Uid(), row.ID) {
+			continue
+		}
+		res = append(res, row)
+	}
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -161,6 +185,16 @@ func InstanceDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(id),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActDelete},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	obj, err := db.InstanceInfo(invoker.Db, id)
