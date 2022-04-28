@@ -636,6 +636,7 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	if err != nil {
 		return
 	}
+	res.Query = q
 	invoker.Logger.Debug("test", elog.Any("step", "GET"), elog.Any("sql", q))
 
 	if param.TimeField != db.TimeFieldSecond {

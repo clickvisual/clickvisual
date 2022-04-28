@@ -28,6 +28,7 @@ type RespQuery struct {
 	HiddenFields  []string                 `json:"hiddenFields"`
 	DefaultFields []string                 `json:"defaultFields"`
 	Logs          []map[string]interface{} `json:"logs"`
+	Query         string                   `json:"query"`
 }
 
 type ReqComplete struct {
