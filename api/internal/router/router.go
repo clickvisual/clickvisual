@@ -86,22 +86,15 @@ func GetRouter() *egin.Component {
 	v1 := r.Group(apiPrefix+"/v1", middlewares.AuthChecker())
 	// User related
 	{
-		// init
 		v1.GET("/migration", core.Handle(initialize.Migration))
-		// user
 		v1.GET("/menus/list", core.Handle(permission.MenuList))
+		v1.GET("/users", core.Handle(user.List))
 		v1.GET("/users/info", core.Handle(user.Info))
 		v1.POST("/users/logout", core.Handle(user.Logout))
 		v1.PATCH("/users/:uid/password", core.Handle(user.UpdatePassword))
 	}
-	// System configuration
+	// Cluster configuration
 	{
-		// Database instance configuration
-		v1.POST("/sys/instances", core.Handle(base.InstanceCreate))
-		v1.GET("/sys/instances", core.Handle(base.InstanceList))
-		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))
-		v1.DELETE("/sys/instances/:id", core.Handle(base.InstanceDelete))
-		// Cluster configuration
 		v1.GET("/sys/clusters/:id", core.Handle(setting.ClusterInfo))
 		v1.GET("/sys/clusters", core.Handle(setting.ClusterPageList))
 		v1.POST("/sys/clusters", core.Handle(setting.ClusterCreate))
@@ -132,36 +125,39 @@ func GetRouter() *egin.Component {
 	}
 	// Instance
 	{
+		v1.POST("/sys/instances", core.Handle(base.InstanceCreate))
+		v1.GET("/sys/instances", core.Handle(base.InstanceList))
+		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))
+		v1.DELETE("/sys/instances/:id", core.Handle(base.InstanceDelete))
 		v1.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
 		v1.POST("/instances/:iid/tables-exist-batch", core.Handle(base.TableCreateSelfBuiltBatch))
 		v1.GET("/instances/:iid/columns-self-built", core.Handle(base.TableColumnsSelfBuilt))
-		v1.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
-		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
-		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
-
 		v1.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
 	}
 	// Database
 	{
-		v1.GET("/databases/:did/tables", core.Handle(base.TableList))
-		v1.POST("/databases/:did/tables", core.Handle(base.TableCreate))
+		v1.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
+		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
+		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
 		v1.DELETE("/databases/:id", core.Handle(base.DatabaseDelete))
 	}
 	// Table
 	{
+		v1.GET("/databases/:did/tables", core.Handle(base.TableList))
+		v1.POST("/databases/:did/tables", core.Handle(base.TableCreate))
 		v1.GET("/table/id", core.Handle(base.TableId))
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
-		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
-		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
 		v1.GET("/tables/:id/indexes", core.Handle(base.Indexes))
 		v1.GET("/tables/:id/indexes/:idx", core.Handle(base.TableIndexes))
 		v1.PATCH("/tables/:id/indexes", core.Handle(base.IndexUpdate))
 	}
 	// view
 	{
+		v1.GET("/tables/:id/views", core.Handle(base.ViewList))
+		v1.POST("/tables/:id/views", core.Handle(base.ViewCreate))
 		v1.GET("/views/:id", core.Handle(base.ViewInfo))
 		v1.PATCH("/views/:id", core.Handle(base.ViewUpdate))
 		v1.DELETE("/views/:id", core.Handle(base.ViewDelete))
@@ -186,6 +182,19 @@ func GetRouter() *egin.Component {
 		v1.GET("/event/enums", core.Handle(event.GetAllEnums))
 		v1.GET("/event/source/:name/enums", core.Handle(event.GetEnumsOfSource))
 		v1.GET("/events", core.Handle(event.ListPage))
+	}
+	{
+		v1.GET("/pms/commonInfo", core.Handle(permission.GetPmsCommonInfo))
+		v1.GET("/pms/role", core.Handle(permission.PmsRoleList))
+		v1.GET("/pms/role/:id", core.Handle(permission.PmsRoleInfo))
+		v1.GET("/pms/instance/:iid/role/grant", core.Handle(permission.GetInstancePmsRolesGrant))
+		v1.GET("/pms/root/uids", core.Handle(permission.GetRootUids))
+		v1.PUT("/pms/instance/:iid/role/grant", core.Handle(permission.UpdateInstancePmsRolesGrant))
+		v1.PUT("/pms/role/:id", core.Handle(permission.UpdatePmsRole))
+		v1.DELETE("/pms/role/:id", core.Handle(permission.DeletePmsRole))
+		v1.POST("/pms/role", core.Handle(permission.CreatePmsRole))
+		v1.POST("/pms/root/grant", core.Handle(permission.GrantRootUids))
+		v1.POST("/pms/check", core.Handle(permission.CheckPermission))
 	}
 	return r
 }

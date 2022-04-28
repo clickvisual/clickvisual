@@ -12,12 +12,13 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/kl7sn/toolkit/kauth"
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/internal/service"
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/model/db"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
+
+	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/shimohq/mogo/api/internal/service/user"
+	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/shimohq/mogo/api/pkg/model/db"
 )
 
 func Oauth(c *core.Context) {
@@ -199,7 +200,7 @@ func Oauth(c *core.Context) {
 		OauthToken: db.OAuthToken{Token: token},
 	}
 	// create or update oauth user
-	err = service.User.CreateOrUpdateOauthUser(mysqlUser)
+	err = user.User.CreateOrUpdateOauthUser(mysqlUser)
 	if err != nil {
 		c.JSONE(11, "create or update oauth user error", err.Error())
 		return

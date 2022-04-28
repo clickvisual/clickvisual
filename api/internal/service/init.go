@@ -7,12 +7,12 @@ import (
 	"github.com/shimohq/mogo/api/internal/service/event"
 	"github.com/shimohq/mogo/api/internal/service/kube"
 	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/user"
 )
 
 var (
 	Permission      *permission.Service
 	InstanceManager *instanceManager
-	User            *user
 	Index           *index
 	Alarm           *alarm
 )
@@ -21,7 +21,6 @@ func Init() error {
 	Permission = permission.New(&permission.Config{ResFilePath: econf.GetString("app.permissionFile")})
 	InstanceManager = NewInstanceManager()
 
-	User = NewUser()
 	Index = NewIndex()
 	Alarm = NewAlarm()
 
@@ -31,5 +30,7 @@ func Init() error {
 
 	// event
 	event.InitService()
+	user.Init()
+	permission.InitManager()
 	return nil
 }

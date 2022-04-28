@@ -26,6 +26,14 @@ const (
 	TableMogoAlarmCondition       = "mogo_alarm_condition"
 	TableNameConfigurationHistory = "mogo_configuration_history"
 	TableNameConfigurationPublish = "mogo_configuration_publish"
+
+	TableNamePmsRole         = "mogo_pms_role"
+	TableNamePmsRoleDetail   = "mogo_pms_role_detail"
+	TableNamePmsRoleRef      = "mogo_pms_role_ref"
+	TableNamePmsRoleRefGrant = "mogo_pms_role_ref_grant"
+	TableNamePmsCasbinRule   = "mogo_pms_casbin_rule"
+	TableNamePmsDefaultRole  = "mogo_pms_default_role"
+	TableNamePmsCustomRole   = "mogo_pms_custom_role"
 )
 
 type BaseModel struct {

@@ -6,18 +6,18 @@
         <value_column_name>val</value_column_name>
         <version_column_name>updated</version_column_name>
         <default>
-            <function>avg</function>
+            <function>max</function>
             <retention>
                 <age>0</age>
                 <precision>10</precision>
             </retention>
             <retention>
-                <age>86400</age>
-                <precision>30</precision>
+                <age>3600</age>
+                <precision>300</precision>
             </retention>
             <retention>
-                <age>172800</age>
-                <precision>300</precision>
+                <age>86400</age>
+                <precision>3600</precision>
             </retention>
         </default>
     </graphite_rollup>

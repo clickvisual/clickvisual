@@ -1,6 +1,8 @@
 package base
 
 import (
+	"strconv"
+
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
@@ -8,6 +10,8 @@ import (
 	"github.com/shimohq/mogo/api/internal/invoker"
 	"github.com/shimohq/mogo/api/internal/service"
 	"github.com/shimohq/mogo/api/internal/service/event"
+	"github.com/shimohq/mogo/api/internal/service/permission"
+	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
 	"github.com/shimohq/mogo/api/pkg/component/core"
 
 	"github.com/shimohq/mogo/api/pkg/model/db"
@@ -29,6 +33,23 @@ func IndexUpdate(c *core.Context) {
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "param error:"+err.Error(), nil)
+		return
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.FieldManagement,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	// check repeat

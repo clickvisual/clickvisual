@@ -56,13 +56,14 @@ export default {
   "menu.configure": "Config",
   "menu.log": "Logs",
   "menu.alarm": "Alarm",
-  "menu.alarm.rules": "Alarm rules",
-  "menu.alarm.notifications": "Notification channel",
+  "menu.alarm.rules": "Alarm Rules",
+  "menu.alarm.notifications": "Notification Channel",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
-  "menu.systemSettings.events": "Event center",
-
+  "menu.systemSettings.events": "Event Center",
+  "menu.systemSettings.pms": "Authority Management",
+  "menu.systemSettings.role": "Role Management",
   // user
   "login.header": "Welcome to MOGO",
   "login.title": "Log In",
@@ -102,7 +103,7 @@ export default {
   "instance.form.title.clusterWithDuplicate": "Cluster(With Duplicate)",
   "instance.form.title.cluster": "Cluster",
   "instance.form.title.k8s": "K8s",
-  "instance.form.title.ruleStoreType": "Alarm Storage",
+  "instance.form.title.ruleStoreType": "Alarm",
   "instance.form.title.ruleStoreType.tip":
     "The storage method of the alarm rules of the alarm center",
   "instance.form.title.ruleStoreType.radio.file": "File",

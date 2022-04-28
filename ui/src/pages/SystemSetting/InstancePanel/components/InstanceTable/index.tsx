@@ -1,7 +1,7 @@
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import { Divider, Space, Table, Tooltip } from "antd";
+import { Divider, Space, Table, Tooltip, Tag, message } from "antd";
 import type { AlignType, FixedType } from "rc-table/lib/interface";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
 import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
@@ -13,6 +13,9 @@ import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
 import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 import { ColumnsType } from "antd/es/table";
+import React, { useEffect, useState } from "react";
+import { CheckPermission, CheckRoot } from "@/services/pms";
+import AppRoleAssignListForm from "@/components/RoleAssign";
 
 type InstanceTableProps = {
   list: InstanceType[];
@@ -24,6 +27,12 @@ const InstanceTable = (props: InstanceTableProps) => {
     useContext(InstancePanelContext);
   const { doDeletedInstance, doGetInstanceList, listLoading } =
     useModel("instances");
+
+  const [instance, setInstance] = useState<any>();
+  const [iid, setIID] = useState<any>(0);
+  const [roleAssignVisible, setRoleAssignVisible] = useState<true | false>(
+    false
+  );
 
   const { AlarmStorages } = useAlarmStorages();
 
@@ -39,6 +48,10 @@ const InstanceTable = (props: InstanceTableProps) => {
 
   const i18n = useIntl();
 
+  const onChange = (flag: boolean) => {
+    setRoleAssignVisible(flag);
+  };
+
   const column: ColumnsType<any> = [
     {
       title: `${i18n.formatMessage({
@@ -50,15 +63,15 @@ const InstanceTable = (props: InstanceTableProps) => {
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
     },
+    // {
+    //   title: "DSN",
+    //   align: "center" as AlignType,
+    //   dataIndex: "dsn",
+    //   ellipsis: { showTitle: false },
+    //   render: TooltipRender({ placement: "right" }),
+    // },
     {
-      title: "DSN",
-      align: "center" as AlignType,
-      dataIndex: "dsn",
-      ellipsis: { showTitle: false },
-      render: TooltipRender({ placement: "right" }),
-    },
-    {
-      title: i18n.formatMessage({ id: "datasource.draw.table.deployment" }),
+      title: i18n.formatMessage({ id: "instance.form.title.mode" }),
       dataIndex: "mode",
       align: "center" as AlignType,
       width: 100,
@@ -82,7 +95,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: (clusters: string[]) => (
         <Tooltip title={clusters}>
           {clusters?.map((item: string) => {
-            return <span>{item}</span>;
+            return <Tag color="lime">{item}</Tag>;
           })}
         </Tooltip>
       ),
@@ -99,7 +112,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       ),
     },
     {
-      title: "Prometheus Target",
+      title: "Prometheus",
       align: "center" as AlignType,
       dataIndex: "prometheusTarget",
       ellipsis: { showTitle: false },
@@ -109,23 +122,23 @@ const InstanceTable = (props: InstanceTableProps) => {
         return TooltipUtil(_);
       },
     },
-    {
-      title: i18n.formatMessage({ id: "instance.storagePah" }),
-      align: "center" as AlignType,
-      dataIndex: "configmap",
-      ellipsis: { showTitle: false },
-      width: 200,
-      render: (_: any, record: any) => {
-        switch (record.ruleStoreType) {
-          case 1:
-            return TooltipUtil(record.filePath);
-          case 2:
-            return TooltipUtil(_);
-          default:
-            return <>-</>;
-        }
-      },
-    },
+    // {
+    //   title: i18n.formatMessage({ id: "instance.storagePah" }),
+    //   align: "center" as AlignType,
+    //   dataIndex: "configmap",
+    //   ellipsis: { showTitle: false },
+    //   width: 200,
+    //   render: (_: any, record: any) => {
+    //     switch (record.ruleStoreType) {
+    //       case 1:
+    //         return TooltipUtil(record.filePath);
+    //       case 2:
+    //         return TooltipUtil(_);
+    //       default:
+    //         return <>-</>;
+    //     }
+    //   },
+    // },
     {
       title: `${i18n.formatMessage({
         id: "operation",
@@ -157,6 +170,30 @@ const InstanceTable = (props: InstanceTableProps) => {
                 className={instanceTableStyles.instanceTableIcon}
               />
             </Tooltip>
+            <Divider type="vertical" />
+            <a
+              onClick={() => {
+                CheckPermission({
+                  userId: 0,
+                  objectType: "instance",
+                  objectIdx: `${record.id}`,
+                  acts: ["edit"],
+                  domainType: "system",
+                }).then((r: any) => {
+                  if (r.code !== 0) {
+                    message.error(r.msg);
+                    return;
+                  }
+                  setInstance(record);
+                  setIID(record.id);
+                  setRoleAssignVisible(true);
+                });
+              }}
+            >
+              <Tooltip title="修改权限">
+                <UsergroupAddOutlined />
+              </Tooltip>
+            </a>
             <Divider type="vertical" />
             <Tooltip
               title={i18n.formatMessage({
@@ -202,6 +239,12 @@ const InstanceTable = (props: InstanceTableProps) => {
         columns={column}
         dataSource={list}
         pagination={{ responsive: true, showSizeChanger: true, size: "small" }}
+      />
+      <AppRoleAssignListForm
+        iid={iid}
+        instanceName={instance?.name}
+        drawerVisible={roleAssignVisible}
+        onChangeDrawerVisible={onChange}
       />
     </div>
   );

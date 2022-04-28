@@ -189,7 +189,7 @@ const SelectedDataBaseDraw = () => {
       ),
     },
     {
-      title: i18n.formatMessage({ id: "datasource.draw.table.deployment" }),
+      title: i18n.formatMessage({ id: "instance.form.title.mode" }),
       dataIndex: "mode",
       align: "center" as AlignType,
       width: "25%",
