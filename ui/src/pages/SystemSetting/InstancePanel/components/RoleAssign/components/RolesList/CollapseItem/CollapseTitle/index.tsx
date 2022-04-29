@@ -1,7 +1,7 @@
 import { PmsRole } from "@/services/pms";
-import styles from "@/components/RoleAssign/components/RolesList/CollapseItem/CollapseTitle/index.less";
+import styles from "./index.less";
 import { Tooltip } from "antd";
-import { EditFilled, QuestionCircleFilled } from "@ant-design/icons";
+import { EditFilled, QuestionOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
 
 type DetailsProps = {
@@ -62,7 +62,7 @@ const CollapseTitle = (props: CollapseTitleProps) => {
             title={<Details details={role.details} />}
             className={styles.question}
           >
-            <QuestionCircleFilled onClick={(ev) => stopPropagation(ev)} />
+            <QuestionOutlined onClick={(ev) => stopPropagation(ev)} />
           </Tooltip>
         </div>
       </div>

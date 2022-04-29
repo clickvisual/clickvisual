@@ -1,12 +1,12 @@
 import { Collapse, Form } from "antd";
 import { MinusCircleOutlined } from "@ant-design/icons";
 import { useContext } from "react";
-import { AppRolesContext } from "@/components/RoleAssign";
+import { AppRolesContext } from "../../../../RoleAssign";
 import { FormListFieldData } from "antd/es/form/FormList";
 import { FormListOperation } from "antd/lib/form/FormList";
-import GrantList from "@/components/RoleAssign/components/RolesList/CollapseItem/GrantList";
-import CollapseTitle from "@/components/RoleAssign/components/RolesList/CollapseItem/CollapseTitle";
-import styles from "@/components/RoleAssign/components/RolesList/index.less";
+import GrantList from "./GrantList";
+import CollapseTitle from "./CollapseTitle";
+import styles from "./index.less";
 
 const { Panel } = Collapse;
 

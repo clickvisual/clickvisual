@@ -3,9 +3,9 @@ import { Button, Cascader, Form, Tooltip } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
 import UserSelect from "@/pages/SystemSetting/Pms/Role/components/UserSelect";
-import styles from "@/components/RoleAssign/components/RolesList/CollapseItem/GrantList/index.less";
+import styles from "./index.less";
 import { useContext } from "react";
-import { AppRolesContext } from "@/components/RoleAssign";
+import { AppRolesContext } from "../../../../../RoleAssign";
 
 type GrantListProps = {
   parentField: FormListFieldData;

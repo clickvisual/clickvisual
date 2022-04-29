@@ -1,6 +1,6 @@
 import styles from "./index.less";
 import { Button, Form, Modal } from "antd";
-import RolesList from "./components/RolesList";
+// import RolesList from "./components/RolesList";
 import React, { useEffect } from "react";
 import { FormInstance } from "antd/es/form";
 import RoleModel from "./components/RoleModel";
@@ -84,7 +84,7 @@ const AppRoleAssignListForm = (props: AppRolesProps) => {
               <div className={styles.form}>
                 <Form.Item name={"iid"} hidden />
                 <Form.Item label={<span>角色</span>}>
-                  <RolesList />
+                  {/*<RolesList />*/}
                 </Form.Item>
               </div>
             </div>

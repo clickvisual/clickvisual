@@ -1,7 +1,7 @@
 import { Button, Form, Select } from 'antd';
 import { useModel } from '@@/plugin-model/useModel';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import styles from '@/components/RoleAssign/components/RoleModel/index.less';
+import styles from './index.less';
 
 const { Option } = Select;
 
