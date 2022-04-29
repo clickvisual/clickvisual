@@ -13,9 +13,9 @@ import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
 import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 import { ColumnsType } from "antd/es/table";
-import React, { useEffect, useState } from "react";
-import { CheckPermission, CheckRoot } from "@/services/pms";
-import AppRoleAssignListForm from "@/components/RoleAssign";
+import React, { useState } from "react";
+import { CheckPermission } from "@/services/pms";
+import AppRoleAssignListForm from "../RoleAssign";
 
 type InstanceTableProps = {
   list: InstanceType[];

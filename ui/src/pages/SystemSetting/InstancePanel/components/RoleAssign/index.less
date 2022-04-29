@@ -1,0 +1,37 @@
+.divMain {
+  min-height: calc(100vh - 190px);
+  padding: 1em 0;
+  background: #fff;
+  border-radius: 8px;
+  .formItem {
+    height: calc(100vh - 200px);
+    overflow: auto;
+    .form {
+      padding: 0 10em;
+    }
+  }
+  .formBtnDiv {
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    Button {
+      width: 160px;
+    }
+
+    .formLeftBtn {
+      margin-right: 10px;
+    }
+  }
+}
+
+.roleModal {
+  :global {
+    .ant-modal-header {
+      padding: 10px 10px;
+    }
+    .ant-modal-close-x {
+      line-height: 43px;
+    }
+  }
+}
