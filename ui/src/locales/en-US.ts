@@ -381,9 +381,11 @@ export default {
   "log.index.manage.table.header.indexName": "Field Name",
   "log.index.manage.table.header.query": "Enable Query",
   "log.index.manage.table.header.indexType": "Field Type",
+  "log.index.manage.table.header.hashType": "Hash Type",
   "log.index.manage.placeholder.indexName":
     "Mandatory and not repeatable, please enter the field name",
   "log.index.manage.placeholder.alias": "Please enter an field description",
+  "log.index.manage.enum.zero": "This type is not supported",
   "log.index.manage.button.deleted": "Drop Field",
   "log.index.manage.button.created": "Created Field",
   "log.index.manage.message.save.success": "Save success",
