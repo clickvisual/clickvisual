@@ -4,7 +4,6 @@ import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
-import useTimeUnits from "@/hooks/useTimeUnits";
 import { AlarmType } from "@/services/alarm";
 import IconFont from "@/components/IconFont";
 import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
@@ -14,6 +13,8 @@ import { useDebounceFn } from "ahooks";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
 import useUrlState from "@ahooksjs/use-url-state";
+import useTimeUnits from "@/hooks/useTimeUnits";
+
 import moment from "moment";
 
 const AlarmTable = () => {
