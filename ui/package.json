@@ -31,6 +31,7 @@
     "test": "umi test",
     "test:all": "node ./tests/run-tests.js",
     "test:component": "umi test ./src/components",
+    "serve": "umi-serve",
     "tsc": "tsc --noEmit"
   },
   "lint-staged": {
@@ -73,8 +74,8 @@
     "react-resizable": "^3.0.4",
     "styled-components": "^5.3.5",
     "umi": "3.4.8",
-    "umi-request": "^1.0.8",
-    "webpack": "5.31.0"
+    "umi-serve": "^1.9.10",
+    "webpack": "^5.72.0"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "^2.0.2",
