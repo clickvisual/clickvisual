@@ -53,6 +53,7 @@ const RootUsersForm: React.FC<ListFormProps> = (props) => {
   const handleSubmit = () => {
     if (!form) return;
     form.submit();
+    location.reload();
   };
 
   const modalFooter = { okText: "保存", onOk: handleSubmit, onCancel };
