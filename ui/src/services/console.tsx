@@ -1,13 +1,13 @@
-import React from 'react';
-import { Popover, Avatar, Descriptions } from 'antd';
+import React from "react";
+import { Popover, Avatar, Descriptions } from "antd";
 import { request } from "umi";
-import { stringify } from 'qs';
+import { stringify } from "qs";
 
 // 环境变量中指定，仅用于本地开发调试使用
 declare const DEVOPS_UI_MOCK: string;
 
 // 判断是否使用MockAPI
-const MockAPI = typeof DEVOPS_UI_MOCK === 'string' && DEVOPS_UI_MOCK === 'true';
+const MockAPI = typeof DEVOPS_UI_MOCK === "string" && DEVOPS_UI_MOCK === "true";
 
 if (MockAPI) {
 }
@@ -72,15 +72,14 @@ export namespace Console {
   }
 }
 
-
 /**
  * 转换用户列表成 SearchTable 可用的枚举列表
  * 用于在Table中渲染用户信息
  */
 const convertUserListToEnums = (
-  users: Console.User[],
+  users: Console.User[]
 ): (Console.User & Console.SelectOption)[] => {
-  return users.map(user => ({
+  return users.map((user) => ({
     ...user,
     title: (
       <span>
@@ -88,11 +87,11 @@ const convertUserListToEnums = (
           title={
             <span>
               <Avatar src={user.avatar || undefined}>{user.nickname}</Avatar>
-              <span style={{ marginLeft: '5px' }}>{user.nickname}</span>
+              <span style={{ marginLeft: "5px" }}>{user.nickname}</span>
             </span>
           }
           content={
-            <Descriptions column={1} size="small" style={{ width: '220px' }}>
+            <Descriptions column={1} size="small" style={{ width: "220px" }}>
               <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
               <Descriptions.Item label="用户名">
                 {user.username}
@@ -102,7 +101,7 @@ const convertUserListToEnums = (
         >
           <Avatar src={user.avatar || undefined}>{user.nickname}</Avatar>
         </Popover>
-        <span style={{ marginLeft: '5px' }}>{user.nickname}</span>
+        <span style={{ marginLeft: "5px" }}>{user.nickname}</span>
       </span>
     ),
     value: user.uid,
@@ -114,9 +113,9 @@ const convertUserListToEnums = (
  * @param deps 部门列表
  */
 const convertDepListToEnums = (
-  deps: Console.Department[],
+  deps: Console.Department[]
 ): (Console.Department & Console.SelectOption)[] => {
-  return deps.map(dep => ({
+  return deps.map((dep) => ({
     ...dep,
     title: dep.name,
     value: dep.id,
@@ -138,14 +137,14 @@ export interface Options {
 }
 
 const consoleService = (options: Options) => {
-
   /**
    * 查询部门列表
    * @param params
    */
   const queryDepartments = async (params?: QueryDepartmentsOption) => {
     const res = await request<Console.Res<Console.Department[]>>(
-        process.env.PUBLIC_PATH + `api/v1/departments?${stringify(params)}`,{ method: "GET" }
+      process.env.PUBLIC_PATH + `api/v1/departments?${stringify(params)}`,
+      { method: "GET" }
     );
     return res.data;
   };
@@ -156,7 +155,8 @@ const consoleService = (options: Options) => {
    */
   const queryUsers = async (params?: any) => {
     const res = await request<Console.Res<Console.User[]>>(
-        process.env.PUBLIC_PATH + `api/v1/users?${stringify(params)}`,{ method: "GET" }
+      process.env.PUBLIC_PATH + `api/v1/users?${stringify(params)}`,
+      { method: "GET" }
     );
     return res;
   };
@@ -168,7 +168,8 @@ const consoleService = (options: Options) => {
   const querySites = async (params?: any) => {
     return (
       await request<Console.Res<Console.Site[]>>(
-          process.env.PUBLIC_PATH + `api/v1/sites?${stringify(params)}`,{ method: "GET" }
+        process.env.PUBLIC_PATH + `api/v1/sites?${stringify(params)}`,
+        { method: "GET" }
       )
     ).data;
   };

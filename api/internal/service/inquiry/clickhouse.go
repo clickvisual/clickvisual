@@ -987,10 +987,14 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
+
+	selectFields := genSelectFields(tid)
+
 	if param.Page*param.PageSize <= 100 {
 		timeFieldEqual := c.TimeFieldEqual(param, tid)
 		if timeFieldEqual != "" {
-			sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+			sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+				selectFields,
 				param.DatabaseTable,
 				c.queryHashTransform(param),
 				timeFieldEqual,
@@ -999,7 +1003,8 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 			return
 		}
 	}
-	sql = fmt.Sprintf("SELECT * FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+		selectFields,
 		param.DatabaseTable,
 		c.queryHashTransform(param),
 		param.ST, param.ET,
@@ -1007,6 +1012,14 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
 
+}
+
+func genSelectFields(tid int) string {
+	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	if tableInfo.CreateType == 0 {
+		return "_time_second_,_time_nanosecond_,_source_,_cluster_,_log_agent_,_namespace_,_node_name_,_node_ip_,_container_name_,_pod_name_,_raw_log_"
+	}
+	return "*"
 }
 
 func (c *ClickHouse) queryHashTransform(params view.ReqQuery) string {

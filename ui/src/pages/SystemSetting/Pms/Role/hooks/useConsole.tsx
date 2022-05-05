@@ -1,5 +1,5 @@
-import consoleService, { Console } from '@/services/console';
-import useRequestX from '@/hooks/useRequest/useRequest';
+import consoleService, { Console } from "@/services/console";
+import useRequestX from "@/hooks/useRequest/useRequest";
 
 export type DepTree = {
   id: number;
@@ -30,12 +30,12 @@ function makeDepTree(deps: Console.Department[] | undefined): DepTree {
     number,
     Console.Department[]
   >();
-  deps.forEach(item => {
+  deps.forEach((item) => {
     depMap.set(item.pid, [...(depMap.get(item.pid) || []), item]);
   });
 
   const functor = (pid: number): DepTree | undefined => {
-    return depMap.get(pid)?.map(dep => {
+    return depMap.get(pid)?.map((dep) => {
       return {
         ...dep,
         children: functor(dep.id),
@@ -44,7 +44,7 @@ function makeDepTree(deps: Console.Department[] | undefined): DepTree {
   };
 
   return (
-    depMap.get(0)?.map(dep => ({
+    depMap.get(0)?.map((dep) => ({
       ...dep,
       children: functor(dep.id),
     })) || []
@@ -61,7 +61,7 @@ const useConsole = (options?: ConsoleHookOptions) => {
     loadingText: false,
     defaultLoading: true,
   });
-  const loadDepsReq = useRequestX(service.queryDepartments, {
+  const loadDepsReq = useRequestX(service.queryUsers, {
     loadingText: false,
     defaultLoading: true,
   });
