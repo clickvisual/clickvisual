@@ -190,9 +190,9 @@ const usePmsCommonModel = () => {
     });
   };
 
-  // useEffect(() => {
-  //   fetchPmsCommonInfo(iid);
-  // }, [iid]);
+  useEffect(() => {
+    fetchPmsCommonInfo(iid);
+  }, [iid]);
 
   return {
     commonInfo,
