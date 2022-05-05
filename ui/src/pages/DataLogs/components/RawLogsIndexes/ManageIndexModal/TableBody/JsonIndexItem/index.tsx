@@ -5,10 +5,13 @@ import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import {
   FieldType,
   typeList,
+  hashList,
 } from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody/IndexItem";
 import { IndexInfoType } from "@/services/dataLogs";
 import { useIntl } from "umi";
 import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+
 const { Option } = Select;
 
 type JsonIndexItemProps = {
@@ -20,6 +23,7 @@ type JsonIndexItemProps = {
   options: FormListOperation;
   rootName: string;
 };
+
 const Index = ({
   form,
   field,
@@ -29,7 +33,19 @@ const Index = ({
   indexField,
   rootName,
 }: JsonIndexItemProps) => {
+  const [isString, setIsString] = useState<boolean>(true);
   const i18n = useIntl();
+  useEffect(() => {
+    setIsString(
+      form.getFieldValue([
+        "data",
+        indexField.name,
+        "jsonIndex",
+        field.key,
+        "typ",
+      ]) == FieldType.String
+    );
+  }, []);
   return (
     <div className={classNames(mangeIndexModalStyles.isJsonDiv)}>
       <Space style={{ width: "100%" }}>
@@ -59,14 +75,31 @@ const Index = ({
           ]}
         >
           <Input
-            style={{ width: 240 }}
+            style={{ width: 200 }}
             placeholder={`${i18n.formatMessage({
               id: "log.index.manage.placeholder.indexName",
             })}`}
           />
         </Form.Item>
         <Form.Item noStyle name={[field.name, "typ"]}>
-          <Select style={{ width: 220 }}>
+          <Select
+            style={{ width: 180 }}
+            onChange={(value) => {
+              setIsString(value == FieldType.String);
+              form.setFields([
+                {
+                  name: [
+                    "data",
+                    indexField.name,
+                    "jsonIndex",
+                    field.name,
+                    "hashTyp",
+                  ],
+                  value: value == FieldType.String ? undefined : 0,
+                },
+              ]);
+            }}
+          >
             {typeList
               .filter((item) => item.value !== 3)
               .map((item) => (
@@ -78,11 +111,27 @@ const Index = ({
         </Form.Item>
         <Form.Item noStyle name={[field.name, "alias"]}>
           <Input
-            style={{ width: 220 }}
+            style={{ width: 180 }}
             placeholder={`${i18n.formatMessage({
               id: "log.index.manage.placeholder.alias",
             })}`}
           />
+        </Form.Item>
+        <Form.Item noStyle name={[field.name, "hashTyp"]}>
+          <Select style={{ width: 140 }} allowClear disabled={!isString}>
+            {hashList
+              .filter((item: any) =>
+                isString ? item.value != 0 : item.value == 0
+              )
+              .map((item) => (
+                <Option key={item.value} value={item.value}>
+                  {item.type ||
+                    i18n.formatMessage({
+                      id: "log.index.manage.enum.zero",
+                    })}
+                </Option>
+              ))}
+          </Select>
         </Form.Item>
         <Form.Item noStyle>
           <Space>
