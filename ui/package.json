@@ -31,6 +31,7 @@
     "test": "umi test",
     "test:all": "node ./tests/run-tests.js",
     "test:component": "umi test ./src/components",
+    "serve": "umi-serve",
     "tsc": "tsc --noEmit"
   },
   "lint-staged": {
