@@ -73,9 +73,8 @@
     "react-monaco-editor": "^0.46.0",
     "react-resizable": "^3.0.4",
     "styled-components": "^5.3.5",
-    "umi": "3.4.8",
-    "umi-serve": "^1.9.10",
-    "webpack": "^5.72.0"
+    "umi": "^3.5.0",
+    "umi-serve": "^1.9.10"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "^2.0.2",
