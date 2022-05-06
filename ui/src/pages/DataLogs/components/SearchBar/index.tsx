@@ -28,7 +28,7 @@ const SearchBar = () => {
     activeTabKey,
     currentRelativeAmount,
     currentRelativeUnit,
-    resetLogPaneLogsAndHighCharts,
+    // resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -69,17 +69,18 @@ const SearchBar = () => {
         activeIndex: activeTimeOptionIndex,
       };
       onChangeCurrentLogPane(pane);
-      doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params })
-        .then((res) => {
+      doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params }).then(
+        (res) => {
           if (!res) {
-            resetLogPaneLogsAndHighCharts(pane);
+            // resetLogPaneLogsAndHighCharts(pane);
           } else {
             pane.logs = res.logs;
             pane.highCharts = res.highCharts;
             onChangeCurrentLogPane(pane);
           }
-        })
-        .catch(() => resetLogPaneLogsAndHighCharts(pane));
+        }
+      );
+      // .catch(() => resetLogPaneLogsAndHighCharts(pane));
     },
     { wait: DEBOUNCE_WAIT }
   );

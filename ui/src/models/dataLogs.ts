@@ -227,7 +227,7 @@ const DataLogsModel = () => {
       if (Request.isCancel(e)) {
         return false;
       } else {
-        setLogs(undefined);
+        // setLogs(undefined);
       }
       return;
     },
@@ -240,13 +240,16 @@ const DataLogsModel = () => {
       if (Request.isCancel(e)) {
         return false;
       } else {
-        setHighChartList([]);
+        // setHighChartList([]);
       }
       return;
     },
     onSuccess: (res) => {
       setLogCount(res.data?.count);
-      setHighChartList(res.data?.histograms ?? []);
+      res &&
+        res.data &&
+        res.data.histograms &&
+        setHighChartList(res.data?.histograms);
     },
   });
 

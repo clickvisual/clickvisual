@@ -50,6 +50,9 @@ export default {
   "navbar.lang": "中文",
   "navbar.changePassword": "修改密码",
   "navbar.logOut": "退出登录",
+  "navbar.upgrade": "数据库结构升级",
+  "navbar.upgrade.lodingText": "升级中",
+  "navbar.upgrade.successText": "升级成功",
   "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} 武汉初心科技有限公司（石墨文档）`,
 
   // menu

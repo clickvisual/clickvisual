@@ -30,6 +30,7 @@ export interface ViewResponse {
   id: number;
   viewName: string;
 }
+
 export interface CreatedLogLibraryRequest {
   tableName: string;
   typ: number;
@@ -137,6 +138,7 @@ export interface CreateLocalTableRequest {
   timeField: string;
   timeFieldType: number;
 }
+
 export interface CreateLocalTableRequestBatch {
   timeField: string;
   mode: number;

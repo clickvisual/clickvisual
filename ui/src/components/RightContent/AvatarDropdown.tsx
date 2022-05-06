@@ -1,4 +1,4 @@
-import { LogoutOutlined } from "@ant-design/icons";
+import { LogoutOutlined, UpCircleOutlined } from "@ant-design/icons";
 import { Avatar, Menu, Spin } from "antd";
 import HeaderDropdown from "../HeaderDropdown";
 import styles from "./index.less";
@@ -9,11 +9,15 @@ import ChangePasswordModal from "@/components/RightContent/ChangePasswordModal";
 
 const AvatarDropdown = () => {
   const { currentUser } = useModel("@@initialState").initialState || {};
-  const { loginOut, actionPassword } = useModel("users");
+  const { loginOut, actionPassword, doDatalogUpgrade } = useModel("users");
   const i18n = useIntl();
 
   const handleLogout = () => {
     loginOut.run();
+  };
+
+  const handleUpgrade = () => {
+    doDatalogUpgrade();
   };
 
   const handleResetPassword = () => {
@@ -33,6 +37,15 @@ const AvatarDropdown = () => {
           })}
         </Menu.Item>
       )}
+      <Menu.Item
+        icon={<UpCircleOutlined />}
+        key="upgrade"
+        onClick={() => handleUpgrade()}
+      >
+        {i18n.formatMessage({
+          id: "navbar.upgrade",
+        })}
+      </Menu.Item>
       <Menu.Item
         icon={<LogoutOutlined />}
         key="logout"
