@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import { TableInfoResponse } from "@/services/dataLogs";
 import { BaseRes } from "@/hooks/useRequest/useRequest";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
-import { PaneType } from "@/models/datalogs/types";
+import { PaneType, QueryTypeEnum } from "@/models/datalogs/types";
 
 interface UrlStateType {
   tid?: string;
@@ -32,6 +32,7 @@ interface UrlStateType {
   page: string | number;
   tab: string | number;
   index: string | number;
+  queryType?: string;
 }
 
 export const RestUrlStates = {
@@ -47,6 +48,7 @@ export const RestUrlStates = {
   tab: undefined,
   index: undefined,
   kw: undefined,
+  queryType: undefined,
 };
 
 export default function useLogUrlParams() {
@@ -77,8 +79,10 @@ export default function useLogUrlParams() {
     doGetLogLibrary,
     onChangeLogPane,
     logPanesHelper,
+    queryTypeHelper,
   } = useModel("dataLogs");
   const { addLogPane } = logPanesHelper;
+  const { activeQueryType } = queryTypeHelper;
 
   const handleResponse = (res: BaseRes<TableInfoResponse>, tid: number) => {
     if (res.data.database) {
@@ -102,28 +106,34 @@ export default function useLogUrlParams() {
       pageSize: parseInt(urlState.size),
       activeTabKey: urlState.tab,
       activeIndex: parseInt(urlState.index),
+      queryType: urlState.queryType,
     };
-    addLogPane(pane.paneId, pane);
-    onChangeLogPane(pane);
 
-    doGetLogsAndHighCharts(tid, {
-      reqParams: {
-        st: pane.start,
-        et: pane.end,
-        kw: pane.keyword,
-        page: pane.page,
-        pageSize: pane.pageSize,
-      },
-    })
-      .then((res) => {
-        if (!res) return;
-        pane.logs = res.logs;
-        pane.highCharts = res.highCharts;
+    switch (urlState.queryType) {
+      case QueryTypeEnum.LOG:
+        addLogPane(pane.paneId, pane);
         onChangeLogPane(pane);
-      })
-      .catch();
-
-    doParseQuery(urlState.kw);
+        doGetLogsAndHighCharts(tid, {
+          reqParams: {
+            st: pane.start,
+            et: pane.end,
+            kw: pane.keyword,
+            page: pane.page,
+            pageSize: pane.pageSize,
+          },
+        })
+          .then((res) => {
+            if (!res) return;
+            pane.logs = res.logs;
+            pane.highCharts = res.highCharts;
+            onChangeLogPane(pane);
+          })
+          .catch();
+        doParseQuery(urlState.kw);
+        break;
+      case QueryTypeEnum.TABLE:
+        break;
+    }
   };
 
   const doSetUrlQuery = (tid: number) => {
@@ -151,6 +161,7 @@ export default function useLogUrlParams() {
         kw: keywordInput,
         index: activeTimeOptionIndex,
         tab: activeTabKey,
+        queryType: activeQueryType,
       });
     },
     { wait: DEBOUNCE_WAIT }
@@ -168,6 +179,7 @@ export default function useLogUrlParams() {
     keywordInput,
     activeTimeOptionIndex,
     activeTabKey,
+    activeQueryType,
   ]);
 
   useEffect(() => {

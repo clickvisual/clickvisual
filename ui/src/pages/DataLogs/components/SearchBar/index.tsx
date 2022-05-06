@@ -10,12 +10,13 @@ import type { DurationInputArg2, DurationInputArg1 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import IconFont from "@/components/IconFont";
 import { useMemo } from "react";
-import { PaneType, QueryParams } from "@/models/datalogs/types";
+import { PaneType, QueryParams, QueryTypeEnum } from "@/models/datalogs/types";
 
 const SearchBar = () => {
   const {
     currentLogLibrary,
     logPanesHelper,
+    queryTypeHelper,
     keywordInput,
     onChangeKeywordInput,
     doGetLogsAndHighCharts,
@@ -31,6 +32,7 @@ const SearchBar = () => {
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
+  const { activeQueryType } = queryTypeHelper;
 
   const i18n = useIntl();
 
@@ -39,7 +41,7 @@ const SearchBar = () => {
     return logPanes[currentLogLibrary?.id.toString()];
   }, [currentLogLibrary?.id, logPanes]);
 
-  const doSearch = useDebounceFn(
+  const doSearchLog = useDebounceFn(
     () => {
       if (!currentLogLibrary) return;
       const params: QueryParams = {
@@ -83,11 +85,14 @@ const SearchBar = () => {
     },
     { wait: DEBOUNCE_WAIT }
   );
-  return (
-    <div className={searchBarStyles.searchBarMain}>
+
+  const RowLogQuery = (
+    <>
       <Input
         allowClear
-        placeholder={`${i18n.formatMessage({ id: "log.search.placeholder" })}`}
+        placeholder={`${i18n.formatMessage({
+          id: "log.search.placeholder",
+        })}`}
         className={searchBarStyles.inputBox}
         value={keywordInput}
         suffix={<SearchBarSuffixIcon />}
@@ -97,14 +102,14 @@ const SearchBar = () => {
           onChangeCurrentLogPane({ ...(oldPane as PaneType), keyword });
         }}
         onPressEnter={() => {
-          doSearch.run();
+          doSearchLog.run();
         }}
       />
       <DarkTimeSelect />
       <Button
         loading={logsLoading || highChartLoading}
         onClick={() => {
-          doSearch.run();
+          doSearchLog.run();
         }}
         className={searchBarStyles.searchBtn}
         type="primary"
@@ -112,6 +117,40 @@ const SearchBar = () => {
       >
         {i18n.formatMessage({ id: "search" })}
       </Button>
+    </>
+  );
+
+  const TableQuery = (
+    <>
+      <Input
+        allowClear
+        placeholder={`${i18n.formatMessage({
+          id: "log.search.placeholder",
+        })}`}
+      />
+      <Button
+        className={searchBarStyles.searchBtn}
+        type="primary"
+        icon={<IconFont type={"icon-log-search"} />}
+      >
+        {i18n.formatMessage({ id: "search" })}
+      </Button>
+    </>
+  );
+
+  const SearchQuery = () => {
+    switch (activeQueryType) {
+      case QueryTypeEnum.LOG:
+        return RowLogQuery;
+      case QueryTypeEnum.TABLE:
+        return TableQuery;
+      default:
+        return RowLogQuery;
+    }
+  };
+  return (
+    <div className={searchBarStyles.searchBarMain}>
+      <SearchQuery />
     </div>
   );
 };

@@ -336,6 +336,10 @@ export default {
   "datasource.draw.table.empty.type.tip": "无数据库类型",
   "datasource.draw.table.operation.tip": "在此数据库下新增日志库",
 
+  // Data Logs-Log Query Types MenuItem
+  "log.queryType.menuItem.rawLog": "原始日志",
+  "log.queryType.menuItem.statisticalTable": "统计表格",
+
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
   "log.search.placeholder": "请输入查询语句",
