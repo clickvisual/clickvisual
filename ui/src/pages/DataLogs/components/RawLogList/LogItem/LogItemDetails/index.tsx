@@ -80,7 +80,7 @@ const LogItemDetails = () => {
     }, [logs, logs?.keys, log]);
 
   const quickInsertQuery = (keyItem: string) => {
-    const currentSelected = `${keyItem}='${log[keyItem]}'`;
+    const currentSelected = "`" + keyItem + "`" + "=" + log[keyItem];
     doUpdatedQuery(currentSelected);
   };
 
