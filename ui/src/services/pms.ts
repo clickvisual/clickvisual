@@ -54,8 +54,8 @@ export async function CheckRoot() {
 }
 
 export async function reqPmsCommonInfo(iid: number) {
-  if(iid == undefined){
-    iid = 0
+  if (iid == undefined) {
+    iid = 0;
   }
   return request(process.env.PUBLIC_PATH + `api/v1/pms/commonInfo?iid=${iid}`);
 }

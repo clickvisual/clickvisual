@@ -52,11 +52,11 @@ func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 		return nil
 	}
 
-	// 2. check req domain lock or not
-	err := s.CheckDomLockIfActWrite(&reqPms)
-	if err != nil {
-		return err
-	}
+	// // 2. check req domain lock or not
+	// err := s.CheckDomLockIfActWrite(&reqPms)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// 3. normal check by casbin
 	if isRootUser(reqPms.UserId) {

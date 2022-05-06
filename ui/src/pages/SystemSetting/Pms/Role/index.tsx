@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -113,7 +113,7 @@ function PmsDefaultRoles() {
   };
 
   useEffect(() => {
-    fetchPmsCommonInfo();
+    fetchPmsCommonInfo(0);
   }, []);
 
   const columns = [
@@ -281,7 +281,6 @@ function PmsDefaultRoles() {
                     <Button
                       type="primary"
                       onClick={() => {
-                        // handleCreateModalVisible(true);
                         CheckRoot().then((r) => {
                           if (r.code !== 0) {
                             message.error(r.msg);
@@ -320,7 +319,7 @@ function PmsDefaultRoles() {
         formTitle={"创建默认角色"}
         onSubmit={async (value: any) => {
           const success = handleCreate(value);
-          if (success) {
+          if (await success) {
             handleCreateModalVisible(false);
             if (actionRef.current) {
               actionRef.current.refresh();
@@ -334,10 +333,11 @@ function PmsDefaultRoles() {
         formTitle={"超级管理员授权"}
         onSubmit={async (value: any) => {
           const success = handleGrantUsers(value);
-          if (success) {
+          if (await success) {
             handleGrantRootUserVisible(false);
             if (actionRef.current) {
               actionRef.current.refresh();
+              location.reload();
             }
           }
         }}
