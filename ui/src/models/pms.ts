@@ -191,7 +191,9 @@ const usePmsCommonModel = () => {
   };
 
   useEffect(() => {
-    fetchPmsCommonInfo(iid);
+    if (window.location.href.indexOf("/user/login/") == -1) {
+      fetchPmsCommonInfo(iid);
+    }
   }, [iid]);
 
   return {
