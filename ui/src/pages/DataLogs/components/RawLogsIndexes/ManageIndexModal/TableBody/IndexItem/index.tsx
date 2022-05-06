@@ -6,6 +6,7 @@ import { CloseOutlined } from "@ant-design/icons";
 import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { useIntl } from "umi";
 import Index from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal/TableBody/JsonIndexItem";
+import { hashType } from "@/models/datalogs/types";
 
 const { Option } = Select;
 
@@ -22,6 +23,16 @@ export const typeList = [
   { value: FieldType.Int, type: "Int" },
   { value: FieldType.Float, type: "Float" },
   { value: FieldType.Json, type: "Json" },
+];
+
+// 0 text 1 long 2 double 3 json
+export const hashList = [
+  {
+    value: 0,
+    type: 0,
+  },
+  { value: hashType.siphash, type: "siphash" },
+  { value: hashType.urlhash, type: "urlhash" },
 ];
 
 type IndexItemProps = {
@@ -49,6 +60,8 @@ const IndexItem = ({
       {({ getFieldValue, setFields }) => {
         const isJson =
           getFieldValue(["data", indexField.name, "typ"]) === FieldType.Json;
+        const isString =
+          getFieldValue(["data", indexField.name, "typ"]) === FieldType.String;
         return (
           <>
             <tr className={classNames(mangeIndexModalStyles.tableTr)}>
@@ -86,6 +99,12 @@ const IndexItem = ({
                   <Select
                     style={{ width: "100%" }}
                     onSelect={(value) => {
+                      setFields([
+                        {
+                          name: ["data", indexField.name, "hashTyp"],
+                          value: value == FieldType.String ? undefined : 0,
+                        },
+                      ]);
                       if (value !== FieldType.Json) return;
                       setFields([
                         {
@@ -125,6 +144,41 @@ const IndexItem = ({
                     />
                   </Form.Item>
                 )}
+              </td>
+              <td
+                className={classNames(isJson && mangeIndexModalStyles.jsonTd)}
+              >
+                <Form.Item
+                  shouldUpdate={(prevValues, nextValues) =>
+                    prevValues.typ !== nextValues.typ
+                  }
+                  noStyle
+                >
+                  {() => {
+                    return !isJson ? (
+                      <Form.Item noStyle name={[indexField.name, "hashTyp"]}>
+                        <Select
+                          style={{ width: "80%" }}
+                          allowClear
+                          disabled={!isString}
+                        >
+                          {hashList
+                            .filter((item: any) =>
+                              isString ? item.value != 0 : item.value == 0
+                            )
+                            .map((item) => (
+                              <Option key={item.value} value={item.value}>
+                                {item.type ||
+                                  i18n.formatMessage({
+                                    id: "log.index.manage.enum.zero",
+                                  })}
+                              </Option>
+                            ))}
+                        </Select>
+                      </Form.Item>
+                    ) : null;
+                  }}
+                </Form.Item>
               </td>
               <td
                 className={classNames(isJson && mangeIndexModalStyles.jsonTd)}

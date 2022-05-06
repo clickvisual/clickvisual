@@ -25,7 +25,19 @@ const TableHeader = () => {
           </span>
         </th>
         <th rowSpan={2}>
-          <span>{i18n.formatMessage({ id: "operation" })}</span>
+          <span>
+            {i18n.formatMessage({
+              id: "log.index.manage.table.header.hashType",
+            })}
+          </span>
+        </th>
+
+        <th rowSpan={2}>
+          <span>
+            {i18n.formatMessage({
+              id: "operation",
+            })}
+          </span>
         </th>
       </tr>
 
