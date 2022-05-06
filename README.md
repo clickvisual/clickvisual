@@ -2,7 +2,6 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/clickvisual/clickvisual)](https://goreportcard.com/report/github.com/clickvisual/clickvisual)
 [![Release](https://img.shields.io/github/v/release/clickvisual/clickvisual.svg)](https://github.com/clickvisual/clickvisual)
-[![goproxy.cn](https://goproxy.cn/stats/github.com/clickvisual/clickvisual/badges/download-count.svg)](https://goproxy.cn/stats/github.com/clickvisual/clickvisual)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/clickvisual/clickvisual?tab=doc)
 [![GitHub license](https://img.shields.io/github/license/clickvisual/clickvisual)](https://github.com/clickvisual/clickvisual/blob/master/LICENSE)
 [![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
