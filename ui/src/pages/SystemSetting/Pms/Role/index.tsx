@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -281,7 +281,6 @@ function PmsDefaultRoles() {
                     <Button
                       type="primary"
                       onClick={() => {
-                        // handleCreateModalVisible(true);
                         CheckRoot().then((r) => {
                           if (r.code !== 0) {
                             message.error(r.msg);
@@ -338,6 +337,7 @@ function PmsDefaultRoles() {
             handleGrantRootUserVisible(false);
             if (actionRef.current) {
               actionRef.current.refresh();
+              location.reload();
             }
           }
         }}
