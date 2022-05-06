@@ -7,7 +7,7 @@ import (
 	appsv1 "k8s.io/client-go/listers/apps/v1"
 	corev1 "k8s.io/client-go/listers/core/v1"
 
-	"github.com/shimohq/mogo/api/internal/service/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
 )
 
 type CacheFactory struct {

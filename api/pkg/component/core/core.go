@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/core/etrace"
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"

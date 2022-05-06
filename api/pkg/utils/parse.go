@@ -7,7 +7,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 func ParseAppUrlAndSubUrl(appUrl string) (string, string, error) {

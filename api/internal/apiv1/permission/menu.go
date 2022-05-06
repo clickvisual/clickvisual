@@ -1,9 +1,9 @@
 package permission
 
 import (
-	"github.com/shimohq/mogo/api/internal/service"
-	"github.com/shimohq/mogo/api/internal/service/permission"
-	"github.com/shimohq/mogo/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 )
 
 func MenuList(c *core.Context) {

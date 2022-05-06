@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 // Database 数据库管理

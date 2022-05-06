@@ -7,7 +7,7 @@
 
 
 ## Fork 代码
-1. 访问 https://github.com/shimohq/mogo
+1. 访问 https://github.com/clickvisual/clickvisual
 2. 点击 "Fork" 按钮 (位于页面的右上方)
 
 ## Clone 代码
@@ -17,7 +17,7 @@
 而我们强烈建议，官方库永远使用HTTPS，这样可以避免一些误操作。
 
 ```bash
-git clone https://github.com/shimohq/mogo.git
+git clone https://github.com/clickvisual/clickvisual.git
 cd mogo
 git remote add upstream 'git@github.com:<your github username>/mogo.git' 
 ```

@@ -3,9 +3,9 @@ package event
 import (
 	"strings"
 
-	"github.com/shimohq/mogo/api/internal/service/event"
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func GetAllEnums(c *core.Context) {

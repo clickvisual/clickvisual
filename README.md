@@ -38,7 +38,7 @@ See <https://mogo.shimo.im>
 
 ```bash
 # clone mogo source code.
-git clone https://github.com/shimohq/mogo.git
+git clone https://github.com/clickvisual/clickvisual.git
 
 # you may need to set docker image mirror, visit <https://github.com/yeasy/docker_practice/blob/master/install/mirror.md> for details.
 docker-compose up
@@ -56,10 +56,10 @@ docker-compose up
 latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 
 # for MacOS amd64.
-wget "https://github.com/shimohq/mogo/releases/download/${latest}/mogo-${latest}-darwin-amd64.tar.gz" -O mogo-${latest}.tar.gz 
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo-${latest}-darwin-amd64.tar.gz" -O mogo-${latest}.tar.gz 
 
 # for Linux amd64.
-wget "https://github.com/shimohq/mogo/releases/download/${latest}/mogo-${latest}-linux-amd64.tar.gz" -O mogo-$(latest).tar.gz  
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo-${latest}-linux-amd64.tar.gz" -O mogo-$(latest).tar.gz  
 
 # extract zip file to current directory.
 mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
@@ -79,7 +79,7 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 ## Bugs or features
 
-If you want to report a bug or request for a feature, create a issue [here](https://github.com/shimohq/mogo/issues).
+If you want to report a bug or request for a feature, create a issue [here](https://github.com/clickvisual/clickvisual/issues).
 
 ## Join Us
 
