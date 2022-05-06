@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
 )
 
 type Builder interface {

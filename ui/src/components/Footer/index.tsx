@@ -15,7 +15,7 @@ export default () => {
           })}
         </span>
 
-        <a href="https://github.com/shimohq/mogo" target="_blank">
+        <a href="https://github.com/clickvisual/clickvisual" target="_blank">
           <IconFont type={"icon-github"} />
         </a>
         <a href="https://shimo.im/welcome" target="_blank">

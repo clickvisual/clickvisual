@@ -10,13 +10,13 @@ import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/internal/service/inquiry"
-	"github.com/shimohq/mogo/api/internal/service/permission"
-	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
-	"github.com/shimohq/mogo/api/pkg/constx"
-	"github.com/shimohq/mogo/api/pkg/model/db"
-	"github.com/shimohq/mogo/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type instanceManager struct {

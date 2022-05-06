@@ -11,10 +11,10 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
-	"github.com/shimohq/mogo/api/pkg/model/db"
-	"github.com/shimohq/mogo/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func (p *pms) transPmsRole2InstancePmsRole(pr *db.PmsRole, iid int) (resp *InstancePmsRole, err error) {

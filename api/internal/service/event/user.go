@@ -1,8 +1,8 @@
 package event
 
 import (
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func (a *event) UsersPwdChange(opUser *core.User, metaData string) {

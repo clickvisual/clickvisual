@@ -5,10 +5,10 @@ import (
 	"github.com/gotomicro/ego/server/egovernor"
 	"github.com/gotomicro/ego/task/ejob"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/internal/router"
-	"github.com/shimohq/mogo/api/internal/service"
-	"github.com/shimohq/mogo/api/pkg/job"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/router"
+	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/pkg/job"
 )
 
 func main() {

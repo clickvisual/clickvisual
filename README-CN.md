@@ -4,7 +4,7 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[English](https://github.com/shimohq/mogo/blob/master/README.md) | [中文](https://github.com/shimohq/mogo/blob/master/README-CN.md)
+[English](https://github.com/clickvisual/clickvisual/blob/master/README.md) | [中文](https://github.com/clickvisual/clickvisual/blob/master/README-CN.md)
 
 Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
 
@@ -34,7 +34,7 @@ Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以
 - Docker 方式运行
 
 ```bash
-git clone https://github.com/shimohq/mogo.git
+git clone https://github.com/clickvisual/clickvisual.git
 
 # 国内可能需要配置 Docker Proxy，或者配置 image mirror
 # 可参考这里：https://github.com/yeasy/docker_practice/blob/master/install/mirror.md
@@ -53,10 +53,10 @@ docker-compose up
 latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 
 # MacOs 下下载
-wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_darwin_x86_64.tar.gz -O mogo.tar.gz 
+wget https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo_${latest}_darwin_x86_64.tar.gz -O mogo.tar.gz 
 
 # Linux 下下载
-wget https://github.com/shimohq/mogo/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
+wget https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
 
 # 解压 tar.gz 包到 ./mogo 目录
 mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
@@ -76,7 +76,7 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 ## Bugs or features
 
-如果需要提交 Bug，可以点击 [这里](https://github.com/shimohq/mogo/issues)。
+如果需要提交 Bug，可以点击 [这里](https://github.com/clickvisual/clickvisual/issues)。
 
 ## 加入我们
 

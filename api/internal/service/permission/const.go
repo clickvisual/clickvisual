@@ -1,6 +1,6 @@
 package permission
 
-import "github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
+import "github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 
 const (
 	MsgNoPermission         = "权限验证未通过 (您当前无操作权限). "

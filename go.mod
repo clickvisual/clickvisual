@@ -1,4 +1,4 @@
-module github.com/shimohq/mogo
+module github.com/clickvisual/clickvisual
 
 go 1.18
 

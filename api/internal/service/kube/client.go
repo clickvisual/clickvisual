@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/shimohq/mogo/api/internal/invoker"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -26,7 +26,7 @@ func buildClient(apiServerAddr string, kubeconfig string) (*kubernetes.Clientset
 	configInternal := configObject.(*clientcmdapi.Config)
 
 	clientConfig, err := clientcmd.NewDefaultClientConfig(*configInternal, &clientcmd.ConfigOverrides{
-		ClusterDefaults: clientcmdapi.Cluster{Server: apiServerAddr}, //InsecureSkipTLSVerify: true,
+		ClusterDefaults: clientcmdapi.Cluster{Server: apiServerAddr}, // InsecureSkipTLSVerify: true,
 	}).ClientConfig()
 
 	if err != nil {

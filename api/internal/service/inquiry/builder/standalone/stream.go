@@ -3,7 +3,7 @@ package standalone
 import (
 	"fmt"
 
-	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
 )
 
 // StreamBuilder stand-alone cluster version

@@ -1,7 +1,7 @@
 package view
 
 import (
-	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 type ReqQuery struct {

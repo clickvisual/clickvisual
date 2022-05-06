@@ -8,8 +8,8 @@ import (
 	"gorm.io/gorm"
 	"sigs.k8s.io/yaml"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 // status of kubernetes cluster
