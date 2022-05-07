@@ -201,7 +201,9 @@ const DataLogsModel = () => {
     statisticalChartsHelper.setActiveQueryType(
       tabPane?.queryType ?? QueryTypeEnum.LOG
     );
-    statisticalChartsHelper.onChangeChartSql(tabPane?.logs?.query);
+    statisticalChartsHelper.onChangeChartSql(
+      tabPane?.querySql ?? tabPane?.logs?.query
+    );
     doParseQuery(tabPane?.keyword || keywordInput);
   };
 

@@ -6,10 +6,8 @@
   height: 100%;
   .header {
     display: flex;
-    //flex: 0 0 42px;
-    flex: 0;
+    flex: 0 0 42px;
     order: 0;
-    min-height: 42px;
   }
   .content {
     display: flex;
@@ -52,6 +50,16 @@
       .logs {
         flex: 1;
       }
+    }
+  }
+
+  .tableContent {
+    flex-direction: column;
+    margin-top: 10px;
+    .sqlTip {
+      flex: 0 0 24px;
+      color: red;
+      line-height: 24px;
     }
   }
 }

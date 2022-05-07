@@ -16,13 +16,16 @@ export interface GetTableIdRequest {
   table: string;
 }
 
-export interface LogsResponse {
+export interface StatisticalTableResponse {
+  logs: any[];
+}
+
+export interface LogsResponse extends StatisticalTableResponse {
   count: number;
   hiddenFields: string[];
   defaultFields: string[];
   keys: IndexInfoType[];
   limited: number;
-  logs: any[];
   terms: string[][];
   query: string;
 }
@@ -394,6 +397,17 @@ export default {
       process.env.PUBLIC_PATH + `api/v1/views/${id}`,
       {
         method: "GET",
+      }
+    );
+  },
+
+  // Obtain statistical tables
+  async getStatisticalTable(iid: number, params: { query: string }) {
+    return request<API.Res<StatisticalTableResponse>>(
+      process.env.PUBLIC_PATH + `api/v1/instances/${iid}/complete`,
+      {
+        method: "GET",
+        params,
       }
     );
   },

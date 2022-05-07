@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { QueryTypeEnum } from "@/config/config";
+import useRequest from "@/hooks/useRequest/useRequest";
+import api, { StatisticalTableResponse } from "@/services/dataLogs";
 
 const useStatisticalCharts = () => {
   const [activeQueryType, setActiveQueryType] = useState<string>(
@@ -7,6 +9,15 @@ const useStatisticalCharts = () => {
   );
 
   const [chartSql, setChartSql] = useState<string>();
+  const [logChart, setLogChart] = useState<StatisticalTableResponse>({
+    logs: [],
+  });
+
+  const doGetStatisticalTable = useRequest(api.getStatisticalTable, {
+    loadingText: false,
+    onSuccess: (res) => setLogChart(res.data),
+  });
+
   const onChangeChartSql = (sql: string | undefined) => {
     setChartSql(sql);
   };
@@ -16,6 +27,8 @@ const useStatisticalCharts = () => {
     setActiveQueryType,
     chartSql,
     onChangeChartSql,
+    doGetStatisticalTable,
+    logChart,
   };
 };
 export default useStatisticalCharts;

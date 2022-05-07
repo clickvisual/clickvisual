@@ -8,14 +8,18 @@ import { QueryTypeEnum } from "@/config/config";
 import RawLogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog";
 import StatisticalTableContent from "@/pages/DataLogs/components/QueryResult/Content/StatisticalTable";
 
+const SharePath = [
+  process.env.PUBLIC_PATH + "share",
+  process.env.PUBLIC_PATH + "share/",
+];
+
 const QueryResult = () => {
   const { statisticalChartsHelper } = useModel("dataLogs");
 
   const { activeQueryType } = statisticalChartsHelper;
+
   const isShare = useMemo(
-    () =>
-      document.location.pathname === "/share" ||
-      document.location.pathname === "/share/",
+    () => SharePath.includes(document.location.pathname),
     [document.location.pathname]
   );
 

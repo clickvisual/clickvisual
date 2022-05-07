@@ -34,6 +34,7 @@ interface UrlStateType {
   tab: string | number;
   index: string | number;
   queryType?: string;
+  querySql?: string;
 }
 
 export const RestUrlStates = {
@@ -84,7 +85,7 @@ export default function useLogUrlParams() {
     statisticalChartsHelper,
   } = useModel("dataLogs");
   const { addLogPane } = logPanesHelper;
-  const { activeQueryType } = statisticalChartsHelper;
+  const { activeQueryType, chartSql } = statisticalChartsHelper;
 
   const handleResponse = (res: BaseRes<TableInfoResponse>, tid: number) => {
     if (res.data.database) {
@@ -109,33 +110,28 @@ export default function useLogUrlParams() {
       activeTabKey: urlState.tab,
       activeIndex: parseInt(urlState.index),
       queryType: urlState.queryType,
+      querySql: urlState.querySql,
     };
 
-    switch (urlState.queryType) {
-      case QueryTypeEnum.LOG:
-        addLogPane(pane.paneId, pane);
+    addLogPane(pane.paneId, pane);
+    onChangeLogPane(pane);
+    doGetLogsAndHighCharts(tid, {
+      reqParams: {
+        st: pane.start,
+        et: pane.end,
+        kw: pane.keyword,
+        page: pane.page,
+        pageSize: pane.pageSize,
+      },
+    })
+      .then((res) => {
+        if (!res) return;
+        pane.logs = res.logs;
+        pane.highCharts = res.highCharts;
         onChangeLogPane(pane);
-        doGetLogsAndHighCharts(tid, {
-          reqParams: {
-            st: pane.start,
-            et: pane.end,
-            kw: pane.keyword,
-            page: pane.page,
-            pageSize: pane.pageSize,
-          },
-        })
-          .then((res) => {
-            if (!res) return;
-            pane.logs = res.logs;
-            pane.highCharts = res.highCharts;
-            onChangeLogPane(pane);
-          })
-          .catch();
-        doParseQuery(urlState.kw);
-        break;
-      case QueryTypeEnum.TABLE:
-        break;
-    }
+      })
+      .catch();
+    doParseQuery(urlState.kw);
   };
 
   const doSetUrlQuery = (tid: number) => {
@@ -164,6 +160,7 @@ export default function useLogUrlParams() {
         index: activeTimeOptionIndex,
         tab: activeTabKey,
         queryType: activeQueryType,
+        querySql: chartSql,
       });
     },
     { wait: DEBOUNCE_WAIT }
@@ -182,6 +179,7 @@ export default function useLogUrlParams() {
     activeTimeOptionIndex,
     activeTabKey,
     activeQueryType,
+    chartSql,
   ]);
 
   useEffect(() => {

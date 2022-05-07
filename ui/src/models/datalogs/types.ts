@@ -28,6 +28,7 @@ export type PaneType = {
   pageSize?: number;
   logs: LogsResponse | undefined;
   highCharts: HighChartsResponse | undefined;
+  querySql?: string;
 };
 
 export enum hashType {

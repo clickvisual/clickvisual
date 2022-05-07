@@ -360,8 +360,12 @@ export default {
     "Add a log library under this database",
 
   // Data Logs-Log Query Types MenuItem
-  "log.queryType.menuItem.rawLog": "Raw Log",
-  "log.queryType.menuItem.statisticalTable": "Statistical Table",
+  "log.queryType.menuItem.rawLog": "Raw",
+  "log.queryType.menuItem.statisticalTable": "Table",
+
+  // Data Logs-Statistical Table
+  "log.table.note":
+    "Note: The default return limit for the current request is 100 lines. For more results, add your own restriction statements",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",
