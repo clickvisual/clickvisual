@@ -6,11 +6,14 @@ import { FormListOperation } from "antd/es/form/FormList";
 import { useIntl } from "umi";
 import { PlusOutlined } from "@ant-design/icons";
 
-const QueryStatisticsItem = () => {
+const QueryStatisticsItem = (props: { formRef: any }) => {
   const i18n = useIntl();
   const statisticOptionRef = useRef<FormListOperation>();
   const insertIndex = useRef<number>();
+  const [defaultData, setDefaultData] = useState<any>();
+  const { formRef } = props;
 
+  const [isEdit, setIsEdit] = useState<boolean>(false);
   const [visibleModal, setVisibleModal] = useState<boolean>(false);
 
   const onChangeVisible = (visible: boolean) => {
@@ -83,6 +86,19 @@ const QueryStatisticsItem = () => {
                             {i18n.formatMessage({ id: "add" })}
                           </a>
                         )}
+                        <a
+                          onClick={() => {
+                            const filtersList =
+                              formRef.current.getFieldValue("filters")[
+                                field.name
+                              ];
+                            setDefaultData(filtersList);
+                            onChangeVisible(true);
+                            setIsEdit(true);
+                          }}
+                        >
+                          {i18n.formatMessage({ id: "edit" })}
+                        </a>
                         <a onClick={() => options.remove(field.name)}>
                           {i18n.formatMessage({ id: "delete" })}
                         </a>
@@ -109,15 +125,37 @@ const QueryStatisticsItem = () => {
               )}
               <CreatedAndUpdatedModal
                 visible={visibleModal}
+                isEdit={isEdit}
+                defaultData={defaultData}
                 onOk={(fields: any) => {
                   if (!statisticOptionRef.current) return;
-                  statisticOptionRef.current.add(
-                    { ...fields, tid: fields.tableId },
-                    insertIndex.current
-                  );
+                  if (isEdit) {
+                    let currentFiltersList =
+                      formRef.current.getFieldValue("filters");
+                    currentFiltersList.map((item: any, index: number) => {
+                      if (item.id == fields.id) {
+                        currentFiltersList[index] = fields;
+                        formRef.current.setFieldsValue({
+                          filters: currentFiltersList,
+                        });
+                        return;
+                      }
+                    });
+                  } else {
+                    statisticOptionRef.current.add(
+                      { ...fields, tid: fields.tableId },
+                      insertIndex.current
+                    );
+                  }
+                  setIsEdit(false);
+                  setDefaultData({});
                   onChangeVisible(false);
                 }}
-                onCancel={() => onChangeVisible(false)}
+                onCancel={() => {
+                  setIsEdit(false);
+                  setDefaultData({});
+                  onChangeVisible(false);
+                }}
               />
             </>
           );

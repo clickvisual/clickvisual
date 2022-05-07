@@ -161,7 +161,7 @@ const FormAlarmDraw = () => {
             />
           </Form.Item>
           <InspectionFrequencyItem />
-          <QueryStatisticsItem />
+          <QueryStatisticsItem formRef={alarmFormRef} />
           <TriggerConditionItem />
           <Form.Item
             label={i18n.formatMessage({

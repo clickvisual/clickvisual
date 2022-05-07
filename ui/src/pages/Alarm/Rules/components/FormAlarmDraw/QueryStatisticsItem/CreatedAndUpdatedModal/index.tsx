@@ -26,10 +26,14 @@ type CreatedAndUpdatedModalProps = {
   visible: boolean;
   onOk: (fields: any) => void;
   onCancel: () => void;
+  isEdit: boolean;
+  defaultData: any;
 };
 const CreatedAndUpdatedModal = ({
   visible,
   onOk,
+  isEdit,
+  defaultData,
   onCancel,
 }: CreatedAndUpdatedModalProps) => {
   const modalForm = useRef<FormInstance>(null);
@@ -37,6 +41,7 @@ const CreatedAndUpdatedModal = ({
   const cancelTokenQueryPreviewRef = useRef<Canceler | null>(null);
   const CancelToken = Request.CancelToken;
   const i18n = useIntl();
+  const { doGetLogLibrary } = useModel("dataLogs");
 
   const { operations } = useModel("alarm");
 
@@ -57,8 +62,8 @@ const CreatedAndUpdatedModal = ({
   const doQueryPreview = useRequest(api.getLogs, {
     loadingText: false,
     onError: (e) => {
-      // setTableColumns([]);
-      // setTableLogs([]);
+      setTableColumns([]);
+      setTableLogs([]);
       if (Request.isCancel(e)) {
         return false;
       }
@@ -176,6 +181,11 @@ const CreatedAndUpdatedModal = ({
     onOk(fields);
   };
 
+  const databaseId = modalForm.current?.getFieldValue("databaseId");
+  useEffect(() => {
+    databaseId && getLogLibraries.run(databaseId);
+  }, [databaseId]);
+
   useEffect(() => {
     if (visible && modalForm.current) {
       doGetDatabaseList();
@@ -190,9 +200,30 @@ const CreatedAndUpdatedModal = ({
   }, [visible, operations.selectDid, operations.selectTid]);
 
   useEffect(() => {
+    if (visible && isEdit && (defaultData?.tid || defaultData?.tableId)) {
+      doGetLogLibrary
+        .run(defaultData?.tid || defaultData?.tableId)
+        .then((res) => {
+          if (res?.code !== 0) {
+            return;
+          }
+          res.data && res.data.did && getLogLibraries.run(res.data.did || 0);
+          modalForm.current?.setFieldsValue({
+            databaseId: res.data.did,
+            tableId: defaultData.tid || defaultData?.tableId,
+            when: defaultData.when,
+            id: defaultData.id,
+          });
+          handlePreview(modalForm.current?.getFieldsValue());
+        });
+    }
+  }, [visible, isEdit, defaultData]);
+
+  useEffect(() => {
     if (!visible && modalForm.current) {
       modalForm.current.resetFields();
       onClickPreview.current = false;
+      doShowTable(false);
     }
   }, [visible]);
 
@@ -217,6 +248,9 @@ const CreatedAndUpdatedModal = ({
         ref={modalForm}
         onFinish={handleFinish}
       >
+        <Form.Item name={"id"} hidden>
+          <Input />
+        </Form.Item>
         <Form.Item
           label={i18n.formatMessage({ id: "type" })}
           name={"logType"}
