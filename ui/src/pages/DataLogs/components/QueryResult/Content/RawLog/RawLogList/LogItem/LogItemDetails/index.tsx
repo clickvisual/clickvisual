@@ -90,7 +90,7 @@ const LogItemDetails = () => {
 
   const quickInsertLikeQuery = (value: string, extra?: { key?: string }) => {
     const currentSelected = `${
-      extra?.key ? extra?.key : "_raw_log_"
+      extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
     } like '%${value}%'`;
     doUpdatedQuery(currentSelected);
   };

@@ -210,6 +210,7 @@ function useRequest<R = any, P extends any[] = any>(
 
     notification.error({
       message: formatMessage({ id: "error.title" }),
+      duration: 0,
       description: (
         <div>
           <div style={{ maxHeight: "400px", overflowY: "auto" }}>
