@@ -79,7 +79,11 @@ func isNotAuthProxy(c *gin.Context) bool {
 		return true
 	}
 	if u.ID == 0 {
-		u = db.User{Username: username, Nickname: username, Access: "auth.proxy"}
+		nickName := c.GetHeader(econf.GetString("auth.proxy.headerNickName"))
+		if nickName == "" {
+			nickName = username
+		}
+		u = db.User{Username: username, Nickname: nickName, Access: "auth.proxy"}
 		err = db.UserCreate(invoker.Db, &u)
 		if err != nil {
 			invoker.Logger.Error("isNotAuthProxy", elog.String("step", "UserCreate"), elog.String("username", username), elog.String("error", err.Error()))
