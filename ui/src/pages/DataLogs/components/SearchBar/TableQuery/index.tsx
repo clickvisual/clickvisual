@@ -4,7 +4,7 @@ import IconFont from "@/components/IconFont";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect, useMemo, useState } from "react";
-import { useDebounce } from "ahooks";
+import { useDebounce, useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
 import { LogsResponse } from "@/services/dataLogs";
@@ -15,13 +15,15 @@ const TableQuery = () => {
   const i18n = useIntl();
 
   const {
+    currentDatabase,
     statisticalChartsHelper,
     currentLogLibrary,
     logPanesHelper,
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
-  const { chartSql, onChangeChartSql } = statisticalChartsHelper;
+  const { chartSql, onChangeChartSql, doGetStatisticalTable } =
+    statisticalChartsHelper;
   const [sql, setSql] = useState<string | undefined>(chartSql);
 
   const debouncedSql = useDebounce(sql, { wait: DEBOUNCE_WAIT });
@@ -31,11 +33,22 @@ const TableQuery = () => {
     return logPanes[currentLogLibrary?.id.toString()];
   }, [currentLogLibrary?.id, logPanes]);
 
+  const doSearch = useDebounceFn(
+    () => {
+      if (!currentDatabase) return;
+      doGetStatisticalTable.run(currentDatabase.iid, {
+        query: sql ?? "",
+      });
+    },
+    { wait: DEBOUNCE_WAIT }
+  );
+
   useEffect(() => {
     onChangeChartSql(debouncedSql);
     onChangeCurrentLogPane({
       ...(oldPane as PaneType),
       logs: { ...(oldPane?.logs as LogsResponse), query: debouncedSql ?? "" },
+      querySql: debouncedSql ?? "",
     });
   }, [debouncedSql]);
 
@@ -48,17 +61,19 @@ const TableQuery = () => {
       <TextArea
         allowClear
         value={sql}
-        className={searchBarStyles.inputBox}
         placeholder={`${i18n.formatMessage({
           id: "log.search.placeholder",
         })}`}
         onChange={(e) => setSql(e.target.value)}
-        autoSize={{ minRows: 3, maxRows: 6 }}
+        autoSize={{ minRows: 10, maxRows: 10 }}
+        onPressEnter={() => doSearch.run()}
       />
       <Button
+        loading={doGetStatisticalTable.loading}
         className={searchBarStyles.searchBtn}
         type="primary"
         icon={<IconFont type={"icon-log-search"} />}
+        onClick={() => doSearch.run()}
       >
         {i18n.formatMessage({ id: "search" })}
       </Button>
