@@ -65,7 +65,7 @@ export default {
   "menu.systemSettings.pms": "权限管理",
   "menu.systemSettings.role": "角色管理",
   // user
-  "login.header": "欢迎来到 MOGO",
+  "login.header": "欢迎来到 ClickVisual",
   "login.title": "登  录",
   "login.username": "账号",
   "login.username.placeholder": "请输入账号",
