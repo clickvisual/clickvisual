@@ -35,6 +35,18 @@ func Install(c *core.Context) {
 }
 
 func Migration(c *core.Context) {
+	defaultAdminId := 1
+	roots := permission.Manager.GetRootUsersId()
+	isExist := false
+	for _, val := range roots {
+		if val == defaultAdminId {
+			isExist = true
+		}
+	}
+	if !isExist {
+		roots = append(roots, defaultAdminId)
+	}
+	permission.Manager.GrantRootUsers(roots)
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
