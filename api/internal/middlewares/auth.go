@@ -87,25 +87,25 @@ func isNotAuthProxy(c *gin.Context) bool {
 		}
 	}
 	if econf.GetBool("auth.proxy.isAutoLogin") {
-		session := sessions.Default(c)
-		session.Set("user", u)
-		errSave := session.Save()
-		if errSave != nil {
-			invoker.Logger.Error("isNotAuthProxy", elog.String("step", "sessionSave"), elog.Any("username", u), elog.String("error", err.Error()))
-			return true
+		if c.GetHeader("X-ClickVisual-Not-Auto-Login") != "TRUE" {
+			session := sessions.Default(c)
+			session.Set("user", u)
+			errSave := session.Save()
+			if errSave != nil {
+				invoker.Logger.Error("isNotAuthProxy", elog.String("step", "sessionSave"), elog.Any("username", u), elog.String("error", err.Error()))
+				return true
+			}
 		}
 	}
 	// is Root
-	invoker.Logger.Debug("isNotAuthProxy", elog.Any("rootTokenKey", c.GetHeader(econf.GetString("auth.proxy.rootTokenKey"))))
-	invoker.Logger.Debug("isNotAuthProxy", elog.Any("rootTokenValue", econf.GetString("auth.proxy.rootTokenValue")))
-
 	if c.GetHeader(econf.GetString("auth.proxy.rootTokenKey")) == econf.GetString("auth.proxy.rootTokenValue") {
 		errRoot := permission.Manager.IsRootUser(u.ID)
 		invoker.Logger.Debug("isNotAuthProxy", elog.Any("errRoot", errRoot))
-
 		if errRoot != nil {
 			invoker.Logger.Debug("isNotAuthProxy", elog.String("step", "rootUpdate"), elog.Any("user", u))
-			permission.Manager.GrantRootUsers([]int{u.ID})
+			roots := permission.Manager.GetRootUsersId()
+			roots = append(roots, u.ID)
+			permission.Manager.GrantRootUsers(roots)
 		}
 	}
 	invoker.Logger.Debug("isNotAuthProxy", elog.String("step", "finish"), elog.Any("user", u))
