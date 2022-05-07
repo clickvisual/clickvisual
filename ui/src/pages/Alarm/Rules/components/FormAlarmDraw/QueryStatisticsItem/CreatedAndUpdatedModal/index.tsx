@@ -57,8 +57,8 @@ const CreatedAndUpdatedModal = ({
   const doQueryPreview = useRequest(api.getLogs, {
     loadingText: false,
     onError: (e) => {
-      setTableColumns([]);
-      setTableLogs([]);
+      // setTableColumns([]);
+      // setTableLogs([]);
       if (Request.isCancel(e)) {
         return false;
       }

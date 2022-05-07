@@ -50,6 +50,9 @@ export default {
   "navbar.lang": "English",
   "navbar.changePassword": "Change password",
   "navbar.logOut": "Log out",
+  "navbar.upgrade": "Database Structure Upgrade",
+  "navbar.upgrade.lodingText": "In the upgrade",
+  "navbar.upgrade.successText": "Upgrade success",
   "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} by shimo`,
 
   // menu
