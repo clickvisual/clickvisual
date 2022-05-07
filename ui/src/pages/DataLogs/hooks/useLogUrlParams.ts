@@ -8,6 +8,7 @@ import {
   FIRST_PAGE,
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
+  QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
 import moment from "moment";
@@ -16,7 +17,7 @@ import { useEffect } from "react";
 import { TableInfoResponse } from "@/services/dataLogs";
 import { BaseRes } from "@/hooks/useRequest/useRequest";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
-import { PaneType, QueryTypeEnum } from "@/models/datalogs/types";
+import { PaneType } from "@/models/datalogs/types";
 
 interface UrlStateType {
   tid?: string;

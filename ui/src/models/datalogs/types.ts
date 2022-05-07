@@ -3,6 +3,7 @@ import {
   LogsResponse,
   TablesResponse,
 } from "@/services/dataLogs";
+import { QueryTypeEnum } from "@/config/config";
 
 export interface QueryParams {
   logLibrary?: TablesResponse;
@@ -37,11 +38,6 @@ export enum hashType {
 export interface Extra {
   isPaging?: boolean; // 是否是切换页面
   reqParams?: QueryParams; // 请求参数
-}
-
-export enum QueryTypeEnum {
-  LOG = "rawLog",
-  TABLE = "statisticalTable",
 }
 
 export const QueryTypeMenuItems = [

@@ -15,6 +15,7 @@ import {
   FIRST_PAGE,
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
+  QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
 import moment from "moment";
@@ -25,12 +26,7 @@ import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
 import useLogPanes from "@/models/datalogs/useLogPanes";
-import {
-  Extra,
-  PaneType,
-  QueryParams,
-  QueryTypeEnum,
-} from "@/models/datalogs/types";
+import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useQueryType from "@/models/datalogs/useQueryType";
 
 const DataLogsModel = () => {

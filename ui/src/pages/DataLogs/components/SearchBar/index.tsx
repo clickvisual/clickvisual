@@ -1,151 +1,21 @@
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
-import { Button, Input } from "antd";
-import { useIntl, useModel } from "umi";
-import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
-import { useDebounceFn } from "ahooks";
-import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
-import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
-import moment from "moment";
-import type { DurationInputArg2, DurationInputArg1 } from "moment";
-import { currentTimeStamp } from "@/utils/momentUtils";
-import IconFont from "@/components/IconFont";
-import { useMemo } from "react";
-import { PaneType, QueryParams, QueryTypeEnum } from "@/models/datalogs/types";
+import { QueryTypeEnum } from "@/config/config";
+import TableQuery from "@/pages/DataLogs/components/SearchBar/TableQuery";
+import RawLogQuery from "@/pages/DataLogs/components/SearchBar/RawLogQuery";
+import { useModel } from "@@/plugin-model/useModel";
 
 const SearchBar = () => {
-  const {
-    currentLogLibrary,
-    logPanesHelper,
-    queryTypeHelper,
-    keywordInput,
-    onChangeKeywordInput,
-    doGetLogsAndHighCharts,
-    startDateTime,
-    endDateTime,
-    activeTimeOptionIndex,
-    onChangeCurrentLogPane,
-    logsLoading,
-    highChartLoading,
-    activeTabKey,
-    currentRelativeAmount,
-    currentRelativeUnit,
-    resetLogPaneLogsAndHighCharts,
-  } = useModel("dataLogs");
-  const { logPanes } = logPanesHelper;
+  const { queryTypeHelper } = useModel("dataLogs");
   const { activeQueryType } = queryTypeHelper;
-
-  const i18n = useIntl();
-
-  const oldPane = useMemo(() => {
-    if (!currentLogLibrary?.id) return;
-    return logPanes[currentLogLibrary?.id.toString()];
-  }, [currentLogLibrary?.id, logPanes]);
-
-  const doSearchLog = useDebounceFn(
-    () => {
-      if (!currentLogLibrary) return;
-      const params: QueryParams = {
-        page: FIRST_PAGE,
-      };
-      if (activeTabKey === TimeRangeType.Relative) {
-        const start = moment()
-          .subtract(
-            currentRelativeAmount as DurationInputArg1,
-            currentRelativeUnit as DurationInputArg2
-          )
-          .unix();
-        const end = currentTimeStamp();
-        params.st = start;
-        params.et = end;
-      }
-      if (activeTabKey === TimeRangeType.Custom) {
-        params.st = startDateTime;
-        params.et = endDateTime;
-      }
-      const pane: PaneType = {
-        ...(oldPane as PaneType),
-        start: params?.st ?? oldPane?.start,
-        end: params?.et ?? oldPane?.end,
-        keyword: keywordInput,
-        page: params.page,
-        activeIndex: activeTimeOptionIndex,
-      };
-      onChangeCurrentLogPane(pane);
-      doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params })
-        .then((res) => {
-          if (!res) {
-            resetLogPaneLogsAndHighCharts(pane);
-          } else {
-            pane.logs = res.logs;
-            pane.highCharts = res.highCharts;
-            onChangeCurrentLogPane(pane);
-          }
-        })
-        .catch(() => resetLogPaneLogsAndHighCharts(pane));
-    },
-    { wait: DEBOUNCE_WAIT }
-  );
-
-  const RowLogQuery = (
-    <>
-      <Input
-        allowClear
-        placeholder={`${i18n.formatMessage({
-          id: "log.search.placeholder",
-        })}`}
-        className={searchBarStyles.inputBox}
-        value={keywordInput}
-        suffix={<SearchBarSuffixIcon />}
-        onChange={(e) => {
-          const keyword = e.target.value;
-          onChangeKeywordInput(keyword);
-          onChangeCurrentLogPane({ ...(oldPane as PaneType), keyword });
-        }}
-        onPressEnter={() => {
-          doSearchLog.run();
-        }}
-      />
-      <DarkTimeSelect />
-      <Button
-        loading={logsLoading || highChartLoading}
-        onClick={() => {
-          doSearchLog.run();
-        }}
-        className={searchBarStyles.searchBtn}
-        type="primary"
-        icon={<IconFont type={"icon-log-search"} />}
-      >
-        {i18n.formatMessage({ id: "search" })}
-      </Button>
-    </>
-  );
-
-  const TableQuery = (
-    <>
-      <Input
-        allowClear
-        placeholder={`${i18n.formatMessage({
-          id: "log.search.placeholder",
-        })}`}
-      />
-      <Button
-        className={searchBarStyles.searchBtn}
-        type="primary"
-        icon={<IconFont type={"icon-log-search"} />}
-      >
-        {i18n.formatMessage({ id: "search" })}
-      </Button>
-    </>
-  );
 
   const SearchQuery = () => {
     switch (activeQueryType) {
       case QueryTypeEnum.LOG:
-        return RowLogQuery;
+        return <RawLogQuery />;
       case QueryTypeEnum.TABLE:
-        return TableQuery;
+        return <TableQuery />;
       default:
-        return RowLogQuery;
+        return <RawLogQuery />;
     }
   };
   return (
