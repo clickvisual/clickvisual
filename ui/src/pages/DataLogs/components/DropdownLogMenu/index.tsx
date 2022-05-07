@@ -1,10 +1,11 @@
-import { Button, Dropdown, Menu, Space } from "antd";
-import MenuItem from "antd/es/menu/MenuItem";
+import { Button, Space } from "antd";
 import IconFont from "@/components/IconFont";
 import { PaneType, QueryTypeMenuItems } from "@/models/datalogs/types";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { useMemo } from "react";
+import { QueryTypeEnum } from "@/config/config";
+import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 
 const DropdownLogMenu = ({ isShare }: { isShare: boolean }) => {
   const {
@@ -23,40 +24,31 @@ const DropdownLogMenu = ({ isShare }: { isShare: boolean }) => {
 
   const i18n = useIntl();
 
-  const handleChangeMenu = (e: any) => {
-    setActiveQueryType(e.key);
-    onChangeCurrentLogPane({ ...(oldPane as PaneType), queryType: e.key });
+  const handleClick = () => {
+    const queryType =
+      activeQueryType === QueryTypeEnum.LOG
+        ? QueryTypeEnum.TABLE
+        : QueryTypeEnum.LOG;
+    setActiveQueryType(queryType);
+    onChangeCurrentLogPane({ ...(oldPane as PaneType), queryType });
   };
-
-  const menu = (
-    <Menu selectedKeys={[activeQueryType]}>
-      {QueryTypeMenuItems.map((item) => (
-        <MenuItem key={item.key} onClick={handleChangeMenu}>
-          {i18n.formatMessage({ id: item.labelId })}
-        </MenuItem>
-      ))}
-    </Menu>
-  );
 
   if (isShare) {
     return <></>;
   }
 
   return (
-    <Dropdown overlay={menu}>
-      <Button>
-        <Space>
-          <span>
-            {i18n.formatMessage({
-              id: QueryTypeMenuItems.find(
-                (item) => item.key === activeQueryType
-              )?.labelId,
-            })}
-          </span>
-          <IconFont type={"icon-switch"} />
-        </Space>
-      </Button>
-    </Dropdown>
+    <Button onClick={handleClick} className={searchBarStyles.checkBtn}>
+      <Space>
+        <span>
+          {i18n.formatMessage({
+            id: QueryTypeMenuItems.find((item) => item.key === activeQueryType)
+              ?.labelId,
+          })}
+        </span>
+        <IconFont type={"icon-switch"} />
+      </Space>
+    </Button>
   );
 };
 export default DropdownLogMenu;
