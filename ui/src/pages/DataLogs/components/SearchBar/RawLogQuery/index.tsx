@@ -6,11 +6,11 @@ import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
 import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-import { useDebounceFn } from "ahooks";
+import { useDebounce, useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const RawLogQuery = () => {
   const {
@@ -33,6 +33,14 @@ const RawLogQuery = () => {
   const { logPanes } = logPanesHelper;
 
   const i18n = useIntl();
+
+  const [queryKeyword, setQueryKeyword] = useState<string | undefined>(
+    keywordInput
+  );
+
+  const debouncedQueryKeyword = useDebounce(queryKeyword, {
+    wait: DEBOUNCE_WAIT,
+  });
 
   const oldPane = useMemo(() => {
     if (!currentLogLibrary?.id) return;
@@ -64,7 +72,7 @@ const RawLogQuery = () => {
         ...(oldPane as PaneType),
         start: params?.st ?? oldPane?.start,
         end: params?.et ?? oldPane?.end,
-        keyword: keywordInput,
+        keyword: queryKeyword,
         page: params.page,
         activeIndex: activeTimeOptionIndex,
       };
@@ -84,6 +92,18 @@ const RawLogQuery = () => {
     { wait: DEBOUNCE_WAIT }
   );
 
+  useEffect(() => {
+    onChangeKeywordInput(debouncedQueryKeyword);
+    onChangeCurrentLogPane({
+      ...(oldPane as PaneType),
+      keyword: debouncedQueryKeyword,
+    });
+  }, [debouncedQueryKeyword]);
+
+  useEffect(() => {
+    setQueryKeyword(keywordInput);
+  }, [keywordInput]);
+
   return (
     <>
       <Input
@@ -92,13 +112,9 @@ const RawLogQuery = () => {
           id: "log.search.placeholder",
         })}`}
         className={searchBarStyles.inputBox}
-        value={keywordInput}
+        value={queryKeyword}
         suffix={<SearchBarSuffixIcon />}
-        onChange={(e) => {
-          const keyword = e.target.value;
-          onChangeKeywordInput(keyword);
-          onChangeCurrentLogPane({ ...(oldPane as PaneType), keyword });
-        }}
+        onChange={(e) => setQueryKeyword(e.target.value)}
         onPressEnter={() => {
           doSearchLog.run();
         }}

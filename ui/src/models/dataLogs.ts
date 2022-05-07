@@ -194,13 +194,14 @@ const DataLogsModel = () => {
     onChangeKeywordInput(tabPane?.keyword as string);
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
-    statisticalChartsHelper.setActiveQueryType(
-      tabPane?.queryType ?? QueryTypeEnum.LOG
-    );
     setLogs(tabPane.logs);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
     setLogCount(tabPane?.highCharts?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
+    statisticalChartsHelper.setActiveQueryType(
+      tabPane?.queryType ?? QueryTypeEnum.LOG
+    );
+    statisticalChartsHelper.onChangeChartSql(tabPane?.logs?.query);
     doParseQuery(tabPane?.keyword || keywordInput);
   };
 

@@ -3,21 +3,22 @@ import { QueryTypeEnum } from "@/config/config";
 import TableQuery from "@/pages/DataLogs/components/SearchBar/TableQuery";
 import RawLogQuery from "@/pages/DataLogs/components/SearchBar/RawLogQuery";
 import { useModel } from "@@/plugin-model/useModel";
+import { useMemo } from "react";
 
 const SearchBar = () => {
   const { statisticalChartsHelper } = useModel("dataLogs");
   const { activeQueryType } = statisticalChartsHelper;
 
-  const SearchQuery = () => {
+  const SearchQuery = useMemo(() => {
     switch (activeQueryType) {
       case QueryTypeEnum.LOG:
-        return <RawLogQuery />;
+        return RawLogQuery;
       case QueryTypeEnum.TABLE:
-        return <TableQuery />;
+        return TableQuery;
       default:
-        return <RawLogQuery />;
+        return RawLogQuery;
     }
-  };
+  }, [activeQueryType]);
   return (
     <div className={searchBarStyles.searchBarMain}>
       <SearchQuery />
