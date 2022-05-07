@@ -18,8 +18,8 @@ type PmsCasbinRule struct {
 	V1    string `gorm:"column:v1;not null;type:varchar(100);comment:'obj'" json:"v1" form:"v1"`
 	V2    string `gorm:"column:v2;not null;type:varchar(100);comment:'act'" json:"v2" form:"v2"`
 	V3    string `gorm:"column:v3;not null;type:varchar(100);comment:'dom'" json:"v3" form:"v3"`
-	V4    string `gorm:"column:v4;not null;type:varchar(100);comment:'reserved'" json:"v4" form:"v4"`
-	V5    string `gorm:"column:v5;not null;type:varchar(100);comment:'reserved'" json:"v5" form:"v5"`
+	V4    string `gorm:"column:v4;not null;type:varchar(25);comment:'reserved'" json:"v4" form:"v4"`
+	V5    string `gorm:"column:v5;not null;type:varchar(25);comment:'reserved'" json:"v5" form:"v5"`
 }
 
 type CasbinRules []*PmsCasbinRule
