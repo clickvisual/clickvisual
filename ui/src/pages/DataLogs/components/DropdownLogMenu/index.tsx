@@ -8,13 +8,13 @@ import { useMemo } from "react";
 
 const DropdownLogMenu = ({ isShare }: { isShare: boolean }) => {
   const {
-    queryTypeHelper,
+    statisticalChartsHelper,
     logPanesHelper,
     currentLogLibrary,
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
-  const { activeQueryType, setActiveQueryType } = queryTypeHelper;
+  const { activeQueryType, setActiveQueryType } = statisticalChartsHelper;
 
   const oldPane = useMemo(() => {
     if (!currentLogLibrary?.id) return;

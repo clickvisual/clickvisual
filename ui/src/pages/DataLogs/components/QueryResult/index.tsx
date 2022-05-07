@@ -9,9 +9,9 @@ import RawLogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLo
 import StatisticalTableContent from "@/pages/DataLogs/components/QueryResult/Content/StatisticalTable";
 
 const QueryResult = () => {
-  const { queryTypeHelper } = useModel("dataLogs");
+  const { statisticalChartsHelper } = useModel("dataLogs");
 
-  const { activeQueryType } = queryTypeHelper;
+  const { activeQueryType } = statisticalChartsHelper;
   const isShare = useMemo(
     () =>
       document.location.pathname === "/share" ||

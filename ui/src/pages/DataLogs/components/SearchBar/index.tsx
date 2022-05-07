@@ -5,8 +5,8 @@ import RawLogQuery from "@/pages/DataLogs/components/SearchBar/RawLogQuery";
 import { useModel } from "@@/plugin-model/useModel";
 
 const SearchBar = () => {
-  const { queryTypeHelper } = useModel("dataLogs");
-  const { activeQueryType } = queryTypeHelper;
+  const { statisticalChartsHelper } = useModel("dataLogs");
+  const { activeQueryType } = statisticalChartsHelper;
 
   const SearchQuery = () => {
     switch (activeQueryType) {

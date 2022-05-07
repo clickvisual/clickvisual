@@ -80,10 +80,10 @@ export default function useLogUrlParams() {
     doGetLogLibrary,
     onChangeLogPane,
     logPanesHelper,
-    queryTypeHelper,
+    statisticalChartsHelper,
   } = useModel("dataLogs");
   const { addLogPane } = logPanesHelper;
-  const { activeQueryType } = queryTypeHelper;
+  const { activeQueryType } = statisticalChartsHelper;
 
   const handleResponse = (res: BaseRes<TableInfoResponse>, tid: number) => {
     if (res.data.database) {
