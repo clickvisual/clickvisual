@@ -13,7 +13,7 @@ const LogItemDetails = () => {
   const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
 
-  const { keys, newLog, rawLogJson, rawLogKeys, indexRawLogKeys } =
+  const { keys, newLog, rawLogJson, rawLogKeys, indexRawLogKeys, indexList } =
     useMemo(() => {
       // 隐藏字段
       const hiddenFields = logs?.hiddenFields || [];
@@ -28,6 +28,7 @@ const LogItemDetails = () => {
       let keys: string[] = Object.keys(log)
         .sort()
         .filter((key) => !hiddenFields.includes(key));
+
       // 存储 rawLog 非索引字段
       let rawLogKeys: any[] = [];
       // 存储 rawLog 字段中的索引字段
@@ -58,10 +59,12 @@ const LogItemDetails = () => {
         newLog = Object.assign(cloneRawLogJson, oldLog);
 
         // 合并 log 和 rawLog 的 key，并去重
-        keys = [...keys, ...indexList, ...rawLogKeys].filter((key, index) => {
-          const preIdx = keys.indexOf(key);
-          return preIdx < 0 || preIdx === index;
-        });
+        keys = [...keys, ...indexRawLogKeys, ...rawLogKeys].filter(
+          (key, index) => {
+            const preIdx = keys.indexOf(key);
+            return preIdx < 0 || preIdx === index;
+          }
+        );
 
         // 删除 原日志中 raw log 字段
         delete newLog._raw_log_;
@@ -73,6 +76,7 @@ const LogItemDetails = () => {
       return {
         keys,
         newLog,
+        indexList,
         rawLogJson,
         rawLogKeys,
         indexRawLogKeys,
@@ -118,10 +122,12 @@ const LogItemDetails = () => {
           (item) => item.key === keyItem
         );
       }
+
       const isIndexAndRawLogKey =
         indexRawLogKeys.includes(keyItem) &&
         (!newLog[keyItem] || newLog[keyItem] === "") &&
         !!rawLogJson[keyItem];
+
       const isRawLog =
         (rawLogJson && rawLogKeys.includes(keyItem)) || keyItem === "_raw_log_";
 
@@ -132,7 +138,9 @@ const LogItemDetails = () => {
         : newLog.hasOwnProperty(keyItem)
         ? newLog[keyItem]
         : "";
+
       let regSpeFlag = false;
+
       if (!isRawLog) {
         REG_SEPARATORS.forEach((item) => {
           if (content.toString().includes(item)) {
@@ -185,7 +193,9 @@ const LogItemDetails = () => {
               >
                 <span
                   className={classNames(
-                    rawLogKeys.includes(key) && logItemStyles.notIndexContent
+                    rawLogKeys.includes(key) &&
+                      !indexList.includes(key) &&
+                      logItemStyles.notIndexContent
                   )}
                 >
                   {key}
