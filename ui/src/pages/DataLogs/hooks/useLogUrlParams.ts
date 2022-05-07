@@ -60,6 +60,7 @@ export default function useLogUrlParams() {
     size: PAGE_SIZE,
     tab: TimeRangeType.Relative,
     index: ACTIVE_TIME_INDEX,
+    queryType: QueryTypeEnum.LOG,
   });
   const {
     doGetLogsAndHighCharts,
