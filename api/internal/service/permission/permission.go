@@ -6,7 +6,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"gopkg.in/yaml.v3"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 type Service struct {

@@ -7,8 +7,8 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func (s *configure) TryLock(uid, configId int) (err error) {

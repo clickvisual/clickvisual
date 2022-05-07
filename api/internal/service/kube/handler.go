@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/internal/service/kube/api"
-	"github.com/shimohq/mogo/api/internal/service/kube/patcher"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube/patcher"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 

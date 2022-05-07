@@ -362,6 +362,10 @@ export default {
   "datasource.draw.table.operation.tip":
     "Add a log library under this database",
 
+  // Data Logs-Log Query Types MenuItem
+  "log.queryType.menuItem.rawLog": "Raw Log",
+  "log.queryType.menuItem.statisticalTable": "Statistical Table",
+
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",
   "log.search.placeholder": "Please enter a query",
@@ -384,9 +388,11 @@ export default {
   "log.index.manage.table.header.indexName": "Field Name",
   "log.index.manage.table.header.query": "Enable Query",
   "log.index.manage.table.header.indexType": "Field Type",
+  "log.index.manage.table.header.hashType": "Hash Type",
   "log.index.manage.placeholder.indexName":
     "Mandatory and not repeatable, please enter the field name",
   "log.index.manage.placeholder.alias": "Please enter an field description",
+  "log.index.manage.enum.zero": "This type is not supported",
   "log.index.manage.button.deleted": "Drop Field",
   "log.index.manage.button.created": "Created Field",
   "log.index.manage.message.save.success": "Save success",

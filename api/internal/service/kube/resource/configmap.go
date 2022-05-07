@@ -12,9 +12,9 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/internal/service/kube"
-	"github.com/shimohq/mogo/api/internal/service/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
 )
 
 func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string, data map[string]string) error {

@@ -12,9 +12,10 @@ import (
 	"github.com/kl7sn/toolkit/kauth"
 	"github.com/pkg/errors"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func AuthChecker() gin.HandlerFunc {
@@ -86,15 +87,28 @@ func isNotAuthProxy(c *gin.Context) bool {
 		}
 	}
 	if econf.GetBool("auth.proxy.isAutoLogin") {
-		session := sessions.Default(c)
-		session.Set("user", u)
-		errSave := session.Save()
-		if errSave != nil {
-			invoker.Logger.Error("isNotAuthProxy", elog.String("step", "sessionSave"), elog.Any("username", u), elog.String("error", err.Error()))
-			return true
+		if c.GetHeader("X-ClickVisual-Not-Auto-Login") != "TRUE" {
+			session := sessions.Default(c)
+			session.Set("user", u)
+			errSave := session.Save()
+			if errSave != nil {
+				invoker.Logger.Error("isNotAuthProxy", elog.String("step", "sessionSave"), elog.Any("username", u), elog.String("error", err.Error()))
+				return true
+			}
 		}
 	}
-	invoker.Logger.Debug("initContextWithAuthProxy", elog.String("step", "finish"), elog.Any("user", u))
+	// is Root
+	if c.GetHeader(econf.GetString("auth.proxy.rootTokenKey")) == econf.GetString("auth.proxy.rootTokenValue") {
+		errRoot := permission.Manager.IsRootUser(u.ID)
+		invoker.Logger.Debug("isNotAuthProxy", elog.Any("errRoot", errRoot))
+		if errRoot != nil {
+			invoker.Logger.Debug("isNotAuthProxy", elog.String("step", "rootUpdate"), elog.Any("user", u))
+			roots := permission.Manager.GetRootUsersId()
+			roots = append(roots, u.ID)
+			permission.Manager.GrantRootUsers(roots)
+		}
+	}
+	invoker.Logger.Debug("isNotAuthProxy", elog.String("step", "finish"), elog.Any("user", u))
 	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
 	c.Set(core.UserContextKey, ctxUser)
 	c.Next()

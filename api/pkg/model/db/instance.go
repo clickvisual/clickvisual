@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 
 	"github.com/gotomicro/ego-component/egorm"
 	"go.uber.org/zap"

@@ -13,14 +13,14 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/internal/service/kube"
-	"github.com/shimohq/mogo/api/internal/service/kube/resource"
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/constx"
-	"github.com/shimohq/mogo/api/pkg/model/db"
-	"github.com/shimohq/mogo/api/pkg/model/view"
-	"github.com/shimohq/mogo/api/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube/resource"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 var Configure *configure

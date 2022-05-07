@@ -7,11 +7,11 @@ import (
 	"github.com/gotomicro/ego-component/egorm"
 	"github.com/spf13/cast"
 
-	"github.com/shimohq/mogo/api/internal/service/permission"
-	"github.com/shimohq/mogo/api/internal/service/permission/pmsplugin"
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/model/db"
-	"github.com/shimohq/mogo/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func PmsDefaultRoleList(c *core.Context) {

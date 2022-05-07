@@ -14,8 +14,8 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/shimohq/mogo/api/internal/invoker"
-	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 const (

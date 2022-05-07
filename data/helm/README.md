@@ -13,7 +13,7 @@ This Helm chart is a lightweight way to configure and run mogo image
 
 - Clone repo:
 ```bash
-git clone https://github.com/shimohq/mogo.git
+git clone https://github.com/clickvisual/clickvisual.git
 cd mogo && cp api/config/default.toml data/helm/mogo/default.toml
 ```
 

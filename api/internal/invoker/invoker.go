@@ -6,8 +6,8 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egin"
 
-	"github.com/shimohq/mogo/api/internal/ui"
-	"github.com/shimohq/mogo/api/pkg/session"
+	"github.com/clickvisual/clickvisual/api/internal/ui"
+	"github.com/clickvisual/clickvisual/api/pkg/session"
 )
 
 var (

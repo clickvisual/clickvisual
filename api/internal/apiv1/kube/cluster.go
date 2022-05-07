@@ -3,8 +3,8 @@ package kube
 import (
 	"github.com/gotomicro/ego-component/egorm"
 
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 // ClusterList 根据分页获取Cluster列表

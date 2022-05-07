@@ -3,8 +3,8 @@ package event
 import (
 	"encoding/json"
 
-	"github.com/shimohq/mogo/api/pkg/component/core"
-	"github.com/shimohq/mogo/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func (a *event) InquiryCMDB(opUser *core.User, operation string, metaData map[string]interface{}) {

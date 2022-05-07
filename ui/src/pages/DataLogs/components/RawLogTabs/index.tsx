@@ -5,7 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import lodash from "lodash";
 import { useIntl } from "umi";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
-import ManageIndexModal from "@/pages/DataLogs/components/RawLogsIndexes/ManageIndexModal";
+import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
 import useUrlState from "@ahooksjs/use-url-state";
 import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 

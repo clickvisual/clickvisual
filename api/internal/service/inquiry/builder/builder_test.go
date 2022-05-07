@@ -3,8 +3,8 @@ package builder
 import (
 	"testing"
 
-	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/bumo"
-	"github.com/shimohq/mogo/api/internal/service/inquiry/builder/standalone"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/standalone"
 )
 
 func TestStandaloneData(t *testing.T) {

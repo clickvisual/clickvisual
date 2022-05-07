@@ -1,6 +1,6 @@
 package permission
 
-import "github.com/shimohq/mogo/api/pkg/model/db"
+import "github.com/clickvisual/clickvisual/api/pkg/model/db"
 
 // PmsRuleController ...
 type PmsRuleController interface {

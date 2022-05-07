@@ -339,6 +339,10 @@ export default {
   "datasource.draw.table.empty.type.tip": "无数据库类型",
   "datasource.draw.table.operation.tip": "在此数据库下新增日志库",
 
+  // Data Logs-Log Query Types MenuItem
+  "log.queryType.menuItem.rawLog": "原始日志",
+  "log.queryType.menuItem.statisticalTable": "统计表格",
+
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
   "log.search.placeholder": "请输入查询语句",
@@ -360,8 +364,10 @@ export default {
   "log.index.manage.table.header.indexName": "字段名称",
   "log.index.manage.table.header.query": "开启查询",
   "log.index.manage.table.header.indexType": "字段类型",
+  "log.index.manage.table.header.hashType": "hash索引",
   "log.index.manage.placeholder.indexName": "必填且不可重复，请输入字段名称",
   "log.index.manage.placeholder.alias": "请输入字段描述",
+  "log.index.manage.enum.zero": "暂不支持该类型",
   "log.index.manage.button.deleted": "删除字段",
   "log.index.manage.button.created": "新增字段",
   "log.index.manage.message.save.success": "保存成功",

@@ -10,8 +10,8 @@ import (
 
 	"github.com/gotomicro/ego/core/econf"
 
-	"github.com/shimohq/mogo/api/pkg/model/db"
-	"github.com/shimohq/mogo/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type DingDing struct{}

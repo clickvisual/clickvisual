@@ -24,6 +24,7 @@ export interface LogsResponse {
   limited: number;
   logs: any[];
   terms: string[][];
+  query: string;
 }
 
 export interface ViewResponse {

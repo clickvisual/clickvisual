@@ -3,11 +3,11 @@ package service
 import (
 	"github.com/gotomicro/ego/core/econf"
 
-	"github.com/shimohq/mogo/api/internal/service/configure"
-	"github.com/shimohq/mogo/api/internal/service/event"
-	"github.com/shimohq/mogo/api/internal/service/kube"
-	"github.com/shimohq/mogo/api/internal/service/permission"
-	"github.com/shimohq/mogo/api/internal/service/user"
+	"github.com/clickvisual/clickvisual/api/internal/service/configure"
+	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/user"
 )
 
 var (
