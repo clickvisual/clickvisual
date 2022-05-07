@@ -359,6 +359,10 @@ export default {
   "datasource.draw.table.operation.tip":
     "Add a log library under this database",
 
+  // Data Logs-Log Query Types MenuItem
+  "log.queryType.menuItem.rawLog": "Raw Log",
+  "log.queryType.menuItem.statisticalTable": "Statistical Table",
+
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",
   "log.search.placeholder": "Please enter a query",

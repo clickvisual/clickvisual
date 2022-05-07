@@ -15,6 +15,7 @@ import {
   FIRST_PAGE,
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
+  QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
 import moment from "moment";
@@ -26,6 +27,7 @@ import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
 import useLogPanes from "@/models/datalogs/useLogPanes";
 import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
+import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 
 const DataLogsModel = () => {
   // 查询关键字
@@ -116,6 +118,8 @@ const DataLogsModel = () => {
     onChangeViewIsEdit,
   } = useLogLibraryViews();
 
+  const statisticalChartsHelper = useStatisticalCharts();
+
   const logPanesHelper = useLogPanes();
 
   const { foldingState, onChangeFoldingState } = useCollapseDatasourceMenu();
@@ -190,6 +194,9 @@ const DataLogsModel = () => {
     onChangeKeywordInput(tabPane?.keyword as string);
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
+    statisticalChartsHelper.setActiveQueryType(
+      tabPane?.queryType ?? QueryTypeEnum.LOG
+    );
     setLogs(tabPane.logs);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
     setLogCount(tabPane?.highCharts?.count || 0);
@@ -555,6 +562,7 @@ const DataLogsModel = () => {
     onChangeFoldingState,
 
     logPanesHelper,
+    statisticalChartsHelper,
   };
 };
 export default DataLogsModel;

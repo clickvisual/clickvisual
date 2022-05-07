@@ -11,6 +11,11 @@ export enum TimeRangeType {
   Custom = "custom",
 }
 
+export enum QueryTypeEnum {
+  LOG = "rawLog",
+  TABLE = "statisticalTable",
+}
+
 // 时间组件：activeIndex
 export const ACTIVE_TIME_INDEX = 2;
 // 时间组件：activeIndex

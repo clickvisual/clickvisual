@@ -3,6 +3,7 @@ import {
   LogsResponse,
   TablesResponse,
 } from "@/services/dataLogs";
+import { QueryTypeEnum } from "@/config/config";
 
 export interface QueryParams {
   logLibrary?: TablesResponse;
@@ -22,10 +23,12 @@ export type PaneType = {
   keyword?: string;
   activeTabKey?: string;
   activeIndex?: number;
+  queryType?: string;
   page?: number;
   pageSize?: number;
   logs: LogsResponse | undefined;
   highCharts: HighChartsResponse | undefined;
+  sql?: string;
 };
 
 export enum hashType {
@@ -37,3 +40,14 @@ export interface Extra {
   isPaging?: boolean; // 是否是切换页面
   reqParams?: QueryParams; // 请求参数
 }
+
+export const QueryTypeMenuItems = [
+  {
+    key: QueryTypeEnum.LOG,
+    labelId: `log.queryType.menuItem.${QueryTypeEnum.LOG}`,
+  },
+  {
+    key: QueryTypeEnum.TABLE,
+    labelId: `log.queryType.menuItem.${QueryTypeEnum.TABLE}`,
+  },
+];
