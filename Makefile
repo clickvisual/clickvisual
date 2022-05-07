@@ -1,4 +1,4 @@
-APP_NAME:=mogo
+APP_NAME:=clickvisual
 SHELL:=/bin/bash
 ROOT:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 APP_PATH=$(ROOT)/api
@@ -29,12 +29,12 @@ docker:docker.build docker.push
 
 docker.build:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@docker build -t $(HUB_USER)/mogo:latest .
+	@docker build -t $(HUB_USER)/clickvisual:latest .
 	@echo -e "\n"
 
 docker.push:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@docker push $(HUB_USER)/mogo:latest
+	@docker push $(HUB_USER)/clickvisual:latest
 	@echo -e "\n"
 
 docker.clean:
