@@ -86,17 +86,6 @@ func isNotAuthProxy(c *gin.Context) bool {
 			return true
 		}
 	}
-	if econf.GetBool("auth.proxy.isAutoLogin") {
-		if c.GetHeader("X-ClickVisual-Not-Auto-Login") != "TRUE" {
-			session := sessions.Default(c)
-			session.Set("user", u)
-			errSave := session.Save()
-			if errSave != nil {
-				invoker.Logger.Error("isNotAuthProxy", elog.String("step", "sessionSave"), elog.Any("username", u), elog.String("error", err.Error()))
-				return true
-			}
-		}
-	}
 	// is Root
 	if c.GetHeader(econf.GetString("auth.proxy.rootTokenKey")) == econf.GetString("auth.proxy.rootTokenValue") {
 		errRoot := permission.Manager.IsRootUser(u.ID)

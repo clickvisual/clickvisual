@@ -617,9 +617,14 @@ func TagsToString(alarm *db.Alarm, withQuote bool) string {
 func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
 	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)
-	res.Logs, err = c.doQuery(sql)
+	tmp, err := c.doQuery(sql)
 	if err != nil {
 		return
+	}
+	if len(tmp) > 100 {
+		res.Logs = tmp[:100]
+	} else {
+		res.Logs = tmp
 	}
 	invoker.Logger.Debug("Complete", elog.String("sql", sql), elog.Any("logs", res.Logs))
 	return
