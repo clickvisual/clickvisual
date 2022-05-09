@@ -2,7 +2,7 @@ import queryResultStyles from "@/pages/DataLogs/components/QueryResult/index.les
 import SearchBar from "@/pages/DataLogs/components/SearchBar";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
-import DropdownLogMenu from "@/pages/DataLogs/components/DropdownLogMenu";
+import OtherSearchBar from "@/pages/DataLogs/components/OtherSearchBar";
 import { useMemo } from "react";
 import { QueryTypeEnum } from "@/config/config";
 import RawLogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog";
@@ -43,7 +43,7 @@ const QueryResult = () => {
     >
       <div className={queryResultStyles.header}>
         <SearchBar />
-        <DropdownLogMenu isShare={isShare} />
+        <OtherSearchBar isShare={isShare} />
       </div>
       <Content />
     </div>
