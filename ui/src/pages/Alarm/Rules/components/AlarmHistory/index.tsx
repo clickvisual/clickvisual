@@ -75,7 +75,8 @@ const AlarmHistory = () => {
         params?.endTime &&
           params?.startTime &&
           setDashboardUrl(
-            `/share?end=${params?.endTime}&start=${params?.startTime}`
+            process.env.PUBLIC_PATH +
+              `/share?end=${params?.endTime}&start=${params?.startTime}`
           );
         let urlData: any = { ...urlState };
         urlData.end = params?.endTime;
@@ -106,7 +107,13 @@ const AlarmHistory = () => {
       {currentAlarm && (
         <Card
           title={
-            <a href={"/alarm/rules?name=" + currentAlarm?.alarmName}>
+            <a
+              href={
+                process.env.PUBLIC_PATH +
+                "/alarm/rules?name=" +
+                currentAlarm?.alarmName
+              }
+            >
               {currentAlarm?.alarmName}
             </a>
           }
