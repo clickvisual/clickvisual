@@ -492,7 +492,7 @@ export default {
   "alarm.rules.state.paused": "paused",
 
   "alarm.rules.historyBorad.theLog": "The log",
-  "alarm.rules.historyBorad.toView": "To view",
+  "alarm.rules.historyBorad.toView": "Viewing Log Details",
   "alarm.rules.historyBorad.ctime": "Creation time",
   "alarm.rules.historyBorad.lastUpdateTime": "Last updated",
   "alarm.rules.historyBorad.checkFrequency": "Check the frequency",

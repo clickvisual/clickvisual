@@ -462,7 +462,7 @@ export default {
   "alarm.rules.state.paused": "暂停",
 
   "alarm.rules.historyBorad.theLog": "日志",
-  "alarm.rules.historyBorad.toView": "查看",
+  "alarm.rules.historyBorad.toView": "查看日志详情",
   "alarm.rules.historyBorad.ctime": "创建时间",
   "alarm.rules.historyBorad.lastUpdateTime": "上次更新时间",
   "alarm.rules.historyBorad.checkFrequency": "检查频率",
