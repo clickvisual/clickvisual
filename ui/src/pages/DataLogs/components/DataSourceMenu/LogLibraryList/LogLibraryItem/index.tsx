@@ -216,15 +216,16 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
 
   const tooltipTitle = (
     <div>
-      <div>
+      <div className={logLibraryListStyles.logTipTitle}>
         <span>
-          {i18n.formatMessage({ id: "datasource.logLibrary.from.tableName" })}
-          :&nbsp;
+          {i18n.formatMessage({ id: "datasource.logLibrary.from.tableName" })}:
         </span>
+      </div>
+      <div>
         <span>{logLibrary.tableName}</span>
       </div>
       <div>
-        <div>
+        <div className={logLibraryListStyles.logTipTitle}>
           {i18n.formatMessage({ id: "description" })}
           :&nbsp;
         </div>
@@ -234,13 +235,18 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   );
 
   return (
-    <Tooltip title={tooltipTitle} placement="right">
-      <li
-        className={classNames(
-          currentLogLibrary?.id === logLibrary.id &&
-            logLibraryListStyles.activeLogLibrary,
-          mouseEnter && logLibraryListStyles.LogLibraryHover
-        )}
+    <li
+      className={classNames(
+        currentLogLibrary?.id === logLibrary.id &&
+          logLibraryListStyles.activeLogLibrary,
+        mouseEnter && logLibraryListStyles.LogLibraryHover
+      )}
+    >
+      <Tooltip
+        title={tooltipTitle}
+        placement="right"
+        overlayClassName={logLibraryListStyles.logLibraryToolTip}
+        overlayInnerStyle={{ width: 300 }}
       >
         <span
           onClick={() => {
@@ -255,14 +261,14 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         >
           {logLibrary.tableName}
         </span>
+      </Tooltip>
 
-        <Dropdown overlay={menu} trigger={["click"]}>
-          <div>
-            <MoreOutlined className={classNames(logLibraryListStyles.icon)} />
-          </div>
+      <div>
+        <Dropdown overlay={menu} trigger={["hover", "click"]}>
+          <MoreOutlined className={classNames(logLibraryListStyles.icon)} />
         </Dropdown>
-      </li>
-    </Tooltip>
+      </div>
+    </li>
   );
 };
 
