@@ -95,9 +95,9 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 		case 1:
 			innerCond = fmt.Sprintf("%s<%d", expVal, condition.Val1)
 		case 2:
-			innerCond = fmt.Sprintf("%s<%d or %s>%d", expVal, condition.Val1, expVal, condition.Val2)
+			innerCond = fmt.Sprintf("(%s<%d or %s>%d)", expVal, condition.Val1, expVal, condition.Val2)
 		case 3:
-			innerCond = fmt.Sprintf("%s>=%d and %s<=%d", expVal, condition.Val1, expVal, condition.Val2)
+			innerCond = fmt.Sprintf("(%s>=%d and %s<=%d)", expVal, condition.Val1, expVal, condition.Val2)
 		}
 		switch condition.SetOperatorTyp {
 		case 0:
@@ -128,6 +128,8 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 			return
 		}
 	}
+	// empty data alert
+	exp = fmt.Sprintf("(%s) or absent(%s)==1", exp, expVal)
 	return
 }
 
