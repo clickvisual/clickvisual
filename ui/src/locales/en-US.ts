@@ -68,7 +68,7 @@ export default {
   "menu.systemSettings.pms": "Authority Management",
   "menu.systemSettings.role": "Role Management",
   // user
-  "login.header": "Welcome to MOGO",
+  "login.header": "Welcome to ClickVisual",
   "login.title": "Log In",
   "login.username": "username",
   "login.username.placeholder": "Please enter username",

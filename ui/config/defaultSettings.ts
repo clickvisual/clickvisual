@@ -12,7 +12,7 @@ const Settings: LayoutSettings & {
   fixSiderbar: true,
   splitMenus: false,
   colorWeak: false,
-  title: "MOGO",
+  title: "ClickVisual",
   pwa: false,
   iconfontUrl: "",
 };
