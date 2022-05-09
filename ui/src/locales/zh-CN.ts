@@ -343,6 +343,10 @@ export default {
   "log.queryType.menuItem.rawLog": "原始",
   "log.queryType.menuItem.statisticalTable": "表格",
 
+  "log.share": "分享",
+  "log.share.success": "URL 已粘贴至剪切板",
+  "log.share.error": "分享 URL 出错啦，请尝试重新分享，或者刷新页面后操作",
+
   // Data Logs-Statistical Table
   "log.table.note":
     "注：当前请求默认限制返回 100 行，若要获取更多结果，请自行添加 limit 语句",

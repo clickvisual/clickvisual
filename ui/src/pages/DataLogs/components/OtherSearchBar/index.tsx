@@ -1,4 +1,4 @@
-import { Button, Space } from "antd";
+import { Button, message } from "antd";
 import IconFont from "@/components/IconFont";
 import { PaneType, QueryTypeMenuItems } from "@/models/datalogs/types";
 import { useIntl } from "umi";
@@ -6,8 +6,10 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useMemo } from "react";
 import { QueryTypeEnum } from "@/config/config";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
+import copy from "copy-to-clipboard";
+import { ShareAltOutlined } from "@ant-design/icons";
 
-const DropdownLogMenu = ({ isShare }: { isShare: boolean }) => {
+const OtherSearchBar = ({ isShare }: { isShare: boolean }) => {
   const {
     statisticalChartsHelper,
     logPanesHelper,
@@ -33,22 +35,39 @@ const DropdownLogMenu = ({ isShare }: { isShare: boolean }) => {
     onChangeCurrentLogPane({ ...(oldPane as PaneType), queryType });
   };
 
+  const handleShare = () => {
+    try {
+      message.success(i18n.formatMessage({ id: "log.share.success" }));
+      copy(window.location.href);
+    } catch (e) {
+      console.log("【Copy Share Error】: ", e);
+      message.success(i18n.formatMessage({ id: "log.share.error" }));
+    }
+  };
+
   if (isShare) {
-    return <></>;
+    return (
+      <Button
+        onClick={handleShare}
+        className={searchBarStyles.checkBtn}
+        icon={<ShareAltOutlined />}
+      >
+        {i18n.formatMessage({ id: "log.share" })}
+      </Button>
+    );
   }
 
   return (
-    <Button onClick={handleClick} className={searchBarStyles.checkBtn}>
-      <Space>
-        <span>
-          {i18n.formatMessage({
-            id: QueryTypeMenuItems.find((item) => item.key === activeQueryType)
-              ?.labelId,
-          })}
-        </span>
-        <IconFont type={"icon-switch"} />
-      </Space>
+    <Button
+      onClick={handleClick}
+      className={searchBarStyles.checkBtn}
+      icon={<IconFont type={"icon-switch"} />}
+    >
+      {i18n.formatMessage({
+        id: QueryTypeMenuItems.find((item) => item.key === activeQueryType)
+          ?.labelId,
+      })}
     </Button>
   );
 };
-export default DropdownLogMenu;
+export default OtherSearchBar;

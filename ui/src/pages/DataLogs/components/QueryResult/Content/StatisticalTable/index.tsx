@@ -66,7 +66,10 @@ const StatisticalTableContent = () => {
           scroll={{ x: "max-content" }}
           columns={columns}
           dataSource={data}
-          pagination={{ pageSize: PageSize, hideOnSinglePage: true }}
+          pagination={{
+            defaultPageSize: PageSize,
+            showSizeChanger: true,
+          }}
         />
       </div>
     </div>

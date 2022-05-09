@@ -366,6 +366,11 @@ export default {
   "log.queryType.menuItem.rawLog": "Raw",
   "log.queryType.menuItem.statisticalTable": "Table",
 
+  "log.share": "Share",
+  "log.share.success": "The URL is pasted to the clipboard",
+  "log.share.error":
+    "Share URL error, please try to share again, or refresh the page after operation",
+
   // Data Logs-Statistical Table
   "log.table.note":
     "Note: The default return limit for the current request is 100 lines. For more results, add your own restriction statements",
