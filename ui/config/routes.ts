@@ -59,9 +59,9 @@ export default [
         component: "./SystemSetting/Events",
       },
       {
-        path: "/sys/pms/role",
+        path: "/sys/role",
         name: "role",
-        component: "./SystemSetting/Pms/Role",
+        component: "./SystemSetting/Role",
       },
       {
         redirect: "/",
