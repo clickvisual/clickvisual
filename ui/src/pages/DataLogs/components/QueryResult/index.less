@@ -55,11 +55,17 @@
 
   .tableContent {
     flex-direction: column;
+    min-height: 0;
     margin-top: 10px;
     .sqlTip {
       flex: 0 0 24px;
       color: red;
       line-height: 24px;
+    }
+    .sqlTable {
+      flex: 1;
+      padding-right: 10px;
+      overflow: auto;
     }
   }
 }
