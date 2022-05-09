@@ -28,7 +28,6 @@ const RawLogQuery = () => {
     activeTabKey,
     currentRelativeAmount,
     currentRelativeUnit,
-    resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -77,17 +76,15 @@ const RawLogQuery = () => {
         activeIndex: activeTimeOptionIndex,
       };
       onChangeCurrentLogPane(pane);
-      doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params })
-        .then((res) => {
-          if (!res) {
-            resetLogPaneLogsAndHighCharts(pane);
-          } else {
+      doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params }).then(
+        (res) => {
+          if (res) {
             pane.logs = res.logs;
             pane.highCharts = res.highCharts;
             onChangeCurrentLogPane(pane);
           }
-        })
-        .catch(() => resetLogPaneLogsAndHighCharts(pane));
+        }
+      );
     },
     { wait: DEBOUNCE_WAIT }
   );
