@@ -9,9 +9,9 @@ import defaultSettings from "../config/defaultSettings";
 import { AccountMenus } from "@/services/menu";
 import React from "react";
 import * as Icon from "@ant-design/icons/lib/icons";
-import Logo from "../public/logo.svg";
+import Logo from "../public/cv.png";
 import { FetchCurrentUserInfo } from "@/services/users";
-import { AVOID_CLOSE_ROUTING, HOME_PATH, LOGIN_PATH } from "@/config/config";
+import { AVOID_CLOSE_ROUTING, LOGIN_PATH } from "@/config/config";
 import { history } from "umi";
 
 export interface InitialStateType {

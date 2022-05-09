@@ -1,20 +1,18 @@
 import queryResultStyles from "@/pages/DataLogs/components/QueryResult/index.less";
 import { useModel } from "@@/plugin-model/useModel";
 import { Table } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ColumnsType } from "antd/es/table";
 import classNames from "classnames";
 import { useIntl } from "umi";
 
-const DefaultScrollY = 400;
-const HeightDifference = 34;
+const PageSize = 5;
 
 const StatisticalTableContent = () => {
   const i18n = useIntl();
   const { statisticalChartsHelper } = useModel("dataLogs");
   const { logChart, doGetStatisticalTable } = statisticalChartsHelper;
   const [data, setData] = useState<any[]>([]);
-  const [tableScrollY, setTableScrollY] = useState<number>(DefaultScrollY);
 
   const tableRef = useRef(null);
 
@@ -49,23 +47,6 @@ const StatisticalTableContent = () => {
     }
     return columnArr;
   }, [logChart]);
-  const ResetTableScrollY = () => {
-    if (
-      !tableRef.current ||
-      tableRef.current["clientHeight"] - tableScrollY === HeightDifference
-    ) {
-      return;
-    }
-    setTableScrollY(tableRef.current["clientHeight"] - HeightDifference);
-  };
-
-  useEffect(() => {
-    ResetTableScrollY();
-    window.addEventListener("resize", ResetTableScrollY);
-    return () => {
-      removeEventListener("resize", ResetTableScrollY);
-    };
-  }, []);
 
   return (
     <div
@@ -78,14 +59,16 @@ const StatisticalTableContent = () => {
       <div className={classNames(queryResultStyles.sqlTip)}>
         <span>{i18n.formatMessage({ id: "log.table.note" })}</span>
       </div>
-      <Table
-        loading={doGetStatisticalTable.loading}
-        size={"small"}
-        scroll={{ x: "max-content", y: tableScrollY }}
-        columns={columns}
-        dataSource={data}
-        pagination={false}
-      />
+      <div className={classNames(queryResultStyles.sqlTable)}>
+        <Table
+          loading={doGetStatisticalTable.loading}
+          size={"small"}
+          scroll={{ x: "max-content" }}
+          columns={columns}
+          dataSource={data}
+          pagination={{ pageSize: PageSize, hideOnSinglePage: true }}
+        />
+      </div>
     </div>
   );
 };
