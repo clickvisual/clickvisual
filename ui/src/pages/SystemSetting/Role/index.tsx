@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Button,
-  Card,
   Divider,
   Form,
   Input,
@@ -28,11 +27,13 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import ItemForm from "./components/ItemForm";
-import RootUserForm from "./components/RootUserForm";
-import RoleModel from "./components/RoleModel";
-import { SearchTableInstance } from "./components/SearchTable";
-import SearchTable from "./components/SearchTable";
+import ItemForm from "@/pages/SystemSetting/Role/components/ItemForm";
+import RootUserForm from "@/pages/SystemSetting/Role/components/RootUserForm";
+import RoleModel from "@/pages/SystemSetting/Role/components/RoleModel";
+import SearchTable, {
+  SearchTableInstance,
+} from "@/pages/SystemSetting/Role/components/SearchTable";
+import RoleStyle from "@/pages/SystemSetting/Role/styles/index.less";
 
 const handleCreate = async (values: any) => {
   const hide = message.loading("正在添加");
@@ -140,12 +141,12 @@ function PmsDefaultRoles() {
       dataIndex: "details",
       key: "subResources",
       width: 100,
-      render: (details, _) => (
+      render: (details: any, _: any) => (
         <div style={{ display: "flex" }}>
-          {details?.map((subResources) => {
+          {details?.map((subResources: any) => {
             return (
               <>
-                {subResources.subResources.map((item) => {
+                {subResources.subResources.map((item: string) => {
                   return <Tag color="#108ee9">{item}</Tag>;
                 })}
               </>
@@ -159,12 +160,12 @@ function PmsDefaultRoles() {
       dataIndex: "details",
       key: "acts",
       width: 100,
-      render: (details, _) => (
+      render: (details: any, _: any) => (
         <div style={{ display: "flex" }}>
-          {details?.map((acts) => {
+          {details?.map((acts: any) => {
             return (
               <>
-                {acts.acts.map((item) => {
+                {acts.acts.map((item: any) => {
                   return <Tag color="#87d068">{item}</Tag>;
                 })}
               </>
@@ -215,106 +216,104 @@ function PmsDefaultRoles() {
     },
   ];
   return (
-    <div>
-      <Card>
-        <SearchTable
-          pagination={false}
-          ref={actionRef}
-          request={(params) => {
-            const name = params.name || "";
-            const belongResource = params.belongResource || "";
-            return reqGetRoleList(name, belongResource).then((r) => {
-              if (r.code !== 0) {
-                message.error(`${r.msg}`);
-                return [];
-              }
-              return r;
-            });
-          }}
-          columns={columns}
-          form={form}
-          rowKey={(record: any) => record.id}
-          formContent={(search, form) => {
-            return (
-              <div>
-                <Form
-                  form={form}
-                  onFinish={(fields) => search(fields)}
-                  layout="inline"
-                >
-                  <Form.Item label="所属资源" name="belongResource">
-                    <Select
-                      showSearch
-                      optionFilterProp="children"
-                      style={{ width: 200 }}
-                    >
-                      {(commonInfo?.prefixes_info || []).map((item, index) => {
-                        return (
-                          <Select.Option key={index} value={item.name}>
-                            {item.name} | {item.desc}
-                          </Select.Option>
-                        );
-                      })}
-                    </Select>
-                  </Form.Item>
-                  <Form.Item label="角色名" name="name">
-                    <Input style={{ width: 200 }} />
-                  </Form.Item>
-                  <Form.Item>
-                    <Button htmlType="submit" type={"primary"}>
-                      <SearchOutlined />
-                      查询
-                    </Button>
-                  </Form.Item>
-                  <Form.Item>
-                    <Button
-                      onClick={() => {
-                        actionRef.current?.form.resetFields();
-                        actionRef.current?.form.submit();
-                      }}
-                    >
-                      <ClearOutlined />
-                      清空条件
-                    </Button>
-                  </Form.Item>
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      onClick={() => {
-                        CheckRoot().then((r) => {
-                          if (r.code !== 0) {
-                            message.error(r.msg);
-                            return;
-                          }
-                          onChangeRoleModal(true, 1, "global", callBackRefresh);
-                        });
-                      }}
-                    >
-                      <PlusOutlined /> 新建
-                    </Button>
-                  </Form.Item>
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      onClick={() => {
-                        CheckRoot().then((r) => {
-                          if (r.code !== 0) {
-                            message.error(r.msg);
-                            return;
-                          }
-                          handleGrantRootUserVisible(true);
-                        });
-                      }}
-                    >
-                      <PlusOutlined /> root授权
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </div>
-            );
-          }}
-        />
-      </Card>
+    <div className={RoleStyle.roleMain}>
+      <SearchTable
+        pagination={false}
+        ref={actionRef}
+        request={(params) => {
+          const name = params.name || "";
+          const belongResource = params.belongResource || "";
+          return reqGetRoleList(name, belongResource).then((r) => {
+            if (r.code !== 0) {
+              message.error(`${r.msg}`);
+              return [];
+            }
+            return r;
+          });
+        }}
+        columns={columns}
+        form={form}
+        rowKey={(record: any) => record.id}
+        formContent={(search, form) => {
+          return (
+            <div>
+              <Form
+                form={form}
+                onFinish={(fields) => search(fields)}
+                layout="inline"
+              >
+                <Form.Item label="所属资源" name="belongResource">
+                  <Select
+                    showSearch
+                    optionFilterProp="children"
+                    style={{ width: 200 }}
+                  >
+                    {(commonInfo?.prefixes_info || []).map((item, index) => {
+                      return (
+                        <Select.Option key={index} value={item.name}>
+                          {item.name} | {item.desc}
+                        </Select.Option>
+                      );
+                    })}
+                  </Select>
+                </Form.Item>
+                <Form.Item label="角色名" name="name">
+                  <Input style={{ width: 200 }} />
+                </Form.Item>
+                <Form.Item>
+                  <Button htmlType="submit" type={"primary"}>
+                    <SearchOutlined />
+                    查询
+                  </Button>
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    onClick={() => {
+                      actionRef.current?.form.resetFields();
+                      actionRef.current?.form.submit();
+                    }}
+                  >
+                    <ClearOutlined />
+                    清空条件
+                  </Button>
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      CheckRoot().then((r) => {
+                        if (r.code !== 0) {
+                          message.error(r.msg);
+                          return;
+                        }
+                        onChangeRoleModal(true, 1, "global", callBackRefresh);
+                      });
+                    }}
+                  >
+                    <PlusOutlined /> 新建
+                  </Button>
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      CheckRoot().then((r) => {
+                        if (r.code !== 0) {
+                          message.error(r.msg);
+                          return;
+                        }
+                        handleGrantRootUserVisible(true);
+                      });
+                    }}
+                  >
+                    <PlusOutlined /> root授权
+                  </Button>
+                </Form.Item>
+              </Form>
+            </div>
+          );
+        }}
+      />
       <ItemForm
         formTitle={"创建默认角色"}
         onSubmit={async (value: any) => {

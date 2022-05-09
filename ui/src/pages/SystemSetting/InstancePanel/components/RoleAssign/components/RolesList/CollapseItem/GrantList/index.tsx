@@ -2,7 +2,7 @@ import { FormListFieldData } from "antd/es/form/FormList";
 import { Button, Cascader, Form, Tooltip } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
-import UserSelect from "@/pages/SystemSetting/Pms/Role/components/UserSelect";
+import UserSelect from "@/pages/SystemSetting/Role/components/UserSelect";
 import styles from "./index.less";
 import { useContext } from "react";
 import { AppRolesContext } from "../../../../../RoleAssign";
@@ -15,8 +15,8 @@ const GrantList = (props: GrantListProps) => {
   const { parentField } = props;
   const { commonInfo } = useModel("pms");
   const { roleForm } = useContext(AppRolesContext);
-  console.log("commonInfo", commonInfo)
-  console.log("grantFields", parentField)
+  console.log("commonInfo", commonInfo);
+  console.log("grantFields", parentField);
   return (
     <Form.List name={[parentField.name, "grant"]}>
       {(grantFields, grantOption) => (

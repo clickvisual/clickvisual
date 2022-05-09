@@ -7,6 +7,7 @@ import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { useIntl } from "umi";
 import Index from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody/JsonIndexItem";
 import { hashType } from "@/models/datalogs/types";
+import { ColSpan } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableFooter";
 
 const { Option } = Select;
 
@@ -207,7 +208,7 @@ const IndexItem = ({
                 return (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={ColSpan}
                       className={mangeIndexModalStyles.jsonChildTd}
                     >
                       <Form.List name={[indexField.name, "jsonIndex"]}>

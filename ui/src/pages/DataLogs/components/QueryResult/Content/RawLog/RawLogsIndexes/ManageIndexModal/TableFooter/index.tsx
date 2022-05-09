@@ -7,13 +7,16 @@ import { useIntl } from "umi";
 type TableFooterProps = {
   options: FormListOperation;
 };
+
+export const ColSpan = 5;
+
 const TableFooter = (props: TableFooterProps) => {
   const i18n = useIntl();
   const { options } = props;
   return (
     <tfoot className={mangeIndexModalStyles.tableFooter}>
       <tr className={mangeIndexModalStyles.tableTr}>
-        <td colSpan={4}>
+        <td colSpan={ColSpan}>
           <div className={mangeIndexModalStyles.context}>
             <div className={mangeIndexModalStyles.operationBtn}>
               <Button

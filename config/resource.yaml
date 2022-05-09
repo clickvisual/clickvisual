@@ -56,7 +56,7 @@ permission:
       - name: events
         path: /sys/events
       - name: pms
-        path: /sys/pms/role
+        path: /sys/role
         api:
           - path: /api/v1/pms/commonInfo
             name: 获取权限常量信息
