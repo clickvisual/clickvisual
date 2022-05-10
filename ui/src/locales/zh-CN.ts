@@ -488,9 +488,10 @@ export default {
   "alarm.notify.deleted.success": "删除通知方式 {channelName} 成功",
 
   // install
-  "install.init.text.databaseInit": "需要进行数据库初始化，请点击下方安装按钮",
+  "install.init.text.databaseInit":
+    "需要进行数据库初始化或结构升级，请点击下方安装按钮",
 
-  "install.init.btn.databaseInit": "数据库初始化",
+  "install.init.btn.databaseInit": "数据库初始化或结构升级",
 
   "install.init.model.databaseInit.successTitle": "初始化完成",
   "install.init.model.databaseInit.successContent":

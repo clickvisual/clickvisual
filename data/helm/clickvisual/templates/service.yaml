@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mogo.fullname" . }}
+  name: {{ include "clickvisual.fullname" . }}
   labels:
-    {{- include "mogo.labels" . | nindent 4 }}
+    {{- include "clickvisual.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "mogo.selectorLabels" . | nindent 4 }}
+    {{- include "clickvisual.selectorLabels" . | nindent 4 }}

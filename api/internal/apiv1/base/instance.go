@@ -51,6 +51,7 @@ func InstanceCreate(c *core.Context) {
 		Dsn:              strings.TrimSpace(req.Dsn),
 		RuleStoreType:    req.RuleStoreType,
 		FilePath:         req.FilePath,
+		Desc:             req.Desc,
 		ClusterId:        req.ClusterId,
 		Namespace:        req.Namespace,
 		Configmap:        req.Configmap,
@@ -154,6 +155,9 @@ func InstanceUpdate(c *core.Context) {
 	}
 	if req.Configmap != "" {
 		ups["configmap"] = req.Configmap
+	}
+	if req.Desc != "" {
+		ups["desc"] = req.Desc
 	}
 	ups["clusters"] = req.Clusters
 	ups["prometheus_target"] = req.PrometheusTarget

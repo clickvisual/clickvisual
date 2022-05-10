@@ -20,6 +20,7 @@ type Instance struct {
 	Dsn              string  `gorm:"column:dsn;type:text" json:"dsn"`                                                                // dsn
 	RuleStoreType    int     `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                                       // rule_store_type 0 集群 1 文件
 	FilePath         string  `gorm:"column:file_path;type:varchar(255)" json:"filePath"`                                             // file_path
+	Desc             string  `gorm:"column:desc;type:varchar(255)" json:"desc"`                                                      // file_path
 	ClusterId        int     `gorm:"column:cluster_id;type:int(11)" json:"clusterId"`                                                // cluster_id
 	Namespace        string  `gorm:"column:namespace;type:varchar(128)" json:"namespace"`                                            // namespace
 	Configmap        string  `gorm:"column:configmap;type:varchar(128)" json:"configmap"`                                            // configmap

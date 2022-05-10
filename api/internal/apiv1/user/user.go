@@ -31,15 +31,41 @@ func Info(c *core.Context) {
 
 // List 根据分页获取Cluster列表
 func List(c *core.Context) {
-	res, err := db.UserList(egorm.Conds{})
+	res := make([]*db.User, 0)
+	res = append(res, &db.User{
+		BaseModel: db.BaseModel{
+			ID:    -1,
+			Ctime: 0,
+			Utime: 0,
+			Dtime: 0,
+		},
+		Uid:              -1,
+		OaId:             0,
+		Username:         "*",
+		Nickname:         "*",
+		Secret:           "",
+		Email:            "",
+		Avatar:           "",
+		Hash:             "",
+		WebUrl:           "",
+		Oauth:            "",
+		State:            "",
+		OauthId:          "",
+		Password:         "",
+		CurrentAuthority: "",
+		Access:           "",
+		OauthToken:       db.OAuthToken{},
+	})
+	dbUsers, err := db.UserList(egorm.Conds{})
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	for k, _ := range res {
-		res[k].Password = "*"
-		res[k].Uid = res[k].ID
+	for k, _ := range dbUsers {
+		dbUsers[k].Password = "*"
+		dbUsers[k].Uid = dbUsers[k].ID
 	}
+	res = append(res, dbUsers...)
 	c.JSONOK(res)
 }
 

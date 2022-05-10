@@ -45,7 +45,7 @@ type ParamsView struct {
 	Where        string
 }
 
-const PrometheusMetricName = "mogo_alert_metrics"
+const PrometheusMetricName = "clickvisual_alert_metrics"
 
 const (
 	ViewTypeDefault = iota

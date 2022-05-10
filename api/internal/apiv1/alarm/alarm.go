@@ -166,7 +166,7 @@ func List(c *core.Context) {
 		query["tid"] = tid
 	}
 	if did != 0 {
-		query["mogo_base_table.did"] = did
+		query["cv_base_table.did"] = did
 		total, list := db.AlarmListByDidPage(query, req)
 		c.JSONPage(filterSensitiveInfo(list), core.Pagination{
 			Current:  req.Current,

@@ -41,11 +41,11 @@ func DatabaseCreate(c *core.Context) {
 	}
 
 	obj := db.Database{
-		Iid:            iid,
-		Name:           req.Name,
-		Cluster:        req.Cluster,
-		Uid:            c.Uid(),
-		IsCreateByMogo: 1,
+		Iid:          iid,
+		Name:         req.Name,
+		Cluster:      req.Cluster,
+		Uid:          c.Uid(),
+		IsCreateByCV: 1,
 	}
 	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
@@ -169,7 +169,7 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(1, "you should delete all tables before delete database", nil)
 		return
 	}
-	if database.IsCreateByMogo == 1 {
+	if database.IsCreateByCV == 1 {
 		op, errLoad := service.InstanceManager.Load(database.Iid)
 		if errLoad != nil {
 			c.JSONE(core.CodeErr, errLoad.Error(), nil)

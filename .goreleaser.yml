@@ -6,7 +6,7 @@ before:
     - ls -rtlh api/internal/ui/dist
     - go mod download -x
 builds:
-  - id: mogo
+  - id: clickvisual
     main: ./api
     env:
       - CGO_ENABLED=0
@@ -16,14 +16,14 @@ builds:
     goarch:
       - amd64
       - arm64
-    binary: mogo
+    binary: clickvisual
     ldflags:
       - -s -w -extldflags -static -X github.com/gotomicro/ego/core/eapp.appName={{.ProjectName}} -X github.com/gotomicro/ego/core/eapp.buildAppVersion={{.Version}} -X github.com/gotomicro/ego/core/eapp.buildTime={{.Date}}
 archives:
-  - id: mogo
+  - id: clickvisual
     builds:
-      - mogo
-    name_template: "mogo-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+      - clickvisual
+    name_template: "clickvisual-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     files:
       - LICENSE
       - scripts/migration

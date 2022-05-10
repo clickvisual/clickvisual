@@ -25,12 +25,12 @@ port = 19011
 [logger]
 # log level, avaliable level: "debug", "info", "warn", "error", "panic", "fatal"
 level = "debug"
-name = "mogo.log"
+name = "clickvisual.log"
 
 [mysql]
 debug = true
 # database DSN
-dsn = "root:root@tcp(localhost:3306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+dsn = "root:root@tcp(localhost:3306)/clickvisual?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
 # log level
 level = "debug"
 # maximum number of connections in the idle connection pool for database
@@ -42,7 +42,7 @@ connMaxLifetime = "300s"
 
 [auth]
 mode = "memstore" # redis memstore
-name = "mogo_session"
+name = "clickvisual_session"
 debug = true
 Keypairs = "secret"
 # if use mode redis

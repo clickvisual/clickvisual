@@ -18,7 +18,7 @@ port = 19011
 
 [logger]
 level = "debug"
-name = "mogo.log"
+name = "clickvisual.log"
 
 [mysql]
 connMaxLifetime = "300s"
@@ -30,7 +30,7 @@ maxOpenConns = 100
 
 [auth]
 mode = "memstore" # redis memstore
-name = "mogo_session"
+name = "clickvisual_session"
 debug = true
 Keypairs = "secret"
 # if use mode redis
