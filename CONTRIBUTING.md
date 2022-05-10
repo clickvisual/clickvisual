@@ -18,8 +18,8 @@
 
 ```bash
 git clone https://github.com/clickvisual/clickvisual.git
-cd mogo
-git remote add upstream 'git@github.com:<your github username>/mogo.git' 
+cd clickvisual
+git remote add upstream 'git@github.com:<your github username>/clickvisual.git' 
 ```
 upstream可以替换为任何你喜欢的名字。比如说你的用户名，你的昵称，或者直接使用me。后面的命令也要执行相应的替换。
 
@@ -40,11 +40,11 @@ git checkout -b feature/my-feature origin/master
 
 ### 设置 Api 开发环境
 
-Mogo api 使用 Go 进行开发，如果你本地尚未安装 Go 环境，可以参考[这里](https://go.dev/learn/)安装。
+ClickVisual api 使用 Go 进行开发，如果你本地尚未安装 Go 环境，可以参考[这里](https://go.dev/learn/)安装。
 
 ### 设置 UI 开发环境 
 
-Mogo ui 使用 Ant Design 构建，你可以参考这里 [Ant Design](https://ant.design/) 来配置本地开发环境和熟悉前端组件。
+ClickVisual ui 使用 Ant Design 构建，你可以参考这里 [Ant Design](https://ant.design/) 来配置本地开发环境和熟悉前端组件。
 
 ### 数据迁移
 

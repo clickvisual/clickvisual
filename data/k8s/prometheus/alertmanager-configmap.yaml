@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: alertmanager-config
-  namespace: mogo
+  namespace: clickvisual
 data:
   alertmanager.yaml: |-
     global:
@@ -17,4 +17,4 @@ data:
     receivers:
     - name: 'webhook'
       webhook_configs:
-      - url: 'http://mogo:19001/public/prometheus/alerts'
+      - url: 'http://clickvisual:19001/public/prometheus/alerts'

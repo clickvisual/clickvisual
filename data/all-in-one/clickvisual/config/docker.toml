@@ -1,44 +1,32 @@
 [app]
-# hashStatecode
-secretKey = "secretKey"
+secretKey = "secretKey" # hashStatecode
 rootURL = "http://localhost:19001"
 baseURL = "/api/admin/login/"
-hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_source_", "_time_nanosecond_"]
-defaultFields = ["_namespace_","_container_name_","_pod_name_","_raw_log_","_time_second_"]
+hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_second_", "_time_nanosecond_","_source_","_container_name_","_namespace_","_pod_name_"]
+defaultFields = ["_namespace_","_container_name_","_pod_name_","_time_second_"]
 permissionFile = './config/resource.yaml'
-serveFromSubPath = false
 
 [server.http]
-# HTTP server Host
 host = "0.0.0.0"
-# HTTP server Port
 port = 19001
 embedPath = "dist"
 maxAge = 86400
 
 [server.governor]
-# Governor server host
 host = "0.0.0.0"
-# Governor server port
 port = 19011
 
 [logger]
-# log level, avaliable level: "debug", "info", "warn", "error", "panic", "fatal"
 level = "debug"
 name = "clickvisual.log"
 
 [mysql]
-debug = true
-# database DSN
-dsn = "root:root@tcp(localhost:3306)/clickvisual?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
-# log level
-level = "debug"
-# maximum number of connections in the idle connection pool for database
-maxIdleConns = 5
-# maximum number of open connections for database
-maxOpenConns = 10
-# maximum amount of time a connection
 connMaxLifetime = "300s"
+debug = true
+dsn = "root:shimo@tcp(mysql:13306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+level = "panic"
+maxIdleConns = 50
+maxOpenConns = 100
 
 [auth]
 mode = "memstore" # redis memstore
@@ -51,21 +39,12 @@ Keypairs = "secret"
 # redisAddr = ""
 # redisPassword = ""
 
-[auth.anonymous]
-# enable anonymous access
-enabled = false
-
-[auth.proxy]
-enabled = false
-isAutoLogin = false
-headerName = "X-WEBAUTH-USER"
-
 [[auth.tps]]
 typ = "github"
 enable = true
+allowSignUp = true
 clientId = ""
 clientSecret = ""
-allowSignUp = true
 scopes = ["user:email", "read:org"]
 authUrl = "https://github.com/login/oauth/authorize"
 tokenUrl = "https://github.com/login/oauth/access_token"
@@ -77,9 +56,9 @@ allowedOrganizations = []
 [[auth.tps]]
 typ = "gitlab"
 enable = true
+allowSignUp = true
 clientId = ""
 clientSecret = ""
-allowSignUp = true
 scopes = ["api"]
 authUrl = "https://gitlab.com/oauth/authorize"
 tokenUrl = "https://gitlab.com/oauth/token"
@@ -87,3 +66,6 @@ apiUrl = "https://gitlab.com/api/v4"
 allowedDomains = []
 teamIds = []
 allowedOrganizations = []
+
+[defaultCh]
+dsn="tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeout=10&debug=true"

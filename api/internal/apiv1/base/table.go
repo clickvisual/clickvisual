@@ -113,7 +113,7 @@ func TableCreate(c *core.Context) {
 		SqlView:        v,
 		SqlDistributed: a,
 		TimeField:      db.TimeFieldSecond,
-		CreateType:     inquiry.TableCreateTypeMogo,
+		CreateType:     inquiry.TableCreateTypeCV,
 		Uid:            c.Uid(),
 	}
 	err = db.TableCreate(invoker.Db, &tableInfo)
@@ -243,7 +243,7 @@ func TableDelete(c *core.Context) {
 		return
 	}
 	if tableInfo.ID == 0 {
-		c.JSONE(core.CodeErr, "Unable to delete tables not created by Mogo.", nil)
+		c.JSONE(core.CodeErr, "Unable to delete tables not created by clickvisual.", nil)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -291,7 +291,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
 		return
 	}
-	if tableInfo.CreateType == inquiry.TableCreateTypeMogo {
+	if tableInfo.CreateType == inquiry.TableCreateTypeCV {
 		table := tableInfo.Name
 		iid := tableInfo.Database.Iid
 		database := tableInfo.Database.Name
@@ -712,7 +712,7 @@ func TableCreateSelfBuiltBatch(c *core.Context) {
 }
 
 func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
-	// check mogo exist
+	// check clickvisual exist
 	conds := egorm.Conds{}
 	conds["name"] = param.DatabaseName
 	existDatabases, err := db.DatabaseList(invoker.Db, conds)
@@ -728,7 +728,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		}
 		for _, existTable := range existTables {
 			if existTable.Name == param.TableName {
-				return errors.New("database create failed 03: this table is already exist in mogo")
+				return errors.New("database create failed 03: this table is already exist in clickvisual")
 			}
 		}
 	}

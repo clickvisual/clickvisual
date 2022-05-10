@@ -36,11 +36,11 @@ type Alarm struct {
 }
 
 func (m *Alarm) TableName() string {
-	return TableMogoAlarm
+	return TableAlarm
 }
 
 func (m *Alarm) AlertRuleName() string {
-	return fmt.Sprintf("mogo-%s.yaml", m.Uuid)
+	return fmt.Sprintf("cv-%s.yaml", m.Uuid)
 }
 
 func (m *Alarm) AlertViewName(database, table string) string {
@@ -176,7 +176,7 @@ func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 		reqList.Current = 1
 	}
 	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Select("*, mogo_alarm.id as id, mogo_alarm.name as name").Model(Alarm{}).Preload("User").Joins("JOIN mogo_base_table ON mogo_alarm.tid = mogo_base_table.id").Where(sql, binds...)
+	db := invoker.Db.Select("*, cv_alarm.id as id, cv_alarm.name as name").Model(Alarm{}).Preload("User").Joins("JOIN cv_base_table ON cv_alarm.tid = cv_base_table.id").Where(sql, binds...)
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
@@ -228,7 +228,7 @@ type AlarmFilter struct {
 }
 
 func (m *AlarmFilter) TableName() string {
-	return TableMogoAlarmFilter
+	return TableAlarmFilter
 }
 
 func AlarmFilterInfo(db *gorm.DB, id int) (resp AlarmFilter, err error) {
@@ -297,7 +297,7 @@ type AlarmCondition struct {
 }
 
 func (m *AlarmCondition) TableName() string {
-	return TableMogoAlarmCondition
+	return TableAlarmCondition
 }
 
 func AlarmConditionInfo(db *gorm.DB, id int) (resp AlarmCondition, err error) {
@@ -364,7 +364,7 @@ type AlarmChannel struct {
 }
 
 func (m *AlarmChannel) TableName() string {
-	return TableMogoAlarmChannel
+	return TableAlarmChannel
 }
 
 func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
@@ -429,7 +429,7 @@ type AlarmHistory struct {
 }
 
 func (m *AlarmHistory) TableName() string {
-	return TableMogoAlarmHistory
+	return TableAlarmHistory
 }
 
 func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {

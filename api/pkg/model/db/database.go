@@ -13,11 +13,11 @@ import (
 type Database struct {
 	BaseModel
 
-	Iid            int    `gorm:"column:iid;type:int(11);index:uix_iid_name,unique" json:"iid"`                 // datasource instance id
-	Name           string `gorm:"column:name;type:varchar(128);index:uix_iid_name,unique;NOT NULL" json:"name"` // datasource database name
-	Uid            int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // datasource operator uid
-	Cluster        string `gorm:"column:cluster;type:varchar(128);NOT NULL" json:"cluster"`                     // cluster
-	IsCreateByMogo int    `gorm:"column:is_create_by_mogo;type:tinyint(1)" json:"isCreateByMogo"`
+	Iid          int    `gorm:"column:iid;type:int(11);index:uix_iid_name,unique" json:"iid"`                 // datasource instance id
+	Name         string `gorm:"column:name;type:varchar(128);index:uix_iid_name,unique;NOT NULL" json:"name"` // datasource database name
+	Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // datasource operator uid
+	Cluster      string `gorm:"column:cluster;type:varchar(128);NOT NULL" json:"cluster"`                     // cluster
+	IsCreateByCV int    `gorm:"column:is_create_by_cv;type:tinyint(1)" json:"isCreateByCV"`
 
 	Instance *Instance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
 }

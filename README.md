@@ -12,13 +12,13 @@ ClickVisual is a lightweight browser-based logs analytics and logs search platfo
 
 ### Documentation
 
-See <https://mogo.shimo.im>
+See <https://clickvisual.gocn.vip>
 
 ### log search page
-![log-search](https://helpcenter.shimonote.com/uploads/0LUV5QCS01CHG.png)
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/table-query.9e035f3f.png)
 
 ### configuration page
-![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/visual-configuration.62ebf9ad.png)
 
 ## Features
 
@@ -30,22 +30,22 @@ See <https://mogo.shimo.im>
 
 ## Architecture
 
-![image](https://helpcenter.shimonote.com/uploads/0LL8P57E01E8G.png)
+![image](https://cdn.gocn.vip/clickvisual/assets/img/technical-architecture.f3cf8d04.png)
 
 ## Installation
 
 - For Docker
 
 ```bash
-# clone mogo source code.
+# clone clickvisual source code.
 git clone https://github.com/clickvisual/clickvisual.git
 
 # you may need to set docker image mirror, visit <https://github.com/yeasy/docker_practice/blob/master/install/mirror.md> for details.
 docker-compose up
 
 # then go to browser and visit http://localhost:19001.
-# login username: shimo 
-# login password: shimo
+# login username: clickvisual 
+# login password: clickvisual
 ```
 
 - For host
@@ -53,25 +53,25 @@ docker-compose up
 ```bash
 # download release.
 # get latest version.
-latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+latest=$(curl -sL https://api.github.com/repos/clickvisual/clickvisual/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 
 # for MacOS amd64.
-wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo-${latest}-darwin-amd64.tar.gz" -O mogo-${latest}.tar.gz 
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-darwin-amd64.tar.gz" -O clickvisual-${latest}.tar.gz 
 
 # for Linux amd64.
-wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo-${latest}-linux-amd64.tar.gz" -O mogo-$(latest).tar.gz  
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-linux-amd64.tar.gz" -O clickvisual-$(latest).tar.gz  
 
 # extract zip file to current directory.
-mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
+mkdir -p ./clickvisual-${latest} && tar -zxvf clickvisual-${latest}.tar.gz -C ./clickvisual-${latest}
 
 # open config/default.toml, then change database and redis or other section configuration
 # execute migration latest sql script in scripts/migration directory
-# start mogo
-cd ./mogo-${latest} && ./mogo -config config/default.toml
+# start clickvisual
+cd ./clickvisual-${latest} && ./clickvisual -config config/default.toml
 
 # then go to browser and visit http://localhost:19001
-# login username: shimo
-# login password: shimo
+# login username: clickvisual
+# login password: clickvisual
 ```
 
 
@@ -83,7 +83,7 @@ If you want to report a bug or request for a feature, create a issue [here](http
 
 ## Join Us
 
-Join us, please add the "mogo" keyword in the verification information. 
+Join us, please add the "cv" keyword in the verification information. 
 
 
  <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />

@@ -30,7 +30,6 @@ func Install(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	c.JSONOK("install finish")
 }
 

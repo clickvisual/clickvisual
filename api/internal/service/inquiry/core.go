@@ -30,7 +30,7 @@ type Operator interface {
 }
 
 const (
-	TableCreateTypeMogo  = 0
+	TableCreateTypeCV    = 0
 	TableCreateTypeExist = 1
 )
 

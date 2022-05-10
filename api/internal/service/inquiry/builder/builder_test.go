@@ -124,7 +124,7 @@ WHERE 1=1;`},
 			want: `CREATE MATERIALIZED VIEW dev.f1d937cf_ed7d_4de8_bcba_ce9c8829e5ef TO metrics.samples AS
 SELECT
   toDate(_time_second_) as date,
-  'mogo_alert_metrics' as name,
+  'clickvisual_alert_metrics' as name,
   array('uuid=f1d937cf-ed7d-4de8-bcba-ce9c8829e5ef') as tags,
   toFloat64(count(*)) as val,
   _time_second_ as ts,
