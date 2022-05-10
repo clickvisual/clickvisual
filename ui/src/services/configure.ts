@@ -132,7 +132,7 @@ export default {
   // 获取当前 k8s 配置空间下的配置列表
   async getConfigurations(params: ConfigurationsRequest) {
     return request<API.Res<ConfigurationsResponse[]>>(
-      ` /api/v1/configurations`,
+        process.env.PUBLIC_PATH+`api/v1/configurations`,
       {
         method: "GET",
         params,
