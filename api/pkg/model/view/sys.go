@@ -10,6 +10,7 @@ type ReqCreateInstance struct {
 	Dsn              string `json:"dsn" binding:"required"`
 	RuleStoreType    int    `json:"ruleStoreType"`
 	FilePath         string `json:"filePath"`
+	Desc             string `json:"desc"`
 	ClusterId        int    `json:"clusterId"`
 	Namespace        string `json:"namespace"`
 	Configmap        string `json:"configmap"`
