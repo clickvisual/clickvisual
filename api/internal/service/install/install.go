@@ -49,7 +49,7 @@ func Install() (err error) {
 	if err != nil {
 		return
 	}
-	d.Exec("INSERT INTO mogo_user (`oa_id`, `username`, `nickname`, `secret`, `email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES ( 0, 'shimo', 'shimo', '', '', '', '', '', '', '', '', '$2a$10$/P5z7e4LIIES48cf/BTvROhOT1AaYU3kGw/Xw3l4nCZecIJ85N1ke', '', 'init', '{}', 1640624435, 1640624435, 0);")
+	d.Exec("INSERT INTO mogo_user (`oa_id`, `username`, `nickname`, `secret`, `email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES ( 0, 'clickvisual', 'clickvisual', '', '', '', '', '', '', '', '', '$2a$10$mj/hP5ToyVYZsyH2.84sr.nXPT.c2iTenx6euMHZQhNQlGXFJlDBa', '', 'init', '{}', 1640624435, 1640624435, 0);")
 	d.Exec("INSERT INTO `mogo_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '');")
 	d.Exec("INSERT INTO `mogo_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', ' ', ' ', ' ', ' ');")
 	return
