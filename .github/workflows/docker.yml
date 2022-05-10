@@ -17,7 +17,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            sevennt/mogo
+            sevennt/clickvisual
           tags: |
             type=schedule
             type=ref,event=branch

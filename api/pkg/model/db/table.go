@@ -23,7 +23,7 @@ type Table struct {
 	SqlView        string `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
 	SqlDistributed string `gorm:"column:sql_distributed;type:text" json:"sqlDistributed"`                      // sql_distributed
 	Uid            int    `gorm:"column:uid;type:int(11)" json:"uid"`                                          // 操作人
-	CreateType     int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create mogo fresh table, 1 means use exists table
+	CreateType     int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create clickvisual fresh table, 1 means use exists table
 	TimeField      string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
 	TimeFieldType  int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"` // custom time filed type name of _time_
 	Desc           string `gorm:"column:desc;type:varchar(255)" json:"desc"`

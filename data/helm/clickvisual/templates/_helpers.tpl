@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "mogo.name" -}}
+{{- define "clickvisual.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "mogo.fullname" -}}
+{{- define "clickvisual.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,23 +26,23 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "mogo.chart" -}}
+{{- define "clickvisual.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "mogo.labels" -}}
-helm.sh/chart: {{ include "mogo.chart" . }}
-{{ include "mogo.selectorLabels" . }}
+{{- define "clickvisual.labels" -}}
+helm.sh/chart: {{ include "clickvisual.chart" . }}
+{{ include "clickvisual.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
-{{- define "mogo.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "mogo.name" . }}
+{{- define "clickvisual.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "clickvisual.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}

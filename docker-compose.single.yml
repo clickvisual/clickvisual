@@ -19,11 +19,11 @@ services:
     volumes:
       - ./scripts/migration:/data/all-in-one/migration
     restart: always
-  mogo:
-    image: sevennt/mogo:master
-    container_name: mogo
+  clickvisual:
+    image: sevennt/clickvisual:master
+    container_name: clickvisual
     environment:
-      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_CONFIG_PATH: /clickvisual/config/docker.toml
       EGO_LOG_WRITER: stderr
     ports:
       - "19001:19001"
@@ -34,8 +34,8 @@ services:
       - mysql
     restart: always
     volumes:
-      - ./data/all-in-one/mogo/config:/mogo/config
-    command: [ '/bin/sh', '-c', './bin/mogo' ]
+      - ./data/all-in-one/clickvisual/config:/clickvisual/config
+    command: [ '/bin/sh', '-c', './bin/clickvisual' ]
     networks:
       - net
 networks:

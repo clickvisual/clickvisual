@@ -78,7 +78,7 @@ func (a *event) GetEnumsOfSource(source string) (resp db.RespEnumsOfSource, err 
 
 func (a *event) List(param view.ReqEventList) (res []db.Event, page *view.Pagination, err error) {
 	page = view.NewPagination(param.Current, param.PageSize)
-	query := invoker.Db.Table(db.TableMogoEvent)
+	query := invoker.Db.Table(db.TableEvent)
 	if param.Source != "" {
 		query = query.Where("source = ?", param.Source)
 	}

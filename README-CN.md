@@ -1,22 +1,24 @@
-# mogo
+# ClickVisual
 
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![Go Report Card](https://goreportcard.com/badge/github.com/clickvisual/clickvisual)](https://goreportcard.com/report/github.com/clickvisual/clickvisual)
+[![Release](https://img.shields.io/github/v/release/clickvisual/clickvisual.svg)](https://github.com/clickvisual/clickvisual)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/clickvisual/clickvisual?tab=doc)
+[![GitHub license](https://img.shields.io/github/license/clickvisual/clickvisual)](https://github.com/clickvisual/clickvisual/blob/master/LICENSE)
 [![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [English](https://github.com/clickvisual/clickvisual/blob/master/README.md) | [中文](https://github.com/clickvisual/clickvisual/blob/master/README-CN.md)
 
-Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
+ClickVisual 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
 
 ## 文档
 
-访问 <https://mogo.shimo.im> 查看最新文档。
+访问 <https://clickvisual.gocn.vip/> 查看最新文档。
 
 ### 日志查询界面
-![log-search](https://helpcenter.shimonote.com/uploads/0LUV5QCS01CHG.png)
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/table-query.9e035f3f.png)
 
 ### 可视化配置界面
-![log-search](https://helpcenter.shimonote.com/uploads/0LJGD4DS01CII.png)
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/visual-configuration.62ebf9ad.png)
 
 ## 特性
 
@@ -27,7 +29,7 @@ Mogo 是一个轻量级的基于浏览器的日志分析和查询平台，可以
 
 ## 架构
 
-![image](https://helpcenter.shimonote.com/uploads/0LL8P57E01E8G.png)
+![image](https://cdn.gocn.vip/clickvisual/assets/img/technical-architecture.f3cf8d04.png)
 
 ## 安装方法
 
@@ -41,8 +43,8 @@ git clone https://github.com/clickvisual/clickvisual.git
 docker-compose up
 
 # 打开浏览器访问 http://localhost:19001
-# 默认登录用户名: shimo
-# 默认登录密码: shimo
+# 默认登录用户名: clickvisual
+# 默认登录密码: clickvisual
 ```
 
 - 本地运行
@@ -50,25 +52,25 @@ docker-compose up
 ```bash
 # 下载二进制 
 # 获取最新版本
-latest=$(curl -sL https://api.github.com/repos/shimohq/mogo/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+latest=$(curl -sL https://api.github.com/repos/clickvisual/clickvisual/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 
 # MacOs 下下载
-wget https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo_${latest}_darwin_x86_64.tar.gz -O mogo.tar.gz 
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-darwin-amd64.tar.gz" -O clickvisual-${latest}.tar.gz 
 
 # Linux 下下载
-wget https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo_${latest}_linux_x86_64.tar.gz -O mogo.tar.gz  
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-linux-amd64.tar.gz" -O clickvisual-$(latest).tar.gz  
 
-# 解压 tar.gz 包到 ./mogo 目录
-mkdir -p ./mogo-${latest} && tar -zxvf mogo-${latest}.tar.gz -C ./mogo-${latest}
+# 解压 tar.gz 包到 ./clickvisual 目录
+mkdir -p ./clickvisual-${latest} && tar -zxvf clickvisual-${latest}.tar.gz -C ./clickvisual-${latest}
 
 # 修改 config/default.toml 配置文件
 # 执行 scripts/migration 下迁移脚本，创建数据库和表
-# 启动 mogo
-cd ./mogo-${latest} && ./mogo -config config/default.toml
+# 启动 clickvisual
+cd ./clickvisual-${latest} && ./clickvisual -config config/default.toml
 
 # 打开浏览器访问 http://localhost:19001
-# 默认登录用户名: shimo 
-# 默认登录密码: shimo
+# 默认登录用户名: clickvisual 
+# 默认登录密码: clickvisual
 ```
 
 
@@ -80,7 +82,7 @@ cd ./mogo-${latest} && ./mogo -config config/default.toml
 
 ## 加入我们
 
-加入我们，请在验证信息里添加 mogo 关键字
+加入我们，请在验证信息里添加 cv 关键字
 
  <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />
 

@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Deployment
 metadata:
-  name: {{ include "mogo.fullname" . }}
+  name: {{ include "clickvisual.fullname" . }}
   labels:
-    {{- include "mogo.labels" . | nindent 4 }}
+    {{- include "clickvisual.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "mogo.selectorLabels" . | nindent 6 }}
+      {{- include "clickvisual.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "mogo.selectorLabels" . | nindent 8 }}
+        {{- include "clickvisual.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -42,7 +42,7 @@ spec:
           command:
             - /bin/sh
             - -c
-            - /data/mogo
+            - /data/clickvisual
           ports:
             - name: server
               containerPort: {{ .Values.service.port }}

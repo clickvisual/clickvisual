@@ -1,12 +1,12 @@
 version: '3'
 networks:
-  mogo-net:
+  clickvisual-net:
     driver: bridge
 services:
   nginx:
     image: nginx
     networks:
-      - mogo-net
+      - clickvisual-net
     ports:
       - "19003:80"
     volumes:
@@ -18,7 +18,7 @@ services:
   fluent-bit:
     image: fluent/fluent-bit:1.8.12
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
       KAFKA_BROKERS: kafka:9092
     ports:
@@ -35,7 +35,7 @@ services:
   zookeeper:
     image: zookeeper
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     expose:
@@ -47,7 +47,7 @@ services:
     image: bitnami/kafka:2.8.1
     user: root
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
@@ -62,7 +62,7 @@ services:
   kowl:
     image: rsmnarts/kowl
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
       KAFKA_BROKERS: kafka:9092
     ports:
@@ -76,7 +76,7 @@ services:
   mysql:
     image: mysql:5.7.37
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
       MYSQL_ROOT_PASSWORD: shimo
       MYSQL_ROOT_HOST: '%'
@@ -94,7 +94,7 @@ services:
   redis:
     image: redis:5.0.14-alpine
     networks:
-      - mogo-net
+      - clickvisual-net
     expose:
       - 6380
     restart: always
@@ -102,7 +102,7 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
       CLICKHOUSE_USER: root
       CLICKHOUSE_PASSWORD: shimo
@@ -122,7 +122,7 @@ services:
       - kafka
   alertmanager:
     networks:
-      - mogo-net
+      - clickvisual-net
     image: prom/alertmanager:latest
     volumes:
       - ./data/all-in-one/alertmanager/alertmanager.yaml:/etc/alertmanager/config/alertmanager.yaml
@@ -140,7 +140,7 @@ services:
       - 19005:9093
   prom2click:
     networks:
-      - mogo-net
+      - clickvisual-net
     image: fhalim/prom2click:latest
     command:
       - '-ch.dsn=tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeout=10&debug=true'
@@ -156,7 +156,7 @@ services:
       - clickhouse
   prometheus:
     networks:
-      - mogo-net
+      - clickvisual-net
     image: prom/prometheus:latest
     command:
       - '--web.enable-lifecycle'
@@ -177,11 +177,11 @@ services:
     ports:
       - 19004:9090
   api:
-    image: sevennt/mogo:master
+    image: sevennt/clickvisual:master
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
-      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_CONFIG_PATH: /clickvisual/config/docker.toml
       EGO_LOG_WRITER: stderr
     ports:
       - "19001:19001"
@@ -200,15 +200,15 @@ services:
       - prometheus
     restart: always
     volumes:
-      - ./data/all-in-one/mogo/config:/mogo/config
-      - ./data/all-in-one/prometheus/rules:/mogo/rules
-    command: [ '/bin/sh', '-c', './bin/mogo' ]
+      - ./data/all-in-one/clickvisual/config:/clickvisual/config
+      - ./data/all-in-one/prometheus/rules:/clickvisual/rules
+    command: [ '/bin/sh', '-c', './bin/clickvisual' ]
   mock:
-    image: sevennt/mogo:master
+    image: sevennt/clickvisual:master
     networks:
-      - mogo-net
+      - clickvisual-net
     environment:
-      EGO_CONFIG_PATH: /mogo/config/docker.toml
+      EGO_CONFIG_PATH: /clickvisual/config/docker.toml
       EGO_LOG_WRITER: stderr
     depends_on:
       - mysql
@@ -216,5 +216,5 @@ services:
       - mysql
     restart: 'no'
     volumes:
-      - ./data/all-in-one/mogo/config:/mogo/config
-    command: [ '/bin/sh', '-c', './bin/mogo -job install' ]
+      - ./data/all-in-one/clickvisual/config:/clickvisual/config
+    command: [ '/bin/sh', '-c', './bin/clickvisual -job install' ]

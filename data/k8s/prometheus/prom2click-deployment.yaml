@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prom2click
-  namespace: mogo
+  namespace: clickvisual
   labels:
     app: prom2click
 spec:

@@ -77,9 +77,9 @@ func installCH() error {
 
 	// insert rows to demo_log
 	// vals := [][]interface{}{
-	//	{time.Now().Add(-1 * time.Minute), "https://mogo.io/path1", "/path1", "127.0.0.1", 200},
-	//	{time.Now().Add(-2 * time.Minute), "https://mogo.io/path2", "/path2", "127.0.0.1", 400},
-	//	{time.Now().Add(-3 * time.Minute), "https://mogo.io/path1", "/path1", "127.0.0.1", 500},
+	//	{time.Now().Add(-1 * time.Minute), "https://clickvisual.io/path1", "/path1", "127.0.0.1", 200},
+	//	{time.Now().Add(-2 * time.Minute), "https://clickvisual.io/path2", "/path2", "127.0.0.1", 400},
+	//	{time.Now().Add(-3 * time.Minute), "https://clickvisual.io/path1", "/path1", "127.0.0.1", 500},
 	// }
 	// query := `INSERT INTO demo_log (time, host, url, client_ip, status) VALUES (?,?,?,?,?)`
 	// var tx, _ = conn.Begin()
@@ -96,6 +96,6 @@ func installCH() error {
 	// if err := tx.Commit(); err != nil {
 	//	invoker.Logger.Error("exec fail", elog.FieldErr(err))
 	//	return err
-	//}
+	// }
 	return nil
 }

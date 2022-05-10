@@ -1,6 +1,6 @@
-# Mogo Helm Chart
+# ClickVisual Helm Chart
 
-This Helm chart is a lightweight way to configure and run mogo image
+This Helm chart is a lightweight way to configure and run clickvisual image
 
 ## Requirements
 
@@ -9,28 +9,28 @@ This Helm chart is a lightweight way to configure and run mogo image
 
 ## Installing 
 
-### Install Mogo using master branch
+### Install ClickVisual using master branch
 
 - Clone repo:
 ```bash
 git clone https://github.com/clickvisual/clickvisual.git
-cd mogo && cp api/config/default.toml data/helm/mogo/default.toml
+cd clickvisual && cp api/config/default.toml data/helm/clickvisual/default.toml
 ```
 
-- [**suggested**] use helm install to install mogo directly
+- [**suggested**] use helm install to install clickvisual directly
 ```bash
-helm install mogo data/helm/mogo --set image.tag=latest --namespac default
+helm install clickvisual data/helm/clickvisual --set image.tag=latest --namespac default
 # you may use "--set image.repository" to override default image path
-# helm install mogo data/helm/mogo --set image.repository=${YOUR_HARBOR}/${PATH}/mogo --set image.tag=latest --namespace default
+# helm install clickvisual data/helm/clickvisual --set image.repository=${YOUR_HARBOR}/${PATH}/clickvisual --set image.tag=latest --namespace default
 ```
 
 - [optional] use helm template to render manifest to yaml, then use kubectl to apply yaml 
 ```bash
-# open ata/helm/mogo/default.toml, then change database and redis or other section configuration, then use helm to render yaml to local directory
-helm template mogo data/helm/mogo --set image.tag=latest > mogo.yaml
+# open ata/helm/clickvisual/default.toml, then change database and redis or other section configuration, then use helm to render yaml to local directory
+helm template clickvisual data/helm/clickvisual --set image.tag=latest > clickvisual.yaml
 # you may use "--set image.repository" to override default image path
-# helm template mogo mogo --set image.repository=${YOUR_HARBOR}/${PATH}/mogo --set image.tag=latest > mogo.yaml
+# helm template clickvisual clickvisual --set image.repository=${YOUR_HARBOR}/${PATH}/clickvisual --set image.tag=latest > clickvisual.yaml
 
-# check mogo.yaml and modified it if you want, then apply it to kubernetes with kubectl
-kubectl apply -f mogo.yaml --namespace default
+# check clickvisual.yaml and modified it if you want, then apply it to kubernetes with kubectl
+kubectl apply -f clickvisual.yaml --namespace default
 ```
