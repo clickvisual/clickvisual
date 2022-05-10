@@ -74,7 +74,8 @@ func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 	var reqRules [][]interface{}
 	reqRules = append(reqRules, pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct, items.ReqDom))
 	// result, err := pmsplugin.Enforce(reqSub, reqObj, reqAct, reqDom)
-
+	// add * permission check
+	reqRules = append(reqRules, checkAsterisk(reqPms))
 	// if items.ReqDom != "*" && reqPms.DomainType == pmsplugin.PrefixTable {
 	// 	// 如果请求的dom是env类型的，除了直接验证包含env的rule，还需要验证包含该env所属ent的rules
 	// 	tid, err := strconv.Atoi(reqPms.DomainId)
@@ -99,6 +100,18 @@ func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 		return fmt.Errorf(MsgNoPermission)
 	}
 	return nil
+}
+
+// checkAsterisk check *
+func checkAsterisk(reqPms view.ReqPermission) []interface{} {
+	res := make([]interface{}, 0)
+	reqPms.UserId = -1
+	items, err := getCasbinItemsFromReqPermission(&reqPms)
+	if err != nil {
+		return res
+	}
+	invoker.Logger.Debug("pms", elog.Any("items", items))
+	return pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct, items.ReqDom)
 }
 
 // --- below are private materials... used above
