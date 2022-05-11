@@ -5,7 +5,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import { FIRST_PAGE } from "@/config/config";
 
 export const ALARM_HISTORY_PATH =
-  process.env.PUBLIC_PATH + "/alarm/rules/history?id=";
+  process.env.PUBLIC_PATH + "alarm/rules/history?id=";
 
 const useAlarmHistory = () => {
   const [currentAlarm, setCurrentAlarm] = useState<AlarmInfoType>();
