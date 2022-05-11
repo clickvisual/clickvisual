@@ -101,15 +101,6 @@ const SelectedDataBaseDraw = () => {
     });
   };
   // lodash.cloneDeep(logPanes)
-
-  useEffect(() => {
-    getTreeDatabaseList(databaseList);
-  }, [databaseList, instanceList, visibleDataBaseDraw]);
-
-  useEffect(() => {
-    !visibleDataBaseDraw && onChangeAddLogToDatabase(undefined);
-  }, [visibleDataBaseDraw]);
-
   const handleSearch = (str: any) => {
     let arrList: any = [];
     databaseList.map((item: any) => {
@@ -121,14 +112,17 @@ const SelectedDataBaseDraw = () => {
   const getTreeDatabaseList = (dataList: any) => {
     let arrList: any[] = [];
     instanceList.map((item: any) => {
-      arrList.push({ newInstanceName: item.name, key: item.id });
+      arrList.push({ newInstanceName: item.name, key: `${item.id}` });
     });
+
     dataList.map((item: any) => {
-      arrList.map((items: any) => {
-        if (item.instanceName == items.newInstanceName) {
-          items.children
-            ? items.children.push(item)
-            : (items.children = [item]);
+      arrList.map((instance: any) => {
+        if (item.instanceName == instance.newInstanceName) {
+          instance.children
+            ? instance.children.push({ ...item, key: `${item.iid}-${item.id}` })
+            : (instance.children = [
+                { ...item, key: `${item.iid}-${item.id}` },
+              ]);
         }
       });
     });
@@ -140,9 +134,23 @@ const SelectedDataBaseDraw = () => {
   }, [selectedInstance, visibleDataBaseDraw]);
 
   useEffect(() => {
-    if (visibleDataBaseDraw) {
-      doGetInstanceList();
-    } else {
+    if (!visibleDataBaseDraw) return;
+    doGetInstanceList();
+  }, [visibleDataBaseDraw]);
+
+  useEffect(() => {
+    if (
+      !visibleDataBaseDraw ||
+      instanceList?.length <= 0 ||
+      databaseList?.length <= 0
+    )
+      return;
+    getTreeDatabaseList(databaseList);
+  }, [databaseList, instanceList, visibleDataBaseDraw]);
+
+  useEffect(() => {
+    if (!visibleDataBaseDraw) {
+      onChangeAddLogToDatabase(undefined);
       onChangeSelectedInstance(undefined);
     }
   }, [visibleDataBaseDraw]);
@@ -152,7 +160,7 @@ const SelectedDataBaseDraw = () => {
       title: i18n.formatMessage({ id: "datasource.draw.table.instance" }),
       dataIndex: "newInstanceName",
       align: "center" as AlignType,
-      width: "25%",
+      width: "40%",
       render: (instanceName: string) => (
         <Tooltip title={instanceName}>
           <span>{instanceName}</span>
@@ -165,7 +173,6 @@ const SelectedDataBaseDraw = () => {
       width: "40%",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
-      // ...FilterTableColumn("databaseName"),
       render: (databaseName: string, record: DatabaseResponse) => (
         <Tooltip title={databaseName}>
           <Button
@@ -192,20 +199,31 @@ const SelectedDataBaseDraw = () => {
       title: i18n.formatMessage({ id: "instance.form.title.mode" }),
       dataIndex: "mode",
       align: "center" as AlignType,
-      width: "25%",
-      render: (mode: number) => (
-        <Tooltip title={mode}>
-          <span>
-            {mode == 1
-              ? i18n.formatMessage({ id: "instance.form.title.cluster" })
-              : mode == 0
-              ? i18n.formatMessage({
-                  id: "instance.form.title.modeType.single",
-                })
-              : ""}
-          </span>
-        </Tooltip>
-      ),
+      width: "15%",
+      render: (mode: number) => {
+        if (mode === 1 || mode === 0) {
+          return (
+            <Tooltip
+              title={i18n.formatMessage({
+                id:
+                  mode === 1
+                    ? "instance.form.title.cluster"
+                    : "instance.form.title.modeType.single",
+              })}
+            >
+              <span>
+                {i18n.formatMessage({
+                  id:
+                    mode === 1
+                      ? "instance.form.title.cluster"
+                      : "instance.form.title.modeType.single",
+                })}
+              </span>
+            </Tooltip>
+          );
+        }
+        return <></>;
+      },
     },
     {
       title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
@@ -214,8 +232,12 @@ const SelectedDataBaseDraw = () => {
       width: "50%",
       render: (clusters: string[]) => (
         <Tooltip title={clusters}>
-          {clusters?.map((item: string) => {
-            return <Tag color="lime">{item}</Tag>;
+          {clusters?.map((item: string, index: number) => {
+            return (
+              <Tag color="lime" key={index}>
+                {item}
+              </Tag>
+            );
           })}
         </Tooltip>
       ),
@@ -223,7 +245,7 @@ const SelectedDataBaseDraw = () => {
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.type" }),
       dataIndex: "datasourceType",
-      width: "25%",
+      width: "20%",
       align: "center" as AlignType,
       ellipsis: { showTitle: false },
       render: (datasourceType: string) => {
@@ -289,6 +311,7 @@ const SelectedDataBaseDraw = () => {
       ),
     },
   ];
+
   return (
     <Drawer
       title={
@@ -334,7 +357,7 @@ const SelectedDataBaseDraw = () => {
       closable
       visible={visibleDataBaseDraw}
       getContainer={false}
-      width={"50vw"}
+      width={"75vw"}
       onClose={() => onChangeVisibleDatabaseDraw(false)}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
@@ -343,12 +366,14 @@ const SelectedDataBaseDraw = () => {
         <Table
           loading={getInstanceList.loading || getDatabases.loading}
           bordered
-          rowKey={(record: any) => record.key || `${record.iid}-${record.id}`}
-          // rowKey={(record: DatabaseResponse) => `${record.iid}-${record.id}`}
+          rowKey={"key"}
           size={"small"}
           columns={column}
           dataSource={treeDatabaseList}
           pagination={false}
+          expandable={{
+            expandRowByClick: true,
+          }}
         />
       </div>
       <CreatedDatabaseModal />

@@ -49,7 +49,6 @@ const CreatedOrUpdatedInstanceModal = (
   const { options, clusters, doGetClusters, doGetConfigMaps } =
     useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
-  const [isClusters, setIsClusters] = useState<boolean>(false);
   const i18n = useIntl();
   const { AlarmStorages } = useAlarmStorages();
 
@@ -334,6 +333,18 @@ const CreatedOrUpdatedInstanceModal = (
                   "tcp://127.0.0.1:9000?username=root&password=pass&read_timeout=10&write_timeout=20&debug=true",
               }
             )}
+            autoSize={{ minRows: 5, maxRows: 5 }}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item
+          name={"desc"}
+          label={i18n.formatMessage({ id: "description" })}
+        >
+          <Input.TextArea
+            placeholder={i18n.formatMessage({
+              id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
+            })}
             autoSize={{ minRows: 5, maxRows: 5 }}
             allowClear
           />

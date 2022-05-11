@@ -13,7 +13,7 @@ import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
 import { useIntl } from "umi";
 import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 import { ColumnsType } from "antd/es/table";
-import React, { useState } from "react";
+import { useState } from "react";
 import { CheckPermission } from "@/services/pms";
 import AppRoleAssignListForm from "../RoleAssign";
 
@@ -63,29 +63,35 @@ const InstanceTable = (props: InstanceTableProps) => {
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
     },
-    // {
-    //   title: "DSN",
-    //   align: "center" as AlignType,
-    //   dataIndex: "dsn",
-    //   ellipsis: { showTitle: false },
-    //   render: TooltipRender({ placement: "right" }),
-    // },
     {
       title: i18n.formatMessage({ id: "instance.form.title.mode" }),
       dataIndex: "mode",
       align: "center" as AlignType,
       width: 100,
-      render: (mode: number) => (
-        <Tooltip title={mode}>
-          <span>
-            {mode
-              ? i18n.formatMessage({ id: "instance.form.title.cluster" })
-              : i18n.formatMessage({
-                  id: "instance.form.title.modeType.single",
+      render: (mode: number) => {
+        if (mode === 1 || mode === 0) {
+          return (
+            <Tooltip
+              title={i18n.formatMessage({
+                id:
+                  mode === 1
+                    ? "instance.form.title.cluster"
+                    : "instance.form.title.modeType.single",
+              })}
+            >
+              <span>
+                {i18n.formatMessage({
+                  id:
+                    mode === 1
+                      ? "instance.form.title.cluster"
+                      : "instance.form.title.modeType.single",
                 })}
-          </span>
-        </Tooltip>
-      ),
+              </span>
+            </Tooltip>
+          );
+        }
+        return <></>;
+      },
     },
     {
       title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
@@ -94,8 +100,12 @@ const InstanceTable = (props: InstanceTableProps) => {
       width: 100,
       render: (clusters: string[]) => (
         <Tooltip title={clusters}>
-          {clusters?.map((item: string) => {
-            return <Tag color="lime">{item}</Tag>;
+          {clusters?.map((item: string, index: number) => {
+            return (
+              <Tag color="lime" key={index}>
+                {item}
+              </Tag>
+            );
           })}
         </Tooltip>
       ),
@@ -122,23 +132,14 @@ const InstanceTable = (props: InstanceTableProps) => {
         return TooltipUtil(_);
       },
     },
-    // {
-    //   title: i18n.formatMessage({ id: "instance.storagePah" }),
-    //   align: "center" as AlignType,
-    //   dataIndex: "configmap",
-    //   ellipsis: { showTitle: false },
-    //   width: 200,
-    //   render: (_: any, record: any) => {
-    //     switch (record.ruleStoreType) {
-    //       case 1:
-    //         return TooltipUtil(record.filePath);
-    //       case 2:
-    //         return TooltipUtil(_);
-    //       default:
-    //         return <>-</>;
-    //     }
-    //   },
-    // },
+    {
+      title: i18n.formatMessage({ id: "description" }),
+      align: "center" as AlignType,
+      dataIndex: "desc",
+      ellipsis: { showTitle: false },
+      width: 200,
+      render: (_: any) => TooltipUtil(_),
+    },
     {
       title: `${i18n.formatMessage({
         id: "operation",
@@ -177,7 +178,7 @@ const InstanceTable = (props: InstanceTableProps) => {
                   userId: 0,
                   objectType: "instance",
                   objectIdx: `${record.id}`,
-                  acts: ["edit"],
+                  acts: ["role"],
                   domainType: "system",
                 }).then((r: any) => {
                   if (r.code !== 0) {
@@ -190,7 +191,7 @@ const InstanceTable = (props: InstanceTableProps) => {
                 });
               }}
             >
-              <Tooltip title="修改权限">
+              <Tooltip title={i18n.formatMessage({ id: "instance.role.tip" })}>
                 <UsergroupAddOutlined />
               </Tooltip>
             </a>

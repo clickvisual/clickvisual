@@ -6,6 +6,7 @@ import HighCharts from "@/pages/DataLogs/components/QueryResult/Content/RawLog/H
 import RawLogs from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogs";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
+import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
 
 const RawLogContent = () => {
   const { logsLoading, highChartLoading, isHiddenHighChart } =
@@ -40,6 +41,7 @@ const RawLogContent = () => {
           <RawLogs />
         </Spin>
       </div>
+      <ManageIndexModal />
     </div>
   );
 };
