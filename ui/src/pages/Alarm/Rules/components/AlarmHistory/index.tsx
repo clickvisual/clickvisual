@@ -76,7 +76,7 @@ const AlarmHistory = () => {
           params?.startTime &&
           setDashboardUrl(
             process.env.PUBLIC_PATH +
-              `/share?end=${params?.endTime}&start=${params?.startTime}`
+              `share?end=${params?.endTime}&start=${params?.startTime}`
           );
         let urlData: any = { ...urlState };
         urlData.end = params?.endTime;
@@ -110,7 +110,7 @@ const AlarmHistory = () => {
             <a
               href={
                 process.env.PUBLIC_PATH +
-                "/alarm/rules?name=" +
+                "alarm/rules?name=" +
                 currentAlarm?.alarmName
               }
             >
