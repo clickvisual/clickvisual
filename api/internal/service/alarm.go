@@ -150,6 +150,13 @@ func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) (rule string, err e
 
 func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm, rule string) (err error) {
 	switch instance.RuleStoreType {
+	case db.RuleStoreTypeFile:
+		content := []byte(rule)
+		path := strings.TrimSuffix(instance.FilePath, "/")
+		err = ioutil.WriteFile(path+"/"+obj.AlertRuleName(), content, 0644)
+		if err != nil {
+			return
+		}
 	case db.RuleStoreTypeK8s:
 		invoker.Logger.Debug("alert", elog.Any("instance", instance))
 		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
@@ -160,13 +167,6 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm
 		rules[obj.AlertRuleName()] = rule
 		invoker.Logger.Debug("alert", elog.Any("rules", rules))
 		err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rules)
-		if err != nil {
-			return
-		}
-	case db.RuleStoreTypeFile:
-		content := []byte(rule)
-		path := strings.TrimSuffix(instance.FilePath, "/")
-		err = ioutil.WriteFile(path+"/"+obj.AlertRuleName(), content, 0644)
 		if err != nil {
 			return
 		}

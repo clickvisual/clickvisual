@@ -25,6 +25,17 @@ func Info(c *core.Context) {
 	u := db.User{}
 	_ = json.Unmarshal(tmp, &u)
 	u.Password = ""
+
+	if u.ID == 0 {
+		if cookieUser := c.User(); cookieUser != nil {
+			u.ID = int(cookieUser.Uid)
+			u.Uid = int(cookieUser.Uid)
+			u.Avatar = cookieUser.Avatar
+			u.Username = cookieUser.Username
+			u.Nickname = cookieUser.Nickname
+		}
+	}
+
 	c.JSONOK(u)
 	return
 }
