@@ -95,6 +95,7 @@ export default {
 
   // System Setting
   // Instance Management
+  "instance.role.tip": "修改权限",
   "instance.button.add": "新增实例",
   "instance.instanceName": "实例名称",
   "instance.datasource": "数据源",

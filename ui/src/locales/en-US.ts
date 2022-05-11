@@ -95,6 +95,7 @@ export default {
 
   // System Setting
   // Instance Management
+  "instance.role.tip": "Modify the permissions",
   "instance.button.add": "Add instance",
   "instance.instanceName": "Instance Name",
   "instance.datasource": "Datasource",

@@ -13,10 +13,10 @@ export interface PermissionCheck {
   userId?: number;
   objectType: string;
   objectIdx: string;
-  subResource: string;
+  subResource?: string;
   acts: string[];
   domainType: string;
-  domainId: string;
+  domainId?: string;
 }
 
 export interface ItemInfo {
