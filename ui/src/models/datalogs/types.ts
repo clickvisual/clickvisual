@@ -1,6 +1,7 @@
 import {
   HighChartsResponse,
   LogsResponse,
+  StatisticalTableResponse,
   TablesResponse,
 } from "@/services/dataLogs";
 import { QueryTypeEnum } from "@/config/config";
@@ -29,6 +30,7 @@ export type PaneType = {
   logs: LogsResponse | undefined;
   highCharts: HighChartsResponse | undefined;
   querySql?: string;
+  logChart?: StatisticalTableResponse;
 };
 
 export enum hashType {

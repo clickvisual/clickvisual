@@ -36,9 +36,17 @@ const TableQuery = () => {
   const doSearch = useDebounceFn(
     () => {
       if (!currentDatabase) return;
-      doGetStatisticalTable.run(currentDatabase.iid, {
-        query: sql ?? "",
-      });
+      doGetStatisticalTable
+        .run(currentDatabase.iid, {
+          query: sql ?? "",
+        })
+        .then((res) => {
+          if (res?.code !== 0) return;
+          onChangeCurrentLogPane({
+            ...(oldPane as PaneType),
+            logChart: res.data,
+          });
+        });
     },
     { wait: DEBOUNCE_WAIT }
   );
