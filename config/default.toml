@@ -8,6 +8,9 @@ defaultFields = ["_namespace_","_container_name_","_pod_name_","_raw_log_","_tim
 permissionFile = './config/resource.yaml'
 serveFromSubPath = false
 
+[casbin.rule]
+path = "./config/rbac.conf"
+
 [server.http]
 # HTTP server Host
 host = "0.0.0.0"
