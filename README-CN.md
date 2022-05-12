@@ -8,7 +8,7 @@
 
 [English](https://github.com/clickvisual/clickvisual/blob/master/README.md) | [中文](https://github.com/clickvisual/clickvisual/blob/master/README-CN.md)
 
-ClickVisual 是一个轻量级的基于浏览器的日志分析和查询平台，可以配合 ClickHouse、MySQL 等多种数据源使用。
+ClickVisual 是一个轻量级的基于浏览器的日志分析和查询平台，底层数据存储采用 ClickHouse。
 
 ## 文档
 

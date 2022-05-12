@@ -17,7 +17,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            sevennt/clickvisual
+            clickvisual/clickvisual
           tags: |
             type=schedule
             type=ref,event=branch
@@ -32,7 +32,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: sevennt
+          username: clickvisual
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v2

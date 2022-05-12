@@ -53,7 +53,7 @@ export default {
   "navbar.upgrade": "Database Structure Upgrade",
   "navbar.upgrade.lodingText": "In the upgrade",
   "navbar.upgrade.successText": "Upgrade success",
-  "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} by shimo`,
+  "footer.copyright": `@2021~${new Date().getFullYear()} by ClickVisual`,
 
   // menu
   "menu.configure": "Config",

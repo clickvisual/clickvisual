@@ -53,7 +53,7 @@ export default {
   "navbar.upgrade": "数据库结构升级",
   "navbar.upgrade.lodingText": "升级中",
   "navbar.upgrade.successText": "升级成功",
-  "footer.copyright": `@ 2021 ~ ${new Date().getFullYear()} 武汉初心科技有限公司（石墨文档）`,
+  "footer.copyright": `@2021~${new Date().getFullYear()} ClickVisual`,
 
   // menu
   "menu.configure": "配置",

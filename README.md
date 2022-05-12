@@ -8,7 +8,7 @@
 
 [English](https://github.com/clickvisual/clickvisual/blob/master/README.md) | [中文](https://github.com/clickvisual/clickvisual/blob/master/README-CN.md)
 
-ClickVisual is a lightweight browser-based logs analytics and logs search platform for some datasource(ClickHouse or MySQL).
+ClickVisual is a lightweight browser-based logs analytics and logs search platform for ClickHouse.
 
 ### Documentation
 
@@ -85,6 +85,7 @@ If you want to report a bug or request for a feature, create a issue [here](http
 
 Join us, please add the "cv" keyword in the verification information. 
 
+ <img src="https://helpcenter.shimonote.com/uploads/0MJIFKVK02HHU.png" width="150" />
 
  <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />
 
