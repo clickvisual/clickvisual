@@ -129,7 +129,7 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 		}
 	}
 	// empty data alert
-	exp = fmt.Sprintf("(%s) or absent(%s)==1", exp, expVal)
+	// exp = fmt.Sprintf("(%s) or absent(%s)==1", exp, expVal)
 	return
 }
 
