@@ -23,7 +23,7 @@ name = "clickvisual.log"
 [mysql]
 connMaxLifetime = "300s"
 debug = true
-dsn = "root:shimo@tcp(mysql:13306)/mocro?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+dsn = "root:shimo@tcp(mysql:13306)/clickvisual?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
 level = "panic"
 maxIdleConns = 50
 maxOpenConns = 100
