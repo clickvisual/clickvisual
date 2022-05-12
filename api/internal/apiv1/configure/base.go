@@ -105,7 +105,7 @@ func Create(c *core.Context) {
 	}
 	_, err = configure.Configure.Create(c, invoker.Db, param)
 	if err != nil {
-		c.JSONE(1, "create failed, configuration with same name exist: ", err)
+		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
 	event.Event.ConfigCMDB(c.User(), db.OpnConfigsCreate, map[string]interface{}{"params": param})
