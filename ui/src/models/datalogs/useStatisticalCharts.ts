@@ -29,6 +29,7 @@ const useStatisticalCharts = () => {
     onChangeChartSql,
     doGetStatisticalTable,
     logChart,
+    setLogChart,
   };
 };
 export default useStatisticalCharts;
