@@ -55,10 +55,10 @@ docker-compose up
 latest=$(curl -sL https://api.github.com/repos/clickvisual/clickvisual/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 
 # MacOs 下下载
-wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-darwin-amd64.tar.gz" -O clickvisual-${latest}.tar.gz 
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo-${latest}-darwin-amd64.tar.gz" -O clickvisual-${latest}.tar.gz 
 
 # Linux 下下载
-wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-linux-amd64.tar.gz" -O clickvisual-$(latest).tar.gz  
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/mogo-${latest}-linux-amd64.tar.gz" -O clickvisual-$(latest).tar.gz  
 
 # 解压 tar.gz 包到 ./clickvisual 目录
 mkdir -p ./clickvisual-${latest} && tar -zxvf clickvisual-${latest}.tar.gz -C ./clickvisual-${latest}
