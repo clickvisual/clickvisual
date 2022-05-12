@@ -6,6 +6,9 @@ hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_time_s
 defaultFields = ["_namespace_","_container_name_","_pod_name_","_time_second_"]
 permissionFile = './config/resource.yaml'
 
+[casbin.rule]
+path = "./config/rbac.conf"
+
 [server.http]
 host = "0.0.0.0"
 port = 19001
