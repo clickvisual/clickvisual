@@ -204,6 +204,7 @@ const DataLogsModel = () => {
     statisticalChartsHelper.onChangeChartSql(
       tabPane?.querySql ?? tabPane?.logs?.query
     );
+    statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
     doParseQuery(tabPane?.keyword || keywordInput);
   };
 
