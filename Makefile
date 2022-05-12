@@ -4,7 +4,7 @@ ROOT:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 APP_PATH=$(ROOT)/api
 SCRIPT_PATH:=$(APP_PATH)/../scripts
 COMPILE_OUT:=$(APP_PATH)/../bin/$(APP_NAME)
-HUB_USER:=sevennt
+HUB_USER:=clickvisual
 
 build: build.ui build.dist build.api
 

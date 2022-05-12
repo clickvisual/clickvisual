@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: sevennt/clickvisual
+  repository: clickvisual/clickvisual
   pullPolicy: IfNotPresent
   tag: ""
 
