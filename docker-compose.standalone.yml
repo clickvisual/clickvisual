@@ -20,7 +20,7 @@ services:
       - ./scripts/migration:/data/all-in-one/migration
     restart: always
   clickvisual:
-    image: sevennt/clickvisual:master
+    image: clickvisual/clickvisual:master
     container_name: clickvisual
     environment:
       EGO_CONFIG_PATH: /clickvisual/config/docker.toml

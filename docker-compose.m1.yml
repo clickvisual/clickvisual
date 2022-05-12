@@ -178,7 +178,7 @@ services:
     ports:
       - 19004:9090
   api:
-    image: sevennt/clickvisual:master
+    image: clickvisual/clickvisual:master
     networks:
       - clickvisual-net
     environment:
@@ -205,7 +205,7 @@ services:
       - ./data/all-in-one/prometheus/rules:/clickvisual/rules
     command: [ '/bin/sh', '-c', './bin/clickvisual' ]
   mock:
-    image: sevennt/clickvisual:master
+    image: clickvisual/clickvisual:master
     networks:
       - clickvisual-net
     environment:
