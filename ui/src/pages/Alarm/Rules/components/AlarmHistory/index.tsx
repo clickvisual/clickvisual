@@ -8,7 +8,6 @@ import useUrlState from "@ahooksjs/use-url-state";
 import { Card } from "antd";
 import { SelectLang } from "umi";
 import historyStyles from "./index.less";
-import { SHARE_PATH } from "@/config/config";
 
 const AlarmHistory = () => {
   const [urlState, setUrlState] = useUrlState<any>();
@@ -37,7 +36,7 @@ const AlarmHistory = () => {
         ...res.data,
         id: parseInt(urlState.id),
       });
-      let dashboardPath = SHARE_PATH;
+      let dashboardPath = process.env.PUBLIC_PATH + "share?";
       if (urlState.end && urlState.start) {
         setQuery({
           alarmId: parseInt(urlState.id),
@@ -49,7 +48,7 @@ const AlarmHistory = () => {
           endTime: urlState.end * 1,
           startTime: urlState.start * 1,
         });
-        dashboardPath = `${dashboardPath}?end=${urlState.end}&start=${urlState.start}`;
+        dashboardPath = `${dashboardPath}end=${urlState.end}&start=${urlState.start}`;
       } else {
         setQuery({ alarmId: parseInt(urlState.id) });
         loadList({ alarmId: parseInt(urlState.id) });
