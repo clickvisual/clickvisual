@@ -22,7 +22,7 @@ type Configuration struct {
 	Uid         int    `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
 	PublishTime int64  `gorm:"column:publish_time;type:int(11)" json:"publishTime"`
 	LockUid     int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
-	LockAt      int64  `gorm:"column:lock_at;type:datetime" json:"lockAt"`
+	LockAt      int64  `gorm:"column:lock_at;type:bigint(11) unsigned" json:"lockAt"`
 
 	K8SConfigMap K8SConfigMap `gorm:"foreignKey:ID" json:"-"`
 }
