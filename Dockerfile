@@ -5,7 +5,7 @@ ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
 COPY ui/package.json ui/yarn.lock ./
 
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --network-timeout 100000
 ENV NODE_ENV production
 COPY ui .
 RUN yarn build
