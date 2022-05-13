@@ -39,6 +39,7 @@ type ReqListConfig struct {
 	K8SConfigMapId        int    `form:"k8sConfigMapId"`
 	K8SConfigMapName      string `form:"k8sConfigMapName"`
 	K8SConfigMapNamespace string `form:"k8sConfigMapNameSpace"`
+	ClusterId             int    `form:"clusterId"`
 }
 
 // RespListConfig ..

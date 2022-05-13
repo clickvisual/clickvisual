@@ -34,6 +34,8 @@ func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string,
 	for k, v := range data {
 		configMap.Data[k] = v
 	}
+	invoker.Logger.Debug("ConfigmapCreateOrUpdate", elog.Any("configMap", configMap))
+
 	if err = configmapUpdate(client, namespace, name, configMap); err != nil {
 		return err
 	}

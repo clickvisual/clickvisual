@@ -161,7 +161,7 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 	configureObj, _ := db.ConfigurationInfo(history.ConfigurationId)
 	k8sConfigmap, _ := db.K8SConfigMapInfo(configureObj.K8SCmId)
 
-	invoker.Logger.Debug("Publish", elog.Any("history", history))
+	invoker.Logger.Debug("Publish", elog.Any("k8sConfigmap", k8sConfigmap), elog.Any("configureObj", configureObj), elog.Any("history", history))
 
 	configData := make(map[string]string)
 	filename := configureObj.FileName()
