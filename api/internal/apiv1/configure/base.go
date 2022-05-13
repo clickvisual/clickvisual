@@ -32,12 +32,13 @@ func List(c *core.Context) {
 	}
 	resp := make(view.RespListConfig, 0)
 	if param.K8SConfigMapId == 0 {
-		if param.K8SConfigMapNamespace == "" || param.K8SConfigMapName == "" {
+		if param.K8SConfigMapNamespace == "" || param.K8SConfigMapName == "" || param.ClusterId == 0 {
 			c.JSONE(1, "param error", nil)
 			return
 		}
 		condsKCM := egorm.Conds{}
 		condsKCM["name"] = param.K8SConfigMapName
+		condsKCM["cluster_id"] = param.ClusterId
 		condsKCM["namespace"] = param.K8SConfigMapNamespace
 		kcm, _ := db.K8SConfigMapInfoX(condsKCM)
 		if kcm.ID == 0 {
