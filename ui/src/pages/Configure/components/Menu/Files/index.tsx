@@ -53,12 +53,10 @@ const Files = () => {
       const params = {
         k8sConfigMapNameSpace: selectedNameSpace as string,
         k8sConfigMapName: selectedConfigMap as string,
+        clusterId: selectedClusterId as number,
       };
       doSynchronizingConfiguration
-        .run({
-          clusterId: selectedClusterId as number,
-          ...params,
-        })
+        .run(params)
         .then((res) => {
           if (res?.code === 0) {
             message.success(
@@ -80,7 +78,7 @@ const Files = () => {
     { wait: DEBOUNCE_WAIT }
   );
 
-  if (!selectedConfigMap || !selectedNameSpace) {
+  if (!selectedConfigMap || !selectedNameSpace || !selectedClusterId) {
     return (
       <div className={fileStyles.fileMain}>
         <div className={fileStyles.loading}>
@@ -182,6 +180,7 @@ const Files = () => {
                               doGetConfigurations.run({
                                 k8sConfigMapNameSpace: selectedNameSpace,
                                 k8sConfigMapName: selectedConfigMap,
+                                clusterId: selectedClusterId,
                               });
                               onChangeCurrentConfiguration(undefined);
                             }

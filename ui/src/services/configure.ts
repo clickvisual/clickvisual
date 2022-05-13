@@ -11,13 +11,10 @@ export interface ConfigMapType {
 export interface ConfigurationsRequest {
   k8sConfigMapName: string;
   k8sConfigMapNameSpace: string;
-}
-
-export interface ConfigurationSyncRequest extends ConfigurationsRequest {
   clusterId: number;
 }
 
-export interface ConfigurationCreatedRequest extends ConfigurationSyncRequest {
+export interface ConfigurationCreatedRequest extends ConfigurationsRequest {
   configurationName: string;
   format: string;
 }
@@ -107,15 +104,18 @@ export interface CurrentVersionConfigResponse extends TimeBaseType {
 export default {
   // 获取集群下拉列表
   async getSelectedClusters() {
-    return request<API.Res<ClusterType[]>>(process.env.PUBLIC_PATH+`api/v1/clusters`, {
-      method: "GET",
-    });
+    return request<API.Res<ClusterType[]>>(
+      process.env.PUBLIC_PATH + `api/v1/clusters`,
+      {
+        method: "GET",
+      }
+    );
   },
 
   // 获取指定集群下的 ConfigMap
   async getSelectedConfigMaps(clusterId: number) {
     return request<API.Res<NameSpaceType[]>>(
-      process.env.PUBLIC_PATH+`api/v1/clusters/${clusterId}/configmaps`,
+      process.env.PUBLIC_PATH + `api/v1/clusters/${clusterId}/configmaps`,
       {
         method: "GET",
       }
@@ -123,16 +123,19 @@ export default {
   },
 
   async createdConfigMap(clusterId: number, data: CreatedConfigMapRequest) {
-    return request(process.env.PUBLIC_PATH+`api/v1/clusters/${clusterId}/configmaps`, {
-      method: "POST",
-      data,
-    });
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/clusters/${clusterId}/configmaps`,
+      {
+        method: "POST",
+        data,
+      }
+    );
   },
 
   // 获取当前 k8s 配置空间下的配置列表
   async getConfigurations(params: ConfigurationsRequest) {
     return request<API.Res<ConfigurationsResponse[]>>(
-        process.env.PUBLIC_PATH+`api/v1/configurations`,
+      process.env.PUBLIC_PATH + `api/v1/configurations`,
       {
         method: "GET",
         params,
@@ -142,47 +145,59 @@ export default {
 
   // 新增配置文件
   async createdConfiguration(data: ConfigurationCreatedRequest) {
-    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/configurations`, {
-      method: "POST",
-      data,
-    });
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/configurations`,
+      {
+        method: "POST",
+        data,
+      }
+    );
   },
 
   // 快速同步集群配置
-  async synchronizingConfiguration(data: ConfigurationSyncRequest) {
-    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/configurations/0/sync`, {
-      method: "POST",
-      data,
-    });
+  async synchronizingConfiguration(data: ConfigurationsRequest) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/configurations/0/sync`,
+      {
+        method: "POST",
+        data,
+      }
+    );
   },
 
   // 获取当前选择的配置文件
   async getConfiguration(id: number) {
     return request<API.Res<CurrentConfigurationResponse>>(
-      process.env.PUBLIC_PATH+`api/v1/configurations/${id}`,
+      process.env.PUBLIC_PATH + `api/v1/configurations/${id}`,
       { method: "GET" }
     );
   },
 
   // 更新当前选中的配置文件
   async updatedConfiguration(id: number, data: ConfigurationUpdateRequest) {
-    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/configurations/${id}`, {
-      method: "PATCH",
-      data,
-    });
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/configurations/${id}`,
+      {
+        method: "PATCH",
+        data,
+      }
+    );
   },
 
   // 删除配置文件
   async deletedConfiguration(id: number) {
-    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/configurations/${id}`, {
-      method: "DELETE",
-    });
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/configurations/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
   },
 
   // 获取配置文件历史版本
   async getHistoryConfiguration(id: number, params: PaginationRequest) {
     return request<API.ResPage<HistoryConfigurationResponse>>(
-      process.env.PUBLIC_PATH+`api/v1/configurations/${id}/histories`,
+      process.env.PUBLIC_PATH + `api/v1/configurations/${id}/histories`,
       {
         method: "GET",
         params,
@@ -193,7 +208,7 @@ export default {
   // 进行历史版本比对
   async diffHistoryConfiguration(id: number, historyId: number) {
     return request<API.Res<DiffHistoryConfigResponse>>(
-      process.env.PUBLIC_PATH+`api/v1/configurations/${id}/diff`,
+      process.env.PUBLIC_PATH + `api/v1/configurations/${id}/diff`,
       {
         method: "GET",
         params: { historyId },
@@ -209,7 +224,8 @@ export default {
     configurationName: string
   ) {
     return request<API.Res<string>>(
-      process.env.PUBLIC_PATH+`api/v1/clusters/${clusterId}/namespace/${namespace}/configmaps/${configmapName}`,
+      process.env.PUBLIC_PATH +
+        `api/v1/clusters/${clusterId}/namespace/${namespace}/configmaps/${configmapName}`,
       { method: "GET", params: { key: configurationName } }
     );
   },
@@ -217,7 +233,8 @@ export default {
   // 获取当前版本的配置信息
   async getCurrentVersionConfigurations(id: number, version: string) {
     return request<API.Res<CurrentVersionConfigResponse>>(
-      process.env.PUBLIC_PATH+`api/v1/configurations/${id}/histories/${version}`,
+      process.env.PUBLIC_PATH +
+        `api/v1/configurations/${id}/histories/${version}`,
       {
         method: "GET",
       }
@@ -227,7 +244,7 @@ export default {
   // 版本发布
   async publishConfiguration(configId: number, version: string) {
     return request<API.Res<string>>(
-      process.env.PUBLIC_PATH+`api/v1/configurations/${configId}/publish`,
+      process.env.PUBLIC_PATH + `api/v1/configurations/${configId}/publish`,
       {
         method: "POST",
         data: { version },
@@ -237,15 +254,21 @@ export default {
 
   // 增加编辑锁
   async addLock(id: number) {
-    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/configurations/${id}/lock`, {
-      method: "GET",
-    });
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/configurations/${id}/lock`,
+      {
+        method: "GET",
+      }
+    );
   },
 
   // 移除编辑锁
   async removeLock(id: number) {
-    return request<API.Res<string>>(process.env.PUBLIC_PATH+`api/v1/configurations/${id}/unlock`, {
-      method: "POST",
-    });
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/configurations/${id}/unlock`,
+      {
+        method: "POST",
+      }
+    );
   },
 };

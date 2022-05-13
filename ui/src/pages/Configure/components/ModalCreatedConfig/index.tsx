@@ -33,7 +33,10 @@ const ModalCreatedConfig = () => {
       })
       .then((res) => {
         if (res?.code === 0) {
-          doGetConfigurations.run(k8sConfigMap);
+          doGetConfigurations.run({
+            ...k8sConfigMap,
+            clusterId: selectedClusterId as number,
+          });
           onCancel();
         }
       });

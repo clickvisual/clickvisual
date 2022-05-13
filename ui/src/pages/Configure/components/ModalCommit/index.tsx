@@ -13,6 +13,7 @@ const ModalCommit = () => {
   const {
     activeMenu,
     configContent,
+    selectedClusterId,
     currentConfiguration,
     doUpdatedConfiguration,
     visibleCommit,
@@ -35,10 +36,11 @@ const ModalCommit = () => {
           content: configContent,
         })
         .then((res) => {
-          if (res?.code === 0) {
+          if (res?.code === 0 && selectedClusterId) {
             doGetConfigurations.run({
               k8sConfigMapNameSpace: selectedNameSpace as string,
               k8sConfigMapName: selectedConfigMap as string,
+              clusterId: selectedClusterId,
             });
             doGetConfiguration.run(currentConfiguration.id);
             doRemoveLock.run(currentConfiguration.id);
