@@ -5,7 +5,13 @@ ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
 COPY ui/package.json ui/yarn.lock ./
 
+# Set yarn
+RUN yarn config list
 RUN yarn config delete proxy
+RUN npm config rm proxy
+RUN npm config rm https-proxy
+RUN yarn config set registry https://registry.npm.taobao.org
+
 RUN yarn install
 ENV NODE_ENV production
 COPY ui .
