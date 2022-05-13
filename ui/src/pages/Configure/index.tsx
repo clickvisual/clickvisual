@@ -50,15 +50,16 @@ const Configure = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedConfigMap && selectedNameSpace) {
+    if (selectedConfigMap && selectedNameSpace && selectedClusterId) {
       doGetConfigurations.run({
         k8sConfigMapNameSpace: selectedNameSpace,
         k8sConfigMapName: selectedConfigMap,
+        clusterId: selectedClusterId,
       });
     } else {
       onChangeConfigurations([]);
     }
-  }, [selectedConfigMap, selectedNameSpace]);
+  }, [selectedConfigMap, selectedNameSpace, selectedClusterId]);
 
   useEffect(() => {
     setUrlQuery.run();
