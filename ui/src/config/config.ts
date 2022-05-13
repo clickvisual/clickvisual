@@ -32,6 +32,9 @@ export const DEBOUNCE_WAIT = 500;
 // 登录路由
 export const LOGIN_PATH = "/user/login";
 
+// 分享路由
+export const SHARE_PATH = process.env.PUBLIC_PATH + "/share";
+
 // 安装流程路由
 export const INSTALL_INIT = "/install/init";
 
