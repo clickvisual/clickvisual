@@ -24,7 +24,7 @@ type Configuration struct {
 	LockUid     int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
 	LockAt      int64  `gorm:"column:lock_at;type:bigint(11) unsigned" json:"lockAt"`
 
-	K8SConfigMap K8SConfigMap `gorm:"foreignKey:ID" json:"-"`
+	K8SConfigMap K8SConfigMap `gorm:"foreignKey:K8SCmId;references:ID" json:"-"`
 }
 
 func (c *Configuration) TableName() string {
@@ -121,7 +121,6 @@ type ConfigurationHistory struct {
 	Content         string `gorm:"column:content;type:longtext" json:"content"`
 	Version         string `gorm:"column:version;type:varchar(64)" json:"version"`
 
-	User          User          `json:"user,omitempty" gorm:"foreignKey:Uid;references:ID"`
 	Configuration Configuration `json:"configuration,omitempty" gorm:"foreignKey:ConfigurationId;references:ID"`
 }
 
