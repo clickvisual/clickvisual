@@ -36,7 +36,7 @@ const AlarmHistory = () => {
         ...res.data,
         id: parseInt(urlState.id),
       });
-      let dashboardPath = "/share?";
+      let dashboardPath = process.env.PUBLIC_PATH + "share?";
       if (urlState.end && urlState.start) {
         setQuery({
           alarmId: parseInt(urlState.id),
