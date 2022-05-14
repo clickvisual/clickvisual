@@ -252,14 +252,14 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 // Diff ..
 func (s *configure) Diff(configID, historyID int) (resp view.RespDiffConfig, err error) {
 	modifiedConfig := db.ConfigurationHistory{}
-	err = invoker.Db.Preload("Configuration").Preload("User").
+	err = invoker.Db.Preload("Configuration").
 		Where("id = ?", historyID).First(&modifiedConfig).Error
 	if err != nil {
 		return
 	}
 
 	originConfig := db.ConfigurationHistory{}
-	err = invoker.Db.Preload("Configuration").Preload("User").
+	err = invoker.Db.Preload("Configuration").
 		Where("id < ? and configuration_id = ?", historyID, configID).Order("id desc").First(&originConfig).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
