@@ -254,7 +254,7 @@ const CreatedOrUpdatedInstanceModal = (
               <>
                 <Form.Item
                   label={i18n.formatMessage({
-                    id: "instance.form.title.replicas",
+                    id: "instance.form.title.replicaStatus",
                   })}
                   valuePropName="checked"
                   name={"replicaStatus"}

@@ -105,7 +105,7 @@ export default {
   "instance.form.title.edit": "Edit Instance",
   "instance.form.title.mode": "Type",
   "instance.form.title.clusterWithDuplicate": "Cluster(With Duplicate)",
-  "instance.form.title.replicas": "Whether replica is included",
+  "instance.form.title.replicaStatus": "Whether replica is included",
   "instance.form.title.cluster": "Cluster",
   "instance.form.title.k8s": "K8s",
   "instance.form.title.ruleStoreType": "Alarm",
