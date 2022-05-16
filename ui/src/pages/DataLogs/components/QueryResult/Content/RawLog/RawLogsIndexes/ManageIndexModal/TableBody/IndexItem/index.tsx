@@ -164,9 +164,9 @@ const IndexItem = ({
                           disabled={!isString}
                         >
                           {hashList
-                            .filter((item: any) =>
-                              isString ? item.value != 0 : item.value == 0
-                            )
+                            // .filter((item: any) =>
+                            //   isString ? item.value != 0 : item.value == 0
+                            // )
                             .map((item) => (
                               <Option key={item.value} value={item.value}>
                                 {item.type ||

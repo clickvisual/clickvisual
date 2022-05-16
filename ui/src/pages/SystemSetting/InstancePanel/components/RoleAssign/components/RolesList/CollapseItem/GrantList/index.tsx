@@ -6,6 +6,7 @@ import UserSelect from "@/pages/SystemSetting/Role/components/UserSelect";
 import styles from "./index.less";
 import { useContext } from "react";
 import { AppRolesContext } from "../../../../../RoleAssign";
+import { useIntl } from "umi";
 
 type GrantListProps = {
   parentField: FormListFieldData;
@@ -17,6 +18,7 @@ const GrantList = (props: GrantListProps) => {
   const { roleForm } = useContext(AppRolesContext);
   console.log("commonInfo", commonInfo);
   console.log("grantFields", parentField);
+  const i18n = useIntl();
   return (
     <Form.List name={[parentField.name, "grant"]}>
       {(grantFields, grantOption) => (
@@ -31,9 +33,14 @@ const GrantList = (props: GrantListProps) => {
             return (
               <div key={grantField.key} className={styles.grantMain}>
                 <Form.Item
+                  style={{ width: "50%" }}
                   label={
                     <Tooltip title={"domain"}>
-                      <span>作用域</span>
+                      <span>
+                        {i18n.formatMessage({
+                          id: "systemSetting.instancePanel.roleAssign.rolesList.grantList.scope",
+                        })}
+                      </span>
                     </Tooltip>
                   }
                   {...grantField}
@@ -43,7 +50,9 @@ const GrantList = (props: GrantListProps) => {
                   rules={[
                     {
                       required: true,
-                      message: "请选择授权域名",
+                      message: i18n.formatMessage({
+                        id: "systemSetting.instancePanel.roleAssign.rolesList.grantList.scope.placeholder",
+                      }),
                     },
                   ]}
                 >
@@ -51,13 +60,20 @@ const GrantList = (props: GrantListProps) => {
                     disabled={grant.created === 1}
                     expandTrigger="hover"
                     options={commonInfo?.domainCascader}
-                    placeholder="请选择授权域名"
+                    placeholder={i18n.formatMessage({
+                      id: "systemSetting.instancePanel.roleAssign.rolesList.grantList.scope.placeholder",
+                    })}
                   />
                 </Form.Item>
                 <Form.Item
+                  style={{ width: "50%" }}
                   label={
                     <Tooltip title={"user"}>
-                      <span>用户</span>
+                      <span>
+                        {i18n.formatMessage({
+                          id: "systemSetting.instancePanel.roleAssign.rolesList.grantList.user",
+                        })}
+                      </span>
                     </Tooltip>
                   }
                   {...grantField}
@@ -67,12 +83,16 @@ const GrantList = (props: GrantListProps) => {
                   rules={[
                     {
                       required: true,
-                      message: "请选择授权用户",
+                      message: i18n.formatMessage({
+                        id: "systemSetting.instancePanel.roleAssign.rolesList.grantList.user.placeholder",
+                      }),
                     },
                   ]}
                 >
                   <UserSelect
-                    placeholder="请选择授权用户"
+                    placeholder={i18n.formatMessage({
+                      id: "systemSetting.instancePanel.roleAssign.rolesList.grantList.user.placeholder",
+                    })}
                     multiple
                     mode="list"
                   />
@@ -96,7 +116,9 @@ const GrantList = (props: GrantListProps) => {
               block
               icon={<PlusOutlined />}
             >
-              新增授权
+              {i18n.formatMessage({
+                id: "systemSetting.instancePanel.roleAssign.rolesList.grantList.createAuthorization",
+              })}
             </Button>
           </Form.Item>
         </>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, message, Modal } from "antd";
 import { reqRootUids } from "@/services/pms";
 import UserSelect from "../UserSelect";
+import { useIntl } from "umi";
 interface ListFormProps {
   modalVisible: boolean;
   formTitle: string;
@@ -19,6 +20,7 @@ const RootUsersForm: React.FC<ListFormProps> = (props) => {
   const { modalVisible, onCancel, onSubmit, initialValues, formTitle } = props;
   const [form] = Form.useForm();
   const [currentRootUsers, setCurrentRootUsers] = useState(undefined);
+  const i18n = useIntl();
   const fetchRootUids = () => {
     reqRootUids().then((r) => {
       if (r.code !== 0) {
@@ -55,7 +57,11 @@ const RootUsersForm: React.FC<ListFormProps> = (props) => {
     form.submit();
   };
 
-  const modalFooter = { okText: "保存", onOk: handleSubmit, onCancel };
+  const modalFooter = {
+    okText: i18n.formatMessage({ id: "systemSetting.role.rootUserForm.save" }),
+    onOk: handleSubmit,
+    onCancel,
+  };
 
   return (
     <Modal
@@ -76,12 +82,16 @@ const RootUsersForm: React.FC<ListFormProps> = (props) => {
         >
           <Form.Item
             style={{ marginRight: 10 }}
-            label="超级管理员"
+            label={i18n.formatMessage({
+              id: "systemSetting.role.rootUserForm.superAdministrator",
+            })}
             name="root_uids"
             rules={[
               {
                 required: true,
-                message: "请至少选择一个用户!",
+                message: i18n.formatMessage({
+                  id: "systemSetting.role.rootUserForm.superAdministrator.rules",
+                }),
               },
             ]}
           >

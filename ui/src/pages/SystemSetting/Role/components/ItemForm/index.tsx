@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Form, Input, Modal, Select } from 'antd';
-import { useModel } from '@@/plugin-model/useModel';
-import { ItemInfo } from '@/models/pms';
+import React, { useEffect, useState } from "react";
+import { Form, Input, Modal, Select } from "antd";
+import { useModel } from "@@/plugin-model/useModel";
+import { ItemInfo } from "@/models/pms";
+import { useIntl } from "umi";
 
 interface ListFormProps {
   modalVisible: boolean;
@@ -19,9 +20,9 @@ const formLayout = {
 const Index: React.FC<ListFormProps> = (props) => {
   const { modalVisible, onCancel, onSubmit, initialValues, formTitle } = props;
   const [form] = Form.useForm();
-  const { commonInfo, fetchPmsCommonInfo } = useModel('pms');
+  const { commonInfo, fetchPmsCommonInfo } = useModel("pms");
   const [subResource, setSubResource] = useState<ItemInfo[] | undefined>([]);
-
+  const i18n = useIntl();
   useEffect(() => {
     if (form && !modalVisible) {
       form.resetFields();
@@ -30,9 +31,9 @@ const Index: React.FC<ListFormProps> = (props) => {
 
   useEffect(() => {
     if (initialValues) {
-      let state = '0';
+      let state = "0";
       if (initialValues.state === 1) {
-        state = '1';
+        state = "1";
       }
       form.setFieldsValue({
         ...initialValues,
@@ -50,15 +51,19 @@ const Index: React.FC<ListFormProps> = (props) => {
     if (!commonInfo) {
       fetchPmsCommonInfo();
     }
-    const selectedBelongType = form.getFieldValue('belong_type');
-    if (selectedBelongType === 'table') {
+    const selectedBelongType = form.getFieldValue("belong_type");
+    if (selectedBelongType === "table") {
       setSubResource(commonInfo?.app_subResources_info);
-    } else if (selectedBelongType === 'configResource') {
+    } else if (selectedBelongType === "configResource") {
       setSubResource(commonInfo?.configRsrc_subResources_info);
     }
   };
 
-  const modalFooter = { okText: '保存', onOk: handleSubmit, onCancel };
+  const modalFooter = {
+    okText: i18n.formatMessage({ id: "systemSetting.role.itemForm.save" }),
+    onOk: handleSubmit,
+    onCancel,
+  };
 
   return (
     <Modal
@@ -71,12 +76,16 @@ const Index: React.FC<ListFormProps> = (props) => {
       <Form {...formLayout} form={form} onFinish={onSubmit} scrollToFirstError>
         <Form.Item name="id" label="id" hidden />
         <Form.Item
-          label="所属资源"
+          label={i18n.formatMessage({
+            id: "systemSetting.role.itemForm.form.label.belongResource",
+          })}
           name="belong_type"
           rules={[
             {
               required: true,
-              message: '请选择所属类型',
+              message: i18n.formatMessage({
+                id: "systemSetting.role.itemForm.form.belongResource.placeholder",
+              }),
             },
           ]}
         >
@@ -86,45 +95,74 @@ const Index: React.FC<ListFormProps> = (props) => {
             style={{ width: 200 }}
             onChange={handleChangeBelongType}
           >
-            <Select.Option value={'instance'}>实例</Select.Option>
+            <Select.Option value={"instance"}>
+              {i18n.formatMessage({
+                id: "systemSetting.role.itemForm.form.belongResource.instance",
+              })}
+            </Select.Option>
             {/*<Select.Option value={'configResource'}>配置资源</Select.Option>*/}
           </Select>
         </Form.Item>
         <Form.Item
           name="role_name"
-          label="角色英文名"
+          label={i18n.formatMessage({
+            id: "systemSetting.role.itemForm.form.label.roleName",
+          })}
           rules={[
             {
               required: true,
-              message: '请输入角色英文名',
+              message: i18n.formatMessage({
+                id: "systemSetting.role.itemForm.form.roleName.rules",
+              }),
             },
           ]}
         >
-          <Input placeholder={'必填'} />
+          <Input
+            placeholder={i18n.formatMessage({
+              id: "systemSetting.role.itemForm.form.mandatory",
+            })}
+          />
         </Form.Item>
         <Form.Item
           name="description"
-          label="角色描述"
+          label={i18n.formatMessage({
+            id: "systemSetting.role.itemForm.form.label.description",
+          })}
           rules={[
             {
               required: true,
-              message: '请输入角色描述信息',
+              message: i18n.formatMessage({
+                id: "systemSetting.role.itemForm.form.description.rules",
+              }),
             },
           ]}
         >
-          <Input placeholder={'必填'} />
+          <Input
+            placeholder={i18n.formatMessage({
+              id: "systemSetting.role.itemForm.form.mandatory",
+            })}
+          />
         </Form.Item>
         <Form.Item
-          label="子资源"
+          label={i18n.formatMessage({
+            id: "systemSetting.role.itemForm.form.label.sub_resources",
+          })}
           name="sub_resources"
           rules={[
             {
               required: true,
-              message: '请选择子资源',
+              message: i18n.formatMessage({
+                id: "systemSetting.role.itemForm.form.sub_resources.rules",
+              }),
             },
           ]}
         >
-          <Select mode="multiple" showSearch optionFilterProp="children" style={{ width: 200 }}>
+          <Select
+            mode="multiple"
+            showSearch
+            optionFilterProp="children"
+            style={{ width: 200 }}
+          >
             {(subResource || []).map((item, index) => {
               return (
                 <Select.Option key={index} value={item.name}>
@@ -135,16 +173,25 @@ const Index: React.FC<ListFormProps> = (props) => {
           </Select>
         </Form.Item>
         <Form.Item
-          label="准许操作"
+          label={i18n.formatMessage({
+            id: "systemSetting.role.itemForm.form.label.acts",
+          })}
           name="acts"
           rules={[
             {
               required: true,
-              message: '请选择授权操作',
+              message: i18n.formatMessage({
+                id: "systemSetting.role.itemForm.form.acts.rules",
+              }),
             },
           ]}
         >
-          <Select showSearch optionFilterProp="children" style={{ width: 200 }} mode="multiple">
+          <Select
+            showSearch
+            optionFilterProp="children"
+            style={{ width: 200 }}
+            mode="multiple"
+          >
             {(commonInfo?.all_acts_info || []).map((item, index) => {
               return (
                 <Select.Option key={index} value={item.name}>

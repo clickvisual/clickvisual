@@ -7,6 +7,7 @@ import { FormListOperation } from "antd/lib/form/FormList";
 import GrantList from "./GrantList";
 import CollapseTitle from "./CollapseTitle";
 import styles from "./index.less";
+import { useIntl } from "umi";
 
 const { Panel } = Collapse;
 
@@ -19,6 +20,7 @@ const CollapseItem = (props: CollapseItemProps) => {
   const { field, fieldOperation } = props;
   const { roleForm } = useContext(AppRolesContext);
   const role = roleForm?.getFieldValue(["roles", field.name]);
+  const i18n = useIntl();
   return (
     <div key={field.key} className={styles.collapseCard}>
       <Collapse defaultActiveKey={`${field.key}`} className={styles.collapse}>
@@ -33,7 +35,12 @@ const CollapseItem = (props: CollapseItemProps) => {
             fieldKey={[field.fieldKey]}
             hidden
           />
-          <Form.Item fieldKey={[field.fieldKey]} label={"授权"}>
+          <Form.Item
+            fieldKey={[field.fieldKey]}
+            label={i18n.formatMessage({
+              id: "systemSetting.instancePanel.roleAssign.rolesList.collapseItem.authorization",
+            })}
+          >
             <GrantList parentField={field} />
           </Form.Item>
         </Panel>
