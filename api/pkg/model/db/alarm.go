@@ -31,6 +31,7 @@ type Alarm struct {
 	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // status
 	RuleStoreType int           `gorm:"column:rule_store_type" db:"rule_store_type" json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType
 	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`                       // channel of an alarm
+	NoDataOp      int           `gorm:"column:no_data_op" db:"no_data_op" json:"noDataOp" form:"noDataOp"`                     // noDataOp 0 nodata 1 ok 2 alert
 
 	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 }

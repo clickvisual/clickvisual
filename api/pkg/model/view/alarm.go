@@ -12,7 +12,8 @@ type ReqAlarmCreate struct {
 	Status     int                       `json:"status" form:"status"`
 	AlertRule  string                    `json:"alertRule" form:"alertRule"` // prometheus alert rule
 	View       string                    `json:"view" form:"view"`           // 数据转换视图
-	Tags       map[string]string         `json:"tags" form:"tags"`           //
+	NoDataOp   int                       `json:"noDataOp" form:"noDataOp"`
+	Tags       map[string]string         `json:"tags" form:"tags"` //
 	ChannelIds []int                     `json:"channelIds" form:"channelIds"`
 	Filters    []ReqAlarmFilterCreate    `json:"filters" form:"filters"`
 	Conditions []ReqAlarmConditionCreate `json:"conditions" form:"conditions"`
