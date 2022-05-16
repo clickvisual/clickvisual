@@ -19,7 +19,9 @@ func (b *ViewBuilder) NewProject(params bumo.Params) {
 func (b *ViewBuilder) BuilderCreate() {
 	switch b.QueryAssembly.Params.View.ViewType {
 	case bumo.ViewTypePrometheusMetric:
-		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO metrics.samples AS\n", b.QueryAssembly.Params.View.ViewTable)
+		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s on cluster '%s' TO metrics.samples AS\n",
+			b.QueryAssembly.Params.View.ViewTable,
+			b.QueryAssembly.Params.Cluster)
 	default:
 		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s on cluster '%s' TO %s AS\n",
 			b.QueryAssembly.Params.View.ViewTable,
