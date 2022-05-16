@@ -2,6 +2,7 @@ import instanceModalStyle from "@/pages/SystemSetting/InstancePanel/components/C
 import {
   Button,
   Cascader,
+  Checkbox,
   Col,
   Form,
   FormInstance,
@@ -61,6 +62,7 @@ const CreatedOrUpdatedInstanceModal = (
   const onSubmit = (field: any) => {
     const params = {
       ...field,
+      replicaStatus: field.replicaStatus ? 0 : 1,
       namespace: field?.k8sConfig?.[0],
       configmap: field?.k8sConfig?.[1],
       mode: field.mode * 1,
@@ -105,6 +107,9 @@ const CreatedOrUpdatedInstanceModal = (
         ];
       }
       if (cloneCurrent.ruleStoreType > 0) onChangeMoreOptionFlag(true);
+      cloneCurrent.replicaStatus === 1
+        ? (cloneCurrent.replicaStatus = false)
+        : (cloneCurrent.replicaStatus = true);
       instanceFormRef.current?.setFieldsValue(cloneCurrent);
     }
   }, [visible, isEditor, current]);
@@ -207,7 +212,7 @@ const CreatedOrUpdatedInstanceModal = (
           <Space>
             <Form.Item name={"mode"} noStyle valuePropName="checked">
               <Switch
-                onChange={(flag) => {
+                onChange={() => {
                   instanceFormRef.current?.setFields([
                     { name: "clusters", value: [""] },
                   ]);
@@ -246,69 +251,80 @@ const CreatedOrUpdatedInstanceModal = (
               return <></>;
             }
             return (
-              <Form.List name="clusters">
-                {(fields, { add, remove }, { errors }) => {
-                  return (
-                    <>
-                      {fields.map((field, index) => (
-                        <Form.Item
-                          key={field.key}
-                          {...(index === 0
-                            ? formItemLayout
-                            : formItemLayoutWithOutLabel)}
-                          required
-                          label={
-                            index === 0
-                              ? i18n.formatMessage({
-                                  id: "instance.form.title.cluster",
-                                })
-                              : ""
-                          }
-                        >
+              <>
+                <Form.Item
+                  label={i18n.formatMessage({
+                    id: "instance.form.title.replicaStatus",
+                  })}
+                  valuePropName="checked"
+                  name={"replicaStatus"}
+                >
+                  <Checkbox />
+                </Form.Item>
+                <Form.List name="clusters">
+                  {(fields, { add, remove }, { errors }) => {
+                    return (
+                      <>
+                        {fields.map((field, index) => (
                           <Form.Item
-                            {...field}
-                            validateTrigger={["onChange", "onBlur"]}
-                            rules={[
-                              {
-                                required: true,
-                                whitespace: true,
-                                message: i18n.formatMessage({
-                                  id: "instance.form.placeholder.clusterName",
-                                }),
-                              },
-                            ]}
-                            noStyle
+                            key={field.key}
+                            {...(index === 0
+                              ? formItemLayout
+                              : formItemLayoutWithOutLabel)}
+                            required
+                            label={
+                              index === 0
+                                ? i18n.formatMessage({
+                                    id: "instance.form.title.cluster",
+                                  })
+                                : ""
+                            }
                           >
-                            <Input
-                              placeholder={i18n.formatMessage({
-                                id: "instance.form.placeholder.clusterName",
-                              })}
-                              style={{ width: "90%", marginRight: "10px" }}
-                            />
+                            <Form.Item
+                              {...field}
+                              validateTrigger={["onChange", "onBlur"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  whitespace: true,
+                                  message: i18n.formatMessage({
+                                    id: "instance.form.placeholder.clusterName",
+                                  }),
+                                },
+                              ]}
+                              noStyle
+                            >
+                              <Input
+                                placeholder={i18n.formatMessage({
+                                  id: "instance.form.placeholder.clusterName",
+                                })}
+                                style={{ width: "90%", marginRight: "10px" }}
+                              />
+                            </Form.Item>
+                            {fields.length > 1 ? (
+                              <MinusCircleOutlined
+                                className="dynamic-delete-button"
+                                onClick={() => remove(field.name)}
+                              />
+                            ) : null}
                           </Form.Item>
-                          {fields.length > 1 ? (
-                            <MinusCircleOutlined
-                              className="dynamic-delete-button"
-                              onClick={() => remove(field.name)}
-                            />
-                          ) : null}
+                        ))}
+                        <Form.Item {...formItemLayoutWithOutLabel}>
+                          <Button
+                            type="dashed"
+                            onClick={() => add()}
+                            style={{ width: "100px" }}
+                            icon={<PlusOutlined />}
+                          >
+                            Add
+                          </Button>
+                          <Form.ErrorList errors={errors} />
                         </Form.Item>
-                      ))}
-                      <Form.Item {...formItemLayoutWithOutLabel}>
-                        <Button
-                          type="dashed"
-                          onClick={() => add()}
-                          style={{ width: "100px" }}
-                          icon={<PlusOutlined />}
-                        >
-                          Add
-                        </Button>
-                        <Form.ErrorList errors={errors} />
-                      </Form.Item>
-                    </>
-                  );
-                }}
-              </Form.List>
+                      </>
+                    );
+                  }}
+                </Form.List>
+              </>
             );
           }}
         </Form.Item>

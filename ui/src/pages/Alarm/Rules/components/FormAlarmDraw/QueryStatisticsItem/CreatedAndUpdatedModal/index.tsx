@@ -6,6 +6,7 @@ import {
   Input,
   Modal,
   Select,
+  Spin,
   Table,
 } from "antd";
 import { useEffect, useRef, useState } from "react";
@@ -178,7 +179,16 @@ const CreatedAndUpdatedModal = ({
       });
       return;
     }
-    onOk(fields);
+    let params = fields;
+    if (isEdit) {
+      params = {
+        ...fields,
+        tid: defaultData.tid,
+        typ: defaultData.typ,
+        fieldName: defaultData.fieldName,
+      };
+    }
+    onOk(params);
   };
 
   const databaseId = modalForm.current?.getFieldValue("databaseId");
@@ -187,7 +197,7 @@ const CreatedAndUpdatedModal = ({
   }, [databaseId]);
 
   useEffect(() => {
-    if (visible && modalForm.current) {
+    if (visible && modalForm.current && !isEdit) {
       doGetDatabaseList();
       if (operations.selectDid) {
         modalForm.current.setFieldsValue({ databaseId: operations.selectDid });
@@ -207,12 +217,11 @@ const CreatedAndUpdatedModal = ({
           if (res?.code !== 0) {
             return;
           }
-          res.data && res.data.did && getLogLibraries.run(res.data.did || 0);
+          getLogLibraries.run(res.data.did || 0);
           modalForm.current?.setFieldsValue({
+            ...defaultData,
             databaseId: res.data.did,
             tableId: defaultData.tid || defaultData?.tableId,
-            when: defaultData.when,
-            id: defaultData.id,
           });
           handlePreview(modalForm.current?.getFieldsValue());
         });
@@ -242,149 +251,151 @@ const CreatedAndUpdatedModal = ({
         icon: <SaveOutlined />,
       }}
     >
-      <Form
-        labelCol={{ span: 4 }}
-        wrapperCol={{ span: 19 }}
-        ref={modalForm}
-        onFinish={handleFinish}
-      >
-        <Form.Item name={"id"} hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({ id: "type" })}
-          name={"logType"}
-          initialValue={1}
+      <Spin spinning={doGetLogLibrary.loading}>
+        <Form
+          labelCol={{ span: 4 }}
+          wrapperCol={{ span: 19 }}
+          ref={modalForm}
+          onFinish={handleFinish}
         >
-          <Select disabled>
-            <Option value={1}>
-              {i18n.formatMessage({
-                id: "alarm.rules.inspectionFrequency.selectOption.logLibrary",
-              })}
-            </Option>
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "alarm.rules.inspectionFrequency.between",
-          })}
-          name={"between"}
-          initialValue={[moment().subtract(1, MINUTES_UNIT_TIME), moment()]}
-        >
-          <RangePicker showTime />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "alarm.rules.inspectionFrequency.database",
-          })}
-          name={"databaseId"}
-          rules={[{ required: true }]}
-        >
-          <Select
-            disabled={isDisable}
-            showSearch
-            placeholder={`${i18n.formatMessage({
-              id: "alarm.rules.inspectionFrequency.placeholder.database",
-            })}`}
-            onChange={(id: number) => {
-              getLogLibraries.run(id);
-              modalForm.current?.resetFields(["tableId"]);
-            }}
+          <Form.Item name={"id"} hidden>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label={i18n.formatMessage({ id: "type" })}
+            name={"logType"}
+            initialValue={1}
           >
-            {databaseList.map((database) => (
-              <Option key={database.id} value={database.id}>
-                {i18n.formatMessage(
-                  { id: "alarm.rules.inspectionFrequency.database.Option" },
-                  { instance: database.instanceName, database: database.name }
-                )}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, nextValues) =>
-            prevValues.databaseId !== nextValues.databaseId
-          }
-        >
-          {({ getFieldValue }) => {
-            const databaseId = getFieldValue("databaseId");
-            if (!databaseId) return <></>;
-            return (
-              <Form.Item
-                label={i18n.formatMessage({
-                  id: "alarm.rules.inspectionFrequency.logLibrary",
+            <Select disabled>
+              <Option value={1}>
+                {i18n.formatMessage({
+                  id: "alarm.rules.inspectionFrequency.selectOption.logLibrary",
                 })}
-                name={"tableId"}
-                rules={[{ required: true }]}
-              >
-                <Select
-                  placeholder={`${i18n.formatMessage({
-                    id: "alarm.rules.inspectionFrequency.placeholder.logLibrary",
-                  })}`}
-                  showSearch
-                  onChange={() => handleChangeLogLibrary()}
+              </Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "alarm.rules.inspectionFrequency.between",
+            })}
+            name={"between"}
+            initialValue={[moment().subtract(1, MINUTES_UNIT_TIME), moment()]}
+          >
+            <RangePicker showTime />
+          </Form.Item>
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "alarm.rules.inspectionFrequency.database",
+            })}
+            name={"databaseId"}
+            rules={[{ required: true }]}
+          >
+            <Select
+              disabled={isDisable}
+              showSearch
+              placeholder={`${i18n.formatMessage({
+                id: "alarm.rules.inspectionFrequency.placeholder.database",
+              })}`}
+              onChange={(id: number) => {
+                getLogLibraries.run(id);
+                modalForm.current?.resetFields(["tableId"]);
+              }}
+            >
+              {databaseList.map((database) => (
+                <Option key={database.id} value={database.id}>
+                  {i18n.formatMessage(
+                    { id: "alarm.rules.inspectionFrequency.database.Option" },
+                    { instance: database.instanceName, database: database.name }
+                  )}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, nextValues) =>
+              prevValues.databaseId !== nextValues.databaseId
+            }
+          >
+            {({ getFieldValue }) => {
+              const databaseId = getFieldValue("databaseId");
+              if (!databaseId) return <></>;
+              return (
+                <Form.Item
+                  label={i18n.formatMessage({
+                    id: "alarm.rules.inspectionFrequency.logLibrary",
+                  })}
+                  name={"tableId"}
+                  rules={[{ required: true }]}
                 >
-                  {logLibraryList.map((logTable) => (
-                    <Option key={logTable.id} value={logTable.id}>
-                      {logTable.tableName}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            );
-          }}
-        </Form.Item>
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, nextValues) =>
-            prevValues.tableId !== nextValues.tableId ||
-            prevValues.when !== nextValues.when
-          }
-        >
-          {({ getFieldValue, getFieldsValue }) => {
-            if (!getFieldValue("tableId")) return <></>;
-            return (
-              <Form.Item label={i18n.formatMessage({ id: "search" })}>
-                <Input.Group compact>
-                  <Form.Item noStyle name={"when"} initialValue={"1=1"}>
-                    <Input style={{ width: "85%" }} />
-                  </Form.Item>
-                  <Button
-                    style={{ width: "15%" }}
-                    type={"primary"}
-                    onClick={() => {
-                      const fields = getFieldsValue();
-                      handlePreview(fields);
-                    }}
+                  <Select
+                    placeholder={`${i18n.formatMessage({
+                      id: "alarm.rules.inspectionFrequency.placeholder.logLibrary",
+                    })}`}
+                    showSearch
+                    onChange={() => handleChangeLogLibrary()}
                   >
-                    {i18n.formatMessage({ id: "alarm.rules.form.preview" })}
-                  </Button>
-                </Input.Group>
-                {showTable && (
-                  <Table
-                    rowKey={"id"}
-                    style={{ marginTop: 10 }}
-                    loading={doQueryPreview.loading}
-                    scroll={{ y: 200 }}
-                    columns={tableColumns}
-                    dataSource={tableLogs}
-                    pagination={{
-                      ...currentPagination,
-                      onChange: (page, pageSize) => {
+                    {logLibraryList.map((logTable) => (
+                      <Option key={logTable.id} value={logTable.id}>
+                        {logTable.tableName}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              );
+            }}
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, nextValues) =>
+              prevValues.tableId !== nextValues.tableId ||
+              prevValues.when !== nextValues.when
+            }
+          >
+            {({ getFieldValue, getFieldsValue }) => {
+              if (!getFieldValue("tableId")) return <></>;
+              return (
+                <Form.Item label={i18n.formatMessage({ id: "search" })}>
+                  <Input.Group compact>
+                    <Form.Item noStyle name={"when"} initialValue={"1=1"}>
+                      <Input style={{ width: "85%" }} />
+                    </Form.Item>
+                    <Button
+                      style={{ width: "15%" }}
+                      type={"primary"}
+                      onClick={() => {
                         const fields = getFieldsValue();
-                        handleChangePage(page, pageSize, fields);
-                      },
-                    }}
-                    showSorterTooltip
-                    bordered
-                  />
-                )}
-              </Form.Item>
-            );
-          }}
-        </Form.Item>
-      </Form>
+                        handlePreview(fields);
+                      }}
+                    >
+                      {i18n.formatMessage({ id: "alarm.rules.form.preview" })}
+                    </Button>
+                  </Input.Group>
+                  {showTable && (
+                    <Table
+                      rowKey={"id"}
+                      style={{ marginTop: 10 }}
+                      loading={doQueryPreview.loading}
+                      scroll={{ y: 200 }}
+                      columns={tableColumns}
+                      dataSource={tableLogs}
+                      pagination={{
+                        ...currentPagination,
+                        onChange: (page, pageSize) => {
+                          const fields = getFieldsValue();
+                          handleChangePage(page, pageSize, fields);
+                        },
+                      }}
+                      showSorterTooltip
+                      bordered
+                    />
+                  )}
+                </Form.Item>
+              );
+            }}
+          </Form.Item>
+        </Form>
+      </Spin>
     </Modal>
   );
 };

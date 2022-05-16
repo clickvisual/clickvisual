@@ -88,13 +88,15 @@ const QueryStatisticsItem = (props: { formRef: any }) => {
                         )}
                         <a
                           onClick={() => {
-                            const filtersList =
-                              formRef.current.getFieldValue("filters")[
+                            const filtersList = {
+                              ...formRef.current.getFieldValue("filters")[
                                 field.name
-                              ];
+                              ],
+                              fieldName: field.name,
+                            };
                             setDefaultData(filtersList);
-                            onChangeVisible(true);
                             setIsEdit(true);
+                            onChangeVisible(true);
                           }}
                         >
                           {i18n.formatMessage({ id: "edit" })}
@@ -133,7 +135,7 @@ const QueryStatisticsItem = (props: { formRef: any }) => {
                     let currentFiltersList =
                       formRef.current.getFieldValue("filters");
                     currentFiltersList.map((item: any, index: number) => {
-                      if (item.id == fields.id) {
+                      if (index === fields?.fieldName) {
                         currentFiltersList[index] = fields;
                         formRef.current.setFieldsValue({
                           filters: currentFiltersList,
