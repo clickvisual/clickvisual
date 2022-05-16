@@ -26,6 +26,7 @@ type Instance struct {
 	Configmap        string  `gorm:"column:configmap;type:varchar(128)" json:"configmap"`                                            // configmap
 	PrometheusTarget string  `gorm:"column:prometheus_target;type:varchar(128)" json:"prometheusTarget"`                             // prometheus ip or domain, eg: https://prometheus:9090
 	Mode             int     `gorm:"column:mode;type:tinyint(1)" json:"mode"`                                                        // 0 standalone 1 cluster
+	ReplicaStatus    int     `gorm:"column:replica_status;type:tinyint(1)" json:"replicaStatus"`                                     // status 0 has replica 1 no replica
 	Clusters         Strings `gorm:"column:clusters;type:text" json:"clusters"`
 }
 

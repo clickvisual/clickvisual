@@ -64,13 +64,22 @@ func (b *DataBuilder) BuilderEngine() {
 			b.QueryAssembly.Params.Cluster,
 			strings.ReplaceAll(arr[0], "`", ""),
 			strings.ReplaceAll(arr[1], "`", ""))
-	case bumo.DataTypeClusterNoReplicas:
-		b.QueryAssembly.Result += fmt.Sprintf("ENGINE = MergeTree PARTITION BY toYYYYMMDD(time_second)\n")
 	default:
-		b.QueryAssembly.Result += fmt.Sprintf("ENGINE = ReplicatedMergeTree('/clickhouse/tables/%s/{shard}', '{replica}')\nPARTITION BY toYYYYMMDD(_time_second_)\n",
-			strings.ReplaceAll(b.QueryAssembly.Params.Data.TableName, "`", ""))
+		b.QueryAssembly.Result += builderEngineByReplicaStatus(b.QueryAssembly.Params.ReplicaStatus, b.QueryAssembly.Params.Data.TableName)
 	}
+}
 
+func builderEngineByReplicaStatus(rs int, tableName string) string {
+	engineSQL := fmt.Sprintf("ENGINE = ReplicatedMergeTree('/clickhouse/tables/%s/{shard}', '{replica}')\nPARTITION BY toYYYYMMDD(_time_second_)\n",
+		strings.ReplaceAll(tableName, "`", ""))
+	switch rs {
+	case bumo.ReplicaStatusYes:
+		return engineSQL
+	case bumo.ReplicaStatusNo:
+		return fmt.Sprintf("ENGINE = MergeTree PARTITION BY toYYYYMMDD(_time_second_)\n")
+	default:
+		return engineSQL
+	}
 }
 
 func (b *DataBuilder) BuilderOrder() {

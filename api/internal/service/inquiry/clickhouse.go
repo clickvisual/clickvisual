@@ -77,6 +77,7 @@ const (
 type ClickHouse struct {
 	id   int
 	mode int
+	rs   int // replica status
 	db   *sql.DB
 }
 
@@ -88,6 +89,7 @@ func NewClickHouse(db *sql.DB, ins *db.Instance) *ClickHouse {
 		db:   db,
 		id:   ins.ID,
 		mode: ins.Mode,
+		rs:   ins.ReplicaStatus,
 	}
 }
 
@@ -312,7 +314,9 @@ func (c *ClickHouse) TableCreate(did int, database db.Database, ct view.ReqTable
 
 	if c.mode == ModeCluster {
 		dataParams.Cluster = database.Cluster
+		dataParams.ReplicaStatus = c.rs
 		streamParams.Cluster = database.Cluster
+		streamParams.ReplicaStatus = c.rs
 		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
 		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 	} else {
@@ -336,7 +340,8 @@ func (c *ClickHouse) TableCreate(did int, database db.Database, ct view.ReqTable
 	}
 	if c.mode == ModeCluster {
 		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
-			Cluster: database.Cluster,
+			Cluster:       database.Cluster,
+			ReplicaStatus: c.rs,
 			Data: bumo.ParamsData{
 				DataType:    bumo.DataTypeDistributed,
 				TableName:   genName(database.Name, ct.TableName),
@@ -406,7 +411,8 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 			dtp = defaultFloatTimeParse
 		}
 		viewSQL = c.ViewDo(bumo.Params{
-			Cluster: databaseInfo.Cluster,
+			Cluster:       databaseInfo.Cluster,
+			ReplicaStatus: c.rs,
 			View: bumo.ParamsView{
 				ViewTable:    viewName,
 				TargetTable:  dName,
@@ -421,7 +427,8 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 			return "", errors.New("the process processes abnormal data errors, current view cannot be nil")
 		}
 		viewSQL = c.ViewDo(bumo.Params{
-			Cluster: databaseInfo.Cluster,
+			Cluster:       databaseInfo.Cluster,
+			ReplicaStatus: c.rs,
 			View: bumo.ParamsView{
 				ViewTable:    viewName,
 				TargetTable:  dName,
@@ -532,7 +539,8 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (s
 	sourceTableName = fmt.Sprintf("%s.%s_local", tableInfo.Database.Name, tableInfo.Name)
 
 	viewSQL = c.ViewDo(bumo.Params{
-		Cluster: tableInfo.Database.Cluster,
+		Cluster:       tableInfo.Database.Cluster,
+		ReplicaStatus: c.rs,
 		View: bumo.ParamsView{
 			ViewType:     bumo.ViewTypePrometheusMetric,
 			ViewTable:    viewTableName,
