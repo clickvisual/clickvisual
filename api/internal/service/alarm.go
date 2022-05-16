@@ -128,9 +128,29 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 			return
 		}
 	}
+
 	// empty data alert
-	// exp = fmt.Sprintf("(%s) or absent(%s)==1", exp, expVal)
+	exp = noDataOp(exp, expVal, obj.NoDataOp)
 	return
+}
+
+const (
+	NoDataOpDefault = 0
+	NoDataOpOK      = 1
+	NoDataOpAlert   = 2
+)
+
+func noDataOp(exp, expVal string, op int) string {
+	switch op {
+	case NoDataOpDefault:
+		return exp
+	case NoDataOpOK:
+		return fmt.Sprintf("(%s) or absent(%s)!=1", exp, expVal)
+	case NoDataOpAlert:
+		return fmt.Sprintf("(%s) or absent(%s)==1", exp, expVal)
+	default:
+		return exp
+	}
 }
 
 func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
@@ -306,6 +326,7 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	ups["interval"] = req.Interval
 	ups["unit"] = req.Unit
 	ups["uid"] = uid
+	ups["no_data_op"] = req.NoDataOp
 	ups["channel_ids"] = db.Ints(req.ChannelIds)
 	if err = db.AlarmUpdate(tx, alarmId, ups); err != nil {
 		tx.Rollback()

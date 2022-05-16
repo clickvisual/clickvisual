@@ -56,6 +56,7 @@ func Create(c *core.Context) {
 		Interval:   req.Interval,
 		Unit:       req.Unit,
 		Tags:       req.Tags,
+		NoDataOp:   req.NoDataOp,
 		ChannelIds: db.Ints(req.ChannelIds),
 		Uid:        c.Uid(),
 	}
