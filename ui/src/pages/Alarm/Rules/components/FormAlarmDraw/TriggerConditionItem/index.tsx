@@ -2,12 +2,21 @@ import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/Trigge
 import { Button, Form, InputNumber, Select, Space } from "antd";
 import { useIntl } from "umi";
 import classNames from "classnames";
-import { PlusOutlined } from "@ant-design/icons";
+import { DownOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { condList, expList, typList } from "@/pages/Alarm/service/type";
+import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 
 const { Option } = Select;
 
-const TriggerConditionItem = () => {
+interface TriggerConditionItemProps {
+  showMoreOptions: boolean;
+  handleClickMoreOptions: () => void;
+}
+
+const TriggerConditionItem = ({
+  showMoreOptions,
+  handleClickMoreOptions,
+}: TriggerConditionItemProps) => {
   const i18n = useIntl();
 
   return (
@@ -199,6 +208,19 @@ const TriggerConditionItem = () => {
             );
           }}
         </Form.List>
+      </Form.Item>
+      <Form.Item noStyle>
+        <div
+          className={classNames(
+            conditionStyles.moreOptionsBtn,
+            !showMoreOptions && conditionStyles.hideMoreOptions
+          )}
+          onClick={handleClickMoreOptions}
+        >
+          {showMoreOptions ? <DownOutlined /> : <RightOutlined />}
+          <span>{i18n.formatMessage({ id: "instance.form.moreOptions" })}</span>
+        </div>
+        {showMoreOptions && <MoreOptions />}
       </Form.Item>
     </>
   );

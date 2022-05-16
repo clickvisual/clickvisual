@@ -16,11 +16,9 @@ import { useIntl } from "umi";
 import { useEffect, useRef, useState } from "react";
 import TriggerConditionItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem";
 import TextArea from "antd/es/input/TextArea";
-import { DownOutlined, RightOutlined, SaveOutlined } from "@ant-design/icons";
+import { SaveOutlined } from "@ant-design/icons";
 import { AlarmRequest, ChannelType } from "@/services/alarm";
 import { NoDataConfigs } from "@/pages/Alarm/service/type";
-import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/index.less";
-import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 
 const { Option } = Select;
 
@@ -115,6 +113,11 @@ const FormAlarmDraw = () => {
       });
   }, [alarmDraw.visibleDraw]);
 
+  useEffect(() => {
+    if (!alarmDraw.visibleDraw) setShowMoreOptions(false);
+    return () => setShowMoreOptions(false);
+  }, [alarmDraw.visibleDraw]);
+
   return (
     <Drawer
       closable
@@ -177,7 +180,10 @@ const FormAlarmDraw = () => {
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef} />
-          <TriggerConditionItem />
+          <TriggerConditionItem
+            handleClickMoreOptions={handleClickMoreOptions}
+            showMoreOptions={showMoreOptions}
+          />
           <Form.Item
             label={i18n.formatMessage({
               id: "alarm.rules.form.channelIds",
@@ -217,18 +223,6 @@ const FormAlarmDraw = () => {
                 id: "alarm.rules.form.placeholder.description",
               })}`}
             />
-          </Form.Item>
-          <Form.Item noStyle>
-            <div
-              className={conditionStyles.moreOptionsBtn}
-              onClick={handleClickMoreOptions}
-            >
-              {showMoreOptions ? <DownOutlined /> : <RightOutlined />}
-              <span>
-                {i18n.formatMessage({ id: "instance.form.moreOptions" })}
-              </span>
-            </div>
-            {showMoreOptions && <MoreOptions />}
           </Form.Item>
         </Form>
       </Spin>
