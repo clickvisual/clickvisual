@@ -34,6 +34,10 @@ func Create(c *core.Context) {
 			tid = f.Tid
 		}
 	}
+	if tid == 0 {
+		c.JSONE(1, "invalid parameter: tid should above zero", nil)
+		return
+	}
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
