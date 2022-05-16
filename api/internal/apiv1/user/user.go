@@ -33,6 +33,7 @@ func Info(c *core.Context) {
 			u.Avatar = cookieUser.Avatar
 			u.Username = cookieUser.Username
 			u.Nickname = cookieUser.Nickname
+			u.Access = "auth.proxy.cookie"
 		}
 	}
 
