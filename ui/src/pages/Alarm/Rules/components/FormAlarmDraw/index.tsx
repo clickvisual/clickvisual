@@ -18,6 +18,7 @@ import TriggerConditionItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/T
 import TextArea from "antd/es/input/TextArea";
 import { SaveOutlined } from "@ant-design/icons";
 import { AlarmRequest, ChannelType } from "@/services/alarm";
+import { NoDataConfigs } from "@/pages/Alarm/service/type";
 
 const { Option } = Select;
 
@@ -35,6 +36,7 @@ const FormAlarmDraw = () => {
   const alarmFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const [channelList, setChannelList] = useState<ChannelType[]>([]);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   const searchQuery = {
     name: operations.inputName,
@@ -73,6 +75,10 @@ const FormAlarmDraw = () => {
     !alarmDraw.isEditor ? doCreated(field) : doUpdated(field);
   };
 
+  const handleClickMoreOptions = () => {
+    setShowMoreOptions(() => !showMoreOptions);
+  };
+
   useEffect(() => {
     if (!alarmDraw.visibleDraw && alarmFormRef.current) {
       alarmFormRef.current.resetFields();
@@ -82,10 +88,17 @@ const FormAlarmDraw = () => {
   }, [alarmDraw.visibleDraw, alarmDraw.isEditor, currentRowAlarm]);
 
   useEffect(() => {
-    if (!alarmDraw.visibleDraw || !alarmDraw.isEditor || !currentRowAlarm)
+    if (!alarmDraw.visibleDraw || !alarmDraw.isEditor || !currentRowAlarm) {
       return;
+    }
     alarmDraw.doGetAlarmInfo.run(currentRowAlarm.id).then((res) => {
       if (res?.code !== 0 || !alarmFormRef.current) return;
+      if (
+        res.data.noDataOp === NoDataConfigs.OK ||
+        res.data.noDataOp === NoDataConfigs.Alert
+      ) {
+        setShowMoreOptions(true);
+      }
       alarmFormRef.current.setFieldsValue({
         ...res.data,
         channelIds: res.data.channelIds ? res.data.channelIds : undefined,
@@ -106,10 +119,10 @@ const FormAlarmDraw = () => {
       destroyOnClose
       title={i18n.formatMessage({ id: "alarm.rules.form.title" })}
       visible={alarmDraw.visibleDraw}
-      placement="right"
+      placement="left"
       onClose={handleClose}
       getContainer={false}
-      width={700}
+      width={"55%"}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
       extra={
@@ -162,7 +175,10 @@ const FormAlarmDraw = () => {
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef} />
-          <TriggerConditionItem />
+          <TriggerConditionItem
+            handleClickMoreOptions={handleClickMoreOptions}
+            showMoreOptions={showMoreOptions}
+          />
           <Form.Item
             label={i18n.formatMessage({
               id: "alarm.rules.form.channelIds",

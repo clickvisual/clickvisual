@@ -423,6 +423,7 @@ export default {
   "alarm.rules.form.inspectionStatistics.error": "最少需要添加一条检查统计",
   "alarm.rules.form.triggerCondition": "触发条件",
   "alarm.rules.form.triggerCondition.error": "最少需要添加一条触发条件",
+  "alarm.rules.form.noDataOp": "空数据处理策略",
   "alarm.rules.form.preview": "预览",
   "alarm.rules.form.notPreview.content": "请先点击预览",
   "alarm.rules.inspectionFrequency.selectOption.logLibrary": "日志库",

@@ -6,6 +6,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import IconFont from "@/components/IconFont";
 import ChangePasswordModal from "@/components/RightContent/ChangePasswordModal";
+import { useMemo } from "react";
 
 const AvatarDropdown = () => {
   const { currentUser } = useModel("@@initialState").initialState || {};
@@ -24,9 +25,26 @@ const AvatarDropdown = () => {
     actionPassword.onChangeVisibleChangePassword(true);
   };
 
+  // 隐藏修改密码按钮
+  const hiddenPassword = useMemo(() => {
+    // 通过登录态登录时隐藏修改密码按钮
+    if (currentUser?.access === "auth.proxy.cookie") return false;
+
+    // 通过三方登录时隐藏修改密码按钮，oauth，oauthId 第三方登录平台记录
+    if (currentUser?.oauth === "" && currentUser?.oauthId === "") return true;
+
+    return false;
+  }, [currentUser]);
+
+  // 隐藏退出登录按钮
+  const hiddenLogOut = useMemo(
+    () => currentUser?.access !== "auth.proxy.cookie",
+    [currentUser]
+  );
+
   const menuHeaderDropdown = (
     <Menu className={styles.menu} selectedKeys={[]}>
-      {currentUser?.oauth === "" && currentUser?.oauthId === "" && (
+      {hiddenPassword && (
         <Menu.Item
           icon={<IconFont type={"icon-reset-password"} />}
           key="resetPassword"
@@ -46,15 +64,17 @@ const AvatarDropdown = () => {
           id: "navbar.upgrade",
         })}
       </Menu.Item>
-      <Menu.Item
-        icon={<LogoutOutlined />}
-        key="logout"
-        onClick={() => handleLogout()}
-      >
-        {i18n.formatMessage({
-          id: "navbar.logOut",
-        })}
-      </Menu.Item>
+      {hiddenLogOut && (
+        <Menu.Item
+          icon={<LogoutOutlined />}
+          key="logout"
+          onClick={() => handleLogout()}
+        >
+          {i18n.formatMessage({
+            id: "navbar.logOut",
+          })}
+        </Menu.Item>
+      )}
       <ChangePasswordModal />
     </Menu>
   );
