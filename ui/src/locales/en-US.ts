@@ -454,6 +454,7 @@ export default {
   "alarm.rules.form.triggerCondition": "Trigger condition",
   "alarm.rules.form.triggerCondition.error":
     "At least you need to add a trigger condition",
+  "alarm.rules.form.noDataOp": "Alert state if no data or all values are null",
   "alarm.rules.form.preview": "Preview",
   "alarm.rules.form.notPreview.content": "Please click preview first",
   "alarm.rules.inspectionFrequency.selectOption.logLibrary": "Log Library",
