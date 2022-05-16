@@ -1,12 +1,7 @@
 import { Form, Select } from "antd";
 import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/index.less";
 import { useIntl } from "umi";
-
-const NoDataConfigList = [
-  { value: 0, label: "No Data" },
-  { value: 1, label: "OK" },
-  { value: 2, label: "Alert" },
-];
+import { NoDataConfigList } from "@/pages/Alarm/service/type";
 
 const { Option } = Select;
 

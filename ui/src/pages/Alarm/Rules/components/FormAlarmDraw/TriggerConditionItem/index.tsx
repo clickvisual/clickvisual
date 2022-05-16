@@ -3,35 +3,20 @@ import { Button, Form, InputNumber, Select, Space } from "antd";
 import { useIntl } from "umi";
 import classNames from "classnames";
 import { DownOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
-import { useState } from "react";
 import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
+import { condList, expList, typList } from "@/pages/Alarm/service/type";
 
 const { Option } = Select;
 
-const TriggerConditionItem = () => {
+interface TriggerConditionItemProps {
+  showMoreOptions: boolean;
+  handleClickMoreOptions: () => void;
+}
+const TriggerConditionItem = ({
+  showMoreOptions,
+  handleClickMoreOptions,
+}: TriggerConditionItemProps) => {
   const i18n = useIntl();
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
-
-  const typList = [
-    { key: 0, label: "WHEN" },
-    { key: 1, label: "AND" },
-    { key: 2, label: "OR" },
-  ];
-
-  const expList = [
-    { key: 0, label: "avg()" },
-    { key: 1, label: "min()" },
-    { key: 2, label: "max()" },
-    { key: 3, label: "sum()" },
-    { key: 4, label: "count()" },
-  ];
-
-  const condList = [
-    { key: 0, label: "above" },
-    { key: 1, label: "below" },
-    { key: 2, label: "outside range" },
-    { key: 3, label: "within range" },
-  ];
 
   return (
     <>
@@ -226,7 +211,7 @@ const TriggerConditionItem = () => {
       <Form.Item noStyle>
         <div
           className={conditionStyles.moreOptionsBtn}
-          onClick={() => setShowMoreOptions(() => !showMoreOptions)}
+          onClick={handleClickMoreOptions}
         >
           {showMoreOptions ? <DownOutlined /> : <RightOutlined />}
           <span>{i18n.formatMessage({ id: "instance.form.moreOptions" })}</span>

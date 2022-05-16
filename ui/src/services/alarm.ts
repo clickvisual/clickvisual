@@ -66,6 +66,7 @@ export interface AlarmInfoType extends AlarmType, TimeBaseType {
   webUrl: string;
   table: any;
   instance: any;
+  noDataOp: number;
 }
 
 export interface AlarmRequest {
@@ -77,7 +78,7 @@ export interface AlarmRequest {
   desc: string;
   interval: number;
   unit: number;
-  no_data_op: number;
+  noDataOp: number;
 }
 
 export interface ChannelType extends TimeBaseType {
