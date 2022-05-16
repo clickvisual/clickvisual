@@ -3,8 +3,8 @@ import { Button, Form, InputNumber, Select, Space } from "antd";
 import { useIntl } from "umi";
 import classNames from "classnames";
 import { DownOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
-import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 import { condList, expList, typList } from "@/pages/Alarm/service/type";
+import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 
 const { Option } = Select;
 
@@ -12,6 +12,7 @@ interface TriggerConditionItemProps {
   showMoreOptions: boolean;
   handleClickMoreOptions: () => void;
 }
+
 const TriggerConditionItem = ({
   showMoreOptions,
   handleClickMoreOptions,
@@ -210,7 +211,10 @@ const TriggerConditionItem = ({
       </Form.Item>
       <Form.Item noStyle>
         <div
-          className={conditionStyles.moreOptionsBtn}
+          className={classNames(
+            conditionStyles.moreOptionsBtn,
+            !showMoreOptions && conditionStyles.hideMoreOptions
+          )}
           onClick={handleClickMoreOptions}
         >
           {showMoreOptions ? <DownOutlined /> : <RightOutlined />}

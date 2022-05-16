@@ -113,6 +113,11 @@ const FormAlarmDraw = () => {
       });
   }, [alarmDraw.visibleDraw]);
 
+  useEffect(() => {
+    if (!alarmDraw.visibleDraw) setShowMoreOptions(false);
+    return () => setShowMoreOptions(false);
+  }, [alarmDraw.visibleDraw]);
+
   return (
     <Drawer
       closable
