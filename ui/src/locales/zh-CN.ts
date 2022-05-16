@@ -106,6 +106,7 @@ export default {
   "instance.form.title.mode": "类型",
   "instance.form.title.modeType.single": "单机",
   "instance.form.title.clusterWithDuplicate": "集群版（带副本）",
+  "instance.form.title.replicas": "是否包含副本",
   "instance.form.title.cluster": "集群",
   "instance.form.title.k8s": "K8s",
   "instance.form.title.ruleStoreType": "告警",
