@@ -13,10 +13,11 @@ type QueryAssembly struct {
 }
 
 type Params struct {
-	Cluster string
-	Data    ParamsData
-	View    ParamsView
-	Stream  ParamsStream
+	Cluster       string
+	ReplicaStatus int
+	Data          ParamsData
+	View          ParamsView
+	Stream        ParamsStream
 }
 
 type ParamsData struct {
@@ -55,7 +56,11 @@ const (
 const (
 	DataTypeDefault = iota
 	DataTypeDistributed
-	DataTypeClusterNoReplicas
+)
+
+const (
+	ReplicaStatusYes = iota
+	ReplicaStatusNo
 )
 
 func (q *QueryAssembly) Gen() string {

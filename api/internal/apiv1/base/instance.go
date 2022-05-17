@@ -56,9 +56,9 @@ func InstanceCreate(c *core.Context) {
 		Namespace:        req.Namespace,
 		Configmap:        req.Configmap,
 		PrometheusTarget: req.PrometheusTarget,
-
-		Mode:     req.Mode,
-		Clusters: req.Clusters,
+		ReplicaStatus:    req.ReplicaStatus,
+		Mode:             req.Mode,
+		Clusters:         req.Clusters,
 	}
 	invoker.Logger.Debug("instanceCreate", elog.Any("obj", obj))
 	if req.PrometheusTarget != "" {
@@ -120,15 +120,16 @@ func InstanceUpdate(c *core.Context) {
 		return
 	}
 	ups := make(map[string]interface{}, 0)
-	if objBef.Dsn != req.Dsn {
+	if objBef.Dsn != req.Dsn || objBef.Mode != req.Mode || objBef.ReplicaStatus != req.ReplicaStatus {
 		// dns changed
 		service.InstanceManager.Delete(objBef.DsKey())
 		objUpdate := db.Instance{
-			Datasource: req.Datasource,
-			Name:       req.Name,
-			Dsn:        req.Dsn,
-			Mode:       req.Mode,
-			Clusters:   req.Clusters,
+			Datasource:    req.Datasource,
+			Name:          req.Name,
+			Dsn:           req.Dsn,
+			Mode:          req.Mode,
+			Clusters:      req.Clusters,
+			ReplicaStatus: req.ReplicaStatus,
 		}
 		objUpdate.ID = id
 		if err = service.InstanceManager.Add(&objUpdate); err != nil {
@@ -143,6 +144,7 @@ func InstanceUpdate(c *core.Context) {
 	ups["mode"] = req.Mode
 	ups["datasource"] = req.Datasource
 	ups["rule_store_type"] = req.RuleStoreType
+	ups["replica_status"] = req.ReplicaStatus
 
 	if req.FilePath != "" {
 		ups["file_path"] = req.FilePath
