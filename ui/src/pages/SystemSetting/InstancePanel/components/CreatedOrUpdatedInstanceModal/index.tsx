@@ -68,6 +68,10 @@ const CreatedOrUpdatedInstanceModal = (
       mode: field.mode * 1,
     };
     delete params.k8sConfig;
+    if (!params.mode) {
+      delete params.replicaStatus;
+      delete params.clusters;
+    }
     if (isEditor && current?.id) {
       doUpdatedInstance.run(current.id, params).then((res) => {
         if (res?.code === 0) doGetInstanceList();
@@ -107,16 +111,16 @@ const CreatedOrUpdatedInstanceModal = (
         ];
       }
       if (cloneCurrent.ruleStoreType > 0) onChangeMoreOptionFlag(true);
-      cloneCurrent.replicaStatus === 1
-        ? (cloneCurrent.replicaStatus = false)
-        : (cloneCurrent.replicaStatus = true);
+      cloneCurrent.replicaStatus === 0
+        ? (cloneCurrent.replicaStatus = true)
+        : (cloneCurrent.replicaStatus = false);
       instanceFormRef.current?.setFieldsValue(cloneCurrent);
     }
   }, [visible, isEditor, current]);
 
   const formItemLayout = {
     labelCol: {
-      xs: { span: 24 },
+      xs: { span: 20 },
       sm: { span: 4 },
     },
     wrapperCol: {
@@ -127,8 +131,15 @@ const CreatedOrUpdatedInstanceModal = (
 
   const formItemLayoutWithOutLabel = {
     wrapperCol: {
-      xs: { span: 24, offset: 0 },
+      xs: { span: 20, offset: 4 },
       sm: { span: 20, offset: 4 },
+    },
+  };
+
+  const formItemLayoutBtnLabel = {
+    wrapperCol: {
+      xs: { span: 20, offset: 4 },
+      sm: { span: 18, offset: 4 },
     },
   };
 
@@ -211,13 +222,7 @@ const CreatedOrUpdatedInstanceModal = (
         >
           <Space>
             <Form.Item name={"mode"} noStyle valuePropName="checked">
-              <Switch
-                onChange={() => {
-                  instanceFormRef.current?.setFields([
-                    { name: "clusters", value: [""] },
-                  ]);
-                }}
-              />
+              <Switch />
             </Form.Item>
             <Form.Item
               shouldUpdate={(prevValues, nextValues) =>
@@ -258,6 +263,7 @@ const CreatedOrUpdatedInstanceModal = (
                   })}
                   valuePropName="checked"
                   name={"replicaStatus"}
+                  initialValue={false}
                 >
                   <Checkbox />
                 </Form.Item>
@@ -309,14 +315,14 @@ const CreatedOrUpdatedInstanceModal = (
                             ) : null}
                           </Form.Item>
                         ))}
-                        <Form.Item {...formItemLayoutWithOutLabel}>
+                        <Form.Item {...formItemLayoutBtnLabel}>
                           <Button
                             type="dashed"
                             onClick={() => add()}
-                            style={{ width: "100px" }}
+                            style={{ width: "100%" }}
                             icon={<PlusOutlined />}
                           >
-                            Add
+                            {i18n.formatMessage({ id: "cluster.button.add" })}
                           </Button>
                           <Form.ErrorList errors={errors} />
                         </Form.Item>
