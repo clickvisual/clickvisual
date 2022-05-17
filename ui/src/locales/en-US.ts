@@ -403,7 +403,7 @@ export default {
   "log.index.manage.placeholder.indexName":
     "Mandatory and not repeatable, please enter the field name",
   "log.index.manage.placeholder.alias": "Please enter an field description",
-  "log.index.manage.enum.zero": "This type is not supported",
+  "log.index.manage.enum.zero": "Is not set",
   "log.index.manage.button.deleted": "Drop Field",
   "log.index.manage.button.created": "Created Field",
   "log.index.manage.message.save.success": "Save success",
@@ -534,4 +534,150 @@ export default {
   "install.init.model.databaseInit.successContent":
     "When the database is initialized, click 'OK' to jump to the login page",
   "install.init.model.databaseInit.successOkText": "OK",
+
+  // sys -> instance
+  "systemSetting.instancePanel.roleAssign.modelTitle.name": "Instance",
+  "systemSetting.instancePanel.roleAssign.modelTitle.roleAuth":
+    "Role authorization",
+  "systemSetting.instancePanel.roleAssign.modelLabel.role": "Role",
+  "systemSetting.instancePanel.roleAssign.modelBottom.submitBtn": "Submit",
+  "systemSetting.instancePanel.roleAssign.modelBottom.createCustomRoleBtn":
+    "Create a user-defined role",
+  "systemSetting.instancePanel.roleAssign.loadingText": "In the save",
+  "systemSetting.instancePanel.roleAssign.loadingSucText": "Save success",
+
+  "systemSetting.instancePanel.roleAssign.rolesList.collapseItem.authorization":
+    "Authorization",
+
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.scope": "Scope",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.scope.placeholder":
+    "Select an authorized domain name",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.user": "User",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.user.placeholder":
+    "Select an authorized user",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.createAuthorization":
+    "Create authorization",
+
+  "systemSetting.instancePanel.roleAssign.roleModel.instance": "Instance",
+  "systemSetting.instancePanel.roleAssign.roleModel.editModel.title":
+    "The update operation",
+  "systemSetting.instancePanel.roleAssign.roleModel.editModel.content":
+    "Are you sure you want to update the character content?",
+  "systemSetting.instancePanel.roleAssign.roleModel.okText": "Confirm",
+  "systemSetting.instancePanel.roleAssign.roleModel.cancelText": "Cancel",
+  "systemSetting.instancePanel.roleAssign.roleModel.save": "Save",
+  "systemSetting.instancePanel.roleAssign.roleModel.edit": "Edit",
+  "systemSetting.instancePanel.roleAssign.roleModel.create": "Create",
+  "systemSetting.instancePanel.roleAssign.roleModel.custom": "Customize the",
+  "systemSetting.instancePanel.roleAssign.roleModel.role": "Role",
+  "systemSetting.instancePanel.roleAssign.roleModel.resources":
+    "Subordinate to the resource",
+  "systemSetting.instancePanel.roleAssign.roleModel.resources.placeholder":
+    "Select the owning resource",
+  "systemSetting.instancePanel.roleAssign.roleModel.EnglishName":
+    "English name of character",
+  "systemSetting.instancePanel.roleAssign.roleModel.EnglishName.placeholder":
+    "Please enter the role name",
+  "systemSetting.instancePanel.roleAssign.roleModel.roleDescription":
+    "Role description",
+  "systemSetting.instancePanel.roleAssign.roleModel.roleDescription.placeholder":
+    "Please enter a role description",
+
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.errorText":
+    "Add resource authorization",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource":
+    "Subresource",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource.placeholder":
+    "Select a subresource",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow":
+    "To allow operation",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow.placeholder":
+    "Select Permit operation",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.create":
+    "Adding Resource Authorization",
+
+  // sys -> instance -> roleAssign -> RolesList -> CollapseItem -> CollapseTitle
+  "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle":
+    "Role authorization ( [subresource]: [To allow operation] )",
+
+  // sys -> role
+  "systemSetting.role.okTest": "Ok",
+  "systemSetting.role.cancelText": "Cancel",
+  "systemSetting.role.delete.success": "Delete the success",
+  "systemSetting.role.delete.title": "Delete operation",
+  "systemSetting.role.delete.content":
+    "You are sure you want to delete the role: {name}？",
+  "systemSetting.role.table.name": "Role name",
+  "systemSetting.role.table.desc": "Role description",
+  "systemSetting.role.table.belongResource": "Subordinate to the resource",
+  "systemSetting.role.table.subResources": "Subresource",
+  "systemSetting.role.table.acts": "Acts",
+  "systemSetting.role.table.option": "Option",
+  "systemSetting.role.table.option.edit": "Edit",
+  "systemSetting.role.table.option.delete": "Delete",
+  "systemSetting.role.filtrate.label.belongResource":
+    "Subordinate to the resource",
+  "systemSetting.role.filtrate.label.name": "Name",
+  "systemSetting.role.filtrate.label.query": "Query",
+  "systemSetting.role.filtrate.clear": "Removal of conditions",
+  "systemSetting.role.filtrate.create": "Create",
+  "systemSetting.role.filtrate.rootAuthority": "Root authority",
+  "systemSetting.role.filtrate.createDefaultRole": "Creating a Default Role",
+  "systemSetting.role.filtrate.superAdministratorAuthorization":
+    "Super Administrator Authorization",
+
+  // sys -> role -> CollapseX
+  "systemSetting.role.collapseX.unfold": "Unfold",
+  "systemSetting.role.collapseX.packUp": "Pack up",
+
+  // sys -> role -> ItemForm
+  "systemSetting.role.itemForm.save": "Save",
+  "systemSetting.role.itemForm.form.label.belongResource":
+    "Subordinate to the resource",
+  "systemSetting.role.itemForm.form.belongResource.placeholder":
+    "Please select the owning type",
+  "systemSetting.role.itemForm.form.belongResource.instance": "Instance",
+  "systemSetting.role.itemForm.form.label.roleName": "Role name",
+  "systemSetting.role.itemForm.form.roleName.rules":
+    "Please enter the role name",
+  "systemSetting.role.itemForm.form.mandatory": "Mandatory",
+  "systemSetting.role.itemForm.form.label.description": "Role description",
+  "systemSetting.role.itemForm.form.description.rules":
+    "Enter role description information",
+  "systemSetting.role.itemForm.form.label.sub_resources": "Subresource",
+  "systemSetting.role.itemForm.form.sub_resources.rules":
+    "Select a subresource",
+  "systemSetting.role.itemForm.form.label.acts": "To allow operation",
+  "systemSetting.role.itemForm.form.acts.rules":
+    "Select Authorization operation",
+
+  // sys -> role -> RootUserForm
+  "systemSetting.role.rootUserForm.save": "Save",
+  "systemSetting.role.rootUserForm.superAdministrator": "Super administrator",
+  "systemSetting.role.rootUserForm.superAdministrator.rules":
+    "Please select at least one user!",
+
+  // sys -> role -> SearchTable
+  "systemSetting.role.SearchTable.query": "Query",
+  "systemSetting.role.SearchTable.reset": "Reset",
+
+  // hooks->role
+  "hooks.role.create.ing": "Being added",
+  "hooks.role.create.failure": "Create a failure",
+  "hooks.role.create.success": "Add a success",
+  "hooks.role.create.failure.tips": "Role creation failed please try again!",
+  "hooks.role.authorization.ing": "The authorization...",
+  "hooks.role.authorization.failure": "Authorization failure",
+  "hooks.role.authorization.success": "Authorization success",
+  "hooks.role.authorization.failure.tips":
+    "Authorization failed please try again!",
+
+  // models -> pms
+  "models.pms.loading": "Loading...",
+  "models.pms.creating": "Creating...",
+  "models.pms.create.suc": "Creating a successful",
+  "models.pms.updating": "Updating...",
+  "models.pms.update.suc": "The update is successful",
+  "models.pms.permissions.failureText":
+    "Description Failed to obtain basic permission information",
 };

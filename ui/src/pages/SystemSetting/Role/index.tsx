@@ -12,10 +12,10 @@ import {
 } from "antd";
 import {
   CheckRoot,
-  reqCreatePmsDefaultRole,
+  // reqCreatePmsDefaultRole,
   reqDeleteRole,
   reqGetRoleList,
-  reqGrantRootUids,
+  // reqGrantRootUids,
 } from "@/services/pms";
 import useRequest from "@/hooks/useRequest/useRequest";
 import { useModel } from "@@/plugin-model/useModel";
@@ -34,56 +34,28 @@ import SearchTable, {
   SearchTableInstance,
 } from "@/pages/SystemSetting/Role/components/SearchTable";
 import RoleStyle from "@/pages/SystemSetting/Role/styles/index.less";
-
-const handleCreate = async (values: any) => {
-  const hide = message.loading("正在添加");
-  try {
-    const resp = await reqCreatePmsDefaultRole({ ...values });
-    if (resp.code !== 0) {
-      hide();
-      message.error(`角色创建失败. ${resp.msg}`);
-      return true;
-    }
-    hide();
-    message.success("角色创建成功");
-    return true;
-  } catch (error) {
-    hide();
-    message.error("角色创建失败请重试！");
-    return false;
-  }
-};
-
-const handleGrantUsers = async (values: any) => {
-  const hide = message.loading("正在授权...");
-  try {
-    const resp = await reqGrantRootUids({ ...values });
-    if (resp.code !== 0) {
-      hide();
-      message.error(`授权失败. ${resp.msg}`);
-      return true;
-    }
-    hide();
-    message.success("授权成功");
-    return true;
-  } catch (error) {
-    hide();
-    message.error("授权失败请重试！");
-    return false;
-  }
-};
+import role from "@/pages/SystemSetting/Role/hooks/role";
+import { useIntl } from "umi";
 
 function PmsDefaultRoles() {
+  const i18n = useIntl();
   const actionRef = useRef<SearchTableInstance>();
   const { commonInfo, fetchPmsCommonInfo } = useModel("pms");
   const { onChangeRoleModal, doGetPmsRole } = useModel("pms");
+  const [load, setLoad] = useState<any>();
   const [createModalVisible, handleCreateModalVisible] =
     useState<boolean>(false);
   const [grantRootUserVisible, handleGrantRootUserVisible] =
     useState<boolean>(false);
   const [form] = Form.useForm();
+  const { handleCreate, handleGrantUsers } = role();
   const deleteRole = useRequest(reqDeleteRole, {
-    loadingText: { loading: undefined, done: "删除成功" },
+    loadingText: {
+      loading: undefined,
+      done: i18n.formatMessage({
+        id: "systemSetting.role.delete.success",
+      }),
+    },
     onSuccess: (res) => actionRef.current?.refresh(),
   });
   const callBackRefresh = () => {
@@ -92,6 +64,7 @@ function PmsDefaultRoles() {
 
   const editorRole = (roleId: number) => {
     doGetPmsRole(roleId).then((res) => {
+      load;
       if (res?.code === 0)
         onChangeRoleModal(true, 1, "global", callBackRefresh);
     });
@@ -103,13 +76,24 @@ function PmsDefaultRoles() {
 
   const deleteRoleConfirm = (record: any) => {
     Modal.confirm({
-      title: "删除操作",
-      content: `您确定要删除角色：${record.name}吗？`,
+      title: i18n.formatMessage({
+        id: "systemSetting.role.delete.title",
+      }),
+      content: i18n.formatMessage(
+        {
+          id: "systemSetting.role.delete.content",
+        },
+        { name: record.name }
+      ),
       icon: <ExclamationCircleOutlined style={{ color: "red" }} />,
       onOk: () => doDeleteRole(record.id),
       okButtonProps: { danger: true },
-      okText: "确定",
-      cancelText: "取消",
+      okText: i18n.formatMessage({
+        id: "systemSetting.role.okTest",
+      }),
+      cancelText: i18n.formatMessage({
+        id: "systemSetting.role.cancelText",
+      }),
     });
   };
 
@@ -119,25 +103,33 @@ function PmsDefaultRoles() {
 
   const columns = [
     {
-      title: "角色名",
+      title: i18n.formatMessage({
+        id: "systemSetting.role.table.name",
+      }),
       dataIndex: "name",
       key: "name",
       width: 60,
     },
     {
-      title: "角色描述",
+      title: i18n.formatMessage({
+        id: "systemSetting.role.table.desc",
+      }),
       dataIndex: "desc",
       key: "desc",
       width: 200,
     },
     {
-      title: "所属资源",
+      title: i18n.formatMessage({
+        id: "systemSetting.role.table.belongResource",
+      }),
       dataIndex: "belongResource",
       key: "belongResource",
       width: 200,
     },
     {
-      title: "子资源",
+      title: i18n.formatMessage({
+        id: "systemSetting.role.table.subResources",
+      }),
       dataIndex: "details",
       key: "subResources",
       width: 100,
@@ -156,8 +148,10 @@ function PmsDefaultRoles() {
       ),
     },
     {
-      title: "准许",
-      dataIndex: "details",
+      title: i18n.formatMessage({
+        id: "systemSetting.role.table.acts",
+      }),
+      dataIndex: "acts",
       key: "acts",
       width: 100,
       render: (details: any, _: any) => (
@@ -175,7 +169,9 @@ function PmsDefaultRoles() {
       ),
     },
     {
-      title: "操作",
+      title: i18n.formatMessage({
+        id: "systemSetting.role.table.option",
+      }),
       key: "operating",
       valueType: "option",
       width: 80,
@@ -183,10 +179,22 @@ function PmsDefaultRoles() {
       render: (_: any, record: any) => {
         return (
           <>
-            <Tooltip title={"编辑"}>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "systemSetting.role.table.option.edit",
+              })}
+            >
               <EditOutlined
                 onClick={() => {
                   CheckRoot().then((r) => {
+                    setLoad(
+                      message.loading(
+                        i18n.formatMessage({
+                          id: "models.pms.loading",
+                        }),
+                        0
+                      )
+                    );
                     if (r.code !== 0) {
                       message.error(r.msg);
                       return;
@@ -197,7 +205,11 @@ function PmsDefaultRoles() {
               />
             </Tooltip>
             <Divider type="vertical" />
-            <Tooltip title={"删除"}>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "systemSetting.role.table.option.delete",
+              })}
+            >
               <DeleteOutlined
                 onClick={() => {
                   CheckRoot().then((r) => {
@@ -242,7 +254,12 @@ function PmsDefaultRoles() {
                 onFinish={(fields) => search(fields)}
                 layout="inline"
               >
-                <Form.Item label="所属资源" name="belongResource">
+                <Form.Item
+                  label={i18n.formatMessage({
+                    id: "systemSetting.role.filtrate.label.belongResource",
+                  })}
+                  name="belongResource"
+                >
                   <Select
                     showSearch
                     optionFilterProp="children"
@@ -257,13 +274,20 @@ function PmsDefaultRoles() {
                     })}
                   </Select>
                 </Form.Item>
-                <Form.Item label="角色名" name="name">
+                <Form.Item
+                  label={i18n.formatMessage({
+                    id: "systemSetting.role.filtrate.label.name",
+                  })}
+                  name="name"
+                >
                   <Input style={{ width: 200 }} />
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" type={"primary"}>
                     <SearchOutlined />
-                    查询
+                    {i18n.formatMessage({
+                      id: "systemSetting.role.filtrate.label.query",
+                    })}
                   </Button>
                 </Form.Item>
                 <Form.Item>
@@ -274,7 +298,9 @@ function PmsDefaultRoles() {
                     }}
                   >
                     <ClearOutlined />
-                    清空条件
+                    {i18n.formatMessage({
+                      id: "systemSetting.role.filtrate.clear",
+                    })}
                   </Button>
                 </Form.Item>
                 <Form.Item>
@@ -290,7 +316,10 @@ function PmsDefaultRoles() {
                       });
                     }}
                   >
-                    <PlusOutlined /> 新建
+                    <PlusOutlined />{" "}
+                    {i18n.formatMessage({
+                      id: "systemSetting.role.filtrate.create",
+                    })}
                   </Button>
                 </Form.Item>
                 <Form.Item>
@@ -306,7 +335,10 @@ function PmsDefaultRoles() {
                       });
                     }}
                   >
-                    <PlusOutlined /> root授权
+                    <PlusOutlined />
+                    {i18n.formatMessage({
+                      id: "systemSetting.role.filtrate.rootAuthority",
+                    })}
                   </Button>
                 </Form.Item>
               </Form>
@@ -315,7 +347,9 @@ function PmsDefaultRoles() {
         }}
       />
       <ItemForm
-        formTitle={"创建默认角色"}
+        formTitle={i18n.formatMessage({
+          id: "systemSetting.role.filtrate.createDefaultRole",
+        })}
         onSubmit={async (value: any) => {
           const success = handleCreate(value);
           if (await success) {
@@ -329,7 +363,9 @@ function PmsDefaultRoles() {
         modalVisible={createModalVisible}
       />
       <RootUserForm
-        formTitle={"超级管理员授权"}
+        formTitle={i18n.formatMessage({
+          id: "systemSetting.role.filtrate.superAdministratorAuthorization",
+        })}
         onSubmit={async (value: any) => {
           const success = handleGrantUsers(value);
           if (await success) {

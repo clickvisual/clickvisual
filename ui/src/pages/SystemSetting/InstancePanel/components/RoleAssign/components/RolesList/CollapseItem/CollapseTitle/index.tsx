@@ -1,18 +1,25 @@
 import { PmsRole } from "@/services/pms";
 import styles from "./index.less";
-import { Tooltip } from "antd";
-import { EditFilled, QuestionOutlined } from "@ant-design/icons";
+import { message, Tooltip } from "antd";
+import { EditFilled, QuestionCircleOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
+import { useState } from "react";
 
 type DetailsProps = {
   details: any[];
 };
 const Details = (props: DetailsProps) => {
+  const i18n = useIntl();
   const { details } = props;
   return (
     <>
       <div>
-        <span>角色权限 ( [子资源]: [准许操作] )</span>
+        <span>
+          {i18n.formatMessage({
+            id: "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle",
+          })}
+        </span>
       </div>
       {details.map((item: any, index) => {
         console.log(item);
@@ -35,12 +42,23 @@ type CollapseTitleProps = {
 const CollapseTitle = (props: CollapseTitleProps) => {
   const { role } = props;
   const { doGetPmsRole, onChangeRoleModal } = useModel("pms");
+  const i18n = useIntl();
+  const [load, setLoad] = useState<any>();
   const stopPropagation = (event: any) => {
     event.stopPropagation();
   };
 
   const editorRole = (ev: any) => {
+    setLoad(
+      message.loading(
+        i18n.formatMessage({
+          id: "models.pms.loading",
+        }),
+        0
+      )
+    );
     doGetPmsRole(role.id).then((res) => {
+      load;
       if (res?.code === 0) onChangeRoleModal(true, 2, "app");
     });
     stopPropagation(ev);
@@ -54,7 +72,10 @@ const CollapseTitle = (props: CollapseTitleProps) => {
         </span>
         <div>
           {role.roleType === 2 && (
-            <Tooltip title={"编辑"} className={styles.editor}>
+            <Tooltip
+              title={i18n.formatMessage({ id: "edit" })}
+              className={styles.editor}
+            >
               <EditFilled onClick={editorRole} />
             </Tooltip>
           )}
@@ -62,7 +83,10 @@ const CollapseTitle = (props: CollapseTitleProps) => {
             title={<Details details={role.details} />}
             className={styles.question}
           >
-            <QuestionOutlined onClick={(ev) => stopPropagation(ev)} />
+            <QuestionCircleOutlined
+              style={{ color: "hsl(21, 85%, 56%)", fontSize: "16px" }}
+              onClick={(ev) => stopPropagation(ev)}
+            />
           </Tooltip>
         </div>
       </div>

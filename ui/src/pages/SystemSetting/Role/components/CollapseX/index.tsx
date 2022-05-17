@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Button } from 'antd';
-import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
-import styles from './index.less';
+import React, { useState } from "react";
+import { Button } from "antd";
+import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
+import styles from "./index.less";
+import { useIntl } from "umi";
 
 interface CollapseX {
   children: React.ReactNode;
@@ -13,12 +14,13 @@ interface CollapseX {
 const CollapseX = (props: CollapseX) => {
   const { showHeight } = props;
   const [collapsed, setCollapsed] = useState(true);
+  const i18n = useIntl();
 
   return (
     <div>
       <div
         className={styles.container}
-        style={{ maxHeight: collapsed ? `${showHeight}px` : 'fit-content' }}
+        style={{ maxHeight: collapsed ? `${showHeight}px` : "fit-content" }}
       >
         {props.children}
 
@@ -27,11 +29,13 @@ const CollapseX = (props: CollapseX) => {
       <div className={styles.collapseBtn}>
         {collapsed ? (
           <Button type="link" size="small" onClick={() => setCollapsed(false)}>
-            展开 <ArrowDownOutlined />
+            {i18n.formatMessage({ id: "systemSetting.role.collapseX.unfold" })}{" "}
+            <ArrowDownOutlined />
           </Button>
         ) : (
           <Button type="link" size="small" onClick={() => setCollapsed(true)}>
-            收起 <ArrowUpOutlined />
+            {i18n.formatMessage({ id: "systemSetting.role.collapseX.packUp" })}{" "}
+            <ArrowUpOutlined />
           </Button>
         )}
       </div>
