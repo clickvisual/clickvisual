@@ -202,7 +202,7 @@ const DataLogsModel = () => {
       tabPane?.queryType ?? QueryTypeEnum.LOG
     );
     statisticalChartsHelper.onChangeChartSql(
-      tabPane?.querySql ?? tabPane?.logs?.query
+      tabPane?.logs?.query ?? tabPane?.querySql
     );
     statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
     doParseQuery(tabPane?.keyword || keywordInput);

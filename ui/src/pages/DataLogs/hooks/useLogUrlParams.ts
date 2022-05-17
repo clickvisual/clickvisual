@@ -126,7 +126,10 @@ export default function useLogUrlParams() {
     })
       .then((res) => {
         if (!res) return;
-        pane.logs = res.logs;
+        pane.logs = {
+          ...res.logs,
+          query: urlState?.querySql ?? res.logs.query,
+        };
         pane.highCharts = res.highCharts;
         onChangeLogPane(pane);
       })
