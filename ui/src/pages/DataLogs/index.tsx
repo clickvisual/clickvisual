@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
 import useLogUrlParams from "@/pages/DataLogs/hooks/useLogUrlParams";
-import CollapseMenu from "@/pages/DataLogs/components/CollapseAndExpandMenu/CollapseMenu";
 
 const DataLogs = () => {
   const {
@@ -34,7 +33,6 @@ const DataLogs = () => {
       <DataSourceMenu />
       <SelectedDataBaseDraw />
       <RawLogTabs />
-      <CollapseMenu />
     </div>
   );
 };
