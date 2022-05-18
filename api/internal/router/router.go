@@ -125,8 +125,6 @@ func GetRouter() *egin.Component {
 		v1.GET("/sys/instances", core.Handle(base.InstanceList))
 		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))
 		v1.DELETE("/sys/instances/:id", core.Handle(base.InstanceDelete))
-		v1.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
-		v1.POST("/instances/:iid/tables-exist-batch", core.Handle(base.TableCreateSelfBuiltBatch))
 		v1.GET("/instances/:iid/columns-self-built", core.Handle(base.TableColumnsSelfBuilt))
 		v1.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
 	}
@@ -139,6 +137,8 @@ func GetRouter() *egin.Component {
 	}
 	// Table
 	{
+		v1.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
+		v1.POST("/instances/:iid/tables-exist-batch", core.Handle(base.TableCreateSelfBuiltBatch))
 		v1.GET("/databases/:did/tables", core.Handle(base.TableList))
 		v1.POST("/databases/:did/tables", core.Handle(base.TableCreate))
 		v1.GET("/table/id", core.Handle(base.TableId))

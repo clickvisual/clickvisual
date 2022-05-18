@@ -714,6 +714,7 @@ func TableCreateSelfBuiltBatch(c *core.Context) {
 func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 	// check clickvisual exist
 	conds := egorm.Conds{}
+	conds["iid"] = iid
 	conds["name"] = param.DatabaseName
 	existDatabases, err := db.DatabaseList(invoker.Db, conds)
 	if err != nil {

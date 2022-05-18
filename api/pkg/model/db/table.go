@@ -38,9 +38,10 @@ func (m *Table) TableName() string {
 const TimeFieldSecond = "_time_second_"
 const TimeFieldNanoseconds = "_time_nanosecond_"
 const (
-	TimeFieldTypeDT   = 0 // dateTime
+	TimeFieldTypeDT   = 0 // DateTime
 	TimeFieldTypeTs   = 1 // unix seconds
 	TimeFieldTypeTsMs = 2 // unix ms
+	TimeFieldTypeDT3  = 3 // DataTime(3)
 )
 
 func (m *Table) GetTimeField() string {
