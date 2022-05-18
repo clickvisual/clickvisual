@@ -75,7 +75,7 @@ const Index = ({
           ]}
         >
           <Input
-            style={{ width: 200 }}
+            style={{ width: 240 }}
             placeholder={`${i18n.formatMessage({
               id: "log.index.manage.placeholder.indexName",
             })}`}
@@ -83,7 +83,7 @@ const Index = ({
         </Form.Item>
         <Form.Item noStyle name={[field.name, "typ"]}>
           <Select
-            style={{ width: 180 }}
+            style={{ width: 220 }}
             onChange={(value) => {
               setIsString(value == FieldType.String);
               form.setFields([
@@ -120,9 +120,9 @@ const Index = ({
         <Form.Item noStyle name={[field.name, "hashTyp"]}>
           <Select style={{ width: 140 }} allowClear disabled={!isString}>
             {hashList
-              .filter((item: any) =>
-                isString ? item.value != 0 : item.value == 0
-              )
+              // .filter((item: any) =>
+              //   isString ? item.value != 0 : item.value == 0
+              // )
               .map((item) => (
                 <Option key={item.value} value={item.value}>
                   {item.type ||

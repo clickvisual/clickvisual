@@ -8,6 +8,7 @@ import {
 } from "@/services/pms";
 import { useEffect, useState } from "react";
 import useRequest from "@/hooks/useRequest/useRequest";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 
 export interface PermissionCheck {
   userId?: number;
@@ -119,7 +120,7 @@ const usePmsCommonModel = () => {
   };
 
   const getPmsRole = useRequest(reqGetPmsRole, {
-    loadingText: { loading: "加载中...", done: undefined },
+    loadingText: false,
     onSuccess: (res) => {
       setSelectedRole(res.data);
       setIsEditor(true);
@@ -133,7 +134,10 @@ const usePmsCommonModel = () => {
   });
 
   const createdPmsRole = useRequest(reqCreatedPmsRole, {
-    loadingText: { loading: "创建中...", done: "创建成功" },
+    loadingText: {
+      loading: formatMessage({ id: "models.pms.creating" }),
+      done: formatMessage({ id: "models.pms.creating.suc" }),
+    },
     onSuccess: (res) => {
       resetRole();
       if (openModalType === "instance") {
@@ -146,7 +150,10 @@ const usePmsCommonModel = () => {
   });
 
   const updatePmsRole = useRequest(reqUpdatePmsRole, {
-    loadingText: { loading: "更新中...", done: "更新成功" },
+    loadingText: {
+      loading: formatMessage({ id: "models.pms.updating" }),
+      done: formatMessage({ id: "models.pms.updating.suc" }),
+    },
     onSuccess: (res) => {
       resetRole();
       if (openModalType === "instance") {
@@ -183,7 +190,11 @@ const usePmsCommonModel = () => {
   const fetchPmsCommonInfo = (iid: number) => {
     reqPmsCommonInfo(iid).then((r) => {
       if (r.code !== 0) {
-        message.error(`获取权限相关基础信息失败 ${r.msg}`);
+        message.error(
+          `${formatMessage({ id: "models.pms.permissions.failureText" })} ${
+            r.msg
+          }`
+        );
         return;
       }
       setCommonInfo(r.data);

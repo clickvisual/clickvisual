@@ -377,7 +377,7 @@ export default {
   "log.index.manage.table.header.hashType": "hash索引",
   "log.index.manage.placeholder.indexName": "必填且不可重复，请输入字段名称",
   "log.index.manage.placeholder.alias": "请输入字段描述",
-  "log.index.manage.enum.zero": "暂不支持该类型",
+  "log.index.manage.enum.zero": "未设置",
   "log.index.manage.button.deleted": "删除字段",
   "log.index.manage.button.created": "新增字段",
   "log.index.manage.message.save.success": "保存成功",
@@ -500,4 +500,137 @@ export default {
   "install.init.model.databaseInit.successContent":
     "数据库初始化完成，点击'确定'按钮跳转到登录页面",
   "install.init.model.databaseInit.successOkText": "确定",
+
+  // sys -> instance -> roleAssign
+  "systemSetting.instancePanel.roleAssign.modelTitle.name": "实例",
+  "systemSetting.instancePanel.roleAssign.modelTitle.roleAuth": "角色授权",
+  "systemSetting.instancePanel.roleAssign.modelLabel.role": "角色",
+  "systemSetting.instancePanel.roleAssign.modelBottom.submitBtn": "提交",
+  "systemSetting.instancePanel.roleAssign.modelBottom.createCustomRoleBtn":
+    "新建自定义角色",
+  "systemSetting.instancePanel.roleAssign.loadingText": "保存中...",
+  "systemSetting.instancePanel.roleAssign.loadingSucText": "保存成功",
+
+  "systemSetting.instancePanel.roleAssign.rolesList.collapseItem.authorization":
+    "授权",
+
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.scope": "作用域",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.scope.placeholder":
+    "请选择授权域名",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.user": "用户",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.user.placeholder":
+    "请选择授权用户",
+  "systemSetting.instancePanel.roleAssign.rolesList.grantList.createAuthorization":
+    "新增授权",
+
+  "systemSetting.instancePanel.roleAssign.roleModel.instance": "实例",
+  "systemSetting.instancePanel.roleAssign.roleModel.editModel.title":
+    "更新操作",
+  "systemSetting.instancePanel.roleAssign.roleModel.editModel.content":
+    "您确定要更新角色内容吗？",
+  "systemSetting.instancePanel.roleAssign.roleModel.okText": "确认",
+  "systemSetting.instancePanel.roleAssign.roleModel.cancelText": "取消",
+  "systemSetting.instancePanel.roleAssign.roleModel.save": "保存",
+  "systemSetting.instancePanel.roleAssign.roleModel.edit": "编辑",
+  "systemSetting.instancePanel.roleAssign.roleModel.create": "新建",
+  "systemSetting.instancePanel.roleAssign.roleModel.custom": "自定义",
+  "systemSetting.instancePanel.roleAssign.roleModel.role": "角色",
+  "systemSetting.instancePanel.roleAssign.roleModel.resources": "所属资源",
+  "systemSetting.instancePanel.roleAssign.roleModel.resources.placeholder":
+    "请选择所属资源",
+  "systemSetting.instancePanel.roleAssign.roleModel.EnglishName": "角色英文名",
+  "systemSetting.instancePanel.roleAssign.roleModel.EnglishName.placeholder":
+    "请输入角色英文名",
+  "systemSetting.instancePanel.roleAssign.roleModel.roleDescription":
+    "角色描述",
+  "systemSetting.instancePanel.roleAssign.roleModel.roleDescription.placeholder":
+    "请输入角色描述",
+
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.errorText":
+    "请增加资源授权",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource":
+    "子资源",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource.placeholder":
+    "请选择子资源",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow":
+    "准许操作",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow.placeholder":
+    "请选择准许操作",
+  "systemSetting.instancePanel.roleAssign.roleModel.detailList.create":
+    "新增资源授权",
+
+  // sys -> instance -> roleAssign -> RolesList -> CollapseItem -> CollapseTitle
+  "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle":
+    "角色权限 ( [子资源]: [准许操作] )",
+  // sys -> role
+  "systemSetting.role.okTest": "确定",
+  "systemSetting.role.cancelText": "取消",
+  "systemSetting.role.delete.success": "删除成功",
+  "systemSetting.role.delete.title": "删除操作",
+  "systemSetting.role.delete.content": "您确定要删除角色: {name}吗？",
+  "systemSetting.role.table.name": "角色名",
+  "systemSetting.role.table.desc": "角色描述",
+  "systemSetting.role.table.belongResource": "所属资源",
+  "systemSetting.role.table.subResources": "子资源",
+  "systemSetting.role.table.acts": "准许",
+  "systemSetting.role.table.option": "操作",
+  "systemSetting.role.table.option.edit": "编辑",
+  "systemSetting.role.table.option.delete": "删除",
+  "systemSetting.role.filtrate.label.belongResource": "所属资源",
+  "systemSetting.role.filtrate.label.name": "角色名",
+  "systemSetting.role.filtrate.label.query": "查询",
+  "systemSetting.role.filtrate.clear": "清空条件",
+  "systemSetting.role.filtrate.create": "新建",
+  "systemSetting.role.filtrate.rootAuthority": "root授权",
+  "systemSetting.role.filtrate.createDefaultRole": "创建默认角色",
+  "systemSetting.role.filtrate.superAdministratorAuthorization":
+    "超级管理员授权",
+
+  // sys -> role -> CollapseX
+  "systemSetting.role.collapseX.unfold": "展开",
+  "systemSetting.role.collapseX.packUp": "收起",
+
+  // sys -> role -> ItemForm
+  "systemSetting.role.itemForm.save": "保存",
+  "systemSetting.role.itemForm.form.label.belongResource": "所属资源",
+  "systemSetting.role.itemForm.form.belongResource.placeholder":
+    "请选择所属类型",
+  "systemSetting.role.itemForm.form.belongResource.instance": "实例",
+  "systemSetting.role.itemForm.form.label.roleName": "角色英文名",
+  "systemSetting.role.itemForm.form.roleName.rules": "请输入角色英文名",
+  "systemSetting.role.itemForm.form.mandatory": "必填",
+  "systemSetting.role.itemForm.form.label.description": "角色描述",
+  "systemSetting.role.itemForm.form.description.rules": "请输入角色描述信息",
+  "systemSetting.role.itemForm.form.label.sub_resources": "子资源",
+  "systemSetting.role.itemForm.form.sub_resources.rules": "请选择子资源",
+  "systemSetting.role.itemForm.form.label.acts": "准许操作",
+  "systemSetting.role.itemForm.form.acts.rules": "请选择授权操作",
+
+  // sys -> role -> RootUserForm
+  "systemSetting.role.rootUserForm.save": "保存",
+  "systemSetting.role.rootUserForm.superAdministrator": "超级管理员",
+  "systemSetting.role.rootUserForm.superAdministrator.rules":
+    "请至少选择一个用户!",
+
+  // sys -> role -> SearchTable
+  "systemSetting.role.SearchTable.query": "查询",
+  "systemSetting.role.SearchTable.reset": "重置",
+
+  // sys -> role-> hooks -> role
+  "hooks.role.create.ing": "正在添加",
+  "hooks.role.create.failure": "创建失败",
+  "hooks.role.create.success": "添加成功",
+  "hooks.role.create.failure.tips": "角色创建失败请重试！",
+  "hooks.role.authorization.ing": "正在授权...",
+  "hooks.role.authorization.failure": "授权失败",
+  "hooks.role.authorization.success": "授权成功",
+  "hooks.role.authorization.failure.tips": "授权失败请重试！",
+
+  // models -> pms
+  "models.pms.loading": "加载中...",
+  "models.pms.creating": "创建中...",
+  "models.pms.create.suc": "创建成功",
+  "models.pms.updating": "更新中...",
+  "models.pms.update.suc": "更新成功",
+  "models.pms.permissions.failureText": "获取权限相关基础信息失败",
 };

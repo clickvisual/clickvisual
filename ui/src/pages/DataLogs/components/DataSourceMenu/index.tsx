@@ -1,11 +1,16 @@
 import dataSourceMenuStyles from "@/pages/DataLogs/components/DataSourceMenu/index.less";
 import SourceHeader from "@/pages/DataLogs/components/DataSourceMenu/SourceHeader";
 import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import { Empty } from "antd";
 import { useIntl } from "umi";
+import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth";
+
+const MENU_MIN = 200;
+const MENU_MAX = 400;
+const MENU_DEFAULT = 200;
 
 const DataSourceMenu = () => {
   const { doGetDatabaseList, currentDatabase } = useModel("dataLogs");
@@ -16,6 +21,36 @@ const DataSourceMenu = () => {
   useEffect(() => {
     doGetDatabaseList();
   }, []);
+
+  const storedMenuWidth = localStorage.getItem("app-left-menu-width");
+  const calculatedMenuWidth = storedMenuWidth
+    ? parseInt(storedMenuWidth, 10)
+    : MENU_DEFAULT;
+  const [menuWidth, setMenuWidth] = useState(calculatedMenuWidth);
+  const [expandLeftWidth, setExpandLeftWidth] = useState(calculatedMenuWidth);
+
+  const handleResize = useCallback(
+    (offset) => {
+      let res = menuWidth + offset;
+      if (res < MENU_MIN) {
+        res = MENU_MIN;
+      }
+      if (res > MENU_MAX) {
+        res = MENU_MAX;
+      }
+      setMenuWidth(res);
+      setExpandLeftWidth(res);
+      localStorage.setItem("app-left-menu-width", `${res}`);
+    },
+    [menuWidth]
+  );
+
+  const handleToggleExpand = useCallback(
+    (isExpend) => {
+      setMenuWidth(isExpend ? expandLeftWidth : 0);
+    },
+    [expandLeftWidth]
+  );
 
   const LogLibrary = useMemo(() => {
     if (!currentDatabase) {
@@ -39,9 +74,14 @@ const DataSourceMenu = () => {
         dataSourceMenuStyles.dataSourceMenuMain,
         foldingState && dataSourceMenuStyles.dataSourceMenuHidden
       )}
+      style={{ width: `${expandLeftWidth}px` }}
     >
       <SourceHeader />
       {LogLibrary}
+      <ResizeWidth
+        onResize={handleResize}
+        onToggleExpand={handleToggleExpand}
+      />
     </div>
   );
 };

@@ -1,7 +1,8 @@
-import React from 'react';
-import { Button, Col, Form, Row, Space } from 'antd';
-import { FormInstance, FormProps } from 'antd/es/form';
-import CollapseX from '../CollapseX';
+import React from "react";
+import { Button, Col, Form, Row, Space } from "antd";
+import { FormInstance, FormProps } from "antd/es/form";
+import CollapseX from "../CollapseX";
+import { useIntl } from "umi";
 
 interface SearchFormLayoutProps extends FormProps {
   form: FormInstance;
@@ -16,6 +17,7 @@ interface SearchFormLayoutProps extends FormProps {
 
 const SearchFormLayout = (props: SearchFormLayoutProps) => {
   const { form, fields, showCollapse, actions, ...restProps } = props;
+  const i18n = useIntl();
   const formColProps = {
     xxl: 6,
     lg: 8,
@@ -31,7 +33,7 @@ const SearchFormLayout = (props: SearchFormLayoutProps) => {
   const renderFormFields = () => {
     return (
       <Row gutter={24}>
-        {fields.map(field => (
+        {fields.map((field) => (
           <Col {...formColProps} key={field.name}>
             <Form.Item name={field.name} label={field.title}>
               {field.input}
@@ -49,13 +51,15 @@ const SearchFormLayout = (props: SearchFormLayoutProps) => {
       ) : (
         renderFormFields()
       )}
-      <div style={{ textAlign: 'right' }}>
+      <div style={{ textAlign: "right" }}>
         <Space>
           {actions}
           <Button htmlType="submit" type="primary">
-            查询
+            {i18n.formatMessage({ id: "systemSetting.role.SearchTable.query" })}
           </Button>
-          <Button onClick={handleReset}>重置</Button>
+          <Button onClick={handleReset}>
+            {i18n.formatMessage({ id: "systemSetting.role.SearchTable.reset" })}
+          </Button>
         </Space>
       </div>
     </Form>

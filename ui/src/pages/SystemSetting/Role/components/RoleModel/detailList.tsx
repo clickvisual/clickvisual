@@ -1,18 +1,28 @@
-import { Button, Form, Select } from 'antd';
-import { useModel } from '@@/plugin-model/useModel';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import styles from './index.less';
+import { Button, Form, Select } from "antd";
+import { useModel } from "@@/plugin-model/useModel";
+import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import styles from "./index.less";
+import { useIntl } from "umi";
+
 const { Option } = Select;
+
 const DetailList = () => {
-  const { commonInfo } = useModel('pms');
+  const i18n = useIntl();
+  const { commonInfo } = useModel("pms");
   return (
     <Form.List
-      name={'details'}
+      name={"details"}
       rules={[
         {
           validator: async (_, details) => {
             if (!details || details.length < 1) {
-              return Promise.reject(new Error('请增加资源授权'));
+              return Promise.reject(
+                new Error(
+                  i18n.formatMessage({
+                    id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.errorText",
+                  })
+                )
+              );
             }
             return undefined;
           },
@@ -26,20 +36,26 @@ const DetailList = () => {
               <Form.Item
                 {...field}
                 fieldKey={field.fieldKey}
-                label={'子资源'}
-                name={[field.name, 'subResources']}
+                label={i18n.formatMessage({
+                  id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource",
+                })}
+                name={[field.name, "subResources"]}
                 className={styles.formActItem}
                 rules={[
                   {
                     required: true,
-                    message: '请选择子资源',
+                    message: i18n.formatMessage({
+                      id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource.placeholder",
+                    }),
                   },
                 ]}
               >
                 <Select
                   mode="multiple"
                   allowClear
-                  placeholder={'请选择子资源'}
+                  placeholder={i18n.formatMessage({
+                    id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource.placeholder",
+                  })}
                   onChange={(val) => {}}
                 >
                   {commonInfo?.app_subResources_info.map((item) => (
@@ -53,17 +69,27 @@ const DetailList = () => {
               <Form.Item
                 {...field}
                 fieldKey={field.fieldKey}
-                label={'准许操作'}
-                name={[field.name, 'acts']}
+                label={i18n.formatMessage({
+                  id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow",
+                })}
+                name={[field.name, "acts"]}
                 className={styles.formSourceItem}
                 rules={[
                   {
                     required: true,
-                    message: '请选择准许操作',
+                    message: i18n.formatMessage({
+                      id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow.placeholder",
+                    }),
                   },
                 ]}
               >
-                <Select mode="multiple" allowClear placeholder={'请选择准许操作'}>
+                <Select
+                  mode="multiple"
+                  allowClear
+                  placeholder={i18n.formatMessage({
+                    id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow.placeholder",
+                  })}
+                >
                   {commonInfo?.all_acts_info.map((item) => (
                     <Option key={`subResources-${item.name}`} value={item.name}>
                       {item.desc}
@@ -78,8 +104,15 @@ const DetailList = () => {
             </div>
           ))}
           <Form.Item noStyle>
-            <Button type="dashed" onClick={() => option.add()} block icon={<PlusOutlined />}>
-              新增资源授权
+            <Button
+              type="dashed"
+              onClick={() => option.add()}
+              block
+              icon={<PlusOutlined />}
+            >
+              {i18n.formatMessage({
+                id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.create",
+              })}
             </Button>
             <Form.ErrorList errors={errors} />
           </Form.Item>

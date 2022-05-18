@@ -1,13 +1,12 @@
-import { Button, Form, Input, Modal, Select } from 'antd';
-import { useModel } from '@@/plugin-model/useModel';
-import { useEffect } from 'react';
-import DetailList from './detailList';
+import { Button, Form, Input, Modal, Select } from "antd";
+import { useModel } from "@@/plugin-model/useModel";
+import { useEffect } from "react";
+import DetailList from "./detailList";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 
-const belongSourceList = [
-  { value: 'instance', name: '实例' },
-];
+const belongSourceList = [{ value: "instance", name: "实例", key: "instance" }];
 
 const RoleModel = () => {
   const {
@@ -20,8 +19,9 @@ const RoleModel = () => {
     resetRole,
     doUpdatePmsRole,
     doCreatedPmsRole,
-  } = useModel('pms');
+  } = useModel("pms");
   const [roleModalForm] = Form.useForm();
+  const i18n = useIntl();
 
   const handleSubmit = (field: any) => {
     if (isEditor) {
@@ -47,62 +47,136 @@ const RoleModel = () => {
 
   const editorConfirm = () => {
     Modal.confirm({
-      title: '更新操作',
-      content: '您确定要更新角色内容吗？',
+      title: i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.editModel.title",
+      }),
+      content: i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.editModel.content",
+      }),
       onOk: roleModalForm.submit,
-      okText: '确认',
-      cancelText: '取消',
+      okText: i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.roleModel.okText",
+      }),
+      cancelText: i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.roleModel.cancelText",
+      }),
     });
   };
   const modalFooter = [
     <Button key="back" onClick={resetRole}>
-      取消
+      {i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.roleModel.cancelText",
+      })}
     </Button>,
-    <Button key="submit" onClick={isEditor ? editorConfirm : roleModalForm.submit} type="primary">
-      保存
+    <Button
+      key="submit"
+      onClick={isEditor ? editorConfirm : roleModalForm.submit}
+      type="primary"
+    >
+      {i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.roleModel.save",
+      })}
     </Button>,
   ];
   return (
     <Modal
-      title={`${isEditor ? '编辑' : '新建'}${roleType === 2 ? '自定义' : ''}角色`}
+      title={`${
+        isEditor
+          ? i18n.formatMessage({
+              id: "systemSetting.instancePanel.roleAssign.roleModel.edit",
+            })
+          : i18n.formatMessage({
+              id: "systemSetting.instancePanel.roleAssign.roleModel.create",
+            })
+      }${
+        roleType === 2
+          ? i18n.formatMessage({
+              id: "systemSetting.instancePanel.roleAssign.roleModel.custom",
+            })
+          : ""
+      }${i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.roleModel.role",
+      })}`}
       visible={roleModal}
       destroyOnClose={true}
       onCancel={resetRole}
-      width={'60vw'}
+      width={"60vw"}
       footer={modalFooter}
       mask={false}
       centered
     >
       <Form form={roleModalForm} onFinish={handleSubmit}>
-        <Form.Item name={'id'} hidden />
-        <Form.Item name={'roleType'} hidden />
-        <Form.Item name={'resourceId'} hidden />
+        <Form.Item name={"id"} hidden />
+        <Form.Item name={"roleType"} hidden />
+        <Form.Item name={"resourceId"} hidden />
         <Form.Item
-          label={'所属资源'}
-          rules={[{ required: true, message: '请选择所属资源' }]}
-          name={'belongResource'}
+          label={i18n.formatMessage({
+            id: "systemSetting.instancePanel.roleAssign.roleModel.resources",
+          })}
+          rules={[
+            {
+              required: true,
+              message: i18n.formatMessage({
+                id: "systemSetting.instancePanel.roleAssign.roleModel.resources.placeholder",
+              }),
+            },
+          ]}
+          name={"belongResource"}
         >
-          <Select disabled={isEditor || openModalType === 'app'} placeholder={'请选择所属资源'}>
+          <Select
+            disabled={isEditor || openModalType === "app"}
+            placeholder={i18n.formatMessage({
+              id: "systemSetting.instancePanel.roleAssign.roleModel.resources.placeholder",
+            })}
+          >
             {belongSourceList.map((item) => (
               <Option key={item.value} value={item.value}>
-                {item.name}
+                {i18n.formatMessage({
+                  id: `systemSetting.instancePanel.roleAssign.roleModel.${item.key}`,
+                })}
               </Option>
             ))}
           </Select>
         </Form.Item>
         <Form.Item
-          name={'name'}
-          label={'角色英文名'}
-          rules={[{ required: true, message: '请输入角色英文名' }]}
+          name={"name"}
+          label={i18n.formatMessage({
+            id: `systemSetting.instancePanel.roleAssign.roleModel.EnglishName`,
+          })}
+          rules={[
+            {
+              required: true,
+              message: i18n.formatMessage({
+                id: `systemSetting.instancePanel.roleAssign.roleModel.EnglishName.placeholder`,
+              }),
+            },
+          ]}
         >
-          <Input placeholder={'请输入角色英文名'} />
+          <Input
+            placeholder={i18n.formatMessage({
+              id: `systemSetting.instancePanel.roleAssign.roleModel.EnglishName.placeholder`,
+            })}
+          />
         </Form.Item>
         <Form.Item
-          name={'desc'}
-          label={'角色描述'}
-          rules={[{ required: true, message: '请输入角色描述' }]}
+          name={"desc"}
+          label={i18n.formatMessage({
+            id: `systemSetting.instancePanel.roleAssign.roleModel.roleDescription`,
+          })}
+          rules={[
+            {
+              required: true,
+              message: i18n.formatMessage({
+                id: `systemSetting.instancePanel.roleAssign.roleModel.roleDescription.placeholder`,
+              }),
+            },
+          ]}
         >
-          <Input placeholder={'请输入角色描述'} />
+          <Input
+            placeholder={i18n.formatMessage({
+              id: `systemSetting.instancePanel.roleAssign.roleModel.roleDescription.placeholder`,
+            })}
+          />
         </Form.Item>
         <Form.Item>
           <DetailList />

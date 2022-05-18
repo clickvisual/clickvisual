@@ -7,6 +7,7 @@ import RoleModel from "./components/RoleModel";
 import { useModel } from "@@/plugin-model/useModel";
 import useRequestX from "@/hooks/useRequest/useRequest";
 import { reqUpdatePmsGrant } from "@/services/pms";
+import { useIntl } from "umi";
 
 export type AppRolesContextType = {
   iid: number;
@@ -36,10 +37,19 @@ const AppRoleAssignListForm = (props: AppRolesProps) => {
     iid: iid,
     instanceName: instanceName,
   };
-  const { onChangeIid,onChangeRoleModal, doGetPmsGrant, pmsGrant } = useModel("pms");
+  const { onChangeIid, onChangeRoleModal, doGetPmsGrant, pmsGrant } =
+    useModel("pms");
+  const i18n = useIntl();
 
   const updatePmsGrant = useRequestX(reqUpdatePmsGrant, {
-    loadingText: { loading: "保存中...", done: "保存成功" },
+    loadingText: {
+      loading: i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.loadingText",
+      }),
+      done: i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.loadingSucText",
+      }),
+    },
     onSuccess: (res) => onChangeDrawerVisible(false),
   });
 
@@ -68,7 +78,11 @@ const AppRoleAssignListForm = (props: AppRolesProps) => {
         pmsForm.resetFields();
       }}
       footer={null}
-      title={`实例 ${instanceName} 角色授权`}
+      title={`${i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.modelTitle.roleAuth",
+      })}: ${i18n.formatMessage({
+        id: "systemSetting.instancePanel.roleAssign.modelTitle.name",
+      })} (${instanceName}) `}
       onCancel={() => {
         onChangeDrawerVisible(false);
       }}
@@ -83,7 +97,15 @@ const AppRoleAssignListForm = (props: AppRolesProps) => {
             <div className={styles.formItem}>
               <div className={styles.form}>
                 <Form.Item name={"iid"} hidden />
-                <Form.Item label={<span>角色</span>}>
+                <Form.Item
+                  label={
+                    <span>
+                      {i18n.formatMessage({
+                        id: "systemSetting.instancePanel.roleAssign.modelLabel.role",
+                      })}
+                    </span>
+                  }
+                >
                   <RolesList />
                 </Form.Item>
               </div>
@@ -94,21 +116,28 @@ const AppRoleAssignListForm = (props: AppRolesProps) => {
                   className={styles.formLeftBtn}
                   type="primary"
                   htmlType="submit"
+                  style={{ width: "200px" }}
                 >
-                  提交
+                  {i18n.formatMessage({
+                    id: "systemSetting.instancePanel.roleAssign.modelBottom.submitBtn",
+                  })}
                 </Button>
                 <Button
+                  block
                   onClick={() => {
                     onChangeRoleModal(true, 2, "instance");
                   }}
+                  style={{ width: "200px" }}
                 >
-                  新建自定义角色
+                  {i18n.formatMessage({
+                    id: "systemSetting.instancePanel.roleAssign.modelBottom.createCustomRoleBtn",
+                  })}
                 </Button>
               </div>
             </Form.Item>
           </Form>
         </div>
-        <RoleModel/>
+        <RoleModel />
       </AppRolesContext.Provider>
     </Modal>
   );
