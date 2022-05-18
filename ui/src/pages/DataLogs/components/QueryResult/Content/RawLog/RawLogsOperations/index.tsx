@@ -62,6 +62,7 @@ const RawLogsOperations = () => {
                     pageSize: size,
                     logs: res.logs,
                     highCharts: res.highCharts,
+                    logChart: { logs: [] },
                   };
                   onChangeLogPane(pane);
                 }

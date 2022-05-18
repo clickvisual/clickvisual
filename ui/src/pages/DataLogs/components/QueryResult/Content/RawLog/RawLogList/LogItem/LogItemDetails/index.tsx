@@ -119,7 +119,7 @@ const LogItemDetails = () => {
       let highlightFlag = false;
       if (highlightKeywords) {
         highlightFlag = !!highlightKeywords.find(
-          (item) => item.key === keyItem
+          (item) => item.key === "`" + keyItem + "`"
         );
       }
 
@@ -215,7 +215,6 @@ const LogItemDetails = () => {
                     className={classNames(
                       logItemStyles.logContent,
                       highlightFlag && logItemStyles.logContentHighlight,
-
                       isNotTimeKey && logItemStyles.logHover
                     )}
                   >
