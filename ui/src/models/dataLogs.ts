@@ -384,7 +384,7 @@ const DataLogsModel = () => {
   const doParseQuery = (keyword?: string) => {
     const defaultInput =
       lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
-    const strReg = /(\w+)(=| like )'([^']+)'/g;
+    const strReg = /(`?\w+`?)(=| like )'([^']+)'/g;
     const allQuery = Array.from(defaultInput.matchAll(strReg))?.map((item) => {
       return {
         key: item[1],
