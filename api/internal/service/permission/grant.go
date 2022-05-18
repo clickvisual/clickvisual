@@ -263,7 +263,7 @@ func (p *pms) UpdateInstanceRolesGrantInfo(reqUpdateParam *InstancePmsRolesWithG
 // Note, the inputParams("from" and "to") should be the same pmsRole, the only thing that may be different is their grant
 func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *InstancePmsRole, appPmsRole *db.PmsRole, aid int) (err error) {
 	if aid <= 0 {
-		return fmt.Errorf("invalid appId. ")
+		return fmt.Errorf("invalid instance id. ")
 	}
 	if from.Id != to.Id {
 		return fmt.Errorf("cannot update grant info between different appPmsRole")

@@ -73,25 +73,7 @@ func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 
 	var reqRules [][]interface{}
 	reqRules = append(reqRules, pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct, items.ReqDom))
-	// result, err := pmsplugin.Enforce(reqSub, reqObj, reqAct, reqDom)
-	// add * permission check
-	reqRules = append(reqRules, checkAsterisk(reqPms))
-	// if items.ReqDom != "*" && reqPms.DomainType == pmsplugin.PrefixTable {
-	// 	// 如果请求的dom是env类型的，除了直接验证包含env的rule，还需要验证包含该env所属ent的rules
-	// 	tid, err := strconv.Atoi(reqPms.DomainId)
-	// 	if err == nil && tid > 0 {
-	// 		obj, err := db.TableInfo(invoker.Db, tid)
-	// 		if err == nil {
-	// 			if obj.Database == nil {
-	// 				return fmt.Errorf(MsgInvalidReqObjectType)
-	// 			}
-	// 			reqEntDom, _ := pmsplugin.Assemble2CasbinStr(pmsplugin.PrefixDatabase, strconv.Itoa(obj.Database.ID))
-	// 			reqRules = append(reqRules, pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct,
-	// 				reqEntDom))
-	// 		}
-	// 	}
-	// }
-	invoker.Logger.Debug("pms", elog.Any("reqRules", reqRules))
+	reqRules = append(reqRules, checkAsterisk(reqPms)) // add * permission check
 	pmsPassed, err := pmsplugin.EnforceOneInMany(reqRules...)
 	if err != nil {
 		invoker.Logger.Warn("reqPerm not pass", zap.Error(err))
