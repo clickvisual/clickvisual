@@ -131,6 +131,7 @@ export default function useLogUrlParams() {
           query: urlState?.querySql ?? res.logs.query,
         };
         pane.highCharts = res.highCharts;
+        pane.logChart = { logs: [] };
         onChangeLogPane(pane);
       })
       .catch();

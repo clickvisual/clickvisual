@@ -430,6 +430,9 @@ const DataLogsModel = () => {
         } else {
           newPane.logs = res.logs;
           newPane.highCharts = res.highCharts;
+          if (res.logs.query !== pane.querySql) {
+            newPane.logChart = { logs: [] };
+          }
           onChangeCurrentLogPane(newPane);
         }
       })

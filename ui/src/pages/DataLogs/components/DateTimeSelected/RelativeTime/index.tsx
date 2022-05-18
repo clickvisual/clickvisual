@@ -63,6 +63,7 @@ const RelativeTime = () => {
         } else {
           pane.logs = res.logs;
           pane.highCharts = res.highCharts;
+          pane.logChart = { logs: [] };
           onChangeCurrentLogPane(pane);
         }
       })
