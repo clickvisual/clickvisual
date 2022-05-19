@@ -136,7 +136,7 @@ const usePmsCommonModel = () => {
   const createdPmsRole = useRequest(reqCreatedPmsRole, {
     loadingText: {
       loading: formatMessage({ id: "models.pms.creating" }),
-      done: formatMessage({ id: "models.pms.creating.suc" }),
+      done: formatMessage({ id: "models.pms.create.suc" }),
     },
     onSuccess: (res) => {
       resetRole();
@@ -152,7 +152,7 @@ const usePmsCommonModel = () => {
   const updatePmsRole = useRequest(reqUpdatePmsRole, {
     loadingText: {
       loading: formatMessage({ id: "models.pms.updating" }),
-      done: formatMessage({ id: "models.pms.updating.suc" }),
+      done: formatMessage({ id: "models.pms.update.suc" }),
     },
     onSuccess: (res) => {
       resetRole();
