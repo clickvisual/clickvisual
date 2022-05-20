@@ -16,7 +16,7 @@ type Index struct {
 
 	Tid      int    `gorm:"column:tid;type:int(11);index:uix_tid_field_root,unique" json:"tid"`                          // table id
 	Field    string `gorm:"column:field;type:varchar(128);NOT NULL;index:uix_tid_field_root,unique" json:"field"`        // index field name
-	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                                 // index field type, 0 text 1 long 2 double
+	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                                 // 0 string 1 int 2 float
 	HashTyp  int    `gorm:"column:hash_typ;type:tinyint(1)" json:"hashTyp"`                                              // hash type, 0 no hash 1 sipHash64 2 URLHash
 	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                                        // index filed alias name
 	RootName string `gorm:"column:root_name;type:varchar(128);NOT NULL;index:uix_tid_field_root,unique" json:"rootName"` // root_name
