@@ -114,7 +114,7 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) string {
 				}
 			}
 			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(%s(JSONExtractRaw(_log_, '%s'))) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.Field, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(_log_, '%s')) AS `%s`,\n", obj.Field, obj.GetFieldName())
 				continue
 			}
 			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractRaw(_log_, '%s')) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.Field, obj.GetFieldName())
@@ -128,7 +128,7 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) string {
 				}
 			}
 			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(%s(JSONExtractRaw(JSONExtractRaw(_log_, '%s'), '%s'))) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,\n", obj.RootName, obj.Field, obj.GetFieldName())
 				continue
 			}
 			jsonExtractSQL += fmt.Sprintf("%s(JSONExtractRaw(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.GetFieldName())

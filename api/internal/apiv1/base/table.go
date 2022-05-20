@@ -133,7 +133,7 @@ func TableInfo(c *core.Context) {
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {
-		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "this table does not exist, please verify"+err.Error(), nil)
 		return
 	}
 
