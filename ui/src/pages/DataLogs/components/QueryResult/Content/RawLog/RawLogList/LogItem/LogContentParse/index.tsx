@@ -3,6 +3,7 @@ import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLo
 import { useModel } from "@@/plugin-model/useModel";
 import JsonView from "@/components/JsonView";
 import JsonStringValue from "@/components/JsonView/JsonStringValue";
+import { LOGMAXTEXTLENGTH } from "@/config/config";
 
 type LogContentParseProps = {
   logContent: any;
@@ -28,6 +29,7 @@ const LogContentParse = ({
         <JsonStringValue
           val={logContent.toString()}
           keyItem={keyItem}
+          isHidden={logContent && logContent.length > LOGMAXTEXTLENGTH}
           onClickValue={quickInsertLikeQuery}
           highLightValue={highlightKeywords}
         />
