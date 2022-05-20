@@ -36,7 +36,7 @@ if test -n "$invalidimports"; then
 	exit 1
 fi
 
-# check invalid imports
+# check licenses
 if test -n "$unlicenses"; then
 	echo >&2 "found code files unlicensed"
 	for f in "$unlicenses"; do
