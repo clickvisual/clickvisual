@@ -1,22 +1,13 @@
 package alertmanager
 
 import (
-	"errors"
-
 	"github.com/gotomicro/ego-component/egorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/pkg/push"
 )
-
-const (
-	ChannelDingDing int = 1
-)
-
-type Operator interface {
-	Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel) (err error)
-}
 
 func Send(alarmUUID string, notification view.Notification) (err error) {
 	conds := egorm.Conds{}
@@ -39,7 +30,7 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 		if errAlarmChannelInfo != nil {
 			return errAlarmChannelInfo
 		}
-		channelInstance, errChannelType := channelType(channelInfo.Typ)
+		channelInstance, errChannelType := push.Instance(channelInfo.Typ)
 		if errChannelType != nil {
 			return errChannelType
 		}
@@ -52,17 +43,4 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 		return err
 	}
 	return nil
-}
-
-func channelType(typ int) (Operator, error) {
-	var (
-		err error
-	)
-	switch typ {
-	case ChannelDingDing:
-		return &DingDing{}, nil
-	default:
-		err = errors.New("undefined channels")
-	}
-	return nil, err
 }
