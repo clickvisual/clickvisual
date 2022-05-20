@@ -143,8 +143,8 @@ const LogItemDetails = () => {
 
       if (!isRawLog) {
         REG_SEPARATORS.forEach((item) => {
-          if (content.toString().includes(item)) {
-            regSpeFlag = content.toString().includes(item);
+          if (content?.toString().includes(item)) {
+            regSpeFlag = content?.toString().includes(item);
           }
         });
       }
