@@ -59,11 +59,15 @@ func IndexUpdate(c *core.Context) {
 			c.JSONE(1, "param error: json type 3 should not in params:"+r.Field, nil)
 			return
 		}
-		if _, ok := repeatMap[r.Field]; ok {
+		key := r.Field
+		if r.RootName != "" {
+			key = r.RootName + "." + r.Field
+		}
+		if _, ok := repeatMap[key]; ok {
 			c.JSONE(1, "param error: repeat index field name:"+r.Field, nil)
 			return
 		}
-		repeatMap[r.Field] = struct{}{}
+		repeatMap[key] = struct{}{}
 	}
 	req.Tid = tid
 	addMap, delMap, newMap, err = service.Index.Diff(req)
