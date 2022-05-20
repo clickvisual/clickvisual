@@ -48,3 +48,6 @@ export const HOME_PATH = process.env.PUBLIC_PATH || "/";
 
 // 语言：中文
 export const LANG_CN = "zh-CN";
+
+// 不展开日志最大长度
+export const LOGMAXTEXTLENGTH = 500;
