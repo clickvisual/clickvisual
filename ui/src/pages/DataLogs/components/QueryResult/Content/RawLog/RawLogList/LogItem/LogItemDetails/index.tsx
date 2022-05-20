@@ -20,9 +20,9 @@ const LogItemDetails = () => {
 
       // 索引字段
       const indexList =
-        logs?.keys.map((item) => {
-          return item.field;
-        }) || [];
+        logs?.keys
+          ?.filter((item) => item?.rootName === "")
+          .map((item) => item.field) || [];
 
       // 原日志字段
       let keys: string[] = Object.keys(log)
