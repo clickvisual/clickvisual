@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -670,7 +671,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	res.Keys, _ = db.IndexList(conds)
-
+	// keys sort by the first letter
+	sort.Slice(res.Keys, func(i, j int) bool {
+		return res.Keys[i].Field < res.Keys[j].Field
+	})
 	// hash keys
 	hashKeys := make([]string, 0)
 	for _, k := range res.Keys {
