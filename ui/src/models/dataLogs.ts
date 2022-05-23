@@ -202,7 +202,7 @@ const DataLogsModel = () => {
       tabPane?.queryType ?? QueryTypeEnum.LOG
     );
     statisticalChartsHelper.onChangeChartSql(
-      tabPane?.querySql ?? tabPane?.logs?.query
+      tabPane?.logs?.query ?? tabPane?.querySql
     );
     statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
     doParseQuery(tabPane?.keyword || keywordInput);
@@ -384,7 +384,7 @@ const DataLogsModel = () => {
   const doParseQuery = (keyword?: string) => {
     const defaultInput =
       lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
-    const strReg = /(\w+)(=| like )'([^']+)'/g;
+    const strReg = /(`?\w+`?)(=| like )'([^']+)'/g;
     const allQuery = Array.from(defaultInput.matchAll(strReg))?.map((item) => {
       return {
         key: item[1],
@@ -430,6 +430,9 @@ const DataLogsModel = () => {
         } else {
           newPane.logs = res.logs;
           newPane.highCharts = res.highCharts;
+          if (res.logs.query !== pane.querySql) {
+            newPane.logChart = { logs: [] };
+          }
           onChangeCurrentLogPane(newPane);
         }
       })

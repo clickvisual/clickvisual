@@ -44,6 +44,8 @@ const StatisticalTableContent = () => {
           align: "left",
         });
       }
+    } else {
+      setData([]);
     }
     return columnArr;
   }, [logChart]);

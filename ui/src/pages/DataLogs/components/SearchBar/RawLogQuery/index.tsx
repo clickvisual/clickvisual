@@ -81,6 +81,9 @@ const RawLogQuery = () => {
           if (res) {
             pane.logs = res.logs;
             pane.highCharts = res.highCharts;
+            if (res.logs.query !== pane.querySql) {
+              pane.logChart = { logs: [] };
+            }
             onChangeCurrentLogPane(pane);
           }
         }

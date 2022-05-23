@@ -3,10 +3,10 @@ import { useContext, useMemo } from "react";
 import { LogItemContext } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
-import LogContentParse from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContentParse";
 import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
 import { REG_SEPARATORS } from "@/components/JsonView/JsonStringValue";
+import LogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContent";
 
 const LogItemDetails = () => {
   const { log } = useContext(LogItemContext);
@@ -20,9 +20,9 @@ const LogItemDetails = () => {
 
       // 索引字段
       const indexList =
-        logs?.keys.map((item) => {
-          return item.field;
-        }) || [];
+        logs?.keys
+          ?.filter((item) => item?.rootName === "")
+          .map((item) => item.field) || [];
 
       // 原日志字段
       let keys: string[] = Object.keys(log)
@@ -119,7 +119,7 @@ const LogItemDetails = () => {
       let highlightFlag = false;
       if (highlightKeywords) {
         highlightFlag = !!highlightKeywords.find(
-          (item) => item.key === keyItem
+          (item) => item.key === "`" + keyItem + "`"
         );
       }
 
@@ -143,8 +143,8 @@ const LogItemDetails = () => {
 
       if (!isRawLog) {
         REG_SEPARATORS.forEach((item) => {
-          if (content.toString().includes(item)) {
-            regSpeFlag = content.toString().includes(item);
+          if (content?.toString().includes(item)) {
+            regSpeFlag = content?.toString().includes(item);
           }
         });
       }
@@ -202,32 +202,18 @@ const LogItemDetails = () => {
                 </span>
                 :
               </div>
-              {!isRawLog ? (
-                regSpeFlag ? (
-                  <LogContentParse
-                    logContent={content.toString()}
-                    keyItem={key}
-                    quickInsertLikeQuery={quickInsertLikeQuery}
-                  />
-                ) : (
-                  <span
-                    onClick={() => handleInsertQuery(key, isIndexAndRawLogKey)}
-                    className={classNames(
-                      logItemStyles.logContent,
-                      highlightFlag && logItemStyles.logContentHighlight,
-
-                      isNotTimeKey && logItemStyles.logHover
-                    )}
-                  >
-                    {content}
-                  </span>
-                )
-              ) : (
-                <LogContentParse
-                  logContent={newLog[key]}
-                  quickInsertLikeQuery={quickInsertLikeQuery}
-                />
-              )}
+              <LogContent
+                isRawLog={isRawLog}
+                regSpeFlag={regSpeFlag}
+                content={content}
+                keyItem={key}
+                quickInsertLikeQuery={quickInsertLikeQuery}
+                onInsertQuery={handleInsertQuery}
+                isIndexAndRawLogKey={isIndexAndRawLogKey}
+                highlightFlag={highlightFlag}
+                isNotTimeKey={isNotTimeKey}
+                newLog={newLog}
+              />
             </div>
           )
         )}

@@ -29,13 +29,14 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
 
   return (
     <div className={searchLogLibraryStyles.searchLogLibraryMain}>
-      <Space>
+      <div className={searchLogLibraryStyles.space}>
         <Input.Search
           value={value}
           placeholder={i18n.formatMessage({
             id: "datasource.logLibrary.search.placeholder",
           })}
           allowClear
+          style={{ marginRight: "8px" }}
           onSearch={onSearch}
           onChange={(ev) => setValue(ev.target.value)}
         />
@@ -53,7 +54,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
           />
         </Tooltip>
         <ModalCreatedLogLibrary />
-      </Space>
+      </div>
     </div>
   );
 };

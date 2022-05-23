@@ -87,6 +87,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           } else {
             pane.logs = res.logs;
             pane.highCharts = res.highCharts;
+            pane.logChart = { logs: [] };
             onChangeLogPane(pane);
           }
         })
@@ -263,7 +264,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         </span>
       </Tooltip>
 
-      <div>
+      <div style={{ position: "absolute", right: "8px" }}>
         <Dropdown overlay={menu} trigger={["hover", "click"]}>
           <MoreOutlined className={classNames(logLibraryListStyles.icon)} />
         </Dropdown>

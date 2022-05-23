@@ -83,6 +83,7 @@ export default function useLogUrlParams() {
     onChangeLogPane,
     logPanesHelper,
     statisticalChartsHelper,
+    onChangeVisibleDatabaseDraw,
   } = useModel("dataLogs");
   const { addLogPane } = logPanesHelper;
   const { activeQueryType, chartSql } = statisticalChartsHelper;
@@ -126,8 +127,12 @@ export default function useLogUrlParams() {
     })
       .then((res) => {
         if (!res) return;
-        pane.logs = res.logs;
+        pane.logs = {
+          ...res.logs,
+          query: urlState?.querySql ?? res.logs.query,
+        };
         pane.highCharts = res.highCharts;
+        pane.logChart = { logs: [] };
         onChangeLogPane(pane);
       })
       .catch();
@@ -212,7 +217,8 @@ export default function useLogUrlParams() {
       const database = databaseList.find((item) => parseInt(did) === item.id);
       onChangeCurrentDatabase(database);
     } else if (databaseList.length > 0 && !currentDatabase) {
-      onChangeCurrentDatabase(databaseList[0]);
+      // onChangeCurrentDatabase(databaseList[0]);
+      onChangeVisibleDatabaseDraw(true);
     }
   }, [databaseList, currentDatabase]);
 }
