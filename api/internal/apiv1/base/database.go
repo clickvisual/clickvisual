@@ -39,13 +39,13 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	obj := db.Database{
 		Iid:          iid,
 		Name:         req.Name,
 		Cluster:      req.Cluster,
 		Uid:          c.Uid(),
 		IsCreateByCV: 1,
+		Desc:         req.Desc,
 	}
 	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
@@ -187,5 +187,42 @@ func DatabaseDelete(c *core.Context) {
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesDelete, map[string]interface{}{"database": database})
+	c.JSONOK()
+}
+
+func DatabaseUpdate(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var (
+		req view.ReqDatabaseCreate
+		err error
+	)
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	database, err := db.DatabaseInfo(invoker.Db, id)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(id),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["desc"] = req.Desc
+	if err = db.DatabaseUpdate(invoker.Db, id, ups); err != nil {
+		c.JSONE(1, "update failed 01"+err.Error(), nil)
+		return
+	}
+	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }

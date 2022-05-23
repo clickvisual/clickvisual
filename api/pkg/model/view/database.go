@@ -3,6 +3,7 @@ package view
 type ReqDatabaseCreate struct {
 	Name    string `json:"databaseName" form:"databaseName"`
 	Cluster string `json:"cluster" from:"cluster"`
+	Desc    string `json:"desc" form:"desc"`
 }
 
 type RespDatabaseItem struct {

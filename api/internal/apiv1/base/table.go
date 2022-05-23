@@ -822,3 +822,40 @@ func TableColumnsSelfBuilt(c *core.Context) {
 	}
 	c.JSONOK(columnsInfo)
 }
+
+func TableUpdate(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var (
+		req view.ReqTableCreate
+		err error
+	)
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	table, err := db.TableInfo(invoker.Db, id)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(table.Database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(id),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["desc"] = req.Desc
+	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
+		c.JSONE(1, "update failed 01"+err.Error(), nil)
+		return
+	}
+	event.Event.AlarmCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	c.JSONOK()
+}
