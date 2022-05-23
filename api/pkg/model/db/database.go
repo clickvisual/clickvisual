@@ -18,6 +18,7 @@ type Database struct {
 	Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // datasource operator uid
 	Cluster      string `gorm:"column:cluster;type:varchar(128);NOT NULL" json:"cluster"`                     // cluster
 	IsCreateByCV int    `gorm:"column:is_create_by_cv;type:tinyint(1)" json:"isCreateByCV"`
+	Desc         string `gorm:"column:desc;type:varchar(255)" json:"desc"`
 
 	Instance *Instance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
 }

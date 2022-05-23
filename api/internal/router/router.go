@@ -133,6 +133,7 @@ func GetRouter() *egin.Component {
 		v1.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
 		v1.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
 		v1.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
+		v1.PATCH("/databases/:id", core.Handle(base.DatabaseUpdate))
 		v1.DELETE("/databases/:id", core.Handle(base.DatabaseDelete))
 	}
 	// Table
@@ -149,6 +150,7 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id/indexes", core.Handle(base.Indexes))
 		v1.GET("/tables/:id/indexes/:idx", core.Handle(base.TableIndexes))
 		v1.PATCH("/tables/:id/indexes", core.Handle(base.IndexUpdate))
+		v1.PATCH("/tables/:id", core.Handle(base.TableUpdate))
 	}
 	// view
 	{
