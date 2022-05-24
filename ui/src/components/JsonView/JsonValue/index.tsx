@@ -24,15 +24,27 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
     paddingLeft: "20px",
   };
   let dom: JSX.Element = <></>;
-
   const highLightFlag = useMemo(() => {
     if (!highLightValue || ["object", "string"].includes(typeof val))
       return false;
 
-    return !!highLightValue.find(
-      (item) => item.key === "_raw_log_" && item.value === `%${val}%`
-    );
-  }, [highLightValue, val]);
+    return !!highLightValue.find((item) => {
+      if (
+        item.key.search(".") !== -1 &&
+        jsonKey === item.key.split(".")[1] &&
+        item.value === val
+      ) {
+        return true;
+      } else if (item.key === "_raw_log_" && item.value === `%${val}%`) {
+        return true;
+      }
+      return (
+        item.key.search(".") !== -1 &&
+        jsonKey === item.key.split(".")[1] &&
+        item.value === val
+      );
+    });
+  }, [highLightValue, isShowArr, jsonKey, val]);
 
   switch (typeof val) {
     case "object":
@@ -104,6 +116,7 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
           "
           <JsonStringValue
             val={val}
+            indexKey={jsonKey}
             isHidden={(val && val.length > LOGMAXTEXTLENGTH) || false}
             {...restProps}
           />

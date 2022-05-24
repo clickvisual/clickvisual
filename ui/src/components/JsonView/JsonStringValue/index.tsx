@@ -2,11 +2,12 @@ import jsonViewStyles from "@/components/JsonView/index.less";
 import classNames from "classnames";
 import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { Button, message } from "antd";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type JsonStringValueProps = {
   val: string;
   keyItem?: string;
+  indexKey?: string;
   isHidden?: boolean;
 } & _CommonProps;
 export const REG_SEPARATORS = [
@@ -29,6 +30,7 @@ export const REG_SEPARATORS = [
 const JsonStringValue = ({
   val,
   keyItem,
+  indexKey,
   isHidden,
   ...restProps
 }: JsonStringValueProps) => {
@@ -37,16 +39,31 @@ const JsonStringValue = ({
   const [isHiddens, setisHiddens] = useState<boolean | undefined>(isHidden);
   if (strListByReg.length <= 0) return <></>;
 
+  const highLightFlag = useCallback(
+    (value: string) => {
+      if (!highLightValue) {
+        return false;
+      }
+      return !!highLightValue.find((item) => {
+        if (item.key === keyItem && item.value === value) {
+          return true;
+        } else if (
+          item.key.search(".") !== -1 &&
+          indexKey === item.key.split(".")[1] &&
+          item.value === value
+        ) {
+          return true;
+        } else if (item.key === "_raw_log_" && item.value === `%${value}%`) {
+          return true;
+        }
+        return false;
+      });
+    },
+    [highLightValue, keyItem, indexKey, val]
+  );
+
   if (isHiddens) {
     const isValue = !REG_SEPARATORS.includes(val);
-    let highLightFlag = false;
-    if (highLightValue) {
-      highLightFlag = !!highLightValue.find(
-        (item) =>
-          (keyItem ? item.key === keyItem : item.key === "_raw_log_") &&
-          item.value === `%${val}%`
-      );
-    }
     return (
       <>
         {val && val.length > LOGMAXTEXTLENGTH && (
@@ -69,7 +86,7 @@ const JsonStringValue = ({
           onClick={() => message.info("请先展开再点击~")}
           className={classNames(
             isValue && jsonViewStyles.jsonViewValueHover,
-            highLightFlag && jsonViewStyles.jsonViewHighlight
+            highLightFlag(val) && jsonViewStyles.jsonViewHighlight
           )}
         >
           {val && val.substring(0, LOGMAXTEXTLENGTH) + "..."}
@@ -98,30 +115,17 @@ const JsonStringValue = ({
         {strListByReg.map((value, index) => {
           const isValue = !REG_SEPARATORS.includes(value[0]);
 
-          let highLightFlag = false;
-          if (highLightValue) {
-            highLightFlag = !!highLightValue.find(
-              (item) =>
-                (keyItem ? item.key === keyItem : item.key === "_raw_log_") &&
-                item.value === `%${value}%`
-            );
-          }
-
           return (
-            <>
-              <span
-                key={index}
-                onClick={() =>
-                  isValue && onClickValue?.(value, { key: keyItem })
-                }
-                className={classNames(
-                  isValue && jsonViewStyles.jsonViewValueHover,
-                  highLightFlag && jsonViewStyles.jsonViewHighlight
-                )}
-              >
-                {value}
-              </span>
-            </>
+            <span
+              key={index}
+              onClick={() => isValue && onClickValue?.(value, { key: keyItem })}
+              className={classNames(
+                isValue && jsonViewStyles.jsonViewValueHover,
+                highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+              )}
+            >
+              {value}
+            </span>
           );
         })}
       </>

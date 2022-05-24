@@ -15,6 +15,7 @@ type JsonDataProps = {
 } & _CommonProps;
 const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   const [isShowJson, setIsShowJson] = useState<boolean>(false);
+  const { secondaryIndexKeys, onClickValue } = restProps;
 
   const renderStack: string[] = [];
   const indentStyle = {
@@ -33,10 +34,44 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
    * @param val
    */
   const handleValueTypes = (key: string, val: any) => {
+    const isIndex = () => {
+      if (!secondaryIndexKeys || secondaryIndexKeys?.length <= 0) return false;
+      return !!secondaryIndexKeys.find((item) => item.keyItem === key);
+    };
+
+    let indexKey = "";
+    if (isIndex()) {
+      const currentSecondaryIndex = secondaryIndexKeys?.find(
+        (item) => item.keyItem === key
+      );
+      indexKey = `${currentSecondaryIndex.parentKey}.${currentSecondaryIndex.keyItem}`;
+    }
+
     return (
       <>
-        <span className={classNames(jsonViewStyles.jsonViewKey)}>"{key}"</span>:
-        <JsonValue jsonKey={key} val={val} {...restProps} />
+        <span
+          className={classNames(
+            jsonViewStyles.jsonViewKey,
+            isIndex() && jsonViewStyles.jsonIndexViewKey
+          )}
+        >
+          "{key}"
+        </span>
+        :
+        <JsonValue
+          jsonKey={key}
+          val={val}
+          {...restProps}
+          onClickValue={
+            isIndex()
+              ? () =>
+                  onClickValue?.(val, {
+                    indexKey,
+                    isIndex: isIndex(),
+                  })
+              : onClickValue
+          }
+        />
       </>
     );
   };

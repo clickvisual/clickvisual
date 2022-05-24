@@ -382,15 +382,19 @@ const DataLogsModel = () => {
   };
 
   const doParseQuery = (keyword?: string) => {
-    const defaultInput =
-      lodash.cloneDeep(keyword ? keyword : keywordInput) || "";
-    const strReg = /(`?\w+`?)(=| like )'([^']+)'/g;
-    const allQuery = Array.from(defaultInput.matchAll(strReg))?.map((item) => {
-      return {
-        key: item[1],
-        value: item[3],
-      };
-    });
+    const defaultInput = lodash
+      .cloneDeep(keyword ? keyword : keywordInput)
+      ?.split(" and ") || [""];
+    const strReg = /(`?\w|.+`?)(=| like )'([^']+)'/g;
+    const allQuery: any[] = [];
+    defaultInput.map((inputStr) =>
+      Array.from(inputStr.replaceAll("`", "").matchAll(strReg))?.map((item) => {
+        allQuery.push({
+          key: item[1],
+          value: item[3],
+        });
+      })
+    );
     setHighlightKeywords(allQuery);
   };
 
@@ -567,7 +571,6 @@ const DataLogsModel = () => {
     onChangeViewIsEdit,
     onChangeViewVisibleModal,
     onChangeViewsVisibleDraw,
-
     foldingState,
     onChangeFoldingState,
 
