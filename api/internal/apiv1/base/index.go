@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -25,11 +24,8 @@ func IndexUpdate(c *core.Context) {
 		return
 	}
 	var (
-		req    view.ReqCreateIndex
-		addMap map[string]*db.Index
-		delMap map[string]*db.Index
-		newMap map[string]*db.Index
-		err    error
+		req view.ReqCreateIndex
+		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "param error:"+err.Error(), nil)
@@ -52,39 +48,12 @@ func IndexUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	// check repeat
-	repeatMap := make(map[string]interface{})
-	for _, r := range req.Data {
-		if r.Typ == 3 {
-			c.JSONE(1, "param error: json type 3 should not in params:"+r.Field, nil)
-			return
-		}
-		key := r.Field
-		if r.RootName != "" {
-			key = r.RootName + "." + r.Field
-		}
-		if _, ok := repeatMap[key]; ok {
-			c.JSONE(1, "param error: repeat index field name:"+r.Field, nil)
-			return
-		}
-		repeatMap[key] = struct{}{}
-	}
-	req.Tid = tid
-	addMap, delMap, newMap, err = service.Index.Diff(req)
-	if err != nil {
-		c.JSONE(1, "unknown error:"+err.Error(), nil)
-		return
-	}
-
-	invoker.Logger.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
-
-	err = service.Index.Sync(req, addMap, delMap, newMap)
-	if err != nil {
-		c.JSONE(1, "unknown error:"+err.Error(), nil)
+	if err = service.AnalysisFieldsUpdate(tid, req.Data); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesIndexUpdate,
-		map[string]interface{}{"addMap": addMap, "delMap": delMap, "newMap": newMap})
+		map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
