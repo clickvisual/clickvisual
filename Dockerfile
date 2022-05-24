@@ -37,6 +37,8 @@ LABEL maintainer="clickvisual@shimo.im"
 WORKDIR /clickvisual
 
 COPY --from=go-builder /clickvisual/bin/clickvisual ./bin/
+COPY --from=go-builder /clickvisual/config/resource.yaml ./config/
+COPY --from=go-builder /clickvisual/config/rbac.conf ./config/
 
 EXPOSE 9001
 EXPOSE 9003

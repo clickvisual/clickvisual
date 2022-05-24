@@ -220,10 +220,18 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 		return nil
 	}
 	i.AddPrometheusReloadChan()
-	// if err = i.PrometheusReload(instance.PrometheusTarget); err != nil {
-	// 	return
-	// }
 	return nil
+}
+
+func WhereConditionFromFilter(filters []*db.AlarmFilter) (filter string) {
+	for i, f := range filters {
+		if i == 0 {
+			filter = f.When
+		} else {
+			filter = fmt.Sprintf("%s AND %s", filter, f.When)
+		}
+	}
+	return filter
 }
 
 func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCreate) (err error) {
@@ -262,7 +270,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 		}
 	}
 	// gen view table name & sql
-	viewTableName, viewSQL, err := op.AlertViewGen(obj, filtersDB)
+	viewTableName, viewSQL, err := op.AlertViewGen(obj, WhereConditionFromFilter(filtersDB))
 	if err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 06"), elog.String("err", err.Error()))
 		return

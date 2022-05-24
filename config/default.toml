@@ -61,7 +61,10 @@ enabled = false
 [auth.proxy]
 enabled = false
 isAutoLogin = false
-headerName = "X-WEBAUTH-USER"
+headerName = "X-CLICKVISUAL-USER"
+headerNickName = "X-CLICKVISUAL-NICKNAME"
+rootTokenKey = "X-CLICKVISUAL-TOKEN"
+rootTokenValue = "xxx"
 
 [[auth.tps]]
 typ = "github"
