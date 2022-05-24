@@ -1,5 +1,6 @@
 import LogItemDetailsContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemDetails/LogItemDetailsContent";
 import LogContentParse from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContentParse";
+import { useMemo } from "react";
 
 interface LogContentProps {
   isRawLog: boolean;
@@ -12,6 +13,7 @@ interface LogContentProps {
   highlightFlag: any;
   isNotTimeKey: boolean;
   newLog: any;
+  secondaryIndexList: any[];
 }
 const LogContent = (props: LogContentProps) => {
   const {
@@ -25,7 +27,17 @@ const LogContent = (props: LogContentProps) => {
     highlightFlag,
     isNotTimeKey,
     newLog,
+    secondaryIndexList,
   } = props;
+
+  // 二级索引
+  const jsonIndexKeys =
+    useMemo(() => {
+      if (secondaryIndexList.length <= 0) {
+        return [];
+      }
+      return secondaryIndexList.filter((item) => item.parentKey === keyItem);
+    }, [secondaryIndexList, keyItem]) || [];
 
   return (
     <>
@@ -48,6 +60,7 @@ const LogContent = (props: LogContentProps) => {
         )
       ) : (
         <LogContentParse
+          secondaryIndexKeys={jsonIndexKeys}
           logContent={newLog[keyItem]}
           quickInsertLikeQuery={quickInsertLikeQuery}
         />

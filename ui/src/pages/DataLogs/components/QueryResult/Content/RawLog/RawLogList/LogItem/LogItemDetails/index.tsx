@@ -13,85 +13,115 @@ const LogItemDetails = () => {
   const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
 
-  const { keys, newLog, rawLogJson, rawLogKeys, indexRawLogKeys, indexList } =
-    useMemo(() => {
-      // 隐藏字段
-      const hiddenFields = logs?.hiddenFields || [];
+  const {
+    keys,
+    newLog,
+    rawLogJson,
+    rawLogKeys,
+    indexRawLogKeys,
+    indexList,
+    secondaryIndexList,
+  } = useMemo(() => {
+    // 隐藏字段
+    const hiddenFields = logs?.hiddenFields || [];
 
-      // 索引字段
-      const indexList =
-        logs?.keys
-          ?.filter((item) => item?.rootName === "")
-          .map((item) => item.field) || [];
+    /* todo:
+          1、索引校验规则
+          2、json 里的字段无法匹配索引
+      */
+    // Json 索引
+    const secondaryIndexList: any = [];
+    // 索引字段
+    const indexList =
+      logs?.keys.map((item) => {
+        if (item?.rootName && item?.rootName !== "") {
+          secondaryIndexList.push({
+            parentKey: item?.rootName,
+            keyItem: item.field,
+          });
 
-      // 原日志字段
-      let keys: string[] = Object.keys(log)
-        .sort()
-        .filter((key) => !hiddenFields.includes(key));
+          return `${item?.rootName}.${item.field}`;
+        }
+        return item.field;
+      }) || [];
 
-      // 存储 rawLog 非索引字段
-      let rawLogKeys: any[] = [];
-      // 存储 rawLog 字段中的索引字段
-      let indexRawLogKeys: any[] = [];
-      // 取出 rawLog 日志字段并转成 Json ，parseJsonObject 回参数 Json || false
-      const rawLogJson = parseJsonObject(log["_raw_log_"]);
-      // 初始化新日志数组，初始化为 log
-      let newLog: any = log;
+    // 原日志字段
+    let keys: string[] = Object.keys(log)
+      .sort()
+      .filter((key) => !hiddenFields.includes(key));
 
-      if (!!rawLogJson) {
-        // 如果 rawLog 字段 Json 存在
-        // rawLog 字段中的索引字段
-        indexRawLogKeys = Object.keys(rawLogJson).filter((item) =>
-          indexList.includes(item)
-        );
+    // 存储 rawLog 非索引字段
+    let rawLogKeys: any[] = [];
+    // 存储 rawLog 字段中的索引字段
+    let indexRawLogKeys: any[] = [];
+    // 取出 rawLog 日志字段并转成 Json ，parseJsonObject 回参数 Json || false
+    const rawLogJson = parseJsonObject(log["_raw_log_"]);
+    // 初始化新日志数组，初始化为 log
+    let newLog: any = log;
 
-        // rawLog 中非索引字段
-        rawLogKeys = Object.keys(rawLogJson).filter(
-          (item) => !indexList.includes(item)
-        );
+    if (!!rawLogJson) {
+      // 如果 rawLog 字段 Json 存在
+      // rawLog 字段中的索引字段
+      indexRawLogKeys = Object.keys(rawLogJson).filter((item) =>
+        indexList.includes(item)
+      );
 
-        // 拷贝原始 log
-        const oldLog = lodash.cloneDeep(log);
-        // 拷贝 rawLog Json
-        const cloneRawLogJson = lodash.cloneDeep(rawLogJson);
+      // rawLog 中非索引字段
+      rawLogKeys = Object.keys(rawLogJson).filter(
+        (item) => !indexList.includes(item)
+      );
 
-        // old 覆盖 rawLog Json
-        newLog = Object.assign(cloneRawLogJson, oldLog);
+      // 拷贝原始 log
+      const oldLog = lodash.cloneDeep(log);
+      // 拷贝 rawLog Json
+      const cloneRawLogJson = lodash.cloneDeep(rawLogJson);
 
-        // 合并 log 和 rawLog 的 key，并去重
-        keys = [...keys, ...indexRawLogKeys, ...rawLogKeys].filter(
-          (key, index) => {
-            const preIdx = keys.indexOf(key);
-            return preIdx < 0 || preIdx === index;
-          }
-        );
+      // old 覆盖 rawLog Json
+      newLog = Object.assign(cloneRawLogJson, oldLog);
 
-        // 删除 原日志中 raw log 字段
-        delete newLog._raw_log_;
+      // 合并 log 和 rawLog 的 key，并去重
+      keys = [...keys, ...indexRawLogKeys, ...rawLogKeys].filter(
+        (key, index) => {
+          const preIdx = keys.indexOf(key);
+          return preIdx < 0 || preIdx === index;
+        }
+      );
 
-        // 去掉 keys 中的 raw log 字段
-        keys = keys.filter((key) => key !== "_raw_log_");
-      }
+      // 删除 原日志中 raw log 字段
+      delete newLog._raw_log_;
 
-      return {
-        keys,
-        newLog,
-        indexList,
-        rawLogJson,
-        rawLogKeys,
-        indexRawLogKeys,
-      };
-    }, [logs, logs?.keys, log]);
+      // 去掉 keys 中的 raw log 字段
+      keys = keys.filter((key) => key !== "_raw_log_");
+    }
+
+    return {
+      keys,
+      newLog,
+      indexList,
+      rawLogJson,
+      rawLogKeys,
+      indexRawLogKeys,
+      secondaryIndexList,
+    };
+  }, [logs, logs?.keys, log]);
 
   const quickInsertQuery = (keyItem: string) => {
     const currentSelected = "`" + keyItem + "`" + "=" + `'${newLog[keyItem]}'`;
     doUpdatedQuery(currentSelected);
   };
 
-  const quickInsertLikeQuery = (value: string, extra?: { key?: string }) => {
-    const currentSelected = `${
-      extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
-    } like '%${value}%'`;
+  const quickInsertLikeQuery = (
+    value: string,
+    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
+  ) => {
+    let currentSelected = "";
+    if (extra?.isIndex && extra?.indexKey) {
+      currentSelected = `\`${extra.indexKey}\`='${value}'`;
+    } else {
+      currentSelected = `${
+        extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
+      } like '%${value}%'`;
+    }
     doUpdatedQuery(currentSelected);
   };
 
@@ -119,7 +149,7 @@ const LogItemDetails = () => {
       let highlightFlag = false;
       if (highlightKeywords) {
         highlightFlag = !!highlightKeywords.find(
-          (item) => item.key === "`" + keyItem + "`"
+          (item) => item.key === keyItem
         );
       }
 
@@ -207,6 +237,7 @@ const LogItemDetails = () => {
                 regSpeFlag={regSpeFlag}
                 content={content}
                 keyItem={key}
+                secondaryIndexList={secondaryIndexList}
                 quickInsertLikeQuery={quickInsertLikeQuery}
                 onInsertQuery={handleInsertQuery}
                 isIndexAndRawLogKey={isIndexAndRawLogKey}

@@ -45,7 +45,6 @@ export default function useLogLibrary() {
     logLibraryInfoDrawVisible: infoVisible,
     onChangeLogLibraryCreatedModalVisible: onChangeCreatedVisible,
     onChangeLogLibraryInfoDrawVisible: onChangeInfoVisible,
-
     doCreatedLogLibrary: createdLogLibrary,
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
