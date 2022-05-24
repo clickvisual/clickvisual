@@ -13,7 +13,7 @@ const (
 )
 
 type Operator interface {
-	Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel) (err error)
+	Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (err error)
 }
 
 func Instance(typ int) (Operator, error) {

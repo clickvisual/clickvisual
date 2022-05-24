@@ -42,6 +42,18 @@ Keypairs = "secret"
 # redisAddr = ""
 # redisPassword = ""
 
+[auth.anonymous]
+# enable anonymous access
+enabled = false
+
+[auth.proxy]
+enabled = false
+isAutoLogin = false
+headerName = "X-CLICKVISUAL-USER"
+headerNickName = "X-CLICKVISUAL-NICKNAME"
+rootTokenKey = "X-CLICKVISUAL-TOKEN"
+rootTokenValue = "xxx"
+
 [[auth.tps]]
 typ = "github"
 enable = true
