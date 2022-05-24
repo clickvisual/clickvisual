@@ -23,7 +23,7 @@ type Operator interface {
 	Databases() ([]*view.RespDatabaseSelfBuilt, error)
 	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
 	Columns(string, string, bool) ([]*view.RespColumn, error)
-	AlertViewGen(*db.Alarm, []*db.AlarmFilter) (string, string, error)
+	AlertViewGen(*db.Alarm, string) (string, string, error)
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 	TableCreate(int, db.Database, view.ReqTableCreate) (string, string, string, string, error)
 	IndexUpdate(db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
