@@ -1120,9 +1120,9 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
 		for k, _ := range fields {
 			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
-			if isEmpty(values[k]) {
-				continue
-			}
+			// if isEmpty(values[k]) {
+			// 	continue
+			// }
 			line[fields[k]] = values[k]
 		}
 		res = append(res, line)
