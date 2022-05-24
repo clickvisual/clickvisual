@@ -20,14 +20,18 @@ const ModalCreatedLogLibrary = () => {
   const {
     currentDatabase,
     addLogToDatabase,
+    onChangeAddLogToDatabase,
     logLibraryCreatedModalVisible,
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibrary,
     doGetLogLibraryList,
     doCreatedLocalLogLibraryBatch,
+    isAccessLogLibrary,
+    onChangeIsAccessLogLibrary,
   } = useModel("dataLogs");
 
   const instanceName = currentDatabase?.instanceName;
+  const databaseName = currentDatabase?.name;
 
   const { doGetInstanceList } = useModel("instances");
 
@@ -65,8 +69,23 @@ const ModalCreatedLogLibrary = () => {
   ).run;
 
   useEffect(() => {
+    !logLibraryCreatedModalVisible &&
+      isAccessLogLibrary &&
+      onChangeIsAccessLogLibrary(false);
+
+    isAccessLogLibrary &&
+      logFormRef.current?.setFieldsValue({
+        mode: 1,
+      });
+  }, [isAccessLogLibrary, logLibraryCreatedModalVisible]);
+
+  useEffect(() => {
     if (!logLibraryCreatedModalVisible && logFormRef.current)
       logFormRef.current.resetFields();
+  }, [logLibraryCreatedModalVisible]);
+
+  useEffect(() => {
+    if (!logLibraryCreatedModalVisible) onChangeAddLogToDatabase(undefined);
   }, [logLibraryCreatedModalVisible]);
 
   useEffect(() => {
@@ -99,18 +118,28 @@ const ModalCreatedLogLibrary = () => {
           name={"mode"}
           initialValue={0}
         >
-          <Select>
-            <Option value={0}>
-              {i18n.formatMessage({
-                id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
-              })}
-            </Option>
-            <Option value={1}>
-              {i18n.formatMessage({
-                id: "datasource.logLibrary.from.creationMode.option.logLibrary",
-              })}
-            </Option>
-          </Select>
+          {isAccessLogLibrary ? (
+            <Select disabled>
+              <Option value={1}>
+                {i18n.formatMessage({
+                  id: "datasource.logLibrary.from.creationMode.option.logLibrary",
+                })}
+              </Option>
+            </Select>
+          ) : (
+            <Select>
+              <Option value={0}>
+                {i18n.formatMessage({
+                  id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
+                })}
+              </Option>
+              <Option value={1}>
+                {i18n.formatMessage({
+                  id: "datasource.logLibrary.from.creationMode.option.logLibrary",
+                })}
+              </Option>
+            </Select>
+          )}
         </Form.Item>
         <Form.Item
           noStyle
@@ -128,6 +157,7 @@ const ModalCreatedLogLibrary = () => {
                   <LocalTable
                     formRef={logFormRef.current}
                     instanceName={instanceName}
+                    databaseName={databaseName}
                   />
                 );
               default:

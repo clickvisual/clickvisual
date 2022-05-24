@@ -5,12 +5,18 @@ import useRequest from "@/hooks/useRequest/useRequest";
 export default function useLogLibrary() {
   const [createdVisible, setCreatedVisible] = useState<boolean>(false);
   const [infoVisible, setInfoVisible] = useState<boolean>(false);
+  const [isAccessLogLibrary, setIsAccessLogLibrary] = useState<boolean>(false);
 
   const onChangeCreatedVisible = (visible: boolean) => {
+    console.log(visible, "visible");
+
     setCreatedVisible(visible);
   };
   const onChangeInfoVisible = (visible: boolean) => {
     setInfoVisible(visible);
+  };
+  const onChangeIsAccessLogLibrary = (visible: boolean) => {
+    setIsAccessLogLibrary(visible);
   };
 
   const createdLogLibrary = useRequest(api.createdTable, {
@@ -43,8 +49,10 @@ export default function useLogLibrary() {
   return {
     logLibraryCreatedModalVisible: createdVisible,
     logLibraryInfoDrawVisible: infoVisible,
+    isAccessLogLibrary,
     onChangeLogLibraryCreatedModalVisible: onChangeCreatedVisible,
     onChangeLogLibraryInfoDrawVisible: onChangeInfoVisible,
+    onChangeIsAccessLogLibrary,
 
     doCreatedLogLibrary: createdLogLibrary,
     doDeletedLogLibrary: deletedLogLibrary,

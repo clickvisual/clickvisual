@@ -21,10 +21,16 @@ const { TextArea } = Input;
 type LocalTableProps = {
   formRef: FormInstance | null;
   instanceName: string | undefined;
+  databaseName: string | undefined;
 };
-const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
+const LocalTable = ({
+  formRef,
+  instanceName,
+  databaseName,
+}: LocalTableProps) => {
   const i18n = useIntl();
-  const { getLocalTables, getTableColumns } = useModel("dataLogs");
+  const { getLocalTables, getTableColumns, addLogToDatabase } =
+    useModel("dataLogs");
   const { instanceList } = useModel("instances");
   const [options, setOptions] = useState<any[]>([]);
   const [columnsItemList, setColumnsItemList] = useState<any[]>([]);
@@ -32,6 +38,8 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
   const { Panel } = Collapse;
 
   const formatOptions = (list: LocalTables[]) => {
+    console.log("list", list);
+
     setOptions(
       list?.map((item) => ({
         value: item.name,
@@ -83,7 +91,8 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
 
   useEffect(() => {
     const instanceObj = instanceList.find(
-      (item: any) => item.name == instanceName
+      (item: any) =>
+        item.name == (addLogToDatabase?.instanceName || instanceName)
     );
     if (!instanceObj || !instanceObj.id) return;
     formRef?.setFieldsValue({
@@ -94,6 +103,29 @@ const LocalTable = ({ formRef, instanceName }: LocalTableProps) => {
       formatOptions(res.data);
     });
   }, [instanceList]);
+
+  useEffect(() => {
+    if (!options || !(addLogToDatabase?.name || databaseName) || !instanceList)
+      return;
+    const currentDatabaseName = addLogToDatabase?.name || databaseName;
+    const instanceObj = instanceList.find(
+      (item: any) =>
+        item.name == (addLogToDatabase?.instanceName || instanceName)
+    );
+    const arr: any = options.filter((items: any) => {
+      return items.value == currentDatabaseName;
+    })[0];
+    const values: any[] = [[currentDatabaseName]];
+    // 填充子项
+    arr?.children.map((items: any) => {
+      values.push([currentDatabaseName, items.value]);
+    });
+    if (values.length == 0) return;
+    setValueArr(values, instanceObj?.id);
+    formRef?.setFieldsValue({
+      localTables: values,
+    });
+  }, [addLogToDatabase, options]);
 
   return (
     <>
