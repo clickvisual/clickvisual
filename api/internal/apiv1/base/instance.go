@@ -217,3 +217,20 @@ func InstanceDelete(c *core.Context) {
 	event.Event.InquiryCMDB(c.User(), db.OpnInstancesDelete, map[string]interface{}{"instanceInfo": obj})
 	c.JSONOK()
 }
+
+func InstanceTest(c *core.Context) {
+	var req view.ReqTestInstance
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	if _, err := service.ClickHouseLink(req.Dsn); err != nil {
+		c.JSONE(1, "connection failure: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK()
+}
