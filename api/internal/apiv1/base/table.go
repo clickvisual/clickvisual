@@ -75,7 +75,6 @@ func TableCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -88,40 +87,12 @@ func TableCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
-	op, err := service.InstanceManager.Load(databaseInfo.Iid)
+	_, err = service.TableCreate(c.Uid(), databaseInfo, param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	s, d, v, a, err := op.TableCreate(did, databaseInfo, param)
-	if err != nil {
-		c.JSONE(core.CodeErr, "create failed 01: "+err.Error(), nil)
-		return
-	}
-	tableInfo := db.Table{
-		Did:     did,
-		Name:    param.TableName,
-		Typ:     param.Typ,
-		Days:    param.Days,
-		Brokers: param.Brokers,
-		Topic:   param.Topics,
-		Desc:    param.Desc,
-
-		SqlData:        d,
-		SqlStream:      s,
-		SqlView:        v,
-		SqlDistributed: a,
-		TimeField:      db.TimeFieldSecond,
-		CreateType:     inquiry.TableCreateTypeCV,
-		Uid:            c.Uid(),
-	}
-	err = db.TableCreate(invoker.Db, &tableInfo)
-	if err != nil {
-		c.JSONE(core.CodeErr, "create failed 02: "+err.Error(), nil)
-		return
-	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"tableInfo": tableInfo})
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
 	c.JSONOK()
 }
 
@@ -830,7 +801,7 @@ func TableUpdate(c *core.Context) {
 		return
 	}
 	var (
-		req view.ReqTableCreate
+		req view.ReqTableUpdate
 		err error
 	)
 	if err = c.Bind(&req); err != nil {

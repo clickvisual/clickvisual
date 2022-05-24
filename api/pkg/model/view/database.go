@@ -15,4 +15,5 @@ type RespDatabaseItem struct {
 	InstanceName   string   `json:"instanceName"`
 	Mode           int      `json:"mode"`
 	Clusters       []string `json:"clusters"`
+	Desc           string   `json:"desc"`
 }

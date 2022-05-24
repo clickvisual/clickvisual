@@ -5,13 +5,11 @@ import (
 	"strings"
 
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -29,60 +27,11 @@ func InstanceCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	conds := egorm.Conds{}
-	conds["datasource"] = req.Datasource
-	conds["name"] = req.Name
-	checks, err := db.InstanceList(conds)
-	if err != nil {
-		c.JSONE(1, "create DB failed: "+err.Error(), nil)
+	if _, err := service.InstanceCreate(req); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if len(checks) > 0 {
-		c.JSONE(1, "data source configuration with duplicate name", nil)
-		return
-	}
-	if req.Mode == inquiry.ModeCluster && len(req.Clusters) == 0 {
-		c.JSONE(1, "you need to fill in the cluster information", nil)
-		return
-	}
-	obj := db.Instance{
-		Datasource:       req.Datasource,
-		Name:             req.Name,
-		Dsn:              strings.TrimSpace(req.Dsn),
-		RuleStoreType:    req.RuleStoreType,
-		FilePath:         req.FilePath,
-		Desc:             req.Desc,
-		ClusterId:        req.ClusterId,
-		Namespace:        req.Namespace,
-		Configmap:        req.Configmap,
-		PrometheusTarget: req.PrometheusTarget,
-		ReplicaStatus:    req.ReplicaStatus,
-		Mode:             req.Mode,
-		Clusters:         req.Clusters,
-	}
-	invoker.Logger.Debug("instanceCreate", elog.Any("obj", obj))
-	if req.PrometheusTarget != "" {
-		if err = service.Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
-			c.JSONE(1, "create DB failed: "+err.Error(), nil)
-			return
-		}
-	}
-	tx := invoker.Db.Begin()
-	if err = db.InstanceCreate(tx, &obj); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "create DB failed: "+err.Error(), nil)
-		return
-	}
-	if err = service.InstanceManager.Add(&obj); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "DNS configuration exception, database connection failure 01: "+err.Error(), nil)
-		return
-	}
-	if err = tx.Commit().Error; err != nil {
-		c.JSONE(1, "DNS configuration exception, database connection failure 02: "+err.Error(), nil)
-		return
-	}
-	event.Event.InquiryCMDB(c.User(), db.OpnInstancesCreate, map[string]interface{}{"obj": obj})
+	event.Event.InquiryCMDB(c.User(), db.OpnInstancesCreate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
