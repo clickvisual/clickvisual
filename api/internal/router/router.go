@@ -121,6 +121,7 @@ func GetRouter() *egin.Component {
 	}
 	// Instance
 	{
+		v1.POST("/sys/instances/test", core.Handle(base.InstanceTest))
 		v1.POST("/sys/instances", core.Handle(base.InstanceCreate))
 		v1.GET("/sys/instances", core.Handle(base.InstanceList))
 		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))

@@ -34,7 +34,7 @@ func NewInstanceManager() *instanceManager {
 			// TODO Not supported at this time
 		case db.DatasourceClickHouse:
 			// Test connection, storage
-			chDb, err := clickHouseLink(ds.Dsn)
+			chDb, err := ClickHouseLink(ds.Dsn)
 			if err != nil {
 				invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 				continue
@@ -54,7 +54,7 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 	switch obj.Datasource {
 	case db.DatasourceClickHouse:
 		// Test connection, storage
-		chDb, err := clickHouseLink(obj.Dsn)
+		chDb, err := ClickHouseLink(obj.Dsn)
 		if err != nil {
 			invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 			return err
@@ -173,7 +173,7 @@ func (i *instanceManager) ReadPermissionTable(uid, iid, tid int) bool {
 	return false
 }
 
-func clickHouseLink(dsn string) (db *sql.DB, err error) {
+func ClickHouseLink(dsn string) (db *sql.DB, err error) {
 	if strings.Contains(dsn, "?") {
 		dsn = dsn + "&max_execution_time=60"
 	}
