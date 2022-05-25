@@ -14,6 +14,8 @@ export default function useLogLibrary() {
   };
 
   const onChangeCreatedVisible = (visible: boolean) => {
+    console.log(visible, "visible");
+
     setCreatedVisible(visible);
   };
   const onChangeInfoVisible = (visible: boolean) => {
