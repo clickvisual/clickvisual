@@ -154,6 +154,7 @@ func List(c *core.Context) {
 		return
 	}
 	name := c.Query("name")
+	iid, _ := strconv.Atoi(c.Query("iid"))
 	tid, _ := strconv.Atoi(c.Query("tid"))
 	did, _ := strconv.Atoi(c.Query("did"))
 	status, _ := strconv.Atoi(c.Query("status"))
@@ -174,6 +175,27 @@ func List(c *core.Context) {
 		query["cv_base_table.did"] = did
 		total, list := db.AlarmListByDidPage(query, req)
 		c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
+			Current:  req.Current,
+			PageSize: req.PageSize,
+			Total:    total,
+		})
+		return
+	}
+	if iid != 0 {
+		conds := egorm.Conds{}
+		if iid != 0 {
+			conds["iid"] = iid
+		}
+		ds, _ := db.DatabaseList(invoker.Db, conds)
+		list := make([]view.RespAlarmList, 0)
+		var total int64
+		for _, d := range ds {
+			query["cv_base_table.did"] = d.ID
+			totalTmp, listTmp := db.AlarmListByDidPage(query, req)
+			list = append(list, service.AlarmAttachInfo(listTmp)...)
+			total += totalTmp
+		}
+		c.JSONPage(list, core.Pagination{
 			Current:  req.Current,
 			PageSize: req.PageSize,
 			Total:    total,
