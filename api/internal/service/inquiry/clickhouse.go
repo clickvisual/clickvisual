@@ -534,8 +534,12 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 	}
 
 	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
-	sourceTableName = fmt.Sprintf("%s.%s_local", tableInfo.Database.Name, tableInfo.Name)
 
+	if c.mode == ModeCluster {
+		sourceTableName = fmt.Sprintf("%s.%s_local", tableInfo.Database.Name, tableInfo.Name)
+	} else {
+		sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
+	}
 	viewSQL = c.ViewDo(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,
 		ReplicaStatus: c.rs,
