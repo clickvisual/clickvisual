@@ -1,7 +1,7 @@
 package alarm
 
 import (
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"

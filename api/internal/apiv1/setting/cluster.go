@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"sigs.k8s.io/yaml"

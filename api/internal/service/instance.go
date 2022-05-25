@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/ClickHouse/clickhouse-go"
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 

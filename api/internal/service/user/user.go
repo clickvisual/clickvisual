@@ -3,9 +3,9 @@ package user
 import (
 	"errors"
 
+	"github.com/gotomicro/cetus/pkg/kauth"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/kl7sn/toolkit/kauth"
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"

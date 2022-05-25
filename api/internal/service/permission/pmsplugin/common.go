@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	casbin_util "github.com/casbin/casbin/v2/util"
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
