@@ -4,7 +4,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/alertmanager"
+	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -18,7 +18,7 @@ func Webhook(c *core.Context) {
 		return
 	}
 	invoker.Logger.Debug("webhook", elog.Any("notification", notification))
-	err = alertmanager.Send(notification.CommonLabels["uuid"], notification)
+	err = service.Send(notification.CommonLabels["uuid"], notification)
 	if err != nil {
 		c.JSONE(1, "message send failed", err.Error())
 		return

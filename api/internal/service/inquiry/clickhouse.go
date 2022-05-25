@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -520,20 +521,13 @@ func (c *ClickHouse) ViewDo(params bumo.Params) string {
 //        _timestamp_ as ts,
 //        toDateTime(_timestamp_) as updated
 //    FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (string, string, error) {
+func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (string, string, error) {
 	var (
-		filter          string
 		viewSQL         string
 		viewTableName   string
 		sourceTableName string
 	)
-	for i, f := range filters {
-		if i == 0 {
-			filter = f.When
-		} else {
-			filter = fmt.Sprintf("%s AND %s", filter, f.When)
-		}
-	}
+
 	tableInfo, err := db.TableInfo(invoker.Db, alarm.Tid)
 	if err != nil {
 		return "", "", err
@@ -551,7 +545,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filters []*db.AlarmFilter) (s
 			TimeField:    tableInfo.GetTimeField(),
 			CommonFields: TagsToString(alarm, true),
 			SourceTable:  sourceTableName,
-			Where:        filter}})
+			Where:        whereCondition}})
 	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
 	err = c.alertPrepare()
@@ -670,7 +664,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	res.Keys, _ = db.IndexList(conds)
-
+	// keys sort by the first letter
+	sort.Slice(res.Keys, func(i, j int) bool {
+		return res.Keys[i].Field < res.Keys[j].Field
+	})
 	// hash keys
 	hashKeys := make([]string, 0)
 	for _, k := range res.Keys {
@@ -1028,7 +1025,6 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 		param.PageSize, (param.Page-1)*param.PageSize)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
-
 }
 
 func genSelectFields(tid int) string {
@@ -1124,9 +1120,9 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
 		for k, _ := range fields {
 			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
-			if isEmpty(values[k]) {
-				continue
-			}
+			// if isEmpty(values[k]) {
+			// 	continue
+			// }
 			line[fields[k]] = values[k]
 		}
 		res = append(res, line)

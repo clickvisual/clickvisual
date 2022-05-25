@@ -16,8 +16,8 @@ import (
 
 type DingDing struct{}
 
-func (d *DingDing) Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel) (err error) {
-	markdown, err := d.transformToMarkdown(notification, alarm)
+func (d *DingDing) Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (err error) {
+	markdown, err := d.transformToMarkdown(notification, alarm, oneTheLogs)
 	if err != nil {
 		return
 	}
@@ -40,13 +40,11 @@ func (d *DingDing) Send(notification view.Notification, alarm *db.Alarm, channel
 	}
 
 	defer func() { _ = resp.Body.Close() }()
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
 	return
 }
 
 // TransformToMarkdown transform alertmanager notification to dingtalk markdow message
-func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db.Alarm) (markdown *view.DingTalkMarkdown, err error) {
+func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db.Alarm, oneTheLogs string) (markdown *view.DingTalkMarkdown, err error) {
 
 	groupKey := notification.GroupKey
 	status := notification.Status
@@ -70,6 +68,9 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		buffer.WriteString(fmt.Sprintf("##### 链接: %s/alarm/rules/history?id=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, start, end,
 		))
+		if oneTheLogs != "" {
+			buffer.WriteString(fmt.Sprintf("##### 详情: %s", oneTheLogs))
+		}
 	}
 
 	markdown = &view.DingTalkMarkdown{

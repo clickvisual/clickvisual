@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/gotomicro/ego-component/egorm"
-	"github.com/kl7sn/toolkit/xgo"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -39,49 +38,21 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	obj := db.Database{
 		Iid:          iid,
 		Name:         req.Name,
 		Cluster:      req.Cluster,
 		Uid:          c.Uid(),
 		IsCreateByCV: 1,
+		Desc:         req.Desc,
 	}
-	op, err := service.InstanceManager.Load(iid)
+	_, err := service.DatabaseCreate(obj)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(1, err.Error(), nil)
 		return
-	}
-	tx := invoker.Db.Begin()
-	if err = db.DatabaseCreate(tx, &obj); err != nil {
-		c.JSONE(1, "create failed 01: "+err.Error(), nil)
-		return
-	}
-	if req.Cluster != "" {
-		xgo.Go(func() {
-			_ = op.DatabaseCreate(req.Name, req.Cluster)
-		})
-		if err = tx.Commit().Error; err != nil {
-			tx.Rollback()
-			c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
-			return
-		}
-		c.JSONOK("cluster database creation takes more time")
-	} else {
-		err = op.DatabaseCreate(req.Name, req.Cluster)
-		if err != nil {
-			tx.Rollback()
-			c.JSONE(core.CodeErr, "create failed: "+err.Error(), nil)
-			return
-		}
-		if err = tx.Commit().Error; err != nil {
-			tx.Rollback()
-			c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
-			return
-		}
-		c.JSONOK()
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"database": obj})
+	c.JSONE(core.CodeOK, "succ", nil)
 	return
 }
 
@@ -126,6 +97,7 @@ func DatabaseList(c *core.Context) {
 			Iid:  row.Iid,
 			Name: row.Name,
 			Uid:  row.Uid,
+			Desc: row.Desc,
 		}
 		if row.Instance != nil {
 			tmp.DatasourceType = row.Instance.Datasource
@@ -187,5 +159,42 @@ func DatabaseDelete(c *core.Context) {
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesDelete, map[string]interface{}{"database": database})
+	c.JSONOK()
+}
+
+func DatabaseUpdate(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var (
+		req view.ReqDatabaseCreate
+		err error
+	)
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	database, err := db.DatabaseInfo(invoker.Db, id)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(database.Iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(id),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["desc"] = req.Desc
+	if err = db.DatabaseUpdate(invoker.Db, id, ups); err != nil {
+		c.JSONE(1, "update failed 01"+err.Error(), nil)
+		return
+	}
+	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }

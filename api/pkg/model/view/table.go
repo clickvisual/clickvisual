@@ -12,6 +12,10 @@ type ReqTableCreateExistBatch struct {
 	TableList []ReqTableCreateExist `form:"tableList" json:"tableList"`
 }
 
+type ReqTableUpdate struct {
+	Desc string `form:"desc"`
+}
+
 type ReqTableCreate struct {
 	TableName string `form:"tableName" binding:"required"`
 	Typ       int    `form:"typ" binding:"required"`
