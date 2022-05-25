@@ -426,23 +426,12 @@ export default {
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "Modify the success",
-  "log.editLogLibraryModal.title": "Edit log library",
   "log.editLogLibraryModal.label.tabName": "Log library Name",
   "log.editLogLibraryModal.label.createType": "Create a type",
-  "log.editLogLibraryModal.desc.placeholder": "Please enter a description",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
-  "log.editDatabaseModel.modifySuc": "Modify the success",
   "log.editDatabaseModel.title": "Edit the database",
-  "log.editDatabaseModel.label.name": "Database name",
-  "log.editDatabaseModel.label.instanceName": "Instance name",
   "log.editDatabaseModel.label.datasourceType": "Data source type",
-  "log.editDatabaseModel.label.mode": "mode",
-  "log.editDatabaseModel.label.mode.clusters": "clusters",
-  "log.editDatabaseModel.label.mode.standAlone": "stand-alone",
-  "log.editDatabaseModel.label.clusters": "clusters",
-  "log.editDatabaseModel.label.desc": "desc",
-  "log.editDatabaseModel.desc.placeholder": "Please enter a description",
 
   // DateTimeSelectedCard
   "dateTime.relative": "Relatively",
