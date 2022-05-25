@@ -57,3 +57,13 @@ type RespAlarmHistoryList struct {
 	Succ  int64              `json:"succ"`
 	List  []*db.AlarmHistory `json:"list"`
 }
+
+type RespAlarmList struct {
+	*db.Alarm
+	TableName    string `json:"tableName"`
+	Tid          int    `json:"tid"`
+	DatabaseName string `json:"databaseName"`
+	Did          int    `json:"did"`
+	InstanceName string `json:"instanceName"`
+	Iid          int    `json:"iid"`
+}

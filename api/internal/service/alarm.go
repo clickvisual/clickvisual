@@ -396,3 +396,29 @@ func AllPrometheusReload() {
 	}
 	return
 }
+
+func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
+	res := make([]view.RespAlarmList, 0)
+	for _, alarmItem := range respList {
+		if alarmItem.User == nil {
+			u, _ := db.UserInfo(alarmItem.Uid)
+			alarmItem.User = &u
+		}
+		alarmItem.User.Password = "*"
+		instanceInfo, tableInfo, _, errAlarmInfo := db.GetAlarmTableInstanceInfo(alarmItem.ID)
+		if errAlarmInfo != nil {
+			invoker.Logger.Error("attachInfo", elog.String("error", errAlarmInfo.Error()))
+			continue
+		}
+		res = append(res, view.RespAlarmList{
+			Alarm:        alarmItem,
+			TableName:    tableInfo.Name,
+			Tid:          tableInfo.ID,
+			DatabaseName: tableInfo.Database.Name,
+			Did:          tableInfo.Did,
+			InstanceName: instanceInfo.Name,
+			Iid:          instanceInfo.ID,
+		})
+	}
+	return res
+}

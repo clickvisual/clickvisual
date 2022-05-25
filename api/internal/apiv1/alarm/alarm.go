@@ -154,6 +154,7 @@ func List(c *core.Context) {
 		return
 	}
 	name := c.Query("name")
+	iid, _ := strconv.Atoi(c.Query("iid"))
 	tid, _ := strconv.Atoi(c.Query("tid"))
 	did, _ := strconv.Atoi(c.Query("did"))
 	status, _ := strconv.Atoi(c.Query("status"))
@@ -173,7 +174,28 @@ func List(c *core.Context) {
 	if did != 0 {
 		query["cv_base_table.did"] = did
 		total, list := db.AlarmListByDidPage(query, req)
-		c.JSONPage(filterSensitiveInfo(list), core.Pagination{
+		c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
+			Current:  req.Current,
+			PageSize: req.PageSize,
+			Total:    total,
+		})
+		return
+	}
+	if iid != 0 {
+		conds := egorm.Conds{}
+		if iid != 0 {
+			conds["iid"] = iid
+		}
+		ds, _ := db.DatabaseList(invoker.Db, conds)
+		list := make([]view.RespAlarmList, 0)
+		var total int64
+		for _, d := range ds {
+			query["cv_base_table.did"] = d.ID
+			totalTmp, listTmp := db.AlarmListByDidPage(query, req)
+			list = append(list, service.AlarmAttachInfo(listTmp)...)
+			total += totalTmp
+		}
+		c.JSONPage(list, core.Pagination{
 			Current:  req.Current,
 			PageSize: req.PageSize,
 			Total:    total,
@@ -181,19 +203,12 @@ func List(c *core.Context) {
 		return
 	}
 	total, list := db.AlarmListPage(query, req)
-	c.JSONPage(filterSensitiveInfo(list), core.Pagination{
+	c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 		Total:    total,
 	})
 	return
-}
-
-func filterSensitiveInfo(respList []*db.Alarm) []*db.Alarm {
-	for k := range respList {
-		respList[k].User.Password = "*"
-	}
-	return respList
 }
 
 func Info(c *core.Context) {
