@@ -216,7 +216,7 @@ export default function useLogUrlParams() {
     if (databaseList.length > 0 && did && !currentDatabase) {
       const database = databaseList.find((item) => parseInt(did) === item.id);
       onChangeCurrentDatabase(database);
-    } else if (databaseList.length > 0 && !currentDatabase) {
+    } else if (databaseList.length > 0 && !currentDatabase && !urlState.tid) {
       // onChangeCurrentDatabase(databaseList[0]);
       onChangeVisibleDatabaseDraw(true);
     }

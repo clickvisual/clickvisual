@@ -299,6 +299,7 @@ export default {
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
   "datasource.logLibrary.quickAdd": "快速创建日志库",
   "datasource.tooltip.icon.info": "日志库详情",
+  "datasource.tooltip.icon.edit": "编辑日志库",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
@@ -336,7 +337,9 @@ export default {
   "datasource.draw.search": "搜索数据库",
   "datasource.draw.logLibraryButton": "接入已有日志库",
   "datasource.draw.table.datasource": "数据库",
+  "datasource.draw.table.datasourceDesc": "数据库描述",
   "datasource.draw.table.instance": "实例",
+  "datasource.draw.table.instanceDesc": "实例描述",
   "datasource.draw.table.deployment": "部署方式",
   "datasource.draw.table.type": "数据库类型",
   "datasource.draw.table.empty.type.tip": "无数据库类型",
@@ -394,6 +397,27 @@ export default {
   "log.item.copy.success": "复制成功",
   "log.item.copy.failed": "复制失败，请手动复制",
   "log.item.moreTag": "查看更多日志信息",
+
+  // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
+  "log.editLogLibraryModal.modifySuc": "修改成功",
+  "log.editLogLibraryModal.title": "编辑日志库",
+  "log.editLogLibraryModal.label.tabName": "日志库名称",
+  "log.editLogLibraryModal.label.createType": "创建类型",
+  "log.editLogLibraryModal.label.desc": "描述",
+  "log.editLogLibraryModal.desc.placeholder": "请输入描述",
+
+  // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
+  "log.editDatabaseModel.modifySuc": "修改成功",
+  "log.editDatabaseModel.title": "编辑数据库",
+  "log.editDatabaseModel.label.name": "数据库名称",
+  "log.editDatabaseModel.label.instanceName": "实例名称",
+  "log.editDatabaseModel.label.datasourceType": "数据源类型",
+  "log.editDatabaseModel.label.mode": "类型",
+  "log.editDatabaseModel.label.mode.clusters": "集群",
+  "log.editDatabaseModel.label.mode.standAlone": "单机",
+  "log.editDatabaseModel.label.clusters": "集群",
+  "log.editDatabaseModel.label.desc": "描述",
+  "log.editDatabaseModel.desc.placeholder": "请输入描述",
 
   // DateTimeSelectedCard
   "dateTime.relative": "相对",

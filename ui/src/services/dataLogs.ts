@@ -300,6 +300,14 @@ export default {
     );
   },
 
+  // Get log library details
+  async updataTableInfo(id: number, data: any) {
+    return request<any>(process.env.PUBLIC_PATH + `api/v1/tables/${id}`, {
+      method: "PATCH",
+      data,
+    });
+  },
+
   // Obtain the table id from the third-party channel
   async getTableId(params: GetTableIdRequest) {
     return request<API.Res<number>>(
