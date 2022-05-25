@@ -22,7 +22,6 @@ const Details = (props: DetailsProps) => {
         </span>
       </div>
       {details.map((item: any, index) => {
-        console.log(item);
         return (
           <div>
             <span>{index + 1}. </span>

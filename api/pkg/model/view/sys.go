@@ -4,6 +4,10 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
+type ReqTestInstance struct {
+	Dsn string `json:"dsn" binding:"required"`
+}
+
 type ReqCreateInstance struct {
 	Datasource       string     `json:"datasource" binding:"required"`
 	Name             string     `json:"name" binding:"required"`

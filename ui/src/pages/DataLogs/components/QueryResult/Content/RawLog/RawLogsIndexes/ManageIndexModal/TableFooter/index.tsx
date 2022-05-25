@@ -3,6 +3,7 @@ import mangeIndexModalStyles from "@/pages/DataLogs/components/QueryResult/Conte
 import { Button } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useIntl } from "umi";
+import { hashType } from "@/models/datalogs/types";
 
 type TableFooterProps = {
   options: FormListOperation;
@@ -20,7 +21,9 @@ const TableFooter = (props: TableFooterProps) => {
           <div className={mangeIndexModalStyles.context}>
             <div className={mangeIndexModalStyles.operationBtn}>
               <Button
-                onClick={() => options.add({ typ: 0 })}
+                onClick={() =>
+                  options.add({ typ: 0, hashTyp: hashType.noneSet })
+                }
                 type={"primary"}
                 icon={<PlusCircleOutlined />}
               >

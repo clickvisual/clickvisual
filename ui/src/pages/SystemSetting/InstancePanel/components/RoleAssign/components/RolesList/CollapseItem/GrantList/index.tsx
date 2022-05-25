@@ -16,8 +16,6 @@ const GrantList = (props: GrantListProps) => {
   const { parentField } = props;
   const { commonInfo } = useModel("pms");
   const { roleForm } = useContext(AppRolesContext);
-  console.log("commonInfo", commonInfo);
-  console.log("grantFields", parentField);
   const i18n = useIntl();
   return (
     <Form.List name={[parentField.name, "grant"]}>

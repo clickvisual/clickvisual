@@ -7,8 +7,9 @@ import (
 	"sync"
 
 	"github.com/ClickHouse/clickhouse-go"
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
@@ -34,7 +35,7 @@ func NewInstanceManager() *instanceManager {
 			// TODO Not supported at this time
 		case db.DatasourceClickHouse:
 			// Test connection, storage
-			chDb, err := clickHouseLink(ds.Dsn)
+			chDb, err := ClickHouseLink(ds.Dsn)
 			if err != nil {
 				invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 				continue
@@ -54,7 +55,7 @@ func (i *instanceManager) Add(obj *db.Instance) error {
 	switch obj.Datasource {
 	case db.DatasourceClickHouse:
 		// Test connection, storage
-		chDb, err := clickHouseLink(obj.Dsn)
+		chDb, err := ClickHouseLink(obj.Dsn)
 		if err != nil {
 			invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 			return err
@@ -173,7 +174,7 @@ func (i *instanceManager) ReadPermissionTable(uid, iid, tid int) bool {
 	return false
 }
 
-func clickHouseLink(dsn string) (db *sql.DB, err error) {
+func ClickHouseLink(dsn string) (db *sql.DB, err error) {
 	if strings.Contains(dsn, "?") {
 		dsn = dsn + "&max_execution_time=60"
 	}
@@ -193,4 +194,160 @@ func clickHouseLink(dsn string) (db *sql.DB, err error) {
 	db.SetMaxIdleConns(100)
 	db.SetMaxOpenConns(50)
 	return
+}
+
+func InstanceCreate(req view.ReqCreateInstance) (obj db.Instance, err error) {
+	conds := egorm.Conds{}
+	conds["datasource"] = req.Datasource
+	conds["name"] = req.Name
+	checks, err := db.InstanceList(conds)
+	if err != nil {
+		err = errors.Wrap(err, "create DB failed 01: ")
+		return
+	}
+	invoker.Logger.Debug("InstanceCreate", elog.Any("checks", checks))
+	if len(checks) > 0 {
+		err = errors.New("data source configuration with duplicate name")
+		return
+	}
+	if req.Mode == inquiry.ModeCluster && len(req.Clusters) == 0 {
+		err = errors.New("you need to fill in the cluster information")
+		return
+	}
+	obj = db.Instance{
+		Datasource:       req.Datasource,
+		Name:             req.Name,
+		Dsn:              strings.TrimSpace(req.Dsn),
+		RuleStoreType:    req.RuleStoreType,
+		FilePath:         req.FilePath,
+		Desc:             req.Desc,
+		ClusterId:        req.ClusterId,
+		Namespace:        req.Namespace,
+		Configmap:        req.Configmap,
+		PrometheusTarget: req.PrometheusTarget,
+		ReplicaStatus:    req.ReplicaStatus,
+		Mode:             req.Mode,
+		Clusters:         req.Clusters,
+	}
+	invoker.Logger.Debug("instanceCreate", elog.Any("obj", obj))
+	if req.PrometheusTarget != "" {
+		if err = Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
+			err = errors.Wrap(err, "create DB failed 02:")
+			return
+		}
+	}
+	tx := invoker.Db.Begin()
+	if err = db.InstanceCreate(tx, &obj); err != nil {
+		tx.Rollback()
+		err = errors.Wrap(err, "create DB failed 03: ")
+		return
+	}
+	if err = InstanceManager.Add(&obj); err != nil {
+		tx.Rollback()
+		err = errors.Wrap(err, "DNS configuration exception, database connection failure 01: ")
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		err = errors.Wrap(err, "DNS configuration exception, database connection failure 02: ")
+		return
+	}
+	return obj, nil
+}
+
+func DatabaseCreate(req db.Database) (out db.Database, err error) {
+	op, err := InstanceManager.Load(req.Iid)
+	if err != nil {
+		return
+	}
+	tx := invoker.Db.Begin()
+	if err = db.DatabaseCreate(tx, &req); err != nil {
+		err = errors.Wrap(err, "create failed 01:")
+		return
+	}
+	err = op.DatabaseCreate(req.Name, req.Cluster)
+	if err != nil {
+		tx.Rollback()
+		err = errors.Wrap(err, "create failed 02: ")
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
+		err = errors.Wrap(err, "create failed 03: ")
+		return
+	}
+	return req, nil
+}
+
+func TableCreate(uid int, databaseInfo db.Database, param view.ReqTableCreate) (tableInfo db.Table, err error) {
+	op, err := InstanceManager.Load(databaseInfo.Iid)
+	if err != nil {
+		return
+	}
+	s, d, v, a, err := op.TableCreate(databaseInfo.ID, databaseInfo, param)
+	if err != nil {
+		err = errors.Wrap(err, "create failed 01:")
+		return
+	}
+	tableInfo = db.Table{
+		Did:            databaseInfo.ID,
+		Name:           param.TableName,
+		Typ:            param.Typ,
+		Days:           param.Days,
+		Brokers:        param.Brokers,
+		Topic:          param.Topics,
+		Desc:           param.Desc,
+		SqlData:        d,
+		SqlStream:      s,
+		SqlView:        v,
+		SqlDistributed: a,
+		TimeField:      db.TimeFieldSecond,
+		CreateType:     inquiry.TableCreateTypeCV,
+		Uid:            uid,
+	}
+	err = db.TableCreate(invoker.Db, &tableInfo)
+	if err != nil {
+		err = errors.Wrap(err, "create failed 02:")
+		return
+	}
+	return tableInfo, nil
+}
+
+func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
+	var (
+		addMap map[string]*db.Index
+		delMap map[string]*db.Index
+		newMap map[string]*db.Index
+	)
+	// check repeat
+	repeatMap := make(map[string]interface{})
+	for _, r := range data {
+		if r.Typ == 3 {
+			err = errors.New("param error: json type 3 should not in params:" + r.Field)
+			return
+		}
+		key := r.Field
+		if r.RootName != "" {
+			key = r.RootName + "." + r.Field
+		}
+		if _, ok := repeatMap[key]; ok {
+			err = errors.New("param error: repeat index field name:" + r.Field)
+			return
+		}
+		repeatMap[key] = struct{}{}
+	}
+	req := view.ReqCreateIndex{
+		Tid:  tid,
+		Data: data,
+	}
+	req.Tid = tid
+	addMap, delMap, newMap, err = Index.Diff(req)
+	if err != nil {
+		return
+	}
+	invoker.Logger.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
+	err = Index.Sync(req, addMap, delMap, newMap)
+	if err != nil {
+		return
+	}
+	return nil
 }

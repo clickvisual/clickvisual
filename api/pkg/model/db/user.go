@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ego-component/egorm"
 	"github.com/google/uuid"
-	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"

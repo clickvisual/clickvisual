@@ -3,7 +3,7 @@ package constx
 import (
 	"errors"
 
-	"github.com/kl7sn/toolkit/kerror"
+	"github.com/gotomicro/cetus/pkg/kerror"
 )
 
 var (

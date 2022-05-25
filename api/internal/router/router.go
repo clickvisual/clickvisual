@@ -17,6 +17,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/kube"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/permission"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/setting"
+	"github.com/clickvisual/clickvisual/api/internal/apiv1/template"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/middlewares"
@@ -77,6 +78,7 @@ func GetRouter() *egin.Component {
 		// mock
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
+		v1Open.POST("/template/:id", core.Handle(template.Gen))
 	}
 
 	v1 := r.Group(apiPrefix+"/v1", middlewares.AuthChecker())
@@ -121,6 +123,7 @@ func GetRouter() *egin.Component {
 	}
 	// Instance
 	{
+		v1.POST("/sys/instances/test", core.Handle(base.InstanceTest))
 		v1.POST("/sys/instances", core.Handle(base.InstanceCreate))
 		v1.GET("/sys/instances", core.Handle(base.InstanceList))
 		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))
@@ -147,10 +150,13 @@ func GetRouter() *egin.Component {
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
+		v1.PATCH("/tables/:id", core.Handle(base.TableUpdate))
+	}
+	// analysis fields
+	{
 		v1.GET("/tables/:id/indexes", core.Handle(base.Indexes))
 		v1.GET("/tables/:id/indexes/:idx", core.Handle(base.TableIndexes))
 		v1.PATCH("/tables/:id/indexes", core.Handle(base.IndexUpdate))
-		v1.PATCH("/tables/:id", core.Handle(base.TableUpdate))
 	}
 	// view
 	{

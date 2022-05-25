@@ -34,6 +34,7 @@ export type PaneType = {
 };
 
 export enum hashType {
+  noneSet = 0,
   siphash = 1,
   urlhash = 2,
 }

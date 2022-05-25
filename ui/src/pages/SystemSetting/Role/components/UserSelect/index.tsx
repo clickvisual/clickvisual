@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { Avatar, Select, TreeSelect } from "antd";
 import { SelectProps } from "antd/es/select";
 import useConsole, { DepTree } from "../../hooks/useConsole";
-import { Console } from "@/services/console";
 import styled from "styled-components";
 
 const { TreeNode } = TreeSelect;

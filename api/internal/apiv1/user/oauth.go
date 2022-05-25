@@ -10,8 +10,8 @@ import (
 	"net/url"
 
 	"github.com/gin-contrib/sessions"
+	"github.com/gotomicro/cetus/pkg/kauth"
 	"github.com/gotomicro/ego/core/econf"
-	"github.com/kl7sn/toolkit/kauth"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 

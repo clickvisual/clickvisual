@@ -7,6 +7,7 @@ import { LOGMAXTEXTLENGTH } from "@/config/config";
 
 type LogContentParseProps = {
   logContent: any;
+  secondaryIndexKeys?: any[];
   keyItem?: string;
   quickInsertLikeQuery: (key: string) => void;
 };
@@ -14,6 +15,7 @@ type LogContentParseProps = {
 const LogContentParse = ({
   logContent,
   keyItem,
+  secondaryIndexKeys,
   quickInsertLikeQuery,
 }: LogContentParseProps) => {
   const { highlightKeywords } = useModel("dataLogs");
@@ -41,6 +43,7 @@ const LogContentParse = ({
     content = (
       <>
         <JsonView
+          secondaryIndexKeys={secondaryIndexKeys}
           data={logContent}
           onClickValue={quickInsertLikeQuery}
           highLightValue={highlightKeywords}
