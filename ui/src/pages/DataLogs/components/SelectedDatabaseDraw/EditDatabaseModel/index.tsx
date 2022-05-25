@@ -30,7 +30,7 @@ const EditDatabaseModel = () => {
         return;
       }
       message.success(
-        i18n.formatMessage({ id: "log.editDatabaseModel.modifySuc" })
+        i18n.formatMessage({ id: "log.editLogLibraryModal.modifySuc" })
       );
       onChangeIsEditDatavase(false);
       doGetDatabaseList();
@@ -60,14 +60,14 @@ const EditDatabaseModel = () => {
           <Input />
         </Form.Item>
         <Form.Item
-          label={i18n.formatMessage({ id: "log.editDatabaseModel.label.name" })}
+          label={i18n.formatMessage({ id: "database.form.label.name" })}
           name={"name"}
         >
           <Input disabled />
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "log.editDatabaseModel.label.instanceName",
+            id: "instance.instanceName",
           })}
           name={"instanceName"}
         >
@@ -81,26 +81,23 @@ const EditDatabaseModel = () => {
         >
           <Input disabled />
         </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({ id: "log.editDatabaseModel.label.mode" })}
-          name={"mode"}
-        >
+        <Form.Item label={i18n.formatMessage({ id: "type" })} name={"mode"}>
           <Select disabled>
             <Option value={1}>
               {i18n.formatMessage({
-                id: "log.editDatabaseModel.label.mode.clusters",
+                id: "instance.form.title.cluster",
               })}
             </Option>
             <Option value={0}>
               {i18n.formatMessage({
-                id: "log.editDatabaseModel.label.mode.standAlone",
+                id: "instance.form.title.modeType.single",
               })}
             </Option>
           </Select>
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "log.editDatabaseModel.label.clusters",
+            id: "instance.form.title.cluster",
           })}
           hidden={editDatabaseFormRef.current?.getFieldValue("mode") == 0}
           name={"clusters"}
@@ -108,12 +105,14 @@ const EditDatabaseModel = () => {
           <Input disabled />
         </Form.Item>
         <Form.Item
-          label={i18n.formatMessage({ id: "log.editDatabaseModel.label.desc" })}
+          label={i18n.formatMessage({
+            id: "description",
+          })}
           name={"desc"}
         >
           <TextArea
             placeholder={i18n.formatMessage({
-              id: "log.editDatabaseModel.desc.placeholder",
+              id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
             })}
           />
         </Form.Item>

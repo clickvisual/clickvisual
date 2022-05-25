@@ -401,24 +401,12 @@ export default {
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "修改成功",
-  "log.editLogLibraryModal.title": "编辑日志库",
   "log.editLogLibraryModal.label.tabName": "日志库名称",
   "log.editLogLibraryModal.label.createType": "创建类型",
-  "log.editLogLibraryModal.label.desc": "描述",
-  "log.editLogLibraryModal.desc.placeholder": "请输入描述",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
-  "log.editDatabaseModel.modifySuc": "修改成功",
   "log.editDatabaseModel.title": "编辑数据库",
-  "log.editDatabaseModel.label.name": "数据库名称",
-  "log.editDatabaseModel.label.instanceName": "实例名称",
   "log.editDatabaseModel.label.datasourceType": "数据源类型",
-  "log.editDatabaseModel.label.mode": "类型",
-  "log.editDatabaseModel.label.mode.clusters": "集群",
-  "log.editDatabaseModel.label.mode.standAlone": "单机",
-  "log.editDatabaseModel.label.clusters": "集群",
-  "log.editDatabaseModel.label.desc": "描述",
-  "log.editDatabaseModel.desc.placeholder": "请输入描述",
 
   // DateTimeSelectedCard
   "dateTime.relative": "相对",
