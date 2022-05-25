@@ -11,6 +11,7 @@ import { IndexInfoType } from "@/services/dataLogs";
 import { useIntl } from "umi";
 import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
+import { hashType } from "@/models/datalogs/types";
 
 const { Option } = Select;
 
@@ -58,14 +59,7 @@ const Index = ({
                 const list = form
                   .getFieldValue(["data", indexField.name, "jsonIndex"])
                   ?.map((item: IndexInfoType) => item.field);
-                const indexList = form
-                  .getFieldValue(["data"])
-                  ?.filter((item: IndexInfoType) => item.typ !== FieldType.Json)
-                  ?.map((item: IndexInfoType) => item.field);
-                if (
-                  list.indexOf(value) < index ||
-                  indexList.indexOf(value) > -1
-                ) {
+                if (list.indexOf(value) < index) {
                   return Promise.reject();
                 }
 
@@ -119,18 +113,14 @@ const Index = ({
         </Form.Item>
         <Form.Item noStyle name={[field.name, "hashTyp"]}>
           <Select style={{ width: 140 }} allowClear disabled={!isString}>
-            {hashList
-              // .filter((item: any) =>
-              //   isString ? item.value != 0 : item.value == 0
-              // )
-              .map((item) => (
-                <Option key={item.value} value={item.value}>
-                  {item.type ||
-                    i18n.formatMessage({
-                      id: "log.index.manage.enum.zero",
-                    })}
-                </Option>
-              ))}
+            {hashList.map((item) => (
+              <Option key={item.value} value={item.value}>
+                {item.type ||
+                  i18n.formatMessage({
+                    id: "log.index.manage.enum.zero",
+                  })}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item noStyle>
@@ -141,6 +131,7 @@ const Index = ({
                   typ: FieldType.String,
                   rootName: rootName,
                   alias: undefined,
+                  hashTyp: hashType.noneSet,
                 })
               }
             />
