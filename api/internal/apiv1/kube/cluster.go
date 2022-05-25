@@ -1,7 +1,7 @@
 package kube
 
 import (
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"

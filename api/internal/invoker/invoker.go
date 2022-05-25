@@ -1,8 +1,8 @@
 package invoker
 
 import (
+	"github.com/ego-component/egorm"
 	"github.com/gin-gonic/gin"
-	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egin"
 
