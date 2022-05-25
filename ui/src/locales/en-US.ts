@@ -1,5 +1,6 @@
 export default {
   operation: "Operation",
+  create: "Create",
   add: "Add",
   search: "Search",
   edit: "Edit",
@@ -14,6 +15,8 @@ export default {
   "error.copy": "Copy error message",
   "button.save": "Save",
   "button.cancel": "Cancel",
+  "button.ok": "OK",
+  "button.test": "Test",
   spin: "loading...",
   "table.column.filter.placeholder": "Please input conditions",
   "table.column.filter.reset": "Reset",
@@ -250,7 +253,6 @@ export default {
 
   // events
   "events.input.placeholder": "Please select a {value}",
-  "events.form.queryBtn": "The query",
   "events.list.noMore": "No more",
 
   // Data Logs
@@ -381,7 +383,6 @@ export default {
   "log.empty.logLibrary": "Please select need to query log library",
   "log.search.placeholder": "Please enter a query",
   "log.search.icon.quickSearch": "Created Query Criteria",
-  "log.search.help.title.inquire": "Inquire：",
   "log.search.help.content.specifyField":
     "Specify the field query: Method='Get' and _raw_log_ like '%error%'",
   "log.search.quickSearch.column.placeholder": "Please select column",
@@ -533,14 +534,12 @@ export default {
   "install.init.model.databaseInit.successTitle": "Initialization completed",
   "install.init.model.databaseInit.successContent":
     "When the database is initialized, click 'OK' to jump to the login page",
-  "install.init.model.databaseInit.successOkText": "OK",
 
   // sys -> instance
   "systemSetting.instancePanel.roleAssign.modelTitle.name": "Instance",
   "systemSetting.instancePanel.roleAssign.modelTitle.roleAuth":
     "Role authorization",
   "systemSetting.instancePanel.roleAssign.modelLabel.role": "Role",
-  "systemSetting.instancePanel.roleAssign.modelBottom.submitBtn": "Submit",
   "systemSetting.instancePanel.roleAssign.modelBottom.createCustomRoleBtn":
     "Create a user-defined role",
   "systemSetting.instancePanel.roleAssign.loadingText": "In the save",
@@ -563,11 +562,6 @@ export default {
     "The update operation",
   "systemSetting.instancePanel.roleAssign.roleModel.editModel.content":
     "Are you sure you want to update the character content?",
-  "systemSetting.instancePanel.roleAssign.roleModel.okText": "Confirm",
-  "systemSetting.instancePanel.roleAssign.roleModel.cancelText": "Cancel",
-  "systemSetting.instancePanel.roleAssign.roleModel.save": "Save",
-  "systemSetting.instancePanel.roleAssign.roleModel.edit": "Edit",
-  "systemSetting.instancePanel.roleAssign.roleModel.create": "Create",
   "systemSetting.instancePanel.roleAssign.roleModel.custom": "Customize the",
   "systemSetting.instancePanel.roleAssign.roleModel.role": "Role",
   "systemSetting.instancePanel.roleAssign.roleModel.resources":
@@ -601,8 +595,6 @@ export default {
     "Role authorization ( [subresource]: [To allow operation] )",
 
   // sys -> role
-  "systemSetting.role.okTest": "Ok",
-  "systemSetting.role.cancelText": "Cancel",
   "systemSetting.role.delete.success": "Delete the success",
   "systemSetting.role.delete.title": "Delete operation",
   "systemSetting.role.delete.content":
@@ -612,15 +604,10 @@ export default {
   "systemSetting.role.table.belongResource": "Subordinate to the resource",
   "systemSetting.role.table.subResources": "Subresource",
   "systemSetting.role.table.acts": "Acts",
-  "systemSetting.role.table.option": "Option",
-  "systemSetting.role.table.option.edit": "Edit",
-  "systemSetting.role.table.option.delete": "Delete",
   "systemSetting.role.filtrate.label.belongResource":
     "Subordinate to the resource",
   "systemSetting.role.filtrate.label.name": "Name",
-  "systemSetting.role.filtrate.label.query": "Query",
   "systemSetting.role.filtrate.clear": "Removal of conditions",
-  "systemSetting.role.filtrate.create": "Create",
   "systemSetting.role.filtrate.rootAuthority": "Root authority",
   "systemSetting.role.filtrate.createDefaultRole": "Creating a Default Role",
   "systemSetting.role.filtrate.superAdministratorAuthorization":
@@ -631,7 +618,6 @@ export default {
   "systemSetting.role.collapseX.packUp": "Pack up",
 
   // sys -> role -> ItemForm
-  "systemSetting.role.itemForm.save": "Save",
   "systemSetting.role.itemForm.form.label.belongResource":
     "Subordinate to the resource",
   "systemSetting.role.itemForm.form.belongResource.placeholder":
@@ -652,14 +638,9 @@ export default {
     "Select Authorization operation",
 
   // sys -> role -> RootUserForm
-  "systemSetting.role.rootUserForm.save": "Save",
   "systemSetting.role.rootUserForm.superAdministrator": "Super administrator",
   "systemSetting.role.rootUserForm.superAdministrator.rules":
     "Please select at least one user!",
-
-  // sys -> role -> SearchTable
-  "systemSetting.role.SearchTable.query": "Query",
-  "systemSetting.role.SearchTable.reset": "Reset",
 
   // hooks->role
   "hooks.role.create.ing": "Being added",
@@ -673,7 +654,6 @@ export default {
     "Authorization failed please try again!",
 
   // models -> pms
-  "models.pms.loading": "Loading...",
   "models.pms.creating": "Creating...",
   "models.pms.create.suc": "Creating a successful",
   "models.pms.updating": "Updating...",
