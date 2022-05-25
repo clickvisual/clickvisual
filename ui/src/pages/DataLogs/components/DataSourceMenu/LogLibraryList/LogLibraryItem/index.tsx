@@ -3,6 +3,7 @@ import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/Log
 import { Dropdown, Menu, message, Tooltip } from "antd";
 import {
   FileTextOutlined,
+  FundProjectionScreenOutlined,
   FundViewOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
@@ -51,6 +52,8 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeViewsVisibleDraw,
     resetLogs,
     resetLogPaneLogsAndHighCharts,
+    onChangeIsModifyLog,
+    onChangeCurrentEditLogLibrary,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
 
@@ -174,6 +177,17 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           {i18n.formatMessage({
             id: "datasource.tooltip.icon.info",
           })}
+        </span>
+      </MenuItem>
+      <MenuItem
+        icon={<FundProjectionScreenOutlined />}
+        onClick={() => {
+          onChangeCurrentEditLogLibrary(logLibrary);
+          onChangeIsModifyLog(true);
+        }}
+      >
+        <span>
+          {i18n.formatMessage({ id: "datasource.tooltip.icon.edit" })}
         </span>
       </MenuItem>
       <MenuItem

@@ -3,7 +3,7 @@ package db
 import (
 	"errors"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"gorm.io/gorm"

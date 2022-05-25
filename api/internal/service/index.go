@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/pkg/kutl"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/kl7sn/toolkit/kslice"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
@@ -56,8 +56,8 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 		newIndexArr = append(newIndexArr, key)
 	}
 	invoker.Logger.Debug("Diff", elog.Any("newIndexArr", newIndexArr), elog.Any("nowIndexArr", nowIndexArr))
-	addArr := kslice.Difference(newIndexArr, nowIndexArr)
-	delArr := kslice.Difference(nowIndexArr, newIndexArr)
+	addArr := kutl.Difference(newIndexArr, nowIndexArr)
+	delArr := kutl.Difference(nowIndexArr, newIndexArr)
 	invoker.Logger.Debug("Diff", elog.Any("addArr", addArr), elog.Any("delArr", delArr))
 
 	var (

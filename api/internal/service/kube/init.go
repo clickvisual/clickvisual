@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/pkg/kutl"
+	"github.com/gotomicro/cetus/pkg/xgo"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/kl7sn/toolkit/kslice"
-	"github.com/kl7sn/toolkit/xgo"
 	"go.uber.org/zap"
 
 	"k8s.io/client-go/rest"
@@ -76,8 +76,8 @@ func (s *clusterManager) load() {
 		news = append(news, k)
 		newMap[k] = g
 	}
-	adds := kslice.Difference(news, olds)
-	dels := kslice.Difference(olds, news)
+	adds := kutl.Difference(news, olds)
+	dels := kutl.Difference(olds, news)
 	if len(adds) > 0 || len(dels) > 0 {
 		invoker.Logger.Info("streamConns", elog.Any("adds", adds), elog.Any("dels", dels))
 	}

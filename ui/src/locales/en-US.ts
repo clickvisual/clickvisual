@@ -316,6 +316,7 @@ export default {
     "Not query to the relevant logging library list",
   "datasource.logLibrary.quickAdd": "Create log library",
   "datasource.tooltip.icon.info": "Log Library Details",
+  "datasource.tooltip.icon.edit": "Edit log library",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
@@ -361,8 +362,11 @@ export default {
   "datasource.draw.title": "Database Switching",
   "datasource.draw.selected": "Please select an instance",
   "datasource.draw.search": "Search the database",
+  "datasource.draw.logLibraryButton": "Add an existing log library",
   "datasource.draw.table.datasource": "Database",
+  "datasource.draw.table.datasourceDesc": "Database Description",
   "datasource.draw.table.instance": "Instance",
+  "datasource.draw.table.instanceDesc": "Instance to describe",
   "datasource.draw.table.deployment": "Deployment way",
   "datasource.draw.table.type": "Database Type",
   "datasource.draw.table.empty.type.tip": "None Database type",
@@ -423,6 +427,15 @@ export default {
   "log.item.copy.success": "Copy success",
   "log.item.copy.failed": "Replication failed. Please manually copy the data",
   "log.item.moreTag": "View more logs",
+
+  // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
+  "log.editLogLibraryModal.modifySuc": "Modify the success",
+  "log.editLogLibraryModal.label.tabName": "Log library Name",
+  "log.editLogLibraryModal.label.createType": "Create a type",
+
+  // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
+  "log.editDatabaseModel.title": "Edit the database",
+  "log.editDatabaseModel.label.datasourceType": "Data source type",
 
   // DateTimeSelectedCard
   "dateTime.relative": "Relatively",

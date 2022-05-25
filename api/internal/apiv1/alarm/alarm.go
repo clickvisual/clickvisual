@@ -3,8 +3,8 @@ package alarm
 import (
 	"strconv"
 
+	"github.com/ego-component/egorm"
 	"github.com/google/uuid"
-	"github.com/gotomicro/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
@@ -140,7 +140,7 @@ func Update(c *core.Context) {
 		err = service.Alarm.Update(c.Uid(), id, req)
 	}
 	if err != nil {
-		c.JSONE(1, "alarm update failed 04"+err.Error(), nil)
+		c.JSONE(1, "alarm update failed 04: "+err.Error(), nil)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsUpdate, map[string]interface{}{"req": req})

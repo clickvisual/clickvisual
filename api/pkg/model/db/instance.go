@@ -7,7 +7,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"go.uber.org/zap"
 )
 

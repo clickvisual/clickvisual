@@ -15,6 +15,8 @@ import type { AlignType } from "rc-table/lib/interface";
 import { useEffect, useState } from "react";
 import { useIntl } from "umi";
 import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
+import EditDatabaseModel from "@/pages/DataLogs/components/SelectedDatabaseDraw/EditDatabaseModel";
+import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
@@ -41,7 +43,10 @@ const SelectedDataBaseDraw = () => {
     onChangeVisibleDatabaseDraw,
     logPanesHelper,
     onChangeLogLibraryCreatedModalVisible,
+    onChangeIsAccessLogLibrary,
     onChangeAddLogToDatabase,
+    onChangeIsEditDatavase,
+    onChangeCurrentEditDatabase,
   } = useModel("dataLogs");
   const { resetPane } = logPanesHelper;
   const {
@@ -99,6 +104,11 @@ const SelectedDataBaseDraw = () => {
     });
   };
 
+  const doEditDatabase = (record: DatabaseResponse) => {
+    onChangeIsEditDatavase(true);
+    onChangeCurrentEditDatabase(record);
+  };
+
   const handleSearch = (str: any) => {
     let arrList: any = [];
     databaseList.map((item: any) => {
@@ -110,7 +120,11 @@ const SelectedDataBaseDraw = () => {
   const getTreeDatabaseList = (dataList: any) => {
     let arrList: any[] = [];
     instanceList.map((item: any) => {
-      arrList.push({ newInstanceName: item.name, key: `${item.id}` });
+      arrList.push({
+        newInstanceName: item.name,
+        key: `${item.id}`,
+        instanceDesc: item.desc,
+      });
     });
 
     dataList.map((item: any) => {
@@ -166,6 +180,17 @@ const SelectedDataBaseDraw = () => {
       ),
     },
     {
+      title: i18n.formatMessage({ id: "datasource.draw.table.instanceDesc" }),
+      dataIndex: "instanceDesc",
+      align: "center" as AlignType,
+      width: "40%",
+      render: (instanceDesc: string) => (
+        <Tooltip title={instanceDesc}>
+          <span>{instanceDesc}</span>
+        </Tooltip>
+      ),
+    },
+    {
       title: i18n.formatMessage({ id: "datasource.draw.table.datasource" }),
       dataIndex: "name",
       width: "40%",
@@ -190,6 +215,17 @@ const SelectedDataBaseDraw = () => {
               {databaseName}
             </span>
           </Button>
+        </Tooltip>
+      ),
+    },
+    {
+      title: i18n.formatMessage({ id: "datasource.draw.table.datasourceDesc" }),
+      dataIndex: "desc",
+      align: "center" as AlignType,
+      width: "40%",
+      render: (desc: string) => (
+        <Tooltip title={desc}>
+          <span>{desc}</span>
         </Tooltip>
       ),
     },
@@ -249,28 +285,36 @@ const SelectedDataBaseDraw = () => {
       render: (name: any, record: DatabaseResponse) => (
         <Space>
           {name && (
-            <Tooltip title={i18n.formatMessage({ id: "delete" })}>
-              <IconFont
-                onClick={() => doDeletedDatabase(record)}
-                className={viewDrawStyles.buttonIcon}
-                type={"icon-delete"}
-              />
-            </Tooltip>
-          )}
-          {name && (
-            <Tooltip
-              title={i18n.formatMessage({
-                id: "datasource.draw.table.operation.tip",
-              })}
-            >
-              <PlusSquareOutlined
-                onClick={() => {
-                  onChangeAddLogToDatabase(record);
-                  onChangeLogLibraryCreatedModalVisible(true);
-                }}
-                className={databaseDrawStyle.addIcon}
-              />
-            </Tooltip>
+            <>
+              <Tooltip title={i18n.formatMessage({ id: "edit" })}>
+                <IconFont
+                  onClick={() => doEditDatabase(record)}
+                  className={viewDrawStyles.buttonIcon}
+                  style={{ color: "hsl(13, 80%, 57%)", fontSize: "13px" }}
+                  type={"icon-database-edit"}
+                />
+              </Tooltip>
+              <Tooltip title={i18n.formatMessage({ id: "delete" })}>
+                <IconFont
+                  onClick={() => doDeletedDatabase(record)}
+                  className={viewDrawStyles.buttonIcon}
+                  type={"icon-delete"}
+                />
+              </Tooltip>
+              <Tooltip
+                title={i18n.formatMessage({
+                  id: "datasource.draw.table.operation.tip",
+                })}
+              >
+                <PlusSquareOutlined
+                  onClick={() => {
+                    onChangeAddLogToDatabase(record);
+                    onChangeLogLibraryCreatedModalVisible(true);
+                  }}
+                  className={databaseDrawStyle.addIcon}
+                />
+              </Tooltip>
+            </>
           )}
         </Space>
       ),
@@ -314,6 +358,21 @@ const SelectedDataBaseDraw = () => {
                 type={"icon-add-database"}
               />
             </Tooltip>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "datasource.draw.logLibraryButton",
+              })}
+              placement={"bottomRight"}
+            >
+              <IconFont
+                onClick={() => {
+                  onChangeIsAccessLogLibrary(true);
+                  onChangeLogLibraryCreatedModalVisible(true);
+                }}
+                className={classNames(instanceTableStyles.logLibraryIcon)}
+                type={"icon-addLogLibrary"}
+              />
+            </Tooltip>
           </Space>
         </div>
       }
@@ -342,6 +401,8 @@ const SelectedDataBaseDraw = () => {
         />
       </div>
       <CreatedDatabaseModal />
+      <ModalCreatedLogLibrary />
+      <EditDatabaseModel />
     </Drawer>
   );
 };

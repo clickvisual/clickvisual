@@ -1,10 +1,9 @@
 import searchLogLibraryStyles from "@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary/index.less";
-import { Button, Input, Space, Tooltip } from "antd";
+import { Button, Input, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { PlusOutlined } from "@ant-design/icons";
-import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 
 type SearchLogLibraryProps = {
   onSearch: (val: string) => void;
@@ -36,7 +35,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
             id: "datasource.logLibrary.search.placeholder",
           })}
           allowClear
-          style={{ marginRight: "8px" }}
+          style={{ paddingRight: "8px", flex: 1 }}
           onSearch={onSearch}
           onChange={(ev) => setValue(ev.target.value)}
         />
@@ -50,10 +49,10 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
             disabled={!currentDatabase}
             onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
             type={"primary"}
+            style={{ width: "32px" }}
             icon={<PlusOutlined />}
           />
         </Tooltip>
-        <ModalCreatedLogLibrary />
       </div>
     </div>
   );

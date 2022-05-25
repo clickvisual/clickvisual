@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 

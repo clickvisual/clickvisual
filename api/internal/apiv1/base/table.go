@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gotomicro/ego-component/egorm"
+	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/pkg/kutl"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/kl7sn/toolkit/kfloat"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -607,7 +607,7 @@ func TableIndexes(c *core.Context) {
 		res = append(res, view.RespIndexItem{
 			IndexName: k,
 			Count:     v,
-			Percent:   kfloat.Decimal(float64(v) * 100 / float64(sum)),
+			Percent:   kutl.Decimal(float64(v) * 100 / float64(sum)),
 		})
 	}
 	sort.Slice(res, func(i, j int) bool {
