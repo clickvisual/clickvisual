@@ -35,7 +35,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
             id: "datasource.logLibrary.search.placeholder",
           })}
           allowClear
-          style={{ paddingRight: "8px" }}
+          style={{ paddingRight: "8px", flex: 1 }}
           onSearch={onSearch}
           onChange={(ev) => setValue(ev.target.value)}
         />
@@ -49,6 +49,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
             disabled={!currentDatabase}
             onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
             type={"primary"}
+            style={{ width: "32px" }}
             icon={<PlusOutlined />}
           />
         </Tooltip>

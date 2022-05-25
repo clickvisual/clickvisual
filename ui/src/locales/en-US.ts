@@ -311,6 +311,7 @@ export default {
     "Not query to the relevant logging library list",
   "datasource.logLibrary.quickAdd": "Create log library",
   "datasource.tooltip.icon.info": "Log Library Details",
+  "datasource.tooltip.icon.edit": "Edit log library",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
@@ -358,7 +359,9 @@ export default {
   "datasource.draw.search": "Search the database",
   "datasource.draw.logLibraryButton": "Add an existing log library",
   "datasource.draw.table.datasource": "Database",
+  "datasource.draw.table.datasourceDesc": "Database Description",
   "datasource.draw.table.instance": "Instance",
+  "datasource.draw.table.instanceDesc": "Instance to describe",
   "datasource.draw.table.deployment": "Deployment way",
   "datasource.draw.table.type": "Database Type",
   "datasource.draw.table.empty.type.tip": "None Database type",
@@ -420,6 +423,26 @@ export default {
   "log.item.copy.success": "Copy success",
   "log.item.copy.failed": "Replication failed. Please manually copy the data",
   "log.item.moreTag": "View more logs",
+
+  // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
+  "log.editLogLibraryModal.modifySuc": "Modify the success",
+  "log.editLogLibraryModal.title": "Edit log library",
+  "log.editLogLibraryModal.label.tabName": "Log library Name",
+  "log.editLogLibraryModal.label.createType": "Create a type",
+  "log.editLogLibraryModal.desc.placeholder": "Please enter a description",
+
+  // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
+  "log.editDatabaseModel.modifySuc": "Modify the success",
+  "log.editDatabaseModel.title": "Edit the database",
+  "log.editDatabaseModel.label.name": "Database name",
+  "log.editDatabaseModel.label.instanceName": "Instance name",
+  "log.editDatabaseModel.label.datasourceType": "Data source type",
+  "log.editDatabaseModel.label.mode": "mode",
+  "log.editDatabaseModel.label.mode.clusters": "clusters",
+  "log.editDatabaseModel.label.mode.standAlone": "stand-alone",
+  "log.editDatabaseModel.label.clusters": "clusters",
+  "log.editDatabaseModel.label.desc": "desc",
+  "log.editDatabaseModel.desc.placeholder": "Please enter a description",
 
   // DateTimeSelectedCard
   "dateTime.relative": "Relatively",

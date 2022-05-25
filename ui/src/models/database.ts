@@ -17,6 +17,10 @@ const Database = () => {
     loadingText: false,
   });
 
+  const doUpdatedDatabase = useRequest(api.updatedDatabase, {
+    loadingText: false,
+  });
+
   const onChangeCreatedDatabaseModal = (visible: boolean) => {
     setVisibleModal(visible);
   };
@@ -24,6 +28,7 @@ const Database = () => {
   return {
     createdDatabase,
     deletedDatabase,
+    doUpdatedDatabase,
     visibleCreatedDatabaseModal: visibleModal,
     onChangeCreatedDatabaseModal,
   };

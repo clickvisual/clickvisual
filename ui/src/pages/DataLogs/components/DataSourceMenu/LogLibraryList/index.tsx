@@ -4,6 +4,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import LogLibraryItem from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryItem";
 import DatabaseViewsDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw";
+import EditLogLibraryModal from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/EditLogLibraryModal";
 import { useState } from "react";
 import { TablesResponse } from "@/services/dataLogs";
 import LogLibraryInfoDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryInfoDraw";
@@ -27,25 +28,27 @@ const LogLibraryList = (props: LogLibraryListProps) => {
 
   const i18n = useIntl();
 
-  if (list?.length <=0) {
-      return <>
-          <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              style={{ marginBottom: 10 }}
-              description={i18n.formatMessage({
-                  id: "datasource.logLibrary.empty",
-              })}
-          />
-          <div className={logLibraryListStyles.emptyBtn}>
-              <Button
-                  onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
-                  type={"primary"}
-                  icon={<PlusOutlined />}
-              >
-                  {i18n.formatMessage({ id: "datasource.logLibrary.quickAdd" })}
-              </Button>
-          </div>
+  if (list?.length <= 0) {
+    return (
+      <>
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          style={{ marginBottom: 10 }}
+          description={i18n.formatMessage({
+            id: "datasource.logLibrary.empty",
+          })}
+        />
+        <div className={logLibraryListStyles.emptyBtn}>
+          <Button
+            onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
+            type={"primary"}
+            icon={<PlusOutlined />}
+          >
+            {i18n.formatMessage({ id: "datasource.logLibrary.quickAdd" })}
+          </Button>
+        </div>
       </>
+    );
   }
 
   return (
@@ -68,6 +71,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
       </Spin>
       <DatabaseViewsDraw logLibrary={selectedLogLibrary as TablesResponse} />
       <LogLibraryInfoDraw logLibrary={selectedLogLibrary as TablesResponse} />
+      <EditLogLibraryModal />
     </div>
   );
 };

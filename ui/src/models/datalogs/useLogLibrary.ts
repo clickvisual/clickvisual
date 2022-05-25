@@ -6,10 +6,14 @@ export default function useLogLibrary() {
   const [createdVisible, setCreatedVisible] = useState<boolean>(false);
   const [infoVisible, setInfoVisible] = useState<boolean>(false);
   const [isAccessLogLibrary, setIsAccessLogLibrary] = useState<boolean>(false);
+  const [isEditDatabase, setIsEditDatabase] = useState<boolean>(false);
+  const [currentEditDatabase, setEditCurrentDatabase] = useState<any>();
+
+  const onChangeCurrentEditDatabase = (data: any) => {
+    setEditCurrentDatabase(data);
+  };
 
   const onChangeCreatedVisible = (visible: boolean) => {
-    console.log(visible, "visible");
-
     setCreatedVisible(visible);
   };
   const onChangeInfoVisible = (visible: boolean) => {
@@ -17,6 +21,9 @@ export default function useLogLibrary() {
   };
   const onChangeIsAccessLogLibrary = (visible: boolean) => {
     setIsAccessLogLibrary(visible);
+  };
+  const onChangeIsEditDatavase = (visible: boolean) => {
+    setIsEditDatabase(visible);
   };
 
   const createdLogLibrary = useRequest(api.createdTable, {
@@ -37,6 +44,9 @@ export default function useLogLibrary() {
   const getLogLibrary = useRequest(api.getTableInfo, {
     loadingText: false,
   });
+  const doUpdataLogLibrary = useRequest(api.updataTableInfo, {
+    loadingText: false,
+  });
 
   const getLocalTables = useRequest(api.getLocalDatabasesAndTables, {
     loadingText: false,
@@ -50,13 +60,18 @@ export default function useLogLibrary() {
     logLibraryCreatedModalVisible: createdVisible,
     logLibraryInfoDrawVisible: infoVisible,
     isAccessLogLibrary,
+    isEditDatabase,
+    currentEditDatabase,
     onChangeLogLibraryCreatedModalVisible: onChangeCreatedVisible,
     onChangeLogLibraryInfoDrawVisible: onChangeInfoVisible,
     onChangeIsAccessLogLibrary,
+    onChangeIsEditDatavase,
+    onChangeCurrentEditDatabase,
 
     doCreatedLogLibrary: createdLogLibrary,
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
+    doUpdataLogLibrary,
     getLocalTables,
     getTableColumns,
     doCreatedLocalLogLibrary,

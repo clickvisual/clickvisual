@@ -7,15 +7,24 @@ import { message } from "antd";
 export default function useLogLibraryViews() {
   const [visibleDraw, setVisibleDraw] = useState<boolean>(false);
   const [visibleFormModal, setVisibleFormModal] = useState<boolean>(false);
+  const [isModifyLog, setIsModifyLog] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [editView, setEditView] = useState<CreatedViewRequest | undefined>();
   const [viewList, setViewList] = useState<ViewResponse[]>([]);
+  const [currentEditLogLibrary, setCurrentEditLogLibrary] = useState<any>();
 
   const onChangeVisibleDraw = (visible: boolean) => {
     setVisibleDraw(visible);
   };
   const onChangeVisibleFormModal = (visible: boolean) => {
     setVisibleFormModal(visible);
+  };
+  const onChangeIsModifyLog = (visible: boolean) => {
+    setIsModifyLog(visible);
+  };
+
+  const onChangeCurrentEditLogLibrary = (val: any) => {
+    setCurrentEditLogLibrary(val);
   };
 
   const onChangeIsEdit = (flag: boolean) => {
@@ -77,9 +86,13 @@ export default function useLogLibraryViews() {
     viewsVisibleDraw: visibleDraw,
     viewVisibleModal: visibleFormModal,
     viewIsEdit: isEdit,
+    isModifyLog,
+    currentEditLogLibrary,
     onChangeViewVisibleModal: onChangeVisibleFormModal,
     onChangeViewsVisibleDraw: onChangeVisibleDraw,
     onChangeViewIsEdit: onChangeIsEdit,
+    onChangeIsModifyLog,
+    onChangeCurrentEditLogLibrary,
     getViewList,
     createdView,
     updatedView,
