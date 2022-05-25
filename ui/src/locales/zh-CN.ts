@@ -1,5 +1,6 @@
 export default {
   operation: "操作",
+  create: "新建",
   add: "添加",
   search: "查询",
   edit: "编辑",
@@ -13,7 +14,9 @@ export default {
   "error.content": "错误：{msg}",
   "error.copy": "复制错误信息",
   "button.save": "保存",
-  "button.cancel": "关闭",
+  "button.cancel": "取消",
+  "button.ok": "确定",
+  "button.test": "测试",
   spin: "加载中...",
   "table.column.filter.placeholder": "请输入查询条件",
   "table.column.filter.reset": "重置",
@@ -244,7 +247,6 @@ export default {
 
   // events
   "events.input.placeholder": "请选择{value}",
-  "events.form.queryBtn": "查询",
   "events.list.noMore": "没有更多了",
 
   // Data Logs
@@ -357,7 +359,6 @@ export default {
   "log.empty.logLibrary": "请选择需要查询的日志库",
   "log.search.placeholder": "请输入查询语句",
   "log.search.icon.quickSearch": "增加查询条件",
-  "log.search.help.title.inquire": "查询：",
   "log.search.help.content.specifyField":
     "指定字段查询：Method='Get' and _raw_log_ like '%error%'",
   "log.search.quickSearch.column.placeholder": "请选择 column",
@@ -499,13 +500,11 @@ export default {
   "install.init.model.databaseInit.successTitle": "初始化完成",
   "install.init.model.databaseInit.successContent":
     "数据库初始化完成，点击'确定'按钮跳转到登录页面",
-  "install.init.model.databaseInit.successOkText": "确定",
 
   // sys -> instance -> roleAssign
   "systemSetting.instancePanel.roleAssign.modelTitle.name": "实例",
   "systemSetting.instancePanel.roleAssign.modelTitle.roleAuth": "角色授权",
   "systemSetting.instancePanel.roleAssign.modelLabel.role": "角色",
-  "systemSetting.instancePanel.roleAssign.modelBottom.submitBtn": "提交",
   "systemSetting.instancePanel.roleAssign.modelBottom.createCustomRoleBtn":
     "新建自定义角色",
   "systemSetting.instancePanel.roleAssign.loadingText": "保存中...",
@@ -528,11 +527,6 @@ export default {
     "更新操作",
   "systemSetting.instancePanel.roleAssign.roleModel.editModel.content":
     "您确定要更新角色内容吗？",
-  "systemSetting.instancePanel.roleAssign.roleModel.okText": "确认",
-  "systemSetting.instancePanel.roleAssign.roleModel.cancelText": "取消",
-  "systemSetting.instancePanel.roleAssign.roleModel.save": "保存",
-  "systemSetting.instancePanel.roleAssign.roleModel.edit": "编辑",
-  "systemSetting.instancePanel.roleAssign.roleModel.create": "新建",
   "systemSetting.instancePanel.roleAssign.roleModel.custom": "自定义",
   "systemSetting.instancePanel.roleAssign.roleModel.role": "角色",
   "systemSetting.instancePanel.roleAssign.roleModel.resources": "所属资源",
@@ -563,8 +557,6 @@ export default {
   "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle":
     "角色权限 ( [子资源]: [准许操作] )",
   // sys -> role
-  "systemSetting.role.okTest": "确定",
-  "systemSetting.role.cancelText": "取消",
   "systemSetting.role.delete.success": "删除成功",
   "systemSetting.role.delete.title": "删除操作",
   "systemSetting.role.delete.content": "您确定要删除角色: {name}吗？",
@@ -573,14 +565,9 @@ export default {
   "systemSetting.role.table.belongResource": "所属资源",
   "systemSetting.role.table.subResources": "子资源",
   "systemSetting.role.table.acts": "准许",
-  "systemSetting.role.table.option": "操作",
-  "systemSetting.role.table.option.edit": "编辑",
-  "systemSetting.role.table.option.delete": "删除",
   "systemSetting.role.filtrate.label.belongResource": "所属资源",
   "systemSetting.role.filtrate.label.name": "角色名",
-  "systemSetting.role.filtrate.label.query": "查询",
   "systemSetting.role.filtrate.clear": "清空条件",
-  "systemSetting.role.filtrate.create": "新建",
   "systemSetting.role.filtrate.rootAuthority": "root授权",
   "systemSetting.role.filtrate.createDefaultRole": "创建默认角色",
   "systemSetting.role.filtrate.superAdministratorAuthorization":
@@ -591,7 +578,6 @@ export default {
   "systemSetting.role.collapseX.packUp": "收起",
 
   // sys -> role -> ItemForm
-  "systemSetting.role.itemForm.save": "保存",
   "systemSetting.role.itemForm.form.label.belongResource": "所属资源",
   "systemSetting.role.itemForm.form.belongResource.placeholder":
     "请选择所属类型",
@@ -607,14 +593,9 @@ export default {
   "systemSetting.role.itemForm.form.acts.rules": "请选择授权操作",
 
   // sys -> role -> RootUserForm
-  "systemSetting.role.rootUserForm.save": "保存",
   "systemSetting.role.rootUserForm.superAdministrator": "超级管理员",
   "systemSetting.role.rootUserForm.superAdministrator.rules":
     "请至少选择一个用户!",
-
-  // sys -> role -> SearchTable
-  "systemSetting.role.SearchTable.query": "查询",
-  "systemSetting.role.SearchTable.reset": "重置",
 
   // sys -> role-> hooks -> role
   "hooks.role.create.ing": "正在添加",
@@ -627,7 +608,6 @@ export default {
   "hooks.role.authorization.failure.tips": "授权失败请重试！",
 
   // models -> pms
-  "models.pms.loading": "加载中...",
   "models.pms.creating": "创建中...",
   "models.pms.create.suc": "创建成功",
   "models.pms.updating": "更新中...",
