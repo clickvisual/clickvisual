@@ -58,7 +58,7 @@ const RootUsersForm: React.FC<ListFormProps> = (props) => {
   };
 
   const modalFooter = {
-    okText: i18n.formatMessage({ id: "systemSetting.role.rootUserForm.save" }),
+    okText: i18n.formatMessage({ id: "button.save" }),
     onOk: handleSubmit,
     onCancel,
   };

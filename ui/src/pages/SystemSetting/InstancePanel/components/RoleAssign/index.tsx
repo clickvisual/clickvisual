@@ -119,7 +119,7 @@ const AppRoleAssignListForm = (props: AppRolesProps) => {
                   style={{ width: "200px" }}
                 >
                   {i18n.formatMessage({
-                    id: "systemSetting.instancePanel.roleAssign.modelBottom.submitBtn",
+                    id: "submit",
                   })}
                 </Button>
                 <Button

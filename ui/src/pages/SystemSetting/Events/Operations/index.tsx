@@ -145,7 +145,7 @@ const Operations = ({ loadList, onChangeData }: OperationsProps) => {
               type={"primary"}
               htmlType={"submit"}
             >
-              {i18n.formatMessage({ id: "events.form.queryBtn" })}
+              {i18n.formatMessage({ id: "search" })}
             </Button>
           </Form.Item>
         </Space>

@@ -49,7 +49,7 @@ const Index: React.FC<ListFormProps> = (props) => {
 
   const handleChangeBelongType = () => {
     if (!commonInfo) {
-      fetchPmsCommonInfo();
+      fetchPmsCommonInfo(0);
     }
     const selectedBelongType = form.getFieldValue("belong_type");
     if (selectedBelongType === "table") {
@@ -60,7 +60,7 @@ const Index: React.FC<ListFormProps> = (props) => {
   };
 
   const modalFooter = {
-    okText: i18n.formatMessage({ id: "systemSetting.role.itemForm.save" }),
+    okText: i18n.formatMessage({ id: "button.save" }),
     onOk: handleSubmit,
     onCancel,
   };

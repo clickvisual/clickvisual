@@ -18,6 +18,10 @@ export interface InstanceType extends TimeBaseType {
   desc?: string;
 }
 
+export interface TestInstanceRequest {
+  dsn: string;
+}
+
 export interface ClustersRequest {
   current?: number;
   pageSize?: number;
@@ -47,6 +51,18 @@ export default {
       }
     );
   },
+
+  // Test instance
+  async testInstance(data: TestInstanceRequest) {
+    return request<API.Res<any>>(
+      process.env.PUBLIC_PATH + `api/v1/sys/instances/test`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
   // Create an instance
   async createdInstance(data: InstanceType) {
     return request<API.Res<string>>(

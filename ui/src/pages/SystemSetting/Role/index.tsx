@@ -89,10 +89,10 @@ function PmsDefaultRoles() {
       onOk: () => doDeleteRole(record.id),
       okButtonProps: { danger: true },
       okText: i18n.formatMessage({
-        id: "systemSetting.role.okTest",
+        id: "button.ok",
       }),
       cancelText: i18n.formatMessage({
-        id: "systemSetting.role.cancelText",
+        id: "button.cancel",
       }),
     });
   };
@@ -170,7 +170,7 @@ function PmsDefaultRoles() {
     },
     {
       title: i18n.formatMessage({
-        id: "systemSetting.role.table.option",
+        id: "operation",
       }),
       key: "operating",
       valueType: "option",
@@ -181,7 +181,7 @@ function PmsDefaultRoles() {
           <>
             <Tooltip
               title={i18n.formatMessage({
-                id: "systemSetting.role.table.option.edit",
+                id: "edit",
               })}
             >
               <EditOutlined
@@ -190,7 +190,7 @@ function PmsDefaultRoles() {
                     setLoad(
                       message.loading(
                         i18n.formatMessage({
-                          id: "models.pms.loading",
+                          id: "spin",
                         }),
                         0
                       )
@@ -207,7 +207,7 @@ function PmsDefaultRoles() {
             <Divider type="vertical" />
             <Tooltip
               title={i18n.formatMessage({
-                id: "systemSetting.role.table.option.delete",
+                id: "delete",
               })}
             >
               <DeleteOutlined
@@ -286,7 +286,7 @@ function PmsDefaultRoles() {
                   <Button htmlType="submit" type={"primary"}>
                     <SearchOutlined />
                     {i18n.formatMessage({
-                      id: "systemSetting.role.filtrate.label.query",
+                      id: "search",
                     })}
                   </Button>
                 </Form.Item>
@@ -318,7 +318,7 @@ function PmsDefaultRoles() {
                   >
                     <PlusOutlined />{" "}
                     {i18n.formatMessage({
-                      id: "systemSetting.role.filtrate.create",
+                      id: "create",
                     })}
                   </Button>
                 </Form.Item>

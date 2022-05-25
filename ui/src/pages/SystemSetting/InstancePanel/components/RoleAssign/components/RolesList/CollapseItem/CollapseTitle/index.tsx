@@ -51,7 +51,7 @@ const CollapseTitle = (props: CollapseTitleProps) => {
     setLoad(
       message.loading(
         i18n.formatMessage({
-          id: "models.pms.loading",
+          id: "spin",
         }),
         0
       )
