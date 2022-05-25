@@ -140,7 +140,7 @@ func Update(c *core.Context) {
 		err = service.Alarm.Update(c.Uid(), id, req)
 	}
 	if err != nil {
-		c.JSONE(1, "alarm update failed 04"+err.Error(), nil)
+		c.JSONE(1, "alarm update failed 04: "+err.Error(), nil)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsUpdate, map[string]interface{}{"req": req})
