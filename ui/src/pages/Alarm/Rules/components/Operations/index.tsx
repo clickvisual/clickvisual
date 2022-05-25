@@ -88,6 +88,12 @@ const Operations = () => {
             operations.onChangeSelectIid(id);
             operations.onChangeSelectDid(undefined);
             operations.onChangeSelectTid(undefined);
+            doGetAlarms.run({
+              ...searchQuery,
+              iid: id,
+              did: undefined,
+              tid: undefined,
+            });
             setUrlState({
               ...urlState,
               iid: id,
@@ -116,7 +122,7 @@ const Operations = () => {
             operations.onChangeSelectDid(id);
             operations.onChangeSelectTid(undefined);
             if (id) getLogLibraries.run(id);
-            doGetAlarms.run({ ...searchQuery, did: id });
+            doGetAlarms.run({ ...searchQuery, did: id, tid: undefined });
             setUrlState({ ...urlState, did: id, tid: undefined });
           }}
           className={alarmStyles.selectedBar}

@@ -3,6 +3,7 @@ import { TimeBaseType } from "@/services/systemSetting";
 import { ChannelFormType } from "@/pages/Alarm/Notifications/components/ChannelFormItems";
 
 export interface AlarmsResponse {
+  iid?: number;
   did?: number;
   tid?: number;
   name?: string;
