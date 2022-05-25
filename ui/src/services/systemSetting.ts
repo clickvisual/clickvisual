@@ -134,4 +134,12 @@ export default {
       method: "DELETE",
     });
   },
+
+  // Updated database
+  async updatedDatabase(id: number, data: any) {
+    return request(process.env.PUBLIC_PATH + `api/v1/databases/${id}`, {
+      method: "PATCH",
+      data,
+    });
+  },
 };

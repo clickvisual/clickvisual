@@ -69,7 +69,7 @@ const CreatedDatabaseModal = () => {
       <Form
         ref={databaseFormRef}
         labelCol={{ span: 5 }}
-        wrapperCol={{ span: 19 }}
+        wrapperCol={{ span: 14 }}
         onFinish={onOk}
       >
         <Form.Item
