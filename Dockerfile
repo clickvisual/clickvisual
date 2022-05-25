@@ -25,6 +25,7 @@ COPY go.mod go.sum ./
 RUN go mod download -x
 COPY scripts scripts
 COPY api api
+COPY config config
 COPY Makefile Makefile
 COPY --from=js-builder /clickvisual/dist ./api/internal/ui/dist
 RUN ls -rlt ./api/internal/ui/dist && make build.api
