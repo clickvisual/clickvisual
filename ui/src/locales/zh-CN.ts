@@ -336,6 +336,7 @@ export default {
   "datasource.draw.title": "数据库列表",
   "datasource.draw.selected": "请选择实例",
   "datasource.draw.search": "搜索数据库",
+  "datasource.draw.logLibraryButton": "接入已有日志库",
   "datasource.draw.table.datasource": "数据库",
   "datasource.draw.table.instance": "实例",
   "datasource.draw.table.deployment": "部署方式",

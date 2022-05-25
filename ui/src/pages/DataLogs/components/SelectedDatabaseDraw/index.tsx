@@ -15,6 +15,7 @@ import type { AlignType } from "rc-table/lib/interface";
 import { useEffect, useState } from "react";
 import { useIntl } from "umi";
 import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
+import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
@@ -41,6 +42,7 @@ const SelectedDataBaseDraw = () => {
     onChangeVisibleDatabaseDraw,
     logPanesHelper,
     onChangeLogLibraryCreatedModalVisible,
+    onChangeIsAccessLogLibrary,
     onChangeAddLogToDatabase,
   } = useModel("dataLogs");
   const { resetPane } = logPanesHelper;
@@ -349,6 +351,21 @@ const SelectedDataBaseDraw = () => {
                 type={"icon-add-database"}
               />
             </Tooltip>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "datasource.draw.logLibraryButton",
+              })}
+              placement={"bottomRight"}
+            >
+              <IconFont
+                onClick={() => {
+                  onChangeIsAccessLogLibrary(true);
+                  onChangeLogLibraryCreatedModalVisible(true);
+                }}
+                className={classNames(instanceTableStyles.logLibraryIcon)}
+                type={"icon-addLogLibrary"}
+              />
+            </Tooltip>
           </Space>
         </div>
       }
@@ -377,6 +394,7 @@ const SelectedDataBaseDraw = () => {
         />
       </div>
       <CreatedDatabaseModal />
+      <ModalCreatedLogLibrary />
     </Drawer>
   );
 };
