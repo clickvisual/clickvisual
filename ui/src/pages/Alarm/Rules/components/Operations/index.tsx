@@ -8,13 +8,30 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import useUrlState from "@ahooksjs/use-url-state";
+
 const { Option } = Select;
+
+interface urlStateType {
+  iid?: string | number;
+  did?: string | number;
+  tid?: string | number;
+  status?: string | number;
+  name?: string;
+}
+
 const Operations = () => {
-  const [urlState, setUrlState] = useUrlState<any>();
+  const [urlState, setUrlState] = useUrlState<urlStateType>();
   const { operations, alarmDraw, doGetAlarms, currentPagination } =
     useModel("alarm");
 
-  const { tableList, databaseList, getLogLibraries, getDatabases } = operations;
+  const {
+    tableList,
+    databaseList,
+    instanceList,
+    getLogLibraries,
+    getDatabases,
+    getInstanceList,
+  } = operations;
 
   const { AlarmStatus } = useAlarmEnums();
   const i18n = useIntl();
@@ -38,6 +55,7 @@ const Operations = () => {
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
+
   /**
    * 该函数不支持连续调用两次，因为两个时间的...urlState做不到同步更新
    */
@@ -47,14 +65,16 @@ const Operations = () => {
   };
 
   useEffect(() => {
-    getDatabases.run();
-    urlState && urlState.did && getLogLibraries.run(urlState.did * 1);
-    urlState && urlState.did && operations.onChangeSelectDid(urlState.did * 1);
-    urlState && urlState.tid && operations.onChangeSelectTid(urlState.tid * 1);
-    urlState &&
-      urlState.status &&
-      operations.onChangeStatusId(urlState.status * 1);
-    urlState && urlState.name && operations.onChangeInputName(urlState.name);
+    getInstanceList.run();
+    getDatabases.run().then((res) => {
+      if (res?.code !== 0 || !urlState) return;
+      urlState.did && getLogLibraries.run(parseInt(urlState.did));
+      urlState.iid && operations.onChangeSelectIid(parseInt(urlState.iid));
+      urlState.did && operations.onChangeSelectDid(parseInt(urlState.did));
+      urlState.tid && operations.onChangeSelectTid(parseInt(urlState.tid));
+      urlState.status && operations.onChangeStatusId(parseInt(urlState.status));
+      urlState.name && operations.onChangeInputName(urlState.name);
+    });
   }, []);
 
   return (
@@ -63,12 +83,38 @@ const Operations = () => {
         <Select
           showSearch
           allowClear
+          value={operations.selectIid}
+          onChange={(id) => {
+            operations.onChangeSelectIid(id);
+            operations.onChangeSelectDid(undefined);
+            operations.onChangeSelectTid(undefined);
+            setUrlState({
+              ...urlState,
+              iid: id,
+              did: undefined,
+              tid: undefined,
+            });
+          }}
+          className={alarmStyles.selectedBar}
+          placeholder={`${i18n.formatMessage({
+            id: "datasource.draw.selected",
+          })}`}
+        >
+          {instanceList.length > 0 &&
+            instanceList.map((item) => (
+              <Option key={item.id} value={item.id as number}>
+                {item.name}
+              </Option>
+            ))}
+        </Select>
+        <Select
+          disabled={!operations.selectIid}
+          showSearch
+          allowClear
           value={operations.selectDid}
           onChange={(id) => {
             operations.onChangeSelectDid(id);
             operations.onChangeSelectTid(undefined);
-            // urlChange("did", id);
-            // urlChange("tid", undefined);
             if (id) getLogLibraries.run(id);
             doGetAlarms.run({ ...searchQuery, did: id });
             setUrlState({ ...urlState, did: id, tid: undefined });
@@ -79,11 +125,14 @@ const Operations = () => {
           })}`}
         >
           {databaseList.length > 0 &&
-            databaseList.map((item) => (
-              <Option key={item.id} value={item.id}>
-                {item.name}
-              </Option>
-            ))}
+            operations.selectIid &&
+            databaseList
+              .filter((item) => item.iid === operations.selectIid)
+              .map((item) => (
+                <Option key={item.id} value={item.id}>
+                  {item.name}
+                </Option>
+              ))}
         </Select>
         <Select
           disabled={!operations.selectDid}
