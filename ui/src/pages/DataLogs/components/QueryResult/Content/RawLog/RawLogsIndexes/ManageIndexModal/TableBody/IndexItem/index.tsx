@@ -29,8 +29,8 @@ export const typeList = [
 // 0 text 1 long 2 double 3 json
 export const hashList = [
   {
-    value: 0,
-    type: 0,
+    value: hashType.noneSet,
+    type: hashType.noneSet,
   },
   { value: hashType.siphash, type: "siphash" },
   { value: hashType.urlhash, type: "urlhash" },
@@ -119,6 +119,7 @@ const IndexItem = ({
                                 "field",
                               ]),
                               alias: undefined,
+                              hashTyp: hashType.noneSet,
                             },
                           ],
                         },
