@@ -91,8 +91,10 @@ const DataLogsModel = () => {
   const {
     logLibraryCreatedModalVisible,
     logLibraryInfoDrawVisible,
+    isAccessLogLibrary,
     onChangeLogLibraryInfoDrawVisible,
     onChangeLogLibraryCreatedModalVisible,
+    onChangeIsAccessLogLibrary,
     doCreatedLogLibrary,
     doGetLogLibrary,
     doDeletedLogLibrary,
@@ -505,6 +507,7 @@ const DataLogsModel = () => {
     highlightKeywords,
     visibleDataBaseDraw,
     visibleIndexModal,
+    isAccessLogLibrary,
 
     doGetLogs,
     doGetHighCharts,
@@ -529,6 +532,7 @@ const DataLogsModel = () => {
     onChangeHiddenHighChart,
     onChangeCurrentLogPane,
     onChangeAddLogToDatabase,
+    onChangeIsAccessLogLibrary,
 
     doSelectedDatabase,
     doParseQuery,
