@@ -55,17 +55,17 @@ const RoleModel = () => {
       }),
       onOk: roleModalForm.submit,
       okText: i18n.formatMessage({
-        id: "systemSetting.instancePanel.roleAssign.roleModel.okText",
+        id: "button.ok",
       }),
       cancelText: i18n.formatMessage({
-        id: "systemSetting.instancePanel.roleAssign.roleModel.cancelText",
+        id: "button.cancel",
       }),
     });
   };
   const modalFooter = [
     <Button key="back" onClick={resetRole}>
       {i18n.formatMessage({
-        id: "systemSetting.instancePanel.roleAssign.roleModel.cancelText",
+        id: "button.cancel",
       })}
     </Button>,
     <Button
@@ -74,7 +74,7 @@ const RoleModel = () => {
       type="primary"
     >
       {i18n.formatMessage({
-        id: "systemSetting.instancePanel.roleAssign.roleModel.save",
+        id: "button.save",
       })}
     </Button>,
   ];
@@ -83,10 +83,10 @@ const RoleModel = () => {
       title={`${
         isEditor
           ? i18n.formatMessage({
-              id: "systemSetting.instancePanel.roleAssign.roleModel.edit",
+              id: "edit",
             })
           : i18n.formatMessage({
-              id: "systemSetting.instancePanel.roleAssign.roleModel.create",
+              id: "create",
             })
       }${
         roleType === 2

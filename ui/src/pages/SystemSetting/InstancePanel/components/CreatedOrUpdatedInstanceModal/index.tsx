@@ -7,6 +7,7 @@ import {
   Form,
   FormInstance,
   Input,
+  message,
   Modal,
   Radio,
   Row,
@@ -32,6 +33,7 @@ import {
 import { cloneDeep } from "lodash";
 import classNames from "classnames";
 import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
+import IconFont from "@/components/IconFont";
 
 type CreatedOrUpdatedInstanceModalProps = {
   isEditor?: boolean;
@@ -45,8 +47,13 @@ const CreatedOrUpdatedInstanceModal = (
   props: CreatedOrUpdatedInstanceModalProps
 ) => {
   const { visible, isEditor, current, onCancel } = props;
-  const { doCreatedInstance, doUpdatedInstance, doGetInstanceList } =
-    useModel("instances");
+  const {
+    doCreatedInstance,
+    doUpdatedInstance,
+    doGetInstanceList,
+    doTestInstance,
+  } = useModel("instances");
+
   const { options, clusters, doGetClusters, doGetConfigMaps } =
     useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
@@ -54,6 +61,7 @@ const CreatedOrUpdatedInstanceModal = (
   const { AlarmStorages } = useAlarmStorages();
 
   const [moreOptionFlag, setMoreOptionFlag] = useState<boolean>(false);
+  const [disabledSubmit, setDisabledSubmit] = useState<boolean>(true);
 
   const onChangeMoreOptionFlag = (flag: boolean) => {
     setMoreOptionFlag(flag);
@@ -83,6 +91,25 @@ const CreatedOrUpdatedInstanceModal = (
     }
     onCancel();
   };
+
+  const handleTest = useDebounceFn(
+    () => {
+      const dsn = instanceFormRef.current?.getFieldValue("dsn");
+      if (!dsn) {
+        message.warning(
+          i18n.formatMessage({ id: "instance.form.test.warning" })
+        );
+        return;
+      }
+      doTestInstance.run({ dsn }).then((res) => {
+        if (res?.code === 0) {
+          setDisabledSubmit(false);
+        }
+      });
+    },
+    { wait: DEBOUNCE_WAIT }
+  ).run;
+
   const { run } = useDebounceFn(onSubmit, { wait: DEBOUNCE_WAIT });
 
   const filter = (inputValue: string, path: any) => {
@@ -161,13 +188,42 @@ const CreatedOrUpdatedInstanceModal = (
       title={i18n.formatMessage({
         id: `instance.form.title.${!isEditor ? "created" : "edit"}`,
       })}
-      visible={visible}
+      maskClosable={false}
       onCancel={onCancel}
-      confirmLoading={doCreatedInstance.loading || doUpdatedInstance.loading}
-      okButtonProps={{
-        icon: <SaveOutlined />,
-      }}
-      onOk={() => instanceFormRef.current?.submit()}
+      visible={visible}
+      footer={[
+        <Button key="back" onClick={onCancel}>
+          {i18n.formatMessage({ id: "button.cancel" })}
+        </Button>,
+        <Button
+          key="test"
+          icon={<IconFont type={"icon-database-test"} />}
+          loading={doTestInstance.loading}
+          onClick={handleTest}
+        >
+          {i18n.formatMessage({ id: "button.test" })}
+        </Button>,
+
+        <Button
+          key="submit"
+          type={"primary"}
+          disabled={disabledSubmit}
+          icon={<SaveOutlined />}
+          loading={doCreatedInstance.loading || doUpdatedInstance.loading}
+          onClick={() => instanceFormRef.current?.submit()}
+        >
+          {i18n.formatMessage({ id: "button.ok" })}
+        </Button>,
+        disabledSubmit && (
+          <Button type={"link"}>
+            <Tooltip
+              title={i18n.formatMessage({ id: "instance.form.test.tip" })}
+            >
+              <QuestionCircleOutlined />
+            </Tooltip>
+          </Button>
+        ),
+      ]}
     >
       <Form
         labelCol={{ span: 4 }}
@@ -355,6 +411,7 @@ const CreatedOrUpdatedInstanceModal = (
                   "tcp://127.0.0.1:9000?username=root&password=pass&read_timeout=10&write_timeout=20&debug=true",
               }
             )}
+            onChange={() => setDisabledSubmit(true)}
             autoSize={{ minRows: 5, maxRows: 5 }}
             allowClear
           />

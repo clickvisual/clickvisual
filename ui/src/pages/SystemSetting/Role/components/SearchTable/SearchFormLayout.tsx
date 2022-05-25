@@ -55,10 +55,10 @@ const SearchFormLayout = (props: SearchFormLayoutProps) => {
         <Space>
           {actions}
           <Button htmlType="submit" type="primary">
-            {i18n.formatMessage({ id: "systemSetting.role.SearchTable.query" })}
+            {i18n.formatMessage({ id: "search" })}
           </Button>
           <Button onClick={handleReset}>
-            {i18n.formatMessage({ id: "systemSetting.role.SearchTable.reset" })}
+            {i18n.formatMessage({ id: "table.column.filter.reset" })}
           </Button>
         </Space>
       </div>

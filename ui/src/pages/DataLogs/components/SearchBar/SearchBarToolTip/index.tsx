@@ -6,9 +6,7 @@ const SearchBarToolTip = () => {
   return (
     <div>
       <div className={searchBarStyles.tooltipTitle}>
-        <span>
-          {i18n.formatMessage({ id: "log.search.help.title.inquire" })}
-        </span>
+        <span>{i18n.formatMessage({ id: "search" })}</span>
         <ul>
           <li>
             {i18n.formatMessage({ id: "log.search.help.content.specifyField" })}

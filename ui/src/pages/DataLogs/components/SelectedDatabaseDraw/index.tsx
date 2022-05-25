@@ -60,8 +60,6 @@ const SelectedDataBaseDraw = () => {
     useModel("database");
   const i18n = useIntl();
 
-  const datasourceTypeList = [{ name: "ClickHouse", value: "ch" }];
-
   const doDeletedDatabase = (record: DatabaseResponse) => {
     DeletedModal({
       content: i18n.formatMessage(
@@ -110,7 +108,7 @@ const SelectedDataBaseDraw = () => {
     onChangeIsEditDatavase(true);
     onChangeCurrentEditDatabase(record);
   };
-  // lodash.cloneDeep(logPanes)
+
   const handleSearch = (str: any) => {
     let arrList: any = [];
     databaseList.map((item: any) => {
@@ -278,39 +276,6 @@ const SelectedDataBaseDraw = () => {
         </Tooltip>
       ),
     },
-    // {
-    //   title: i18n.formatMessage({ id: "datasource.draw.table.type" }),
-    //   dataIndex: "datasourceType",
-    //   width: "20%",
-    //   align: "center" as AlignType,
-    //   ellipsis: { showTitle: false },
-    //   render: (datasourceType: string) => {
-    //     const result =
-    //       datasourceTypeList.filter(
-    //         (item: { name: string; value: string }) =>
-    //           item.value === datasourceType
-    //       ) || [];
-    //     if (result.length > 0) {
-    //       return (
-    //         <Tooltip title={result[0].name}>
-    //           <span>{result[0].name}</span>
-    //         </Tooltip>
-    //       );
-    //     } else if (result == null) {
-    //       return (
-    //         <Tooltip
-    //           title={i18n.formatMessage({
-    //             id: "datasource.draw.table.empty.type.tip",
-    //           })}
-    //         >
-    //           <span>-</span>
-    //         </Tooltip>
-    //       );
-    //     } else {
-    //       return <></>;
-    //     }
-    //   },
-    // },
     {
       title: i18n.formatMessage({ id: "operation" }),
       dataIndex: "name",

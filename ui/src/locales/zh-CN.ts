@@ -126,6 +126,8 @@ export default {
   "instance.form.moreOptions": "更多设置",
   "instance.form.rule.dsn": "请输入数据源连接串",
   "instance.form.rule.configmap": "请选择 ConfigMap",
+  "instance.form.test.warning": "请填写 DNS 后再进行测试",
+  "instance.form.test.tip": "请先进行连接测试后再提交表单",
   "instance.operation.addDatabase": "新增数据库",
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
