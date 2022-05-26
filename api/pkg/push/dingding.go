@@ -70,7 +70,7 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		return
 	}
 	exp := db.WhereConditionFromFilter(filters)
-
+	user, _ := db.UserInfo(alarm.Uid)
 	ins, table, _, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
@@ -82,6 +82,7 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", ins.Name, ins.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 相关日志库：%s %s\n", table.Name, table.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 状态：%s\n", status))
+		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
 
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
 
