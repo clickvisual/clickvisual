@@ -223,17 +223,6 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 	return nil
 }
 
-func WhereConditionFromFilter(filters []*db.AlarmFilter) (filter string) {
-	for i, f := range filters {
-		if i == 0 {
-			filter = f.When
-		} else {
-			filter = fmt.Sprintf("%s AND %s", filter, f.When)
-		}
-	}
-	return filter
-}
-
 func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCreate) (err error) {
 	filtersDB, err := i.FilterCreate(tx, obj.ID, req.Filters)
 	if err != nil {
@@ -270,7 +259,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 		}
 	}
 	// gen view table name & sql
-	viewTableName, viewSQL, err := op.AlertViewGen(obj, WhereConditionFromFilter(filtersDB))
+	viewTableName, viewSQL, err := op.AlertViewGen(obj, db.WhereConditionFromFilter(filtersDB))
 	if err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 06"), elog.String("err", err.Error()))
 		return
@@ -399,24 +388,27 @@ func AllPrometheusReload() {
 
 func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
 	res := make([]view.RespAlarmList, 0)
-	for _, alarmItem := range respList {
-		if alarmItem.User == nil {
-			u, _ := db.UserInfo(alarmItem.Uid)
-			alarmItem.User = &u
-		}
-		alarmItem.User.Password = "*"
-		instanceInfo, tableInfo, _, errAlarmInfo := db.GetAlarmTableInstanceInfo(alarmItem.ID)
+	for _, a := range respList {
+		instanceInfo, tableInfo, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(a.ID)
 		if errAlarmInfo != nil {
 			invoker.Logger.Error("attachInfo", elog.String("error", errAlarmInfo.Error()))
 			continue
 		}
+		if alarmInfo.User == nil || alarmInfo.User.ID == 0 {
+			u, _ := db.UserInfo(alarmInfo.Uid)
+			alarmInfo.User = &u
+		}
+		alarmInfo.User.Password = "*"
 		res = append(res, view.RespAlarmList{
-			Alarm:        alarmItem,
+			Alarm:        &alarmInfo,
 			TableName:    tableInfo.Name,
+			TableDesc:    tableInfo.Desc,
 			Tid:          tableInfo.ID,
 			DatabaseName: tableInfo.Database.Name,
+			DatabaseDesc: tableInfo.Database.Desc,
 			Did:          tableInfo.Did,
 			InstanceName: instanceInfo.Name,
+			InstanceDesc: instanceInfo.Desc,
 			Iid:          instanceInfo.ID,
 		})
 	}
