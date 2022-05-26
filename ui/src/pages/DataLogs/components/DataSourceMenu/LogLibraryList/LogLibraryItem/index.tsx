@@ -72,6 +72,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         pane: logLibrary.tableName,
         paneId,
         paneType: logLibrary.createType,
+        desc: logLibrary.desc,
       };
       addLogPane(paneId, pane);
       onChangeCurrentLogPane(pane);
@@ -157,6 +158,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
               id: parseInt(currentPane.paneId),
               tableName: currentPane.pane,
               createType: currentPane.paneType,
+              desc: currentPane.desc,
             });
           }
         } else hideMessage();
@@ -241,7 +243,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
-          {i18n.formatMessage({ id: "description" })}
+          {i18n.formatMessage({ id: "DescAsAlias" })}
           :&nbsp;
         </div>
         <div>{!logLibrary?.desc ? "" : logLibrary.desc}</div>

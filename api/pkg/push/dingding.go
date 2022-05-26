@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
@@ -52,20 +53,40 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	annotations := notification.CommonAnnotations
 
 	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("### 告警: %s \n", alarm.Name))
+	buffer.WriteString("### ClickVisual 告警\n")
+	buffer.WriteString(fmt.Sprintf("##### 告警名称: %s\n", alarm.Name))
 	if alarm.Desc != "" {
-		buffer.WriteString(fmt.Sprintf("##### 备注: %s\n", alarm.Desc))
+		buffer.WriteString(fmt.Sprintf("##### 告警描述: %s\n", alarm.Desc))
+	}
+	status = "告警中"
+	if status == "resolved" {
+		status = "已恢复"
 	}
 
+	condsFilter := egorm.Conds{}
+	condsFilter["alarm_id"] = alarm.ID
+	filters, err := db.AlarmFilterList(condsFilter)
+	if err != nil {
+		return
+	}
+	exp := db.WhereConditionFromFilter(filters)
+	user, _ := db.UserInfo(alarm.Uid)
+	ins, table, _, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
 		annotations = alert.Annotations
+		buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", exp))
+
+		buffer.WriteString(fmt.Sprintf("##### 首次触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
+		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", ins.Name, ins.Desc))
+		buffer.WriteString(fmt.Sprintf("##### 相关日志库：%s %s\n", table.Name, table.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 状态：%s\n", status))
-		buffer.WriteString(fmt.Sprintf("##### 时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("15:04:05")))
-		buffer.WriteString(fmt.Sprintf("##### 概要: %s\n\n", annotations["summary"]))
-		buffer.WriteString(fmt.Sprintf("##### 说明: %s\n\n", annotations["description"]))
-		buffer.WriteString(fmt.Sprintf("##### 链接: %s/alarm/rules/history?id=%d&start=%d&end=%d\n\n",
+		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
+
+		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
+
+		buffer.WriteString(fmt.Sprintf("##### 详情: %s/alarm/rules/history?id=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, start, end,
 		))
 		if oneTheLogs != "" {

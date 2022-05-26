@@ -11,19 +11,10 @@ const SourceHeader = () => {
     <div className={sourceHeaderStyles.sourceHeaderMain}>
       <div className={sourceHeaderStyles.sourceTitle}>
         {currentDatabase ? (
-          <Tooltip
-            title={i18n.formatMessage(
-              { id: "datasource.header.tip" },
-              {
-                instance: currentDatabase.instanceName,
-                database: currentDatabase.name,
-              }
-            )}
-          >
-            <span className={sourceHeaderStyles.titleContext}>
-              {currentDatabase.name}
-            </span>
-          </Tooltip>
+          <span className={sourceHeaderStyles.titleContext}>
+            {currentDatabase.name}
+            {currentDatabase.desc && `(${currentDatabase.desc})`}
+          </span>
         ) : (
           <span>
             {i18n.formatMessage({ id: "datasource.header.databaseEmpty" })}

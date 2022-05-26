@@ -1,5 +1,5 @@
 import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import { Button, Divider, message, Space, Table, Tooltip } from "antd";
+import { Divider, message, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
@@ -8,6 +8,7 @@ import { AlarmsResponse, AlarmType } from "@/services/alarm";
 import IconFont from "@/components/IconFont";
 import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
 import DeletedModal from "@/components/DeletedModal";
+import BreadCrumbs from "@/components/BreadCrumbs";
 import classNames from "classnames";
 import { useDebounceFn } from "ahooks";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
@@ -16,7 +17,7 @@ import useUrlState from "@ahooksjs/use-url-state";
 import useTimeUnits from "@/hooks/useTimeUnits";
 
 import moment from "moment";
-import { DEBOUNCE_WAIT, QUERY_PATH } from "@/config/config";
+import { DEBOUNCE_WAIT } from "@/config/config";
 import lodash from "lodash";
 import { urlStateType } from "@/pages/Alarm/Rules/components/Operations";
 
@@ -37,10 +38,6 @@ const AlarmTable = () => {
   } = useModel("alarm");
 
   const { AlarmStatus } = useAlarmEnums();
-
-  const getGoToQueryPagePath = (tid: number) => {
-    return `${QUERY_PATH}?tid=${tid}`;
-  };
 
   const searchQuery = {
     name: operations.inputName,
@@ -193,22 +190,17 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "alarm.rules.table.logLibrary" }),
       key: "alarmSource",
       align: "center",
+      width: "300px",
       ellipsis: { showTitle: true },
       render: (_: any, record: AlarmType) => {
-        return (
-          <Button
-            type={"link"}
-            onClick={() =>
-              window.open(getGoToQueryPagePath(record.tid), "_blank")
-            }
-          >{`${record.instanceName}/${record.databaseName}/${record.tableName}`}</Button>
-        );
+        return <BreadCrumbs logLibraryInfo={record} />;
       },
     },
     {
       title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
       dataIndex: "interval",
       align: "center",
+      width: "80px",
       render: (interval: number, record: AlarmType) => {
         const unit = FixedTimeUnits.filter(
           (item) => item.key === record.unit
@@ -235,7 +227,7 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "description" }),
       dataIndex: "desc",
-      width: "40%",
+      width: "20%",
       ellipsis: { showTitle: true },
       render: (desc: string) => (
         <Tooltip title={desc}>
@@ -249,10 +241,13 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "utime" }),
       dataIndex: "utime",
       ellipsis: { showTitle: true },
+      width: "160px",
       render: (utime: any) => (
-        <div className={alarmStyles.columnsEllipsis}>
-          <span>{moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss")}</span>
-        </div>
+        <Tooltip title={moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss")}>
+          <div className={alarmStyles.columnsEllipsis}>
+            <span>{moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss")}</span>
+          </div>
+        </Tooltip>
       ),
     },
     {

@@ -61,9 +61,12 @@ type RespAlarmHistoryList struct {
 type RespAlarmList struct {
 	*db.Alarm
 	TableName    string `json:"tableName"`
+	TableDesc    string `json:"tableDesc"`
 	Tid          int    `json:"tid"`
 	DatabaseName string `json:"databaseName"`
+	DatabaseDesc string `json:"databaseDesc"`
 	Did          int    `json:"did"`
 	InstanceName string `json:"instanceName"`
+	InstanceDesc string `json:"instanceDesc"`
 	Iid          int    `json:"iid"`
 }
