@@ -11,8 +11,14 @@ export interface AlarmsResponse {
   current: number;
   pageSize: number;
 }
+
 export interface AlarmType extends TimeBaseType {
+  iid: number;
+  instanceName: string;
+  did: number;
+  databaseName: string;
   tid: number;
+  tableName: string;
   uuid: string;
   alarmName: string;
   desc: string;

@@ -35,6 +35,9 @@ export const LOGIN_PATH = "/user/login";
 // 安装流程路由
 export const INSTALL_INIT = "/install/init";
 
+// 日志查询路由
+export const QUERY_PATH = process.env.PUBLIC_PATH + "query";
+
 // 免登录路由
 export const AVOID_CLOSE_ROUTING = [
   "/user/login",

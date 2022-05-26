@@ -427,6 +427,7 @@ export default {
   "alarm.rules.selected.placeholder.status": "请选择报警状态",
   "alarm.rules.button.created": "新增报警",
   "alarm.rules.table.alarmName": "报警名称",
+  "alarm.rules.table.logLibrary": "关联日志库",
   "alarm.rules.form.title": "报警监控规则",
   "alarm.rules.form.alarmName": "报警名称",
   "alarm.rules.form.description": "报警描述",
