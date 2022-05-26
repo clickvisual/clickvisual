@@ -7,6 +7,7 @@ export default {
   delete: "Delete",
   submit: "Submit",
   description: "Description",
+  DescAsAlias: "Alias",
   loading: "loading",
   loadingDone: "Loading successful",
   "error.title": "Request Failed",
@@ -364,9 +365,9 @@ export default {
   "datasource.draw.search": "Search the database",
   "datasource.draw.logLibraryButton": "Add an existing log library",
   "datasource.draw.table.datasource": "Database",
-  "datasource.draw.table.datasourceDesc": "Database Description",
+  "datasource.draw.table.datasourceDesc": "Database alias",
   "datasource.draw.table.instance": "Instance",
-  "datasource.draw.table.instanceDesc": "Instance to describe",
+  "datasource.draw.table.instanceDesc": "The instance alias",
   "datasource.draw.table.deployment": "Deployment way",
   "datasource.draw.table.type": "Database Type",
   "datasource.draw.table.empty.type.tip": "None Database type",
@@ -432,6 +433,7 @@ export default {
   "log.editLogLibraryModal.modifySuc": "Modify the success",
   "log.editLogLibraryModal.label.tabName": "Log library Name",
   "log.editLogLibraryModal.label.createType": "Create a type",
+  "log.editLogLibraryModal.label.desc.placeholder": "Please enter an alias",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "Edit the database",

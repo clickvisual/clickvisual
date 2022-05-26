@@ -97,7 +97,7 @@ const DataLogsModel = () => {
     onChangeLogLibraryInfoDrawVisible,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsAccessLogLibrary,
-    onChangeIsEditDatavase,
+    onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
     doCreatedLogLibrary,
     doGetLogLibrary,
@@ -193,6 +193,7 @@ const DataLogsModel = () => {
       id: parseInt(tabPane.paneId),
       tableName: tabPane.pane,
       createType: tabPane.paneType,
+      desc: tabPane.desc,
     });
     onChangeCurrentLogPane(tabPane);
   };
@@ -494,6 +495,14 @@ const DataLogsModel = () => {
     }
   }, [currentDatabase]);
 
+  useEffect(() => {
+    if (databaseList.length == 0) return;
+    const obj = databaseList.find(
+      (item: any) => item.id == currentDatabase?.id
+    );
+    setCurrentDatabase(obj);
+  }, [databaseList]);
+
   return {
     keywordInput,
     isHiddenHighChart,
@@ -547,7 +556,7 @@ const DataLogsModel = () => {
     onChangeCurrentLogPane,
     onChangeAddLogToDatabase,
     onChangeIsAccessLogLibrary,
-    onChangeIsEditDatavase,
+    onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
     onChangeCurrentEditLogLibrary,
 

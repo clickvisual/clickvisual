@@ -46,7 +46,7 @@ const SelectedDataBaseDraw = () => {
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsAccessLogLibrary,
     onChangeAddLogToDatabase,
-    onChangeIsEditDatavase,
+    onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
   } = useModel("dataLogs");
   const { resetPane } = logPanesHelper;
@@ -106,7 +106,7 @@ const SelectedDataBaseDraw = () => {
   };
 
   const doEditDatabase = (record: DatabaseResponse) => {
-    onChangeIsEditDatavase(true);
+    onChangeIsEditDatabase(true);
     onChangeCurrentEditDatabase(record);
   };
 

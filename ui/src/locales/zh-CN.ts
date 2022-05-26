@@ -7,6 +7,7 @@ export default {
   delete: "删除",
   submit: "提交",
   description: "描述",
+  DescAsAlias: "别名",
   loading: "正在加载",
   loadingDone: "加载成功",
   "error.title": "请求失败",
@@ -341,9 +342,9 @@ export default {
   "datasource.draw.search": "搜索数据库",
   "datasource.draw.logLibraryButton": "接入已有日志库",
   "datasource.draw.table.datasource": "数据库",
-  "datasource.draw.table.datasourceDesc": "数据库描述",
+  "datasource.draw.table.datasourceDesc": "数据库别名",
   "datasource.draw.table.instance": "实例",
-  "datasource.draw.table.instanceDesc": "实例描述",
+  "datasource.draw.table.instanceDesc": "实例别名",
   "datasource.draw.table.deployment": "部署方式",
   "datasource.draw.table.type": "数据库类型",
   "datasource.draw.table.empty.type.tip": "无数据库类型",
@@ -405,6 +406,7 @@ export default {
   "log.editLogLibraryModal.modifySuc": "修改成功",
   "log.editLogLibraryModal.label.tabName": "日志库名称",
   "log.editLogLibraryModal.label.createType": "创建类型",
+  "log.editLogLibraryModal.label.desc.placeholder": "请输入别名",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "编辑数据库",

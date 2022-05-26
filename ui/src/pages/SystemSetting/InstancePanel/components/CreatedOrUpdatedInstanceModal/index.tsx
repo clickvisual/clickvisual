@@ -418,14 +418,12 @@ const CreatedOrUpdatedInstanceModal = (
         </Form.Item>
         <Form.Item
           name={"desc"}
-          label={i18n.formatMessage({ id: "description" })}
+          label={i18n.formatMessage({ id: "DescAsAlias" })}
         >
-          <Input.TextArea
+          <Input
             placeholder={i18n.formatMessage({
               id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
             })}
-            autoSize={{ minRows: 5, maxRows: 5 }}
-            allowClear
           />
         </Form.Item>
         <Row>

@@ -6,7 +6,6 @@ import style from "./index.less";
 
 const EditLogLibraryModal = () => {
   const { Option } = Select;
-  const { TextArea } = Input;
   const i18n = useIntl();
   const {
     isModifyLog,
@@ -154,13 +153,13 @@ const EditLogLibraryModal = () => {
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "description",
+            id: "DescAsAlias",
           })}
           name={"desc"}
         >
-          <TextArea
+          <Input
             placeholder={i18n.formatMessage({
-              id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
+              id: "log.editLogLibraryModal.label.desc.placeholder",
             })}
           />
         </Form.Item>

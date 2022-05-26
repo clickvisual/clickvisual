@@ -96,6 +96,7 @@ export default function useLogUrlParams() {
       id: tid,
       tableName: res.data.name,
       createType: res.data.createType,
+      desc: res.data.desc,
     });
 
     const pane: PaneType = {
@@ -112,6 +113,7 @@ export default function useLogUrlParams() {
       activeIndex: parseInt(urlState.index),
       queryType: urlState.queryType,
       querySql: urlState.querySql,
+      desc: res.data.desc,
     };
 
     addLogPane(pane.paneId, pane);
