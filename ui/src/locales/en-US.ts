@@ -454,6 +454,7 @@ export default {
   "alarm.rules.selected.placeholder.status": "Please select alarm status",
   "alarm.rules.button.created": "Create Alarm",
   "alarm.rules.table.alarmName": "Alarm Name",
+  "alarm.rules.table.logLibrary": "Associated log library",
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
   "alarm.rules.form.description": "Alarm Description",

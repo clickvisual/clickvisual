@@ -8,10 +8,11 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import useUrlState from "@ahooksjs/use-url-state";
+import { AlarmsResponse } from "@/services/alarm";
 
 const { Option } = Select;
 
-interface urlStateType {
+export interface urlStateType {
   iid?: string | number;
   did?: string | number;
   tid?: string | number;
@@ -43,6 +44,7 @@ const Operations = () => {
   const searchQuery = {
     name: operations.inputName,
     did: operations.selectDid,
+    iid: operations.selectIid,
     tid: operations.selectTid,
     status: operations.statusId,
     ...currentPagination,
@@ -50,11 +52,24 @@ const Operations = () => {
 
   const handleSearch = useDebounceFn(
     () => {
-      doGetAlarms.run(searchQuery);
+      doGetAlarms.run({
+        ...searchQuery,
+        did: searchQuery.tid ? undefined : searchQuery.did,
+        iid: searchQuery.tid || searchQuery.did ? undefined : searchQuery.iid,
+      });
       urlChange("name", operations.inputName || undefined);
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
+
+  const handleSelect = (params: AlarmsResponse) => {
+    doGetAlarms.run({
+      ...params,
+      did: params.tid ? undefined : params.did,
+      iid: params.tid || params.did ? undefined : params.iid,
+    });
+    urlChange("name", operations.inputName || undefined);
+  };
 
   /**
    * 该函数不支持连续调用两次，因为两个时间的...urlState做不到同步更新
@@ -88,7 +103,7 @@ const Operations = () => {
             operations.onChangeSelectIid(id);
             operations.onChangeSelectDid(undefined);
             operations.onChangeSelectTid(undefined);
-            doGetAlarms.run({
+            handleSelect({
               ...searchQuery,
               iid: id,
               did: undefined,
@@ -122,7 +137,7 @@ const Operations = () => {
             operations.onChangeSelectDid(id);
             operations.onChangeSelectTid(undefined);
             if (id) getLogLibraries.run(id);
-            doGetAlarms.run({ ...searchQuery, did: id, tid: undefined });
+            handleSelect({ ...searchQuery, did: id, tid: undefined });
             setUrlState({ ...urlState, did: id, tid: undefined });
           }}
           className={alarmStyles.selectedBar}
@@ -147,7 +162,7 @@ const Operations = () => {
           value={operations.selectTid}
           onChange={(id) => {
             operations.onChangeSelectTid(id);
-            doGetAlarms.run({ ...searchQuery, tid: id });
+            handleSelect({ ...searchQuery, tid: id });
             urlChange("tid", id);
           }}
           className={alarmStyles.selectedBar}
@@ -171,7 +186,7 @@ const Operations = () => {
           })}`}
           onChange={(id) => {
             operations.onChangeStatusId(id);
-            doGetAlarms.run({ ...searchQuery, status: id });
+            handleSelect({ ...searchQuery, status: id });
             urlChange("status", id);
           }}
         >

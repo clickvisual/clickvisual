@@ -1,10 +1,10 @@
 import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import { Divider, message, Space, Table, Tooltip } from "antd";
+import { Button, Divider, message, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
-import { AlarmType } from "@/services/alarm";
+import { AlarmsResponse, AlarmType } from "@/services/alarm";
 import IconFont from "@/components/IconFont";
 import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
 import DeletedModal from "@/components/DeletedModal";
@@ -16,9 +16,12 @@ import useUrlState from "@ahooksjs/use-url-state";
 import useTimeUnits from "@/hooks/useTimeUnits";
 
 import moment from "moment";
+import { DEBOUNCE_WAIT, QUERY_PATH } from "@/config/config";
+import lodash from "lodash";
+import { urlStateType } from "@/pages/Alarm/Rules/components/Operations";
 
 const AlarmTable = () => {
-  const [urlState] = useUrlState<any>();
+  const [urlState] = useUrlState<urlStateType>();
   const i18n = useIntl();
   const { FixedTimeUnits } = useTimeUnits();
 
@@ -32,11 +35,17 @@ const AlarmTable = () => {
     onChangeRowAlarm,
     onChangePagination,
   } = useModel("alarm");
+
   const { AlarmStatus } = useAlarmEnums();
+
+  const getGoToQueryPagePath = (tid: number) => {
+    return `${QUERY_PATH}?tid=${tid}`;
+  };
 
   const searchQuery = {
     name: operations.inputName,
     did: operations.selectDid,
+    iid: operations.selectIid,
     tid: operations.selectTid,
     status: operations.statusId,
     ...currentPagination,
@@ -130,24 +139,29 @@ const AlarmTable = () => {
     { wait: 500 }
   ).run;
 
+  const handleGetAlarms = useDebounceFn(
+    (params: AlarmsResponse) => {
+      doGetAlarms.run({
+        ...params,
+        did: params.tid ? undefined : params.did,
+        iid: params.tid || params.did ? undefined : params.iid,
+      });
+    },
+    { wait: DEBOUNCE_WAIT }
+  ).run;
+
   useEffect(() => {
-    if (urlState && urlState.name) {
-      searchQuery.name = urlState.name;
-      if (urlState.did || urlState.status) {
-        const data = {
-          ...searchQuery,
-          ...urlState,
-        };
-        doGetAlarms.run(data);
-        searchQuery.did = urlState.did * 1 || undefined;
-        searchQuery.tid = urlState.tid * 1 || undefined;
-        searchQuery.status = urlState.status * 1 || undefined;
-      } else {
-        doGetAlarms.run(searchQuery);
-      }
-    } else {
-      doGetAlarms.run(searchQuery);
+    if (!urlState) {
+      handleGetAlarms(searchQuery);
+      return;
     }
+    const query = lodash.cloneDeep(searchQuery);
+    if (urlState.name) query.name = urlState.name;
+    if (urlState.iid) query.iid = parseInt(urlState.iid);
+    if (urlState.did) query.did = parseInt(urlState.did);
+    if (urlState.tid) query.tid = parseInt(urlState.tid);
+    if (urlState.status) query.status = parseInt(urlState.status);
+    handleGetAlarms(query);
   }, []);
 
   const column: ColumnsType<any> = [
@@ -174,6 +188,22 @@ const AlarmTable = () => {
           </div>
         </Tooltip>
       ),
+    },
+    {
+      title: i18n.formatMessage({ id: "alarm.rules.table.logLibrary" }),
+      key: "alarmSource",
+      align: "center",
+      ellipsis: { showTitle: true },
+      render: (_: any, record: AlarmType) => {
+        return (
+          <Button
+            type={"link"}
+            onClick={() =>
+              window.open(getGoToQueryPagePath(record.tid), "_blank")
+            }
+          >{`${record.instanceName}/${record.databaseName}/${record.tableName}`}</Button>
+        );
+      },
     },
     {
       title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
