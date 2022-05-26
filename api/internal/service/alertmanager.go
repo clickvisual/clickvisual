@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
@@ -44,24 +43,28 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 	if err != nil {
 		return
 	}
-	resp, err := op.GET(view.ReqQuery{
+	if table.TimeField == "" {
+		table.TimeField = db.TimeFieldSecond
+	}
+	param := view.ReqQuery{
 		Tid:           table.ID,
 		Database:      table.Database.Name,
 		Table:         table.Name,
-		Query:         WhereConditionFromFilter(filters),
+		Query:         db.WhereConditionFromFilter(filters),
 		TimeField:     table.TimeField,
 		TimeFieldType: table.TimeFieldType,
 		ST:            time.Now().Add(-db.UnitMap[alarmObj.Unit].Duration - time.Minute).Unix(),
 		ET:            time.Now().Add(time.Minute).Unix(),
 		Page:          1,
 		PageSize:      1,
-	}, table.ID)
+	}
+	param, _ = op.Prepare(param, false)
+	resp, err := op.GET(param, table.ID)
 	if len(resp.Logs) > 0 {
-		if val, ok := resp.Logs[1]["_raw_log_"]; ok {
+		if val, ok := resp.Logs[0]["_raw_log_"]; ok {
 			oneTheLogs = val.(string)
 		}
 	}
-	elog.Debug("sendAlert", elog.String("oneTheLogs", oneTheLogs))
 	for _, channelId := range alarmObj.ChannelIds {
 		channelInfo, errAlarmChannelInfo := db.AlarmChannelInfo(invoker.Db, channelId)
 		if errAlarmChannelInfo != nil {

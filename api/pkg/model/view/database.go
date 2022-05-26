@@ -13,6 +13,7 @@ type RespDatabaseItem struct {
 	Uid            int      `json:"uid"`  // 操作人
 	DatasourceType string   `json:"datasourceType"`
 	InstanceName   string   `json:"instanceName"`
+	InstanceDesc   string   `json:"instanceDesc"`
 	Mode           int      `json:"mode"`
 	Clusters       []string `json:"clusters"`
 	Desc           string   `json:"desc"`

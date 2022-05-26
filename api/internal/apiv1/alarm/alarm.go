@@ -128,11 +128,11 @@ func Update(c *core.Context) {
 			return
 		}
 		if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
-			c.JSONE(1, "alarm update failed when delete metrics view"+err.Error(), nil)
+			c.JSONE(1, "alarm update failed when delete metrics view: "+err.Error(), nil)
 			return
 		}
 		if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
-			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed", nil)
+			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed:"+err.Error(), nil)
 			return
 		}
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
@@ -168,41 +168,34 @@ func List(c *core.Context) {
 	if status != 0 {
 		query["status"] = status
 	}
+
+	var (
+		total int64
+		list  []*db.Alarm
+	)
+
 	if tid != 0 {
 		query["tid"] = tid
-	}
-	if did != 0 {
+		total, list = db.AlarmListPage(query, req)
+	} else if did != 0 {
+		// query by database id
 		query["cv_base_table.did"] = did
-		total, list := db.AlarmListByDidPage(query, req)
-		c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
-			Current:  req.Current,
-			PageSize: req.PageSize,
-			Total:    total,
-		})
-		return
-	}
-	if iid != 0 {
+		total, list = db.AlarmListByDidPage(query, req)
+	} else if iid != 0 {
 		conds := egorm.Conds{}
 		if iid != 0 {
 			conds["iid"] = iid
 		}
 		ds, _ := db.DatabaseList(invoker.Db, conds)
-		list := make([]view.RespAlarmList, 0)
-		var total int64
 		for _, d := range ds {
 			query["cv_base_table.did"] = d.ID
 			totalTmp, listTmp := db.AlarmListByDidPage(query, req)
-			list = append(list, service.AlarmAttachInfo(listTmp)...)
+			list = append(list, listTmp...)
 			total += totalTmp
 		}
-		c.JSONPage(list, core.Pagination{
-			Current:  req.Current,
-			PageSize: req.PageSize,
-			Total:    total,
-		})
-		return
+	} else {
+		total, list = db.AlarmListPage(query, req)
 	}
-	total, list := db.AlarmListPage(query, req)
 	c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
 		Current:  req.Current,
 		PageSize: req.PageSize,
