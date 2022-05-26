@@ -20,13 +20,14 @@ const DataLogs = () => {
     currentDatabase,
     currentLogLibrary,
     doGetLogLibrary,
+    logPanesHelper,
   } = useModel("dataLogs");
   useLogUrlParams();
   useEffect(() => {
     return () => {
       onChangeVisibleDatabaseDraw(false);
       onChangeCurrentDatabase(undefined);
-      // onChangeLogPanes([]);
+      logPanesHelper.resetPane();
     };
   }, []);
   useEffect(() => {

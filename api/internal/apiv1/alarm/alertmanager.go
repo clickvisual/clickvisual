@@ -17,7 +17,7 @@ func Webhook(c *core.Context) {
 		c.JSONE(1, "invalid parameter", err.Error())
 		return
 	}
-	invoker.Logger.Debug("webhook", elog.Any("notification", notification))
+	invoker.Logger.Debug("alarm", elog.Any("notification", notification))
 	err = service.Send(notification.CommonLabels["uuid"], notification)
 	if err != nil {
 		c.JSONE(1, "message send failed", err.Error())
