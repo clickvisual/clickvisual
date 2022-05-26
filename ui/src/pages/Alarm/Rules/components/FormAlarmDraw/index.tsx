@@ -27,7 +27,6 @@ const FormAlarmDraw = () => {
     alarmDraw,
     currentRowAlarm,
     doGetAlarms,
-    currentPagination,
     onChangeRowAlarm,
     operations,
     alarmChannel,
@@ -37,13 +36,6 @@ const FormAlarmDraw = () => {
   const i18n = useIntl();
   const [channelList, setChannelList] = useState<ChannelType[]>([]);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
-
-  const searchQuery = {
-    name: operations.inputName,
-    did: operations.selectDid,
-    tid: operations.selectTid,
-    ...currentPagination,
-  };
 
   const handleClose = () => {
     alarmDraw.onChangeVisibleDraw(false);
@@ -57,7 +49,16 @@ const FormAlarmDraw = () => {
   const doCreated = (field: AlarmRequest) => {
     alarmDraw.doCreatedAlarm.run(field).then((res) => {
       if (res?.code !== 0) return;
-      doGetAlarms.run(searchQuery);
+      doGetAlarms.run({
+        ...operations.searchQuery,
+        did: operations.searchQuery.tid
+          ? undefined
+          : operations.searchQuery.did,
+        iid:
+          operations.searchQuery.tid || operations.searchQuery.did
+            ? undefined
+            : operations.searchQuery.iid,
+      });
       handleClose();
     });
   };
@@ -65,7 +66,16 @@ const FormAlarmDraw = () => {
     if (!currentRowAlarm) return;
     alarmDraw.doUpdatedAlarm.run(currentRowAlarm.id, field).then((res) => {
       if (res?.code !== 0) return;
-      doGetAlarms.run(searchQuery);
+      doGetAlarms.run({
+        ...operations.searchQuery,
+        did: operations.searchQuery.tid
+          ? undefined
+          : operations.searchQuery.did,
+        iid:
+          operations.searchQuery.tid || operations.searchQuery.did
+            ? undefined
+            : operations.searchQuery.iid,
+      });
       message.success(i18n.formatMessage({ id: "alarm.rules.updated" }));
       handleClose();
     });
