@@ -143,8 +143,10 @@ func TableInfo(c *core.Context) {
 			Iid:            tableInfo.Database.Iid,
 			Name:           tableInfo.Database.Name,
 			Uid:            tableInfo.Database.Uid,
+			Desc:           tableInfo.Database.Desc,
 			DatasourceType: instance.Datasource,
 			InstanceName:   instance.Name,
+			InstanceDesc:   instance.Desc,
 		},
 	}
 	keys := make([]string, 0)
