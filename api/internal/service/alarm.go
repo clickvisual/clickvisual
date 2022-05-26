@@ -213,7 +213,7 @@ func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err 
 	case db.RuleStoreTypeFile:
 		path := strings.TrimSuffix(instance.FilePath, "/")
 		err = os.Remove(path + "/" + obj.AlertRuleName())
-		if err != nil {
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			return
 		}
 	default:

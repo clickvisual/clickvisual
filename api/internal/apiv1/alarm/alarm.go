@@ -128,11 +128,11 @@ func Update(c *core.Context) {
 			return
 		}
 		if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
-			c.JSONE(1, "alarm update failed when delete metrics view"+err.Error(), nil)
+			c.JSONE(1, "alarm update failed when delete metrics view: "+err.Error(), nil)
 			return
 		}
 		if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
-			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed", nil)
+			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed:"+err.Error(), nil)
 			return
 		}
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
