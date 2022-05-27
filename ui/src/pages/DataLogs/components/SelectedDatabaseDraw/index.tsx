@@ -124,7 +124,7 @@ const SelectedDataBaseDraw = () => {
       arrList.push({
         newInstanceName: item.name,
         key: `${item.id}`,
-        instanceDesc: item.desc,
+        customInstanceDesc: item.desc,
       });
     });
 
@@ -182,12 +182,12 @@ const SelectedDataBaseDraw = () => {
     },
     {
       title: i18n.formatMessage({ id: "datasource.draw.table.instanceDesc" }),
-      dataIndex: "instanceDesc",
+      dataIndex: "customInstanceDesc",
       align: "center" as AlignType,
       width: "40%",
-      render: (instanceDesc: string) => (
-        <Tooltip title={instanceDesc}>
-          <span>{instanceDesc}</span>
+      render: (customInstanceDesc: string) => (
+        <Tooltip title={customInstanceDesc}>
+          <span>{customInstanceDesc}</span>
         </Tooltip>
       ),
     },
