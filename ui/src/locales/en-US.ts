@@ -318,6 +318,7 @@ export default {
   "datasource.logLibrary.quickAdd": "Create log library",
   "datasource.tooltip.icon.info": "Log Library Details",
   "datasource.tooltip.icon.edit": "Edit log library",
+  "datasource.tooltip.icon.alarmRuleList": "Alarm Rule List",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
@@ -428,6 +429,9 @@ export default {
   "log.item.copy.success": "Copy success",
   "log.item.copy.failed": "Replication failed. Please manually copy the data",
   "log.item.moreTag": "View more logs",
+
+  // JsonView
+  "log.JsonView.unfoldTip": "Please expand and then click",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "Modify the success",

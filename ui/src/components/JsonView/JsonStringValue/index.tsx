@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { Button, message } from "antd";
 import { useCallback, useState } from "react";
+import { useIntl } from "umi";
 
 type JsonStringValueProps = {
   val: string;
@@ -37,6 +38,7 @@ const JsonStringValue = ({
   const { onClickValue, highLightValue } = restProps;
   const strListByReg: string[] = splitRawLogString(val);
   const [isHiddens, setisHiddens] = useState<boolean | undefined>(isHidden);
+  const i18n = useIntl();
   if (strListByReg.length <= 0) return <></>;
 
   const highLightFlag = useCallback(
@@ -79,11 +81,19 @@ const JsonStringValue = ({
             size="small"
             onClick={() => setisHiddens(!isHiddens)}
           >
-            {isHiddens ? "展开" : "收缩"}
+            {isHiddens
+              ? i18n.formatMessage({
+                  id: "systemSetting.role.collapseX.unfold",
+                })
+              : i18n.formatMessage({
+                  id: "systemSetting.role.collapseX.packUp",
+                })}
           </Button>
         )}
         <span
-          onClick={() => message.info("请先展开再点击~")}
+          onClick={() =>
+            message.info(i18n.formatMessage({ id: "log.JsonView.unfoldTip" }))
+          }
           className={classNames(
             isValue && jsonViewStyles.jsonViewValueHover,
             highLightFlag(val) && jsonViewStyles.jsonViewHighlight
@@ -109,7 +119,13 @@ const JsonStringValue = ({
             size="small"
             onClick={() => setisHiddens(!isHiddens)}
           >
-            {isHiddens ? "展开" : "收缩"}
+            {isHiddens
+              ? i18n.formatMessage({
+                  id: "systemSetting.role.collapseX.unfold",
+                })
+              : i18n.formatMessage({
+                  id: "systemSetting.role.collapseX.packUp",
+                })}
           </Button>
         )}
         {strListByReg.map((value, index) => {

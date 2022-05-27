@@ -3,6 +3,7 @@ import { useState } from "react";
 import classNames from "classnames";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import { LOGMAXTEXTLENGTH } from "@/config/config";
+import { useIntl } from "umi";
 
 interface onInsertQuery {
   onInsertQuery: any;
@@ -23,6 +24,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
     highlightFlag,
     isNotTimeKey,
   } = props;
+  const i18n = useIntl();
 
   return (
     <>
@@ -39,7 +41,9 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
           size="small"
           onClick={() => setisHidden(!isHidden)}
         >
-          {isHidden ? "展开" : "收缩"}
+          {isHidden
+            ? i18n.formatMessage({ id: "systemSetting.role.collapseX.unfold" })
+            : i18n.formatMessage({ id: "systemSetting.role.collapseX.packUp" })}
         </Button>
       )}
       <span
