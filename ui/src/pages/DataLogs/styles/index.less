@@ -16,7 +16,6 @@
   .menuBtn {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%);
     left: -15px;
     display: flex;
     align-items: center;
@@ -24,6 +23,7 @@
     height: 50px;
     background: @primary-color-8;
     border-radius: 0 100% 100% 0 / 50%;
+    transform: translateY(-50%);
     cursor: pointer;
     &:hover {
       background-color: @primary-color-70;
@@ -35,12 +35,17 @@
   }
 }
 
-.selectedBtn {
-  flex: 0 0 20px;
-  :global {
-    .ant-btn {
-      padding: 0;
-      border: none;
+.BreadcrumbNav {
+  position: absolute;
+  top: 6px;
+  display: flex;
+  .selectedBtn {
+    flex: 0 0 20px;
+    :global {
+      .ant-btn {
+        padding: 0;
+        border: none;
+      }
     }
   }
 }
