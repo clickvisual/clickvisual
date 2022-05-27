@@ -119,3 +119,10 @@ Thanks for these wonderful people:
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
+## Thank you
+ 
+- [Jetbrains](https://www.jetbrains.com)
+
+## Friends
+
+- [DBM - An awesome database management tool specified for ClickHouse](https://github.com/EdurtIO/dbm)
