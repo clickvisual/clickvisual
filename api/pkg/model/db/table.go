@@ -41,7 +41,7 @@ const (
 	TimeFieldTypeDT   = 0 // DateTime
 	TimeFieldTypeTs   = 1 // unix seconds
 	TimeFieldTypeTsMs = 2 // unix ms
-	TimeFieldTypeDT3  = 3 // DataTime(3)
+	TimeFieldTypeDT3  = 3 // DataTime64(3)
 )
 
 func (m *Table) GetTimeField() string {

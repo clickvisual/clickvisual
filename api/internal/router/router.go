@@ -129,7 +129,6 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))
 		v1.DELETE("/sys/instances/:id", core.Handle(base.InstanceDelete))
 		v1.GET("/instances/:iid/columns-self-built", core.Handle(base.TableColumnsSelfBuilt))
-		v1.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
 	}
 	// Database
 	{
@@ -148,9 +147,11 @@ func GetRouter() *egin.Component {
 		v1.GET("/table/id", core.Handle(base.TableId))
 		v1.GET("/tables/:id", core.Handle(base.TableInfo))
 		v1.DELETE("/tables/:id", core.Handle(base.TableDelete))
+		v1.PATCH("/tables/:id", core.Handle(base.TableUpdate))
+
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
-		v1.PATCH("/tables/:id", core.Handle(base.TableUpdate))
+		v1.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
 	}
 	// analysis fields
 	{
