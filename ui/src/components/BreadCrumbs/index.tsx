@@ -11,8 +11,12 @@ interface BreadCrumbsProps {
 const BreadCrumbs = (props: BreadCrumbsProps) => {
   const { logLibraryInfo, style, separator } = props;
 
-  const getGoToQueryPagePath = (obj: { tid?: number; did?: number }) => {
-    return `${QUERY_PATH}?${obj.tid ? "tid=" + obj.tid : "did=" + obj.did}`;
+  const getGoToQueryPagePathByTid = (tid?: number) => {
+    return `${QUERY_PATH}?tid=${tid}`;
+  };
+
+  const getGoToQueryPagePathByDid = (did?: number) => {
+    return `${QUERY_PATH}?did=${did}`;
   };
 
   return (
@@ -27,10 +31,7 @@ const BreadCrumbs = (props: BreadCrumbsProps) => {
           type={"link"}
           style={{ padding: 0 }}
           onClick={() =>
-            window.open(
-              getGoToQueryPagePath({ did: logLibraryInfo.did }),
-              "_blank"
-            )
+            window.open(getGoToQueryPagePathByDid(logLibraryInfo.did), "_blank")
           }
         >
           &nbsp;{separator || "/"}&nbsp;
@@ -42,10 +43,7 @@ const BreadCrumbs = (props: BreadCrumbsProps) => {
           type={"link"}
           style={{ padding: 0 }}
           onClick={() =>
-            window.open(
-              getGoToQueryPagePath({ tid: logLibraryInfo.tid }),
-              "_blank"
-            )
+            window.open(getGoToQueryPagePathByTid(logLibraryInfo.tid), "_blank")
           }
         >
           &nbsp;{separator || "/"}&nbsp;

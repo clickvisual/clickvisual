@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useRequest from "@/hooks/useRequest/useRequest";
 import baseApi, { DatabaseResponse, TablesResponse } from "@/services/dataLogs";
 import systemApi, { InstanceType } from "@/services/systemSetting";
+import useAlarm from "@/models/alarms/useAlarm";
 
 const useAlarmOperations = () => {
   const [inputName, setInputName] = useState<string>();
@@ -12,6 +13,28 @@ const useAlarmOperations = () => {
   const [tableList, setTableList] = useState<TablesResponse[]>([]);
   const [databaseList, setDatabaseList] = useState<DatabaseResponse[]>([]);
   const [instanceList, setInstanceList] = useState<InstanceType[]>([]);
+
+  const { currentPagination } = useAlarm();
+
+  const searchQuery = useMemo(
+    () => ({
+      name: inputName,
+      did: selectDid,
+      tid: selectTid,
+      iid: selectIid,
+      status: statusId,
+      ...currentPagination,
+    }),
+    [
+      inputName,
+      selectTid,
+      selectDid,
+      selectIid,
+      currentPagination.current,
+      currentPagination.pageSize,
+      currentPagination.total,
+    ]
+  );
 
   const getLogLibraries = useRequest(baseApi.getTableList, {
     loadingText: false,
@@ -59,6 +82,7 @@ const useAlarmOperations = () => {
     getDatabases,
     instanceList,
     getInstanceList,
+    searchQuery,
     onChangeInputName,
     onChangeSelectIid,
     onChangeSelectDid,

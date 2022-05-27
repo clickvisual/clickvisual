@@ -22,8 +22,7 @@ export interface urlStateType {
 
 const Operations = () => {
   const [urlState, setUrlState] = useUrlState<urlStateType>();
-  const { operations, alarmDraw, doGetAlarms, currentPagination } =
-    useModel("alarm");
+  const { operations, alarmDraw, doGetAlarms } = useModel("alarm");
 
   const {
     tableList,
@@ -41,21 +40,17 @@ const Operations = () => {
     alarmDraw.onChangeVisibleDraw(true);
   };
 
-  const searchQuery = {
-    name: operations.inputName,
-    did: operations.selectDid,
-    iid: operations.selectIid,
-    tid: operations.selectTid,
-    status: operations.statusId,
-    ...currentPagination,
-  };
-
   const handleSearch = useDebounceFn(
     () => {
       doGetAlarms.run({
-        ...searchQuery,
-        did: searchQuery.tid ? undefined : searchQuery.did,
-        iid: searchQuery.tid || searchQuery.did ? undefined : searchQuery.iid,
+        ...operations.searchQuery,
+        did: operations.searchQuery.tid
+          ? undefined
+          : operations.searchQuery.did,
+        iid:
+          operations.searchQuery.tid || operations.searchQuery.did
+            ? undefined
+            : operations.searchQuery.iid,
       });
       urlChange("name", operations.inputName || undefined);
     },
@@ -104,7 +99,7 @@ const Operations = () => {
             operations.onChangeSelectDid(undefined);
             operations.onChangeSelectTid(undefined);
             handleSelect({
-              ...searchQuery,
+              ...operations.searchQuery,
               iid: id,
               did: undefined,
               tid: undefined,
@@ -137,7 +132,11 @@ const Operations = () => {
             operations.onChangeSelectDid(id);
             operations.onChangeSelectTid(undefined);
             if (id) getLogLibraries.run(id);
-            handleSelect({ ...searchQuery, did: id, tid: undefined });
+            handleSelect({
+              ...operations.searchQuery,
+              did: id,
+              tid: undefined,
+            });
             setUrlState({ ...urlState, did: id, tid: undefined });
           }}
           className={alarmStyles.selectedBar}
@@ -162,7 +161,7 @@ const Operations = () => {
           value={operations.selectTid}
           onChange={(id) => {
             operations.onChangeSelectTid(id);
-            handleSelect({ ...searchQuery, tid: id });
+            handleSelect({ ...operations.searchQuery, tid: id });
             urlChange("tid", id);
           }}
           className={alarmStyles.selectedBar}
@@ -186,7 +185,7 @@ const Operations = () => {
           })}`}
           onChange={(id) => {
             operations.onChangeStatusId(id);
-            handleSelect({ ...searchQuery, status: id });
+            handleSelect({ ...operations.searchQuery, status: id });
             urlChange("status", id);
           }}
         >

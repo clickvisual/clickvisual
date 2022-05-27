@@ -39,15 +39,6 @@ const AlarmTable = () => {
 
   const { AlarmStatus } = useAlarmEnums();
 
-  const searchQuery = {
-    name: operations.inputName,
-    did: operations.selectDid,
-    iid: operations.selectIid,
-    tid: operations.selectTid,
-    status: operations.statusId,
-    ...currentPagination,
-  };
-
   const handleEdit = (record: AlarmType) => {
     alarmDraw.onChangeIsEditor(true);
     onChangeRowAlarm(record);
@@ -83,7 +74,7 @@ const AlarmTable = () => {
               hideMessage();
               return;
             }
-            doGetAlarms.run(searchQuery);
+            doGetAlarms.run(operations.searchQuery);
             message.success(
               {
                 content: i18n.formatMessage({ id: "alarm.rules.deleted" }),
@@ -129,7 +120,7 @@ const AlarmTable = () => {
             },
             3
           );
-          doGetAlarms.run(searchQuery);
+          doGetAlarms.run(operations.searchQuery);
         })
         .catch(() => hideMessage());
     },
@@ -149,10 +140,10 @@ const AlarmTable = () => {
 
   useEffect(() => {
     if (!urlState) {
-      handleGetAlarms(searchQuery);
+      handleGetAlarms(operations.searchQuery);
       return;
     }
-    const query = lodash.cloneDeep(searchQuery);
+    const query = lodash.cloneDeep(operations.searchQuery);
     if (urlState.name) query.name = urlState.name;
     if (urlState.iid) query.iid = parseInt(urlState.iid);
     if (urlState.did) query.did = parseInt(urlState.did);
@@ -346,7 +337,11 @@ const AlarmTable = () => {
               current: page,
               pageSize,
             });
-            doGetAlarms.run({ ...searchQuery, current: page, pageSize });
+            doGetAlarms.run({
+              ...operations.searchQuery,
+              current: page,
+              pageSize,
+            });
           },
         }}
       />
