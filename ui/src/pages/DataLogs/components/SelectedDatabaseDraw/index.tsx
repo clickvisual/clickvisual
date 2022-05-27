@@ -2,6 +2,7 @@ import databaseDrawStyle from "@/pages/DataLogs/components/SelectedDatabaseDraw/
 import {
   Button,
   Drawer,
+  Empty,
   Input,
   message,
   Space,
@@ -45,7 +46,7 @@ const SelectedDataBaseDraw = () => {
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsAccessLogLibrary,
     onChangeAddLogToDatabase,
-    onChangeIsEditDatavase,
+    onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
   } = useModel("dataLogs");
   const { resetPane } = logPanesHelper;
@@ -105,7 +106,7 @@ const SelectedDataBaseDraw = () => {
   };
 
   const doEditDatabase = (record: DatabaseResponse) => {
-    onChangeIsEditDatavase(true);
+    onChangeIsEditDatabase(true);
     onChangeCurrentEditDatabase(record);
   };
 
@@ -387,18 +388,29 @@ const SelectedDataBaseDraw = () => {
       headerStyle={{ padding: 10 }}
     >
       <div className={databaseDrawStyle.tableWrap}>
-        <Table
-          loading={getInstanceList.loading || getDatabases.loading}
-          bordered
-          rowKey={"key"}
-          size={"small"}
-          columns={column}
-          dataSource={treeDatabaseList}
-          pagination={false}
-          expandable={{
-            expandRowByClick: true,
-          }}
-        />
+        {treeDatabaseList.length > 0 ? (
+          <Table
+            loading={getInstanceList.loading || getDatabases.loading}
+            bordered
+            rowKey={"key"}
+            size={"small"}
+            columns={column}
+            dataSource={treeDatabaseList}
+            pagination={false}
+            expandable={{
+              expandRowByClick: true,
+              defaultExpandAllRows: true,
+            }}
+          />
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            style={{ marginBottom: 10 }}
+            description={i18n.formatMessage({
+              id: "log.index.item.empty",
+            })}
+          />
+        )}
       </div>
       <CreatedDatabaseModal />
       <ModalCreatedLogLibrary />

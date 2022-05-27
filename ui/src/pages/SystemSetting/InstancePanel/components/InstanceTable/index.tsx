@@ -133,7 +133,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       },
     },
     {
-      title: i18n.formatMessage({ id: "description" }),
+      title: i18n.formatMessage({ id: "DescAsAlias" }),
       align: "center" as AlignType,
       dataIndex: "desc",
       ellipsis: { showTitle: false },

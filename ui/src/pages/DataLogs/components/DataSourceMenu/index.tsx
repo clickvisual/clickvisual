@@ -76,7 +76,7 @@ const DataSourceMenu = () => {
       )}
       style={{ width: `${expandLeftWidth}px` }}
     >
-      <SourceHeader />
+      {/* <SourceHeader /> */}
       {LogLibrary}
       <ResizeWidth
         onResize={handleResize}
