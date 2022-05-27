@@ -305,6 +305,7 @@ export default {
   "datasource.logLibrary.quickAdd": "快速创建日志库",
   "datasource.tooltip.icon.info": "日志库详情",
   "datasource.tooltip.icon.edit": "编辑日志库",
+  "datasource.tooltip.icon.alarmRuleList": "报警规则表",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
@@ -401,6 +402,9 @@ export default {
   "log.item.copy.success": "复制成功",
   "log.item.copy.failed": "复制失败，请手动复制",
   "log.item.moreTag": "查看更多日志信息",
+
+  // JsonView
+  "log.JsonView.unfoldTip": "请先展开再点击~",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "修改成功",

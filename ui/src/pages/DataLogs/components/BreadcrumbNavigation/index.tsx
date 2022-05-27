@@ -26,34 +26,6 @@ const BreadcrumbNavigation = () => {
     setLogLibrary(obj);
   }, [currentDatabase, currentLogLibrary]);
 
-  /* todo delete */
-  // useEffect(() => {
-  //   const tid = urlState?.tid;
-  //   if (!tid) return;
-
-  //   doGetLogLibrary.run(urlState.tid).then((res) => {
-  //     if (res?.code !== 0) {
-  //       return;
-  //     }
-  //     console.log(res.data);
-  //     const data: any = res.data;
-  //     const obj = {
-  //       instanceName: data.database.instanceName,
-  //       instanceDesc: data.database.instanceDesc,
-  //       databaseDesc: data.database.desc,
-  //       databaseName: data.database.name,
-  //       tableDesc: data.desc,
-  //       tableName: data.name,
-  //       tid: urlState.tid,
-  //       did: data.database.id,
-  //     };
-  //     console.log(obj, "onnnijj");
-
-  //     setLogLibrary(obj);
-  //     // handleResponse(res, tid);
-  //   });
-  // }, [urlState.tid]);
-
   return (
     <div className={dataLogsStyles.BreadcrumbNav}>
       <div className={dataLogsStyles.selectedBtn}>

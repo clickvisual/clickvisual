@@ -3,17 +3,16 @@ import classNames from "classnames";
 import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { Button, message } from "antd";
 import { useCallback, useState } from "react";
+import { useIntl } from "umi";
 
 type JsonStringValueProps = {
   val: string;
   keyItem?: string;
   indexKey?: string;
-  isHidden?: boolean;
 } & _CommonProps;
 export const REG_SEPARATORS = [
   " ",
   "|", //  Ab<span> || </span><span>Bc</span>
-  ":",
   ",",
   '"',
   "[",
@@ -23,20 +22,28 @@ export const REG_SEPARATORS = [
   "'",
   "=",
   "\u001b",
-  "\t",
-  "\n",
 ];
 
 const JsonStringValue = ({
   val,
   keyItem,
   indexKey,
-  isHidden,
   ...restProps
 }: JsonStringValueProps) => {
   const { onClickValue, highLightValue } = restProps;
   const strListByReg: string[] = splitRawLogString(val);
-  const [isHiddens, setisHiddens] = useState<boolean | undefined>(isHidden);
+  const isExceed = val && val.length > LOGMAXTEXTLENGTH;
+  const [isHidden, setIsHidden] = useState<boolean | undefined>(
+    isExceed || false
+  );
+  const i18n = useIntl();
+
+  const isValue = (value: any) => {
+    return REG_SEPARATORS.includes(value);
+  };
+  const isNewLine = (value: any) => {
+    return value.includes("\n");
+  };
   if (strListByReg.length <= 0) return <></>;
 
   const highLightFlag = useCallback(
@@ -62,75 +69,120 @@ const JsonStringValue = ({
     [highLightValue, keyItem, indexKey, val]
   );
 
-  if (isHiddens) {
-    const isValue = !REG_SEPARATORS.includes(val);
+  const jsonStringView = strListByReg.map((value, index) => {
     return (
-      <>
-        {val && val.length > LOGMAXTEXTLENGTH && (
-          <Button
-            type="primary"
-            style={{
-              height: "18px",
-              alignItems: "center",
-              display: "inline-flex",
-              marginRight: "5px",
-            }}
-            shape="round"
-            size="small"
-            onClick={() => setisHiddens(!isHiddens)}
-          >
-            {isHiddens ? "展开" : "收缩"}
-          </Button>
+      <span
+        key={index}
+        onClick={() =>
+          isValue(value) && onClickValue?.(value, { key: keyItem })
+        }
+        className={classNames(
+          isValue(value) && jsonViewStyles.jsonViewValueHover,
+          highLightFlag(value) && jsonViewStyles.jsonViewHighlight
         )}
+      >
+        {value}
+      </span>
+    );
+  });
+  return (
+    <>
+      {isExceed && (
+        <Button
+          type="primary"
+          className={jsonViewStyles.hiddenButton}
+          shape="round"
+          size="small"
+          onClick={() => setIsHidden(!isHidden)}
+        >
+          {isHidden
+            ? i18n.formatMessage({
+                id: "systemSetting.role.collapseX.unfold",
+              })
+            : i18n.formatMessage({
+                id: "systemSetting.role.collapseX.packUp",
+              })}
+        </Button>
+      )}
+      {isHidden ? (
         <span
-          onClick={() => message.info("请先展开再点击~")}
+          onClick={() =>
+            message.info(i18n.formatMessage({ id: "log.JsonView.unfoldTip" }))
+          }
           className={classNames(
-            isValue && jsonViewStyles.jsonViewValueHover,
+            isValue(val) && jsonViewStyles.jsonViewValueHover,
             highLightFlag(val) && jsonViewStyles.jsonViewHighlight
           )}
         >
           {val && val.substring(0, LOGMAXTEXTLENGTH) + "..."}
         </span>
-      </>
-    );
-  } else {
-    return (
-      <>
-        {val && val.length > LOGMAXTEXTLENGTH && (
-          <Button
-            type="primary"
-            style={{
-              height: "18px",
-              alignItems: "center",
-              display: "inline-flex",
-              marginRight: "5px",
-            }}
-            shape="round"
-            size="small"
-            onClick={() => setisHiddens(!isHiddens)}
-          >
-            {isHiddens ? "展开" : "收缩"}
-          </Button>
-        )}
-        {strListByReg.map((value, index) => {
-          const isValue = !REG_SEPARATORS.includes(value[0]);
-
-          return (
-            <span
-              key={index}
-              onClick={() => isValue && onClickValue?.(value, { key: keyItem })}
-              className={classNames(
-                isValue && jsonViewStyles.jsonViewValueHover,
-                highLightFlag(value) && jsonViewStyles.jsonViewHighlight
-              )}
-            >
-              {value}
-            </span>
-          );
-        })}
-      </>
-    );
-  }
+      ) : isNewLine(strListByReg) ? (
+        <pre className={jsonViewStyles.pre}>{jsonStringView}</pre>
+      ) : (
+        <span className={jsonViewStyles.pre}>{jsonStringView}</span>
+      )}
+    </>
+  );
+  // todo delete
+  // if (isHidden) {
+  //   return (
+  //     <>
+  //       <span
+  //         onClick={() =>
+  //           message.info(i18n.formatMessage({ id: "log.JsonView.unfoldTip" }))
+  //         }
+  //         className={classNames(
+  //           isValue(val) && jsonViewStyles.jsonViewValueHover,
+  //           highLightFlag(val) && jsonViewStyles.jsonViewHighlight
+  //         )}
+  //       >
+  //         {val && val.substring(0, LOGMAXTEXTLENGTH) + "..."}
+  //       </span>
+  //     </>
+  //   );
+  // }
+  // // const jsonStringView = strListByReg.map((value, index) => {
+  // //   return (
+  // //     <span
+  // //       key={index}
+  // //       onClick={() =>
+  // //         isValue(value) && onClickValue?.(value, { key: keyItem })
+  // //       }
+  // //       className={classNames(
+  // //         isValue(value) && jsonViewStyles.jsonViewValueHover,
+  // //         highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+  // //       )}
+  // //     >
+  // //       {value}
+  // //     </span>
+  // //   );
+  // // });
+  // return (
+  //   <>
+  //     {isExceed && (
+  //       <Button
+  //         type="primary"
+  //         className={jsonViewStyles.hiddenButton}
+  //         shape="round"
+  //         size="small"
+  //         onClick={() => setIsHidden(!isHidden)}
+  //       >
+  //         {isHidden
+  //           ? i18n.formatMessage({
+  //               id: "systemSetting.role.collapseX.unfold",
+  //             })
+  //           : i18n.formatMessage({
+  //               id: "systemSetting.role.collapseX.packUp",
+  //             })}
+  //       </Button>
+  //     )}
+  //     {isNewLine(strListByReg) ? (
+  //       <pre className={jsonViewStyles.pre}>{jsonStringView}</pre>
+  //     ) : (
+  //       <span className={jsonViewStyles.pre}>{jsonStringView}</span>
+  //     )}
+  //   </>
+  // );
 };
 
 const splitRawLogString = (str: string): string[] => {

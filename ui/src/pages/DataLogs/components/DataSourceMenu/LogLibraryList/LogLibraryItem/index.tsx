@@ -2,6 +2,7 @@ import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
 import { Dropdown, Menu, message, Tooltip } from "antd";
 import {
+  CalendarOutlined,
   FileTextOutlined,
   FundProjectionScreenOutlined,
   FundViewOutlined,
@@ -28,6 +29,7 @@ import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
 import { PaneType } from "@/models/datalogs/types";
 import MenuItem from "antd/es/menu/MenuItem";
+import { ALARMRULES_PATH } from "@/config/config";
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;
@@ -40,6 +42,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   const {
     doGetLogLibraryList,
     doDeletedLogLibrary,
+    doGetLogLibrary,
     onChangeLogLibrary,
     currentLogLibrary,
     currentDatabase,
@@ -100,6 +103,11 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       onChangeLogPane(tabPane);
       handleChangeRelativeAmountAndUnit(tabPane);
     }
+  };
+
+  const getGoToAlarmRulesPagePathByid = async () => {
+    const res = await doGetLogLibrary.run(logLibrary.id);
+    return `${ALARMRULES_PATH}?iid=${res?.data.database.iid}&did=${res?.data.database.id}&tid=${logLibrary.id}`;
   };
 
   const doDeleted = () => {
@@ -190,6 +198,16 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       >
         <span>
           {i18n.formatMessage({ id: "datasource.tooltip.icon.edit" })}
+        </span>
+      </MenuItem>
+      <MenuItem
+        icon={<CalendarOutlined />}
+        onClick={async () => {
+          window.open(await getGoToAlarmRulesPagePathByid(), "_blank");
+        }}
+      >
+        <span>
+          {i18n.formatMessage({ id: "datasource.tooltip.icon.alarmRuleList" })}
         </span>
       </MenuItem>
       <MenuItem
