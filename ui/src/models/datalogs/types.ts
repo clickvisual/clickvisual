@@ -31,6 +31,7 @@ export type PaneType = {
   highCharts: HighChartsResponse | undefined;
   querySql?: string;
   logChart?: StatisticalTableResponse;
+  desc: string;
 };
 
 export enum hashType {

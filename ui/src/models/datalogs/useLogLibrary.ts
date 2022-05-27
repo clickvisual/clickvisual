@@ -22,7 +22,7 @@ export default function useLogLibrary() {
   const onChangeIsAccessLogLibrary = (visible: boolean) => {
     setIsAccessLogLibrary(visible);
   };
-  const onChangeIsEditDatavase = (visible: boolean) => {
+  const onChangeIsEditDatabase = (visible: boolean) => {
     setIsEditDatabase(visible);
   };
 
@@ -65,7 +65,7 @@ export default function useLogLibrary() {
     onChangeLogLibraryCreatedModalVisible: onChangeCreatedVisible,
     onChangeLogLibraryInfoDrawVisible: onChangeInfoVisible,
     onChangeIsAccessLogLibrary,
-    onChangeIsEditDatavase,
+    onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
 
     doCreatedLogLibrary: createdLogLibrary,

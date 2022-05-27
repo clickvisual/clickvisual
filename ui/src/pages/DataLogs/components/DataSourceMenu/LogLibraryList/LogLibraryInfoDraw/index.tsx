@@ -80,7 +80,7 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
     },
     {
       id: 107,
-      title: i18n.formatMessage({ id: "description" }),
+      title: i18n.formatMessage({ id: "DescAsAlias" }),
       content: libraryInfo?.desc,
       tooltip: false,
       Desc: (
