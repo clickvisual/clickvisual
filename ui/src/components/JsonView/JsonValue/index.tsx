@@ -4,7 +4,6 @@ import classNames from "classnames";
 import JsonStringValue from "@/components/JsonView/JsonStringValue";
 import { useMemo, useState } from "react";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
-import { LOGMAXTEXTLENGTH } from "@/config/config";
 
 /**
  * 渲染字段
@@ -114,13 +113,7 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
       dom = (
         <span className={classNames(jsonViewStyles.jsonViewValue)}>
           "
-          <JsonStringValue
-            val={val}
-            indexKey={jsonKey}
-            isHidden={(val && val.length > LOGMAXTEXTLENGTH) || false}
-            {...restProps}
-          />
-          "
+          <JsonStringValue val={val} indexKey={jsonKey} {...restProps} />"
         </span>
       );
       break;
