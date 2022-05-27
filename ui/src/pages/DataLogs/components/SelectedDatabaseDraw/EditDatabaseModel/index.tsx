@@ -4,11 +4,10 @@ import { useModel, useIntl } from "umi";
 
 const EditDatabaseModel = () => {
   const { Option } = Select;
-  const { TextArea } = Input;
   const i18n = useIntl();
   const {
     isEditDatabase,
-    onChangeIsEditDatavase,
+    onChangeIsEditDatabase,
     currentEditDatabase,
     doGetDatabaseList,
   } = useModel("dataLogs");
@@ -32,7 +31,7 @@ const EditDatabaseModel = () => {
       message.success(
         i18n.formatMessage({ id: "log.editLogLibraryModal.modifySuc" })
       );
-      onChangeIsEditDatavase(false);
+      onChangeIsEditDatabase(false);
       doGetDatabaseList();
     });
   };
@@ -40,7 +39,7 @@ const EditDatabaseModel = () => {
     <Modal
       title={i18n.formatMessage({ id: "log.editDatabaseModel.title" })}
       visible={isEditDatabase}
-      onCancel={() => onChangeIsEditDatavase(false)}
+      onCancel={() => onChangeIsEditDatabase(false)}
       onOk={() => editDatabaseFormRef.current?.submit()}
       width={"60%"}
     >
@@ -106,13 +105,13 @@ const EditDatabaseModel = () => {
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "description",
+            id: "DescAsAlias",
           })}
           name={"desc"}
         >
-          <TextArea
+          <Input
             placeholder={i18n.formatMessage({
-              id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
+              id: "log.editLogLibraryModal.label.desc.placeholder",
             })}
           />
         </Form.Item>

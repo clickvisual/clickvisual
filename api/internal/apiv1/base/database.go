@@ -104,6 +104,7 @@ func DatabaseList(c *core.Context) {
 			tmp.InstanceName = row.Instance.Name
 			tmp.Mode = row.Instance.Mode
 			tmp.Clusters = row.Instance.Clusters
+			tmp.InstanceDesc = row.Instance.Desc
 		}
 		res = append(res, tmp)
 	}

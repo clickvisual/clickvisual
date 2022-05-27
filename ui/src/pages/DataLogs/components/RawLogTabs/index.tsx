@@ -45,6 +45,7 @@ const RawLogTabs = () => {
         id: parseInt(currentPane.paneId),
         tableName: currentPane.pane,
         createType: currentPane.paneType,
+        desc: currentPane.desc,
       });
     }
   };
