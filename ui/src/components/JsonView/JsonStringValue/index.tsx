@@ -39,7 +39,7 @@ const JsonStringValue = ({
   const i18n = useIntl();
 
   const isValue = (value: any) => {
-    return REG_SEPARATORS.includes(value);
+    return !REG_SEPARATORS.includes(value);
   };
   const isNewLine = (value: any) => {
     return value.includes("\n");
@@ -123,7 +123,7 @@ const JsonStringValue = ({
       )}
     </>
   );
-  // todo delete
+  // TODO: delete
   // if (isHidden) {
   //   return (
   //     <>
