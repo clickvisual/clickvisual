@@ -39,7 +39,7 @@ const JsonStringValue = ({
   const i18n = useIntl();
 
   const isValue = (value: any) => {
-    return REG_SEPARATORS.includes(value);
+    return !REG_SEPARATORS.includes(value);
   };
   const isNewLine = (value: any) => {
     return value.includes("\n");
@@ -123,66 +123,6 @@ const JsonStringValue = ({
       )}
     </>
   );
-  // todo delete
-  // if (isHidden) {
-  //   return (
-  //     <>
-  //       <span
-  //         onClick={() =>
-  //           message.info(i18n.formatMessage({ id: "log.JsonView.unfoldTip" }))
-  //         }
-  //         className={classNames(
-  //           isValue(val) && jsonViewStyles.jsonViewValueHover,
-  //           highLightFlag(val) && jsonViewStyles.jsonViewHighlight
-  //         )}
-  //       >
-  //         {val && val.substring(0, LOGMAXTEXTLENGTH) + "..."}
-  //       </span>
-  //     </>
-  //   );
-  // }
-  // // const jsonStringView = strListByReg.map((value, index) => {
-  // //   return (
-  // //     <span
-  // //       key={index}
-  // //       onClick={() =>
-  // //         isValue(value) && onClickValue?.(value, { key: keyItem })
-  // //       }
-  // //       className={classNames(
-  // //         isValue(value) && jsonViewStyles.jsonViewValueHover,
-  // //         highLightFlag(value) && jsonViewStyles.jsonViewHighlight
-  // //       )}
-  // //     >
-  // //       {value}
-  // //     </span>
-  // //   );
-  // // });
-  // return (
-  //   <>
-  //     {isExceed && (
-  //       <Button
-  //         type="primary"
-  //         className={jsonViewStyles.hiddenButton}
-  //         shape="round"
-  //         size="small"
-  //         onClick={() => setIsHidden(!isHidden)}
-  //       >
-  //         {isHidden
-  //           ? i18n.formatMessage({
-  //               id: "systemSetting.role.collapseX.unfold",
-  //             })
-  //           : i18n.formatMessage({
-  //               id: "systemSetting.role.collapseX.packUp",
-  //             })}
-  //       </Button>
-  //     )}
-  //     {isNewLine(strListByReg) ? (
-  //       <pre className={jsonViewStyles.pre}>{jsonStringView}</pre>
-  //     ) : (
-  //       <span className={jsonViewStyles.pre}>{jsonStringView}</span>
-  //     )}
-  //   </>
-  // );
 };
 
 const splitRawLogString = (str: string): string[] => {

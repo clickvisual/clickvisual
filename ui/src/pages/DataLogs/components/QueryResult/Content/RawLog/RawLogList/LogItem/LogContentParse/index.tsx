@@ -22,7 +22,7 @@ const LogContentParse = ({
   const isNullList = ["\n", "\r\n", "", " "];
 
   let content;
-  
+
   if (typeof logContent !== "object") {
     if (isNullList.includes(logContent)) {
       content = "";
@@ -51,10 +51,7 @@ const LogContentParse = ({
     );
   }
   return (
-    <span className={classNames(logItemStyles.logContent)}>
-      {/* {JSON.stringify(content)} */}
-      {content}
-    </span>
+    <span className={classNames(logItemStyles.logContent)}>{content}</span>
   );
 };
 export default LogContentParse;
