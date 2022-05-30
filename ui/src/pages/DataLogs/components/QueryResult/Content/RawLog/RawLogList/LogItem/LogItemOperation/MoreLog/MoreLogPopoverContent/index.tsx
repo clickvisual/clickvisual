@@ -22,12 +22,7 @@ const MoreLogPopoverContent = () => {
           <div className={classNames(logItemStyles.logKey)}>
             <span>{field}</span>:
           </div>
-          <span
-            className={classNames(
-              logItemStyles.logContent,
-              logItemStyles.logHover
-            )}
-          >
+          <span className={classNames(logItemStyles.logContent)}>
             {log[field]}
           </span>
         </div>

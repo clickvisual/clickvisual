@@ -147,8 +147,6 @@ export default function useLogUrlParams() {
         if (res?.code !== 0) {
           return;
         }
-        console.log(res);
-
         handleResponse(res, tid);
       });
     } catch (e) {

@@ -38,8 +38,6 @@ const LocalTable = ({
   const { Panel } = Collapse;
 
   const formatOptions = (list: LocalTables[]) => {
-    console.log("list", list);
-
     setOptions(
       list?.map((item) => ({
         value: item.name,
