@@ -192,13 +192,19 @@ const CreatedAndUpdatedModal = ({
   };
 
   const databaseId = modalForm.current?.getFieldValue("databaseId");
+
   useEffect(() => {
-    databaseId && getLogLibraries.run(databaseId);
-  }, [databaseId]);
+    if (!visible || !databaseId) return;
+    getLogLibraries.run(databaseId);
+  }, [visible, databaseId]);
+
+  useEffect(() => {
+    if (!visible) return;
+    doGetDatabaseList();
+  }, [visible]);
 
   useEffect(() => {
     if (visible && modalForm.current && !isEdit) {
-      doGetDatabaseList();
       if (operations.selectDid) {
         modalForm.current.setFieldsValue({ databaseId: operations.selectDid });
         getLogLibraries.run(operations.selectDid);
