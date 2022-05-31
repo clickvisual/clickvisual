@@ -25,10 +25,6 @@ const LogItemDetails = () => {
     // 隐藏字段
     const hiddenFields = logs?.hiddenFields || [];
 
-    /* todo:
-          1、索引校验规则
-          2、json 里的字段无法匹配索引
-      */
     // Json 索引
     const secondaryIndexList: any = [];
     // 索引字段
