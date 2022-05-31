@@ -175,7 +175,7 @@ func (i *instanceManager) ReadPermissionTable(uid, iid, tid int) bool {
 }
 
 func ClickHouseLink(dsn string) (db *sql.DB, err error) {
-	if strings.Contains(dsn, "?") {
+	if strings.Contains(dsn, "?") && !strings.Contains(dsn, "max_execution_time=") {
 		dsn = dsn + "&max_execution_time=60"
 	}
 	db, err = sql.Open("clickhouse", dsn)
