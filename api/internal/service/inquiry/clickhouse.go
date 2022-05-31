@@ -1065,7 +1065,6 @@ func hashTransform(query string, index *db.Index) string {
 	if strings.Contains(query, key+"=") && (hashTyp == 1 || hashTyp == 2) {
 		r, _ := regexp.Compile(key + "='(\\S*)'")
 		val := r.FindString(query)
-		fmt.Println("val", val)
 		val = strings.Replace(val, key+"=", "", 1)
 		query = strings.Replace(query, key+"=", hashFieldName+"=", 1)
 		if hashTyp == db.HashTypeSip {
