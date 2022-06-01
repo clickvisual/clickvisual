@@ -1,5 +1,5 @@
 import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import { Button, Input, Select, Space } from "antd";
+import { Button, Input, Select, Space, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import { useIntl } from "umi";
@@ -119,7 +119,12 @@ const Operations = () => {
           {instanceList.length > 0 &&
             instanceList.map((item) => (
               <Option key={item.id} value={item.id as number}>
-                {item.name}
+                <Tooltip
+                  title={item.name + (item.desc ? `(${item.desc})` : "")}
+                >
+                  {item.name}
+                  {item.desc ? `(${item.desc})` : ""}
+                </Tooltip>
               </Option>
             ))}
         </Select>
@@ -150,7 +155,12 @@ const Operations = () => {
               .filter((item) => item.iid === operations.selectIid)
               .map((item) => (
                 <Option key={item.id} value={item.id}>
-                  {item.name}
+                  <Tooltip
+                    title={item.name + (item.desc ? `(${item.desc})` : "")}
+                  >
+                    {item.name}
+                    {item.desc ? `(${item.desc})` : ""}
+                  </Tooltip>
                 </Option>
               ))}
         </Select>
@@ -172,7 +182,12 @@ const Operations = () => {
           {tableList.length > 0 &&
             tableList.map((item) => (
               <Option key={item.id} value={item.id}>
-                {item.tableName}
+                <Tooltip
+                  title={item.tableName + (item.desc ? `(${item.desc})` : "")}
+                >
+                  {item.tableName}
+                  {item.desc ? `(${item.desc})` : ""}
+                </Tooltip>
               </Option>
             ))}
         </Select>
