@@ -183,7 +183,7 @@ const CreatedAndUpdatedModal = ({
     if (isEdit) {
       params = {
         ...fields,
-        tid: defaultData.tid,
+        tid: fields.tableId,
         typ: defaultData.typ,
         fieldName: defaultData.fieldName,
       };
