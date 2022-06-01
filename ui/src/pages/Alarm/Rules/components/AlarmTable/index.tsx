@@ -181,7 +181,6 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "alarm.rules.table.logLibrary" }),
       key: "alarmSource",
       align: "center",
-      width: "300px",
       ellipsis: { showTitle: true },
       render: (_: any, record: AlarmType) => {
         return <BreadCrumbs logLibraryInfo={record} />;
@@ -206,6 +205,8 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "user" }),
       dataIndex: "user",
+      width: "150px",
+      align: "center",
       ellipsis: { showTitle: true },
       render: (user: any) => (
         <Tooltip title={user.nickname}>
@@ -218,7 +219,8 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "description" }),
       dataIndex: "desc",
-      width: "20%",
+      width: "15%",
+      align: "center",
       ellipsis: { showTitle: true },
       render: (desc: string) => (
         <Tooltip title={desc}>
@@ -232,11 +234,12 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "utime" }),
       dataIndex: "utime",
       ellipsis: { showTitle: true },
-      width: "160px",
+      width: "130px",
+      align: "center",
       render: (utime: any) => (
         <Tooltip title={moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss")}>
           <div className={alarmStyles.columnsEllipsis}>
-            <span>{moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss")}</span>
+            <span>{moment(utime * 1000).format("MM-DD hh:mm:ss")}</span>
           </div>
         </Tooltip>
       ),
