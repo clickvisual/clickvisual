@@ -14,11 +14,14 @@ import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
 type JsonValueProps = {
   jsonKey: string | undefined;
   val: any;
+  isIndex: boolean;
+  indexField?: string;
 } & _CommonProps;
 
 const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
-  const { onClickValue, highLightValue } = restProps;
+  const { onClickValue, highLightValue, isIndex, indexField } = restProps;
   const [isShowArr, setIsShowArr] = useState<boolean>(true);
+
   const indentStyle = {
     paddingLeft: "20px",
   };
@@ -75,7 +78,13 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
                     className={classNames(jsonViewStyles.jsonViewArrayItem)}
                     key={idx}
                   >
-                    <JsonValue jsonKey={jsonKey} val={item} {...restProps} />
+                    <JsonValue
+                      jsonKey={jsonKey}
+                      val={item}
+                      {...restProps}
+                      isIndex={false}
+                      indexField={undefined}
+                    />
                     {isLast ? "" : ","}
                   </div>
                 );
@@ -113,7 +122,13 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
       dom = (
         <span className={classNames(jsonViewStyles.jsonViewValue)}>
           "
-          <JsonStringValue val={val} indexKey={jsonKey} {...restProps} />"
+          <JsonStringValue
+            val={val}
+            indexKey={indexField}
+            onClickValue={onClickValue}
+            {...restProps}
+          />
+          "
         </span>
       );
       break;
@@ -121,7 +136,13 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
     case "bigint":
       dom = (
         <span
-          onClick={() => onClickValue?.(val.toString())}
+          onClick={() => {
+            debugger;
+            onClickValue?.(
+              val.toString(),
+              isIndex ? { isIndex, indexKey: indexField } : undefined
+            );
+          }}
           className={classNames(
             jsonViewStyles.jsonViewValue,
             jsonViewStyles.jsonViewValueHover,

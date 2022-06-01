@@ -36,8 +36,13 @@ const LogContent = (props: LogContentProps) => {
       if (secondaryIndexList.length <= 0) {
         return [];
       }
-      return secondaryIndexList.filter((item) => item.parentKey === keyItem);
-    }, [secondaryIndexList, keyItem]) || [];
+      return secondaryIndexList
+        .filter((item) => item.parentKey === keyItem)
+        .map((item) => ({
+          ...item,
+          childFields: Object.keys(newLog?.[item.parentKey] || {}),
+        }));
+    }, [secondaryIndexList, keyItem, newLog]) || [];
 
   return (
     <>

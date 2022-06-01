@@ -65,7 +65,6 @@ const LogItemFold = () => {
           {logFields
             .filter((item) => !indexList.includes(item))
             .map((field) => {
-              console.log(field, resultLog);
               return (
                 <span key={field}>
                   {field}:{` "${JSON.stringify(resultLog[field])}" `}
