@@ -5,7 +5,6 @@ const Settings: LayoutSettings & {
   logo?: string;
 } = {
   navTheme: "light",
-  primaryColor: "#1890ff",
   layout: "top",
   contentWidth: "Fixed",
   fixedHeader: true,

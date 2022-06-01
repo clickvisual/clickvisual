@@ -7,12 +7,12 @@
     flex: 0 0 170px;
     margin-top: 3px;
     font-size: 14px;
-    .logIndex {
-      flex: 0 0 40px;
-    }
+    //.logIndex {
+    //  flex: 0 0 40px;
+    //}
     .dateTime {
-      display: flex;
       flex: 1;
+      padding-right: 5px;
       font-weight: bolder;
       font-size: 12px;
     }
@@ -21,7 +21,7 @@
       align-items: center;
       margin-top: 4px;
       color: @font-color;
-      background: @primary-color-1;
+      //background: @primary-color-1;
       .icon {
         padding: 0 4px;
         font-size: 14px;
@@ -36,7 +36,32 @@
   }
   .right {
     flex: 1;
+    min-width: 0;
     margin-left: 4px;
+    .logItemHideMain {
+      .logItemHideIndex {
+        display: -webkit-box;
+        width: 100%;
+        height: 48px;
+        overflow: hidden;
+        line-height: 24px;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        .tag {
+          max-width: 200px;
+          overflow: hidden;
+          color: @font-bord-color;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          vertical-align: middle;
+        }
+        span {
+          display: inline-block;
+          cursor: default;
+        }
+      }
+    }
   }
 }
 
