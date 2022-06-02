@@ -2,6 +2,8 @@ import { parseJsonObject } from "@/utils/string";
 import { LogsResponse } from "@/services/dataLogs";
 import lodash from "lodash";
 
+const RawLogField = "_raw_log_";
+
 /**
  * 处理单条日志格式
  * @param logs
@@ -13,6 +15,14 @@ const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
 
   // 二级索引字段
   const secondaryIndexList: any = [];
+
+  // log 中现有字段
+  const fields = Object.keys(log).sort();
+
+  // 系统字段，排除隐藏字段
+  const systemFields = fields.filter(
+    (key) => !hiddenFields.includes(key) && key !== RawLogField
+  );
 
   // 索引字段
   const indexList =
@@ -29,9 +39,7 @@ const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
     }) || [];
 
   // 日志字段，过滤掉隐藏字段
-  let logFields: string[] = Object.keys(log)
-    .sort()
-    .filter((key) => !hiddenFields.includes(key));
+  let logFields: string[] = fields.filter((key) => !hiddenFields.includes(key));
 
   // 存储 rawLog 非索引字段
   let rawLogFields: any[] = [];
@@ -42,7 +50,7 @@ const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
   let resultLog: any = log;
 
   // 取出 rawLog 日志字段并转成 Json ，parseJsonObject 回参数 Json || false
-  const rawLogJson = parseJsonObject(log["_raw_log_"]);
+  const rawLogJson = parseJsonObject(log[RawLogField]);
 
   // 如果 raw log 是 JSON
   if (!!rawLogJson) {
@@ -81,11 +89,12 @@ const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
     // 移除 _raw_log_ 字段
     delete resultLog._raw_log_;
 
-    logFields = logFields.filter((field) => field !== "_raw_log_");
+    logFields = logFields.filter((field) => field !== RawLogField);
   }
 
   return {
     indexList,
+    systemFields,
     secondaryIndexList,
     logFields,
     resultLog,
