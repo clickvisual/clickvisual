@@ -21,6 +21,7 @@ export const DefaultPane = {
   activeTabKey: TimeRangeType.Relative,
   highCharts: undefined,
   logs: undefined,
+  histogramChecked: true,
 };
 
 const useLogPanes = () => {

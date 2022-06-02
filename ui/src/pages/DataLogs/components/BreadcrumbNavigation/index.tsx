@@ -5,7 +5,6 @@ import BreadCrumbs from "@/components/BreadCrumbs";
 import { logLibraryInfoType } from "@/components/BreadCrumbs/type";
 import { useEffect, useState } from "react";
 import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
-import NvaRight from "@/pages/DataLogs/components/BreadcrumbNavigation/NvaRight";
 
 const BreadcrumbNavigation = () => {
   const i18n = useIntl();
@@ -44,9 +43,6 @@ const BreadcrumbNavigation = () => {
           />
         </div>
         <BreadCrumbs logLibraryInfo={logLibraryInfo} />
-      </div>
-      <div className={dataLogsStyles.right}>
-        <NvaRight />
       </div>
     </div>
   );

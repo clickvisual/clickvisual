@@ -19,11 +19,6 @@ const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
   // log 中现有字段
   const fields = Object.keys(log).sort();
 
-  // 系统字段，排除隐藏字段
-  const systemFields = fields.filter(
-    (key) => !hiddenFields.includes(key) && key !== RawLogField
-  );
-
   // 索引字段
   const indexList =
     logs?.keys.map((item) => {
@@ -37,6 +32,14 @@ const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
       }
       return item.field;
     }) || [];
+
+  // 系统字段，排除隐藏字段、索引字段
+  const systemFields = fields.filter(
+    (key) =>
+      !hiddenFields.includes(key) &&
+      key !== RawLogField &&
+      !indexList.includes(key)
+  );
 
   // 日志字段，过滤掉隐藏字段
   let logFields: string[] = fields.filter((key) => !hiddenFields.includes(key));

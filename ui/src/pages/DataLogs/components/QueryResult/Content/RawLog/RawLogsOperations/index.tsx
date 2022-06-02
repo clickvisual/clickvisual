@@ -5,6 +5,7 @@ import { useIntl } from "umi";
 import { FIRST_PAGE } from "@/config/config";
 import { useMemo } from "react";
 import { PaneType } from "@/models/datalogs/types";
+import HistogramSwitch from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft";
 
 const RawLogsOperations = () => {
   const {
@@ -28,16 +29,24 @@ const RawLogsOperations = () => {
 
   return (
     <div className={rawLogsOperationsStyles.rawLogsOperationsMain}>
-      <div className={rawLogsOperationsStyles.operationsBtn} />
+      <div className={rawLogsOperationsStyles.operationsBtn}>
+        <HistogramSwitch />
+      </div>
       <div className={rawLogsOperationsStyles.pagination}>
         <Pagination
           size={"small"}
           total={logCount}
           pageSize={pageSize}
           current={currentPage}
-          showTotal={(total) =>
-            i18n.formatMessage({ id: "log.pagination.total" }, { total })
-          }
+          showTotal={(total) => {
+            if (!oldPane?.histogramChecked) {
+              return false;
+            }
+            return i18n.formatMessage(
+              { id: "log.pagination.total" },
+              { total }
+            );
+          }}
           onChange={(current: number, size: number) => {
             onChangeLogsPage(current, size);
             const params = {

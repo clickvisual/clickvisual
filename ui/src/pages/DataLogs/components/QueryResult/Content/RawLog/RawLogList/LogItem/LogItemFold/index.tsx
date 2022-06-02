@@ -39,6 +39,7 @@ const TagFieldContent = ({
 interface LogItemFoldProps {
   onFoldClick: () => void;
 }
+
 const LogItemFold = ({ onFoldClick }: LogItemFoldProps) => {
   const { logs, doUpdatedQuery } = useModel("dataLogs");
   const { log } = useContext(LogItemContext);

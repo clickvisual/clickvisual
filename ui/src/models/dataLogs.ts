@@ -28,7 +28,6 @@ import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMe
 import useLogPanes from "@/models/datalogs/useLogPanes";
 import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
-import useLogSwitch from "@/models/datalogs/useLogSwitch";
 
 const DataLogsModel = () => {
   // 查询关键字
@@ -135,8 +134,6 @@ const DataLogsModel = () => {
   const statisticalChartsHelper = useStatisticalCharts();
 
   const logPanesHelper = useLogPanes();
-
-  const logSwitchHelper = useLogSwitch();
 
   const { foldingState, onChangeFoldingState } = useCollapseDatasourceMenu();
 
@@ -325,24 +322,32 @@ const DataLogsModel = () => {
       );
     }
   };
-  const doGetHighCharts = (params?: QueryParams) => {
+  const doGetHighCharts = async (params?: QueryParams) => {
     if (currentLogLibrary) {
       cancelTokenHighChartsRef.current?.();
-      getHighCharts.run(
+      const highChartsRes = await getHighCharts.run(
         currentLogLibrary.id,
         logsAndHighChartsPayload(params),
         new CancelToken(function executor(c) {
           cancelTokenHighChartsRef.current = c;
         })
       );
+      if (highChartsRes?.code === 0) {
+        return {
+          highCharts: highChartsRes?.data,
+        };
+      }
     }
+    return;
   };
 
   const doGetLogsAndHighCharts = async (id: number, extra?: Extra) => {
     if (!id) return;
     cancelTokenLogsRef.current?.();
     cancelTokenHighChartsRef.current?.();
-    if (!!extra?.isPaging || !logSwitchHelper.histogramChecked) {
+    const currentPane = logPanesHelper.logPanes[id.toString()];
+    const histogramChecked = currentPane?.histogramChecked ?? true;
+    if (!!extra?.isPaging || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
         logsAndHighChartsPayload(extra?.reqParams),
@@ -350,11 +355,7 @@ const DataLogsModel = () => {
           cancelTokenLogsRef.current = c;
         })
       );
-      if (
-        (extra?.isPaging || !logSwitchHelper.histogramChecked) &&
-        logsRes?.code === 0
-      ) {
-        const currentPane = logPanesHelper.logPanes[id.toString()];
+      if ((extra?.isPaging || !histogramChecked) && logsRes?.code === 0) {
         return {
           logs: logsRes.data,
           highCharts: currentPane?.highCharts,
@@ -620,7 +621,6 @@ const DataLogsModel = () => {
 
     logPanesHelper,
     statisticalChartsHelper,
-    logSwitchHelper,
   };
 };
 export default DataLogsModel;
