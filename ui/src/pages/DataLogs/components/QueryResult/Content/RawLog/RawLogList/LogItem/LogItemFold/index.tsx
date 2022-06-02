@@ -21,7 +21,6 @@ const TagFieldContent = ({
       color: "#41464beb",
     }}
     color={"#fff"}
-    key={field}
     title={`${field}: ${content}`}
   >
     <Tag
@@ -93,7 +92,7 @@ const LogItemFold = ({ onFoldClick }: LogItemFoldProps) => {
       {tagFields.length > 0 && (
         <div className={logItemStyles.logItemHideIndex}>
           {tagFields.map((item) => (
-            <TagFieldContent {...item} onClick={handleClick} />
+            <TagFieldContent key={item.field} {...item} onClick={handleClick} />
           ))}
 
           {logFields

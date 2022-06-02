@@ -350,11 +350,14 @@ const DataLogsModel = () => {
           cancelTokenLogsRef.current = c;
         })
       );
-      if (extra?.isPaging && logsRes?.code === 0) {
+      if (
+        (extra?.isPaging || !logSwitchHelper.histogramChecked) &&
+        logsRes?.code === 0
+      ) {
         const currentPane = logPanesHelper.logPanes[id.toString()];
         return {
           logs: logsRes.data,
-          highCharts: currentPane.highCharts,
+          highCharts: currentPane?.highCharts,
         };
       }
     } else {
@@ -430,7 +433,9 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    defaultValueArr.push(currentSelected);
+    if (defaultValueArr.indexOf(currentSelected) === -1) {
+      defaultValueArr.push(currentSelected);
+    }
 
     const kw = defaultValueArr.join(" and ");
     const pane = logPanesHelper.logPanes[currentLogLibrary.id.toString()];
