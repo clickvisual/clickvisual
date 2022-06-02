@@ -32,10 +32,11 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
         <Button
           type="primary"
           style={{
-            height: "18px",
+            height: "14px",
             alignItems: "center",
             display: "inline-flex",
             marginRight: "5px",
+            fontSize: "12px",
           }}
           shape="round"
           size="small"

@@ -1,27 +1,37 @@
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import LogItemOperation from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemOperation";
 import LogItemDetails from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemDetails";
-import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
 import { LogItemContext } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
-import { useContext } from "react";
+import { useContext, useState } from "react";
+import LogItemFold from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemFold";
+import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
+import { Button } from "antd";
+import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
-type LogItemProps = {
-  index: number;
-};
-const LogItem = (props: LogItemProps) => {
-  const { index } = props;
-  const { currentPage, pageSize } = useModel("dataLogs");
+const LogItem = () => {
   const { log } = useContext(LogItemContext);
+  // 是否折叠日志，true 为是，false 为否
+  const [isFold, setIsFold] = useState<boolean>(true);
+
+  const handleFoldClick = useDebounceFn(() => setIsFold(() => !isFold), {
+    wait: DEBOUNCE_WAIT,
+  }).run;
 
   return (
     <div className={logItemStyles.logItemMain}>
       <div className={logItemStyles.left}>
-        <div className={logItemStyles.logIndex}>
-          {(pageSize as number) * ((currentPage as number) - 1) + index + 1}
-        </div>
         <div>
-          <div className={logItemStyles.dateTime}>
+          <Button
+            size={"small"}
+            type={"link"}
+            onClick={handleFoldClick}
+            icon={isFold ? <CaretRightOutlined /> : <CaretDownOutlined />}
+          />
+        </div>
+        <div className={logItemStyles.dateTime}>
+          <div>
             {moment(log._time_nanosecond_ || log._time_second_).format(
               "MM-DD HH:mm:ss.SSS"
             )}
@@ -30,7 +40,7 @@ const LogItem = (props: LogItemProps) => {
         </div>
       </div>
       <div className={logItemStyles.right}>
-        <LogItemDetails />
+        {isFold ? <LogItemFold /> : <LogItemDetails />}
       </div>
     </div>
   );

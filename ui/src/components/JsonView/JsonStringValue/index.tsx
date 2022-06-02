@@ -9,6 +9,7 @@ type JsonStringValueProps = {
   val: string;
   keyItem?: string;
   indexKey?: string;
+  isIndex?: boolean;
 } & _CommonProps;
 export const REG_SEPARATORS = [
   " ",
@@ -28,6 +29,7 @@ const JsonStringValue = ({
   val,
   keyItem,
   indexKey,
+  isIndex,
   ...restProps
 }: JsonStringValueProps) => {
   const { onClickValue, highLightValue } = restProps;
@@ -52,15 +54,18 @@ const JsonStringValue = ({
         return false;
       }
       return !!highLightValue.find((item) => {
-        if (item.key === keyItem && item.value === value) {
+        // 去掉 item.key 中的空格
+        const itemKey = item.key.replace(/\s+/g, "");
+
+        if (itemKey === keyItem && item.value === value) {
           return true;
         } else if (
-          item.key.search(".") !== -1 &&
-          indexKey === item.key.split(".")[1] &&
+          itemKey.search(".") !== -1 &&
+          indexKey === item.key &&
           item.value === value
         ) {
           return true;
-        } else if (item.key === "_raw_log_" && item.value === `%${value}%`) {
+        } else if (itemKey === "_raw_log_" && item.value === `%${value}%`) {
           return true;
         }
         return false;
@@ -73,9 +78,10 @@ const JsonStringValue = ({
     return (
       <span
         key={index}
-        onClick={() =>
-          isValue(value) && onClickValue?.(value, { key: keyItem })
-        }
+        onClick={() => {
+          isValue(value) &&
+            onClickValue?.(value, { key: keyItem, indexKey, isIndex });
+        }}
         className={classNames(
           isValue(value) && jsonViewStyles.jsonViewValueHover,
           highLightFlag(value) && jsonViewStyles.jsonViewHighlight

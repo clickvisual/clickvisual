@@ -36,13 +36,15 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   const handleValueTypes = (key: string, val: any) => {
     const isIndex = () => {
       if (!secondaryIndexKeys || secondaryIndexKeys?.length <= 0) return false;
-      return !!secondaryIndexKeys.find((item) => item.keyItem === key);
+      return !!secondaryIndexKeys.find(
+        (item) => item.keyItem === key && item.childFields?.includes(key)
+      );
     };
 
     let indexKey = "";
     if (isIndex()) {
       const currentSecondaryIndex = secondaryIndexKeys?.find(
-        (item) => item.keyItem === key
+        (item) => item.keyItem === key && item.childFields?.includes(key)
       );
       indexKey = `${currentSecondaryIndex.parentKey}.${currentSecondaryIndex.keyItem}`;
     }
@@ -61,16 +63,10 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
         <JsonValue
           jsonKey={key}
           val={val}
+          isIndex={isIndex()}
+          indexField={indexKey}
           {...restProps}
-          onClickValue={
-            isIndex()
-              ? () =>
-                  onClickValue?.(val, {
-                    indexKey,
-                    isIndex: isIndex(),
-                  })
-              : onClickValue
-          }
+          onClickValue={onClickValue}
         />
       </>
     );

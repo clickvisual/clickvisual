@@ -31,7 +31,7 @@ const RawLogList = () => {
     >
       {list.map((logItem: any, index: number) => (
         <LogItemContext.Provider key={index} value={{ log: logItem }}>
-          <LogItem index={index} />
+          <LogItem />
         </LogItemContext.Provider>
       ))}
     </div>
