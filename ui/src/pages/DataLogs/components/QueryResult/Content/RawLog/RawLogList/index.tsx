@@ -1,7 +1,7 @@
 import rawLogListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/index.less";
 import LogItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem";
 import { useModel } from "@@/plugin-model/useModel";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import classNames from "classnames";
 import useLogListScroll from "@/pages/DataLogs/hooks/useLogListScroll";
 
@@ -13,13 +13,19 @@ export const LogItemContext = React.createContext<LogItemContextType>({
   log: {},
 });
 const RawLogList = () => {
-  const { onChangeHiddenHighChart, logs, logSwitchHelper } =
+  const { currentLogLibrary, onChangeHiddenHighChart, logs, logPanesHelper } =
     useModel("dataLogs");
-  const { histogramChecked } = logSwitchHelper;
+  const { logPanes } = logPanesHelper;
+
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
+
   const containerProps = useLogListScroll();
 
   useEffect(() => {
-    if (containerProps.ref.current && histogramChecked) {
+    if (containerProps.ref.current && oldPane?.histogramChecked) {
       containerProps.ref.current.scrollTop = 0;
       onChangeHiddenHighChart(false);
     }
