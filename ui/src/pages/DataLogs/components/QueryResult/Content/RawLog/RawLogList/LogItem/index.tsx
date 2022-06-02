@@ -40,7 +40,11 @@ const LogItem = () => {
         </div>
       </div>
       <div className={logItemStyles.right}>
-        {isFold ? <LogItemFold /> : <LogItemDetails />}
+        {isFold ? (
+          <LogItemFold onFoldClick={handleFoldClick} />
+        ) : (
+          <LogItemDetails />
+        )}
       </div>
     </div>
   );
