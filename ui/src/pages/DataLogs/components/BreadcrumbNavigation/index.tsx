@@ -5,6 +5,7 @@ import BreadCrumbs from "@/components/BreadCrumbs";
 import { logLibraryInfoType } from "@/components/BreadCrumbs/type";
 import { useEffect, useState } from "react";
 import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
+import NvaRight from "@/pages/DataLogs/components/BreadcrumbNavigation/NvaRight";
 
 const BreadcrumbNavigation = () => {
   const i18n = useIntl();
@@ -28,20 +29,25 @@ const BreadcrumbNavigation = () => {
 
   return (
     <div className={dataLogsStyles.BreadcrumbNav}>
-      <div className={dataLogsStyles.selectedBtn}>
-        <Button
-          onClick={() => onChangeVisibleDatabaseDraw(true)}
-          type={"link"}
-          icon={
-            <Tooltip
-              title={i18n.formatMessage({ id: "datasource.header.switch" })}
-            >
-              <AppstoreOutlined />
-            </Tooltip>
-          }
-        />
+      <div className={dataLogsStyles.left}>
+        <div className={dataLogsStyles.selectedBtn}>
+          <Button
+            onClick={() => onChangeVisibleDatabaseDraw(true)}
+            type={"link"}
+            icon={
+              <Tooltip
+                title={i18n.formatMessage({ id: "datasource.header.switch" })}
+              >
+                <AppstoreOutlined />
+              </Tooltip>
+            }
+          />
+        </div>
+        <BreadCrumbs logLibraryInfo={logLibraryInfo} />
       </div>
-      <BreadCrumbs logLibraryInfo={logLibraryInfo} />
+      <div className={dataLogsStyles.right}>
+        <NvaRight />
+      </div>
     </div>
   );
 };

@@ -13,11 +13,13 @@ export const LogItemContext = React.createContext<LogItemContextType>({
   log: {},
 });
 const RawLogList = () => {
-  const { onChangeHiddenHighChart, logs } = useModel("dataLogs");
+  const { onChangeHiddenHighChart, logs, logSwitchHelper } =
+    useModel("dataLogs");
+  const { histogramChecked } = logSwitchHelper;
   const containerProps = useLogListScroll();
 
   useEffect(() => {
-    if (containerProps.ref.current) {
+    if (containerProps.ref.current && histogramChecked) {
       containerProps.ref.current.scrollTop = 0;
       onChangeHiddenHighChart(false);
     }

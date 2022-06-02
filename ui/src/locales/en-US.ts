@@ -384,6 +384,9 @@ export default {
   "log.share.error":
     "Share URL error, please try to share again, or refresh the page after operation",
 
+  // log nva
+  "log.switch.histogram": "Histogram",
+
   // Data Logs-Statistical Table
   "log.table.note":
     "Note: The default return limit for the current request is 100 lines. For more results, add your own restriction statements",

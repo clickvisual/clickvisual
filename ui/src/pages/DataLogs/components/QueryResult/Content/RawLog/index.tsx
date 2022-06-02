@@ -10,8 +10,9 @@ import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/Ra
 import CollapseMenu from "../../../CollapseAndExpandMenu/CollapseMenu";
 
 const RawLogContent = () => {
-  const { logsLoading, highChartLoading, isHiddenHighChart } =
+  const { logsLoading, highChartLoading, isHiddenHighChart, logSwitchHelper } =
     useModel("dataLogs");
+  const { histogramChecked } = logSwitchHelper;
 
   const i18n = useIntl();
 
@@ -19,18 +20,20 @@ const RawLogContent = () => {
     <div className={queryResultStyles.content}>
       <RawLogsIndexes />
       <div className={queryResultStyles.queryDetail}>
-        <Spin
-          spinning={highChartLoading}
-          tip={i18n.formatMessage({ id: "spin" })}
-          wrapperClassName={classNames(
-            queryResultStyles.querySpinning,
-            isHiddenHighChart
-              ? queryResultStyles.highChartsHidden
-              : queryResultStyles.highCharts
-          )}
-        >
-          <HighCharts />
-        </Spin>
+        {histogramChecked && (
+          <Spin
+            spinning={highChartLoading}
+            tip={i18n.formatMessage({ id: "spin" })}
+            wrapperClassName={classNames(
+              queryResultStyles.querySpinning,
+              isHiddenHighChart
+                ? queryResultStyles.highChartsHidden
+                : queryResultStyles.highCharts
+            )}
+          >
+            <HighCharts />
+          </Spin>
+        )}
         <Spin
           spinning={logsLoading}
           tip={i18n.formatMessage({ id: "spin" })}
