@@ -1,11 +1,6 @@
-package service
+package template
 
 import (
-	"fmt"
-
-	"github.com/gotomicro/ego/core/elog"
-
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
@@ -210,51 +205,4 @@ var templateOneTable map[string][]view.IndexItem = map[string][]view.IndexItem{
 			Typ:   0,
 		},
 	},
-}
-
-func TemplateOne(req view.ReqTemplateOne) (err error) {
-	// create instance
-	ins, err := InstanceCreate(view.ReqCreateInstance{
-		Datasource: "ch",
-		Name:       "clickvisual_default",
-		Dsn:        req.Dsn,
-	})
-	if err != nil {
-		elog.Error("templateOne", elog.String("step", "InstanceCreate"), elog.Any("err", err.Error()))
-		return err
-	}
-	// create database
-	databaseInfo, err := DatabaseCreate(db.Database{
-		Iid:          ins.ID,
-		Name:         "clickvisual_default",
-		Uid:          1,
-		IsCreateByCV: 1,
-	})
-	if err != nil {
-		elog.Error("templateOne", elog.String("step", "DatabaseCreate"), elog.Any("err", err.Error()))
-		return err
-	}
-	// create table
-	// app-stdout, ego-stdout, ingress-stdout, ingress-stderr
-	for tableName, analysisFields := range templateOneTable {
-		table, errTableCreate := TableCreate(1, databaseInfo, view.ReqTableCreate{
-			TableName: tableName,
-			Typ:       1,
-			Days:      7,
-			Brokers:   req.Brokers,
-			Topics:    fmt.Sprintf(kafkaTopicORM[tableName], req.ClusterName),
-			Consumers: 1,
-		})
-		if errTableCreate != nil {
-			elog.Error("templateOne", elog.String("step", "errTableCreate"), elog.Any("err", errTableCreate.Error()))
-			return errTableCreate
-		}
-		errAnalysisFieldsUpdate := AnalysisFieldsUpdate(table.ID, analysisFields)
-		if errAnalysisFieldsUpdate != nil {
-			elog.Error("templateOne", elog.String("step", "AnalysisFieldsUpdate"), elog.Any("err", errAnalysisFieldsUpdate.Error()))
-			return errAnalysisFieldsUpdate
-		}
-	}
-	// create analysis fields
-	return
 }
