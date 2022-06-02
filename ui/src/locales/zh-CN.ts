@@ -359,6 +359,9 @@ export default {
   "log.share.success": "URL 已粘贴至剪切板",
   "log.share.error": "分享 URL 出错啦，请尝试重新分享，或者刷新页面后操作",
 
+  // log nva
+  "log.switch.histogram": "直方图",
+
   // Data Logs-Statistical Table
   "log.table.note":
     "注：当前请求默认限制返回 100 行，若要获取更多结果，请自行添加 limit 语句",

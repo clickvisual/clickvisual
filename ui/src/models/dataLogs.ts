@@ -28,6 +28,7 @@ import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMe
 import useLogPanes from "@/models/datalogs/useLogPanes";
 import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
+import useLogSwitch from "@/models/datalogs/useLogSwitch";
 
 const DataLogsModel = () => {
   // 查询关键字
@@ -101,8 +102,8 @@ const DataLogsModel = () => {
     onChangeCurrentEditDatabase,
     doCreatedLogLibrary,
     doGetLogLibrary,
-    doUpdataLogLibrary,
-    updataLogLibraryLoading,
+    doUpdateLogLibrary,
+    updateLogLibraryLoading,
     getLogLibraryLoading,
     doDeletedLogLibrary,
     getLocalTables,
@@ -134,6 +135,8 @@ const DataLogsModel = () => {
   const statisticalChartsHelper = useStatisticalCharts();
 
   const logPanesHelper = useLogPanes();
+
+  const logSwitchHelper = useLogSwitch();
 
   const { foldingState, onChangeFoldingState } = useCollapseDatasourceMenu();
 
@@ -339,7 +342,7 @@ const DataLogsModel = () => {
     if (!id) return;
     cancelTokenLogsRef.current?.();
     cancelTokenHighChartsRef.current?.();
-    if (!!extra?.isPaging) {
+    if (!!extra?.isPaging || !logSwitchHelper.histogramChecked) {
       const logsRes = await getLogs.run(
         id,
         logsAndHighChartsPayload(extra?.reqParams),
@@ -583,8 +586,8 @@ const DataLogsModel = () => {
     doCreatedLogLibrary,
     doDeletedLogLibrary,
     doGetLogLibrary,
-    doUpdataLogLibrary,
-    updataLogLibraryLoading,
+    doUpdateLogLibrary,
+    updateLogLibraryLoading,
     getLogLibraryLoading,
     getLocalTables,
     getTableColumns,
@@ -612,6 +615,7 @@ const DataLogsModel = () => {
 
     logPanesHelper,
     statisticalChartsHelper,
+    logSwitchHelper,
   };
 };
 export default DataLogsModel;
