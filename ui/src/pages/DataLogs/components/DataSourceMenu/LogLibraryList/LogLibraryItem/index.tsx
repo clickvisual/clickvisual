@@ -93,7 +93,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             resetLogPaneLogsAndHighCharts(pane);
           } else {
             pane.logs = res.logs;
-            pane.highCharts = res.highCharts;
+            pane.highCharts = res?.highCharts;
             pane.logChart = { logs: [] };
             onChangeLogPane(pane);
           }

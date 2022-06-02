@@ -350,11 +350,14 @@ const DataLogsModel = () => {
           cancelTokenLogsRef.current = c;
         })
       );
-      if (extra?.isPaging && logsRes?.code === 0) {
+      if (
+        (extra?.isPaging || !logSwitchHelper.histogramChecked) &&
+        logsRes?.code === 0
+      ) {
         const currentPane = logPanesHelper.logPanes[id.toString()];
         return {
           logs: logsRes.data,
-          highCharts: currentPane.highCharts,
+          highCharts: currentPane?.highCharts,
         };
       }
     } else {
