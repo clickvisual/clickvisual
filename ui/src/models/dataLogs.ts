@@ -430,7 +430,9 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    defaultValueArr.push(currentSelected);
+    if (defaultValueArr.indexOf(currentSelected) === -1) {
+      defaultValueArr.push(currentSelected);
+    }
 
     const kw = defaultValueArr.join(" and ");
     const pane = logPanesHelper.logPanes[currentLogLibrary.id.toString()];
