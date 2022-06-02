@@ -183,7 +183,7 @@ const CreatedAndUpdatedModal = ({
     if (isEdit) {
       params = {
         ...fields,
-        tid: defaultData.tid,
+        tid: fields.tableId,
         typ: defaultData.typ,
         fieldName: defaultData.fieldName,
       };
@@ -311,7 +311,16 @@ const CreatedAndUpdatedModal = ({
                 <Option key={database.id} value={database.id}>
                   {i18n.formatMessage(
                     { id: "alarm.rules.inspectionFrequency.database.Option" },
-                    { instance: database.instanceName, database: database.name }
+                    {
+                      instance:
+                        database.instanceName +
+                        (database.instanceDesc
+                          ? ` | ${database.instanceDesc}`
+                          : ""),
+                      database:
+                        database.name +
+                        (database.desc ? ` | ${database.desc}` : ""),
+                    }
                   )}
                 </Option>
               ))}
@@ -344,6 +353,7 @@ const CreatedAndUpdatedModal = ({
                     {logLibraryList.map((logTable) => (
                       <Option key={logTable.id} value={logTable.id}>
                         {logTable.tableName}
+                        {logTable.desc ? ` | ${logTable.desc}` : ""}
                       </Option>
                     ))}
                   </Select>
