@@ -4,6 +4,7 @@ import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLo
 import { Tag, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import useLogItemDetail from "@/pages/DataLogs/hooks/useLogItemDetail";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 const TagFieldContent = ({
   field,
@@ -23,16 +24,13 @@ const TagFieldContent = ({
     color={"#fff"}
     title={`${field}: ${content}`}
   >
-    <Tag
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick(field, content);
-      }}
-      color={"#fdebe1"}
-      className={logItemStyles.tag}
-    >
-      {content}
-    </Tag>
+    <span onClick={(e) => e.stopPropagation()}>
+      <ClickMenu field={field} content={content}>
+        <Tag color={"#fdebe1"} className={logItemStyles.tag}>
+          {content}
+        </Tag>
+      </ClickMenu>
+    </span>
   </Tooltip>
 );
 
