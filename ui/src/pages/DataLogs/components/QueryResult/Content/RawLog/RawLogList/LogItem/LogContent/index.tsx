@@ -8,7 +8,9 @@ interface LogContentProps {
   content: any;
   keyItem: any;
   quickInsertLikeQuery: any;
+  quickInsertLikeExclusion: any;
   onInsertQuery: any;
+  onInsertExclusion: any;
   isIndexAndRawLogKey: boolean;
   highlightFlag: any;
   isNotTimeKey: boolean;
@@ -22,7 +24,9 @@ const LogContent = (props: LogContentProps) => {
     content,
     keyItem,
     quickInsertLikeQuery,
+    quickInsertLikeExclusion,
     onInsertQuery,
+    onInsertExclusion,
     isIndexAndRawLogKey,
     highlightFlag,
     isNotTimeKey,
@@ -52,11 +56,13 @@ const LogContent = (props: LogContentProps) => {
             logContent={content.toString()}
             keyItem={keyItem}
             quickInsertLikeQuery={quickInsertLikeQuery}
+            quickInsertLikeExclusion={quickInsertLikeExclusion}
           />
         ) : (
           <LogItemDetailsContent
             keyItem={keyItem}
             onInsertQuery={onInsertQuery}
+            onInsertExclusion={onInsertExclusion}
             content={content}
             isIndexAndRawLogKey={isIndexAndRawLogKey}
             highlightFlag={highlightFlag}
@@ -68,6 +74,7 @@ const LogContent = (props: LogContentProps) => {
           secondaryIndexKeys={jsonIndexKeys}
           logContent={newLog[keyItem]}
           quickInsertLikeQuery={quickInsertLikeQuery}
+          quickInsertLikeExclusion={quickInsertLikeExclusion}
         />
       )}
     </>

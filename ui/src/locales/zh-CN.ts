@@ -413,6 +413,11 @@ export default {
   // JsonView
   "log.JsonView.unfoldTip": "请先展开再点击~",
 
+  // ClickMenu
+  "log.ClickMenu.addCondition": "添加查询条件",
+  "log.ClickMenu.excludeCondition": "排除查询条件",
+  "log.ClickMenu.copyValues": "复制值",
+
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "修改成功",
   "log.editLogLibraryModal.label.tabName": "日志库名称",

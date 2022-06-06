@@ -4,6 +4,7 @@ import classNames from "classnames";
 import JsonStringValue from "@/components/JsonView/JsonStringValue";
 import { useMemo, useState } from "react";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 /**
  * 渲染字段
@@ -19,7 +20,13 @@ type JsonValueProps = {
 } & _CommonProps;
 
 const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
-  const { onClickValue, highLightValue, isIndex, indexField } = restProps;
+  const {
+    onClickValue,
+    highLightValue,
+    isIndex,
+    indexField,
+    onInsertExclusion,
+  } = restProps;
   const [isShowArr, setIsShowArr] = useState<boolean>(true);
 
   const indentStyle = {
@@ -107,7 +114,10 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
     case "boolean":
       dom = (
         <span
-          onClick={() => onClickValue?.(val.toString())}
+          onClick={(e) => {
+            // onClickValue?.(val.toString());
+            e.stopPropagation();
+          }}
           className={classNames(
             jsonViewStyles.jsonViewValue,
             jsonViewStyles.jsonViewValueHover,
@@ -115,6 +125,14 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
           )}
         >
           {val.toString()}
+          <ClickMenu
+            field={jsonKey}
+            content={val.toString()}
+            handleAddCondition={() => onClickValue?.(val.toString())}
+            handleOutCondition={() => onInsertExclusion?.(val.toString())}
+          >
+            <span>{val.toString()}</span>
+          </ClickMenu>
         </span>
       );
       break;
@@ -136,12 +154,13 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
     case "bigint":
       dom = (
         <span
-          onClick={() => {
+          onClick={(e) => {
             debugger;
-            onClickValue?.(
-              val.toString(),
-              isIndex ? { isIndex, indexKey: indexField } : undefined
-            );
+            // onClickValue?.(
+            //   val.toString(),
+            //   isIndex ? { isIndex, indexKey: indexField } : undefined
+            // );
+            e.stopPropagation();
           }}
           className={classNames(
             jsonViewStyles.jsonViewValue,
@@ -149,7 +168,24 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
             highLightFlag && jsonViewStyles.jsonViewHighlight
           )}
         >
-          {val}
+          <ClickMenu
+            field={jsonKey}
+            content={val}
+            handleAddCondition={() =>
+              onClickValue?.(
+                val.toString(),
+                isIndex ? { isIndex, indexKey: indexField } : undefined
+              )
+            }
+            handleOutCondition={() =>
+              onInsertExclusion?.(
+                val.toString(),
+                isIndex ? { isIndex, indexKey: indexField } : undefined
+              )
+            }
+          >
+            <span>{val}</span>
+          </ClickMenu>
         </span>
       );
       break;

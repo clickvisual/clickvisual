@@ -4,6 +4,7 @@ import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { Button, message } from "antd";
 import { useCallback, useState } from "react";
 import { useIntl } from "umi";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 type JsonStringValueProps = {
   val: string;
@@ -25,6 +26,8 @@ export const REG_SEPARATORS = [
   "\u001b",
 ];
 
+export const PRE_SYMBOL = ["\n", "\t"];
+
 const JsonStringValue = ({
   val,
   keyItem,
@@ -32,7 +35,7 @@ const JsonStringValue = ({
   isIndex,
   ...restProps
 }: JsonStringValueProps) => {
-  const { onClickValue, highLightValue } = restProps;
+  const { onClickValue, highLightValue, quickInsertLikeExclusion } = restProps;
   const strListByReg: string[] = splitRawLogString(val);
   const isExceed = val && val.length > LOGMAXTEXTLENGTH;
   const [isHidden, setIsHidden] = useState<boolean | undefined>(
@@ -43,9 +46,17 @@ const JsonStringValue = ({
   const isValue = (value: any) => {
     return !REG_SEPARATORS.includes(value);
   };
+
   const isNewLine = (value: any) => {
-    return value.includes("\n");
+    let flag = false;
+    PRE_SYMBOL.map((item: string) => {
+      if (value.includes(item)) {
+        flag = true;
+      }
+    });
+    return flag;
   };
+
   if (strListByReg.length <= 0) return <></>;
 
   const highLightFlag = useCallback(
@@ -78,16 +89,32 @@ const JsonStringValue = ({
     return (
       <span
         key={index}
-        onClick={() => {
-          isValue(value) &&
-            onClickValue?.(value, { key: keyItem, indexKey, isIndex });
+        onClick={(e) => {
+          e.stopPropagation();
         }}
         className={classNames(
           isValue(value) && jsonViewStyles.jsonViewValueHover,
           highLightFlag(value) && jsonViewStyles.jsonViewHighlight
         )}
       >
-        {value}
+        <ClickMenu
+          field={keyItem}
+          content={value}
+          handleAddCondition={() => {
+            isValue(value) &&
+              onClickValue?.(value, { key: keyItem, indexKey, isIndex });
+          }}
+          handleOutCondition={() => {
+            isValue(value) &&
+              quickInsertLikeExclusion?.(value, {
+                key: keyItem,
+                indexKey,
+                isIndex,
+              });
+          }}
+        >
+          <span>{value}</span>
+        </ClickMenu>
       </span>
     );
   });
