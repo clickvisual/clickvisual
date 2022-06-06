@@ -9,7 +9,7 @@ const RawLogField = "_raw_log_";
  * @param logs
  * @param log
  */
-const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
+const LogItemDetail = (logs: LogsResponse | undefined, log: any) => {
   // 隐藏字段
   const hiddenFields = logs?.hiddenFields || [];
 
@@ -99,11 +99,11 @@ const useLogItemDetail = (logs: LogsResponse | undefined, log: any) => {
     indexList,
     systemFields,
     secondaryIndexList,
-    logFields,
+    logFields: fields,
     resultLog,
     rawLogFields,
     rawLogIndexFields,
   };
 };
 
-export default useLogItemDetail;
+export default LogItemDetail;

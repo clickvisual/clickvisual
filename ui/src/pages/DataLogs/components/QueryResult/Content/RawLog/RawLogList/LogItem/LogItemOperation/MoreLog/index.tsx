@@ -4,12 +4,15 @@ import { MoreOutlined } from "@ant-design/icons";
 import { useIntl } from "umi";
 import MoreLogPopoverContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemOperation/MoreLog/MoreLogPopoverContent";
 
-const MoreLog = () => {
+interface MoreLogProps {
+  log: any;
+}
+const MoreLog = ({ log }: MoreLogProps) => {
   const i18n = useIntl();
   return (
     <Popover
       placement={"right"}
-      content={<MoreLogPopoverContent />}
+      content={<MoreLogPopoverContent log={log} />}
       trigger="click"
       overlayClassName={logItemStyles.popoverOverlay}
     >
