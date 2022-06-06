@@ -5,23 +5,33 @@ import copy from "copy-to-clipboard";
 import { useIntl } from "umi";
 interface ClickMenuProps {
   children: ReactNode;
-  content: string;
-  field: string;
+  content: string | number | bigint;
+  field: string | undefined;
+  handleAddCondition: () => void;
+  handleOutCondition: () => void;
 }
 const ClickMenu = (props: ClickMenuProps) => {
   const i18n = useIntl();
-  const { content, children, field } = props;
+  const { content, children, handleAddCondition, handleOutCondition } = props;
+
   const handleCopyLog = () => {
     message.success(i18n.formatMessage({ id: "log.item.copy.success" }));
-    copy(content);
+    copy(content.toString());
   };
+
   const menu = (
-    <Menu>
-      <Menu.Item key="addQuery">添加查询条件</Menu.Item>
-      <Menu.Item key="reduceQuery">排除查询条件</Menu.Item>
+    <Menu style={{ width: "190px" }}>
+      <Menu.Item key="addQuery" onClick={handleAddCondition}>
+        {i18n.formatMessage({ id: "log.ClickMenu.addCondition" })}
+      </Menu.Item>
+      <Menu.Item key="reduceQuery" onClick={handleOutCondition}>
+        {i18n.formatMessage({ id: "log.ClickMenu.excludeCondition" })}
+      </Menu.Item>
       <Menu.Divider />
       <Menu.Item key="copyValue">
-        <div onClick={handleCopyLog}>复制值</div>
+        <div onClick={handleCopyLog}>
+          {i18n.formatMessage({ id: "log.ClickMenu.copyValues" })}
+        </div>
       </Menu.Item>
     </Menu>
   );

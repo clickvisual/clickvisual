@@ -9,10 +9,12 @@ const TagFieldContent = ({
   field,
   content,
   onClick,
+  onClickOut,
 }: {
   field: string;
   content: string;
   onClick: (field: string, value: string) => void;
+  onClickOut: (field: string, value: string) => void;
 }) => (
   <Tooltip
     overlayInnerStyle={{
@@ -23,8 +25,17 @@ const TagFieldContent = ({
     color={"#fff"}
     title={`${field}: ${content}`}
   >
-    <span onClick={(e) => e.stopPropagation()}>
-      <ClickMenu field={field} content={content}>
+    <span
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      <ClickMenu
+        field={field}
+        content={content}
+        handleAddCondition={() => onClick(field, content)}
+        handleOutCondition={() => onClickOut(field, content)}
+      >
         <Tag color={"#fdebe1"} className={logItemStyles.tag}>
           {content}
         </Tag>
@@ -47,6 +58,14 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
   const handleClick = useCallback(
     (field: string, value: string) => {
       const currentSelected = `\`${field}\`='${value}'`;
+      doUpdatedQuery(currentSelected);
+    },
+    [doUpdatedQuery]
+  );
+
+  const handleClickOut = useCallback(
+    (field: string, value: string) => {
+      const currentSelected = `\`${field}\`!='${value}'`;
       doUpdatedQuery(currentSelected);
     },
     [doUpdatedQuery]
@@ -90,7 +109,12 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
       {tagFields.length > 0 && (
         <div className={logItemStyles.logItemHideIndex}>
           {tagFields.map((item) => (
-            <TagFieldContent key={item.field} {...item} onClick={handleClick} />
+            <TagFieldContent
+              key={item.field}
+              {...item}
+              onClick={handleClick}
+              onClickOut={handleClickOut}
+            />
           ))}
 
           {logFields

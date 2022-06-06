@@ -108,6 +108,11 @@ const LogItemDetails = ({ log }: LogItemDetailsProps) => {
     doUpdatedQuery(currentSelected);
   };
 
+  const quickInsertExclusion = (keyItem: string) => {
+    const currentSelected = "`" + keyItem + "`" + "!=" + `'${newLog[keyItem]}'`;
+    doUpdatedQuery(currentSelected);
+  };
+
   const quickInsertLikeQuery = (
     value: string,
     extra?: { key?: string; isIndex?: boolean; indexKey?: string }
@@ -123,6 +128,21 @@ const LogItemDetails = ({ log }: LogItemDetailsProps) => {
     doUpdatedQuery(currentSelected);
   };
 
+  const quickInsertLikeExclusion = (
+    value: string,
+    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
+  ) => {
+    let currentSelected = "";
+    if (extra?.isIndex && extra?.indexKey) {
+      currentSelected = `\`${extra.indexKey}\`!='${value}'`;
+    } else {
+      currentSelected = `${
+        extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
+      } not like '%${value}%'`;
+    }
+    doUpdatedQuery(currentSelected);
+  };
+
   const handleInsertQuery = (keyItem: string, isIndexAndRawLogKey: boolean) => {
     if (
       ["_time_nanosecond_"].includes(keyItem) ||
@@ -132,6 +152,21 @@ const LogItemDetails = ({ log }: LogItemDetailsProps) => {
     const insert = isIndexAndRawLogKey
       ? quickInsertLikeQuery
       : quickInsertQuery;
+    insert(keyItem);
+  };
+
+  const handleInsertExclusion = (
+    keyItem: string,
+    isIndexAndRawLogKey: boolean
+  ) => {
+    if (
+      ["_time_nanosecond_"].includes(keyItem) ||
+      (!isIndexAndRawLogKey && !newLog[keyItem])
+    )
+      return;
+    const insert = isIndexAndRawLogKey
+      ? quickInsertLikeExclusion
+      : quickInsertExclusion;
     insert(keyItem);
   };
 
@@ -237,7 +272,9 @@ const LogItemDetails = ({ log }: LogItemDetailsProps) => {
                 keyItem={key}
                 secondaryIndexList={secondaryIndexList}
                 quickInsertLikeQuery={quickInsertLikeQuery}
+                quickInsertLikeExclusion={quickInsertLikeExclusion}
                 onInsertQuery={handleInsertQuery}
+                onInsertExclusion={handleInsertExclusion}
                 isIndexAndRawLogKey={isIndexAndRawLogKey}
                 highlightFlag={highlightFlag}
                 isNotTimeKey={isNotTimeKey}

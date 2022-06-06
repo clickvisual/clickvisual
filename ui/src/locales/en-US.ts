@@ -440,6 +440,11 @@ export default {
   // JsonView
   "log.JsonView.unfoldTip": "Please expand and then click",
 
+  // ClickMenu
+  "log.ClickMenu.addCondition": "Adding a query condition",
+  "log.ClickMenu.excludeCondition": "Exclude query criteria",
+  "log.ClickMenu.copyValues": "Copy values",
+
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "Modify the success",
   "log.editLogLibraryModal.label.tabName": "Log library Name",
