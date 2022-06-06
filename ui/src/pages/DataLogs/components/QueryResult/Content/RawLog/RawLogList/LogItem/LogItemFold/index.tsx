@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import { Tag, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 import LogItemDetail from "@/pages/DataLogs/utils/LogItemDetail";
 
 const TagFieldContent = ({
@@ -22,16 +23,13 @@ const TagFieldContent = ({
     color={"#fff"}
     title={`${field}: ${content}`}
   >
-    <Tag
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick(field, content);
-      }}
-      color={"#fdebe1"}
-      className={logItemStyles.tag}
-    >
-      {content}
-    </Tag>
+    <span onClick={(e) => e.stopPropagation()}>
+      <ClickMenu field={field} content={content}>
+        <Tag color={"#fdebe1"} className={logItemStyles.tag}>
+          {content}
+        </Tag>
+      </ClickMenu>
+    </span>
   </Tooltip>
 );
 

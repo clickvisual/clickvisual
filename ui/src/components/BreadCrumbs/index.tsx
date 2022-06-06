@@ -2,6 +2,7 @@ import { Button } from "antd";
 import { QUERY_PATH } from "@/config/config";
 import { logLibraryInfoType } from "@/components/BreadCrumbs/type";
 import { CSSProperties } from "react";
+import { useIntl, useModel } from "umi";
 interface BreadCrumbsProps {
   logLibraryInfo: logLibraryInfoType;
   style?: CSSProperties;
@@ -9,7 +10,9 @@ interface BreadCrumbsProps {
 }
 
 const BreadCrumbs = (props: BreadCrumbsProps) => {
+  const i18n = useIntl();
   const { logLibraryInfo, style, separator } = props;
+  const { onChangeVisibleDatabaseDraw } = useModel("dataLogs");
 
   const getGoToQueryPagePathByTid = (tid?: number) => {
     return `${QUERY_PATH}?tid=${tid}`;
@@ -49,6 +52,20 @@ const BreadCrumbs = (props: BreadCrumbsProps) => {
           &nbsp;{separator || "/"}&nbsp;
           {logLibraryInfo.tableDesc || logLibraryInfo.tableName}
         </Button>
+      )}
+      {!logLibraryInfo.instanceName && (
+        <span
+          style={{
+            lineHeight: "32px",
+            cursor: "pointer",
+            color: "hsl(21, 85%, 56%)",
+          }}
+          onClick={() => onChangeVisibleDatabaseDraw(true)}
+        >
+          {i18n.formatMessage({
+            id: "alarm.rules.selected.placeholder.database",
+          })}
+        </span>
       )}
     </div>
   );
