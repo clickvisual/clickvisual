@@ -11,7 +11,7 @@ const LogItemOperation = ({ log }: LogItemOperationProps) => {
     <div className={logItemStyles.operationLine}>
       <Space>
         <CopyLog log={log} />
-        <MoreLog />
+        <MoreLog log={log} />
       </Space>
     </div>
   );

@@ -1,13 +1,12 @@
 import { useModel } from "@@/plugin-model/useModel";
-import { LogItemContext } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
-import { useContext } from "react";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import classNames from "classnames";
 import { Empty } from "antd";
-
-const MoreLogPopoverContent = () => {
+interface MoreLogPopoverContentProps {
+  log: any;
+}
+const MoreLogPopoverContent = ({ log }: MoreLogPopoverContentProps) => {
   const { logs } = useModel("dataLogs");
-  const { log } = useContext(LogItemContext);
   const hiddenFields = logs?.hiddenFields || [];
   if (hiddenFields.length <= 0)
     return (
