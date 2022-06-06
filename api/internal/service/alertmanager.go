@@ -84,3 +84,14 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 	}
 	return nil
 }
+
+func SendTestToChannel(c *db.AlarmChannel) (err error) {
+	ci, err := push.Instance(c.Typ)
+	if err != nil {
+		return
+	}
+	n := view.Notification{}
+	a := &db.Alarm{}
+	err = ci.Send(n, a, c, "")
+	return
+}

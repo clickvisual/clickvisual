@@ -6,6 +6,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
@@ -25,4 +26,17 @@ func Webhook(c *core.Context) {
 	}
 	c.JSONOK()
 	return
+}
+
+func ChannelSendTest(c *core.Context) {
+	var req db.AlarmChannel
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := service.SendTestToChannel(&req); err != nil {
+		c.JSONE(1, "send test error: "+err.Error(), nil)
+		return
+	}
+	c.JSONOK()
 }
