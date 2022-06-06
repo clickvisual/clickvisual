@@ -71,6 +71,10 @@ export default {
   "menu.systemSettings.events": "Event Center",
   "menu.systemSettings.pms": "Authority Management",
   "menu.systemSettings.role": "Role Management",
+  "menu.bigdata": "Data Analysis",
+  "menu.bigdata.realtime": "Real-time Industry",
+  "menu.bigdata.temporaryQuery": "Temporary Query",
+
   // user
   "login.header": "Welcome to ClickVisual",
   "login.title": "Log In",

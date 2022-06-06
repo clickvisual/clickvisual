@@ -1,17 +1,10 @@
 import rawLogListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/index.less";
 import LogItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem";
 import { useModel } from "@@/plugin-model/useModel";
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import classNames from "classnames";
 import useLogListScroll from "@/pages/DataLogs/hooks/useLogListScroll";
 
-type LogItemContextType = {
-  log: any;
-};
-
-export const LogItemContext = React.createContext<LogItemContextType>({
-  log: {},
-});
 const RawLogList = () => {
   const { currentLogLibrary, onChangeHiddenHighChart, logs, logPanesHelper } =
     useModel("dataLogs");
@@ -38,9 +31,7 @@ const RawLogList = () => {
       {...containerProps}
     >
       {list.map((logItem: any, index: number) => (
-        <LogItemContext.Provider key={index} value={{ log: logItem }}>
-          <LogItem />
-        </LogItemContext.Provider>
+        <LogItem log={logItem} />
       ))}
     </div>
   );

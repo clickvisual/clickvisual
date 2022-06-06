@@ -1,9 +1,8 @@
-import { LogItemContext } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
-import { useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import { Tag, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
-import useLogItemDetail from "@/pages/DataLogs/hooks/useLogItemDetail";
+import LogItemDetail from "@/pages/DataLogs/utils/LogItemDetail";
 
 const TagFieldContent = ({
   field,
@@ -38,14 +37,14 @@ const TagFieldContent = ({
 
 interface LogItemFoldProps {
   onFoldClick: () => void;
+  log: any;
 }
 
-const LogItemFold = ({ onFoldClick }: LogItemFoldProps) => {
+const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
   const { logs, doUpdatedQuery } = useModel("dataLogs");
-  const { log } = useContext(LogItemContext);
 
   const { indexList, secondaryIndexList, logFields, resultLog, systemFields } =
-    useLogItemDetail(logs, log);
+    useMemo(() => LogItemDetail(logs, log), [logs, log]);
 
   const handleClick = useCallback(
     (field: string, value: string) => {
@@ -86,7 +85,7 @@ const LogItemFold = ({ onFoldClick }: LogItemFoldProps) => {
         );
       }
       return { tagFields };
-    }, []);
+    }, [systemFields, indexList, secondaryIndexList, resultLog]);
 
   return (
     <div className={logItemStyles.logItemHideMain} onClick={onFoldClick}>

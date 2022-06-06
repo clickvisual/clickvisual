@@ -1,6 +1,5 @@
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import { useContext, useMemo } from "react";
-import { LogItemContext } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
+import { useMemo } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import { parseJsonObject } from "@/utils/string";
@@ -8,8 +7,11 @@ import lodash from "lodash";
 import { REG_SEPARATORS } from "@/components/JsonView/JsonStringValue";
 import LogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContent";
 
-const LogItemDetails = () => {
-  const { log } = useContext(LogItemContext);
+interface LogItemDetailsProps {
+  log: any;
+}
+
+const LogItemDetails = ({ log }: LogItemDetailsProps) => {
   const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
 
@@ -110,7 +112,7 @@ const LogItemDetails = () => {
     value: string,
     extra?: { key?: string; isIndex?: boolean; indexKey?: string }
   ) => {
-    let currentSelected = "";
+    let currentSelected: string;
     if (extra?.isIndex && extra?.indexKey) {
       currentSelected = `\`${extra.indexKey}\`='${value}'`;
     } else {
