@@ -15,8 +15,8 @@ const ClickMenu = (props: ClickMenuProps) => {
   const { content, children, handleAddCondition, handleOutCondition } = props;
 
   const handleCopyLog = () => {
-    message.success(i18n.formatMessage({ id: "log.item.copy.success" }));
     copy(content.toString());
+    message.success(i18n.formatMessage({ id: "log.item.copy.success" }));
   };
 
   const menu = (
