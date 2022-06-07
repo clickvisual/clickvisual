@@ -37,10 +37,8 @@ const JsonStringValue = ({
 }: JsonStringValueProps) => {
   const { onClickValue, highLightValue, quickInsertLikeExclusion } = restProps;
   const strListByReg: string[] = splitRawLogString(val);
-  const isExceed = val && val.length > LOGMAXTEXTLENGTH;
-  const [isHidden, setIsHidden] = useState<boolean | undefined>(
-    isExceed || false
-  );
+  const isExceed = (!!val && val.length > LOGMAXTEXTLENGTH) || false;
+  const [isHidden, setIsHidden] = useState<boolean>(isExceed);
   const i18n = useIntl();
 
   const isValue = (value: any) => {
@@ -50,7 +48,7 @@ const JsonStringValue = ({
   const isNewLine = (value: any) => {
     let flag = false;
     PRE_SYMBOL.map((item: string) => {
-      if (value.includes(item)) {
+      if (value.indexOf(item) > 0) {
         flag = true;
       }
     });
@@ -149,7 +147,7 @@ const JsonStringValue = ({
         >
           {val && val.substring(0, LOGMAXTEXTLENGTH) + "..."}
         </span>
-      ) : isNewLine(strListByReg) ? (
+      ) : isNewLine(val) ? (
         <pre className={jsonViewStyles.pre}>{jsonStringView}</pre>
       ) : (
         <span className={jsonViewStyles.pre}>{jsonStringView}</span>
