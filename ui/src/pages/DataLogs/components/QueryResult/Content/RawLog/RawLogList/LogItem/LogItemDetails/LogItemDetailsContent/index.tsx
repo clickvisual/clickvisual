@@ -4,8 +4,8 @@ import classNames from "classnames";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { useIntl } from "umi";
-import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 import { PRE_SYMBOL } from "@/components/JsonView/JsonStringValue";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 interface onInsertQuery {
   onInsertQuery: any;
@@ -38,13 +38,15 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
 
   const isNewLine = (value: any) => {
     let flag = false;
-    PRE_SYMBOL.map((item: any) => {
-      if (typeof value == "string" && value.includes(item)) {
+    PRE_SYMBOL?.map((item: any) => {
+      if (typeof value == "string" && value.indexOf(item)) {
         flag = true;
       }
     });
     return flag;
   };
+
+  console.log(content, "content");
 
   return (
     <>

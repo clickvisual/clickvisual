@@ -31,7 +31,7 @@ const RawLogList = () => {
       {...containerProps}
     >
       {list.map((logItem: any, index: number) => (
-        <LogItem log={logItem} />
+        <LogItem log={logItem} key={index} />
       ))}
     </div>
   );
