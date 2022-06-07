@@ -303,7 +303,7 @@ export default {
   },
 
   // Get log library details
-  async updataTableInfo(id: number, data: any) {
+  async updateTableInfo(id: number, data: any) {
     return request<any>(process.env.PUBLIC_PATH + `api/v1/tables/${id}`, {
       method: "PATCH",
       data,

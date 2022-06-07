@@ -516,7 +516,6 @@ export default {
 
   // Notifications
   "alarm.notify.button.created": "新增渠道",
-  "alarm.notify.button.test": "测试",
   "alarm.notify.modal.created": "新增通知方式",
   "alarm.notify.created.success": "新增通知方式成功",
   "alarm.notify.sendTest.success": "发送测试通知成功,请到客户端进行验证",

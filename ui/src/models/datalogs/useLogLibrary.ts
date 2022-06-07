@@ -44,7 +44,7 @@ export default function useLogLibrary() {
   const getLogLibrary = useRequest(api.getTableInfo, {
     loadingText: false,
   });
-  const doUpdateLogLibrary = useRequest(api.updataTableInfo, {
+  const doUpdateLogLibrary = useRequest(api.updateTableInfo, {
     loadingText: false,
   });
 
