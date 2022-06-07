@@ -32,6 +32,8 @@ import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 const DataLogsModel = () => {
   // 查询关键字
   const [keywordInput, setKeywordInput] = useState<string | undefined>();
+  // 查询关键词 2代
+  // const [logInputKeywordArr, setLogInputKeywordArr] = useState<any[]>([]);
   // 是否隐藏 Highcharts
   const [isHiddenHighChart, setIsHiddenHighChart] = useState<boolean>(false);
   // 日志总条数
@@ -406,7 +408,7 @@ const DataLogsModel = () => {
     const defaultInput = lodash
       .cloneDeep(keyword ? keyword : keywordInput)
       ?.split(" and ") || [""];
-    const strReg = /(`?\w|.+`?)(=| like )'([^']+)'/g;
+    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'([^']+)'/g;
     const allQuery: any[] = [];
     defaultInput.map((inputStr) =>
       Array.from(inputStr.replaceAll("`", "").matchAll(strReg))?.map((item) => {
@@ -421,7 +423,6 @@ const DataLogsModel = () => {
 
   const doUpdatedQuery = (currentSelected: string) => {
     if (!currentLogLibrary?.id) return;
-
     if (currentSelected.endsWith("+08:00'")) {
       currentSelected = currentSelected.substring(
         0,
@@ -434,9 +435,25 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    if (defaultValueArr.indexOf(currentSelected) === -1) {
-      defaultValueArr.push(currentSelected);
+    // if (defaultValueArr.indexOf(currentSelected) === -1) {
+    //   defaultValueArr.push(currentSelected);
+    // }
+    var newValueArr: string[] = [];
+    lodash.cloneDeep(defaultValueArr).map((item: string) => {
+      newValueArr.push(item.replace(/(=|!=| like | not like )/gi, ""));
+    });
+    console.log(newValueArr, defaultValueArr, "909090");
+
+    let currentKeyword = currentSelected
+      .replace(/(=|!=| like | not like )/g, "")
+      .trim();
+
+    if (newValueArr?.includes(currentKeyword)) {
+      defaultValueArr.splice(newValueArr.indexOf(currentKeyword), 1);
+      newValueArr.splice(newValueArr.indexOf(currentKeyword), 1);
     }
+    newValueArr.push(currentKeyword);
+    defaultValueArr.push(currentSelected.trim());
 
     const kw = defaultValueArr.join(" and ");
     const pane = logPanesHelper.logPanes[currentLogLibrary.id.toString()];

@@ -46,8 +46,6 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
     return flag;
   };
 
-  console.log(content, "content");
-
   return (
     <>
       {content && content.length > LOGMAXTEXTLENGTH && (
