@@ -48,7 +48,7 @@ const JsonStringValue = ({
   const isNewLine = (value: any) => {
     let flag = false;
     PRE_SYMBOL.map((item: string) => {
-      if (value.indexOf(item)) {
+      if (value.indexOf(item) > 0) {
         flag = true;
       }
     });

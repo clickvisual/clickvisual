@@ -435,14 +435,10 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    // if (defaultValueArr.indexOf(currentSelected) === -1) {
-    //   defaultValueArr.push(currentSelected);
-    // }
     var newValueArr: string[] = [];
     lodash.cloneDeep(defaultValueArr).map((item: string) => {
       newValueArr.push(item.replace(/(=|!=| like | not like )/gi, ""));
     });
-    console.log(newValueArr, defaultValueArr, "909090");
 
     let currentKeyword = currentSelected
       .replace(/(=|!=| like | not like )/g, "")

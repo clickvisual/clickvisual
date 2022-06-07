@@ -39,7 +39,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
   const isNewLine = (value: any) => {
     let flag = false;
     PRE_SYMBOL?.map((item: any) => {
-      if (typeof value == "string" && value.indexOf(item)) {
+      if (typeof value == "string" && value.indexOf(item) > 0) {
         flag = true;
       }
     });
