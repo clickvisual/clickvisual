@@ -69,6 +69,22 @@ export default [
     ],
   },
   {
+    path: "/bigdata",
+    name: "bigdata",
+    routes: [
+      {
+        path: "/bigdata/realtime",
+        name: "realtime",
+        component: "./DataAnalysis/RealTimeTrafficFlow/index.tsx",
+      },
+      {
+        path: "/bigdata/short",
+        name: "temporaryQuery",
+        component: ".//DataAnalysis/TemporaryQuery/index.tsx",
+      },
+    ],
+  },
+  {
     path: "/user",
     layout: false,
     component: "../layouts/User",
