@@ -75,6 +75,8 @@ func GetRouter() *egin.Component {
 	{
 		// webhook
 		v1Open.POST("/prometheus/alerts", core.Handle(alarm.Webhook))
+		//alarms channels send test
+		v1Open.POST("/alarms-channels/send-test", core.Handle(alarm.ChannelSendTest))
 		// mock
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))

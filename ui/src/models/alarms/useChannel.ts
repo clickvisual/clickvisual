@@ -23,6 +23,10 @@ const useChannel = () => {
     loadingText: false,
   });
 
+  const doSendTestToChannel = useRequest(api.sendTestToChannel, {
+    loadingText: false,
+  });
+
   return {
     currentChannel,
     setCurrentChannel,
@@ -31,6 +35,7 @@ const useChannel = () => {
     doCreatedChannel,
     doUpdatedChannel,
     doDeletedChannel,
+    doSendTestToChannel,
   };
 };
 export default useChannel;

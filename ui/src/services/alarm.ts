@@ -209,4 +209,16 @@ export default {
       }
     );
   },
+
+  async sendTestToChannel(data: ChannelFormType) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/alarms-channels/send-test`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
 };
+
+
