@@ -91,7 +91,7 @@ func SendTestToChannel(c *db.AlarmChannel) (err error) {
 		return
 	}
 	n := view.Notification{}
-	a := &db.Alarm{}
+	a := &db.Alarm{Name: c.Name, Desc: "Test the availability of the alarm channel"}
 	err = ci.Send(n, a, c, "")
 	return
 }
