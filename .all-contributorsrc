@@ -1,6 +1,6 @@
 {
   "projectName": "clickvisual",
-  "projectOwner": "shimohq",
+  "projectOwner": "clickvisual",
   "repoType": "github",
   "repoHost": "https://github.com",
   "files": [
@@ -89,6 +89,15 @@
       "name": "qianque7",
       "avatar_url": "https://avatars.githubusercontent.com/u/68426635?v=4",
       "profile": "https://github.com/qianque7",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "rotk2022",
+      "name": "Chen Ziqian",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105830845?v=4",
+      "profile": "https://github.com/rotk2022",
       "contributions": [
         "code"
       ]
