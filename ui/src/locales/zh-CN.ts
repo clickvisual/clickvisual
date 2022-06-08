@@ -525,6 +525,9 @@ export default {
   "alarm.notify.modal.content": "确定删除通知方式：{channelName} 吗？",
   "alarm.notify.deleted.loading": "正在删除通知方式 {channelName}...",
   "alarm.notify.deleted.success": "删除通知方式 {channelName} 成功",
+  "alarm.notify.name.placeholder": "请输入通知名称",
+  "alarm.notify.type.placeholder": "请选择通知方式",
+  "alarm.notify.url.placeholder": "请输入通知url",
 
   // install
   "install.init.text.databaseInit":

@@ -155,11 +155,6 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
       dom = (
         <span
           onClick={(e) => {
-            debugger;
-            // onClickValue?.(
-            //   val.toString(),
-            //   isIndex ? { isIndex, indexKey: indexField } : undefined
-            // );
             e.stopPropagation();
           }}
           className={classNames(

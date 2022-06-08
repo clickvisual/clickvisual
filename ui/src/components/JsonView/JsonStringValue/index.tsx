@@ -65,8 +65,10 @@ const JsonStringValue = ({
       return !!highLightValue.find((item) => {
         // 去掉 item.key 中的空格
         const itemKey = item.key.replace(/\s+/g, "");
-
-        if (itemKey === keyItem && item.value === value) {
+        if (
+          (itemKey === keyItem && item.value.trim() === value.trim()) ||
+          item.value.trim() === `%${value}%`
+        ) {
           return true;
         } else if (
           itemKey.search(".") !== -1 &&
@@ -91,8 +93,7 @@ const JsonStringValue = ({
           e.stopPropagation();
         }}
         className={classNames(
-          isValue(value) && jsonViewStyles.jsonViewValueHover,
-          highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+          isValue(value) && jsonViewStyles.jsonViewValueHover
         )}
       >
         <ClickMenu
@@ -111,7 +112,14 @@ const JsonStringValue = ({
               });
           }}
         >
-          <span>{value}</span>
+          <span
+            className={classNames(
+              isValue(value) && jsonViewStyles.jsonViewValueHover,
+              highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+            )}
+          >
+            {value}
+          </span>
         </ClickMenu>
       </span>
     );
@@ -140,10 +148,6 @@ const JsonStringValue = ({
           onClick={() =>
             message.info(i18n.formatMessage({ id: "log.JsonView.unfoldTip" }))
           }
-          className={classNames(
-            isValue(val) && jsonViewStyles.jsonViewValueHover,
-            highLightFlag(val) && jsonViewStyles.jsonViewHighlight
-          )}
         >
           {val && val.substring(0, LOGMAXTEXTLENGTH) + "..."}
         </span>

@@ -80,7 +80,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
         >
           <ClickMenu
             field={keyItem}
-            content={isIndexAndRawLogKey}
+            content={content}
             handleAddCondition={() =>
               onInsertQuery(keyItem, isIndexAndRawLogKey)
             }
@@ -104,7 +104,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
         >
           <ClickMenu
             field={keyItem}
-            content={isIndexAndRawLogKey}
+            content={content}
             handleAddCondition={() =>
               onInsertQuery(keyItem, isIndexAndRawLogKey)
             }
