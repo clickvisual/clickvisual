@@ -80,7 +80,7 @@
     "umi-serve": "^1.9.10"
   },
   "devDependencies": {
-    "@ant-design/pro-cli": "^2.0.2",
+    "@ant-design/pro-cli": "2.1.5",
     "@types/express": "^4.17.0",
     "@types/history": "^4.7.2",
     "@types/jest": "^26.0.0",
@@ -90,7 +90,6 @@
     "@types/react-helmet": "^6.1.0",
     "@umijs/fabric": "^2.6.2",
     "@umijs/openapi": "^1.1.14",
-    "@umijs/plugin-blocks": "^2.0.5",
     "@umijs/plugin-esbuild": "^1.4.1",
     "@umijs/plugin-openapi": "^1.2.0",
     "@umijs/preset-ant-design-pro": "^1.2.0",
