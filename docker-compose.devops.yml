@@ -1,0 +1,178 @@
+version: '3'
+networks:
+  clickvisual-net:
+    driver: bridge
+services:
+  nginx:
+    image: nginx
+    networks:
+      - clickvisual-net
+    ports:
+      - "19003:80"
+    volumes:
+      - ./data/all-in-one/nginx/html:/usr/share/nginx/html
+      - ./data/all-in-one/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./data/all-in-one/nginx/conf.d:/etc/nginx/conf.d
+      - ./data/all-in-one/nginx/logs:/var/log/nginx
+    restart: always
+  fluent-bit:
+    image: fluent/fluent-bit:1.8.12
+    networks:
+      - clickvisual-net
+    environment:
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - 2020:2020
+    volumes:
+      - ./data/all-in-one/fluent-bit/conf:/fluent-bit/etc/
+      - ./data/all-in-one/nginx/logs:/var/log/containers
+    depends_on:
+      - nginx
+      - kafka
+    links:
+      - kafka
+    restart: always
+  zookeeper:
+    image: zookeeper
+    networks:
+      - clickvisual-net
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    expose:
+      - 2181
+    volumes:
+      - ./data/all-in-one/zookeeper/data:/data
+      - ./data/all-in-one/zookeeper/datalog:/datalog
+  kafka:
+    image: bitnami/kafka:2.8.1
+    user: root
+    networks:
+      - clickvisual-net
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    expose:
+      - 9092
+    depends_on:
+      - zookeeper
+    restart: always
+    volumes:
+      - ./data/all-in-one/kafka:/bitnami/kafka
+  kowl:
+    image: rsmnarts/kowl
+    networks:
+      - clickvisual-net
+    environment:
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - 19002:8080
+    depends_on:
+      - kafka
+    links:
+      - zookeeper
+      - kafka
+    restart: always
+  mysql:
+    image: mysql:5.7.37
+    networks:
+      - clickvisual-net
+    environment:
+      MYSQL_ROOT_PASSWORD: shimo
+      MYSQL_ROOT_HOST: '%'
+    command: [
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_general_ci',
+        '--port=13306',
+        '--init-file=/data/all-in-one/migration/database.sql',
+    ]
+    ports:
+      - 13306:13306
+    volumes:
+      - ./scripts/migration:/data/all-in-one/migration
+    restart: always
+  redis:
+    image: redis:5.0.14-alpine
+    networks:
+      - clickvisual-net
+    expose:
+      - 6380
+    restart: always
+    command: [ '--port 6380' ]
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    networks:
+      - clickvisual-net
+    environment:
+      CLICKHOUSE_USER: root
+      CLICKHOUSE_PASSWORD: shimo
+    expose:
+      - 9000
+    ports:
+      - "8123:8123"
+    volumes:
+      - ./data/all-in-one/clickhouse/database:/var/lib/clickhouse
+      - ./data/all-in-one/clickhouse/logs:/var/log
+      - ./data/all-in-one/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
+      - ./data/all-in-one/clickhouse/conf/conf.d:/etc/clickhouse-server/conf.d
+    restart: always
+    links:
+      - kafka
+    depends_on:
+      - kafka
+  alertmanager:
+    networks:
+      - clickvisual-net
+    image: prom/alertmanager:latest
+    volumes:
+      - ./data/all-in-one/alertmanager/alertmanager.yaml:/etc/alertmanager/config/alertmanager.yaml
+    command: [
+        "--config.file=/etc/alertmanager/config/alertmanager.yaml",
+        "--cluster.listen-address=localhost:6783",
+        "--storage.path=/alertmanager",
+        "--data.retention=120h",
+        "--web.listen-address=:9093",
+        "--web.route-prefix=/"
+    ]
+    expose:
+      - 9093
+    ports:
+      - 19005:9093
+  prom2click:
+    networks:
+      - clickvisual-net
+    image: fhalim/prom2click:latest
+    command:
+      - '-ch.dsn=tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeout=10&debug=true'
+      - '-ch.db=metrics'
+      - '-ch.table=samples'
+    expose:
+      - 9201
+    ports:
+      - 19006:9201
+    depends_on:
+      - clickhouse
+    links:
+      - clickhouse
+  prometheus:
+    networks:
+      - clickvisual-net
+    image: prom/prometheus:latest
+    command:
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention=6h'
+      - '--storage.tsdb.path=/prometheus'
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+    volumes:
+      - ./data/all-in-one/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./data/all-in-one/prometheus/rules:/etc/prometheus/rules
+    expose:
+      - 9090
+    depends_on:
+      - alertmanager
+      - prom2click
+    links:
+      - alertmanager
+      - prom2click
+    ports:
+      - 19004:9090
