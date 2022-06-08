@@ -5,8 +5,22 @@ import {
   INodeInnerDefaultProps,
   IChart,
 } from "@mrblenny/react-flow-chart";
+import { useModel } from "@@/plugin-model/useModel";
+import { useMemo } from "react";
 
 const TrafficChart = () => {
+  const { realTimeTraffic } = useModel("dataAnalysis");
+  const { trafficChart } = realTimeTraffic;
+
+  // const aaa = useMemo(() => {
+  //   console.log("trafficChart: ", trafficChart);
+  //   if (trafficChart.length <= 0) return;
+  //   // 末尾的节点
+  //   const lastNodes = trafficChart.filter((item) => item.deps.length === 0);
+  //   console.log("lastNodes: ", lastNodes);
+  //   return [];
+  // }, [trafficChart]);
+
   const PortCustom = (props: IPortDefaultProps) => (
     <div
       style={{
