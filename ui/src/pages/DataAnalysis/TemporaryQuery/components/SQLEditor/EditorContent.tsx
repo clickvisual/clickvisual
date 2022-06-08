@@ -7,7 +7,7 @@ const EditorContent = () => {
     <div className={TemporaryQueryStyle.context}>
       <MonacoEditor
         height={"100%"}
-        language={"sql"}
+        language={"mysql"}
         theme="vs-dark"
         options={{
           automaticLayout: true,
