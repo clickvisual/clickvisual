@@ -77,7 +77,7 @@
     "sql-formatter": "^6.1.2",
     "styled-components": "^5.3.5",
     "umi": "3.5.24",
-    "umi-serve": "^1.9.10"
+    "umi-serve": "^1.9.11"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "2.1.5",
@@ -91,10 +91,9 @@
     "@umijs/fabric": "^2.6.2",
     "@umijs/openapi": "^1.1.14",
     "@umijs/plugin-esbuild": "^1.4.1",
-    "@umijs/plugin-openapi": "^1.2.0",
     "@umijs/preset-ant-design-pro": "^1.2.0",
     "@umijs/preset-dumi": "^1.1.7",
-    "@umijs/preset-react": "^1.8.17",
+    "@umijs/preset-react": "^2.1.4",
     "@umijs/yorkie": "^2.0.3",
     "bizcharts": "^4.1.15",
     "carlo": "^0.9.46",
