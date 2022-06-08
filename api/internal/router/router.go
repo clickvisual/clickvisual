@@ -154,6 +154,8 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
 		v1.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
+
+		v1.GET("/instances/:iid/databases/:dn/tables/:tn/deps", core.Handle(base.TableDeps))
 	}
 	// analysis fields
 	{

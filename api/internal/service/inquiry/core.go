@@ -26,6 +26,7 @@ type Operator interface {
 	AlertViewGen(*db.Alarm, string) (string, string, error)
 	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
 	TableCreate(int, db.Database, view.ReqTableCreate) (string, string, string, string, error)
+	Deps(string, string) ([]view.RespTableDeps, error)
 	IndexUpdate(db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
 }
 

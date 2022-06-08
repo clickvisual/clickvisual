@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -831,4 +832,36 @@ func TableUpdate(c *core.Context) {
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
+}
+
+func TableDeps(c *core.Context) {
+	iid := cast.ToInt(c.Param("iid"))
+	dn := strings.TrimSpace(c.Param("dn"))
+	tn := strings.TrimSpace(c.Param("tn"))
+	if dn == "" || iid == 0 || tn == "" {
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.InstanceBase,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res, err := op.Deps(dn, tn)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONOK(res)
+	return
 }
