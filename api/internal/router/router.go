@@ -11,6 +11,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
+	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/short"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/configure"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/event"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/initialize"
@@ -75,7 +76,7 @@ func GetRouter() *egin.Component {
 	{
 		// webhook
 		v1Open.POST("/prometheus/alerts", core.Handle(alarm.Webhook))
-		//alarms channels send test
+		// alarms channels send test
 		v1Open.POST("/alarms-channels/send-test", core.Handle(alarm.ChannelSendTest))
 		// mock
 		v1Open.POST("/install", core.Handle(initialize.Install))
@@ -204,6 +205,20 @@ func GetRouter() *egin.Component {
 		v1.POST("/pms/role", core.Handle(permission.CreatePmsRole))
 		v1.POST("/pms/root/grant", core.Handle(permission.GrantRootUids))
 		v1.POST("/pms/check", core.Handle(permission.CheckPermission))
+	}
+	// bigdata
+	{
+		v1.GET("/bigdata/short/folders", core.Handle(short.FolderList))
+		v1.GET("/bigdata/short/folders/:id", core.Handle(short.FolderInfo))
+		v1.POST("/bigdata/short/folders", core.Handle(short.FolderCreate))
+		v1.PATCH("/bigdata/short/folders/:id", core.Handle(short.FolderUpdate))
+		v1.DELETE("/bigdata/short/folders/:id", core.Handle(short.FolderDelete))
+
+		v1.GET("/bigdata/short/sql", core.Handle(short.SQLList))
+		v1.GET("/bigdata/short/sql/:id", core.Handle(short.SQLInfo))
+		v1.POST("/bigdata/short/sql", core.Handle(short.SQLCreate))
+		v1.PATCH("/bigdata/short/sql/:id", core.Handle(short.SQLUpdate))
+		v1.DELETE("/bigdata/short/sql/:id", core.Handle(short.SQLDelete))
 	}
 	return r
 }
