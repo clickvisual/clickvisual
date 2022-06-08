@@ -2333,6 +2333,17 @@
     stringify-entities "^3.0.1"
     stringify-object "^3.3.0"
 
+"@mrblenny/react-flow-chart@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.npmmirror.com/@mrblenny/react-flow-chart/-/react-flow-chart-0.0.14.tgz#be11d06345c7222b41f488b38011b109e48a04b3"
+  integrity sha512-3bFjlmlYuqHpCRCPoA59jok2Vhe59ZKT5g9lb6U5IM+Zk2fIsKmXp8LEcliW0TrHtNMtZw5Gm3/rScrg/DwAFQ==
+  dependencies:
+    pathfinding "^0.4.18"
+    react-draggable "^4.4.3"
+    react-resize-observer "^1.1.1"
+    react-zoom-pan-pinch "^1.6.1"
+    uuid "^3.3.2"
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.nlark.com/@nodelib/fs.scandir/download/@nodelib/fs.scandir-2.1.5.tgz?cache=0&sync_timestamp=1622792706054&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40nodelib%2Ffs.scandir%2Fdownload%2F%40nodelib%2Ffs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
@@ -8004,6 +8015,11 @@ hastscript@^6.0.0:
     property-information "^5.0.0"
     space-separated-tokens "^1.0.0"
 
+heap@0.2.5:
+  version "0.2.5"
+  resolved "https://registry.npmmirror.com/heap/-/heap-0.2.5.tgz#713b65590ebcc40fcbeeaf55e851694092b39af1"
+  integrity sha512-G7HLD+WKcrOyJP5VQwYZNC3Z6FcQ7YYjEFiFoIj8PfEr73mu421o8B1N5DKUcc8K37EsJ2XXWA8DtrDz/2dReg==
+
 highlight.js@^10.4.1, highlight.js@~10.7.0:
   version "10.7.3"
   resolved "https://registry.npmmirror.com/highlight.js/download/highlight.js-10.7.3.tgz#697272e3991356e40c3cac566a74eef681756531"
@@ -11489,6 +11505,13 @@ path-type@^4.0.0:
   resolved "https://registry.npm.taobao.org/path-type/download/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha1-hO0BwKe6OAr+CdkKjBgNzZ0DBDs=
 
+pathfinding@^0.4.18:
+  version "0.4.18"
+  resolved "https://registry.npmmirror.com/pathfinding/-/pathfinding-0.4.18.tgz#a9990f6fa22b7ef196e5651b049165403a045fe8"
+  integrity sha512-R0TGEQ9GRcFCDvAWlJAWC+KGJ9SLbW4c0nuZRcioVlXVTlw+F5RvXQ8SQgSqI9KXWC1ew95vgmIiyaWTlCe9Ag==
+  dependencies:
+    heap "0.2.5"
+
 pbkdf2@^3.0.3:
   version "3.1.2"
   resolved "https://registry.npm.taobao.org/pbkdf2/download/pbkdf2-3.1.2.tgz?cache=0&sync_timestamp=1617975984684&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fpbkdf2%2Fdownload%2Fpbkdf2-3.1.2.tgz#dd822aa0887580e52f1a039dc3eda108efae3075"
@@ -12206,7 +12229,7 @@ prop-types@15.x, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, pr
     object-assign "^4.1.1"
     react-is "^16.8.1"
 
-prop-types@^15.6.0:
+prop-types@^15.6.0, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.npmmirror.com/prop-types/download/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -13019,6 +13042,14 @@ react-draggable@^4.0.3:
     clsx "^1.1.1"
     prop-types "^15.6.0"
 
+react-draggable@^4.4.3:
+  version "4.4.5"
+  resolved "https://registry.npmmirror.com/react-draggable/-/react-draggable-4.4.5.tgz#9e37fe7ce1a4cf843030f521a0a4cc41886d7e7c"
+  integrity sha512-OMHzJdyJbYTZo4uQE393fHcqqPYsEtkjfMgvCHr6rejT+Ezn4OZbNyGH50vv+SunC1RMvwOTSWkEODQLzw1M9g==
+  dependencies:
+    clsx "^1.1.1"
+    prop-types "^15.8.1"
+
 react-error-boundary@3.0.2:
   version "3.0.2"
   resolved "https://registry.npmmirror.com/react-error-boundary/download/react-error-boundary-3.0.2.tgz?cache=0&sync_timestamp=1635771363392&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Freact-error-boundary%2Fdownload%2Freact-error-boundary-3.0.2.tgz#74399a4d9a68bfede1f3f4261ea0aabfc65d9868"
@@ -13190,6 +13221,11 @@ react-resizable@^3.0.4:
     prop-types "15.x"
     react-draggable "^4.0.3"
 
+react-resize-observer@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.npmmirror.com/react-resize-observer/-/react-resize-observer-1.1.1.tgz#641dfa2e0f4bd2549a8ab4bbbaf43b68f3dcaf76"
+  integrity sha512-3R+90Hou90Mr3wJYc+unsySC8Pn91V4nmjO32NKvUvjphRUbq9HisyLg7bDyGBE7xlMrrM6Fax7iNQaFdc/FYA==
+
 react-router-config@5.1.1:
   version "5.1.1"
   resolved "https://registry.npm.taobao.org/react-router-config/download/react-router-config-5.1.1.tgz#0f4263d1a80c6b2dc7b9c1902c9526478194a988"
@@ -13287,6 +13323,11 @@ react-tween-state@^0.1.5:
   dependencies:
     raf "^3.1.0"
     tween-functions "^1.0.1"
+
+react-zoom-pan-pinch@^1.6.1:
+  version "1.6.1"
+  resolved "https://registry.npmmirror.com/react-zoom-pan-pinch/-/react-zoom-pan-pinch-1.6.1.tgz#da16267c258ab37e8ebcdc7c252794a9633e91ec"
+  integrity sha512-J2eM0gZ04XiUWvmKZrOhSAB2zjyoK7kw2POIeN1X0yTTlmp6HPGV0zYfjnlkhgt8nQwpvXAbsF/oAnkuiwk1kA==
 
 react@16.x:
   version "16.14.0"
@@ -14644,6 +14685,13 @@ sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.nlark.com/sprintf-js/download/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
+
+sql-formatter@^6.1.2:
+  version "6.1.2"
+  resolved "https://registry.npmmirror.com/sql-formatter/-/sql-formatter-6.1.2.tgz#78b05021c641020312a5f144ec313b38e7663258"
+  integrity sha512-09AiPmA6zDq82IBXOj5kN33VeAqaV92enkoonlhJge0fmfTESiYs3pwsntGKxa1C89xj/9MoHlNeqMmCr23BJw==
+  dependencies:
+    argparse "^2.0.1"
 
 sshpk@^1.7.0:
   version "1.16.1"

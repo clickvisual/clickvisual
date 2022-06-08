@@ -1,5 +1,5 @@
-import { TrafficEChart } from "@/pages/DataAnalysis/RealTimeTrafficFlow/TrafficChart";
-import LibraryTree from "@/pages/DataAnalysis/RealTimeTrafficFlow/LibraryTree";
+import { TrafficEChart } from "@/pages/DataAnalysis/RealTimeTrafficFlow/components/TrafficChart";
+import LibraryTree from "@/pages/DataAnalysis/RealTimeTrafficFlow/components/LibraryTree";
 import TrafficStyles from "@/pages/DataAnalysis/RealTimeTrafficFlow/index.less";
 
 const RealTimeTrafficFlow = () => {

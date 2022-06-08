@@ -57,7 +57,7 @@ const Editor = () => {
                 {i18n.formatMessage({ id: "config.editor.userEditing" })}
               </span>
             </span>
-            {currentEditorUser.id === currentUser.id && (
+            {currentEditorUser.id === currentUser?.id && (
               <OptionButton
                 type={"border" as ButtonType}
                 style={{ fontSize: "12px", padding: "2px 10px" }}
@@ -120,7 +120,7 @@ const Editor = () => {
             automaticLayout: true,
             scrollBeyondLastLine: false,
             readOnly: !(
-              currentEditorUser && currentEditorUser.id === currentUser.id
+              currentEditorUser && currentEditorUser.id === currentUser?.id
             ),
           }}
           value={configContent}
