@@ -49,7 +49,6 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 
 	groupKey := notification.GroupKey
 	status := notification.Status
-
 	annotations := notification.CommonAnnotations
 
 	var buffer bytes.Buffer
