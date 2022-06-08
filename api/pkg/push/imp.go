@@ -18,6 +18,7 @@ const (
 	ChannelWeChat
 	ChannelFeiShu
 	ChannelSlack
+	ChannelEmail
 )
 
 type Operator interface {
@@ -35,6 +36,8 @@ func Instance(typ int) (Operator, error) {
 		return &FeiShu{}, nil
 	case ChannelSlack:
 		return &FeiShu{}, nil
+	case ChannelEmail:
+		return &Email{}, nil
 	default:
 		err = errors.New("undefined channels")
 	}
