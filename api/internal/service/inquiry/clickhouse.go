@@ -1144,19 +1144,19 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 func (c *ClickHouse) Deps(dn, tn string) (res []view.RespTableDeps, err error) {
 	res = make([]view.RespTableDeps, 0)
 	cache := map[string]interface{}{}
-	tmpForLog := c.deps(dn, tn)
-	for _, v := range tmpForLog {
+	checked := make(map[string]interface{}, 0)
+
+	for _, v := range c.deps(dn, tn, checked) {
 		if _, ok := cache[v.Database+"."+v.Table]; ok {
 			continue
 		}
 		cache[v.Database+"."+v.Table] = struct{}{}
 		res = append(res, v)
 	}
-	invoker.Logger.Debug("Deps", elog.Any("tmpForLog", tmpForLog), elog.Any("res", res))
 	return
 }
 
-func (c *ClickHouse) deps(dn, tn string) (res []view.RespTableDeps) {
+func (c *ClickHouse) deps(dn, tn string, checked map[string]interface{}) (res []view.RespTableDeps) {
 	res = make([]view.RespTableDeps, 0)
 
 	deps, _ := c.doQuery(fmt.Sprintf("select * from system.tables where database = '%s' and (table = '%s' or has(dependencies_table, '%s'))", dn, tn, tn))
@@ -1175,17 +1175,32 @@ func (c *ClickHouse) deps(dn, tn string) (res []view.RespTableDeps) {
 		if table["total_rows"] != nil {
 			tmp.TotalRows = table["total_rows"].(uint64)
 		}
-		for _, dependsTableName := range table["dependencies_table"].([]string) {
-			if dependsTableName != tn {
-				nextDeps = append(nextDeps, dependsTableName)
-			}
+		checked[table["database"].(string)+"."+table["name"].(string)] = struct{}{}
+		databases := table["dependencies_database"].([]string)
+		for i, tt := range table["dependencies_table"].([]string) {
+			nextDeps = append(nextDeps, databases[i]+"."+tt)
 		}
 		res = append(res, tmp)
 	}
-	invoker.Logger.Debug("deps", elog.Any("nextDeps", nextDeps))
 
-	for _, nextTable := range nextDeps {
-		res = append(res, c.deps(dn, nextTable)...)
+	var filterNextDeps []string
+	for _, dependsTableName := range nextDeps {
+		if _, ok := checked[dependsTableName]; ok {
+			continue
+		}
+		filterNextDeps = append(filterNextDeps, dependsTableName)
+	}
+	invoker.Logger.Debug("deps", elog.Any("nextDeps", nextDeps), elog.Any("filterNextDeps", filterNextDeps),
+		elog.Any("database", dn), elog.Any("table", tn),
+		elog.Any("res", res),
+	)
+
+	for _, nextTable := range filterNextDeps {
+		dt := strings.Split(nextTable, ".")
+		if len(dt) != 2 {
+			continue
+		}
+		res = append(res, c.deps(dn, dt[1], checked)...)
 	}
 	return res
 }
