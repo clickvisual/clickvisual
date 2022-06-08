@@ -74,3 +74,12 @@ type RespDatabaseSelfBuilt struct {
 type RespTablesSelfBuilt struct {
 	Name string `json:"name"`
 }
+
+type RespTableDeps struct {
+	Database   string   `json:"database"`
+	Table      string   `json:"table"`
+	Engine     string   `json:"engine"`
+	TotalRows  uint64   `json:"totalRows"`
+	TotalBytes uint64   `json:"totalBytes"`
+	Deps       []string `json:"deps"`
+}

@@ -214,10 +214,13 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 	if res.Query == "" {
 		res.Query = "1='1'"
 	}
-	if res.ST == 0 {
-		res.ST = time.Now().Add(-time.Hour).Unix()
+	interval := res.ET - res.ST
+
+	if econf.GetInt64("app.queryLimitHours") != 0 && interval > econf.GetInt64("app.queryLimitHours")*3600 {
+		return res, constx.ErrQueryIntervalLimit
 	}
-	if res.ET == 0 {
+	if interval <= 0 {
+		res.ST = time.Now().Add(-time.Hour).Unix()
 		res.ET = time.Now().Unix()
 	}
 	var err error
@@ -1136,6 +1139,55 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		return
 	}
 	return
+}
+
+func (c *ClickHouse) Deps(dn, tn string) (res []view.RespTableDeps, err error) {
+	res = make([]view.RespTableDeps, 0)
+	cache := map[string]interface{}{}
+	tmpForLog := c.deps(dn, tn)
+	for _, v := range tmpForLog {
+		if _, ok := cache[v.Database+"."+v.Table]; ok {
+			continue
+		}
+		cache[v.Database+"."+v.Table] = struct{}{}
+		res = append(res, v)
+	}
+	invoker.Logger.Debug("Deps", elog.Any("tmpForLog", tmpForLog), elog.Any("res", res))
+	return
+}
+
+func (c *ClickHouse) deps(dn, tn string) (res []view.RespTableDeps) {
+	res = make([]view.RespTableDeps, 0)
+
+	deps, _ := c.doQuery(fmt.Sprintf("select * from system.tables where database = '%s' and (table = '%s' or has(dependencies_table, '%s'))", dn, tn, tn))
+	var nextDeps []string
+
+	for _, table := range deps {
+		tmp := view.RespTableDeps{
+			Database: table["database"].(string),
+			Table:    table["name"].(string),
+			Engine:   table["engine"].(string),
+			Deps:     table["dependencies_table"].([]string),
+		}
+		if table["total_bytes"] != nil {
+			tmp.TotalBytes = table["total_bytes"].(uint64)
+		}
+		if table["total_rows"] != nil {
+			tmp.TotalRows = table["total_rows"].(uint64)
+		}
+		for _, dependsTableName := range table["dependencies_table"].([]string) {
+			if dependsTableName != tn {
+				nextDeps = append(nextDeps, dependsTableName)
+			}
+		}
+		res = append(res, tmp)
+	}
+	invoker.Logger.Debug("deps", elog.Any("nextDeps", nextDeps))
+
+	for _, nextTable := range nextDeps {
+		res = append(res, c.deps(dn, nextTable)...)
+	}
+	return res
 }
 
 func getUnixTime(val map[string]interface{}) (int64, bool) {
