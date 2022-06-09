@@ -1,12 +1,12 @@
 version: '3'
 networks:
-  clickvisual-net:
+  cv-devops-net:
     driver: bridge
 services:
   nginx:
     image: nginx
     networks:
-      - clickvisual-net
+      - cv-devops-net
     ports:
       - "19003:80"
     volumes:
@@ -18,7 +18,7 @@ services:
   fluent-bit:
     image: fluent/fluent-bit:1.8.12
     networks:
-      - clickvisual-net
+      - cv-devops-net
     environment:
       KAFKA_BROKERS: kafka:9092
     ports:
@@ -35,7 +35,7 @@ services:
   zookeeper:
     image: zookeeper
     networks:
-      - clickvisual-net
+      - cv-devops-net
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     expose:
@@ -47,7 +47,7 @@ services:
     image: bitnami/kafka:2.8.1
     user: root
     networks:
-      - clickvisual-net
+      - cv-devops-net
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
@@ -62,11 +62,11 @@ services:
   kowl:
     image: rsmnarts/kowl
     networks:
-      - clickvisual-net
+      - cv-devops-net
     environment:
       KAFKA_BROKERS: kafka:9092
     ports:
-      - 19002:8080
+      - "19002:8080"
     depends_on:
       - kafka
     links:
@@ -77,25 +77,25 @@ services:
     platform: linux/x86_64
     image: mysql:5.7
     networks:
-      - clickvisual-net
+      - cv-devops-net
     environment:
-      MYSQL_ROOT_PASSWORD: shimo
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_ROOT_HOST: '%'
     command: [
-        '--character-set-server=utf8mb4',
-        '--collation-server=utf8mb4_general_ci',
-        '--port=13306',
-        '--init-file=/data/all-in-one/migration/database.sql',
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_general_ci',
+      '--port=13306',
+      '--init-file=/data/all-in-one/migration/database.sql',
     ]
     ports:
-      - 13306:13306
+      - "13306:13306"
     volumes:
       - ./scripts/migration:/data/all-in-one/migration
     restart: always
   redis:
     image: redis:5.0.14-alpine
     networks:
-      - clickvisual-net
+      - cv-devops-net
     expose:
       - 6380
     restart: always
@@ -103,18 +103,20 @@ services:
   clickhouse:
     image: lunalabsltd/clickhouse-server:21.7.2.7-arm
     networks:
-      - clickvisual-net
+      - cv-devops-net
     environment:
       CLICKHOUSE_USER: root
-      CLICKHOUSE_PASSWORD: shimo
+      CLICKHOUSE_PASSWORD: root
     expose:
       - 9000
+      - 8123
     ports:
       - "8123:8123"
+      - "9000:9000"
     volumes:
       - ./data/all-in-one/clickhouse/database:/var/lib/clickhouse
       - ./data/all-in-one/clickhouse/logs:/var/log
-#      - ./data/all-in-one/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
+      #      - ./data/all-in-one/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml
       - ./data/all-in-one/clickhouse/conf/conf.d:/etc/clickhouse-server/conf.d
     restart: always
     links:
@@ -123,28 +125,28 @@ services:
       - kafka
   alertmanager:
     networks:
-      - clickvisual-net
+      - cv-devops-net
     image: prom/alertmanager:latest
     volumes:
       - ./data/all-in-one/alertmanager/alertmanager.yaml:/etc/alertmanager/config/alertmanager.yaml
     command: [
-        "--config.file=/etc/alertmanager/config/alertmanager.yaml",
-        "--cluster.listen-address=localhost:6783",
-        "--storage.path=/alertmanager",
-        "--data.retention=120h",
-        "--web.listen-address=:9093",
-        "--web.route-prefix=/"
+      "--config.file=/etc/alertmanager/config/alertmanager.yaml",
+      "--cluster.listen-address=localhost:6783",
+      "--storage.path=/alertmanager",
+      "--data.retention=120h",
+      "--web.listen-address=:9093",
+      "--web.route-prefix=/"
     ]
     expose:
       - 9093
     ports:
-      - 19005:9093
+      - "19005:9093"
   prom2click:
     networks:
-      - clickvisual-net
+      - cv-devops-net
     image: fhalim/prom2click:latest
     command:
-      - '-ch.dsn=tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeout=10&debug=true'
+      - '-ch.dsn=tcp://clickhouse:9000?username=root&password=root&read_timeout=10&writer_timeout=10&debug=true'
       - '-ch.db=metrics'
       - '-ch.table=samples'
     expose:
@@ -157,7 +159,7 @@ services:
       - clickhouse
   prometheus:
     networks:
-      - clickvisual-net
+      - cv-devops-net
     image: prom/prometheus:latest
     command:
       - '--web.enable-lifecycle'
