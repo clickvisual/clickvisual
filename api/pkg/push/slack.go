@@ -1,12 +1,20 @@
 package push
 
 import (
-	"bytes"
-	"fmt"
+	"encoding/json"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"log"
-	"net/http"
+	"github.com/slack-go/slack"
+	"strconv"
+	"time"
+)
+
+const (
+	COLOR      = "#8b0000"
+	SUBNAME    = "alarm"
+	AUTHORLINK = ""
+	ICON       = "https://avatars.githubusercontent.com/u/104639309?s=200&v=4"
+	FOOTER     = "clickvisual"
 )
 
 type Slack struct{}
@@ -17,20 +25,39 @@ func (s *Slack) Send(notification view.Notification, alarm *db.Alarm,
 	if err != nil {
 		return err
 	}
-	s.sendMessage(channel.Key, title, text)
+	err = s.sendMessage(channel.Key, title, text)
+	if err != nil {
+		return err
+	}
 	return nil
 }
-func (s *Slack) sendMessage(url string, title, text string) {
-	param := "payload={\"text\": \"ハゲハゲ\"}"
-	req, err := http.NewRequest("POST", url, bytes.NewBufferString(param))
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
+//sendMessage
+//  Description: 发送slack信息
+//  receiver s
+//   param url webhook 信息
+//   param title 标题
+//   param text 内容
+//  return err
+//
+func (s *Slack) sendMessage(url string, title, text string) (err error) {
+	attachment := slack.Attachment{
+		Color:         COLOR,
+		AuthorName:    title,
+		AuthorSubname: SUBNAME,
+		AuthorLink:    AUTHORLINK,
+		AuthorIcon:    ICON,
+		Text:          text,
+		Footer:        FOOTER,
+		FooterIcon:    ICON,
+		Ts:            json.Number(strconv.FormatInt(time.Now().Unix(), 10)),
 	}
-	fmt.Println(res)
+	msg := slack.WebhookMessage{
+		Attachments: []slack.Attachment{attachment},
+	}
+	err = slack.PostWebhook(url, &msg)
+	if err != nil {
+		return err
+	}
+	return nil
 }
