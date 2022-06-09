@@ -1,6 +1,7 @@
 import { Form, Input, Select } from "antd";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 const { Option } = Select;
+import { useIntl } from "umi";
 
 export interface ChannelFormType {
   name: string;
@@ -9,14 +10,23 @@ export interface ChannelFormType {
 }
 
 const ChannelFormItems = () => {
+  const i18n = useIntl();
   const { ChannelTypes } = useAlarmEnums();
   return (
     <>
       <Form.Item name={"name"} label={"Name"} rules={[{ required: true }]}>
-        <Input />
+        <Input
+          placeholder={i18n.formatMessage({
+            id: "alarm.notify.name.placeholder",
+          })}
+        />
       </Form.Item>
       <Form.Item name={"typ"} label={"Type"} rules={[{ required: true }]}>
-        <Select>
+        <Select
+          placeholder={i18n.formatMessage({
+            id: "alarm.notify.type.placeholder",
+          })}
+        >
           {ChannelTypes.map((item) => (
             <Option key={item.value} value={item.value}>
               {item.name}
@@ -25,7 +35,13 @@ const ChannelFormItems = () => {
         </Select>
       </Form.Item>
       <Form.Item name={"key"} label={"Url"} rules={[{ required: true }]}>
-        <Input.TextArea autoSize={{ minRows: 3, maxRows: 3 }} allowClear />
+        <Input.TextArea
+          autoSize={{ minRows: 3, maxRows: 3 }}
+          allowClear
+          placeholder={i18n.formatMessage({
+            id: "alarm.notify.url.placeholder",
+          })}
+        />
       </Form.Item>
     </>
   );

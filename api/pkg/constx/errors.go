@@ -18,7 +18,7 @@ var (
 	ErrConfigurationIsNoDifference = &kerror.KError{Code: 10104, Message: "save failed, no update at this time"}
 	ErrAlarmRuleStoreIsClosed      = &kerror.KError{Code: 10105, Message: "alarm rule store is closed"}
 	ErrClusterNameEmpty            = &kerror.KError{Code: 10106, Message: "error: cluster name is empty"}
-
+	ErrQueryIntervalLimit          = &kerror.KError{Code: 10107, Message: "the current query time exceeds the configured limit"}
 	// ErrGrpcUserListEmpty 02 grpc errors
 	ErrGrpcUserListEmpty = &kerror.KError{Code: 10201, Message: "svc grpc user list empty"}
 	ErrGrpcFileEmpty     = &kerror.KError{Code: 10202, Message: "svc grpc file empty"}

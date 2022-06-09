@@ -1,0 +1,27 @@
+@import "../../../styles/var.less";
+
+.queryMain {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+
+  .folderTreeMain {
+    flex: 0 0 300px;
+    color: #abb2bf;
+    background-color: #1c1c1c;
+  }
+  .editorMain {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    color: hsl(0, 0%, 58%);
+    background: hsl(0, 0%, 12%);
+    .header {
+      flex: 0 0 32px;
+    }
+    .context {
+      flex: 1;
+      height: 100%;
+    }
+  }
+}

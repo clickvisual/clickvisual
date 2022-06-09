@@ -65,7 +65,7 @@ export default defineConfig({
     // });
     config.plugin("monaco-editor").use(MonacoEditorWebpackPlugin, [
       {
-        languages: ["json", "ini", "yaml", "sb", "sql"],
+        languages: ["json", "ini", "yaml", "sb", "sql", "mysql"],
         features: [
           "coreCommands",
           "find",

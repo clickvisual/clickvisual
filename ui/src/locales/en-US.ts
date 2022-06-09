@@ -561,6 +561,9 @@ export default {
     "Deleting notification channel {channelName}...",
   "alarm.notify.deleted.success":
     "Delete the notification channel {channelName} success",
+  "alarm.notify.name.placeholder": "Please enter notification name",
+  "alarm.notify.type.placeholder": "Please select a type",
+  "alarm.notify.url.placeholder": "Please enter the url",
 
   // install
   "install.init.text.databaseInit":

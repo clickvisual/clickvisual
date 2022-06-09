@@ -17,21 +17,21 @@ import (
 type Alarm struct {
 	BaseModel
 
-	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                                    // uid of alarm operator
-	Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                                    // table id
-	Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                                    // foreign key
-	Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                               // name of an alarm
-	Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                                    // description
-	Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                          // interval second between alarm
-	Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                                  // 0 m 1 s 2 h 3 d 4 w 5 y
-	AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                          // prometheus alert rule
-	View          string        `gorm:"column:view;type:text" json:"view"`                                                     // view table ddl
-	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                         // name of view table
-	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                                       // tags
-	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                              // status
-	RuleStoreType int           `gorm:"column:rule_store_type" db:"rule_store_type" json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType
-	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`                       // channel of an alarm
-	NoDataOp      int           `gorm:"column:no_data_op" db:"no_data_op" json:"noDataOp" form:"noDataOp"`                     // noDataOp 0 nodata 1 ok 2 alert
+	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                            // uid of alarm operator
+	Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                            // table id
+	Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                            // foreign key
+	Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                       // name of an alarm
+	Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                            // description
+	Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                  // interval second between alarm
+	Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
+	AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                  // prometheus alert rule
+	View          string        `gorm:"column:view;type:text" json:"view"`                                             // view table ddl
+	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                 // name of view table
+	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                               // tags
+	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                      // status
+	RuleStoreType int           `gorm:"column:rule_store_type;type:int(11)" db:"rule_store_type" json:"ruleStoreType"` // ruleStoreType
+	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`               // channel of an alarm
+	NoDataOp      int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`                // noDataOp 0 nodata 1 ok 2 alert
 
 	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 }

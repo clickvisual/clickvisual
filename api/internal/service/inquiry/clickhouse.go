@@ -214,10 +214,13 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 	if res.Query == "" {
 		res.Query = "1='1'"
 	}
-	if res.ST == 0 {
-		res.ST = time.Now().Add(-time.Hour).Unix()
+	interval := res.ET - res.ST
+
+	if econf.GetInt64("app.queryLimitHours") != 0 && interval > econf.GetInt64("app.queryLimitHours")*3600 {
+		return res, constx.ErrQueryIntervalLimit
 	}
-	if res.ET == 0 {
+	if interval <= 0 {
+		res.ST = time.Now().Add(-time.Hour).Unix()
 		res.ET = time.Now().Unix()
 	}
 	var err error
@@ -1136,6 +1139,70 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		return
 	}
 	return
+}
+
+func (c *ClickHouse) Deps(dn, tn string) (res []view.RespTableDeps, err error) {
+	res = make([]view.RespTableDeps, 0)
+	cache := map[string]interface{}{}
+	checked := make(map[string]interface{}, 0)
+
+	for _, v := range c.deps(dn, tn, checked) {
+		if _, ok := cache[v.Database+"."+v.Table]; ok {
+			continue
+		}
+		cache[v.Database+"."+v.Table] = struct{}{}
+		res = append(res, v)
+	}
+	return
+}
+
+func (c *ClickHouse) deps(dn, tn string, checked map[string]interface{}) (res []view.RespTableDeps) {
+	res = make([]view.RespTableDeps, 0)
+
+	deps, _ := c.doQuery(fmt.Sprintf("select * from system.tables where database = '%s' and (table = '%s' or has(dependencies_table, '%s'))", dn, tn, tn))
+	var nextDeps []string
+
+	for _, table := range deps {
+		tmp := view.RespTableDeps{
+			Database: table["database"].(string),
+			Table:    table["name"].(string),
+			Engine:   table["engine"].(string),
+			Deps:     table["dependencies_table"].([]string),
+		}
+		if table["total_bytes"] != nil {
+			tmp.TotalBytes = table["total_bytes"].(uint64)
+		}
+		if table["total_rows"] != nil {
+			tmp.TotalRows = table["total_rows"].(uint64)
+		}
+		checked[table["database"].(string)+"."+table["name"].(string)] = struct{}{}
+		databases := table["dependencies_database"].([]string)
+		for i, tt := range table["dependencies_table"].([]string) {
+			nextDeps = append(nextDeps, databases[i]+"."+tt)
+		}
+		res = append(res, tmp)
+	}
+
+	var filterNextDeps []string
+	for _, dependsTableName := range nextDeps {
+		if _, ok := checked[dependsTableName]; ok {
+			continue
+		}
+		filterNextDeps = append(filterNextDeps, dependsTableName)
+	}
+	invoker.Logger.Debug("deps", elog.Any("nextDeps", nextDeps), elog.Any("filterNextDeps", filterNextDeps),
+		elog.Any("database", dn), elog.Any("table", tn),
+		elog.Any("res", res),
+	)
+
+	for _, nextTable := range filterNextDeps {
+		dt := strings.Split(nextTable, ".")
+		if len(dt) != 2 {
+			continue
+		}
+		res = append(res, c.deps(dn, dt[1], checked)...)
+	}
+	return res
 }
 
 func getUnixTime(val map[string]interface{}) (int64, bool) {
