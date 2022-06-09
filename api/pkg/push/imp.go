@@ -36,7 +36,7 @@ func Instance(typ int) (Operator, error) {
 	case ChannelFeiShu:
 		return &FeiShu{}, nil
 	case ChannelSlack:
-		return &FeiShu{}, nil
+		return &Slack{}, nil
 	case ChannelEmail:
 		return &Email{}, nil
 	case ChannelTelegram:
