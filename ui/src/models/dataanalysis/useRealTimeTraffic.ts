@@ -8,9 +8,14 @@ import realTimeTrafficApi, {
 
 const useRealTimeTraffic = () => {
   const [instances, setInstances] = useState<InstanceType[]>([]);
+  const [currentInstances, setcurrentInstances] = useState<number>();
   const [databases, setDatabases] = useState<DatabaseResponse[]>([]);
   const [tables, setTables] = useState<TablesResponse[]>([]);
   const [trafficChart, setTrafficChart] = useState<TrafficChartResponse[]>([]);
+
+  const onChangeCurrentInstances = (value: number) => {
+    setcurrentInstances(value);
+  };
 
   const doGetTrafficChart = useRequest(realTimeTrafficApi.getTrafficChart, {
     loadingText: false,
@@ -21,11 +26,13 @@ const useRealTimeTraffic = () => {
     databases,
     tables,
     trafficChart,
+    currentInstances,
 
     setTrafficChart,
     setInstances,
     setDatabases,
     setTables,
+    onChangeCurrentInstances,
 
     doGetTrafficChart,
   };

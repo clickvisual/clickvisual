@@ -1,0 +1,36 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  width: calc(100vw - 48px);
+
+  .screeningRow {
+    width: 100%;
+    padding:  6px 41px;
+    height: 40px;
+  }
+  .contentBox {
+    display: flex;
+    .nav {
+      width: 30px;
+      height: 100%;
+      margin-top: 30px;
+      .navItem {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 8px;
+        font-size: 24px;
+        cursor: pointer;
+      }
+    }
+
+    .content {
+      flex: 1;
+      height: calc(100vh - 145px);
+      overflow: hidden;
+      border-radius: 8px;
+    }
+  }
+}
