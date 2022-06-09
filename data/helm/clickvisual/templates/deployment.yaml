@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "clickvisual.fullname" . }}
@@ -42,7 +42,7 @@ spec:
           command:
             - /bin/sh
             - -c
-            - /data/clickvisual
+            - ./bin/clickvisual
           ports:
             - name: server
               containerPort: {{ .Values.service.port }}
@@ -61,7 +61,7 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - mountPath: /data/config
+            - mountPath: /clickvisual/configs
               name: config-volume-{{ .Chart.Name }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
