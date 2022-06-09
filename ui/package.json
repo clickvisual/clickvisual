@@ -70,6 +70,7 @@
     "react": "^17.0.0",
     "react-dev-inspector": "^1.1.1",
     "react-dom": "^17.0.0",
+    "react-floating-button": "^1.1.1",
     "react-helmet-async": "^1.0.4",
     "react-infinite-scroll-component": "6.1.0",
     "react-monaco-editor": "^0.46.0",
