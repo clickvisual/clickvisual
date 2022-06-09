@@ -1,73 +1,20 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
-import { Input, Tooltip, Tree } from "antd";
+import { Dropdown, Input, Menu, Tooltip, Tree } from "antd";
 import {
-  DiffOutlined,
   DownOutlined,
+  FileAddOutlined,
   FileOutlined,
-  FilterOutlined,
   RedoOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import { DataNode, EventDataNode } from "antd/lib/tree";
+import { DataNode } from "antd/lib/tree";
 import "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/index";
 import { useState } from "react";
 import React, { useMemo } from "react";
 import { Key } from "antd/lib/table/interface";
-import lodash from "lodash";
+// import { useModel } from "umi";
 
 const { DirectoryTree } = Tree;
-// const treeData: DataNode[] = [
-//   {
-//     title: "parent 1",
-//     key: "0-0",
-//     children: [
-//       {
-//         title: "parent 1-0",
-//         key: "0-0-0",
-//         children: [
-//           {
-//             title: "leaf",
-//             key: "0-0-0-0",
-//           },
-//           {
-//             title: "leaf",
-//             key: "0-0-0-1",
-//           },
-//           {
-//             title: "leaf",
-//             key: "0-0-0-2",
-//           },
-//         ],
-//       },
-//       {
-//         title: "parent 1-1",
-//         key: "0-0-1",
-//         children: [
-//           {
-//             title: "leaf",
-//             key: "0-0-1-0",
-//           },
-//         ],
-//       },
-//       {
-//         title: "parent 1-2",
-//         key: "0-0-2",
-//         children: [
-//           {
-//             title: "leaf",
-//             key: "0-0-2-0",
-//           },
-//           {
-//             title: "leaf",
-//             key: "0-0-2-1",
-//           },
-//         ],
-//       },
-//     ],
-//   },
-// ];
-
-// const { Search } = Input;
 
 const x = 3;
 const y = 2;
@@ -98,6 +45,7 @@ const generateData = (
     tns[index].children = [];
     return generateData(level, key, tns[index].children);
   });
+  return false;
 };
 generateData(z);
 
@@ -133,6 +81,7 @@ const FolderTree: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
+  // const { doFolderList } = useModel("dataAnalysis");
 
   const onExpand = (newExpandedKeys: Key[]) => {
     setExpandedKeys(newExpandedKeys);
@@ -154,6 +103,22 @@ const FolderTree: React.FC = () => {
     setAutoExpandParent(true);
   };
 
+  /* 右键菜单 */
+  const indexMenu = (
+    <div
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      style={{ borderRadius: "8px", overflow: "hidden" }}
+    >
+      <Menu>
+        <Menu.Item>重命名</Menu.Item>
+        <Menu.Item>移动</Menu.Item>
+        <Menu.Item>删除</Menu.Item>
+      </Menu>
+    </div>
+  );
+
   const treeData = useMemo(() => {
     const loop = (data: DataNode[]): DataNode[] =>
       data.map((item) => {
@@ -173,7 +138,18 @@ const FolderTree: React.FC = () => {
           );
         if (item.children) {
           return {
-            title,
+            title: (
+              <Dropdown
+                overlay={indexMenu}
+                trigger={["contextMenu"]}
+                onVisibleChange={(e) => {
+                  e;
+                  // setIndexRight(item)
+                }}
+              >
+                <div>{item?.title}</div>
+              </Dropdown>
+            ),
             key: item.key,
             // isLeaf: true,
             children: loop(item.children),
@@ -181,7 +157,17 @@ const FolderTree: React.FC = () => {
         }
 
         return {
-          title,
+          title: (
+            <Dropdown
+              overlay={indexMenu}
+              trigger={["contextMenu"]}
+              // onVisibleChange={() => {
+              //   // setIndexRight(item)
+              // }}
+            >
+              <div>{item?.title}</div>
+            </Dropdown>
+          ),
           icon: <FileOutlined />,
           // icon: <></>,
           showIcon: false,
@@ -192,6 +178,12 @@ const FolderTree: React.FC = () => {
     return loop(defaultData);
   }, [searchValue]);
 
+  // useEffect(() => {
+  //   doFolderList.run().then((res: any) => {
+  //     console.log(res);
+  //   });
+  // }, []);
+
   return (
     <div className={TemporaryQueryStyle.folderTreeMain}>
       <div className={TemporaryQueryStyle.title}>
@@ -199,7 +191,7 @@ const FolderTree: React.FC = () => {
         <div className={TemporaryQueryStyle.iconList}>
           <div className={TemporaryQueryStyle.button}>
             <Tooltip title="新建">
-              <DiffOutlined />
+              <FileAddOutlined />
             </Tooltip>
           </div>
           <div className={TemporaryQueryStyle.button}>
@@ -219,9 +211,9 @@ const FolderTree: React.FC = () => {
             }
           />
         </div>
-        <div className={TemporaryQueryStyle.button}>
+        {/* <div className={TemporaryQueryStyle.button}>
           <FilterOutlined />
-        </div>
+        </div> */}
       </div>
       <div className={TemporaryQueryStyle.content}>
         <DirectoryTree
@@ -231,9 +223,9 @@ const FolderTree: React.FC = () => {
           onExpand={onExpand}
           expandedKeys={expandedKeys}
           autoExpandParent={autoExpandParent}
-          onRightClick={(e) => {
-            console.log(e);
-          }}
+          // onRightClick={(e) => {
+          //   console.log(e);
+          // }}
           // onSelect={onSelect}
           treeData={treeData}
         />

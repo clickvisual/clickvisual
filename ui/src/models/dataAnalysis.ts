@@ -1,11 +1,12 @@
 import useRequest from "@/hooks/useRequest/useRequest";
 import systemApi from "@/services/systemSetting";
 import dataLogsApi from "@/services/dataLogs";
+import dataAnalysis from "@/services/dataAnalysis";
 import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
 import { useState } from "react";
 
 const DataAnalysis = () => {
-  const [navKey, setNavKey] = useState<string>("RealTimeTrafficFlow");
+  const [navKey, setNavKey] = useState<string>("TemporaryQuery");
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
@@ -25,6 +26,10 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
+  const doFolderList = useRequest(dataAnalysis.getFolderList, {
+    loadingText: false,
+  });
+
   return {
     navKey,
     onChangeNavKey,
@@ -33,6 +38,7 @@ const DataAnalysis = () => {
     doGetInstance,
     doGetDatabase,
     doGetTables,
+    doFolderList,
   };
 };
 

@@ -9,7 +9,10 @@ const DataAnalysis = () => {
   const { navKey } = useModel("dataAnalysis");
 
   return (
-    <div className={style.main}>
+    <div
+      className={style.main}
+      style={{ backgroundColor: navKey == "TemporaryQuery" ? "#1c1c1c" : "" }}
+    >
       <DataAnalysisScreening />
       <div className={style.contentBox}>
         <DataAnalysisNav />

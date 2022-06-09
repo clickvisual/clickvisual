@@ -36,6 +36,7 @@
           width: 34px;
           height: 34px;
           font-size: 18px;
+          cursor: pointer;
         }
       }
     }
@@ -117,12 +118,16 @@
       }
 
       //
-      :global
-        .ant-tree
-        .ant-tree-directory
-        .ant-tree-treenode-selected:hover::before,
+      // :global
+      //   .ant-tree
+      //   .ant-tree-directory
+      //   .ant-tree-treenode-selected:hover::before,
       :global .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
         background-color: #1f1f1f !important;
+      }
+
+      :global .ant-dropdown-trigger {
+        display: inline-block;
       }
     }
   }
@@ -134,6 +139,7 @@
     background: hsl(0, 0%, 12%);
     .header {
       flex: 0 0 32px;
+      padding-left: 56px;
     }
     .context {
       flex: 1;

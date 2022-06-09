@@ -4,19 +4,27 @@ import { Tooltip } from "antd";
 import { useModel } from "umi";
 
 const DataAnalysisNav = () => {
-  const { onChangeNavKey } = useModel("dataAnalysis");
+  const { onChangeNavKey, navKey } = useModel("dataAnalysis");
   const navList = [
     {
       id: 101,
       key: "RealTimeTrafficFlow",
       title: "实时业务",
-      icon: <ClusterOutlined />,
+      icon: (
+        <ClusterOutlined
+          style={{ color: navKey === "TemporaryQuery" ? "#fff" : "" }}
+        />
+      ),
     },
     {
       id: 102,
       key: "TemporaryQuery",
       title: "临时查询",
-      icon: <MonitorOutlined />,
+      icon: (
+        <MonitorOutlined
+          style={{ color: navKey === "TemporaryQuery" ? "#fff" : "" }}
+        />
+      ),
     },
   ];
   return (
