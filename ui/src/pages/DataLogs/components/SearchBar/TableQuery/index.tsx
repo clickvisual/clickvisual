@@ -8,6 +8,8 @@ import { useDebounce, useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
 import { LogsResponse } from "@/services/dataLogs";
+import { format } from "sql-formatter";
+import { FloatingButton, Item } from "react-floating-button";
 
 const { TextArea } = Input;
 
@@ -76,6 +78,13 @@ const TableQuery = () => {
         autoSize={{ minRows: 10, maxRows: 10 }}
         onPressEnter={() => doSearch.run()}
       />
+        <FloatingButton>
+            <Item
+                imgSrc="sql_format.png"
+                className={searchBarStyles.formatSqlBtn}
+                onClick={() => setSql(format(sql as string))}
+            />
+        </FloatingButton>
       <Button
         loading={doGetStatisticalTable.loading}
         className={searchBarStyles.searchBtn}
