@@ -103,19 +103,30 @@ const FolderTree: React.FC = () => {
     setAutoExpandParent(true);
   };
 
+  const rightClickMenuItem = [
+    {
+      key: "rename",
+      label: "重命名",
+    },
+    {
+      key: "move",
+      label: "移动",
+    },
+    {
+      key: "delete",
+      label: "删除",
+    },
+  ];
+
   /* 右键菜单 */
-  const indexMenu = (
+  const rightClickMenu = (
     <div
       onClick={(e) => {
         e.stopPropagation();
       }}
       style={{ borderRadius: "8px", overflow: "hidden" }}
     >
-      <Menu>
-        <Menu.Item key="rename">重命名</Menu.Item>
-        <Menu.Item key="move">移动</Menu.Item>
-        <Menu.Item key="delete">删除</Menu.Item>
-      </Menu>
+      <Menu items={rightClickMenuItem} />
     </div>
   );
 
@@ -140,7 +151,7 @@ const FolderTree: React.FC = () => {
           return {
             title: (
               <Dropdown
-                overlay={indexMenu}
+                overlay={rightClickMenu}
                 trigger={["contextMenu"]}
                 onVisibleChange={(e) => {
                   e;
@@ -165,7 +176,7 @@ const FolderTree: React.FC = () => {
         return {
           title: (
             <Dropdown
-              overlay={indexMenu}
+              overlay={rightClickMenu}
               trigger={["contextMenu"]}
               // onVisibleChange={() => {
               //   // setIndexRight(item)
