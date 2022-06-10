@@ -1,18 +1,26 @@
 import useRequest from "@/hooks/useRequest/useRequest";
 import systemApi from "@/services/systemSetting";
 import dataLogsApi from "@/services/dataLogs";
-import dataAnalysis from "@/services/dataAnalysis";
 import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
+import useTemporaryQuery from "@/models/dataanalysis/useTemporaryQuery";
+import { InstanceType } from "@/services/systemSetting";
 import { useState } from "react";
 
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>("TemporaryQuery");
+  const [instances, setInstances] = useState<InstanceType[]>([]);
+  const [currentInstances, setcurrentInstances] = useState<number>();
+
+  const realTimeTraffic = useRealTimeTraffic();
+  const TemporaryQuery = useTemporaryQuery();
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
   };
 
-  const realTimeTraffic = useRealTimeTraffic();
+  const onChangeCurrentInstances = (value: number) => {
+    setcurrentInstances(value);
+  };
 
   const doGetInstance = useRequest(systemApi.getInstances, {
     loadingText: false,
@@ -26,19 +34,21 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
-  const doFolderList = useRequest(dataAnalysis.getFolderList, {
-    loadingText: false,
-  });
-
   return {
+    instances,
+    currentInstances,
     navKey,
+
+    setInstances,
+    onChangeCurrentInstances,
     onChangeNavKey,
 
-    realTimeTraffic,
     doGetInstance,
     doGetDatabase,
     doGetTables,
-    doFolderList,
+
+    realTimeTraffic,
+    TemporaryQuery,
   };
 };
 
