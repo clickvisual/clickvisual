@@ -112,6 +112,7 @@ Thanks for these wonderful people:
     <td align="center"><a href="https://github.com/qingbozhang"><img src="https://avatars.githubusercontent.com/u/14026937?v=4" width="64px;" alt=""/><br /><sub><b>qingbozhang</b></sub></a></td>
     <td align="center"><a href="https://github.com/qianque7"><img src="https://avatars.githubusercontent.com/u/68426635?v=4" width="64px;" alt=""/><br /><sub><b>qianque7</b></sub></a></td>
     <td align="center"><a href="https://github.com/rotk2022"><img src="https://avatars.githubusercontent.com/u/105830845?v=4" width="64px;" alt=""/><br /><sub><b>Chen Ziqian</b></sub></a></td>
+    <td align="center"><a href="https://github.com/antonyaz"><img src="https://avatars.githubusercontent.com/u/73863938?v=4" width="64px;" alt=""/><br /><sub><b>antony</b></sub></a></td>
   </tr>
 </table>
 
