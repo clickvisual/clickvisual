@@ -10,22 +10,11 @@ import { DEBOUNCE_WAIT } from "@/config/config";
 const LibraryTree = () => {
   const [form] = Form.useForm();
   const i18n = useIntl();
-  const { doGetInstance, doGetTables, realTimeTraffic } =
+  const { doGetTables, currentInstances, realTimeTraffic } =
     useModel("dataAnalysis");
 
-  const {
-    databases,
-    tables,
-    setInstances,
-    setTables,
-    setTrafficChart,
-    doGetTrafficChart,
-    currentInstances,
-  } = realTimeTraffic;
-
-  useEffect(() => {
-    doGetInstance.run().then((res) => setInstances(res?.data ?? []));
-  }, []);
+  const { databases, tables, setTables, setTrafficChart, doGetTrafficChart } =
+    realTimeTraffic;
 
   const handleSearch = useDebounceFn(
     (field) => {
@@ -37,7 +26,7 @@ const LibraryTree = () => {
   ).run;
 
   useEffect(() => {
-    currentInstances && form.resetFields(["dn", "tn"]);
+    form.resetFields(["dn", "tn"]);
   }, [currentInstances]);
 
   return (
@@ -103,6 +92,7 @@ const LibraryTree = () => {
             htmlType={"submit"}
             icon={<SearchOutlined />}
             loading={doGetTrafficChart.loading}
+            style={{ backgroundColor: "#1c1c1c", borderColor: "#F9CDB5" }}
           >
             {i18n.formatMessage({ id: "search" })}
           </Button>
