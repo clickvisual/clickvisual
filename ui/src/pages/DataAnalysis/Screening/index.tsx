@@ -1,13 +1,26 @@
 import style from "../index.less";
 import { Select, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
+import { InstanceType } from "@/services/systemSetting";
+import { useEffect } from "react";
 
 const { Option } = Select;
 const DataAnalysisScreening = () => {
   const i18n = useIntl();
-  const { doGetDatabase, realTimeTraffic } = useModel("dataAnalysis");
-  const { instances, setDatabases, setTables, onChangeCurrentInstances } =
-    realTimeTraffic;
+  const {
+    doGetDatabase,
+    instances,
+    onChangeCurrentInstances,
+    doGetInstance,
+    setInstances,
+    realTimeTraffic,
+  } = useModel("dataAnalysis");
+  const { setDatabases, setTables } = realTimeTraffic;
+
+  useEffect(() => {
+    doGetInstance.run().then((res) => setInstances(res?.data ?? []));
+  }, []);
+
   return (
     <div className={style.screeningRow}>
       <Select
@@ -19,17 +32,16 @@ const DataAnalysisScreening = () => {
         onChange={(iid: number) => {
           setDatabases([]);
           setTables([]);
+          onChangeCurrentInstances(iid);
           if (iid) {
             doGetDatabase
               .run(iid as number)
               .then((res) => setDatabases(res?.data ?? []));
-            onChangeCurrentInstances(iid);
           }
-          // form.resetFields(["dn", "tn"]);
         }}
       >
         {instances.length > 0 &&
-          instances.map((item) => (
+          instances.map((item: InstanceType) => (
             <Option key={item.id} value={item.id as number}>
               <Tooltip title={item.name + (item.desc ? `(${item.desc})` : "")}>
                 {item.name}

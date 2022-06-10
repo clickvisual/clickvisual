@@ -112,9 +112,9 @@ const FolderTree: React.FC = () => {
       style={{ borderRadius: "8px", overflow: "hidden" }}
     >
       <Menu>
-        <Menu.Item>重命名</Menu.Item>
-        <Menu.Item>移动</Menu.Item>
-        <Menu.Item>删除</Menu.Item>
+        <Menu.Item key="rename">重命名</Menu.Item>
+        <Menu.Item key="move">移动</Menu.Item>
+        <Menu.Item key="delete">删除</Menu.Item>
       </Menu>
     </div>
   );
@@ -147,7 +147,13 @@ const FolderTree: React.FC = () => {
                   // setIndexRight(item)
                 }}
               >
-                <div>{item?.title}</div>
+                <div
+                  style={{
+                    width: "calc(100% - 24px)",
+                  }}
+                >
+                  {title}
+                </div>
               </Dropdown>
             ),
             key: item.key,
@@ -165,7 +171,7 @@ const FolderTree: React.FC = () => {
               //   // setIndexRight(item)
               // }}
             >
-              <div>{item?.title}</div>
+              <div style={{ width: "calc(100% - 24px)" }}>{title}</div>
             </Dropdown>
           ),
           icon: <FileOutlined />,
@@ -218,6 +224,7 @@ const FolderTree: React.FC = () => {
       <div className={TemporaryQueryStyle.content}>
         <DirectoryTree
           // showLine
+          blockNode
           switcherIcon={<DownOutlined />}
           defaultExpandAll
           onExpand={onExpand}

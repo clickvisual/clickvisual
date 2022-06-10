@@ -10,21 +10,13 @@ const DataAnalysisNav = () => {
       id: 101,
       key: "RealTimeTrafficFlow",
       title: "实时业务",
-      icon: (
-        <ClusterOutlined
-          style={{ color: navKey === "TemporaryQuery" ? "#fff" : "" }}
-        />
-      ),
+      icon: <ClusterOutlined style={{ color: "#fff" }} />,
     },
     {
       id: 102,
       key: "TemporaryQuery",
       title: "临时查询",
-      icon: (
-        <MonitorOutlined
-          style={{ color: navKey === "TemporaryQuery" ? "#fff" : "" }}
-        />
-      ),
+      icon: <MonitorOutlined style={{ color: "#fff" }} />,
     },
   ];
   return (
@@ -36,6 +28,7 @@ const DataAnalysisNav = () => {
               className={style.navItem}
               onClick={() => onChangeNavKey(item.key)}
               key={item.key}
+              style={{ backgroundColor: item.key == navKey ? "#5E2608" : "" }}
             >
               <Tooltip title={item.title} placement="right">
                 {item.icon}
