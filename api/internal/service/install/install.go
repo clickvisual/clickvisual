@@ -14,6 +14,9 @@ import (
 )
 
 var models = []interface{}{
+	db.Folder{},
+	db.Node{},
+	db.NodeContent{},
 	db.View{},
 	db.Table{},
 	db.Index{},
