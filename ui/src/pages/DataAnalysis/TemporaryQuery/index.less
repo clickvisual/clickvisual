@@ -6,9 +6,130 @@
   min-height: 0;
 
   .folderTreeMain {
+    display: flex;
     flex: 0 0 300px;
+    flex-direction: column;
     color: #abb2bf;
     background-color: #1c1c1c;
+
+    .title {
+      // background-color: #f66;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 34px;
+      padding: 0 8px;
+
+      .titleName {
+        color: #dee1f0;
+        font-weight: 700;
+        font-size: 12px;
+      }
+
+      .iconList {
+        display: flex;
+        .button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          font-size: 18px;
+          cursor: pointer;
+        }
+      }
+    }
+
+    .searchBox {
+      // background-color: #ff6;
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      width: 100%;
+      height: 32px;
+      padding: 4px 4px 8px 8px;
+      .search {
+        // padding: ;
+        flex: 1;
+
+        :global .ant-input-affix-wrapper {
+          width: 100%;
+          height: 22px;
+          padding: 0;
+          background-color: transparent;
+          border-radius: 0;
+        }
+
+        :global .ant-input {
+          color: #fff;
+          background-color: transparent !important;
+        }
+      }
+
+      .button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+      }
+    }
+
+    .content {
+      flex: 1;
+      // background-color: #66f;
+      padding: 4px 8px;
+      overflow-y: scroll;
+      color: #fff;
+
+      :global .ant-tree {
+        color: #fff;
+        background-color: transparent;
+      }
+      //
+      :global .ant-tree-show-line .ant-tree-switcher {
+        background-color: transparent;
+      }
+      // 树状组件文字颜色
+      :global
+        .ant-tree
+        .ant-tree-treenode-disabled
+        .ant-tree-node-content-wrapper {
+        color: #fff;
+      }
+      // 树状组件搜索关键字颜色
+      :global .site-tree-search-value {
+        color: #ed651d;
+      }
+      // 树状组件选中局部背景色
+      :global .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+        background-color: #84350b !important;
+      }
+      // 树状组件hover局部背景色
+      :global .ant-tree .ant-tree-node-content-wrapper:hover {
+        background-color: #5e2608;
+      }
+
+      // 树状组件hover背景色
+      :global .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
+        background-color: transparent;
+      }
+
+      //
+      // :global
+      //   .ant-tree
+      //   .ant-tree-directory
+      //   .ant-tree-treenode-selected:hover::before,
+      :global .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
+        background-color: #1f1f1f !important;
+      }
+
+      :global .ant-dropdown-trigger {
+        display: inline-block;
+      }
+    }
   }
   .editorMain {
     display: flex;
@@ -18,10 +139,19 @@
     background: hsl(0, 0%, 12%);
     .header {
       flex: 0 0 32px;
+      padding-left: 56px;
     }
     .context {
       flex: 1;
       height: 100%;
     }
   }
+}
+
+.site-tree-search-value {
+  color: #f50;
+}
+
+::-webkit-scrollbar {
+  display: none; /* Chrome Safari */
 }
