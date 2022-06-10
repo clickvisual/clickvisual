@@ -27,6 +27,8 @@ export default {
   type: "类型",
   status: "状态",
   dingTalk: "钉钉",
+  Feishu: "飞书",
+  Slack:"Slack",
 
   user: "用户",
   utime: "更新时间",
