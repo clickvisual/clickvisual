@@ -2,23 +2,50 @@ import style from "../index.less";
 import { ClusterOutlined, MonitorOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { useModel } from "umi";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useEffect } from "react";
+
+export enum bigDataNavEnum {
+  RealTimeTrafficFlow = "RealTimeTrafficFlow",
+  TemporaryQuery = "TemporaryQuery",
+}
 
 const DataAnalysisNav = () => {
+  const [urlState, setUrlState] = useUrlState<any>();
   const { onChangeNavKey, navKey } = useModel("dataAnalysis");
+
   const navList = [
     {
       id: 101,
-      key: "RealTimeTrafficFlow",
+      key: bigDataNavEnum.RealTimeTrafficFlow,
       title: "实时业务",
       icon: <ClusterOutlined style={{ color: "#fff" }} />,
     },
     {
       id: 102,
-      key: "TemporaryQuery",
+      key: bigDataNavEnum.TemporaryQuery,
       title: "临时查询",
       icon: <MonitorOutlined style={{ color: "#fff" }} />,
     },
   ];
+
+  useEffect(() => {
+    setUrlState({ navKey: navKey });
+  }, [navKey]);
+
+  useEffect(() => {
+    urlState &&
+      urlState.navKey &&
+      urlState.navKey != navKey &&
+      onChangeNavKey(urlState.navKey);
+  }, [urlState]);
+
+  useEffect(() => {
+    if (!urlState || !urlState.navKey) {
+      onChangeNavKey(bigDataNavEnum.RealTimeTrafficFlow);
+    }
+  }, []);
+
   return (
     <div className={style.nav}>
       {navList.map(
