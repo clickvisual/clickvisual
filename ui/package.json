@@ -75,7 +75,8 @@
     "react-resizable": "^3.0.4",
     "styled-components": "^5.3.5",
     "umi": "3.5.24",
-    "umi-serve": "^1.9.10"
+    "umi-serve": "^1.9.10",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "^2.0.2",
