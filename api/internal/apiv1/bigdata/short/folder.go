@@ -21,6 +21,7 @@ func FolderCreate(c *core.Context) {
 		Name:     req.Name,
 		Desc:     req.Desc,
 		ParentId: req.ParentId,
+		Primary:  req.Primary,
 	}
 	err := db.FolderCreate(invoker.Db, obj)
 	if err != nil {
@@ -36,7 +37,7 @@ func FolderUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view.ReqCreateFolder
+	var req view.ReqUpdateFolder
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
@@ -58,10 +59,54 @@ func FolderList(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	res, err := db.FolderList(egorm.Conds{})
+	conds := egorm.Conds{}
+	conds["iid"] = req.Iid
+	conds["primary"] = req.Primary
+	fs, err := db.FolderList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
+	}
+	// no folder node
+	condsNsNoFolder := egorm.Conds{}
+	condsNsNoFolder["folder_id"] = 0
+	nsnf, _ := db.NodeList(condsNsNoFolder)
+	// root
+	res := view.RespListFolder{
+		Id:       0,
+		Name:     "root",
+		Desc:     "",
+		ParentId: -1,
+		Children: make([]view.RespListFolder, 0),
+		Nodes:    nsnf,
+	}
+	// level 1
+	level1children := make(map[int][]view.RespListFolder)
+	for _, f := range fs {
+		// query nodes
+		condsNs := egorm.Conds{}
+		condsNs["folder_id"] = f.ID
+		ns, _ := db.NodeList(condsNs)
+		// build item
+		item := view.RespListFolder{
+			Id:       f.ID,
+			Name:     f.Name,
+			Desc:     f.Desc,
+			ParentId: f.ParentId,
+			Children: make([]view.RespListFolder, 0),
+			Nodes:    ns,
+		}
+		if f.ParentId != 0 {
+			level1children[f.ParentId] = append(level1children[f.ParentId], item)
+		} else {
+			res.Children = append(res.Children, item)
+		}
+	}
+	// level 2
+	for index, level1 := range res.Children {
+		if l1c, ok := level1children[level1.Id]; ok {
+			res.Children[index].Children = append(res.Children[index].Children, l1c...)
+		}
 	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return
@@ -73,7 +118,18 @@ func FolderDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	if err := db.FolderDelete(invoker.Db, id); err != nil {
+	conds := egorm.Conds{}
+	conds["folder_id"] = id
+	ns, err := db.NodeList(conds)
+	if err != nil {
+		c.JSONE(1, "failed to delete: "+err.Error(), nil)
+		return
+	}
+	if len(ns) != 0 {
+		c.JSONE(1, "failed to delete: u should delete nodes first.", nil)
+		return
+	}
+	if err = db.FolderDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}

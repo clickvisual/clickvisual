@@ -209,13 +209,13 @@ func GetRouter() *egin.Component {
 	}
 	// bigdata
 	{
-		v1.GET("/bigdata/short/folders", core.Handle(short.FolderList))
-		v1.GET("/bigdata/short/folders/:id", core.Handle(short.FolderInfo))
-		v1.POST("/bigdata/short/folders", core.Handle(short.FolderCreate))
-		v1.PATCH("/bigdata/short/folders/:id", core.Handle(short.FolderUpdate))
-		v1.DELETE("/bigdata/short/folders/:id", core.Handle(short.FolderDelete))
+		v1.GET("/bigdata/folders", core.Handle(short.FolderList))
+		v1.GET("/bigdata/folders/:id", core.Handle(short.FolderInfo))
+		v1.POST("/bigdata/folders", core.Handle(short.FolderCreate))
+		v1.PATCH("/bigdata/folders/:id", core.Handle(short.FolderUpdate))
+		v1.DELETE("/bigdata/folders/:id", core.Handle(short.FolderDelete))
 
-		v1.GET("/bigdata/nodes", core.Handle(bigdata.NodeList))
+		// v1.GET("/bigdata/nodes", core.Handle(bigdata.NodeList))
 		v1.GET("/bigdata/nodes/:id", core.Handle(bigdata.NodeInfo))
 		v1.POST("/bigdata/nodes", core.Handle(bigdata.NodeCreate))
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))

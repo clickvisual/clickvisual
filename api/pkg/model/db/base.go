@@ -36,7 +36,7 @@ const (
 
 	TableNameBigDataNode        = "cv_bd_node"
 	TableNameBigDataNodeContent = "cv_bd_node_content"
-	TableNameBigDataShortFolder = "cv_bd_short_folder"
+	TableNameBigDataFolder      = "cv_bd_folder"
 )
 
 type BaseModel struct {
