@@ -1,4 +1,4 @@
-package short
+package bigdata
 
 import (
 	"github.com/ego-component/egorm"
@@ -10,34 +10,53 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func SQLCreate(c *core.Context) {
-	var req view.RepCreateShortSQL
+func NodeCreate(c *core.Context) {
+	var req view.RepCreateNode
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	obj := &db.ShortSQL{
-		Uid:      c.Uid(),
-		FolderID: req.FolderID,
-		Name:     req.Name,
-		Desc:     req.Desc,
-		Content:  req.Content,
+	tx := invoker.Db.Begin()
+	obj := &db.Node{
+		Uid:       c.Uid(),
+		Iid:       req.Iid,
+		FolderID:  req.FolderID,
+		Primary:   req.Primary,
+		Secondary: req.Secondary,
+		Tertiary:  req.Tertiary,
+		Name:      req.Name,
+		Desc:      req.Desc,
 	}
-	err := db.ShortSQLCreate(invoker.Db, obj)
+	err := db.NodeCreate(tx, obj)
 	if err != nil {
-		c.JSONE(1, "creation DB failed: "+err.Error(), nil)
+		tx.Rollback()
+		c.JSONE(1, "create failed: "+err.Error(), nil)
+		return
+	}
+	if err = db.NodeContentCreate(tx, &db.NodeContent{
+		NodeId:  obj.ID,
+		Content: req.Content,
+		LockUid: 0,
+		LockAt:  0,
+	}); err != nil {
+		tx.Rollback()
+		c.JSONE(1, "create failed: "+err.Error(), nil)
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
 }
 
-func SQLUpdate(c *core.Context) {
+func NodeUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view.RepCreateShortSQL
+	var req view.RepCreateNode
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
@@ -47,24 +66,25 @@ func SQLUpdate(c *core.Context) {
 	ups["name"] = req.Name
 	ups["desc"] = req.Desc
 	ups["content"] = req.Content
-	if err := db.ShortSQLUpdate(invoker.Db, id, ups); err != nil {
+	if err := db.NodeUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
 }
 
-func SQLList(c *core.Context) {
-	var req view.ReqListShortSQL
+func NodeList(c *core.Context) {
+	var req view.ReqListNode
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
+	conds["iid"] = req.Iid
 	if req.FolderID != 0 {
 		conds["folder_id"] = req.FolderID
 	}
-	res, err := db.ShortSQLList(conds)
+	res, err := db.NodeList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -73,26 +93,26 @@ func SQLList(c *core.Context) {
 	return
 }
 
-func SQLDelete(c *core.Context) {
+func NodeDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	if err := db.ShortSQLDelete(invoker.Db, id); err != nil {
+	if err := db.NodeDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
 	c.JSONOK()
 }
 
-func SQLInfo(c *core.Context) {
+func NodeInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res, err := db.ShortSQLInfo(invoker.Db, id)
+	res, err := db.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return

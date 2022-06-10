@@ -11,6 +11,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
+	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/short"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/configure"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/event"
@@ -214,11 +215,11 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/short/folders/:id", core.Handle(short.FolderUpdate))
 		v1.DELETE("/bigdata/short/folders/:id", core.Handle(short.FolderDelete))
 
-		v1.GET("/bigdata/short/sql", core.Handle(short.SQLList))
-		v1.GET("/bigdata/short/sql/:id", core.Handle(short.SQLInfo))
-		v1.POST("/bigdata/short/sql", core.Handle(short.SQLCreate))
-		v1.PATCH("/bigdata/short/sql/:id", core.Handle(short.SQLUpdate))
-		v1.DELETE("/bigdata/short/sql/:id", core.Handle(short.SQLDelete))
+		v1.GET("/bigdata/nodes", core.Handle(bigdata.NodeList))
+		v1.GET("/bigdata/nodes/:id", core.Handle(bigdata.NodeInfo))
+		v1.POST("/bigdata/nodes", core.Handle(bigdata.NodeCreate))
+		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
+		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
 	}
 	return r
 }

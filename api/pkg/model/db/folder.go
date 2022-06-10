@@ -9,10 +9,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
+func (m *Folder) TableName() string {
+	return TableNameBigDataShortFolder
+}
+
 type Folder struct {
 	BaseModel
 
-	Uid      int    `gorm:"column:uid;type:int(11)" json:"uid"`                           // uid of alarm operator
+	Uid      int    `gorm:"column:uid;type:int(11)" json:"uid"` // uid of alarm operator
+	Iid      int    `gorm:"column:iid;type:int(11)" json:"iid"`
 	Name     string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`           // name of an alarm
 	Desc     string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`           // description
 	ParentId int    `gorm:"column:parent_id;type:int(11)" db:"parent_id" json:"parentId"` // noDataOp 0 nodata 1 ok 2 alert

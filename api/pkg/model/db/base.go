@@ -33,7 +33,10 @@ const (
 	TableNamePmsCasbinRule        = "cv_pms_casbin_rule"
 	TableNamePmsDefaultRole       = "cv_pms_default_role"
 	TableNamePmsCustomRole        = "cv_pms_custom_role"
-	TableNameShortFolder          = "cv_short_folder"
+
+	TableNameBigDataNode        = "cv_bd_node"
+	TableNameBigDataNodeContent = "cv_bd_node_content"
+	TableNameBigDataShortFolder = "cv_bd_short_folder"
 )
 
 type BaseModel struct {

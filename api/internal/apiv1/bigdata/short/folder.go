@@ -53,6 +53,11 @@ func FolderUpdate(c *core.Context) {
 }
 
 func FolderList(c *core.Context) {
+	var req view.ReqListFolder
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
 	res, err := db.FolderList(egorm.Conds{})
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
