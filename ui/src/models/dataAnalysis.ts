@@ -12,7 +12,7 @@ const DataAnalysis = () => {
   const [currentInstances, setCurrentInstances] = useState<number>();
 
   const realTimeTraffic = useRealTimeTraffic();
-  const TemporaryQuery = useTemporaryQuery();
+  const temporaryQuery = useTemporaryQuery();
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
@@ -48,7 +48,7 @@ const DataAnalysis = () => {
     doGetTables,
 
     realTimeTraffic,
-    TemporaryQuery,
+    temporaryQuery,
   };
 };
 

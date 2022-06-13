@@ -9,10 +9,13 @@ import {
 } from "@ant-design/icons";
 import { DataNode } from "antd/lib/tree";
 import "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/index";
-import { useState } from "react";
+import CreactAndUpdateFolder from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/CreactAndUpdateFolder";
+import { useEffect, useState } from "react";
 import React, { useMemo } from "react";
 import { Key } from "antd/lib/table/interface";
-// import { useModel } from "umi";
+import { useModel } from "umi";
+import { folderListType } from "@/services/dataAnalysis";
+import { bigDataNavEnum } from "@/pages/DataAnalysis/Nav";
 
 const { DirectoryTree } = Tree;
 
@@ -81,7 +84,11 @@ const FolderTree: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
-  // const { doFolderList } = useModel("dataAnalysis");
+  const { currentInstances, temporaryQuery, navKey } = useModel("dataAnalysis");
+  const [fileList, setFileList] = useState<any[]>([]);
+  const primary = navKey == bigDataNavEnum.TemporaryQuery ? 3 : 0;
+
+  const { doFolderList, doCreatedFolder, changeVisibleFolder } = temporaryQuery;
 
   const onExpand = (newExpandedKeys: Key[]) => {
     setExpandedKeys(newExpandedKeys);
@@ -103,6 +110,7 @@ const FolderTree: React.FC = () => {
     setAutoExpandParent(true);
   };
 
+  // 右键菜单的选项
   const rightClickMenuItem = [
     {
       key: "rename",
@@ -153,8 +161,7 @@ const FolderTree: React.FC = () => {
               <Dropdown
                 overlay={rightClickMenu}
                 trigger={["contextMenu"]}
-                onVisibleChange={(e) => {
-                  e;
+                onVisibleChange={() => {
                   // setIndexRight(item)
                 }}
               >
@@ -187,7 +194,7 @@ const FolderTree: React.FC = () => {
           ),
           icon: <FileOutlined />,
           // icon: <></>,
-          showIcon: false,
+          // showIcon: false,
           key: item.key,
         };
       });
@@ -195,18 +202,84 @@ const FolderTree: React.FC = () => {
     return loop(defaultData);
   }, [searchValue]);
 
+  useEffect(() => {
+    currentInstances &&
+      doFolderList
+        .run({
+          iid: currentInstances,
+          primary: primary,
+        })
+        .then((res: any) => {
+          if (res?.code == 0) {
+            setFileList([res.data]);
+            doCreatedFolder.run({
+              parentId: res.data.id,
+              iid: currentInstances,
+              desc: "ceshi",
+              name: "测试",
+              primary: primary,
+            });
+          }
+        });
+  }, [currentInstances]);
+
+  // const dataTree = (item: folderListType[]) => {
+  //   if (item.length > 0) {
+  //     let dataList: any[] = [];
+  //     item.map((item: folderListType) => {
+  //       if (item.children.length > 0) {
+  //         item;
+  //       }
+  //       return {
+  //         key: item.name,
+  //         title: (
+  //           <Dropdown
+  //             overlay={rightClickMenu}
+  //             trigger={["contextMenu"]}
+  //             onVisibleChange={(e) => {
+  //               e;
+  //               // setIndexRight(item)
+  //             }}
+  //           >
+  //             <div
+  //               style={{
+  //                 width: "calc(100% - 24px)",
+  //               }}
+  //             >
+  //               {item.name}
+  //             </div>
+  //           </Dropdown>
+  //         ),
+  //       };
+  //       console.log(item, "item");
+  //     });
+  //     setFileList([dataList]);
+  //   }
+  // };
+
   // useEffect(() => {
-  //   doFolderList.run().then((res: any) => {
-  //     console.log(res);
-  //   });
-  // }, []);
+  //   if (fileList.length > 0) {
+  //     let dataList: any[] = [];
+  //     fileList.map((item: folderListType) => {
+  //       dataList.push({
+  //         key: item.name,
+  //         title: item.name,
+  //       });
+  //       console.log(item, "item");
+  //     });
+  //     setFileList([dataList]);
+  //   }
+  // }, [fileList]);
 
   return (
     <div className={TemporaryQueryStyle.folderTreeMain}>
       <div className={TemporaryQueryStyle.title}>
         <span className={TemporaryQueryStyle.titleName}>临时查询</span>
         <div className={TemporaryQueryStyle.iconList}>
-          <div className={TemporaryQueryStyle.button}>
+          <div
+            className={TemporaryQueryStyle.button}
+            onClick={() => changeVisibleFolder(true)}
+          >
             <Tooltip title="新建">
               <FileAddOutlined />
             </Tooltip>
@@ -241,13 +314,11 @@ const FolderTree: React.FC = () => {
           onExpand={onExpand}
           expandedKeys={expandedKeys}
           autoExpandParent={autoExpandParent}
-          // onRightClick={(e) => {
-          //   console.log(e);
-          // }}
           // onSelect={onSelect}
           treeData={treeData}
         />
       </div>
+      <CreactAndUpdateFolder />
     </div>
   );
 };
