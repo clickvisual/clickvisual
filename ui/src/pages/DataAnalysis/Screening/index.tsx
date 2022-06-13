@@ -1,10 +1,8 @@
 import style from "../index.less";
 import { Select, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
-import { InstanceType } from "@/services/systemSetting";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
-const { Option } = Select;
 const DataAnalysisScreening = () => {
   const i18n = useIntl();
   const {
@@ -21,6 +19,19 @@ const DataAnalysisScreening = () => {
     doGetInstance.run().then((res) => setInstances(res?.data ?? []));
   }, []);
 
+  const options = useMemo(() => {
+    if (instances.length <= 0) return [];
+    return instances.map((item) => ({
+      label: (
+        <Tooltip
+          title={`${item.name}${item.desc && `(${item.desc})`}`}
+          placement={"right"}
+        >{`${item.name}${item.desc && `(${item.desc})`}`}</Tooltip>
+      ),
+      value: item.id,
+    }));
+  }, [instances]);
+
   return (
     <div className={style.screeningRow}>
       <Select
@@ -28,6 +39,7 @@ const DataAnalysisScreening = () => {
         allowClear
         size="small"
         style={{ width: "278px" }}
+        options={options}
         placeholder={i18n.formatMessage({ id: "datasource.draw.selected" })}
         onChange={(iid: number) => {
           setDatabases([]);
@@ -39,17 +51,7 @@ const DataAnalysisScreening = () => {
               .then((res) => setDatabases(res?.data ?? []));
           }
         }}
-      >
-        {instances.length > 0 &&
-          instances.map((item: InstanceType) => (
-            <Option key={item.id} value={item.id as number}>
-              <Tooltip title={item.name + (item.desc ? `(${item.desc})` : "")}>
-                {item.name}
-                {item.desc ? `(${item.desc})` : ""}
-              </Tooltip>
-            </Option>
-          ))}
-      </Select>
+      />
     </div>
   );
 };

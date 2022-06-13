@@ -1,6 +1,6 @@
 import style from "./index.less";
 import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
-import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeTrafficFlow";
+import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataAnalysisNav from "@/pages/DataAnalysis/Nav";
 import DataAnalysisScreening from "@/pages/DataAnalysis/Screening";
 import { useModel } from "umi";
@@ -12,15 +12,12 @@ const DataAnalysis = () => {
     switch (navKey) {
       case "TemporaryQuery":
         return <TemporaryQuery />;
-        break;
 
       case "RealTimeTrafficFlow":
         return <RealTimeTrafficFlow />;
-        break;
 
       default:
         return <></>;
-        break;
     }
   };
 
