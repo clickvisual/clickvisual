@@ -482,6 +482,24 @@ const DataLogsModel = () => {
     doParseQuery(kw);
   };
 
+  const isJsonFun = (str: string | object) => {
+    if (typeof str == "string") {
+      try {
+        var obj = JSON.parse(str);
+        if (typeof obj == "object" && obj) {
+          return true;
+        } else {
+          return false;
+        }
+      } catch (e) {
+        return false;
+      }
+    } else if (typeof str == "object") {
+      return true;
+    }
+    return false;
+  };
+
   const resetLogs = () => {
     onChangeEndDateTime(currentTimeStamp());
     onChangeStartDateTime(
@@ -587,6 +605,7 @@ const DataLogsModel = () => {
     doUpdatedQuery,
 
     resetLogs,
+    isJsonFun,
     resetCurrentHighChart,
     resetLogPaneLogsAndHighCharts,
 
