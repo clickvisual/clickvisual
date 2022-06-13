@@ -11,7 +11,7 @@ interface ExportExcelButtonProps {
 const ExportExcelButton = ({ data }: ExportExcelButtonProps) => {
     const i18n = useIntl();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const fileNameRef=useRef("日志.xlsx")
+    const fileNameRef=useRef("日志")
     const inputRef = useRef<Input | null>(null);
 
     useEffect(() => {

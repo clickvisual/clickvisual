@@ -74,8 +74,8 @@
     "react-monaco-editor": "^0.46.0",
     "react-resizable": "^3.0.4",
     "styled-components": "^5.3.5",
-    "umi": "3.5.24",
-    "umi-serve": "^1.9.10",
+    "umi": "3.5.26",
+    "umi-serve": "^1.9.11",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
