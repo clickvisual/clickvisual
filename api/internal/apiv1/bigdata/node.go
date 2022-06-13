@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -134,5 +135,41 @@ func NodeInfo(c *core.Context) {
 		LockAt:  n.LockAt,
 	}
 	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+func NodeLock(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var node db.Node
+	err := invoker.Db.Where("id = ?", id).First(&node).Error
+	if err != nil || node.ID == 0 {
+		c.JSONE(1, "failed to get information", nil)
+		return
+	}
+	err = service.NodeTryLock(c.Uid(), id)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	c.JSONOK()
+	return
+}
+
+func NodeUnlock(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	err := service.NodeUnlock(c.Uid(), id)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	c.JSONOK()
 	return
 }

@@ -215,11 +215,14 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/folders/:id", core.Handle(short.FolderUpdate))
 		v1.DELETE("/bigdata/folders/:id", core.Handle(short.FolderDelete))
 
-		// v1.GET("/bigdata/nodes", core.Handle(bigdata.NodeList))
 		v1.GET("/bigdata/nodes/:id", core.Handle(bigdata.NodeInfo))
 		v1.POST("/bigdata/nodes", core.Handle(bigdata.NodeCreate))
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
 		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
+
+		v1.PATCH("/bigdata/nodes/:id/lock", core.Handle(bigdata.NodeLock))
+		v1.PATCH("/bigdata/nodes/:id/unlock", core.Handle(bigdata.NodeUnlock))
+
 	}
 	return r
 }
