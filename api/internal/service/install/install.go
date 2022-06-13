@@ -41,6 +41,7 @@ var models = []interface{}{
 	db.PmsDefaultRole{},
 	db.PmsRoleDetail{},
 	db.PmsCasbinRule{},
+	db.HiddenField{},
 }
 
 func Install() (err error) {

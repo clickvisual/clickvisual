@@ -221,5 +221,11 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
 		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
 	}
+	// hidden field
+	{
+		v1.GET("/hidden/:tid", core.Handle(base.HiddenList))
+		v1.POST("/hidden/:tid", core.Handle(base.HiddenCreate))
+		v1.DELETE("/hidden/:tid", core.Handle(base.HiddenDelete))
+	}
 	return r
 }

@@ -354,6 +354,15 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
 	}
+	list, err := db.HiddenFieldList(egorm.Conds{"tid": egorm.Cond{
+		Op:  "=",
+		Val: tableInfo.ID,
+	}})
+	if err == nil {
+		for i := range list {
+			res.HiddenFields = append(res.HiddenFields, list[i].Field)
+		}
+	}
 	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "GET"), elog.Any("cost", time.Since(t)))
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
