@@ -3,69 +3,77 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
-  useNodesState,
-  useEdgesState,
   MiniMap,
+  MarkerType,
 } from "react-flow-renderer";
 
-import "./index.less";
+import "./styles/index.less";
 import { useModel } from "@@/plugin-model/useModel";
 import { BusinessChartResponse } from "@/services/realTimeTrafficFlow";
 import NodeContent from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart/NodeContent";
+import { BusinessEngineEnum } from "@/models/dataanalysis/useRealTimeTraffic";
 
-interface TrafficTreeNode extends BusinessChartResponse {
-  children: TrafficTreeNode[];
+interface BusinessTreeNode extends BusinessChartResponse {
+  children: BusinessTreeNode[];
 }
 
-const DefaultDistanceX = 240;
-const DefaultDistanceY = 80;
+const DefaultDistanceX = 280;
+const DefaultDistanceY = 200;
 
 let id = 0;
-const getId = () => `dndnode_${id++}`;
-
-function makeTree(nodes: BusinessChartResponse[]): TrafficTreeNode | undefined {
-  const initTreeNode = (table: string): TrafficTreeNode => {
-    const node = nodes.find((traffic) => traffic.table === table)!;
-    if (!node.deps?.length || node.deps?.length <= 0) {
-      return {
-        ...node,
-        children: [],
-      };
-    }
-    return {
-      ...node,
-      children: node.deps.map((dep) => initTreeNode(dep)),
-    };
-  };
-
-  // find root node
-  const deps = nodes.reduce(
-    (prev, node) => [...prev, ...node.deps],
-    [] as string[]
-  );
-  const rootNodes = nodes.filter((node) => !deps.includes(node.table));
-  if (rootNodes.length <= 0) return;
-  const rootNode = rootNodes[0];
-
-  return initTreeNode(rootNode.table);
-}
+const getId = () => `dndNode_${id++}`;
 
 const BusinessChart = () => {
   const { realTimeTraffic } = useModel("dataAnalysis");
-  const { businessChart } = realTimeTraffic;
+  const {
+    businessChart,
+    nodes,
+    setNodes,
+    onNodesChange,
+    edges,
+    setEdges,
+    onEdgesChange,
+  } = realTimeTraffic;
 
   const reactFlowWrapper = useRef<any>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+
+  const makeTree = useCallback(
+    (nodes: BusinessChartResponse[]): BusinessTreeNode | undefined => {
+      const initTreeNode = (table: string): BusinessTreeNode => {
+        const node = nodes.find((traffic) => traffic.table === table)!;
+        if (!node.deps?.length || node.deps?.length <= 0) {
+          return {
+            ...node,
+            children: [],
+          };
+        }
+        return {
+          ...node,
+          children: node.deps.map((dep) => initTreeNode(dep)),
+        };
+      };
+
+      // find root node
+      const deps = nodes.reduce(
+        (prev, node) => [...prev, ...node.deps],
+        [] as string[]
+      );
+      const rootNodes = nodes.filter((node) => !deps.includes(node.table));
+      if (rootNodes.length <= 0) return;
+      const rootNode = rootNodes[0];
+
+      return initTreeNode(rootNode.table);
+    },
+    []
+  );
 
   const businessTree = useMemo(() => {
     return makeTree(businessChart);
-  }, [businessChart]);
+  }, [businessChart, makeTree]);
 
-  // visitTree
   const visitTree = useCallback(
-    (node: TrafficTreeNode, treeNodeDetail: any[], depth = 1) => {
+    (node: BusinessTreeNode, treeNodeDetail: any[], depth = 1) => {
       const struct = {
         node: node.table,
         depth,
@@ -114,6 +122,21 @@ const BusinessChart = () => {
         (node) => business.table === node.node
       );
 
+      let background = "#fff";
+      switch (business.engine) {
+        case BusinessEngineEnum.Kafka:
+          background = "#fec89a";
+          break;
+        case BusinessEngineEnum.MergeTree:
+          background = "#ffbf69";
+          break;
+        case BusinessEngineEnum.Distributed:
+          background = "#f9dcc4";
+          break;
+        default:
+          break;
+      }
+
       NodeList.push({
         id: business.table,
         type,
@@ -121,6 +144,11 @@ const BusinessChart = () => {
         position: {
           x: DefaultDistanceX * nodeStruct.index,
           y: DefaultDistanceY * nodeStruct.depth,
+        },
+        style: {
+          width: 240,
+          height: 100,
+          background: background,
         },
       });
       if (isLast) {
@@ -131,6 +159,9 @@ const BusinessChart = () => {
             id: `${business.table}-${dep}`,
             source: business.table,
             target: dep,
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
           });
         });
       }

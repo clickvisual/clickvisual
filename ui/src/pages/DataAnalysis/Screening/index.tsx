@@ -13,7 +13,7 @@ const DataAnalysisScreening = () => {
     setInstances,
     realTimeTraffic,
   } = useModel("dataAnalysis");
-  const { setDatabases, setTables } = realTimeTraffic;
+  const { setDatabases, setTables, setNodes, setEdges } = realTimeTraffic;
 
   useEffect(() => {
     doGetInstance.run().then((res) => setInstances(res?.data ?? []));
@@ -44,6 +44,8 @@ const DataAnalysisScreening = () => {
         onChange={(iid: number) => {
           setDatabases([]);
           setTables([]);
+          setNodes([]);
+          setEdges([]);
           onChangeCurrentInstances(iid);
           if (iid) {
             doGetDatabase

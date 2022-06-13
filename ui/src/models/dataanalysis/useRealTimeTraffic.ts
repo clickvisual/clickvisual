@@ -4,13 +4,21 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import realTimeBusinessApi, {
   BusinessChartResponse,
 } from "@/services/realTimeTrafficFlow";
+import { useEdgesState, useNodesState } from "react-flow-renderer";
 
+export enum BusinessEngineEnum {
+  Kafka = "Kafka",
+  MergeTree = "MergeTree",
+  Distributed = "Distributed",
+}
 const useRealTimeTraffic = () => {
   const [databases, setDatabases] = useState<DatabaseResponse[]>([]);
   const [tables, setTables] = useState<TablesResponse[]>([]);
   const [businessChart, setBusinessChart] = useState<BusinessChartResponse[]>(
     []
   );
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const doGetBusinessChart = useRequest(realTimeBusinessApi.getBusinessChart, {
     loadingText: false,
@@ -20,10 +28,17 @@ const useRealTimeTraffic = () => {
     databases,
     tables,
     businessChart,
+    nodes,
+    edges,
 
     setBusinessChart,
     setDatabases,
     setTables,
+    setNodes,
+    setEdges,
+
+    onNodesChange,
+    onEdgesChange,
 
     doGetBusinessChart,
   };

@@ -11,8 +11,8 @@ export interface BusinessChartResponse {
   deps: string[];
   engine: string;
   table: string;
-  totalBytes: bigint;
-  totalRows: bigint;
+  totalBytes: number;
+  totalRows: number;
 }
 
 export default {
