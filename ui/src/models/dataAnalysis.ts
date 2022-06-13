@@ -9,7 +9,7 @@ import { useState } from "react";
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>("TemporaryQuery");
   const [instances, setInstances] = useState<InstanceType[]>([]);
-  const [currentInstances, setcurrentInstances] = useState<number>();
+  const [currentInstances, setCurrentInstances] = useState<number>();
 
   const realTimeTraffic = useRealTimeTraffic();
   const TemporaryQuery = useTemporaryQuery();
@@ -19,7 +19,7 @@ const DataAnalysis = () => {
   };
 
   const onChangeCurrentInstances = (value: number) => {
-    setcurrentInstances(value);
+    setCurrentInstances(value);
   };
 
   const doGetInstance = useRequest(systemApi.getInstances, {

@@ -1,4 +1,4 @@
-import TrafficStyles from "@/pages/DataAnalysis/RealTimeTrafficFlow/index.less";
+import TrafficStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/index.less";
 import { AutoComplete, Button, Form, Input } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
@@ -13,14 +13,16 @@ const LibraryTree = () => {
   const { doGetTables, currentInstances, realTimeTraffic } =
     useModel("dataAnalysis");
 
-  const { databases, tables, setTables, setTrafficChart, doGetTrafficChart } =
+  const { databases, tables, setTables, setBusinessChart, doGetBusinessChart } =
     realTimeTraffic;
 
   const handleSearch = useDebounceFn(
     (field) => {
-      doGetTrafficChart.run(field).then((res) => {
-        if (res?.code === 0) setTrafficChart(res.data);
-      });
+      doGetBusinessChart
+        .run({ ...field, iid: currentInstances })
+        .then((res) => {
+          if (res?.code === 0) setBusinessChart(res.data);
+        });
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
@@ -91,7 +93,7 @@ const LibraryTree = () => {
             type={"primary"}
             htmlType={"submit"}
             icon={<SearchOutlined />}
-            loading={doGetTrafficChart.loading}
+            loading={doGetBusinessChart.loading}
             style={{ backgroundColor: "#1c1c1c", borderColor: "#F9CDB5" }}
           >
             {i18n.formatMessage({ id: "search" })}

@@ -10,19 +10,22 @@
     border: 1px solid @border-color;
     // border-radius: 8px;
     // background-color: #1c1c1c;
-    :global .ant-select-single .ant-select-selector .ant-select-selection-search-input {
-      background-color: #1c1c1c;
-      color: #fff;
+    :global {
+      .ant-select-single,
+      .ant-select-selector,
+      .ant-select-selection-search-input {
+        color: #fff;
+        background-color: #1c1c1c;
+      }
     }
   }
 
-  .trafficEChart {
+  .businessEChart {
     flex: 1;
-    max-height: calc(100vh - 140px);
     max-width: calc(100vw - 226px);
+    max-height: calc(100vh - 140px);
     overflow: hidden;
-    border-radius: 8px;
-    margin-left: 4px;
     background-color: #fff;
+    //border-radius: 8px;
   }
 }
