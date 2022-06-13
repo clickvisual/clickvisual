@@ -22,6 +22,7 @@ func FolderCreate(c *core.Context) {
 		Desc:     req.Desc,
 		ParentId: req.ParentId,
 		Primary:  req.Primary,
+		Iid:      req.Iid,
 	}
 	err := db.FolderCreate(invoker.Db, obj)
 	if err != nil {
