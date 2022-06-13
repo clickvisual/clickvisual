@@ -13,8 +13,15 @@ const LibraryTree = () => {
   const { doGetTables, currentInstances, realTimeTraffic } =
     useModel("dataAnalysis");
 
-  const { databases, tables, setTables, setBusinessChart, doGetBusinessChart } =
-    realTimeTraffic;
+  const {
+    databases,
+    tables,
+    setTables,
+    setBusinessChart,
+    doGetBusinessChart,
+    setNodes,
+    setEdges,
+  } = realTimeTraffic;
 
   const handleSearch = useDebounceFn(
     (field) => {
@@ -45,6 +52,8 @@ const LibraryTree = () => {
                   options={databases.map((item) => ({ value: item.name }))}
                   onChange={(dn) => {
                     setTables([]);
+                    setNodes([]);
+                    setEdges([]);
                     if (dn) {
                       const did = databases.find(
                         (item) => item.name === dn
@@ -75,6 +84,10 @@ const LibraryTree = () => {
                 <AutoComplete
                   allowClear
                   filterOption
+                  onChange={() => {
+                    setNodes([]);
+                    setEdges([]);
+                  }}
                   style={{ width: "100%" }}
                   options={tables.map((item) => ({ value: item.tableName }))}
                 >

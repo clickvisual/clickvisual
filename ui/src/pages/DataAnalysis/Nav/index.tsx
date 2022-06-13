@@ -12,7 +12,8 @@ export enum bigDataNavEnum {
 
 const DataAnalysisNav = () => {
   const [urlState, setUrlState] = useUrlState<any>();
-  const { onChangeNavKey, navKey } = useModel("dataAnalysis");
+  const { onChangeNavKey, navKey, realTimeTraffic } = useModel("dataAnalysis");
+  const { setNodes, setEdges } = realTimeTraffic;
 
   const navList = [
     {
@@ -53,7 +54,13 @@ const DataAnalysisNav = () => {
           return (
             <div
               className={style.navItem}
-              onClick={() => onChangeNavKey(item.key)}
+              onClick={() => {
+                if (item.key !== bigDataNavEnum.RealTimeTrafficFlow) {
+                  setNodes([]);
+                  setEdges([]);
+                }
+                onChangeNavKey(item.key);
+              }}
               key={item.key}
               style={{ backgroundColor: item.key == navKey ? "#5E2608" : "" }}
             >
