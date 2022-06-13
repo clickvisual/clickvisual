@@ -7,12 +7,12 @@ import { InstanceType } from "@/services/systemSetting";
 import { useState } from "react";
 
 const DataAnalysis = () => {
-  const [navKey, setNavKey] = useState<string>("TemporaryQuery");
+  const [navKey, setNavKey] = useState<string>();
   const [instances, setInstances] = useState<InstanceType[]>([]);
   const [currentInstances, setCurrentInstances] = useState<number>();
 
   const realTimeTraffic = useRealTimeTraffic();
-  const TemporaryQuery = useTemporaryQuery();
+  const temporaryQuery = useTemporaryQuery();
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
@@ -48,7 +48,7 @@ const DataAnalysis = () => {
     doGetTables,
 
     realTimeTraffic,
-    TemporaryQuery,
+    temporaryQuery,
   };
 };
 
