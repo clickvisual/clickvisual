@@ -177,7 +177,7 @@ require (
 )
 
 require (
-	github.com/clickvisual/prom2click v0.0.2-rc2
+	github.com/clickvisual/prom2click v0.0.2-rc3
 	github.com/ego-component/egorm v1.0.5
 	github.com/gotomicro/cetus v0.1.2
 	github.com/gotomicro/ego v1.1.2
