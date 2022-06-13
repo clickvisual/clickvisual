@@ -1,6 +1,5 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
 import MonacoEditor from "react-monaco-editor";
-import { TemporarySQL } from "@/pages/DataAnalysis/mock";
 
 const EditorContent = () => {
   return (
@@ -19,7 +18,7 @@ const EditorContent = () => {
           //   currentEditorUser && currentEditorUser.id === currentUser?.id
           // ),
         }}
-        value={TemporarySQL}
+        value={""}
         // onChange={onChangeConfigContent}
       />
     </div>
