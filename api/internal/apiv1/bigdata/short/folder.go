@@ -47,6 +47,7 @@ func FolderUpdate(c *core.Context) {
 	ups["name"] = req.Name
 	ups["desc"] = req.Desc
 	ups["parent_id"] = req.ParentId
+	ups["uid"] = c.Uid()
 	if err := db.FolderUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
