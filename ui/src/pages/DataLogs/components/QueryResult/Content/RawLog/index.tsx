@@ -8,10 +8,22 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
 import CollapseMenu from "../../../CollapseAndExpandMenu/CollapseMenu";
+import { useMemo } from "react";
 
 const RawLogContent = () => {
-  const { logsLoading, highChartLoading, isHiddenHighChart } =
-    useModel("dataLogs");
+  const {
+    currentLogLibrary,
+    logsLoading,
+    highChartLoading,
+    isHiddenHighChart,
+    logPanesHelper,
+  } = useModel("dataLogs");
+  const { logPanes } = logPanesHelper;
+
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
 
   const i18n = useIntl();
 
@@ -19,18 +31,20 @@ const RawLogContent = () => {
     <div className={queryResultStyles.content}>
       <RawLogsIndexes />
       <div className={queryResultStyles.queryDetail}>
-        <Spin
-          spinning={highChartLoading}
-          tip={i18n.formatMessage({ id: "spin" })}
-          wrapperClassName={classNames(
-            queryResultStyles.querySpinning,
-            isHiddenHighChart
-              ? queryResultStyles.highChartsHidden
-              : queryResultStyles.highCharts
-          )}
-        >
-          <HighCharts />
-        </Spin>
+        {oldPane?.histogramChecked && (
+          <Spin
+            spinning={highChartLoading}
+            tip={i18n.formatMessage({ id: "spin" })}
+            wrapperClassName={classNames(
+              queryResultStyles.querySpinning,
+              isHiddenHighChart
+                ? queryResultStyles.highChartsHidden
+                : queryResultStyles.highCharts
+            )}
+          >
+            <HighCharts />
+          </Spin>
+        )}
         <Spin
           spinning={logsLoading}
           tip={i18n.formatMessage({ id: "spin" })}

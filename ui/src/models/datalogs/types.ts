@@ -32,6 +32,7 @@ export type PaneType = {
   querySql?: string;
   logChart?: StatisticalTableResponse;
   desc: string;
+  histogramChecked: boolean;
 };
 
 export enum hashType {

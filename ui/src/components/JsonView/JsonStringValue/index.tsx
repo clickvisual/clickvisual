@@ -4,11 +4,13 @@ import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { Button, message } from "antd";
 import { useCallback, useState } from "react";
 import { useIntl } from "umi";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 type JsonStringValueProps = {
   val: string;
   keyItem?: string;
   indexKey?: string;
+  isIndex?: boolean;
 } & _CommonProps;
 export const REG_SEPARATORS = [
   " ",
@@ -24,26 +26,35 @@ export const REG_SEPARATORS = [
   "\u001b",
 ];
 
+export const PRE_SYMBOL = ["\n", "\t"];
+
 const JsonStringValue = ({
   val,
   keyItem,
   indexKey,
+  isIndex,
   ...restProps
 }: JsonStringValueProps) => {
-  const { onClickValue, highLightValue } = restProps;
+  const { onClickValue, highLightValue, quickInsertLikeExclusion } = restProps;
   const strListByReg: string[] = splitRawLogString(val);
-  const isExceed = val && val.length > LOGMAXTEXTLENGTH;
-  const [isHidden, setIsHidden] = useState<boolean | undefined>(
-    isExceed || false
-  );
+  const isExceed = (!!val && val.length > LOGMAXTEXTLENGTH) || false;
+  const [isHidden, setIsHidden] = useState<boolean>(isExceed);
   const i18n = useIntl();
 
   const isValue = (value: any) => {
     return !REG_SEPARATORS.includes(value);
   };
+
   const isNewLine = (value: any) => {
-    return value.includes("\n");
+    let flag = false;
+    PRE_SYMBOL.map((item: string) => {
+      if (value.indexOf(item) > 0) {
+        flag = true;
+      }
+    });
+    return flag;
   };
+
   if (strListByReg.length <= 0) return <></>;
 
   const highLightFlag = useCallback(
@@ -52,15 +63,20 @@ const JsonStringValue = ({
         return false;
       }
       return !!highLightValue.find((item) => {
-        if (item.key === keyItem && item.value === value) {
+        // 去掉 item.key 中的空格
+        const itemKey = item.key.replace(/\s+/g, "");
+        if (
+          (itemKey === keyItem && item.value.trim() === value.trim()) ||
+          item.value.trim() === `%${value}%`
+        ) {
           return true;
         } else if (
-          item.key.search(".") !== -1 &&
-          indexKey === item.key.split(".")[1] &&
+          itemKey.search(".") !== -1 &&
+          indexKey === item.key &&
           item.value === value
         ) {
           return true;
-        } else if (item.key === "_raw_log_" && item.value === `%${value}%`) {
+        } else if (itemKey === "_raw_log_" && item.value === `%${value}%`) {
           return true;
         }
         return false;
@@ -73,15 +89,38 @@ const JsonStringValue = ({
     return (
       <span
         key={index}
-        onClick={() =>
-          isValue(value) && onClickValue?.(value, { key: keyItem })
-        }
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
         className={classNames(
-          isValue(value) && jsonViewStyles.jsonViewValueHover,
-          highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+          isValue(value) && jsonViewStyles.jsonViewValueHover
         )}
       >
-        {value}
+        <ClickMenu
+          field={keyItem}
+          content={value}
+          handleAddCondition={() => {
+            isValue(value) &&
+              onClickValue?.(value, { key: keyItem, indexKey, isIndex });
+          }}
+          handleOutCondition={() => {
+            isValue(value) &&
+              quickInsertLikeExclusion?.(value, {
+                key: keyItem,
+                indexKey,
+                isIndex,
+              });
+          }}
+        >
+          <span
+            className={classNames(
+              isValue(value) && jsonViewStyles.jsonViewValueHover,
+              highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+            )}
+          >
+            {value}
+          </span>
+        </ClickMenu>
       </span>
     );
   });
@@ -109,14 +148,10 @@ const JsonStringValue = ({
           onClick={() =>
             message.info(i18n.formatMessage({ id: "log.JsonView.unfoldTip" }))
           }
-          className={classNames(
-            isValue(val) && jsonViewStyles.jsonViewValueHover,
-            highLightFlag(val) && jsonViewStyles.jsonViewHighlight
-          )}
         >
           {val && val.substring(0, LOGMAXTEXTLENGTH) + "..."}
         </span>
-      ) : isNewLine(strListByReg) ? (
+      ) : isNewLine(val) ? (
         <pre className={jsonViewStyles.pre}>{jsonStringView}</pre>
       ) : (
         <span className={jsonViewStyles.pre}>{jsonStringView}</span>

@@ -9,6 +9,7 @@ type LogContentParseProps = {
   secondaryIndexKeys?: any[];
   keyItem?: string;
   quickInsertLikeQuery: (key: string) => void;
+  quickInsertLikeExclusion: (key: string) => void;
 };
 
 const LogContentParse = ({
@@ -16,6 +17,7 @@ const LogContentParse = ({
   keyItem,
   secondaryIndexKeys,
   quickInsertLikeQuery,
+  quickInsertLikeExclusion,
 }: LogContentParseProps) => {
   const { highlightKeywords } = useModel("dataLogs");
 
@@ -32,6 +34,7 @@ const LogContentParse = ({
           val={logContent.toString()}
           keyItem={keyItem}
           onClickValue={quickInsertLikeQuery}
+          quickInsertLikeExclusion={quickInsertLikeExclusion}
           highLightValue={highlightKeywords}
         />
       );
@@ -45,6 +48,7 @@ const LogContentParse = ({
           secondaryIndexKeys={secondaryIndexKeys}
           data={logContent}
           onClickValue={quickInsertLikeQuery}
+          quickInsertLikeExclusion={quickInsertLikeExclusion}
           highLightValue={highlightKeywords}
         />
       </>

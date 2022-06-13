@@ -4,6 +4,7 @@ import classNames from "classnames";
 import JsonStringValue from "@/components/JsonView/JsonStringValue";
 import { useMemo, useState } from "react";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 /**
  * 渲染字段
@@ -14,11 +15,20 @@ import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
 type JsonValueProps = {
   jsonKey: string | undefined;
   val: any;
+  isIndex: boolean;
+  indexField?: string;
 } & _CommonProps;
 
 const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
-  const { onClickValue, highLightValue } = restProps;
+  const {
+    onClickValue,
+    highLightValue,
+    isIndex,
+    indexField,
+    onInsertExclusion,
+  } = restProps;
   const [isShowArr, setIsShowArr] = useState<boolean>(true);
+
   const indentStyle = {
     paddingLeft: "20px",
   };
@@ -75,7 +85,13 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
                     className={classNames(jsonViewStyles.jsonViewArrayItem)}
                     key={idx}
                   >
-                    <JsonValue jsonKey={jsonKey} val={item} {...restProps} />
+                    <JsonValue
+                      jsonKey={jsonKey}
+                      val={item}
+                      {...restProps}
+                      isIndex={false}
+                      indexField={undefined}
+                    />
                     {isLast ? "" : ","}
                   </div>
                 );
@@ -98,7 +114,10 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
     case "boolean":
       dom = (
         <span
-          onClick={() => onClickValue?.(val.toString())}
+          onClick={(e) => {
+            // onClickValue?.(val.toString());
+            e.stopPropagation();
+          }}
           className={classNames(
             jsonViewStyles.jsonViewValue,
             jsonViewStyles.jsonViewValueHover,
@@ -106,6 +125,14 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
           )}
         >
           {val.toString()}
+          <ClickMenu
+            field={jsonKey}
+            content={val.toString()}
+            handleAddCondition={() => onClickValue?.(val.toString())}
+            handleOutCondition={() => onInsertExclusion?.(val.toString())}
+          >
+            <span>{val.toString()}</span>
+          </ClickMenu>
         </span>
       );
       break;
@@ -113,7 +140,13 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
       dom = (
         <span className={classNames(jsonViewStyles.jsonViewValue)}>
           "
-          <JsonStringValue val={val} indexKey={jsonKey} {...restProps} />"
+          <JsonStringValue
+            val={val}
+            indexKey={indexField}
+            onClickValue={onClickValue}
+            {...restProps}
+          />
+          "
         </span>
       );
       break;
@@ -121,14 +154,33 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
     case "bigint":
       dom = (
         <span
-          onClick={() => onClickValue?.(val.toString())}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
           className={classNames(
             jsonViewStyles.jsonViewValue,
             jsonViewStyles.jsonViewValueHover,
             highLightFlag && jsonViewStyles.jsonViewHighlight
           )}
         >
-          {val}
+          <ClickMenu
+            field={jsonKey}
+            content={val}
+            handleAddCondition={() =>
+              onClickValue?.(
+                val.toString(),
+                isIndex ? { isIndex, indexKey: indexField } : undefined
+              )
+            }
+            handleOutCondition={() =>
+              onInsertExclusion?.(
+                val.toString(),
+                isIndex ? { isIndex, indexKey: indexField } : undefined
+              )
+            }
+          >
+            <span>{val}</span>
+          </ClickMenu>
         </span>
       );
       break;

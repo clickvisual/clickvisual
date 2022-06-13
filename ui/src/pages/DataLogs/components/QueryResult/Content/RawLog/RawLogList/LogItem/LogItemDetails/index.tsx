@@ -1,6 +1,5 @@
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import { useContext, useMemo } from "react";
-import { LogItemContext } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
+import { useMemo } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import { parseJsonObject } from "@/utils/string";
@@ -8,8 +7,11 @@ import lodash from "lodash";
 import { REG_SEPARATORS } from "@/components/JsonView/JsonStringValue";
 import LogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContent";
 
-const LogItemDetails = () => {
-  const { log } = useContext(LogItemContext);
+interface LogItemDetailsProps {
+  log: any;
+}
+
+const LogItemDetails = ({ log }: LogItemDetailsProps) => {
   const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
 
@@ -106,17 +108,37 @@ const LogItemDetails = () => {
     doUpdatedQuery(currentSelected);
   };
 
+  const quickInsertExclusion = (keyItem: string) => {
+    const currentSelected = "`" + keyItem + "`" + "!=" + `'${newLog[keyItem]}'`;
+    doUpdatedQuery(currentSelected);
+  };
+
   const quickInsertLikeQuery = (
     value: string,
     extra?: { key?: string; isIndex?: boolean; indexKey?: string }
   ) => {
-    let currentSelected = "";
+    let currentSelected: string;
     if (extra?.isIndex && extra?.indexKey) {
       currentSelected = `\`${extra.indexKey}\`='${value}'`;
     } else {
       currentSelected = `${
         extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
       } like '%${value}%'`;
+    }
+    doUpdatedQuery(currentSelected);
+  };
+
+  const quickInsertLikeExclusion = (
+    value: string,
+    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
+  ) => {
+    let currentSelected = "";
+    if (extra?.isIndex && extra?.indexKey) {
+      currentSelected = `\`${extra.indexKey}\`!='${value}'`;
+    } else {
+      currentSelected = `${
+        extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
+      } not like '%${value}%'`;
     }
     doUpdatedQuery(currentSelected);
   };
@@ -130,6 +152,21 @@ const LogItemDetails = () => {
     const insert = isIndexAndRawLogKey
       ? quickInsertLikeQuery
       : quickInsertQuery;
+    insert(keyItem);
+  };
+
+  const handleInsertExclusion = (
+    keyItem: string,
+    isIndexAndRawLogKey: boolean
+  ) => {
+    if (
+      ["_time_nanosecond_"].includes(keyItem) ||
+      (!isIndexAndRawLogKey && !newLog[keyItem])
+    )
+      return;
+    const insert = isIndexAndRawLogKey
+      ? quickInsertLikeExclusion
+      : quickInsertExclusion;
     insert(keyItem);
   };
 
@@ -235,7 +272,9 @@ const LogItemDetails = () => {
                 keyItem={key}
                 secondaryIndexList={secondaryIndexList}
                 quickInsertLikeQuery={quickInsertLikeQuery}
+                quickInsertLikeExclusion={quickInsertLikeExclusion}
                 onInsertQuery={handleInsertQuery}
+                onInsertExclusion={handleInsertExclusion}
                 isIndexAndRawLogKey={isIndexAndRawLogKey}
                 highlightFlag={highlightFlag}
                 isNotTimeKey={isNotTimeKey}

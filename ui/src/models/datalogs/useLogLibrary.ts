@@ -44,7 +44,7 @@ export default function useLogLibrary() {
   const getLogLibrary = useRequest(api.getTableInfo, {
     loadingText: false,
   });
-  const doUpdataLogLibrary = useRequest(api.updataTableInfo, {
+  const doUpdateLogLibrary = useRequest(api.updateTableInfo, {
     loadingText: false,
   });
 
@@ -72,8 +72,8 @@ export default function useLogLibrary() {
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
     getLogLibraryLoading: getLogLibrary.loading,
-    doUpdataLogLibrary,
-    updataLogLibraryLoading: doUpdataLogLibrary.loading,
+    doUpdateLogLibrary,
+    updateLogLibraryLoading: doUpdateLogLibrary.loading,
     getLocalTables,
     getTableColumns,
     doCreatedLocalLogLibrary,

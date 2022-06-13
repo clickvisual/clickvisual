@@ -3,12 +3,12 @@ import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLo
 import { Tooltip } from "antd";
 import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
-import { LogItemContext } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
-import { useContext } from "react";
 
-const CopyLog = () => {
+interface CopyLogProps {
+  log: any;
+}
+const CopyLog = ({ log }: CopyLogProps) => {
   const { onCopyRawLogDetails } = useModel("dataLogs");
-  const { log } = useContext(LogItemContext);
   const i18n = useIntl();
   return (
     <div

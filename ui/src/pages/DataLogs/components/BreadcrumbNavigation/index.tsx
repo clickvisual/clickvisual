@@ -28,20 +28,22 @@ const BreadcrumbNavigation = () => {
 
   return (
     <div className={dataLogsStyles.BreadcrumbNav}>
-      <div className={dataLogsStyles.selectedBtn}>
-        <Button
-          onClick={() => onChangeVisibleDatabaseDraw(true)}
-          type={"link"}
-          icon={
-            <Tooltip
-              title={i18n.formatMessage({ id: "datasource.header.switch" })}
-            >
-              <AppstoreOutlined />
-            </Tooltip>
-          }
-        />
+      <div className={dataLogsStyles.left}>
+        <div className={dataLogsStyles.selectedBtn}>
+          <Button
+            onClick={() => onChangeVisibleDatabaseDraw(true)}
+            type={"link"}
+            icon={
+              <Tooltip
+                title={i18n.formatMessage({ id: "datasource.header.switch" })}
+              >
+                <AppstoreOutlined />
+              </Tooltip>
+            }
+          />
+        </div>
+        <BreadCrumbs logLibraryInfo={logLibraryInfo} />
       </div>
-      <BreadCrumbs logLibraryInfo={logLibraryInfo} />
     </div>
   );
 };

@@ -4,6 +4,8 @@ import classNames from "classnames";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { useIntl } from "umi";
+import { PRE_SYMBOL } from "@/components/JsonView/JsonStringValue";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 interface onInsertQuery {
   onInsertQuery: any;
@@ -12,6 +14,7 @@ interface onInsertQuery {
   isIndexAndRawLogKey: any;
   highlightFlag: any;
   isNotTimeKey: any;
+  onInsertExclusion: any;
 }
 
 const LogItemDetailsContent = (props: onInsertQuery) => {
@@ -21,10 +24,27 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
     content,
     keyItem,
     isIndexAndRawLogKey,
+    onInsertExclusion,
     highlightFlag,
     isNotTimeKey,
   } = props;
+
   const i18n = useIntl();
+  const value = isHidden
+    ? content && content.length > LOGMAXTEXTLENGTH
+      ? content && content.substring(0, LOGMAXTEXTLENGTH) + "..."
+      : content
+    : content;
+
+  const isNewLine = (value: any) => {
+    let flag = false;
+    PRE_SYMBOL?.map((item: any) => {
+      if (typeof value == "string" && value.indexOf(item) > 0) {
+        flag = true;
+      }
+    });
+    return flag;
+  };
 
   return (
     <>
@@ -32,10 +52,11 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
         <Button
           type="primary"
           style={{
-            height: "18px",
+            height: "14px",
             alignItems: "center",
             display: "inline-flex",
             marginRight: "5px",
+            fontSize: "12px",
           }}
           shape="round"
           size="small"
@@ -46,20 +67,55 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
             : i18n.formatMessage({ id: "systemSetting.role.collapseX.packUp" })}
         </Button>
       )}
-      <span
-        onClick={() => onInsertQuery(keyItem, isIndexAndRawLogKey)}
-        className={classNames(
-          logItemStyles.logContent,
-          highlightFlag && logItemStyles.logContentHighlight,
-          isNotTimeKey && logItemStyles.logHover
-        )}
-      >
-        {isHidden
-          ? content && content.length > LOGMAXTEXTLENGTH
-            ? content && content.substring(0, LOGMAXTEXTLENGTH) + "..."
-            : content
-          : content}
-      </span>
+      {isNewLine(content) ? (
+        <pre
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className={classNames(
+            logItemStyles.logContent,
+            highlightFlag && logItemStyles.logContentHighlight,
+            isNotTimeKey && logItemStyles.logHover
+          )}
+        >
+          <ClickMenu
+            field={keyItem}
+            content={content}
+            handleAddCondition={() =>
+              onInsertQuery(keyItem, isIndexAndRawLogKey)
+            }
+            handleOutCondition={() =>
+              onInsertExclusion(keyItem, isIndexAndRawLogKey)
+            }
+          >
+            <span>{value}</span>
+          </ClickMenu>
+        </pre>
+      ) : (
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className={classNames(
+            logItemStyles.logContent,
+            highlightFlag && logItemStyles.logContentHighlight,
+            isNotTimeKey && logItemStyles.logHover
+          )}
+        >
+          <ClickMenu
+            field={keyItem}
+            content={content}
+            handleAddCondition={() =>
+              onInsertQuery(keyItem, isIndexAndRawLogKey)
+            }
+            handleOutCondition={() =>
+              onInsertExclusion(keyItem, isIndexAndRawLogKey)
+            }
+          >
+            <span>{value}</span>
+          </ClickMenu>
+        </span>
+      )}
     </>
   );
 };

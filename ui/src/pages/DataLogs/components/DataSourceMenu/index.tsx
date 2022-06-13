@@ -1,5 +1,4 @@
 import dataSourceMenuStyles from "@/pages/DataLogs/components/DataSourceMenu/index.less";
-import SourceHeader from "@/pages/DataLogs/components/DataSourceMenu/SourceHeader";
 import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
@@ -76,7 +75,6 @@ const DataSourceMenu = () => {
       )}
       style={{ width: `${expandLeftWidth}px` }}
     >
-      {/* <SourceHeader /> */}
       {LogLibrary}
       <ResizeWidth
         onResize={handleResize}

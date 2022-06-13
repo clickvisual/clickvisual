@@ -38,13 +38,21 @@
 .BreadcrumbNav {
   position: absolute;
   top: 6px;
+  left: 0;
   display: flex;
-  .selectedBtn {
-    flex: 0 0 20px;
-    :global {
-      .ant-btn {
-        padding: 0;
-        border: none;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 15px;
+  font-size: 14px;
+  .left {
+    display: flex;
+    .selectedBtn {
+      :global {
+        .ant-btn {
+          padding: 0;
+          border: none;
+        }
       }
     }
   }

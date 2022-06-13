@@ -32,6 +32,8 @@ import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 const DataLogsModel = () => {
   // 查询关键字
   const [keywordInput, setKeywordInput] = useState<string | undefined>();
+  // 查询关键词 2代
+  // const [logInputKeywordArr, setLogInputKeywordArr] = useState<any[]>([]);
   // 是否隐藏 Highcharts
   const [isHiddenHighChart, setIsHiddenHighChart] = useState<boolean>(false);
   // 日志总条数
@@ -101,8 +103,8 @@ const DataLogsModel = () => {
     onChangeCurrentEditDatabase,
     doCreatedLogLibrary,
     doGetLogLibrary,
-    doUpdataLogLibrary,
-    updataLogLibraryLoading,
+    doUpdateLogLibrary,
+    updateLogLibraryLoading,
     getLogLibraryLoading,
     doDeletedLogLibrary,
     getLocalTables,
@@ -322,24 +324,32 @@ const DataLogsModel = () => {
       );
     }
   };
-  const doGetHighCharts = (params?: QueryParams) => {
+  const doGetHighCharts = async (params?: QueryParams) => {
     if (currentLogLibrary) {
       cancelTokenHighChartsRef.current?.();
-      getHighCharts.run(
+      const highChartsRes = await getHighCharts.run(
         currentLogLibrary.id,
         logsAndHighChartsPayload(params),
         new CancelToken(function executor(c) {
           cancelTokenHighChartsRef.current = c;
         })
       );
+      if (highChartsRes?.code === 0) {
+        return {
+          highCharts: highChartsRes?.data,
+        };
+      }
     }
+    return;
   };
 
   const doGetLogsAndHighCharts = async (id: number, extra?: Extra) => {
     if (!id) return;
     cancelTokenLogsRef.current?.();
     cancelTokenHighChartsRef.current?.();
-    if (!!extra?.isPaging) {
+    const currentPane = logPanesHelper.logPanes[id.toString()];
+    const histogramChecked = currentPane?.histogramChecked ?? true;
+    if (!!extra?.isPaging || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
         logsAndHighChartsPayload(extra?.reqParams),
@@ -347,11 +357,10 @@ const DataLogsModel = () => {
           cancelTokenLogsRef.current = c;
         })
       );
-      if (extra?.isPaging && logsRes?.code === 0) {
-        const currentPane = logPanesHelper.logPanes[id.toString()];
+      if ((extra?.isPaging || !histogramChecked) && logsRes?.code === 0) {
         return {
           logs: logsRes.data,
-          highCharts: currentPane.highCharts,
+          highCharts: currentPane?.highCharts,
         };
       }
     } else {
@@ -399,7 +408,7 @@ const DataLogsModel = () => {
     const defaultInput = lodash
       .cloneDeep(keyword ? keyword : keywordInput)
       ?.split(" and ") || [""];
-    const strReg = /(`?\w|.+`?)(=| like )'([^']+)'/g;
+    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'([^']+)'/g;
     const allQuery: any[] = [];
     defaultInput.map((inputStr) =>
       Array.from(inputStr.replaceAll("`", "").matchAll(strReg))?.map((item) => {
@@ -414,7 +423,6 @@ const DataLogsModel = () => {
 
   const doUpdatedQuery = (currentSelected: string) => {
     if (!currentLogLibrary?.id) return;
-
     if (currentSelected.endsWith("+08:00'")) {
       currentSelected = currentSelected.substring(
         0,
@@ -427,7 +435,21 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    defaultValueArr.push(currentSelected);
+    var newValueArr: string[] = [];
+    lodash.cloneDeep(defaultValueArr).map((item: string) => {
+      newValueArr.push(item.replace(/(=|!=| like | not like )/gi, ""));
+    });
+
+    let currentKeyword = currentSelected
+      .replace(/(=|!=| like | not like )/g, "")
+      .trim();
+
+    if (newValueArr?.includes(currentKeyword)) {
+      defaultValueArr.splice(newValueArr.indexOf(currentKeyword), 1);
+      newValueArr.splice(newValueArr.indexOf(currentKeyword), 1);
+    }
+    newValueArr.push(currentKeyword);
+    defaultValueArr.push(currentSelected.trim());
 
     const kw = defaultValueArr.join(" and ");
     const pane = logPanesHelper.logPanes[currentLogLibrary.id.toString()];
@@ -583,8 +605,8 @@ const DataLogsModel = () => {
     doCreatedLogLibrary,
     doDeletedLogLibrary,
     doGetLogLibrary,
-    doUpdataLogLibrary,
-    updataLogLibraryLoading,
+    doUpdateLogLibrary,
+    updateLogLibraryLoading,
     getLogLibraryLoading,
     getLocalTables,
     getTableColumns,

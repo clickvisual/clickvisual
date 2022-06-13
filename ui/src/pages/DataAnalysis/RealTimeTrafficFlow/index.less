@@ -1,0 +1,28 @@
+@import "../../../styles/var.less";
+
+.realTimeTrafficMain {
+  display: flex;
+  height: 100%;
+  // padding: 10px 10px 10px 0;
+  .libraryTree {
+    flex: 0 0 300px;
+    padding: 10px;
+    border: 1px solid @border-color;
+    // border-radius: 8px;
+    // background-color: #1c1c1c;
+    :global .ant-select-single .ant-select-selector .ant-select-selection-search-input {
+      background-color: #1c1c1c;
+      color: #fff;
+    }
+  }
+
+  .trafficEChart {
+    flex: 1;
+    max-height: calc(100vh - 140px);
+    max-width: calc(100vw - 226px);
+    overflow: hidden;
+    border-radius: 8px;
+    margin-left: 4px;
+    background-color: #fff;
+  }
+}

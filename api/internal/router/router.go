@@ -11,6 +11,8 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
+	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata"
+	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/short"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/configure"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/event"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/initialize"
@@ -75,7 +77,7 @@ func GetRouter() *egin.Component {
 	{
 		// webhook
 		v1Open.POST("/prometheus/alerts", core.Handle(alarm.Webhook))
-		//alarms channels send test
+		// alarms channels send test
 		v1Open.POST("/alarms-channels/send-test", core.Handle(alarm.ChannelSendTest))
 		// mock
 		v1Open.POST("/install", core.Handle(initialize.Install))
@@ -154,6 +156,8 @@ func GetRouter() *egin.Component {
 		v1.GET("/tables/:id/logs", core.Handle(base.TableLogs))
 		v1.GET("/tables/:id/charts", core.Handle(base.TableCharts))
 		v1.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
+
+		v1.GET("/instances/:iid/databases/:dn/tables/:tn/deps", core.Handle(base.TableDeps))
 	}
 	// analysis fields
 	{
@@ -202,6 +206,20 @@ func GetRouter() *egin.Component {
 		v1.POST("/pms/role", core.Handle(permission.CreatePmsRole))
 		v1.POST("/pms/root/grant", core.Handle(permission.GrantRootUids))
 		v1.POST("/pms/check", core.Handle(permission.CheckPermission))
+	}
+	// bigdata
+	{
+		v1.GET("/bigdata/folders", core.Handle(short.FolderList))
+		v1.GET("/bigdata/folders/:id", core.Handle(short.FolderInfo))
+		v1.POST("/bigdata/folders", core.Handle(short.FolderCreate))
+		v1.PATCH("/bigdata/folders/:id", core.Handle(short.FolderUpdate))
+		v1.DELETE("/bigdata/folders/:id", core.Handle(short.FolderDelete))
+
+		// v1.GET("/bigdata/nodes", core.Handle(bigdata.NodeList))
+		v1.GET("/bigdata/nodes/:id", core.Handle(bigdata.NodeInfo))
+		v1.POST("/bigdata/nodes", core.Handle(bigdata.NodeCreate))
+		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
+		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
 	}
 	return r
 }

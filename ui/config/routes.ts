@@ -69,6 +69,11 @@ export default [
     ],
   },
   {
+    path: "/bigdata",
+    name: "bigdata",
+    component: "./DataAnalysis",
+  },
+  {
     path: "/user",
     layout: false,
     component: "../layouts/User",

@@ -3,12 +3,15 @@ import { Space } from "antd";
 import CopyLog from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemOperation/CopyLog";
 import MoreLog from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemOperation/MoreLog";
 
-const LogItemOperation = () => {
+interface LogItemOperationProps {
+  log: any;
+}
+const LogItemOperation = ({ log }: LogItemOperationProps) => {
   return (
     <div className={logItemStyles.operationLine}>
       <Space>
-        <CopyLog />
-        <MoreLog />
+        <CopyLog log={log} />
+        <MoreLog log={log} />
       </Space>
     </div>
   );

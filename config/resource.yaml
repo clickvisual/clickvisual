@@ -94,3 +94,10 @@ permission:
           - path: /api/v1/pms/check
             name: 查询权限
             method: POST
+  - name: bigdata
+    path: /bigdata
+    children:
+      - path: /bigdata/realtime
+        name: realtime
+      - path: /bigdata/short
+        name: temporaryQuery

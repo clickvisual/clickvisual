@@ -74,6 +74,10 @@ export default {
   "menu.systemSettings.events": "Event Center",
   "menu.systemSettings.pms": "Authority Management",
   "menu.systemSettings.role": "Role Management",
+  "menu.bigdata": "Data Analysis",
+  "menu.bigdata.realtime": "Real-time Industry",
+  "menu.bigdata.temporaryQuery": "Temporary Query",
+
   // user
   "login.header": "Welcome to ClickVisual",
   "login.title": "Log In",
@@ -387,6 +391,9 @@ export default {
   "log.share.error":
     "Share URL error, please try to share again, or refresh the page after operation",
 
+  // log nva
+  "log.switch.histogram": "Histogram",
+
   // Data Logs-Statistical Table
   "log.table.note":
     "Note: The default return limit for the current request is 100 lines. For more results, add your own restriction statements",
@@ -435,6 +442,11 @@ export default {
 
   // JsonView
   "log.JsonView.unfoldTip": "Please expand and then click",
+
+  // ClickMenu
+  "log.ClickMenu.addCondition": "Adding a query condition",
+  "log.ClickMenu.excludeCondition": "Exclude query criteria",
+  "log.ClickMenu.copyValues": "Copy values",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "Modify the success",
@@ -539,10 +551,10 @@ export default {
 
   // Notifications
   "alarm.notify.button.created": "Create Channel",
-  "alarm.notify.button.test": "test",
   "alarm.notify.modal.created": "Create notification channel",
   "alarm.notify.created.success": "Create a notification channel success",
-  "alarm.notify.sendTest.success": "Send successfully, please go to the client for verification ",
+  "alarm.notify.sendTest.success":
+    "Send successfully, please go to the client for verification ",
   "alarm.notify.modal.updated": "Update notification channel",
   "alarm.notify.updated.success": "Update notification channel success",
   "alarm.notify.modal.title": "Delete the notification channel",
@@ -552,6 +564,9 @@ export default {
     "Deleting notification channel {channelName}...",
   "alarm.notify.deleted.success":
     "Delete the notification channel {channelName} success",
+  "alarm.notify.name.placeholder": "Please enter notification name",
+  "alarm.notify.type.placeholder": "Please select a type",
+  "alarm.notify.url.placeholder": "Please enter the url",
 
   // install
   "install.init.text.databaseInit":

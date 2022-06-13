@@ -1,23 +1,24 @@
 import rawLogListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/index.less";
 import LogItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem";
 import { useModel } from "@@/plugin-model/useModel";
-import React, { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import classNames from "classnames";
 import useLogListScroll from "@/pages/DataLogs/hooks/useLogListScroll";
 
-type LogItemContextType = {
-  log: any;
-};
-
-export const LogItemContext = React.createContext<LogItemContextType>({
-  log: {},
-});
 const RawLogList = () => {
-  const { onChangeHiddenHighChart, logs } = useModel("dataLogs");
+  const { currentLogLibrary, onChangeHiddenHighChart, logs, logPanesHelper } =
+    useModel("dataLogs");
+  const { logPanes } = logPanesHelper;
+
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
+
   const containerProps = useLogListScroll();
 
   useEffect(() => {
-    if (containerProps.ref.current) {
+    if (containerProps.ref.current && oldPane?.histogramChecked) {
       containerProps.ref.current.scrollTop = 0;
       onChangeHiddenHighChart(false);
     }
@@ -30,9 +31,7 @@ const RawLogList = () => {
       {...containerProps}
     >
       {list.map((logItem: any, index: number) => (
-        <LogItemContext.Provider key={index} value={{ log: logItem }}>
-          <LogItem index={index} />
-        </LogItemContext.Provider>
+        <LogItem log={logItem} key={index} />
       ))}
     </div>
   );

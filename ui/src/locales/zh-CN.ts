@@ -30,6 +30,8 @@ export default {
   type: "类型",
   status: "状态",
   dingTalk: "钉钉",
+  Feishu: "飞书",
+  Slack:"Slack",
 
   user: "用户",
   utime: "更新时间",
@@ -74,6 +76,10 @@ export default {
   "menu.systemSettings.events": "事件中心",
   "menu.systemSettings.pms": "权限管理",
   "menu.systemSettings.role": "角色管理",
+  "menu.bigdata": "数据分析",
+  "menu.bigdata.realtime": "实时业务",
+  "menu.bigdata.temporaryQuery": "临时查询",
+
   // user
   "login.header": "欢迎来到 ClickVisual",
   "login.title": "登  录",
@@ -362,6 +368,9 @@ export default {
   "log.share.success": "URL 已粘贴至剪切板",
   "log.share.error": "分享 URL 出错啦，请尝试重新分享，或者刷新页面后操作",
 
+  // log nva
+  "log.switch.histogram": "直方图",
+
   // Data Logs-Statistical Table
   "log.table.note":
     "注：当前请求默认限制返回 100 行，若要获取更多结果，请自行添加 limit 语句",
@@ -408,6 +417,11 @@ export default {
 
   // JsonView
   "log.JsonView.unfoldTip": "请先展开再点击~",
+
+  // ClickMenu
+  "log.ClickMenu.addCondition": "添加查询条件",
+  "log.ClickMenu.excludeCondition": "排除查询条件",
+  "log.ClickMenu.copyValues": "复制值",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
   "log.editLogLibraryModal.modifySuc": "修改成功",
@@ -507,7 +521,6 @@ export default {
 
   // Notifications
   "alarm.notify.button.created": "新增渠道",
-  "alarm.notify.button.test": "测试",
   "alarm.notify.modal.created": "新增通知方式",
   "alarm.notify.created.success": "新增通知方式成功",
   "alarm.notify.sendTest.success": "发送测试通知成功,请到客户端进行验证",
@@ -517,6 +530,9 @@ export default {
   "alarm.notify.modal.content": "确定删除通知方式：{channelName} 吗？",
   "alarm.notify.deleted.loading": "正在删除通知方式 {channelName}...",
   "alarm.notify.deleted.success": "删除通知方式 {channelName} 成功",
+  "alarm.notify.name.placeholder": "请输入通知名称",
+  "alarm.notify.type.placeholder": "请选择通知方式",
+  "alarm.notify.url.placeholder": "请输入通知url",
 
   // install
   "install.init.text.databaseInit":

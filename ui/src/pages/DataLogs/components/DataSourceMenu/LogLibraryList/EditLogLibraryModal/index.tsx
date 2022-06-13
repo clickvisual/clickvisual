@@ -13,8 +13,8 @@ const EditLogLibraryModal = () => {
     currentEditLogLibrary,
     doGetLogLibraryList,
     doGetLogLibrary,
-    doUpdataLogLibrary,
-    updataLogLibraryLoading,
+    doUpdateLogLibrary,
+    updateLogLibraryLoading,
     getLogLibraryLoading,
   } = useModel("dataLogs");
   const editDatabaseFormRef = useRef<FormInstance>(null);
@@ -40,7 +40,7 @@ const EditLogLibraryModal = () => {
 
   const handleSubmit = (val: any) => {
     if (!currentEditLogLibrary?.id) return;
-    doUpdataLogLibrary
+    doUpdateLogLibrary
       .run(currentEditLogLibrary?.id, val)
       .then((res: any) => {
         if (res.code != 0) {
@@ -65,7 +65,7 @@ const EditLogLibraryModal = () => {
       onCancel={() => onChangeIsModifyLog(false)}
       onOk={() => editDatabaseFormRef.current?.submit()}
       width={"60%"}
-      confirmLoading={updataLogLibraryLoading || getLogLibraryLoading}
+      confirmLoading={updateLogLibraryLoading || getLogLibraryLoading}
     >
       <Form
         ref={editDatabaseFormRef}
