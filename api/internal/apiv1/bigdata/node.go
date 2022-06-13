@@ -66,6 +66,7 @@ func NodeUpdate(c *core.Context) {
 	ups["folder_id"] = req.FolderId
 	ups["name"] = req.Name
 	ups["desc"] = req.Desc
+	ups["uid"] = c.Uid()
 	if err := db.NodeUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)

@@ -223,6 +223,11 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/nodes/:id/lock", core.Handle(bigdata.NodeLock))
 		v1.PATCH("/bigdata/nodes/:id/unlock", core.Handle(bigdata.NodeUnlock))
 
+		v1.GET("/bigdata/sources", core.Handle(bigdata.SourceList))
+		v1.GET("/bigdata/sources/:id", core.Handle(bigdata.SourceInfo))
+		v1.POST("/bigdata/sources", core.Handle(bigdata.SourceCreate))
+		v1.PATCH("/bigdata/sources/:id", core.Handle(bigdata.SourceUpdate))
+		v1.DELETE("/bigdata/sources/:id", core.Handle(bigdata.SourceDelete))
 	}
 	return r
 }

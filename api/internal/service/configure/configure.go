@@ -30,7 +30,7 @@ type configure struct{}
 // InitConfigure ...
 func InitConfigure() {
 	Configure = &configure{}
-	go Configure.clearLockPeriodically()
+	// go Configure.clearLockPeriodically()
 	return
 }
 
