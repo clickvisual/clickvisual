@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { ColumnsType } from "antd/es/table";
 import classNames from "classnames";
 import { useIntl } from "umi";
+import ExportExcelButton from "@/components/ExportExcelButton";
 
 const PageSize = 5;
 
@@ -15,6 +16,7 @@ const StatisticalTableContent = () => {
   const [data, setData] = useState<any[]>([]);
 
   const tableRef = useRef(null);
+
 
   const columns: ColumnsType<any> = useMemo(() => {
     const columnArr: ColumnsType = [];
@@ -28,7 +30,6 @@ const StatisticalTableContent = () => {
         });
       }
       setData(list);
-
       columnArr.push({
         title: "line",
         dataIndex: "key",
@@ -49,7 +50,6 @@ const StatisticalTableContent = () => {
     }
     return columnArr;
   }, [logChart]);
-
   return (
     <div
       ref={tableRef}
@@ -58,8 +58,11 @@ const StatisticalTableContent = () => {
         queryResultStyles.tableContent
       )}
     >
-      <div className={classNames(queryResultStyles.sqlTip)}>
-        <span>{i18n.formatMessage({ id: "log.table.note" })}</span>
+      <div className={classNames(queryResultStyles.tableTopBar)}>
+        <ExportExcelButton data={data} />
+        <span className={classNames(queryResultStyles.sqlTip)}>
+          {i18n.formatMessage({ id: "log.table.note" })}
+          </span>
       </div>
       <div className={classNames(queryResultStyles.sqlTable)}>
         <Table
@@ -73,6 +76,7 @@ const StatisticalTableContent = () => {
             showSizeChanger: true,
           }}
         />
+    
       </div>
     </div>
   );
