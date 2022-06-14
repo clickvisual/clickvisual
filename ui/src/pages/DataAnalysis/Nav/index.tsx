@@ -6,8 +6,8 @@ import useUrlState from "@ahooksjs/use-url-state";
 import { useEffect } from "react";
 
 export enum bigDataNavEnum {
-  RealTimeTrafficFlow = "RealTimeTrafficFlow",
-  TemporaryQuery = "TemporaryQuery",
+  RealTimeTrafficFlow = "realtime",
+  TemporaryQuery = "short",
 }
 
 const DataAnalysisNav = () => {

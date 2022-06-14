@@ -37,7 +37,7 @@ const DataAnalysisScreening = () => {
       <Select
         showSearch
         allowClear
-        size="small"
+        // size="small"
         style={{ width: "278px" }}
         options={options}
         placeholder={i18n.formatMessage({ id: "datasource.draw.selected" })}
