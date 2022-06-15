@@ -1,8 +1,8 @@
-import { folderType } from "@/models/dataanalysis/useTemporaryQuery";
-import { bigDataNavEnum } from "@/pages/DataAnalysis/Nav";
 import { Form, FormInstance, Input, message, Modal } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "umi";
+import { bigDataNavEnum } from "@/pages/DataAnalysis";
+import { folderType } from "@/pages/DataAnalysis/service/enums";
 
 const CreateAndUpdateFolder = () => {
   const folderForm = useRef<FormInstance>(null);

@@ -4,11 +4,7 @@ import { Tooltip } from "antd";
 import { useModel } from "umi";
 import useUrlState from "@ahooksjs/use-url-state";
 import { useEffect } from "react";
-
-export enum bigDataNavEnum {
-  RealTimeTrafficFlow = "realtime",
-  TemporaryQuery = "short",
-}
+import { bigDataNavEnum } from "@/pages/DataAnalysis";
 
 const DataAnalysisNav = () => {
   const [urlState, setUrlState] = useUrlState<any>();

@@ -6,11 +6,6 @@ import realTimeBusinessApi, {
 } from "@/services/realTimeTrafficFlow";
 import { useEdgesState, useNodesState } from "react-flow-renderer";
 
-export enum BusinessEngineEnum {
-  Kafka = "Kafka",
-  MergeTree = "MergeTree",
-  Distributed = "Distributed",
-}
 const useRealTimeTraffic = () => {
   const [databases, setDatabases] = useState<DatabaseResponse[]>([]);
   const [tables, setTables] = useState<TablesResponse[]>([]);
