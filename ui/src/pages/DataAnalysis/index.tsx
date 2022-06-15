@@ -1,26 +1,24 @@
 import style from "./index.less";
 import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
-import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeTrafficFlow";
+import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataAnalysisNav from "@/pages/DataAnalysis/Nav";
 import DataAnalysisScreening from "@/pages/DataAnalysis/Screening";
 import { useModel } from "umi";
+import { bigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 
 const DataAnalysis = () => {
   const { navKey } = useModel("dataAnalysis");
 
   const navContent = () => {
     switch (navKey) {
-      case "TemporaryQuery":
+      case bigDataNavEnum.TemporaryQuery:
         return <TemporaryQuery />;
-        break;
 
-      case "RealTimeTrafficFlow":
+      case bigDataNavEnum.RealTimeTrafficFlow:
         return <RealTimeTrafficFlow />;
-        break;
 
       default:
         return <></>;
-        break;
     }
   };
 
@@ -36,3 +34,4 @@ const DataAnalysis = () => {
 };
 
 export default DataAnalysis;
+export { bigDataNavEnum } from "@/pages/DataAnalysis/service/enums";

@@ -2,7 +2,7 @@ import { message } from "antd";
 import { useIntl } from "umi";
 import { reqCreatePmsDefaultRole, reqGrantRootUids } from "@/services/pms";
 
-const role = () => {
+const useRole = () => {
   const i18n = useIntl();
 
   const handleCreate = async (values: any) => {
@@ -62,4 +62,4 @@ const role = () => {
   };
   return { handleCreate, handleGrantUsers };
 };
-export default role;
+export default useRole;

@@ -37,6 +37,7 @@ const (
 	TableNameBigDataNode        = "cv_bd_node"
 	TableNameBigDataNodeContent = "cv_bd_node_content"
 	TableNameBigDataFolder      = "cv_bd_folder"
+	TableNameBigDataSource      = "cv_bd_source"
 
 	TableNameHiddenField = "cv_base_hidden_field"
 )

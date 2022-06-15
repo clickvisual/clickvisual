@@ -25,18 +25,14 @@ const CollapseItem = (props: CollapseItemProps) => {
     <div key={field.key} className={styles.collapseCard}>
       <Collapse defaultActiveKey={`${field.key}`} className={styles.collapse}>
         <Panel key={`${field.key}`} header={<CollapseTitle role={role} />}>
-          <Form.Item
-            name={[field.name, "id"]}
-            fieldKey={[field.fieldKey]}
-            hidden
-          />
+          <Form.Item name={[field.name, "id"]} fieldKey={[field.key]} hidden />
           <Form.Item
             name={[field.name, "roleType"]}
-            fieldKey={[field.fieldKey]}
+            fieldKey={[field.key]}
             hidden
           />
           <Form.Item
-            fieldKey={[field.fieldKey]}
+            fieldKey={[field.key]}
             label={i18n.formatMessage({
               id: "systemSetting.instancePanel.roleAssign.rolesList.collapseItem.authorization",
             })}

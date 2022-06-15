@@ -34,7 +34,7 @@ import SearchTable, {
   SearchTableInstance,
 } from "@/pages/SystemSetting/Role/components/SearchTable";
 import RoleStyle from "@/pages/SystemSetting/Role/styles/index.less";
-import role from "@/pages/SystemSetting/Role/hooks/role";
+import useRole from "@/pages/SystemSetting/Role/hooks/useRole";
 import { useIntl } from "umi";
 
 function PmsDefaultRoles() {
@@ -48,7 +48,7 @@ function PmsDefaultRoles() {
   const [grantRootUserVisible, handleGrantRootUserVisible] =
     useState<boolean>(false);
   const [form] = Form.useForm();
-  const { handleCreate, handleGrantUsers } = role();
+  const { handleCreate, handleGrantUsers } = useRole();
   const deleteRole = useRequest(reqDeleteRole, {
     loadingText: {
       loading: undefined,

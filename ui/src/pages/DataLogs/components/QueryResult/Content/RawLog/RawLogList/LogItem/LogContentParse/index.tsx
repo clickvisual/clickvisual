@@ -19,13 +19,13 @@ const LogContentParse = ({
   quickInsertLikeQuery,
   quickInsertLikeExclusion,
 }: LogContentParseProps) => {
-  const { highlightKeywords } = useModel("dataLogs");
+  const { highlightKeywords, isJsonFun } = useModel("dataLogs");
 
   const isNullList = ["\n", "\r\n", "", " "];
 
   let content;
 
-  if (typeof logContent !== "object") {
+  if (!isJsonFun(logContent)) {
     if (isNullList.includes(logContent)) {
       content = "";
     } else {

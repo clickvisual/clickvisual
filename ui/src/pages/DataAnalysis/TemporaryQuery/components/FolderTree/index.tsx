@@ -1,53 +1,26 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
-import { Dropdown, Input, Menu, Tooltip, Tree } from "antd";
+import { Empty, Input, message, Tooltip, Tree } from "antd";
 import {
   DownOutlined,
   FileAddOutlined,
   FileOutlined,
+  FolderAddOutlined,
   RedoOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import { DataNode } from "antd/lib/tree";
 import "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/index";
-import { useState } from "react";
+import CreateAndUpdateFolder from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/CreateAndUpdateFolder";
+import CreateAndUpdateNode from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/CreateAndUpdateNode";
+import { useEffect, useState } from "react";
 import React, { useMemo } from "react";
 import { Key } from "antd/lib/table/interface";
-// import { useModel } from "umi";
+import { useModel } from "umi";
+import FolderTiele from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/FolderTiele";
 
 const { DirectoryTree } = Tree;
 
-const x = 3;
-const y = 2;
-const z = 1;
 const defaultData: DataNode[] = [];
-
-const generateData = (
-  _level: number,
-  _preKey?: React.Key,
-  _tns?: DataNode[]
-) => {
-  const preKey = _preKey || "0";
-  const tns = _tns || defaultData;
-
-  const children = [];
-  for (let i = 0; i < x; i++) {
-    const key = `${preKey}-${i}`;
-    tns.push({ title: key, key });
-    if (i < y) {
-      children.push(key);
-    }
-  }
-  if (_level < 0) {
-    return tns;
-  }
-  const level = _level - 1;
-  children.forEach((key, index) => {
-    tns[index].children = [];
-    return generateData(level, key, tns[index].children);
-  });
-  return false;
-};
-generateData(z);
 
 const dataList: { key: React.Key; title: string }[] = [];
 const generateList = (data: DataNode[]) => {
@@ -60,6 +33,7 @@ const generateList = (data: DataNode[]) => {
     }
   }
 };
+
 generateList(defaultData);
 
 const getParentKey = (key: React.Key, tree: DataNode[]): React.Key => {
@@ -81,7 +55,16 @@ const FolderTree: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
-  // const { doFolderList } = useModel("dataAnalysis");
+  const { currentInstances, temporaryQuery } = useModel("dataAnalysis");
+
+  const {
+    fileList,
+    getDataList,
+    changeVisibleFolder,
+    changeVisibleNode,
+    currentFolder,
+    onKeyToIdAndParentId,
+  } = temporaryQuery;
 
   const onExpand = (newExpandedKeys: Key[]) => {
     setExpandedKeys(newExpandedKeys);
@@ -103,22 +86,6 @@ const FolderTree: React.FC = () => {
     setAutoExpandParent(true);
   };
 
-  /* 右键菜单 */
-  const indexMenu = (
-    <div
-      onClick={(e) => {
-        e.stopPropagation();
-      }}
-      style={{ borderRadius: "8px", overflow: "hidden" }}
-    >
-      <Menu>
-        <Menu.Item key="rename">重命名</Menu.Item>
-        <Menu.Item key="move">移动</Menu.Item>
-        <Menu.Item key="delete">删除</Menu.Item>
-      </Menu>
-    </div>
-  );
-
   const treeData = useMemo(() => {
     const loop = (data: DataNode[]): DataNode[] =>
       data.map((item) => {
@@ -136,75 +103,103 @@ const FolderTree: React.FC = () => {
           ) : (
             <span>{item.title}</span>
           );
-        if (item.children) {
+        const keyValueList = item.key.toString().split("_");
+        if (item.children && item.children.length > 0) {
           return {
             title: (
-              <Dropdown
-                overlay={indexMenu}
-                trigger={["contextMenu"]}
-                onVisibleChange={(e) => {
-                  e;
-                  // setIndexRight(item)
-                }}
-              >
-                <div
-                  style={{
-                    width: "calc(100% - 24px)",
-                  }}
-                >
-                  {title}
-                </div>
-              </Dropdown>
+              <FolderTiele
+                id={parseInt(keyValueList[1])}
+                parentId={parseInt(keyValueList[0])}
+                title={title}
+              />
             ),
             key: item.key,
-            // isLeaf: true,
             children: loop(item.children),
           };
         }
-
         return {
           title: (
-            <Dropdown
-              overlay={indexMenu}
-              trigger={["contextMenu"]}
-              // onVisibleChange={() => {
-              //   // setIndexRight(item)
-              // }}
-            >
-              <div style={{ width: "calc(100% - 24px)" }}>{title}</div>
-            </Dropdown>
+            <FolderTiele
+              id={parseInt(keyValueList[1])}
+              parentId={parseInt(keyValueList[0])}
+              title={title}
+            />
           ),
-          icon: <FileOutlined />,
-          // icon: <></>,
-          showIcon: false,
+          icon: keyValueList[4] == "true" && (
+            <FileOutlined style={{ color: "#2FABEE" }} />
+          ),
           key: item.key,
         };
       });
 
-    return loop(defaultData);
-  }, [searchValue]);
+    return loop(fileList || []);
+  }, [fileList, searchValue]);
 
-  // useEffect(() => {
-  //   doFolderList.run().then((res: any) => {
-  //     console.log(res);
-  //   });
-  // }, []);
+  const handleSelect = (value: any) => {
+    onKeyToIdAndParentId(value[0]);
+  };
+
+  const handleRightClick = (value: any) => {
+    onKeyToIdAndParentId(value.node.key);
+  };
+
+  const handleRefresh = () => {
+    getDataList(currentInstances as number);
+  };
+
+  const handleCreateFolder = () => {
+    if (currentFolder && currentFolder.parentId >= 0) {
+      message.info("暂时只支持新建2级菜单哟~");
+      return;
+    }
+    changeVisibleFolder(true);
+  };
+
+  const handleCreateNode = () => {
+    changeVisibleNode(true);
+  };
+
+  useEffect(() => {
+    currentInstances && getDataList(currentInstances as number);
+  }, [currentInstances]);
+
+  const iconList = [
+    {
+      id: 101,
+      title: "新建节点",
+      icon: <FileAddOutlined />,
+      onClick: handleCreateNode,
+    },
+    {
+      id: 102,
+      title: "新建文件夹",
+      icon: <FolderAddOutlined />,
+      onClick: handleCreateFolder,
+    },
+    {
+      id: 103,
+      title: "刷新",
+      icon: <RedoOutlined />,
+      onClick: handleRefresh,
+    },
+  ];
 
   return (
     <div className={TemporaryQueryStyle.folderTreeMain}>
       <div className={TemporaryQueryStyle.title}>
         <span className={TemporaryQueryStyle.titleName}>临时查询</span>
         <div className={TemporaryQueryStyle.iconList}>
-          <div className={TemporaryQueryStyle.button}>
-            <Tooltip title="新建">
-              <FileAddOutlined />
-            </Tooltip>
-          </div>
-          <div className={TemporaryQueryStyle.button}>
-            <Tooltip title="刷新">
-              <RedoOutlined />
-            </Tooltip>
-          </div>
+          {iconList.map((item: any) => {
+            return (
+              <div
+                className={TemporaryQueryStyle.button}
+                onClick={item.onClick}
+                key={item.id}
+              >
+                <Tooltip title={item.title}>{item.icon}</Tooltip>
+              </div>
+            );
+          })}
         </div>
       </div>
       <div className={TemporaryQueryStyle.searchBox}>
@@ -222,22 +217,27 @@ const FolderTree: React.FC = () => {
         </div> */}
       </div>
       <div className={TemporaryQueryStyle.content}>
-        <DirectoryTree
-          // showLine
-          blockNode
-          switcherIcon={<DownOutlined />}
-          defaultExpandAll
-          onExpand={onExpand}
-          expandedKeys={expandedKeys}
-          autoExpandParent={autoExpandParent}
-          // onRightClick={(e) => {
-          //   console.log(e);
-          // }}
-          // onSelect={onSelect}
-          treeData={treeData}
-        />
+        {treeData.length > 0 ? (
+          <DirectoryTree
+            // showLine
+            blockNode
+            switcherIcon={<DownOutlined />}
+            defaultExpandAll
+            onExpand={onExpand}
+            expandedKeys={expandedKeys}
+            autoExpandParent={autoExpandParent}
+            onSelect={handleSelect}
+            onRightClick={handleRightClick}
+            treeData={treeData}
+          />
+        ) : (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={false} />
+        )}
       </div>
+      <CreateAndUpdateFolder />
+      <CreateAndUpdateNode />
     </div>
   );
 };
+
 export default FolderTree;

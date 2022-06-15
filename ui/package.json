@@ -53,7 +53,6 @@
     "@ant-design/pro-form": "^1.18.3",
     "@ant-design/pro-layout": "^6.15.3",
     "@ant-design/pro-table": "^2.30.8",
-    "@mrblenny/react-flow-chart": "^0.0.14",
     "@types/crypto-js": "^4.0.2",
     "@types/react-resizable": "^1.7.4",
     "@types/styled-components": "^5.1.25",
@@ -62,6 +61,7 @@
     "antd": "^4.14.0",
     "classnames": "^2.2.6",
     "crypto-js": "^4.1.1",
+    "dagre": "^0.8.5",
     "lodash": "^4.17.11",
     "moment": "^2.29.2",
     "monaco-editor": "^0.31.1",
@@ -71,6 +71,7 @@
     "react-dev-inspector": "^1.1.1",
     "react-dom": "^17.0.0",
     "react-floating-button": "^1.1.1",
+    "react-flow-renderer": "^10.3.6",
     "react-helmet-async": "^1.0.4",
     "react-infinite-scroll-component": "6.1.0",
     "react-monaco-editor": "^0.46.0",
@@ -78,7 +79,8 @@
     "sql-formatter": "^6.1.2",
     "styled-components": "^5.3.5",
     "umi": "3.5.26",
-    "umi-serve": "^1.9.11"
+    "umi-serve": "^1.9.11",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "2.1.5",

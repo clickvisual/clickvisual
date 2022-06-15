@@ -10,6 +10,9 @@ export default {
   DescAsAlias: "别名",
   loading: "正在加载",
   loadingDone: "加载成功",
+  noData: "没有数据",
+  fileName: "文件名",
+  export: "导出",
   "error.title": "请求失败",
   "error.default": "未知错误, 请联系负责人",
   "error.content": "错误：{msg}",
@@ -25,10 +28,12 @@ export default {
   required: "必填",
 
   type: "类型",
+  capacity: "容量",
+  count: "总量",
   status: "状态",
   dingTalk: "钉钉",
   Feishu: "飞书",
-  Slack:"Slack",
+  Slack: "Slack",
 
   user: "用户",
   utime: "更新时间",
@@ -653,4 +658,8 @@ export default {
   "models.pms.updating": "更新中...",
   "models.pms.update.suc": "更新成功",
   "models.pms.permissions.failureText": "获取权限相关基础信息失败",
+
+  // bigdata realtime
+  "bigdata.realtime.table": "表",
+  "bigdata.realtime.database": "库",
 };

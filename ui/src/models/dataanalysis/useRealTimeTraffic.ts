@@ -1,29 +1,41 @@
 import { useState } from "react";
 import { DatabaseResponse, TablesResponse } from "@/services/dataLogs";
 import useRequest from "@/hooks/useRequest/useRequest";
-import realTimeTrafficApi, {
-  TrafficChartResponse,
+import realTimeBusinessApi, {
+  BusinessChartResponse,
 } from "@/services/realTimeTrafficFlow";
+import { useEdgesState, useNodesState } from "react-flow-renderer";
 
 const useRealTimeTraffic = () => {
   const [databases, setDatabases] = useState<DatabaseResponse[]>([]);
   const [tables, setTables] = useState<TablesResponse[]>([]);
-  const [trafficChart, setTrafficChart] = useState<TrafficChartResponse[]>([]);
+  const [businessChart, setBusinessChart] = useState<BusinessChartResponse[]>(
+    []
+  );
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const doGetTrafficChart = useRequest(realTimeTrafficApi.getTrafficChart, {
+  const doGetBusinessChart = useRequest(realTimeBusinessApi.getBusinessChart, {
     loadingText: false,
   });
 
   return {
     databases,
     tables,
-    trafficChart,
+    businessChart,
+    nodes,
+    edges,
 
-    setTrafficChart,
+    setBusinessChart,
     setDatabases,
     setTables,
+    setNodes,
+    setEdges,
 
-    doGetTrafficChart,
+    onNodesChange,
+    onEdgesChange,
+
+    doGetBusinessChart,
   };
 };
 export default useRealTimeTraffic;

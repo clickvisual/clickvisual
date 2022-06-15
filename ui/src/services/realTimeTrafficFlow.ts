@@ -1,23 +1,23 @@
 import { request } from "umi";
 
-interface TrafficChartRequest {
+interface BusinessChartRequest {
   iid: number;
   dn: string;
   tn: string;
 }
 
-export interface TrafficChartResponse {
+export interface BusinessChartResponse {
   database: string;
   deps: string[];
   engine: string;
   table: string;
-  totalBytes: bigint;
-  totalRows: bigint;
+  totalBytes: number;
+  totalRows: number;
 }
 
 export default {
-  async getTrafficChart({ iid, dn, tn }: TrafficChartRequest) {
-    return request<API.Res<TrafficChartResponse[]>>(
+  async getBusinessChart({ iid, dn, tn }: BusinessChartRequest) {
+    return request<API.Res<BusinessChartResponse[]>>(
       process.env.PUBLIC_PATH +
         `api/v1/instances/${iid}/databases/${dn}/tables/${tn}/deps`,
       {

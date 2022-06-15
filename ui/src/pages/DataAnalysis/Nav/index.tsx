@@ -2,23 +2,47 @@ import style from "../index.less";
 import { ClusterOutlined, MonitorOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { useModel } from "umi";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useEffect } from "react";
+import { bigDataNavEnum } from "@/pages/DataAnalysis";
 
 const DataAnalysisNav = () => {
-  const { onChangeNavKey, navKey } = useModel("dataAnalysis");
+  const [urlState, setUrlState] = useUrlState<any>();
+  const { onChangeNavKey, navKey, realTimeTraffic } = useModel("dataAnalysis");
+  const { setNodes, setEdges } = realTimeTraffic;
+
   const navList = [
     {
       id: 101,
-      key: "RealTimeTrafficFlow",
+      key: bigDataNavEnum.RealTimeTrafficFlow,
       title: "实时业务",
       icon: <ClusterOutlined style={{ color: "#fff" }} />,
     },
     {
       id: 102,
-      key: "TemporaryQuery",
+      key: bigDataNavEnum.TemporaryQuery,
       title: "临时查询",
       icon: <MonitorOutlined style={{ color: "#fff" }} />,
     },
   ];
+
+  useEffect(() => {
+    setUrlState({ navKey: navKey });
+  }, [navKey]);
+
+  useEffect(() => {
+    urlState &&
+      urlState.navKey &&
+      urlState.navKey != navKey &&
+      onChangeNavKey(urlState.navKey);
+  }, [urlState]);
+
+  useEffect(() => {
+    if (!urlState || !urlState.navKey) {
+      onChangeNavKey(bigDataNavEnum.RealTimeTrafficFlow);
+    }
+  }, []);
+
   return (
     <div className={style.nav}>
       {navList.map(
@@ -26,7 +50,13 @@ const DataAnalysisNav = () => {
           return (
             <div
               className={style.navItem}
-              onClick={() => onChangeNavKey(item.key)}
+              onClick={() => {
+                if (item.key !== bigDataNavEnum.RealTimeTrafficFlow) {
+                  setNodes([]);
+                  setEdges([]);
+                }
+                onChangeNavKey(item.key);
+              }}
               key={item.key}
               style={{ backgroundColor: item.key == navKey ? "#5E2608" : "" }}
             >

@@ -23,5 +23,6 @@ func Init() (err error) {
 	Logger = elog.Load("logger").Build()
 	Session = session.Load("auth").Build()
 	Gin = egin.Load("server.http").Build(egin.WithEmbedFs(ui.WebUI))
+
 	return nil
 }

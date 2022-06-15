@@ -250,19 +250,20 @@ const LocalTable = ({
                   <>
                     {fields.map((field) => {
                       const item =
-                        formRef?.getFieldValue("tableList")[field.fieldKey];
+                        formRef?.getFieldValue("tableList")[field.key];
                       const items: any = columnsItemList.filter((item: any) => {
-                        return item.index == field.fieldKey;
+                        return item.index == field.key;
                       })[0];
                       return (
                         <Collapse
-                          defaultActiveKey={[field.fieldKey]}
+                          defaultActiveKey={[field.key]}
                           style={{ marginBottom: "10px" }}
+                          key={field.key}
                         >
                           <Panel
                             header={`${item.databaseName}-${item.tableName}`}
-                            key={field.fieldKey}
                             forceRender
+                            key={field.key}
                           >
                             <Form.Item
                               {...field}
@@ -270,7 +271,7 @@ const LocalTable = ({
                                 id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField",
                               })}
                               name={[field.name, "timeField"]}
-                              fieldKey={[field.fieldKey, "timeField"]}
+                              fieldKey={[field.key, "timeField"]}
                               rules={[
                                 {
                                   required: true,
@@ -312,10 +313,7 @@ const LocalTable = ({
                                     return (
                                       <Form.Item
                                         name={[field.name, "timeFieldType"]}
-                                        fieldKey={[
-                                          field.fieldKey,
-                                          "timeFieldType",
-                                        ]}
+                                        fieldKey={[field.key, "timeFieldType"]}
                                         label={i18n.formatMessage({
                                           id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
                                         })}
@@ -337,10 +335,7 @@ const LocalTable = ({
                                     return (
                                       <Form.Item
                                         name={[field.name, "timeFieldType"]}
-                                        fieldKey={[
-                                          field.fieldKey,
-                                          "timeFieldType",
-                                        ]}
+                                        fieldKey={[field.key, "timeFieldType"]}
                                         label={i18n.formatMessage({
                                           id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
                                         })}
@@ -362,10 +357,7 @@ const LocalTable = ({
                                     return (
                                       <Form.Item
                                         name={[field.name, "timeFieldType"]}
-                                        fieldKey={[
-                                          field.fieldKey,
-                                          "timeFieldType",
-                                        ]}
+                                        fieldKey={[field.key, "timeFieldType"]}
                                         label={i18n.formatMessage({
                                           id: "datasource.logLibrary.from.newLogLibrary.timeFieldType",
                                         })}
@@ -421,7 +413,7 @@ const LocalTable = ({
                                 id: "description",
                               })}
                               name={[field.name, "desc"]}
-                              fieldKey={[field.fieldKey, "desc"]}
+                              fieldKey={[field.key, "desc"]}
                             >
                               <TextArea
                                 rows={3}

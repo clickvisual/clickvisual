@@ -10,6 +10,9 @@ export default {
   DescAsAlias: "Alias",
   loading: "loading",
   loadingDone: "Loading successful",
+  noData: "no data",
+  fileName: "file name",
+  export: "export",
   "error.title": "Request Failed",
   "error.default": "Unknown error, please contact responsible",
   "error.content": "Error: {msg}",
@@ -25,8 +28,12 @@ export default {
   required: "Required",
 
   type: "Type",
+  capacity: "Capacity",
+  count: "Count",
   status: "Status",
   dingTalk: "DingTalk",
+  Feishu: "Lark",
+  Slack: "Slack",
 
   user: "User",
   utime: "Update Time",
@@ -700,4 +707,8 @@ export default {
   "models.pms.update.suc": "The update is successful",
   "models.pms.permissions.failureText":
     "Description Failed to obtain basic permission information",
+
+  // bigdata realtime
+  "bigdata.realtime.table": "Table",
+  "bigdata.realtime.database": "Database",
 };

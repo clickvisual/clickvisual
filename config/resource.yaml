@@ -96,8 +96,3 @@ permission:
             method: POST
   - name: bigdata
     path: /bigdata
-    children:
-      - path: /bigdata/realtime
-        name: realtime
-      - path: /bigdata/short
-        name: temporaryQuery
