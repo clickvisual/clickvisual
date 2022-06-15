@@ -136,6 +136,25 @@
     .header {
       flex: 0 0 32px;
       padding-left: 56px;
+      .headerList {
+        display: flex;
+        align-items: center;
+        .headerTitleTips {
+          position: relative;
+          &::before {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 7px;
+            height: 7px;
+            transform: translateY(-50%);
+            background-color: #fff;
+            border-radius: 50%;
+            content: "";
+          }
+          padding-left: 10px;
+        }
+      }
     }
     .context {
       flex: 1;

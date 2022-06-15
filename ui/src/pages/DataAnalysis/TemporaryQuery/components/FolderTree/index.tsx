@@ -63,7 +63,9 @@ const FolderTree: React.FC = () => {
     changeVisibleFolder,
     changeVisibleNode,
     currentFolder,
-    onKeyToIdAndParentId,
+    onKeyToImportantInfo,
+    changeOpenNodeId,
+    changeOpenNodeParentId,
   } = temporaryQuery;
 
   const onExpand = (newExpandedKeys: Key[]) => {
@@ -136,11 +138,16 @@ const FolderTree: React.FC = () => {
   }, [fileList, searchValue]);
 
   const handleSelect = (value: any) => {
-    onKeyToIdAndParentId(value[0]);
+    const isOpne = value[0].split("_")[4] == "true";
+    const id = parseInt(value[0].split("_")[1]);
+    const folderId = parseInt(value[0].split("_")[0]);
+    onKeyToImportantInfo(value[0]);
+    isOpne && changeOpenNodeId(id);
+    isOpne && changeOpenNodeParentId(folderId);
   };
 
   const handleRightClick = (value: any) => {
-    onKeyToIdAndParentId(value.node.key);
+    onKeyToImportantInfo(value.node.key);
   };
 
   const handleRefresh = () => {
