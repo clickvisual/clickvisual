@@ -5,11 +5,7 @@ import dataAnalysis, {
 } from "@/services/dataAnalysis";
 import { DataNode } from "antd/lib/tree";
 import { useState } from "react";
-
-export enum folderType {
-  "node" = 1,
-  "folder" = 2,
-}
+import { folderType } from "@/pages/DataAnalysis/service/enums";
 
 const useTemporaryQuery = () => {
   const [visibleFolder, setVisibleFolder] = useState<boolean>(false);

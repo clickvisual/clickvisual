@@ -1,7 +1,7 @@
-import { folderType } from "@/models/dataanalysis/useTemporaryQuery";
 import { Dropdown, Menu, message, Popconfirm } from "antd";
 import { useEffect, useState } from "react";
 import { useModel } from "umi";
+import { folderType } from "@/pages/DataAnalysis/service/enums";
 
 const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
   const { id, parentId, title } = props;

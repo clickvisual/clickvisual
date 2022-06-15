@@ -13,7 +13,7 @@ import { graphlib, layout } from "dagre";
 import "./styles/index.less";
 import { useModel } from "@@/plugin-model/useModel";
 import NodeContent from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart/NodeContent";
-import { BusinessEngineEnum } from "@/models/dataanalysis/useRealTimeTraffic";
+import { BusinessEngineEnum } from "@/pages/DataAnalysis/service/enums";
 
 const DefaultWidth = 240;
 const DefaultHeight = 100;
