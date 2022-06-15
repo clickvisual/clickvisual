@@ -29,11 +29,11 @@ func HiddenFieldCreateBatch(db *gorm.DB, data []*HiddenField) (err error) {
 	return
 }
 
-func HiddenFieldDelete(db *gorm.DB, ids []int) (err error) {
-	if ids == nil || len(ids) == 0 {
+func HiddenFieldDeleteByFields(db *gorm.DB, fields []string) (err error) {
+	if fields == nil || len(fields) == 0 {
 		return errors.New("empty param")
 	}
-	if err = db.Model(HiddenField{}).Unscoped().Where("`id` in (?)", ids).Delete(&HiddenField{}).Error; err != nil {
+	if err = db.Model(HiddenField{}).Unscoped().Where("`field` in (?)", fields).Delete(&HiddenField{}).Error; err != nil {
 		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}

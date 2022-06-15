@@ -11,16 +11,14 @@ import (
 	"github.com/ego-component/egorm"
 	"github.com/spf13/cast"
 	"strconv"
-	"strings"
 )
 
-func HiddenCreate(c *core.Context) {
+func HiddenUpsert(c *core.Context) {
 	tid := cast.ToInt(c.Param("tid"))
 	if tid == 0 {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-
 	var (
 		req view.HiddenFieldCreate
 		err error
@@ -41,64 +39,50 @@ func HiddenCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	_, err = db.TableInfo(invoker.Db, tid)
+
+	conds := egorm.Conds{"tid": egorm.Cond{
+		Op:  "=",
+		Val: tid,
+	}}
+	list, err := db.HiddenFieldList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	oldFields := make([]string, 0, len(list))
+	for i := range list {
+		oldFields = append(oldFields, list[i].Field)
+	}
+	cmp := func(a, b interface{}) bool {
+		return a == b
+	}
+	deleteList := utils.DiffList(oldFields, req.Fields, cmp)
+	insert := utils.DiffList(req.Fields, oldFields, cmp)
+	if deleteList != nil && len(deleteList) > 0 {
+		deleteField := make([]string, 0, len(deleteList))
+		for i := range deleteList {
+			deleteField = append(deleteField, deleteList[i].(string))
+		}
+		err = db.HiddenFieldDeleteByFields(invoker.Db, deleteField)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
+	}
 
-	fields := utils.StringSliceWithoutRepeat(req.Fields, true)
-	if fields == nil || len(fields) == 0 {
-		c.JSONE(core.CodeErr, "invalid parameter", nil)
-		return
-	}
-	hiddenFields := make([]*db.HiddenField, 0)
-	for i := range fields {
-		hiddenFields = append(hiddenFields, &db.HiddenField{
-			Tid:   tid,
-			Field: fields[i],
-		})
-	}
-	err = db.HiddenFieldCreateBatch(invoker.Db, hiddenFields)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	c.JSONOK()
-}
-
-func HiddenDelete(c *core.Context) {
-	tid := cast.ToInt(c.Param("tid"))
-	if tid == 0 {
-		c.JSONE(core.CodeErr, "invalid parameter", nil)
-		return
-	}
-	var err error
-	idParam := strings.TrimSpace(c.Query("ids"))
-	if idParam == "" {
-		c.JSONE(core.CodeErr, "invalid parameter", nil)
-		return
-	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(tid),
-		SubResource: pmsplugin.FieldManagement,
-		Acts:        []string{pmsplugin.ActDelete},
-		DomainType:  pmsplugin.PrefixTable,
-		DomainId:    strconv.Itoa(tid),
-	}); err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	idArr := strings.Split(idParam, ",")
-	ids := make([]int, 0)
-	for i := range idArr {
-		ids = append(ids, cast.ToInt(idArr[i]))
-	}
-	if err = db.HiddenFieldDelete(invoker.Db, ids); err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
+	if insert != nil && len(insert) > 0 {
+		hiddenFields := make([]*db.HiddenField, 0)
+		for i := range insert {
+			hiddenFields = append(hiddenFields, &db.HiddenField{
+				Tid:   tid,
+				Field: insert[i].(string),
+			})
+		}
+		err = db.HiddenFieldCreateBatch(invoker.Db, hiddenFields)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
 	}
 	c.JSONOK()
 }
@@ -118,5 +102,9 @@ func HiddenList(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	c.JSONOK(list)
+	result := make([]string, 0, len(list))
+	for i := range list {
+		result = append(result, list[i].Field)
+	}
+	c.JSONOK(result)
 }

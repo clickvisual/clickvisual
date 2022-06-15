@@ -224,8 +224,7 @@ func GetRouter() *egin.Component {
 	// hidden field
 	{
 		v1.GET("/hidden/:tid", core.Handle(base.HiddenList))
-		v1.POST("/hidden/:tid", core.Handle(base.HiddenCreate))
-		v1.DELETE("/hidden/:tid", core.Handle(base.HiddenDelete))
+		v1.POST("/hidden/:tid", core.Handle(base.HiddenUpsert))
 	}
 	return r
 }
