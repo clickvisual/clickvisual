@@ -149,7 +149,7 @@ const FolderTree: React.FC = () => {
 
   const handleCreateFolder = () => {
     if (currentFolder && currentFolder.parentId >= 0) {
-      message.info("暂时只支持新建2级菜单哟~");
+      message.info("暂时只支持新建2级文件夹~");
       return;
     }
     changeVisibleFolder(true);
