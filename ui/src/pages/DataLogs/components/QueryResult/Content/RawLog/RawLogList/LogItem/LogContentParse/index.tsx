@@ -10,6 +10,7 @@ type LogContentParseProps = {
   keyItem?: string;
   quickInsertLikeQuery: (key: string) => void;
   quickInsertLikeExclusion: (key: string) => void;
+  foldingChecked?: boolean;
 };
 
 const LogContentParse = ({
@@ -18,6 +19,7 @@ const LogContentParse = ({
   secondaryIndexKeys,
   quickInsertLikeQuery,
   quickInsertLikeExclusion,
+  foldingChecked,
 }: LogContentParseProps) => {
   const { highlightKeywords, isJsonFun } = useModel("dataLogs");
 
@@ -50,6 +52,7 @@ const LogContentParse = ({
           onClickValue={quickInsertLikeQuery}
           quickInsertLikeExclusion={quickInsertLikeExclusion}
           highLightValue={highlightKeywords}
+          foldingChecked={foldingChecked}
         />
       </>
     );

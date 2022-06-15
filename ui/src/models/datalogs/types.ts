@@ -33,6 +33,7 @@ export type PaneType = {
   logChart?: StatisticalTableResponse;
   desc: string;
   histogramChecked: boolean;
+  foldingChecked: boolean;
 };
 
 export enum hashType {

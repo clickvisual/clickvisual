@@ -15,7 +15,7 @@ type JsonDataProps = {
 } & _CommonProps;
 const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   const [isShowJson, setIsShowJson] = useState<boolean>(false);
-  const { secondaryIndexKeys, onClickValue } = restProps;
+  const { secondaryIndexKeys, onClickValue, foldingChecked } = restProps;
 
   const renderStack: string[] = [];
   const indentStyle = {
@@ -27,6 +27,10 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
       setIsShowJson(false);
     };
   }, []);
+
+  useEffect(() => {
+    setIsShowJson(!foldingChecked);
+  }, [foldingChecked]);
 
   /**
    * 处理数据类型

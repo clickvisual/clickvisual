@@ -22,6 +22,7 @@ export const DefaultPane = {
   highCharts: undefined,
   logs: undefined,
   histogramChecked: true,
+  foldingChecked: true,
 };
 
 const useLogPanes = () => {

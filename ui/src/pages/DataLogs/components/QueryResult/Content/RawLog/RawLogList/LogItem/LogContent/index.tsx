@@ -16,6 +16,7 @@ interface LogContentProps {
   isNotTimeKey: boolean;
   newLog: any;
   secondaryIndexList: any[];
+  foldingChecked?: boolean;
 }
 const LogContent = (props: LogContentProps) => {
   const {
@@ -32,6 +33,7 @@ const LogContent = (props: LogContentProps) => {
     isNotTimeKey,
     newLog,
     secondaryIndexList,
+    foldingChecked,
   } = props;
 
   // 二级索引
@@ -53,6 +55,7 @@ const LogContent = (props: LogContentProps) => {
       {!isRawLog ? (
         regSpeFlag ? (
           <LogContentParse
+            foldingChecked={foldingChecked}
             logContent={content.toString()}
             keyItem={keyItem}
             quickInsertLikeQuery={quickInsertLikeQuery}
@@ -71,6 +74,7 @@ const LogContent = (props: LogContentProps) => {
         )
       ) : (
         <LogContentParse
+          foldingChecked={foldingChecked}
           secondaryIndexKeys={jsonIndexKeys}
           logContent={newLog[keyItem]}
           quickInsertLikeQuery={quickInsertLikeQuery}
