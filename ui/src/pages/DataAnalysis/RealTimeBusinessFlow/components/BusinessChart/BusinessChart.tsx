@@ -7,18 +7,16 @@ import ReactFlow, {
   MarkerType,
 } from "react-flow-renderer";
 
+// @ts-ignore
+import { graphlib, layout } from "dagre";
+
 import "./styles/index.less";
 import { useModel } from "@@/plugin-model/useModel";
-import { BusinessChartResponse } from "@/services/realTimeTrafficFlow";
 import NodeContent from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart/NodeContent";
 import { BusinessEngineEnum } from "@/models/dataanalysis/useRealTimeTraffic";
 
-interface BusinessTreeNode extends BusinessChartResponse {
-  children: BusinessTreeNode[];
-}
-
-const DefaultDistanceX = 280;
-const DefaultDistanceY = 200;
+const DefaultWidth = 240;
+const DefaultHeight = 100;
 
 let id = 0;
 const getId = () => `dndNode_${id++}`;
@@ -38,68 +36,30 @@ const BusinessChart = () => {
   const reactFlowWrapper = useRef<any>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
-  const makeTree = useCallback(
-    (nodes: BusinessChartResponse[]): BusinessTreeNode | undefined => {
-      const initTreeNode = (table: string): BusinessTreeNode => {
-        const node = nodes.find((traffic) => traffic.table === table)!;
-        if (!node.deps?.length || node.deps?.length <= 0) {
-          return {
-            ...node,
-            children: [],
-          };
-        }
-        return {
-          ...node,
-          children: node.deps.map((dep) => initTreeNode(dep)),
-        };
+  const getNodesPosition = useCallback((nodes: any[], edges: any[]) => {
+    let g = new graphlib.Graph({ directed: true });
+    g.setGraph({});
+    g.setDefaultEdgeLabel(function () {
+      return {};
+    });
+    for (const node of nodes) {
+      g.setNode(node.id, { ...node.data, ...node.style });
+    }
+    for (const edge of edges) {
+      g.setEdge(edge.source, edge.target);
+    }
+    layout(g);
+    const newNodes: any[] = [];
+    for (const node of nodes) {
+      const graphNode = g._nodes[node.id];
+      node.position = {
+        x: graphNode.x,
+        y: graphNode.y,
       };
-
-      // find root node
-      const deps = nodes.reduce(
-        (prev, node) => [...prev, ...node.deps],
-        [] as string[]
-      );
-      const rootNodes = nodes.filter((node) => !deps.includes(node.table));
-      if (rootNodes.length <= 0) return;
-      const rootNode = rootNodes[0];
-
-      return initTreeNode(rootNode.table);
-    },
-    []
-  );
-
-  const businessTree = useMemo(() => {
-    return makeTree(businessChart);
-  }, [businessChart, makeTree]);
-
-  const visitTree = useCallback(
-    (node: BusinessTreeNode, treeNodeDetail: any[], depth = 1) => {
-      const struct = {
-        node: node.table,
-        depth,
-        index: 1,
-      };
-      const nodeParent = businessChart.find((business) =>
-        business.deps.includes(node.table)
-      );
-      if (nodeParent && nodeParent.deps.length > 1) {
-        struct.index = nodeParent.deps.findIndex(
-          (table) => table === node.table
-        );
-      }
-      treeNodeDetail.push(struct);
-      node.children.forEach((child) =>
-        visitTree(child, treeNodeDetail, depth + 1)
-      );
-    },
-    [businessChart]
-  );
-
-  const TreeStructure: any[] = useMemo(() => {
-    const treeNodeDetail: any[] = [];
-    if (businessTree) visitTree(businessTree, treeNodeDetail);
-    return treeNodeDetail;
-  }, [businessTree]);
+      newNodes.push(node);
+    }
+    return newNodes;
+  }, []);
 
   useMemo(() => {
     if (businessChart.length <= 0) return;
@@ -118,9 +78,6 @@ const BusinessChart = () => {
           .findIndex((item) => !item.deps.includes(business.table)) > -1;
 
       const type = isLast ? "output" : isHeader ? "input" : "default";
-      const nodeStruct = TreeStructure.find(
-        (node) => business.table === node.node
-      );
 
       let background = "#fff";
       switch (business.engine) {
@@ -141,13 +98,9 @@ const BusinessChart = () => {
         id: business.table,
         type,
         data: { label: <NodeContent node={business} /> },
-        position: {
-          x: DefaultDistanceX * nodeStruct.index,
-          y: DefaultDistanceY * nodeStruct.depth,
-        },
         style: {
-          width: 240,
-          height: 100,
+          width: DefaultWidth,
+          height: DefaultHeight,
           background: background,
         },
       });
@@ -166,9 +119,10 @@ const BusinessChart = () => {
         });
       }
     }
-    setNodes(NodeList);
+
+    setNodes(() => getNodesPosition(NodeList, EdgeList));
     setEdges(EdgeList);
-  }, [businessChart, TreeStructure]);
+  }, [businessChart]);
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
