@@ -3,7 +3,6 @@ import dataAnalysis, {
   folderListType,
   nodeListType,
 } from "@/services/dataAnalysis";
-import { FileOutlined } from "@ant-design/icons";
 import { DataNode } from "antd/lib/tree";
 import { useState } from "react";
 
@@ -22,7 +21,8 @@ const useTemporaryQuery = () => {
     parentId: number;
     name: string;
     desc?: string;
-  }>({ id: 0, parentId: 0, name: "" });
+    nodeType: number;
+  }>({ id: 0, parentId: 0, name: "", nodeType: 0 });
 
   const [fileList, setFileList] = useState<DataNode[]>();
 
@@ -53,6 +53,7 @@ const useTemporaryQuery = () => {
     setCurrentFolderId(data);
   };
 
+  // Folder
   const doFolderList = useRequest(dataAnalysis.getFolderList, {
     loadingText: false,
   });
@@ -69,6 +70,7 @@ const useTemporaryQuery = () => {
     loadingText: false,
   });
 
+  // Node
   const doCreatedNode = useRequest(dataAnalysis.createdNode, {
     loadingText: false,
   });
@@ -109,7 +111,6 @@ const useTemporaryQuery = () => {
   };
 
   const onProcessTreeData = (folderList: folderListType[] | nodeListType[]) => {
-    // cons: DataNode[] = [];
     if (folderList && [folderList].length > 0) {
       const generateData = (data: folderListType[] | any) => {
         let arr: DataNode[] = [];
