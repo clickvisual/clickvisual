@@ -61,6 +61,7 @@
     "antd": "^4.14.0",
     "classnames": "^2.2.6",
     "crypto-js": "^4.1.1",
+    "dagre": "^0.8.5",
     "lodash": "^4.17.11",
     "moment": "^2.29.2",
     "monaco-editor": "^0.31.1",
