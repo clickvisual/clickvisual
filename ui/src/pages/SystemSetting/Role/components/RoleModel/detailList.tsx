@@ -35,7 +35,7 @@ const DetailList = () => {
             <div key={`details-${field.key}`} className={styles.formList}>
               <Form.Item
                 {...field}
-                fieldKey={field.fieldKey}
+                fieldKey={field.key}
                 label={i18n.formatMessage({
                   id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.subresource",
                 })}
@@ -68,7 +68,7 @@ const DetailList = () => {
 
               <Form.Item
                 {...field}
-                fieldKey={field.fieldKey}
+                fieldKey={field.key}
                 label={i18n.formatMessage({
                   id: "systemSetting.instancePanel.roleAssign.roleModel.detailList.label.allow",
                 })}
