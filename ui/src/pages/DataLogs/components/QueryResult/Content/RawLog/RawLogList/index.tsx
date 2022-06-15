@@ -31,7 +31,11 @@ const RawLogList = () => {
       {...containerProps}
     >
       {list.map((logItem: any, index: number) => (
-        <LogItem log={logItem} key={index} />
+        <LogItem
+          foldingChecked={oldPane?.foldingChecked}
+          log={logItem}
+          key={index}
+        />
       ))}
     </div>
   );

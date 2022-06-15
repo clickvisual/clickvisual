@@ -372,6 +372,8 @@ export default {
 
   // log nva
   "log.switch.histogram": "直方图",
+  "log.switch.fold": "展开日志",
+  "log.switch.unfold": "折叠日志",
 
   // Data Logs-Statistical Table
   "log.table.note":

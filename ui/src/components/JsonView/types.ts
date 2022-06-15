@@ -13,4 +13,5 @@ type _CommonProps = {
   ) => void;
   highLightValue?: { key: string; value: string }[] | undefined;
   secondaryIndexKeys?: any[];
+  foldingChecked?: boolean;
 };

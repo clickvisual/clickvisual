@@ -2,7 +2,7 @@ import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLo
 import LogItemOperation from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemOperation";
 import LogItemDetails from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemDetails";
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LogItemFold from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemFold";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
 import { Button } from "antd";
@@ -11,14 +11,18 @@ import { DEBOUNCE_WAIT } from "@/config/config";
 
 interface LogItemProps {
   log: any;
+  foldingChecked?: boolean;
 }
-const LogItem = ({ log }: LogItemProps) => {
+const LogItem = ({ log, foldingChecked }: LogItemProps) => {
   // 是否折叠日志，true 为是，false 为否
   const [isFold, setIsFold] = useState<boolean>(true);
 
   const handleFoldClick = useDebounceFn(() => setIsFold(() => !isFold), {
     wait: DEBOUNCE_WAIT,
   }).run;
+  useEffect(() => {
+    setIsFold(foldingChecked ?? true);
+  }, [foldingChecked]);
 
   return (
     <div className={logItemStyles.logItemMain}>
@@ -45,7 +49,7 @@ const LogItem = ({ log }: LogItemProps) => {
         {isFold ? (
           <LogItemFold onFoldClick={handleFoldClick} log={log} />
         ) : (
-          <LogItemDetails log={log} />
+          <LogItemDetails foldingChecked={foldingChecked} log={log} />
         )}
       </div>
     </div>

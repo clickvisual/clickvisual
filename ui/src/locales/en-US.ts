@@ -397,6 +397,8 @@ export default {
 
   // log nva
   "log.switch.histogram": "Histogram",
+  "log.switch.fold": "Expand Log",
+  "log.switch.unfold": "Collapse Log",
 
   // Data Logs-Statistical Table
   "log.table.note":

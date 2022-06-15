@@ -9,9 +9,10 @@ import LogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/R
 
 interface LogItemDetailsProps {
   log: any;
+  foldingChecked?: boolean;
 }
 
-const LogItemDetails = ({ log }: LogItemDetailsProps) => {
+const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
   const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
     useModel("dataLogs");
 
@@ -266,6 +267,7 @@ const LogItemDetails = ({ log }: LogItemDetailsProps) => {
                 :
               </div>
               <LogContent
+                foldingChecked={foldingChecked}
                 isRawLog={isRawLog}
                 regSpeFlag={regSpeFlag}
                 content={content}
