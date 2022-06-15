@@ -1,3 +1,4 @@
+import { folderType } from "@/models/dataanalysis/useTemporaryQuery";
 import { Dropdown, Menu, message, Popconfirm } from "antd";
 import { useEffect, useState } from "react";
 import { useModel } from "umi";
@@ -10,7 +11,11 @@ const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
   const {
     getDataList,
     doDeleteFolder,
+    doDeleteNode,
+    currentFolder,
+    changeIsUpdateNode,
     changeVisibleFolder,
+    changeVisibleNode,
     changeIsUpdateFolder,
     changeCurrentFolder,
   } = temporaryQuery;
@@ -18,17 +23,19 @@ const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
   const rightClickMenuItem = [
     {
       key: "rename",
-      label: "重命名",
+      label: "修改",
     },
-    {
-      key: "move",
-      label: "移动",
-    },
+    // {
+    //   key: "move",
+    //   label: "移动",
+    // },
     {
       key: "delete",
       label: (
         <Popconfirm
-          title="确认删除吗"
+          title={`确认删除吗?类型：${
+            currentFolder.nodeType == folderType.node ? "节点" : "文件夹"
+          }`}
           okText="是"
           cancelText="否"
           onConfirm={() => handleDeleteFolder()}
@@ -43,10 +50,15 @@ const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
     const { key } = data;
     switch (key) {
       case "rename":
+        if (currentFolder.nodeType == folderType.node) {
+          changeIsUpdateNode(true);
+          changeVisibleNode(true);
+          setVisibleDropdown(false);
+          return;
+        }
         changeIsUpdateFolder(true);
         changeVisibleFolder(true);
         setVisibleDropdown(false);
-        console.log(111);
 
         break;
       case "move":
@@ -60,6 +72,16 @@ const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
   };
 
   const handleDeleteFolder = () => {
+    if (currentFolder.nodeType == folderType.node) {
+      doDeleteNode.run(id).then((res: any) => {
+        if (res.code == 0) {
+          message.success("删除成功");
+          getDataList(currentInstances as number);
+          setVisibleDropdown(false);
+        }
+      });
+      return;
+    }
     doDeleteFolder.run(id).then((res: any) => {
       if (res.code == 0) {
         message.success("删除成功");

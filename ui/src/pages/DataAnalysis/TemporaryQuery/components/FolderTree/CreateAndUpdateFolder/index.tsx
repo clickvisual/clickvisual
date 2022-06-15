@@ -1,3 +1,4 @@
+import { folderType } from "@/models/dataanalysis/useTemporaryQuery";
 import { bigDataNavEnum } from "@/pages/DataAnalysis/Nav";
 import { Form, FormInstance, Input, message, Modal } from "antd";
 import { useEffect, useRef } from "react";
@@ -21,6 +22,15 @@ const CreateAndUpdateFolder = () => {
   useEffect(() => {
     if (visibleFolder && currentFolder) {
       if (!isUpdateFolder) {
+        if (currentFolder.nodeType == folderType.node) {
+          // 节点上创建是指在节点父级文件夹上创建
+          folderForm.current?.setFieldsValue({
+            iid: currentInstances,
+            parentId: currentFolder.parentId,
+            primary: primary,
+          });
+          return;
+        }
         folderForm.current?.setFieldsValue({
           iid: currentInstances,
           parentId: currentFolder.id,

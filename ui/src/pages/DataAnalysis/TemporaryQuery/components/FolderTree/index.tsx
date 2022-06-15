@@ -1,5 +1,5 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
-import { Empty, Input, message, Spin, Tooltip, Tree } from "antd";
+import { Empty, Input, message, Tooltip, Tree } from "antd";
 import {
   DownOutlined,
   FileAddOutlined,
@@ -62,7 +62,6 @@ const FolderTree: React.FC = () => {
     getDataList,
     changeVisibleFolder,
     changeVisibleNode,
-    doFolderList,
     currentFolder,
     onKeyToIdAndParentId,
   } = temporaryQuery;
@@ -126,7 +125,9 @@ const FolderTree: React.FC = () => {
               title={title}
             />
           ),
-          icon: keyValueList[4] == "true" && <FileOutlined />,
+          icon: keyValueList[4] == "true" && (
+            <FileOutlined style={{ color: "#2FABEE" }} />
+          ),
           key: item.key,
         };
       });
@@ -216,7 +217,7 @@ const FolderTree: React.FC = () => {
         </div> */}
       </div>
       <div className={TemporaryQueryStyle.content}>
-        {treeData.length > 0 && !doFolderList.loading ? (
+        {treeData.length > 0 ? (
           <DirectoryTree
             // showLine
             blockNode
@@ -229,10 +230,6 @@ const FolderTree: React.FC = () => {
             onRightClick={handleRightClick}
             treeData={treeData}
           />
-        ) : doFolderList.loading ? (
-          <div>
-            <Spin />
-          </div>
         ) : (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={false} />
         )}

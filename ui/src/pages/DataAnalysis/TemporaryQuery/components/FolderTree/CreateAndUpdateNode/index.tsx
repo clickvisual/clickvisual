@@ -1,3 +1,4 @@
+import { folderType } from "@/models/dataanalysis/useTemporaryQuery";
 import { bigDataNavEnum } from "@/pages/DataAnalysis/Nav";
 import { Form, FormInstance, Input, message, Modal, Select } from "antd";
 import { useEffect, useRef } from "react";
@@ -17,12 +18,22 @@ const CreateAndUpdateNode = () => {
     currentFolder,
     isUpdateNode,
     visibleNode,
+    doGetNodeInfo,
     changeVisibleNode,
   } = temporaryQuery;
 
   useEffect(() => {
     if (visibleNode && currentFolder) {
       if (!isUpdateNode) {
+        if (currentFolder.nodeType == folderType.node) {
+          // 节点上创建是指在节点父级文件夹上创建
+          folderForm.current?.setFieldsValue({
+            iid: currentInstances,
+            folderId: currentFolder.parentId,
+            primary: primary,
+          });
+          return;
+        }
         folderForm.current?.setFieldsValue({
           iid: currentInstances,
           folderId: currentFolder.id,
@@ -30,14 +41,21 @@ const CreateAndUpdateNode = () => {
         });
         return;
       }
-      folderForm.current?.setFieldsValue({
-        iid: currentInstances,
-        id: currentFolder.id,
-        folderId: currentFolder.parentId,
-        primary: primary,
-        name: currentFolder.name,
-        desc: currentFolder.desc,
+      doGetNodeInfo.run(currentFolder.id).then((res: any) => {
+        if (res.code == 0) {
+          folderForm.current?.setFieldsValue({
+            iid: currentInstances,
+            id: currentFolder.id,
+            folderId: currentFolder.parentId,
+            primary: primary,
+            name: currentFolder.name,
+            desc: currentFolder.desc,
+            content: res.data.content,
+          });
+        }
       });
+      console.log(currentFolder);
+
       return;
     }
     folderForm.current?.resetFields();
@@ -54,18 +72,20 @@ const CreateAndUpdateNode = () => {
     desc?: string;
     folderId?: number;
   }) => {
-    const data = {
-      iid: file.iid as number,
+    let data: any = {
       id: file.id as number,
-      name: file.name as string,
-      primary: file.primary as number,
-      secondary: file.secondary as number,
-      tertiary: file.tertiary as number,
-      content: file.content as string,
       folderId: file.folderId as number,
+      name: file.name as string,
       desc: file.desc as string,
+      content: file.content as string,
     };
     if (!isUpdateNode) {
+      data = Object.assign(data, {
+        iid: file.iid as number,
+        primary: file.primary as number,
+        secondary: file.secondary as number,
+        tertiary: file.tertiary as number,
+      });
       doCreatedNode.run(data).then((res: any) => {
         if (res.code == 0) {
           message.success("新建成功");
@@ -98,9 +118,9 @@ const CreateAndUpdateNode = () => {
         wrapperCol={{ span: 14 }}
         onFinish={handleSubmit}
       >
-        {/* <Form.Item name={"id"} hidden>
+        <Form.Item name={"id"} hidden>
           <Input type="number" />
-        </Form.Item> */}
+        </Form.Item>
         <Form.Item name={"iid"} hidden>
           <Input />
         </Form.Item>
