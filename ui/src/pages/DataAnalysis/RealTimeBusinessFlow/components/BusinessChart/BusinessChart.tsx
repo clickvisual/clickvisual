@@ -58,7 +58,6 @@ const BusinessChart = () => {
       };
       newNodes.push(node);
     }
-    console.log("newNodes,", newNodes);
     return newNodes;
   }, []);
 
