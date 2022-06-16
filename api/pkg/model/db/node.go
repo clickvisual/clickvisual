@@ -9,16 +9,16 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-func (m *Node) TableName() string {
+func (m *BigdataNode) TableName() string {
 	return TableNameBigDataNode
 }
 
-func (m *NodeContent) TableName() string {
+func (m *BigdataNodeContent) TableName() string {
 	return TableNameBigDataNodeContent
 }
 
 type (
-	Node struct {
+	BigdataNode struct {
 		BaseModel
 
 		Uid       int    `gorm:"column:uid;type:int(11)" json:"uid"`
@@ -33,7 +33,7 @@ type (
 		LockAt    int64  `gorm:"column:lock_at;type:bigint(11) unsigned" json:"lockAt"`
 	}
 
-	NodeContent struct {
+	BigdataNodeContent struct {
 		NodeId  int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
 		Content string `gorm:"column:content;type:longtext" json:"content"`
 	}
@@ -45,27 +45,27 @@ const (
 	PrimaryShort    = 3
 )
 
-func NodeInfo(db *gorm.DB, id int) (resp Node, err error) {
+func NodeInfo(db *gorm.DB, id int) (resp BigdataNode, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
-	if err = db.Model(Node{}).Where(sql, binds...).First(&resp).Error; err != nil {
+	if err = db.Model(BigdataNode{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		elog.Error("release info error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func NodeList(conds egorm.Conds) (resp []*Node, err error) {
+func NodeList(conds egorm.Conds) (resp []*BigdataNode, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(Node{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+	if err = invoker.Db.Model(BigdataNode{}).Where(sql, binds...).Find(&resp).Error; err != nil {
 		elog.Error("Deployment list error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func NodeCreate(db *gorm.DB, data *Node) (err error) {
-	if err = db.Model(Node{}).Create(data).Error; err != nil {
+func NodeCreate(db *gorm.DB, data *BigdataNode) (err error) {
+	if err = db.Model(BigdataNode{}).Create(data).Error; err != nil {
 		elog.Error("create releaseZone error", zap.Error(err))
 		return
 	}
@@ -75,7 +75,7 @@ func NodeCreate(db *gorm.DB, data *Node) (err error) {
 func NodeUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
-	if err = db.Model(Node{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+	if err = db.Model(BigdataNode{}).Where(sql, binds...).Updates(ups).Error; err != nil {
 		elog.Error("release update error", zap.Error(err))
 		return
 	}
@@ -83,25 +83,25 @@ func NodeUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 }
 
 func NodeDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(Node{}).Delete(&Node{}, id).Error; err != nil {
+	if err = db.Model(BigdataNode{}).Delete(&BigdataNode{}, id).Error; err != nil {
 		elog.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func NodeContentInfo(db *gorm.DB, id int) (resp NodeContent, err error) {
+func NodeContentInfo(db *gorm.DB, id int) (resp BigdataNodeContent, err error) {
 	var sql = "`node_id`= ?"
 	var binds = []interface{}{id}
-	if err = db.Model(NodeContent{}).Where(sql, binds...).First(&resp).Error; err != nil {
+	if err = db.Model(BigdataNodeContent{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		elog.Error("release info error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func NodeContentCreate(db *gorm.DB, data *NodeContent) (err error) {
-	if err = db.Model(NodeContent{}).Create(data).Error; err != nil {
+func NodeContentCreate(db *gorm.DB, data *BigdataNodeContent) (err error) {
+	if err = db.Model(BigdataNodeContent{}).Create(data).Error; err != nil {
 		elog.Error("create releaseZone error", zap.Error(err))
 		return
 	}
@@ -111,7 +111,7 @@ func NodeContentCreate(db *gorm.DB, data *NodeContent) (err error) {
 func NodeContentUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`node_id`=?"
 	var binds = []interface{}{id}
-	if err = db.Model(NodeContent{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+	if err = db.Model(BigdataNodeContent{}).Where(sql, binds...).Updates(ups).Error; err != nil {
 		elog.Error("release update error", zap.Error(err))
 		return
 	}
@@ -119,7 +119,7 @@ func NodeContentUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err err
 }
 
 func NodeContentDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(NodeContent{}).Where("node_id=?", id).Unscoped().Delete(&NodeContent{}).Error; err != nil {
+	if err = db.Model(BigdataNodeContent{}).Where("node_id=?", id).Unscoped().Delete(&BigdataNodeContent{}).Error; err != nil {
 		elog.Error("release delete error", zap.Error(err))
 		return
 	}

@@ -82,14 +82,14 @@ const SEP = "__" // the Separator using in sub, obj and dom
 // prefix const
 const (
 	PrefixRoute    = "route"
-	PrefixInstance = "instance"    // using in obj or g2;
-	PrefixMenu     = "menu"        // using in obj
-	PrefixSubRsrc  = "subResource" // using in obj of p rule.
-	PrefixUser     = "user"        // using in sub, g, g2, g3; e.g. PrefixUser +  SEP + UID, i.e. user__123
-	PrefixRole     = "role"        // using in sub, g or g3;   e.g. PrefixRole +  SEP + R-NAME + [...], i.e. "role__root" or "role__admin__app__svc-user"
-	PrefixGroup    = "group"       // using in p.obj or g2;	e.g. PrefixGroup + SEP + G-NAME + [...], i.e. group__admin
-	PrefixDatabase = "Database"    // using            			e.g. PrefixEnt +   SEP + ENT-ID, i.e. ent__1
-	PrefixTable    = "Table"       // using in dom;
+	PrefixInstance = "instance"     // using in obj or g2;
+	PrefixMenu     = "menu"         // using in obj
+	PrefixSubRsrc  = "subResource"  // using in obj of p rule.
+	PrefixUser     = "user"         // using in sub, g, g2, g3; e.g. PrefixUser +  SEP + UID, i.e. user__123
+	PrefixRole     = "role"         // using in sub, g or g3;   e.g. PrefixRole +  SEP + R-NAME + [...], i.e. "role__root" or "role__admin__app__svc-user"
+	PrefixGroup    = "group"        // using in p.obj or g2;	e.g. PrefixGroup + SEP + G-NAME + [...], i.e. group__admin
+	PrefixDatabase = "BaseDatabase" // using            			e.g. PrefixEnt +   SEP + ENT-ID, i.e. ent__1
+	PrefixTable    = "BaseTable"    // using in dom;
 )
 
 // 对于以下这个Map,  其key: 当前Casbin的sub, obj, dom字符中允许的prefix;  value: 对应的中文名

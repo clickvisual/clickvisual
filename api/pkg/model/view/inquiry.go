@@ -21,7 +21,7 @@ type ReqQuery struct {
 
 type RespQuery struct {
 	Limited       uint32                   `json:"limited"`
-	Keys          []*db.Index              `json:"keys"`
+	Keys          []*db.BaseIndex          `json:"keys"`
 	ShowKeys      []string                 `json:"showKeys"`
 	Count         uint64                   `json:"count"`
 	Terms         [][]string               `json:"terms"`

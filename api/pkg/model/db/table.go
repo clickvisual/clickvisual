@@ -9,7 +9,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-type Table struct {
+type BaseTable struct {
 	BaseModel
 
 	Did            int    `gorm:"column:did;type:bigint(20);index:uix_did_name,unique" json:"did"`             // database id
@@ -28,11 +28,11 @@ type Table struct {
 	TimeFieldType  int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"` // custom time filed type name of _time_
 	Desc           string `gorm:"column:desc;type:varchar(255)" json:"desc"`
 
-	Database *Database `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
+	Database *BaseDatabase `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
 }
 
-func (m *Table) TableName() string {
-	return TableNameTable
+func (m *BaseTable) TableName() string {
+	return TableNameBaseTable
 }
 
 const TimeFieldSecond = "_time_second_"
@@ -44,7 +44,7 @@ const (
 	TimeFieldTypeDT3  = 3 // DataTime64(3)
 )
 
-func (m *Table) GetTimeField() string {
+func (m *BaseTable) GetTimeField() string {
 	if m.TimeField == "" {
 		return TimeFieldSecond
 	}
@@ -52,8 +52,8 @@ func (m *Table) GetTimeField() string {
 }
 
 // TableCreate ...
-func TableCreate(db *gorm.DB, data *Table) (err error) {
-	if err = db.Model(Table{}).Create(data).Error; err != nil {
+func TableCreate(db *gorm.DB, data *BaseTable) (err error) {
+	if err = db.Model(BaseTable{}).Create(data).Error; err != nil {
 		invoker.Logger.Error("release error", zap.Error(err))
 		return
 	}
@@ -62,7 +62,7 @@ func TableCreate(db *gorm.DB, data *Table) (err error) {
 
 // TableDelete Soft delete
 func TableDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(Table{}).Unscoped().Delete(&Table{}, id).Error; err != nil {
+	if err = db.Model(BaseTable{}).Unscoped().Delete(&BaseTable{}, id).Error; err != nil {
 		invoker.Logger.Error("delete error", zap.Error(err))
 		return
 	}
@@ -70,19 +70,19 @@ func TableDelete(db *gorm.DB, id int) (err error) {
 }
 
 // TableInfoX Info extension method to query a single record according to Cond
-func TableInfoX(db *gorm.DB, conds map[string]interface{}) (resp Table, err error) {
+func TableInfoX(db *gorm.DB, conds map[string]interface{}) (resp BaseTable, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = db.Table(TableNameTable).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseTable).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("infoX error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func TableInfo(db *gorm.DB, paramId int) (resp Table, err error) {
+func TableInfo(db *gorm.DB, paramId int) (resp BaseTable, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
-	if err = db.Table(TableNameTable).Preload("Database").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseTable).Preload("BaseDatabase").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("info error", zap.Error(err))
 		return
 	}
@@ -93,7 +93,7 @@ func TableInfo(db *gorm.DB, paramId int) (resp Table, err error) {
 func TableUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
-	if err = db.Table(TableNameTable).Where(sql, binds...).Updates(ups).Error; err != nil {
+	if err = db.Table(TableNameBaseTable).Where(sql, binds...).Updates(ups).Error; err != nil {
 		invoker.Logger.Error("update error", zap.Error(err))
 		return
 	}
@@ -101,10 +101,10 @@ func TableUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err erro
 }
 
 // TableList Get all currently undeleted clusters. Mainly used for front end
-func TableList(db *gorm.DB, conds egorm.Conds) (resp []*Table, err error) {
+func TableList(db *gorm.DB, conds egorm.Conds) (resp []*BaseTable, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
-	if err = db.Table(TableNameTable).Preload("Database").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseTable).Preload("BaseDatabase").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("list error", elog.String("err", err.Error()))
 		return
 	}

@@ -101,7 +101,7 @@ func WhereConditionFromFilter(filters []*AlarmFilter) (filter string) {
 	return filter
 }
 
-func GetAlarmTableInstanceInfo(id int) (instanceInfo Instance, tableInfo Table, alarmInfo Alarm, err error) {
+func GetAlarmTableInstanceInfo(id int) (instanceInfo BaseInstance, tableInfo BaseTable, alarmInfo Alarm, err error) {
 	alarmInfo, err = AlarmInfo(invoker.Db, id)
 	if err != nil {
 		return

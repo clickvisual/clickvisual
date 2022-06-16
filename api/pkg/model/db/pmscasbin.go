@@ -31,7 +31,7 @@ func (t *PmsCasbinRule) TableName() string {
 /*
 TODO: 需要另外涉及一个table, 用于存储(管理, 维护, 记录) 当前已有 以及 允许的 role (userRole && resourceRole) 和 group等
 
-Table:
+BaseTable:
 id(int): primary_key auto_increment
 type(string): value in ["obj", "sub", "dom", "act"]
 prefix(string): the permitted(valid) prefix of type; e.g.  ["user", "role",...] of sub

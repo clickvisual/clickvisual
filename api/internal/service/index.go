@@ -21,14 +21,14 @@ func NewIndex() *index {
 	return &index{}
 }
 
-func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]*db.Index, map[string]*db.Index, error) {
+func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex, error) {
 	conds := egorm.Conds{}
 	conds["tid"] = req.Tid
 	nowIndexList, err := db.IndexList(conds)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	nowIndexMap := make(map[string]*db.Index)
+	nowIndexMap := make(map[string]*db.BaseIndex)
 	nowIndexArr := make([]string, 0)
 	for _, ir := range nowIndexList {
 		key := fmt.Sprintf("%s.%d.%d", ir.Field, ir.Typ, ir.HashTyp)
@@ -38,14 +38,14 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 		nowIndexMap[key] = ir
 		nowIndexArr = append(nowIndexArr, key)
 	}
-	newIndexMap := make(map[string]*db.Index)
+	newIndexMap := make(map[string]*db.BaseIndex)
 	newIndexArr := make([]string, 0)
 	for _, ir := range req.Data {
 		key := fmt.Sprintf("%s.%d.%d", ir.Field, ir.Typ, ir.HashTyp)
 		if ir.RootName != "" {
 			key = fmt.Sprintf("%s|%s.%d.%d", ir.RootName, ir.Field, ir.Typ, ir.HashTyp)
 		}
-		newIndexMap[key] = &db.Index{
+		newIndexMap[key] = &db.BaseIndex{
 			Tid:      req.Tid,
 			Field:    ir.Field,
 			Typ:      ir.Typ,
@@ -61,8 +61,8 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 	invoker.Logger.Debug("Diff", elog.Any("addArr", addArr), elog.Any("delArr", delArr))
 
 	var (
-		addMap = make(map[string]*db.Index)
-		delMap = make(map[string]*db.Index)
+		addMap = make(map[string]*db.BaseIndex)
+		delMap = make(map[string]*db.BaseIndex)
 	)
 	for _, add := range addArr {
 		if obj, ok := newIndexMap[add]; ok {
@@ -82,9 +82,9 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.Index, map[string]
 // Sync ...
 // 1. Prefer clickhouse operation
 // 2. Alert Delete or Create
-// 3. Drop View
-// 4. Create View
-func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
+// 3. Drop BaseView
+// 4. Create BaseView
+func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	tx := invoker.Db.Begin()
 	err = db.IndexDeleteBatch(tx, req.Tid)
 	if err != nil {
@@ -92,7 +92,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 		return
 	}
 	for _, d := range req.Data {
-		err = db.IndexCreate(tx, &db.Index{
+		err = db.IndexCreate(tx, &db.BaseIndex{
 			Tid:      req.Tid,
 			Field:    d.Field,
 			Typ:      d.Typ,
@@ -128,8 +128,8 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.Index, dels ma
 	return
 }
 
-func filterSystemField(input map[string]*db.Index) (out map[string]*db.Index) {
-	out = make(map[string]*db.Index)
+func filterSystemField(input map[string]*db.BaseIndex) (out map[string]*db.BaseIndex) {
+	out = make(map[string]*db.BaseIndex)
 	for key, val := range input {
 		if isSystemField(val.Field) {
 			continue

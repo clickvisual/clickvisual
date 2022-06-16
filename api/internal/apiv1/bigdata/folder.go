@@ -16,7 +16,7 @@ func FolderCreate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	obj := &db.Folder{
+	obj := &db.BigdataFolder{
 		Uid:       c.Uid(),
 		Name:      req.Name,
 		Desc:      req.Desc,
@@ -154,7 +154,7 @@ func FolderInfo(c *core.Context) {
 		return
 	}
 	res := view.RespInfoFolder{
-		Folder: f,
+		BigdataFolder: f,
 	}
 	if res.Uid != 0 {
 		u, _ := db.UserInfo(f.Uid)

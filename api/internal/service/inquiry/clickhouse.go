@@ -86,7 +86,7 @@ type ClickHouse struct {
 	db   *sql.DB
 }
 
-func NewClickHouse(db *sql.DB, ins *db.Instance) *ClickHouse {
+func NewClickHouse(db *sql.DB, ins *db.BaseInstance) *ClickHouse {
 	if ins.ID == 0 {
 		panic("clickhouse add err, id is 0")
 	}
@@ -102,7 +102,7 @@ func (c *ClickHouse) ID() int {
 	return c.id
 }
 
-func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) string {
+func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.BaseIndex) string {
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
 		if obj.RootName == "" {
@@ -139,14 +139,14 @@ func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.Index) string {
 	return jsonExtractSQL
 }
 
-func (c *ClickHouse) whereConditionSQLCurrent(current *db.View) string {
+func (c *ClickHouse) whereConditionSQLCurrent(current *db.BaseView) string {
 	if current == nil {
 		return "1=1"
 	}
 	return fmt.Sprintf("JSONHas(_log_, '%s') = 1", current.Key)
 }
 
-func (c *ClickHouse) whereConditionSQLDefault(list []*db.View) string {
+func (c *ClickHouse) whereConditionSQLDefault(list []*db.BaseView) string {
 	if list == nil {
 		return "1=1"
 	}
@@ -165,7 +165,7 @@ func (c *ClickHouse) whereConditionSQLDefault(list []*db.View) string {
 	return defaultSQL
 }
 
-func (c *ClickHouse) timeParseSQL(typ int, v *db.View) string {
+func (c *ClickHouse) timeParseSQL(typ int, v *db.BaseView) string {
 	if v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, v.Key, v.Key)
 	}
@@ -180,7 +180,7 @@ func (c *ClickHouse) timeParseSQL(typ int, v *db.View) string {
 // delete: list need remove current
 // update: list need update current
 // create: list need add current
-func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
+func (c *ClickHouse) ViewSync(table db.BaseTable, current *db.BaseView, list []*db.BaseView, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
 	// build view statement
 	conds := egorm.Conds{}
 	conds["tid"] = table.ID
@@ -188,7 +188,7 @@ func (c *ClickHouse) ViewSync(table db.Table, current *db.View, list []*db.View,
 	if err != nil {
 		return
 	}
-	indexMap := make(map[string]*db.Index)
+	indexMap := make(map[string]*db.BaseIndex)
 	for _, i := range indexes {
 		indexMap[i.Field] = i
 	}
@@ -233,7 +233,7 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 // TableDrop data view stream
 func (c *ClickHouse) TableDrop(database, table, cluster string, tid int) (err error) {
 	var (
-		views []*db.View
+		views []*db.BaseView
 	)
 
 	if c.mode == ModeCluster {
@@ -286,7 +286,7 @@ func (c *ClickHouse) TableDrop(database, table, cluster string, tid int) (err er
 }
 
 // TableCreate create default stream data table and view
-func (c *ClickHouse) TableCreate(did int, database db.Database, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genName(database.Name, ct.TableName)
 	dStreamName := genStreamName(database.Name, ct.TableName)
 	if c.mode == ModeCluster {
@@ -366,7 +366,7 @@ func (c *ClickHouse) TableCreate(did int, database db.Database, ct view.ReqTable
 	return
 }
 
-func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.View, list []*db.View, indexes map[string]*db.Index, isCreate bool) (res string, err error) {
+func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView, list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
 	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
 	if err != nil {
 		return
@@ -646,7 +646,7 @@ func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
 func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
 	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)
-	res.Keys = make([]*db.Index, 0)
+	res.Keys = make([]*db.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
 
 	q := c.logsSQL(param, tid)
@@ -836,7 +836,7 @@ func fieldTypeJudgment(typ string) int {
 }
 
 // IndexUpdate Data table index operation
-func (c *ClickHouse) IndexUpdate(database db.Database, table db.Table, adds map[string]*db.Index, dels map[string]*db.Index, newList map[string]*db.Index) (err error) {
+func (c *ClickHouse) IndexUpdate(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""
 	for _, del := range dels {
@@ -1059,7 +1059,7 @@ func (c *ClickHouse) queryHashTransform(params view.ReqQuery) string {
 	return query
 }
 
-func hashTransform(query string, index *db.Index) string {
+func hashTransform(query string, index *db.BaseIndex) string {
 	var (
 		key              = index.Field
 		hashTyp          = index.HashTyp

@@ -51,7 +51,7 @@ func (i *instanceManager) Delete(key string) {
 	return
 }
 
-func (i *instanceManager) Add(obj *db.Instance) error {
+func (i *instanceManager) Add(obj *db.BaseInstance) error {
 	switch obj.Datasource {
 	case db.DatasourceClickHouse:
 		// Test connection, storage
@@ -196,7 +196,7 @@ func ClickHouseLink(dsn string) (db *sql.DB, err error) {
 	return
 }
 
-func InstanceCreate(req view.ReqCreateInstance) (obj db.Instance, err error) {
+func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error) {
 	conds := egorm.Conds{}
 	conds["datasource"] = req.Datasource
 	conds["name"] = req.Name
@@ -214,7 +214,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.Instance, err error) {
 		err = errors.New("you need to fill in the cluster information")
 		return
 	}
-	obj = db.Instance{
+	obj = db.BaseInstance{
 		Datasource:       req.Datasource,
 		Name:             req.Name,
 		Dsn:              strings.TrimSpace(req.Dsn),
@@ -254,7 +254,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.Instance, err error) {
 	return obj, nil
 }
 
-func DatabaseCreate(req db.Database) (out db.Database, err error) {
+func DatabaseCreate(req db.BaseDatabase) (out db.BaseDatabase, err error) {
 	op, err := InstanceManager.Load(req.Iid)
 	if err != nil {
 		return
@@ -278,7 +278,7 @@ func DatabaseCreate(req db.Database) (out db.Database, err error) {
 	return req, nil
 }
 
-func TableCreate(uid int, databaseInfo db.Database, param view.ReqTableCreate) (tableInfo db.Table, err error) {
+func TableCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqTableCreate) (tableInfo db.BaseTable, err error) {
 	op, err := InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		return
@@ -288,7 +288,7 @@ func TableCreate(uid int, databaseInfo db.Database, param view.ReqTableCreate) (
 		err = errors.Wrap(err, "create failed 01:")
 		return
 	}
-	tableInfo = db.Table{
+	tableInfo = db.BaseTable{
 		Did:            databaseInfo.ID,
 		Name:           param.TableName,
 		Typ:            param.Typ,
@@ -314,9 +314,9 @@ func TableCreate(uid int, databaseInfo db.Database, param view.ReqTableCreate) (
 
 func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 	var (
-		addMap map[string]*db.Index
-		delMap map[string]*db.Index
-		newMap map[string]*db.Index
+		addMap map[string]*db.BaseIndex
+		delMap map[string]*db.BaseIndex
+		newMap map[string]*db.BaseIndex
 	)
 	// check repeat
 	repeatMap := make(map[string]interface{})

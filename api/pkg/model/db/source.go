@@ -9,11 +9,11 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-func (m *Source) TableName() string {
+func (m *BigdataSource) TableName() string {
 	return TableNameBigDataSource
 }
 
-type Source struct {
+type BigdataSource struct {
 	BaseModel
 
 	Iid      int    `gorm:"column:iid;type:int(11)" json:"iid"`
@@ -31,27 +31,27 @@ const (
 	SourceTypMySQL      = 2
 )
 
-func SourceInfo(db *gorm.DB, id int) (resp Source, err error) {
+func SourceInfo(db *gorm.DB, id int) (resp BigdataSource, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
-	if err = db.Model(Source{}).Where(sql, binds...).First(&resp).Error; err != nil {
+	if err = db.Model(BigdataSource{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		elog.Error("info error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func SourceList(conds egorm.Conds) (resp []*Source, err error) {
+func SourceList(conds egorm.Conds) (resp []*BigdataSource, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(Source{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+	if err = invoker.Db.Model(BigdataSource{}).Where(sql, binds...).Find(&resp).Error; err != nil {
 		elog.Error("list error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func SourceCreate(db *gorm.DB, data *Source) (err error) {
-	if err = db.Model(Source{}).Create(data).Error; err != nil {
+func SourceCreate(db *gorm.DB, data *BigdataSource) (err error) {
+	if err = db.Model(BigdataSource{}).Create(data).Error; err != nil {
 		elog.Error("create error", zap.Error(err))
 		return
 	}
@@ -61,7 +61,7 @@ func SourceCreate(db *gorm.DB, data *Source) (err error) {
 func SourceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
-	if err = db.Model(Source{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+	if err = db.Model(BigdataSource{}).Where(sql, binds...).Updates(ups).Error; err != nil {
 		elog.Error("update error", zap.Error(err))
 		return
 	}
@@ -69,7 +69,7 @@ func SourceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 }
 
 func SourceDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(Source{}).Delete(&Source{}, id).Error; err != nil {
+	if err = db.Model(BigdataSource{}).Delete(&BigdataSource{}, id).Error; err != nil {
 		elog.Error("delete error", zap.Error(err))
 		return
 	}

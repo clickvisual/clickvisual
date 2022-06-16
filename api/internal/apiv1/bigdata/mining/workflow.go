@@ -16,7 +16,7 @@ func WorkflowCreate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	obj := &db.Workflow{
+	obj := &db.BigdataWorkflow{
 		Iid:  req.Iid,
 		Name: req.Name,
 		Desc: req.Desc,

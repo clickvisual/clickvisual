@@ -20,7 +20,7 @@ func RunInstall(ctx ejob.Context) error {
 }
 
 func installDB() error {
-	ins := db.Instance{
+	ins := db.BaseInstance{
 		Datasource:       "ch",
 		Name:             "default-ch",
 		Dsn:              econf.GetString("defaultCh.dsn"),

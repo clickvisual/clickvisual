@@ -1,6 +1,11 @@
 package base
 
 import (
+	"strconv"
+
+	"github.com/ego-component/egorm"
+	"github.com/spf13/cast"
+
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
@@ -8,9 +13,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
-	"github.com/ego-component/egorm"
-	"github.com/spf13/cast"
-	"strconv"
 )
 
 func HiddenUpsert(c *core.Context) {
@@ -71,9 +73,9 @@ func HiddenUpsert(c *core.Context) {
 	}
 
 	if insert != nil && len(insert) > 0 {
-		hiddenFields := make([]*db.HiddenField, 0)
+		hiddenFields := make([]*db.BaseHiddenField, 0)
 		for i := range insert {
-			hiddenFields = append(hiddenFields, &db.HiddenField{
+			hiddenFields = append(hiddenFields, &db.BaseHiddenField{
 				Tid:   tid,
 				Field: insert[i].(string),
 			})

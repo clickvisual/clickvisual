@@ -723,7 +723,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		return errors.New("database create failed: " + err.Error())
 	}
 	// no need to operator the database
-	tableInfo := db.Table{
+	tableInfo := db.BaseTable{
 		Did:           databaseInfo.ID,
 		Name:          param.TableName,
 		Uid:           uid,
@@ -753,7 +753,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		if col.Type == -1 {
 			continue
 		}
-		err = db.IndexCreate(tx, &db.Index{
+		err = db.IndexCreate(tx, &db.BaseIndex{
 			Tid:      tableInfo.ID,
 			Field:    col.Name,
 			Typ:      col.Type,

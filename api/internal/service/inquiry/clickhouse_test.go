@@ -9,7 +9,7 @@ import (
 func Test_hashTransform(t *testing.T) {
 	type args struct {
 		query string
-		index *db.Index
+		index *db.BaseIndex
 	}
 	tests := []struct {
 		name string
@@ -21,7 +21,7 @@ func Test_hashTransform(t *testing.T) {
 			name: "test-1",
 			args: args{
 				query: "application='xx-xxx' and url='123'",
-				index: &db.Index{
+				index: &db.BaseIndex{
 					Field:   "application",
 					HashTyp: 1,
 				},
@@ -32,7 +32,7 @@ func Test_hashTransform(t *testing.T) {
 			name: "test-2",
 			args: args{
 				query: "url='123' and application='xx-xxx' and url='123'",
-				index: &db.Index{
+				index: &db.BaseIndex{
 					Field:   "application",
 					HashTyp: 2,
 				},

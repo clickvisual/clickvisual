@@ -41,8 +41,8 @@ type RespAlarmInfo struct {
 	Utime      int64                `json:"utime"`
 	db.Alarm
 	db.User
-	Table    db.Table    `json:"table"`
-	Instance db.Instance `json:"instance"`
+	Table    db.BaseTable    `json:"table"`
+	Instance db.BaseInstance `json:"instance"`
 }
 
 type ReqAlarmHistoryList struct {

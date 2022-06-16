@@ -17,7 +17,7 @@ func NodeCreate(c *core.Context) {
 		return
 	}
 	tx := invoker.Db.Begin()
-	obj := &db.Node{
+	obj := &db.BigdataNode{
 		Uid:       c.Uid(),
 		Iid:       req.Iid,
 		FolderID:  req.FolderId,
@@ -35,7 +35,7 @@ func NodeCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	if err = db.NodeContentCreate(tx, &db.NodeContent{
+	if err = db.NodeContentCreate(tx, &db.BigdataNodeContent{
 		NodeId:  obj.ID,
 		Content: req.Content,
 	}); err != nil {
@@ -150,7 +150,7 @@ func NodeLock(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var node db.Node
+	var node db.BigdataNode
 	err := invoker.Db.Where("id = ?", id).First(&node).Error
 	if err != nil || node.ID == 0 {
 		c.JSONE(1, "failed to get information", nil)
