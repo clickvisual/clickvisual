@@ -1,7 +1,7 @@
 import { Dropdown, Menu, message, Popconfirm } from "antd";
 import { useEffect, useState } from "react";
 import { useModel } from "umi";
-import { folderType } from "@/pages/DataAnalysis/service/enums";
+import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
 
 const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
   const { id, parentId, title } = props;
@@ -34,7 +34,7 @@ const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
       label: (
         <Popconfirm
           title={`确认删除吗?类型：${
-            currentFolder.nodeType == folderType.node ? "节点" : "文件夹"
+            currentFolder.nodeType == FolderEnums.node ? "节点" : "文件夹"
           }`}
           okText="是"
           cancelText="否"
@@ -50,7 +50,7 @@ const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
     const { key } = data;
     switch (key) {
       case "rename":
-        if (currentFolder.nodeType == folderType.node) {
+        if (currentFolder.nodeType == FolderEnums.node) {
           changeIsUpdateNode(true);
           changeVisibleNode(true);
           setVisibleDropdown(false);
@@ -72,7 +72,7 @@ const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
   };
 
   const handleDeleteFolder = () => {
-    if (currentFolder.nodeType == folderType.node) {
+    if (currentFolder.nodeType == FolderEnums.node) {
       doDeleteNode.run(id).then((res: any) => {
         if (res.code == 0) {
           message.success("删除成功");

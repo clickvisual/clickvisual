@@ -1,13 +1,13 @@
 import { Form, FormInstance, Input, message, Modal } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "umi";
-import { bigDataNavEnum } from "@/pages/DataAnalysis";
-import { folderType } from "@/pages/DataAnalysis/service/enums";
+import { BigDataNavEnum } from "@/pages/DataAnalysis";
+import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
 
 const CreateAndUpdateFolder = () => {
   const folderForm = useRef<FormInstance>(null);
   const { currentInstances, temporaryQuery, navKey } = useModel("dataAnalysis");
-  const primary = navKey == bigDataNavEnum.TemporaryQuery ? 3 : 0;
+  const primary = navKey == BigDataNavEnum.TemporaryQuery ? 3 : 0;
 
   const {
     getDataList,
@@ -22,7 +22,7 @@ const CreateAndUpdateFolder = () => {
   useEffect(() => {
     if (visibleFolder && currentFolder) {
       if (!isUpdateFolder) {
-        if (currentFolder.nodeType == folderType.node) {
+        if (currentFolder.nodeType == FolderEnums.node) {
           // 节点上创建是指在节点父级文件夹上创建
           folderForm.current?.setFieldsValue({
             iid: currentInstances,

@@ -4,9 +4,9 @@ import dataAnalysis, {
   nodeListType,
 } from "@/services/dataAnalysis";
 import { DataNode } from "antd/lib/tree";
-import { useEffect, useState } from "react";
-import { folderType } from "@/pages/DataAnalysis/service/enums";
-import api from "@/services/dataLogs";
+import { useState,useEffect } from "react";
+import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
+import dataLogsApi from "@/services/dataLogs";
 
 export interface openNodeDataType {
   lockUid: number;
@@ -97,7 +97,7 @@ const useTemporaryQuery = () => {
     loadingText: false,
   });
 
-  const doGetRunCode = useRequest(api.getStatisticalTable, {
+  const doGetRunCode = useRequest(dataLogsApi.getStatisticalTable, {
     loadingText: {
       loading: "运行中",
       done: "运行成功",
@@ -206,7 +206,7 @@ const useTemporaryQuery = () => {
       name: idAndParentId[2],
       desc: idAndParentId[3],
       nodeType:
-        idAndParentId[4] == "true" ? folderType.node : folderType.folder,
+        idAndParentId[4] == "true" ? FolderEnums.node : FolderEnums.folder,
     });
   };
 
