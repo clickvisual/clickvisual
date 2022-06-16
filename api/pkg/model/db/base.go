@@ -9,37 +9,41 @@ import (
 )
 
 const (
-	TableAlarm                    = "cv_alarm"
-	TableNameUser                 = "cv_user"
-	TableEvent                    = "cv_event"
-	TableNameK8SConfigMap         = "cv_k8s_cm"
-	TableNameCluster              = "cv_cluster"
-	TableNameView                 = "cv_base_view"
-	TableNameTable                = "cv_base_table"
-	TableNameIndex                = "cv_base_index"
-	TableAlarmFilter              = "cv_alarm_filter"
-	TableNameDatabase             = "cv_base_database"
-	TableNameInstance             = "cv_base_instance"
+	TableNameUser         = "cv_user"
+	TableEvent            = "cv_event"
+	TableNameK8SConfigMap = "cv_k8s_cm"
+	TableNameCluster      = "cv_cluster"
+
+	TableNameView        = "cv_base_view"
+	TableNameTable       = "cv_base_table"
+	TableNameIndex       = "cv_base_index"
+	TableNameDatabase    = "cv_base_database"
+	TableNameInstance    = "cv_base_instance"
+	TableNameHiddenField = "cv_base_hidden_field"
+
+	TableAlarm          = "cv_alarm"
+	TableAlarmFilter    = "cv_alarm_filter"
+	TableAlarmHistory   = "cv_alarm_history"
+	TableAlarmChannel   = "cv_alarm_channel"
+	TableAlarmCondition = "cv_alarm_condition"
+
 	TableNameConfiguration        = "cv_configuration"
-	TableAlarmHistory             = "cv_alarm_history"
-	TableAlarmChannel             = "cv_alarm_channel"
-	TableAlarmCondition           = "cv_alarm_condition"
 	TableNameConfigurationHistory = "cv_configuration_history"
 	TableNameConfigurationPublish = "cv_configuration_publish"
-	TableNamePmsRole              = "cv_pms_role"
-	TableNamePmsRoleDetail        = "cv_pms_role_detail"
-	TableNamePmsRoleRef           = "cv_pms_role_ref"
-	TableNamePmsRoleRefGrant      = "cv_pms_role_ref_grant"
-	TableNamePmsCasbinRule        = "cv_pms_casbin_rule"
-	TableNamePmsDefaultRole       = "cv_pms_default_role"
-	TableNamePmsCustomRole        = "cv_pms_custom_role"
+
+	TableNamePmsRole         = "cv_pms_role"
+	TableNamePmsRoleDetail   = "cv_pms_role_detail"
+	TableNamePmsRoleRef      = "cv_pms_role_ref"
+	TableNamePmsRoleRefGrant = "cv_pms_role_ref_grant"
+	TableNamePmsCasbinRule   = "cv_pms_casbin_rule"
+	TableNamePmsDefaultRole  = "cv_pms_default_role"
+	TableNamePmsCustomRole   = "cv_pms_custom_role"
 
 	TableNameBigDataNode        = "cv_bd_node"
 	TableNameBigDataNodeContent = "cv_bd_node_content"
 	TableNameBigDataFolder      = "cv_bd_folder"
 	TableNameBigDataSource      = "cv_bd_source"
-
-	TableNameHiddenField = "cv_base_hidden_field"
+	TableNameBigDataWorkflow    = "cv_bd_workflow"
 )
 
 type BaseModel struct {

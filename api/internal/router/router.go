@@ -12,6 +12,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata"
+	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/mining"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/short"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/configure"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/event"
@@ -228,6 +229,12 @@ func GetRouter() *egin.Component {
 		v1.POST("/bigdata/sources", core.Handle(bigdata.SourceCreate))
 		v1.PATCH("/bigdata/sources/:id", core.Handle(bigdata.SourceUpdate))
 		v1.DELETE("/bigdata/sources/:id", core.Handle(bigdata.SourceDelete))
+
+		v1.GET("/bigdata/mining/workflows", core.Handle(mining.WorkflowList))
+		v1.GET("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowInfo))
+		v1.POST("/bigdata/mining/workflows", core.Handle(mining.WorkflowCreate))
+		v1.PATCH("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowUpdate))
+		v1.DELETE("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowDelete))
 	}
 	// hidden field
 	{

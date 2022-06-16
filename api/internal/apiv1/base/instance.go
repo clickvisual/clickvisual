@@ -127,6 +127,7 @@ func InstanceList(c *core.Context) {
 		if !service.InstanceManager.ReadPermissionInstance(c.Uid(), row.ID) {
 			continue
 		}
+		row.Dsn = "*"
 		res = append(res, row)
 	}
 	if err != nil {
