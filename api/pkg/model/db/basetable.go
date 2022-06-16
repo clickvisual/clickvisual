@@ -82,7 +82,7 @@ func TableInfoX(db *gorm.DB, conds map[string]interface{}) (resp BaseTable, err 
 func TableInfo(db *gorm.DB, paramId int) (resp BaseTable, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
-	if err = db.Table(TableNameBaseTable).Preload("BaseDatabase").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseTable).Preload("Database").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("info error", zap.Error(err))
 		return
 	}
@@ -104,7 +104,7 @@ func TableUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err erro
 func TableList(db *gorm.DB, conds egorm.Conds) (resp []*BaseTable, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
-	if err = db.Table(TableNameBaseTable).Preload("BaseDatabase").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseTable).Preload("Database").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("list error", elog.String("err", err.Error()))
 		return
 	}

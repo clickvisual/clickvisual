@@ -21,16 +21,19 @@ type (
 	BigdataNode struct {
 		BaseModel
 
-		Uid       int    `gorm:"column:uid;type:int(11)" json:"uid"`
-		Iid       int    `gorm:"column:iid;type:int(11)" json:"iid"`
-		FolderID  int    `gorm:"column:folder_id;type:int(11)" json:"folderId"`
-		Primary   int    `gorm:"column:primary;type:int(11)" json:"primary"`
-		Secondary int    `gorm:"column:secondary;type:int(11)" json:"secondary"`
-		Tertiary  int    `gorm:"column:tertiary;type:int(11)" json:"tertiary"`
-		Name      string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`
-		Desc      string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`
-		LockUid   int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
-		LockAt    int64  `gorm:"column:lock_at;type:bigint(11) unsigned" json:"lockAt"`
+		Uid      int `gorm:"column:uid;type:int(11)" json:"uid"`
+		Iid      int `gorm:"column:iid;type:int(11)" json:"iid"`
+		FolderID int `gorm:"column:folder_id;type:int(11)" json:"folderId"`
+
+		Primary    int `gorm:"column:primary;type:int(11)" json:"primary"`
+		Secondary  int `gorm:"column:secondary;type:int(11)" json:"secondary"`
+		Tertiary   int `gorm:"column:tertiary;type:int(11)" json:"tertiary"`
+		WorkflowId int `gorm:"column:workflow_id;type:int(11)" json:"workflowId"`
+
+		Name    string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`
+		Desc    string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`
+		LockUid int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
+		LockAt  int64  `gorm:"column:lock_at;type:bigint(11) unsigned" json:"lockAt"`
 	}
 
 	BigdataNodeContent struct {

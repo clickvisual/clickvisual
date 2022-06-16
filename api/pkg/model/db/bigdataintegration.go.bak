@@ -1,0 +1,72 @@
+package db
+
+import (
+	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
+)
+
+func (m *BigdataIntegration) TableName() string {
+	return TableNameBigDataIntegration
+}
+
+type BigdataIntegration struct {
+	BaseModel
+
+	WorkflowId int `gorm:"column:workflow_id;type:int(11)" json:"workflowId"`
+	Typ        int `gorm:"column:typ;type:int(11)" json:"typ"` // 1 offline 2 realtime
+
+	Source  string `gorm:"column:source;type:json" json:"source"`
+	Target  string `gorm:"column:target;type:json" json:"target"`
+	Mapping string `gorm:"column:mapping;type:json" json:"mapping"`
+
+	Uid int `gorm:"column:uid;type:int(11)" json:"uid"`
+}
+
+func IntegrationInfo(db *gorm.DB, id int) (resp BigdataIntegration, err error) {
+	var sql = "`id`= ? and dtime = 0"
+	var binds = []interface{}{id}
+	if err = db.Model(BigdataIntegration{}).Where(sql, binds...).First(&resp).Error; err != nil {
+		elog.Error("info error", zap.Error(err))
+		return
+	}
+	return
+}
+
+func IntegrationList(conds egorm.Conds) (resp []*BigdataIntegration, err error) {
+	sql, binds := egorm.BuildQuery(conds)
+	if err = invoker.Db.Model(BigdataIntegration{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+		elog.Error("list error", zap.Error(err))
+		return
+	}
+	return
+}
+
+func IntegrationCreate(db *gorm.DB, data *BigdataIntegration) (err error) {
+	if err = db.Model(BigdataIntegration{}).Create(data).Error; err != nil {
+		elog.Error("create error", zap.Error(err))
+		return
+	}
+	return
+}
+
+func IntegrationUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
+	var sql = "`id`=?"
+	var binds = []interface{}{id}
+	if err = db.Model(BigdataIntegration{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+		elog.Error("update error", zap.Error(err))
+		return
+	}
+	return
+}
+
+func IntegrationDelete(db *gorm.DB, id int) (err error) {
+	if err = db.Model(BigdataIntegration{}).Delete(&BigdataIntegration{}, id).Error; err != nil {
+		elog.Error("delete error", zap.Error(err))
+		return
+	}
+	return
+}

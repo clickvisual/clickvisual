@@ -1,6 +1,7 @@
 package bigdata
 
 import (
+	"github.com/ego-component/egorm"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -18,16 +19,17 @@ func NodeCreate(c *core.Context) {
 	}
 	tx := invoker.Db.Begin()
 	obj := &db.BigdataNode{
-		Uid:       c.Uid(),
-		Iid:       req.Iid,
-		FolderID:  req.FolderId,
-		Primary:   req.Primary,
-		Secondary: req.Secondary,
-		Tertiary:  req.Tertiary,
-		Name:      req.Name,
-		Desc:      req.Desc,
-		LockUid:   0,
-		LockAt:    0,
+		Uid:        c.Uid(),
+		Iid:        req.Iid,
+		FolderID:   req.FolderId,
+		Primary:    req.Primary,
+		Secondary:  req.Secondary,
+		Tertiary:   req.Tertiary,
+		Name:       req.Name,
+		Desc:       req.Desc,
+		WorkflowId: req.WorkflowId,
+		LockUid:    0,
+		LockAt:     0,
 	}
 	err := db.NodeCreate(tx, obj)
 	if err != nil {
@@ -177,5 +179,43 @@ func NodeUnlock(c *core.Context) {
 		return
 	}
 	c.JSONOK()
+	return
+}
+
+func NodeList(c *core.Context) {
+	var req view.ReqListNode
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	conds := egorm.Conds{}
+	if req.WorkflowId != 0 {
+		conds["workflow_id"] = req.WorkflowId
+	}
+	res, err := db.NodeList(conds)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+func NodeRun(c *core.Context) {
+	var req view.ReqListNode
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	conds := egorm.Conds{}
+	if req.WorkflowId != 0 {
+		conds["workflow_id"] = req.WorkflowId
+	}
+	res, err := db.NodeList(conds)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
