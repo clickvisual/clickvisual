@@ -5,6 +5,7 @@ import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
 import useTemporaryQuery from "@/models/dataanalysis/useTemporaryQuery";
 import { InstanceType } from "@/services/systemSetting";
 import { useState } from "react";
+import useWorkflow from "@/models/dataanalysis/useWorkflow";
 
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
@@ -13,6 +14,7 @@ const DataAnalysis = () => {
 
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
+  const workflow = useWorkflow();
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
@@ -49,6 +51,7 @@ const DataAnalysis = () => {
 
     realTimeTraffic,
     temporaryQuery,
+    workflow,
   };
 };
 

@@ -1,0 +1,39 @@
+@import "../../../styles/var";
+
+.offlineMain {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+
+  .right {
+    flex: 0 0 300px;
+    overflow-y: auto;
+    font-size: 14px;
+    border-right: 1px solid @border-color;
+
+    .header {
+      display: flex;
+      height: 28px;
+      padding: 2px 8px;
+      font-weight: bold;
+      line-height: 24px;
+      background: @primary-color-1;
+      cursor: default;
+      user-select: none;
+      .title {
+        flex: 1;
+        cursor: pointer;
+        .icon {
+          margin: 4px;
+          font-size: 10px;
+          transition: transform 0.5s;
+        }
+        .iconExpand {
+          transform: rotate(90deg);
+        }
+      }
+    }
+    .workflowMain {
+    }
+  }
+}

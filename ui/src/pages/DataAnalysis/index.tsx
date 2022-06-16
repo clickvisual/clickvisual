@@ -3,35 +3,47 @@ import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
 import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataAnalysisNav from "@/pages/DataAnalysis/Nav";
 import DataAnalysisScreening from "@/pages/DataAnalysis/Screening";
-import { useModel } from "umi";
-import { bigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
+import { useIntl, useModel } from "umi";
+import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
+import { useMemo } from "react";
+import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
+import { Empty } from "antd";
 
 const DataAnalysis = () => {
-  const { navKey } = useModel("dataAnalysis");
+  const { navKey, currentInstances } = useModel("dataAnalysis");
+  const i18n = useIntl();
 
-  const navContent = () => {
+  const NavContent = useMemo(() => {
+    if (!currentInstances) {
+      return (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={i18n.formatMessage({ id: "datasource.draw.selected" })}
+        />
+      );
+    }
     switch (navKey) {
-      case bigDataNavEnum.TemporaryQuery:
+      case BigDataNavEnum.TemporaryQuery:
         return <TemporaryQuery />;
-
-      case bigDataNavEnum.RealTimeTrafficFlow:
+      case BigDataNavEnum.RealTimeTrafficFlow:
         return <RealTimeTrafficFlow />;
-
+      case BigDataNavEnum.OfflineManage:
+        return <OfflineManager />;
       default:
         return <></>;
     }
-  };
+  }, [navKey, currentInstances]);
 
   return (
     <div className={style.main}>
       <DataAnalysisScreening />
       <div className={style.contentBox}>
         <DataAnalysisNav />
-        <div className={style.content}>{navContent()}</div>
+        <div className={style.content}>{NavContent}</div>
       </div>
     </div>
   );
 };
 
 export default DataAnalysis;
-export { bigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
+export { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
