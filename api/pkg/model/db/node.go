@@ -24,9 +24,9 @@ type (
 		Uid       int    `gorm:"column:uid;type:int(11)" json:"uid"`
 		Iid       int    `gorm:"column:iid;type:int(11)" json:"iid"`
 		FolderID  int    `gorm:"column:folder_id;type:int(11)" json:"folderId"`
-		Primary   int    `gorm:"column:primary;type:int(11)" json:"primary"`     // 1 offline 2 realtime 3 short
-		Secondary int    `gorm:"column:secondary;type:int(11)" json:"secondary"` // 1 数据库
-		Tertiary  int    `gorm:"column:tertiary;type:int(11)" json:"tertiary"`   // 1 clickhouse
+		Primary   int    `gorm:"column:primary;type:int(11)" json:"primary"`
+		Secondary int    `gorm:"column:secondary;type:int(11)" json:"secondary"`
+		Tertiary  int    `gorm:"column:tertiary;type:int(11)" json:"tertiary"`
 		Name      string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`
 		Desc      string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`
 		LockUid   int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`

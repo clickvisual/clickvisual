@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/source"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -69,6 +70,12 @@ func SourceList(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["typ"] = req.Typ
+	if req.Name != "" {
+		conds["name"] = egorm.Cond{
+			Op:  "like",
+			Val: req.Name,
+		}
+	}
 	res, err := db.SourceList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -100,6 +107,91 @@ func SourceInfo(c *core.Context) {
 	res, err := db.SourceInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+func SourceDatabaseList(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	s, err := db.SourceInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "query error: "+err.Error(), nil)
+		return
+	}
+	res, err := source.Instantiate(&source.Source{
+		URL:      s.URL,
+		UserName: s.UserName,
+		Password: s.Password,
+		Typ:      s.Typ,
+	}).Databases()
+	if err != nil {
+		c.JSONE(1, "query error: "+err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+func SourceTableList(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var req view.ReqListSourceTable
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	s, err := db.SourceInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "query error: "+err.Error(), nil)
+		return
+	}
+	res, err := source.Instantiate(&source.Source{
+		URL:      s.URL,
+		UserName: s.UserName,
+		Password: s.Password,
+		Typ:      s.Typ,
+	}).Tables(req.Database)
+	if err != nil {
+		c.JSONE(1, "query error: "+err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+func SourceColumnList(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var req view.ReqListSourceColumn
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	s, err := db.SourceInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "query error: "+err.Error(), nil)
+		return
+	}
+	res, err := source.Instantiate(&source.Source{
+		URL:      s.URL,
+		UserName: s.UserName,
+		Password: s.Password,
+		Typ:      s.Typ,
+	}).Columns(req.Database, req.Table)
+	if err != nil {
+		c.JSONE(1, "query error: "+err.Error(), nil)
 		return
 	}
 	c.JSONE(core.CodeOK, "succ", res)

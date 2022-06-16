@@ -127,13 +127,18 @@ func NodeInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res := view.RespCreateNode{
+	res := view.RespInfoNode{
 		Id:      n.ID,
 		Name:    n.Name,
 		Desc:    n.Desc,
 		Content: nc.Content,
 		LockUid: n.LockUid,
 		LockAt:  n.LockAt,
+	}
+	if res.LockUid != 0 {
+		u, _ := db.UserInfo(res.LockUid)
+		res.Username = u.Username
+		res.Nickname = u.Nickname
 	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return

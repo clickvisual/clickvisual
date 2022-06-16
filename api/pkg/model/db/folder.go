@@ -16,12 +16,13 @@ func (m *Folder) TableName() string {
 type Folder struct {
 	BaseModel
 
-	Uid      int    `gorm:"column:uid;type:int(11)" json:"uid"` // uid of alarm operator
-	Iid      int    `gorm:"column:iid;type:int(11)" json:"iid"`
-	Name     string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`           // name of an alarm
-	Desc     string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`           // description
-	Primary  int    `gorm:"column:primary;type:int(11)" json:"primary"`                   // 1 offline 2 realtime 3 short
-	ParentId int    `gorm:"column:parent_id;type:int(11)" db:"parent_id" json:"parentId"` // noDataOp 0 nodata 1 ok 2 alert
+	Uid       int    `gorm:"column:uid;type:int(11)" json:"uid"` // uid of alarm operator
+	Iid       int    `gorm:"column:iid;type:int(11)" json:"iid"`
+	Name      string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // name of an alarm
+	Desc      string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"` // description
+	Primary   int    `gorm:"column:primary;type:int(11)" json:"primary"`
+	Secondary int    `gorm:"column:secondary;type:int(11)" json:"secondary"`
+	ParentId  int    `gorm:"column:parent_id;type:int(11)" db:"parent_id" json:"parentId"`
 }
 
 func FolderInfo(db *gorm.DB, id int) (resp Folder, err error) {
