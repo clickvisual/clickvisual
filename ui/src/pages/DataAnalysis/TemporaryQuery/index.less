@@ -10,9 +10,7 @@
     flex: 0 0 300px;
     flex-direction: column;
     color: #abb2bf;
-    border: 1px solid hsla(0, 0%, 0%, 0.1);
-    border-radius: 8px;
-    // background-color: #1c1c1c;
+    padding-top: 50px;
 
     .title {
       display: flex;
@@ -79,23 +77,6 @@
       flex: 1;
       padding: 4px 8px;
       overflow-y: scroll;
-      // color: #fff;
-
-      // :global .ant-tree {
-      //   color: #fff;
-      //   background-color: transparent;
-      // }
-      //
-      // :global .ant-tree-show-line .ant-tree-switcher {
-      //   background-color: transparent;
-      // }
-      // 树状组件文字颜色
-      // :global
-      //   .ant-tree
-      //   .ant-tree-treenode-disabled
-      //   .ant-tree-node-content-wrapper {
-      //   color: #fff;
-      // }
       // 树状组件搜索关键字颜色
       :global .site-tree-search-value {
         color: #ed651d;
@@ -105,22 +86,12 @@
         background-color: #F39A6B !important;
         border-radius: 4px;
       }
-      // 树状组件hover局部背景色
-      // :global .ant-tree .ant-tree-node-content-wrapper:hover {
-      //   background-color: #5e2608;
-      //   border-radius: 4px;
-      // }
 
       // 树状组件hover背景色
       :global .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
         background-color: #FAD7C4;
       }
 
-      //
-      // :global
-      //   .ant-tree
-      //   .ant-tree-directory
-      //   .ant-tree-treenode-selected:hover::before,
       :global .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
         background-color: #F39A6B !important;
       }
@@ -136,8 +107,7 @@
     flex-direction: column;
     color: hsl(0, 0%, 58%);
     background: hsl(0, 0%, 96%);
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    border-left: 1px solid @border-color;
     .header {
       flex: 0 0 32px;
       padding-left: 56px;
@@ -173,7 +143,3 @@
 ::-webkit-scrollbar {
   display: none; /* Chrome Safari */
 }
-
-// :global .monaco-editor, .monaco-editor-background, .monaco-editor .inputarea.ime-input {
-//   background-color: #fff;
-// }

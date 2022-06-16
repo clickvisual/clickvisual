@@ -93,7 +93,7 @@ const EditorHeader = () => {
               isUpdateStateFun() ? TemporaryQueryStyle.headerTitleTips : "",
             ])}
           >
-            文件名：{openNodeData?.name}
+            {openNodeData?.name}
             {!openNodeData.lockUid ? (
               <Tooltip title={"锁定后可编辑"}>
                 <Button
