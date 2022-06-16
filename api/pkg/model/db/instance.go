@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// Instance 服务配置存储
-type Instance struct {
+// BaseInstance 服务配置存储
+type BaseInstance struct {
 	BaseModel
 
 	Datasource       string  `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // datasource type
@@ -30,11 +30,11 @@ type Instance struct {
 	Clusters         Strings `gorm:"column:clusters;type:text" json:"clusters"`
 }
 
-func (t *Instance) TableName() string {
-	return TableNameInstance
+func (t *BaseInstance) TableName() string {
+	return TableNameBaseInstance
 }
 
-func (t *Instance) DsKey() string {
+func (t *BaseInstance) DsKey() string {
 	return InstanceKey(t.ID)
 }
 
@@ -53,7 +53,7 @@ const (
 )
 
 // InstanceList ..
-func InstanceList(conds egorm.Conds, extra ...string) (resp []*Instance, err error) {
+func InstanceList(conds egorm.Conds, extra ...string) (resp []*BaseInstance, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	sorts := ""
 	if len(extra) >= 1 {
@@ -62,35 +62,35 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*Instance, err err
 	if sorts == "" {
 		sorts = "id desc"
 	}
-	if err = invoker.Db.Model(Instance{}).Where(sql, binds...).Order(sorts).Find(&resp).Error; err != nil {
+	if err = invoker.Db.Model(BaseInstance{}).Where(sql, binds...).Order(sorts).Find(&resp).Error; err != nil {
 		invoker.Logger.Error("ConfigMap list error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func InstanceCreate(db *gorm.DB, data *Instance) (err error) {
-	if err = db.Model(Instance{}).Create(data).Error; err != nil {
+func InstanceCreate(db *gorm.DB, data *BaseInstance) (err error) {
+	if err = db.Model(BaseInstance{}).Create(data).Error; err != nil {
 		invoker.Logger.Error("create release error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func InstanceByName(dt, name string) (resp Instance, err error) {
+func InstanceByName(dt, name string) (resp BaseInstance, err error) {
 	var sql = "`datasource`= ? and `name`= ?"
 	var binds = []interface{}{dt, name}
-	if err = invoker.Db.Model(Instance{}).Where(sql, binds...).First(&resp).Error; err != nil {
+	if err = invoker.Db.Model(BaseInstance{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func InstanceInfo(db *gorm.DB, id int) (resp Instance, err error) {
+func InstanceInfo(db *gorm.DB, id int) (resp BaseInstance, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
-	if err = db.Model(Instance{}).Where(sql, binds...).First(&resp).Error; err != nil {
+	if err = db.Model(BaseInstance{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
@@ -98,7 +98,7 @@ func InstanceInfo(db *gorm.DB, id int) (resp Instance, err error) {
 }
 
 func InstanceDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(Instance{}).Unscoped().Delete(&Instance{}, id).Error; err != nil {
+	if err = db.Model(BaseInstance{}).Unscoped().Delete(&BaseInstance{}, id).Error; err != nil {
 		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
@@ -108,7 +108,7 @@ func InstanceDelete(db *gorm.DB, id int) (err error) {
 func InstanceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
-	if err = db.Model(Instance{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+	if err = db.Model(BaseInstance{}).Where(sql, binds...).Updates(ups).Error; err != nil {
 		invoker.Logger.Error("release update error", zap.Error(err))
 		return
 	}
@@ -116,9 +116,9 @@ func InstanceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 }
 
 // InstanceInfoX Info extension method to query a single record according to Cond
-func InstanceInfoX(db *gorm.DB, conds map[string]interface{}) (resp Instance, err error) {
+func InstanceInfoX(db *gorm.DB, conds map[string]interface{}) (resp BaseInstance, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = db.Table(TableNameInstance).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseInstance).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("infoX error", zap.Error(err))
 		return
 	}

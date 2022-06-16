@@ -14,28 +14,34 @@ import (
 )
 
 var models = []interface{}{
-	db.Workflow{},
-	db.Source{},
-	db.Folder{},
-	db.Node{},
-	db.NodeContent{},
-	db.View{},
-	db.Table{},
-	db.Index{},
-	db.Database{},
-	db.Instance{},
 	db.User{},
+	db.Event{},
 	db.Cluster{},
+	db.K8SConfigMap{},
+
+	db.BigdataWorkflow{},
+	db.BigdataSource{},
+	db.BigdataFolder{},
+	db.BigdataNode{},
+	db.BigdataNodeContent{},
+
+	db.BaseView{},
+	db.BaseTable{},
+	db.BaseIndex{},
+	db.BaseDatabase{},
+	db.BaseInstance{},
+	db.BaseHiddenField{},
+
 	db.Configuration{},
 	db.ConfigurationHistory{},
 	db.ConfigurationPublish{},
-	db.K8SConfigMap{},
-	db.Event{},
+
 	db.Alarm{},
 	db.AlarmFilter{},
 	db.AlarmCondition{},
 	db.AlarmHistory{},
 	db.AlarmChannel{},
+
 	db.PmsRole{},
 	db.PmsCustomRole{},
 	db.PmsRoleRef{},
@@ -43,7 +49,6 @@ var models = []interface{}{
 	db.PmsDefaultRole{},
 	db.PmsRoleDetail{},
 	db.PmsCasbinRule{},
-	db.HiddenField{},
 }
 
 func Install() (err error) {

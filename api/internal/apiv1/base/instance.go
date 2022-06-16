@@ -72,7 +72,7 @@ func InstanceUpdate(c *core.Context) {
 	if objBef.Dsn != req.Dsn || objBef.Mode != req.Mode || objBef.ReplicaStatus != req.ReplicaStatus {
 		// dns changed
 		service.InstanceManager.Delete(objBef.DsKey())
-		objUpdate := db.Instance{
+		objUpdate := db.BaseInstance{
 			Datasource:    req.Datasource,
 			Name:          req.Name,
 			Dsn:           req.Dsn,
@@ -121,7 +121,7 @@ func InstanceUpdate(c *core.Context) {
 }
 
 func InstanceList(c *core.Context) {
-	res := make([]*db.Instance, 0)
+	res := make([]*db.BaseInstance, 0)
 	tmp, err := db.InstanceList(egorm.Conds{})
 	for _, row := range tmp {
 		if !service.InstanceManager.ReadPermissionInstance(c.Uid(), row.ID) {

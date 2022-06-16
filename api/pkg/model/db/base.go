@@ -14,12 +14,12 @@ const (
 	TableNameK8SConfigMap = "cv_k8s_cm"
 	TableNameCluster      = "cv_cluster"
 
-	TableNameView        = "cv_base_view"
-	TableNameTable       = "cv_base_table"
-	TableNameIndex       = "cv_base_index"
-	TableNameDatabase    = "cv_base_database"
-	TableNameInstance    = "cv_base_instance"
-	TableNameHiddenField = "cv_base_hidden_field"
+	TableNameBaseView        = "cv_base_view"
+	TableNameBaseTable       = "cv_base_table"
+	TableNameBaseIndex       = "cv_base_index"
+	TableNameBaseDatabase    = "cv_base_database"
+	TableNameBaseInstance    = "cv_base_instance"
+	TableNameBaseHiddenField = "cv_base_hidden_field"
 
 	TableAlarm          = "cv_alarm"
 	TableAlarmFilter    = "cv_alarm_filter"

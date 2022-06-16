@@ -11,7 +11,7 @@ import (
 )
 
 func NodeTryLock(uid, configId int) (err error) {
-	var node db.Node
+	var node db.BigdataNode
 
 	tx := invoker.Db.Begin()
 	{
@@ -26,7 +26,7 @@ func NodeTryLock(uid, configId int) (err error) {
 			return fmt.Errorf("failed to release the edit lock because another client is currently editing")
 		}
 
-		err = tx.Model(&db.Node{}).Where("id = ?", node.ID).Updates(map[string]interface{}{
+		err = tx.Model(&db.BigdataNode{}).Where("id = ?", node.ID).Updates(map[string]interface{}{
 			"lock_at":  time.Now().Unix(),
 			"lock_uid": uid,
 		}).Error
@@ -39,7 +39,7 @@ func NodeTryLock(uid, configId int) (err error) {
 }
 
 func NodeUnlock(uid, configId int) (err error) {
-	var node db.Node
+	var node db.BigdataNode
 
 	tx := invoker.Db.Begin()
 	{
@@ -54,7 +54,7 @@ func NodeUnlock(uid, configId int) (err error) {
 			return fmt.Errorf("failed to release the edit lock because another client is currently editing")
 		}
 
-		err = tx.Model(&db.Node{}).Where("id = ?", node.ID).Updates(map[string]interface{}{
+		err = tx.Model(&db.BigdataNode{}).Where("id = ?", node.ID).Updates(map[string]interface{}{
 			"lock_at":  nil,
 			"lock_uid": 0,
 		}).Error

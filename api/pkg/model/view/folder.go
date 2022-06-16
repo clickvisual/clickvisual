@@ -25,16 +25,16 @@ type ReqListFolder struct {
 }
 
 type RespListFolder struct {
-	Id       int              `json:"id"`
-	Name     string           `json:"name"`
-	Desc     string           `json:"desc"`
-	ParentId int              `json:"parentId"`
-	Children []RespListFolder `json:"children"`
-	Nodes    []*db.Node       `json:"nodes"`
+	Id       int               `json:"id"`
+	Name     string            `json:"name"`
+	Desc     string            `json:"desc"`
+	ParentId int               `json:"parentId"`
+	Children []RespListFolder  `json:"children"`
+	Nodes    []*db.BigdataNode `json:"nodes"`
 }
 
 type RespInfoFolder struct {
-	db.Folder
+	db.BigdataFolder
 	UserName string `json:"userName"`
 	NickName string `json:"nickName"`
 }

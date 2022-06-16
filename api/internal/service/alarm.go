@@ -168,7 +168,7 @@ func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) (rule string, err e
 	return
 }
 
-func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm, rule string) (err error) {
+func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, obj *db.Alarm, rule string) (err error) {
 	switch instance.RuleStoreType {
 	case db.RuleStoreTypeFile:
 		content := []byte(rule)
@@ -197,7 +197,7 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.Instance, obj *db.Alarm
 	return nil
 }
 
-func (i *alarm) PrometheusRuleDelete(instance *db.Instance, obj *db.Alarm) (err error) {
+func (i *alarm) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error) {
 	invoker.Logger.Debug("alert", elog.Any("instance", instance), elog.Any("obj", obj))
 
 	// if obj.RuleStoreType != instance.RuleStoreType {

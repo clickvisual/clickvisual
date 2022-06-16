@@ -28,7 +28,7 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(1, "default time field not support delete", nil)
 		return
 	}
-	var viewInfo db.View
+	var viewInfo db.BaseView
 	viewInfo, err = db.ViewInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -58,7 +58,7 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewList []*db.View
+	var viewList []*db.BaseView
 	conds := egorm.Conds{}
 	conds["tid"] = viewInfo.Tid
 	viewList, err = db.ViewList(tx, conds)
@@ -134,7 +134,7 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	current := db.View{
+	current := db.BaseView{
 		Tid:              tid,
 		Name:             params.Name,
 		IsUseDefaultTime: params.IsUseDefaultTime,
@@ -147,7 +147,7 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewList []*db.View
+	var viewList []*db.BaseView
 	condsView := egorm.Conds{}
 	condsView["tid"] = tid
 	viewList, err = db.ViewList(tx, condsView)
@@ -224,7 +224,7 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewInfo db.View
+	var viewInfo db.BaseView
 	viewInfo, err = db.ViewInfo(tx, id)
 	if err != nil {
 		tx.Rollback()
@@ -249,7 +249,7 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewList []*db.View
+	var viewList []*db.BaseView
 	conds := egorm.Conds{}
 	conds["tid"] = viewInfo.Tid
 	viewList, err = db.ViewList(tx, conds)

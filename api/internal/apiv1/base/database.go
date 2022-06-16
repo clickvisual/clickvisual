@@ -38,7 +38,7 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	obj := db.Database{
+	obj := db.BaseDatabase{
 		Iid:          iid,
 		Name:         req.Name,
 		Cluster:      req.Cluster,

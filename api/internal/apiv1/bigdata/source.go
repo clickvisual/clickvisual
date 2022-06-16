@@ -17,7 +17,7 @@ func SourceCreate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	obj := &db.Source{
+	obj := &db.BigdataSource{
 		Iid:      req.Iid,
 		Name:     req.Name,
 		Desc:     req.Desc,

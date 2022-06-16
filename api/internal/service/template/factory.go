@@ -11,9 +11,9 @@ import (
 )
 
 type IMP interface {
-	CreateInstance() (db.Instance, error)
-	CreateDatabase(iid int) (db.Database, error)
-	CreateTable(database db.Database) error
+	CreateInstance() (db.BaseInstance, error)
+	CreateDatabase(iid int) (db.BaseDatabase, error)
+	CreateTable(database db.BaseDatabase) error
 }
 
 const (
@@ -31,7 +31,7 @@ type template struct {
 	instanceCluster string
 }
 
-func (t *template) CreateInstance() (ins db.Instance, err error) {
+func (t *template) CreateInstance() (ins db.BaseInstance, err error) {
 
 	switch t.mode {
 	case ClusterMode:
@@ -60,11 +60,11 @@ func (t *template) CreateInstance() (ins db.Instance, err error) {
 	return
 }
 
-func (t *template) CreateDatabase(iid int) (database db.Database, err error) {
+func (t *template) CreateDatabase(iid int) (database db.BaseDatabase, err error) {
 	switch t.mode {
 	case ClusterMode:
 		// create database
-		database, err = service.DatabaseCreate(db.Database{
+		database, err = service.DatabaseCreate(db.BaseDatabase{
 			Iid:          iid,
 			Name:         "clickvisual_default",
 			Uid:          1,
@@ -73,7 +73,7 @@ func (t *template) CreateDatabase(iid int) (database db.Database, err error) {
 		})
 	case StandaloneMode:
 		// create database
-		database, err = service.DatabaseCreate(db.Database{
+		database, err = service.DatabaseCreate(db.BaseDatabase{
 			Iid:          iid,
 			Name:         "clickvisual_default",
 			Uid:          1,
@@ -88,7 +88,7 @@ func (t *template) CreateDatabase(iid int) (database db.Database, err error) {
 	return
 }
 
-func (t *template) CreateTable(database db.Database) error {
+func (t *template) CreateTable(database db.BaseDatabase) error {
 	// create table
 	// app-stdout, ego-stdout, ingress-stdout, ingress-stderr
 	for tableName, analysisFields := range templateOneTable {

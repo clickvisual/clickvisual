@@ -7,7 +7,7 @@ type Event struct {
 	UID           int64  `gorm:"not null;default:0;comment:操作用户的uid" json:"uid"`
 	Operation     string `gorm:"not null;default:'';size:64;index:idx_operation;comment:操作名" json:"operation"`
 	ObjectType    string `gorm:"not null;default:'';size:64;comment:被操作对象的类型(一般为db.Table名)" json:"objectType"`
-	ObjectId      int    `gorm:"not null;default:0;comment:被操作对象类型(db.Table)下的具体对象的主键(id)" json:"ObjectId"`
+	ObjectId      int    `gorm:"not null;default:0;comment:被操作对象类型(db.BaseTable)下的具体对象的主键(id)" json:"ObjectId"`
 	Metadata      string `gorm:"not null;type:text;comment:事件内容" json:"metadata"`
 	Ctime         int64  `gorm:"not null;default:0;type:bigint;autoCreateTime;comment:事件发生时间" json:"ctime"`
 	OperationName string `gorm:"-" json:"operationName"`
@@ -74,18 +74,18 @@ const (
 var OperationMap = map[string]string{
 	OpnLocalUsersPwdChange: "Change the password",
 
-	OpnTablesDelete:         "Table delete",
-	OpnTablesCreate:         "Table create",
-	OpnTablesUpdate:         "Table update",
+	OpnTablesDelete:         "BaseTable delete",
+	OpnTablesCreate:         "BaseTable create",
+	OpnTablesUpdate:         "BaseTable update",
 	OpnTableCreateSelfBuilt: "An existing data table is connected",
-	OpnTablesIndexUpdate:    "Table analysis field updates",
+	OpnTablesIndexUpdate:    "BaseTable analysis field updates",
 	OpnTablesLogsQuery:      "Log query",
-	OpnDatabasesDelete:      "Database delete",
-	OpnDatabasesCreate:      "Database create",
-	OpnDatabasesUpdate:      "Database update",
-	OpnInstancesDelete:      "Instance delete",
-	OpnInstancesCreate:      "Instance create",
-	OpnInstancesUpdate:      "Instance update",
+	OpnDatabasesDelete:      "BaseDatabase delete",
+	OpnDatabasesCreate:      "BaseDatabase create",
+	OpnDatabasesUpdate:      "BaseDatabase update",
+	OpnInstancesDelete:      "BaseInstance delete",
+	OpnInstancesCreate:      "BaseInstance create",
+	OpnInstancesUpdate:      "BaseInstance update",
 	OpnViewsDelete:          "Custom time field delete",
 	OpnViewsCreate:          "Custom time field create",
 	OpnViewsUpdate:          "Custom time field update",

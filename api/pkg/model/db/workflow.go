@@ -9,11 +9,11 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-func (m *Workflow) TableName() string {
+func (m *BigdataWorkflow) TableName() string {
 	return TableNameBigDataWorkflow
 }
 
-type Workflow struct {
+type BigdataWorkflow struct {
 	BaseModel
 
 	Iid  int    `gorm:"column:iid;type:int(11)" json:"iid"`
@@ -22,27 +22,27 @@ type Workflow struct {
 	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`
 }
 
-func WorkflowInfo(db *gorm.DB, id int) (resp Workflow, err error) {
+func WorkflowInfo(db *gorm.DB, id int) (resp BigdataWorkflow, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
-	if err = db.Model(Workflow{}).Where(sql, binds...).First(&resp).Error; err != nil {
+	if err = db.Model(BigdataWorkflow{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		elog.Error("info error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func WorkflowList(conds egorm.Conds) (resp []*Workflow, err error) {
+func WorkflowList(conds egorm.Conds) (resp []*BigdataWorkflow, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(Workflow{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+	if err = invoker.Db.Model(BigdataWorkflow{}).Where(sql, binds...).Find(&resp).Error; err != nil {
 		elog.Error("list error", zap.Error(err))
 		return
 	}
 	return
 }
 
-func WorkflowCreate(db *gorm.DB, data *Workflow) (err error) {
-	if err = db.Model(Workflow{}).Create(data).Error; err != nil {
+func WorkflowCreate(db *gorm.DB, data *BigdataWorkflow) (err error) {
+	if err = db.Model(BigdataWorkflow{}).Create(data).Error; err != nil {
 		elog.Error("create error", zap.Error(err))
 		return
 	}
@@ -52,7 +52,7 @@ func WorkflowCreate(db *gorm.DB, data *Workflow) (err error) {
 func WorkflowUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
-	if err = db.Model(Workflow{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+	if err = db.Model(BigdataWorkflow{}).Where(sql, binds...).Updates(ups).Error; err != nil {
 		elog.Error("update error", zap.Error(err))
 		return
 	}
@@ -60,7 +60,7 @@ func WorkflowUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 }
 
 func WorkflowDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(Workflow{}).Delete(&Workflow{}, id).Error; err != nil {
+	if err = db.Model(BigdataWorkflow{}).Delete(&BigdataWorkflow{}, id).Error; err != nil {
 		elog.Error("delete error", zap.Error(err))
 		return
 	}

@@ -24,10 +24,10 @@ type Operator interface {
 	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
 	Columns(string, string, bool) ([]*view.RespColumn, error)
 	AlertViewGen(*db.Alarm, string) (string, string, error)
-	ViewSync(db.Table, *db.View, []*db.View, bool) (string, string, error)
-	TableCreate(int, db.Database, view.ReqTableCreate) (string, string, string, string, error)
+	ViewSync(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
+	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
 	Deps(string, string) ([]view.RespTableDeps, error)
-	IndexUpdate(db.Database, db.Table, map[string]*db.Index, map[string]*db.Index, map[string]*db.Index) error // Data table index operation
+	IndexUpdate(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error // Data table index operation
 }
 
 const (
