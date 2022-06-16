@@ -108,25 +108,13 @@ const FolderTree: React.FC = () => {
         const keyValueList = item.key.toString().split("_");
         if (item.children && item.children.length > 0) {
           return {
-            title: (
-              <FolderTiele
-                id={parseInt(keyValueList[1])}
-                parentId={parseInt(keyValueList[0])}
-                title={title}
-              />
-            ),
+            title: <FolderTiele id={parseInt(keyValueList[1])} title={title} />,
             key: item.key,
             children: loop(item.children),
           };
         }
         return {
-          title: (
-            <FolderTiele
-              id={parseInt(keyValueList[1])}
-              parentId={parseInt(keyValueList[0])}
-              title={title}
-            />
-          ),
+          title: <FolderTiele id={parseInt(keyValueList[1])} title={title} />,
           icon: keyValueList[4] == "true" && (
             <FileOutlined style={{ color: "#2FABEE" }} />
           ),
@@ -212,7 +200,7 @@ const FolderTree: React.FC = () => {
       <div className={TemporaryQueryStyle.searchBox}>
         <div className={TemporaryQueryStyle.search}>
           <Input
-            placeholder="文件名称/创建人"
+            placeholder="文件名称"
             onChange={handleChange}
             prefix={
               <SearchOutlined style={{ color: "#dfe1ef", fontSize: "20px" }} />

@@ -2,7 +2,10 @@ import { Form, FormInstance, Input, message, Modal, Select } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
-import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
+import {
+  FolderEnums,
+  SecondaryEnums,
+} from "@/pages/DataAnalysis/service/enums";
 
 const { Option } = Select;
 
@@ -12,6 +15,8 @@ const CreateAndUpdateNode = () => {
   const primary = navKey == BigDataNavEnum.TemporaryQuery ? 3 : 0;
 
   const {
+    secondaryList,
+    tertiaryList,
     getDataList,
     doCreatedNode,
     doUpdateNode,
@@ -20,6 +25,23 @@ const CreateAndUpdateNode = () => {
     visibleNode,
     changeVisibleNode,
   } = temporaryQuery;
+
+  const newTertiaryList = tertiaryList.filter(
+    (item: { id: number; title: string; enum: number }) => {
+      return (
+        SecondaryEnums.database <= item.enum / 10 &&
+        item.enum / 10 < SecondaryEnums.database + 1
+      );
+    }
+  );
+
+  useEffect(() => {
+    if (newTertiaryList.length == 1) {
+      folderForm.current?.setFieldsValue({
+        tertiary: newTertiaryList[0].enum,
+      });
+    }
+  }, [newTertiaryList]);
 
   useEffect(() => {
     if (visibleNode && currentFolder) {
@@ -30,6 +52,7 @@ const CreateAndUpdateNode = () => {
             iid: currentInstances,
             folderId: currentFolder.parentId,
             primary: primary,
+            secondary: SecondaryEnums.database,
           });
           return;
         }
@@ -37,6 +60,7 @@ const CreateAndUpdateNode = () => {
           iid: currentInstances,
           folderId: currentFolder.id,
           primary: primary,
+          secondary: SecondaryEnums.database,
         });
         return;
       }
@@ -47,11 +71,13 @@ const CreateAndUpdateNode = () => {
         primary: primary,
         name: currentFolder.name,
         desc: currentFolder.desc,
+        secondary: currentFolder.secondary,
+        tertiary: currentFolder.tertiary,
       });
       return;
     }
     folderForm.current?.resetFields();
-  }, [currentFolder, visibleNode]);
+  }, [currentFolder, visibleNode, newTertiaryList]);
 
   const handleSubmit = (file: {
     iid: number;
@@ -93,6 +119,7 @@ const CreateAndUpdateNode = () => {
       }
     });
   };
+
   return (
     <Modal
       confirmLoading={doCreatedNode.loading || doUpdateNode.loading}
@@ -120,21 +147,33 @@ const CreateAndUpdateNode = () => {
         <Form.Item name={"primary"} hidden>
           <Input type="number" />
         </Form.Item>
-        <Form.Item name={"secondary"} label="secondary" initialValue={1}>
-          <Select disabled>
-            <Option value={1}>数据库</Option>、
+        <Form.Item name={"secondary"} label="secondary" hidden>
+          <Select>
+            {secondaryList.map(
+              (item: { id: number; title: string; enum: number }) => (
+                <Option value={item.enum} key={item.id}>
+                  {item.title}
+                </Option>
+              )
+            )}
           </Select>
         </Form.Item>
-        <Form.Item name={"tertiary"} label="tertiary" initialValue={1}>
-          <Select disabled>
-            <Option value={1}>clickhouse</Option>、
+        <Form.Item name={"tertiary"} label="tertiary">
+          <Select placeholder="请选择tertiary">
+            {newTertiaryList.map(
+              (item: { id: number; title: string; enum: number }) => (
+                <Option value={item.enum} key={item.id}>
+                  {item.title}
+                </Option>
+              )
+            )}
           </Select>
         </Form.Item>
         <Form.Item name={"name"} label="name" required>
-          <Input />
+          <Input placeholder="请输入节点名称" />
         </Form.Item>
         <Form.Item name={"desc"} label="desc">
-          <Input />
+          <Input placeholder="请输入节点名称" />
         </Form.Item>
       </Form>
     </Modal>

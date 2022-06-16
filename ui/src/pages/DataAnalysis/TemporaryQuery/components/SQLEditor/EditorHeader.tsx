@@ -126,25 +126,26 @@ const EditorHeader = () => {
             />
           </Tooltip>
         )}
+        {/* 锁定者为自己才可以格式化 */}
+        {openNodeData?.lockUid == currentUser?.id && (
+          <Tooltip title={"格式化 SQL"}>
+            <Button
+              type={"link"}
+              onClick={() => {
+                changeFolderContent(format(folderContent));
+              }}
+              icon={<FormatPainterOutlined />}
+            />
+          </Tooltip>
+        )}
         {folderContent.length > 0 && (
-          <>
-            <Tooltip title={"运行"}>
-              <Button
-                type={"link"}
-                onClick={() => handleRunCode()}
-                icon={<PlayCircleOutlined />}
-              />
-            </Tooltip>
-            <Tooltip title={"格式化 SQL"}>
-              <Button
-                type={"link"}
-                onClick={() => {
-                  changeFolderContent(format(folderContent));
-                }}
-                icon={<FormatPainterOutlined />}
-              />
-            </Tooltip>
-          </>
+          <Tooltip title={"运行"}>
+            <Button
+              type={"link"}
+              onClick={() => handleRunCode()}
+              icon={<PlayCircleOutlined />}
+            />
+          </Tooltip>
         )}
       </div>
     </div>

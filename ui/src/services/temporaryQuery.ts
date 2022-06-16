@@ -1,7 +1,6 @@
 import { request } from "umi";
 
-export interface folderListType {
-  folderId: any;
+export interface folderListType extends nodeListType {
   id: number;
   children: any[];
   desc: string;
@@ -29,19 +28,24 @@ export default {
    * Folder
    */
   // Get Folder information
-  async getFolderList(params: { iid: number; primary: number }) {
+  async getFolderList(params: {
+    iid: number;
+    primary: number;
+    secondary: number;
+  }) {
     return request<any>(process.env.PUBLIC_PATH + `api/v1/bigdata/folders`, {
       params,
     });
   },
 
-  // POST New Folder
+  // POST create Folder
   async createdFolder(data: {
     iid: number;
     name: string;
     primary: number;
     desc?: string;
     parentId?: number;
+    secondary: number;
   }) {
     return request(process.env.PUBLIC_PATH + `api/v1/bigdata/folders`, {
       method: "POST",
