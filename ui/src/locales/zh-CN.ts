@@ -664,4 +664,22 @@ export default {
   // bigdata realtime
   "bigdata.realtime.table": "表",
   "bigdata.realtime.database": "库",
+
+  // bigdata workflow
+  "bigdata.workflow.header.title": "业务流程",
+
+  "bigdata.workflow.rightMenu.add": "新建业务流程",
+  "bigdata.workflow.rightMenu.update": "编辑业务流程",
+  "bigdata.workflow.rightMenu.delete": "删除业务流程",
+
+  "bigdata.workflow.form.name": "业务流程",
+  "bigdata.workflow.form.name.placeholder": "请输入业务流程名称",
+  "bigdata.workflow.add.success": "创建业务流程成功",
+  "bigdata.workflow.update.success": "更新业务流程成功",
+  "bigdata.workflow.delete.content": "确认业务流程：{workflow} 吗？",
+  "bigdata.workflow.delete.loading": "删除业务流程中...",
+  "bigdata.workflow.delete.success": "删除业务流程成功",
+
+  "bigdata.workflow.dataIntegration": "数据集成",
+  "bigdata.workflow.dataDevelopment": "数据开发",
 };

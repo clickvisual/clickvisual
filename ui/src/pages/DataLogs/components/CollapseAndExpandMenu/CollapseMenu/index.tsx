@@ -3,20 +3,21 @@ import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
 import { CaretLeftOutlined, CaretRightOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
 import { useDebounceFn } from "ahooks";
-import { useEffect } from "react";
 
 const CollapseMenu = () => {
-  const { foldingState, onChangeFoldingState } = useModel("dataLogs");
-  useEffect(() => {
-    const isFold = localStorage.getItem("isFold") === "true";
-    if (isFold) onChangeFoldingState(true);
-  }, []);
+  const { foldingState, resizeMenuWidth, onChangeFoldingState } = useModel(
+    "dataLogs",
+    (model) => ({
+      foldingState: model.foldingState,
+      resizeMenuWidth: model.resizeMenuWidth,
+      onChangeFoldingState: model.onChangeFoldingState,
+    })
+  );
 
   const onClickBtn = useDebounceFn(
     () => {
       const flag = !foldingState;
       onChangeFoldingState(flag);
-      localStorage.setItem("isFold", `${flag}`);
     },
     { wait: 500 }
   ).run;
@@ -24,6 +25,9 @@ const CollapseMenu = () => {
   return (
     <div
       onClick={onClickBtn}
+      style={{
+        left: !foldingState ? `${resizeMenuWidth + 10}px` : undefined,
+      }}
       className={classNames(
         dataLogsStyles.menuBtn,
         !foldingState && dataLogsStyles.menuBtnCollapsed

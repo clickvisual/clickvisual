@@ -713,4 +713,20 @@ export default {
   // bigdata realtime
   "bigdata.realtime.table": "Table",
   "bigdata.realtime.database": "Database",
+
+  // bigdata workflow
+  "bigdata.workflow.header.title": "Business Process",
+
+  "bigdata.workflow.rightMenu.add": "Create Business Processes",
+  "bigdata.workflow.rightMenu.update": "Edit Business Processes",
+  "bigdata.workflow.rightMenu.delete": "Delete Business Process",
+
+  "bigdata.workflow.form.name": "Business Process",
+  "bigdata.workflow.form.name.placeholder":
+    "Please enter a business process name",
+  "bigdata.workflow.add.success": "Create business process successfully",
+  "bigdata.workflow.update.success": "Update Business Process Success",
+  "bigdata.workflow.delete.content": "Confirm Business Process: {workflow}?",
+  "bigdata.workflow.delete.loading": "Delete business process...",
+  "bigdata.workflow.delete.success": "Delete business process successfully",
 };

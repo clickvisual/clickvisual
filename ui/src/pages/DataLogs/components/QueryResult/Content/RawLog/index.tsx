@@ -7,7 +7,6 @@ import RawLogs from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawL
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
-import CollapseMenu from "../../../CollapseAndExpandMenu/CollapseMenu";
 import { useMemo } from "react";
 
 const RawLogContent = () => {
@@ -57,7 +56,6 @@ const RawLogContent = () => {
         </Spin>
       </div>
       <ManageIndexModal />
-      <CollapseMenu />
     </div>
   );
 };

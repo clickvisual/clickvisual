@@ -6,8 +6,6 @@ import { useEffect, useState } from "react";
 import LogItemFold from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemFold";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
 import { Button } from "antd";
-import { useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT } from "@/config/config";
 
 interface LogItemProps {
   log: any;
@@ -17,9 +15,7 @@ const LogItem = ({ log, foldingChecked }: LogItemProps) => {
   // 是否折叠日志，true 为是，false 为否
   const [isFold, setIsFold] = useState<boolean>(true);
 
-  const handleFoldClick = useDebounceFn(() => setIsFold(() => !isFold), {
-    wait: DEBOUNCE_WAIT,
-  }).run;
+  const handleFoldClick = () => setIsFold(() => !isFold);
   useEffect(() => {
     setIsFold(foldingChecked ?? true);
   }, [foldingChecked]);
