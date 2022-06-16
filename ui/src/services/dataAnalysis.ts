@@ -1,5 +1,4 @@
 import { request } from "umi";
-// import { TimeBaseType } from "@/services/systemSetting";
 
 export interface folderListType {
   folderId: any;

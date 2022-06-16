@@ -18,7 +18,6 @@ const CreateAndUpdateNode = () => {
     currentFolder,
     isUpdateNode,
     visibleNode,
-    doGetNodeInfo,
     changeVisibleNode,
   } = temporaryQuery;
 
@@ -41,21 +40,14 @@ const CreateAndUpdateNode = () => {
         });
         return;
       }
-      doGetNodeInfo.run(currentFolder.id).then((res: any) => {
-        if (res.code == 0) {
-          folderForm.current?.setFieldsValue({
-            iid: currentInstances,
-            id: currentFolder.id,
-            folderId: currentFolder.parentId,
-            primary: primary,
-            name: currentFolder.name,
-            desc: currentFolder.desc,
-            content: res.data.content,
-          });
-        }
+      folderForm.current?.setFieldsValue({
+        iid: currentInstances,
+        id: currentFolder.id,
+        folderId: currentFolder.parentId,
+        primary: primary,
+        name: currentFolder.name,
+        desc: currentFolder.desc,
       });
-      console.log(currentFolder);
-
       return;
     }
     folderForm.current?.resetFields();
@@ -68,7 +60,6 @@ const CreateAndUpdateNode = () => {
     primary: number;
     secondary: number;
     tertiary: number;
-    content: string;
     desc?: string;
     folderId?: number;
   }) => {
@@ -77,7 +68,6 @@ const CreateAndUpdateNode = () => {
       folderId: file.folderId as number,
       name: file.name as string,
       desc: file.desc as string,
-      content: file.content as string,
     };
     if (!isUpdateNode) {
       data = Object.assign(data, {
@@ -141,9 +131,6 @@ const CreateAndUpdateNode = () => {
           </Select>
         </Form.Item>
         <Form.Item name={"name"} label="name" required>
-          <Input />
-        </Form.Item>
-        <Form.Item name={"content"} label="content">
           <Input />
         </Form.Item>
         <Form.Item name={"desc"} label="desc">

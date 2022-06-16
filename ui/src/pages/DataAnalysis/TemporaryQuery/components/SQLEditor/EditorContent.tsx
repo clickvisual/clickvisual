@@ -1,7 +1,16 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
 import MonacoEditor from "react-monaco-editor";
+import { useModel } from "umi";
 
 const EditorContent = () => {
+  const { temporaryQuery } = useModel("dataAnalysis");
+  const { currentUser } = useModel("@@initialState").initialState || {};
+  const { openNodeData, changeFolderContent, folderContent } = temporaryQuery;
+
+  const onChangeFolderContent = (value: string) => {
+    changeFolderContent(value);
+  };
+
   return (
     <div className={TemporaryQueryStyle.context}>
       <MonacoEditor
@@ -14,12 +23,10 @@ const EditorContent = () => {
           minimap: {
             enabled: true,
           },
-          // readOnly: !(
-          //   currentEditorUser && currentEditorUser.id === currentUser?.id
-          // ),
+          readOnly: !(openNodeData && openNodeData.lockUid === currentUser?.id),
         }}
-        value={""}
-        // onChange={onChangeConfigContent}
+        value={folderContent || openNodeData?.content}
+        onChange={onChangeFolderContent}
       />
     </div>
   );
