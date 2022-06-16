@@ -107,7 +107,6 @@ const LibraryTree = () => {
             htmlType={"submit"}
             icon={<SearchOutlined />}
             loading={doGetBusinessChart.loading}
-            style={{ backgroundColor: "#1c1c1c", borderColor: "#F9CDB5" }}
           >
             {i18n.formatMessage({ id: "search" })}
           </Button>
