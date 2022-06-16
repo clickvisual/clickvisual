@@ -1,10 +1,10 @@
 import { Dropdown, Menu, message, Popconfirm } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useModel } from "umi";
 import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
 
-const FolderTiele = (props: { id: number; parentId: number; title: any }) => {
-  const { id, parentId, title } = props;
+const FolderTiele = (props: { id: number; title: any }) => {
+  const { id, title } = props;
   const [visibleDropdown, setVisibleDropdown] = useState<boolean>(false);
   const { currentInstances, temporaryQuery } = useModel("dataAnalysis");
 

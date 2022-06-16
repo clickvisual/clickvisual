@@ -1,8 +1,13 @@
-import { Form, FormInstance, Input, message, Modal } from "antd";
+import { Form, FormInstance, Input, message, Modal, Select } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
-import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
+import {
+  FolderEnums,
+  SecondaryEnums,
+} from "@/pages/DataAnalysis/service/enums";
+
+const { Option } = Select;
 
 const CreateAndUpdateFolder = () => {
   const folderForm = useRef<FormInstance>(null);
@@ -10,6 +15,7 @@ const CreateAndUpdateFolder = () => {
   const primary = navKey == BigDataNavEnum.TemporaryQuery ? 3 : 0;
 
   const {
+    secondaryList,
     getDataList,
     doCreatedFolder,
     doUpdateFolder,
@@ -24,10 +30,12 @@ const CreateAndUpdateFolder = () => {
       if (!isUpdateFolder) {
         if (currentFolder.nodeType == FolderEnums.node) {
           // 节点上创建是指在节点父级文件夹上创建
+          // 临时查询secondary对应的只有数据库
           folderForm.current?.setFieldsValue({
             iid: currentInstances,
             parentId: currentFolder.parentId,
             primary: primary,
+            secondary: SecondaryEnums.database,
           });
           return;
         }
@@ -35,6 +43,7 @@ const CreateAndUpdateFolder = () => {
           iid: currentInstances,
           parentId: currentFolder.id,
           primary: primary,
+          secondary: SecondaryEnums.database,
         });
         return;
       }
@@ -56,6 +65,7 @@ const CreateAndUpdateFolder = () => {
     id: number;
     name: string;
     primary: number;
+    secondary: number;
     parentId?: number;
     desc?: string;
   }) => {
@@ -66,6 +76,7 @@ const CreateAndUpdateFolder = () => {
       primary: file.primary as number,
       parentId: file.parentId as number,
       desc: file.desc as string,
+      secondary: file.secondary as number,
     };
     if (!isUpdateFolder) {
       doCreatedFolder.run(data).then((res: any) => {
@@ -111,6 +122,17 @@ const CreateAndUpdateFolder = () => {
         </Form.Item>
         <Form.Item name={"primary"} hidden>
           <Input />
+        </Form.Item>
+        <Form.Item name={"secondary"} label="secondary" hidden>
+          <Select placeholder="请选择secondary">
+            {secondaryList.map(
+              (item: { id: number; title: string; enum: number }) => (
+                <Option value={item.enum} key={item.id}>
+                  {item.title}
+                </Option>
+              )
+            )}
+          </Select>
         </Form.Item>
         <Form.Item name={"name"} label="name" required>
           <Input />

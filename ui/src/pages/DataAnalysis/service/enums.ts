@@ -24,7 +24,14 @@ export enum BigDataNavEnum {
 }
 
 export enum FolderEnums {
+  /**
+   * 节点 可在右侧打开
+   */
   node = 1,
+
+  /**
+   * 文件夹 不可在右侧打开
+   */
   folder = 2,
 }
 
