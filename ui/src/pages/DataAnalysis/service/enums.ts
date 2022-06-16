@@ -78,6 +78,20 @@ export enum TertiaryEnums {
 }
 
 export enum OfflineRightMenuClickSourceEnums {
-  // 业务流程
-  workflow = "workflow",
+  /**
+   * 业务流程 Header
+   */
+  workflowHeader = "workflowHeader",
+  /**
+   * 业务流程 Item
+   */
+  workflowItem = "workflowItem",
+  /**
+   * 数据集成
+   */
+  dataIntegration = "dataIntegration",
+  /**
+   * 数据开发
+   */
+  dataDevelopment = "dataDevelopment",
 }

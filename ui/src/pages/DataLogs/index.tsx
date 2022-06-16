@@ -7,12 +7,12 @@ import { useModel } from "@@/plugin-model/useModel";
 import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
 import BreadcrumbNavigation from "@/pages/DataLogs/components/BreadcrumbNavigation";
 import useLogUrlParams from "@/pages/DataLogs/hooks/useLogUrlParams";
+import CollapseMenu from "@/pages/DataLogs/components/CollapseAndExpandMenu/CollapseMenu";
 
 const DataLogs = () => {
   const {
     onChangeCurrentDatabase,
     onChangeVisibleDatabaseDraw,
-    // onChangeLogPanes,
     logPanesHelper,
   } = useModel("dataLogs");
   useLogUrlParams();
@@ -36,6 +36,7 @@ const DataLogs = () => {
       <DataSourceMenu />
       <RawLogTabs />
       <SelectedDataBaseDraw />
+      <CollapseMenu />
     </div>
   );
 };

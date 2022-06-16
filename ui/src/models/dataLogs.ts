@@ -137,7 +137,12 @@ const DataLogsModel = () => {
 
   const logPanesHelper = useLogPanes();
 
-  const { foldingState, onChangeFoldingState } = useCollapseDatasourceMenu();
+  const {
+    foldingState,
+    onChangeFoldingState,
+    resizeMenuWidth,
+    onChangeResizeMenuWidth,
+  } = useCollapseDatasourceMenu();
 
   const onChangeHiddenHighChart = (flag: boolean) => {
     setIsHiddenHighChart(flag);
@@ -650,6 +655,8 @@ const DataLogsModel = () => {
 
     foldingState,
     onChangeFoldingState,
+    resizeMenuWidth,
+    onChangeResizeMenuWidth,
 
     logPanesHelper,
     statisticalChartsHelper,

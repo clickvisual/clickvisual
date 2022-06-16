@@ -13,7 +13,7 @@ const MENU_DEFAULT = 200;
 
 const DataSourceMenu = () => {
   const { doGetDatabaseList, currentDatabase } = useModel("dataLogs");
-  const { foldingState } = useModel("dataLogs");
+  const { foldingState, onChangeResizeMenuWidth } = useModel("dataLogs");
 
   const i18n = useIntl();
 
@@ -39,7 +39,7 @@ const DataSourceMenu = () => {
       }
       setMenuWidth(res);
       setExpandLeftWidth(res);
-      localStorage.setItem("app-left-menu-width", `${res}`);
+      onChangeResizeMenuWidth(res);
     },
     [menuWidth]
   );
