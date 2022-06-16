@@ -103,7 +103,7 @@ func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err e
 // DatabaseList Get all currently undeleted clusters. Mainly used for front end
 func DatabaseList(db *gorm.DB, conds egorm.Conds) (resp []*BaseDatabase, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = db.Table(TableNameBaseDatabase).Preload("BaseInstance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseDatabase).Preload("Instance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("list error", elog.String("err", err.Error()))
 		return
 	}
