@@ -1,10 +1,15 @@
 import style from "../index.less";
-import { ClusterOutlined, MonitorOutlined } from "@ant-design/icons";
+import {
+  ClusterOutlined,
+  MonitorOutlined,
+  CodeOutlined,
+  CodepenOutlined,
+} from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { useModel } from "umi";
 import useUrlState from "@ahooksjs/use-url-state";
 import { useEffect } from "react";
-import { bigDataNavEnum } from "@/pages/DataAnalysis";
+import { BigDataNavEnum } from "@/pages/DataAnalysis";
 
 const DataAnalysisNav = () => {
   const [urlState, setUrlState] = useUrlState<any>();
@@ -14,15 +19,27 @@ const DataAnalysisNav = () => {
   const navList = [
     {
       id: 101,
-      key: bigDataNavEnum.RealTimeTrafficFlow,
+      key: BigDataNavEnum.RealTimeTrafficFlow,
       title: "实时业务",
       icon: <ClusterOutlined style={{ color: "#fff" }} />,
     },
     {
       id: 102,
-      key: bigDataNavEnum.TemporaryQuery,
+      key: BigDataNavEnum.TemporaryQuery,
       title: "临时查询",
       icon: <MonitorOutlined style={{ color: "#fff" }} />,
+    },
+    {
+      id: 103,
+      key: BigDataNavEnum.OfflineManage,
+      title: "离线查询",
+      icon: <CodeOutlined style={{ color: "#fff" }} />,
+    },
+    {
+      id: 104,
+      key: BigDataNavEnum.DataSourceManage,
+      title: "数据源管理",
+      icon: <CodepenOutlined style={{ color: "#fff" }} />,
     },
   ];
 
@@ -39,7 +56,7 @@ const DataAnalysisNav = () => {
 
   useEffect(() => {
     if (!urlState || !urlState.navKey) {
-      onChangeNavKey(bigDataNavEnum.RealTimeTrafficFlow);
+      onChangeNavKey(BigDataNavEnum.RealTimeTrafficFlow);
     }
   }, []);
 
@@ -51,7 +68,7 @@ const DataAnalysisNav = () => {
             <div
               className={style.navItem}
               onClick={() => {
-                if (item.key !== bigDataNavEnum.RealTimeTrafficFlow) {
+                if (item.key !== BigDataNavEnum.RealTimeTrafficFlow) {
                   setNodes([]);
                   setEdges([]);
                 }

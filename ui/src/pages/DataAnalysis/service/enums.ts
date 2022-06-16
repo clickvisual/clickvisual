@@ -4,12 +4,26 @@ export enum BusinessEngineEnum {
   Distributed = "Distributed",
 }
 
-export enum bigDataNavEnum {
+export enum BigDataNavEnum {
+  /**
+   * 实时业务
+   */
   RealTimeTrafficFlow = "realtime",
+  /**
+   * 临时查询
+   */
   TemporaryQuery = "short",
+  /**
+   * 离线查询
+   */
+  OfflineManage = "offline",
+  /**
+   * 数据源管理
+   */
+  DataSourceManage = "datasourceManage",
 }
 
-export enum folderType {
+export enum FolderEnums {
   node = 1,
   folder = 2,
 }
@@ -54,4 +68,9 @@ export enum TertiaryEnums {
    * 实时分析
    */
   realtime = 21,
+}
+
+export enum OfflineRightMenuClickSourceEnums {
+  // 业务流程
+  workflow = "workflow",
 }
