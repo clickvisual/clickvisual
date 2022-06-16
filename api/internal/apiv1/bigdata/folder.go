@@ -1,4 +1,4 @@
-package short
+package bigdata
 
 import (
 	"github.com/ego-component/egorm"
@@ -17,12 +17,13 @@ func FolderCreate(c *core.Context) {
 		return
 	}
 	obj := &db.Folder{
-		Uid:      c.Uid(),
-		Name:     req.Name,
-		Desc:     req.Desc,
-		ParentId: req.ParentId,
-		Primary:  req.Primary,
-		Iid:      req.Iid,
+		Uid:       c.Uid(),
+		Name:      req.Name,
+		Desc:      req.Desc,
+		ParentId:  req.ParentId,
+		Primary:   req.Primary,
+		Secondary: req.Secondary,
+		Iid:       req.Iid,
 	}
 	err := db.FolderCreate(invoker.Db, obj)
 	if err != nil {
@@ -64,6 +65,9 @@ func FolderList(c *core.Context) {
 	conds := egorm.Conds{}
 	conds["iid"] = req.Iid
 	conds["primary"] = req.Primary
+	if req.Secondary != 0 {
+		conds["secondary"] = req.Secondary
+	}
 	fs, err := db.FolderList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -144,10 +148,18 @@ func FolderInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res, err := db.FolderInfo(invoker.Db, id)
+	f, err := db.FolderInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
+	}
+	res := view.RespInfoFolder{
+		Folder: f,
+	}
+	if res.Uid != 0 {
+		u, _ := db.UserInfo(f.Uid)
+		res.UserName = u.Username
+		res.NickName = u.Nickname
 	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return

@@ -12,7 +12,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/short"
+	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/mining"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/configure"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/event"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/initialize"
@@ -209,11 +209,11 @@ func GetRouter() *egin.Component {
 	}
 	// bigdata
 	{
-		v1.GET("/bigdata/folders", core.Handle(short.FolderList))
-		v1.GET("/bigdata/folders/:id", core.Handle(short.FolderInfo))
-		v1.POST("/bigdata/folders", core.Handle(short.FolderCreate))
-		v1.PATCH("/bigdata/folders/:id", core.Handle(short.FolderUpdate))
-		v1.DELETE("/bigdata/folders/:id", core.Handle(short.FolderDelete))
+		v1.GET("/bigdata/folders", core.Handle(bigdata.FolderList))
+		v1.GET("/bigdata/folders/:id", core.Handle(bigdata.FolderInfo))
+		v1.POST("/bigdata/folders", core.Handle(bigdata.FolderCreate))
+		v1.PATCH("/bigdata/folders/:id", core.Handle(bigdata.FolderUpdate))
+		v1.DELETE("/bigdata/folders/:id", core.Handle(bigdata.FolderDelete))
 
 		v1.GET("/bigdata/nodes/:id", core.Handle(bigdata.NodeInfo))
 		v1.POST("/bigdata/nodes", core.Handle(bigdata.NodeCreate))
@@ -223,11 +223,23 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/nodes/:id/lock", core.Handle(bigdata.NodeLock))
 		v1.PATCH("/bigdata/nodes/:id/unlock", core.Handle(bigdata.NodeUnlock))
 
+		// source curl
 		v1.GET("/bigdata/sources", core.Handle(bigdata.SourceList))
-		v1.GET("/bigdata/sources/:id", core.Handle(bigdata.SourceInfo))
 		v1.POST("/bigdata/sources", core.Handle(bigdata.SourceCreate))
+		v1.GET("/bigdata/sources/:id", core.Handle(bigdata.SourceInfo))
 		v1.PATCH("/bigdata/sources/:id", core.Handle(bigdata.SourceUpdate))
 		v1.DELETE("/bigdata/sources/:id", core.Handle(bigdata.SourceDelete))
+		// source table struct
+		v1.GET("/bigdata/mining/sources/:id/databases", core.Handle(bigdata.SourceDatabaseList))
+		v1.GET("/bigdata/mining/sources/:id/tables", core.Handle(bigdata.SourceTableList))
+		v1.GET("/bigdata/mining/sources/:id/columns", core.Handle(bigdata.SourceColumnList))
+
+		v1.GET("/bigdata/mining/workflows", core.Handle(mining.WorkflowList))
+		v1.POST("/bigdata/mining/workflows", core.Handle(mining.WorkflowCreate))
+		v1.GET("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowInfo))
+		v1.PATCH("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowUpdate))
+		v1.DELETE("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowDelete))
+
 	}
 	// hidden field
 	{

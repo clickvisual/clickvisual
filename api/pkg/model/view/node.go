@@ -20,7 +20,7 @@ type RespCreateNode struct {
 	Name    string `json:"name"`
 	Desc    string `json:"desc"`
 	Content string `json:"content"`
-	LockUid int    `json:"LockUid"`
+	LockUid int    `json:"lockUid"`
 	LockAt  int64  `json:"lockAt"`
 }
 
@@ -35,4 +35,15 @@ type RespListNode struct {
 	Desc     string `json:"desc"`
 	Uid      int    `json:"uid"`
 	UserName string `json:"userName"`
+}
+
+type RespInfoNode struct {
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	Desc     string `json:"desc"`
+	Content  string `json:"content"`
+	LockUid  int    `json:"lockUid"`
+	LockAt   int64  `json:"lockAt"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
 }

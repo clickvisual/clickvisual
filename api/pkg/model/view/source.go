@@ -15,5 +15,15 @@ type ReqUpdateSource struct {
 }
 
 type ReqListSource struct {
-	Typ int `json:"typ" form:"typ"`
+	Typ  int    `json:"typ" form:"typ"`
+	Name string `json:"name" form:"name"`
+}
+
+type ReqListSourceTable struct {
+	Database string `json:"database" form:"database" binding:"required"`
+}
+
+type ReqListSourceColumn struct {
+	Database string `json:"database" form:"database" binding:"required"`
+	Table    string `json:"table" form:"table" binding:"required"`
 }

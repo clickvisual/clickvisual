@@ -5,8 +5,10 @@ import (
 )
 
 type ReqCreateFolder struct {
-	Iid     int `json:"iid" form:"iid" binding:"required"`
-	Primary int `json:"primary" form:"primary" binding:"required"`
+	Iid       int `json:"iid" form:"iid" binding:"required"`
+	Primary   int `json:"primary" form:"primary" binding:"required"`
+	Secondary int `json:"secondary" form:"secondary"`
+
 	ReqUpdateFolder
 }
 
@@ -17,8 +19,9 @@ type ReqUpdateFolder struct {
 }
 
 type ReqListFolder struct {
-	Iid     int `json:"iid" form:"iid"  binding:"required"`
-	Primary int `json:"primary" form:"primary" binding:"required"`
+	Iid       int `json:"iid" form:"iid"  binding:"required"`
+	Primary   int `json:"primary" form:"primary" binding:"required"`
+	Secondary int `json:"secondary" form:"secondary"`
 }
 
 type RespListFolder struct {
@@ -28,4 +31,10 @@ type RespListFolder struct {
 	ParentId int              `json:"parentId"`
 	Children []RespListFolder `json:"children"`
 	Nodes    []*db.Node       `json:"nodes"`
+}
+
+type RespInfoFolder struct {
+	db.Folder
+	UserName string `json:"userName"`
+	NickName string `json:"nickName"`
 }
