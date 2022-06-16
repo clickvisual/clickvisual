@@ -10,7 +10,7 @@
     flex: 0 0 300px;
     flex-direction: column;
     color: #abb2bf;
-    background-color: #1c1c1c;
+    padding-top: 50px;
 
     .title {
       display: flex;
@@ -21,7 +21,7 @@
       padding: 0 8px;
 
       .titleName {
-        color: #dee1f0;
+        color: #5c5c5c;
         font-weight: 700;
         font-size: 14px;
       }
@@ -35,6 +35,7 @@
           width: 34px;
           height: 34px;
           font-size: 18px;
+          color: #5c5c5c;
           cursor: pointer;
         }
       }
@@ -76,50 +77,23 @@
       flex: 1;
       padding: 4px 8px;
       overflow-y: scroll;
-      color: #fff;
-
-      :global .ant-tree {
-        color: #fff;
-        background-color: transparent;
-      }
-      //
-      :global .ant-tree-show-line .ant-tree-switcher {
-        background-color: transparent;
-      }
-      // 树状组件文字颜色
-      :global
-        .ant-tree
-        .ant-tree-treenode-disabled
-        .ant-tree-node-content-wrapper {
-        color: #fff;
-      }
       // 树状组件搜索关键字颜色
       :global .site-tree-search-value {
         color: #ed651d;
       }
       // 树状组件选中局部背景色
       :global .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
-        background-color: #84350b !important;
-        border-radius: 4px;
-      }
-      // 树状组件hover局部背景色
-      :global .ant-tree .ant-tree-node-content-wrapper:hover {
-        background-color: #5e2608;
+        background-color: #F39A6B !important;
         border-radius: 4px;
       }
 
       // 树状组件hover背景色
       :global .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
-        background-color: transparent;
+        background-color: #FAD7C4;
       }
 
-      //
-      // :global
-      //   .ant-tree
-      //   .ant-tree-directory
-      //   .ant-tree-treenode-selected:hover::before,
       :global .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
-        background-color: #1f1f1f !important;
+        background-color: #F39A6B !important;
       }
 
       :global .ant-dropdown-trigger {
@@ -132,7 +106,8 @@
     flex: 1;
     flex-direction: column;
     color: hsl(0, 0%, 58%);
-    background: hsl(0, 0%, 12%);
+    background: hsl(0, 0%, 96%);
+    border-left: 1px solid @border-color;
     .header {
       flex: 0 0 32px;
       padding-left: 56px;
@@ -141,29 +116,30 @@
         align-items: center;
         .headerTitleTips {
           position: relative;
+          padding-left: 10px;
           &::before {
             position: absolute;
             top: 50%;
             left: 0;
             width: 7px;
             height: 7px;
-            transform: translateY(-50%);
-            background-color: #fff;
+            background-color: #3c3c3c;
             border-radius: 50%;
+            transform: translateY(-50%);
             content: "";
           }
-          padding-left: 10px;
         }
       }
     }
     .context {
       flex: 1;
       height: 100%;
+      background-color: #ccc;
     }
   }
 }
 
-// 去掉滚动条
+// 去掉树状组件滚动条
 ::-webkit-scrollbar {
   display: none; /* Chrome Safari */
 }

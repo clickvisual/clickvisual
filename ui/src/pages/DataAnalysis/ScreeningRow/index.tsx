@@ -1,9 +1,10 @@
-import style from "../index.less";
+import DataAnalysisStyle from "../index.less";
 import { Select, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
 import { useEffect, useMemo } from "react";
 
-const DataAnalysisScreening = () => {
+const ScreeningRow = (props: { style?: any }) => {
+  const { style } = props;
   const i18n = useIntl();
   const {
     doGetDatabase,
@@ -33,7 +34,7 @@ const DataAnalysisScreening = () => {
   }, [instances]);
 
   return (
-    <div className={style.screeningRow}>
+    <div className={DataAnalysisStyle.screeningRow} style={style}>
       <Select
         showSearch
         allowClear
@@ -57,4 +58,4 @@ const DataAnalysisScreening = () => {
     </div>
   );
 };
-export default DataAnalysisScreening;
+export default ScreeningRow;

@@ -16,7 +16,7 @@ const EditorContent = () => {
       <MonacoEditor
         height={"100%"}
         language={"mysql"}
-        theme="vs-dark"
+        theme="vs-white"
         options={{
           automaticLayout: true,
           scrollBeyondLastLine: false,

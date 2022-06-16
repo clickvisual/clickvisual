@@ -3,20 +3,13 @@
 .realTimeTrafficMain {
   display: flex;
   height: 100%;
-  // padding: 10px 10px 10px 0;
   .libraryTree {
     flex: 0 0 300px;
-    padding: 10px;
-    border: 1px solid @border-color;
-    // border-radius: 8px;
-    // background-color: #1c1c1c;
-    :global {
-      .ant-select-single,
-      .ant-select-selector,
-      .ant-select-selection-search-input {
-        color: #fff;
-        background-color: #1c1c1c;
-      }
+    border-right: 1px solid @border-color;
+    padding-top: 60px;
+    .libraryTreeForm {
+      padding: 0 10px 10px;
+      width: 300px;
     }
   }
 
@@ -26,6 +19,6 @@
     max-height: calc(100vh - 140px);
     overflow: hidden;
     background-color: #fff;
-    //border-radius: 8px;
+    border-radius: 8px;
   }
 }

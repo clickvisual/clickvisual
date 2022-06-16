@@ -21,25 +21,25 @@ const DataAnalysisNav = () => {
       id: 101,
       key: BigDataNavEnum.RealTimeTrafficFlow,
       title: "实时业务",
-      icon: <ClusterOutlined style={{ color: "#fff" }} />,
+      icon: <ClusterOutlined />,
     },
     {
       id: 102,
       key: BigDataNavEnum.TemporaryQuery,
       title: "临时查询",
-      icon: <MonitorOutlined style={{ color: "#fff" }} />,
+      icon: <MonitorOutlined />,
     },
     {
       id: 103,
       key: BigDataNavEnum.OfflineManage,
       title: "离线查询",
-      icon: <CodeOutlined style={{ color: "#fff" }} />,
+      icon: <CodeOutlined />,
     },
     {
       id: 104,
       key: BigDataNavEnum.DataSourceManage,
       title: "数据源管理",
-      icon: <CodepenOutlined style={{ color: "#fff" }} />,
+      icon: <CodepenOutlined />,
     },
   ];
 
@@ -75,7 +75,7 @@ const DataAnalysisNav = () => {
                 onChangeNavKey(item.key);
               }}
               key={item.key}
-              style={{ backgroundColor: item.key == navKey ? "#5E2608" : "" }}
+              style={{ backgroundColor: item.key == navKey ? "#F9CDB5" : "" }}
             >
               <Tooltip title={item.title} placement="right">
                 {item.icon}
