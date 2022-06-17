@@ -93,17 +93,17 @@ func DatabaseList(c *core.Context) {
 			continue
 		}
 		tmp := view.RespDatabaseItem{
-			Id:   row.ID,
-			Iid:  row.Iid,
-			Name: row.Name,
-			Uid:  row.Uid,
-			Desc: row.Desc,
+			Id:      row.ID,
+			Iid:     row.Iid,
+			Name:    row.Name,
+			Uid:     row.Uid,
+			Desc:    row.Desc,
+			Cluster: row.Cluster,
 		}
 		if row.Instance != nil {
 			tmp.DatasourceType = row.Instance.Datasource
 			tmp.InstanceName = row.Instance.Name
 			tmp.Mode = row.Instance.Mode
-			tmp.Clusters = row.Instance.Clusters
 			tmp.InstanceDesc = row.Instance.Desc
 		}
 		res = append(res, tmp)
