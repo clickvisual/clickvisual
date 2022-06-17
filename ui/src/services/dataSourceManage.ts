@@ -1,5 +1,11 @@
 import { request } from "umi";
 
+export interface SourceInfoType extends CreateSourceType {
+  id: number;
+  ctime: number;
+  utime: number;
+}
+
 export interface CreateSourceType extends UpdateSourceType {
   iid: number;
 }

@@ -1,12 +1,23 @@
 import useRequest from "@/hooks/useRequest/useRequest";
-import dataSourceManageApi from "@/services/dataSourceManage";
+import { DataSourceReqTypEnums } from "@/pages/DataAnalysis/service/enums";
+import dataSourceManageApi, {
+  SourceInfoType,
+} from "@/services/dataSourceManage";
 import { useState } from "react";
 
 const useDataSourceManage = () => {
   const [currentTyp, setCurrentTyp] = useState<number>(0);
-  const [sourceList, setSourceList] = useState<any[]>([]);
+  const [sourceList, setSourceList] = useState<SourceInfoType[]>([]);
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const [visibleDataSource, setVisibleDataSource] = useState<boolean>(false);
+  const [currentDataSource, setCurrentDataSource] = useState<SourceInfoType>();
+
+  const typList = [
+    {
+      value: DataSourceReqTypEnums.mysql,
+      title: "mysql",
+    },
+  ];
 
   const changeCurrentTyp = (num: number) => {
     setCurrentTyp(num);
@@ -18,6 +29,10 @@ const useDataSourceManage = () => {
 
   const changeIsUpdate = (flag: boolean) => {
     setIsUpdate(flag);
+  };
+
+  const changeCurrentDataSource = (value: SourceInfoType | undefined) => {
+    setCurrentDataSource(value);
   };
 
   // Source
@@ -61,7 +76,12 @@ const useDataSourceManage = () => {
     isUpdate,
     changeIsUpdate,
 
+    currentDataSource,
+    changeCurrentDataSource,
+
     sourceList,
+
+    typList,
 
     onSearch,
     onCreate,

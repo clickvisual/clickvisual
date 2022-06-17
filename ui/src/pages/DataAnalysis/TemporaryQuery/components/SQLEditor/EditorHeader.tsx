@@ -111,9 +111,11 @@ const EditorHeader = () => {
                 />
               </Tooltip>
             ) : (
-              ""
+              <>&nbsp;&nbsp;</>
             )}
-            {openNodeData.lockUid ? openNodeData.username + "正在编辑" : ""}
+            {openNodeData.lockUid
+              ? openNodeData.username || "无效用户" + "正在编辑"
+              : ""}
           </div>
         )}
         {/* 修改后且锁定者为自己才可见 */}
@@ -138,7 +140,7 @@ const EditorHeader = () => {
             />
           </Tooltip>
         )}
-        {folderContent.length > 0 && (
+        {folderContent.length > 0 && !isUpdateStateFun() && (
           <Tooltip title={"运行"}>
             <Button
               type={"link"}
