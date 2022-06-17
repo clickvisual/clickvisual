@@ -56,7 +56,7 @@ const LogContent = (props: LogContentProps) => {
         regSpeFlag ? (
           <LogContentParse
             foldingChecked={foldingChecked}
-            logContent={content.toString()}
+            logContent={content}
             keyItem={keyItem}
             quickInsertLikeQuery={quickInsertLikeQuery}
             quickInsertLikeExclusion={quickInsertLikeExclusion}

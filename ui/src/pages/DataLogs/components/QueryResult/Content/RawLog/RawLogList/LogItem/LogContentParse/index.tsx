@@ -22,11 +22,9 @@ const LogContentParse = ({
   foldingChecked,
 }: LogContentParseProps) => {
   const { highlightKeywords, isJsonFun } = useModel("dataLogs");
-
   const isNullList = ["\n", "\r\n", "", " "];
 
   let content;
-
   if (!isJsonFun(logContent)) {
     if (isNullList.includes(logContent)) {
       content = "";
