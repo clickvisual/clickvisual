@@ -16,13 +16,14 @@ func (m *BigdataFolder) TableName() string {
 type BigdataFolder struct {
 	BaseModel
 
-	Uid       int    `gorm:"column:uid;type:int(11)" json:"uid"` // uid of alarm operator
-	Iid       int    `gorm:"column:iid;type:int(11)" json:"iid"`
-	Name      string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // name of an alarm
-	Desc      string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"` // description
-	Primary   int    `gorm:"column:primary;type:int(11)" json:"primary"`
-	Secondary int    `gorm:"column:secondary;type:int(11)" json:"secondary"`
-	ParentId  int    `gorm:"column:parent_id;type:int(11)" db:"parent_id" json:"parentId"`
+	Uid        int    `gorm:"column:uid;type:int(11)" json:"uid"` // uid of alarm operator
+	Iid        int    `gorm:"column:iid;type:int(11)" json:"iid"`
+	Name       string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // name of an alarm
+	Desc       string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"` // description
+	Primary    int    `gorm:"column:primary;type:int(11)" json:"primary"`
+	Secondary  int    `gorm:"column:secondary;type:int(11)" json:"secondary"`
+	WorkflowId int    `gorm:"column:workflow_id;type:int(11)" json:"workflowId"`
+	ParentId   int    `gorm:"column:parent_id;type:int(11)" db:"parent_id" json:"parentId"`
 }
 
 func FolderInfo(db *gorm.DB, id int) (resp BigdataFolder, err error) {

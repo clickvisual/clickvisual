@@ -138,6 +138,25 @@ func InstanceList(c *core.Context) {
 	return
 }
 
+func InstanceInfo(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if !service.InstanceManager.ReadPermissionInstance(c.Uid(), id) {
+		c.JSONE(1, "authentication failed", nil)
+		return
+	}
+	res, err := db.InstanceInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
 func InstanceDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

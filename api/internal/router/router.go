@@ -123,6 +123,7 @@ func GetRouter() *egin.Component {
 		v1.POST("/sys/instances/test", core.Handle(base.InstanceTest))
 		v1.POST("/sys/instances", core.Handle(base.InstanceCreate))
 		v1.GET("/sys/instances", core.Handle(base.InstanceList))
+		v1.GET("/sys/instances/:id", core.Handle(base.InstanceInfo))
 		v1.PATCH("/sys/instances/:id", core.Handle(base.InstanceUpdate))
 		v1.DELETE("/sys/instances/:id", core.Handle(base.InstanceDelete))
 		v1.GET("/instances/:iid/columns-self-built", core.Handle(base.TableColumnsSelfBuilt))
@@ -188,7 +189,6 @@ func GetRouter() *egin.Component {
 		v1.POST("/pms/root/grant", core.Handle(permission.GrantRootUids))
 		v1.POST("/pms/check", core.Handle(permission.CheckPermission))
 		// bigdata
-		v1.GET("/bigdata/folders", core.Handle(bigdata.FolderList))
 		v1.GET("/bigdata/folders/:id", core.Handle(bigdata.FolderInfo))
 		v1.POST("/bigdata/folders", core.Handle(bigdata.FolderCreate))
 		v1.PATCH("/bigdata/folders/:id", core.Handle(bigdata.FolderUpdate))
@@ -200,7 +200,7 @@ func GetRouter() *egin.Component {
 		v1.POST("/bigdata/nodes/:id/run", core.Handle(bigdata.NodeRun))
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
 		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
-		// node lock
+		// bigdata node lock
 		v1.PATCH("/bigdata/nodes/:id/lock", core.Handle(bigdata.NodeLock))
 		v1.PATCH("/bigdata/nodes/:id/unlock", core.Handle(bigdata.NodeUnlock))
 		// source curl
