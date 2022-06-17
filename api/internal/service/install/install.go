@@ -14,11 +14,6 @@ import (
 )
 
 var models = []interface{}{
-	db.User{},
-	db.Event{},
-	db.Cluster{},
-	db.K8SConfigMap{},
-
 	db.BigdataWorkflow{},
 	db.BigdataSource{},
 	db.BigdataFolder{},
@@ -41,6 +36,11 @@ var models = []interface{}{
 	db.AlarmCondition{},
 	db.AlarmHistory{},
 	db.AlarmChannel{},
+
+	db.User{},
+	db.Event{},
+	db.Cluster{},
+	db.K8SConfigMap{},
 
 	db.PmsRole{},
 	db.PmsCustomRole{},

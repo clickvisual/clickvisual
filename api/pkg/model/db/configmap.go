@@ -16,7 +16,7 @@ type K8SConfigMap struct {
 
 	ClusterId int    `gorm:"column:cluster_id;type:int(11);index:uix_cluster_id_name_namespace,unique" json:"clusterId"` // 集群ID
 	Name      string `gorm:"column:name;type:varchar(128);index:uix_cluster_id_name_namespace,unique" json:"name"`
-	Namespace string `gorm:"column:namespace;type:varchar(128);index:uix_cluster_id_name_namespace,unique" json:"namespace"`
+	Namespace string `gorm:"column:namespace;type:varchar(64);index:uix_cluster_id_name_namespace,unique" json:"namespace"`
 }
 
 func (m *K8SConfigMap) TableName() string {
