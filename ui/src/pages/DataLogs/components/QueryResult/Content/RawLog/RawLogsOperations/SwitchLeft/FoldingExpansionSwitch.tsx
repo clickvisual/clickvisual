@@ -35,9 +35,7 @@ const FoldingExpansionSwitch = () => {
         onClick={handleChangeFoldingExpansionChecked}
       >
         {i18n.formatMessage({
-          id: `log.switch.${
-            oldPane?.foldingChecked ?? true ? "unfold" : "fold"
-          }`,
+          id: "log.switch.unfold",
         })}
       </span>
     </Space>
