@@ -1,6 +1,9 @@
 package node
 
 import (
+	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -33,10 +36,13 @@ func doTertiaryClickHouse(n *node) (res view.RespRunNode, err error) {
 	if err != nil {
 		return
 	}
+	invoker.Logger.Debug("node", elog.String("content", n.nc.Content))
 	tmp, err := op.Complete(n.nc.Content)
 	if err != nil {
+		invoker.Logger.Error("node", elog.String("step", "doTertiaryClickHouse"), elog.Any("err", err))
 		return
 	}
+	invoker.Logger.Debug("node", elog.Any("tmp", tmp), elog.Any("err", err))
 	res.Logs = tmp.Logs
 	return
 }
