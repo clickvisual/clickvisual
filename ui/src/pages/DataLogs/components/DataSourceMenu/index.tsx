@@ -1,6 +1,6 @@
 import dataSourceMenuStyles from "@/pages/DataLogs/components/DataSourceMenu/index.less";
 import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import { Empty } from "antd";
@@ -9,11 +9,11 @@ import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth"
 
 const MENU_MIN = 200;
 const MENU_MAX = 400;
-const MENU_DEFAULT = 200;
 
 const DataSourceMenu = () => {
   const { doGetDatabaseList, currentDatabase } = useModel("dataLogs");
-  const { foldingState, onChangeResizeMenuWidth } = useModel("dataLogs");
+  const { foldingState, onChangeResizeMenuWidth, resizeMenuWidth } =
+    useModel("dataLogs");
 
   const i18n = useIntl();
 
@@ -21,34 +21,25 @@ const DataSourceMenu = () => {
     doGetDatabaseList();
   }, []);
 
-  const storedMenuWidth = localStorage.getItem("app-left-menu-width");
-  const calculatedMenuWidth = storedMenuWidth
-    ? parseInt(storedMenuWidth, 10)
-    : MENU_DEFAULT;
-  const [menuWidth, setMenuWidth] = useState(calculatedMenuWidth);
-  const [expandLeftWidth, setExpandLeftWidth] = useState(calculatedMenuWidth);
-
   const handleResize = useCallback(
     (offset) => {
-      let res = menuWidth + offset;
+      let res = resizeMenuWidth + offset;
       if (res < MENU_MIN) {
         res = MENU_MIN;
       }
       if (res > MENU_MAX) {
         res = MENU_MAX;
       }
-      setMenuWidth(res);
-      setExpandLeftWidth(res);
       onChangeResizeMenuWidth(res);
     },
-    [menuWidth]
+    [resizeMenuWidth]
   );
 
   const handleToggleExpand = useCallback(
     (isExpend) => {
-      setMenuWidth(isExpend ? expandLeftWidth : 0);
+      onChangeResizeMenuWidth(isExpend ? resizeMenuWidth : 0);
     },
-    [expandLeftWidth]
+    [resizeMenuWidth]
   );
 
   const LogLibrary = useMemo(() => {
@@ -73,7 +64,7 @@ const DataSourceMenu = () => {
         dataSourceMenuStyles.dataSourceMenuMain,
         foldingState && dataSourceMenuStyles.dataSourceMenuHidden
       )}
-      style={{ width: `${expandLeftWidth}px` }}
+      style={{ width: `${resizeMenuWidth}px` }}
     >
       {LogLibrary}
       <ResizeWidth
