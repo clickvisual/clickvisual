@@ -1,17 +1,10 @@
 import style from "@/pages/DataAnalysis/DataSourceManage/index.less";
 import { Button, Select, Space } from "antd";
-import { DataSourceReqTypEnums } from "@/pages/DataAnalysis/service/enums";
 import { useModel } from "umi";
 const { Option } = Select;
-const dataSourceTypList = [
-  {
-    id: DataSourceReqTypEnums.mysql,
-    title: "mysql",
-  },
-];
 const SearchBar = () => {
   const { dataSourceManage } = useModel("dataAnalysis");
-  const { onSearch, changeCurrentTyp, changeVisibleDataSource } =
+  const { onSearch, changeCurrentTyp, changeVisibleDataSource, typList } =
     dataSourceManage;
 
   const handleCreate = () => {
@@ -26,9 +19,9 @@ const SearchBar = () => {
           style={{ width: "300px" }}
           onChange={(value: number) => changeCurrentTyp(value)}
         >
-          {dataSourceTypList.map((item: { id: number; title: string }) => {
+          {typList.map((item: { value: number; title: string }) => {
             return (
-              <Option value={item.id} key={item.id}>
+              <Option value={item.value} key={item.value}>
                 {item.title}
               </Option>
             );

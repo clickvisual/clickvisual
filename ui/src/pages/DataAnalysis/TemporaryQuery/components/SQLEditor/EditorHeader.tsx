@@ -12,7 +12,7 @@ import { format } from "sql-formatter";
 import classNames from "classnames";
 
 const EditorHeader = () => {
-  const { temporaryQuery, currentInstances } = useModel("dataAnalysis");
+  const { temporaryQuery } = useModel("dataAnalysis");
   const {
     openNodeData,
     folderContent,
@@ -24,7 +24,7 @@ const EditorHeader = () => {
     doLockNode,
     doUnLockNode,
     onGetFolderList,
-    doGetRunCode,
+    doRunCodekNode,
   } = temporaryQuery;
   const { currentUser } = useModel("@@initialState").initialState || {};
 
@@ -72,14 +72,7 @@ const EditorHeader = () => {
 
   // run
   const handleRunCode = () => {
-    currentInstances &&
-      doGetRunCode
-        .run(currentInstances, { query: folderContent })
-        .then((res: any) => {
-          if (res.code == 0) {
-            message.success("运行成功");
-          }
-        });
+    openNodeData?.id && doRunCodekNode.run(openNodeData?.id);
   };
 
   return (
@@ -111,9 +104,11 @@ const EditorHeader = () => {
                 />
               </Tooltip>
             ) : (
-              ""
+              <>&nbsp;&nbsp;</>
             )}
-            {openNodeData.lockUid ? openNodeData.username + "正在编辑" : ""}
+            {openNodeData.lockUid
+              ? openNodeData.username || "无效用户" + "正在编辑"
+              : ""}
           </div>
         )}
         {/* 修改后且锁定者为自己才可见 */}
@@ -138,7 +133,7 @@ const EditorHeader = () => {
             />
           </Tooltip>
         )}
-        {folderContent.length > 0 && (
+        {folderContent.length > 0 && !isUpdateStateFun() && (
           <Tooltip title={"运行"}>
             <Button
               type={"link"}
