@@ -38,17 +38,17 @@ const (
 	tertiaryRT         = 21
 )
 
-func Run(n *db.BigdataNode, nc *db.BigdataNodeContent) (err error) {
+func Run(n *db.BigdataNode, nc *db.BigdataNodeContent) (view.RespRunNode, error) {
 	// Building chains of Responsibility
 	t := &tertiary{}
 	s := &secondary{next: t}
 	p := &primary{next: s}
-	p.execute(&node{
+	return p.execute(&node{
 		n:             n,
 		nc:            nc,
 		primaryDone:   false,
 		secondaryDone: false,
 		tertiaryDone:  false,
 	})
-	return
+
 }

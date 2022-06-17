@@ -139,7 +139,7 @@ export default {
   // POST  runCode Node
   async runCodekNode(id: number) {
     return request(
-      process.env.PUBLIC_PATH + `api/v1//bigdata/nodes/${id}/run`,
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${id}/run`,
       {
         method: "POST",
       }

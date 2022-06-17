@@ -18,8 +18,7 @@ func (r *primary) execute(n *node) (res view.RespRunNode, err error) {
 	case primaryMining:
 	case primaryShort:
 	}
-	r.next.execute(n)
-	return
+	return r.next.execute(n)
 }
 
 func (r *primary) setNext(next department) {

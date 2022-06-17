@@ -1124,13 +1124,13 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 			invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
 			return
 		}
-		invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
 		for k, _ := range fields {
 			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
-			// if isEmpty(values[k]) {
-			// 	continue
-			// }
-			line[fields[k]] = values[k]
+			if isEmpty(values[k]) {
+				line[fields[k]] = ""
+			} else {
+				line[fields[k]] = values[k]
+			}
 		}
 		res = append(res, line)
 	}
@@ -1219,28 +1219,28 @@ func getUnixTime(val map[string]interface{}) (int64, bool) {
 
 // isEmpty filter empty index value
 func isEmpty(input interface{}) bool {
-	var key string
+	var val string
 	switch input.(type) {
 	case string:
-		key = input.(string)
+		val = input.(string)
 	case uint16:
-		key = fmt.Sprintf("%d", input.(uint16))
+		val = fmt.Sprintf("%d", input.(uint16))
 	case uint64:
-		key = fmt.Sprintf("%d", input.(uint64))
+		val = fmt.Sprintf("%d", input.(uint64))
 	case int32:
-		key = fmt.Sprintf("%d", input.(int32))
+		val = fmt.Sprintf("%d", input.(int32))
 	case int64:
-		key = fmt.Sprintf("%d", input.(int64))
+		val = fmt.Sprintf("%d", input.(int64))
 	case float64:
-		key = fmt.Sprintf("%f", input.(float64))
+		val = fmt.Sprintf("%f", input.(float64))
 	default:
 		if reflect.TypeOf(input) == nil {
 			return true
 		}
-		invoker.Logger.Warn("isEmpty", elog.String("key", key), elog.Any("type", reflect.TypeOf(input)))
+		invoker.Logger.Warn("isEmpty", elog.String("val", val), elog.Any("type", reflect.TypeOf(input)))
 		return false
 	}
-	if key == "" {
+	if val == "" || val == "NaN" {
 		return true
 	}
 	return false

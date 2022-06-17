@@ -10,8 +10,7 @@ type secondary struct {
 
 func (r *secondary) execute(n *node) (res view.RespRunNode, err error) {
 	if n.secondaryDone {
-		r.next.execute(n)
-		return
+		return r.next.execute(n)
 	}
 	n.secondaryDone = true
 	switch n.n.Secondary {
@@ -20,8 +19,7 @@ func (r *secondary) execute(n *node) (res view.RespRunNode, err error) {
 	case secondaryDataIntegration:
 	case secondaryDataMining:
 	}
-	r.next.execute(n)
-	return
+	return r.next.execute(n)
 }
 
 func (r *secondary) setNext(next department) {

@@ -267,7 +267,11 @@ func NodeRun(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res := node.Run(&n, &nc)
+	res, err := node.Run(&n, &nc)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
