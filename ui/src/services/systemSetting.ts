@@ -63,6 +63,13 @@ export default {
     );
   },
 
+  // Get instance Info
+  async getInstancesInfo(id: number) {
+    return request<API.Res<any>>(
+      process.env.PUBLIC_PATH + `api/v1/sys/instances/${id}`
+    );
+  },
+
   // Create an instance
   async createdInstance(data: InstanceType) {
     return request<API.Res<string>>(

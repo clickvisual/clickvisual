@@ -18,6 +18,10 @@ const Instances = () => {
     onSuccess: (res) => setInstanceList(res.data),
   });
 
+  const doGetInstanceInfo = useRequest(api.getInstancesInfo, {
+    loadingText: false,
+  });
+
   const doTestInstance = useRequest(api.testInstance, { loadingText: false });
 
   const doCreatedInstance = useRequest(api.createdInstance, {
@@ -54,6 +58,7 @@ const Instances = () => {
     selectedInstance,
     listLoading: getInstanceList.loading,
     doGetInstanceList,
+    doGetInstanceInfo,
     doTestInstance,
     doCreatedInstance,
     doUpdatedInstance,

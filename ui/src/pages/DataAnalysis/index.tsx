@@ -1,12 +1,13 @@
 import style from "./index.less";
-import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
-import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataAnalysisNav from "@/pages/DataAnalysis/Nav";
 import { useIntl, useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import { useMemo } from "react";
 import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
 import ScreeningRow from "@/pages/DataAnalysis/ScreeningRow";
+import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
+import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
+import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import { Empty } from "antd";
 
 const DataAnalysis = () => {
@@ -31,6 +32,8 @@ const DataAnalysis = () => {
         return <RealTimeTrafficFlow />;
       case BigDataNavEnum.OfflineManage:
         return <OfflineManager />;
+      case BigDataNavEnum.DataSourceManage:
+        return <DataSourceManage />;
       default:
         return <></>;
     }

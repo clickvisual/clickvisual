@@ -33,7 +33,7 @@ export default {
     primary: number;
     secondary: number;
   }) {
-    return request<any>(process.env.PUBLIC_PATH + `api/v1/bigdata/folders`, {
+    return request<any>(process.env.PUBLIC_PATH + `api/v1/bigdata/nodes`, {
       params,
     });
   },

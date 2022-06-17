@@ -95,3 +95,10 @@ export enum OfflineRightMenuClickSourceEnums {
    */
   dataDevelopment = "dataDevelopment",
 }
+
+export enum DataSourceReqTypEnums {
+  /**
+   * mysql
+   */
+  mysql = 1,
+}

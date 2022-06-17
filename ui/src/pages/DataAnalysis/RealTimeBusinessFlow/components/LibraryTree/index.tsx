@@ -6,7 +6,6 @@ import { useDebounceFn } from "ahooks";
 import { useIntl } from "umi";
 import { SearchOutlined } from "@ant-design/icons";
 import { DEBOUNCE_WAIT } from "@/config/config";
-import ScreeningRow from "@/pages/DataAnalysis/ScreeningRow";
 
 const LibraryTree = () => {
   const [form] = Form.useForm();

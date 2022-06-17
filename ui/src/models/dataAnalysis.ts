@@ -3,6 +3,7 @@ import systemApi from "@/services/systemSetting";
 import dataLogsApi from "@/services/dataLogs";
 import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
 import useTemporaryQuery from "@/models/dataanalysis/useTemporaryQuery";
+import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
 import { InstanceType } from "@/services/systemSetting";
 import { useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
@@ -15,6 +16,7 @@ const DataAnalysis = () => {
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
   const workflow = useWorkflow();
+  const dataSourceManage = useDataSourceManage();
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
@@ -52,6 +54,7 @@ const DataAnalysis = () => {
     realTimeTraffic,
     temporaryQuery,
     workflow,
+    dataSourceManage,
   };
 };
 
