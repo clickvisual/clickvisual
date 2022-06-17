@@ -2,7 +2,7 @@ import jsonViewStyles from "@/components/JsonView/index.less";
 import classNames from "classnames";
 import { LOGMAXTEXTLENGTH } from "@/config/config";
 import { Button, message } from "antd";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useIntl } from "umi";
 import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
@@ -57,33 +57,30 @@ const JsonStringValue = ({
 
   if (strListByReg.length <= 0) return <></>;
 
-  const highLightFlag = useCallback(
-    (value: string) => {
-      if (!highLightValue) {
-        return false;
+  const highLightFlag = (value: string) => {
+    if (!highLightValue) {
+      return false;
+    }
+    return !!highLightValue.find((item) => {
+      // 去掉 item.key 中的空格
+      const itemKey = item.key.replace(/\s+/g, "");
+      if (
+        (itemKey === keyItem && item.value.trim() === value.trim()) ||
+        item.value.trim() === `%${value}%`
+      ) {
+        return true;
+      } else if (
+        itemKey.search(".") !== -1 &&
+        indexKey === item.key &&
+        item.value === value
+      ) {
+        return true;
+      } else if (itemKey === "_raw_log_" && item.value === `%${value}%`) {
+        return true;
       }
-      return !!highLightValue.find((item) => {
-        // 去掉 item.key 中的空格
-        const itemKey = item.key.replace(/\s+/g, "");
-        if (
-          (itemKey === keyItem && item.value.trim() === value.trim()) ||
-          item.value.trim() === `%${value}%`
-        ) {
-          return true;
-        } else if (
-          itemKey.search(".") !== -1 &&
-          indexKey === item.key &&
-          item.value === value
-        ) {
-          return true;
-        } else if (itemKey === "_raw_log_" && item.value === `%${value}%`) {
-          return true;
-        }
-        return false;
-      });
-    },
-    [highLightValue, keyItem, indexKey, val]
-  );
+      return false;
+    });
+  };
 
   const jsonStringView = strListByReg.map((value, index) => {
     return (

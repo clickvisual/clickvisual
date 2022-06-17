@@ -42,6 +42,10 @@ const useLogPanes = () => {
       setPaneKeys((paneKeys) => [...paneKeys, key]);
     }
     const panes = { ...logPanes };
+    const paneFoldFlag = localStorage.getItem(`fold-log-flag${pane.paneId}`);
+    if (!!paneFoldFlag) {
+      pane.foldingChecked = JSON.parse(paneFoldFlag).foldingChecked;
+    }
     panes[key] = { ...DefaultPane, ...pane };
     setLogPanes(panes);
   };
@@ -53,6 +57,15 @@ const useLogPanes = () => {
   ) => {
     const panes = { ...(oldPanes ?? logPanes) };
     panes[key] = newPane;
+    if (newPane.paneId) {
+      localStorage.setItem(
+        `fold-log-flag${newPane.paneId}`,
+        JSON.stringify({
+          paneId: newPane.paneId,
+          foldingChecked: newPane.foldingChecked,
+        })
+      );
+    }
     setLogPanes(panes);
   };
 
