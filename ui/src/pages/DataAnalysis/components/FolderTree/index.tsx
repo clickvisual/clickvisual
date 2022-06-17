@@ -9,14 +9,14 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { DataNode } from "antd/lib/tree";
-import "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/index";
-import CreateAndUpdateFolder from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/CreateAndUpdateFolder";
-import CreateAndUpdateNode from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/CreateAndUpdateNode";
+import "@/pages/DataAnalysis/components/FolderTree/index";
+import CreateAndUpdateFolder from "@/pages/DataAnalysis/components/FolderTree/CreateAndUpdateFolder";
+import CreateAndUpdateNode from "@/pages/DataAnalysis/components/FolderTree/CreateAndUpdateNode";
 import { useEffect, useState } from "react";
 import React, { useMemo } from "react";
 import { Key } from "antd/lib/table/interface";
 import { useModel } from "umi";
-import FolderTiele from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree/FolderTiele";
+import FolderTitle from "@/pages/DataAnalysis/components/FolderTree/FolderTitle";
 
 const { DirectoryTree } = Tree;
 
@@ -108,13 +108,19 @@ const FolderTree: React.FC = () => {
         const keyValueList = item.key.toString().split("_");
         if (item.children && item.children.length > 0) {
           return {
-            title: <FolderTiele id={parseInt(keyValueList[1])} title={title} />,
+            title: (
+              <FolderTitle
+                item={item}
+                id={parseInt(keyValueList[1])}
+                title={title}
+              />
+            ),
             key: item.key,
             children: loop(item.children),
           };
         }
         return {
-          title: <FolderTiele id={parseInt(keyValueList[1])} title={title} />,
+          title: <FolderTitle id={parseInt(keyValueList[1])} title={title} />,
           icon: keyValueList[4] == "true" && (
             <FileOutlined style={{ color: "#2FABEE" }} />
           ),

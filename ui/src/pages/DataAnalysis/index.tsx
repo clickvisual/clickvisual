@@ -1,13 +1,13 @@
 import style from "./index.less";
-import DataAnalysisNav from "@/pages/DataAnalysis/Nav";
+import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
+import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
+import DataAnalysisNav from "@/pages/DataAnalysis/components/Nav";
+import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
 import { useIntl, useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import { useMemo } from "react";
 import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
-import ScreeningRow from "@/pages/DataAnalysis/ScreeningRow";
-import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
-import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
-import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
+import ScreeningRow from "@/pages/DataAnalysis/components/ScreeningRow";
 import { Empty } from "antd";
 
 const DataAnalysis = () => {
