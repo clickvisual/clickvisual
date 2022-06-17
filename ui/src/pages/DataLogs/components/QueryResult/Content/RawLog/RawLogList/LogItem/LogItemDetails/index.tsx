@@ -197,11 +197,18 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
 
       const isNotTimeKey = !["_time_nanosecond_"].includes(keyItem);
 
-      const content = isIndexAndRawLogKey
-        ? rawLogJson[keyItem]
-        : newLog.hasOwnProperty(keyItem)
-        ? newLog[keyItem]
-        : "";
+      let content = "";
+      if (isIndexAndRawLogKey && !!parseJsonObject(rawLogJson[keyItem])) {
+        content = JSON.stringify(rawLogJson[keyItem]);
+      }
+
+      if (isIndexAndRawLogKey && !parseJsonObject(rawLogJson[keyItem])) {
+        content = rawLogJson[keyItem];
+      }
+
+      if (!isIndexAndRawLogKey && newLog.hasOwnProperty(keyItem)) {
+        content = newLog[keyItem];
+      }
 
       let regSpeFlag = false;
 

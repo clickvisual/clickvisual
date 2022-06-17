@@ -18,7 +18,7 @@ interface onInsertQuery {
 }
 
 const LogItemDetailsContent = (props: onInsertQuery) => {
-  const [isHidden, setisHidden] = useState<boolean>(true);
+  const [isHidden, setIsHidden] = useState<boolean>(true);
   const {
     onInsertQuery,
     content,
@@ -60,7 +60,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
           }}
           shape="round"
           size="small"
-          onClick={() => setisHidden(!isHidden)}
+          onClick={() => setIsHidden(!isHidden)}
         >
           {isHidden
             ? i18n.formatMessage({ id: "systemSetting.role.collapseX.unfold" })
