@@ -8,7 +8,6 @@ import {
   SecondaryEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
-import dataLogsApi from "@/services/dataLogs";
 
 export interface openNodeDataType {
   lockUid: number;
@@ -103,13 +102,6 @@ const useTemporaryQuery = () => {
     loadingText: false,
   });
 
-  const doGetRunCode = useRequest(dataLogsApi.getStatisticalTable, {
-    loadingText: {
-      loading: "运行中",
-      done: "运行成功",
-    },
-  });
-
   // Node
   const doCreatedNode = useRequest(dataAnalysis.createdNode, {
     loadingText: false,
@@ -133,6 +125,13 @@ const useTemporaryQuery = () => {
 
   const doUnLockNode = useRequest(dataAnalysis.unLockNode, {
     loadingText: false,
+  });
+
+  const doRunCodekNode = useRequest(dataAnalysis.runCodekNode, {
+    loadingText: {
+      loading: "运行中",
+      done: "运行成功",
+    },
   });
 
   const primaryList = [
@@ -349,7 +348,6 @@ const useTemporaryQuery = () => {
     doCreatedFolder,
     doDeleteFolder,
     doUpdateFolder,
-    doGetRunCode,
 
     doCreatedNode,
     doUpdateNode,
@@ -357,6 +355,7 @@ const useTemporaryQuery = () => {
     doDeleteNode,
     doLockNode,
     doUnLockNode,
+    doRunCodekNode,
   };
 };
 export default useTemporaryQuery;

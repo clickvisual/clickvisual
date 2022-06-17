@@ -12,7 +12,7 @@ import { format } from "sql-formatter";
 import classNames from "classnames";
 
 const EditorHeader = () => {
-  const { temporaryQuery, currentInstances } = useModel("dataAnalysis");
+  const { temporaryQuery } = useModel("dataAnalysis");
   const {
     openNodeData,
     folderContent,
@@ -24,7 +24,7 @@ const EditorHeader = () => {
     doLockNode,
     doUnLockNode,
     onGetFolderList,
-    doGetRunCode,
+    doRunCodekNode,
   } = temporaryQuery;
   const { currentUser } = useModel("@@initialState").initialState || {};
 
@@ -72,14 +72,7 @@ const EditorHeader = () => {
 
   // run
   const handleRunCode = () => {
-    currentInstances &&
-      doGetRunCode
-        .run(currentInstances, { query: folderContent })
-        .then((res: any) => {
-          if (res.code == 0) {
-            message.success("运行成功");
-          }
-        });
+    openNodeData?.id && doRunCodekNode.run(openNodeData?.id);
   };
 
   return (
