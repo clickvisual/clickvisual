@@ -25,7 +25,7 @@ const EditorContent = () => {
           },
           readOnly: !(openNodeData && openNodeData.lockUid === currentUser?.id),
         }}
-        value={folderContent || openNodeData?.content}
+        value={folderContent}
         onChange={onChangeFolderContent}
       />
     </div>

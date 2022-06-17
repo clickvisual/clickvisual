@@ -51,6 +51,7 @@ const CreatedOrUpdatedInstanceModal = (
     doCreatedInstance,
     doUpdatedInstance,
     doGetInstanceList,
+    doGetInstanceInfo,
     doTestInstance,
   } = useModel("instances");
 
@@ -120,30 +121,34 @@ const CreatedOrUpdatedInstanceModal = (
   };
 
   useEffect(() => {
-    if (visible && isEditor && current) {
-      const cloneCurrent: any = cloneDeep(current);
-      if (!cloneCurrent.configmap || cloneCurrent.configmap === "") {
-        cloneCurrent.clusterId = undefined;
-      }
-      if (
-        cloneCurrent.configmap &&
-        cloneCurrent.namespace &&
-        cloneCurrent.configmap !== "" &&
-        cloneCurrent.namespace !== ""
-      ) {
-        doGetConfigMaps(cloneCurrent.clusterId);
-        cloneCurrent.k8sConfig = [
-          cloneCurrent.namespace,
-          cloneCurrent.configmap,
-        ];
-      }
-      if (cloneCurrent.ruleStoreType > 0) onChangeMoreOptionFlag(true);
-      cloneCurrent.replicaStatus === 0
-        ? (cloneCurrent.replicaStatus = true)
-        : (cloneCurrent.replicaStatus = false);
-      instanceFormRef.current?.setFieldsValue(cloneCurrent);
+    if (visible && isEditor && current && current?.id) {
+      doGetInstanceInfo.run(current.id).then((res: any) => {
+        if (res.code == 0) {
+          const cloneCurrent: any = cloneDeep(res.data);
+          if (!cloneCurrent.configmap || cloneCurrent.configmap === "") {
+            cloneCurrent.clusterId = undefined;
+          }
+          if (
+            cloneCurrent.configmap &&
+            cloneCurrent.namespace &&
+            cloneCurrent.configmap !== "" &&
+            cloneCurrent.namespace !== ""
+          ) {
+            doGetConfigMaps(cloneCurrent.clusterId);
+            cloneCurrent.k8sConfig = [
+              cloneCurrent.namespace,
+              cloneCurrent.configmap,
+            ];
+          }
+          if (cloneCurrent.ruleStoreType > 0) onChangeMoreOptionFlag(true);
+          cloneCurrent.replicaStatus === 0
+            ? (cloneCurrent.replicaStatus = true)
+            : (cloneCurrent.replicaStatus = false);
+          instanceFormRef.current?.setFieldsValue(cloneCurrent);
+        }
+      });
     }
-  }, [visible, isEditor, current]);
+  }, [visible, isEditor, current, current?.id]);
 
   const formItemLayout = {
     labelCol: {
