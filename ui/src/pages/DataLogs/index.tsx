@@ -16,6 +16,7 @@ const DataLogs = () => {
     logPanesHelper,
   } = useModel("dataLogs");
   useLogUrlParams();
+
   useEffect(() => {
     return () => {
       onChangeVisibleDatabaseDraw(false);

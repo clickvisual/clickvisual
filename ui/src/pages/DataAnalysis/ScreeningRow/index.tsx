@@ -13,8 +13,10 @@ const ScreeningRow = (props: { style?: any }) => {
     doGetInstance,
     setInstances,
     realTimeTraffic,
+    workflow,
   } = useModel("dataAnalysis");
   const { setDatabases, setTables, setNodes, setEdges } = realTimeTraffic;
+  const { setIsFold } = workflow;
 
   useEffect(() => {
     doGetInstance.run().then((res) => setInstances(res?.data ?? []));
@@ -47,6 +49,7 @@ const ScreeningRow = (props: { style?: any }) => {
           setTables([]);
           setNodes([]);
           setEdges([]);
+          setIsFold(false);
           onChangeCurrentInstances(iid);
           if (iid) {
             doGetDatabase

@@ -78,14 +78,14 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
         systemFields.forEach(
           (field) =>
             resultLog[field] &&
-            tagFields.push({ field, content: resultLog[field] })
+            tagFields.push({ field, content: JSON.stringify(resultLog[field]) })
         );
       }
       if (indexList.length > 0) {
         indexList.forEach(
           (field) =>
             resultLog[field] &&
-            tagFields.push({ field, content: resultLog[field] })
+            tagFields.push({ field, content: JSON.stringify(resultLog[field]) })
         );
       }
       if (secondaryIndexList.length > 0) {

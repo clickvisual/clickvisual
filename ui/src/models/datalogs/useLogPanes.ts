@@ -10,6 +10,7 @@ import {
 import { currentTimeStamp } from "@/utils/momentUtils";
 import moment from "moment";
 import { PaneType } from "@/models/datalogs/types";
+import useLocalStorages from "@/hooks/useLocalStorages";
 
 export const DefaultPane = {
   start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
@@ -22,13 +23,14 @@ export const DefaultPane = {
   highCharts: undefined,
   logs: undefined,
   histogramChecked: true,
-  foldingChecked: true,
+  foldingChecked: false,
 };
 
 const useLogPanes = () => {
   // 日志 Tab 标签
   const [logPanes, setLogPanes] = useState<{ [Key: string]: PaneType }>({});
   const [paneKeys, setPaneKeys] = useState<string[]>([]);
+  const { onChangeFoldLogStorage, getCurrentFoldLogFlag } = useLocalStorages();
 
   const removeLogPane = (key: string) => {
     const currentPanes = { ...logPanes };
@@ -42,9 +44,11 @@ const useLogPanes = () => {
       setPaneKeys((paneKeys) => [...paneKeys, key]);
     }
     const panes = { ...logPanes };
-    const paneFoldFlag = localStorage.getItem(`fold-log-flag${pane.paneId}`);
-    if (!!paneFoldFlag) {
-      pane.foldingChecked = JSON.parse(paneFoldFlag).foldingChecked;
+    const storage = getCurrentFoldLogFlag(pane.paneId);
+    if (storage) {
+      pane.foldingChecked = storage.flag;
+    } else {
+      onChangeFoldLogStorage({ tid: pane.paneId, flag: pane.foldingChecked });
     }
     panes[key] = { ...DefaultPane, ...pane };
     setLogPanes(panes);
@@ -57,15 +61,11 @@ const useLogPanes = () => {
   ) => {
     const panes = { ...(oldPanes ?? logPanes) };
     panes[key] = newPane;
-    if (newPane.paneId) {
-      localStorage.setItem(
-        `fold-log-flag${newPane.paneId}`,
-        JSON.stringify({
-          paneId: newPane.paneId,
-          foldingChecked: newPane.foldingChecked,
-        })
-      );
-    }
+    onChangeFoldLogStorage({
+      tid: newPane.paneId,
+      flag: newPane.foldingChecked,
+    });
+
     setLogPanes(panes);
   };
 
