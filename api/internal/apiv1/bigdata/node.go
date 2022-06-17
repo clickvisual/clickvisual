@@ -6,6 +6,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/node"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -247,20 +248,26 @@ func NodeList(c *core.Context) {
 }
 
 func NodeRun(c *core.Context) {
-	var req view.ReqListNode
-	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	conds := egorm.Conds{}
-	if req.WorkflowId != 0 {
-		conds["workflow_id"] = req.WorkflowId
-	}
-	res, err := db.NodeList(conds)
+	n, err := db.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	if n.LockUid != 0 {
+		c.JSONE(1, "please save and try again", nil)
+		return
+	}
+	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res := node.Run(&n, &nc)
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }

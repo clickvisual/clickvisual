@@ -172,4 +172,8 @@ type (
 		Username string `json:"username"`
 		Nickname string `json:"nickname"`
 	}
+
+	RespRunNode struct {
+		Logs []map[string]interface{} `json:"logs"`
+	}
 )
