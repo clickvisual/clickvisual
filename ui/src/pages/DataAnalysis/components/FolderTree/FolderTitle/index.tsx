@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useModel } from "umi";
 import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
 
-const FolderTiele = (props: { id: number; title: any }) => {
+const FolderTitle = (props: { id: number; title: any }) => {
   const { id, title } = props;
   const [visibleDropdown, setVisibleDropdown] = useState<boolean>(false);
   const { currentInstances, temporaryQuery } = useModel("dataAnalysis");
@@ -136,4 +136,4 @@ const FolderTiele = (props: { id: number; title: any }) => {
   );
 };
 
-export default FolderTiele;
+export default FolderTitle;

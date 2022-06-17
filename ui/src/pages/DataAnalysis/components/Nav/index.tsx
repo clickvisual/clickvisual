@@ -1,4 +1,4 @@
-import style from "../index.less";
+import style from "../../index.less";
 import {
   ClusterOutlined,
   MonitorOutlined,

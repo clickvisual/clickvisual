@@ -1,4 +1,4 @@
-import DataAnalysisStyle from "../index.less";
+import DataAnalysisStyle from "../../index.less";
 import { Select, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
 import { useEffect, useMemo } from "react";
