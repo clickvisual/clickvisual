@@ -27,8 +27,8 @@ type BigdataSource struct {
 }
 
 const (
-	SourceTypClickHouse = 1
-	SourceTypMySQL      = 2
+	SourceTypMySQL      = 1
+	SourceTypClickHouse = 2
 )
 
 func SourceInfo(db *gorm.DB, id int) (resp BigdataSource, err error) {

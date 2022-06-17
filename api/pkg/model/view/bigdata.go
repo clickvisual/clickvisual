@@ -18,12 +18,6 @@ type ReqUpdateFolder struct {
 	ParentId int    `json:"parentId" form:"parentId"`
 }
 
-type ReqListFolder struct {
-	Iid       int `json:"iid" form:"iid"  binding:"required"`
-	Primary   int `json:"primary" form:"primary" binding:"required"`
-	Secondary int `json:"secondary" form:"secondary"`
-}
-
 type RespListFolder struct {
 	Id       int               `json:"id"`
 	Name     string            `json:"name"`
@@ -153,7 +147,9 @@ type (
 	}
 
 	ReqListNode struct {
-		Iid        int `json:"iid" form:"iid" binding:"required"`
+		Iid        int `json:"iid" form:"iid"  binding:"required"`
+		Primary    int `json:"primary" form:"primary" binding:"required"`
+		Secondary  int `json:"secondary" form:"secondary"`
 		FolderId   int `json:"folderId" form:"folderId"`
 		WorkflowId int `json:"workflowId" form:"workflowId"`
 	}
