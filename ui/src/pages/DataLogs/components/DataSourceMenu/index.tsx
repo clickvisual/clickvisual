@@ -64,7 +64,7 @@ const DataSourceMenu = () => {
         dataSourceMenuStyles.dataSourceMenuMain,
         foldingState && dataSourceMenuStyles.dataSourceMenuHidden
       )}
-      style={{ width: `${resizeMenuWidth}px` }}
+      style={{ flex: `0 0 ${resizeMenuWidth}px` }}
     >
       {LogLibrary}
       <ResizeWidth
