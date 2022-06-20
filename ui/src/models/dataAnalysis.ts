@@ -5,7 +5,7 @@ import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
 import useTemporaryQuery from "@/models/dataanalysis/useTemporaryQuery";
 import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
 import { InstanceType } from "@/services/systemSetting";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
 
 const DataAnalysis = () => {
@@ -37,6 +37,13 @@ const DataAnalysis = () => {
   const doGetTables = useRequest(dataLogsApi.getTableList, {
     loadingText: false,
   });
+
+  useEffect(() => {
+    temporaryQuery.changeOpenNodeId(0);
+    temporaryQuery.changeOpenNodeParentId(0);
+    temporaryQuery.changeOpenNodeData(undefined);
+    temporaryQuery.changeFolderContent("");
+  }, [navKey]);
 
   return {
     instances,
