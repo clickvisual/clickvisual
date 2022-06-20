@@ -662,8 +662,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 		for k := range res.Logs {
 			if param.TimeFieldType == db.TimeFieldTypeTsMs {
 				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
+				res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField].(int64)
 			} else {
 				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
+				res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField]
 			}
 		}
 	}
@@ -1012,7 +1014,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 
 	selectFields := genSelectFields(tid)
 
-	if param.Page*param.PageSize <= 100 {
+	if param.Page*param.PageSize <= 100 && param.TimeField == db.TimeFieldSecond {
 		timeFieldEqual := c.TimeFieldEqual(param, tid)
 		if timeFieldEqual != "" {
 			sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
