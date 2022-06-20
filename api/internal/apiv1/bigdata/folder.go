@@ -17,13 +17,14 @@ func FolderCreate(c *core.Context) {
 		return
 	}
 	obj := &db.BigdataFolder{
-		Uid:       c.Uid(),
-		Name:      req.Name,
-		Desc:      req.Desc,
-		ParentId:  req.ParentId,
-		Primary:   req.Primary,
-		Secondary: req.Secondary,
-		Iid:       req.Iid,
+		Uid:        c.Uid(),
+		Name:       req.Name,
+		Desc:       req.Desc,
+		ParentId:   req.ParentId,
+		Primary:    req.Primary,
+		Secondary:  req.Secondary,
+		Iid:        req.Iid,
+		WorkflowId: req.WorkflowId,
 	}
 	err := db.FolderCreate(invoker.Db, obj)
 	if err != nil {

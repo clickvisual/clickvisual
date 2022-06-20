@@ -1,5 +1,5 @@
 [app]
-# hashStatecode
+isMultiCopy = false  # multi-copy mode: Redis must be configured, otherwise the service cannot start
 secretKey = "secretKey"
 rootURL = "http://localhost:19001"
 baseURL = "/api/admin/login/"
@@ -29,6 +29,12 @@ port = 19011
 # log level, avaliable level: "debug", "info", "warn", "error", "panic", "fatal"
 level = "debug"
 name = "clickvisual.log"
+
+[redis]
+debug = true
+addr = "127.0.0.1:6379"
+writeTimeout = "3s"
+password = "hA5pHeXHZzdH"
 
 [mysql]
 debug = true

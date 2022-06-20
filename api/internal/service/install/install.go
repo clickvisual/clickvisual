@@ -59,6 +59,8 @@ func Install() (err error) {
 	if err != nil {
 		return
 	}
+
+	// v2 -> v3 upgrade
 	var ot string
 	d.Raw("SHOW TABLES LIKE 'mogo_user';").Row().Scan(&ot)
 	if ot == "mogo_user" {

@@ -19,25 +19,6 @@ type department interface {
 	setNext(department)
 }
 
-const (
-	primaryMining = 1
-	primaryShort  = 3
-)
-
-const (
-	secondaryAny             = 0
-	secondaryDatabase        = 1
-	secondaryDataIntegration = 2
-	secondaryDataMining      = 3
-)
-
-const (
-	tertiaryClickHouse = 10
-	tertiaryMySQL      = 11
-	tertiaryOffline    = 20
-	tertiaryRT         = 21
-)
-
 func Run(n *db.BigdataNode, nc *db.BigdataNodeContent) (view.RespRunNode, error) {
 	// Building chains of Responsibility
 	t := &tertiary{}

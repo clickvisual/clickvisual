@@ -2,7 +2,9 @@ package invoker
 
 import (
 	"github.com/ego-component/egorm"
+	"github.com/ego-component/eredis"
 	"github.com/gin-gonic/gin"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egin"
 
@@ -15,6 +17,7 @@ var (
 	Gin     *egin.Component
 	Logger  *elog.Component
 	Session gin.HandlerFunc
+	Redis   *eredis.Component
 )
 
 // Init invoker
@@ -23,5 +26,9 @@ func Init() (err error) {
 	Logger = elog.Load("logger").Build()
 	Session = session.Load("auth").Build()
 	Gin = egin.Load("server.http").Build(egin.WithEmbedFs(ui.WebUI))
+
+	if econf.GetBool("app.isMultiCopy") {
+		Redis = eredis.Load("redis").Build()
+	}
 	return nil
 }

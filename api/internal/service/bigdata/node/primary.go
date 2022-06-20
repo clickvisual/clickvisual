@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
@@ -15,8 +16,8 @@ func (r *primary) execute(n *node) (res view.RespRunNode, err error) {
 	}
 	n.secondaryDone = true
 	switch n.n.Primary {
-	case primaryMining:
-	case primaryShort:
+	case db.PrimaryMining:
+	case db.PrimaryShort:
 	}
 	return r.next.execute(n)
 }

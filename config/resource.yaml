@@ -20,6 +20,8 @@ permission:
         path: /alarm/notifications
   - name: configure
     path: /configure
+  - name: bigdata
+    path: /bigdata
   - name: systemSettings
     path: /sys
     children:
@@ -94,5 +96,4 @@ permission:
           - path: /api/v1/pms/check
             name: 查询权限
             method: POST
-  - name: bigdata
-    path: /bigdata
+
