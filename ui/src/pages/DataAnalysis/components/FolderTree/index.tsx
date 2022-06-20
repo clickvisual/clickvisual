@@ -56,7 +56,12 @@ const FolderTree: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
-  const { currentInstances, temporaryQuery } = useModel("dataAnalysis");
+  const {
+    currentInstances,
+    temporaryQuery,
+    changeOpenNodeId,
+    changeOpenNodeParentId,
+  } = useModel("dataAnalysis");
 
   const {
     fileList,
@@ -65,8 +70,6 @@ const FolderTree: React.FC = () => {
     changeVisibleNode,
     currentFolder,
     onKeyToImportantInfo,
-    changeOpenNodeId,
-    changeOpenNodeParentId,
   } = temporaryQuery;
 
   const onExpand = (newExpandedKeys: Key[]) => {

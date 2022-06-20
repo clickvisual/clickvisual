@@ -12,21 +12,21 @@ import { format } from "sql-formatter";
 import classNames from "classnames";
 
 const EditorHeader = () => {
-  const { temporaryQuery, changeSqlQueryResults, changeVisibleSqlQuery } =
-    useModel("dataAnalysis");
   const {
+    changeSqlQueryResults,
+    changeVisibleSqlQuery,
     openNodeData,
     folderContent,
     changeFolderContent,
     isUpdateStateFun,
     openNodeParentId,
     openNodeId,
+    onGetFolderList,
     doUpdateNode,
     doLockNode,
     doUnLockNode,
-    onGetFolderList,
     doRunCodekNode,
-  } = temporaryQuery;
+  } = useModel("dataAnalysis");
   const { currentUser } = useModel("@@initialState").initialState || {};
 
   // 锁定节点

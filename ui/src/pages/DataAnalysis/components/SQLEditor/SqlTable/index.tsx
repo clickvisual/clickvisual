@@ -1,6 +1,6 @@
-import { Modal, Table } from "antd";
+import { Drawer, Table } from "antd";
 import { ColumnsType } from "antd/lib/table";
-import classNames from "classnames";
+// import classNames from "classnames";
 import { useMemo, useState } from "react";
 import { useModel } from "umi";
 
@@ -46,11 +46,12 @@ const SqlTable = () => {
     return columnArr;
   }, [sqlQueryResults]);
   return (
-    <Modal
-      visible={visibleSqlQuery}
+    <Drawer
       title="运行结果"
-      width={"80%"}
-      onCancel={() => changeVisibleSqlQuery(false)}
+      placement="bottom"
+      height={"70%"}
+      onClose={() => changeVisibleSqlQuery(false)}
+      visible={visibleSqlQuery}
     >
       {/* <div className={classNames(queryResultStyles.sqlTable)}> */}
       <Table
@@ -64,7 +65,7 @@ const SqlTable = () => {
         }}
       />
       {/* </div> */}
-    </Modal>
+    </Drawer>
   );
 };
 export default SqlTable;
