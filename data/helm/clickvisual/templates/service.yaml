@@ -7,9 +7,13 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - name: server
+      port: { { .Values.service.port } }
       protocol: TCP
-      name: http
+      targetPort: server
+    - name: governor
+      port: 19011
+      protocol: TCP
+      targetPort: governor
   selector:
     {{- include "clickvisual.selectorLabels" . | nindent 4 }}
