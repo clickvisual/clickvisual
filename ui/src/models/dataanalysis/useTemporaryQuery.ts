@@ -52,6 +52,10 @@ const useTemporaryQuery = () => {
     setOpenNodeParentId(parentId);
   };
 
+  const changeOpenNodeData = (value: any) => {
+    setOpenNodeData(value);
+  };
+
   const changeVisibleFolder = (flag: boolean) => {
     setVisibleFolder(flag);
     !flag && setIsUpdateFolder(false);
@@ -329,6 +333,8 @@ const useTemporaryQuery = () => {
     changeFolderContent,
 
     openNodeData,
+    changeOpenNodeData,
+
     openNodeId,
     changeOpenNodeId,
 
