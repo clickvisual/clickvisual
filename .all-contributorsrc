@@ -119,6 +119,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "laojianzi",
+      "name": "Jeff Li",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42930263?v=4",
+      "profile": "http://laojianzi.github.io",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
