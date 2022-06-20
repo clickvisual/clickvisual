@@ -1,4 +1,4 @@
-import WorkflowSql from "@/pages/DataAnalysis/TemporaryQuery/components/SQLEditor";
+import WorkflowSql from "@/pages/DataAnalysis/components/SQLEditor";
 
 const WorkflowContent = () => {
   return <>{true ? <WorkflowSql /> : <></>}</>;

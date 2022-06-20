@@ -1,4 +1,4 @@
-import style from "@/pages/DataAnalysis/TemporaryQuery/components/SQLEditor/index.less";
+import style from "@/pages/DataAnalysis/components/SQLEditor/index.less";
 import { Button, message, Tooltip } from "antd";
 import {
   FormatPainterOutlined,

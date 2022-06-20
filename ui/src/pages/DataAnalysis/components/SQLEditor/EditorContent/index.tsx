@@ -1,4 +1,4 @@
-import style from "@/pages/DataAnalysis/TemporaryQuery/components/SQLEditor/index.less";
+import style from "@/pages/DataAnalysis/components/SQLEditor/index.less";
 import MonacoEditor from "react-monaco-editor";
 import { useModel } from "umi";
 
