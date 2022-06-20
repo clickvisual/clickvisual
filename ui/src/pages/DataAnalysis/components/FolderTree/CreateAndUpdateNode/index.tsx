@@ -11,15 +11,19 @@ const { Option } = Select;
 
 const CreateAndUpdateNode = () => {
   const folderForm = useRef<FormInstance>(null);
-  const { currentInstances, temporaryQuery, navKey } = useModel("dataAnalysis");
+  const {
+    currentInstances,
+    temporaryQuery,
+    navKey,
+    doCreatedNode,
+    doUpdateNode,
+  } = useModel("dataAnalysis");
   const primary = navKey == BigDataNavEnum.TemporaryQuery ? 3 : 0;
 
   const {
     secondaryList,
     tertiaryList,
     getDataList,
-    doCreatedNode,
-    doUpdateNode,
     currentFolder,
     isUpdateNode,
     visibleNode,

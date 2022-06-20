@@ -1,18 +1,18 @@
-import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
+import style from "@/pages/DataAnalysis/components/SQLEditor/index.less";
 import MonacoEditor from "react-monaco-editor";
 import { useModel } from "umi";
 
 const EditorContent = () => {
-  const { temporaryQuery } = useModel("dataAnalysis");
+  const { openNodeData, changeFolderContent, folderContent } =
+    useModel("dataAnalysis");
   const { currentUser } = useModel("@@initialState").initialState || {};
-  const { openNodeData, changeFolderContent, folderContent } = temporaryQuery;
 
   const onChangeFolderContent = (value: string) => {
     changeFolderContent(value);
   };
 
   return (
-    <div className={TemporaryQueryStyle.context}>
+    <div className={style.context}>
       <MonacoEditor
         height={"100%"}
         language={"mysql"}

@@ -1,4 +1,5 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
+import FolderTreeStyle from "@/pages/DataAnalysis/components/FolderTree/index.less";
 import { Empty, Input, message, Tooltip, Tree } from "antd";
 import {
   DownOutlined,
@@ -55,7 +56,12 @@ const FolderTree: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
-  const { currentInstances, temporaryQuery } = useModel("dataAnalysis");
+  const {
+    currentInstances,
+    temporaryQuery,
+    changeOpenNodeId,
+    changeOpenNodeParentId,
+  } = useModel("dataAnalysis");
 
   const {
     fileList,
@@ -64,8 +70,6 @@ const FolderTree: React.FC = () => {
     changeVisibleNode,
     currentFolder,
     onKeyToImportantInfo,
-    changeOpenNodeId,
-    changeOpenNodeParentId,
   } = temporaryQuery;
 
   const onExpand = (newExpandedKeys: Key[]) => {
@@ -217,7 +221,7 @@ const FolderTree: React.FC = () => {
           <FilterOutlined />
         </div> */}
       </div>
-      <div className={TemporaryQueryStyle.content}>
+      <div className={FolderTreeStyle.content}>
         {treeData.length > 0 ? (
           <DirectoryTree
             // showLine

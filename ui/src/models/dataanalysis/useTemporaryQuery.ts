@@ -25,14 +25,8 @@ const useTemporaryQuery = () => {
   const [visibleNode, setVisibleNode] = useState<boolean>(false);
   const [isUpdateFolder, setIsUpdateFolder] = useState<boolean>(false);
   const [isUpdateNode, setIsUpdateNode] = useState<boolean>(false);
-  // 打开的文件节点id
-  const [openNodeId, setOpenNodeId] = useState<number>();
-  // 打开的文件节点父级id
-  const [openNodeParentId, setOpenNodeParentId] = useState<number>();
-  const [openNodeData, setOpenNodeData] = useState<openNodeDataType>();
+
   const [fileList, setFileList] = useState<DataNode[]>();
-  // 节点修改后的value
-  const [folderContent, setFolderContent] = useState<string>("");
   // 选中包括右键的节点|文件的数据临时存储
   const [currentFolder, setCurrentFolder] = useState<{
     id: number;
@@ -43,18 +37,6 @@ const useTemporaryQuery = () => {
     secondary?: number;
     tertiary?: number;
   }>({ id: 0, parentId: 0, name: "", nodeType: 0 });
-
-  const changeOpenNodeId = (id: number) => {
-    setOpenNodeId(id);
-  };
-
-  const changeOpenNodeParentId = (parentId: number) => {
-    setOpenNodeParentId(parentId);
-  };
-
-  const changeOpenNodeData = (value: any) => {
-    setOpenNodeData(value);
-  };
 
   const changeVisibleFolder = (flag: boolean) => {
     setVisibleFolder(flag);
@@ -71,10 +53,6 @@ const useTemporaryQuery = () => {
 
   const changeIsUpdateNode = (flag: boolean) => {
     setIsUpdateNode(flag);
-  };
-
-  const changeFolderContent = (str: string) => {
-    setFolderContent(str);
   };
 
   const changeCurrentFolder = (data: {
@@ -104,38 +82,6 @@ const useTemporaryQuery = () => {
 
   const doUpdateFolder = useRequest(dataAnalysis.updateFolder, {
     loadingText: false,
-  });
-
-  // Node
-  const doCreatedNode = useRequest(dataAnalysis.createdNode, {
-    loadingText: false,
-  });
-
-  const doUpdateNode = useRequest(dataAnalysis.updateNode, {
-    loadingText: false,
-  });
-
-  const doGetNodeInfo = useRequest(dataAnalysis.getNodeInfo, {
-    loadingText: false,
-  });
-
-  const doDeleteNode = useRequest(dataAnalysis.deleteNode, {
-    loadingText: false,
-  });
-
-  const doLockNode = useRequest(dataAnalysis.lockNode, {
-    loadingText: false,
-  });
-
-  const doUnLockNode = useRequest(dataAnalysis.unLockNode, {
-    loadingText: false,
-  });
-
-  const doRunCodekNode = useRequest(dataAnalysis.runCodekNode, {
-    loadingText: {
-      loading: "运行中",
-      done: "运行成功",
-    },
   });
 
   const primaryList = [
@@ -290,26 +236,6 @@ const useTemporaryQuery = () => {
     }
   };
 
-  // 是否修改
-  const isUpdateStateFun = () => {
-    return folderContent !== openNodeData?.content;
-  };
-
-  // 获取文件信息
-  const onGetFolderList = () => {
-    openNodeId &&
-      doGetNodeInfo.run(openNodeId).then((res: any) => {
-        if (res.code == 0) {
-          setOpenNodeData(res.data);
-          changeFolderContent(res.data.content);
-        }
-      });
-  };
-
-  useEffect(() => {
-    onGetFolderList();
-  }, [openNodeId]);
-
   return {
     fileList,
     getDataList,
@@ -329,22 +255,7 @@ const useTemporaryQuery = () => {
     currentFolder,
     changeCurrentFolder,
 
-    folderContent,
-    changeFolderContent,
-
-    openNodeData,
-    changeOpenNodeData,
-
-    openNodeId,
-    changeOpenNodeId,
-
-    openNodeParentId,
-    changeOpenNodeParentId,
-
     onKeyToImportantInfo,
-    isUpdateStateFun,
-
-    onGetFolderList,
 
     primaryList,
     tertiaryList,
@@ -354,14 +265,6 @@ const useTemporaryQuery = () => {
     doCreatedFolder,
     doDeleteFolder,
     doUpdateFolder,
-
-    doCreatedNode,
-    doUpdateNode,
-    doGetNodeInfo,
-    doDeleteNode,
-    doLockNode,
-    doUnLockNode,
-    doRunCodekNode,
   };
 };
 export default useTemporaryQuery;

@@ -1,6 +1,6 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
 import FolderTree from "@/pages/DataAnalysis/components/FolderTree";
-import SQLEditor from "@/pages/DataAnalysis/TemporaryQuery/components/SQLEditor";
+import SQLEditor from "@/pages/DataAnalysis/components/SQLEditor";
 
 const TemporaryQuery = () => {
   return (

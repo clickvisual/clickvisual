@@ -6,12 +6,12 @@ import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
 const FolderTitle = (props: { id: number; title: any }) => {
   const { id, title } = props;
   const [visibleDropdown, setVisibleDropdown] = useState<boolean>(false);
-  const { currentInstances, temporaryQuery } = useModel("dataAnalysis");
+  const { currentInstances, temporaryQuery, doDeleteNode } =
+    useModel("dataAnalysis");
 
   const {
     getDataList,
     doDeleteFolder,
-    doDeleteNode,
     currentFolder,
     changeIsUpdateNode,
     changeVisibleFolder,
