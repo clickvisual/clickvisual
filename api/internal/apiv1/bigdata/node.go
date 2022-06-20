@@ -50,7 +50,7 @@ func NodeCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	c.JSONOK()
+	c.JSONOK(obj)
 }
 
 func NodeUpdate(c *core.Context) {
@@ -258,8 +258,8 @@ func NodeRun(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if n.LockUid != 0 {
-		c.JSONE(1, "please save and try again", nil)
+	if n.LockUid != c.Uid() {
+		c.JSONE(1, "please get the node lock and try again", nil)
 		return
 	}
 	nc, err := db.NodeContentInfo(invoker.Db, n.ID)

@@ -46,10 +46,10 @@ const (
 
 	TableNameBigDataNode        = "cv_bd_node"
 	TableNameBigDataNodeContent = "cv_bd_node_content"
+	TableNameBigDataNodeStatus  = "cv_bd_node_status"
 	TableNameBigDataFolder      = "cv_bd_folder"
 	TableNameBigDataSource      = "cv_bd_source"
 	TableNameBigDataWorkflow    = "cv_bd_workflow"
-	TableNameBigDataIntegration = "cv_bd_integration"
 )
 
 type BaseModel struct {

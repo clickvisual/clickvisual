@@ -18,7 +18,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/slack-go/slack v0.10.3
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/spf13/cast v1.4.1
+	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.7.2
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
@@ -53,6 +53,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denisenkom/go-mssqldb v0.12.0 // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/ego-component/eredis v1.0.3 // indirect
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/felixge/fgprof v0.9.2 // indirect
@@ -68,6 +70,8 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
+	github.com/go-redis/redis/extra/rediscmd/v8 v8.11.5 // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -80,7 +84,7 @@ require (
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20220520215854-d04f2422c8a1 // indirect
+	github.com/google/pprof v0.0.0-20220608213341-c488b8fa1db3 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
@@ -119,7 +123,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
-	github.com/onsi/gomega v1.16.0 // indirect
+	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -156,7 +160,7 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
@@ -180,8 +184,8 @@ require (
 require (
 	github.com/clickvisual/prom2click v0.0.2-rc3
 	github.com/ego-component/egorm v1.0.5
-	github.com/gotomicro/cetus v0.1.2
-	github.com/gotomicro/ego v1.1.2
+	github.com/gotomicro/cetus v0.1.3-rc1
+	github.com/gotomicro/ego v1.1.3
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
 	k8s.io/cli-runtime v0.24.1
