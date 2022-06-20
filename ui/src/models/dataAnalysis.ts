@@ -9,7 +9,9 @@ import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
 import { InstanceType } from "@/services/systemSetting";
 import { useEffect, useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
+import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder";
 import dataAnalysis from "@/services/temporaryQuery";
+import dataAnalysisApi from "@/services/dataAnalysis";
 
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
@@ -29,6 +31,7 @@ const DataAnalysis = () => {
   const temporaryQuery = useTemporaryQuery();
   const workflow = useWorkflow();
   const dataSourceManage = useDataSourceManage();
+  const manageNode = useManageNodeAndFolder();
 
   const changeOpenNodeId = (id: number) => {
     setOpenNodeId(id);
@@ -74,20 +77,20 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
-  const doGetNodeInfo = useRequest(dataAnalysis.getNodeInfo, {
+  const doGetNodeInfo = useRequest(dataAnalysisApi.getNodeInfo, {
     loadingText: false,
   });
 
   // Node
-  const doCreatedNode = useRequest(dataAnalysis.createdNode, {
+  const doCreatedNode = useRequest(dataAnalysisApi.createdNode, {
     loadingText: false,
   });
 
-  const doUpdateNode = useRequest(dataAnalysis.updateNode, {
+  const doUpdateNode = useRequest(dataAnalysisApi.updateNode, {
     loadingText: false,
   });
 
-  const doDeleteNode = useRequest(dataAnalysis.deleteNode, {
+  const doDeleteNode = useRequest(dataAnalysisApi.deleteNode, {
     loadingText: false,
   });
 
@@ -178,6 +181,8 @@ const DataAnalysis = () => {
     doLockNode,
     doUnLockNode,
     doRunCodekNode,
+
+    manageNode,
   };
 };
 

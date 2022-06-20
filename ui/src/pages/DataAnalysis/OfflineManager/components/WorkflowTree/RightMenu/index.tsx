@@ -1,22 +1,27 @@
 import { Menu, message } from "antd";
-import { OfflineRightMenuClickSourceEnums } from "@/pages/DataAnalysis/service/enums";
+import {
+  OfflineRightMenuClickSourceEnums,
+  PrimaryEnums,
+  SecondaryEnums,
+  TertiaryEnums,
+} from "@/pages/DataAnalysis/service/enums";
 import { useCallback, useMemo } from "react";
 import { ItemType } from "antd/es/menu/hooks/useItems";
 import { AppstoreAddOutlined, EditOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-import { WorkflowInfo } from "@/services/bigDataWorkflow";
 import DeletedModal from "@/components/DeletedModal";
 
 export interface RightMenuProps {
   clickSource: OfflineRightMenuClickSourceEnums;
-  currentWorkflow?: WorkflowInfo;
+  currentNode?: any;
+  handleCloseNodeModal?: () => void;
 }
 const RightMenu = (props: RightMenuProps) => {
   const i18n = useIntl();
-  const { clickSource, currentWorkflow } = props;
-  const { workflow, currentInstances } = useModel("dataAnalysis");
+  const { clickSource, currentNode, handleCloseNodeModal } = props;
+  const { workflow, currentInstances, manageNode } = useModel("dataAnalysis");
   const {
     setVisibleWorkflowEditModal,
     setEditWorkFlow,
@@ -27,14 +32,23 @@ const RightMenu = (props: RightMenuProps) => {
     setWorkflowList,
   } = workflow;
 
+  const {
+    showNodeModal,
+    showFolderModal,
+    setExtra,
+    setIsEditNode,
+    setCurrentNode,
+    doDeletedNode,
+  } = manageNode;
+
   const handleClickAddWorkflow = useCallback(
     () => setVisibleWorkflowEditModal(true),
     []
   );
 
   const handleClickUpdateWorkflow = useCallback(() => {
-    if (!currentWorkflow) return;
-    getWorkflow.run(currentWorkflow.id).then((res) => {
+    if (!currentNode) return;
+    getWorkflow.run(currentNode.id).then((res) => {
       if (res?.code !== 0) return;
       setVisibleWorkflowEditModal(() => {
         setEditWorkFlow(res.data);
@@ -42,21 +56,14 @@ const RightMenu = (props: RightMenuProps) => {
         return true;
       });
     });
-  }, [currentWorkflow]);
+  }, [currentNode]);
 
   const handleClickDeleteWorkflow = useCallback(() => {
-    if (!currentWorkflow || !currentInstances) return;
-    deleteWorkflow.run(currentWorkflow.id).then((res) => {
-      if (res?.code !== 0) return;
-      getWorkflows.run({ iid: currentInstances! }).then((res) => {
-        if (res?.code !== 0) return;
-        setWorkflowList(res.data);
-      });
-    });
+    if (!currentNode || !currentInstances) return;
     DeletedModal({
       content: i18n.formatMessage(
         { id: "bigdata.workflow.delete.content" },
-        { workflow: currentWorkflow.name }
+        { workflow: currentNode.name }
       ),
       onOk: () => {
         const hideMessage = message.loading(
@@ -70,7 +77,7 @@ const RightMenu = (props: RightMenuProps) => {
         );
 
         deleteWorkflow
-          .run(currentWorkflow.id)
+          .run(currentNode.id)
           .then((res) => {
             if (res?.code !== 0) {
               hideMessage();
@@ -81,6 +88,7 @@ const RightMenu = (props: RightMenuProps) => {
                 hideMessage();
                 return;
               }
+              setWorkflowList(res.data);
               message.success(
                 {
                   content: i18n.formatMessage({
@@ -95,7 +103,90 @@ const RightMenu = (props: RightMenuProps) => {
           .catch(() => hideMessage());
       },
     });
-  }, [currentWorkflow, currentInstances]);
+  }, [currentNode, currentInstances]);
+
+  const handleClickAddNode = useCallback(
+    (
+      primary: PrimaryEnums,
+      secondary: SecondaryEnums,
+      tertiary: TertiaryEnums
+    ) => {
+      if (!currentInstances) return;
+      setExtra({
+        iid: currentInstances,
+        folderId: currentNode?.folderId,
+        primary: primary,
+        secondary: secondary,
+        tertiary: tertiary,
+        workflowId: currentNode?.id,
+      });
+      showNodeModal(handleCloseNodeModal);
+    },
+    [currentNode, currentInstances]
+  );
+
+  const handleClickUpdateNode = useCallback(() => {
+    if (!currentInstances) return;
+    setExtra({
+      id: currentNode.id,
+      iid: currentInstances,
+      folderId: currentNode?.folderId,
+      primary: currentNode?.primary,
+      secondary: currentNode?.secondary,
+      tertiary: currentNode?.tertiary,
+    });
+    setIsEditNode(true);
+    setCurrentNode(currentNode);
+    showNodeModal(handleCloseNodeModal);
+  }, [currentNode, currentInstances]);
+
+  const handleClickDeleteNode = useCallback(() => {
+    if (!currentNode || !currentInstances) return;
+    DeletedModal({
+      content: `确定删除节点${currentNode.name}吗？`,
+      onOk: () => {
+        const hideMessage = message.loading(
+          {
+            content: "删除中....",
+            key: "node",
+          },
+          0
+        );
+
+        doDeletedNode
+          .run(currentNode.id)
+          .then((res) => {
+            if (res?.code !== 0) {
+              hideMessage();
+              return;
+            }
+            handleCloseNodeModal?.();
+            message.success(
+              {
+                content: "删除成功",
+                key: "node",
+              },
+              3
+            );
+          })
+          .catch(() => hideMessage());
+      },
+    });
+  }, [currentNode, currentInstances]);
+
+  const handleClickAddFolder = useCallback(
+    (primary: PrimaryEnums) => {
+      if (!currentInstances) return;
+      setExtra({
+        iid: currentInstances,
+        folderId: currentNode?.folderId,
+        primary: primary,
+        workflowId: currentNode?.id,
+      });
+      showFolderModal(handleCloseNodeModal);
+    },
+    [currentNode, currentInstances]
+  );
 
   const workflowHeaderMenu: ItemType[] = [
     {
@@ -129,11 +220,73 @@ const RightMenu = (props: RightMenuProps) => {
     {
       label: "新建节点",
       key: "add-node",
-      children: [{ label: "离线同步", key: "offline-sync" }],
+      children: [
+        {
+          label: "离线同步",
+          key: "offline-sync",
+          onClick: () =>
+            handleClickAddNode(
+              PrimaryEnums.offline,
+              SecondaryEnums.dataIntegration,
+              TertiaryEnums.offline
+            ),
+        },
+      ],
     },
     {
       label: "新建文件夹",
       key: "add-folder",
+      onClick: () => handleClickAddFolder(PrimaryEnums.offline),
+    },
+  ];
+
+  const dataDevelopmentMenu: ItemType[] = [
+    {
+      label: "新建节点",
+      key: "add-node",
+      children: [
+        {
+          label: "MySql",
+          key: "MySql",
+          onClick: () =>
+            handleClickAddNode(
+              PrimaryEnums.offline,
+              SecondaryEnums.dataMining,
+              TertiaryEnums.mysql
+            ),
+        },
+        {
+          label: "ClickHouse",
+          key: "ClickHouse",
+          onClick: () =>
+            handleClickAddNode(
+              PrimaryEnums.offline,
+              SecondaryEnums.dataMining,
+              TertiaryEnums.clickhouse
+            ),
+        },
+      ],
+    },
+    {
+      label: "新建文件夹",
+      key: "add-folder",
+      onClick: () => handleClickAddFolder(PrimaryEnums.offline),
+    },
+  ];
+
+  const nodeMenu: ItemType[] = [
+    { label: "修改节点", key: "update-node", onClick: handleClickUpdateNode },
+    { label: "删除节点", key: "delete-node", onClick: handleClickDeleteNode },
+  ];
+
+  const folderMenu: ItemType[] = [
+    {
+      label: "修改文件夹",
+      key: "update-folder",
+    },
+    {
+      label: "删除文件夹",
+      key: "delete-folder",
     },
   ];
 
@@ -146,7 +299,17 @@ const RightMenu = (props: RightMenuProps) => {
       case OfflineRightMenuClickSourceEnums.dataIntegration:
         return dataIntegrationMenu;
       case OfflineRightMenuClickSourceEnums.dataDevelopment:
-        return [];
+        return dataDevelopmentMenu;
+      case OfflineRightMenuClickSourceEnums.node:
+        return nodeMenu;
+      case OfflineRightMenuClickSourceEnums.folder:
+        if (currentNode.parentId < 1)
+          folderMenu.push({
+            label: "新建文件夹",
+            key: "add-folder",
+            onClick: () => handleClickAddFolder(PrimaryEnums.offline),
+          });
+        return folderMenu;
       default:
         return [];
     }
