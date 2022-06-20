@@ -12,6 +12,8 @@ const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
   const [instances, setInstances] = useState<InstanceType[]>([]);
   const [currentInstances, setCurrentInstances] = useState<number>();
+  const [sqlQueryResults, setSqlQueryResults] = useState<any>();
+  const [visibleSqlQuery, setVisibleSqlQuery] = useState<boolean>(false);
 
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
@@ -20,6 +22,14 @@ const DataAnalysis = () => {
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
+  };
+
+  const changeSqlQueryResults = (data: any) => {
+    setSqlQueryResults(data);
+  };
+
+  const changeVisibleSqlQuery = (flag: boolean) => {
+    setVisibleSqlQuery(flag);
   };
 
   const onChangeCurrentInstances = (value: number) => {
@@ -49,10 +59,14 @@ const DataAnalysis = () => {
     instances,
     currentInstances,
     navKey,
+    sqlQueryResults,
+    visibleSqlQuery,
 
     setInstances,
     onChangeCurrentInstances,
     onChangeNavKey,
+    changeSqlQueryResults,
+    changeVisibleSqlQuery,
 
     doGetInstance,
     doGetDatabase,

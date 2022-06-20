@@ -1,0 +1,38 @@
+@import "../../../../../styles/var.less";
+  .editorMain {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    height: 100%;
+    color: hsl(0, 0%, 58%);
+    background: hsl(0, 0%, 96%);
+    border-left: 1px solid @border-color;
+    .header {
+      flex: 0 0 32px;
+      padding-left: 56px;
+      .headerList {
+        display: flex;
+        align-items: center;
+        .headerTitleTips {
+          position: relative;
+          padding-left: 10px;
+          &::before {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 7px;
+            height: 7px;
+            background-color: #3c3c3c;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            content: "";
+          }
+        }
+      }
+    }
+    .context {
+      flex: 1;
+      height: 100%;
+      background-color: #ccc;
+    }
+  }

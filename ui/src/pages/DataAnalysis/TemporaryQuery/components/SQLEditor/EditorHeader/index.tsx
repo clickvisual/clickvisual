@@ -1,4 +1,4 @@
-import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
+import style from "@/pages/DataAnalysis/TemporaryQuery/components/SQLEditor/index.less";
 import { Button, message, Tooltip } from "antd";
 import {
   FormatPainterOutlined,
@@ -12,7 +12,8 @@ import { format } from "sql-formatter";
 import classNames from "classnames";
 
 const EditorHeader = () => {
-  const { temporaryQuery } = useModel("dataAnalysis");
+  const { temporaryQuery, changeSqlQueryResults, changeVisibleSqlQuery } =
+    useModel("dataAnalysis");
   const {
     openNodeData,
     folderContent,
@@ -72,21 +73,27 @@ const EditorHeader = () => {
 
   // run
   const handleRunCode = () => {
-    openNodeData?.id && doRunCodekNode.run(openNodeData?.id);
+    openNodeData?.id &&
+      doRunCodekNode.run(openNodeData?.id).then((res: any) => {
+        if (res.code == 0) {
+          changeSqlQueryResults(res.data);
+          changeVisibleSqlQuery(true);
+        }
+      });
   };
 
   return (
-    <div className={TemporaryQueryStyle.header}>
-      <div className={TemporaryQueryStyle.headerList}>
+    <div className={style.header}>
+      <div className={style.headerList}>
         {openNodeData?.id && (
-          // <div className={TemporaryQueryStyle.headerTitle}>
+          // <div className={style.headerTitle}>
           <div
             className={classNames([
-              TemporaryQueryStyle.headerTitle,
-              isUpdateStateFun() ? TemporaryQueryStyle.headerTitleTips : "",
+              style.headerTitle,
+              isUpdateStateFun() ? style.headerTitleTips : "",
             ])}
           >
-            {openNodeData?.name}
+            节点: {openNodeData?.name}
             {!openNodeData.lockUid ? (
               <Tooltip title={"锁定后可编辑"}>
                 <Button
@@ -107,7 +114,7 @@ const EditorHeader = () => {
               <>&nbsp;&nbsp;</>
             )}
             {openNodeData.lockUid
-              ? openNodeData.username || "无效用户" + "正在编辑"
+              ? "用户: " + (openNodeData.username || "无效用户") + "正在编辑"
               : ""}
           </div>
         )}

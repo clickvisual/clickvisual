@@ -57,7 +57,6 @@
         }
 
         :global .ant-input {
-          color: #fff;
           background-color: transparent !important;
           border-radius: 0;
         }
@@ -71,70 +70,6 @@
         height: 34px;
         font-size: 18px;
       }
-    }
-
-    .content {
-      flex: 1;
-      padding: 4px 8px;
-      overflow-y: scroll;
-      // 树状组件搜索关键字颜色
-      :global .site-tree-search-value {
-        color: #ed651d;
-      }
-      // 树状组件选中局部背景色
-      :global .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
-        background-color: #F39A6B !important;
-        border-radius: 4px;
-      }
-
-      // 树状组件hover背景色
-      :global .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
-        background-color: #FAD7C4;
-      }
-
-      :global .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
-        background-color: #F39A6B !important;
-      }
-
-      :global .ant-dropdown-trigger {
-        display: inline-block;
-      }
-    }
-  }
-  .editorMain {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    color: hsl(0, 0%, 58%);
-    background: hsl(0, 0%, 96%);
-    border-left: 1px solid @border-color;
-    .header {
-      flex: 0 0 32px;
-      padding-left: 56px;
-      .headerList {
-        display: flex;
-        align-items: center;
-        .headerTitleTips {
-          position: relative;
-          padding-left: 10px;
-          &::before {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 7px;
-            height: 7px;
-            background-color: #3c3c3c;
-            border-radius: 50%;
-            transform: translateY(-50%);
-            content: "";
-          }
-        }
-      }
-    }
-    .context {
-      flex: 1;
-      height: 100%;
-      background-color: #ccc;
     }
   }
 }

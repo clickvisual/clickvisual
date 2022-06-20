@@ -1,4 +1,5 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
+import FolderTreeStyle from "@/pages/DataAnalysis/components/FolderTree/index.less";
 import { Empty, Input, message, Tooltip, Tree } from "antd";
 import {
   DownOutlined,
@@ -217,7 +218,7 @@ const FolderTree: React.FC = () => {
           <FilterOutlined />
         </div> */}
       </div>
-      <div className={TemporaryQueryStyle.content}>
+      <div className={FolderTreeStyle.content}>
         {treeData.length > 0 ? (
           <DirectoryTree
             // showLine

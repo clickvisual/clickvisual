@@ -1,0 +1,28 @@
+.content {
+  flex: 1;
+  padding: 4px 8px;
+  overflow-y: scroll;
+  // 树状组件搜索关键字颜色
+  :global .site-tree-search-value {
+    color: #ed651d;
+  }
+  // 树状组件选中局部背景色
+  :global .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+    background-color: #f39a6b !important;
+    border-radius: 4px;
+  }
+
+  // 树状组件hover背景色
+  :global .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
+    background-color: #fad7c4;
+    transition: none;
+  }
+
+  :global .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
+    background-color: #f39a6b !important;
+  }
+
+  :global .ant-dropdown-trigger {
+    display: inline-block;
+  }
+}

@@ -1,4 +1,4 @@
-import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
+import style from "@/pages/DataAnalysis/TemporaryQuery/components/SQLEditor/index.less";
 import MonacoEditor from "react-monaco-editor";
 import { useModel } from "umi";
 
@@ -12,7 +12,7 @@ const EditorContent = () => {
   };
 
   return (
-    <div className={TemporaryQueryStyle.context}>
+    <div className={style.context}>
       <MonacoEditor
         height={"100%"}
         language={"mysql"}
