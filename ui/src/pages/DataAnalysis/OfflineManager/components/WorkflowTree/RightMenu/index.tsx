@@ -12,6 +12,7 @@ import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import DeletedModal from "@/components/DeletedModal";
+import lodash from "lodash";
 
 export interface RightMenuProps {
   clickSource: OfflineRightMenuClickSourceEnums;
@@ -112,14 +113,19 @@ const RightMenu = (props: RightMenuProps) => {
       tertiary: TertiaryEnums
     ) => {
       if (!currentInstances) return;
-      setExtra({
+      console.log("currentNode: ", currentNode);
+      let extra: any = {
         iid: currentInstances,
-        folderId: currentNode?.folderId,
         primary: primary,
         secondary: secondary,
         tertiary: tertiary,
-        workflowId: currentNode?.id,
-      });
+        workflowId: currentNode?.workflowId || currentNode?.id,
+      };
+      extra.folderId =
+        clickSource === OfflineRightMenuClickSourceEnums.folder
+          ? currentNode?.id
+          : currentNode?.folderId;
+      setExtra(extra);
       showNodeModal(handleCloseNodeModal);
     },
     [currentNode, currentInstances]
@@ -175,12 +181,13 @@ const RightMenu = (props: RightMenuProps) => {
   }, [currentNode, currentInstances]);
 
   const handleClickAddFolder = useCallback(
-    (primary: PrimaryEnums) => {
+    (primary: PrimaryEnums, secondary: SecondaryEnums) => {
       if (!currentInstances) return;
       setExtra({
         iid: currentInstances,
-        folderId: currentNode?.folderId,
+        folderId: currentNode?.parentId,
         primary: primary,
+        secondary: secondary,
         workflowId: currentNode?.id,
       });
       showFolderModal(handleCloseNodeModal);
@@ -236,7 +243,11 @@ const RightMenu = (props: RightMenuProps) => {
     {
       label: "新建文件夹",
       key: "add-folder",
-      onClick: () => handleClickAddFolder(PrimaryEnums.offline),
+      onClick: () =>
+        handleClickAddFolder(
+          PrimaryEnums.offline,
+          SecondaryEnums.dataIntegration
+        ),
     },
   ];
 
@@ -270,7 +281,8 @@ const RightMenu = (props: RightMenuProps) => {
     {
       label: "新建文件夹",
       key: "add-folder",
-      onClick: () => handleClickAddFolder(PrimaryEnums.offline),
+      onClick: () =>
+        handleClickAddFolder(PrimaryEnums.offline, SecondaryEnums.dataMining),
     },
   ];
 
@@ -280,6 +292,22 @@ const RightMenu = (props: RightMenuProps) => {
   ];
 
   const folderMenu: ItemType[] = [
+    {
+      label: "新建节点",
+      key: "add-node",
+      children: [
+        {
+          label: "离线同步",
+          key: "offline-sync",
+          onClick: () =>
+            handleClickAddNode(
+              PrimaryEnums.offline,
+              SecondaryEnums.dataIntegration,
+              TertiaryEnums.offline
+            ),
+        },
+      ],
+    },
     {
       label: "修改文件夹",
       key: "update-folder",
@@ -303,13 +331,9 @@ const RightMenu = (props: RightMenuProps) => {
       case OfflineRightMenuClickSourceEnums.node:
         return nodeMenu;
       case OfflineRightMenuClickSourceEnums.folder:
-        if (currentNode.parentId < 1)
-          folderMenu.push({
-            label: "新建文件夹",
-            key: "add-folder",
-            onClick: () => handleClickAddFolder(PrimaryEnums.offline),
-          });
-        return folderMenu;
+        let menu = lodash.cloneDeep(folderMenu);
+
+        return menu;
       default:
         return [];
     }

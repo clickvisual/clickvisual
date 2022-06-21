@@ -83,9 +83,14 @@ const useManageNodeAndFolder = () => {
   const [visibleNode, setVisibleNode] = useState<boolean>(false);
   const [visibleFolder, setVisibleFolder] = useState<boolean>(false);
   const [isEditNode, setIsEditNode] = useState<boolean>(false);
+  // 当前需要修改的节点
   const [currentNode, setCurrentNode] = useState<any>();
   const [extra, setExtra] = useState<any>();
   const callbackRef = useRef<any>(null);
+
+  // 当前选中的 节点
+  const [selectNode, setSelectNode] = useState<any>();
+  const [selectKeys, setSelectKeys] = useState<string[]>([]);
 
   // Folder
   const getFolders = useRequest(dataAnalysisApi.getFolderList, {
@@ -143,6 +148,9 @@ const useManageNodeAndFolder = () => {
     visibleFolder,
     isEditNode,
     currentNode,
+    selectNode,
+    selectKeys,
+    setSelectKeys,
     extra,
 
     showNodeModal,
@@ -153,6 +161,7 @@ const useManageNodeAndFolder = () => {
 
     setIsEditNode,
     setCurrentNode,
+    setSelectNode,
     setExtra,
 
     getFolders,
