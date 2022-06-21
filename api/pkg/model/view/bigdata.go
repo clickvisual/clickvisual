@@ -20,12 +20,14 @@ type ReqUpdateFolder struct {
 }
 
 type RespListFolder struct {
-	Id       int               `json:"id"`
-	Name     string            `json:"name"`
-	Desc     string            `json:"desc"`
-	ParentId int               `json:"parentId"`
-	Children []RespListFolder  `json:"children"`
-	Nodes    []*db.BigdataNode `json:"nodes"`
+	Id        int               `json:"id"`
+	Name      string            `json:"name"`
+	Desc      string            `json:"desc"`
+	Primary   int               `json:"primary"`
+	Secondary int               `json:"secondary"`
+	ParentId  int               `json:"parentId"`
+	Children  []RespListFolder  `json:"children"`
+	Nodes     []*db.BigdataNode `json:"nodes"`
 }
 
 type RespInfoFolder struct {
