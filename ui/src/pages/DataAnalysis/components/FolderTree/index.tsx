@@ -136,12 +136,12 @@ const FolderTree: React.FC = () => {
   }, [fileList, searchValue]);
 
   const handleSelect = (value: any) => {
-    const isOpne = value[0].split("_")[4] == "true";
+    const isOpen = value[0].split("_")[4] == "true";
     const id = parseInt(value[0].split("_")[1]);
     const folderId = parseInt(value[0].split("_")[0]);
     onKeyToImportantInfo(value[0]);
-    isOpne && changeOpenNodeId(id);
-    isOpne && changeOpenNodeParentId(folderId);
+    isOpen && changeOpenNodeId(id);
+    isOpen && changeOpenNodeParentId(folderId);
   };
 
   const handleRightClick = (value: any) => {

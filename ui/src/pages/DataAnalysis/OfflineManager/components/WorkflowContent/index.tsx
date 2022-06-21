@@ -10,6 +10,8 @@ const WorkflowContent = () => {
     selectNode: model.manageNode.selectNode,
   }));
 
+  console.log(selectNode);
+
   const Content = useMemo(() => {
     switch (selectNode?.secondary) {
       case SecondaryEnums.dataIntegration:
