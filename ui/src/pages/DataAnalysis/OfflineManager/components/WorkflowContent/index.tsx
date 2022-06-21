@@ -9,14 +9,15 @@ const WorkflowContent = () => {
   const { selectNode } = useModel("dataAnalysis", (model) => ({
     selectNode: model.manageNode.selectNode,
   }));
-
-  console.log(selectNode);
+  const { changeOpenNodeId, changeOpenNodeParentId } = useModel("dataAnalysis");
 
   const Content = useMemo(() => {
     switch (selectNode?.secondary) {
       case SecondaryEnums.dataIntegration:
         return <IntegratedConfiguration currentNode={selectNode} />;
       case SecondaryEnums.dataMining:
+        changeOpenNodeId(selectNode.id);
+        changeOpenNodeParentId(selectNode.folderId);
         return <WorkflowSql />;
       default:
         return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;

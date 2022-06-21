@@ -41,6 +41,7 @@ const LibraryTree = () => {
   return (
     <div className={TrafficStyles.libraryTree}>
       <div className={TrafficStyles.libraryTreeForm}>
+        <div className={TrafficStyles.title}>实时业务</div>
         <Form form={form} onFinish={handleSearch}>
           <Form.Item noStyle shouldUpdate>
             {() => {

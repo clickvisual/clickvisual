@@ -29,11 +29,6 @@ const SearchBar = () => {
     changeVisibleDataSource(true);
   };
 
-  // useEffect(() => {
-  //   // changeCurrentTyp(DataSourceReqTypEnums.mysql);
-  //   onSearch();
-  // }, []);
-
   useEffect(() => {
     changeSourceList([]);
     dataSourceFormRef.current?.resetFields();
@@ -41,32 +36,6 @@ const SearchBar = () => {
 
   return (
     <div className={style.searchBar}>
-      {/* <Space>
-        <span className={style.label}>数据源类型： </span>
-        <Select
-          style={{ width: "300px" }}
-          value={currentTyp}
-          onChange={(value: number) => {
-            changeCurrentTyp(value);
-            onSearch();
-          }}
-        >
-          {typList.map((item: { value: number; title: string }) => {
-            return (
-              <Option value={item.value} key={item.value}>
-                {item.title}
-              </Option>
-            );
-          })}
-        </Select>
-        <Button type="primary" onClick={onSearch}>
-          搜索
-        </Button>
-        <Button type="primary" onClick={handleCreate}>
-          新增数据源
-        </Button>
-      </Space> */}
-
       <Form
         ref={dataSourceFormRef}
         onFinish={onSearch}
