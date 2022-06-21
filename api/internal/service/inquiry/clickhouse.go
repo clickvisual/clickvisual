@@ -36,16 +36,16 @@ func genTimeCondition(param view.ReqQuery) string {
 	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
 }
 
-func genTimeConditionEqual(param view.ReqQuery, t int64) string {
+func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
 	switch param.TimeFieldType {
 	case db.TimeFieldTypeDT:
-		return fmt.Sprintf("%s = toDateTime(%d)", param.TimeField, t)
+		return fmt.Sprintf("%s = toDateTime(%d)", param.TimeField, t.Unix())
 	case db.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s = toDateTime64(%d, 3)", param.TimeField, t)
+		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
 	case db.TimeFieldTypeTsMs:
-		return fmt.Sprintf("intDiv(%s,1000) = %d", param.TimeField, t)
+		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
 	}
-	return fmt.Sprintf("%s = %d", param.TimeField, t)
+	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
 }
 
 const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
@@ -661,8 +661,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	if param.TimeField != db.TimeFieldSecond {
 		for k := range res.Logs {
 			if param.TimeFieldType == db.TimeFieldTypeTsMs {
-				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
-				res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField].(int64)
+				if _, ok := res.Logs[k][db.TimeFieldSecond]; !ok {
+					res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
+					res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField].(int64)
+				}
 			} else {
 				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
 				res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField]
@@ -704,6 +706,7 @@ func (c *ClickHouse) TimeFieldEqual(param view.ReqQuery, tid int) string {
 	var res string
 	out, err := c.doQuery(c.logsTimelineSQL(param, tid))
 	if err != nil {
+		invoker.Logger.Error("TimeFieldEqual", elog.Any("step", "logsSQL"), elog.String("error", err.Error()))
 		return res
 	}
 	for _, v := range out {
@@ -712,16 +715,16 @@ func (c *ClickHouse) TimeFieldEqual(param view.ReqQuery, tid int) string {
 			case time.Time:
 				t := v[param.TimeField].(time.Time)
 				if res == "" {
-					res = genTimeConditionEqual(param, t.Unix())
+					res = genTimeConditionEqual(param, t)
 				} else {
-					res = fmt.Sprintf("%s or %s", res, genTimeConditionEqual(param, t.Unix()))
+					res = fmt.Sprintf("%s or %s", res, genTimeConditionEqual(param, t))
 				}
 			default:
-				invoker.Logger.Warn("TimeFieldEqual", elog.Any("type", reflect.TypeOf(v[param.TimeField])))
+				invoker.Logger.Warn("TimeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("type", reflect.TypeOf(v[param.TimeField])))
 			}
 		}
 	}
-	invoker.Logger.Warn("TimeFieldEqual", elog.Any("res", "("+res+")"))
+	invoker.Logger.Debug("TimeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("res", "("+res+")"))
 	if res == "" {
 		return res
 	}
@@ -999,7 +1002,7 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 		c.queryHashTransform(param),
 		param.ST, param.ET,
 		param.PageSize*param.Page)
-	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
+	invoker.Logger.Debug("logsTimelineSQL", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
 }
 
@@ -1014,7 +1017,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 
 	selectFields := genSelectFields(tid)
 
-	if param.Page*param.PageSize <= 100 && param.TimeField == db.TimeFieldSecond {
+	if param.Page*param.PageSize <= 100 {
 		timeFieldEqual := c.TimeFieldEqual(param, tid)
 		if timeFieldEqual != "" {
 			sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
@@ -1023,7 +1026,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 				c.queryHashTransform(param),
 				timeFieldEqual,
 				param.PageSize, (param.Page-1)*param.PageSize)
-			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
+			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
 			return
 		}
 	}

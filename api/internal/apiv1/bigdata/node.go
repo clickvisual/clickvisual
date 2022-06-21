@@ -224,12 +224,14 @@ func NodeList(c *core.Context) {
 		ns, _ := db.NodeList(condsNs)
 		// build item
 		item := view.RespListFolder{
-			Id:       f.ID,
-			Name:     f.Name,
-			Desc:     f.Desc,
-			ParentId: f.ParentId,
-			Children: make([]view.RespListFolder, 0),
-			Nodes:    ns,
+			Id:        f.ID,
+			Name:      f.Name,
+			Desc:      f.Desc,
+			ParentId:  f.ParentId,
+			Children:  make([]view.RespListFolder, 0),
+			Nodes:     ns,
+			Primary:   f.Primary,
+			Secondary: f.Secondary,
 		}
 		if f.ParentId != 0 {
 			level1children[f.ParentId] = append(level1children[f.ParentId], item)
