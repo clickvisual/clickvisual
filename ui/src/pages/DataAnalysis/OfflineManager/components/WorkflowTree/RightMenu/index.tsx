@@ -306,6 +306,26 @@ const RightMenu = (props: RightMenuProps) => {
               TertiaryEnums.offline
             ),
         },
+        {
+          label: "MySql",
+          key: "MySql",
+          onClick: () =>
+            handleClickAddNode(
+              PrimaryEnums.offline,
+              SecondaryEnums.dataMining,
+              TertiaryEnums.mysql
+            ),
+        },
+        {
+          label: "ClickHouse",
+          key: "ClickHouse",
+          onClick: () =>
+            handleClickAddNode(
+              PrimaryEnums.offline,
+              SecondaryEnums.dataMining,
+              TertiaryEnums.clickhouse
+            ),
+        },
       ],
     },
     {

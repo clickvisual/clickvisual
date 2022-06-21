@@ -6,7 +6,7 @@ import dataSourceManageApi, {
 import { useState } from "react";
 
 const useDataSourceManage = () => {
-  const [currentTyp, setCurrentTyp] = useState<number>(0);
+  const [currentTyp, setCurrentTyp] = useState<number>();
   const [sourceList, setSourceList] = useState<SourceInfoType[]>([]);
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const [visibleDataSource, setVisibleDataSource] = useState<boolean>(false);
@@ -35,6 +35,10 @@ const useDataSourceManage = () => {
     setCurrentDataSource(value);
   };
 
+  const changeSourceList = (value: any) => {
+    setSourceList(value);
+  };
+
   // Source
   const doGetSourceList = useRequest(dataSourceManageApi.getSourceList, {
     loadingText: false,
@@ -56,16 +60,6 @@ const useDataSourceManage = () => {
     loadingText: false,
   });
 
-  const onSearch = () => {
-    doGetSourceList.run({ typ: currentTyp }).then((res: any) => {
-      if (res.code == 0) {
-        setSourceList(res.data);
-      }
-    });
-  };
-
-  const onCreate = () => {};
-
   return {
     currentTyp,
     changeCurrentTyp,
@@ -80,11 +74,9 @@ const useDataSourceManage = () => {
     changeCurrentDataSource,
 
     sourceList,
+    changeSourceList,
 
     typList,
-
-    onSearch,
-    onCreate,
 
     doGetSourceList,
     doCreateSource,
