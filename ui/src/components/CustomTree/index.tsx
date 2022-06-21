@@ -11,13 +11,14 @@ export enum NodeType {
 
 export interface CustomTree extends TreeProps {
   onSelectNode?: (node: any) => void;
+  selectKeys?: any;
 }
 
 const CustomTree = (props: CustomTree) => {
+  const { onSelectNode, selectKeys } = props;
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
-  const { onSelectNode } = props;
-  const handleOnSelect = (selectedKeys: any, info: any) => {
-    const { node } = info;
+
+  const handleChangeExpanded = (node: any) => {
     if (node.nodeType === NodeType.folder) {
       if (expandedKeys.includes(node.key)) {
         setExpandedKeys(() => expandedKeys.filter((item) => item !== node.key));
@@ -26,7 +27,16 @@ const CustomTree = (props: CustomTree) => {
       }
       return;
     }
+  };
+  const handleOnSelect = (selectedKeys: any[], info: any) => {
+    const { node } = info;
+    handleChangeExpanded(node);
     onSelectNode?.(node);
+  };
+
+  const handleOnExpand = (expandedKeys: any[], info: any) => {
+    const { node } = info;
+    handleChangeExpanded(node);
   };
 
   return (
@@ -34,9 +44,10 @@ const CustomTree = (props: CustomTree) => {
       <Tree
         showIcon
         blockNode
+        selectedKeys={selectKeys ?? []}
         switcherIcon={<DownOutlined />}
         onSelect={handleOnSelect}
-        onExpand={handleOnSelect}
+        onExpand={handleOnExpand}
         expandedKeys={expandedKeys}
         {...props}
       />

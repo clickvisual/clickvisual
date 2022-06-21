@@ -25,13 +25,19 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       OfflineRightMenuClickSourceEnums.workflowHeader
     );
 
-  const { getFolders, currentInstances } = useModel(
-    "dataAnalysis",
-    (model) => ({
-      getFolders: model.manageNode.getFolders,
-      currentInstances: model.currentInstances,
-    })
-  );
+  const {
+    getFolders,
+    currentInstances,
+    setSelectNode,
+    setSelectKeys,
+    selectKeys,
+  } = useModel("dataAnalysis", (model) => ({
+    setSelectNode: model.manageNode.setSelectNode,
+    setSelectKeys: model.manageNode.setSelectKeys,
+    selectKeys: model.manageNode.selectKeys,
+    getFolders: model.manageNode.getFolders,
+    currentInstances: model.currentInstances,
+  }));
 
   useEffect(() => {
     if (!currentInstances) return;
@@ -59,7 +65,10 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   };
 
   const handleClickNode = (node: any) => {
-    // todo: 处理点击树节点逻辑
+    const { currentNode, nodeType } = node;
+    setSelectKeys([node.key]);
+    if (nodeType !== NodeType.node) return;
+    setSelectNode(currentNode);
   };
 
   const handleCloseModal = useCallback(() => {
@@ -77,6 +86,52 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       });
   }, [currentInstances]);
 
+  const folderTree = (
+    folderList: any[],
+    nodeList: any[],
+    secondary: SecondaryEnums
+  ) => {
+    const result: any[] =
+      folderList
+        .filter(
+          (folder: any) =>
+            folder.primary === PrimaryEnums.offline &&
+            folder.secondary === secondary
+        )
+        .map((folder: any) => ({
+          currentNode: { ...folder, workflowId: workflow.id },
+          key: `${workflow.id}-${folder.id}-${folder.name}`,
+          title: folder.name,
+          icon: <TreeNodeTypeIcon type={TreeNodeTypeEnums.closeFolder} />,
+          nodeType: NodeType.folder,
+          source: OfflineRightMenuClickSourceEnums.folder,
+          children: folderTree(
+            folder.children || [],
+            folder.nodes || [],
+            secondary
+          ),
+        })) || [];
+
+    result.push(
+      ...nodeList
+        .filter(
+          (node: any) =>
+            node.workflowId === workflow.id &&
+            node.primary === PrimaryEnums.offline &&
+            node.secondary === secondary
+        )
+        .map((node: any) => ({
+          currentNode: { ...node, workflowId: workflow.id },
+          key: `${workflow.id}-${node.id}-${node.name}`,
+          title: node.name,
+          icon: <TreeNodeTypeIcon type={TreeNodeTypeEnums.node} />,
+          nodeType: NodeType.node,
+          source: OfflineRightMenuClickSourceEnums.node,
+        }))
+    );
+    return result;
+  };
+
   const treeData: any[] = useMemo(() => {
     return [
       {
@@ -93,31 +148,16 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
               id: "bigdata.workflow.dataIntegration",
             }),
             source: OfflineRightMenuClickSourceEnums.dataIntegration,
-            currentNode: workflow,
+            currentNode: {
+              ...workflow,
+              secondary: SecondaryEnums.dataIntegration,
+            },
             nodeType: NodeType.folder,
-            children: [
-              ...nodes
-                .filter(
-                  (node) =>
-                    node.workflowId === workflow.id &&
-                    node.primary === PrimaryEnums.offline &&
-                    node.secondary === SecondaryEnums.dataIntegration
-                )
-                .map((node) => ({
-                  currentNode: node,
-                  key: node.id,
-                  title: node.name,
-                  nodeType: NodeType.node,
-                  source: OfflineRightMenuClickSourceEnums.node,
-                })),
-              ...folders.map((folder) => ({
-                currentNode: folder,
-                key: folder.id,
-                title: folder.name,
-                nodeType: NodeType.folder,
-                source: OfflineRightMenuClickSourceEnums.folder,
-              })),
-            ],
+            children: folderTree(
+              folders,
+              nodes,
+              SecondaryEnums.dataIntegration
+            ),
           },
           {
             key: `${workflow.id}-${OfflineRightMenuClickSourceEnums.dataDevelopment}`,
@@ -125,27 +165,17 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
               id: "bigdata.workflow.dataDevelopment",
             }),
             source: OfflineRightMenuClickSourceEnums.dataDevelopment,
-            currentNode: workflow,
+            currentNode: {
+              ...workflow,
+              secondary: SecondaryEnums.dataMining,
+            },
             nodeType: NodeType.folder,
-            children: nodes
-              .filter(
-                (node) =>
-                  node.workflowId === workflow.id &&
-                  node.primary === PrimaryEnums.offline &&
-                  node.secondary === SecondaryEnums.dataMining
-              )
-              .map((node) => ({
-                currentNode: node,
-                key: node.id,
-                title: node.name,
-                nodeType: NodeType.node,
-                source: OfflineRightMenuClickSourceEnums.node,
-              })),
+            children: folderTree(folders, nodes, SecondaryEnums.dataMining),
           },
         ],
       },
     ];
-  }, [nodes]);
+  }, [nodes, folders]);
 
   return (
     <>
@@ -158,6 +188,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         <CustomTree
           onSelectNode={handleClickNode}
           treeData={treeData}
+          selectKeys={selectKeys}
           onRightClick={handleRightClick}
         />
       </NodeTreeItem>

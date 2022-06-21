@@ -2,12 +2,14 @@ import {
   FolderOpenOutlined,
   FolderOutlined,
   ClusterOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 
 export enum TreeNodeTypeEnums {
   closeFolder = "closeFolder",
   openFolder = "openFolder",
   workflow = "workflow",
+  node = "node",
 }
 export interface TreeNodesIconProps {
   type: TreeNodeTypeEnums;
@@ -21,6 +23,8 @@ const TreeNodeTypeIcon = ({ type }: TreeNodesIconProps) => {
       return <FolderOpenOutlined />;
     case TreeNodeTypeEnums.workflow:
       return <ClusterOutlined />;
+    case TreeNodeTypeEnums.node:
+      return <FileTextOutlined />;
     default:
       return <></>;
   }
