@@ -4,8 +4,9 @@ import { useMemo } from "react";
 import WorkflowLine from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/WorkflowList/WorkflowLine";
 
 const WorkflowList = () => {
-  const { workflow } = useModel("dataAnalysis");
-  const { workflowList } = workflow;
+  const { workflowList } = useModel("dataAnalysis", (model) => ({
+    workflowList: model.workflow.workflowList,
+  }));
 
   const List = useMemo(() => {
     if (workflowList.length <= 0) return null;
@@ -14,11 +15,7 @@ const WorkflowList = () => {
     ));
   }, [workflowList]);
 
-  return (
-    <div className={offlineStyles.workflowList}>
-      <ul>{List}</ul>
-    </div>
-  );
+  return <div className={offlineStyles.workflowList}>{List}</div>;
 };
 
 export default WorkflowList;

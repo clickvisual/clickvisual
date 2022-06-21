@@ -9,6 +9,8 @@ import { useMemo } from "react";
 import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
 import ScreeningRow from "@/pages/DataAnalysis/components/ScreeningRow";
 import { Empty } from "antd";
+import ManageNodeModal from "@/pages/DataAnalysis/components/NodeManage/ManageNodeModal";
+import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/ManageFolderModal";
 
 const DataAnalysis = () => {
   const { navKey, currentInstances } = useModel("dataAnalysis");
@@ -48,6 +50,8 @@ const DataAnalysis = () => {
       <div className={style.positionBox}>
         <ScreeningRow />
       </div>
+      <ManageNodeModal />
+      <ManageFolderModal />
     </div>
   );
 };

@@ -37,9 +37,13 @@ export enum FolderEnums {
 
 export enum PrimaryEnums {
   /**
-   * 数据开发
+   * 离线查询
    */
-  mining = 1,
+  offline = 1,
+  /**
+   * 实时查询
+   */
+  realtime = 2,
 
   /**
    * 临时查询
@@ -49,6 +53,10 @@ export enum PrimaryEnums {
 
 export enum SecondaryEnums {
   /**
+   * 任意
+   */
+  all = 0,
+  /**
    * 数据库
    */
   database = 1,
@@ -56,6 +64,10 @@ export enum SecondaryEnums {
    * 数据集成
    */
   dataIntegration = 2,
+  /**
+   * 数据开发
+   */
+  dataMining = 3,
 }
 
 export enum TertiaryEnums {
@@ -94,6 +106,14 @@ export enum OfflineRightMenuClickSourceEnums {
    * 数据开发
    */
   dataDevelopment = "dataDevelopment",
+  /**
+   * 节点
+   */
+  node = "node",
+  /**
+   * 文件夹
+   */
+  folder = "folder",
 }
 
 export enum DataSourceReqTypEnums {

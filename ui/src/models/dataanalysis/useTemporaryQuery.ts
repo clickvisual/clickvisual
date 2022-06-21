@@ -1,7 +1,7 @@
 import useRequest from "@/hooks/useRequest/useRequest";
-import dataAnalysis, { folderListType } from "@/services/temporaryQuery";
+import dataAnalysisApi, { folderListType } from "@/services/dataAnalysis";
 import { DataNode } from "antd/lib/tree";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   FolderEnums,
   PrimaryEnums,
@@ -68,19 +68,19 @@ const useTemporaryQuery = () => {
   };
 
   // Folder
-  const doFolderList = useRequest(dataAnalysis.getFolderList, {
+  const doFolderList = useRequest(dataAnalysisApi.getFolderList, {
     loadingText: false,
   });
 
-  const doCreatedFolder = useRequest(dataAnalysis.createdFolder, {
+  const doCreatedFolder = useRequest(dataAnalysisApi.createdFolder, {
     loadingText: false,
   });
 
-  const doDeleteFolder = useRequest(dataAnalysis.deleteFolder, {
+  const doDeleteFolder = useRequest(dataAnalysisApi.deleteFolder, {
     loadingText: false,
   });
 
-  const doUpdateFolder = useRequest(dataAnalysis.updateFolder, {
+  const doUpdateFolder = useRequest(dataAnalysisApi.updateFolder, {
     loadingText: false,
   });
 
@@ -88,7 +88,7 @@ const useTemporaryQuery = () => {
     {
       id: 101,
       title: "数据开发",
-      enum: PrimaryEnums.mining,
+      enum: PrimaryEnums.offline,
     },
     {
       id: 102,

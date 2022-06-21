@@ -32,7 +32,7 @@ const DataAnalysisNav = () => {
     {
       id: 103,
       key: BigDataNavEnum.OfflineManage,
-      title: "离线查询",
+      title: "数据开发",
       icon: <CodeOutlined />,
     },
     {

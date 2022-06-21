@@ -1,0 +1,39 @@
+.content {
+  display: flex;
+  :global {
+    .ant-tree {
+      flex: 1;
+    }
+    .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+      border-radius: 4px;
+    }
+    .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
+      background-color: #fad7c4;
+    }
+    .ant-dropdown-trigger {
+      display: inline-block;
+    }
+  }
+  //// 树状组件搜索关键字颜色
+  //:global .site-tree-search-value {
+  //  color: #ed651d;
+  //}
+  //// 树状组件选中局部背景色
+  //:global .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  //  background-color: #f39a6b !important;
+  //  border-radius: 4px;
+  //}
+  //
+  //// 树状组件hover背景色
+  //:global .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
+  //  background-color: #fad7c4;
+  //}
+  //
+  //:global .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
+  //  background-color: #f39a6b !important;
+  //}
+  //
+  //:global .ant-dropdown-trigger {
+  //  display: inline-block;
+  //}
+}
