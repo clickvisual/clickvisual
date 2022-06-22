@@ -12,6 +12,7 @@ import useWorkflow from "@/models/dataanalysis/useWorkflow";
 import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder";
 import dataAnalysis from "@/services/temporaryQuery";
 import dataAnalysisApi from "@/services/dataAnalysis";
+import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
 
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
@@ -32,6 +33,7 @@ const DataAnalysis = () => {
   const workflow = useWorkflow();
   const dataSourceManage = useDataSourceManage();
   const manageNode = useManageNodeAndFolder();
+  const integratedConfigs = useIntegratedConfigs();
 
   const changeOpenNodeId = (id: number) => {
     setOpenNodeId(id);
@@ -184,6 +186,7 @@ const DataAnalysis = () => {
     doRunCodekNode,
 
     manageNode,
+    integratedConfigs,
   };
 };
 

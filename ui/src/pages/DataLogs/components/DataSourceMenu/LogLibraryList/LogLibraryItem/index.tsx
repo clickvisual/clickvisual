@@ -299,7 +299,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       </Tooltip>
 
       <div style={{ position: "absolute", right: "8px" }}>
-        <Dropdown overlay={menu} trigger={["hover", "click"]}>
+        <Dropdown overlay={menu} trigger={["click"]}>
           <MoreOutlined className={classNames(logLibraryListStyles.icon)} />
         </Dropdown>
       </div>
