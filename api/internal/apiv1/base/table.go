@@ -494,6 +494,9 @@ func TableCharts(c *core.Context) {
 			wg.Add(1)
 			sum++
 			go func(st, et int64, wg *sync.WaitGroup) {
+				if et > param.ET {
+					et = param.ET
+				}
 				count, countErr := op.Count(view.ReqQuery{
 					Tid:           tableInfo.ID,
 					Table:         param.Table,

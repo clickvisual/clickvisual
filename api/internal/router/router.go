@@ -196,6 +196,7 @@ func GetRouter() *egin.Component {
 		// bigdata node
 		v1.GET("/bigdata/nodes", core.Handle(bigdata.NodeList))
 		v1.GET("/bigdata/nodes/:id", core.Handle(bigdata.NodeInfo))
+		v1.GET("/bigdata/nodes/:id/status", core.Handle(bigdata.NodeStatusList))
 		v1.POST("/bigdata/nodes", core.Handle(bigdata.NodeCreate))
 		v1.POST("/bigdata/nodes/:id/run", core.Handle(bigdata.NodeRun))
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
@@ -213,6 +214,10 @@ func GetRouter() *egin.Component {
 		v1.GET("/bigdata/mining/sources/:id/databases", core.Handle(bigdata.SourceDatabaseList))
 		v1.GET("/bigdata/mining/sources/:id/tables", core.Handle(bigdata.SourceTableList))
 		v1.GET("/bigdata/mining/sources/:id/columns", core.Handle(bigdata.SourceColumnList))
+		// inner clickhouse source table struct
+		v1.GET("/bigdata/mining/instances/:id/databases", core.Handle(bigdata.InstanceDatabaseList))
+		v1.GET("/bigdata/mining/instances/:id/tables", core.Handle(bigdata.InstanceTableList))
+		v1.GET("/bigdata/mining/instances/:id/columns", core.Handle(bigdata.InstanceColumnList))
 		// data mining
 		v1.GET("/bigdata/mining/workflows", core.Handle(mining.WorkflowList))
 		v1.POST("/bigdata/mining/workflows", core.Handle(mining.WorkflowCreate))

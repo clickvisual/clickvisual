@@ -7,6 +7,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/source"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -24,6 +25,7 @@ func (r *tertiary) execute(n *node) (res view.RespRunNode, err error) {
 	case db.TertiaryClickHouse:
 		return doTyClickHouse(n)
 	case db.TertiaryMySQL:
+		return doTyMySQL(n)
 	case db.TertiaryOfflineSync:
 		// Data Synchronization Process
 		// clickhouse -> mysql
@@ -51,6 +53,24 @@ func doTyClickHouse(n *node) (res view.RespRunNode, err error) {
 	}
 	invoker.Logger.Debug("node", elog.Any("tmp", tmp), elog.Any("err", err))
 	res.Logs = tmp.Logs
+	return
+}
+
+func doTyMySQL(n *node) (res view.RespRunNode, err error) {
+	s, err := db.SourceInfo(invoker.Db, n.n.SourceId)
+	if err != nil {
+		return
+	}
+	tmp, err := source.Instantiate(&source.Source{
+		URL:      s.URL,
+		UserName: s.UserName,
+		Password: s.Password,
+		Typ:      s.Typ,
+	}).Query(n.nc.Content)
+	if err != nil {
+		return
+	}
+	res.Logs = tmp
 	return
 }
 
