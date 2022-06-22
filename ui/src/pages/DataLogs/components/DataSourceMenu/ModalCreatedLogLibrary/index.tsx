@@ -33,7 +33,7 @@ const ModalCreatedLogLibrary = () => {
   const instanceName = currentDatabase?.instanceName;
   const databaseName = currentDatabase?.name;
 
-  const { doGetInstanceList } = useModel("instances");
+  const { doGetInstanceList, instanceList } = useModel("instances");
 
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
@@ -89,7 +89,8 @@ const ModalCreatedLogLibrary = () => {
   }, [logLibraryCreatedModalVisible]);
 
   useEffect(() => {
-    if (logLibraryCreatedModalVisible) doGetInstanceList();
+    if (logLibraryCreatedModalVisible && instanceList?.length == 0)
+      doGetInstanceList();
   }, [logLibraryCreatedModalVisible]);
 
   return (

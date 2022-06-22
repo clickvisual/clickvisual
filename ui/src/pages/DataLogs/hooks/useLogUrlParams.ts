@@ -218,9 +218,14 @@ export default function useLogUrlParams() {
     if (databaseList.length > 0 && did && !currentDatabase) {
       const database = databaseList.find((item) => parseInt(did) === item.id);
       onChangeCurrentDatabase(database);
-    } else if (databaseList.length > 0 && !currentDatabase && !urlState.tid) {
+    } else if (
+      !did &&
+      databaseList.length > 0 &&
+      !currentDatabase &&
+      !urlState.tid
+    ) {
       // onChangeCurrentDatabase(databaseList[0]);
       onChangeVisibleDatabaseDraw(true);
     }
-  }, [databaseList, currentDatabase]);
+  }, [databaseList, currentDatabase, urlState.did]);
 }

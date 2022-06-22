@@ -117,6 +117,7 @@ const DataAnalysis = () => {
     changeOpenNodeData(undefined);
     changeFolderContent("");
     dataSourceManage.changeSourceList([]);
+    manageNode.setSelectNode({});
   }, [navKey]);
 
   // 获取文件信息

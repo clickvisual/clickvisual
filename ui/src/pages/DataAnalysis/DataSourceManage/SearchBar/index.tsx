@@ -10,20 +10,10 @@ const SearchBar = () => {
     changeCurrentTyp,
     changeVisibleDataSource,
     typList,
-    doGetSourceList,
+    onSearch,
     currentTyp,
     changeSourceList,
   } = dataSourceManage;
-
-  const onSearch = (file: { typ: number }) => {
-    doGetSourceList
-      .run({ iid: currentInstances as number, typ: file.typ as number })
-      .then((res: any) => {
-        if (res.code == 0) {
-          changeSourceList(res.data);
-        }
-      });
-  };
 
   const handleCreate = () => {
     changeVisibleDataSource(true);
@@ -38,7 +28,6 @@ const SearchBar = () => {
     <div className={style.searchBar}>
       <Form
         ref={dataSourceFormRef}
-        onFinish={onSearch}
         labelCol={{ span: 5 }}
         wrapperCol={{ span: 19 }}
         layout="inline"
@@ -56,7 +45,7 @@ const SearchBar = () => {
               allowClear
               onChange={(value: number) => {
                 changeCurrentTyp(value);
-                onSearch({ typ: value as number });
+                onSearch(currentInstances as number, { typ: value as number });
               }}
             >
               {typList.map((item: { value: number; title: string }) => {
@@ -72,7 +61,9 @@ const SearchBar = () => {
             <Button
               type="primary"
               onClick={() => {
-                onSearch({ typ: currentTyp as number });
+                onSearch(currentInstances as number, {
+                  typ: currentTyp as number,
+                });
               }}
             >
               搜索

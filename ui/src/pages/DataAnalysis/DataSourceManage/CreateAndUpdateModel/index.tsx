@@ -19,6 +19,7 @@ const CreateAndUpdateModel = () => {
     visibleDataSource,
     currentDataSource,
     onSearch,
+    currentTyp,
     changeIsUpdate,
     changeVisibleDataSource,
     changeCurrentDataSource,
@@ -33,7 +34,9 @@ const CreateAndUpdateModel = () => {
       doCreateSource.run(data).then((res: any) => {
         if (res.code == 0) {
           message.success("新建成功");
-          onSearch();
+          onSearch(currentInstances as number, {
+            typ: currentTyp as number,
+          });
           changeVisibleDataSource(false);
         }
       });
@@ -47,7 +50,9 @@ const CreateAndUpdateModel = () => {
       .then((res: any) => {
         if (res.code == 0) {
           message.success("修改成功");
-          onSearch();
+          onSearch(currentInstances as number, {
+            typ: currentTyp as number,
+          });
           changeVisibleDataSource(false);
         }
       });

@@ -60,6 +60,16 @@ const useDataSourceManage = () => {
     loadingText: false,
   });
 
+  const onSearch = (iid: number, file: { typ: number }) => {
+    doGetSourceList
+      .run({ iid: iid as number, typ: file.typ as number })
+      .then((res: any) => {
+        if (res.code == 0) {
+          changeSourceList(res.data);
+        }
+      });
+  };
+
   return {
     currentTyp,
     changeCurrentTyp,
@@ -75,6 +85,8 @@ const useDataSourceManage = () => {
 
     sourceList,
     changeSourceList,
+
+    onSearch,
 
     typList,
 
