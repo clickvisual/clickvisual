@@ -162,13 +162,13 @@ const useTemporaryQuery = () => {
           // TODO: 是否可打开的节点在文件类型变多后需要更改方法改为文件类型
           let key: string = "";
           if (item.folderId == 0 || !!item.folderId) {
-            key = `${item.parentId ?? item.folderId}_${item.id}_${item.name}_${
+            key = `${item.parentId ?? item.folderId}-${item.id}-${item.name}-${
               item.desc
-            }_true_${item.secondary}_${item.tertiary}`;
+            }-true-${item.secondary}-${item.tertiary}`;
           } else {
-            key = `${item.parentId ?? item.folderId}_${item.id}_${item.name}_${
+            key = `${item.parentId ?? item.folderId}-${item.id}-${item.name}-${
               item.desc
-            }_false`;
+            }-false`;
           }
           const childrens = (item.children || []).concat(item.nodes || []);
 
@@ -214,7 +214,7 @@ const useTemporaryQuery = () => {
 
   // 拿目录的key存重要数据
   const onKeyToImportantInfo = (str: string) => {
-    const dataList = str.split("_");
+    const dataList = str.split("-");
     if (dataList[4] != "true") {
       changeCurrentFolder({
         id: parseInt(dataList[1]),

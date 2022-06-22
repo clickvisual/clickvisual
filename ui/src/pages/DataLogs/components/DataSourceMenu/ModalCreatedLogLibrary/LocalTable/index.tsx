@@ -88,6 +88,7 @@ const LocalTable = ({
   };
 
   useEffect(() => {
+    if (instanceList.length <= 0) return;
     const instanceObj = instanceList.find(
       (item: any) =>
         item.name == (addLogToDatabase?.instanceName || instanceName)
