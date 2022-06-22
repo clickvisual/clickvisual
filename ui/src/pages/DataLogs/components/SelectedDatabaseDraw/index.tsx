@@ -125,12 +125,14 @@ const SelectedDataBaseDraw = () => {
         newInstanceName: item.name,
         key: `${item.id}`,
         customInstanceDesc: item.desc,
+        clusters: item.clusters,
       });
     });
 
     dataList.map((item: any) => {
       arrList.map((instance: any) => {
         if (item.instanceName == instance.newInstanceName) {
+          delete item.clusters;
           instance.children
             ? instance.children.push({ ...item, key: `${item.iid}-${item.id}` })
             : (instance.children = [
@@ -139,6 +141,7 @@ const SelectedDataBaseDraw = () => {
         }
       });
     });
+    console.log(dataList, instanceList, arrList);
     setTreeDatabaseList(arrList);
   };
 
