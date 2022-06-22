@@ -10,7 +10,7 @@ const IntegratedConfiguration = ({
 }: IntegratedConfigurationProps) => {
   const [form] = Form.useForm();
   return (
-    <div>
+    <div style={{ height: "100vh" }}>
       <FileTitle file={currentNode} />
       <IntegratedConfigs form={form} file={currentNode} />
     </div>

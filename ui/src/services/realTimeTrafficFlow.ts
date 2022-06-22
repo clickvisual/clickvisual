@@ -16,6 +16,15 @@ export interface BusinessChartResponse {
 }
 
 export default {
+  async getDataBaseList(iid: number) {
+    return request<API.Res<string[]>>(
+      process.env.PUBLIC_PATH +
+        `api/v1/bigdata/mining/instances/${iid}/databases`,
+      {
+        method: "GET",
+      }
+    );
+  },
   async getBusinessChart({ iid, dn, tn }: BusinessChartRequest) {
     return request<API.Res<BusinessChartResponse[]>>(
       process.env.PUBLIC_PATH +
