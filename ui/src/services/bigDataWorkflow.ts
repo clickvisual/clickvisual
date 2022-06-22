@@ -18,6 +18,17 @@ export interface CreatedWorkflowData extends BaseWorkflowPayload {
   desc: string;
 }
 
+export enum BigDataSourceType {
+  /**
+   * clickhouse 源
+   */
+  instances = "instances",
+  /**
+   * 其他数据源
+   */
+  source = "sources",
+}
+
 export default {
   async getWorkflows(params: { iid: number }) {
     return request<API.Res<WorkflowInfo[]>>(
@@ -64,6 +75,39 @@ export default {
       {
         method: "DELETE",
       }
+    );
+  },
+
+  // 获取数据源
+  async getSourceList(id: number, source: BigDataSourceType) {
+    return request(
+      process.env.PUBLIC_PATH +
+        `api/v1/bigdata/mining/${source}/${id}/databases`,
+      {
+        method: "GET",
+      }
+    );
+  },
+
+  // 获取数据源里面的表
+  async getSourceTables(
+    id: number,
+    source: BigDataSourceType,
+    params: { database: string }
+  ) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/mining/${source}/${id}/tables`,
+      { method: "GET", params }
+    );
+  },
+  async getSourceColumns(
+    id: number,
+    source: BigDataSourceType,
+    params: { database: string; table: string }
+  ) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/mining/${source}/${id}/columns`,
+      { method: "GET", params }
     );
   },
 };

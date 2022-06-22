@@ -40,6 +40,7 @@ const RightMenu = (props: RightMenuProps) => {
     setIsEditNode,
     setCurrentNode,
     doDeletedNode,
+    doDeleteFolder,
   } = manageNode;
 
   const handleClickAddWorkflow = useCallback(
@@ -195,6 +196,54 @@ const RightMenu = (props: RightMenuProps) => {
     [currentNode, currentInstances]
   );
 
+  const handleClickUpdateFolder = useCallback(() => {
+    if (!currentInstances) return;
+    setExtra({
+      id: currentNode.id,
+      iid: currentInstances,
+      folderId: currentNode?.parentId,
+      primary: currentNode?.primary,
+      secondary: currentNode?.secondary,
+    });
+    setIsEditNode(true);
+    setCurrentNode(currentNode);
+    showFolderModal(handleCloseNodeModal);
+  }, [currentNode, currentInstances]);
+
+  const handleClickDeleteFolder = useCallback(() => {
+    if (!currentNode || !currentInstances) return;
+    DeletedModal({
+      content: `确定删除文件夹${currentNode.name}吗？`,
+      onOk: () => {
+        const hideMessage = message.loading(
+          {
+            content: "删除中....",
+            key: "folder",
+          },
+          0
+        );
+
+        doDeleteFolder
+          .run(currentNode.id)
+          .then((res) => {
+            if (res?.code !== 0) {
+              hideMessage();
+              return;
+            }
+            handleCloseNodeModal?.();
+            message.success(
+              {
+                content: "删除成功",
+                key: "folder",
+              },
+              3
+            );
+          })
+          .catch(() => hideMessage());
+      },
+    });
+  }, [currentNode, currentInstances]);
+
   const workflowHeaderMenu: ItemType[] = [
     {
       label: i18n.formatMessage({ id: "bigdata.workflow.rightMenu.add" }),
@@ -331,10 +380,12 @@ const RightMenu = (props: RightMenuProps) => {
     {
       label: "修改文件夹",
       key: "update-folder",
+      onClick: () => handleClickUpdateFolder(),
     },
     {
       label: "删除文件夹",
       key: "delete-folder",
+      onClick: () => handleClickDeleteFolder(),
     },
   ];
 
