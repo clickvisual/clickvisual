@@ -19,6 +19,7 @@ var models = []interface{}{
 	db.BigdataFolder{},
 	db.BigdataNode{},
 	db.BigdataNodeContent{},
+	db.BigdataNodeStatus{},
 
 	db.BaseView{},
 	db.BaseTable{},

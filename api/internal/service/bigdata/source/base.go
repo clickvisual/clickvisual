@@ -10,6 +10,7 @@ type Operator interface {
 	Databases() ([]string, error)
 	Tables(string) ([]string, error)
 	Columns(string, string) ([]Column, error)
+	Query(s string) (res []map[string]interface{}, err error)
 }
 
 func Instantiate(s *Source) Operator {

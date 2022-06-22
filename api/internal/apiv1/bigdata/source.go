@@ -70,6 +70,7 @@ func SourceList(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["typ"] = req.Typ
+	conds["iid"] = req.Iid
 	if req.Name != "" {
 		conds["name"] = egorm.Cond{
 			Op:  "like",

@@ -51,6 +51,7 @@ type ReqUpdateSource struct {
 }
 
 type ReqListSource struct {
+	Iid  int    `json:"iid" form:"iid" binding:"required"`
 	Typ  int    `json:"typ" form:"typ"`
 	Name string `json:"name" form:"name"`
 }
@@ -86,6 +87,7 @@ type (
 		Tertiary   int `json:"tertiary" form:"tertiary" binding:"required"`   // 1 clickhouse
 		Iid        int `json:"iid" form:"iid" binding:"required"`
 		WorkflowId int `json:"workflowId" form:"workflowId"`
+		SourceId   int `json:"sourceId" form:"sourceId"`
 		ReqUpdateNode
 	}
 
@@ -132,6 +134,13 @@ type (
 		Nickname string `json:"nickname"`
 	}
 
+	RespRunNodeStatus struct {
+		Id        int                     `json:"id"`
+		Status    int                     `json:"status"`
+		Current   *db.BigdataNodeStatus   `json:"current"`
+		Histories []*db.BigdataNodeStatus `json:"histories"`
+	}
+
 	RespRunNode struct {
 		Logs []map[string]interface{} `json:"logs"`
 	}
@@ -145,17 +154,19 @@ type (
 	// IntegrationFlat integration offline sync step 1
 	IntegrationFlat struct {
 		Typ      string `json:"typ"` // clickhouse mysql
-		SourceId int    `json:"source_id"`
+		Id       string `json:"id"`
 		Database string `json:"database"`
 		Table    string `json:"table"`
 
-		SourceFilter string `json:"filter"`
+		SourceFilter       string `json:"sourceFilter"`
+		SourceTimeField    string `json:"SourceTimeField"`
+		SourceTimeFieldTyp int    `json:"SourceTimeFieldTyp"` // 1 int 2 time.Time
 
 		TargetPre             string `json:"targetPre"`
-		TargetPost            string `json:"TargetPost"`
+		TargetPost            string `json:"targetPost"`
 		TargetPrimaryConflict int    `json:"targetPrimaryConflict"`
 		TargetBatchSize       int    `json:"targetBatchSize"`
-		TargetBatchNum        int    `json:"TargetBatchNum"`
+		TargetBatchNum        int    `json:"targetBatchNum"`
 	}
 	// IntegrationMapping integration offline sync step 2
 	IntegrationMapping struct {
@@ -166,8 +177,7 @@ type (
 	}
 
 	IntegrationSetting struct {
-		Cron          string `json:"cron"`
-		TimeSortField string `json:"timeSortField"`
+		Cron string `json:"cron"`
 	}
 
 	InnerNodeRun struct {

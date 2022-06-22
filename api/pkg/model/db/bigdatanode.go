@@ -30,7 +30,8 @@ const (
 
 const (
 	NodeStatusDefault int = iota
-	NodeStatusWait
+	NodeStatusWaitCron
+	NodeStatusWaitHandler
 	NodeStatusHandler
 	NodeStatusError
 	NodeStatusFinish
@@ -59,6 +60,7 @@ type (
 		Secondary  int    `gorm:"column:secondary;type:int(11)" json:"secondary"`
 		Tertiary   int    `gorm:"column:tertiary;type:int(11)" json:"tertiary"`
 		WorkflowId int    `gorm:"column:workflow_id;type:int(11)" json:"workflowId"`
+		SourceId   int    `gorm:"column:sourceId;type:int(11)" json:"sourceId"`
 		Name       string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"`
 		Desc       string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`
 		LockUid    int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
@@ -72,12 +74,12 @@ type (
 	}
 
 	BigdataNodeStatus struct {
-		NodeId  int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
+		BaseModel
+
+		NodeId  int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
 		Total   int    `gorm:"column:total;type:int(11) unsigned" json:"total"`
 		Handled int    `gorm:"column:handled;type:int(11) unsigned" json:"handled"`
-		Reason  string `gorm:"column:content;type:text" json:"content"`
-		Ctime   int64  `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
-		Utime   int64  `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
+		Reason  string `gorm:"column:reason;type:text" json:"reason"`
 	}
 )
 
@@ -85,7 +87,7 @@ func NodeInfo(db *gorm.DB, id int) (resp BigdataNode, err error) {
 	var sql = "`id`= ? and dtime = 0"
 	var binds = []interface{}{id}
 	if err = db.Model(BigdataNode{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		elog.Error("info error", zap.Error(err))
 		return
 	}
 	return
@@ -94,7 +96,7 @@ func NodeInfo(db *gorm.DB, id int) (resp BigdataNode, err error) {
 func NodeList(conds egorm.Conds) (resp []*BigdataNode, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BigdataNode{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("Deployment list error", zap.Error(err))
+		elog.Error("list error", zap.Error(err))
 		return
 	}
 	return
@@ -102,7 +104,7 @@ func NodeList(conds egorm.Conds) (resp []*BigdataNode, err error) {
 
 func NodeCreate(db *gorm.DB, data *BigdataNode) (err error) {
 	if err = db.Model(BigdataNode{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		elog.Error("create error", zap.Error(err))
 		return
 	}
 	return
@@ -112,7 +114,7 @@ func NodeUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(BigdataNode{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		elog.Error("update error", zap.Error(err))
 		return
 	}
 	return
@@ -120,7 +122,7 @@ func NodeUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 
 func NodeDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(BigdataNode{}).Delete(&BigdataNode{}, id).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		elog.Error("delete error", zap.Error(err))
 		return
 	}
 	return
@@ -130,7 +132,7 @@ func NodeContentInfo(db *gorm.DB, id int) (resp BigdataNodeContent, err error) {
 	var sql = "`node_id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(BigdataNodeContent{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		elog.Error("info error", zap.Error(err))
 		return
 	}
 	return
@@ -138,7 +140,7 @@ func NodeContentInfo(db *gorm.DB, id int) (resp BigdataNodeContent, err error) {
 
 func NodeContentCreate(db *gorm.DB, data *BigdataNodeContent) (err error) {
 	if err = db.Model(BigdataNodeContent{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		elog.Error("create error", zap.Error(err))
 		return
 	}
 	return
@@ -148,7 +150,7 @@ func NodeContentUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err err
 	var sql = "`node_id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(BigdataNodeContent{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		elog.Error("update error", zap.Error(err))
 		return
 	}
 	return
@@ -156,7 +158,7 @@ func NodeContentUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err err
 
 func NodeContentDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(BigdataNodeContent{}).Where("node_id=?", id).Unscoped().Delete(&BigdataNodeContent{}).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
+		elog.Error("delete error", zap.Error(err))
 		return
 	}
 	return
@@ -166,7 +168,7 @@ func NodeStatusInfo(db *gorm.DB, id int) (resp BigdataNodeStatus, err error) {
 	var sql = "`node_id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(BigdataNodeStatus{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("release info error", zap.Error(err))
+		elog.Error("info error", zap.Error(err))
 		return
 	}
 	return
@@ -174,18 +176,34 @@ func NodeStatusInfo(db *gorm.DB, id int) (resp BigdataNodeStatus, err error) {
 
 func NodeStatusCreate(db *gorm.DB, data *BigdataNodeStatus) (err error) {
 	if err = db.Model(BigdataNodeStatus{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
+		elog.Error("create error", zap.Error(err))
 		return
 	}
 	return
 }
 
 func NodeStatusUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
-	var sql = "`node_id`=?"
+	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(BigdataNodeStatus{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("release update error", zap.Error(err))
+		elog.Error("update error", zap.Error(err))
 		return
 	}
+	return
+}
+
+// NodeStatusListPage return item list by pagination
+func NodeStatusListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*BigdataNodeStatus) {
+	respList = make([]*BigdataNodeStatus, 0)
+	if reqList.PageSize == 0 {
+		reqList.PageSize = 10
+	}
+	if reqList.Current == 0 {
+		reqList.Current = 1
+	}
+	sql, binds := egorm.BuildQuery(conds)
+	db := invoker.Db.Model(BigdataNodeStatus{}).Where(sql, binds...).Order("id desc")
+	db.Count(&total)
+	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }

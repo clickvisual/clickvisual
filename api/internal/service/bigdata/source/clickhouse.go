@@ -50,12 +50,16 @@ func (c *ClickHouse) Columns(database, table string) (res []Column, err error) {
 func (c *ClickHouse) queryStringArr(sq string) (res []string, err error) {
 	obj, err := sql.Open("clickhouse", c.s.GetDSN())
 	if err != nil {
-		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
+		invoker.Logger.Error("ClickHouse", elog.Any("step", "open"), elog.String("error", err.Error()))
 		return
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
 	rows, err := obj.Query(sq)
+	if err != nil {
+		invoker.Logger.Error("ClickHouse", elog.Any("step", "query"), elog.String("error", err.Error()))
+		return
+	}
 	for rows.Next() {
 		var tmp string
 		errScan := rows.Scan(&tmp)
@@ -65,6 +69,11 @@ func (c *ClickHouse) queryStringArr(sq string) (res []string, err error) {
 		}
 		res = append(res, tmp)
 	}
+	return
+}
+
+func (c *ClickHouse) Query(s string) (res []map[string]interface{}, err error) {
+	res = make([]map[string]interface{}, 0)
 	return
 }
 

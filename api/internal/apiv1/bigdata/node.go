@@ -29,6 +29,7 @@ func NodeCreate(c *core.Context) {
 		Name:       req.Name,
 		Desc:       req.Desc,
 		WorkflowId: req.WorkflowId,
+		SourceId:   req.SourceId,
 		LockUid:    0,
 		LockAt:     0,
 	}
@@ -275,5 +276,35 @@ func NodeRun(c *core.Context) {
 		return
 	}
 	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+func NodeStatusList(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var resp view.RespRunNodeStatus
+	// node info
+	n, err := db.NodeInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	resp.Id = n.ID
+	resp.Status = n.Status
+	// node status info
+	conds := egorm.Conds{}
+	conds["node_id"] = id
+	_, nss := db.NodeStatusListPage(conds, &db.ReqPage{
+		Current:  1,
+		PageSize: 100,
+	})
+	if len(nss) > 0 {
+		resp.Current = nss[0]
+		resp.Histories = nss
+	}
+	c.JSONE(core.CodeOK, "succ", resp)
 	return
 }

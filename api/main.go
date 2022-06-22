@@ -10,11 +10,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/router"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/dispatcher"
 	"github.com/clickvisual/clickvisual/api/pkg/job"
 )
 
 func main() {
-	app := ego.New().
+	app := ego.New(
+		ego.WithBeforeStopClean(
+			dispatcher.Close,
+		)).
 		Invoker(
 			invoker.Init,
 			service.Init,
