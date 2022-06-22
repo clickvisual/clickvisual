@@ -59,11 +59,11 @@ const LocalTable = ({
         flag++;
       }
       let valueArr: any[] = [];
-      values.map((item: any, index: number) => {
-        if (item.length == 2) {
+      values.map((value: any) => {
+        if (value.length == 2) {
           valueArr.push({
-            databaseName: item[0],
-            tableName: item[1],
+            databaseName: value[0],
+            tableName: value[1],
           });
         }
       });
@@ -197,7 +197,7 @@ const LocalTable = ({
                     formRef?.resetFields(["timeField"]);
                     setColumnsItemList([]);
                     if (!values || values.length <= 0) return;
-                    values.map(async (item: any, index: number) => {
+                    values.map(async (item: any) => {
                       if (!item) {
                         return;
                       } else if (item.length == 1) {
@@ -211,8 +211,8 @@ const LocalTable = ({
                           values.push([item[0], items.value]);
                         });
                       }
-                      setValueArr(values, getFieldValue(["instance"]));
                     });
+                    setValueArr(values, getFieldValue(["instance"]));
                   }}
                   disabled={!instanceFlag}
                 />
