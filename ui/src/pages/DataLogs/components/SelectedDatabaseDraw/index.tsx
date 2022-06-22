@@ -141,7 +141,6 @@ const SelectedDataBaseDraw = () => {
         }
       });
     });
-    console.log(dataList, instanceList, arrList);
     setTreeDatabaseList(arrList);
   };
 
