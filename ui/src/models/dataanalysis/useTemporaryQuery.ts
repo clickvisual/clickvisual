@@ -103,12 +103,11 @@ const useTemporaryQuery = () => {
       title: "clickhouse",
       enum: TertiaryEnums.clickhouse,
     },
-    // 暂时不支持sql
-    // {
-    //   id: 202,
-    //   title: "mysql",
-    //   enum: TertiaryEnums.mysql,
-    // },
+    {
+      id: 202,
+      title: "mysql",
+      enum: TertiaryEnums.mysql,
+    },
     {
       id: 203,
       title: "离线分析",
@@ -156,19 +155,21 @@ const useTemporaryQuery = () => {
   const onProcessTreeData = (folderList: folderListType[]) => {
     if (folderList && [folderList].length > 0) {
       const generateData = (data: folderListType[] | any) => {
-        let arr: DataNode[] = [];
+        let arr: any[] = [];
         data.map((item: folderListType) => {
           //key = 父级id_此id_此名称_此详情_是否可打开的节点_secondary_tertiary 构成
           // TODO: 是否可打开的节点在文件类型变多后需要更改方法改为文件类型
           let key: string = "";
           if (item.folderId == 0 || !!item.folderId) {
-            key = `${item.parentId ?? item.folderId}-${item.id}-${item.name}-${
-              item.desc
-            }-true-${item.secondary}-${item.tertiary}`;
+            key = `${item.parentId ?? item.folderId}!@#@!${item.id}!@#@!${
+              item.name
+            }!@#@!${item.desc}!@#@!true!@#@!${item.secondary}!@#@!${
+              item.tertiary
+            }`;
           } else {
-            key = `${item.parentId ?? item.folderId}-${item.id}-${item.name}-${
-              item.desc
-            }-false`;
+            key = `${item.parentId ?? item.folderId}!@#@!${item.id}!@#@!${
+              item.name
+            }!@#@!${item.desc}!@#@!false`;
           }
           const childrens = (item.children || []).concat(item.nodes || []);
 
@@ -214,7 +215,7 @@ const useTemporaryQuery = () => {
 
   // 拿目录的key存重要数据
   const onKeyToImportantInfo = (str: string) => {
-    const dataList = str.split("-");
+    const dataList = str.split("!@#@!");
     if (dataList[4] != "true") {
       changeCurrentFolder({
         id: parseInt(dataList[1]),

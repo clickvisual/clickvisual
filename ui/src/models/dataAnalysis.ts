@@ -13,6 +13,8 @@ import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder
 import dataAnalysis from "@/services/temporaryQuery";
 import dataAnalysisApi from "@/services/dataAnalysis";
 import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
+import dataSourceManageApi from "@/services/dataSourceManage";
+import { message } from "antd";
 
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
@@ -111,6 +113,10 @@ const DataAnalysis = () => {
     },
   });
 
+  const doGetSourceList = useRequest(dataSourceManageApi.getSourceList, {
+    loadingText: false,
+  });
+
   useEffect(() => {
     changeOpenNodeId(0);
     changeOpenNodeParentId(0);
@@ -134,6 +140,61 @@ const DataAnalysis = () => {
   // 是否修改
   const isUpdateStateFun = () => {
     return folderContent !== openNodeData?.content;
+  };
+
+  /**文件夹标题*/
+
+  // 锁定节点
+  const handleLockFile = (nodeId: number) => {
+    if (openNodeData?.lockAt == 0 && nodeId) {
+      doLockNode.run(nodeId).then((res: any) => {
+        if (res.code == 0) {
+          onGetFolderList();
+        }
+      });
+    }
+  };
+
+  // 解锁节点
+  const handleUnLockFile = (nodeId: number) => {
+    if (isUpdateStateFun()) {
+      message.warning("当前修改暂未保存，确定要解锁吗");
+      return;
+    }
+    nodeId &&
+      doUnLockNode.run(nodeId).then((res: any) => {
+        if (res.code == 0) {
+          onGetFolderList();
+        }
+      });
+  };
+
+  // 保存编辑后的文件节点
+  const handleSaveNode = () => {
+    const data: any = {
+      name: openNodeData?.name,
+      content: folderContent,
+      desc: openNodeData?.desc,
+      folderId: openNodeParentId,
+    };
+    openNodeId &&
+      doUpdateNode.run(openNodeId, data).then((res: any) => {
+        if (res.code == 0) {
+          message.success("保存成功");
+          onGetFolderList();
+        }
+      });
+  };
+
+  // run
+  const handleRunCode = (nodeId: number) => {
+    nodeId &&
+      doRunCodekNode.run(nodeId).then((res: any) => {
+        if (res.code == 0) {
+          changeSqlQueryResults(res.data);
+          changeVisibleSqlQuery(true);
+        }
+      });
   };
 
   useEffect(() => {
@@ -172,6 +233,7 @@ const DataAnalysis = () => {
     doGetDatabase,
     doGetTables,
     doGetNodeInfo,
+    doGetSourceList,
 
     realTimeTraffic,
     temporaryQuery,
@@ -185,6 +247,12 @@ const DataAnalysis = () => {
     doLockNode,
     doUnLockNode,
     doRunCodekNode,
+
+    // sqlTitle
+    handleLockFile,
+    handleUnLockFile,
+    handleSaveNode,
+    handleRunCode,
 
     manageNode,
     integratedConfigs,

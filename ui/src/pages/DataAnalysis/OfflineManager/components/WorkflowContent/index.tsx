@@ -1,6 +1,6 @@
 import WorkflowSql from "@/pages/DataAnalysis/components/SQLEditor";
 import { useModel } from "@@/plugin-model/useModel";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Empty } from "antd";
 import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 import IntegratedConfiguration from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration";
@@ -11,13 +11,18 @@ const WorkflowContent = () => {
   }));
   const { changeOpenNodeId, changeOpenNodeParentId } = useModel("dataAnalysis");
 
+  useEffect(() => {
+    if (selectNode?.secondary == SecondaryEnums.dataMining) {
+      changeOpenNodeId(selectNode.id);
+      changeOpenNodeParentId(selectNode.folderId);
+    }
+  }, [selectNode, selectNode.id, selectNode.folderId, selectNode?.secondary]);
+
   const Content = useMemo(() => {
     switch (selectNode?.secondary) {
       case SecondaryEnums.dataIntegration:
         return <IntegratedConfiguration currentNode={selectNode} />;
       case SecondaryEnums.dataMining:
-        changeOpenNodeId(selectNode.id);
-        changeOpenNodeParentId(selectNode.folderId);
         return <WorkflowSql />;
       default:
         return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;

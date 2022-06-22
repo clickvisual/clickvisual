@@ -1,10 +1,12 @@
 import { Form, FormInstance, Input, message, Modal, Select } from "antd";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
 import {
+  DataSourceReqTypEnums,
   FolderEnums,
   SecondaryEnums,
+  TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
 
 const { Option } = Select;
@@ -17,7 +19,10 @@ const CreateAndUpdateNode = () => {
     navKey,
     doCreatedNode,
     doUpdateNode,
+    doGetSourceList,
   } = useModel("dataAnalysis");
+
+  const [sourceList, setSourceList] = useState<any[]>();
   const primary = navKey == BigDataNavEnum.TemporaryQuery ? 3 : 0;
 
   const {
@@ -28,6 +33,7 @@ const CreateAndUpdateNode = () => {
     isUpdateNode,
     visibleNode,
     changeVisibleNode,
+    changeIsUpdateNode,
   } = temporaryQuery;
 
   const newTertiaryList = tertiaryList.filter(
@@ -80,7 +86,6 @@ const CreateAndUpdateNode = () => {
       });
       return;
     }
-    folderForm.current?.resetFields();
   }, [currentFolder, visibleNode, newTertiaryList]);
 
   const handleSubmit = (file: {
@@ -90,6 +95,7 @@ const CreateAndUpdateNode = () => {
     primary: number;
     secondary: number;
     tertiary: number;
+    sourceId?: number;
     desc?: string;
     folderId?: number;
   }) => {
@@ -98,13 +104,14 @@ const CreateAndUpdateNode = () => {
       folderId: file.folderId as number,
       name: file.name as string,
       desc: file.desc as string,
+      tertiary: file.tertiary as number,
+      sourceId: file.sourceId as number,
     };
     if (!isUpdateNode) {
       data = Object.assign(data, {
         iid: file.iid as number,
         primary: file.primary as number,
         secondary: file.secondary as number,
-        tertiary: file.tertiary as number,
       });
       doCreatedNode.run(data).then((res: any) => {
         if (res.code == 0) {
@@ -123,6 +130,28 @@ const CreateAndUpdateNode = () => {
       }
     });
   };
+
+  useEffect(() => {
+    // if (folderForm.current?.getFieldValue("tertiary") == TertiaryEnums.mysql) {
+    doGetSourceList
+      .run({
+        iid: currentInstances as number,
+        typ: DataSourceReqTypEnums.mysql,
+      })
+      .then((res: any) => {
+        if (res.code == 0) {
+          setSourceList(res.data);
+        }
+      });
+    // }
+  }, [currentInstances]);
+
+  useEffect(() => {
+    if (!visibleNode) {
+      changeIsUpdateNode(false);
+      folderForm.current?.resetFields();
+    }
+  }, [visibleNode]);
 
   return (
     <Modal
@@ -162,7 +191,7 @@ const CreateAndUpdateNode = () => {
             )}
           </Select>
         </Form.Item>
-        <Form.Item name={"tertiary"} label="tertiary">
+        <Form.Item name={"tertiary"} label="tertiary" required>
           <Select placeholder="请选择tertiary">
             {newTertiaryList.map(
               (item: { id: number; title: string; enum: number }) => (
@@ -173,11 +202,42 @@ const CreateAndUpdateNode = () => {
             )}
           </Select>
         </Form.Item>
+        <Form.Item
+          shouldUpdate={(prevValues, nextValues) =>
+            prevValues.tertiary !== nextValues.tertiary
+          }
+          noStyle
+        >
+          {({ getFieldValue }) => {
+            const tertiary = getFieldValue("tertiary");
+            if (tertiary === TertiaryEnums.mysql) {
+              return (
+                <Form.Item
+                  name={"source"}
+                  label="sourceId"
+                  required={
+                    folderForm.current?.getFieldValue("tertiary") ==
+                    TertiaryEnums.mysql
+                  }
+                >
+                  <Select placeholder="请选择source">
+                    {sourceList?.map((item: { id: number; name: string }) => (
+                      <Option value={item.id} key={item.id}>
+                        {item.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              );
+            }
+            return <></>;
+          }}
+        </Form.Item>
         <Form.Item name={"name"} label="name" required>
           <Input placeholder="请输入节点名称" />
         </Form.Item>
         <Form.Item name={"desc"} label="desc">
-          <Input placeholder="请输入节点名称" />
+          <Input placeholder="请输入节点描述" />
         </Form.Item>
       </Form>
     </Modal>

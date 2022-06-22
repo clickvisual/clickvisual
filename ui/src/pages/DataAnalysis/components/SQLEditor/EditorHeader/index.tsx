@@ -1,5 +1,5 @@
 import style from "@/pages/DataAnalysis/components/SQLEditor/index.less";
-import { Button, message, Tooltip } from "antd";
+import { Button, Tooltip } from "antd";
 import {
   FormatPainterOutlined,
   LockOutlined,
@@ -13,74 +13,18 @@ import classNames from "classnames";
 
 const EditorHeader = () => {
   const {
-    changeSqlQueryResults,
-    changeVisibleSqlQuery,
     openNodeData,
     folderContent,
     changeFolderContent,
     isUpdateStateFun,
-    openNodeParentId,
     openNodeId,
-    onGetFolderList,
-    doUpdateNode,
-    doLockNode,
-    doUnLockNode,
-    doRunCodekNode,
+    // sqlTitle
+    handleLockFile,
+    handleUnLockFile,
+    handleSaveNode,
+    handleRunCode,
   } = useModel("dataAnalysis");
   const { currentUser } = useModel("@@initialState").initialState || {};
-
-  // 锁定节点
-  const handleLockFile = () => {
-    if (openNodeData?.lockAt == 0 && openNodeId) {
-      doLockNode.run(openNodeId).then((res: any) => {
-        if (res.code == 0) {
-          onGetFolderList();
-        }
-      });
-    }
-  };
-
-  // 解锁节点
-  const handleUnLockFile = () => {
-    if (isUpdateStateFun()) {
-      message.warning("当前修改暂未保存，确定要解锁吗");
-      return;
-    }
-    openNodeId &&
-      doUnLockNode.run(openNodeId).then((res: any) => {
-        if (res.code == 0) {
-          onGetFolderList();
-        }
-      });
-  };
-
-  // 保存编辑后的文件节点
-  const handleSaveNode = () => {
-    const data: any = {
-      name: openNodeData?.name,
-      content: folderContent,
-      desc: openNodeData?.desc,
-      folderId: openNodeParentId,
-    };
-    openNodeId &&
-      doUpdateNode.run(openNodeId, data).then((res: any) => {
-        if (res.code == 0) {
-          message.success("保存成功");
-          onGetFolderList();
-        }
-      });
-  };
-
-  // run
-  const handleRunCode = () => {
-    openNodeData?.id &&
-      doRunCodekNode.run(openNodeData?.id).then((res: any) => {
-        if (res.code == 0) {
-          changeSqlQueryResults(res.data);
-          changeVisibleSqlQuery(true);
-        }
-      });
-  };
 
   return (
     <div className={style.header}>
@@ -98,7 +42,7 @@ const EditorHeader = () => {
               <Tooltip title={"锁定后可编辑"}>
                 <Button
                   type={"link"}
-                  onClick={() => handleLockFile()}
+                  onClick={() => handleLockFile(openNodeId as number)}
                   icon={<LockOutlined />}
                 />
               </Tooltip>
@@ -106,7 +50,7 @@ const EditorHeader = () => {
               <Tooltip title={"解锁后退出编辑"}>
                 <Button
                   type={"link"}
-                  onClick={() => handleUnLockFile()}
+                  onClick={() => handleUnLockFile(openNodeId as number)}
                   icon={<UnlockOutlined />}
                 />
               </Tooltip>
@@ -144,7 +88,7 @@ const EditorHeader = () => {
           <Tooltip title={"运行"}>
             <Button
               type={"link"}
-              onClick={() => handleRunCode()}
+              onClick={() => handleRunCode(openNodeId as number)}
               icon={<PlayCircleOutlined />}
             />
           </Tooltip>
