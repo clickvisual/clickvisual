@@ -18,6 +18,14 @@ const IntegratedConfiguration = ({
         children={<IntegratedConfigs form={form} file={currentNode} />}
         type={CustomCollapseEnums.dataSource}
       />
+      <CustomCollapse
+        children={<>fieldMapping</>}
+        type={CustomCollapseEnums.fieldMapping}
+      />
+      <CustomCollapse
+        children={<>schedulingConfig</>}
+        type={CustomCollapseEnums.schedulingConfig}
+      />
     </div>
   );
 };
