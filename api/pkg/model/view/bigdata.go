@@ -82,9 +82,9 @@ type ReqListWorkflow struct {
 type (
 	// ReqCreateNode Node
 	ReqCreateNode struct {
-		Primary    int `json:"primary" form:"primary" binding:"required"`     // 1 offline 2 realtime 3 short
-		Secondary  int `json:"secondary" form:"secondary" binding:"required"` // 1 数据库
-		Tertiary   int `json:"tertiary" form:"tertiary" binding:"required"`   // 1 clickhouse
+		Primary    int `json:"primary" form:"primary" binding:"required"`
+		Secondary  int `json:"secondary" form:"secondary" binding:"required"`
+		Tertiary   int `json:"tertiary" form:"tertiary" binding:"required"`
 		Iid        int `json:"iid" form:"iid" binding:"required"`
 		WorkflowId int `json:"workflowId" form:"workflowId"`
 		SourceId   int `json:"sourceId" form:"sourceId"`
@@ -96,6 +96,8 @@ type (
 		Name     string `json:"name" form:"name"`
 		Desc     string `json:"desc" form:"desc"`
 		Content  string `json:"content" form:"content"`
+		SourceId int    `json:"sourceId" form:"sourceId"`
+		Tertiary int    `json:"tertiary" form:"tertiary"`
 	}
 
 	RespCreateNode struct {
