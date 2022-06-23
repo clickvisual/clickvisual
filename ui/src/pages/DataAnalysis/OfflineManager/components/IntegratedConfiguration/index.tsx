@@ -14,18 +14,26 @@ const IntegratedConfiguration = ({
   return (
     <div style={{ flex: 1, minHeight: 0 }}>
       <FileTitle file={currentNode} />
-      <CustomCollapse
-        children={<IntegratedConfigs form={form} file={currentNode} />}
-        type={CustomCollapseEnums.dataSource}
-      />
-      <CustomCollapse
-        children={<>fieldMapping</>}
-        type={CustomCollapseEnums.fieldMapping}
-      />
-      <CustomCollapse
-        children={<>schedulingConfig</>}
-        type={CustomCollapseEnums.schedulingConfig}
-      />
+      <div
+        style={{
+          height: "calc(100vh - 136px)",
+          overflowY: "scroll",
+          paddingBottom: "30px",
+        }}
+      >
+        <CustomCollapse
+          children={<IntegratedConfigs form={form} file={currentNode} />}
+          type={CustomCollapseEnums.dataSource}
+        />
+        <CustomCollapse
+          children={<>fieldMapping</>}
+          type={CustomCollapseEnums.fieldMapping}
+        />
+        <CustomCollapse
+          children={<>schedulingConfig</>}
+          type={CustomCollapseEnums.schedulingConfig}
+        />
+      </div>
     </div>
   );
 };
