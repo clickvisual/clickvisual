@@ -12,11 +12,19 @@ const IntegratedConfiguration = ({
 }: IntegratedConfigurationProps) => {
   const [form] = Form.useForm();
   return (
-    <div style={{ height: "100vh" }}>
+    <div style={{ height: "100vh", overflowY: "scroll" }}>
       <FileTitle file={currentNode} />
       <CustomCollapse
         children={<IntegratedConfigs form={form} file={currentNode} />}
         type={CustomCollapseEnums.dataSource}
+      />
+      <CustomCollapse
+        children={<>fieldMapping</>}
+        type={CustomCollapseEnums.fieldMapping}
+      />
+      <CustomCollapse
+        children={<>schedulingConfig</>}
+        type={CustomCollapseEnums.schedulingConfig}
       />
     </div>
   );
