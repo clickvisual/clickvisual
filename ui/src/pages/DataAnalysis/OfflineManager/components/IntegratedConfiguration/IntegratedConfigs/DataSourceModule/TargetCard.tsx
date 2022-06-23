@@ -27,7 +27,7 @@ const TargetCard = (props: TargetCardProps) => {
     <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
       <Card
         title="数据去向"
-        style={{ width: "60%" }}
+        style={{ width: "90%" }}
         headStyle={{ textAlign: "center" }}
       >
         <DatasourceSelect
@@ -35,10 +35,7 @@ const TargetCard = (props: TargetCardProps) => {
           itemNamePath={["target"]}
           onChangeColumns={handleChangeColumns}
         />
-        <Form.Item
-          name={["target", "beforeImportSQL"]}
-          label={"导入前准备语句"}
-        >
+        <Form.Item name={["target", "beforeImportSQL"]} label={"导入前语句"}>
           <Input.TextArea
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}
@@ -47,7 +44,7 @@ const TargetCard = (props: TargetCardProps) => {
             }
           />
         </Form.Item>
-        <Form.Item name={["target", "afterImportSQL"]} label={"导入后准备语句"}>
+        <Form.Item name={["target", "afterImportSQL"]} label={"导入后语句"}>
           <Input.TextArea
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}

@@ -23,7 +23,7 @@ const SourceCard = (props: SourceCardProps) => {
     <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
       <Card
         title="数据来源"
-        style={{ width: "60%" }}
+        style={{ width: "90%" }}
         headStyle={{ textAlign: "center" }}
       >
         <DatasourceSelect

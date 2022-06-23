@@ -61,7 +61,7 @@ const DatasourceSelect = ({
     ];
     const resetDatabase = [FormItemEnums.type, FormItemEnums.datasource];
     const resetDatasource = [FormItemEnums.type];
-
+    onChangeColumns([]);
     const resetList = [];
     if (resetTable.includes(formItem)) {
       setSourceTableList([]);
@@ -106,13 +106,14 @@ const DatasourceSelect = ({
   }, []);
 
   const handleChangeDatasource = useCallback((id) => {
-    handleChangeSelect(FormItemEnums.database);
+    handleChangeSelect(FormItemEnums.datasource);
     doGetSources
       .run(id, BigDataSourceType.source)
       .then((res: any) => setDatabaseList(res?.data || []));
   }, []);
 
   const handleChangeDatabase = useCallback((database) => {
+    handleChangeSelect(FormItemEnums.database);
     const formValue = form.getFieldValue([...itemNamePath]);
     if (!formValue) return;
     const { id, source } =
@@ -142,6 +143,7 @@ const DatasourceSelect = ({
             source: BigDataSourceType.source,
             database: formValue.database,
           };
+    if (table) onChangeColumns([]);
     doGetColumns.run(id, source, { database, table }).then((res: any) => {
       if (res?.code !== 0) return;
       onChangeColumns(res.data);
