@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
 import style from "./index.less";
-import { DownOutlined, RightOutlined } from "@ant-design/icons";
+import { RightOutlined } from "@ant-design/icons";
+
 const CustomCollapse = (props: { children: any; type: number }) => {
   const { children, type } = props;
   const [visibleCustomCollapse, setVisibleCustomCollapse] =
     useState<boolean>(true);
+
   let title = "";
   switch (type) {
     case CustomCollapseEnums.dataSource:
@@ -21,6 +23,7 @@ const CustomCollapse = (props: { children: any; type: number }) => {
     default:
       break;
   }
+
   return (
     <div className={style.CustomCollapse}>
       <div
@@ -28,12 +31,21 @@ const CustomCollapse = (props: { children: any; type: number }) => {
         onClick={() => setVisibleCustomCollapse(!visibleCustomCollapse)}
       >
         <div className={style.title}>
-          {visibleCustomCollapse ? <DownOutlined /> : <RightOutlined />}
+          <RightOutlined
+            className={
+              visibleCustomCollapse ? style.titleIconOpen : style.titleIconClose
+            }
+          />
           &nbsp;&nbsp;
           {title}
         </div>
       </div>
-      {visibleCustomCollapse && <div className={style.content}>{children}</div>}
+      <div
+        className={style.content}
+        style={{ display: visibleCustomCollapse ? "block" : "none" }}
+      >
+        {children}
+      </div>
     </div>
   );
 };
