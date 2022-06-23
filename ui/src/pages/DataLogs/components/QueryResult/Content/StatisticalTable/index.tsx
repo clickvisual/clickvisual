@@ -11,7 +11,7 @@ const PageSize = 5;
 
 const StatisticalTableContent = () => {
   const i18n = useIntl();
-  const { statisticalChartsHelper } = useModel("dataLogs");
+  const { statisticalChartsHelper, resizeMenuWidth } = useModel("dataLogs");
   const { logChart, doGetStatisticalTable } = statisticalChartsHelper;
   const [data, setData] = useState<any[]>([]);
 
@@ -63,7 +63,10 @@ const StatisticalTableContent = () => {
           {i18n.formatMessage({ id: "log.table.note" })}
         </span>
       </div>
-      <div className={classNames(queryResultStyles.sqlTable)}>
+      <div
+        style={{ width: `calc( 100vw - ${resizeMenuWidth}px - 83px)` }}
+        className={classNames(queryResultStyles.sqlTable)}
+      >
         <Table
           loading={doGetStatisticalTable.loading}
           size={"small"}

@@ -15,6 +15,12 @@ export enum PrimaryKeyConflictEnums {
   replaceInto = 3,
 }
 
+export enum CustomCollapseEnums {
+  dataSource = 1,
+  fieldMapping = 2,
+  schedulingConfig = 3,
+}
+
 export const TypeOptions: any[] = [];
 for (const type in DataSourceTypeEnums) {
   let typeToAny: any = type;
