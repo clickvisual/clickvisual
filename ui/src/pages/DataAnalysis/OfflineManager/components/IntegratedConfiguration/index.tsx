@@ -12,7 +12,7 @@ const IntegratedConfiguration = ({
 }: IntegratedConfigurationProps) => {
   const [form] = Form.useForm();
   return (
-    <div style={{ height: "100vh" }}>
+    <div style={{ flex: 1, minHeight: 0 }}>
       <FileTitle file={currentNode} />
       <CustomCollapse
         children={<IntegratedConfigs form={form} file={currentNode} />}
