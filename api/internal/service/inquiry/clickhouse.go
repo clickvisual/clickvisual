@@ -1163,10 +1163,8 @@ func (c *ClickHouse) Deps(dn, tn string) (res []view.RespTableDeps, err error) {
 
 func (c *ClickHouse) deps(dn, tn string, checked map[string]interface{}) (res []view.RespTableDeps) {
 	res = make([]view.RespTableDeps, 0)
-
 	deps, _ := c.doQuery(fmt.Sprintf("select * from system.tables where database = '%s' and (table = '%s' or has(dependencies_table, '%s'))", dn, tn, tn))
 	var nextDeps []string
-
 	for _, table := range deps {
 		tmp := view.RespTableDeps{
 			Database: table["database"].(string),
@@ -1175,10 +1173,16 @@ func (c *ClickHouse) deps(dn, tn string, checked map[string]interface{}) (res []
 			Deps:     table["dependencies_table"].([]string),
 		}
 		if table["total_bytes"] != nil {
-			tmp.TotalBytes = table["total_bytes"].(uint64)
+			switch table["total_rows"].(type) {
+			case uint64:
+				tmp.TotalBytes = table["total_bytes"].(uint64)
+			}
 		}
 		if table["total_rows"] != nil {
-			tmp.TotalRows = table["total_rows"].(uint64)
+			switch table["total_rows"].(type) {
+			case uint64:
+				tmp.TotalRows = table["total_rows"].(uint64)
+			}
 		}
 		checked[table["database"].(string)+"."+table["name"].(string)] = struct{}{}
 		databases := table["dependencies_database"].([]string)
@@ -1197,15 +1201,15 @@ func (c *ClickHouse) deps(dn, tn string, checked map[string]interface{}) (res []
 	}
 	invoker.Logger.Debug("deps", elog.Any("nextDeps", nextDeps), elog.Any("filterNextDeps", filterNextDeps),
 		elog.Any("database", dn), elog.Any("table", tn),
+		elog.Any("checked", checked),
 		elog.Any("res", res),
 	)
-
 	for _, nextTable := range filterNextDeps {
 		dt := strings.Split(nextTable, ".")
 		if len(dt) != 2 {
 			continue
 		}
-		res = append(res, c.deps(dn, dt[1], checked)...)
+		res = append(res, c.deps(dt[0], dt[1], checked)...)
 	}
 	return res
 }

@@ -78,7 +78,7 @@ export default {
   "menu.systemSettings.events": "事件中心",
   "menu.systemSettings.pms": "权限管理",
   "menu.systemSettings.role": "角色管理",
-  "menu.bigdata": "数据分析",
+  "menu.bigdata": "分析",
   "menu.bigdata.realtime": "实时业务",
   "menu.bigdata.temporaryQuery": "临时查询",
 

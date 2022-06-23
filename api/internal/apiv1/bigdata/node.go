@@ -70,6 +70,8 @@ func NodeUpdate(c *core.Context) {
 	ups["folder_id"] = req.FolderId
 	ups["name"] = req.Name
 	ups["desc"] = req.Desc
+	ups["tertiary"] = req.Tertiary
+	ups["sourceId"] = req.SourceId
 	ups["uid"] = c.Uid()
 	if err := db.NodeUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
