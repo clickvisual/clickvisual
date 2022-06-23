@@ -109,8 +109,8 @@ export default {
   // POST New Node
   async createdNode(data: {
     primary: number;
-    secondary: number; // 1 数据库
-    tertiary: number; // 1 clickhouse
+    secondary: number;
+    tertiary: number;
     iid: number;
     name: string;
     content: string;

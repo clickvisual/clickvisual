@@ -23,6 +23,7 @@ const CreateAndUpdateFolder = () => {
     isUpdateFolder,
     visibleFolder,
     changeVisibleFolder,
+    changeIsUpdateFolder,
   } = temporaryQuery;
 
   useEffect(() => {
@@ -57,8 +58,14 @@ const CreateAndUpdateFolder = () => {
       });
       return;
     }
-    folderForm.current?.resetFields();
   }, [currentFolder, visibleFolder]);
+
+  useEffect(() => {
+    if (!visibleFolder) {
+      changeIsUpdateFolder(false);
+      folderForm.current?.resetFields();
+    }
+  }, [visibleFolder]);
 
   const handleSubmit = (file: {
     iid: number;

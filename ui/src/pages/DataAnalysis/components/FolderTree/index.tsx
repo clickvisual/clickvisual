@@ -109,16 +109,10 @@ const FolderTree: React.FC = () => {
           ) : (
             <span>{item.title}</span>
           );
-        const keyValueList = item.key.toString().split("-");
+        const keyValueList = item.key.toString().split("!@#@!");
         if (item.children && item.children.length > 0) {
           return {
-            title: (
-              <FolderTitle
-                item={item}
-                id={parseInt(keyValueList[1])}
-                title={title}
-              />
-            ),
+            title: <FolderTitle id={parseInt(keyValueList[1])} title={title} />,
             key: item.key,
             children: loop(item.children),
           };
@@ -136,9 +130,9 @@ const FolderTree: React.FC = () => {
   }, [fileList, searchValue]);
 
   const handleSelect = (value: any) => {
-    const isOpen = value[0].split("-")[4] == "true";
-    const id = parseInt(value[0].split("-")[1]);
-    const folderId = parseInt(value[0].split("-")[0]);
+    const isOpen = value[0].split("!@#@!")[4] == "true";
+    const id = parseInt(value[0].split("!@#@!")[1]);
+    const folderId = parseInt(value[0].split("!@#@!")[0]);
     onKeyToImportantInfo(value[0]);
     isOpen && changeOpenNodeId(id);
     isOpen && changeOpenNodeParentId(folderId);

@@ -17,7 +17,6 @@ const StatisticalTableContent = () => {
 
   const tableRef = useRef(null);
 
-
   const columns: ColumnsType<any> = useMemo(() => {
     const columnArr: ColumnsType = [];
     if (logChart.logs?.length > 0) {
@@ -62,7 +61,7 @@ const StatisticalTableContent = () => {
         <ExportExcelButton data={data} />
         <span className={classNames(queryResultStyles.sqlTip)}>
           {i18n.formatMessage({ id: "log.table.note" })}
-          </span>
+        </span>
       </div>
       <div className={classNames(queryResultStyles.sqlTable)}>
         <Table
@@ -76,7 +75,6 @@ const StatisticalTableContent = () => {
             showSizeChanger: true,
           }}
         />
-    
       </div>
     </div>
   );
