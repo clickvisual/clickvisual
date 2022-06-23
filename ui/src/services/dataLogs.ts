@@ -218,11 +218,12 @@ export default {
   },
 
   // Get a list of log stores
-  async getTableList(did: number) {
-    return request<API.Res<TablesResponse[]>>(
-      process.env.PUBLIC_PATH + `api/v1/databases/${did}/tables`,
+  async getTableList(iid: number, params: { database: string }) {
+    return request<API.Res<string[]>>(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/mining/instances/${iid}/tables`,
       {
         method: "GET",
+        params,
       }
     );
   },

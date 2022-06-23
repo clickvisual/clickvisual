@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { DatabaseResponse, TablesResponse } from "@/services/dataLogs";
 import useRequest from "@/hooks/useRequest/useRequest";
 import realTimeBusinessApi, {
   BusinessChartResponse,
@@ -7,8 +6,8 @@ import realTimeBusinessApi, {
 import { useEdgesState, useNodesState } from "react-flow-renderer";
 
 const useRealTimeTraffic = () => {
-  const [databases, setDatabases] = useState<DatabaseResponse[]>([]);
-  const [tables, setTables] = useState<TablesResponse[]>([]);
+  const [databases, setDatabases] = useState<string[]>([]);
+  const [tables, setTables] = useState<string[]>([]);
   const [businessChart, setBusinessChart] = useState<BusinessChartResponse[]>(
     []
   );

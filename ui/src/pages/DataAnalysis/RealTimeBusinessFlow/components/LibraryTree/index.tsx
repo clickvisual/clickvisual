@@ -1,5 +1,5 @@
 import TrafficStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/index.less";
-import { AutoComplete, Button, Form, Input } from "antd";
+import { Button, Form, Select } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import { useDebounceFn } from "ahooks";
@@ -47,34 +47,33 @@ const LibraryTree = () => {
             {() => {
               return (
                 <Form.Item name={"dn"} required>
-                  <AutoComplete
-                    allowClear
-                    filterOption
-                    style={{ width: "100%" }}
-                    options={databases.map((item) => ({ value: item.name }))}
-                    onChange={(dn) => {
+                  <Select
+                    showSearch
+                    options={databases.map((item) => ({
+                      value: item,
+                      label: item,
+                    }))}
+                    placeholder={i18n.formatMessage({
+                      id: "alarm.rules.selected.placeholder.database",
+                    })}
+                    optionFilterProp="label"
+                    onChange={(databaseName) => {
                       setTables([]);
                       setNodes([]);
                       setEdges([]);
-                      if (dn) {
-                        const did = databases.find(
-                          (item) => item.name === dn
-                        )?.id;
-                        if (did) {
-                          doGetTables
-                            .run(did)
-                            .then((res) => setTables(res?.data ?? []));
-                        }
+                      if (databaseName) {
+                        doGetTables
+                          .run(currentInstances!, { database: databaseName })
+                          .then((res) => setTables(res?.data ?? []));
                       }
                       form.resetFields(["tn"]);
                     }}
-                  >
-                    <Input
-                      placeholder={i18n.formatMessage({
-                        id: "alarm.rules.selected.placeholder.database",
-                      })}
-                    />
-                  </AutoComplete>
+                    filterOption={(input: any, option: any) =>
+                      (option!.label as unknown as string)
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                  />
                 </Form.Item>
               );
             }}
@@ -83,22 +82,26 @@ const LibraryTree = () => {
             {() => {
               return (
                 <Form.Item name={"tn"} required>
-                  <AutoComplete
-                    allowClear
-                    filterOption
+                  <Select
+                    showSearch
+                    options={tables.map((item) => ({
+                      value: item,
+                      label: item,
+                    }))}
+                    placeholder={i18n.formatMessage({
+                      id: "alarm.rules.selected.placeholder.logLibrary",
+                    })}
+                    optionFilterProp="label"
                     onChange={() => {
                       setNodes([]);
                       setEdges([]);
                     }}
-                    style={{ width: "100%" }}
-                    options={tables.map((item) => ({ value: item.tableName }))}
-                  >
-                    <Input
-                      placeholder={i18n.formatMessage({
-                        id: "alarm.rules.selected.placeholder.logLibrary",
-                      })}
-                    />
-                  </AutoComplete>
+                    filterOption={(input: any, option: any) =>
+                      (option!.label as unknown as string)
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                  />
                 </Form.Item>
               );
             }}

@@ -10,6 +10,7 @@ import {
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
+  onChangeColumns: (columns: any[]) => void;
 }
 
 const DatasourceSelect = ({
@@ -20,6 +21,7 @@ const DatasourceSelect = ({
   doGetSourceTable,
   doGetColumns,
   itemNamePath,
+  onChangeColumns,
 }: DatasourceSelectProps) => {
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
@@ -140,7 +142,10 @@ const DatasourceSelect = ({
             source: BigDataSourceType.source,
             database: formValue.database,
           };
-    doGetColumns.run(id, source, { database, table });
+    doGetColumns.run(id, source, { database, table }).then((res: any) => {
+      if (res?.code !== 0) return;
+      onChangeColumns(res.data);
+    });
   }, []);
 
   return (

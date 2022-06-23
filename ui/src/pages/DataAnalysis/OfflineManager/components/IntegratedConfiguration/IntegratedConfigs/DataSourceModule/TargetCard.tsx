@@ -2,10 +2,19 @@ import { Card, Form, Input, Select } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
 import { PrimaryKeyConflictEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { useModel } from "@@/plugin-model/useModel";
 
 export interface TargetCardProps extends SourceCardProps {}
 
 const TargetCard = (props: TargetCardProps) => {
+  const { setTargetColumns } = useModel("dataAnalysis", (model) => ({
+    setTargetColumns: model.integratedConfigs.setTargetColumns,
+  }));
+
+  const handleChangeColumns = (columns: any[]) => {
+    setTargetColumns(columns);
+  };
+
   const PrimaryKeyConflictOptions = [
     { value: PrimaryKeyConflictEnums.insertInto, label: "insert into" },
     {
@@ -21,7 +30,11 @@ const TargetCard = (props: TargetCardProps) => {
         style={{ width: "60%" }}
         headStyle={{ textAlign: "center" }}
       >
-        <DatasourceSelect {...props} itemNamePath={["target"]} />
+        <DatasourceSelect
+          {...props}
+          itemNamePath={["target"]}
+          onChangeColumns={handleChangeColumns}
+        />
         <Form.Item
           name={["target", "beforeImportSQL"]}
           label={"导入前准备语句"}

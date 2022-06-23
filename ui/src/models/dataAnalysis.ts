@@ -12,6 +12,7 @@ import useWorkflow from "@/models/dataanalysis/useWorkflow";
 import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder";
 import dataAnalysis from "@/services/temporaryQuery";
 import dataAnalysisApi from "@/services/dataAnalysis";
+import realtimeApi from "@/services/realTimeTrafficFlow";
 import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
 import dataSourceManageApi from "@/services/dataSourceManage";
 import { message } from "antd";
@@ -73,7 +74,7 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
-  const doGetDatabase = useRequest(dataLogsApi.getDatabaseList, {
+  const doGetDatabase = useRequest(realtimeApi.getDataBaseList, {
     loadingText: false,
   });
 
