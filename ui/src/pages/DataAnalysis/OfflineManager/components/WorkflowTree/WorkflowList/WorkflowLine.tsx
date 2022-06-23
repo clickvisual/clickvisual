@@ -44,7 +44,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     getFolders
       .run({
         iid: currentInstances,
-        primary: PrimaryEnums.offline,
+        primary: PrimaryEnums.realtime,
         workflowId: workflow.id,
       })
       .then((res) => {
@@ -76,7 +76,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     getFolders
       .run({
         iid: currentInstances,
-        primary: PrimaryEnums.offline,
+        primary: PrimaryEnums.realtime,
         workflowId: workflow.id,
       })
       .then((res) => {
@@ -95,7 +95,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       folderList
         .filter(
           (folder: any) =>
-            folder.primary === PrimaryEnums.offline &&
+            folder.primary === PrimaryEnums.realtime &&
             folder.secondary === secondary
         )
         .map((folder: any) => ({
@@ -117,7 +117,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         .filter(
           (node: any) =>
             node.workflowId === workflow.id &&
-            node.primary === PrimaryEnums.offline &&
+            node.primary === PrimaryEnums.realtime &&
             node.secondary === secondary
         )
         .map((node: any) => ({

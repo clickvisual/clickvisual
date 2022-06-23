@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
 import style from "./index.less";
 import { DownOutlined, RightOutlined } from "@ant-design/icons";
+
 const CustomCollapse = (props: { children: any; type: number }) => {
   const { children, type } = props;
   const [visibleCustomCollapse, setVisibleCustomCollapse] =

@@ -1,4 +1,4 @@
-import { FormInstance } from "antd";
+import { Empty, FormInstance } from "antd";
 // @ts-ignore
 import ButterflyDataMapping from "react-data-mapping";
 import "react-data-mapping/dist/index.css";
@@ -62,9 +62,12 @@ const FieldMappingModule = ({
       },
     ];
   }, [target]);
+  if (source.length <= 0 && target.length <= 0) {
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+  }
 
   return (
-    <>
+    <div style={{ padding: 20 }}>
       {source.length > 0 && target.length > 0 && (
         <ButterflyDataMapping
           width={"auto"}
@@ -84,7 +87,7 @@ const FieldMappingModule = ({
           onChange={onChange}
         />
       )}
-    </>
+    </div>
   );
 };
 export default FieldMappingModule;
