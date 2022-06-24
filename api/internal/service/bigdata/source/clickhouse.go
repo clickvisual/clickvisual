@@ -47,6 +47,21 @@ func (c *ClickHouse) Columns(database, table string) (res []Column, err error) {
 	return
 }
 
+func (c *ClickHouse) Exec(s string) (err error) {
+	obj, err := sql.Open("clickhouse", c.s.GetDSN())
+	if err != nil {
+		invoker.Logger.Error("ClickHouse", elog.Any("step", "open"), elog.String("error", err.Error()))
+		return
+	}
+	defer func() { _ = obj.Close() }()
+	_, err = obj.Exec(s)
+	return
+}
+
+func (c *ClickHouse) Query(s string) (res []map[string]interface{}, err error) {
+	return
+}
+
 func (c *ClickHouse) queryStringArr(sq string) (res []string, err error) {
 	obj, err := sql.Open("clickhouse", c.s.GetDSN())
 	if err != nil {
@@ -69,11 +84,6 @@ func (c *ClickHouse) queryStringArr(sq string) (res []string, err error) {
 		}
 		res = append(res, tmp)
 	}
-	return
-}
-
-func (c *ClickHouse) Query(s string) (res []map[string]interface{}, err error) {
-	res = make([]map[string]interface{}, 0)
 	return
 }
 

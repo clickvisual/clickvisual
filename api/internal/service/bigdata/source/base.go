@@ -11,6 +11,7 @@ type Operator interface {
 	Tables(string) ([]string, error)
 	Columns(string, string) ([]Column, error)
 	Query(s string) (res []map[string]interface{}, err error)
+	Exec(s string) error
 }
 
 func Instantiate(s *Source) Operator {

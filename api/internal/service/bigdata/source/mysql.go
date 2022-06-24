@@ -60,27 +60,13 @@ func (c *MySQL) Columns(database, table string) (res []Column, err error) {
 	return
 }
 
-func (c *MySQL) queryStringArr(sq string) (res []string, err error) {
+func (c *MySQL) Exec(s string) (err error) {
 	obj, err := gorm.Open("mysql", c.s.GetDSN())
 	if err != nil {
 		return
 	}
 	defer func() { _ = obj.Close() }()
-	// query databases
-	rows, err := obj.Debug().Raw(sq).Rows()
-	if err != nil {
-		return
-	}
-	for rows.Next() {
-		var tmp string
-		errScan := rows.Scan(&tmp)
-		if errScan != nil {
-			invoker.Logger.Error("source", elog.String("err", errScan.Error()))
-			continue
-		}
-		res = append(res, tmp)
-	}
-	return
+	return obj.Exec(s).Error
 }
 
 func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
@@ -126,6 +112,29 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 	if err = rows.Err(); err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
 		return
+	}
+	return
+}
+
+func (c *MySQL) queryStringArr(sq string) (res []string, err error) {
+	obj, err := gorm.Open("mysql", c.s.GetDSN())
+	if err != nil {
+		return
+	}
+	defer func() { _ = obj.Close() }()
+	// query databases
+	rows, err := obj.Debug().Raw(sq).Rows()
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		var tmp string
+		errScan := rows.Scan(&tmp)
+		if errScan != nil {
+			invoker.Logger.Error("source", elog.String("err", errScan.Error()))
+			continue
+		}
+		res = append(res, tmp)
 	}
 	return
 }

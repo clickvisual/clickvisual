@@ -98,18 +98,27 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	n, err := db.NodeInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "delete failed: "+err.Error(), nil)
+		return
+	}
+	if n.Status == db.NodeStatusHandler {
+		c.JSONE(1, "you should stop running before delete", nil)
+		return
+	}
 	tx := invoker.Db.Begin()
-	if err := db.NodeDelete(tx, id); err != nil {
+	if err = db.NodeDelete(tx, id); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
-	if err := db.NodeContentDelete(tx, id); err != nil {
+	if err = db.NodeContentDelete(tx, id); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
-	if err := tx.Commit().Error; err != nil {
+	if err = tx.Commit().Error; err != nil {
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
@@ -272,7 +281,36 @@ func NodeRun(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res, err := node.Run(&n, &nc)
+	res, err := node.Operator(&n, &nc, node.OperatorRun)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+func NodeStop(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	n, err := db.NodeInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if n.LockUid != c.Uid() {
+		c.JSONE(1, "please get the node lock and try again", nil)
+		return
+	}
+	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res, err := node.Operator(&n, &nc, node.OperatorStop)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return

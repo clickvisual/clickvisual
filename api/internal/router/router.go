@@ -199,6 +199,7 @@ func GetRouter() *egin.Component {
 		v1.GET("/bigdata/nodes/:id/status", core.Handle(bigdata.NodeStatusList))
 		v1.POST("/bigdata/nodes", core.Handle(bigdata.NodeCreate))
 		v1.POST("/bigdata/nodes/:id/run", core.Handle(bigdata.NodeRun))
+		v1.POST("/bigdata/nodes/:id/stop", core.Handle(bigdata.NodeStop))
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
 		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
 		// bigdata node lock
