@@ -144,31 +144,27 @@ type (
 	}
 
 	RespRunNode struct {
-		Logs []map[string]interface{} `json:"logs"`
+		Logs         []map[string]interface{} `json:"logs"`
+		InvolvedSQLs map[string]string        `json:"involvedSQLs"`
 	}
 
-	OfflineContent struct {
-		Source  IntegrationFlat    `json:"source"`
-		Target  IntegrationFlat    `json:"target"`
-		Mapping IntegrationMapping `json:"mapping"`
-		Setting IntegrationSetting `json:"setting"`
+	SyncContent struct {
+		Source  IntegrationFlat      `json:"source"`
+		Target  IntegrationFlat      `json:"target"`
+		Mapping []IntegrationMapping `json:"mapping"`
 	}
 	// IntegrationFlat integration offline sync step 1
 	IntegrationFlat struct {
 		Typ      string `json:"typ"` // clickhouse mysql
-		Id       string `json:"id"`
+		SourceId int    `json:"sourceId"`
+		Cluster  string `json:"cluster"`
 		Database string `json:"database"`
 		Table    string `json:"table"`
 
-		SourceFilter       string `json:"sourceFilter"`
-		SourceTimeField    string `json:"SourceTimeField"`
-		SourceTimeFieldTyp int    `json:"SourceTimeFieldTyp"` // 1 int 2 time.Time
+		SourceFilter string `json:"sourceFilter"`
 
-		TargetPre             string `json:"targetPre"`
-		TargetPost            string `json:"targetPost"`
-		TargetPrimaryConflict int    `json:"targetPrimaryConflict"`
-		TargetBatchSize       int    `json:"targetBatchSize"`
-		TargetBatchNum        int    `json:"targetBatchNum"`
+		TargetBefore string `json:"targetBefore"`
+		TargetAfter  string `json:"targetAfter"`
 	}
 	// IntegrationMapping integration offline sync step 2
 	IntegrationMapping struct {
@@ -178,12 +174,18 @@ type (
 		TargetType string `json:"targetType"`
 	}
 
-	IntegrationSetting struct {
-		Cron string `json:"cron"`
-	}
-
 	InnerNodeRun struct {
 		N  *db.BigdataNode
 		NC *db.BigdataNodeContent
 	}
 )
+
+func (s *SyncContent) Cluster() string {
+	if s.Target.Typ == "clickhouse" {
+		return s.Target.Cluster
+	}
+	if s.Source.Typ == "clickhouse" {
+		return s.Source.Cluster
+	}
+	return ""
+}

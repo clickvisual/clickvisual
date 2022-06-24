@@ -14,7 +14,7 @@ func Test_buildCronFn(t *testing.T) {
 	invoker.Logger = elog.DefaultLogger
 
 	type args struct {
-		oc view.OfflineContent
+		oc view.SyncContent
 	}
 	tests := []struct {
 		name string
@@ -26,7 +26,7 @@ func Test_buildCronFn(t *testing.T) {
 			name: "test-1",
 			want: nil,
 			args: args{
-				oc: view.OfflineContent{
+				oc: view.SyncContent{
 					Source: view.IntegrationFlat{
 						Typ:                "clickhouse",
 						Id:                 "",

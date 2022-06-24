@@ -80,7 +80,7 @@ func dispatch(nodes []*db.BigdataNode) {
 			invoker.Logger.Error("sync", elog.String("step", "nodeContent"), elog.String("error", errNC.Error()))
 			continue
 		}
-		var oc view.OfflineContent
+		var oc view.SyncContent
 		_ = json.Unmarshal([]byte(nc.Content), &oc)
 		_ = db.NodeUpdate(invoker.Db, n.ID, map[string]interface{}{"status": db.NodeStatusWaitHandler})
 		xgo.Go(func() {
@@ -100,7 +100,7 @@ func executeFailed(nodeId int, reason string) {
 }
 
 // Cron task trigger
-func buildCronFn(nodeId int, oc view.OfflineContent) (err error) {
+func buildCronFn(nodeId int, oc view.SyncContent) (err error) {
 	// Cron task trigger
 	// Minute-level data splitting
 	c := cron.New()
@@ -120,7 +120,7 @@ func buildCronFn(nodeId int, oc view.OfflineContent) (err error) {
 }
 
 // Minute-level data splitting
-func buildBranchFn(nodeId int, oc view.OfflineContent) {
+func buildBranchFn(nodeId int, oc view.SyncContent) {
 	// start handler
 	invoker.Logger.Debug("dispatcher", elog.String("step", "NodeStatusHandler"), elog.Any("nodeId", nodeId))
 	_ = db.NodeUpdate(invoker.Db, nodeId, map[string]interface{}{"status": db.NodeStatusHandler})

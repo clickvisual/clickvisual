@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/gotomicro/ego/core/econf"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/dispatcher"
 	"github.com/clickvisual/clickvisual/api/internal/service/configure"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube"
@@ -35,6 +34,6 @@ func Init() error {
 	permission.InitManager()
 
 	// bigdata dispatcher
-	dispatcher.Init()
+	// dispatcher.Init()
 	return nil
 }
