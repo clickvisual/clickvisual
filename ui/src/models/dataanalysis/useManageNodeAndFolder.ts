@@ -9,15 +9,11 @@ import dataAnalysisApi from "@/services/dataAnalysis";
 
 export const PrimaryList = [
   {
-    id: PrimaryEnums.offline,
-    title: "离线查询",
-    enum: PrimaryEnums.offline,
+    id: PrimaryEnums.mining,
+    title: "数据开发",
+    enum: PrimaryEnums.mining,
   },
-  {
-    id: PrimaryEnums.realtime,
-    title: "实时查询",
-    enum: PrimaryEnums.realtime,
-  },
+
   {
     id: PrimaryEnums.short,
     title: "临时查询",
@@ -140,6 +136,13 @@ const useManageNodeAndFolder = () => {
     },
   });
 
+  const doStopCodeNode = useRequest(dataAnalysisApi.stopCodeNode, {
+    loadingText: {
+      loading: "停止中",
+      done: "停止成功",
+    },
+  });
+
   const showNodeModal = (callback?: () => void) => {
     callbackRef.current = callback;
     setVisibleNode(true);
@@ -182,6 +185,7 @@ const useManageNodeAndFolder = () => {
     doLockNode,
     doUnLockNode,
     doRunCodeNode,
+    doStopCodeNode,
     doCreatedNode,
     doGetNodeInfo,
     doUpdatedNode,

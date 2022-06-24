@@ -173,4 +173,13 @@ export default {
       method: "POST",
     });
   },
+
+  async stopCodeNode(id: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${id}/stop`,
+      {
+        method: "POST",
+      }
+    );
+  },
 };

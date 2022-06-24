@@ -88,7 +88,7 @@ const useTemporaryQuery = () => {
     {
       id: 101,
       title: "数据开发",
-      enum: PrimaryEnums.offline,
+      enum: PrimaryEnums.mining,
     },
     {
       id: 102,

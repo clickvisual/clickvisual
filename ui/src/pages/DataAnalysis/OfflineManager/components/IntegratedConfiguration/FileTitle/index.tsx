@@ -1,6 +1,7 @@
 import IntegratedConfigurationStyle from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/index.less";
 import {
   LockOutlined,
+  PauseCircleOutlined,
   PlayCircleOutlined,
   SaveOutlined,
   UnlockOutlined,
@@ -13,6 +14,7 @@ export interface FileTitleProps {
   onLock: (file: any) => void;
   onUnlock: (file: any) => void;
   onRun: (file: any) => void;
+  onStop: (file: any) => void;
 }
 const FileTitle = ({
   file,
@@ -20,6 +22,7 @@ const FileTitle = ({
   onLock,
   onUnlock,
   onRun,
+  onStop,
 }: FileTitleProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
 
@@ -76,6 +79,20 @@ const FileTitle = ({
             icon={<PlayCircleOutlined />}
           />
         </Tooltip>
+        {/*  todo: 0 无状态 1 待执行 2 执行中 3 执行异常 4 执行完成 枚举 */}
+        {file.status === 3 && (
+          <Tooltip title={"暂停"}>
+            <Button
+              type={"link"}
+              disabled={
+                (!file.lockUid && file.lockUid === 0) ||
+                file.lockUid !== currentUser?.id
+              }
+              onClick={() => onStop(file)}
+              icon={<PauseCircleOutlined />}
+            />
+          </Tooltip>
+        )}
       </Space>
     </div>
   );

@@ -4,6 +4,7 @@ import FieldMappingModule from "@/pages/DataAnalysis/OfflineManager/components/I
 import { useModel } from "@@/plugin-model/useModel";
 import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
 import CustomCollapse from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/CustomCollapse";
+import { useMemo } from "react";
 
 export interface IntegratedConfigsProps {
   file: any;
@@ -35,6 +36,19 @@ const IntegratedConfigs = ({
     setMapping(data.mappingData);
   };
 
+  const FieldMapping = useMemo(() => {
+    return (
+      <FieldMappingModule
+        form={form}
+        iid={iid}
+        source={source}
+        target={target}
+        mapping={mapping}
+        onChange={handelChangeMapping}
+      />
+    );
+  }, [source, target, mapping, form, iid]);
+
   return (
     <div
       style={{
@@ -49,16 +63,7 @@ const IntegratedConfigs = ({
           type={CustomCollapseEnums.dataSource}
         />
         <CustomCollapse
-          children={
-            <FieldMappingModule
-              form={form}
-              iid={iid}
-              source={source}
-              target={target}
-              mapping={mapping}
-              onChange={handelChangeMapping}
-            />
-          }
+          children={FieldMapping}
           type={CustomCollapseEnums.fieldMapping}
         />
       </Form>
