@@ -6,6 +6,7 @@ import { FormInstance } from "antd";
 export interface DataSourceModuleProps {
   form: FormInstance<any>;
   iid: number;
+  file: any;
 }
 
 const DataSourceModule = (props: DataSourceModuleProps) => {
