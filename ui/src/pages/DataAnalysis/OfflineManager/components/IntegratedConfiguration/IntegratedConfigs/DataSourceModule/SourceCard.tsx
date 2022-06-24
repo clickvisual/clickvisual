@@ -4,6 +4,7 @@ import { DataSourceModuleProps } from "@/pages/DataAnalysis/OfflineManager/compo
 import { useModel } from "@@/plugin-model/useModel";
 
 export interface SourceCardProps extends DataSourceModuleProps {
+  file: any;
   doGetSources: any;
   doGetSqlSource: any;
   doGetSourceTable: any;
@@ -11,12 +12,17 @@ export interface SourceCardProps extends DataSourceModuleProps {
 }
 
 const SourceCard = (props: SourceCardProps) => {
-  const { setSourceColumns } = useModel("dataAnalysis", (model) => ({
-    setSourceColumns: model.integratedConfigs.setSourceColumns,
-  }));
+  const { setSourceColumns, setMapping } = useModel(
+    "dataAnalysis",
+    (model) => ({
+      setSourceColumns: model.integratedConfigs.setSourceColumns,
+      setMapping: model.integratedConfigs.setMappingData,
+    })
+  );
 
-  const handleChangeColumns = (columns: any[]) => {
+  const handleChangeColumns = (columns: any[], isChange?: boolean) => {
     setSourceColumns(columns);
+    if (!!isChange) setMapping([]);
   };
 
   return (

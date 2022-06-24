@@ -6,12 +6,17 @@ import { useModel } from "@@/plugin-model/useModel";
 export interface TargetCardProps extends SourceCardProps {}
 
 const TargetCard = (props: TargetCardProps) => {
-  const { setTargetColumns } = useModel("dataAnalysis", (model) => ({
-    setTargetColumns: model.integratedConfigs.setTargetColumns,
-  }));
+  const { setTargetColumns, setMapping } = useModel(
+    "dataAnalysis",
+    (model) => ({
+      setTargetColumns: model.integratedConfigs.setTargetColumns,
+      setMapping: model.integratedConfigs.setMappingData,
+    })
+  );
 
-  const handleChangeColumns = (columns: any[]) => {
+  const handleChangeColumns = (columns: any[], isChange?: boolean) => {
     setTargetColumns(columns);
+    if (!!isChange) setMapping([]);
   };
 
   return (

@@ -11,12 +11,13 @@ import { useModel } from "@@/plugin-model/useModel";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
-  onChangeColumns: (columns: any[]) => void;
+  onChangeColumns: (columns: any[], isChange?: boolean) => void;
 }
 
 const DatasourceSelect = ({
   form,
   iid,
+  file,
   doGetSources,
   doGetSqlSource,
   doGetSourceTable,
@@ -24,52 +25,51 @@ const DatasourceSelect = ({
   itemNamePath,
   onChangeColumns,
 }: DatasourceSelectProps) => {
-  const { instances, currentInstance, setMapping } = useModel(
-    "dataAnalysis",
-    (model) => ({
-      instances: model.instances,
-      currentInstance: model.currentInstances,
-      setMapping: model.integratedConfigs.setMappingData,
-    })
-  );
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
+  const { instances, currentInstance } = useModel("dataAnalysis", (model) => ({
+    instances: model.instances,
+    currentInstance: model.currentInstances,
+  }));
 
-  const DatasourceOptions = useMemo(() => {
-    const result: any[] = [];
-    for (const datasource of datasourceList) {
-      result.push({ value: datasource.id, label: datasource.name });
+  const handleFormUpdate = useCallback((prevValues) => {
+    let pre: any;
+    itemNamePath.forEach((path) => (pre = prevValues[path]));
+    const nextValue = form.getFieldValue([...itemNamePath, "type"]);
+    if (pre["type"] && nextValue) {
+      return pre["type"] !== nextValue;
     }
-    return result;
-  }, [datasourceList]);
+    return false;
+  }, []);
 
-  const ClusterOptions = useMemo(() => {
-    const result: any[] = [];
-    for (const cluster of instances.find((item) => item.id === currentInstance)
-      ?.clusters ?? []) {
-      result.push({ value: cluster, label: cluster });
-    }
-    return result;
-  }, [currentInstance]);
+  const ClusterOptions = useMemo(
+    () =>
+      instances
+        .find((item) => item.id === currentInstance)
+        ?.clusters?.map((cluster) => ({ value: cluster, label: cluster })),
+    [instances, currentInstance]
+  );
 
-  const DataBaseOptions = useMemo(() => {
-    const result: any[] = [];
+  const DatasourceOptions = useMemo(
+    () =>
+      datasourceList.map((datasource) => ({
+        value: datasource.id,
+        label: datasource.name,
+      })),
+    [datasourceList]
+  );
 
-    for (const database of databaseList) {
-      result.push({ value: database, label: database });
-    }
-    return result;
-  }, [databaseList]);
+  const DataBaseOptions = useMemo(
+    () =>
+      databaseList.map((database) => ({ value: database, label: database })),
+    [databaseList]
+  );
 
-  const SourceTableOptions = useMemo(() => {
-    const result: any[] = [];
-
-    for (const table of sourceTableList) {
-      result.push({ value: table, label: table });
-    }
-    return result;
-  }, [sourceTableList]);
+  const SourceTableOptions = useMemo(
+    () => sourceTableList.map((table) => ({ value: table, label: table })),
+    [sourceTableList]
+  );
 
   const handleChangeSelect = useCallback((formItem: FormItemEnums) => {
     const resetTable = [
@@ -96,27 +96,7 @@ const DatasourceSelect = ({
     form.resetFields(resetList);
   }, []);
 
-  useEffect(() => {
-    if (
-      form.getFieldValue([...itemNamePath, "type"]) ===
-      DataSourceTypeEnums.ClickHouse
-    ) {
-      doGetSources
-        .run(iid, BigDataSourceType.instances)
-        .then((res: any) => setDatabaseList(res?.data || []));
-    }
-    if (
-      form.getFieldValue([...itemNamePath, "type"]) ===
-      DataSourceTypeEnums.MySQL
-    ) {
-      doGetSqlSource
-        .run({ iid, typ: DataSourceTypeEnums.MySQL })
-        .then((res: any) => setDatasourceList(res?.data || []));
-    }
-  }, []);
-
-  const handleChangeType = useCallback((type) => {
-    handleChangeSelect(FormItemEnums.type);
+  const handleSelectType = useCallback((type: DataSourceTypeEnums) => {
     switch (type) {
       case DataSourceTypeEnums.ClickHouse:
         doGetSources
@@ -131,51 +111,63 @@ const DatasourceSelect = ({
     }
   }, []);
 
-  const handleChangeDatasource = useCallback((id) => {
-    handleChangeSelect(FormItemEnums.datasource);
+  const handleSelectDatasource = useCallback((sourceId: number) => {
     doGetSources
-      .run(id, BigDataSourceType.source)
+      .run(sourceId, BigDataSourceType.source)
       .then((res: any) => setDatabaseList(res?.data || []));
   }, []);
 
-  const handleChangeDatabase = useCallback((database) => {
-    handleChangeSelect(FormItemEnums.database);
-    const formValue = form.getFieldValue([...itemNamePath]);
-    if (!formValue) return;
-    const { id, source } =
-      formValue.type === DataSourceTypeEnums.ClickHouse
-        ? { id: iid, source: BigDataSourceType.instances }
-        : {
-            id: formValue.datasource,
-            source: BigDataSourceType.source,
-          };
-    doGetSourceTable
-      .run(id, source, { database })
-      .then((res: any) => setSourceTableList(res?.data || []));
+  const handleSelectDatabase = useCallback((database) => {
+    const type = form.getFieldValue([...itemNamePath, "type"]);
+    const datasource = form.getFieldValue([...itemNamePath, "datasource"]);
+    switch (type) {
+      case DataSourceTypeEnums.ClickHouse:
+        doGetSourceTable
+          .run(iid, BigDataSourceType.instances, { database })
+          .then((res: any) => setSourceTableList(res?.data || []));
+        break;
+      case DataSourceTypeEnums.MySQL:
+        doGetSourceTable
+          .run(datasource, BigDataSourceType.source, {
+            database,
+          })
+          .then((res: any) => setSourceTableList(res?.data || []));
+    }
   }, []);
 
-  const handleChangeTable = useCallback((table) => {
-    const formValue = form.getFieldValue([...itemNamePath]);
-    setMapping([]);
-    if (!formValue) return;
-    const { id, source, database } =
-      formValue.type === DataSourceTypeEnums.ClickHouse
-        ? {
-            id: iid,
-            source: BigDataSourceType.instances,
-            database: formValue.database,
-          }
-        : {
-            id: formValue.datasource,
-            source: BigDataSourceType.source,
-            database: formValue.database,
-          };
+  const handleSelectTable = useCallback((table: any, changeFlag?: boolean) => {
+    const type = form.getFieldValue([...itemNamePath, "type"]);
+    const datasource = form.getFieldValue([...itemNamePath, "datasource"]);
+    const database = form.getFieldValue([...itemNamePath, "database"]);
     if (table) onChangeColumns([]);
-    doGetColumns.run(id, source, { database, table }).then((res: any) => {
-      if (res?.code !== 0) return;
-      onChangeColumns(res.data);
-    });
+    switch (type) {
+      case DataSourceTypeEnums.ClickHouse:
+        doGetColumns
+          .run(iid, BigDataSourceType.instances, { database, table })
+          .then((res: any) => onChangeColumns(res?.data || [], changeFlag));
+        break;
+      case DataSourceTypeEnums.MySQL:
+        doGetColumns
+          .run(datasource, BigDataSourceType.source, {
+            database,
+            table,
+          })
+          .then((res: any) => onChangeColumns(res?.data || [], changeFlag));
+    }
   }, []);
+
+  useEffect(() => {
+    const current = form.getFieldValue([...itemNamePath]);
+    if (!current.type) return;
+    handleSelectType(current.type);
+    if (current.type === DataSourceTypeEnums.MySQL && current.datasource) {
+      handleSelectDatasource(current.datasource);
+    }
+    if (!current.database) return;
+    handleSelectDatabase(current.database);
+    if (!current.table) return;
+    handleSelectTable(current.table);
+  }, [file]);
 
   return (
     <>
@@ -184,69 +176,63 @@ const DatasourceSelect = ({
         label={"Type"}
         initialValue={DataSourceTypeEnums.ClickHouse}
       >
-        <Select options={TypeOptions} onChange={handleChangeType} />
+        <Select
+          options={TypeOptions}
+          onSelect={handleSelectType}
+          onChange={(value: any) => {
+            if (!value) return;
+            handleChangeSelect(FormItemEnums.type);
+          }}
+        />
       </Form.Item>
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, nextValues) => {
-          let pre: any, next: any;
-          itemNamePath.forEach((path) => {
-            pre = prevValues[path];
-            next = nextValues[path];
-          });
-          return pre?.type !== next?.type;
-        }}
-      >
+
+      <Form.Item noStyle shouldUpdate={handleFormUpdate}>
         {({ getFieldValue }) => {
-          if (
-            getFieldValue([...itemNamePath, "type"]) ===
-            DataSourceTypeEnums.ClickHouse
-          ) {
+          const type = getFieldValue([...itemNamePath, "type"]);
+          if (type === DataSourceTypeEnums.ClickHouse) {
             return (
               <Form.Item name={[...itemNamePath, "cluster"]} label={"Cluster"}>
                 <Select options={ClusterOptions} />
               </Form.Item>
             );
           }
-          return (
-            <Form.Item
-              name={[...itemNamePath, "datasource"]}
-              label={"Datasource"}
-            >
-              <Select
-                options={DatasourceOptions}
-                onChange={handleChangeDatasource}
-              />
-            </Form.Item>
-          );
+          if (type === DataSourceTypeEnums.MySQL) {
+            return (
+              <Form.Item
+                name={[...itemNamePath, "datasource"]}
+                label={"Datasource"}
+              >
+                <Select
+                  options={DatasourceOptions}
+                  onSelect={handleSelectDatasource}
+                  onChange={(value: any) => {
+                    if (!value) return;
+                    handleChangeSelect(FormItemEnums.datasource);
+                  }}
+                />
+              </Form.Item>
+            );
+          }
+          return null;
         }}
       </Form.Item>
       <Form.Item name={[...itemNamePath, "database"]} label={"Database"}>
-        <Select options={DataBaseOptions} onChange={handleChangeDatabase} />
+        <Select
+          options={DataBaseOptions}
+          onSelect={handleSelectDatabase}
+          onChange={(value: any) => {
+            if (!value) return;
+            handleChangeSelect(FormItemEnums.database);
+          }}
+        />
       </Form.Item>
-
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, nextValues) => {
-          let pre: any, next: any;
-          itemNamePath.forEach((path) => {
-            pre = prevValues[path];
-            next = nextValues[path];
-          });
-          return pre?.database !== next?.database;
-        }}
-      >
-        {({ getFieldValue }) => {
-          if (!getFieldValue([...itemNamePath, "database"])) return null;
-          return (
-            <Form.Item name={[...itemNamePath, "table"]} label={"Table"}>
-              <Select
-                options={SourceTableOptions}
-                onChange={handleChangeTable}
-              />
-            </Form.Item>
-          );
-        }}
+      <Form.Item name={[...itemNamePath, "table"]} label={"Table"}>
+        <Select
+          options={SourceTableOptions}
+          onSelect={(value: any) => {
+            handleSelectTable(value, true);
+          }}
+        />
       </Form.Item>
     </>
   );
