@@ -386,10 +386,6 @@ export default {
   "datasource.draw.table.operation.tip":
     "Add a log library under this database",
 
-  // Data Logs-Log Query Types MenuItem
-  "log.queryType.menuItem.rawLog": "Raw",
-  "log.queryType.menuItem.statisticalTable": "Table",
-
   "log.share": "Share",
   "log.share.success": "The URL is pasted to the clipboard",
   "log.share.error":

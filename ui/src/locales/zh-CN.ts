@@ -362,10 +362,6 @@ export default {
   "datasource.draw.table.empty.type.tip": "无数据库类型",
   "datasource.draw.table.operation.tip": "在此数据库下新增日志库",
 
-  // Data Logs-Log Query Types MenuItem
-  "log.queryType.menuItem.rawLog": "原始",
-  "log.queryType.menuItem.statisticalTable": "表格",
-
   "log.share": "分享",
   "log.share.success": "URL 已粘贴至剪切板",
   "log.share.error": "分享 URL 出错啦，请尝试重新分享，或者刷新页面后操作",

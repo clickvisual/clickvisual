@@ -18,19 +18,22 @@ import { TableInfoResponse } from "@/services/dataLogs";
 import { BaseRes } from "@/hooks/useRequest/useRequest";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
 import { PaneType } from "@/models/datalogs/types";
+import useLocalStorages, {
+  LastDataLogsStateType,
+} from "@/hooks/useLocalStorages";
 
-interface UrlStateType {
-  tid?: string;
-  did?: string;
-  instance?: string;
-  database?: string;
+export interface UrlStateType {
+  tid?: string | number;
+  did?: string | number;
+  instance?: string | number;
+  database?: string | number;
   datasource?: string;
   table?: string;
-  start: string | number;
-  end: string | number;
+  start?: string | number;
+  end?: string | number;
   kw?: string;
-  size: string | number;
-  page: string | number;
+  size?: string | number;
+  page?: string | number;
   tab: string | number;
   index: string | number;
   queryType?: string;
@@ -87,8 +90,13 @@ export default function useLogUrlParams() {
   } = useModel("dataLogs");
   const { addLogPane } = logPanesHelper;
   const { activeQueryType, chartSql } = statisticalChartsHelper;
+  const { onChangeDataLogsState, getLastDataLogsState } = useLocalStorages();
 
-  const handleResponse = (res: BaseRes<TableInfoResponse>, tid: number) => {
+  const handleResponse = (
+    res: BaseRes<TableInfoResponse>,
+    tid: number,
+    lastDataLogsState: LastDataLogsStateType
+  ) => {
     if (res.data.database) {
       onChangeCurrentDatabase(res.data.database);
     }
@@ -104,15 +112,15 @@ export default function useLogUrlParams() {
       pane: res.data.name,
       paneId: tid.toString(),
       paneType: res.data.createType,
-      start: parseInt(urlState.start),
-      end: parseInt(urlState.end),
-      keyword: urlState.kw,
-      page: parseInt(urlState.page),
-      pageSize: parseInt(urlState.size),
-      activeTabKey: urlState.tab,
-      activeIndex: parseInt(urlState.index),
-      queryType: urlState.queryType,
-      querySql: urlState.querySql,
+      start: parseInt(urlState.start || lastDataLogsState.start),
+      end: parseInt(urlState.end || lastDataLogsState.end),
+      keyword: urlState.kw || lastDataLogsState.kw,
+      page: parseInt(urlState.page || lastDataLogsState.page),
+      pageSize: parseInt(urlState.size || lastDataLogsState.size),
+      activeTabKey: urlState.tab || lastDataLogsState.tab,
+      activeIndex: parseInt(urlState.index || lastDataLogsState.index),
+      queryType: urlState.queryType || lastDataLogsState.queryType,
+      querySql: urlState.querySql || lastDataLogsState.querySql,
       desc: res.data.desc,
     };
 
@@ -147,7 +155,7 @@ export default function useLogUrlParams() {
         if (res?.code !== 0) {
           return;
         }
-        handleResponse(res, tid);
+        handleResponse(res, tid, getLastDataLogsState());
       });
     } catch (e) {
       console.log("【Error】: ", e);
@@ -156,7 +164,7 @@ export default function useLogUrlParams() {
 
   const setUrlQuery = useDebounceFn(
     () => {
-      setUrlState({
+      const data = {
         tid: currentLogLibrary?.id,
         did: currentDatabase?.id,
         start: startDateTime,
@@ -168,7 +176,9 @@ export default function useLogUrlParams() {
         tab: activeTabKey,
         queryType: activeQueryType,
         querySql: chartSql,
-      });
+      };
+      setUrlState(data);
+      onChangeDataLogsState(data);
     },
     { wait: DEBOUNCE_WAIT }
   );
@@ -190,8 +200,8 @@ export default function useLogUrlParams() {
   ]);
 
   useEffect(() => {
-    const tid = urlState.tid;
-
+    const lastDataLogsState = getLastDataLogsState();
+    const tid = urlState.tid || lastDataLogsState.tid;
     if (tid) {
       doSetUrlQuery(parseInt(tid));
     } else if (
@@ -215,11 +225,13 @@ export default function useLogUrlParams() {
 
   useEffect(() => {
     const did = urlState.did;
+    const lastDataLogsState: LastDataLogsStateType = getLastDataLogsState();
     if (databaseList.length > 0 && did && !currentDatabase) {
       const database = databaseList.find((item) => parseInt(did) === item.id);
       onChangeCurrentDatabase(database);
     } else if (
-      !did &&
+      !lastDataLogsState.tid &&
+      !lastDataLogsState.did &&
       databaseList.length > 0 &&
       !currentDatabase &&
       !urlState.tid

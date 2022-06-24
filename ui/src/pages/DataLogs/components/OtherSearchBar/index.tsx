@@ -1,6 +1,6 @@
 import { Button, message } from "antd";
 import IconFont from "@/components/IconFont";
-import { PaneType, QueryTypeMenuItems } from "@/models/datalogs/types";
+import { PaneType } from "@/models/datalogs/types";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { useMemo } from "react";
@@ -62,12 +62,7 @@ const OtherSearchBar = ({ isShare }: { isShare: boolean }) => {
       onClick={handleClick}
       className={searchBarStyles.checkBtn}
       icon={<IconFont type={"icon-switch"} />}
-    >
-      {i18n.formatMessage({
-        id: QueryTypeMenuItems.find((item) => item.key === activeQueryType)
-          ?.labelId,
-      })}
-    </Button>
+    ></Button>
   );
 };
 export default OtherSearchBar;

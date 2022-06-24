@@ -46,14 +46,3 @@ export interface Extra {
   isPaging?: boolean; // 是否是切换页面
   reqParams?: QueryParams; // 请求参数
 }
-
-export const QueryTypeMenuItems = [
-  {
-    key: QueryTypeEnum.LOG,
-    labelId: `log.queryType.menuItem.${QueryTypeEnum.LOG}`,
-  },
-  {
-    key: QueryTypeEnum.TABLE,
-    labelId: `log.queryType.menuItem.${QueryTypeEnum.TABLE}`,
-  },
-];
