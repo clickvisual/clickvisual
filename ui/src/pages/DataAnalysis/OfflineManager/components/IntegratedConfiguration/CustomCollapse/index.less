@@ -5,12 +5,21 @@
   padding: 0 20px;
   .titleBox {
     display: flex;
-    background-color: #f8c3a6;
     overflow: hidden;
+    background-color: #f8c3a6;
     border-radius: 2px;
     cursor: pointer;
 
+    .titleIconOpen {
+      animation: rotatingOpen 0.5s forwards;
+    }
+    .titleIconClose {
+      transform: rotate(90deg);
+      animation: rotatingClose 0.5s forwards;
+    }
+
     .title {
+      width: 130px;
       padding: 0 10px;
       color: #fff;
       background-color: #ef7c3e;
@@ -18,5 +27,24 @@
     }
   }
   .content {
+    padding-top: 10px;
+  }
+}
+
+@keyframes rotatingOpen {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+@keyframes rotatingClose {
+  0% {
+    transform: rotate(90deg);
+  }
+  100% {
+    transform: rotate(0);
   }
 }
