@@ -1,7 +1,6 @@
-import { Card, Form, Input, Select } from "antd";
+import { Card, Form, Input } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
-import { PrimaryKeyConflictEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
 import { useModel } from "@@/plugin-model/useModel";
 
 export interface TargetCardProps extends SourceCardProps {}
@@ -15,14 +14,6 @@ const TargetCard = (props: TargetCardProps) => {
     setTargetColumns(columns);
   };
 
-  const PrimaryKeyConflictOptions = [
-    { value: PrimaryKeyConflictEnums.insertInto, label: "insert into" },
-    {
-      value: PrimaryKeyConflictEnums.onDuplicateKeyUpdate,
-      label: "on duplicate key update",
-    },
-    { value: PrimaryKeyConflictEnums.replaceInto, label: "replace into" },
-  ];
   return (
     <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
       <Card
@@ -35,7 +26,7 @@ const TargetCard = (props: TargetCardProps) => {
           itemNamePath={["target"]}
           onChangeColumns={handleChangeColumns}
         />
-        <Form.Item name={["target", "beforeImportSQL"]} label={"导入前语句"}>
+        <Form.Item name={["target", "targetBefore"]} label={"导入前语句"}>
           <Input.TextArea
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}
@@ -44,15 +35,12 @@ const TargetCard = (props: TargetCardProps) => {
             }
           />
         </Form.Item>
-        <Form.Item name={["target", "afterImportSQL"]} label={"导入后语句"}>
+        <Form.Item name={["target", "targetAfter"]} label={"导入后语句"}>
           <Input.TextArea
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}
             placeholder={"请参考相应的 SQL 语法填写导入数据后执行的 SQL 脚本"}
           />
-        </Form.Item>
-        <Form.Item name={["target", "primaryKeyConflict"]} label={"主键冲突"}>
-          <Select options={PrimaryKeyConflictOptions} />
         </Form.Item>
       </Card>
     </div>

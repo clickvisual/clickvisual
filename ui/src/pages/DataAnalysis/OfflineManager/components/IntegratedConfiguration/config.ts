@@ -9,12 +9,6 @@ export enum FormItemEnums {
   database = "database",
 }
 
-export enum PrimaryKeyConflictEnums {
-  insertInto = 1,
-  onDuplicateKeyUpdate = 2,
-  replaceInto = 3,
-}
-
 export enum CustomCollapseEnums {
   dataSource = 1,
   fieldMapping = 2,

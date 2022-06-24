@@ -23,6 +23,9 @@ const WorkflowTree = () => {
       setWorkflowList(res.data);
     });
   }, [currentInstances]);
+  useEffect(() => {
+    return () => setWorkflowList([]);
+  }, []);
 
   return (
     <div className={offlineStyles.workflowMain}>

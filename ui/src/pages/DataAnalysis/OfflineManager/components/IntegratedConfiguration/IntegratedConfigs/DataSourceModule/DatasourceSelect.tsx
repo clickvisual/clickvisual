@@ -7,6 +7,7 @@ import {
   FormItemEnums,
   TypeOptions,
 } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { useModel } from "@@/plugin-model/useModel";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
@@ -23,6 +24,10 @@ const DatasourceSelect = ({
   itemNamePath,
   onChangeColumns,
 }: DatasourceSelectProps) => {
+  const { instances, currentInstance } = useModel("dataAnalysis", (model) => ({
+    instances: model.instances,
+    currentInstance: model.currentInstances,
+  }));
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
@@ -34,6 +39,15 @@ const DatasourceSelect = ({
     }
     return result;
   }, [datasourceList]);
+
+  const ClusterOptions = useMemo(() => {
+    const result: any[] = [];
+    for (const cluster of instances.find((item) => item.id === currentInstance)
+      ?.clusters ?? []) {
+      result.push({ value: cluster, label: cluster });
+    }
+    return result;
+  }, [currentInstance]);
 
   const DataBaseOptions = useMemo(() => {
     const result: any[] = [];
@@ -158,6 +172,9 @@ const DatasourceSelect = ({
         initialValue={DataSourceTypeEnums.ClickHouse}
       >
         <Select options={TypeOptions} onChange={handleChangeType} />
+      </Form.Item>
+      <Form.Item name={[...itemNamePath, "cluster"]} label={"Cluster"}>
+        <Select options={ClusterOptions} />
       </Form.Item>
       <Form.Item
         noStyle

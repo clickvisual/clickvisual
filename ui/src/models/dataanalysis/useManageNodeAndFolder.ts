@@ -125,6 +125,21 @@ const useManageNodeAndFolder = () => {
     loadingText: false,
   });
 
+  const doLockNode = useRequest(dataAnalysisApi.lockNode, {
+    loadingText: false,
+  });
+
+  const doUnLockNode = useRequest(dataAnalysisApi.unLockNode, {
+    loadingText: false,
+  });
+
+  const doRunCodeNode = useRequest(dataAnalysisApi.runCodeNode, {
+    loadingText: {
+      loading: "运行中",
+      done: "运行成功",
+    },
+  });
+
   const showNodeModal = (callback?: () => void) => {
     callbackRef.current = callback;
     setVisibleNode(true);
@@ -164,11 +179,15 @@ const useManageNodeAndFolder = () => {
     setSelectNode,
     setExtra,
 
-    getFolders,
+    doLockNode,
+    doUnLockNode,
+    doRunCodeNode,
     doCreatedNode,
     doGetNodeInfo,
     doUpdatedNode,
     doDeletedNode,
+
+    getFolders,
     doCreatedFolder,
     doUpdateFolder,
     doDeleteFolder,

@@ -105,7 +105,7 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
-  const doRunCodekNode = useRequest(dataAnalysis.runCodekNode, {
+  const doRunCodeNode = useRequest(dataAnalysis.runCodekNode, {
     loadingText: {
       loading: "运行中",
       done: "运行成功",
@@ -188,7 +188,7 @@ const DataAnalysis = () => {
   // run
   const handleRunCode = (nodeId: number) => {
     nodeId &&
-      doRunCodekNode.run(nodeId).then((res: any) => {
+      doRunCodeNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
           changeSqlQueryResults(res.data);
           changeVisibleSqlQuery(true);
@@ -245,7 +245,7 @@ const DataAnalysis = () => {
     doDeleteNode,
     doLockNode,
     doUnLockNode,
-    doRunCodekNode,
+    doRunCodeNode,
 
     // sqlTitle
     handleLockFile,
