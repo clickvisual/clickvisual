@@ -1,12 +1,10 @@
 import useRequest from "@/hooks/useRequest/useRequest";
-import systemApi from "@/services/systemSetting";
-import dataLogsApi from "@/services/dataLogs";
+import systemApi, { InstanceType } from "@/services/systemSetting";
 import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
 import useTemporaryQuery, {
   openNodeDataType,
 } from "@/models/dataanalysis/useTemporaryQuery";
 import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
-import { InstanceType } from "@/services/systemSetting";
 import { useEffect, useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
 import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder";
@@ -78,7 +76,7 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
-  const doGetTables = useRequest(dataLogsApi.getTableList, {
+  const doGetTables = useRequest(realtimeApi.getTableList, {
     loadingText: false,
   });
 

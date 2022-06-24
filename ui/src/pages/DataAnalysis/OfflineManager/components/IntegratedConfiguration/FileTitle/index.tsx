@@ -11,13 +11,8 @@ export interface FileTitleProps {
   file: any;
 }
 const FileTitle = ({ file }: FileTitleProps) => {
-  const {
-    // sqlTitle
-    handleLockFile,
-    handleSaveNode,
-    handleUnLockFile,
-    handleRunCode,
-  } = useModel("dataAnalysis");
+  const { handleLockFile, handleSaveNode, handleUnLockFile, handleRunCode } =
+    useModel("dataAnalysis");
   return (
     <div className={IntegratedConfigurationStyle.fileTitle}>
       <div className={IntegratedConfigurationStyle.name}>节点: {file.name}</div>
