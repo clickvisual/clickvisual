@@ -8,7 +8,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - name: server
-      port: { { .Values.service.port } }
+      port: {{ .Values.service.port }}
       protocol: TCP
       targetPort: server
     - name: governor
