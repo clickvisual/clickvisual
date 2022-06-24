@@ -1,5 +1,4 @@
 import { Empty, FormInstance } from "antd";
-// @ts-ignore
 import ButterflyDataMapping from "react-data-mapping";
 import "react-data-mapping/dist/index.css";
 import { useMemo } from "react";
@@ -14,8 +13,6 @@ export interface FieldMappingModule {
   onChange: (data: any) => void;
 }
 const FieldMappingModule = ({
-  iid,
-  form,
   source,
   target,
   mapping,
@@ -37,7 +34,7 @@ const FieldMappingModule = ({
         id: "source",
         title: "Source",
         disable: false,
-        fields: source.map((item) => ({
+        fields: source?.map((item) => ({
           id: item.field,
           disable: false,
           field: item.field,
@@ -53,7 +50,7 @@ const FieldMappingModule = ({
         id: "target",
         title: "Target",
         disable: false,
-        fields: target.map((item) => ({
+        fields: target?.map((item) => ({
           id: item.field,
           disable: false,
           field: item.field,
@@ -62,13 +59,13 @@ const FieldMappingModule = ({
       },
     ];
   }, [target]);
-  if (source.length <= 0 && target.length <= 0) {
+  if (source?.length <= 0 && target?.length <= 0) {
     return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      {source.length > 0 && target.length > 0 && (
+    <div style={{ padding: "0 20px" }}>
+      {source?.length > 0 && target?.length > 0 && (
         <ButterflyDataMapping
           width={"auto"}
           height={"auto"}

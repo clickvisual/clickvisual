@@ -1,17 +1,24 @@
 import DataSourceModule from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule";
 import { Form, FormInstance } from "antd";
-import { useMemo } from "react";
 import FieldMappingModule from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/FieldMappingModule";
 import { useModel } from "@@/plugin-model/useModel";
 import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
 import CustomCollapse from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/CustomCollapse";
+import { useMemo } from "react";
 
 export interface IntegratedConfigsProps {
   file: any;
+  iid: number;
   form: FormInstance<any>;
+  onSubmit: (field: any) => void;
 }
 
-const IntegratedConfigs = ({ file, form }: IntegratedConfigsProps) => {
+const IntegratedConfigs = ({
+  file,
+  iid,
+  form,
+  onSubmit,
+}: IntegratedConfigsProps) => {
   const { source, target, mapping, setMapping } = useModel(
     "dataAnalysis",
     (model) => ({
@@ -23,35 +30,40 @@ const IntegratedConfigs = ({ file, form }: IntegratedConfigsProps) => {
   );
 
   const handelChangeMapping = (data: any) => {
-    console.log(data.mappingData);
+    console.log("data: ", data);
+
+    // todo: sourceNode、targetNode 为废弃参数，需要拼接 sourceType、targetType
     setMapping(data.mappingData);
   };
 
-  const iid = useMemo(() => file.iid, [file.iid]);
+  const FieldMapping = useMemo(() => {
+    return (
+      <FieldMappingModule
+        form={form}
+        iid={iid}
+        source={source}
+        target={target}
+        mapping={mapping}
+        onChange={handelChangeMapping}
+      />
+    );
+  }, [source, target, mapping, form, iid]);
 
   return (
-    <div>
-      <Form
-        labelCol={{ span: 5 }}
-        wrapperCol={{ span: 19 }}
-        form={form}
-        onFinish={(fields) => console.log("fields: ", fields)}
-      >
+    <div
+      style={{
+        height: "calc(100vh - 136px)",
+        overflowY: "scroll",
+        paddingBottom: "30px",
+      }}
+    >
+      <Form layout={"vertical"} form={form} onFinish={onSubmit}>
         <CustomCollapse
           children={<DataSourceModule form={form} iid={iid} />}
           type={CustomCollapseEnums.dataSource}
         />
         <CustomCollapse
-          children={
-            <FieldMappingModule
-              form={form}
-              iid={iid}
-              source={source}
-              target={target}
-              mapping={mapping}
-              onChange={handelChangeMapping}
-            />
-          }
+          children={FieldMapping}
           type={CustomCollapseEnums.fieldMapping}
         />
       </Form>

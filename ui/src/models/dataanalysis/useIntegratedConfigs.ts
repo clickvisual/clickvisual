@@ -1,6 +1,6 @@
 import workflowApi from "@/services/bigDataWorkflow";
 import useRequest from "@/hooks/useRequest/useRequest";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const useIntegratedConfigs = () => {
   const [sourceColumns, setSourceColumns] = useState<any[]>([]);
@@ -17,10 +17,6 @@ const useIntegratedConfigs = () => {
   const doGetColumns = useRequest(workflowApi.getSourceColumns, {
     loadingText: false,
   });
-
-  useEffect(() => {
-    setMappingData([]);
-  }, [sourceColumns, targetColumns]);
 
   return {
     doGetSources,

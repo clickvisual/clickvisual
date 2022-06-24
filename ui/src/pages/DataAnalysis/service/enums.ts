@@ -37,13 +37,9 @@ export enum FolderEnums {
 
 export enum PrimaryEnums {
   /**
-   * 离线查询
+   * 数据开发
    */
-  offline = 1,
-  /**
-   * 实时查询
-   */
-  realtime = 2,
+  mining = 1,
 
   /**
    * 临时查询

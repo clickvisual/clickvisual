@@ -31,7 +31,7 @@ const SourceCard = (props: SourceCardProps) => {
           itemNamePath={["source"]}
           onChangeColumns={handleChangeColumns}
         />
-        <Form.Item name={["source", "querySql"]} label={"数据过滤"}>
+        <Form.Item name={["source", "sourceFilter"]} label={"数据过滤"}>
           <Input.TextArea
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}

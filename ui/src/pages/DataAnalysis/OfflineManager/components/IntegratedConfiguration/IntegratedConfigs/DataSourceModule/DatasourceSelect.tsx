@@ -7,6 +7,7 @@ import {
   FormItemEnums,
   TypeOptions,
 } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { useModel } from "@@/plugin-model/useModel";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
@@ -23,6 +24,14 @@ const DatasourceSelect = ({
   itemNamePath,
   onChangeColumns,
 }: DatasourceSelectProps) => {
+  const { instances, currentInstance, setMapping } = useModel(
+    "dataAnalysis",
+    (model) => ({
+      instances: model.instances,
+      currentInstance: model.currentInstances,
+      setMapping: model.integratedConfigs.setMappingData,
+    })
+  );
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
@@ -34,6 +43,15 @@ const DatasourceSelect = ({
     }
     return result;
   }, [datasourceList]);
+
+  const ClusterOptions = useMemo(() => {
+    const result: any[] = [];
+    for (const cluster of instances.find((item) => item.id === currentInstance)
+      ?.clusters ?? []) {
+      result.push({ value: cluster, label: cluster });
+    }
+    return result;
+  }, [currentInstance]);
 
   const DataBaseOptions = useMemo(() => {
     const result: any[] = [];
@@ -87,6 +105,14 @@ const DatasourceSelect = ({
         .run(iid, BigDataSourceType.instances)
         .then((res: any) => setDatabaseList(res?.data || []));
     }
+    if (
+      form.getFieldValue([...itemNamePath, "type"]) ===
+      DataSourceTypeEnums.MySQL
+    ) {
+      doGetSqlSource
+        .run({ iid, typ: DataSourceTypeEnums.MySQL })
+        .then((res: any) => setDatasourceList(res?.data || []));
+    }
   }, []);
 
   const handleChangeType = useCallback((type) => {
@@ -130,6 +156,7 @@ const DatasourceSelect = ({
 
   const handleChangeTable = useCallback((table) => {
     const formValue = form.getFieldValue([...itemNamePath]);
+    setMapping([]);
     if (!formValue) return;
     const { id, source, database } =
       formValue.type === DataSourceTypeEnums.ClickHouse
@@ -175,7 +202,11 @@ const DatasourceSelect = ({
             getFieldValue([...itemNamePath, "type"]) ===
             DataSourceTypeEnums.ClickHouse
           ) {
-            return null;
+            return (
+              <Form.Item name={[...itemNamePath, "cluster"]} label={"Cluster"}>
+                <Select options={ClusterOptions} />
+              </Form.Item>
+            );
           }
           return (
             <Form.Item

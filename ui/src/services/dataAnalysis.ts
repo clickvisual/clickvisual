@@ -147,4 +147,39 @@ export default {
       method: "DELETE",
     });
   },
+
+  async lockNode(id: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${id}/lock`,
+      {
+        method: "PATCH",
+      }
+    );
+  },
+
+  // PATCH  UnLock Node
+  async unLockNode(id: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${id}/unlock`,
+      {
+        method: "PATCH",
+      }
+    );
+  },
+
+  // POST  runCode Node
+  async runCodeNode(id: number) {
+    return request(process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${id}/run`, {
+      method: "POST",
+    });
+  },
+
+  async stopCodeNode(id: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${id}/stop`,
+      {
+        method: "POST",
+      }
+    );
+  },
 };

@@ -270,8 +270,7 @@ const RightMenu = (props: RightMenuProps) => {
       onClick: handleClickDeleteWorkflow,
     },
   ];
-
-  const dataIntegrationMenu: ItemType[] = [
+  const addNodeFromDataIntegration: ItemType[] = [
     {
       label: "新建节点",
       key: "add-node",
@@ -281,25 +280,29 @@ const RightMenu = (props: RightMenuProps) => {
           key: "offline-sync",
           onClick: () =>
             handleClickAddNode(
-              PrimaryEnums.realtime,
+              PrimaryEnums.mining,
               SecondaryEnums.dataIntegration,
               TertiaryEnums.realtime
             ),
         },
       ],
     },
+  ];
+
+  const dataIntegrationMenu: ItemType[] = [
+    ...addNodeFromDataIntegration,
     {
       label: "新建文件夹",
       key: "add-folder",
       onClick: () =>
         handleClickAddFolder(
-          PrimaryEnums.realtime,
+          PrimaryEnums.mining,
           SecondaryEnums.dataIntegration
         ),
     },
   ];
 
-  const dataDevelopmentMenu: ItemType[] = [
+  const addNodeFromDevelopment: ItemType[] = [
     {
       label: "新建节点",
       key: "add-node",
@@ -309,7 +312,7 @@ const RightMenu = (props: RightMenuProps) => {
           key: "MySql",
           onClick: () =>
             handleClickAddNode(
-              PrimaryEnums.realtime,
+              PrimaryEnums.mining,
               SecondaryEnums.dataMining,
               TertiaryEnums.mysql
             ),
@@ -319,18 +322,22 @@ const RightMenu = (props: RightMenuProps) => {
           key: "ClickHouse",
           onClick: () =>
             handleClickAddNode(
-              PrimaryEnums.realtime,
+              PrimaryEnums.mining,
               SecondaryEnums.dataMining,
               TertiaryEnums.clickhouse
             ),
         },
       ],
     },
+  ];
+
+  const dataDevelopmentMenu: ItemType[] = [
+    ...addNodeFromDevelopment,
     {
       label: "新建文件夹",
       key: "add-folder",
       onClick: () =>
-        handleClickAddFolder(PrimaryEnums.realtime, SecondaryEnums.dataMining),
+        handleClickAddFolder(PrimaryEnums.mining, SecondaryEnums.dataMining),
     },
   ];
 
@@ -349,7 +356,7 @@ const RightMenu = (props: RightMenuProps) => {
           key: "offline-sync",
           onClick: () =>
             handleClickAddNode(
-              PrimaryEnums.realtime,
+              PrimaryEnums.mining,
               SecondaryEnums.dataIntegration,
               TertiaryEnums.realtime
             ),
@@ -359,7 +366,7 @@ const RightMenu = (props: RightMenuProps) => {
           key: "MySql",
           onClick: () =>
             handleClickAddNode(
-              PrimaryEnums.realtime,
+              PrimaryEnums.mining,
               SecondaryEnums.dataMining,
               TertiaryEnums.mysql
             ),
@@ -369,7 +376,7 @@ const RightMenu = (props: RightMenuProps) => {
           key: "ClickHouse",
           onClick: () =>
             handleClickAddNode(
-              PrimaryEnums.realtime,
+              PrimaryEnums.mining,
               SecondaryEnums.dataMining,
               TertiaryEnums.clickhouse
             ),
@@ -401,7 +408,8 @@ const RightMenu = (props: RightMenuProps) => {
       case OfflineRightMenuClickSourceEnums.node:
         return nodeMenu;
       case OfflineRightMenuClickSourceEnums.folder:
-        return lodash.cloneDeep(folderMenu);
+        let menu = lodash.cloneDeep(folderMenu);
+        return menu;
       default:
         return [];
     }
