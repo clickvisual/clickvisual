@@ -43,38 +43,37 @@ const IntegratedConfiguration = ({
   }));
 
   const handleSubmit = (fields: any) => {
-    console.log("fields: ", fields);
-    // const sourceForm = fields.source;
-    // const targetForm = fields.target;
-    // const params = {
-    //   source: {
-    //     typ: DataSourceTypeEnums[sourceForm.type].toLowerCase(),
-    //     sourceId: sourceForm.datasource,
-    //     cluster: sourceForm.cluster,
-    //     database: sourceForm.database,
-    //     table: sourceForm.table,
-    //     sourceFilter: sourceForm.sourceFilter,
-    //   },
-    //   target: {
-    //     typ: DataSourceTypeEnums[targetForm.type].toLowerCase(),
-    //     sourceId: targetForm.datasource,
-    //     cluster: targetForm.cluster,
-    //     database: targetForm.database,
-    //     table: targetForm.table,
-    //     targetBefore: targetForm.targetBefore,
-    //     targetAfter: targetForm.targetAfter,
-    //   },
-    //   mapping,
-    // };
-    // updateNode
-    //   .run(currentNode.id, {
-    //     name: currentNode.name,
-    //     content: JSON.stringify(params),
-    //   })
-    //   .then((res) => {
-    //     if (res?.code !== 0) return;
-    //     message.success("节点保存成功");
-    //   });
+    const sourceForm = fields.source;
+    const targetForm = fields.target;
+    const params = {
+      source: {
+        typ: DataSourceTypeEnums[sourceForm.type].toLowerCase(),
+        sourceId: sourceForm.datasource,
+        cluster: sourceForm.cluster,
+        database: sourceForm.database,
+        table: sourceForm.table,
+        sourceFilter: sourceForm.sourceFilter,
+      },
+      target: {
+        typ: DataSourceTypeEnums[targetForm.type].toLowerCase(),
+        sourceId: targetForm.datasource,
+        cluster: targetForm.cluster,
+        database: targetForm.database,
+        table: targetForm.table,
+        targetBefore: targetForm.targetBefore,
+        targetAfter: targetForm.targetAfter,
+      },
+      mapping,
+    };
+    updateNode
+      .run(currentNode.id, {
+        name: currentNode.name,
+        content: JSON.stringify(params),
+      })
+      .then((res) => {
+        if (res?.code !== 0) return;
+        message.success("节点保存成功");
+      });
   };
 
   const doGetNodeInfo = (id: number) => {
