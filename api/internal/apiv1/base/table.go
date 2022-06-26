@@ -447,7 +447,6 @@ func TableCharts(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -527,7 +526,6 @@ func TableCharts(c *core.Context) {
 			}(i, i+interval, wg)
 		}
 		wg.Wait()
-
 		invoker.Logger.Debug("optimize", elog.Int("sum", sum), elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
 		close(errorChan)
 		for e := range errorChan {
@@ -541,7 +539,6 @@ func TableCharts(c *core.Context) {
 			res.Histograms = append(res.Histograms, d)
 			res.Count += d.Count
 		}
-
 	}
 	if isZero {
 		c.JSONE(core.CodeOK, "the query data is empty", nil)

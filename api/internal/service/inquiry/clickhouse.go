@@ -704,9 +704,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 
 func (c *ClickHouse) TimeFieldEqual(param view.ReqQuery, tid int) string {
 	var res string
-	out, err := c.doQuery(c.logsTimelineSQL(param, tid))
+	s := c.logsTimelineSQL(param, tid)
+	out, err := c.doQuery(s)
 	if err != nil {
-		invoker.Logger.Error("TimeFieldEqual", elog.Any("step", "logsSQL"), elog.String("error", err.Error()))
+		invoker.Logger.Error("TimeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("sql", s), elog.String("error", err.Error()))
 		return res
 	}
 	for _, v := range out {
@@ -732,13 +733,12 @@ func (c *ClickHouse) TimeFieldEqual(param view.ReqQuery, tid int) string {
 }
 
 func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {
-	t := time.Now()
 	q := c.countSQL(param)
 	sqlCountData, err := c.doQuery(q)
 	if err != nil {
+		invoker.Logger.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return 0, err
 	}
-	invoker.Logger.Debug("test", elog.Any("step", "Count"), elog.Any("cost", time.Since(t)), elog.Any("sql", q))
 	if len(sqlCountData) > 0 {
 		if sqlCountData[0]["count"] != nil {
 			switch sqlCountData[0]["count"].(type) {
@@ -1108,6 +1108,7 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 	res = make([]map[string]interface{}, 0)
 	rows, err := c.db.Query(sql)
 	if err != nil {
+		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("sql", sql), elog.Any("error", err.Error()))
 		return
 	}
 	defer func() { _ = rows.Close() }()
