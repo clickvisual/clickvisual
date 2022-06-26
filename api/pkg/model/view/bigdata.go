@@ -134,6 +134,7 @@ type (
 		LockAt   int64  `json:"lockAt"`
 		Username string `json:"username"`
 		Nickname string `json:"nickname"`
+		Status   int    `json:"status"`
 	}
 
 	RespRunNodeStatus struct {
@@ -146,6 +147,7 @@ type (
 	RespRunNode struct {
 		Logs         []map[string]interface{} `json:"logs"`
 		InvolvedSQLs map[string]string        `json:"involvedSQLs"`
+		Message      string                   `json:"message"`
 	}
 
 	SyncContent struct {

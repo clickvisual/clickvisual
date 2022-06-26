@@ -43,7 +43,7 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int) (view.RespRu
 		tertiaryDone:  false,
 	})
 	if err != nil {
-		return res, err
+		res.Message = err.Error()
 	}
 	// record execute result
 	resBytes, _ := json.Marshal(res)
@@ -52,6 +52,6 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int) (view.RespRu
 	if op == OperatorRun {
 		ups["previous_content"] = nc.Content
 	}
-	err = db.NodeContentUpdate(invoker.Db, n.ID, ups)
+	_ = db.NodeContentUpdate(invoker.Db, n.ID, ups)
 	return res, err
 }

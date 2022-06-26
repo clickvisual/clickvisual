@@ -21,6 +21,7 @@ var (
 
 	ErrBigdataRTSyncTypeNotSupported         = &kerror.KError{Code: 10201, Message: "This type of synchronization operation is not supported"}
 	ErrBigdataRTSyncOperatorTypeNotSupported = &kerror.KError{Code: 10202, Message: "This type of node operation is not supported "}
+	ErrBigdataNotSupportNodeType             = &kerror.KError{Code: 10203, Message: "node type is not supported"}
 )
 
 func New(msg string, err string) error {

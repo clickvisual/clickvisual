@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -19,6 +20,8 @@ func (r *secondary) execute(n *node) (res view.RespRunNode, err error) {
 	case db.SecondaryDatabase:
 	case db.SecondaryDataIntegration:
 	case db.SecondaryDataMining:
+	default:
+		return res, constx.ErrBigdataNotSupportNodeType
 	}
 	return r.next.execute(n)
 }
