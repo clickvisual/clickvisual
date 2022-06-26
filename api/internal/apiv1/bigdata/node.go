@@ -67,11 +67,21 @@ func NodeUpdate(c *core.Context) {
 	}
 	tx := invoker.Db.Begin()
 	ups := make(map[string]interface{}, 0)
-	ups["folder_id"] = req.FolderId
-	ups["name"] = req.Name
-	ups["desc"] = req.Desc
-	ups["tertiary"] = req.Tertiary
-	ups["sourceId"] = req.SourceId
+	if req.Tertiary != 0 {
+		ups["tertiary"] = req.Tertiary
+	}
+	if req.SourceId != 0 {
+		ups["sourceId"] = req.SourceId
+	}
+	if req.FolderId != 0 {
+		ups["folder_id"] = req.FolderId
+	}
+	if req.Name != "" {
+		ups["name"] = req.Name
+	}
+	if req.Desc != "" {
+		ups["desc"] = req.Desc
+	}
 	ups["uid"] = c.Uid()
 	if err := db.NodeUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
@@ -149,6 +159,7 @@ func NodeInfo(c *core.Context) {
 		Content: nc.Content,
 		LockUid: n.LockUid,
 		LockAt:  n.LockAt,
+		Status:  n.Status,
 	}
 	if res.LockUid != 0 {
 		u, _ := db.UserInfo(res.LockUid)
