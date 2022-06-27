@@ -24,6 +24,7 @@ const DatasourceSelect = ({
   doGetColumns,
   itemNamePath,
   onChangeColumns,
+  isLock,
 }: DatasourceSelectProps) => {
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
@@ -177,6 +178,7 @@ const DatasourceSelect = ({
         initialValue={DataSourceTypeEnums.ClickHouse}
       >
         <Select
+          disabled={isLock}
           options={TypeOptions}
           onSelect={handleSelectType}
           onChange={(value: any) => {
@@ -192,7 +194,7 @@ const DatasourceSelect = ({
           if (type === DataSourceTypeEnums.ClickHouse) {
             return (
               <Form.Item name={[...itemNamePath, "cluster"]} label={"Cluster"}>
-                <Select options={ClusterOptions} />
+                <Select options={ClusterOptions} disabled={isLock} />
               </Form.Item>
             );
           }
@@ -203,6 +205,7 @@ const DatasourceSelect = ({
                 label={"Datasource"}
               >
                 <Select
+                  disabled={isLock}
                   options={DatasourceOptions}
                   onSelect={handleSelectDatasource}
                   onChange={(value: any) => {
@@ -218,6 +221,7 @@ const DatasourceSelect = ({
       </Form.Item>
       <Form.Item name={[...itemNamePath, "database"]} label={"Database"}>
         <Select
+          disabled={isLock}
           options={DataBaseOptions}
           onSelect={handleSelectDatabase}
           onChange={(value: any) => {
@@ -228,6 +232,7 @@ const DatasourceSelect = ({
       </Form.Item>
       <Form.Item name={[...itemNamePath, "table"]} label={"Table"}>
         <Select
+          disabled={isLock}
           options={SourceTableOptions}
           onSelect={(value: any) => {
             handleSelectTable(value, true);

@@ -16,6 +16,10 @@ const DataSourceModule = (props: DataSourceModuleProps) => {
     doGetSourceTable: model.integratedConfigs.doGetSourceTables,
     doGetColumns: model.integratedConfigs.doGetColumns,
   }));
+  const { currentUser } = useModel("@@initialState").initialState || {};
+  const { file } = props;
+  const isLock =
+    !file.lockUid || file?.lockUid === 0 || file?.lockUid !== currentUser?.id;
 
   return (
     <div
@@ -24,8 +28,8 @@ const DataSourceModule = (props: DataSourceModuleProps) => {
         padding: 10,
       }}
     >
-      <SourceCard {...props} {...generalModel} />
-      <TargetCard {...props} {...generalModel} />
+      <SourceCard {...props} {...generalModel} isLock={isLock} />
+      <TargetCard {...props} {...generalModel} isLock={isLock} />
     </div>
   );
 };

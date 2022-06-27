@@ -289,17 +289,20 @@ const RightMenu = (props: RightMenuProps) => {
     },
   ];
 
+  const addFolder: ItemType[] = useMemo(() => {
+    return [
+      {
+        label: "新建文件夹",
+        key: "add-folder",
+        onClick: () =>
+          handleClickAddFolder(currentNode.primary, currentNode.secondary),
+      },
+    ];
+  }, [currentNode]);
+
   const dataIntegrationMenu: ItemType[] = [
     ...addNodeFromDataIntegration,
-    {
-      label: "新建文件夹",
-      key: "add-folder",
-      onClick: () =>
-        handleClickAddFolder(
-          PrimaryEnums.mining,
-          SecondaryEnums.dataIntegration
-        ),
-    },
+    ...addFolder,
   ];
 
   const addNodeFromDevelopment: ItemType[] = [
@@ -333,12 +336,7 @@ const RightMenu = (props: RightMenuProps) => {
 
   const dataDevelopmentMenu: ItemType[] = [
     ...addNodeFromDevelopment,
-    {
-      label: "新建文件夹",
-      key: "add-folder",
-      onClick: () =>
-        handleClickAddFolder(PrimaryEnums.mining, SecondaryEnums.dataMining),
-    },
+    ...addFolder,
   ];
 
   const nodeMenu: ItemType[] = [
@@ -347,42 +345,6 @@ const RightMenu = (props: RightMenuProps) => {
   ];
 
   const folderMenu: ItemType[] = [
-    {
-      label: "新建节点",
-      key: "add-node",
-      children: [
-        {
-          label: "实时同步",
-          key: "offline-sync",
-          onClick: () =>
-            handleClickAddNode(
-              PrimaryEnums.mining,
-              SecondaryEnums.dataIntegration,
-              TertiaryEnums.realtime
-            ),
-        },
-        {
-          label: "MySql",
-          key: "MySql",
-          onClick: () =>
-            handleClickAddNode(
-              PrimaryEnums.mining,
-              SecondaryEnums.dataMining,
-              TertiaryEnums.mysql
-            ),
-        },
-        {
-          label: "ClickHouse",
-          key: "ClickHouse",
-          onClick: () =>
-            handleClickAddNode(
-              PrimaryEnums.mining,
-              SecondaryEnums.dataMining,
-              TertiaryEnums.clickhouse
-            ),
-        },
-      ],
-    },
     {
       label: "修改文件夹",
       key: "update-folder",
@@ -409,11 +371,17 @@ const RightMenu = (props: RightMenuProps) => {
         return nodeMenu;
       case OfflineRightMenuClickSourceEnums.folder:
         let menu = lodash.cloneDeep(folderMenu);
+        if (currentNode.secondary === SecondaryEnums.dataIntegration) {
+          menu = [...addNodeFromDataIntegration, ...menu];
+        }
+        if (currentNode.secondary === SecondaryEnums.dataMining) {
+          menu = [...addNodeFromDevelopment, ...menu];
+        }
         return menu;
       default:
         return [];
     }
-  }, [clickSource]);
+  }, [currentNode, clickSource]);
 
   return <Menu items={menuItems} />;
 };

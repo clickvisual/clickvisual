@@ -1,13 +1,15 @@
 import { Form, FormInstance, Input, Modal, Select } from "antd";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { TertiaryList } from "@/models/dataanalysis/useManageNodeAndFolder";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
 
 const { Option } = Select;
 
 const ManageNodeModal = () => {
   const formRef = useRef<FormInstance>(null);
-  const { manageNode } = useModel("dataAnalysis");
+  const [sources, setSources] = useState<any[]>([]);
   const {
     visibleNode,
     isEditNode,
@@ -18,7 +20,21 @@ const ManageNodeModal = () => {
     hideNodeModal,
     setCurrentNode,
     currentNode,
-  } = manageNode;
+    doGetSqlSource,
+    iid,
+  } = useModel("dataAnalysis", (model) => ({
+    doGetSqlSource: model.dataSourceManage.doGetSourceList,
+    visibleNode: model.manageNode.visibleNode,
+    isEditNode: model.manageNode.isEditNode,
+    extra: model.manageNode.extra,
+    doCreatedNode: model.manageNode.doCreatedNode,
+    doUpdatedNode: model.manageNode.doUpdatedNode,
+    callbackRef: model.manageNode.callbackRef,
+    hideNodeModal: model.manageNode.hideNodeModal,
+    setCurrentNode: model.manageNode.setCurrentNode,
+    currentNode: model.manageNode.currentNode,
+    iid: model.currentInstances,
+  }));
 
   const onCancel = () => hideNodeModal();
 
@@ -40,18 +56,30 @@ const ManageNodeModal = () => {
     });
   };
 
+  const SourceOptions = useMemo(() => {
+    return sources.map((item) => ({ value: item.id, label: item.name }));
+  }, [sources]);
+
   useEffect(() => {
     if (!visibleNode || !formRef.current) return;
     formRef.current.setFieldsValue(extra);
   }, [visibleNode]);
 
   useEffect(() => {
-    if (!visibleNode || !formRef.current || !isEditNode) return;
+    if (!visibleNode || !iid) return;
+    doGetSqlSource.run({ iid, typ: DataSourceTypeEnums.MySQL }).then((res) => {
+      if (res?.code !== 0) return;
+      setSources(res.data);
+    });
+  }, [visibleNode, iid]);
+
+  useEffect(() => {
+    if (!visibleNode || !formRef.current || !isEditNode || !iid) return;
     formRef.current.setFieldsValue({
       name: currentNode.name,
       desc: currentNode.desc,
     });
-  }, [visibleNode]);
+  }, [visibleNode, iid]);
 
   useEffect(() => {
     if (visibleNode || !formRef.current) return;
@@ -83,6 +111,24 @@ const ManageNodeModal = () => {
               </Option>
             ))}
           </Select>
+        </Form.Item>
+        <Form.Item
+          noStyle
+          shouldUpdate={(prevValues, nextValues) =>
+            prevValues.tertiary !== nextValues.tertiary
+          }
+        >
+          {({ getFieldValue }) => {
+            if (getFieldValue("tertiary") !== TertiaryEnums.mysql) {
+              formRef.current?.resetFields(["sourceId"]);
+              return null;
+            }
+            return (
+              <Form.Item name={"sourceId"} label={"Datasource"}>
+                <Select options={SourceOptions} placeholder="请选择 source" />
+              </Form.Item>
+            );
+          }}
         </Form.Item>
         <Form.Item name={"name"} label="name" required>
           <Input placeholder="请输入节点名称" />

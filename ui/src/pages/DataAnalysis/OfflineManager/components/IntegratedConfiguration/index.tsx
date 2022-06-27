@@ -1,12 +1,13 @@
 import FileTitle from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/FileTitle";
 import IntegratedConfigs from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs";
-import { Form } from "antd";
+import { Form, Spin } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
 import message from "antd/es/message";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
 import { parseJsonObject } from "@/utils/string";
+import styles from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/index.less";
 
 export interface IntegratedConfigurationProps {
   currentNode: any;
@@ -193,8 +194,11 @@ const IntegratedConfiguration = ({
     });
   };
 
-  useEffect(() => {
+  useMemo(() => {
     if (currentNode) doGetNodeInfo(currentNode.id);
+  }, [currentNode]);
+
+  useEffect(() => {
     form.resetFields();
     setNodeInfo(undefined);
     setSource([]);
@@ -203,22 +207,40 @@ const IntegratedConfiguration = ({
 
   const iid = useMemo(() => currentNode.iid, [currentNode.iid]);
 
+  if (!nodeInfo) {
+    return (
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spin spinning={getNodeInfo.loading} />
+      </div>
+    );
+  }
+
   return (
-    <div style={{ flex: 1, minHeight: 0 }}>
-      <FileTitle
-        file={nodeInfo}
-        onSave={handleSave}
-        onLock={handleLock}
-        onUnlock={handleUnlock}
-        onRun={handleRun}
-        onStop={handleStop}
-      />
-      <IntegratedConfigs
-        onSubmit={handleSubmit}
-        iid={iid}
-        form={form}
-        file={nodeInfo}
-      />
+    <div className={styles.integratedConfigMain}>
+      <Spin spinning={getNodeInfo.loading}>
+        <FileTitle
+          file={nodeInfo}
+          onSave={handleSave}
+          onLock={handleLock}
+          onUnlock={handleUnlock}
+          onRun={handleRun}
+          onStop={handleStop}
+        />
+        <IntegratedConfigs
+          onSubmit={handleSubmit}
+          iid={iid}
+          form={form}
+          file={nodeInfo}
+        />
+      </Spin>
     </div>
   );
 };

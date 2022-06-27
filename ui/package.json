@@ -54,6 +54,7 @@
     "@ant-design/pro-layout": "^6.15.3",
     "@ant-design/pro-table": "^2.30.8",
     "@types/crypto-js": "^4.0.2",
+    "@types/dagre": "^0.7.47",
     "@types/react-resizable": "^1.7.4",
     "@types/styled-components": "^5.1.25",
     "@umijs/route-utils": "^1.0.36",

@@ -1,38 +1,19 @@
 import { Dropdown } from "antd";
-import { ReactNode, useEffect } from "react";
-import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
-import { OfflineRightMenuClickSourceEnums } from "@/pages/DataAnalysis/service/enums";
+import { ReactElement, ReactNode, useEffect } from "react";
 
 export interface NodeTreeItemProps {
-  source: OfflineRightMenuClickSourceEnums;
-  currentNode?: any;
   children: ReactNode;
+  menus: ReactElement;
   onMenuClose?: () => void;
-  handleCloseNodeModal?: () => void;
 }
 
-const NodeTreeItem = ({
-  source,
-  currentNode,
-  onMenuClose,
-  children,
-  handleCloseNodeModal,
-}: NodeTreeItemProps) => {
+const NodeTreeItem = ({ onMenuClose, children, menus }: NodeTreeItemProps) => {
   useEffect(() => {
     return () => onMenuClose?.();
   }, []);
 
   return (
-    <Dropdown
-      overlay={
-        <RightMenu
-          handleCloseNodeModal={handleCloseNodeModal}
-          clickSource={source}
-          currentNode={currentNode}
-        />
-      }
-      trigger={["contextMenu"]}
-    >
+    <Dropdown overlay={menus} trigger={["contextMenu"]}>
       {children}
     </Dropdown>
   );

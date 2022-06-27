@@ -13,6 +13,7 @@ import CustomTree, { NodeType } from "@/components/CustomTree";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { NodeInfo } from "@/services/dataAnalysis";
+import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
 
 const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   const i18n = useIntl();
@@ -150,6 +151,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
             source: OfflineRightMenuClickSourceEnums.dataIntegration,
             currentNode: {
               ...workflow,
+              primary: PrimaryEnums.mining,
               secondary: SecondaryEnums.dataIntegration,
             },
             nodeType: NodeType.folder,
@@ -167,6 +169,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
             source: OfflineRightMenuClickSourceEnums.dataDevelopment,
             currentNode: {
               ...workflow,
+              primary: PrimaryEnums.mining,
               secondary: SecondaryEnums.dataMining,
             },
             nodeType: NodeType.folder,
@@ -180,9 +183,13 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   return (
     <>
       <NodeTreeItem
-        handleCloseNodeModal={handleCloseModal}
-        currentNode={currentNode}
-        source={clickSource}
+        menus={
+          <RightMenu
+            handleCloseNodeModal={handleCloseModal}
+            clickSource={clickSource}
+            currentNode={currentNode}
+          />
+        }
         onMenuClose={handleCloseRightMenu}
       >
         <CustomTree

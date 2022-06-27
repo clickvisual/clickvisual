@@ -15,6 +15,28 @@ export enum CustomCollapseEnums {
   schedulingConfig = 3,
 }
 
+export enum NodeRunningStatusEnums {
+  /**
+   * 无状态
+   */
+  noState = 0,
+  /**
+   * 待执行
+   */
+  pending = 1,
+  /**
+   * 执行中
+   */
+  inProgress = 2,
+  /**
+   * 执行异常
+   */
+  executionException = 3,
+  /**
+   */
+  ExecuteComplete = 4,
+}
+
 export const TypeOptions: any[] = [];
 for (const type in DataSourceTypeEnums) {
   let typeToAny: any = type;
