@@ -62,7 +62,7 @@ const CreatedOrUpdatedInstanceModal = (
   const { AlarmStorages } = useAlarmStorages();
 
   const [moreOptionFlag, setMoreOptionFlag] = useState<boolean>(false);
-  const [disabledSubmit, setDisabledSubmit] = useState<boolean>(true);
+  const [disabledSubmit, setDisabledSubmit] = useState<boolean>(false);
 
   const onChangeMoreOptionFlag = (flag: boolean) => {
     setMoreOptionFlag(flag);
@@ -178,10 +178,15 @@ const CreatedOrUpdatedInstanceModal = (
   useEffect(() => {
     if (!visible) {
       onChangeMoreOptionFlag(false);
+      setDisabledSubmit(false);
       instanceFormRef.current?.resetFields();
-      setDisabledSubmit(true);
     }
   }, [visible]);
+
+  useEffect(() => {
+    if (!visible || isEditor) return;
+    setDisabledSubmit(true);
+  }, [visible, isEditor]);
 
   useEffect(() => {
     if (visible) doGetClusters();

@@ -5,7 +5,7 @@ import { useState } from "react";
 const useIntegratedConfigs = () => {
   const [sourceColumns, setSourceColumns] = useState<any[]>([]);
   const [targetColumns, setTargetColumns] = useState<any[]>([]);
-  const [mappingData, setMappingData] = useState([]);
+  const [mappingData, setMappingData] = useState<any[]>([]);
 
   const doGetSources = useRequest(workflowApi.getSourceList, {
     loadingText: false,

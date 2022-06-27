@@ -52,7 +52,7 @@ const IntegratedConfigs = ({
   return (
     <div
       style={{
-        height: "calc(100vh - 136px)",
+        height: "100%",
         overflowY: "scroll",
         paddingBottom: "30px",
       }}

@@ -13,6 +13,7 @@ const TargetCard = (props: TargetCardProps) => {
       setMapping: model.integratedConfigs.setMappingData,
     })
   );
+  const { isLock } = props;
 
   const handleChangeColumns = (columns: any[], isChange?: boolean) => {
     setTargetColumns(columns);
@@ -33,6 +34,7 @@ const TargetCard = (props: TargetCardProps) => {
         />
         <Form.Item name={["target", "targetBefore"]} label={"导入前语句"}>
           <Input.TextArea
+            disabled={isLock}
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}
             placeholder={
@@ -42,6 +44,7 @@ const TargetCard = (props: TargetCardProps) => {
         </Form.Item>
         <Form.Item name={["target", "targetAfter"]} label={"导入后语句"}>
           <Input.TextArea
+            disabled={isLock}
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}
             placeholder={"请参考相应的 SQL 语法填写导入数据后执行的 SQL 脚本"}

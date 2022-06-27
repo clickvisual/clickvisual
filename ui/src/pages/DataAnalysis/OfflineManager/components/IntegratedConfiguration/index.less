@@ -1,12 +1,24 @@
 .fileTitle {
-    width: 100%;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    color: hsl(0, 0%, 58%);
-    background: hsl(0, 0%, 96%);
-    padding-left: 20px;
-    .name {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+  padding-left: 20px;
+  color: hsl(0, 0%, 58%);
+  background: hsl(0, 0%, 96%);
+  .name {
+  }
+}
 
+.integratedConfigMain {
+  flex: 1;
+  min-height: 0;
+  :global {
+    .ant-spin-nested-loading {
+      height: 100%;
     }
+    .ant-spin-nested-loading .ant-spin-container {
+      height: 100%;
+    }
+  }
 }

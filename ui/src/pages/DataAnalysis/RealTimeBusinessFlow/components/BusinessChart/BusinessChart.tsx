@@ -1,13 +1,12 @@
 import BusinessStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/index.less";
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import ReactFlow, {
-  ReactFlowProvider,
   addEdge,
-  MiniMap,
   MarkerType,
+  MiniMap,
+  ReactFlowProvider,
 } from "react-flow-renderer";
 
-// @ts-ignore
 import { graphlib, layout } from "dagre";
 
 import "./styles/index.less";
@@ -37,7 +36,8 @@ const BusinessChart = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
   const getNodesPosition = useCallback((nodes: any[], edges: any[]) => {
-    let g = new graphlib.Graph({ directed: true });
+    // compound: 支持复合查询
+    let g = new graphlib.Graph({ directed: true, compound: true });
     g.setGraph({});
     g.setDefaultEdgeLabel(function () {
       return {};
@@ -48,10 +48,11 @@ const BusinessChart = () => {
     for (const edge of edges) {
       g.setEdge(edge.source, edge.target);
     }
+    // g.setParent("bbbb", "aaaa");
     layout(g);
     const newNodes: any[] = [];
     for (const node of nodes) {
-      const graphNode = g._nodes[node.id];
+      const graphNode = g.node(node.id);
       node.position = {
         x: graphNode.x,
         y: graphNode.y,

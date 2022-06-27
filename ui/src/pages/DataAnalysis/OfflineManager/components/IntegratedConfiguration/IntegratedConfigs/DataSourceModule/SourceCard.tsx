@@ -9,9 +9,11 @@ export interface SourceCardProps extends DataSourceModuleProps {
   doGetSqlSource: any;
   doGetSourceTable: any;
   doGetColumns: any;
+  isLock: boolean;
 }
 
 const SourceCard = (props: SourceCardProps) => {
+  const { isLock } = props;
   const { setSourceColumns, setMapping } = useModel(
     "dataAnalysis",
     (model) => ({
@@ -39,6 +41,7 @@ const SourceCard = (props: SourceCardProps) => {
         />
         <Form.Item name={["source", "sourceFilter"]} label={"数据过滤"}>
           <Input.TextArea
+            disabled={isLock}
             allowClear
             autoSize={{ minRows: 4, maxRows: 4 }}
             placeholder={"请参考相应的 SQL 语法填写过滤条件"}
