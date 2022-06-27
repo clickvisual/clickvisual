@@ -285,8 +285,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 	ups["view_table_name"] = viewTableName
 	ups["rule_store_type"] = instance.RuleStoreType
 	ups["status"] = db.AlarmStatusOpen
-	err = db.AlarmUpdate(tx, obj.ID, ups)
-	return nil
+	return db.AlarmUpdate(tx, obj.ID, ups)
 }
 
 func (i *alarm) OpenOperator(id int) (err error) {
@@ -325,6 +324,9 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	ups["uid"] = uid
 	ups["no_data_op"] = req.NoDataOp
 	ups["channel_ids"] = db.Ints(req.ChannelIds)
+	if len(req.Filters) > 0 {
+		ups["tid"] = req.Filters[0].Tid
+	}
 	if err = db.AlarmUpdate(tx, alarmId, ups); err != nil {
 		tx.Rollback()
 		return
