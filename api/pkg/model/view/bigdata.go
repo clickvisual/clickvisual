@@ -126,15 +126,17 @@ type (
 	}
 
 	RespInfoNode struct {
-		Id       int    `json:"id"`
-		Name     string `json:"name"`
-		Desc     string `json:"desc"`
-		Content  string `json:"content"`
-		LockUid  int    `json:"lockUid"`
-		LockAt   int64  `json:"lockAt"`
-		Username string `json:"username"`
-		Nickname string `json:"nickname"`
-		Status   int    `json:"status"`
+		Id              int    `json:"id"`
+		Name            string `json:"name"`
+		Desc            string `json:"desc"`
+		Content         string `json:"content"`
+		LockUid         int    `json:"lockUid"`
+		LockAt          int64  `json:"lockAt"`
+		Username        string `json:"username"`
+		Nickname        string `json:"nickname"`
+		Status          int    `json:"status"`
+		PreviousContent string `json:"previousContent"`
+		Result          string `json:"result"`
 	}
 
 	RespRunNodeStatus struct {

@@ -153,13 +153,15 @@ func NodeInfo(c *core.Context) {
 		return
 	}
 	res := view.RespInfoNode{
-		Id:      n.ID,
-		Name:    n.Name,
-		Desc:    n.Desc,
-		Content: nc.Content,
-		LockUid: n.LockUid,
-		LockAt:  n.LockAt,
-		Status:  n.Status,
+		Id:              n.ID,
+		Name:            n.Name,
+		Desc:            n.Desc,
+		Content:         nc.Content,
+		LockUid:         n.LockUid,
+		LockAt:          n.LockAt,
+		Status:          n.Status,
+		PreviousContent: nc.PreviousContent,
+		Result:          nc.Result,
 	}
 	if res.LockUid != 0 {
 		u, _ := db.UserInfo(res.LockUid)
