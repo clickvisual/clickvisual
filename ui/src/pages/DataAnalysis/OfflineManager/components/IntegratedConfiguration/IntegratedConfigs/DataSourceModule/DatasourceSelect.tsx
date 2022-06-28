@@ -192,6 +192,10 @@ const DatasourceSelect = ({
       itemNamePath.includes("target") &&
       sourceType === form.getFieldValue([...itemNamePath, "type"])
     ) {
+      onChangeColumns([]);
+      setSourceTableList([]);
+      setDatabaseList([]);
+      setDatasourceList([]);
       form.resetFields([
         [...itemNamePath, "type"],
         [...itemNamePath, "table"],
