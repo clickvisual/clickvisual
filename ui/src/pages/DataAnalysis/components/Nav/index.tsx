@@ -43,6 +43,8 @@ const DataAnalysisNav = () => {
     },
   ];
 
+  const dataAnalysisNavKey = localStorage.getItem("data-analysis-nav-key");
+
   useEffect(() => {
     setUrlState({ navKey: navKey });
   }, [navKey]);
@@ -52,10 +54,20 @@ const DataAnalysisNav = () => {
       urlState.navKey &&
       urlState.navKey != navKey &&
       onChangeNavKey(urlState.navKey);
-  }, [urlState]);
+  }, [urlState, urlState.navKey]);
 
   useEffect(() => {
-    if (!urlState || !urlState.navKey) {
+    if (urlState?.navKey && urlState.navKey != navKey) {
+      onChangeNavKey(urlState.navKey);
+      return;
+    }
+    if (dataAnalysisNavKey) {
+      onChangeNavKey(dataAnalysisNavKey);
+    }
+  }, []);
+
+  useEffect(() => {
+    if ((!urlState || !urlState.navKey) && !dataAnalysisNavKey) {
       onChangeNavKey(BigDataNavEnum.RealTimeTrafficFlow);
     }
   }, []);
@@ -73,6 +85,7 @@ const DataAnalysisNav = () => {
                   setEdges([]);
                 }
                 onChangeNavKey(item.key);
+                localStorage.setItem("data-analysis-nav-key", item.key);
               }}
               key={item.key}
               style={{ backgroundColor: item.key == navKey ? "#F9CDB5" : "" }}

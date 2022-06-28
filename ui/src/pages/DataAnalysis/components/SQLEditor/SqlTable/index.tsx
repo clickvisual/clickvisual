@@ -25,13 +25,6 @@ const SqlTable = () => {
         });
       }
       setSqlQueryData(list);
-      columnArr.push({
-        title: "line",
-        dataIndex: "key",
-        align: "center",
-        width: 60,
-        fixed: "left",
-      });
       for (const fieldIndex in fields) {
         columnArr.push({
           title: fields[fieldIndex],

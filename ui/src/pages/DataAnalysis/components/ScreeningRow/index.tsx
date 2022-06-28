@@ -21,16 +21,22 @@ const ScreeningRow = (props: { style?: any }) => {
   const { setDatabases, setTables, setNodes, setEdges } = realTimeTraffic;
   const { setIsFold } = workflow;
 
+  const dataAnalysisIid = localStorage.getItem("data-analysis-iid") || false;
+
   useEffect(() => {
     doGetInstance.run().then((res: any) => {
       if (res.code == 0) {
         setInstances(res?.data ?? []);
-        if (urlState && urlState?.iid) {
+        const iid = (urlState && urlState?.iid) || dataAnalysisIid;
+        if (iid) {
           doGetDatabase
-            .run(urlState.iid as number)
+            .run(iid as number)
             .then((res) => setDatabases(res?.data ?? []));
-          onChangeCurrentInstances(parseInt(urlState.iid));
-          selectForm.setFieldsValue({ instances: parseInt(urlState.iid) });
+          onChangeCurrentInstances(parseInt(iid));
+          selectForm.setFieldsValue({ instances: parseInt(iid) });
+        }
+        if (dataAnalysisIid && !(urlState && urlState?.iid)) {
+          setUrlState({ iid: dataAnalysisIid });
         }
       }
     });
@@ -69,10 +75,13 @@ const ScreeningRow = (props: { style?: any }) => {
               onChangeCurrentInstances(iid);
               setUrlState({ iid: iid });
               if (iid) {
+                localStorage.setItem("data-analysis-iid", iid.toString());
                 doGetDatabase
                   .run(iid as number)
                   .then((res) => setDatabases(res?.data ?? []));
+                return;
               }
+              localStorage.removeItem("data-analysis-iid");
             }}
           />
         </Form.Item>
