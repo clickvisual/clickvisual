@@ -1,9 +1,12 @@
 import DataAnalysisStyle from "../../index.less";
-import { Select, Tooltip } from "antd";
+import { Form, Select, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
 import { useEffect, useMemo } from "react";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const ScreeningRow = (props: { style?: any }) => {
+  const [selectForm] = Form.useForm();
+  const [urlState, setUrlState] = useUrlState<any>();
   const { style } = props;
   const i18n = useIntl();
   const {
@@ -19,7 +22,19 @@ const ScreeningRow = (props: { style?: any }) => {
   const { setIsFold } = workflow;
 
   useEffect(() => {
-    doGetInstance.run().then((res) => setInstances(res?.data ?? []));
+    doGetInstance.run().then((res: any) => {
+      if (res.code == 0) {
+        setInstances(res?.data ?? []);
+        if (urlState && urlState?.iid) {
+          doGetDatabase
+            .run(urlState.iid as number)
+            .then((res) => setDatabases(res?.data ?? []));
+          onChangeCurrentInstances(parseInt(urlState.iid));
+          selectForm.setFieldsValue({ instances: parseInt(urlState.iid) });
+        }
+      }
+    });
+    return () => onChangeCurrentInstances(undefined);
   }, []);
 
   const options = useMemo(() => {
@@ -37,27 +52,31 @@ const ScreeningRow = (props: { style?: any }) => {
 
   return (
     <div className={DataAnalysisStyle.screeningRow} style={style}>
-      <Select
-        showSearch
-        allowClear
-        // size="small"
-        style={{ width: "278px" }}
-        options={options}
-        placeholder={i18n.formatMessage({ id: "datasource.draw.selected" })}
-        onChange={(iid: number) => {
-          setDatabases([]);
-          setTables([]);
-          setNodes([]);
-          setEdges([]);
-          setIsFold(false);
-          onChangeCurrentInstances(iid);
-          if (iid) {
-            doGetDatabase
-              .run(iid as number)
-              .then((res) => setDatabases(res?.data ?? []));
-          }
-        }}
-      />
+      <Form form={selectForm}>
+        <Form.Item name={"instances"} noStyle>
+          <Select
+            showSearch
+            allowClear
+            style={{ width: "278px" }}
+            options={options}
+            placeholder={i18n.formatMessage({ id: "datasource.draw.selected" })}
+            onChange={(iid: number) => {
+              setDatabases([]);
+              setTables([]);
+              setNodes([]);
+              setEdges([]);
+              setIsFold(false);
+              onChangeCurrentInstances(iid);
+              setUrlState({ iid: iid });
+              if (iid) {
+                doGetDatabase
+                  .run(iid as number)
+                  .then((res) => setDatabases(res?.data ?? []));
+              }
+            }}
+          />
+        </Form.Item>
+      </Form>
     </div>
   );
 };
