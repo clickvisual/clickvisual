@@ -64,7 +64,7 @@ const DataAnalysis = () => {
     setVisibleSqlQuery(flag);
   };
 
-  const onChangeCurrentInstances = (value: number) => {
+  const onChangeCurrentInstances = (value?: number) => {
     setCurrentInstances(value);
   };
 

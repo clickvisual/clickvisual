@@ -88,8 +88,16 @@ const EditorHeader = () => {
           <Tooltip title={"运行"}>
             <Button
               type={"link"}
-              onClick={() => handleRunCode(openNodeId as number)}
-              icon={<PlayCircleOutlined />}
+              onClick={() => {
+                if (openNodeData?.lockUid) {
+                  handleRunCode(openNodeId as number);
+                }
+              }}
+              icon={
+                <PlayCircleOutlined
+                  style={{ color: openNodeData?.lockUid ? "" : "#ccc" }}
+                />
+              }
             />
           </Tooltip>
         )}
