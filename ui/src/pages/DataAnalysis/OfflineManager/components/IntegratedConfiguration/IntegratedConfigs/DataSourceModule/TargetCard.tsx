@@ -26,6 +26,7 @@ const TargetCard = (props: TargetCardProps) => {
   return (
     <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
       <Card
+        size={"small"}
         title="数据去向"
         style={{ width: "90%" }}
         headStyle={{ textAlign: "center" }}

@@ -32,6 +32,7 @@ const SourceCard = (props: SourceCardProps) => {
   return (
     <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
       <Card
+        size={"small"}
         title="数据来源"
         style={{ width: "90%" }}
         headStyle={{ textAlign: "center" }}

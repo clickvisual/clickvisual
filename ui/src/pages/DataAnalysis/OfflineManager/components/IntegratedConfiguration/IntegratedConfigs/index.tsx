@@ -57,7 +57,7 @@ const IntegratedConfigs = ({
         paddingBottom: "30px",
       }}
     >
-      <Form layout={"vertical"} form={form} onFinish={onSubmit}>
+      <Form layout={"vertical"} size={"small"} form={form} onFinish={onSubmit}>
         <CustomCollapse
           children={<DataSourceModule file={file} form={form} iid={iid} />}
           type={CustomCollapseEnums.dataSource}
