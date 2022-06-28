@@ -1,9 +1,9 @@
-import FileTitle from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/FileTitle";
+import FileTitle from "@/pages/DataAnalysis/components/FileTitle";
 import IntegratedConfigs from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs";
 import { Form, Spin } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
-import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import message from "antd/es/message";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
 import { parseJsonObject } from "@/utils/string";
@@ -143,6 +143,14 @@ const IntegratedConfiguration = ({
             table: formData.target?.table,
           };
 
+    if (
+      !source.table ||
+      !source.database ||
+      !target.database ||
+      !target.table
+    ) {
+      return;
+    }
     doGetColumns
       .run(source.id, source.source, {
         database: source.database,

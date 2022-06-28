@@ -14,6 +14,7 @@ import realtimeApi from "@/services/realTimeTrafficFlow";
 import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
 import dataSourceManageApi from "@/services/dataSourceManage";
 import { message } from "antd";
+import useWorkflowBoard from "@/models/dataanalysis/useWorkflowBoard";
 
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
@@ -35,6 +36,7 @@ const DataAnalysis = () => {
   const dataSourceManage = useDataSourceManage();
   const manageNode = useManageNodeAndFolder();
   const integratedConfigs = useIntegratedConfigs();
+  const workflowBoard = useWorkflowBoard();
 
   const changeOpenNodeId = (id: number) => {
     setOpenNodeId(id);
@@ -255,6 +257,7 @@ const DataAnalysis = () => {
 
     manageNode,
     integratedConfigs,
+    workflowBoard,
   };
 };
 

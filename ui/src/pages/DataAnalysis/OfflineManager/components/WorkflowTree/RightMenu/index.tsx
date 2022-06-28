@@ -7,7 +7,11 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import { useCallback, useMemo } from "react";
 import { ItemType } from "antd/es/menu/hooks/useItems";
-import { AppstoreAddOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  AppstoreAddOutlined,
+  DashboardOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
@@ -41,12 +45,17 @@ const RightMenu = (props: RightMenuProps) => {
     setCurrentNode,
     doDeletedNode,
     doDeleteFolder,
+    setSelectNode,
   } = manageNode;
 
   const handleClickAddWorkflow = useCallback(
     () => setVisibleWorkflowEditModal(true),
     []
   );
+
+  const handleClickBoard = useCallback(() => {
+    setSelectNode(currentNode.board);
+  }, [currentNode]);
 
   const handleClickUpdateWorkflow = useCallback(() => {
     if (!currentNode) return;
@@ -253,6 +262,12 @@ const RightMenu = (props: RightMenuProps) => {
   ];
 
   const workflowMenu: ItemType[] = [
+    {
+      label: "看板",
+      key: "workflow-board",
+      icon: <DashboardOutlined />,
+      onClick: handleClickBoard,
+    },
     {
       label: i18n.formatMessage({ id: "bigdata.workflow.rightMenu.update" }),
       key: "update-workflow",

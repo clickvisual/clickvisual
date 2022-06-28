@@ -84,7 +84,7 @@ type (
 	ReqCreateNode struct {
 		Primary    int `json:"primary" form:"primary" binding:"required"`
 		Secondary  int `json:"secondary" form:"secondary" binding:"required"`
-		Tertiary   int `json:"tertiary" form:"tertiary" binding:"required"`
+		Tertiary   int `json:"tertiary" form:"tertiary"`
 		Iid        int `json:"iid" form:"iid" binding:"required"`
 		WorkflowId int `json:"workflowId" form:"workflowId"`
 		SourceId   int `json:"sourceId" form:"sourceId"`

@@ -2,7 +2,7 @@ import DataSourceModule from "@/pages/DataAnalysis/OfflineManager/components/Int
 import { Form, FormInstance } from "antd";
 import FieldMappingModule from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/FieldMappingModule";
 import { useModel } from "@@/plugin-model/useModel";
-import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import CustomCollapse from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/CustomCollapse";
 import { useMemo } from "react";
 

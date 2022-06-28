@@ -4,7 +4,6 @@ import {
   StatisticalTableResponse,
   TablesResponse,
 } from "@/services/dataLogs";
-import { QueryTypeEnum } from "@/config/config";
 
 export interface QueryParams {
   logLibrary?: TablesResponse;

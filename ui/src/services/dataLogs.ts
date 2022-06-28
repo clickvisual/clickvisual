@@ -423,4 +423,23 @@ export default {
       }
     );
   },
+
+  // Hide Fields
+  async getHideFields(tid: number) {
+    return request<API.Res<any[]>>(
+      process.env.PUBLIC_PATH + `api/v1/hidden/${tid}`,
+      {
+        method: "GET",
+      }
+    );
+  },
+  async updateHideFields(tid: number, data: { fields: string[] }) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/hidden/${tid}`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
 };

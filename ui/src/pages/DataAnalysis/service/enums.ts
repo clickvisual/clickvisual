@@ -64,6 +64,10 @@ export enum SecondaryEnums {
    * 数据开发
    */
   dataMining = 3,
+  /**
+   * 看板
+   */
+  board = 4,
 }
 
 export enum TertiaryEnums {

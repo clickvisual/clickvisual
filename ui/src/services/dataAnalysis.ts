@@ -110,12 +110,13 @@ export default {
   async createdNode(data: {
     primary: number;
     secondary: number;
-    tertiary: number;
+    tertiary?: number;
     iid: number;
     name: string;
-    content: string;
+    content?: string;
     desc?: string;
     folderId?: number;
+    workflowId?: number;
   }) {
     return request(process.env.PUBLIC_PATH + `api/v1/bigdata/nodes`, {
       method: "POST",

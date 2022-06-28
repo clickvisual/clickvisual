@@ -14,9 +14,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { NodeInfo } from "@/services/dataAnalysis";
 import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
+import lodash from "lodash";
 
 const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   const i18n = useIntl();
+
+  const workflowItem: any = useMemo(
+    () => lodash.cloneDeep(workflow),
+    [workflow]
+  );
 
   const [nodes, setNodes] = useState<NodeInfo[]>([]);
   const [folders, setFolders] = useState<any[]>([]);
@@ -32,16 +38,18 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     setSelectNode,
     setSelectKeys,
     selectKeys,
+    createdNode,
   } = useModel("dataAnalysis", (model) => ({
     setSelectNode: model.manageNode.setSelectNode,
     setSelectKeys: model.manageNode.setSelectKeys,
     selectKeys: model.manageNode.selectKeys,
     getFolders: model.manageNode.getFolders,
+    createdNode: model.manageNode.doCreatedNode,
     currentInstances: model.currentInstances,
   }));
 
   useEffect(() => {
-    if (!currentInstances) return;
+    if (!currentInstances || !workflow.id) return;
     getFolders
       .run({
         iid: currentInstances,
@@ -53,7 +61,35 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         setNodes(res.data.nodes);
         setFolders(res.data.children);
       });
-  }, [currentInstances]);
+
+    getFolders
+      .run({
+        iid: currentInstances,
+        primary: PrimaryEnums.mining,
+        secondary: SecondaryEnums.board,
+        workflowId: workflow.id,
+      })
+      .then((res) => {
+        if (res?.code !== 0) return;
+        if (res.data.nodes.length <= 0) {
+          createdNode
+            .run({
+              primary: PrimaryEnums.mining,
+              secondary: SecondaryEnums.board,
+              iid: currentInstances,
+              name: workflow.name,
+              desc: workflow.desc,
+              workflowId: workflow.id,
+            })
+            .then((res) => {
+              if (res?.code !== 0) return;
+              workflowItem.board = res.data;
+            });
+        } else {
+          workflowItem.board = res.data.nodes[0];
+        }
+      });
+  }, [workflow.id]);
 
   const handleRightClick = ({ node }: any) => {
     setCurrentNode(node.currentNode);
@@ -68,8 +104,9 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   const handleClickNode = (node: any) => {
     const { currentNode, nodeType } = node;
     setSelectKeys([node.key]);
-    if (nodeType !== NodeType.node) return;
-    setSelectNode(currentNode);
+    if (nodeType === NodeType.node) {
+      setSelectNode(currentNode);
+    }
   };
 
   const handleCloseModal = useCallback(() => {
@@ -125,7 +162,15 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
           currentNode: { ...node, workflowId: workflow.id },
           key: `${workflow.id}-${node.id}-${node.name}`,
           title: node.name,
-          icon: <TreeNodeTypeIcon type={TreeNodeTypeEnums.node} />,
+          icon: (
+            <TreeNodeTypeIcon
+              type={
+                secondary === SecondaryEnums.dataMining
+                  ? TreeNodeTypeEnums.sql
+                  : TreeNodeTypeEnums.node
+              }
+            />
+          ),
           nodeType: NodeType.node,
           source: OfflineRightMenuClickSourceEnums.node,
         }))
@@ -139,7 +184,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         key: workflow.id,
         title: workflow.name,
         icon: <TreeNodeTypeIcon type={TreeNodeTypeEnums.workflow} />,
-        currentNode: workflow,
+        currentNode: workflowItem,
         source: OfflineRightMenuClickSourceEnums.workflowItem,
         nodeType: NodeType.folder,
         children: [
@@ -150,7 +195,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
             }),
             source: OfflineRightMenuClickSourceEnums.dataIntegration,
             currentNode: {
-              ...workflow,
+              ...workflowItem,
               primary: PrimaryEnums.mining,
               secondary: SecondaryEnums.dataIntegration,
             },
@@ -168,7 +213,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
             }),
             source: OfflineRightMenuClickSourceEnums.dataDevelopment,
             currentNode: {
-              ...workflow,
+              ...workflowItem,
               primary: PrimaryEnums.mining,
               secondary: SecondaryEnums.dataMining,
             },
@@ -178,7 +223,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         ],
       },
     ];
-  }, [nodes, folders]);
+  }, [nodes, folders, workflowItem]);
 
   return (
     <>
