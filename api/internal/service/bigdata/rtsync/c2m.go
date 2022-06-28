@@ -1,7 +1,6 @@
 package rtsync
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/gotomicro/ego/core/elog"
@@ -31,7 +30,7 @@ func (c *ClickHouse2MySQL) Stop() error {
 		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return err
 	}
-	if err = c.dropMaterialView(ins); err != nil {
+	if err = dropMaterialView(ins, c.nodeId, c.sc); err != nil {
 		return err
 	}
 	return nil
@@ -51,8 +50,8 @@ func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
-	if err = c.mysqlEngineDatabase(ins); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.String("error", err.Error()))
+	if err = c.mysqlEngineDatabase(ins, c.sc); err != nil {
+		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
 	if err = c.execTargetSQL(c.sc.Target.TargetBefore); err != nil {
@@ -60,7 +59,7 @@ func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 		return c.involvedSQLs, err
 	}
 	if err = c.materializedView(ins); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "c2mMaterialView"), elog.String("error", err.Error()))
+		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "c2mMaterialView"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
 	if err = c.execTargetSQL(c.sc.Target.TargetAfter); err != nil {
@@ -70,42 +69,16 @@ func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 	return c.involvedSQLs, err
 }
 
-func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db.BaseInstance) error {
-	// 创建在 clickhouse 中的表是否对用户可见？如果不可见，涉及集群操作，默认采用第一集群？
-	dbNameClusterInfo := c2mMysqlEngineDatabaseName(c.sc)
-	if ins.Mode == inquiry.ModeCluster {
-		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER %s", dbNameClusterInfo, c.sc.Cluster())
-	}
-	s, err := db.SourceInfo(invoker.Db, c.sc.Target.SourceId)
-	if err != nil {
-		return err
-	}
-	completeSQL := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s ENGINE = MySQL('%s', '%s', '%s', '%s')",
-		dbNameClusterInfo,
-		s.URL,
-		c.sc.Target.Database,
-		s.UserName,
-		s.Password)
-
-	invoker.Logger.Debug("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
-	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
-	return source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
-	}).Exec(completeSQL)
-}
-
 func (c *ClickHouse2MySQL) materializedView(ins db.BaseInstance) error {
-	viewClusterInfo := c2mMaterialView(c.sc)
+	viewClusterInfo := materialView(c.sc)
 	if ins.Mode == inquiry.ModeCluster {
 		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER %s", viewClusterInfo, c.sc.Cluster())
 	}
 	// Deletes the materialized view from the last execution
-	if err := c.dropMaterialView(ins); err != nil {
+	if err := dropMaterialView(ins, c.nodeId, c.sc); err != nil {
 		return err
 	}
-
-	viewClusterInfo = fmt.Sprintf("%s TO `%s`.`%s` AS", viewClusterInfo, c2mMysqlEngineDatabaseName(c.sc), c.sc.Target.Table)
+	viewClusterInfo = fmt.Sprintf("%s TO `%s`.`%s` AS", viewClusterInfo, mysqlEngineDatabaseName(c.sc), c.sc.Target.Table)
 	sourceTableName := fmt.Sprintf("`%s`.`%s`", c.sc.Source.Database, c.sc.Source.Table)
 	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s SELECT %s FROM %s WHERE %s",
 		viewClusterInfo, mapping(c.sc.Mapping), sourceTableName, where(c.sc.Source.SourceFilter))
@@ -136,53 +109,26 @@ func (c *ClickHouse2MySQL) execTargetSQL(sql string) error {
 	}).Exec(sql)
 }
 
-func mapping(mappings []view.IntegrationMapping) (res string) {
-	for _, m := range mappings {
-		if res == "" {
-			res = fmt.Sprintf("%s as %s", m.Source, m.Target)
-		} else {
-			res = fmt.Sprintf("%s, %s as %s", res, m.Source, m.Target)
-		}
-	}
-	return
-}
-
-func where(f string) string {
-	if f == "" {
-		return "1=1"
-	}
-	return f
-}
-
-func c2mMaterialView(s *view.SyncContent) string {
-	return fmt.Sprintf("`%s`.`%s`", s.Source.Database, s.Source.Table+"_rtsync_"+s.Target.Table)
-}
-
-func c2mMysqlEngineDatabaseName(s *view.SyncContent) string {
-	return fmt.Sprintf("clickvisual_rtsync_%s", s.Target.Database)
-}
-
-func (c *ClickHouse2MySQL) dropMaterialView(ins db.BaseInstance) error {
-	nc, err := db.NodeContentInfo(invoker.Db, c.nodeId)
-	if err != nil {
-		return err
-	}
-	previousContent := view.SyncContent{}
-	if err = json.Unmarshal([]byte(nc.PreviousContent), &previousContent); err != nil {
-		return err
-	}
-	viewClusterInfo := c2mMaterialView(&previousContent)
+func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db.BaseInstance, sc *view.SyncContent) (err error) {
+	// 创建在 clickhouse 中的表是否对用户可见？如果不可见，涉及集群操作，默认采用第一集群？
+	dbNameClusterInfo := mysqlEngineDatabaseName(sc)
 	if ins.Mode == inquiry.ModeCluster {
-		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER %s", viewClusterInfo, c.sc.Cluster())
+		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER %s", dbNameClusterInfo, sc.Cluster())
 	}
-	// 删除上次执行产生的物化视图
-	// _, err = c.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s ON CLUSTER '%s';", name, cluster))
-	// _, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s ON CLUSTER '%s';", database, table, cluster))
-	if err = source.Instantiate(&source.Source{
+	s, err := db.SourceInfo(invoker.Db, sc.Target.SourceId)
+	if err != nil {
+		return
+	}
+	completeSQL := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s ENGINE = MySQL('%s', '%s', '%s', '%s')",
+		dbNameClusterInfo,
+		s.URL,
+		sc.Target.Database,
+		s.UserName,
+		s.Password)
+	invoker.Logger.Debug("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
+	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
+	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
 		Typ: db.SourceTypClickHouse,
-	}).Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", viewClusterInfo)); err != nil {
-		return err
-	}
-	return nil
+	}).Exec(completeSQL)
 }
