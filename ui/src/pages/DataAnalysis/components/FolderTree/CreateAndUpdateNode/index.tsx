@@ -213,7 +213,7 @@ const CreateAndUpdateNode = () => {
             if (tertiary === TertiaryEnums.mysql) {
               return (
                 <Form.Item
-                  name={"source"}
+                  name={"sourceId"}
                   label="sourceId"
                   required={
                     folderForm.current?.getFieldValue("tertiary") ==
