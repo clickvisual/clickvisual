@@ -227,10 +227,14 @@ const DatasourceSelect = ({
       <Form.Item noStyle shouldUpdate={handleFormUpdate}>
         {({ getFieldValue }) => {
           const type = getFieldValue([...itemNamePath, "type"]);
-          if (type === DataSourceTypeEnums.ClickHouse) {
+          // todo: 1 为集群，没有枚举
+          if (
+            type === DataSourceTypeEnums.ClickHouse &&
+            instances.find((item) => item.id === currentInstance)?.mode === 1
+          ) {
             return (
               <Form.Item name={[...itemNamePath, "cluster"]} label={"Cluster"}>
-                <Select options={ClusterOptions} disabled={isLock} />
+                <Select showSearch options={ClusterOptions} disabled={isLock} />
               </Form.Item>
             );
           }
@@ -241,6 +245,7 @@ const DatasourceSelect = ({
                 label={"Datasource"}
               >
                 <Select
+                  showSearch
                   disabled={isLock}
                   options={DatasourceOptions}
                   onSelect={handleSelectDatasource}
@@ -257,6 +262,7 @@ const DatasourceSelect = ({
       </Form.Item>
       <Form.Item name={[...itemNamePath, "database"]} label={"Database"}>
         <Select
+          showSearch
           disabled={isLock}
           options={DataBaseOptions}
           onSelect={handleSelectDatabase}
@@ -268,6 +274,7 @@ const DatasourceSelect = ({
       </Form.Item>
       <Form.Item name={[...itemNamePath, "table"]} label={"Table"}>
         <Select
+          showSearch
           disabled={isLock}
           options={SourceTableOptions}
           onSelect={(value: any) => {

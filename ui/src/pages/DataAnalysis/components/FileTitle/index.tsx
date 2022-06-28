@@ -38,67 +38,71 @@ const FileTitle = ({
   return (
     <div className={styles.fileTitle}>
       {!!file && (
-        <Space>
+        <>
           <div className={styles.name}>{file.name}</div>
-          {(!file.lockUid || file.lockUid === 0) && (
-            <Tooltip title={"锁定后可编辑"}>
-              <Button
-                type={"link"}
-                onClick={() => handleLock(file)}
-                icon={<LockOutlined />}
-              />
-            </Tooltip>
-          )}
-          {(file.lockUid || file.lockUid !== 0) && (
-            <>
-              {currentUser?.id === file.lockUid && (
-                <Tooltip title={"解锁后退出编辑"}>
+          <div className={styles.status}>
+            {file.lockUid ? `${file.username || "无效用户"} 正在编辑` : ""}
+          </div>
+          <div className={styles.icons}>
+            <Space>
+              {(!file.lockUid || file.lockUid === 0) && (
+                <Tooltip title={"锁定后可编辑"}>
                   <Button
                     type={"link"}
-                    onClick={() => handleUnlock(file)}
-                    icon={<UnlockOutlined />}
+                    onClick={() => handleLock(file)}
+                    icon={<LockOutlined />}
                   />
                 </Tooltip>
               )}
-              {file.lockUid
-                ? "用户: " + (file.username || "无效用户") + "正在编辑"
-                : ""}
-              {file?.lockUid == currentUser?.id && (
-                <Tooltip title={"保存"}>
+              {(file.lockUid || file.lockUid !== 0) && (
+                <>
+                  {currentUser?.id === file.lockUid && (
+                    <Tooltip title={"解锁后退出编辑"}>
+                      <Button
+                        type={"link"}
+                        onClick={() => handleUnlock(file)}
+                        icon={<UnlockOutlined />}
+                      />
+                    </Tooltip>
+                  )}
+                  {file?.lockUid == currentUser?.id && (
+                    <Tooltip title={"保存"}>
+                      <Button
+                        type={"link"}
+                        onClick={handleSave}
+                        icon={<SaveOutlined />}
+                      />
+                    </Tooltip>
+                  )}
+                </>
+              )}
+              <Tooltip title={"运行"}>
+                <Button
+                  type={"link"}
+                  disabled={
+                    (!file.lockUid && file.lockUid === 0) ||
+                    file.lockUid !== currentUser?.id
+                  }
+                  onClick={() => handleRun(file)}
+                  icon={<PlayCircleOutlined />}
+                />
+              </Tooltip>
+              {file.status === NodeRunningStatusEnums.inProgress && (
+                <Tooltip title={"暂停"}>
                   <Button
                     type={"link"}
-                    onClick={handleSave}
-                    icon={<SaveOutlined />}
+                    disabled={
+                      (!file.lockUid && file.lockUid === 0) ||
+                      file.lockUid !== currentUser?.id
+                    }
+                    onClick={() => handleStop(file)}
+                    icon={<PauseCircleOutlined />}
                   />
                 </Tooltip>
               )}
-            </>
-          )}
-          <Tooltip title={"运行"}>
-            <Button
-              type={"link"}
-              disabled={
-                (!file.lockUid && file.lockUid === 0) ||
-                file.lockUid !== currentUser?.id
-              }
-              onClick={() => handleRun(file)}
-              icon={<PlayCircleOutlined />}
-            />
-          </Tooltip>
-          {file.status === NodeRunningStatusEnums.inProgress && (
-            <Tooltip title={"暂停"}>
-              <Button
-                type={"link"}
-                disabled={
-                  (!file.lockUid && file.lockUid === 0) ||
-                  file.lockUid !== currentUser?.id
-                }
-                onClick={() => handleStop(file)}
-                icon={<PauseCircleOutlined />}
-              />
-            </Tooltip>
-          )}
-        </Space>
+            </Space>
+          </div>
+        </>
       )}
     </div>
   );
