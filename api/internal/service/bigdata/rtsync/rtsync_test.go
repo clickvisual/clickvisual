@@ -34,6 +34,7 @@ func init() {
 func TestCreator(t *testing.T) {
 	type args struct {
 		iid     int
+		nodeId  int
 		content string
 	}
 	tests := []struct {
@@ -46,7 +47,8 @@ func TestCreator(t *testing.T) {
 		{
 			name: "test-1",
 			args: args{
-				iid: 1,
+				iid:    1,
+				nodeId: 104,
 				content: `{
     "source": {
         "typ": "clickhouse",
@@ -73,17 +75,45 @@ func TestCreator(t *testing.T) {
 			want:    nil,
 			wantErr: false,
 		},
+		{
+			name: "test-2",
+			args: args{
+				iid:    1,
+				nodeId: 105,
+				content: `{
+    "target": {
+        "typ": "clickhouse",
+        "database": "local_mex",
+        "table": "test_0628_1"
+    },
+    "source": {
+        "typ": "mysql",
+        "sourceId": 3,
+        "database": "ws_gateway",
+        "table": "number_sender"
+    },
+    "mapping": [
+        {
+            "source": "gateway_ip",
+            "target": "_raw_log_"
+        }
+    ]
+}`,
+			},
+			want:    nil,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Creator(tt.args.iid, tt.args.content)
+			got, err := Creator(tt.args.iid, tt.args.nodeId, tt.args.content)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Creator() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			_, err = got.OkGoGoGo()
+			_, err = got.Run()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OkGoGoGo() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
