@@ -11,12 +11,14 @@ export interface FieldMappingModule {
   target: any[];
   mapping: any[];
   onChange: (data: any) => void;
+  isLock: boolean;
 }
 const FieldMappingModule = ({
   source,
   target,
   mapping,
   onChange,
+  isLock,
 }: FieldMappingModule) => {
   const columns = [
     {
@@ -62,7 +64,6 @@ const FieldMappingModule = ({
   if (source?.length <= 0 && target?.length <= 0) {
     return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
   }
-
   return (
     <div style={{ padding: "0 20px" }}>
       {source?.length > 0 && target?.length > 0 && (
@@ -82,6 +83,7 @@ const FieldMappingModule = ({
           sourceClassName={"source-column"}
           targetClassName={"target-column"}
           onChange={onChange}
+          readonly={isLock}
         />
       )}
     </div>

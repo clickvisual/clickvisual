@@ -1,11 +1,39 @@
+@import "../../../../styles/var";
+
 .fileTitle {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 32px;
+  height: 40px;
   padding-left: 20px;
   color: hsl(0, 0%, 58%);
-  background: hsl(0, 0%, 96%);
+  border-bottom: 1px solid @border-color;
   .name {
+    flex: 0;
+    color: @font-bord-color;
+    font-weight: bold;
+  }
+  .nameChange {
+    position: relative;
+    padding-left: 10px;
+    &::before {
+      position: absolute;
+      top: calc(50% + 1px);
+      left: 0;
+      width: 7px;
+      height: 7px;
+      background-color: @font-bord-color;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      content: "";
+    }
+  }
+
+  .status {
+    flex: 1;
+    text-align: center;
+  }
+  .icons {
+    flex: 0;
   }
 }

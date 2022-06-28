@@ -68,9 +68,11 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doGetFile(currentBoard.id);
   }, [currentBoard]);
 
+  // todo: isChange 的状态没有判断
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
       <FileTitle
+        isChange={false}
         onSave={handleSave}
         onStop={handleStop}
         onRun={handleRun}

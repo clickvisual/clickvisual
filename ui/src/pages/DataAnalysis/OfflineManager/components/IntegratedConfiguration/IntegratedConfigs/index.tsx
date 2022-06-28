@@ -11,6 +11,7 @@ export interface IntegratedConfigsProps {
   iid: number;
   form: FormInstance<any>;
   onSubmit: (field: any) => void;
+  onFormChange: (changedValues?: any, allValues?: any) => void;
 }
 
 const IntegratedConfigs = ({
@@ -18,6 +19,7 @@ const IntegratedConfigs = ({
   iid,
   form,
   onSubmit,
+  onFormChange,
 }: IntegratedConfigsProps) => {
   const { source, target, mapping, setMapping } = useModel(
     "dataAnalysis",
@@ -28,9 +30,16 @@ const IntegratedConfigs = ({
       setMapping: model.integratedConfigs.setMappingData,
     })
   );
+  const { currentUser } = useModel("@@initialState").initialState || {};
+  const isLock = useMemo(
+    () =>
+      !file.lockUid || file?.lockUid === 0 || file?.lockUid !== currentUser?.id,
+    [currentUser?.id, file.lockUid]
+  );
 
   const handelChangeMapping = (data: any) => {
     console.log("data: ", data);
+    onFormChange();
 
     // todo: sourceNode、targetNode 为废弃参数，需要拼接 sourceType、targetType
     setMapping(data.mappingData);
@@ -44,10 +53,11 @@ const IntegratedConfigs = ({
         source={source}
         target={target}
         mapping={mapping}
+        isLock={isLock}
         onChange={handelChangeMapping}
       />
     );
-  }, [source, target, mapping, form, iid]);
+  }, [source, target, mapping, form, iid, isLock]);
 
   return (
     <div
@@ -57,7 +67,14 @@ const IntegratedConfigs = ({
         paddingBottom: "30px",
       }}
     >
-      <Form layout={"vertical"} size={"small"} form={form} onFinish={onSubmit}>
+      <Form
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 19 }}
+        size={"small"}
+        form={form}
+        onFinish={onSubmit}
+        onValuesChange={onFormChange}
+      >
         <CustomCollapse
           children={<DataSourceModule file={file} form={form} iid={iid} />}
           type={CustomCollapseEnums.dataSource}
