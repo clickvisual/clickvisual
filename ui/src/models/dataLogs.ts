@@ -28,6 +28,7 @@ import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMe
 import useLogPanes from "@/models/datalogs/useLogPanes";
 import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
+import useLogOptions from "@/models/datalogs/useLogOptions";
 
 const DataLogsModel = () => {
   // 查询关键字
@@ -136,6 +137,8 @@ const DataLogsModel = () => {
   const statisticalChartsHelper = useStatisticalCharts();
 
   const logPanesHelper = useLogPanes();
+
+  const logOptionsHelper = useLogOptions();
 
   const {
     foldingState,
@@ -655,6 +658,7 @@ const DataLogsModel = () => {
     onChangeResizeMenuWidth,
 
     logPanesHelper,
+    logOptionsHelper,
     statisticalChartsHelper,
   };
 };
