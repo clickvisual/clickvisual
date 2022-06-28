@@ -13,6 +13,21 @@
     color: @font-bord-color;
     font-weight: bold;
   }
+  .nameChange {
+    position: relative;
+    padding-left: 10px;
+    &::before {
+      position: absolute;
+      top: calc(50% + 1px);
+      left: 0;
+      width: 7px;
+      height: 7px;
+      background-color: @font-bord-color;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      content: "";
+    }
+  }
 
   .status {
     flex: 1;

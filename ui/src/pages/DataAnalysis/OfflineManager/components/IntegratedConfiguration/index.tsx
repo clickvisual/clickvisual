@@ -17,6 +17,7 @@ const IntegratedConfiguration = ({
 }: IntegratedConfigurationProps) => {
   const [form] = Form.useForm();
   const [nodeInfo, setNodeInfo] = useState<any>();
+  const [isChangeForm, setIsChangeForm] = useState<boolean>(false);
   const {
     setSource,
     setTarget,
@@ -202,6 +203,11 @@ const IntegratedConfiguration = ({
     });
   };
 
+  const handleChangeForm = (changedValues: any, allValues: any) => {
+    console.log("change");
+    setIsChangeForm(true);
+  };
+
   useMemo(() => {
     if (currentNode) doGetNodeInfo(currentNode.id);
   }, [currentNode]);
@@ -235,6 +241,7 @@ const IntegratedConfiguration = ({
     <div className={styles.integratedConfigMain}>
       <Spin spinning={getNodeInfo.loading}>
         <FileTitle
+          isChange={isChangeForm}
           file={nodeInfo}
           onSave={handleSave}
           onLock={handleLock}
@@ -243,6 +250,7 @@ const IntegratedConfiguration = ({
           onStop={handleStop}
         />
         <IntegratedConfigs
+          onFormChange={handleChangeForm}
           onSubmit={handleSubmit}
           iid={iid}
           form={form}

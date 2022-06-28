@@ -11,6 +11,7 @@ import { useModel } from "umi";
 import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import { useThrottleFn } from "ahooks";
 import { THROTTLE_WAIT } from "@/config/config";
+import classNames from "classnames";
 export interface FileTitleProps {
   file: any;
   onSave: () => void;
@@ -18,6 +19,10 @@ export interface FileTitleProps {
   onUnlock: (file: any) => void;
   onRun: (file: any) => void;
   onStop: (file: any) => void;
+  /**
+   * 是否发生改变，true 为是，false 为否
+   */
+  isChange: boolean;
 }
 const FileTitle = ({
   file,
@@ -26,6 +31,7 @@ const FileTitle = ({
   onUnlock,
   onRun,
   onStop,
+  isChange,
 }: FileTitleProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
 
@@ -39,7 +45,11 @@ const FileTitle = ({
     <div className={styles.fileTitle}>
       {!!file && (
         <>
-          <div className={styles.name}>{file.name}</div>
+          <div
+            className={classNames(styles.name, isChange && styles.nameChange)}
+          >
+            {file.name}
+          </div>
           <div className={styles.status}>
             {file.lockUid ? `${file.username || "无效用户"} 正在编辑` : ""}
           </div>
@@ -76,17 +86,19 @@ const FileTitle = ({
                   )}
                 </>
               )}
-              <Tooltip title={"运行"}>
-                <Button
-                  type={"link"}
-                  disabled={
-                    (!file.lockUid && file.lockUid === 0) ||
-                    file.lockUid !== currentUser?.id
-                  }
-                  onClick={() => handleRun(file)}
-                  icon={<PlayCircleOutlined />}
-                />
-              </Tooltip>
+              {!isChange && (
+                <Tooltip title={"运行"}>
+                  <Button
+                    type={"link"}
+                    disabled={
+                      (!file.lockUid && file.lockUid === 0) ||
+                      file.lockUid !== currentUser?.id
+                    }
+                    onClick={() => handleRun(file)}
+                    icon={<PlayCircleOutlined />}
+                  />
+                </Tooltip>
+              )}
               {file.status === NodeRunningStatusEnums.inProgress && (
                 <Tooltip title={"暂停"}>
                   <Button
