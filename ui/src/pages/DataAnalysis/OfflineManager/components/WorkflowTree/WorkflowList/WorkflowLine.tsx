@@ -162,7 +162,15 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
           currentNode: { ...node, workflowId: workflow.id },
           key: `${workflow.id}-${node.id}-${node.name}`,
           title: node.name,
-          icon: <TreeNodeTypeIcon type={TreeNodeTypeEnums.node} />,
+          icon: (
+            <TreeNodeTypeIcon
+              type={
+                secondary === SecondaryEnums.dataMining
+                  ? TreeNodeTypeEnums.sql
+                  : TreeNodeTypeEnums.node
+              }
+            />
+          ),
           nodeType: NodeType.node,
           source: OfflineRightMenuClickSourceEnums.node,
         }))

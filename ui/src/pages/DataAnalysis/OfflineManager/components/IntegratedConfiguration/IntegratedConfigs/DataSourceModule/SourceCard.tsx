@@ -2,6 +2,7 @@ import { Card, Form, Input } from "antd";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
 import { DataSourceModuleProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/index";
 import { useModel } from "@@/plugin-model/useModel";
+import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 
 export interface SourceCardProps extends DataSourceModuleProps {
   file: any;
@@ -10,6 +11,7 @@ export interface SourceCardProps extends DataSourceModuleProps {
   doGetSourceTable: any;
   doGetColumns: any;
   isLock: boolean;
+  onSelectType?: (type: DataSourceTypeEnums) => void;
 }
 
 const SourceCard = (props: SourceCardProps) => {

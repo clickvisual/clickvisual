@@ -12,6 +12,7 @@ import { useModel } from "@@/plugin-model/useModel";
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
   onChangeColumns: (columns: any[], isChange?: boolean) => void;
+  sourceType?: DataSourceTypeEnums;
 }
 
 const DatasourceSelect = ({
@@ -25,6 +26,8 @@ const DatasourceSelect = ({
   itemNamePath,
   onChangeColumns,
   isLock,
+  onSelectType,
+  sourceType,
 }: DatasourceSelectProps) => {
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
@@ -33,6 +36,11 @@ const DatasourceSelect = ({
     instances: model.instances,
     currentInstance: model.currentInstances,
   }));
+
+  const namePath: string[] = useMemo(
+    () => itemNamePath.filter((item) => item !== "target"),
+    []
+  );
 
   const handleFormUpdate = useCallback((prevValues) => {
     let pre: any;
@@ -43,6 +51,14 @@ const DatasourceSelect = ({
     }
     return false;
   }, []);
+
+  const TypesOptions = useMemo(() => {
+    if (!itemNamePath.includes("target")) return TypeOptions;
+    return TypeOptions.filter(
+      (item) =>
+        item.value !== form.getFieldValue([...namePath, "source", "type"])
+    );
+  }, [sourceType]);
 
   const ClusterOptions = useMemo(
     () =>
@@ -170,19 +186,39 @@ const DatasourceSelect = ({
     handleSelectTable(current.table);
   }, [file]);
 
+  useEffect(() => {
+    if (itemNamePath.includes("source") || !sourceType) return;
+    if (
+      itemNamePath.includes("target") &&
+      sourceType === form.getFieldValue([...itemNamePath, "type"])
+    ) {
+      form.resetFields([
+        [...itemNamePath, "type"],
+        [...itemNamePath, "table"],
+        [...itemNamePath, "database"],
+        [...itemNamePath, "datasource"],
+      ]);
+    }
+  }, [sourceType, itemNamePath]);
+
   return (
     <>
       <Form.Item
         name={[...itemNamePath, "type"]}
         label={"Type"}
-        initialValue={DataSourceTypeEnums.ClickHouse}
+        initialValue={
+          !itemNamePath.includes("target") && DataSourceTypeEnums.ClickHouse
+        }
       >
         <Select
           disabled={isLock}
-          options={TypeOptions}
+          options={TypesOptions}
           onSelect={handleSelectType}
           onChange={(value: any) => {
             if (!value) return;
+            if (itemNamePath.includes("source") && onSelectType) {
+              onSelectType?.(value);
+            }
             handleChangeSelect(FormItemEnums.type);
           }}
         />

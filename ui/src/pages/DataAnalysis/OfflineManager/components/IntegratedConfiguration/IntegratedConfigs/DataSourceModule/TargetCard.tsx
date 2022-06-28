@@ -2,8 +2,11 @@ import { Card, Form, Input } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
 import { useModel } from "@@/plugin-model/useModel";
+import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 
-export interface TargetCardProps extends SourceCardProps {}
+export interface TargetCardProps extends SourceCardProps {
+  sourceType?: DataSourceTypeEnums;
+}
 
 const TargetCard = (props: TargetCardProps) => {
   const { setTargetColumns, setMapping } = useModel(
