@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import style from "./index.less";
 import { RightOutlined } from "@ant-design/icons";
 

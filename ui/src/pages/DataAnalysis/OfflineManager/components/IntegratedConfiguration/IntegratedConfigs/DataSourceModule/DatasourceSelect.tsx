@@ -6,7 +6,7 @@ import {
   DataSourceTypeEnums,
   FormItemEnums,
   TypeOptions,
-} from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+} from "@/pages/DataAnalysis/OfflineManager/config";
 import { useModel } from "@@/plugin-model/useModel";
 
 export interface DatasourceSelectProps extends SourceCardProps {

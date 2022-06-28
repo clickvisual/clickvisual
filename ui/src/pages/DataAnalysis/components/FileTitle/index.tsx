@@ -1,4 +1,4 @@
-import IntegratedConfigurationStyle from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/index.less";
+import styles from "@/pages/DataAnalysis/components/FileTitle/index.less";
 import {
   LockOutlined,
   PauseCircleOutlined,
@@ -8,7 +8,9 @@ import {
 } from "@ant-design/icons";
 import { Button, Space, Tooltip } from "antd";
 import { useModel } from "umi";
-import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/config";
+import { useThrottleFn } from "ahooks";
+import { THROTTLE_WAIT } from "@/config/config";
 export interface FileTitleProps {
   file: any;
   onSave: () => void;
@@ -27,18 +29,22 @@ const FileTitle = ({
 }: FileTitleProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
 
+  const handleSave = useThrottleFn(onSave, { wait: THROTTLE_WAIT }).run;
+  const handleRun = useThrottleFn(onRun, { wait: THROTTLE_WAIT }).run;
+  const handleStop = useThrottleFn(onStop, { wait: THROTTLE_WAIT }).run;
+  const handleLock = useThrottleFn(onLock, { wait: THROTTLE_WAIT }).run;
+  const handleUnlock = useThrottleFn(onUnlock, { wait: THROTTLE_WAIT }).run;
+
   return (
-    <div className={IntegratedConfigurationStyle.fileTitle}>
+    <div className={styles.fileTitle}>
       {!!file && (
         <Space>
-          <div className={IntegratedConfigurationStyle.name}>
-            节点: {file.name}
-          </div>
+          <div className={styles.name}>{file.name}</div>
           {(!file.lockUid || file.lockUid === 0) && (
             <Tooltip title={"锁定后可编辑"}>
               <Button
                 type={"link"}
-                onClick={() => onLock(file)}
+                onClick={() => handleLock(file)}
                 icon={<LockOutlined />}
               />
             </Tooltip>
@@ -49,7 +55,7 @@ const FileTitle = ({
                 <Tooltip title={"解锁后退出编辑"}>
                   <Button
                     type={"link"}
-                    onClick={() => onUnlock(file)}
+                    onClick={() => handleUnlock(file)}
                     icon={<UnlockOutlined />}
                   />
                 </Tooltip>
@@ -61,7 +67,7 @@ const FileTitle = ({
                 <Tooltip title={"保存"}>
                   <Button
                     type={"link"}
-                    onClick={() => onSave()}
+                    onClick={handleSave}
                     icon={<SaveOutlined />}
                   />
                 </Tooltip>
@@ -75,7 +81,7 @@ const FileTitle = ({
                 (!file.lockUid && file.lockUid === 0) ||
                 file.lockUid !== currentUser?.id
               }
-              onClick={() => onRun(file)}
+              onClick={() => handleRun(file)}
               icon={<PlayCircleOutlined />}
             />
           </Tooltip>
@@ -87,7 +93,7 @@ const FileTitle = ({
                   (!file.lockUid && file.lockUid === 0) ||
                   file.lockUid !== currentUser?.id
                 }
-                onClick={() => onStop(file)}
+                onClick={() => handleStop(file)}
                 icon={<PauseCircleOutlined />}
               />
             </Tooltip>

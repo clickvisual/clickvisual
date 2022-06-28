@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { Empty } from "antd";
 import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 import IntegratedConfiguration from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration";
+import WorkflowBoard from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard";
 
 const WorkflowContent = () => {
   const { selectNode } = useModel("dataAnalysis", (model) => ({
@@ -24,6 +25,8 @@ const WorkflowContent = () => {
         return <IntegratedConfiguration currentNode={selectNode} />;
       case SecondaryEnums.dataMining:
         return <WorkflowSql />;
+      case SecondaryEnums.board:
+        return <WorkflowBoard currentBoard={selectNode} />;
       default:
         return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
     }

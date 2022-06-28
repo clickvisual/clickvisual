@@ -28,6 +28,8 @@ export const MINUTES_UNIT_TIME = "minutes";
 
 // 防抖时间
 export const DEBOUNCE_WAIT = 500;
+// 截流时间
+export const THROTTLE_WAIT = 1000;
 
 // 登录路由
 export const LOGIN_PATH = "/user/login";

@@ -148,6 +148,7 @@ function useRequest<R = any, P extends any[] = any>(
 
   const debounceRun = (...args: P) => {
     setLoading(true);
+    // @ts-ignore
     debounceService.run(...args);
   };
 

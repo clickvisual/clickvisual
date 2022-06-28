@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { TertiaryList } from "@/models/dataanalysis/useManageNodeAndFolder";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
-import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/config";
+import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 
 const { Option } = Select;
 
