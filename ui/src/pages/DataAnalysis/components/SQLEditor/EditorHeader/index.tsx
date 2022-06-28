@@ -26,6 +26,8 @@ const EditorHeader = () => {
   } = useModel("dataAnalysis");
   const { currentUser } = useModel("@@initialState").initialState || {};
 
+  const isRun: boolean = Boolean(currentUser?.id == openNodeData?.lockUid);
+
   return (
     <div className={style.header}>
       <div className={style.headerList}>
@@ -39,7 +41,7 @@ const EditorHeader = () => {
           >
             节点: {openNodeData?.name}
             {!openNodeData.lockUid ? (
-              <Tooltip title={"锁定后可编辑"}>
+              <Tooltip title={"锁定后可编辑"} defaultVisible>
                 <Button
                   type={"link"}
                   onClick={() => handleLockFile(openNodeId as number)}
@@ -47,7 +49,7 @@ const EditorHeader = () => {
                 />
               </Tooltip>
             ) : currentUser?.id == openNodeData.lockUid ? (
-              <Tooltip title={"解锁后退出编辑"}>
+              <Tooltip title={"解锁后退出编辑"} defaultVisible>
                 <Button
                   type={"link"}
                   onClick={() => handleUnLockFile(openNodeId as number)}
@@ -63,7 +65,7 @@ const EditorHeader = () => {
           </div>
         )}
         {/* 修改后且锁定者为自己才可见 */}
-        {isUpdateStateFun() && openNodeData?.lockUid == currentUser?.id && (
+        {isUpdateStateFun() && isRun && (
           <Tooltip title={"保存"}>
             <Button
               type={"link"}
@@ -73,7 +75,7 @@ const EditorHeader = () => {
           </Tooltip>
         )}
         {/* 锁定者为自己才可以格式化 */}
-        {openNodeData?.lockUid == currentUser?.id && (
+        {isRun && (
           <Tooltip title={"格式化 SQL"}>
             <Button
               type={"link"}
@@ -85,7 +87,7 @@ const EditorHeader = () => {
           </Tooltip>
         )}
         {folderContent.length > 0 && !isUpdateStateFun() && (
-          <Tooltip title={"运行"}>
+          <Tooltip title={isRun ? "运行" : "无法运行"}>
             <Button
               type={"link"}
               onClick={() => {
@@ -95,13 +97,16 @@ const EditorHeader = () => {
               }}
               icon={
                 <PlayCircleOutlined
-                  style={{ color: openNodeData?.lockUid ? "" : "#ccc" }}
+                  style={{
+                    color: isRun ? "" : "#ccc",
+                  }}
                 />
               }
             />
           </Tooltip>
         )}
       </div>
+      {openNodeData?.id && <div>{isRun ? "可编辑" : "只读：锁定后可编辑"}</div>}
     </div>
   );
 };

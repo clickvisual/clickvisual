@@ -100,12 +100,12 @@ const useTemporaryQuery = () => {
   const tertiaryList = [
     {
       id: 201,
-      title: "clickhouse",
+      title: "ClickHouse",
       enum: TertiaryEnums.clickhouse,
     },
     {
       id: 202,
-      title: "mysql",
+      title: "MySQL",
       enum: TertiaryEnums.mysql,
     },
     {
