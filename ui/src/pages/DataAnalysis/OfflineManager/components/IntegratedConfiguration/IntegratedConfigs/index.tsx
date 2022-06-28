@@ -68,7 +68,8 @@ const IntegratedConfigs = ({
       }}
     >
       <Form
-        layout={"vertical"}
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 19 }}
         size={"small"}
         form={form}
         onFinish={onSubmit}
