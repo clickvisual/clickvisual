@@ -62,7 +62,7 @@ const DatasourceSelect = ({
       (item) =>
         item.value !== form.getFieldValue([...targetNamePath, "source", "type"])
     );
-  }, [sourceType, targetNamePath]);
+  }, [sourceType, targetNamePath, currentSource]);
 
   const ClusterOptions = useMemo(
     () =>

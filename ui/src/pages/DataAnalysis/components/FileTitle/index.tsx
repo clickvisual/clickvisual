@@ -67,11 +67,11 @@ const FileTitle = ({
         <>
           <div
             className={classNames(styles.name, isChange && styles.nameChange)}
-          >
-            {file.name}
-          </div>
+          />
           <div className={styles.status}>
-            {file.lockUid ? `${file.username || "无效用户"} 正在编辑` : ""}
+            {file.lockUid && file.lockUid !== 0
+              ? `${file.username || "无效用户"} 正在编辑`
+              : "只读"}
           </div>
           <div className={styles.icons}>
             <Space>
@@ -128,19 +128,20 @@ const FileTitle = ({
                   />
                 </Tooltip>
               )}
-              {file.status === NodeRunningStatusEnums.inProgress && (
-                <Tooltip title={"暂停"}>
-                  <Button
-                    type={"link"}
-                    disabled={
-                      (!file.lockUid && file.lockUid === 0) ||
-                      file.lockUid !== currentUser?.id
-                    }
-                    onClick={() => handleStop(file)}
-                    icon={<PauseCircleOutlined />}
-                  />
-                </Tooltip>
-              )}
+              {type === FileTitleType.node &&
+                file.status === NodeRunningStatusEnums.inProgress && (
+                  <Tooltip title={"暂停"}>
+                    <Button
+                      type={"link"}
+                      disabled={
+                        (!file.lockUid && file.lockUid === 0) ||
+                        file.lockUid !== currentUser?.id
+                      }
+                      onClick={() => handleStop(file)}
+                      icon={<PauseCircleOutlined />}
+                    />
+                  </Tooltip>
+                )}
             </Space>
           </div>
         </>

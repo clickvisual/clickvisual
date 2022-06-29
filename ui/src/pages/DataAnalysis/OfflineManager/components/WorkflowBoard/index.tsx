@@ -1,6 +1,8 @@
 import { useModel } from "@@/plugin-model/useModel";
 import { useCallback, useEffect, useState } from "react";
-import FileTitle from "@/pages/DataAnalysis/components/FileTitle";
+import FileTitle, {
+  FileTitleType,
+} from "@/pages/DataAnalysis/components/FileTitle";
 import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
 import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
@@ -121,6 +123,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
       <FileTitle
+        type={FileTitleType.node}
         isChange={false}
         onSave={handleSave}
         onStop={handleStop}

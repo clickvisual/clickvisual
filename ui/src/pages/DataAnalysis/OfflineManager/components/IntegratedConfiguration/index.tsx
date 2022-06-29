@@ -1,4 +1,6 @@
-import FileTitle from "@/pages/DataAnalysis/components/FileTitle";
+import FileTitle, {
+  FileTitleType,
+} from "@/pages/DataAnalysis/components/FileTitle";
 import IntegratedConfigs from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs";
 import { Form, Spin } from "antd";
 import { useEffect, useMemo, useState } from "react";
@@ -174,8 +176,10 @@ const IntegratedConfiguration = ({
 
   const handleSave = () => {
     form.submit();
+    setIsChangeForm(false);
   };
   const handleLock = (file: any) => {
+    setIsChangeForm(false);
     doLockNode.run(file.id).then((res: any) => {
       if (res.code !== 0) return;
       doGetNodeInfo(file.id);
@@ -240,6 +244,7 @@ const IntegratedConfiguration = ({
     <div className={styles.integratedConfigMain}>
       <Spin spinning={getNodeInfo.loading}>
         <FileTitle
+          type={FileTitleType.node}
           isChange={isChangeForm}
           file={nodeInfo}
           onSave={handleSave}
