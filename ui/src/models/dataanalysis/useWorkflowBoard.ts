@@ -11,6 +11,7 @@ const useWorkflowBoard = () => {
   ];
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
   return {
     nodes,
     edges,

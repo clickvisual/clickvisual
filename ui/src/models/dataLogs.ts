@@ -357,7 +357,7 @@ const DataLogsModel = () => {
     cancelTokenHighChartsRef.current?.();
     const currentPane = logPanesHelper.logPanes[id.toString()];
     const histogramChecked = currentPane?.histogramChecked ?? true;
-    if (!!extra?.isPaging || !histogramChecked) {
+    if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
         logsAndHighChartsPayload(extra?.reqParams),

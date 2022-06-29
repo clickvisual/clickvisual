@@ -7,14 +7,60 @@ import type { ColumnsType } from "antd/es/table";
 import type { Key } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "umi";
+import { parseJsonObject } from "@/utils/string";
+import { PaneType } from "@/models/datalogs/types";
 
 const HiddenFieldModal = () => {
   const i18n = useIntl();
-  const { currentLogLibrary, logOptionsHelper } = useModel("dataLogs");
-  const { visibleHideField, getHideFields, updateFields, setVisibleHideField } =
-    logOptionsHelper;
-
+  const {
+    logs,
+    logPanes,
+    currentLogLibrary,
+    visibleHideField,
+    getHideFields,
+    updateFields,
+    setVisibleHideField,
+    doGetLogsAndHighCharts,
+    onChangeCurrentLogPane,
+  } = useModel("dataLogs", (model) => ({
+    logs: model.logs,
+    doGetLogsAndHighCharts: model.doGetLogsAndHighCharts,
+    currentLogLibrary: model.currentLogLibrary,
+    visibleHideField: model.logOptionsHelper.visibleHideField,
+    getHideFields: model.logOptionsHelper.getHideFields,
+    updateFields: model.logOptionsHelper.updateFields,
+    setVisibleHideField: model.logOptionsHelper.setVisibleHideField,
+    logPanes: model.logPanesHelper.logPanes,
+    onChangeCurrentLogPane: model.onChangeCurrentLogPane,
+  }));
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+
+  const oldPane = useMemo(() => {
+    if (!currentLogLibrary?.id) return;
+    return logPanes[currentLogLibrary?.id.toString()];
+  }, [currentLogLibrary?.id, logPanes]);
+
+  const logKeys: any[] = useMemo(() => {
+    if (!logs || logs.logs.length <= 0) {
+      return [];
+    }
+    const log = logs.logs[0];
+    let keys = Object.keys(log);
+
+    const rawLogJson = parseJsonObject(log["_raw_log_"]);
+    if (!rawLogJson) {
+      return keys.map((item) => ({ field: item }));
+    }
+    keys = keys.filter((item) => item !== "_raw_log_");
+    const rawLogKeys = Object.keys(rawLogJson).map((item) => {
+      if (keys.includes(item)) {
+        return `_raw_log_.${item}`;
+      }
+      return item;
+    });
+
+    return [...keys, ...rawLogKeys].map((item) => ({ field: item }));
+  }, [logs]);
 
   const handleCancel = () => {
     setVisibleHideField(false);
@@ -37,20 +83,44 @@ const HiddenFieldModal = () => {
   const columns: ColumnsType<any> = [
     {
       title: "Field",
-      key: "field",
+      dataIndex: "field",
       width: "100%",
       align: "center",
     },
   ];
 
-  // todo: 处理数据的逻辑并没有编写
+  const handleSave = useCallback(() => {
+    if (!currentLogLibrary || !currentLogLibrary.id) return;
+    updateFields
+      .run(currentLogLibrary.id, {
+        fields: selectedRowKeys as string[],
+      })
+      .then((res) => {
+        if (res?.code !== 0) return;
+        handleCancel();
+        doGetLogsAndHighCharts(currentLogLibrary.id, { isOnlyLog: true }).then(
+          (res) => {
+            if (!res) return;
+            onChangeCurrentLogPane({
+              ...(oldPane as PaneType),
+              logs: res.logs,
+            });
+          }
+        );
+      });
+  }, [currentLogLibrary, selectedRowKeys]);
+
   useEffect(() => {
-    if (visibleHideField && currentLogLibrary) {
+    if (visibleHideField && currentLogLibrary && logs) {
       getHideFields.run(currentLogLibrary.id).then((res: any) => {
-        if (res?.code === 0) console.log("res: ", res.data);
+        if (res?.code === 0)
+          setSelectedRowKeys([
+            ...res.data,
+            ...logs.hiddenFields.filter((item) => !res.data.includes(item)),
+          ]);
       });
     }
-  }, [visibleHideField, currentLogLibrary?.id]);
+  }, [visibleHideField, currentLogLibrary?.id, logs]);
 
   useEffect(() => {
     if (!visibleHideField) {
@@ -65,21 +135,26 @@ const HiddenFieldModal = () => {
       visible={visibleHideField}
     >
       <div style={{ height: 40 }}>
-        <Button type={"primary"} disabled={!hasSelected}>
-          {i18n.formatMessage({ id: "add" })}
+        <Button
+          type={"primary"}
+          disabled={!hasSelected}
+          onClick={handleSave}
+          loading={updateFields.loading}
+        >
+          {i18n.formatMessage({ id: "button.save" })}
         </Button>
         <span style={{ marginLeft: 8 }}>
-          {hasSelected ? `Selected ${selectedRowKeys.length} items` : ""}
+          {hasSelected ? `已选择 ${selectedRowKeys.length} 个字段` : ""}
         </span>
       </div>
       <Table
         size={"small"}
-        rowKey={"id"}
+        rowKey={"field"}
         columns={columns}
-        dataSource={[]}
+        dataSource={logKeys}
         rowSelection={{ ...rowSelection, type: "checkbox" }}
         pagination={false}
-        scroll={{ y: 600 }}
+        scroll={{ y: 500 }}
         loading={getHideFields.loading}
       />
     </CustomModal>
