@@ -13,10 +13,12 @@ import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/conf
 import { useThrottleFn } from "ahooks";
 import { THROTTLE_WAIT } from "@/config/config";
 import classNames from "classnames";
+
 export enum FileTitleType {
   node = "node",
   sql = "sql",
 }
+
 export interface FileTitleProps {
   file: any;
   onSave: () => void;

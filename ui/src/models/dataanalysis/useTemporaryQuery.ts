@@ -146,6 +146,7 @@ const useTemporaryQuery = () => {
         })
         .then((res: any) => {
           if (res?.code == 0) {
+            res.data.name = "临时查询";
             onProcessTreeData(res.data);
           }
         });
@@ -158,7 +159,6 @@ const useTemporaryQuery = () => {
         let arr: any[] = [];
         data.map((item: folderListType) => {
           //key = 父级id_此id_此名称_此详情_是否可打开的节点_secondary_tertiary 构成
-          // TODO: 是否可打开的节点在文件类型变多后需要更改方法改为文件类型
           let key: string = "";
           if (item.folderId == 0 || !!item.folderId) {
             key = `${item.parentId ?? item.folderId}!@#@!${item.id}!@#@!${

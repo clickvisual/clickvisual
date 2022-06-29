@@ -15,7 +15,6 @@ const WorkflowContent = () => {
   const {
     openNodeData,
     isUpdateStateFun,
-    openNodeId,
     changeOpenNodeId,
     changeOpenNodeParentId,
     handleLockFile,
@@ -43,9 +42,9 @@ const WorkflowContent = () => {
             isChange={isUpdateStateFun()}
             file={openNodeData}
             onSave={() => handleSaveNode()}
-            onLock={() => handleLockFile(openNodeId as number)}
-            onUnlock={() => handleUnLockFile(openNodeId as number)}
-            onRun={() => handleRunCode(openNodeId as number)}
+            onLock={() => handleLockFile(openNodeData?.id as number)}
+            onUnlock={() => handleUnLockFile(openNodeData?.id as number)}
+            onRun={() => handleRunCode(openNodeData?.id as number)}
             type={FileTitleType.sql}
             onFormat={() => changeFolderContent(format(folderContent))}
           />
@@ -55,7 +54,7 @@ const WorkflowContent = () => {
       default:
         return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
     }
-  }, [selectNode]);
+  }, [selectNode, openNodeData, isUpdateStateFun(), folderContent]);
   return <>{Content}</>;
 };
 
