@@ -118,7 +118,6 @@ const DatasourceSelect = ({
   }, []);
 
   const handleSelectType = useCallback((type: DataSourceTypeEnums) => {
-    console.log("type: ", type);
     switch (type) {
       case DataSourceTypeEnums.ClickHouse:
         doGetSources
@@ -126,7 +125,6 @@ const DatasourceSelect = ({
           .then((res: any) => setDatabaseList(res?.data || []));
         break;
       case DataSourceTypeEnums.MySQL:
-        console.log("mysql");
         doGetSqlSource
           .run({ iid, typ: type })
           .then((res: any) => setDatasourceList(res?.data || []));
@@ -181,7 +179,6 @@ const DatasourceSelect = ({
 
   useEffect(() => {
     if (!currentSource?.type) return;
-    console.log("current.type: ", currentSource.type, itemNamePath);
     handleSelectType(currentSource.type);
     if (
       currentSource.type === DataSourceTypeEnums.MySQL &&

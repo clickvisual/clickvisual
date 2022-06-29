@@ -204,7 +204,6 @@ const IntegratedConfiguration = ({
   };
 
   const handleChangeForm = (changedValues: any, allValues: any) => {
-    console.log("change");
     setIsChangeForm(true);
   };
 

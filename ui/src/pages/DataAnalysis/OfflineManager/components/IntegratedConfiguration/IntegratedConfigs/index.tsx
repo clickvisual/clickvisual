@@ -37,47 +37,7 @@ const IntegratedConfigs = ({
     [currentUser?.id, file.lockUid]
   );
 
-  //
-  // {
-  //   "mappingData": [
-  //   {
-  //     "sourceNode": "source",
-  //     "targetNode": "target",
-  //     "source": "event_type",
-  //     "target": "id"
-  //   }
-  // ],
-  //   "sourceData": [
-  //   {
-  //     "id": "source",
-  //     "title": "Source",
-  //     "fields": [
-  //       {
-  //         "id": "event_type",
-  //         "disable": false,
-  //         "field": "event_type",
-  //         "type": "LowCardinality(String)"
-  //       }
-  //     ]
-  //   }
-  // ],
-  //   "targetData": [
-  //   {
-  //     "id": "target",
-  //     "title": "Target",
-  //     "fields": [
-  //       {
-  //         "id": "id",
-  //         "disable": false,
-  //         "field": "id",
-  //         "type": "int(11)"
-  //       },
-  //     ]
-  //   }
-  // ]
-  // }
   const handelChangeMapping = (data: any) => {
-    console.log("data: ", data);
     onFormChange();
     const { mappingData, sourceData, targetData } = data;
     const result: any[] = [];

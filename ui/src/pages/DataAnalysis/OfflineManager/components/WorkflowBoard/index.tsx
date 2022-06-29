@@ -3,8 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import FileTitle from "@/pages/DataAnalysis/components/FileTitle";
 import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
-import { PrimaryEnums } from "@/pages/DataAnalysis/service/enums";
-import { NodeInfo } from "@/services/dataAnalysis";
+import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 
 export interface WorkflowBoardProps {
   currentBoard: any;
@@ -31,8 +30,23 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     getNodes: model.manageNode.getFolders,
   }));
 
-  const [nodes, setNodes] = useState<NodeInfo[]>([]);
-  const [folders, setFolders] = useState<any[]>([]);
+  const getNodeList = useCallback((folders: any[], nodes: any[]) => {
+    const nodeList = nodes.filter(
+      (node) => node.secondary !== SecondaryEnums.board
+    );
+    if (folders.length <= 0) {
+      return nodeList;
+    }
+    const folderNodes: any[] = folders
+      .map((folder) => {
+        if (folder.children.length > 0) {
+          return getNodeList(folder.children, folder.nodes);
+        }
+        return folder.nodes;
+      })
+      .flat();
+    return [...nodeList, ...folderNodes];
+  }, []);
 
   const doGetFile = useCallback((id: number) => {
     getNodeInfo.run(id).then((res) => {
@@ -52,8 +66,15 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
         })
         .then((res) => {
           if (res?.code !== 0) return;
-          setNodes(res.data.nodes);
-          setFolders(res.data.children);
+          const nodes = res.data.nodes.filter(
+            (node) => node.secondary !== SecondaryEnums.board
+          );
+          console.log("board: ", board);
+          const folders = res.data.children;
+          console.log(
+            " getNodeList(folders, nodes): ",
+            getNodeList(folders, nodes)
+          );
         });
     },
     [iid]
