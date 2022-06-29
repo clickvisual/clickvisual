@@ -43,5 +43,6 @@ export enum hashType {
 
 export interface Extra {
   isPaging?: boolean; // 是否是切换页面
+  isOnlyLog?: boolean;
   reqParams?: QueryParams; // 请求参数
 }

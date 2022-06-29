@@ -38,11 +38,23 @@ const IntegratedConfigs = ({
   );
 
   const handelChangeMapping = (data: any) => {
-    console.log("data: ", data);
     onFormChange();
-
-    // todo: sourceNode、targetNode 为废弃参数，需要拼接 sourceType、targetType
-    setMapping(data.mappingData);
+    const { mappingData, sourceData, targetData } = data;
+    const result: any[] = [];
+    mappingData.forEach((item: any) => {
+      const sourceType = sourceData
+        .find((source: any) => source.id === item.sourceNode)
+        ?.fields.find((field: any) => field.id === item.source)?.type;
+      const targetType = targetData
+        .find((target: any) => target.id === item.targetNode)
+        ?.fields.find((field: any) => field.id === item.target)?.type;
+      result.push({
+        ...item,
+        sourceType,
+        targetType,
+      });
+    });
+    setMapping(result);
   };
 
   const FieldMapping = useMemo(() => {
@@ -52,7 +64,15 @@ const IntegratedConfigs = ({
         iid={iid}
         source={source}
         target={target}
-        mapping={mapping}
+        mapping={
+          mapping.length > 0
+            ? mapping.map((item) => ({
+                ...item,
+                sourceNode: "source",
+                targetNode: "target",
+              }))
+            : []
+        }
         isLock={isLock}
         onChange={handelChangeMapping}
       />
@@ -68,7 +88,9 @@ const IntegratedConfigs = ({
       }}
     >
       <Form
-        labelCol={{ span: 4 }}
+        labelCol={{
+          span: 5,
+        }}
         wrapperCol={{ span: 19 }}
         size={"small"}
         form={form}
