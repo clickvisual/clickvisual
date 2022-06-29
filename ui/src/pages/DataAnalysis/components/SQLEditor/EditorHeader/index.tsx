@@ -41,7 +41,7 @@ const EditorHeader = () => {
           >
             节点: {openNodeData?.name}
             {!openNodeData.lockUid ? (
-              <Tooltip title={"锁定后可编辑"} defaultVisible>
+              <Tooltip title={"获取编辑锁"} defaultVisible>
                 <Button
                   type={"link"}
                   onClick={() => handleLockFile(openNodeId as number)}
@@ -49,7 +49,7 @@ const EditorHeader = () => {
                 />
               </Tooltip>
             ) : currentUser?.id == openNodeData.lockUid ? (
-              <Tooltip title={"解锁后退出编辑"} defaultVisible>
+              <Tooltip title={"释放编辑锁"} defaultVisible>
                 <Button
                   type={"link"}
                   onClick={() => handleUnLockFile(openNodeId as number)}
