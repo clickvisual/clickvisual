@@ -56,7 +56,7 @@ const FileTitle = ({
           <div className={styles.icons}>
             <Space>
               {(!file.lockUid || file.lockUid === 0) && (
-                <Tooltip title={"锁定后可编辑"}>
+                <Tooltip title={"获取编辑锁"}>
                   <Button
                     type={"link"}
                     onClick={() => handleLock(file)}
@@ -67,7 +67,7 @@ const FileTitle = ({
               {(file.lockUid || file.lockUid !== 0) && (
                 <>
                   {currentUser?.id === file.lockUid && (
-                    <Tooltip title={"解锁后退出编辑"}>
+                    <Tooltip title={"释放编辑锁"}>
                       <Button
                         type={"link"}
                         onClick={() => handleUnlock(file)}
