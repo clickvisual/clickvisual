@@ -1,5 +1,6 @@
 import styles from "@/pages/DataAnalysis/components/FileTitle/index.less";
 import {
+  FormatPainterOutlined,
   LockOutlined,
   PauseCircleOutlined,
   PlayCircleOutlined,
@@ -12,13 +13,19 @@ import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/conf
 import { useThrottleFn } from "ahooks";
 import { THROTTLE_WAIT } from "@/config/config";
 import classNames from "classnames";
+export enum FileTitleType {
+  node = "node",
+  sql = "sql",
+}
 export interface FileTitleProps {
   file: any;
   onSave: () => void;
   onLock: (file: any) => void;
   onUnlock: (file: any) => void;
   onRun: (file: any) => void;
-  onStop: (file: any) => void;
+  onStop?: (file: any) => void;
+  onFormat?: () => void;
+  type: FileTitleType;
   /**
    * 是否发生改变，true 为是，false 为否
    */
@@ -29,6 +36,8 @@ const FileTitle = ({
   onSave,
   onLock,
   onUnlock,
+  type,
+  onFormat,
   onRun,
   onStop,
   isChange,
@@ -37,9 +46,20 @@ const FileTitle = ({
 
   const handleSave = useThrottleFn(onSave, { wait: THROTTLE_WAIT }).run;
   const handleRun = useThrottleFn(onRun, { wait: THROTTLE_WAIT }).run;
-  const handleStop = useThrottleFn(onStop, { wait: THROTTLE_WAIT }).run;
+  const handleStop = useThrottleFn(
+    (file: any) => {
+      onStop?.(file);
+    },
+    { wait: THROTTLE_WAIT }
+  ).run;
   const handleLock = useThrottleFn(onLock, { wait: THROTTLE_WAIT }).run;
   const handleUnlock = useThrottleFn(onUnlock, { wait: THROTTLE_WAIT }).run;
+  const handleFormat = useThrottleFn(
+    () => {
+      onFormat?.();
+    },
+    { wait: THROTTLE_WAIT }
+  ).run;
 
   return (
     <div className={styles.fileTitle}>
@@ -85,6 +105,15 @@ const FileTitle = ({
                     </Tooltip>
                   )}
                 </>
+              )}
+              {type == FileTitleType.sql && file.lockUid == currentUser?.id && (
+                <Tooltip title={"格式化"}>
+                  <Button
+                    type={"link"}
+                    onClick={() => handleFormat()}
+                    icon={<FormatPainterOutlined />}
+                  />
+                </Tooltip>
               )}
               {!isChange && (
                 <Tooltip title={"运行"}>
