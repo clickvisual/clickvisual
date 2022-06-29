@@ -6,6 +6,9 @@ import { useModel } from "@@/plugin-model/useModel";
 
 let id = 0;
 const getId = () => `dndNode_${id++}`;
+export interface BoardProps {
+  boardNodes: any[];
+}
 const Board = () => {
   const reactFlowWrapper = useRef<any>(null);
   const { nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange } =

@@ -37,10 +37,14 @@ const DatasourceSelect = ({
     currentInstance: model.currentInstances,
   }));
 
-  const namePath: string[] = useMemo(
-    () => itemNamePath.filter((item) => item !== "target"),
-    []
-  );
+  const currentSource = useMemo(() => {
+    return form.getFieldValue([...itemNamePath]);
+  }, [itemNamePath]);
+
+  const targetNamePath: string[] = useMemo(() => {
+    if (!itemNamePath.includes("target")) return [];
+    return itemNamePath.filter((item) => item !== "target");
+  }, []);
 
   const handleFormUpdate = useCallback((prevValues) => {
     let pre: any;
@@ -56,9 +60,9 @@ const DatasourceSelect = ({
     if (!itemNamePath.includes("target")) return TypeOptions;
     return TypeOptions.filter(
       (item) =>
-        item.value !== form.getFieldValue([...namePath, "source", "type"])
+        item.value !== form.getFieldValue([...targetNamePath, "source", "type"])
     );
-  }, [sourceType]);
+  }, [sourceType, targetNamePath]);
 
   const ClusterOptions = useMemo(
     () =>
@@ -114,6 +118,7 @@ const DatasourceSelect = ({
   }, []);
 
   const handleSelectType = useCallback((type: DataSourceTypeEnums) => {
+    console.log("type: ", type);
     switch (type) {
       case DataSourceTypeEnums.ClickHouse:
         doGetSources
@@ -121,6 +126,7 @@ const DatasourceSelect = ({
           .then((res: any) => setDatabaseList(res?.data || []));
         break;
       case DataSourceTypeEnums.MySQL:
+        console.log("mysql");
         doGetSqlSource
           .run({ iid, typ: type })
           .then((res: any) => setDatasourceList(res?.data || []));
@@ -174,17 +180,20 @@ const DatasourceSelect = ({
   }, []);
 
   useEffect(() => {
-    const current = form.getFieldValue([...itemNamePath]);
-    if (!current.type) return;
-    handleSelectType(current.type);
-    if (current.type === DataSourceTypeEnums.MySQL && current.datasource) {
-      handleSelectDatasource(current.datasource);
+    if (!currentSource?.type) return;
+    console.log("current.type: ", currentSource.type, itemNamePath);
+    handleSelectType(currentSource.type);
+    if (
+      currentSource.type === DataSourceTypeEnums.MySQL &&
+      currentSource.datasource
+    ) {
+      handleSelectDatasource(currentSource.datasource);
     }
-    if (!current.database) return;
-    handleSelectDatabase(current.database);
-    if (!current.table) return;
-    handleSelectTable(current.table);
-  }, [file]);
+    if (!currentSource.database) return;
+    handleSelectDatabase(currentSource.database);
+    if (!currentSource.table) return;
+    handleSelectTable(currentSource.table);
+  }, [file, currentSource]);
 
   useEffect(() => {
     if (itemNamePath.includes("source") || !sourceType) return;
