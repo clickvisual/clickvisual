@@ -12,7 +12,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func doTyClickHouse(n *node) (res view.RespRunNode, err error) {
+func doTyClickHouse(n *node) (res view.RunNodeResult, err error) {
 	op, err := service.InstanceManager.Load(n.n.Iid)
 	if err != nil {
 		return
@@ -28,7 +28,7 @@ func doTyClickHouse(n *node) (res view.RespRunNode, err error) {
 	return
 }
 
-func doTyMySQL(n *node) (res view.RespRunNode, err error) {
+func doTyMySQL(n *node) (res view.RunNodeResult, err error) {
 	s, err := db.SourceInfo(invoker.Db, n.n.SourceId)
 	if err != nil {
 		return
@@ -50,7 +50,7 @@ func doTyMySQL(n *node) (res view.RespRunNode, err error) {
 // support:
 // clickhouse -> mysql
 // mysql -> clickhouse
-func doTyRealTimeSync(n *node) (res view.RespRunNode, err error) {
+func doTyRealTimeSync(n *node) (res view.RunNodeResult, err error) {
 	c, err := rtsync.Creator(n.n.Iid, n.n.ID, n.nc.Content)
 	if err != nil {
 		return

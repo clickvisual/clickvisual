@@ -10,7 +10,7 @@ type primary struct {
 	next department
 }
 
-func (r *primary) execute(n *node) (res view.RespRunNode, err error) {
+func (r *primary) execute(n *node) (res view.RunNodeResult, err error) {
 	if n.primaryDone {
 		r.next.execute(n)
 		return

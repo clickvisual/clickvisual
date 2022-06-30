@@ -10,7 +10,7 @@ type secondary struct {
 	next department
 }
 
-func (r *secondary) execute(n *node) (res view.RespRunNode, err error) {
+func (r *secondary) execute(n *node) (res view.RunNodeResult, err error) {
 	if n.secondaryDone {
 		return r.next.execute(n)
 	}

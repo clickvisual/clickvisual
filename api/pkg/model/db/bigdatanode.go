@@ -49,6 +49,10 @@ func (m *BigdataNodeStatus) TableName() string {
 	return TableNameBigDataNodeStatus
 }
 
+func (m *BigdataNodeHistory) TableName() string {
+	return TableNameBigDataNodeHistory
+}
+
 type (
 	BigdataNode struct {
 		BaseModel
@@ -66,13 +70,14 @@ type (
 		LockUid    int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
 		LockAt     int64  `gorm:"column:lock_at;type:int(11)" json:"lockAt"`
 		Status     int    `gorm:"column:status;type:int(11)" json:"status"` // 0 无状态 1 待执行 2 执行中 3 执行异常 4 执行完成
+		UUID       string `gorm:"column:uuid;type:string" json:"uuid"`
+		Rtime      int64  `gorm:"column:rtime;type:bigint;comment:run time" json:"rtime"`
 	}
 
 	BigdataNodeContent struct {
-		NodeId          int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
-		Content         string `gorm:"column:content;type:longtext" json:"content"`
-		PreviousContent string `gorm:"column:previous_content;type:longtext" json:"PreviousContent"`
-		Result          string `gorm:"column:result;type:longtext" json:"result"`
+		NodeId  int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
+		Content string `gorm:"column:content;type:longtext" json:"content"`
+		Result  string `gorm:"column:result;type:longtext" json:"result"`
 	}
 
 	BigdataNodeStatus struct {
@@ -82,6 +87,13 @@ type (
 		Total   int    `gorm:"column:total;type:int(11) unsigned" json:"total"`
 		Handled int    `gorm:"column:handled;type:int(11) unsigned" json:"handled"`
 		Reason  string `gorm:"column:reason;type:text" json:"reason"`
+	}
+
+	BigdataNodeHistory struct {
+		UUID    string `gorm:"column:uuid;type:string;uix_uuid,unique" json:"uuid"`
+		NodeId  int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
+		Content string `gorm:"column:content;type:longtext" json:"content"`
+		Utime   int64  `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
 	}
 )
 
@@ -207,5 +219,38 @@ func NodeStatusListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 	db := invoker.Db.Model(BigdataNodeStatus{}).Where(sql, binds...).Order("id desc")
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
+	return
+}
+
+func NodeHistoryInfo(db *gorm.DB, uuid string) (resp BigdataNodeHistory, err error) {
+	var sql = "`uuid`= ?"
+	var binds = []interface{}{uuid}
+	if err = db.Model(BigdataNodeHistory{}).Where(sql, binds...).First(&resp).Error; err != nil {
+		elog.Error("info error", zap.Error(err))
+		return
+	}
+	return
+}
+
+func NodeHistoryListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*BigdataNodeHistory) {
+	respList = make([]*BigdataNodeHistory, 0)
+	if reqList.PageSize == 0 {
+		reqList.PageSize = 10
+	}
+	if reqList.Current == 0 {
+		reqList.Current = 1
+	}
+	sql, binds := egorm.BuildQuery(conds)
+	db := invoker.Db.Select("uuid, utime").Model(BigdataNodeHistory{}).Where(sql, binds...).Order("utime desc")
+	db.Count(&total)
+	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
+	return
+}
+
+func NodeHistoryCreate(db *gorm.DB, data *BigdataNodeHistory) (err error) {
+	if err = db.Model(BigdataNodeHistory{}).Create(data).Error; err != nil {
+		elog.Error("create error", zap.Error(err))
+		return
+	}
 	return
 }
