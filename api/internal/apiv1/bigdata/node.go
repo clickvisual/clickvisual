@@ -1,7 +1,10 @@
 package bigdata
 
 import (
+	"strings"
+
 	"github.com/ego-component/egorm"
+	"github.com/google/uuid"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -88,9 +91,21 @@ func NodeUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	// create node content history
+	onlyId := uuid.New().String()
 	upsContent := make(map[string]interface{}, 0)
 	upsContent["content"] = req.Content
+	upsContent["uuid"] = onlyId
 	if err := db.NodeContentUpdate(tx, id, upsContent); err != nil {
+		tx.Rollback()
+		c.JSONE(1, "update failed: "+err.Error(), nil)
+		return
+	}
+	if err := db.NodeHistoryCreate(tx, &db.BigdataNodeHistory{
+		UUID:    onlyId,
+		NodeId:  id,
+		Content: req.Content,
+	}); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
@@ -153,15 +168,14 @@ func NodeInfo(c *core.Context) {
 		return
 	}
 	res := view.RespInfoNode{
-		Id:              n.ID,
-		Name:            n.Name,
-		Desc:            n.Desc,
-		Content:         nc.Content,
-		LockUid:         n.LockUid,
-		LockAt:          n.LockAt,
-		Status:          n.Status,
-		PreviousContent: nc.PreviousContent,
-		Result:          nc.Result,
+		Id:      n.ID,
+		Name:    n.Name,
+		Desc:    n.Desc,
+		Content: nc.Content,
+		LockUid: n.LockUid,
+		LockAt:  n.LockAt,
+		Status:  n.Status,
+		Result:  nc.Result,
 	}
 	if res.LockUid != 0 {
 		u, _ := db.UserInfo(res.LockUid)
@@ -299,6 +313,12 @@ func NodeRun(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	afterNodeInfo, err := db.NodeInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res.Status = afterNodeInfo.Status
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -328,6 +348,12 @@ func NodeStop(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	afterNodeInfo, err := db.NodeInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	res.Status = afterNodeInfo.Status
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -359,5 +385,41 @@ func NodeStatusList(c *core.Context) {
 		resp.Histories = nss
 	}
 	c.JSONE(core.CodeOK, "succ", resp)
+	return
+}
+
+func NodeHistoryInfo(c *core.Context) {
+	uuid := strings.TrimSpace(c.Param("uuid"))
+	if uuid != "" {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	nh, err := db.NodeHistoryInfo(invoker.Db, uuid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", nh)
+	return
+}
+
+func NodeHistoryListPage(c *core.Context) {
+	var req view.ReqNodeHistoryList
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "请求参数错误. "+err.Error(), nil)
+		return
+	}
+	total, list := db.NodeHistoryListPage(egorm.Conds{"nodeId": req.NodeId}, &db.ReqPage{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+	})
+	c.JSONPage(view.RespNodeHistoryList{
+		Total: total,
+		List:  list,
+	}, core.Pagination{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+		Total:    total,
+	})
 	return
 }
