@@ -43,8 +43,9 @@ const ManageNodeModal = () => {
   };
 
   const addNode = (fields: any) => {
-    doCreatedNode.run({ ...fields, ...extra }).then(() => {
-      callbackRef.current?.();
+    doCreatedNode.run({ ...fields, ...extra }).then((res) => {
+      if (res?.code !== 0) return;
+      callbackRef.current?.(res.data);
       onCancel();
     });
   };

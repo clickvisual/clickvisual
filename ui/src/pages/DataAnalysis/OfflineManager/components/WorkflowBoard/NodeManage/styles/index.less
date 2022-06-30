@@ -1,0 +1,30 @@
+@import "../../../../../../../styles/var";
+
+.main {
+  .title {
+    height: 28px;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 28px;
+    background: @primary-color-1;
+    cursor: pointer;
+    user-select: none;
+
+    .icon {
+      margin: 4px;
+      font-size: 12px;
+      transition: transform 0.5s;
+    }
+    .iconExpand {
+      transform: rotate(90deg);
+    }
+  }
+  .nodeSelect {
+    margin: 4px 8px;
+    line-height: 30px;
+    text-align: center;
+    border: 1px solid @border-color;
+    cursor: pointer;
+    user-select: none;
+  }
+}
