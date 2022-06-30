@@ -10,7 +10,7 @@ type tertiary struct {
 	next department
 }
 
-func (r *tertiary) execute(n *node) (res view.RespRunNode, err error) {
+func (r *tertiary) execute(n *node) (res view.RunNodeResult, err error) {
 	if n.tertiaryDone {
 		return
 	}

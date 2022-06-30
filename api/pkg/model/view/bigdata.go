@@ -146,10 +146,15 @@ type (
 		Histories []*db.BigdataNodeStatus `json:"histories"`
 	}
 
-	RespRunNode struct {
+	RunNodeResult struct {
 		Logs         []map[string]interface{} `json:"logs"`
 		InvolvedSQLs map[string]string        `json:"involvedSQLs"`
 		Message      string                   `json:"message"`
+	}
+
+	RespRunNode struct {
+		Result string `json:"result"`
+		Status int    `json:"status"`
 	}
 
 	SyncContent struct {
@@ -181,6 +186,16 @@ type (
 	InnerNodeRun struct {
 		N  *db.BigdataNode
 		NC *db.BigdataNodeContent
+	}
+
+	ReqNodeHistoryList struct {
+		NodeId int `json:"nodeId" form:"nodeId"`
+		db.ReqPage
+	}
+
+	RespNodeHistoryList struct {
+		Total int64                    `json:"total"`
+		List  []*db.BigdataNodeHistory `json:"list"`
 	}
 )
 

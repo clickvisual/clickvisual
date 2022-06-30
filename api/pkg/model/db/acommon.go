@@ -47,6 +47,7 @@ const (
 	TableNameBigDataNode        = "cv_bd_node"
 	TableNameBigDataNodeContent = "cv_bd_node_content"
 	TableNameBigDataNodeStatus  = "cv_bd_node_status"
+	TableNameBigDataNodeHistory = "cv_bd_node_history"
 	TableNameBigDataFolder      = "cv_bd_folder"
 	TableNameBigDataSource      = "cv_bd_source"
 	TableNameBigDataWorkflow    = "cv_bd_workflow"

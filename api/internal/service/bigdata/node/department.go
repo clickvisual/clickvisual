@@ -25,7 +25,7 @@ type node struct {
 }
 
 type department interface {
-	execute(*node) (view.RespRunNode, error)
+	execute(*node) (view.RunNodeResult, error)
 	setNext(department)
 }
 
@@ -34,7 +34,7 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int) (view.RespRu
 	t := &tertiary{}
 	s := &secondary{next: t}
 	p := &primary{next: s}
-	res, err := p.execute(&node{
+	execResult, err := p.execute(&node{
 		n:             n,
 		nc:            nc,
 		op:            op,
@@ -43,15 +43,18 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int) (view.RespRu
 		tertiaryDone:  false,
 	})
 	if err != nil {
-		res.Message = err.Error()
+		execResult.Message = err.Error()
 	}
 	// record execute result
-	resBytes, _ := json.Marshal(res)
+	execResultBytes, _ := json.Marshal(execResult)
 	ups := make(map[string]interface{}, 0)
-	ups["result"] = string(resBytes)
+	ups["result"] = string(execResultBytes)
 	if op == OperatorRun {
 		ups["previous_content"] = nc.Content
 	}
 	_ = db.NodeContentUpdate(invoker.Db, n.ID, ups)
+	res := view.RespRunNode{
+		Result: string(execResultBytes),
+	}
 	return res, err
 }
