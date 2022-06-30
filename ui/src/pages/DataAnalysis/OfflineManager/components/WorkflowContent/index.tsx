@@ -26,8 +26,8 @@ const WorkflowContent = () => {
   } = useModel("dataAnalysis");
 
   useEffect(() => {
+    changeOpenNodeId(selectNode.id);
     if (selectNode?.secondary == SecondaryEnums.dataMining) {
-      changeOpenNodeId(selectNode.id);
       changeOpenNodeParentId(selectNode.folderId);
     }
   }, [selectNode, selectNode.id, selectNode.folderId, selectNode?.secondary]);
