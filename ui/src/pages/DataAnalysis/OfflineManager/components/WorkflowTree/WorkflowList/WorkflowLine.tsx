@@ -12,7 +12,6 @@ import NodeTreeItem from "@/pages/DataAnalysis/OfflineManager/components/Workflo
 import CustomTree, { NodeType } from "@/components/CustomTree";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
-import { NodeInfo } from "@/services/dataAnalysis";
 import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
 import lodash from "lodash";
 
@@ -24,8 +23,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     [workflow]
   );
 
-  const [nodes, setNodes] = useState<NodeInfo[]>([]);
-  const [folders, setFolders] = useState<any[]>([]);
+  const [treeData, setTreeData] = useState<any[]>([]);
   const [currentNode, setCurrentNode] = useState<any>();
   const [clickSource, setClickSource] =
     useState<OfflineRightMenuClickSourceEnums>(
@@ -33,12 +31,15 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     );
 
   const {
+    nodes,
+    folders,
     getFolders,
     currentInstances,
     setSelectNode,
     setSelectKeys,
     selectKeys,
     createdNode,
+    doSetNodesAndFolders,
   } = useModel("dataAnalysis", (model) => ({
     setSelectNode: model.manageNode.setSelectNode,
     setSelectKeys: model.manageNode.setSelectKeys,
@@ -46,22 +47,18 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     getFolders: model.manageNode.getFolders,
     createdNode: model.manageNode.doCreatedNode,
     currentInstances: model.currentInstances,
+    doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
+    nodes: model.manageNode.nodes,
+    folders: model.manageNode.folders,
   }));
 
   useEffect(() => {
     if (!currentInstances || !workflow.id) return;
-    getFolders
-      .run({
-        iid: currentInstances,
-        primary: PrimaryEnums.mining,
-        workflowId: workflow.id,
-      })
-      .then((res) => {
-        if (res?.code !== 0) return;
-        setNodes(res.data.nodes);
-        setFolders(res.data.children);
-      });
-
+    doSetNodesAndFolders({
+      iid: currentInstances,
+      primary: PrimaryEnums.mining,
+      workflowId: workflow.id,
+    });
     getFolders
       .run({
         iid: currentInstances,
@@ -111,17 +108,11 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
 
   const handleCloseModal = useCallback(() => {
     if (!currentInstances) return;
-    getFolders
-      .run({
-        iid: currentInstances,
-        primary: PrimaryEnums.mining,
-        workflowId: workflow.id,
-      })
-      .then((res) => {
-        if (res?.code !== 0) return;
-        setNodes(res.data.nodes);
-        setFolders(res.data.children);
-      });
+    doSetNodesAndFolders({
+      iid: currentInstances,
+      primary: PrimaryEnums.mining,
+      workflowId: workflow.id,
+    });
   }, [currentInstances]);
 
   const folderTree = (
@@ -178,8 +169,8 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     return result;
   };
 
-  const treeData: any[] = useMemo(() => {
-    return [
+  useMemo(() => {
+    const nodeTree = [
       {
         key: workflow.id,
         title: workflow.name,
@@ -223,6 +214,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         ],
       },
     ];
+    setTreeData(nodeTree);
   }, [nodes, folders, workflowItem]);
 
   return (

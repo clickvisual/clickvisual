@@ -1,11 +1,11 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   PrimaryEnums,
   SecondaryEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
 import useRequest from "@/hooks/useRequest/useRequest";
-import dataAnalysisApi from "@/services/dataAnalysis";
+import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 
 export const PrimaryList = [
   {
@@ -53,25 +53,38 @@ export const TertiaryList = [
       SecondaryEnums.database,
       SecondaryEnums.dataMining,
       SecondaryEnums.all,
+      SecondaryEnums.board,
     ],
   },
   {
     id: TertiaryEnums.mysql,
     title: "mysql",
     enum: TertiaryEnums.mysql,
-    types: [SecondaryEnums.dataMining, SecondaryEnums.all],
+    types: [
+      SecondaryEnums.dataMining,
+      SecondaryEnums.all,
+      SecondaryEnums.board,
+    ],
   },
-  {
-    id: TertiaryEnums.offline,
-    title: "离线分析",
-    enum: TertiaryEnums.offline,
-    types: [SecondaryEnums.dataIntegration, SecondaryEnums.all],
-  },
+  // {
+  //   id: TertiaryEnums.offline,
+  //   title: "离线分析",
+  //   enum: TertiaryEnums.offline,
+  //   types: [
+  //     SecondaryEnums.dataIntegration,
+  //     SecondaryEnums.all,
+  //     SecondaryEnums.board,
+  //   ],
+  // },
   {
     id: TertiaryEnums.realtime,
     title: "实时分析",
     enum: TertiaryEnums.realtime,
-    types: [SecondaryEnums.dataIntegration, SecondaryEnums.all],
+    types: [
+      SecondaryEnums.dataIntegration,
+      SecondaryEnums.all,
+      SecondaryEnums.board,
+    ],
   },
 ];
 
@@ -83,6 +96,10 @@ const useManageNodeAndFolder = () => {
   const [currentNode, setCurrentNode] = useState<any>();
   const [extra, setExtra] = useState<any>();
   const callbackRef = useRef<any>(null);
+
+  // 节点树节点和文件夹
+  const [nodes, setNodes] = useState<NodeInfo[]>([]);
+  const [folders, setFolders] = useState<any[]>([]);
 
   // 当前选中的 节点
   const [selectNode, setSelectNode] = useState<any>();
@@ -143,7 +160,18 @@ const useManageNodeAndFolder = () => {
     },
   });
 
-  const showNodeModal = (callback?: () => void) => {
+  const doSetNodesAndFolders = useCallback(
+    (params: { iid: number; primary: PrimaryEnums; workflowId: number }) => {
+      getFolders.run(params).then((res) => {
+        if (res?.code !== 0) return;
+        setNodes(res.data.nodes);
+        setFolders(res.data.children);
+      });
+    },
+    []
+  );
+
+  const showNodeModal = (callback?: (params?: any) => void) => {
     callbackRef.current = callback;
     setVisibleNode(true);
   };
@@ -170,6 +198,8 @@ const useManageNodeAndFolder = () => {
     selectKeys,
     setSelectKeys,
     extra,
+    nodes,
+    folders,
 
     showNodeModal,
     hideNodeModal,
@@ -190,6 +220,7 @@ const useManageNodeAndFolder = () => {
     doGetNodeInfo,
     doUpdatedNode,
     doDeletedNode,
+    doSetNodesAndFolders,
 
     getFolders,
     doCreatedFolder,

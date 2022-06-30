@@ -12,32 +12,41 @@ export interface WorkflowBoardProps {
 }
 const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   const [file, setFile] = useState<any>();
+  const [nodeList, setNodeList] = useState<any[]>([]);
   const {
     iid,
+    nodes,
+    folders,
     getNodeInfo,
     updateNode,
+    deleteNode,
     getNodes,
     doLockNode,
     doUnLockNode,
     doRunCodeNode,
     doStopCodeNode,
+    doSetNodesAndFolders,
   } = useModel("dataAnalysis", (model) => ({
     iid: model.currentInstances,
     getNodeInfo: model.manageNode.doGetNodeInfo,
     updateNode: model.manageNode.doUpdatedNode,
+    deleteNode: model.manageNode.doDeletedNode,
     doLockNode: model.manageNode.doLockNode,
     doUnLockNode: model.manageNode.doUnLockNode,
     doRunCodeNode: model.manageNode.doRunCodeNode,
     doStopCodeNode: model.manageNode.doStopCodeNode,
     getNodes: model.manageNode.getFolders,
+    nodes: model.manageNode.nodes,
+    folders: model.manageNode.folders,
+    doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
   }));
 
   const getNodeList = useCallback((folders: any[], nodes: any[]) => {
-    const nodeList = nodes.filter(
+    const list = nodes.filter(
       (node) => node.secondary !== SecondaryEnums.board
     );
     if (folders.length <= 0) {
-      return nodeList;
+      return list;
     }
     const folderNodes: any[] = folders
       .map((folder) => {
@@ -47,7 +56,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
         return folder.nodes;
       })
       .flat();
-    return [...nodeList, ...folderNodes];
+    return [...list, ...folderNodes];
   }, []);
 
   const doGetFile = useCallback((id: number) => {
@@ -71,12 +80,8 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
           const nodes = res.data.nodes.filter(
             (node) => node.secondary !== SecondaryEnums.board
           );
-          console.log("board: ", board);
           const folders = res.data.children;
-          console.log(
-            " getNodeList(folders, nodes): ",
-            getNodeList(folders, nodes)
-          );
+          setNodeList(() => getNodeList(folders, nodes));
         });
     },
     [iid]
@@ -113,11 +118,41 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     });
   };
 
+  const handleDeleteNode = async (selectNodeList: any[]) => {
+    if (selectNodeList.length < 1) {
+      return;
+    }
+    if (selectNodeList.length === 1) {
+      await deleteNode.run(selectNodeList[0].id);
+    } else {
+      for (const node of selectNodeList) {
+        await deleteNode.run(node.id);
+      }
+    }
+    doGetFile(currentBoard.id);
+    doGetNodes(currentBoard);
+    doSetNodesAndFolders({
+      iid: currentBoard.iid,
+      primary: currentBoard.primary,
+      workflowId: currentBoard.workflowId,
+    });
+  };
+
+  const handleCreateNode = () => {
+    doGetFile(currentBoard.id);
+    doGetNodes(currentBoard);
+    doSetNodesAndFolders({
+      iid: currentBoard.iid,
+      primary: currentBoard.primary,
+      workflowId: currentBoard.workflowId,
+    });
+  };
+
   useEffect(() => {
     if (!currentBoard.id || !iid) return;
     doGetFile(currentBoard.id);
     doGetNodes(currentBoard);
-  }, [currentBoard]);
+  }, [currentBoard, nodes, folders]);
 
   // todo: isChange 的状态没有判断
   return (
@@ -134,7 +169,15 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
       />
       <div style={{ flex: 1, display: "flex" }}>
         <NodeManage />
-        <BoardChart />
+        {file && (
+          <BoardChart
+            currentBoard={currentBoard}
+            boardNodes={nodeList}
+            file={file}
+            onDelete={handleDeleteNode}
+            onCreate={handleCreateNode}
+          />
+        )}
       </div>
     </div>
   );
