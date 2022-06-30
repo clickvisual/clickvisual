@@ -116,6 +116,10 @@ const RightMenu = (props: RightMenuProps) => {
     });
   }, [currentNode, currentInstances]);
 
+  const createNodeModalCallback = useCallback((node: any) => {
+    handleCloseNodeModal?.();
+  }, []);
+
   const handleClickAddNode = useCallback(
     (
       primary: PrimaryEnums,
@@ -135,7 +139,7 @@ const RightMenu = (props: RightMenuProps) => {
           ? currentNode?.id
           : currentNode?.folderId;
       setExtra(extra);
-      showNodeModal(handleCloseNodeModal);
+      showNodeModal(createNodeModalCallback);
     },
     [currentNode, currentInstances]
   );

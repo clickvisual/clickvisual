@@ -29,7 +29,7 @@ const NodeManage = ({ board, file }: NodeManageProps) => {
 };
 
 const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
-  const [isFold, setIsFold] = useState<boolean>(true);
+  const [isFold, setIsFold] = useState<boolean>(false);
 
   const onDragStart = (
     event: any,

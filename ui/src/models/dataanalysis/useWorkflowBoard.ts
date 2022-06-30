@@ -24,7 +24,7 @@ const useWorkflowBoard = () => {
     nodeInfo: BoardCreateNodeInfo,
     onChangeExtra: (params: any) => void,
     showNodeModal: (callback?: (params?: any) => void) => void,
-    onOk: () => void
+    onOk: (params: any, nodeInfo: any) => void
   ) => {
     createNodeInfoRef.current = nodeInfo;
     onChangeExtra({
@@ -37,7 +37,7 @@ const useWorkflowBoard = () => {
     });
     showNodeModal((data) => {
       createNodeInfoRef.current = { ...nodeInfo, node: data };
-      onOk();
+      onOk(data, nodeInfo);
     });
   };
 
