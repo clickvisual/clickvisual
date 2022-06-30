@@ -60,9 +60,9 @@ const useDataSourceManage = () => {
     loadingText: false,
   });
 
-  const onSearch = (iid: number, file: { typ: number }) => {
+  const onSearch = (iid: number, file?: { typ: number }) => {
     doGetSourceList
-      .run({ iid: iid as number, typ: file.typ as number })
+      .run({ iid: iid as number, typ: file?.typ as number })
       .then((res: any) => {
         if (res.code == 0) {
           changeSourceList(res.data);

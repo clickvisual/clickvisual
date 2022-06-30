@@ -24,6 +24,10 @@ const SearchBar = () => {
     dataSourceFormRef.current?.resetFields();
   }, [currentInstances]);
 
+  useEffect(() => {
+    onSearch(currentInstances as number);
+  }, []);
+
   return (
     <div className={style.searchBar}>
       <Form
