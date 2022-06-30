@@ -170,7 +170,7 @@ func ClusterListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList
 
 // ClusterDelete soft delete item by id
 func ClusterDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(Cluster{}).Delete(&Cluster{}, id).Error; err != nil {
+	if err = db.Model(Cluster{}).Unscoped().Delete(&Cluster{}, id).Error; err != nil {
 		invoker.Logger.Error("cluster delete error", zap.Error(err))
 		return
 	}

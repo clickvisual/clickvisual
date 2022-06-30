@@ -81,16 +81,16 @@ func TestCreator(t *testing.T) {
 				iid:    1,
 				nodeId: 105,
 				content: `{
-    "target": {
-        "typ": "clickhouse",
-        "database": "local_mex",
-        "table": "test_0628_1"
-    },
     "source": {
         "typ": "mysql",
         "sourceId": 3,
         "database": "ws_gateway",
         "table": "number_sender"
+    },
+    "target": {
+        "typ": "clickhouse",
+        "database": "local_mex",
+        "table": "test_0628_1"
     },
     "mapping": [
         {

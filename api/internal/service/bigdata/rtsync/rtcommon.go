@@ -3,6 +3,7 @@ package rtsync
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
 
@@ -16,12 +17,26 @@ import (
 func mapping(mappings []view.IntegrationMapping) (res string) {
 	for _, m := range mappings {
 		if res == "" {
-			res = fmt.Sprintf("%s as %s", m.Source, m.Target)
+			res = fmt.Sprintf("%s as %s", mappingKV(m.SourceType, m.Source), m.Target)
 		} else {
-			res = fmt.Sprintf("%s, %s as %s", res, m.Source, m.Target)
+			res = fmt.Sprintf("%s, %s as %s", res, mappingKV(m.SourceType, m.Source), m.Target)
 		}
 	}
 	return
+}
+
+func mappingKV(typ string, val string) string {
+	lowerTyp := strings.ToLower(typ)
+	if strings.Contains(lowerTyp, "int") {
+		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
+	}
+	if strings.Contains(lowerTyp, "string") {
+		return fmt.Sprintf("ifNull(%s, %s)", val, "")
+	}
+	if strings.Contains(lowerTyp, "float") {
+		return fmt.Sprintf("ifNull(%s, %f)", val, 0.0)
+	}
+	return val
 }
 
 func where(f string) string {
