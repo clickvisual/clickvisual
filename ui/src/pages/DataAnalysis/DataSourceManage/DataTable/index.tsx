@@ -8,11 +8,12 @@ import { useModel, useIntl } from "umi";
 
 const DataTable = () => {
   const i18n = useIntl();
-  const { dataSourceManage } = useModel("dataAnalysis");
+  const { dataSourceManage, currentInstances } = useModel("dataAnalysis");
   const {
     doGetSourceList,
     sourceList,
     typList,
+    currentTyp,
     doDeleteSource,
     onSearch,
     changeIsUpdate,
@@ -24,7 +25,7 @@ const DataTable = () => {
     doDeleteSource.run(id).then((res: any) => {
       if (res.code == 0) {
         message.success("删除成功");
-        onSearch();
+        onSearch(currentInstances as number, { typ: currentTyp as number });
       }
     });
   };
@@ -35,6 +36,9 @@ const DataTable = () => {
       align: "center",
       dataIndex: "name",
       ellipsis: { showTitle: false },
+      render: (_, record: any) => {
+        return <Tooltip title={record.name}>{record.name}</Tooltip>;
+      },
     },
     {
       title: `数据源类型`,
@@ -54,12 +58,18 @@ const DataTable = () => {
       align: "center",
       dataIndex: "url",
       ellipsis: { showTitle: false },
+      render: (_, record: any) => {
+        return <Tooltip title={record.url}>{record.url}</Tooltip>;
+      },
     },
     {
       title: `数据源描述`,
       align: "center",
       dataIndex: "desc",
       ellipsis: { showTitle: false },
+      render: (_, record: any) => {
+        return <Tooltip title={record.desc}>{record.desc}</Tooltip>;
+      },
     },
     {
       title: `创建时间`,

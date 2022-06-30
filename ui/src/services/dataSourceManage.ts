@@ -21,7 +21,7 @@ export interface UpdateSourceType {
 
 export default {
   // Get Source List
-  async getSourceList(params: { iid: number; typ: number }) {
+  async getSourceList(params: { iid: number; typ?: number }) {
     return request<any>(process.env.PUBLIC_PATH + `api/v1/bigdata/sources`, {
       params,
     });
