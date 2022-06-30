@@ -75,9 +75,10 @@ type (
 	}
 
 	BigdataNodeContent struct {
-		NodeId  int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
-		Content string `gorm:"column:content;type:longtext" json:"content"`
-		Result  string `gorm:"column:result;type:longtext" json:"result"`
+		NodeId          int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
+		Content         string `gorm:"column:content;type:longtext" json:"content"`
+		Result          string `gorm:"column:result;type:longtext" json:"result"`
+		PreviousContent string `gorm:"column:previous_content;type:longtext" json:"PreviousContent"`
 	}
 
 	BigdataNodeStatus struct {
