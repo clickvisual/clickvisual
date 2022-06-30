@@ -105,6 +105,9 @@ const useManageNodeAndFolder = () => {
   const [selectNode, setSelectNode] = useState<any>();
   const [selectKeys, setSelectKeys] = useState<string[]>([]);
 
+  const [boardFile, setBoardFile] = useState<any>();
+  const [boardNodeList, setBoardNodeList] = useState<any[]>([]);
+
   // Folder
   const getFolders = useRequest(dataAnalysisApi.getFolderList, {
     loadingText: false,
@@ -189,6 +192,74 @@ const useManageNodeAndFolder = () => {
     setVisibleFolder(false);
   };
 
+  const doGetBoardFile = (id: number) => {
+    doGetNodeInfo.run(id).then((res) => {
+      if (res?.code !== 0) return;
+      setBoardFile(res.data);
+    });
+  };
+
+  const getNodeList = useCallback((folders: any[], nodes: any[]) => {
+    const list = nodes.filter(
+      (node) => node.secondary !== SecondaryEnums.board
+    );
+    if (folders.length <= 0) {
+      return list;
+    }
+    const folderNodes: any[] = folders
+      .map((folder) => {
+        if (folder.children.length > 0) {
+          return getNodeList(folder.children, folder.nodes);
+        }
+        return folder.nodes;
+      })
+      .flat();
+    return [...list, ...folderNodes];
+  }, []);
+
+  const doGetBoardNodes = (board: any) => {
+    getFolders
+      .run({
+        iid: board.iid,
+        primary: board.primary,
+        workflowId: board.workflowId,
+      })
+      .then((res) => {
+        if (res?.code !== 0) return;
+        const nodes = res.data.nodes.filter(
+          (node) => node.secondary !== SecondaryEnums.board
+        );
+        const folders = res.data.children;
+        setBoardNodeList(() => getNodeList(folders, nodes));
+      });
+  };
+
+  const handleDeleteNode = async (
+    selectNodeList: any[],
+    params: {
+      iid: number;
+      primary: PrimaryEnums;
+      workflowId: number;
+    }
+  ) => {
+    if (selectNodeList.length < 1) {
+      return;
+    }
+    if (selectNodeList.length === 1) {
+      await doDeletedNode.run(parseInt(selectNodeList[0].id));
+    } else {
+      for (const node of selectNodeList) {
+        await doDeletedNode.run(parseInt(node.id));
+      }
+    }
+    setNodes((nds) =>
+      nds.filter(
+        (nd) => selectNodeList.findIndex((item) => item.id === nd.id) === -1
+      )
+    );
+    doSetNodesAndFolders(params);
+  };
+
   return {
     visibleNode,
     visibleFolder,
@@ -226,6 +297,12 @@ const useManageNodeAndFolder = () => {
     doCreatedFolder,
     doUpdateFolder,
     doDeleteFolder,
+
+    boardFile,
+    boardNodeList,
+    doGetBoardFile,
+    doGetBoardNodes,
+    handleDeleteNode,
   };
 };
 export default useManageNodeAndFolder;

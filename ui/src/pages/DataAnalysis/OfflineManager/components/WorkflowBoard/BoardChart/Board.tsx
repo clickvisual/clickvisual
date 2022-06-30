@@ -10,13 +10,22 @@ import "./styles/index.less";
 import { useModel } from "@@/plugin-model/useModel";
 import { useKeyPress } from "ahooks";
 import DeletedModal from "@/components/DeletedModal";
+import BoardNode from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart/BoardNode";
+import { PrimaryEnums } from "@/pages/DataAnalysis/service/enums";
 
 export interface BoardProps {
   boardNodes: any[];
   currentBoard: any;
   file: any;
-  onDelete: (nodes: any[]) => void;
-  onCreate: () => void;
+  onDelete: (
+    nodes: any[],
+    params: {
+      iid: number;
+      primary: PrimaryEnums;
+      workflowId: number;
+    }
+  ) => void;
+  onCreate: (params: any, nodeInfo: any) => void;
 }
 const Board = ({
   boardNodes,
@@ -56,17 +65,22 @@ const Board = ({
     setSelectNodes(nodes);
   }, []);
 
-  const handleKeyBackspace = useCallback(() => {
+  const handleDeleteNode = useCallback(() => {
     // todo: 没有记住节点位置
     if (selectNodes.length <= 0) return;
     DeletedModal({
-      content: `确定删除节点: ${selectNodes[0].data.label} 吗？`,
-      onOk: () => onDelete(selectNodes),
+      content: `确定删除节点: ${selectNodes[0].data.node.name} 吗？`,
+      onOk: () =>
+        onDelete(selectNodes, {
+          iid: currentBoard.iid,
+          primary: currentBoard.primary,
+          workflowId: currentBoard.workflowId,
+        }),
     });
     return;
   }, [selectNodes]);
 
-  useKeyPress("Backspace", handleKeyBackspace);
+  useKeyPress("Backspace", handleDeleteNode);
 
   const onConnect = useCallback((params) => {
     setEdges((eds) =>
@@ -153,7 +167,10 @@ const Board = ({
       NodeList.push({
         id: node.id.toString(),
         type: "default",
-        data: { label: node.name, node },
+        data: {
+          label: <BoardNode node={node} onDelete={onDelete} />,
+          node,
+        },
         style: {
           width: 100,
           height: 32,
@@ -163,12 +180,13 @@ const Board = ({
       });
     }
     setNodes(() => getNodesPosition(NodeList, EdgeList));
-    setEdges(EdgeList);
+    setEdges(() => [...edges, ...EdgeList]);
   }, []);
 
   useEffect(() => {
     handleChangeNodes(boardNodes);
   }, [boardNodes]);
+
   return (
     <div
       style={{

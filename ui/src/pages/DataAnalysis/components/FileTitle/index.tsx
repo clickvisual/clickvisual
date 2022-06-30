@@ -45,6 +45,10 @@ const FileTitle = ({
   isChange,
 }: FileTitleProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
+  const { doLockNode, doUnLockNode } = useModel("dataAnalysis", (model) => ({
+    doLockNode: model.manageNode.doLockNode,
+    doUnLockNode: model.manageNode.doUnLockNode,
+  }));
 
   const handleSave = useThrottleFn(onSave, { wait: THROTTLE_WAIT }).run;
   const handleRun = useThrottleFn(onRun, { wait: THROTTLE_WAIT }).run;
@@ -78,24 +82,28 @@ const FileTitle = ({
           <div className={styles.icons}>
             <Space>
               {(!file.lockUid || file.lockUid === 0) && (
-                <Tooltip title={"获取编辑锁"}>
-                  <Button
-                    type={"link"}
-                    onClick={() => handleLock(file)}
-                    icon={<LockOutlined />}
-                  />
-                </Tooltip>
+                <Button
+                  size={"small"}
+                  type={"primary"}
+                  onClick={() => handleLock(file)}
+                  loading={doLockNode.loading}
+                  icon={<LockOutlined />}
+                >
+                  开始编辑
+                </Button>
               )}
               {(file.lockUid || file.lockUid !== 0) && (
                 <>
                   {currentUser?.id === file.lockUid && (
-                    <Tooltip title={"释放编辑锁"}>
-                      <Button
-                        type={"link"}
-                        onClick={() => handleUnlock(file)}
-                        icon={<UnlockOutlined />}
-                      />
-                    </Tooltip>
+                    <Button
+                      size={"small"}
+                      type={"primary"}
+                      onClick={() => handleUnlock(file)}
+                      loading={doUnLockNode.loading}
+                      icon={<UnlockOutlined />}
+                    >
+                      退出编辑
+                    </Button>
                   )}
                   {file?.lockUid == currentUser?.id && (
                     <Tooltip title={"保存"}>
