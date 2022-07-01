@@ -47,7 +47,6 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
 
   const isLock = useMemo(() => {
-    console.log("boardFile: ", boardFile);
     if (!boardFile) return true;
     return (
       !boardFile.lockUid ||
@@ -119,16 +118,18 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <FileTitle
-        type={FileTitleType.node}
-        isChange={isChangeBoard}
-        onSave={handleSave}
-        onStop={handleStop}
-        onRun={handleRun}
-        onLock={handleLock}
-        onUnlock={handleUnlock}
-        file={boardFile}
-      />
+      {boardFile && (
+        <FileTitle
+          type={FileTitleType.node}
+          isChange={isChangeBoard}
+          onSave={handleSave}
+          onStop={handleStop}
+          onRun={handleRun}
+          onLock={handleLock}
+          onUnlock={handleUnlock}
+          file={boardFile}
+        />
+      )}
       <div style={{ flex: 1, display: "flex" }}>
         <NodeManage isLock={isLock} />
         {boardFile && (
