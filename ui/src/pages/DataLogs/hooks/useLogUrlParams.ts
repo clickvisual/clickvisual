@@ -224,18 +224,13 @@ export default function useLogUrlParams() {
   }, []);
 
   useEffect(() => {
-    const did = urlState.did;
     const lastDataLogsState: LastDataLogsStateType = getLastDataLogsState();
+    const tid = urlState.tid || lastDataLogsState.tid;
+    const did = urlState.did || lastDataLogsState.did;
     if (databaseList.length > 0 && did && !currentDatabase) {
       const database = databaseList.find((item) => parseInt(did) === item.id);
       onChangeCurrentDatabase(database);
-    } else if (
-      !lastDataLogsState.tid &&
-      !lastDataLogsState.did &&
-      databaseList.length > 0 &&
-      !currentDatabase &&
-      !urlState.tid
-    ) {
+    } else if (!tid && !did && databaseList.length > 0 && !currentDatabase) {
       // onChangeCurrentDatabase(databaseList[0]);
       onChangeVisibleDatabaseDraw(true);
     }

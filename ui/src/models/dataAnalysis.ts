@@ -8,13 +8,18 @@ import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
 import { useEffect, useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
 import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder";
-import dataAnalysis from "@/services/temporaryQuery";
+import temporaryQueryApi from "@/services/temporaryQuery";
 import dataAnalysisApi from "@/services/dataAnalysis";
 import realtimeApi from "@/services/realTimeTrafficFlow";
 import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
 import dataSourceManageApi from "@/services/dataSourceManage";
 import { message } from "antd";
 import useWorkflowBoard from "@/models/dataanalysis/useWorkflowBoard";
+import { FIRST_PAGE } from "@/config/config";
+export interface versionHistoryListType {
+  list: any[];
+  total: number;
+}
 
 const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
@@ -29,6 +34,16 @@ const DataAnalysis = () => {
   const [openNodeData, setOpenNodeData] = useState<openNodeDataType>();
   // 节点修改后的value
   const [folderContent, setFolderContent] = useState<string>("");
+
+  // 版本历史list
+  const [versionHistoryList, setVersionHistoryList] =
+    useState<versionHistoryListType>({ list: [], total: 0 });
+  // 版本历史的分页
+  const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
+    current: FIRST_PAGE,
+    pageSize: 10,
+    total: 0,
+  });
 
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
@@ -70,6 +85,14 @@ const DataAnalysis = () => {
     setCurrentInstances(value);
   };
 
+  const changeVersionHistoryList = (value: versionHistoryListType) => {
+    setVersionHistoryList(value);
+  };
+
+  /**
+   * api
+   */
+
   const doGetInstance = useRequest(systemApi.getInstances, {
     loadingText: false,
   });
@@ -99,15 +122,15 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
-  const doLockNode = useRequest(dataAnalysis.lockNode, {
+  const doLockNode = useRequest(temporaryQueryApi.lockNode, {
     loadingText: false,
   });
 
-  const doUnLockNode = useRequest(dataAnalysis.unLockNode, {
+  const doUnLockNode = useRequest(temporaryQueryApi.unLockNode, {
     loadingText: false,
   });
 
-  const doRunCodeNode = useRequest(dataAnalysis.runCodekNode, {
+  const doRunCodeNode = useRequest(temporaryQueryApi.runCodekNode, {
     loadingText: {
       loading: "运行中",
       done: "运行成功",
@@ -115,6 +138,14 @@ const DataAnalysis = () => {
   });
 
   const doGetSourceList = useRequest(dataSourceManageApi.getSourceList, {
+    loadingText: false,
+  });
+
+  const doNodeHistories = useRequest(dataAnalysisApi.getNodeHistories, {
+    loadingText: false,
+  });
+
+  const doNodeHistoriesInfo = useRequest(dataAnalysisApi.getNodeHistoriesInfo, {
     loadingText: false,
   });
 
@@ -134,6 +165,9 @@ const DataAnalysis = () => {
         if (res.code == 0) {
           setOpenNodeData(res.data);
           changeFolderContent(res.data.content);
+          if (res.data.result.length > 0) {
+            changeSqlQueryResults(JSON.parse(res.data.result));
+          }
         }
       });
   };
@@ -192,7 +226,7 @@ const DataAnalysis = () => {
     nodeId &&
       doRunCodeNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
-          changeSqlQueryResults(res.data);
+          changeSqlQueryResults(JSON.parse(res.data.result));
           changeVisibleSqlQuery(true);
         }
       });
@@ -224,6 +258,12 @@ const DataAnalysis = () => {
     openNodeId,
     changeOpenNodeId,
 
+    versionHistoryList,
+    changeVersionHistoryList,
+
+    currentPagination,
+    setCurrentPagination,
+
     openNodeParentId,
     changeOpenNodeParentId,
     isUpdateStateFun,
@@ -254,6 +294,10 @@ const DataAnalysis = () => {
     handleUnLockFile,
     handleSaveNode,
     handleRunCode,
+
+    // histories
+    doNodeHistories,
+    doNodeHistoriesInfo,
 
     manageNode,
     integratedConfigs,
