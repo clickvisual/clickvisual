@@ -354,7 +354,8 @@ const LocalTable = ({
                                         </Radio.Group>
                                       </Form.Item>
                                     );
-                                  case 1 && 4:
+                                  case 1:
+                                  case 4:
                                     return (
                                       <Form.Item
                                         name={[field.name, "timeFieldType"]}
