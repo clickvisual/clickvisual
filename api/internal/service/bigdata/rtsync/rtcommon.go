@@ -31,10 +31,10 @@ func mappingKV(typ string, val string) string {
 		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
 	}
 	if strings.Contains(lowerTyp, "string") {
-		return fmt.Sprintf("ifNull(%s, %s)", val, "")
+		return fmt.Sprintf("ifNull(%s, %s)", val, "''")
 	}
 	if strings.Contains(lowerTyp, "float") {
-		return fmt.Sprintf("ifNull(%s, %f)", val, 0.0)
+		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
 	}
 	return val
 }
@@ -120,7 +120,7 @@ func dropMaterialView(ins db.BaseInstance, nodeId int, sc *view.SyncContent) err
 		viewClusterInfo = materialView(sc)
 	}
 	if ins.Mode == inquiry.ModeCluster {
-		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER %s", viewClusterInfo, sc.Cluster())
+		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, sc.Cluster())
 	}
 	// 删除上次执行产生的物化视图
 	// _, err = c.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s ON CLUSTER '%s';", name, cluster))

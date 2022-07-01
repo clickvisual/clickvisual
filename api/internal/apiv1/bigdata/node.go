@@ -1,6 +1,7 @@
 package bigdata
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ego-component/egorm"
@@ -131,7 +132,13 @@ func NodeDelete(c *core.Context) {
 		return
 	}
 	if n.Status == db.NodeStatusHandler {
-		c.JSONE(1, "you should stop running before delete", nil)
+		u, _ := db.UserInfo(n.LockUid)
+		c.JSONE(1, fmt.Sprintf("node %s is running by %s", n.Name, u.Nickname), nil)
+		return
+	}
+	if n.LockUid != c.Uid() {
+		u, _ := db.UserInfo(n.LockUid)
+		c.JSONE(1, fmt.Sprintf("node %s is editing by %s", n.Name, u.Nickname), nil)
 		return
 	}
 	tx := invoker.Db.Begin()

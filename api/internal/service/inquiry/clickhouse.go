@@ -214,13 +214,15 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 	if res.Query == "" {
 		res.Query = "1='1'"
 	}
+	if res.ET == res.ST && res.ST != 0 {
+		res.ET = res.ST + 1
+	}
 	interval := res.ET - res.ST
-
 	if econf.GetInt64("app.queryLimitHours") != 0 && interval > econf.GetInt64("app.queryLimitHours")*3600 {
 		return res, constx.ErrQueryIntervalLimit
 	}
 	if interval <= 0 {
-		res.ST = time.Now().Add(-time.Hour).Unix()
+		res.ST = time.Now().Add(-time.Minute * 15).Unix()
 		res.ET = time.Now().Unix()
 	}
 	var err error
