@@ -33,6 +33,7 @@ const BoardNode = ({
     updateBoardNode: model.manageNode.updateBoardNode,
     doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
   }));
+
   const handleDelete = () => {
     DeletedModal({
       content: `确定删除节点: ${node.name} 吗？`,
@@ -80,7 +81,8 @@ const BoardNode = ({
     switch (node.tertiary) {
       case TertiaryEnums.realtime:
         return <FileTextOutlined />;
-      case TertiaryEnums.mysql || TertiaryEnums.clickhouse:
+      case TertiaryEnums.mysql:
+      case TertiaryEnums.clickhouse:
         return <ConsoleSqlOutlined />;
       case TertiaryEnums.output:
         return <LogoutOutlined />;
