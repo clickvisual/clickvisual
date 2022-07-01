@@ -86,16 +86,17 @@ func NodeUpdate(c *core.Context) {
 		ups["desc"] = req.Desc
 	}
 	ups["uid"] = c.Uid()
+	// create node content history
+	onlyId := uuid.New().String()
+	ups["uuid"] = onlyId
 	if err := db.NodeUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	// create node content history
-	onlyId := uuid.New().String()
+
 	upsContent := make(map[string]interface{}, 0)
 	upsContent["content"] = req.Content
-	upsContent["uuid"] = onlyId
 	if err := db.NodeContentUpdate(tx, id, upsContent); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
@@ -105,6 +106,7 @@ func NodeUpdate(c *core.Context) {
 		UUID:    onlyId,
 		NodeId:  id,
 		Content: req.Content,
+		Uid:     c.Uid(),
 	}); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
@@ -389,12 +391,12 @@ func NodeStatusList(c *core.Context) {
 }
 
 func NodeHistoryInfo(c *core.Context) {
-	uuid := strings.TrimSpace(c.Param("uuid"))
-	if uuid != "" {
+	id := strings.TrimSpace(c.Param("uuid"))
+	if id == "" {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	nh, err := db.NodeHistoryInfo(invoker.Db, uuid)
+	nh, err := db.NodeHistoryInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -404,15 +406,32 @@ func NodeHistoryInfo(c *core.Context) {
 }
 
 func NodeHistoryListPage(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
 	var req view.ReqNodeHistoryList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "请求参数错误. "+err.Error(), nil)
 		return
 	}
-	total, list := db.NodeHistoryListPage(egorm.Conds{"nodeId": req.NodeId}, &db.ReqPage{
+	total, nhl := db.NodeHistoryListPage(egorm.Conds{"node_id": id}, &db.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
+
+	list := make([]view.NodeHistoryItem, 0)
+	for _, nh := range nhl {
+		u, _ := db.UserInfo(nh.Uid)
+		list = append(list, view.NodeHistoryItem{
+			UUID:     nh.UUID,
+			Utime:    nh.Utime,
+			Uid:      nh.Uid,
+			UserName: u.Username,
+			Nickname: u.Nickname,
+		})
+	}
 	c.JSONPage(view.RespNodeHistoryList{
 		Total: total,
 		List:  list,
