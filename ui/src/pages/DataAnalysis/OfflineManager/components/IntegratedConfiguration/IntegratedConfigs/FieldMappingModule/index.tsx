@@ -25,6 +25,7 @@ const FieldMappingModule = ({
     {
       key: "field",
       width: 150,
+      primaryKey: true,
     },
     {
       key: "type",
