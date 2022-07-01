@@ -8,8 +8,14 @@ type LogContentParseProps = {
   logContent: any;
   secondaryIndexKeys?: any[];
   keyItem?: string;
-  quickInsertLikeQuery: (key: string) => void;
-  quickInsertLikeExclusion: (key: string) => void;
+  quickInsertLikeQuery?: (
+    key: string,
+    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
+  ) => void;
+  quickInsertLikeExclusion?: (
+    key: string,
+    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
+  ) => void;
   foldingChecked?: boolean;
 };
 
@@ -21,11 +27,12 @@ const LogContentParse = ({
   quickInsertLikeExclusion,
   foldingChecked,
 }: LogContentParseProps) => {
-  const { highlightKeywords, isJsonFun } = useModel("dataLogs");
+  const { highlightKeywords } = useModel("dataLogs");
   const isNullList = ["\n", "\r\n", "", " "];
 
   let content;
-  if (!isJsonFun(logContent)) {
+  // todo: 这里不应该判断是否可以转json，此时应该是已经有了确定的数据结构
+  if (typeof logContent !== "object") {
     if (isNullList.includes(logContent)) {
       content = "";
     } else {

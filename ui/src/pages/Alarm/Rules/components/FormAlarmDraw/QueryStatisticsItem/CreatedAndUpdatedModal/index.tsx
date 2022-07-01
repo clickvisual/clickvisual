@@ -252,7 +252,7 @@ const CreatedAndUpdatedModal = ({
       width={800}
       onOk={onSubmit}
       onCancel={onCancel}
-      bodyStyle={{ maxHeight: "75vh", overflowY: "auto" }}
+      bodyStyle={{ maxHeight: "80vh", overflowY: "auto" }}
       okButtonProps={{
         icon: <SaveOutlined />,
       }}
@@ -392,7 +392,7 @@ const CreatedAndUpdatedModal = ({
                       rowKey={"id"}
                       style={{ marginTop: 10 }}
                       loading={doQueryPreview.loading}
-                      scroll={{ y: 200 }}
+                      scroll={{ y: 400 }}
                       columns={tableColumns}
                       dataSource={tableLogs}
                       pagination={{

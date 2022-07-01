@@ -9,10 +9,9 @@ import { useMemo, useState } from "react";
 import { Empty } from "antd";
 
 export interface NodeManageProps {
-  board?: any;
-  file?: any;
+  isLock: boolean;
 }
-const NodeManage = ({ board, file }: NodeManageProps) => {
+const NodeManage = ({ isLock }: NodeManageProps) => {
   return (
     <div
       style={{
@@ -22,14 +21,23 @@ const NodeManage = ({ board, file }: NodeManageProps) => {
         borderRight: "1px solid hsla(0, 0%, 0%, 0.1)",
       }}
     >
-      <NodeModule nodeSecondary={SecondaryEnums.dataIntegration} />
-      <NodeModule nodeSecondary={SecondaryEnums.dataMining} />
-      <NodeModule nodeSecondary={SecondaryEnums.universal} />
+      <NodeModule
+        isLock={isLock}
+        nodeSecondary={SecondaryEnums.dataIntegration}
+      />
+      <NodeModule isLock={isLock} nodeSecondary={SecondaryEnums.dataMining} />
+      <NodeModule isLock={isLock} nodeSecondary={SecondaryEnums.universal} />
     </div>
   );
 };
 
-const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
+const NodeModule = ({
+  nodeSecondary,
+  isLock,
+}: {
+  nodeSecondary: SecondaryEnums;
+  isLock: boolean;
+}) => {
   const [isFold, setIsFold] = useState<boolean>(false);
 
   const onDragStart = (
@@ -64,7 +72,7 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
         return (
           <div>
             <div
-              draggable
+              draggable={!isLock}
               className={styles.nodeSelect}
               onDragStart={(event) =>
                 onDragStart(
@@ -78,7 +86,7 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
               <span>MySQL</span>
             </div>
             <div
-              draggable
+              draggable={!isLock}
               className={styles.nodeSelect}
               onDragStart={(event) =>
                 onDragStart(
@@ -97,7 +105,7 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
         return (
           <div>
             <div
-              draggable
+              draggable={!isLock}
               className={styles.nodeSelect}
               onDragStart={(event) =>
                 onDragStart(
@@ -117,7 +125,7 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
         return (
           <div>
             <div
-              draggable
+              draggable={!isLock}
               className={styles.nodeSelect}
               onDragStart={(event) =>
                 onDragStart(event, "input", TertiaryEnums.input, nodeSecondary)
@@ -126,7 +134,7 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
               <span>Input</span>
             </div>
             <div
-              draggable
+              draggable={!isLock}
               className={styles.nodeSelect}
               onDragStart={(event) =>
                 onDragStart(
@@ -144,7 +152,7 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
       default:
         return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
     }
-  }, [nodeSecondary]);
+  }, [nodeSecondary, isLock]);
 
   return (
     <div className={styles.main}>

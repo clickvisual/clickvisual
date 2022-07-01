@@ -14,6 +14,7 @@ const MoreLog = ({ log }: MoreLogProps) => {
       placement={"right"}
       content={<MoreLogPopoverContent log={log} />}
       trigger="click"
+      overlayInnerStyle={{ maxHeight: 400, maxWidth: 500, overflow: "auto" }}
       overlayClassName={logItemStyles.popoverOverlay}
     >
       <div className={logItemStyles.icon}>

@@ -54,7 +54,7 @@ const HiddenFieldModal = () => {
     keys = keys.filter((item) => item !== "_raw_log_");
     const rawLogKeys = Object.keys(rawLogJson).map((item) => {
       if (keys.includes(item)) {
-        return `_raw_log_.${item}`;
+        return `raw_log_${item}`;
       }
       return item;
     });
