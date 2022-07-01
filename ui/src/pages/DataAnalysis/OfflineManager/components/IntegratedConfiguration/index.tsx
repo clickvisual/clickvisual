@@ -220,6 +220,7 @@ const IntegratedConfiguration = ({
     setNodeInfo(undefined);
     setSource([]);
     setTarget([]);
+    setIsChangeForm(false);
   }, [currentNode]);
 
   const iid = useMemo(() => currentNode.iid, [currentNode.iid]);

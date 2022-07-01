@@ -139,7 +139,6 @@ const FileTitle = ({
                 </Tooltip>
               )}
               {type === FileTitleType.node &&
-                !isChange &&
                 file.status === NodeRunningStatusEnums.inProgress && (
                   <Tooltip title={"暂停"}>
                     <Button
