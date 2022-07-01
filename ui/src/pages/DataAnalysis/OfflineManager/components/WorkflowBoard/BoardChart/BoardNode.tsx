@@ -1,6 +1,15 @@
 import { Dropdown, Menu } from "antd";
 import DeletedModal from "@/components/DeletedModal";
 import { useModel } from "@@/plugin-model/useModel";
+import {
+  ConsoleSqlOutlined,
+  FileOutlined,
+  FileTextOutlined,
+  LoginOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
+import { useMemo } from "react";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 
 const BoardNode = ({
   node,
@@ -67,9 +76,35 @@ const BoardNode = ({
       ]}
     />
   );
+  const Icon = useMemo(() => {
+    switch (node.tertiary) {
+      case TertiaryEnums.realtime:
+        return <FileTextOutlined />;
+      case TertiaryEnums.mysql || TertiaryEnums.clickhouse:
+        return <ConsoleSqlOutlined />;
+      case TertiaryEnums.output:
+        return <LogoutOutlined />;
+      case TertiaryEnums.input:
+        return <LoginOutlined />;
+      default:
+        return <FileOutlined />;
+    }
+  }, [node]);
   return (
     <Dropdown overlay={menu} trigger={["contextMenu"]}>
-      <div>{node.name}</div>
+      <div style={{ display: "flex" }}>
+        <div style={{ margin: "0 4px" }}>{Icon}</div>
+        <div
+          style={{
+            flex: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {node.name}
+        </div>
+      </div>
     </Dropdown>
   );
 };

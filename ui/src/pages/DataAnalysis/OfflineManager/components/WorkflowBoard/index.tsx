@@ -1,5 +1,5 @@
 import { useModel } from "@@/plugin-model/useModel";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import FileTitle, {
   FileTitleType,
 } from "@/pages/DataAnalysis/components/FileTitle";
@@ -47,6 +47,17 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     boardEdges: model.workflowBoard.boardEdges,
     changeEdges: model.workflowBoard.changeEdges,
   }));
+  const { currentUser } = useModel("@@initialState").initialState || {};
+
+  const isLock = useMemo(() => {
+    console.log("boardFile: ", boardFile);
+    if (!boardFile) return true;
+    return (
+      !boardFile.lockUid ||
+      boardFile.lockUid === 0 ||
+      boardFile.lockUid !== currentUser?.id
+    );
+  }, [boardFile, currentUser]);
 
   const handleSave = () => {
     // todo: updateNode
@@ -112,7 +123,6 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     });
   }, [currentBoard]);
 
-  // todo: isChange 的状态没有判断
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
       <FileTitle
@@ -126,11 +136,11 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
         file={boardFile}
       />
       <div style={{ flex: 1, display: "flex" }}>
-        <NodeManage />
+        <NodeManage isLock={isLock} />
         {boardFile && (
           <BoardChart
+            isLock={isLock}
             currentBoard={currentBoard}
-            file={boardFile}
             onDelete={deleteNodes}
             onCreate={handleCreateNode}
           />

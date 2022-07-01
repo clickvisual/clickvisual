@@ -18,6 +18,7 @@ const useWorkflowBoard = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [boardEdges, setBoardEdges] = useState<string[]>([]);
+  // const [isChange, setIsChange] = useState<boolean>(false);
   const createNodeInfoRef = useRef<any>();
 
   const showCreateNode = (

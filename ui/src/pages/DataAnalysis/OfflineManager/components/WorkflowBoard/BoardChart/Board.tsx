@@ -16,11 +16,11 @@ import {
 
 export interface BoardProps {
   currentBoard: any;
-  file: any;
   onDelete: (nodeIds: number[]) => Promise<any>;
   onCreate: (params: any, nodeInfo: any) => void;
+  isLock: boolean;
 }
-const Board = ({ file, currentBoard, onDelete, onCreate }: BoardProps) => {
+const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   const BoardWrapper = useRef<any>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
@@ -225,6 +225,7 @@ const Board = ({ file, currentBoard, onDelete, onCreate }: BoardProps) => {
         backgroundColor: "#fff",
       }}
     >
+      {/*isLock*/}
       <div className="dndflow">
         <ReactFlowProvider>
           <div className="reactflow-wrapper" ref={BoardWrapper}>
@@ -243,6 +244,9 @@ const Board = ({ file, currentBoard, onDelete, onCreate }: BoardProps) => {
               onlyRenderVisibleElements
               onDragOver={onDragOver}
               fitView
+              nodesConnectable={!isLock}
+              elementsSelectable={!isLock}
+              nodesDraggable={!isLock}
             />
           </div>
         </ReactFlowProvider>
