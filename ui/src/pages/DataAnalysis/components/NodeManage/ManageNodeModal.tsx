@@ -44,15 +44,14 @@ const ManageNodeModal = () => {
 
   const addNode = (fields: any) => {
     doCreatedNode.run({ ...fields, ...extra }).then((res) => {
-      if (res?.code !== 0) return;
-      callbackRef.current?.(res.data);
+      callbackRef.current?.(res?.data);
       onCancel();
     });
   };
 
   const updateNode = (fields: any) => {
     doUpdatedNode.run(extra.id, { ...fields, ...extra }).then(() => {
-      callbackRef.current?.();
+      callbackRef.current?.({ ...currentNode, ...fields });
       onCancel();
     });
   };
@@ -79,6 +78,7 @@ const ManageNodeModal = () => {
     formRef.current.setFieldsValue({
       name: currentNode.name,
       desc: currentNode.desc,
+      sourceId: currentNode.sourceId,
     });
   }, [visibleNode, iid]);
 

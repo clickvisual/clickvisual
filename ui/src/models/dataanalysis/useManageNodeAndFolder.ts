@@ -6,6 +6,7 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
+import { parseJsonObject } from "@/utils/string";
 
 export const PrimaryList = [
   {
@@ -76,6 +77,18 @@ export const TertiaryList = [
   //     SecondaryEnums.board,
   //   ],
   // },
+  {
+    id: TertiaryEnums.input,
+    title: "输入节点",
+    enum: TertiaryEnums.input,
+    types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
+  },
+  {
+    id: TertiaryEnums.output,
+    title: "输出节点",
+    enum: TertiaryEnums.output,
+    types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
+  },
   {
     id: TertiaryEnums.realtime,
     title: "实时分析",
@@ -181,6 +194,7 @@ const useManageNodeAndFolder = () => {
 
   const hideNodeModal = () => {
     setVisibleNode(false);
+    setIsEditNode(false);
   };
 
   const showFolderModal = (callback?: () => void) => {
@@ -190,12 +204,14 @@ const useManageNodeAndFolder = () => {
 
   const hideFolderModal = () => {
     setVisibleFolder(false);
+    setIsEditNode(false);
   };
 
-  const doGetBoardFile = (id: number) => {
-    doGetNodeInfo.run(id).then((res) => {
+  const doGetBoardFile = async (id: number) => {
+    return doGetNodeInfo.run(id).then((res) => {
       if (res?.code !== 0) return;
       setBoardFile(res.data);
+      return res;
     });
   };
 
@@ -217,7 +233,7 @@ const useManageNodeAndFolder = () => {
     return [...list, ...folderNodes];
   }, []);
 
-  const doGetBoardNodes = (board: any) => {
+  const doGetBoardNodes = (board: any, file?: any) => {
     getFolders
       .run({
         iid: board.iid,
@@ -230,34 +246,44 @@ const useManageNodeAndFolder = () => {
           (node) => node.secondary !== SecondaryEnums.board
         );
         const folders = res.data.children;
-        setBoardNodeList(() => getNodeList(folders, nodes));
+        const newNodes = getNodeList(folders, nodes);
+        const content = parseJsonObject(file?.content);
+        if (!!content && content?.boardNodeList) {
+          newNodes.forEach((item) => {
+            const nodeItem = content?.boardNodeList?.find(
+              (nd: any) => nd.id === item.id
+            );
+            item.position = nodeItem?.position;
+          });
+        }
+        setBoardNodeList(newNodes);
       });
   };
 
-  const handleDeleteNode = async (
-    selectNodeList: any[],
-    params: {
-      iid: number;
-      primary: PrimaryEnums;
-      workflowId: number;
-    }
-  ) => {
-    if (selectNodeList.length < 1) {
-      return;
-    }
-    if (selectNodeList.length === 1) {
-      await doDeletedNode.run(parseInt(selectNodeList[0].id));
-    } else {
-      for (const node of selectNodeList) {
-        await doDeletedNode.run(parseInt(node.id));
-      }
-    }
-    setNodes((nds) =>
-      nds.filter(
-        (nd) => selectNodeList.findIndex((item) => item.id === nd.id) === -1
-      )
+  const deleteNodeById = async (nodeId: number) => {
+    await doDeletedNode.run(nodeId);
+    setBoardNodeList((node) => node.filter((item) => item.id != nodeId));
+  };
+
+  const deleteNodes = async (nodeIDs: number[]) =>
+    Promise.all(nodeIDs.map((nodeId) => deleteNodeById(nodeId)));
+
+  const createBoardNode = (node: any) => {
+    setBoardNodeList((boardNodeList) => [...boardNodeList, node]);
+  };
+
+  const onChangeBoardNodes = (nodes: any[]) => {
+    setBoardNodeList(nodes);
+  };
+  const updateBoardNode = (node: any) => {
+    setBoardNodeList((boardNodeList) =>
+      boardNodeList.map((item) => {
+        if (item.id === node.id) {
+          return node;
+        }
+        return item;
+      })
     );
-    doSetNodesAndFolders(params);
   };
 
   return {
@@ -300,9 +326,12 @@ const useManageNodeAndFolder = () => {
 
     boardFile,
     boardNodeList,
+    createBoardNode,
+    updateBoardNode,
     doGetBoardFile,
     doGetBoardNodes,
-    handleDeleteNode,
+    deleteNodes,
+    onChangeBoardNodes,
   };
 };
 export default useManageNodeAndFolder;

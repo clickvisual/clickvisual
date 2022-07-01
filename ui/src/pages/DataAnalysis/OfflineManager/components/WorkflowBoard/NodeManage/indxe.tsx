@@ -24,6 +24,7 @@ const NodeManage = ({ board, file }: NodeManageProps) => {
     >
       <NodeModule nodeSecondary={SecondaryEnums.dataIntegration} />
       <NodeModule nodeSecondary={SecondaryEnums.dataMining} />
+      <NodeModule nodeSecondary={SecondaryEnums.universal} />
     </div>
   );
 };
@@ -50,6 +51,8 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
         return "数据开发";
       case SecondaryEnums.dataIntegration:
         return "数据集成";
+      case SecondaryEnums.universal:
+        return "通用";
       default:
         return "";
     }
@@ -106,6 +109,35 @@ const NodeModule = ({ nodeSecondary }: { nodeSecondary: SecondaryEnums }) => {
               }
             >
               <span>实时同步</span>
+            </div>
+          </div>
+        );
+
+      case SecondaryEnums.universal:
+        return (
+          <div>
+            <div
+              draggable
+              className={styles.nodeSelect}
+              onDragStart={(event) =>
+                onDragStart(event, "input", TertiaryEnums.input, nodeSecondary)
+              }
+            >
+              <span>Input</span>
+            </div>
+            <div
+              draggable
+              className={styles.nodeSelect}
+              onDragStart={(event) =>
+                onDragStart(
+                  event,
+                  "output",
+                  TertiaryEnums.output,
+                  nodeSecondary
+                )
+              }
+            >
+              <span>Output</span>
             </div>
           </div>
         );

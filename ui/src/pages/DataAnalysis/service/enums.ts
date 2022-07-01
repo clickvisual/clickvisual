@@ -68,6 +68,11 @@ export enum SecondaryEnums {
    * 看板
    */
   board = 4,
+
+  /**
+   * 通用节点
+   */
+  universal = 5,
 }
 
 export enum TertiaryEnums {
@@ -87,6 +92,14 @@ export enum TertiaryEnums {
    * 实时分析
    */
   realtime = 21,
+  /**
+   * 通用节点 - input
+   */
+  input = 22,
+  /**
+   * 通用节点 - output
+   */
+  output = 23,
 }
 
 export enum OfflineRightMenuClickSourceEnums {
@@ -121,4 +134,11 @@ export enum DataSourceReqTypEnums {
    * mysql
    */
   mysql = 1,
+}
+
+export enum FlowNodeTypeEnums {
+  default = "default",
+  input = "input",
+  output = "output",
+  group = "group",
 }

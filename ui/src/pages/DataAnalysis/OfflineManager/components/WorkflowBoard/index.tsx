@@ -5,7 +5,7 @@ import FileTitle, {
 } from "@/pages/DataAnalysis/components/FileTitle";
 import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
-import BoardNode from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart/BoardNode";
+import { parseJsonObject } from "@/utils/string";
 
 export interface WorkflowBoardProps {
   currentBoard: any;
@@ -21,10 +21,12 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doRunCodeNode,
     doStopCodeNode,
     doGetNodes,
-    boardNodeList,
-    setNodes,
     doSetNodesAndFolders,
-    handleDeleteNode,
+    deleteNodes,
+    createBoardNode,
+    boardNodeList,
+    boardEdges,
+    changeEdges,
   } = useModel("dataAnalysis", (model) => ({
     iid: model.currentInstances,
     updateNode: model.manageNode.doUpdatedNode,
@@ -35,16 +37,23 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     nodes: model.manageNode.nodes,
     folders: model.manageNode.folders,
     boardFile: model.manageNode.boardFile,
-    boardNodeList: model.manageNode.boardNodeList,
     doGetFile: model.manageNode.doGetBoardFile,
     doGetNodes: model.manageNode.doGetBoardNodes,
     doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
-    handleDeleteNode: model.manageNode.handleDeleteNode,
+    deleteNodes: model.manageNode.deleteNodes,
     setNodes: model.workflowBoard.setNodes,
+    createBoardNode: model.manageNode.createBoardNode,
+    boardNodeList: model.manageNode.boardNodeList,
+    boardEdges: model.workflowBoard.boardEdges,
+    changeEdges: model.workflowBoard.changeEdges,
   }));
 
   const handleSave = () => {
     // todo: updateNode
+    updateNode.run(currentBoard.id, {
+      ...currentBoard,
+      content: JSON.stringify({ boardNodeList, boardEdges }),
+    });
   };
   const handleLock = (file: any) => {
     doLockNode.run(file.id).then((res: any) => {
@@ -76,24 +85,13 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
 
   const handleCreateNode = (node: any, nodeInfo: any) => {
     const newNode = {
-      id: node.id.toString(),
-      type: "default",
-      data: {
-        label: <BoardNode node={node} onDelete={handleDeleteNode} />,
-        node,
-      },
-      style: {
-        width: 100,
-        height: 32,
-        padding: 0,
-        lineHeight: "32px",
-      },
+      ...node,
       position: {
         x: nodeInfo.x,
         y: nodeInfo.y,
       },
     };
-    setNodes((nds) => nds.concat(newNode));
+    createBoardNode(newNode);
     doSetNodesAndFolders({
       iid: currentBoard.iid,
       primary: currentBoard.primary,
@@ -104,8 +102,14 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   // TODO
   useEffect(() => {
     if (!currentBoard.id || !iid) return;
-    doGetFile(currentBoard.id);
-    doGetNodes(currentBoard);
+    doGetFile(currentBoard.id).then((res) => {
+      if (res?.code !== 0) return;
+      doGetNodes(currentBoard, res.data);
+      const content = parseJsonObject(res.data?.content);
+      if (!!content && content?.boardEdges) {
+        changeEdges(content.boardEdges);
+      }
+    });
   }, [currentBoard]);
 
   // todo: isChange 的状态没有判断
@@ -126,9 +130,8 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
         {boardFile && (
           <BoardChart
             currentBoard={currentBoard}
-            boardNodes={boardNodeList}
             file={boardFile}
-            onDelete={handleDeleteNode}
+            onDelete={deleteNodes}
             onCreate={handleCreateNode}
           />
         )}
