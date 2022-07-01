@@ -1,5 +1,5 @@
 import { useEdgesState, useNodesState } from "react-flow-renderer";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   SecondaryEnums,
   TertiaryEnums,
@@ -17,6 +17,7 @@ type BoardCreateNodeInfo = {
 const useWorkflowBoard = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [boardEdges, setBoardEdges] = useState<string[]>([]);
   const createNodeInfoRef = useRef<any>();
 
   const showCreateNode = (
@@ -41,13 +42,18 @@ const useWorkflowBoard = () => {
     });
   };
 
-  const submitCreateNode = () => {
-    // ..
+  const connectEdge = (edge: any) => {
+    setBoardEdges((boardEdges) => [...boardEdges, edge]);
+  };
+
+  const changeEdges = (edges: any[]) => {
+    setBoardEdges(edges);
   };
 
   return {
     nodes,
     edges,
+    boardEdges,
 
     setNodes,
     setEdges,
@@ -56,7 +62,9 @@ const useWorkflowBoard = () => {
     onEdgesChange,
 
     showCreateNode,
-    submitCreateNode,
+
+    connectEdge,
+    changeEdges,
   };
 };
 export default useWorkflowBoard;
