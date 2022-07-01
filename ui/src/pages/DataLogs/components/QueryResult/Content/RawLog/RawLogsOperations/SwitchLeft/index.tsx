@@ -8,7 +8,7 @@ const SwitchLeft = () => {
     <Space>
       <HistogramSwitch />
       <FoldingExpansionSwitch />
-      {/*<HiddenFields />*/}
+      <HiddenFields />
     </Space>
   );
 };

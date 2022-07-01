@@ -15,7 +15,7 @@ import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/Cl
 type JsonValueProps = {
   jsonKey: string | undefined;
   val: any;
-  isIndex: boolean;
+  isIndex?: boolean;
   indexField?: string;
 } & _CommonProps;
 

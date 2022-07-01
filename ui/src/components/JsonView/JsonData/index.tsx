@@ -11,7 +11,7 @@ import JsonArray from "@/components/JsonView/JsonArray";
  * @constructor
  */
 type JsonDataProps = {
-  data: object | string;
+  data: object;
 } & _CommonProps;
 const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   const [isShowJson, setIsShowJson] = useState<boolean>(false);
@@ -79,18 +79,18 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   if (!data) return <div style={indentStyle} />;
 
   if (data instanceof Array) return <JsonArray data={data} />;
-  let newData: object;
-  if (typeof data == "string") {
-    newData = JSON.parse(data);
-  } else {
-    newData = data;
-  }
-
-  let keys = Object.keys(newData);
+  // todo: 此处应该仅渲染 object
+  // let newData: object;
+  // if (typeof data == "string") {
+  //   newData = JSON.parse(data);
+  // } else {
+  //   newData = data;
+  // }
+  let keys = Object.keys(data);
   let kvList: JSX.Element[] = [];
   keys.forEach((k, idx) => {
     renderStack.push(k);
-    let v = Reflect.get(newData, k);
+    let v = Reflect.get(data, k);
     let isLastEle = idx >= keys.length - 1;
     let dom = handleValueTypes(k, v);
     kvList.push(

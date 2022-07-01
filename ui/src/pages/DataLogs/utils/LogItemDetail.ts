@@ -33,12 +33,9 @@ const LogItemDetail = (logs: LogsResponse | undefined, log: any) => {
       return item.field;
     }) || [];
 
-  // 系统字段，排除隐藏字段、索引字段
+  // 系统字段，排除索引字段
   const systemFields = fields.filter(
-    (key) =>
-      !hiddenFields.includes(key) &&
-      key !== RawLogField &&
-      !indexList.includes(key)
+    (key) => key !== RawLogField && !indexList.includes(key)
   );
 
   // 日志字段，过滤掉隐藏字段
@@ -92,7 +89,9 @@ const LogItemDetail = (logs: LogsResponse | undefined, log: any) => {
     // 移除 _raw_log_ 字段
     delete resultLog._raw_log_;
 
-    logFields = logFields.filter((field) => field !== RawLogField);
+    logFields = logFields
+      .filter((field) => field !== RawLogField)
+      .filter((field) => !hiddenFields.includes(field));
   }
 
   return {

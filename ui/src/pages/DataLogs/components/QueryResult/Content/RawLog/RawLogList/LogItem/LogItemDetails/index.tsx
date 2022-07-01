@@ -13,8 +13,14 @@ interface LogItemDetailsProps {
 }
 
 const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
-  const { logs, highlightKeywords, doUpdatedQuery, onCopyRawLogDetails } =
-    useModel("dataLogs");
+  const {
+    logs,
+    highlightKeywords,
+    doUpdatedQuery,
+    onCopyRawLogDetails,
+    quickInsertLikeQuery,
+    quickInsertLikeExclusion,
+  } = useModel("dataLogs");
 
   const {
     keys,
@@ -45,9 +51,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       }) || [];
 
     // 原日志字段
-    let keys: string[] = Object.keys(log)
-      .sort()
-      .filter((key) => !hiddenFields.includes(key));
+    let keys: string[] = Object.keys(log).sort();
 
     // 存储 rawLog 非索引字段
     let rawLogKeys: any[] = [];
@@ -79,12 +83,12 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       newLog = Object.assign(cloneRawLogJson, oldLog);
 
       // 合并 log 和 rawLog 的 key，并去重
-      keys = [...keys, ...indexRawLogKeys, ...rawLogKeys].filter(
-        (key, index) => {
+      keys = [...keys, ...indexRawLogKeys, ...rawLogKeys]
+        .filter((key, index) => {
           const preIdx = keys.indexOf(key);
           return preIdx < 0 || preIdx === index;
-        }
-      );
+        })
+        .filter((key) => !hiddenFields.includes(key));
 
       // 删除 原日志中 raw log 字段
       delete newLog._raw_log_;
@@ -111,36 +115,6 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
 
   const quickInsertExclusion = (keyItem: string) => {
     const currentSelected = "`" + keyItem + "`" + "!=" + `'${newLog[keyItem]}'`;
-    doUpdatedQuery(currentSelected);
-  };
-
-  const quickInsertLikeQuery = (
-    value: string,
-    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
-  ) => {
-    let currentSelected: string;
-    if (extra?.isIndex && extra?.indexKey) {
-      currentSelected = `\`${extra.indexKey}\`='${value}'`;
-    } else {
-      currentSelected = `${
-        extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
-      } like '%${value}%'`;
-    }
-    doUpdatedQuery(currentSelected);
-  };
-
-  const quickInsertLikeExclusion = (
-    value: string,
-    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
-  ) => {
-    let currentSelected = "";
-    if (extra?.isIndex && extra?.indexKey) {
-      currentSelected = `\`${extra.indexKey}\`!='${value}'`;
-    } else {
-      currentSelected = `${
-        extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
-      } not like '%${value}%'`;
-    }
     doUpdatedQuery(currentSelected);
   };
 

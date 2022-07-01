@@ -527,6 +527,36 @@ const DataLogsModel = () => {
     onChangeCurrentLogPane(pane);
   };
 
+  const quickInsertLikeQuery = (
+    value: string,
+    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
+  ) => {
+    let currentSelected: string;
+    if (extra?.isIndex && extra?.indexKey) {
+      currentSelected = `\`${extra.indexKey}\`='${value}'`;
+    } else {
+      currentSelected = `${
+        extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
+      } like '%${value}%'`;
+    }
+    doUpdatedQuery(currentSelected);
+  };
+
+  const quickInsertLikeExclusion = (
+    value: string,
+    extra?: { key?: string; isIndex?: boolean; indexKey?: string }
+  ) => {
+    let currentSelected = "";
+    if (extra?.isIndex && extra?.indexKey) {
+      currentSelected = `\`${extra.indexKey}\`!='${value}'`;
+    } else {
+      currentSelected = `${
+        extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
+      } not like '%${value}%'`;
+    }
+    doUpdatedQuery(currentSelected);
+  };
+
   useEffect(() => {
     if (!currentDatabase) {
       setLogs(undefined);
@@ -660,6 +690,8 @@ const DataLogsModel = () => {
     logPanesHelper,
     logOptionsHelper,
     statisticalChartsHelper,
+    quickInsertLikeQuery,
+    quickInsertLikeExclusion,
   };
 };
 export default DataLogsModel;
