@@ -6,6 +6,7 @@ import FileTitle, {
 import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
 import { parseJsonObject } from "@/utils/string";
+import { Modal } from "antd";
 
 export interface WorkflowBoardProps {
   currentBoard: any;
@@ -18,7 +19,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     updateNode,
     doLockNode,
     doUnLockNode,
-    doRunCodeNode,
+    // doRunCodeNode,
     doStopCodeNode,
     doGetNodes,
     doSetNodesAndFolders,
@@ -61,9 +62,13 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
 
   const handleSave = () => {
     // todo: updateNode
+    const boardNodes = boardNodeList.map((item) => ({
+      id: item.id,
+      position: item.position,
+    }));
     updateNode.run(currentBoard.id, {
       ...currentBoard,
-      content: JSON.stringify({ boardNodeList, boardEdges }),
+      content: JSON.stringify({ boardNodeList: boardNodes, boardEdges }),
     });
   };
   const handleLock = (file: any) => {
@@ -81,10 +86,14 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   };
 
   const handleRun = (file: any) => {
-    doRunCodeNode.run(file.id).then((res) => {
-      if (res?.code !== 0) return;
-      doGetFile(file.id);
+    Modal.info({
+      title: "提示",
+      content: "看板运行功能正在开发中...",
     });
+    // doRunCodeNode.run(file.id).then((res) => {
+    //   if (res?.code !== 0) return;
+    //   doGetFile(file.id);
+    // });
   };
 
   const handleStop = (file: any) => {

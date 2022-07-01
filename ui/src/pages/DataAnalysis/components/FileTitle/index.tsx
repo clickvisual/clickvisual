@@ -44,10 +44,15 @@ const FileTitle = ({
   isChange,
 }: FileTitleProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
-  const { doLockNode, doUnLockNode } = useModel("dataAnalysis", (model) => ({
-    doLockNode: model.manageNode.doLockNode,
-    doUnLockNode: model.manageNode.doUnLockNode,
-  }));
+  const { doLockNode, doUnLockNode, doRunCodeNode, doStopCodeNode } = useModel(
+    "dataAnalysis",
+    (model) => ({
+      doLockNode: model.manageNode.doLockNode,
+      doUnLockNode: model.manageNode.doUnLockNode,
+      doRunCodeNode: model.manageNode.doRunCodeNode,
+      doStopCodeNode: model.manageNode.doStopCodeNode,
+    })
+  );
 
   const handleSave = useThrottleFn(onSave, { wait: THROTTLE_WAIT }).run;
   const handleRun = useThrottleFn(onRun, { wait: THROTTLE_WAIT }).run;
@@ -105,7 +110,7 @@ const FileTitle = ({
                       退出编辑
                     </Button>
                   )}
-                  {file?.lockUid == currentUser?.id && (
+                  {file?.lockUid == currentUser?.id && isChange && (
                     <Tooltip title={"保存"}>
                       <Button
                         type={"link"}
@@ -125,13 +130,14 @@ const FileTitle = ({
                   />
                 </Tooltip>
               )}
-              {!isChange && (
+              {!isChange && file.status !== NodeRunningStatusEnums.inProgress && (
                 <Tooltip title={"运行"}>
                   <Button
                     type={"link"}
                     disabled={
                       (!file.lockUid && file.lockUid === 0) ||
-                      file.lockUid !== currentUser?.id
+                      file.lockUid !== currentUser?.id ||
+                      doRunCodeNode.loading
                     }
                     onClick={() => handleRun(file)}
                     icon={<PlayCircleOutlined />}
@@ -145,7 +151,8 @@ const FileTitle = ({
                       type={"link"}
                       disabled={
                         (!file.lockUid && file.lockUid === 0) ||
-                        file.lockUid !== currentUser?.id
+                        file.lockUid !== currentUser?.id ||
+                        doStopCodeNode.loading
                       }
                       onClick={() => handleStop(file)}
                       icon={<PauseCircleOutlined />}

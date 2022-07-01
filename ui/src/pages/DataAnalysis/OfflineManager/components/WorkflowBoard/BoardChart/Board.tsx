@@ -139,10 +139,12 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     const newNodes: any[] = [];
     for (const node of nodes) {
       const graphNode = g.node(node.id);
-      node.position = {
-        x: graphNode.x,
-        y: graphNode.y,
-      };
+      if (!node?.position) {
+        node.position = {
+          x: graphNode.x,
+          y: graphNode.y,
+        };
+      }
       newNodes.push(node);
     }
     return newNodes;
