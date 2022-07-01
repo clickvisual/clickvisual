@@ -23,11 +23,11 @@ const FieldMappingModule = ({
   const columns = [
     {
       key: "field",
-      width: 200,
+      width: 150,
     },
     {
       key: "type",
-      width: 200,
+      width: 150,
     },
   ];
   const sourceData = useMemo(() => {

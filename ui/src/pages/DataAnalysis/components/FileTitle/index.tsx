@@ -105,7 +105,7 @@ const FileTitle = ({
                       退出编辑
                     </Button>
                   )}
-                  {file?.lockUid == currentUser?.id && (
+                  {file?.lockUid == currentUser?.id && isChange && (
                     <Tooltip title={"保存"}>
                       <Button
                         type={"link"}
@@ -139,6 +139,7 @@ const FileTitle = ({
                 </Tooltip>
               )}
               {type === FileTitleType.node &&
+                !isChange &&
                 file.status === NodeRunningStatusEnums.inProgress && (
                   <Tooltip title={"暂停"}>
                     <Button

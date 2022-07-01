@@ -269,7 +269,13 @@ const useManageNodeAndFolder = () => {
     Promise.all(nodeIDs.map((nodeId) => deleteNodeById(nodeId)));
 
   const createBoardNode = (node: any) => {
-    setBoardNodeList((boardNodeList) => [...boardNodeList, node]);
+    setBoardNodeList((boardNodeList) => {
+      console.log("【create boardNodeList】:", boardNodeList, node, [
+        ...boardNodeList,
+        node,
+      ]);
+      return [...boardNodeList, node];
+    });
   };
 
   const onChangeBoardNodes = (nodes: any[]) => {

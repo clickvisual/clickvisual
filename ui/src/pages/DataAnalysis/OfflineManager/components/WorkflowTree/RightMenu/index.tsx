@@ -21,7 +21,7 @@ import lodash from "lodash";
 export interface RightMenuProps {
   clickSource: OfflineRightMenuClickSourceEnums;
   currentNode?: any;
-  handleCloseNodeModal?: () => void;
+  handleCloseNodeModal?: (params?: any) => void;
 }
 const RightMenu = (props: RightMenuProps) => {
   const i18n = useIntl();
@@ -117,7 +117,7 @@ const RightMenu = (props: RightMenuProps) => {
   }, [currentNode, currentInstances]);
 
   const createNodeModalCallback = useCallback((node: any) => {
-    handleCloseNodeModal?.();
+    handleCloseNodeModal?.(node);
   }, []);
 
   const handleClickAddNode = useCallback(

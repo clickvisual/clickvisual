@@ -40,6 +40,9 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     selectKeys,
     createdNode,
     doSetNodesAndFolders,
+    boardNodeList,
+    updateBoardNode,
+    createBoardNode,
   } = useModel("dataAnalysis", (model) => ({
     setSelectNode: model.manageNode.setSelectNode,
     setSelectKeys: model.manageNode.setSelectKeys,
@@ -50,6 +53,9 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
     nodes: model.manageNode.nodes,
     folders: model.manageNode.folders,
+    boardNodeList: model.manageNode.boardNodeList,
+    updateBoardNode: model.manageNode.updateBoardNode,
+    createBoardNode: model.manageNode.createBoardNode,
   }));
 
   useEffect(() => {
@@ -106,14 +112,22 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     }
   };
 
-  const handleCloseModal = useCallback(() => {
-    if (!currentInstances) return;
-    doSetNodesAndFolders({
-      iid: currentInstances,
-      primary: PrimaryEnums.mining,
-      workflowId: workflow.id,
-    });
-  }, [currentInstances]);
+  const handleCloseModal = useCallback(
+    (params?: any) => {
+      if (!currentInstances) return;
+      if (params) {
+        const isUpdate =
+          boardNodeList.findIndex((item) => item.id === params.id) > -1;
+        isUpdate ? updateBoardNode(params) : createBoardNode(params);
+      }
+      doSetNodesAndFolders({
+        iid: currentInstances,
+        primary: PrimaryEnums.mining,
+        workflowId: workflow.id,
+      });
+    },
+    [currentInstances]
+  );
 
   const folderTree = (
     folderList: any[],
