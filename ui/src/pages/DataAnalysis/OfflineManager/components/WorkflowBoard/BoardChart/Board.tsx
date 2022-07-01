@@ -52,8 +52,8 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     showNodeModal: model.manageNode.showNodeModal,
     boardNodes: model.manageNode.boardNodeList,
     onChangeBoardNodes: model.manageNode.onChangeBoardNodes,
-    boardEdges: model.workflowBoard.boardEdges,
-    connectEdge: model.workflowBoard.connectEdge,
+    boardEdges: model.manageNode.boardEdges,
+    connectEdge: model.manageNode.connectEdge,
   }));
 
   // const handleSelectNode = useCallback(({ nodes, edges }: any) => {

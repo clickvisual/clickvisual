@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   PrimaryEnums,
   SecondaryEnums,
@@ -7,6 +7,7 @@ import {
 import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 import { parseJsonObject } from "@/utils/string";
+import lodash from "lodash";
 
 export const PrimaryList = [
   {
@@ -120,6 +121,8 @@ const useManageNodeAndFolder = () => {
 
   const [boardFile, setBoardFile] = useState<any>();
   const [boardNodeList, setBoardNodeList] = useState<any[]>([]);
+  const [boardEdges, setBoardEdges] = useState<string[]>([]);
+  const [boardRef, setBoardRef] = useState<any>({ nodeList: [], edgeList: [] });
 
   // Folder
   const getFolders = useRequest(dataAnalysisApi.getFolderList, {
@@ -233,6 +236,14 @@ const useManageNodeAndFolder = () => {
     return [...list, ...folderNodes];
   }, []);
 
+  const connectEdge = (edge: any) => {
+    setBoardEdges((boardEdges) => [...boardEdges, edge]);
+  };
+
+  const changeEdges = (edges: any[]) => {
+    setBoardEdges(edges);
+  };
+
   const doGetBoardNodes = (board: any, file?: any) => {
     getFolders
       .run({
@@ -256,9 +267,29 @@ const useManageNodeAndFolder = () => {
             item.position = nodeItem?.position;
           });
         }
+        const newBoard: any = { nodeList: [], edgeList: [] };
+        if (!!content && content?.boardEdges) {
+          changeEdges?.(content.boardEdges);
+          newBoard.edgeList = [...content.boardEdges];
+        }
+        newBoard.nodeList = [...newNodes];
+        setBoardRef(newBoard);
         setBoardNodeList(newNodes);
       });
   };
+
+  const isChangeBoard = useMemo(() => {
+    console.log(
+      "isChange,boardNodeList, boardEdges: ",
+      lodash.isEqual(boardNodeList, boardRef.nodeList),
+      lodash.isEqual(boardEdges, boardRef.edgeList)
+    );
+
+    return (
+      !lodash.isEqual(boardNodeList, boardRef.nodeList) ||
+      !lodash.isEqual(boardEdges, boardRef.edgeList)
+    );
+  }, [boardNodeList, boardEdges, boardRef]);
 
   const deleteNodeById = async (nodeId: number) => {
     await doDeletedNode.run(nodeId);
@@ -291,6 +322,22 @@ const useManageNodeAndFolder = () => {
       })
     );
   };
+
+  const onSaveBoardNodes = useCallback(
+    (currentBoard: any) => {
+      const boardNodes = boardNodeList.map((item) => ({
+        id: item.id,
+        position: item.position,
+      }));
+
+      setBoardRef({ nodeList: boardNodeList, edgeList: boardEdges });
+      doUpdatedNode.run(currentBoard.id, {
+        ...currentBoard,
+        content: JSON.stringify({ boardNodeList: boardNodes, boardEdges }),
+      });
+    },
+    [boardNodeList, boardEdges]
+  );
 
   return {
     visibleNode,
@@ -332,6 +379,11 @@ const useManageNodeAndFolder = () => {
 
     boardFile,
     boardNodeList,
+    boardEdges,
+    connectEdge,
+    changeEdges,
+    onSaveBoardNodes,
+    isChangeBoard,
     createBoardNode,
     updateBoardNode,
     doGetBoardFile,
