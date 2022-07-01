@@ -21,7 +21,7 @@ export enum NodeRunningStatusEnums {
    */
   noState = 0,
   /**
-   * 待执行
+   * 等待定时任务
    */
   pending = 1,
   /**
@@ -31,10 +31,16 @@ export enum NodeRunningStatusEnums {
   /**
    * 执行异常
    */
-  executionException = 3,
+  ExecutionException = 3,
   /**
+   * 执行完成
    */
   ExecuteComplete = 4,
+
+  /**
+   * 待执行
+   */
+  PendingRun = 5,
 }
 
 export const TypeOptions: any[] = [];

@@ -20,11 +20,11 @@ const IntegratedConfiguration = ({
   const [form] = Form.useForm();
   const [nodeInfo, setNodeInfo] = useState<any>();
   const [isChangeForm, setIsChangeForm] = useState<boolean>(false);
+  const [mapping, setMapping] = useState<any[]>([]);
+  const [sourceColumns, setSourceColumns] = useState<any[]>([]);
+  const [targetColumns, setTargetColumns] = useState<any[]>([]);
+
   const {
-    setSource,
-    setTarget,
-    setMapping,
-    mapping,
     updateNode,
     getNodeInfo,
     doLockNode,
@@ -161,7 +161,7 @@ const IntegratedConfiguration = ({
       })
       .then((res: any) => {
         if (res?.code !== 0) return;
-        setSource(res.data);
+        setSourceColumns(res.data);
       });
     doGetColumns
       .run(target.id, target.source, {
@@ -170,7 +170,7 @@ const IntegratedConfiguration = ({
       })
       .then((res: any) => {
         if (res?.code !== 0) return;
-        setTarget(res.data);
+        setTargetColumns(res.data);
       });
   };
 
@@ -215,12 +215,27 @@ const IntegratedConfiguration = ({
     if (currentNode) doGetNodeInfo(currentNode.id);
   }, [currentNode]);
 
+  const handleChangeMapping = (mapping: any[]) => {
+    setMapping(mapping);
+  };
+
+  const handleChangeSource = (source: any[]) => {
+    setSourceColumns(source);
+  };
+
+  const handleChangeTarget = (target: any[]) => {
+    setTargetColumns(target);
+  };
+
   useEffect(() => {
     form.resetFields();
     setNodeInfo(undefined);
-    setSource([]);
-    setTarget([]);
     setIsChangeForm(false);
+    return () => {
+      setMapping([]);
+      setSourceColumns([]);
+      setTargetColumns([]);
+    };
   }, [currentNode]);
 
   const iid = useMemo(() => currentNode.iid, [currentNode.iid]);
@@ -261,7 +276,13 @@ const IntegratedConfiguration = ({
         <IntegratedConfigs
           onFormChange={handleChangeForm}
           onSubmit={handleSubmit}
+          onChangeMapping={handleChangeMapping}
+          onChangeSource={handleChangeSource}
+          onChangeTarget={handleChangeTarget}
           iid={iid}
+          mapping={mapping}
+          sources={sourceColumns}
+          target={targetColumns}
           form={form}
           file={nodeInfo}
         />

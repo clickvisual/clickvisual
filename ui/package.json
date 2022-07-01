@@ -83,7 +83,8 @@
     "styled-components": "^5.3.5",
     "umi": "3.5.26",
     "umi-serve": "^1.9.11",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yet-another-abortcontroller-polyfill": "^0.0.4"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "2.1.5",

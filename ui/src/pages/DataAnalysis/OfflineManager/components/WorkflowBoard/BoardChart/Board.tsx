@@ -56,6 +56,10 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     connectEdge: model.manageNode.connectEdge,
   }));
 
+  const onEdgeClick = useCallback((event, edge) => {
+    console.log("edge: ", edge);
+  }, []);
+
   // const handleSelectNode = useCallback(({ nodes, edges }: any) => {
   //   setSelectNodes(nodes);
   // }, []);
@@ -215,7 +219,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   }, []);
 
   useMemo(() => {
-    console.log("boardNodes, boardEdges:", boardNodes, boardEdges);
     handleChangeNodes(boardNodes, boardEdges);
   }, [boardNodes, boardEdges]);
 
@@ -245,6 +248,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
               onDrop={onDrop}
               onlyRenderVisibleElements
               onDragOver={onDragOver}
+              onEdgeClick={onEdgeClick}
               fitView
               nodesConnectable={!isLock}
               elementsSelectable={!isLock}
