@@ -243,7 +243,11 @@ const IntegratedConfiguration = ({
 
   return (
     <div className={styles.integratedConfigMain}>
-      <Spin spinning={getNodeInfo.loading}>
+      <Spin
+        spinning={
+          getNodeInfo.loading || doUnLockNode.loading || updateNode.loading
+        }
+      >
         <FileTitle
           type={FileTitleType.node}
           isChange={isChangeForm}
