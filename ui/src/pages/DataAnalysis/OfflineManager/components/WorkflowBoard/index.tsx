@@ -5,7 +5,6 @@ import FileTitle, {
 } from "@/pages/DataAnalysis/components/FileTitle";
 import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
-import { parseJsonObject } from "@/utils/string";
 import { Modal } from "antd";
 
 export interface WorkflowBoardProps {
@@ -16,7 +15,6 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     iid,
     boardFile,
     doGetFile,
-    updateNode,
     doLockNode,
     doUnLockNode,
     // doRunCodeNode,
@@ -25,9 +23,8 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doSetNodesAndFolders,
     deleteNodes,
     createBoardNode,
-    boardNodeList,
-    boardEdges,
-    changeEdges,
+    isChangeBoard,
+    onSaveBoardNodes,
   } = useModel("dataAnalysis", (model) => ({
     iid: model.currentInstances,
     updateNode: model.manageNode.doUpdatedNode,
@@ -44,9 +41,8 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     deleteNodes: model.manageNode.deleteNodes,
     setNodes: model.workflowBoard.setNodes,
     createBoardNode: model.manageNode.createBoardNode,
-    boardNodeList: model.manageNode.boardNodeList,
-    boardEdges: model.workflowBoard.boardEdges,
-    changeEdges: model.workflowBoard.changeEdges,
+    isChangeBoard: model.manageNode.isChangeBoard,
+    onSaveBoardNodes: model.manageNode.onSaveBoardNodes,
   }));
   const { currentUser } = useModel("@@initialState").initialState || {};
 
@@ -61,16 +57,9 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   }, [boardFile, currentUser]);
 
   const handleSave = () => {
-    // todo: updateNode
-    const boardNodes = boardNodeList.map((item) => ({
-      id: item.id,
-      position: item.position,
-    }));
-    updateNode.run(currentBoard.id, {
-      ...currentBoard,
-      content: JSON.stringify({ boardNodeList: boardNodes, boardEdges }),
-    });
+    onSaveBoardNodes(currentBoard);
   };
+
   const handleLock = (file: any) => {
     doLockNode.run(file.id).then((res: any) => {
       if (res.code !== 0) return;
@@ -125,10 +114,6 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doGetFile(currentBoard.id).then((res) => {
       if (res?.code !== 0) return;
       doGetNodes(currentBoard, res.data);
-      const content = parseJsonObject(res.data?.content);
-      if (!!content && content?.boardEdges) {
-        changeEdges(content.boardEdges);
-      }
     });
   }, [currentBoard]);
 
@@ -136,7 +121,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
       <FileTitle
         type={FileTitleType.node}
-        isChange={false}
+        isChange={isChangeBoard}
         onSave={handleSave}
         onStop={handleStop}
         onRun={handleRun}

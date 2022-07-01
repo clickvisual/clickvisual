@@ -192,25 +192,6 @@ const DatasourceSelect = ({
     handleSelectTable(currentSource.table);
   }, [file, currentSource]);
 
-  useEffect(() => {
-    if (itemNamePath.includes("source") || !sourceType) return;
-    if (
-      itemNamePath.includes("target") &&
-      sourceType === form.getFieldValue([...itemNamePath, "type"])
-    ) {
-      onChangeColumns([]);
-      setSourceTableList([]);
-      setDatabaseList([]);
-      setDatasourceList([]);
-      form.resetFields([
-        [...itemNamePath, "type"],
-        [...itemNamePath, "table"],
-        [...itemNamePath, "database"],
-        [...itemNamePath, "datasource"],
-      ]);
-    }
-  }, [sourceType, itemNamePath]);
-
   return (
     <>
       <Form.Item
@@ -228,6 +209,19 @@ const DatasourceSelect = ({
             if (!value) return;
             if (itemNamePath.includes("source") && onSelectType) {
               onSelectType?.(value);
+            }
+            if (itemNamePath.includes("source")) {
+              onChangeColumns([]);
+              setSourceTableList([]);
+              setDatabaseList([]);
+              setDatasourceList([]);
+
+              form.resetFields([
+                ["target", "type"],
+                ["target", "table"],
+                ["target", "database"],
+                ["target", "datasource"],
+              ]);
             }
             handleChangeSelect(FormItemEnums.type);
           }}
