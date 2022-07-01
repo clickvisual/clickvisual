@@ -1,13 +1,12 @@
 import styles from "@/pages/DataAnalysis/components/FileTitle/index.less";
 import {
   FormatPainterOutlined,
-  LockOutlined,
+  LoadingOutlined,
   PauseCircleOutlined,
   PlayCircleOutlined,
   SaveOutlined,
-  UnlockOutlined,
 } from "@ant-design/icons";
-import { Button, Space, Tooltip } from "antd";
+import { Button, Space, Spin, Tooltip } from "antd";
 import { useModel } from "umi";
 import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import { useThrottleFn } from "ahooks";
@@ -81,13 +80,16 @@ const FileTitle = ({
           </div>
           <div className={styles.icons}>
             <Space>
+              <Spin
+                size={"small"}
+                indicator={<LoadingOutlined style={{ fontSize: 14 }} spin />}
+                spinning={doLockNode.loading || doUnLockNode.loading}
+              />
               {(!file.lockUid || file.lockUid === 0) && (
                 <Button
                   size={"small"}
                   type={"primary"}
                   onClick={() => handleLock(file)}
-                  loading={doLockNode.loading}
-                  icon={<LockOutlined />}
                 >
                   开始编辑
                 </Button>
@@ -99,8 +101,6 @@ const FileTitle = ({
                       size={"small"}
                       type={"primary"}
                       onClick={() => handleUnlock(file)}
-                      loading={doUnLockNode.loading}
-                      icon={<UnlockOutlined />}
                     >
                       退出编辑
                     </Button>
