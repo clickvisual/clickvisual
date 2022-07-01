@@ -3,6 +3,7 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import { useModel } from "umi";
 import MonacoEditor from "react-monaco-editor";
+import { format } from "sql-formatter";
 
 const VersionHistory = (props: {
   visible: boolean;
@@ -72,7 +73,7 @@ const VersionHistory = (props: {
       ),
     },
     {
-      title: "utime",
+      title: "提交时间",
       dataIndex: "utime",
       key: "utime",
       ellipsis: { showTitle: true },
@@ -158,7 +159,7 @@ const VersionHistory = (props: {
             },
             readOnly: true,
           }}
-          value={content}
+          value={format(content)}
         />
       </Drawer>
     </Drawer>

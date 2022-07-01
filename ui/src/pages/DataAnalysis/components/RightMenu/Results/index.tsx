@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import style from "./index.less";
 import MonacoEditor from "react-monaco-editor";
 import { useModel } from "umi";
+import { format } from "sql-formatter";
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -110,7 +111,7 @@ const Results = (props: {
             },
             readOnly: true,
           }}
-          value={SQLContent}
+          value={format(SQLContent)}
         />
       </div>
     </div>
