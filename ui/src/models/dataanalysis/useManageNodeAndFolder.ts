@@ -281,6 +281,8 @@ const useManageNodeAndFolder = () => {
   const isChangeBoard = useMemo(() => {
     console.log(
       "isChange,boardNodeList, boardEdges: ",
+      boardNodeList,
+      boardRef.nodeList,
       lodash.isEqual(boardNodeList, boardRef.nodeList),
       lodash.isEqual(boardEdges, boardRef.edgeList)
     );
@@ -310,6 +312,7 @@ const useManageNodeAndFolder = () => {
   };
 
   const onChangeBoardNodes = (nodes: any[]) => {
+    console.log("onChangeBoardNodes: ", nodes);
     setBoardNodeList(nodes);
   };
   const updateBoardNode = (node: any) => {

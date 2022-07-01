@@ -12,6 +12,7 @@ import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/conf
 import { useThrottleFn } from "ahooks";
 import { THROTTLE_WAIT } from "@/config/config";
 import classNames from "classnames";
+import { useMemo } from "react";
 
 export enum FileTitleType {
   node = "node",
@@ -54,6 +55,23 @@ const FileTitle = ({
     })
   );
 
+  const NodeStatus = useMemo(() => {
+    switch (file.status) {
+      case NodeRunningStatusEnums.pending:
+        return "等待定时任务";
+      case NodeRunningStatusEnums.inProgress:
+        return "执行中";
+      case NodeRunningStatusEnums.ExecutionException:
+        return "执行异常";
+      case NodeRunningStatusEnums.ExecuteComplete:
+        return "执行完成";
+      case NodeRunningStatusEnums.PendingRun:
+        return "待执行";
+      default:
+        return "";
+    }
+  }, file);
+
   const handleSave = useThrottleFn(onSave, { wait: THROTTLE_WAIT }).run;
   const handleRun = useThrottleFn(onRun, { wait: THROTTLE_WAIT }).run;
   const handleStop = useThrottleFn(
@@ -78,7 +96,13 @@ const FileTitle = ({
           <div
             className={classNames(styles.name, isChange && styles.nameChange)}
           />
-          <div className={styles.status}>
+          {/* 1 等待定时任务 2 执行中 3 执行异常 4 执行完成 5 待执行 */}
+          {file.status !== 0 && (
+            <div className={styles.statusText}>
+              <span>{NodeStatus}</span>
+            </div>
+          )}
+          <div className={styles.userStatus}>
             {file.lockUid && file.lockUid !== 0
               ? `${file.username || "无效用户"} 正在编辑`
               : "只读"}

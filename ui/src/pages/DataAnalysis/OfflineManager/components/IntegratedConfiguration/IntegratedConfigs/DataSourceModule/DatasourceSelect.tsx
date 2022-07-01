@@ -190,7 +190,7 @@ const DatasourceSelect = ({
     handleSelectDatabase(currentSource.database);
     if (!currentSource.table) return;
     handleSelectTable(currentSource.table);
-  }, [file, currentSource]);
+  }, [currentSource]);
 
   return (
     <>

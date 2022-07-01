@@ -1,26 +1,19 @@
 import { Card, Form, Input } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
-import { useModel } from "@@/plugin-model/useModel";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 
 export interface TargetCardProps extends SourceCardProps {
   sourceType?: DataSourceTypeEnums;
+  onChangeTarget?: (target: any[]) => void;
 }
 
 const TargetCard = (props: TargetCardProps) => {
-  const { setTargetColumns, setMapping } = useModel(
-    "dataAnalysis",
-    (model) => ({
-      setTargetColumns: model.integratedConfigs.setTargetColumns,
-      setMapping: model.integratedConfigs.setMappingData,
-    })
-  );
-  const { isLock } = props;
+  const { isLock, onChangeTarget, onChangeMapping } = props;
 
   const handleChangeColumns = (columns: any[], isChange?: boolean) => {
-    setTargetColumns(columns);
-    if (!!isChange) setMapping([]);
+    onChangeTarget?.(columns);
+    if (!!isChange) onChangeMapping([]);
   };
 
   return (

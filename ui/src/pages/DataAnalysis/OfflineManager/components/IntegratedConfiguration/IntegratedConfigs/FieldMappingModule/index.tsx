@@ -19,6 +19,7 @@ const FieldMappingModule = ({
   mapping,
   onChange,
   isLock,
+  form,
 }: FieldMappingModule) => {
   const columns = [
     {
@@ -31,6 +32,9 @@ const FieldMappingModule = ({
     },
   ];
   const sourceData = useMemo(() => {
+    if (!form.getFieldValue(["source", "table"])) {
+      return [];
+    }
     return [
       {
         id: "source",
@@ -47,6 +51,9 @@ const FieldMappingModule = ({
   }, [source]);
 
   const targetData = useMemo(() => {
+    if (!form.getFieldValue(["target", "table"])) {
+      return [];
+    }
     return [
       {
         id: "target",
@@ -61,7 +68,15 @@ const FieldMappingModule = ({
       },
     ];
   }, [target]);
-  if (source?.length <= 0 && target?.length <= 0) {
+
+  if (
+    !form.getFieldValue(["target", "table"]) ||
+    !form.getFieldValue(["source", "table"])
+  ) {
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+  }
+
+  if (sourceData?.length <= 0 && targetData?.length <= 0) {
     return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
   }
   return (
