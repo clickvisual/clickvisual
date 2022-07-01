@@ -28,13 +28,14 @@ const (
 	TertiaryRealTimeSync = 21
 )
 
+// 0 无状态 1 等待定时任务 2 执行中 3 执行异常 4 执行完成 5 等待执行
 const (
 	NodeStatusDefault int = iota
 	NodeStatusWaitCron
-	NodeStatusWaitHandler
 	NodeStatusHandler
 	NodeStatusError
 	NodeStatusFinish
+	NodeStatusWaitHandler
 )
 
 func (m *BigdataNode) TableName() string {

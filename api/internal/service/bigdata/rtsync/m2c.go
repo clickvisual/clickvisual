@@ -117,7 +117,7 @@ func (c *MySQL2ClickHouse) materializedView(ins db.BaseInstance) error {
 
 	viewClusterInfo = fmt.Sprintf("%s TO `%s`.`%s` AS", viewClusterInfo, c.sc.Target.Database, c.sc.Target.Table)
 	sourceTableName := fmt.Sprintf("`%s`.`%s`", mysqlEngineDatabaseName(c.sc), c.sc.Source.Table)
-	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s SELECT %s FROM %s WHERE %s",
+	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s POPULATE SELECT %s FROM %s WHERE %s",
 		viewClusterInfo, mapping(c.sc.Mapping), sourceTableName, where(c.sc.Source.SourceFilter))
 
 	invoker.Logger.Debug("ClickHouse2MySQL", elog.String("step", "c2mMaterialView"), elog.String("completeSQL", completeSQL))

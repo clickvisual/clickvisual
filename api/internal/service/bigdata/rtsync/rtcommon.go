@@ -30,7 +30,7 @@ func mappingKV(typ string, val string) string {
 	if strings.Contains(lowerTyp, "int") {
 		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
 	}
-	if strings.Contains(lowerTyp, "string") {
+	if strings.Contains(lowerTyp, "string") || strings.Contains(lowerTyp, "varchar") {
 		return fmt.Sprintf("ifNull(%s, %s)", val, "''")
 	}
 	if strings.Contains(lowerTyp, "float") {

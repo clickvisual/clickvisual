@@ -61,7 +61,7 @@ func doTyRealTimeSync(n *node) (res view.RunNodeResult, err error) {
 		res.InvolvedSQLs, err = c.Run()
 	case OperatorStop:
 		err = c.Stop()
-		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusFinish})
+		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusDefault})
 	default:
 		err = constx.ErrBigdataRTSyncOperatorTypeNotSupported
 	}
