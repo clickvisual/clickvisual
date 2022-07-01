@@ -46,6 +46,8 @@ const IntegratedConfiguration = ({
     doStopCodeNode: model.manageNode.doStopCodeNode,
   }));
 
+  const { changeSqlQueryResults } = useModel("dataAnalysis");
+
   const handleSubmit = (fields: any) => {
     const sourceForm = fields.source;
     const targetForm = fields.target;
@@ -196,6 +198,7 @@ const IntegratedConfiguration = ({
   const handleRun = (file: any) => {
     doRunCodeNode.run(file.id).then((res) => {
       if (res?.code !== 0) return;
+      changeSqlQueryResults(JSON.parse(res.data.result));
       doGetNodeInfo(file.id);
     });
   };

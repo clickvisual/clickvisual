@@ -56,6 +56,11 @@ export interface nodeListType {
   uid: number;
 }
 
+export interface nodeHistoriesType {
+  current: number;
+  pageSize: number;
+}
+
 export default {
   /**
    * Folder
@@ -183,4 +188,26 @@ export default {
       }
     );
   },
+
+  // 获取历史记录的list
+  async getNodeHistories(noodeId: number, params?: nodeHistoriesType) {
+    // return request<API.Res<FolderListResponse>>(
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${noodeId}/histories`,
+      {
+        params,
+      }
+    );
+  },
+
+  // 获取历史记录info
+  async getNodeHistoriesInfo(noodeId: number, uuid: number) {
+    // return request<API.Res<FolderListResponse>>(
+    return request(
+      process.env.PUBLIC_PATH +
+        `api/v1/bigdata/nodes/${noodeId}/histories/${uuid}`
+    );
+  },
+
+  // /bigdata/nodes/:id/histories/:uuid
 };

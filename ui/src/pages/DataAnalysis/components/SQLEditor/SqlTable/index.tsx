@@ -38,6 +38,7 @@ const SqlTable = () => {
     }
     return columnArr;
   }, [sqlQueryResults]);
+
   return (
     <Drawer
       title="运行结果"
