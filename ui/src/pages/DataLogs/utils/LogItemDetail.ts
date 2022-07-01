@@ -11,7 +11,12 @@ const RawLogField = "_raw_log_";
  */
 const LogItemDetail = (logs: LogsResponse | undefined, log: any) => {
   // 隐藏字段
-  const hiddenFields = logs?.hiddenFields || [];
+  const hiddenFields: string[] =
+    logs?.hiddenFields.filter((key, index) => {
+      const fields = logs?.hiddenFields || [];
+      const preIdx = fields.indexOf(key);
+      return preIdx < 0 || preIdx === index;
+    }) || [];
 
   // 二级索引字段
   const secondaryIndexList: any = [];

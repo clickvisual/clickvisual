@@ -11,7 +11,12 @@ interface MoreLogPopoverContentProps {
 }
 const MoreLogPopoverContent = ({ log }: MoreLogPopoverContentProps) => {
   const { logs } = useModel("dataLogs");
-  const hiddenFields = logs?.hiddenFields || [];
+  const hiddenFields =
+    logs?.hiddenFields.filter((key, index) => {
+      const fields = logs?.hiddenFields || [];
+      const preIdx = fields.indexOf(key);
+      return preIdx < 0 || preIdx === index;
+    }) || [];
   const { resultLog } = useMemo(() => LogItemDetail(logs, log), [logs, log]);
   if (hiddenFields.length <= 0)
     return (

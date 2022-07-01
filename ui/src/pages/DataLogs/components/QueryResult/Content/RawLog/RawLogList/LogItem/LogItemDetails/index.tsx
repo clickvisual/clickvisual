@@ -32,7 +32,12 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     secondaryIndexList,
   } = useMemo(() => {
     // 隐藏字段
-    const hiddenFields = logs?.hiddenFields || [];
+    const hiddenFields: string[] =
+      logs?.hiddenFields.filter((key, index) => {
+        const fields = logs?.hiddenFields || [];
+        const preIdx = fields.indexOf(key);
+        return preIdx < 0 || preIdx === index;
+      }) || [];
 
     // Json 索引
     const secondaryIndexList: any = [];
