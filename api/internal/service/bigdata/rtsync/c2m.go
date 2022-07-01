@@ -72,7 +72,7 @@ func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 func (c *ClickHouse2MySQL) materializedView(ins db.BaseInstance) error {
 	viewClusterInfo := materialView(c.sc)
 	if ins.Mode == inquiry.ModeCluster {
-		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER %s", viewClusterInfo, c.sc.Cluster())
+		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, c.sc.Cluster())
 	}
 	// Deletes the materialized view from the last execution
 	if err := dropMaterialView(ins, c.nodeId, c.sc); err != nil {
@@ -113,13 +113,13 @@ func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db.BaseInstance, sc *view.Syn
 	// 创建在 clickhouse 中的表是否对用户可见？如果不可见，涉及集群操作，默认采用第一集群？
 	dbNameClusterInfo := mysqlEngineDatabaseName(sc)
 	if ins.Mode == inquiry.ModeCluster {
-		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER %s", dbNameClusterInfo, sc.Cluster())
+		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER '%s'", dbNameClusterInfo, sc.Cluster())
 	}
 	s, err := db.SourceInfo(invoker.Db, sc.Target.SourceId)
 	if err != nil {
 		return
 	}
-	completeSQL := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s ENGINE = MySQL('%s', '%s', '%s', '%s')",
+	completeSQL := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s ENGINE = MySQL('%s', '%s', '%s', '%s');",
 		dbNameClusterInfo,
 		s.URL,
 		sc.Target.Database,
