@@ -189,13 +189,20 @@ type (
 	}
 
 	ReqNodeHistoryList struct {
-		NodeId int `json:"nodeId" form:"nodeId"`
 		db.ReqPage
 	}
 
+	NodeHistoryItem struct {
+		UUID     string `json:"uuid"`
+		Utime    int64  `json:"utime"`
+		Uid      int    `json:"uid"`
+		UserName string `json:"userName"`
+		Nickname string `json:"nickname"`
+	}
+
 	RespNodeHistoryList struct {
-		Total int64                    `json:"total"`
-		List  []*db.BigdataNodeHistory `json:"list"`
+		Total int64             `json:"total"`
+		List  []NodeHistoryItem `json:"list"`
 	}
 )
 

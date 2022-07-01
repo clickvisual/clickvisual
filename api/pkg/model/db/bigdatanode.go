@@ -70,8 +70,7 @@ type (
 		LockUid    int    `gorm:"column:lock_uid;type:int(11) unsigned" json:"lockUid"`
 		LockAt     int64  `gorm:"column:lock_at;type:int(11)" json:"lockAt"`
 		Status     int    `gorm:"column:status;type:int(11)" json:"status"` // 0 无状态 1 待执行 2 执行中 3 执行异常 4 执行完成
-		UUID       string `gorm:"column:uuid;type:string" json:"uuid"`
-		Rtime      int64  `gorm:"column:rtime;type:bigint;comment:run time" json:"rtime"`
+		UUID       string `gorm:"column:uuid;type:varchar(128)" json:"uuid"`
 	}
 
 	BigdataNodeContent struct {
@@ -79,6 +78,8 @@ type (
 		Content         string `gorm:"column:content;type:longtext" json:"content"`
 		Result          string `gorm:"column:result;type:longtext" json:"result"`
 		PreviousContent string `gorm:"column:previous_content;type:longtext" json:"PreviousContent"`
+
+		Utime int64 `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
 	}
 
 	BigdataNodeStatus struct {
@@ -91,10 +92,12 @@ type (
 	}
 
 	BigdataNodeHistory struct {
-		UUID    string `gorm:"column:uuid;type:string;uix_uuid,unique" json:"uuid"`
+		UUID    string `gorm:"column:uuid;type:varchar(128);uix_uuid,unique" json:"uuid"`
 		NodeId  int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
 		Content string `gorm:"column:content;type:longtext" json:"content"`
-		Utime   int64  `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
+		Uid     int    `gorm:"column:uid;type:int(11)" json:"uid"`
+
+		Utime int64 `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
 	}
 )
 

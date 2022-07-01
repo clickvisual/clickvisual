@@ -45,6 +45,9 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int) (view.RespRu
 	if err != nil {
 		execResult.Message = err.Error()
 	}
+	if execResult.Logs == nil {
+		execResult.Logs = make([]map[string]interface{}, 0)
+	}
 	// record execute result
 	execResultBytes, _ := json.Marshal(execResult)
 	ups := make(map[string]interface{}, 0)
