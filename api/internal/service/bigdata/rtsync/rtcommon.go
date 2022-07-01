@@ -137,3 +137,17 @@ func dropMaterialView(ins db.BaseInstance, nodeId int, sc *view.SyncContent) err
 	}
 	return nil
 }
+
+func dropTable(tableName string, ins db.BaseInstance) error {
+	if tableName == "" {
+		return nil
+	}
+	dmv := fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName)
+	if err := source.Instantiate(&source.Source{
+		DSN: ins.Dsn,
+		Typ: db.SourceTypClickHouse,
+	}).Exec(dmv); err != nil {
+		return err
+	}
+	return nil
+}
