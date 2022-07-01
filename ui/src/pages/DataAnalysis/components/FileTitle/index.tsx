@@ -56,7 +56,7 @@ const FileTitle = ({
   );
 
   const NodeStatus = useMemo(() => {
-    switch (file.status) {
+    switch (file?.status) {
       case NodeRunningStatusEnums.pending:
         return "等待定时任务";
       case NodeRunningStatusEnums.inProgress:
