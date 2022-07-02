@@ -12,12 +12,6 @@ export interface IntegratedConfigsProps {
   form: FormInstance<any>;
   onSubmit: (field: any) => void;
   onFormChange: (changedValues?: any, allValues?: any) => void;
-  mapping: any[];
-  target: any[];
-  sources: any[];
-  onChangeMapping: (mapping: any[]) => void;
-  onChangeSource: (source: any[]) => void;
-  onChangeTarget: (target: any[]) => void;
 }
 
 const IntegratedConfigs = ({
@@ -25,14 +19,17 @@ const IntegratedConfigs = ({
   iid,
   form,
   onSubmit,
-  sources,
-  target,
-  onChangeTarget,
-  onChangeSource,
-  mapping,
   onFormChange,
-  onChangeMapping,
 }: IntegratedConfigsProps) => {
+  const { source, target, mapping, setMapping } = useModel(
+    "dataAnalysis",
+    (model) => ({
+      source: model.integratedConfigs.sourceColumns,
+      target: model.integratedConfigs.targetColumns,
+      mapping: model.integratedConfigs.mappingData,
+      setMapping: model.integratedConfigs.setMappingData,
+    })
+  );
   const { currentUser } = useModel("@@initialState").initialState || {};
   const isLock = useMemo(
     () =>
@@ -57,9 +54,31 @@ const IntegratedConfigs = ({
         targetType,
       });
     });
-    console.log("result: ", result);
-    onChangeMapping(result);
+    console.log("handelChangeMapping: ", data, result);
+    setMapping(result);
   };
+
+  const FieldMapping = useMemo(() => {
+    return (
+      <FieldMappingModule
+        form={form}
+        iid={iid}
+        source={source}
+        target={target}
+        mapping={
+          mapping.length > 0
+            ? mapping.map((item) => ({
+                ...item,
+                sourceNode: "source",
+                targetNode: "target",
+              }))
+            : []
+        }
+        isLock={isLock}
+        onChange={handelChangeMapping}
+      />
+    );
+  }, [source, target, mapping, form, iid, isLock]);
 
   return (
     <div
@@ -80,38 +99,11 @@ const IntegratedConfigs = ({
         onValuesChange={onFormChange}
       >
         <CustomCollapse
-          children={
-            <DataSourceModule
-              file={file}
-              form={form}
-              iid={iid}
-              onChangeMapping={onChangeMapping}
-              onChangeTarget={onChangeTarget}
-              onChangeSource={onChangeSource}
-            />
-          }
+          children={<DataSourceModule file={file} form={form} iid={iid} />}
           type={CustomCollapseEnums.dataSource}
         />
         <CustomCollapse
-          children={
-            <FieldMappingModule
-              form={form}
-              iid={iid}
-              source={sources}
-              target={target}
-              mapping={
-                mapping.length > 0
-                  ? mapping.map((item) => ({
-                      ...item,
-                      sourceNode: "source",
-                      targetNode: "target",
-                    }))
-                  : []
-              }
-              isLock={isLock}
-              onChange={handelChangeMapping}
-            />
-          }
+          children={FieldMapping}
           type={CustomCollapseEnums.fieldMapping}
         />
       </Form>
