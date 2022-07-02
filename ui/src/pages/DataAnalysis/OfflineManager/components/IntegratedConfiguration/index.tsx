@@ -110,6 +110,7 @@ const IntegratedConfiguration = ({
           datasource: formData.target.sourceId,
         },
       });
+      console.log("formData: ", formData);
       setMapping(formData.mapping);
       handleSetMapping(formData);
     });

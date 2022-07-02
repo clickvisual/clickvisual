@@ -57,6 +57,7 @@ const IntegratedConfigs = ({
         targetType,
       });
     });
+    console.log("result: ", result);
     onChangeMapping(result);
   };
 

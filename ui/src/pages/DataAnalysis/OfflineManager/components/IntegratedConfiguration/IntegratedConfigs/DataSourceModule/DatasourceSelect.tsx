@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
 import { Form, Select } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
@@ -8,6 +8,9 @@ import {
   TypeOptions,
 } from "@/pages/DataAnalysis/OfflineManager/config";
 import { useModel } from "@@/plugin-model/useModel";
+import Request, { Canceler } from "umi-request";
+
+const CancelToken = Request.CancelToken;
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
@@ -32,12 +35,18 @@ const DatasourceSelect = ({
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
+  const cancelTokenGetSourceTableRef = useRef<Canceler | null>(null);
   const { instances, currentInstance } = useModel("dataAnalysis", (model) => ({
     instances: model.instances,
     currentInstance: model.currentInstances,
   }));
 
   const currentSource = useMemo(() => {
+    console.log(
+      "itemNamePath: ",
+      itemNamePath,
+      form.getFieldValue([...itemNamePath])
+    );
     return form.getFieldValue([...itemNamePath]);
   }, [itemNamePath]);
 
@@ -161,10 +170,18 @@ const DatasourceSelect = ({
     const datasource = form.getFieldValue([...itemNamePath, "datasource"]);
     const database = form.getFieldValue([...itemNamePath, "database"]);
     if (table) onChangeColumns([]);
+    cancelTokenGetSourceTableRef.current?.();
     switch (type) {
       case DataSourceTypeEnums.ClickHouse:
         doGetColumns
-          .run(iid, BigDataSourceType.instances, { database, table })
+          .run(
+            iid,
+            BigDataSourceType.instances,
+            { database, table },
+            new CancelToken(function executor(c) {
+              cancelTokenGetSourceTableRef.current = c;
+            })
+          )
           .then((res: any) => onChangeColumns(res?.data || [], changeFlag));
         break;
       case DataSourceTypeEnums.MySQL:
