@@ -20,11 +20,11 @@ const IntegratedConfiguration = ({
   const [form] = Form.useForm();
   const [nodeInfo, setNodeInfo] = useState<any>();
   const [isChangeForm, setIsChangeForm] = useState<boolean>(false);
-  const [mapping, setMapping] = useState<any[]>([]);
-  const [sourceColumns, setSourceColumns] = useState<any[]>([]);
-  const [targetColumns, setTargetColumns] = useState<any[]>([]);
-
   const {
+    setSource,
+    setTarget,
+    setMapping,
+    mapping,
     updateNode,
     getNodeInfo,
     doLockNode,
@@ -45,8 +45,6 @@ const IntegratedConfiguration = ({
     doRunCodeNode: model.manageNode.doRunCodeNode,
     doStopCodeNode: model.manageNode.doStopCodeNode,
   }));
-
-  const { changeSqlQueryResults } = useModel("dataAnalysis");
 
   const handleSubmit = (fields: any) => {
     const sourceForm = fields.source;
@@ -163,7 +161,7 @@ const IntegratedConfiguration = ({
       })
       .then((res: any) => {
         if (res?.code !== 0) return;
-        setSourceColumns(res.data);
+        setSource(res.data);
       });
     doGetColumns
       .run(target.id, target.source, {
@@ -172,7 +170,7 @@ const IntegratedConfiguration = ({
       })
       .then((res: any) => {
         if (res?.code !== 0) return;
-        setTargetColumns(res.data);
+        setTarget(res.data);
       });
   };
 
@@ -198,7 +196,6 @@ const IntegratedConfiguration = ({
   const handleRun = (file: any) => {
     doRunCodeNode.run(file.id).then((res) => {
       if (res?.code !== 0) return;
-      changeSqlQueryResults(JSON.parse(res.data.result));
       doGetNodeInfo(file.id);
     });
   };
@@ -218,27 +215,12 @@ const IntegratedConfiguration = ({
     if (currentNode) doGetNodeInfo(currentNode.id);
   }, [currentNode]);
 
-  const handleChangeMapping = (mapping: any[]) => {
-    setMapping(mapping);
-  };
-
-  const handleChangeSource = (source: any[]) => {
-    setSourceColumns(source);
-  };
-
-  const handleChangeTarget = (target: any[]) => {
-    setTargetColumns(target);
-  };
-
   useEffect(() => {
     form.resetFields();
     setNodeInfo(undefined);
+    setSource([]);
+    setTarget([]);
     setIsChangeForm(false);
-    return () => {
-      setMapping([]);
-      setSourceColumns([]);
-      setTargetColumns([]);
-    };
   }, [currentNode]);
 
   const iid = useMemo(() => currentNode.iid, [currentNode.iid]);
@@ -279,13 +261,7 @@ const IntegratedConfiguration = ({
         <IntegratedConfigs
           onFormChange={handleChangeForm}
           onSubmit={handleSubmit}
-          onChangeMapping={handleChangeMapping}
-          onChangeSource={handleChangeSource}
-          onChangeTarget={handleChangeTarget}
           iid={iid}
-          mapping={mapping}
-          sources={sourceColumns}
-          target={targetColumns}
           form={form}
           file={nodeInfo}
         />

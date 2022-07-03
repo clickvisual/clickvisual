@@ -9,9 +9,6 @@ export interface DataSourceModuleProps {
   form: FormInstance<any>;
   iid: number;
   file: any;
-  onChangeSource?: (source: any[]) => void;
-  onChangeTarget?: (target: any[]) => void;
-  onChangeMapping: (mapping: any[]) => void;
 }
 
 const DataSourceModule = (props: DataSourceModuleProps) => {

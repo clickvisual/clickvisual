@@ -1,6 +1,7 @@
 import { Card, Form, Input } from "antd";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
 import { DataSourceModuleProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/index";
+import { useModel } from "@@/plugin-model/useModel";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 
 export interface SourceCardProps extends DataSourceModuleProps {
@@ -11,15 +12,21 @@ export interface SourceCardProps extends DataSourceModuleProps {
   doGetColumns: any;
   isLock: boolean;
   onSelectType?: (type: DataSourceTypeEnums) => void;
-  onChangeSource?: (source: any[]) => void;
 }
 
 const SourceCard = (props: SourceCardProps) => {
-  const { isLock, onChangeSource, onChangeMapping } = props;
+  const { isLock } = props;
+  const { setSourceColumns, setMapping } = useModel(
+    "dataAnalysis",
+    (model) => ({
+      setSourceColumns: model.integratedConfigs.setSourceColumns,
+      setMapping: model.integratedConfigs.setMappingData,
+    })
+  );
 
   const handleChangeColumns = (columns: any[], isChange?: boolean) => {
-    onChangeSource?.(columns);
-    if (!!isChange) onChangeMapping([]);
+    setSourceColumns(columns);
+    if (!!isChange) setMapping([]);
   };
 
   return (
