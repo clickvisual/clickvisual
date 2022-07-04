@@ -33,7 +33,7 @@ const RawLogList = () => {
       {list.map((logItem: any, index: number) => (
         <LogItem
           foldingChecked={oldPane?.foldingChecked}
-          log={'xxxx,{"data":{\\"chepai\\":\\"苏U000\\"}}\n'}
+          log={logItem}
           key={index}
         />
       ))}
