@@ -11,8 +11,11 @@ type SearchLogLibraryProps = {
 
 const SearchLogLibrary = (props: SearchLogLibraryProps) => {
   const { onSearch } = props;
-  const { currentDatabase, onChangeLogLibraryCreatedModalVisible } =
-    useModel("dataLogs");
+  const {
+    currentDatabase,
+    onChangeLogLibraryCreatedModalVisible,
+    onChangeIsLogLibraryAllDatabase,
+  } = useModel("dataLogs");
   const [value, setValue] = useState<string | undefined>(undefined);
   const i18n = useIntl();
 
@@ -47,7 +50,10 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
         >
           <Button
             disabled={!currentDatabase}
-            onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
+            onClick={() => {
+              onChangeLogLibraryCreatedModalVisible(true);
+              onChangeIsLogLibraryAllDatabase(true);
+            }}
             type={"primary"}
             style={{ width: "32px" }}
             icon={<PlusOutlined />}
