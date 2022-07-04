@@ -1,5 +1,5 @@
 import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import FileTitle, {
   FileTitleType,
 } from "@/pages/DataAnalysis/components/FileTitle";
@@ -108,7 +108,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   };
 
   // TODO
-  useEffect(() => {
+  useMemo(() => {
     if (!currentBoard.id || !iid) return;
     doGetFile(currentBoard.id).then((res) => {
       if (res?.code !== 0) return;

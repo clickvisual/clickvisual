@@ -8,12 +8,15 @@ import {
   TypeOptions,
 } from "@/pages/DataAnalysis/OfflineManager/config";
 import { useModel } from "@@/plugin-model/useModel";
+import Request from "umi-request";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
   onChangeColumns: (columns: any[], isChange?: boolean) => void;
   sourceType?: DataSourceTypeEnums;
 }
+
+const CancelToken = Request.CancelToken;
 
 const DatasourceSelect = ({
   form,
@@ -32,9 +35,33 @@ const DatasourceSelect = ({
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
-  const { instances, currentInstance } = useModel("dataAnalysis", (model) => ({
+  const {
+    instances,
+    currentInstance,
+    cancelTokenTargetListRef,
+    cancelTokenSourceListRef,
+    cancelTokenTargetRef,
+    cancelTokenSourceRef,
+    cancelTokenTargetTableRef,
+    cancelTokenSourceTableRef,
+    cancelTokenTargetColumnsRef,
+    cancelTokenSourceColumnsRef,
+  } = useModel("dataAnalysis", (model) => ({
     instances: model.instances,
     currentInstance: model.currentInstances,
+
+    cancelTokenTargetListRef: model.dataSourceManage.cancelTokenTargetListRef,
+    cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
+    cancelTokenTargetRef: model.integratedConfigs.cancelTokenTargetRef,
+    cancelTokenSourceRef: model.integratedConfigs.cancelTokenSourceRef,
+    cancelTokenTargetTableRef:
+      model.integratedConfigs.cancelTokenTargetTableRef,
+    cancelTokenSourceTableRef:
+      model.integratedConfigs.cancelTokenSourceTableRef,
+    cancelTokenTargetColumnsRef:
+      model.integratedConfigs.cancelTokenTargetColumnsRef,
+    cancelTokenSourceColumnsRef:
+      model.integratedConfigs.cancelTokenSourceColumnsRef,
   }));
 
   const currentSource = useMemo(() => {
@@ -117,65 +144,161 @@ const DatasourceSelect = ({
     form.resetFields(resetList);
   }, []);
 
-  const handleSelectType = useCallback((type: DataSourceTypeEnums) => {
-    switch (type) {
-      case DataSourceTypeEnums.ClickHouse:
-        doGetSources
-          .run(iid, BigDataSourceType.instances)
-          .then((res: any) => setDatabaseList(res?.data || []));
-        break;
-      case DataSourceTypeEnums.MySQL:
-        doGetSqlSource
-          .run({ iid, typ: type })
-          .then((res: any) => setDatasourceList(res?.data || []));
-        break;
-    }
-  }, []);
+  const handleSelectType = useCallback(
+    (type: DataSourceTypeEnums) => {
+      switch (type) {
+        case DataSourceTypeEnums.ClickHouse:
+          doGetSources
+            .run(
+              iid,
+              BigDataSourceType.instances,
+              new CancelToken(function executor(c) {
+                if (itemNamePath.includes("source")) {
+                  cancelTokenSourceRef.current = c;
+                }
+                if (itemNamePath.includes("target")) {
+                  cancelTokenTargetRef.current = c;
+                }
+              })
+            )
+            .then((res: any) => setDatabaseList(res?.data || []));
+          break;
+        case DataSourceTypeEnums.MySQL:
+          doGetSqlSource
+            .run(
+              { iid, typ: type },
+              new CancelToken(function executor(c) {
+                if (itemNamePath.includes("source")) {
+                  cancelTokenSourceListRef.current = c;
+                }
+                if (itemNamePath.includes("target")) {
+                  cancelTokenTargetListRef.current = c;
+                }
+              })
+            )
+            .then((res: any) => setDatasourceList(res?.data || []));
+          break;
+      }
+    },
+    [itemNamePath]
+  );
 
-  const handleSelectDatasource = useCallback((sourceId: number) => {
-    doGetSources
-      .run(sourceId, BigDataSourceType.source)
-      .then((res: any) => setDatabaseList(res?.data || []));
-  }, []);
-
-  const handleSelectDatabase = useCallback((database) => {
-    const type = form.getFieldValue([...itemNamePath, "type"]);
-    const datasource = form.getFieldValue([...itemNamePath, "datasource"]);
-    switch (type) {
-      case DataSourceTypeEnums.ClickHouse:
-        doGetSourceTable
-          .run(iid, BigDataSourceType.instances, { database })
-          .then((res: any) => setSourceTableList(res?.data || []));
-        break;
-      case DataSourceTypeEnums.MySQL:
-        doGetSourceTable
-          .run(datasource, BigDataSourceType.source, {
-            database,
+  const handleSelectDatasource = useCallback(
+    (sourceId: number) => {
+      doGetSources
+        .run(
+          sourceId,
+          BigDataSourceType.source,
+          new CancelToken(function executor(c) {
+            if (itemNamePath.includes("source")) {
+              cancelTokenSourceRef.current = c;
+            }
+            if (itemNamePath.includes("target")) {
+              cancelTokenTargetRef.current = c;
+            }
           })
-          .then((res: any) => setSourceTableList(res?.data || []));
-    }
-  }, []);
+        )
+        .then((res: any) => setDatabaseList(res?.data || []));
+    },
+    [itemNamePath]
+  );
 
-  const handleSelectTable = useCallback((table: any, changeFlag?: boolean) => {
-    const type = form.getFieldValue([...itemNamePath, "type"]);
-    const datasource = form.getFieldValue([...itemNamePath, "datasource"]);
-    const database = form.getFieldValue([...itemNamePath, "database"]);
-    if (table) onChangeColumns([]);
-    switch (type) {
-      case DataSourceTypeEnums.ClickHouse:
-        doGetColumns
-          .run(iid, BigDataSourceType.instances, { database, table })
-          .then((res: any) => onChangeColumns(res?.data || [], changeFlag));
-        break;
-      case DataSourceTypeEnums.MySQL:
-        doGetColumns
-          .run(datasource, BigDataSourceType.source, {
-            database,
-            table,
-          })
-          .then((res: any) => onChangeColumns(res?.data || [], changeFlag));
-    }
-  }, []);
+  const handleSelectDatabase = useCallback(
+    (database) => {
+      const type = form.getFieldValue([...itemNamePath, "type"]);
+      const datasource = form.getFieldValue([...itemNamePath, "datasource"]);
+      switch (type) {
+        case DataSourceTypeEnums.ClickHouse:
+          doGetSourceTable
+            .run(
+              iid,
+              BigDataSourceType.instances,
+              { database },
+              new CancelToken(function executor(c) {
+                if (itemNamePath.includes("source")) {
+                  cancelTokenSourceTableRef.current = c;
+                }
+                if (itemNamePath.includes("target")) {
+                  cancelTokenTargetTableRef.current = c;
+                }
+              })
+            )
+            .then((res: any) => setSourceTableList(res?.data || []));
+          break;
+        case DataSourceTypeEnums.MySQL:
+          doGetSourceTable
+            .run(
+              datasource,
+              BigDataSourceType.source,
+              {
+                database,
+              },
+              new CancelToken(function executor(c) {
+                if (itemNamePath.includes("source")) {
+                  cancelTokenSourceColumnsRef.current = c;
+                }
+                if (itemNamePath.includes("target")) {
+                  cancelTokenTargetColumnsRef.current = c;
+                }
+              })
+            )
+            .then((res: any) => setSourceTableList(res?.data || []));
+      }
+    },
+    [itemNamePath]
+  );
+
+  const handleSelectTable = useCallback(
+    (table: any, changeFlag?: boolean) => {
+      const type = form.getFieldValue([...itemNamePath, "type"]);
+      const datasource = form.getFieldValue([...itemNamePath, "datasource"]);
+      const database = form.getFieldValue([...itemNamePath, "database"]);
+      if (table) onChangeColumns([]);
+      switch (type) {
+        case DataSourceTypeEnums.ClickHouse:
+          doGetColumns
+            .run(
+              iid,
+              BigDataSourceType.instances,
+              { database, table },
+              new CancelToken(function executor(c) {
+                if (itemNamePath.includes("source")) {
+                  cancelTokenSourceTableRef.current = c;
+                }
+                if (itemNamePath.includes("target")) {
+                  cancelTokenTargetTableRef.current = c;
+                }
+              })
+            )
+            .then((res: any) => onChangeColumns(res?.data || [], changeFlag));
+          break;
+        case DataSourceTypeEnums.MySQL:
+          doGetColumns
+            .run(
+              datasource,
+              BigDataSourceType.source,
+              {
+                database,
+                table,
+              },
+              new CancelToken(function executor(c) {
+                if (itemNamePath.includes("source")) {
+                  cancelTokenSourceTableRef.current = c;
+                }
+                if (itemNamePath.includes("target")) {
+                  cancelTokenTargetTableRef.current = c;
+                }
+              })
+            )
+            .then((res: any) => {
+              if (res?.code === 0) {
+                onChangeColumns(res?.data || [], changeFlag);
+              }
+            });
+      }
+    },
+    [itemNamePath]
+  );
 
   useEffect(() => {
     if (!currentSource?.type) return;

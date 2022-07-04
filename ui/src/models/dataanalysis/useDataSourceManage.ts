@@ -3,7 +3,8 @@ import { DataSourceReqTypEnums } from "@/pages/DataAnalysis/service/enums";
 import dataSourceManageApi, {
   SourceInfoType,
 } from "@/services/dataSourceManage";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import Request, { Canceler } from "umi-request";
 
 const useDataSourceManage = () => {
   const [currentTyp, setCurrentTyp] = useState<number>();
@@ -11,6 +12,9 @@ const useDataSourceManage = () => {
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const [visibleDataSource, setVisibleDataSource] = useState<boolean>(false);
   const [currentDataSource, setCurrentDataSource] = useState<SourceInfoType>();
+
+  const cancelTokenTargetListRef = useRef<Canceler | null>(null);
+  const cancelTokenSourceListRef = useRef<Canceler | null>(null);
 
   const typList = [
     {
@@ -42,6 +46,12 @@ const useDataSourceManage = () => {
   // Source
   const doGetSourceList = useRequest(dataSourceManageApi.getSourceList, {
     loadingText: false,
+    onError: (e) => {
+      if (Request.isCancel(e)) {
+        return false;
+      }
+      return;
+    },
   });
 
   const doCreateSource = useRequest(dataSourceManageApi.createSource, {
@@ -95,6 +105,9 @@ const useDataSourceManage = () => {
     doDeleteSource,
     doUpdateSource,
     doGetSourceInfo,
+
+    cancelTokenTargetListRef,
+    cancelTokenSourceListRef,
   };
 };
 export default useDataSourceManage;

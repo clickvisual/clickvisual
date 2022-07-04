@@ -71,13 +71,10 @@ const FieldMappingModule = ({
   }, [target]);
 
   if (
+    (sourceData?.length <= 0 && targetData?.length <= 0) ||
     !form.getFieldValue(["target", "table"]) ||
     !form.getFieldValue(["source", "table"])
   ) {
-    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
-  }
-
-  if (sourceData?.length <= 0 && targetData?.length <= 0) {
     return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
   }
   return (
@@ -92,7 +89,6 @@ const FieldMappingModule = ({
           targetData={targetData}
           mappingData={mapping}
           config={{
-            delayDraw: 300,
             linkNumLimit: 1,
           }}
           className={"butterfly-data-mappint test"}
@@ -100,6 +96,10 @@ const FieldMappingModule = ({
           targetClassName={"target-column"}
           onChange={onChange}
           readonly={isLock}
+          onCheckChange={() => {}}
+          onLoaded={() => {}}
+          sourceColumns={columns}
+          targetColumns={columns}
         />
       )}
     </div>

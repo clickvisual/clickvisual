@@ -121,7 +121,7 @@ const useManageNodeAndFolder = () => {
 
   const [boardFile, setBoardFile] = useState<any>();
   const [boardNodeList, setBoardNodeList] = useState<any[]>([]);
-  const [boardEdges, setBoardEdges] = useState<string[]>([]);
+  const [boardEdges, setBoardEdges] = useState<any[]>([]);
   const [boardRef, setBoardRef] = useState<any>({ nodeList: [], edgeList: [] });
 
   // Folder
@@ -237,7 +237,18 @@ const useManageNodeAndFolder = () => {
   }, []);
 
   const connectEdge = (edge: any) => {
-    setBoardEdges((boardEdges) => [...boardEdges, edge]);
+    setBoardEdges((boardEdges) => [
+      ...boardEdges,
+      { id: `edge-${edge.source}-${edge.target}`, ...edge },
+    ]);
+  };
+
+  const deleteEdges = (edgeList: any[]) => {
+    setBoardEdges((boardEdges) => [
+      ...boardEdges.filter(
+        (edge) => edgeList.findIndex((item) => item.id === edge.id) < 0
+      ),
+    ]);
   };
 
   const changeEdges = (edges: any[]) => {
@@ -392,6 +403,7 @@ const useManageNodeAndFolder = () => {
     doGetBoardFile,
     doGetBoardNodes,
     deleteNodes,
+    deleteEdges,
     onChangeBoardNodes,
   };
 };
