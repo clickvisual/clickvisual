@@ -83,13 +83,7 @@ func materialView(s *view.SyncContent) string {
 // }
 
 func mysqlEngineDatabaseName(s *view.SyncContent) string {
-	switch syncTypeJudgment(s) {
-	case syncTypeClickHouse2MySQL:
-		return fmt.Sprintf("clickvisualrtsync_%s", s.Source.Database)
-	case syncTypeMySQL2ClickHouse:
-		return fmt.Sprintf("clickvisualrtsync_%s", s.Target.Database)
-	}
-	return ""
+	return fmt.Sprintf("clickvisualrtsync_%s", s.Source.Database)
 }
 
 func mysqlEngineTableName(s *view.SyncContent) string {
