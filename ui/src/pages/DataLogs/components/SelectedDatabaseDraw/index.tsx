@@ -45,6 +45,7 @@ const SelectedDataBaseDraw = () => {
     logPanesHelper,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsAccessLogLibrary,
+    onChangeIsLogLibraryAllDatabase,
     onChangeAddLogToDatabase,
     onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
@@ -371,6 +372,7 @@ const SelectedDataBaseDraw = () => {
                 onClick={() => {
                   onChangeIsAccessLogLibrary(true);
                   onChangeLogLibraryCreatedModalVisible(true);
+                  onChangeIsLogLibraryAllDatabase(true);
                 }}
                 className={classNames(instanceTableStyles.logLibraryIcon)}
                 type={"icon-addLogLibrary"}

@@ -15,7 +15,7 @@ const Results = (props: {
 }) => {
   const [SQLForm] = Form.useForm();
   const { visible, setVisible } = props;
-  const { sqlQueryResults } = useModel("dataAnalysis");
+  const { sqlQueryResults, changeSqlQueryResults } = useModel("dataAnalysis");
   const [sqlQueryData, setSqlQueryData] = useState<any>([]);
   const [SQLContent, setSQLcontent] = useState<string>("");
 
@@ -59,7 +59,7 @@ const Results = (props: {
     if (visible) {
       if (SQLList.length > 0) {
         const key = sqlQueryResults?.involvedSQLs[SQLList[0]];
-        SQLForm.setFieldsValue({ key: key });
+        SQLForm.setFieldsValue({ key: SQLList[0] });
         setSQLcontent(key);
       }
     }
@@ -70,6 +70,7 @@ const Results = (props: {
       setSQLcontent("");
       setSqlQueryData([]);
       SQLForm.resetFields();
+      changeSqlQueryResults("");
     }
   }, [visible]);
 

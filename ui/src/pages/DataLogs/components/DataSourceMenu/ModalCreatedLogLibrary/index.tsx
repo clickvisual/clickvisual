@@ -28,6 +28,7 @@ const ModalCreatedLogLibrary = () => {
     doCreatedLocalLogLibraryBatch,
     isAccessLogLibrary,
     onChangeIsAccessLogLibrary,
+    onChangeIsLogLibraryAllDatabase,
   } = useModel("dataLogs");
 
   const instanceName = currentDatabase?.instanceName;
@@ -80,8 +81,10 @@ const ModalCreatedLogLibrary = () => {
   }, [isAccessLogLibrary, logLibraryCreatedModalVisible]);
 
   useEffect(() => {
-    if (!logLibraryCreatedModalVisible && logFormRef.current)
+    if (!logLibraryCreatedModalVisible && logFormRef.current) {
+      onChangeIsLogLibraryAllDatabase(false);
       logFormRef.current.resetFields();
+    }
   }, [logLibraryCreatedModalVisible]);
 
   useEffect(() => {
