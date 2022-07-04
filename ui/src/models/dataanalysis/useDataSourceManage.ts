@@ -43,11 +43,6 @@ const useDataSourceManage = () => {
     setSourceList(value);
   };
 
-  // doGetSources: model.integratedConfigs.doGetSources,
-  //   doGetSqlSource: model.dataSourceManage.doGetSourceList,
-  //   doGetSourceTable: model.integratedConfigs.doGetSourceTables,
-  //   doGetColumns: model.integratedConfigs.doGetColumns,
-
   // Source
   const doGetSourceList = useRequest(dataSourceManageApi.getSourceList, {
     loadingText: false,
