@@ -8,6 +8,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
+import { message } from "antd";
 
 export const PrimaryList = [
   {
@@ -183,8 +184,15 @@ const useManageNodeAndFolder = () => {
     (params: { iid: number; primary: PrimaryEnums; workflowId: number }) => {
       getFolders.run(params).then((res) => {
         if (res?.code !== 0) return;
-        setNodes(res.data.nodes);
-        setFolders(res.data.children);
+
+        setNodes((nodes) => [
+          ...nodes.filter((item) => item.workflowId !== params.workflowId),
+          ...res.data.nodes,
+        ]);
+        setFolders((folders) => [
+          ...folders.filter((item) => item.workflowId !== params.workflowId),
+          ...res.data.children,
+        ]);
       });
     },
     []
@@ -290,14 +298,6 @@ const useManageNodeAndFolder = () => {
   };
 
   const isChangeBoard = useMemo(() => {
-    console.log(
-      "isChange,boardNodeList, boardEdges: ",
-      boardNodeList,
-      boardRef.nodeList,
-      lodash.isEqual(boardNodeList, boardRef.nodeList),
-      lodash.isEqual(boardEdges, boardRef.edgeList)
-    );
-
     return (
       !lodash.isEqual(boardNodeList, boardRef.nodeList) ||
       !lodash.isEqual(boardEdges, boardRef.edgeList)
@@ -339,6 +339,21 @@ const useManageNodeAndFolder = () => {
 
   const onSaveBoardNodes = useCallback(
     (currentBoard: any) => {
+      if (
+        boardNodeList.filter(
+          (item) =>
+            item.secondary === SecondaryEnums.universal &&
+            item.tertiary === TertiaryEnums.input
+        ).length !== 1 &&
+        boardNodeList.filter(
+          (item) =>
+            item.secondary === SecondaryEnums.universal &&
+            item.tertiary === TertiaryEnums.output
+        ).length !== 1
+      ) {
+        message.warning("只能存在一个 Start 和一个 End 节点");
+      }
+      console.log("onSaveBoardNodes: ", boardNodeList);
       const boardNodes = boardNodeList.map((item) => ({
         id: item.id,
         position: item.position,

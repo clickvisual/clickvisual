@@ -131,7 +131,7 @@ const NodeModule = ({
                 onDragStart(event, "input", TertiaryEnums.input, nodeSecondary)
               }
             >
-              <span>Input</span>
+              <span>Start</span>
             </div>
             <div
               draggable={!isLock}
@@ -145,7 +145,7 @@ const NodeModule = ({
                 )
               }
             >
-              <span>Output</span>
+              <span>End</span>
             </div>
           </div>
         );
