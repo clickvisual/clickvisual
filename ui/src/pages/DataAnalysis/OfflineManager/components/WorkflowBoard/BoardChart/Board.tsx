@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   addEdge,
+  Handle,
   MarkerType,
   ReactFlowProvider,
 } from "react-flow-renderer";
@@ -26,6 +27,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   const BoardWrapper = useRef<any>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const [selectEdges, setSelectEdges] = useState<any[]>([]);
+  const nodeListRef = useRef<any[]>([]);
 
   // const [selectNodes, setSelectNodes] = useState<any[]>([]);
 
@@ -78,6 +80,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   useKeyPress("Backspace", handleDeleteEdges);
 
   const onConnect = useCallback((params) => {
+    console.log("params: ", params);
     const edge = {
       ...params,
       markerEnd: {
@@ -131,6 +134,41 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     [boardNodes]
   );
 
+  const isValidConnection = (connection: any) => {
+    console.log("nodes: ", nodeListRef.current, connection);
+    return (
+      nodeListRef.current?.find((item) => item.id === connection.target)
+        ?.type === FlowNodeTypeEnums.default ||
+      nodeListRef.current?.find((item) => item.id === connection.target)
+        ?.type === FlowNodeTypeEnums.output
+    );
+  };
+
+  const CustomNode = ({ data }: any) => {
+    return (
+      <>
+        <Handle
+          type="target"
+          position="top"
+          isValidConnection={isValidConnection}
+        />
+        <div>{data.label}</div>
+        <Handle
+          type="source"
+          position="bottom"
+          isValidConnection={isValidConnection}
+        />
+      </>
+    );
+  };
+
+  const nodeTypes = useMemo(
+    () => ({
+      CustomNode: CustomNode,
+    }),
+    []
+  );
+
   const getNodesPosition = useCallback((nodes: any[], edges: any[]) => {
     // compound: 支持复合查询
     let g = new graphlib.Graph({ directed: true, compound: true });
@@ -169,7 +207,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     const NodeList: any[] = [];
     const EdgeList: any[] = edgeList;
     for (const node of nodeList) {
-      let type = FlowNodeTypeEnums.default;
+      let type: any = FlowNodeTypeEnums.default;
       switch (node.tertiary) {
         case TertiaryEnums.input:
           type = FlowNodeTypeEnums.input;
@@ -208,10 +246,11 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     };
 
     setNodes(newNodes);
-    setEdges(() => [...edges, ...EdgeList]);
+    nodeListRef.current = newNodes();
+    setEdges(() => [...EdgeList]);
   }, []);
 
-  useMemo(() => {
+  useEffect(() => {
     handleChangeNodes(boardNodes, boardEdges);
   }, [boardNodes, boardEdges]);
 
@@ -230,6 +269,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
             <ReactFlow
               nodes={nodes}
               edges={edges}
+              nodeTypes={nodeTypes}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onSelectionChange={onSelectionChange}
@@ -239,6 +279,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
               onConnect={onConnect}
               onInit={setReactFlowInstance}
               attributionPosition="top-right"
+              className="validationflow"
               onDrop={onDrop}
               onlyRenderVisibleElements
               onDragOver={onDragOver}

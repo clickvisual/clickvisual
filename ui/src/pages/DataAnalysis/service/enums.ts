@@ -137,7 +137,7 @@ export enum DataSourceReqTypEnums {
 }
 
 export enum FlowNodeTypeEnums {
-  default = "default",
+  default = "CustomNode",
   input = "input",
   output = "output",
   group = "group",
