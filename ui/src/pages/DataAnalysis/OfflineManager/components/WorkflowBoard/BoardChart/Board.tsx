@@ -62,16 +62,10 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   }));
 
   const onSelectionChange = useCallback(({ edges }) => {
-    console.log("params: ", edges);
     setSelectEdges(edges);
   }, []);
 
-  // const handleSelectNode = useCallback(({ nodes, edges }: any) => {
-  //   setSelectNodes(nodes);
-  // }, []);
-
   const handleDeleteEdges = useCallback(() => {
-    // todo: 没有记住节点位置
     if (selectEdges.length <= 0) return;
 
     DeletedModal({
@@ -154,7 +148,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     layout(g);
     const newNodes: any[] = [];
     for (const node of nodes) {
-      console.log("node: ", node);
       const graphNode = g.node(node.id);
       if (!node?.position?.x || !node?.position?.y) {
         node.position = {
