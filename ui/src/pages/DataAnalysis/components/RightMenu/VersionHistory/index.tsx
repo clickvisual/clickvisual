@@ -1,6 +1,6 @@
 import { Drawer, Table, Tooltip } from "antd";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useModel } from "umi";
 import MonacoEditor from "react-monaco-editor";
 import { format } from "sql-formatter";
@@ -13,6 +13,7 @@ const VersionHistory = (props: {
 
   const [visibleQuery, setVisibleQuery] = useState<boolean>(false);
   const [content, setContent] = useState<string>("");
+  const [sqlLanguage, setSqlLanguage] = useState<string>("mysql");
 
   const {
     openNodeId,
@@ -52,6 +53,14 @@ const VersionHistory = (props: {
 
   const onClose = () => {
     setVisible(false);
+  };
+
+  const handleContentData = (value: string) => {
+    if (isJsonString(value)) {
+      var jsonObj = JSON.parse(value);
+      return JSON.stringify(jsonObj, null, 4);
+    }
+    return format(value);
   };
 
   const columns: any = [
@@ -109,6 +118,22 @@ const VersionHistory = (props: {
       fixed: "right",
     },
   ];
+  function isJsonString(str: string) {
+    try {
+      if (typeof JSON.parse(str) == "object") {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  useEffect(() => {
+    if (isJsonString(content)) {
+      setSqlLanguage("json");
+      return;
+    }
+    setSqlLanguage("mysql");
+  }, [content]);
 
   return (
     <Drawer
@@ -149,17 +174,23 @@ const VersionHistory = (props: {
       >
         <MonacoEditor
           height={"100%"}
-          language={"mysql"}
+          language={sqlLanguage}
           theme="vs-white"
           options={{
+            selectOnLineNumbers: true,
             automaticLayout: true,
+            wordWrap: "wordWrapColumn",
+            wrappingStrategy: "simple",
+            wordWrapBreakBeforeCharacters: ",",
+            wordWrapBreakAfterCharacters: ",",
+            disableLayerHinting: true,
             scrollBeyondLastLine: false,
             minimap: {
               enabled: true,
             },
             readOnly: true,
           }}
-          value={format(content)}
+          value={handleContentData(content)}
         />
       </Drawer>
     </Drawer>
