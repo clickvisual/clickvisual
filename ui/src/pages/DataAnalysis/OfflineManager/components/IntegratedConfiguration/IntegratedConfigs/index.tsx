@@ -58,28 +58,6 @@ const IntegratedConfigs = ({
     setMapping(result);
   };
 
-  const FieldMapping = useMemo(() => {
-    return (
-      <FieldMappingModule
-        form={form}
-        iid={iid}
-        source={source}
-        target={target}
-        mapping={
-          mapping.length > 0
-            ? mapping.map((item) => ({
-                ...item,
-                sourceNode: "source",
-                targetNode: "target",
-              }))
-            : []
-        }
-        isLock={isLock}
-        onChange={handelChangeMapping}
-      />
-    );
-  }, [source, target, mapping, form, iid, isLock]);
-
   return (
     <div
       style={{
@@ -103,7 +81,25 @@ const IntegratedConfigs = ({
           type={CustomCollapseEnums.dataSource}
         />
         <CustomCollapse
-          children={FieldMapping}
+          children={
+            <FieldMappingModule
+              form={form}
+              iid={iid}
+              source={source}
+              target={target}
+              mapping={
+                mapping.length > 0
+                  ? mapping.map((item) => ({
+                      ...item,
+                      sourceNode: "source",
+                      targetNode: "target",
+                    }))
+                  : []
+              }
+              isLock={isLock}
+              onChange={handelChangeMapping}
+            />
+          }
           type={CustomCollapseEnums.fieldMapping}
         />
       </Form>

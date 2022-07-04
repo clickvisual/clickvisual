@@ -79,12 +79,18 @@ export default {
   },
 
   // 获取数据源
-  async getSourceList(id: number, source: BigDataSourceType) {
+  async getSourceList(
+    id: number,
+    source: BigDataSourceType,
+    cancelToken?: any
+  ) {
     return request(
       process.env.PUBLIC_PATH +
         `api/v1/bigdata/mining/${source}/${id}/databases`,
       {
         method: "GET",
+        cancelToken,
+        skipErrorHandler: true,
       }
     );
   },
@@ -93,21 +99,23 @@ export default {
   async getSourceTables(
     id: number,
     source: BigDataSourceType,
-    params: { database: string }
+    params: { database: string },
+    cancelToken?: any
   ) {
     return request(
       process.env.PUBLIC_PATH + `api/v1/bigdata/mining/${source}/${id}/tables`,
-      { method: "GET", params }
+      { method: "GET", params, cancelToken, skipErrorHandler: true }
     );
   },
   async getSourceColumns(
     id: number,
     source: BigDataSourceType,
-    params: { database: string; table: string }
+    params: { database: string; table: string },
+    cancelToken?: any
   ) {
     return request(
       process.env.PUBLIC_PATH + `api/v1/bigdata/mining/${source}/${id}/columns`,
-      { method: "GET", params }
+      { method: "GET", params, cancelToken, skipErrorHandler: true }
     );
   },
 };

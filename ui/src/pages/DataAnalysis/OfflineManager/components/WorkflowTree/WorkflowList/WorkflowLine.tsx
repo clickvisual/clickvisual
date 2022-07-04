@@ -43,6 +43,17 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     boardNodeList,
     updateBoardNode,
     createBoardNode,
+
+    cancelTokenTargetListRef,
+    cancelTokenSourceListRef,
+    cancelTokenTargetRef,
+    cancelTokenSourceRef,
+    cancelTokenTargetTableRef,
+    cancelTokenSourceTableRef,
+    cancelTokenTargetColumnsRef,
+    cancelTokenSourceColumnsRef,
+    setSourceColumns,
+    setTargetColumns,
   } = useModel("dataAnalysis", (model) => ({
     setSelectNode: model.manageNode.setSelectNode,
     setSelectKeys: model.manageNode.setSelectKeys,
@@ -56,6 +67,21 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     boardNodeList: model.manageNode.boardNodeList,
     updateBoardNode: model.manageNode.updateBoardNode,
     createBoardNode: model.manageNode.createBoardNode,
+
+    cancelTokenTargetListRef: model.dataSourceManage.cancelTokenTargetListRef,
+    cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
+    cancelTokenTargetRef: model.integratedConfigs.cancelTokenTargetRef,
+    cancelTokenSourceRef: model.integratedConfigs.cancelTokenSourceRef,
+    cancelTokenTargetTableRef:
+      model.integratedConfigs.cancelTokenTargetTableRef,
+    cancelTokenSourceTableRef:
+      model.integratedConfigs.cancelTokenSourceTableRef,
+    cancelTokenTargetColumnsRef:
+      model.integratedConfigs.cancelTokenTargetColumnsRef,
+    cancelTokenSourceColumnsRef:
+      model.integratedConfigs.cancelTokenSourceColumnsRef,
+    setSourceColumns: model.integratedConfigs.setSourceColumns,
+    setTargetColumns: model.integratedConfigs.setTargetColumns,
   }));
 
   useEffect(() => {
@@ -105,6 +131,19 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   };
 
   const handleClickNode = (node: any) => {
+    cancelTokenSourceColumnsRef.current?.();
+    cancelTokenTargetColumnsRef.current?.();
+    cancelTokenSourceTableRef.current?.();
+    cancelTokenTargetTableRef.current?.();
+    cancelTokenSourceRef.current?.();
+    cancelTokenTargetRef.current?.();
+    cancelTokenSourceListRef.current?.();
+    cancelTokenSourceRef.current?.();
+    cancelTokenTargetListRef.current?.();
+    cancelTokenTargetRef.current?.();
+    setSourceColumns([]);
+    setTargetColumns([]);
+
     const { currentNode, nodeType } = node;
     setSelectKeys([node.key]);
     if (nodeType === NodeType.node) {
