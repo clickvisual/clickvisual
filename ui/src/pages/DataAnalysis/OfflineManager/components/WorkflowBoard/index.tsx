@@ -32,8 +32,6 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doUnLockNode: model.manageNode.doUnLockNode,
     doRunCodeNode: model.manageNode.doRunCodeNode,
     doStopCodeNode: model.manageNode.doStopCodeNode,
-    nodes: model.manageNode.nodes,
-    folders: model.manageNode.folders,
     boardFile: model.manageNode.boardFile,
     doGetFile: model.manageNode.doGetBoardFile,
     doGetNodes: model.manageNode.doGetBoardNodes,

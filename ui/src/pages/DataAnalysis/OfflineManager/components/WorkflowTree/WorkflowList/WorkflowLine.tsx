@@ -15,6 +15,62 @@ import { useModel } from "@@/plugin-model/useModel";
 import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
 import lodash from "lodash";
 
+const folderTree = (
+  workflow: any,
+  folderList: any[],
+  nodeList: any[],
+  secondary: SecondaryEnums
+) => {
+  const result: any[] =
+    folderList
+      .filter(
+        (folder: any) =>
+          folder.primary === PrimaryEnums.mining &&
+          folder.secondary === secondary
+      )
+      .map((folder: any) => ({
+        currentNode: { ...folder, workflowId: workflow.id },
+        key: `${workflow.id}-${folder.id}-${folder.name}`,
+        title: folder.name,
+        icon: <TreeNodeTypeIcon type={TreeNodeTypeEnums.closeFolder} />,
+        nodeType: NodeType.folder,
+        source: OfflineRightMenuClickSourceEnums.folder,
+        children: folderTree(
+          workflow,
+          folder.children || [],
+          folder.nodes || [],
+          secondary
+        ),
+      })) || [];
+
+  result.push(
+    ...nodeList
+      .filter(
+        (node: any) =>
+          node.workflowId === workflow.id &&
+          node.primary === PrimaryEnums.mining &&
+          node.secondary === secondary
+      )
+      .map((node: any) => ({
+        currentNode: { ...node, workflowId: workflow.id },
+        key: `${workflow.id}-${node.id}-${node.name}`,
+        title: node.name,
+        icon: (
+          <TreeNodeTypeIcon
+            type={
+              secondary === SecondaryEnums.dataMining
+                ? TreeNodeTypeEnums.sql
+                : TreeNodeTypeEnums.node
+            }
+          />
+        ),
+        nodeType: NodeType.node,
+        source: OfflineRightMenuClickSourceEnums.node,
+      }))
+  );
+  return result;
+};
+
 const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   const i18n = useIntl();
 
@@ -39,10 +95,10 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     setSelectKeys,
     selectKeys,
     createdNode,
-    doSetNodesAndFolders,
     boardNodeList,
     updateBoardNode,
     createBoardNode,
+    doSetNodesAndFolders,
 
     cancelTokenTargetListRef,
     cancelTokenSourceListRef,
@@ -61,12 +117,12 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     getFolders: model.manageNode.getFolders,
     createdNode: model.manageNode.doCreatedNode,
     currentInstances: model.currentInstances,
-    doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
     nodes: model.manageNode.nodes,
     folders: model.manageNode.folders,
     boardNodeList: model.manageNode.boardNodeList,
     updateBoardNode: model.manageNode.updateBoardNode,
     createBoardNode: model.manageNode.createBoardNode,
+    doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
 
     cancelTokenTargetListRef: model.dataSourceManage.cancelTokenTargetListRef,
     cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
@@ -83,42 +139,6 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     setSourceColumns: model.integratedConfigs.setSourceColumns,
     setTargetColumns: model.integratedConfigs.setTargetColumns,
   }));
-
-  useEffect(() => {
-    if (!currentInstances || !workflow.id) return;
-    doSetNodesAndFolders({
-      iid: currentInstances,
-      primary: PrimaryEnums.mining,
-      workflowId: workflow.id,
-    });
-    getFolders
-      .run({
-        iid: currentInstances,
-        primary: PrimaryEnums.mining,
-        secondary: SecondaryEnums.board,
-        workflowId: workflow.id,
-      })
-      .then((res) => {
-        if (res?.code !== 0) return;
-        if (res.data.nodes.length <= 0) {
-          createdNode
-            .run({
-              primary: PrimaryEnums.mining,
-              secondary: SecondaryEnums.board,
-              iid: currentInstances,
-              name: workflow.name,
-              desc: workflow.desc,
-              workflowId: workflow.id,
-            })
-            .then((res) => {
-              if (res?.code !== 0) return;
-              workflowItem.board = res.data;
-            });
-        } else {
-          workflowItem.board = res.data.nodes[0];
-        }
-      });
-  }, [workflow.id]);
 
   const handleRightClick = ({ node }: any) => {
     setCurrentNode(node.currentNode);
@@ -168,59 +188,41 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     [currentInstances]
   );
 
-  const folderTree = (
-    folderList: any[],
-    nodeList: any[],
-    secondary: SecondaryEnums
-  ) => {
-    const result: any[] =
-      folderList
-        .filter(
-          (folder: any) =>
-            folder.primary === PrimaryEnums.mining &&
-            folder.secondary === secondary
-        )
-        .map((folder: any) => ({
-          currentNode: { ...folder, workflowId: workflow.id },
-          key: `${workflow.id}-${folder.id}-${folder.name}`,
-          title: folder.name,
-          icon: <TreeNodeTypeIcon type={TreeNodeTypeEnums.closeFolder} />,
-          nodeType: NodeType.folder,
-          source: OfflineRightMenuClickSourceEnums.folder,
-          children: folderTree(
-            folder.children || [],
-            folder.nodes || [],
-            secondary
-          ),
-        })) || [];
-
-    result.push(
-      ...nodeList
-        .filter(
-          (node: any) =>
-            node.workflowId === workflow.id &&
-            node.primary === PrimaryEnums.mining &&
-            node.secondary === secondary
-        )
-        .map((node: any) => ({
-          currentNode: { ...node, workflowId: workflow.id },
-          key: `${workflow.id}-${node.id}-${node.name}`,
-          title: node.name,
-          icon: (
-            <TreeNodeTypeIcon
-              type={
-                secondary === SecondaryEnums.dataMining
-                  ? TreeNodeTypeEnums.sql
-                  : TreeNodeTypeEnums.node
-              }
-            />
-          ),
-          nodeType: NodeType.node,
-          source: OfflineRightMenuClickSourceEnums.node,
-        }))
-    );
-    return result;
-  };
+  useEffect(() => {
+    if (!currentInstances || !workflow.id) return;
+    doSetNodesAndFolders({
+      iid: currentInstances,
+      primary: PrimaryEnums.mining,
+      workflowId: workflow.id,
+    });
+    getFolders
+      .run({
+        iid: currentInstances,
+        primary: PrimaryEnums.mining,
+        secondary: SecondaryEnums.board,
+        workflowId: workflow.id,
+      })
+      .then((res) => {
+        if (res?.code !== 0) return;
+        if (res.data.nodes.length <= 0) {
+          createdNode
+            .run({
+              primary: PrimaryEnums.mining,
+              secondary: SecondaryEnums.board,
+              iid: currentInstances,
+              name: workflow.name,
+              desc: workflow.desc,
+              workflowId: workflow.id,
+            })
+            .then((res) => {
+              if (res?.code !== 0) return;
+              workflowItem.board = res.data;
+            });
+        } else {
+          workflowItem.board = res.data.nodes[0];
+        }
+      });
+  }, [workflow.id]);
 
   useMemo(() => {
     const nodeTree = [
@@ -245,6 +247,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
             },
             nodeType: NodeType.folder,
             children: folderTree(
+              workflowItem,
               folders,
               nodes,
               SecondaryEnums.dataIntegration
@@ -262,7 +265,12 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
               secondary: SecondaryEnums.dataMining,
             },
             nodeType: NodeType.folder,
-            children: folderTree(folders, nodes, SecondaryEnums.dataMining),
+            children: folderTree(
+              workflowItem,
+              folders,
+              nodes,
+              SecondaryEnums.dataMining
+            ),
           },
         ],
       },
