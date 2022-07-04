@@ -29,8 +29,12 @@ const LocalTable = ({
   databaseName,
 }: LocalTableProps) => {
   const i18n = useIntl();
-  const { getLocalTables, getTableColumns, addLogToDatabase } =
-    useModel("dataLogs");
+  const {
+    getLocalTables,
+    getTableColumns,
+    addLogToDatabase,
+    isLogLibraryAllDatabase,
+  } = useModel("dataLogs");
   const { instanceList } = useModel("instances");
   const [options, setOptions] = useState<any[]>([]);
   const [columnsItemList, setColumnsItemList] = useState<any[]>([]);
@@ -38,17 +42,30 @@ const LocalTable = ({
   const { Panel } = Collapse;
 
   const formatOptions = (list: LocalTables[]) => {
+    let newList: any = list;
+    // 从已有数据库新增
+    if (!isLogLibraryAllDatabase) {
+      const currentDatabaseName = addLogToDatabase?.name || databaseName;
+      const newArr = [
+        list.find((item: any) => {
+          return item.name == currentDatabaseName;
+        }),
+      ];
+      newList = newArr[0] ? newArr : list;
+    }
     setOptions(
-      list?.map((item) => ({
-        value: item.name,
-        label: item.name,
-        disabled: !item?.tables,
-        children:
-          item?.tables?.map((table) => ({
-            value: table.name,
-            label: table.name,
-          })) || [],
-      })) || []
+      newList.map((item: any) => {
+        return {
+          value: item.name,
+          label: item.name,
+          disabled: !item?.tables,
+          children:
+            item?.tables?.map((table: any) => ({
+              value: table.name,
+              label: table.name,
+            })) || [],
+        };
+      }) || []
     );
   };
 
@@ -103,28 +120,28 @@ const LocalTable = ({
     });
   }, [instanceList]);
 
-  useEffect(() => {
-    if (!options || !(addLogToDatabase?.name || databaseName) || !instanceList)
-      return;
-    const currentDatabaseName = addLogToDatabase?.name || databaseName;
-    const instanceObj = instanceList.find(
-      (item: any) =>
-        item.name == (addLogToDatabase?.instanceName || instanceName)
-    );
-    const arr: any = options.filter((items: any) => {
-      return items.value == currentDatabaseName;
-    })[0];
-    const values: any[] = [[currentDatabaseName]];
-    // 填充子项
-    arr?.children.map((items: any) => {
-      values.push([currentDatabaseName, items.value]);
-    });
-    if (values.length == 0) return;
-    setValueArr(values, instanceObj?.id);
-    formRef?.setFieldsValue({
-      localTables: values,
-    });
-  }, [addLogToDatabase, options]);
+  // useEffect(() => {
+  //   if (!options || !(addLogToDatabase?.name || databaseName) || !instanceList)
+  //     return;
+  //   const currentDatabaseName = addLogToDatabase?.name || databaseName;
+  //   const instanceObj = instanceList.find(
+  //     (item: any) =>
+  //       item.name == (addLogToDatabase?.instanceName || instanceName)
+  //   );
+  //   const arr: any = options.filter((items: any) => {
+  //     return items.value == currentDatabaseName;
+  //   })[0];
+  //   const values: any[] = [[currentDatabaseName]];
+  //   // 填充子项
+  //   arr?.children.map((items: any) => {
+  //     values.push([currentDatabaseName, items.value]);
+  //   });
+  //   if (values.length == 0) return;
+  //   setValueArr(values, instanceObj?.id);
+  //   formRef?.setFieldsValue({
+  //     localTables: values,
+  //   });
+  // }, [addLogToDatabase, options]);
 
   return (
     <>

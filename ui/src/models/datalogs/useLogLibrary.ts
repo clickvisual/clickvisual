@@ -6,6 +6,8 @@ export default function useLogLibrary() {
   const [createdVisible, setCreatedVisible] = useState<boolean>(false);
   const [infoVisible, setInfoVisible] = useState<boolean>(false);
   const [isAccessLogLibrary, setIsAccessLogLibrary] = useState<boolean>(false);
+  const [isLogLibraryAllDatabase, setIsLogLibraryAllDatabase] =
+    useState<boolean>(false);
   const [isEditDatabase, setIsEditDatabase] = useState<boolean>(false);
   const [currentEditDatabase, setEditCurrentDatabase] = useState<any>();
 
@@ -21,6 +23,9 @@ export default function useLogLibrary() {
   };
   const onChangeIsAccessLogLibrary = (visible: boolean) => {
     setIsAccessLogLibrary(visible);
+  };
+  const onChangeIsLogLibraryAllDatabase = (flag: boolean) => {
+    setIsLogLibraryAllDatabase(flag);
   };
   const onChangeIsEditDatabase = (visible: boolean) => {
     setIsEditDatabase(visible);
@@ -61,10 +66,12 @@ export default function useLogLibrary() {
     logLibraryInfoDrawVisible: infoVisible,
     isAccessLogLibrary,
     isEditDatabase,
+    isLogLibraryAllDatabase,
     currentEditDatabase,
     onChangeLogLibraryCreatedModalVisible: onChangeCreatedVisible,
     onChangeLogLibraryInfoDrawVisible: onChangeInfoVisible,
     onChangeIsAccessLogLibrary,
+    onChangeIsLogLibraryAllDatabase,
     onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
 
