@@ -179,7 +179,7 @@ func List(c *core.Context) {
 		total, list = db.AlarmListPage(query, req)
 	} else if did != 0 {
 		// query by database id
-		query["cv_base_table.did"] = did
+		query[db.TableNameBaseTable+".did"] = did
 		total, list = db.AlarmListByDidPage(query, req)
 	} else if iid != 0 {
 		conds := egorm.Conds{}
@@ -188,7 +188,7 @@ func List(c *core.Context) {
 		}
 		ds, _ := db.DatabaseList(invoker.Db, conds)
 		for _, d := range ds {
-			query["cv_base_table.did"] = d.ID
+			query[db.TableNameBaseTable+".did"] = d.ID
 			totalTmp, listTmp := db.AlarmListByDidPage(query, req)
 			list = append(list, listTmp...)
 			total += totalTmp
