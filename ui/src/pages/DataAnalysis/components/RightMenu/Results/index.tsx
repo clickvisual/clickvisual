@@ -59,7 +59,7 @@ const Results = (props: {
     if (visible) {
       if (SQLList.length > 0) {
         const key = sqlQueryResults?.involvedSQLs[SQLList[0]];
-        SQLForm.setFieldsValue({ key: key });
+        SQLForm.setFieldsValue({ key: SQLList[0] });
         setSQLcontent(key);
       }
     }
