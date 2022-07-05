@@ -190,7 +190,10 @@ const useManageNodeAndFolder = () => {
         ]);
         setFolders((folders) => [
           ...folders.filter((item) => item.workflowId !== params.workflowId),
-          ...res.data.children,
+          {
+            folderList: res.data.children,
+            workflowId: params.workflowId,
+          },
         ]);
       });
     },
@@ -322,7 +325,6 @@ const useManageNodeAndFolder = () => {
   };
 
   const onChangeBoardNodes = (nodes: any[]) => {
-    console.log("onChangeBoardNodes: ", nodes);
     setBoardNodeList(nodes);
   };
   const updateBoardNode = (node: any) => {
@@ -338,29 +340,6 @@ const useManageNodeAndFolder = () => {
 
   const onSaveBoardNodes = useCallback(
     (currentBoard: any) => {
-      console.log("onSaveBoardNodes: ", boardNodeList);
-      console.log(
-        " boardNodeList.filter(\n" +
-          "          (item) =>\n" +
-          "            item.secondary === SecondaryEnums.universal &&\n" +
-          "            item.tertiary === TertiaryEnums.input\n" +
-          "        ).length !== 1 &&\n" +
-          "        boardNodeList.filter(\n" +
-          "          (item) =>\n" +
-          "            item.secondary === SecondaryEnums.universal &&\n" +
-          "            item.tertiary === TertiaryEnums.output\n" +
-          "        ).length !== 1: ",
-        boardNodeList.filter(
-          (item) =>
-            item.secondary === SecondaryEnums.universal &&
-            item.tertiary === TertiaryEnums.input
-        ).length !== 1,
-        boardNodeList.filter(
-          (item) =>
-            item.secondary === SecondaryEnums.universal &&
-            item.tertiary === TertiaryEnums.output
-        ).length !== 1
-      );
       // if (
       //   boardNodeList.filter(
       //     (item) =>

@@ -232,6 +232,9 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   }, [workflow.id]);
 
   useMemo(() => {
+    const folderList =
+      folders.find((item) => item.workflowId === workflowItem.id)?.folderList ||
+      [];
     const nodeTree = [
       {
         key: workflow.id,
@@ -255,7 +258,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
             nodeType: NodeType.folder,
             children: folderTree(
               workflowItem,
-              folders,
+              folderList,
               nodes,
               SecondaryEnums.dataIntegration
             ),
