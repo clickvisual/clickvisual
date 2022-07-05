@@ -5,6 +5,10 @@ import { useState } from "react";
 import { message } from "antd";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 
+export enum ClusterMode {
+  cluster = 1,
+}
+
 const Clusters = () => {
   const [clusterList, setClusterList] = useState<ClusterType[]>([]);
 

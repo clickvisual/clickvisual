@@ -40,7 +40,7 @@ const TargetCard = (props: TargetCardProps) => {
           <Input.TextArea
             disabled={isLock}
             allowClear
-            autoSize={{ minRows: 4, maxRows: 4 }}
+            autoSize={{ minRows: 3, maxRows: 3 }}
             placeholder={
               "请参考相应的 SQL 语法填写导入数据去啊边执行的 SQL 脚本"
             }
@@ -50,7 +50,7 @@ const TargetCard = (props: TargetCardProps) => {
           <Input.TextArea
             disabled={isLock}
             allowClear
-            autoSize={{ minRows: 4, maxRows: 4 }}
+            autoSize={{ minRows: 3, maxRows: 3 }}
             placeholder={"请参考相应的 SQL 语法填写导入数据后执行的 SQL 脚本"}
           />
         </Form.Item>
