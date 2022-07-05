@@ -50,7 +50,7 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 		Tid:           table.ID,
 		Database:      table.Database.Name,
 		Table:         table.Name,
-		Query:         db.WhereConditionFromFilter(filters),
+		Query:         db.WhereConditionFromFilter(&alarmObj, filters),
 		TimeField:     table.TimeField,
 		TimeFieldType: table.TimeFieldType,
 		ST:            time.Now().Add(-db.UnitMap[alarmObj.Unit].Duration - time.Minute).Unix(),

@@ -13,32 +13,111 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-// Alarm defines alarm table structure
-type Alarm struct {
-	BaseModel
+const (
+	AlarmModeDefault int = iota
+	AlarmModeAggregation
+	AlarmModeWithInSQL
+)
 
-	Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                            // uid of alarm operator
-	Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                            // table id
-	Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                            // foreign key
-	Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                       // name of an alarm
-	Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                            // description
-	Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                  // interval second between alarm
-	Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
-	AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                  // prometheus alert rule
-	View          string        `gorm:"column:view;type:text" json:"view"`                                             // view table ddl
-	ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                 // name of view table
-	Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                               // tags
-	Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                      // status
-	RuleStoreType int           `gorm:"column:rule_store_type;type:int(11)" db:"rule_store_type" json:"ruleStoreType"` // ruleStoreType
-	ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`               // channel of an alarm
-	NoDataOp      int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`                // noDataOp 0 nodata 1 ok 2 alert
+const (
+	AlarmLevelDefault int = iota
+	AlarmLevelKnow
+	AlarmLevelFatal
+)
 
-	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
-}
+const (
+	AlarmStatusClose = iota + 1
+	AlarmStatusOpen
+	AlarmStatusFiring
+)
 
 func (m *Alarm) TableName() string {
 	return TableAlarm
 }
+
+func (m *AlarmFilter) TableName() string {
+	return TableAlarmFilter
+}
+
+func (m *AlarmChannel) TableName() string {
+	return TableAlarmChannel
+}
+
+func (m *AlarmHistory) TableName() string {
+	return TableAlarmHistory
+}
+
+func (m *AlarmCondition) TableName() string {
+	return TableAlarmCondition
+}
+
+// Alarm defines alarm table structure
+type (
+	Alarm struct {
+		BaseModel
+
+		Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                            // uid of alarm operator
+		Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                            // table id
+		Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                            // foreign key
+		Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                       // name of an alarm
+		Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                            // description
+		Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                  // interval second between alarm
+		Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
+		AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                  // prometheus alert rule
+		View          string        `gorm:"column:view;type:text" json:"view"`                                             // view table ddl
+		ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                 // name of view table
+		Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                               // tags
+		Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                      // status
+		RuleStoreType int           `gorm:"column:rule_store_type;type:int(11)" db:"rule_store_type" json:"ruleStoreType"` // ruleStoreType
+		ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`               // channel of an alarm
+		NoDataOp      int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`                // noDataOp 0 nodata 1 ok 2 alert
+		Mode          int           `gorm:"column:mode;type:int(11)" json:"mode"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
+		Level         int           `gorm:"column:level;type:int(11)" json:"level"`                                        // 0 m 1 s 2 h 3 d 4 w 5 y
+
+		User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
+	}
+
+	// AlarmFilter 告警过滤条件
+	AlarmFilter struct {
+		BaseModel
+
+		Tid            int    `gorm:"column:tid;type:int(11)" json:"tid"`                            // table id
+		AlarmId        int    `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`                   // alarm id
+		When           string `gorm:"column:when;type:text" json:"when"`                             // 执行条件
+		SetOperatorTyp int    `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"`      // 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS
+		SetOperatorExp string `gorm:"column:set_operator_exp;type:varchar(255);NOT NULL" json:"exp"` // 操作
+	}
+
+	// AlarmCondition 告警触发条件
+	AlarmCondition struct {
+		BaseModel
+
+		AlarmId        int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`              // alarm id
+		SetOperatorTyp int `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"` // 0 WHEN 1 AND 2 OR
+		SetOperatorExp int `gorm:"column:set_operator_exp;type:int(11);NOT NULL" json:"exp"` // 0 avg 1 min 2 max 3 sum 4 count
+		Cond           int `gorm:"column:cond;type:int(11)" json:"cond"`                     // 0 above 1 below 2 outside range 3 within range
+		Val1           int `gorm:"column:val_1;type:int(11)" json:"val1"`                    // 基准值/最小值
+		Val2           int `gorm:"column:val_2;type:int(11)" json:"val2"`                    // 最大值
+	}
+
+	// AlarmChannel 告警渠道
+	AlarmChannel struct {
+		BaseModel
+
+		Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 告警渠道名称
+		Key  string `gorm:"column:key;type:text" json:"key"`                    // 关键信息
+		Typ  int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // 告警类型：0 dd
+		Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
+	}
+
+	// AlarmHistory 告警渠道
+	AlarmHistory struct {
+		BaseModel
+
+		AlarmId  int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`   // alarm id
+		IsPushed int `gorm:"column:is_pushed;type:int(11)" json:"isPushed"` // alarm id
+	}
+)
 
 func (m *Alarm) AlertRuleName() string {
 	return fmt.Sprintf("cv-%s.yaml", m.Uuid)
@@ -51,12 +130,6 @@ func (m *Alarm) AlertViewName(database, table string) string {
 func (m *Alarm) AlertUniqueName() string {
 	return strings.ReplaceAll(m.Uuid, "-", "_")
 }
-
-const (
-	AlarmStatusClose = iota + 1
-	AlarmStatusOpen
-	AlarmStatusFiring
-)
 
 type UnitItem struct {
 	Alias    string        `json:"alias"`
@@ -90,7 +163,10 @@ func (m *Alarm) AlertInterval() string {
 	return fmt.Sprintf("%d%s", m.Interval, UnitMap[m.Unit].Alias)
 }
 
-func WhereConditionFromFilter(filters []*AlarmFilter) (filter string) {
+func WhereConditionFromFilter(alarm *Alarm, filters []*AlarmFilter) (filter string) {
+	if alarm.Mode == AlarmModeAggregation {
+		return getWithSQL(filters)
+	}
 	for i, f := range filters {
 		if i == 0 {
 			filter = f.When
@@ -99,6 +175,15 @@ func WhereConditionFromFilter(filters []*AlarmFilter) (filter string) {
 		}
 	}
 	return filter
+}
+
+func getWithSQL(filters []*AlarmFilter) string {
+	for _, f := range filters {
+		if f.When != "" {
+			return f.When
+		}
+	}
+	return ""
 }
 
 func GetAlarmTableInstanceInfo(id int) (instanceInfo BaseInstance, tableInfo BaseTable, alarmInfo Alarm, err error) {
@@ -228,21 +313,6 @@ func AlarmDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
-// AlarmFilter 告警过滤条件
-type AlarmFilter struct {
-	BaseModel
-
-	Tid            int    `gorm:"column:tid;type:int(11)" json:"tid"`                            // table id
-	AlarmId        int    `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`                   // alarm id
-	When           string `gorm:"column:when;type:text" json:"when"`                             // 执行条件
-	SetOperatorTyp int    `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"`      // 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS
-	SetOperatorExp string `gorm:"column:set_operator_exp;type:varchar(255);NOT NULL" json:"exp"` // 操作
-}
-
-func (m *AlarmFilter) TableName() string {
-	return TableAlarmFilter
-}
-
 func AlarmFilterInfo(db *gorm.DB, id int) (resp AlarmFilter, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
@@ -294,22 +364,6 @@ func AlarmFilterDelete(db *gorm.DB, id int) (err error) {
 		return
 	}
 	return
-}
-
-// AlarmCondition 告警触发条件
-type AlarmCondition struct {
-	BaseModel
-
-	AlarmId        int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`              // alarm id
-	SetOperatorTyp int `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"` // 0 WHEN 1 AND 2 OR
-	SetOperatorExp int `gorm:"column:set_operator_exp;type:int(11);NOT NULL" json:"exp"` // 0 avg 1 min 2 max 3 sum 4 count
-	Cond           int `gorm:"column:cond;type:int(11)" json:"cond"`                     // 0 above 1 below 2 outside range 3 within range
-	Val1           int `gorm:"column:val_1;type:int(11)" json:"val1"`                    // 基准值/最小值
-	Val2           int `gorm:"column:val_2;type:int(11)" json:"val2"`                    // 最大值
-}
-
-func (m *AlarmCondition) TableName() string {
-	return TableAlarmCondition
 }
 
 func AlarmConditionInfo(db *gorm.DB, id int) (resp AlarmCondition, err error) {
@@ -365,20 +419,6 @@ func AlarmConditionDelete(db *gorm.DB, id int) (err error) {
 	return
 }
 
-// AlarmChannel 告警渠道
-type AlarmChannel struct {
-	BaseModel
-
-	Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 告警渠道名称
-	Key  string `gorm:"column:key;type:text" json:"key"`                    // 关键信息
-	Typ  int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // 告警类型：0 dd
-	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
-}
-
-func (m *AlarmChannel) TableName() string {
-	return TableAlarmChannel
-}
-
 func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
@@ -430,18 +470,6 @@ func AlarmChannelDelete(db *gorm.DB, id int) (err error) {
 		return
 	}
 	return
-}
-
-// AlarmHistory 告警渠道
-type AlarmHistory struct {
-	BaseModel
-
-	AlarmId  int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`   // alarm id
-	IsPushed int `gorm:"column:is_pushed;type:int(11)" json:"isPushed"` // alarm id
-}
-
-func (m *AlarmHistory) TableName() string {
-	return TableAlarmHistory
 }
 
 func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {

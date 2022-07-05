@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/econf"
 	"strings"
 	"time"
+
+	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -79,7 +80,7 @@ func transformToMarkdown(notification view.Notification, alarm *db.Alarm, channe
 	if err != nil {
 		return
 	}
-	exp := db.WhereConditionFromFilter(filters)
+	exp := db.WhereConditionFromFilter(alarm, filters)
 	user, _ := db.UserInfo(alarm.Uid)
 	ins, table, _, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
 	for _, alert := range notification.Alerts {

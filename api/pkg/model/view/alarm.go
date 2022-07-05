@@ -19,6 +19,8 @@ type ReqAlarmCreate struct {
 	ChannelIds []int                     `json:"channelIds" form:"channelIds"`
 	Filters    []ReqAlarmFilterCreate    `json:"filters" form:"filters"`
 	Conditions []ReqAlarmConditionCreate `json:"conditions" form:"conditions"`
+	Mode       int                       `json:"mode" form:"mode"`
+	Level      int                       `json:"level" form:"level"`
 }
 
 type ReqAlarmFilterCreate struct {
@@ -47,63 +49,67 @@ type RespAlarmInfo struct {
 	Instance db.BaseInstance `json:"instance"`
 }
 
-type ReqAlarmHistoryList struct {
-	AlarmId   int `json:"alarmId" form:"alarmId"`
-	StartTime int `json:"startTime" form:"startTime"`
-	EndTime   int `json:"endTime" form:"endTime"` // 0 m 1 s 2 h 3 d 4 w 5 y
-	db.ReqPage
-}
+type (
+	ReqAlarmHistoryList struct {
+		AlarmId   int `json:"alarmId" form:"alarmId"`
+		StartTime int `json:"startTime" form:"startTime"`
+		EndTime   int `json:"endTime" form:"endTime"` // 0 m 1 s 2 h 3 d 4 w 5 y
+		db.ReqPage
+	}
 
-type RespAlarmHistoryList struct {
-	Total int64              `json:"total"`
-	Succ  int64              `json:"succ"`
-	List  []*db.AlarmHistory `json:"list"`
-}
+	RespAlarmHistoryList struct {
+		Total int64              `json:"total"`
+		Succ  int64              `json:"succ"`
+		List  []*db.AlarmHistory `json:"list"`
+	}
+)
 
-type RespAlarmList struct {
-	*db.Alarm
-	TableName    string `json:"tableName"`
-	TableDesc    string `json:"tableDesc"`
-	Tid          int    `json:"tid"`
-	DatabaseName string `json:"databaseName"`
-	DatabaseDesc string `json:"databaseDesc"`
-	Did          int    `json:"did"`
-	InstanceName string `json:"instanceName"`
-	InstanceDesc string `json:"instanceDesc"`
-	Iid          int    `json:"iid"`
-}
+type (
+	RespAlarmList struct {
+		*db.Alarm
+		TableName    string `json:"tableName"`
+		TableDesc    string `json:"tableDesc"`
+		Tid          int    `json:"tid"`
+		DatabaseName string `json:"databaseName"`
+		DatabaseDesc string `json:"databaseDesc"`
+		Did          int    `json:"did"`
+		InstanceName string `json:"instanceName"`
+		InstanceDesc string `json:"instanceDesc"`
+		Iid          int    `json:"iid"`
+	}
 
-type Alert struct {
-	Labels      map[string]string `json:"labels"`
-	Annotations map[string]string `json:"annotations"`
-	StartsAt    time.Time         `json:"startsAt"`
-	EndsAt      time.Time         `json:"endsAt"`
-}
+	Alert struct {
+		Labels      map[string]string `json:"labels"`
+		Annotations map[string]string `json:"annotations"`
+		StartsAt    time.Time         `json:"startsAt"`
+		EndsAt      time.Time         `json:"endsAt"`
+	}
 
-type Notification struct {
-	Version           string            `json:"version"`
-	GroupKey          string            `json:"groupKey"`
-	Status            string            `json:"status"`
-	Receiver          string            `json:"receiver"`
-	GroupLabels       map[string]string `json:"groupLabels"`
-	CommonLabels      map[string]string `json:"commonLabels"`
-	CommonAnnotations map[string]string `json:"commonAnnotations"`
-	ExternalURL       string            `json:"externalURL"`
-	Alerts            []Alert           `json:"alerts"`
-}
+	Notification struct {
+		Version           string            `json:"version"`
+		GroupKey          string            `json:"groupKey"`
+		Status            string            `json:"status"`
+		Receiver          string            `json:"receiver"`
+		GroupLabels       map[string]string `json:"groupLabels"`
+		CommonLabels      map[string]string `json:"commonLabels"`
+		CommonAnnotations map[string]string `json:"commonAnnotations"`
+		ExternalURL       string            `json:"externalURL"`
+		Alerts            []Alert           `json:"alerts"`
+	}
 
-type At struct {
-	AtMobiles []string `json:"atMobiles"`
-	IsAtAll   bool     `json:"isAtAll"`
-}
+	At struct {
+		AtMobiles []string `json:"atMobiles"`
+		IsAtAll   bool     `json:"isAtAll"`
+	}
 
-type DingTalkMarkdown struct {
-	MsgType  string    `json:"msgtype"`
-	At       *At       `json:"at"`
-	Markdown *Markdown `json:"markdown"`
-}
+	DingTalkMarkdown struct {
+		MsgType  string    `json:"msgtype"`
+		At       *At       `json:"at"`
+		Markdown *Markdown `json:"markdown"`
+	}
 
-type Markdown struct {
-	Title string `json:"title"`
-	Text  string `json:"text"`
-}
+	Markdown struct {
+		Title string `json:"title"`
+		Text  string `json:"text"`
+	}
+)
