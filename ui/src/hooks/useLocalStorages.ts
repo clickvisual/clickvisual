@@ -5,6 +5,11 @@ interface FoldLogStorageType {
   flag: boolean;
 }
 
+export enum LocalModuleType {
+  dataLogs = "data-Logs",
+  dataAnalysis = "data-analysis",
+}
+
 export interface LastDataLogsStateType extends UrlStateType {}
 
 const useLocalStorages = () => {
@@ -41,11 +46,61 @@ const useLocalStorages = () => {
     localStorage.setItem("last-datalogs-state", JSON.stringify(value));
   };
 
+  const onSetLocalData = (value: any, moduleName: string) => {
+    try {
+      let AllClickHouse = JSON.parse(
+        localStorage.getItem("click-house") || JSON.stringify({})
+      );
+      let oldClickHouse = AllClickHouse[moduleName] || {};
+      console.log(oldClickHouse, "oldClickHouse");
+
+      const newClickHouse = value;
+      const newKeys = Object.keys(newClickHouse);
+      const oldKeys = Object.keys(oldClickHouse);
+      console.log("old", oldClickHouse);
+      let returnObj = {};
+      let isChange: boolean = false;
+      newKeys.map((item: any) => {
+        // 如果该key不存在，则直接写入local里并返回该值
+        if (!oldKeys.includes(item)) {
+          oldClickHouse[item] = newClickHouse[item];
+          isChange = true;
+          returnObj[item] = newClickHouse[item];
+          return;
+        }
+        // 如果key存在 则对比local和传入的值的新旧关系
+        if (newClickHouse[item] !== undefined) {
+          // 相同则不处理
+          if (newClickHouse[item] == oldClickHouse[item]) {
+            returnObj[item] = newClickHouse[item];
+            return;
+          }
+          oldClickHouse[item] = newClickHouse[item];
+          isChange = true;
+          returnObj[item] = newClickHouse[item];
+          return;
+        }
+        // 当且仅当key的value为undefined时才会取local里的值当做返回值
+        returnObj[item] = oldClickHouse[item];
+      });
+      AllClickHouse[moduleName] = oldClickHouse;
+      isChange &&
+        localStorage.setItem("click-house", JSON.stringify(AllClickHouse));
+      console.log("new", oldClickHouse, returnObj, AllClickHouse);
+
+      return returnObj;
+    } catch (e) {
+      console.error("localaStorage存取的onSetLocalData函数内部执行出错");
+      return false;
+    }
+  };
+
   return {
     getCurrentFoldLogFlag,
     onChangeFoldLogStorage,
     getLastDataLogsState,
     onChangeDataLogsState,
+    onSetLocalData,
   };
 };
 export default useLocalStorages;
