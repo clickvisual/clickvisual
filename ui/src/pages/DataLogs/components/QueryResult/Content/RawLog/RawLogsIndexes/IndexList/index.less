@@ -3,13 +3,17 @@
   display: flex;
   flex: 1;
   justify-content: center;
+  min-width: 0;
   margin: 0 0 5px 0;
   overflow-y: auto;
   & ul {
     flex: 1;
+    overflow-x: auto;
   }
   & ul,
   li {
+    min-width: 163px;
+    max-width: 180px;
     margin: 0;
     padding: 0;
   }
@@ -17,7 +21,7 @@
     &:first-child {
       border-top: 1px solid @border-color;
     }
-
+    
     .indexRow {
       display: flex;
       justify-content: space-between;
