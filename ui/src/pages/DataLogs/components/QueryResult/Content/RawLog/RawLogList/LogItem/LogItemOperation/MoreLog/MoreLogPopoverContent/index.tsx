@@ -12,7 +12,7 @@ interface MoreLogPopoverContentProps {
 const MoreLogPopoverContent = ({ log }: MoreLogPopoverContentProps) => {
   const { logs } = useModel("dataLogs");
   const hiddenFields =
-    logs?.hiddenFields.filter((key, index) => {
+    logs?.hiddenFields?.filter((key, index) => {
       const fields = logs?.hiddenFields || [];
       const preIdx = fields.indexOf(key);
       return preIdx < 0 || preIdx === index;

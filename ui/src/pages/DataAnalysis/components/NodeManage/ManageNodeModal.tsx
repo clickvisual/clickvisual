@@ -43,6 +43,20 @@ const ManageNodeModal = () => {
   };
 
   const addNode = (fields: any) => {
+    if (
+      fields.tertiary === TertiaryEnums.start ||
+      fields.tertiary === TertiaryEnums.end
+    ) {
+      callbackRef.current?.({
+        id: `${TertiaryEnums[fields.tertiary]}-${extra.workflowId}-${
+          fields.tertiary
+        }`,
+        ...extra,
+        ...fields,
+      });
+      onCancel();
+      return;
+    }
     doCreatedNode.run({ ...fields, ...extra }).then((res) => {
       callbackRef.current?.(res?.data);
       onCancel();
@@ -50,6 +64,14 @@ const ManageNodeModal = () => {
   };
 
   const updateNode = (fields: any) => {
+    if (
+      fields.tertiary === TertiaryEnums.start ||
+      fields.tertiary === TertiaryEnums.end
+    ) {
+      callbackRef.current?.({ ...currentNode, ...fields });
+      onCancel();
+      return;
+    }
     doUpdatedNode.run(extra.id, { ...fields, ...extra }).then(() => {
       callbackRef.current?.({ ...currentNode, ...fields });
       onCancel();

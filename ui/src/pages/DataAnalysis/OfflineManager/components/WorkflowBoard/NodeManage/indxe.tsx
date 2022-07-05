@@ -138,7 +138,7 @@ const NodeModule = ({
               draggable={!isLock}
               className={styles.nodeSelect}
               onDragStart={(event) =>
-                onDragStart(event, "input", TertiaryEnums.input, nodeSecondary)
+                onDragStart(event, "input", TertiaryEnums.start, nodeSecondary)
               }
             >
               <SVGIcon type={SVGTypeEnums.start} />
@@ -150,12 +150,7 @@ const NodeModule = ({
               draggable={!isLock}
               className={styles.nodeSelect}
               onDragStart={(event) =>
-                onDragStart(
-                  event,
-                  "output",
-                  TertiaryEnums.output,
-                  nodeSecondary
-                )
+                onDragStart(event, "output", TertiaryEnums.end, nodeSecondary)
               }
             >
               <SVGIcon type={SVGTypeEnums.end} />

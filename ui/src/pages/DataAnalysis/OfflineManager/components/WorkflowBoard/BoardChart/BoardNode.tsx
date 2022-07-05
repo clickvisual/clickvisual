@@ -32,13 +32,19 @@ const BoardNode = ({
     DeletedModal({
       content: `确定删除节点: ${node.name} 吗？`,
       onOk: () =>
-        onDelete([node.id]).then(() =>
+        onDelete([node.id]).then(() => {
+          if (
+            node.tertiary === TertiaryEnums.start ||
+            node.tertiary === TertiaryEnums.end
+          ) {
+            return;
+          }
           doSetNodesAndFolders({
             iid: node.iid,
             primary: node.primary,
             workflowId: node.workflowId,
-          })
-        ),
+          });
+        }),
     });
   };
 
@@ -79,14 +85,15 @@ const BoardNode = ({
         return <SVGIcon type={SVGTypeEnums.mysql} />;
       case TertiaryEnums.clickhouse:
         return <SVGIcon type={SVGTypeEnums.clickhouse} />;
-      case TertiaryEnums.output:
+      case TertiaryEnums.end:
         return <SVGIcon type={SVGTypeEnums.end} />;
-      case TertiaryEnums.input:
+      case TertiaryEnums.start:
         return <SVGIcon type={SVGTypeEnums.start} />;
       default:
         return <SVGIcon type={SVGTypeEnums.default} />;
     }
   }, [node]);
+
   return (
     <Dropdown overlay={menu} trigger={["contextMenu"]}>
       <div style={{ display: "flex" }}>
