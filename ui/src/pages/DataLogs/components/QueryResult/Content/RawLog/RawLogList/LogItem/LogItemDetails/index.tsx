@@ -33,7 +33,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
   } = useMemo(() => {
     // 隐藏字段
     const hiddenFields: string[] =
-      logs?.hiddenFields.filter((key, index) => {
+      logs?.hiddenFields?.filter((key, index) => {
         const fields = logs?.hiddenFields || [];
         const preIdx = fields.indexOf(key);
         return preIdx < 0 || preIdx === index;
