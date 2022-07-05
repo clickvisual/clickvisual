@@ -20,12 +20,20 @@
     }
   }
   .nodeSelect {
-    margin: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 10px;
+    padding: 0 8px;
     line-height: 30px;
-    text-align: center;
     border: 1px solid @border-color;
     border-radius: 4px;
     cursor: pointer;
     user-select: none;
+
+    .nodeTitle {
+      flex: 1;
+      text-align: center;
+    }
   }
 }

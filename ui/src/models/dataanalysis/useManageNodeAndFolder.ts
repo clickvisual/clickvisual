@@ -8,7 +8,6 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
-import { message } from "antd";
 
 export const PrimaryList = [
   {
@@ -191,7 +190,10 @@ const useManageNodeAndFolder = () => {
         ]);
         setFolders((folders) => [
           ...folders.filter((item) => item.workflowId !== params.workflowId),
-          ...res.data.children,
+          {
+            folderList: res.data.children,
+            workflowId: params.workflowId,
+          },
         ]);
       });
     },
@@ -314,16 +316,11 @@ const useManageNodeAndFolder = () => {
 
   const createBoardNode = (node: any) => {
     setBoardNodeList((boardNodeList) => {
-      console.log("【create boardNodeList】:", boardNodeList, node, [
-        ...boardNodeList,
-        node,
-      ]);
       return [...boardNodeList, node];
     });
   };
 
   const onChangeBoardNodes = (nodes: any[]) => {
-    console.log("onChangeBoardNodes: ", nodes);
     setBoardNodeList(nodes);
   };
   const updateBoardNode = (node: any) => {
@@ -339,21 +336,20 @@ const useManageNodeAndFolder = () => {
 
   const onSaveBoardNodes = useCallback(
     (currentBoard: any) => {
-      if (
-        boardNodeList.filter(
-          (item) =>
-            item.secondary === SecondaryEnums.universal &&
-            item.tertiary === TertiaryEnums.input
-        ).length !== 1 &&
-        boardNodeList.filter(
-          (item) =>
-            item.secondary === SecondaryEnums.universal &&
-            item.tertiary === TertiaryEnums.output
-        ).length !== 1
-      ) {
-        message.warning("只能存在一个 Start 和一个 End 节点");
-      }
-      console.log("onSaveBoardNodes: ", boardNodeList);
+      // if (
+      //   boardNodeList.filter(
+      //     (item) =>
+      //       item.secondary === SecondaryEnums.universal &&
+      //       item.tertiary === TertiaryEnums.input
+      //   ).length !== 1 ||
+      //   boardNodeList.filter(
+      //     (item) =>
+      //       item.secondary === SecondaryEnums.universal &&
+      //       item.tertiary === TertiaryEnums.output
+      //   ).length !== 1
+      // ) {
+      //   message.warning("只能存在一个 Start 和一个 End 节点");
+      // }
       const boardNodes = boardNodeList.map((item) => ({
         id: item.id,
         position: item.position,

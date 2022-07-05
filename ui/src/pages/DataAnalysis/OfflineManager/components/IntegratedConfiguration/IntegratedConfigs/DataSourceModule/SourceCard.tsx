@@ -46,7 +46,7 @@ const SourceCard = (props: SourceCardProps) => {
           <Input.TextArea
             disabled={isLock}
             allowClear
-            autoSize={{ minRows: 4, maxRows: 4 }}
+            autoSize={{ minRows: 3, maxRows: 3 }}
             placeholder={"请参考相应的 SQL 语法填写过滤条件"}
           />
         </Form.Item>

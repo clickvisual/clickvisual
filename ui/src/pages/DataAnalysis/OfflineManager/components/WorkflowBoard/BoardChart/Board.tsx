@@ -23,6 +23,7 @@ export interface BoardProps {
   onCreate: (params: any, nodeInfo: any) => void;
   isLock: boolean;
 }
+
 const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   const BoardWrapper = useRef<any>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
@@ -80,7 +81,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   useKeyPress("Backspace", handleDeleteEdges);
 
   const onConnect = useCallback((params) => {
-    console.log("params: ", params);
     const edge = {
       ...params,
       markerEnd: {
@@ -135,7 +135,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   );
 
   const isValidConnection = (connection: any) => {
-    console.log("nodes: ", nodeListRef.current, connection);
     return (
       nodeListRef.current?.find((item) => item.id === connection.target)
         ?.type === FlowNodeTypeEnums.default ||
@@ -183,6 +182,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
       g.setEdge(edge.source, edge.target);
     }
     // g.setParent("bbbb", "aaaa");
+
     layout(g);
     const newNodes: any[] = [];
     for (const node of nodes) {
@@ -245,7 +245,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
       return NodeList;
     };
 
-    setNodes(newNodes);
+    setNodes(() => newNodes());
     nodeListRef.current = newNodes();
     setEdges(() => [...EdgeList]);
   }, []);

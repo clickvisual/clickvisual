@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
-import { Form, Select } from "antd";
+import { Button, Col, Form, Row, Select } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import {
   DataSourceTypeEnums,
@@ -9,6 +9,8 @@ import {
 } from "@/pages/DataAnalysis/OfflineManager/config";
 import { useModel } from "@@/plugin-model/useModel";
 import Request from "umi-request";
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
+import { ClusterMode } from "@/models/clusters";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
@@ -37,6 +39,7 @@ const DatasourceSelect = ({
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
   const {
     instances,
+    openModal,
     currentInstance,
     cancelTokenTargetListRef,
     cancelTokenSourceListRef,
@@ -54,6 +57,7 @@ const DatasourceSelect = ({
     cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
     cancelTokenTargetRef: model.integratedConfigs.cancelTokenTargetRef,
     cancelTokenSourceRef: model.integratedConfigs.cancelTokenSourceRef,
+    openModal: model.integratedConfigs.openModal,
     cancelTokenTargetTableRef:
       model.integratedConfigs.cancelTokenTargetTableRef,
     cancelTokenSourceTableRef:
@@ -317,80 +321,98 @@ const DatasourceSelect = ({
 
   return (
     <>
-      <Form.Item
-        name={[...itemNamePath, "type"]}
-        label={"Type"}
-        initialValue={
-          !itemNamePath.includes("target") && DataSourceTypeEnums.ClickHouse
-        }
-      >
-        <Select
-          disabled={isLock}
-          options={TypesOptions}
-          onSelect={handleSelectType}
-          onChange={(value: any) => {
-            if (!value) return;
-            if (itemNamePath.includes("source") && onSelectType) {
-              onSelectType?.(value);
+      <Row gutter={8}>
+        <Col span={10}>
+          <Form.Item
+            label={"Type"}
+            name={[...itemNamePath, "type"]}
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+            initialValue={
+              !itemNamePath.includes("target") && DataSourceTypeEnums.ClickHouse
             }
-            if (itemNamePath.includes("source")) {
-              onChangeColumns([]);
-              setSourceTableList([]);
-              setDatabaseList([]);
-              setDatasourceList([]);
+          >
+            <Select
+              disabled={isLock}
+              options={TypesOptions}
+              onSelect={handleSelectType}
+              onChange={(value: any) => {
+                if (!value) return;
+                if (itemNamePath.includes("source") && onSelectType) {
+                  onSelectType?.(value);
+                }
+                if (itemNamePath.includes("source")) {
+                  onChangeColumns([]);
+                  setSourceTableList([]);
+                  setDatabaseList([]);
+                  setDatasourceList([]);
 
-              form.resetFields([
-                ["target", "type"],
-                ["target", "table"],
-                ["target", "database"],
-                ["target", "datasource"],
-              ]);
-            }
-            handleChangeSelect(FormItemEnums.type);
-          }}
-        />
-      </Form.Item>
-
-      <Form.Item noStyle shouldUpdate={handleFormUpdate}>
-        {({ getFieldValue }) => {
-          const type = getFieldValue([...itemNamePath, "type"]);
-          // todo: 1 为集群，没有枚举
-          if (
-            type === DataSourceTypeEnums.ClickHouse &&
-            instances.find((item) => item.id === currentInstance)?.mode === 1
-          ) {
-            return (
-              <Form.Item name={[...itemNamePath, "cluster"]} label={"Cluster"}>
-                <Select showSearch options={ClusterOptions} disabled={isLock} />
-              </Form.Item>
-            );
-          }
-          if (type === DataSourceTypeEnums.MySQL) {
-            return (
-              <Form.Item
-                name={[...itemNamePath, "datasource"]}
-                label={"Datasource"}
-              >
-                <Select
-                  showSearch
-                  disabled={isLock}
-                  options={DatasourceOptions}
-                  onSelect={handleSelectDatasource}
-                  onChange={(value: any) => {
-                    if (!value) return;
-                    handleChangeSelect(FormItemEnums.datasource);
-                  }}
-                />
-              </Form.Item>
-            );
-          }
-          return null;
-        }}
-      </Form.Item>
+                  form.resetFields([
+                    ["target", "type"],
+                    ["target", "table"],
+                    ["target", "database"],
+                    ["target", "datasource"],
+                  ]);
+                }
+                handleChangeSelect(FormItemEnums.type);
+              }}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={14}>
+          <Form.Item noStyle shouldUpdate={handleFormUpdate}>
+            {({ getFieldValue }) => {
+              const type = getFieldValue([...itemNamePath, "type"]);
+              if (
+                type === DataSourceTypeEnums.ClickHouse &&
+                instances.find((item) => item.id === currentInstance)?.mode ===
+                  ClusterMode.cluster
+              ) {
+                return (
+                  <Form.Item
+                    label={"Cluster"}
+                    name={[...itemNamePath, "cluster"]}
+                    labelCol={{ span: 8 }}
+                    wrapperCol={{ span: 16 }}
+                  >
+                    <Select
+                      showSearch
+                      options={ClusterOptions}
+                      disabled={isLock}
+                    />
+                  </Form.Item>
+                );
+              }
+              if (type === DataSourceTypeEnums.MySQL) {
+                return (
+                  <Form.Item
+                    label={"Datasource"}
+                    name={[...itemNamePath, "datasource"]}
+                    labelCol={{ span: 9 }}
+                    wrapperCol={{ span: 15 }}
+                  >
+                    <Select
+                      showSearch
+                      disabled={isLock}
+                      options={DatasourceOptions}
+                      onSelect={handleSelectDatasource}
+                      onChange={(value: any) => {
+                        if (!value) return;
+                        handleChangeSelect(FormItemEnums.datasource);
+                      }}
+                    />
+                  </Form.Item>
+                );
+              }
+              return null;
+            }}
+          </Form.Item>
+        </Col>
+      </Row>
       <Form.Item name={[...itemNamePath, "database"]} label={"Database"}>
         <Select
           showSearch
-          disabled={isLock}
+          disabled={isLock || !form.getFieldValue([...itemNamePath, "type"])}
           options={DataBaseOptions}
           onSelect={handleSelectDatabase}
           onChange={(value: any) => {
@@ -399,15 +421,37 @@ const DatasourceSelect = ({
           }}
         />
       </Form.Item>
-      <Form.Item name={[...itemNamePath, "table"]} label={"Table"}>
-        <Select
-          showSearch
-          disabled={isLock}
-          options={SourceTableOptions}
-          onSelect={(value: any) => {
-            handleSelectTable(value, true);
-          }}
-        />
+      <Form.Item label={"Table"}>
+        <Row gutter={12}>
+          <Col span={19}>
+            <Form.Item noStyle name={[...itemNamePath, "table"]}>
+              <Select
+                showSearch
+                disabled={isLock}
+                options={SourceTableOptions}
+                onSelect={(value: any) => {
+                  handleSelectTable(value, true);
+                }}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={5}>
+            <Button
+              type={"primary"}
+              onClick={() => {
+                const table = form.getFieldValue([...itemNamePath, "table"]);
+                if (itemNamePath.includes("source")) {
+                  openModal(OpenTypeEnums.source, table);
+                }
+                if (itemNamePath.includes("target")) {
+                  openModal(OpenTypeEnums.target, table);
+                }
+              }}
+            >
+              表结构
+            </Button>
+          </Col>
+        </Row>
       </Form.Item>
     </>
   );

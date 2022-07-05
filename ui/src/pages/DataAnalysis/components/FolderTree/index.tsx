@@ -13,11 +13,12 @@ import { DataNode } from "antd/lib/tree";
 import "@/pages/DataAnalysis/components/FolderTree/index";
 import CreateAndUpdateFolder from "@/pages/DataAnalysis/components/FolderTree/CreateAndUpdateFolder";
 import CreateAndUpdateNode from "@/pages/DataAnalysis/components/FolderTree/CreateAndUpdateNode";
-import { useEffect, useState } from "react";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Key } from "antd/lib/table/interface";
 import { useModel } from "umi";
 import FolderTitle from "@/pages/DataAnalysis/components/FolderTree/FolderTitle";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 const { DirectoryTree } = Tree;
 
@@ -119,9 +120,15 @@ const FolderTree: React.FC = () => {
         }
         return {
           title: <FolderTitle id={parseInt(keyValueList[1])} title={title} />,
-          icon: keyValueList[4] == "true" && (
-            <FileOutlined style={{ color: "#2FABEE" }} />
-          ),
+          icon:
+            keyValueList[4] == "true" &&
+            (keyValueList[6] === TertiaryEnums.clickhouse.toString() ? (
+              <SVGIcon type={SVGTypeEnums.clickhouse} />
+            ) : keyValueList[6] === TertiaryEnums.mysql.toString() ? (
+              <SVGIcon type={SVGTypeEnums.mysql} />
+            ) : (
+              <FileOutlined style={{ color: "#2FABEE" }} />
+            )),
           key: item.key,
         };
       });

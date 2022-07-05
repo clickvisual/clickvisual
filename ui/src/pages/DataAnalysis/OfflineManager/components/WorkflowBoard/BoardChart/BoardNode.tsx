@@ -1,15 +1,9 @@
 import { Dropdown, Menu } from "antd";
 import DeletedModal from "@/components/DeletedModal";
 import { useModel } from "@@/plugin-model/useModel";
-import {
-  ConsoleSqlOutlined,
-  FileOutlined,
-  FileTextOutlined,
-  LoginOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
 import { useMemo } from "react";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 const BoardNode = ({
   node,
@@ -80,16 +74,17 @@ const BoardNode = ({
   const Icon = useMemo(() => {
     switch (node.tertiary) {
       case TertiaryEnums.realtime:
-        return <FileTextOutlined />;
+        return <SVGIcon type={SVGTypeEnums.realtime} />;
       case TertiaryEnums.mysql:
+        return <SVGIcon type={SVGTypeEnums.mysql} />;
       case TertiaryEnums.clickhouse:
-        return <ConsoleSqlOutlined />;
+        return <SVGIcon type={SVGTypeEnums.clickhouse} />;
       case TertiaryEnums.output:
-        return <LogoutOutlined />;
+        return <SVGIcon type={SVGTypeEnums.end} />;
       case TertiaryEnums.input:
-        return <LoginOutlined />;
+        return <SVGIcon type={SVGTypeEnums.start} />;
       default:
-        return <FileOutlined />;
+        return <SVGIcon type={SVGTypeEnums.default} />;
     }
   }, [node]);
   return (

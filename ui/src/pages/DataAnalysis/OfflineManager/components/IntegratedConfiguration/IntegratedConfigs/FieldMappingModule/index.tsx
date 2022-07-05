@@ -1,8 +1,9 @@
-import { Empty, FormInstance } from "antd";
+import { Button, Empty, FormInstance, Space } from "antd";
 import ButterflyDataMapping from "react-data-mapping";
 import "react-data-mapping/dist/index.css";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import "./index.less";
+import { ArrayLengthComparison } from "@/utils/ArrayLengthComparison";
 
 export interface FieldMappingModule {
   form: FormInstance<any>;
@@ -24,12 +25,12 @@ const FieldMappingModule = ({
   const columns = [
     {
       key: "field",
-      width: 150,
+      width: 170,
       primaryKey: true,
     },
     {
       key: "type",
-      width: 150,
+      width: 180,
     },
   ];
   const sourceData = useMemo(() => {
@@ -70,6 +71,82 @@ const FieldMappingModule = ({
     ];
   }, [target]);
 
+  const resetMapping = useCallback(() => {
+    onChange({ mappingData: [] });
+  }, []);
+
+  const peerMapping = useCallback(() => {
+    const targetFields = targetData[0].fields;
+    const sourceFields = sourceData[0].fields;
+    const arrObj: {
+      same: boolean;
+      max?: any[];
+      min?: any[];
+    } | null = ArrayLengthComparison(sourceFields, targetFields);
+    if (!arrObj) return;
+    const mappingData = [];
+    if (arrObj.same) {
+      for (const index in sourceFields) {
+        mappingData.push({
+          source: sourceFields[index].id,
+          sourceNode: "source",
+          target: targetFields[index].id,
+          targetNode: "target",
+        });
+      }
+    }
+
+    if (arrObj.min?.length === sourceFields.length) {
+      for (const index in sourceFields) {
+        mappingData.push({
+          source: sourceFields[index].id,
+          sourceNode: "source",
+          target: targetFields[index].id,
+          targetNode: "target",
+        });
+      }
+    } else {
+      for (const index in targetFields) {
+        mappingData.push({
+          source: sourceFields[index].id,
+          sourceNode: "source",
+          target: targetFields[index].id,
+          targetNode: "target",
+        });
+      }
+    }
+    onChange({
+      targetData,
+      sourceData,
+      mappingData,
+    });
+  }, [targetData, sourceData]);
+
+  const sameNameMapping = useCallback(() => {
+    const targetFields = targetData[0].fields;
+    const sourceFields = sourceData[0].fields;
+    const mappingData = [];
+
+    for (const index in targetFields) {
+      const source = sourceFields.find(
+        (item) => item.id === targetFields[index].id
+      );
+      if (source) {
+        mappingData.push({
+          source: source.id,
+          sourceNode: "source",
+          target: targetFields[index].id,
+          targetNode: "target",
+        });
+      }
+    }
+    onChange({
+      targetData,
+      sourceData,
+      mappingData,
+    });
+  }, [targetData, sourceData]);
+
   if (
     (sourceData?.length <= 0 && targetData?.length <= 0) ||
     !form.getFieldValue(["target", "table"]) ||
@@ -78,29 +155,60 @@ const FieldMappingModule = ({
     return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
   }
   return (
-    <div style={{ padding: "0 20px" }}>
+    <div
+      style={{
+        padding: "0 20px",
+      }}
+    >
       {source?.length > 0 && target?.length > 0 && (
-        <ButterflyDataMapping
-          width={"auto"}
-          height={"auto"}
-          type={"mutiply"}
-          columns={columns}
-          sourceData={sourceData}
-          targetData={targetData}
-          mappingData={mapping}
-          config={{
-            linkNumLimit: 1,
-          }}
-          className={"butterfly-data-mappint test"}
-          sourceClassName={"source-column"}
-          targetClassName={"target-column"}
-          onChange={onChange}
-          readonly={isLock}
-          onCheckChange={() => {}}
-          onLoaded={() => {}}
-          sourceColumns={columns}
-          targetColumns={columns}
-        />
+        <>
+          <div
+            style={{
+              marginBottom: "10px",
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <Space>
+              <Button
+                type={"primary"}
+                disabled={isLock}
+                onClick={sameNameMapping}
+              >
+                同名映射
+              </Button>
+              <Button type={"primary"} disabled={isLock} onClick={peerMapping}>
+                同行映射
+              </Button>
+              <Button type={"primary"} disabled={isLock} onClick={resetMapping}>
+                取消映射
+              </Button>
+            </Space>
+          </div>
+          <ButterflyDataMapping
+            width={"auto"}
+            height={"auto"}
+            type={"mutiply"}
+            columns={columns}
+            sourceData={sourceData}
+            targetData={targetData}
+            mappingData={mapping}
+            config={{
+              linkNumLimit: 1,
+              paddingCenter: 100,
+            }}
+            className={"butterfly-data-mappint mapping"}
+            sourceClassName={"source-column"}
+            targetClassName={"target-column"}
+            onChange={onChange}
+            readonly={isLock}
+            onCheckChange={() => {}}
+            onLoaded={() => {}}
+            sourceColumns={columns}
+            targetColumns={columns}
+          />
+        </>
       )}
     </div>
   );

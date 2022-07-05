@@ -54,7 +54,6 @@ const IntegratedConfigs = ({
         targetType,
       });
     });
-    console.log("handelChangeMapping: ", data, result);
     setMapping(result);
   };
 

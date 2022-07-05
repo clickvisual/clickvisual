@@ -1,20 +1,21 @@
 import {
+  ClusterOutlined,
+  FileOutlined,
   FolderOpenOutlined,
   FolderOutlined,
-  ClusterOutlined,
-  FileTextOutlined,
 } from "@ant-design/icons";
-import SqlIcon from "@/assets/images/sql.svg";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 export enum TreeNodeTypeEnums {
   closeFolder = "closeFolder",
   openFolder = "openFolder",
   workflow = "workflow",
-  node = "node",
-  sql = "sql",
+  realtime = "realtime",
+  mysql = "mysql",
+  clickhouse = "clickhouse",
 }
 export interface TreeNodesIconProps {
-  type: TreeNodeTypeEnums;
+  type: TreeNodeTypeEnums | null;
 }
 
 const TreeNodeTypeIcon = ({ type }: TreeNodesIconProps) => {
@@ -25,19 +26,14 @@ const TreeNodeTypeIcon = ({ type }: TreeNodesIconProps) => {
       return <FolderOpenOutlined />;
     case TreeNodeTypeEnums.workflow:
       return <ClusterOutlined />;
-    case TreeNodeTypeEnums.node:
-      return <FileTextOutlined />;
-    case TreeNodeTypeEnums.sql:
-      return (
-        <img
-          src={SqlIcon}
-          style={{ display: "inline-block", width: 16, height: 16 }}
-          alt={"sql"}
-        />
-      );
-
+    case TreeNodeTypeEnums.realtime:
+      return <SVGIcon type={SVGTypeEnums.realtime} />;
+    case TreeNodeTypeEnums.clickhouse:
+      return <SVGIcon type={SVGTypeEnums.clickhouse} />;
+    case TreeNodeTypeEnums.mysql:
+      return <SVGIcon type={SVGTypeEnums.mysql} />;
     default:
-      return <></>;
+      return <FileOutlined />;
   }
 };
 export default TreeNodeTypeIcon;

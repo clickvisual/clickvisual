@@ -7,6 +7,7 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import { useMemo, useState } from "react";
 import { Empty } from "antd";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 export interface NodeManageProps {
   isLock: boolean;
@@ -83,7 +84,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>MySQL</span>
+              <SVGIcon type={SVGTypeEnums.mysql} />
+              <div className={styles.nodeTitle}>
+                <span>MySQL</span>
+              </div>
             </div>
             <div
               draggable={!isLock}
@@ -97,7 +101,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>ClickHouse</span>
+              <SVGIcon type={SVGTypeEnums.clickhouse} />
+              <div className={styles.nodeTitle}>
+                <span>ClickHouse</span>
+              </div>
             </div>
           </div>
         );
@@ -116,7 +123,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>实时同步</span>
+              <SVGIcon type={SVGTypeEnums.realtime} />
+              <div className={styles.nodeTitle}>
+                <span>实时同步</span>
+              </div>
             </div>
           </div>
         );
@@ -131,7 +141,10 @@ const NodeModule = ({
                 onDragStart(event, "input", TertiaryEnums.input, nodeSecondary)
               }
             >
-              <span>Start</span>
+              <SVGIcon type={SVGTypeEnums.start} />
+              <div className={styles.nodeTitle}>
+                <span>Start</span>
+              </div>
             </div>
             <div
               draggable={!isLock}
@@ -145,7 +158,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>End</span>
+              <SVGIcon type={SVGTypeEnums.end} />
+              <div className={styles.nodeTitle}>
+                <span>End</span>
+              </div>
             </div>
           </div>
         );

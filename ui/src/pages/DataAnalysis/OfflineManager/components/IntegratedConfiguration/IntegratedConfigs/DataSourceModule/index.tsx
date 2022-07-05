@@ -4,6 +4,7 @@ import TargetCard from "@/pages/DataAnalysis/OfflineManager/components/Integrate
 import { FormInstance } from "antd";
 import { useCallback, useState } from "react";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
+import TableColumns from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/TableColumns";
 
 export interface DataSourceModuleProps {
   form: FormInstance<any>;
@@ -49,6 +50,7 @@ const DataSourceModule = (props: DataSourceModuleProps) => {
         {...generalModel}
         isLock={isLock}
       />
+      <TableColumns />
     </div>
   );
 };
