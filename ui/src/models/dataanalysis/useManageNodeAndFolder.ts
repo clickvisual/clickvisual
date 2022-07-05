@@ -8,7 +8,6 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
-import { message } from "antd";
 
 export const PrimaryList = [
   {
@@ -339,21 +338,43 @@ const useManageNodeAndFolder = () => {
 
   const onSaveBoardNodes = useCallback(
     (currentBoard: any) => {
-      if (
+      console.log("onSaveBoardNodes: ", boardNodeList);
+      console.log(
+        " boardNodeList.filter(\n" +
+          "          (item) =>\n" +
+          "            item.secondary === SecondaryEnums.universal &&\n" +
+          "            item.tertiary === TertiaryEnums.input\n" +
+          "        ).length !== 1 &&\n" +
+          "        boardNodeList.filter(\n" +
+          "          (item) =>\n" +
+          "            item.secondary === SecondaryEnums.universal &&\n" +
+          "            item.tertiary === TertiaryEnums.output\n" +
+          "        ).length !== 1: ",
         boardNodeList.filter(
           (item) =>
             item.secondary === SecondaryEnums.universal &&
             item.tertiary === TertiaryEnums.input
-        ).length !== 1 &&
+        ).length !== 1,
         boardNodeList.filter(
           (item) =>
             item.secondary === SecondaryEnums.universal &&
             item.tertiary === TertiaryEnums.output
         ).length !== 1
-      ) {
-        message.warning("只能存在一个 Start 和一个 End 节点");
-      }
-      console.log("onSaveBoardNodes: ", boardNodeList);
+      );
+      // if (
+      //   boardNodeList.filter(
+      //     (item) =>
+      //       item.secondary === SecondaryEnums.universal &&
+      //       item.tertiary === TertiaryEnums.input
+      //   ).length !== 1 ||
+      //   boardNodeList.filter(
+      //     (item) =>
+      //       item.secondary === SecondaryEnums.universal &&
+      //       item.tertiary === TertiaryEnums.output
+      //   ).length !== 1
+      // ) {
+      //   message.warning("只能存在一个 Start 和一个 End 节点");
+      // }
       const boardNodes = boardNodeList.map((item) => ({
         id: item.id,
         position: item.position,

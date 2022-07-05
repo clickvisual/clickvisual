@@ -7,6 +7,7 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import { useMemo, useState } from "react";
 import { Empty } from "antd";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 export interface NodeManageProps {
   isLock: boolean;
@@ -66,6 +67,19 @@ const NodeModule = ({
     }
   }, [nodeSecondary]);
 
+  // case TertiaryEnums.realtime:
+  //   return <SVGIcon type={SVGTypeEnums.realtime} />;
+  // case TertiaryEnums.mysql:
+  //   return <SVGIcon type={SVGTypeEnums.mysql} />;
+  // case TertiaryEnums.clickhouse:
+  //   return <SVGIcon type={SVGTypeEnums.clickhouse} />;
+  // case TertiaryEnums.output:
+  //   return <SVGIcon type={SVGTypeEnums.end} />;
+  // case TertiaryEnums.input:
+  //   return <SVGIcon type={SVGTypeEnums.start} />;
+  // default:
+  //   return <SVGIcon type={SVGTypeEnums.default} />;
+
   const NodeTypes = useMemo(() => {
     switch (nodeSecondary) {
       case SecondaryEnums.dataMining:
@@ -83,7 +97,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>MySQL</span>
+              <SVGIcon type={SVGTypeEnums.mysql} />
+              <div className={styles.nodeTitle}>
+                <span>MySQL</span>
+              </div>
             </div>
             <div
               draggable={!isLock}
@@ -97,7 +114,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>ClickHouse</span>
+              <SVGIcon type={SVGTypeEnums.clickhouse} />
+              <div className={styles.nodeTitle}>
+                <span>ClickHouse</span>
+              </div>
             </div>
           </div>
         );
@@ -116,7 +136,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>实时同步</span>
+              <SVGIcon type={SVGTypeEnums.realtime} />
+              <div className={styles.nodeTitle}>
+                <span>实时同步</span>
+              </div>
             </div>
           </div>
         );
@@ -131,7 +154,10 @@ const NodeModule = ({
                 onDragStart(event, "input", TertiaryEnums.input, nodeSecondary)
               }
             >
-              <span>Start</span>
+              <SVGIcon type={SVGTypeEnums.start} />
+              <div className={styles.nodeTitle}>
+                <span>Start</span>
+              </div>
             </div>
             <div
               draggable={!isLock}
@@ -145,7 +171,10 @@ const NodeModule = ({
                 )
               }
             >
-              <span>End</span>
+              <SVGIcon type={SVGTypeEnums.end} />
+              <div className={styles.nodeTitle}>
+                <span>End</span>
+              </div>
             </div>
           </div>
         );

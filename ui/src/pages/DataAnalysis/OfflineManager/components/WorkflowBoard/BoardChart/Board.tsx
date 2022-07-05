@@ -23,6 +23,7 @@ export interface BoardProps {
   onCreate: (params: any, nodeInfo: any) => void;
   isLock: boolean;
 }
+
 const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   const BoardWrapper = useRef<any>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
@@ -183,11 +184,17 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
       g.setEdge(edge.source, edge.target);
     }
     // g.setParent("bbbb", "aaaa");
+
     layout(g);
     const newNodes: any[] = [];
     for (const node of nodes) {
       const graphNode = g.node(node.id);
       if (!node?.position?.x || !node?.position?.y) {
+        console.log(
+          "!node?.position?.x || !node?.position?.y: ",
+          !node?.position?.x,
+          !node?.position?.y
+        );
         node.position = {
           x: graphNode.x,
           y: graphNode.y,
@@ -195,6 +202,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
       }
       newNodes.push(node);
     }
+    console.log("newNodes: ", newNodes);
     return newNodes;
   }, []);
 
@@ -240,18 +248,33 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
 
     const newNodes = () => {
       if (nodeList.findIndex((item) => !item?.position) > -1) {
-        return getNodesPosition(NodeList, EdgeList);
+        const list = getNodesPosition(NodeList, EdgeList);
+        console.log(
+          "boardNodes.map((item) => ",
+          boardNodes.map((item) => {
+            const position = list.find(
+              (nodeItem) => nodeItem.id === item.id.toString()
+            )?.position;
+            return {
+              ...item,
+              position,
+            };
+          })
+        );
+
+        return list;
       }
       return NodeList;
     };
 
-    setNodes(newNodes);
+    setNodes(() => newNodes());
     nodeListRef.current = newNodes();
     setEdges(() => [...EdgeList]);
   }, []);
 
   useEffect(() => {
     handleChangeNodes(boardNodes, boardEdges);
+    console.log("boardNodes: ", boardNodes);
   }, [boardNodes, boardEdges]);
 
   return (

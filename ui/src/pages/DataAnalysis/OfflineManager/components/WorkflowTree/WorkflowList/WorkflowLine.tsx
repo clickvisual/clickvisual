@@ -4,6 +4,7 @@ import {
   OfflineRightMenuClickSourceEnums,
   PrimaryEnums,
   SecondaryEnums,
+  TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
 import TreeNodeTypeIcon, {
   TreeNodeTypeEnums,
@@ -51,22 +52,28 @@ const folderTree = (
           node.primary === PrimaryEnums.mining &&
           node.secondary === secondary
       )
-      .map((node: any) => ({
-        currentNode: { ...node, workflowId: workflow.id },
-        key: `${workflow.id}-${node.id}-${node.name}`,
-        title: node.name,
-        icon: (
-          <TreeNodeTypeIcon
-            type={
-              secondary === SecondaryEnums.dataMining
-                ? TreeNodeTypeEnums.sql
-                : TreeNodeTypeEnums.node
-            }
-          />
-        ),
-        nodeType: NodeType.node,
-        source: OfflineRightMenuClickSourceEnums.node,
-      }))
+      .map((node: any) => {
+        const type = () => {
+          switch (node.tertiary) {
+            case TertiaryEnums.realtime:
+              return TreeNodeTypeEnums.realtime;
+            case TertiaryEnums.mysql:
+              return TreeNodeTypeEnums.mysql;
+            case TertiaryEnums.clickhouse:
+              return TreeNodeTypeEnums.clickhouse;
+            default:
+              return null;
+          }
+        };
+        return {
+          currentNode: { ...node, workflowId: workflow.id },
+          key: `${workflow.id}-${node.id}-${node.name}`,
+          title: node.name,
+          icon: <TreeNodeTypeIcon type={type()} />,
+          nodeType: NodeType.node,
+          source: OfflineRightMenuClickSourceEnums.node,
+        };
+      })
   );
   return result;
 };
