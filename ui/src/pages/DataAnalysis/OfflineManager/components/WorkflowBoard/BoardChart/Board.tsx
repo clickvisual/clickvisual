@@ -81,7 +81,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   useKeyPress("Backspace", handleDeleteEdges);
 
   const onConnect = useCallback((params) => {
-    console.log("params: ", params);
     const edge = {
       ...params,
       markerEnd: {
@@ -136,7 +135,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   );
 
   const isValidConnection = (connection: any) => {
-    console.log("nodes: ", nodeListRef.current, connection);
     return (
       nodeListRef.current?.find((item) => item.id === connection.target)
         ?.type === FlowNodeTypeEnums.default ||
@@ -190,11 +188,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     for (const node of nodes) {
       const graphNode = g.node(node.id);
       if (!node?.position?.x || !node?.position?.y) {
-        console.log(
-          "!node?.position?.x || !node?.position?.y: ",
-          !node?.position?.x,
-          !node?.position?.y
-        );
         node.position = {
           x: graphNode.x,
           y: graphNode.y,
@@ -202,7 +195,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
       }
       newNodes.push(node);
     }
-    console.log("newNodes: ", newNodes);
     return newNodes;
   }, []);
 
@@ -248,21 +240,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
 
     const newNodes = () => {
       if (nodeList.findIndex((item) => !item?.position) > -1) {
-        const list = getNodesPosition(NodeList, EdgeList);
-        console.log(
-          "boardNodes.map((item) => ",
-          boardNodes.map((item) => {
-            const position = list.find(
-              (nodeItem) => nodeItem.id === item.id.toString()
-            )?.position;
-            return {
-              ...item,
-              position,
-            };
-          })
-        );
-
-        return list;
+        return getNodesPosition(NodeList, EdgeList);
       }
       return NodeList;
     };
@@ -274,7 +252,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
 
   useEffect(() => {
     handleChangeNodes(boardNodes, boardEdges);
-    console.log("boardNodes: ", boardNodes);
   }, [boardNodes, boardEdges]);
 
   return (

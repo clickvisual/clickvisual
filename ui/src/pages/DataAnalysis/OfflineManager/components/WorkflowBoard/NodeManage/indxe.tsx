@@ -67,19 +67,6 @@ const NodeModule = ({
     }
   }, [nodeSecondary]);
 
-  // case TertiaryEnums.realtime:
-  //   return <SVGIcon type={SVGTypeEnums.realtime} />;
-  // case TertiaryEnums.mysql:
-  //   return <SVGIcon type={SVGTypeEnums.mysql} />;
-  // case TertiaryEnums.clickhouse:
-  //   return <SVGIcon type={SVGTypeEnums.clickhouse} />;
-  // case TertiaryEnums.output:
-  //   return <SVGIcon type={SVGTypeEnums.end} />;
-  // case TertiaryEnums.input:
-  //   return <SVGIcon type={SVGTypeEnums.start} />;
-  // default:
-  //   return <SVGIcon type={SVGTypeEnums.default} />;
-
   const NodeTypes = useMemo(() => {
     switch (nodeSecondary) {
       case SecondaryEnums.dataMining:

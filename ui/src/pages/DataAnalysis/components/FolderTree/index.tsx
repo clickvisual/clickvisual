@@ -3,7 +3,8 @@ import FolderTreeStyle from "@/pages/DataAnalysis/components/FolderTree/index.le
 import { Empty, Input, message, Tooltip, Tree } from "antd";
 import {
   DownOutlined,
-  FileAddOutlined, FileOutlined,
+  FileAddOutlined,
+  FileOutlined,
   FolderAddOutlined,
   RedoOutlined,
   SearchOutlined,
@@ -117,7 +118,6 @@ const FolderTree: React.FC = () => {
             children: loop(item.children),
           };
         }
-        console.log("keyValueList: ", keyValueList);
         return {
           title: <FolderTitle id={parseInt(keyValueList[1])} title={title} />,
           icon:
