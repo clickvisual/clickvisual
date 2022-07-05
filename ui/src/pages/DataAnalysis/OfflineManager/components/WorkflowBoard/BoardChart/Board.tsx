@@ -209,10 +209,10 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
     for (const node of nodeList) {
       let type: any = FlowNodeTypeEnums.default;
       switch (node.tertiary) {
-        case TertiaryEnums.input:
+        case TertiaryEnums.start:
           type = FlowNodeTypeEnums.input;
           break;
-        case TertiaryEnums.output:
+        case TertiaryEnums.end:
           type = FlowNodeTypeEnums.output;
           break;
         default:
@@ -222,7 +222,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
 
       // react-flow 组件 id 只支持 string 类型，如果不是 string 会出现许多 BUG，如：连接线不显示
       NodeList.push({
-        id: node.id.toString(),
+        id: node?.id?.toString(),
         type,
         data: {
           label: <BoardNode node={node} onDelete={onDelete} />,

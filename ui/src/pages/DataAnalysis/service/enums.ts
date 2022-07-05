@@ -95,11 +95,11 @@ export enum TertiaryEnums {
   /**
    * 通用节点 - input
    */
-  input = 22,
+  start = 22,
   /**
    * 通用节点 - output
    */
-  output = 23,
+  end = 23,
 }
 
 export enum OfflineRightMenuClickSourceEnums {

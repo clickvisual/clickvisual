@@ -8,6 +8,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
+import { message } from "antd";
 
 export const PrimaryList = [
   {
@@ -79,15 +80,15 @@ export const TertiaryList = [
   //   ],
   // },
   {
-    id: TertiaryEnums.input,
+    id: TertiaryEnums.start,
     title: "输入节点",
-    enum: TertiaryEnums.input,
+    enum: TertiaryEnums.start,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
-    id: TertiaryEnums.output,
+    id: TertiaryEnums.end,
     title: "输出节点",
-    enum: TertiaryEnums.output,
+    enum: TertiaryEnums.end,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
@@ -287,6 +288,11 @@ const useManageNodeAndFolder = () => {
             );
             item.position = nodeItem?.position;
           });
+          const startAndEnd =
+            content?.boardNodeList.filter((item: any) => !!item.node) ?? [];
+          if (startAndEnd.length > 0) {
+            newNodes.push(...startAndEnd.map((item: any) => item.node));
+          }
         }
         const newBoard: any = { nodeList: [], edgeList: [] };
         if (!!content && content?.boardEdges) {
@@ -307,8 +313,16 @@ const useManageNodeAndFolder = () => {
   }, [boardNodeList, boardEdges, boardRef]);
 
   const deleteNodeById = async (nodeId: number) => {
+    const node = boardNodeList.find((item) => item.id === nodeId);
+    if (
+      node?.tertiary === TertiaryEnums.end ||
+      node?.tertiary === TertiaryEnums.start
+    ) {
+      setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
+      return;
+    }
+    setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
     await doDeletedNode.run(nodeId);
-    setBoardNodeList((node) => node.filter((item) => item.id != nodeId));
   };
 
   const deleteNodes = async (nodeIDs: number[]) =>
@@ -336,25 +350,23 @@ const useManageNodeAndFolder = () => {
 
   const onSaveBoardNodes = useCallback(
     (currentBoard: any) => {
-      // if (
-      //   boardNodeList.filter(
-      //     (item) =>
-      //       item.secondary === SecondaryEnums.universal &&
-      //       item.tertiary === TertiaryEnums.input
-      //   ).length !== 1 ||
-      //   boardNodeList.filter(
-      //     (item) =>
-      //       item.secondary === SecondaryEnums.universal &&
-      //       item.tertiary === TertiaryEnums.output
-      //   ).length !== 1
-      // ) {
-      //   message.warning("只能存在一个 Start 和一个 End 节点");
-      // }
+      if (
+        boardNodeList.filter((item) => item.tertiary === TertiaryEnums.end)
+          .length !== 1 ||
+        boardNodeList.filter((item) => item.tertiary === TertiaryEnums.start)
+          .length !== 1
+      ) {
+        message.warning("必须存在且仅存在一组开始和结束节点");
+        return;
+      }
       const boardNodes = boardNodeList.map((item) => ({
         id: item.id,
         position: item.position,
+        node:
+          (item.tertiary === TertiaryEnums.start ||
+            item.tertiary === TertiaryEnums.end) &&
+          item,
       }));
-
       setBoardRef({ nodeList: boardNodeList, edgeList: boardEdges });
       doUpdatedNode.run(currentBoard.id, {
         ...currentBoard,
