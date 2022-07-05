@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
-import { Form, Select } from "antd";
+import { Button, Col, Form, Row, Select } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import {
   DataSourceTypeEnums,
@@ -9,6 +9,7 @@ import {
 } from "@/pages/DataAnalysis/OfflineManager/config";
 import { useModel } from "@@/plugin-model/useModel";
 import Request from "umi-request";
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
@@ -37,6 +38,7 @@ const DatasourceSelect = ({
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
   const {
     instances,
+    openModal,
     currentInstance,
     cancelTokenTargetListRef,
     cancelTokenSourceListRef,
@@ -54,6 +56,7 @@ const DatasourceSelect = ({
     cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
     cancelTokenTargetRef: model.integratedConfigs.cancelTokenTargetRef,
     cancelTokenSourceRef: model.integratedConfigs.cancelTokenSourceRef,
+    openModal: model.integratedConfigs.openModal,
     cancelTokenTargetTableRef:
       model.integratedConfigs.cancelTokenTargetTableRef,
     cancelTokenSourceTableRef:
@@ -399,15 +402,38 @@ const DatasourceSelect = ({
           }}
         />
       </Form.Item>
-      <Form.Item name={[...itemNamePath, "table"]} label={"Table"}>
-        <Select
-          showSearch
-          disabled={isLock}
-          options={SourceTableOptions}
-          onSelect={(value: any) => {
-            handleSelectTable(value, true);
-          }}
-        />
+
+      <Form.Item label={"Table"}>
+        <Row gutter={12}>
+          <Col span={19}>
+            <Form.Item noStyle name={[...itemNamePath, "table"]}>
+              <Select
+                showSearch
+                disabled={isLock}
+                options={SourceTableOptions}
+                onSelect={(value: any) => {
+                  handleSelectTable(value, true);
+                }}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={5}>
+            <Button
+              type={"primary"}
+              onClick={() => {
+                const table = form.getFieldValue([...itemNamePath, "table"]);
+                if (itemNamePath.includes("source")) {
+                  openModal(OpenTypeEnums.source, table);
+                }
+                if (itemNamePath.includes("target")) {
+                  openModal(OpenTypeEnums.target, table);
+                }
+              }}
+            >
+              表结构
+            </Button>
+          </Col>
+        </Row>
       </Form.Item>
     </>
   );

@@ -316,10 +316,6 @@ const useManageNodeAndFolder = () => {
 
   const createBoardNode = (node: any) => {
     setBoardNodeList((boardNodeList) => {
-      console.log("【create boardNodeList】:", boardNodeList, node, [
-        ...boardNodeList,
-        node,
-      ]);
       return [...boardNodeList, node];
     });
   };
