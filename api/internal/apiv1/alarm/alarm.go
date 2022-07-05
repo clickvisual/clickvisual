@@ -63,6 +63,8 @@ func Create(c *core.Context) {
 		NoDataOp:   req.NoDataOp,
 		ChannelIds: db.Ints(req.ChannelIds),
 		Uid:        c.Uid(),
+		Mode:       req.Mode,
+		Level:      req.Level,
 	}
 	if err = db.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()

@@ -223,19 +223,19 @@ func (i *alarm) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (
 	return nil
 }
 
-func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCreate) (err error) {
-	filtersDB, err := i.FilterCreate(tx, obj.ID, req.Filters)
+func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error) {
+	filtersDB, err := i.FilterCreate(tx, alarmObj.ID, req.Filters)
 	if err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 02"), elog.String("err", err.Error()))
 		return
 	}
-	exp, err := i.ConditionCreate(tx, obj, req.Conditions)
+	exp, err := i.ConditionCreate(tx, alarmObj, req.Conditions)
 	if err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 03"), elog.String("err", err.Error()))
 		return
 	}
 	// table info
-	tableInfo, err := db.TableInfo(tx, obj.Tid)
+	tableInfo, err := db.TableInfo(tx, alarmObj.Tid)
 	if err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
 		return
@@ -251,15 +251,15 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 04"), elog.String("err", err.Error()))
 		return
 	}
-	if obj.ViewTableName != "" {
-		err = op.AlertViewDrop(obj.ViewTableName, tableInfo.Database.Cluster)
+	if alarmObj.ViewTableName != "" {
+		err = op.AlertViewDrop(alarmObj.ViewTableName, tableInfo.Database.Cluster)
 		if err != nil {
 			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
 			return
 		}
 	}
 	// gen view table name & sql
-	viewTableName, viewSQL, err := op.AlertViewGen(obj, db.WhereConditionFromFilter(filtersDB))
+	viewTableName, viewSQL, err := op.AlertViewGen(alarmObj, db.WhereConditionFromFilter(alarmObj, filtersDB))
 	if err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 06"), elog.String("err", err.Error()))
 		return
@@ -270,12 +270,12 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 		return
 	}
 	// rule store
-	rule, err := i.PrometheusRuleGen(obj, exp)
+	rule, err := i.PrometheusRuleGen(alarmObj, exp)
 	if err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 08"), elog.String("err", err.Error()))
 		return
 	}
-	if err = i.PrometheusRuleCreateOrUpdate(instance, obj, rule); err != nil {
+	if err = i.PrometheusRuleCreateOrUpdate(instance, alarmObj, rule); err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 09"), elog.String("err", err.Error()))
 		return
 	}
@@ -285,7 +285,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, obj *db.Alarm, req view.ReqAlarmCrea
 	ups["view_table_name"] = viewTableName
 	ups["rule_store_type"] = instance.RuleStoreType
 	ups["status"] = db.AlarmStatusOpen
-	return db.AlarmUpdate(tx, obj.ID, ups)
+	return db.AlarmUpdate(tx, alarmObj.ID, ups)
 }
 
 func (i *alarm) OpenOperator(id int) (err error) {
@@ -323,6 +323,8 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	ups["unit"] = req.Unit
 	ups["uid"] = uid
 	ups["no_data_op"] = req.NoDataOp
+	ups["mode"] = req.Mode
+	ups["level"] = req.Level
 	ups["channel_ids"] = db.Ints(req.ChannelIds)
 	if len(req.Filters) > 0 {
 		ups["tid"] = req.Filters[0].Tid

@@ -41,40 +41,43 @@ type IndexItem struct {
 	HashTyp  int    `json:"hashTyp" form:"hashTyp"`
 }
 
-type ReqQuery struct {
-	Tid           int    `json:"tid" form:"tid"`
-	Database      string `form:"database"`
-	Table         string `form:"table"`
-	DatabaseTable string `form:"databaseTable"`
-	Field         string `form:"field"`
-	Query         string `form:"query"`
-	TimeField     string `form:"timeField"`
-	TimeFieldType int    `form:"timeFieldType"`
-	ST            int64  `form:"st"`
-	ET            int64  `form:"et"`
-	Page          uint32 `form:"page"`
-	PageSize      uint32 `form:"pageSize"`
-}
+type (
+	ReqQuery struct {
+		Tid           int    `json:"tid" form:"tid"`
+		Database      string `form:"database"`
+		Table         string `form:"table"`
+		DatabaseTable string `form:"databaseTable"`
+		Field         string `form:"field"`
+		Query         string `form:"query"`
+		TimeField     string `form:"timeField"`
+		TimeFieldType int    `form:"timeFieldType"`
+		ST            int64  `form:"st"`
+		ET            int64  `form:"et"`
+		Page          uint32 `form:"page"`
+		PageSize      uint32 `form:"pageSize"`
+		AlarmMode     int    `form:"alarmMode"`
+	}
 
-type RespQuery struct {
-	Limited       uint32                   `json:"limited"`
-	Keys          []*db.BaseIndex          `json:"keys"`
-	ShowKeys      []string                 `json:"showKeys"`
-	Count         uint64                   `json:"count"`
-	Terms         [][]string               `json:"terms"`
-	HiddenFields  []string                 `json:"hiddenFields"`
-	DefaultFields []string                 `json:"defaultFields"`
-	Logs          []map[string]interface{} `json:"logs"`
-	Query         string                   `json:"query"`
-}
+	RespQuery struct {
+		Limited       uint32                   `json:"limited"`
+		Keys          []*db.BaseIndex          `json:"keys"`
+		ShowKeys      []string                 `json:"showKeys"`
+		Count         uint64                   `json:"count"`
+		Terms         [][]string               `json:"terms"`
+		HiddenFields  []string                 `json:"hiddenFields"`
+		DefaultFields []string                 `json:"defaultFields"`
+		Logs          []map[string]interface{} `json:"logs"`
+		Query         string                   `json:"query"`
+	}
 
-type ReqComplete struct {
-	Query string `form:"query" binding:"required"`
-}
+	ReqComplete struct {
+		Query string `form:"query" binding:"required"`
+	}
 
-type RespComplete struct {
-	Logs []map[string]interface{} `json:"logs"`
-}
+	RespComplete struct {
+		Logs []map[string]interface{} `json:"logs"`
+	}
+)
 
 type HighCharts struct {
 	Histograms []HighChart `json:"histograms"`

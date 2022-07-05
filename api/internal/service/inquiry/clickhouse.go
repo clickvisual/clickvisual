@@ -545,16 +545,21 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 	} else {
 		sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
 	}
+	vp := bumo.ParamsView{
+		ViewType:     bumo.ViewTypePrometheusMetric,
+		ViewTable:    viewTableName,
+		TimeField:    tableInfo.GetTimeField(),
+		CommonFields: TagsToString(alarm, true),
+		SourceTable:  sourceTableName,
+		Where:        whereCondition}
+	if alarm.Mode == db.AlarmModeAggregation {
+		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
+		vp.WithSQL = whereCondition
+	}
 	viewSQL = c.ViewDo(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,
 		ReplicaStatus: c.rs,
-		View: bumo.ParamsView{
-			ViewType:     bumo.ViewTypePrometheusMetric,
-			ViewTable:    viewTableName,
-			TimeField:    tableInfo.GetTimeField(),
-			CommonFields: TagsToString(alarm, true),
-			SourceTable:  sourceTableName,
-			Where:        whereCondition}})
+		View:          vp})
 	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
 	err = c.alertPrepare()
@@ -651,7 +656,15 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Keys = make([]*db.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
 
-	q := c.logsSQL(param, tid)
+	var q string
+	switch param.AlarmMode {
+	case db.AlarmModeAggregation:
+		q = alarmAggregationSQL(param)
+	case db.AlarmModeWithInSQL:
+		q = param.Query
+	default:
+		q = c.logsSQL(param, tid)
+	}
 	res.Logs, err = c.doQuery(q)
 	if err != nil {
 		return
@@ -1016,9 +1029,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
-
 	selectFields := genSelectFields(tid)
-
 	if param.Page*param.PageSize <= 100 {
 		timeFieldEqual := c.TimeFieldEqual(param, tid)
 		if timeFieldEqual != "" {
@@ -1040,6 +1051,19 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 		param.PageSize, (param.Page-1)*param.PageSize)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
+}
+
+func alarmAggregationSQL(param view.ReqQuery) (sql string) {
+	out := fmt.Sprintf(`with(
+%s
+) as limbo
+SELECT
+   limbo.1 as "metrics",
+   %s as timestamp
+FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
+`, param.Query, param.TimeField, param.DatabaseTable, param.TimeField, param.TimeField)
+	invoker.Logger.Debug("alarmAggregationSQL", elog.Any("out", out), elog.Any("param", param))
+	return out
 }
 
 func genSelectFields(tid int) string {

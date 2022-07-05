@@ -68,7 +68,7 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	if err != nil {
 		return
 	}
-	exp := db.WhereConditionFromFilter(filters)
+	exp := db.WhereConditionFromFilter(alarm, filters)
 	user, _ := db.UserInfo(alarm.Uid)
 	ins, table, _, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
 	for _, alert := range notification.Alerts {

@@ -37,6 +37,7 @@ type ParamsStream struct {
 }
 
 type ParamsView struct {
+	WithSQL      string
 	ViewType     int
 	ViewTable    string
 	TargetTable  string
@@ -51,6 +52,7 @@ const PrometheusMetricName = "clickvisual_alert_metrics"
 const (
 	ViewTypeDefault = iota
 	ViewTypePrometheusMetric
+	ViewTypePrometheusMetricAggregation
 )
 
 const (
