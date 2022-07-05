@@ -246,7 +246,7 @@ func NodeHistoryListPage(conds egorm.Conds, reqList *ReqPage) (total int64, resp
 		reqList.Current = 1
 	}
 	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Select("uuid, utime").Model(BigdataNodeHistory{}).Where(sql, binds...).Order("utime desc")
+	db := invoker.Db.Select("uuid, utime, uid").Model(BigdataNodeHistory{}).Where(sql, binds...).Order("utime desc")
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
