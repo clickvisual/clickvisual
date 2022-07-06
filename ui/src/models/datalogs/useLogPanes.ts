@@ -65,7 +65,6 @@ const useLogPanes = () => {
       tid: newPane.paneId,
       flag: newPane.foldingChecked,
     });
-
     setLogPanes(panes);
   };
 

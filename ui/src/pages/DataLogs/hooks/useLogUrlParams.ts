@@ -13,7 +13,7 @@ import {
 } from "@/config/config";
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TableInfoResponse } from "@/services/dataLogs";
 import { BaseRes } from "@/hooks/useRequest/useRequest";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
@@ -66,6 +66,7 @@ export default function useLogUrlParams() {
     index: ACTIVE_TIME_INDEX,
     queryType: QueryTypeEnum.LOG,
   });
+  const [tid, setTid] = useState<any>();
   const {
     doGetLogsAndHighCharts,
     databaseList,
@@ -201,7 +202,10 @@ export default function useLogUrlParams() {
 
   useEffect(() => {
     const lastDataLogsState = getLastDataLogsState();
-    const tid = urlState.tid || lastDataLogsState.tid;
+    setTid(urlState.tid || lastDataLogsState.tid);
+  }, []);
+
+  useEffect(() => {
     if (tid) {
       doSetUrlQuery(parseInt(tid));
     } else if (
@@ -221,7 +225,7 @@ export default function useLogUrlParams() {
         }
       });
     }
-  }, []);
+  }, [tid]);
 
   useEffect(() => {
     const lastDataLogsState: LastDataLogsStateType = getLastDataLogsState();
@@ -234,5 +238,5 @@ export default function useLogUrlParams() {
       // onChangeCurrentDatabase(databaseList[0]);
       onChangeVisibleDatabaseDraw(true);
     }
-  }, [databaseList, currentDatabase, urlState.did]);
+  }, [databaseList, currentDatabase, urlState.did, urlState.tid]);
 }
