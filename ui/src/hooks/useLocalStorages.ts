@@ -8,9 +8,12 @@ interface FoldLogStorageType {
 export enum LocalModuleType {
   dataLogs = "data-Logs",
   dataAnalysis = "data-analysis",
+  datalogsQuerySql = "datalogs-query-sql",
 }
 
-export interface LastDataLogsStateType extends UrlStateType {}
+export interface LastDataLogsStateType extends UrlStateType {
+  querySql?: any;
+}
 
 const useLocalStorages = () => {
   const getCurrentFoldLogFlag = (tid: string) => {
@@ -52,12 +55,17 @@ const useLocalStorages = () => {
         localStorage.getItem("click-house") || JSON.stringify({})
       );
       let oldClickHouse = AllClickHouse[moduleName] || {};
-      console.log(oldClickHouse, "oldClickHouse");
-
+      if (value === undefined) {
+        return oldClickHouse;
+      }
+      if (value === null) {
+        AllClickHouse[moduleName] = undefined;
+        localStorage.setItem("click-house", JSON.stringify(AllClickHouse));
+        return true;
+      }
       const newClickHouse = value;
       const newKeys = Object.keys(newClickHouse);
       const oldKeys = Object.keys(oldClickHouse);
-      console.log("old", oldClickHouse);
       let returnObj = {};
       let isChange: boolean = false;
       newKeys.map((item: any) => {
@@ -86,8 +94,6 @@ const useLocalStorages = () => {
       AllClickHouse[moduleName] = oldClickHouse;
       isChange &&
         localStorage.setItem("click-house", JSON.stringify(AllClickHouse));
-      console.log("new", oldClickHouse, returnObj, AllClickHouse);
-
       return returnObj;
     } catch (e) {
       console.error("localaStorage存取的onSetLocalData函数内部执行出错");

@@ -9,7 +9,8 @@ import { DEBOUNCE_WAIT } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
 import { LogsResponse } from "@/services/dataLogs";
 import { format } from "sql-formatter";
-import { FloatingButton, Item } from "react-floating-button";
+import { FormatPainterOutlined } from "@ant-design/icons";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const { TextArea } = Input;
 
@@ -23,12 +24,20 @@ const TableQuery = () => {
     logPanesHelper,
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
+  const { onSetLocalData } = useLocalStorages();
   const { logPanes } = logPanesHelper;
   const { chartSql, onChangeChartSql, doGetStatisticalTable } =
     statisticalChartsHelper;
   const [sql, setSql] = useState<string | undefined>(chartSql);
 
   const debouncedSql = useDebounce(sql, { wait: DEBOUNCE_WAIT });
+
+  const dataLogsQuerySql: any = useMemo(() => {
+    if (!currentLogLibrary?.id) return {};
+    return onSetLocalData(undefined, LocalModuleType.datalogsQuerySql);
+  }, [currentLogLibrary?.id]);
+
+  const tid = (currentLogLibrary && currentLogLibrary.id.toString()) || "0";
 
   const oldPane = useMemo(() => {
     if (!currentLogLibrary?.id) return;
@@ -53,6 +62,11 @@ const TableQuery = () => {
     { wait: DEBOUNCE_WAIT }
   );
 
+  const changeLocalStorage = (value: string) => {
+    tid && (dataLogsQuerySql[tid] = value);
+    onSetLocalData(dataLogsQuerySql, LocalModuleType.datalogsQuerySql);
+  };
+
   useEffect(() => {
     onChangeChartSql(debouncedSql);
     onChangeCurrentLogPane({
@@ -61,6 +75,10 @@ const TableQuery = () => {
       querySql: debouncedSql ?? "",
     });
   }, [debouncedSql]);
+
+  useEffect(() => {
+    dataLogsQuerySql[tid] && setSql(dataLogsQuerySql[tid]);
+  }, [dataLogsQuerySql[tid]]);
 
   useEffect(() => {
     setSql(chartSql);
@@ -74,23 +92,32 @@ const TableQuery = () => {
         placeholder={`${i18n.formatMessage({
           id: "log.search.placeholder",
         })}`}
-        onChange={(e) => setSql(e.target.value)}
+        onChange={(e) => {
+          changeLocalStorage(e.target.value);
+          setSql(e.target.value);
+        }}
         autoSize={{ minRows: 10, maxRows: 10 }}
         onPressEnter={() => doSearch.run()}
       />
-        <FloatingButton>
-            <Item
-                imgSrc="sql_format.png"
-                className={searchBarStyles.formatSqlBtn}
-                onClick={() => setSql(format(sql as string))}
-            />
-        </FloatingButton>
+      <div
+        className={searchBarStyles.formatButton}
+        onClick={() => {
+          if (sql) {
+            setSql(format(sql as string));
+            changeLocalStorage(format(sql as string));
+          }
+        }}
+      >
+        <FormatPainterOutlined />
+      </div>
       <Button
         loading={doGetStatisticalTable.loading}
         className={searchBarStyles.searchBtn}
         type="primary"
         icon={<IconFont type={"icon-log-search"} />}
-        onClick={() => doSearch.run()}
+        onClick={() => {
+          doSearch.run();
+        }}
       >
         {i18n.formatMessage({ id: "search" })}
       </Button>
