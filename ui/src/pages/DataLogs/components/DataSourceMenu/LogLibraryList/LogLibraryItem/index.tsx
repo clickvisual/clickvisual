@@ -21,7 +21,7 @@ import lodash from "lodash";
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useState } from "react";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import { TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
@@ -227,7 +227,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       <MenuItem
         icon={<IconFont type={"icon-delete"} />}
         onClick={() => {
-          DeletedModal({
+          deletedModal({
             onOk: () => {
               doDeleted();
             },

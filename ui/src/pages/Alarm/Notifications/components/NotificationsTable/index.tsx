@@ -7,7 +7,7 @@ import { useIntl } from "umi";
 import IconFont from "@/components/IconFont";
 import { EditOutlined } from "@ant-design/icons";
 import { useModel } from "@@/plugin-model/useModel";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 
 type NotificationProps = {
   dataList: ChannelType[];
@@ -56,7 +56,7 @@ const NotificationsTable = ({ loadList, dataList }: NotificationProps) => {
   };
 
   const handleDelete = (record: ChannelType) => {
-    DeletedModal({
+    deletedModal({
       title: i18n.formatMessage({ id: "alarm.notify.modal.title" }),
       content: i18n.formatMessage(
         { id: "alarm.notify.modal.content" },

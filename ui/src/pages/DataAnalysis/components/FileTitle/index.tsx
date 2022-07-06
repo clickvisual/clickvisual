@@ -13,6 +13,8 @@ import { useThrottleFn } from "ahooks";
 import { THROTTLE_WAIT } from "@/config/config";
 import classNames from "classnames";
 import { useMemo } from "react";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 export enum FileTitleType {
   node = "node",
@@ -45,15 +47,69 @@ const FileTitle = ({
   isChange,
 }: FileTitleProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
-  const { doLockNode, doUnLockNode, doRunCodeNode, doStopCodeNode } = useModel(
-    "dataAnalysis",
-    (model) => ({
-      doLockNode: model.manageNode.doLockNode,
-      doUnLockNode: model.manageNode.doUnLockNode,
-      doRunCodeNode: model.manageNode.doRunCodeNode,
-      doStopCodeNode: model.manageNode.doStopCodeNode,
-    })
-  );
+  const {
+    doLockNode,
+    doUnLockNode,
+    doRunCodeNode,
+    doStopCodeNode,
+    selectNode,
+  } = useModel("dataAnalysis", (model) => ({
+    doLockNode: model.manageNode.doLockNode,
+    doUnLockNode: model.manageNode.doUnLockNode,
+    doRunCodeNode: model.manageNode.doRunCodeNode,
+    doStopCodeNode: model.manageNode.doStopCodeNode,
+    selectNode: model.manageNode.selectNode,
+  }));
+
+  const fileType = useMemo(() => {
+    switch (selectNode.tertiary) {
+      case TertiaryEnums.mysql:
+        return (
+          <div>
+            <Space>
+              <SVGIcon type={SVGTypeEnums.mysql} />
+              <span>MySQL</span>
+            </Space>
+          </div>
+        );
+      case TertiaryEnums.clickhouse:
+        return (
+          <div>
+            <Space>
+              <SVGIcon type={SVGTypeEnums.clickhouse} />
+              <span>ClickHouse</span>
+            </Space>
+          </div>
+        );
+      case TertiaryEnums.realtime:
+        return (
+          <div>
+            <Space>
+              <SVGIcon type={SVGTypeEnums.realtime} />
+              <span>实时文件</span>
+            </Space>
+          </div>
+        );
+      case TertiaryEnums.offline:
+        return (
+          <div>
+            <Space>
+              <SVGIcon type={SVGTypeEnums.offline} />
+              <span>离线文件</span>
+            </Space>
+          </div>
+        );
+      default:
+        return (
+          <div>
+            <Space>
+              <SVGIcon type={SVGTypeEnums.default} />
+              <span>未知文件</span>
+            </Space>
+          </div>
+        );
+    }
+  }, [selectNode]);
 
   const NodeStatus = useMemo(() => {
     switch (file?.status) {
@@ -93,6 +149,7 @@ const FileTitle = ({
     <div className={styles.fileTitle}>
       {!!file && (
         <>
+          {fileType}
           <div
             className={classNames(styles.name, isChange && styles.nameChange)}
           />

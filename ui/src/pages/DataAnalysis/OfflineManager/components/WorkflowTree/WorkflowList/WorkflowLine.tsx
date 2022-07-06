@@ -57,6 +57,8 @@ const folderTree = (
           switch (node.tertiary) {
             case TertiaryEnums.realtime:
               return TreeNodeTypeEnums.realtime;
+            case TertiaryEnums.offline:
+              return TreeNodeTypeEnums.offline;
             case TertiaryEnums.mysql:
               return TreeNodeTypeEnums.mysql;
             case TertiaryEnums.clickhouse:

@@ -69,16 +69,6 @@ export const TertiaryList = [
       SecondaryEnums.board,
     ],
   },
-  // {
-  //   id: TertiaryEnums.offline,
-  //   title: "离线分析",
-  //   enum: TertiaryEnums.offline,
-  //   types: [
-  //     SecondaryEnums.dataIntegration,
-  //     SecondaryEnums.all,
-  //     SecondaryEnums.board,
-  //   ],
-  // },
   {
     id: TertiaryEnums.start,
     title: "输入节点",
@@ -95,6 +85,16 @@ export const TertiaryList = [
     id: TertiaryEnums.realtime,
     title: "实时分析",
     enum: TertiaryEnums.realtime,
+    types: [
+      SecondaryEnums.dataIntegration,
+      SecondaryEnums.all,
+      SecondaryEnums.board,
+    ],
+  },
+  {
+    id: TertiaryEnums.offline,
+    title: "离线分析",
+    enum: TertiaryEnums.offline,
     types: [
       SecondaryEnums.dataIntegration,
       SecondaryEnums.all,
@@ -312,21 +312,20 @@ const useManageNodeAndFolder = () => {
     );
   }, [boardNodeList, boardEdges, boardRef]);
 
-  const deleteNodeById = async (nodeId: number) => {
+  const deleteNodeById = (nodeId: number) => {
     const node = boardNodeList.find((item) => item.id === nodeId);
     if (
       node?.tertiary === TertiaryEnums.end ||
       node?.tertiary === TertiaryEnums.start
     ) {
       setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
-      return;
+      return new Promise<any>(() => {});
     }
-    setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
-    await doDeletedNode.run(nodeId);
+    return doDeletedNode.run(nodeId).then((res) => {
+      if (res?.code !== 0) return;
+      setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
+    });
   };
-
-  const deleteNodes = async (nodeIDs: number[]) =>
-    Promise.all(nodeIDs.map((nodeId) => deleteNodeById(nodeId)));
 
   const createBoardNode = (node: any) => {
     setBoardNodeList((boardNodeList) => {
@@ -336,6 +335,10 @@ const useManageNodeAndFolder = () => {
 
   const onChangeBoardNodes = (nodes: any[]) => {
     setBoardNodeList(nodes);
+    setBoardRef((boardRef: any) => ({
+      nodeList: nodes,
+      edgeList: boardRef.boardEdges,
+    }));
   };
   const updateBoardNode = (node: any) => {
     setBoardNodeList((boardNodeList) =>
@@ -425,7 +428,7 @@ const useManageNodeAndFolder = () => {
     updateBoardNode,
     doGetBoardFile,
     doGetBoardNodes,
-    deleteNodes,
+    deleteNodeById,
     deleteEdges,
     onChangeBoardNodes,
   };

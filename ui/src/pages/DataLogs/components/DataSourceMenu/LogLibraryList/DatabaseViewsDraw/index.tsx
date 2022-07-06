@@ -6,7 +6,7 @@ import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import ModalCreatedAndUpdatedView from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/ModalCreatedAndUpdatedView";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import { TablesResponse, ViewResponse } from "@/services/dataLogs";
 import IconFont from "@/components/IconFont";
 import { ColumnsType } from "antd/es/table";
@@ -43,7 +43,7 @@ const DatabaseViewsDraw = (props: DatabaseViewsDrawProps) => {
   };
 
   const doDelete = (record: ViewResponse) => {
-    DeletedModal({
+    deletedModal({
       onOk: () => {
         deletedView.run(record.id).then((res) => {
           if (res?.code === 0) {

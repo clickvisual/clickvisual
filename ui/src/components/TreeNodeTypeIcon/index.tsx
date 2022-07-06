@@ -13,6 +13,7 @@ export enum TreeNodeTypeEnums {
   realtime = "realtime",
   mysql = "mysql",
   clickhouse = "clickhouse",
+  offline = "offline",
 }
 export interface TreeNodesIconProps {
   type: TreeNodeTypeEnums | null;
@@ -28,6 +29,8 @@ const TreeNodeTypeIcon = ({ type }: TreeNodesIconProps) => {
       return <ClusterOutlined />;
     case TreeNodeTypeEnums.realtime:
       return <SVGIcon type={SVGTypeEnums.realtime} />;
+    case TreeNodeTypeEnums.offline:
+      return <SVGIcon type={SVGTypeEnums.offline} />;
     case TreeNodeTypeEnums.clickhouse:
       return <SVGIcon type={SVGTypeEnums.clickhouse} />;
     case TreeNodeTypeEnums.mysql:

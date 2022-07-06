@@ -28,8 +28,10 @@ const IntegratedConfigs = ({
       target: model.integratedConfigs.targetColumns,
       mapping: model.integratedConfigs.mappingData,
       setMapping: model.integratedConfigs.setMappingData,
+      // selectNode: model.manageNode.selectNode,
     })
   );
+
   const { currentUser } = useModel("@@initialState").initialState || {};
   const isLock = useMemo(
     () =>

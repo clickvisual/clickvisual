@@ -6,6 +6,8 @@ import FileTitle, {
 import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
 import { Modal } from "antd";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import deletedModal from "@/components/DeletedModal";
 
 export interface WorkflowBoardProps {
   currentBoard: any;
@@ -21,7 +23,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doStopCodeNode,
     doGetNodes,
     doSetNodesAndFolders,
-    deleteNodes,
+    deleteNodeById,
     createBoardNode,
     isChangeBoard,
     onSaveBoardNodes,
@@ -36,10 +38,11 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doGetFile: model.manageNode.doGetBoardFile,
     doGetNodes: model.manageNode.doGetBoardNodes,
     doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
-    deleteNodes: model.manageNode.deleteNodes,
+    deleteNodeById: model.manageNode.deleteNodeById,
     setNodes: model.workflowBoard.setNodes,
     createBoardNode: model.manageNode.createBoardNode,
     isChangeBoard: model.manageNode.isChangeBoard,
+
     onSaveBoardNodes: model.manageNode.onSaveBoardNodes,
   }));
   const { currentUser } = useModel("@@initialState").initialState || {};
@@ -65,10 +68,27 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   };
 
   const handleUnlock = (file: any) => {
-    doUnLockNode.run(file.id).then((res: any) => {
-      if (res.code !== 0) return;
-      doGetFile(file.id);
-    });
+    if (isChangeBoard) {
+      Modal.confirm({
+        title: "提示",
+        content: "当前存在未保存的操作，是否要退出",
+        onOk: () =>
+          doUnLockNode.run(file.id).then((res: any) => {
+            if (res?.code !== 0) return;
+            doGetFile(file.id).then((res) => {
+              if (res?.code !== 0) return;
+              doGetNodes(currentBoard, res.data);
+              doSetNodesAndFolders({
+                iid: currentBoard.iid,
+                primary: currentBoard.primary,
+                workflowId: currentBoard.workflowId,
+              });
+            });
+          }),
+      });
+    } else {
+      doUnLockNode.run(file.id);
+    }
   };
 
   const handleRun = (file: any) => {
@@ -80,6 +100,28 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     //   if (res?.code !== 0) return;
     //   doGetFile(file.id);
     // });
+  };
+
+  const handleBoardDeleteNode = (node: any) => {
+    deletedModal({
+      content: `确定删除节点: ${node.name} 吗？`,
+      onOk: () => {
+        return deleteNodeById(node.id).then(() => {
+          console.log("delete");
+          if (
+            node.tertiary === TertiaryEnums.start ||
+            node.tertiary === TertiaryEnums.end
+          ) {
+            return;
+          }
+          doSetNodesAndFolders({
+            iid: node.iid,
+            primary: node.primary,
+            workflowId: node.workflowId,
+          });
+        });
+      },
+    });
   };
 
   const handleStop = (file: any) => {
@@ -134,7 +176,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
           <BoardChart
             isLock={isLock}
             currentBoard={currentBoard}
-            onDelete={deleteNodes}
+            onDeleteRight={handleBoardDeleteNode}
             onCreate={handleCreateNode}
           />
         )}

@@ -1,5 +1,4 @@
-import { Dropdown, Menu } from "antd";
-import DeletedModal from "@/components/DeletedModal";
+import { Dropdown, Menu, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useMemo } from "react";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
@@ -10,7 +9,7 @@ const BoardNode = ({
   onDelete,
 }: {
   node: any;
-  onDelete: (nodeIds: any[]) => Promise<any>;
+  onDelete: (node: any) => void;
 }) => {
   const {
     setExtra,
@@ -18,34 +17,16 @@ const BoardNode = ({
     setCurrentNode,
     showNodeModal,
     updateBoardNode,
-    doSetNodesAndFolders,
   } = useModel("dataAnalysis", (model) => ({
     setExtra: model.manageNode.setExtra,
     setIsEditNode: model.manageNode.setIsEditNode,
     setCurrentNode: model.manageNode.setCurrentNode,
     showNodeModal: model.manageNode.showNodeModal,
     updateBoardNode: model.manageNode.updateBoardNode,
-    doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
   }));
 
   const handleDelete = () => {
-    DeletedModal({
-      content: `确定删除节点: ${node.name} 吗？`,
-      onOk: () =>
-        onDelete([node.id]).then(() => {
-          if (
-            node.tertiary === TertiaryEnums.start ||
-            node.tertiary === TertiaryEnums.end
-          ) {
-            return;
-          }
-          doSetNodesAndFolders({
-            iid: node.iid,
-            primary: node.primary,
-            workflowId: node.workflowId,
-          });
-        }),
-    });
+    onDelete(node);
   };
 
   const handleUpdateNode = () => {
@@ -81,6 +62,8 @@ const BoardNode = ({
     switch (node.tertiary) {
       case TertiaryEnums.realtime:
         return <SVGIcon type={SVGTypeEnums.realtime} />;
+      case TertiaryEnums.offline:
+        return <SVGIcon type={SVGTypeEnums.offline} />;
       case TertiaryEnums.mysql:
         return <SVGIcon type={SVGTypeEnums.mysql} />;
       case TertiaryEnums.clickhouse:
@@ -98,16 +81,18 @@ const BoardNode = ({
     <Dropdown overlay={menu} trigger={["contextMenu"]}>
       <div style={{ display: "flex" }}>
         <div style={{ margin: "0 4px" }}>{Icon}</div>
-        <div
-          style={{
-            flex: 1,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {node.name}
-        </div>
+        <Tooltip title={"node.name"}>
+          <div
+            style={{
+              flex: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {node.name}
+          </div>
+        </Tooltip>
       </div>
     </Dropdown>
   );

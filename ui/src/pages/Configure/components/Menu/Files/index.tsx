@@ -15,7 +15,7 @@ import IconFont from "@/components/IconFont";
 import ActionButton from "@/pages/Configure/components/CustomButton/ActionButton";
 import classNames from "classnames";
 import { useModel } from "@@/plugin-model/useModel";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import OnlineDiff from "@/pages/Configure/components/Menu/Files/OnlineDiff";
 import { useState } from "react";
 import { useDebounceFn } from "ahooks";
@@ -173,7 +173,7 @@ const Files = () => {
                   <TextButton
                     onClick={(ev) => {
                       ev.stopPropagation();
-                      DeletedModal({
+                      deletedModal({
                         onOk: () => {
                           doDeletedConfigurations(item.id).then((res) => {
                             if (res?.code === 0) {

@@ -110,25 +110,46 @@ const NodeModule = ({
         );
       case SecondaryEnums.dataIntegration:
         return (
-          <div>
-            <div
-              draggable={!isLock}
-              className={styles.nodeSelect}
-              onDragStart={(event) =>
-                onDragStart(
-                  event,
-                  "default",
-                  TertiaryEnums.realtime,
-                  nodeSecondary
-                )
-              }
-            >
-              <SVGIcon type={SVGTypeEnums.realtime} />
-              <div className={styles.nodeTitle}>
-                <span>实时同步</span>
+          <>
+            <div>
+              <div
+                draggable={!isLock}
+                className={styles.nodeSelect}
+                onDragStart={(event) =>
+                  onDragStart(
+                    event,
+                    "default",
+                    TertiaryEnums.realtime,
+                    nodeSecondary
+                  )
+                }
+              >
+                <SVGIcon type={SVGTypeEnums.realtime} />
+                <div className={styles.nodeTitle}>
+                  <span>实时同步</span>
+                </div>
               </div>
             </div>
-          </div>
+            <div>
+              <div
+                draggable={!isLock}
+                className={styles.nodeSelect}
+                onDragStart={(event) =>
+                  onDragStart(
+                    event,
+                    "default",
+                    TertiaryEnums.offline,
+                    nodeSecondary
+                  )
+                }
+              >
+                <SVGIcon type={SVGTypeEnums.offline} />
+                <div className={styles.nodeTitle}>
+                  <span>离线同步</span>
+                </div>
+              </div>
+            </div>
+          </>
         );
 
       case SecondaryEnums.universal:
