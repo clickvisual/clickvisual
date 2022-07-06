@@ -83,7 +83,7 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.realtime,
-    title: "实时分析",
+    title: "实时同步",
     enum: TertiaryEnums.realtime,
     types: [
       SecondaryEnums.dataIntegration,
@@ -93,7 +93,7 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.offline,
-    title: "离线分析",
+    title: "离线同步",
     enum: TertiaryEnums.offline,
     types: [
       SecondaryEnums.dataIntegration,
