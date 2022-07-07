@@ -20,6 +20,12 @@ import { SaveOutlined } from "@ant-design/icons";
 import { AlarmRequest, ChannelType } from "@/services/alarm";
 import { NoDataConfigs } from "@/pages/Alarm/service/type";
 
+export enum AlarmLvelType {
+  Alarm = 0,
+  Notice = 1,
+  Serious = 2,
+}
+
 const { Option } = Select;
 
 const FormAlarmDraw = () => {
@@ -36,6 +42,23 @@ const FormAlarmDraw = () => {
   const i18n = useIntl();
   const [channelList, setChannelList] = useState<ChannelType[]>([]);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+
+  const alarmLvelList = [
+    {
+      key: AlarmLvelType.Alarm,
+      name: i18n.formatMessage({ id: "alarm.rules.form.level.alarm" }),
+    },
+
+    {
+      key: AlarmLvelType.Notice,
+      name: i18n.formatMessage({ id: "alarm.rules.form.level.notice" }),
+    },
+
+    {
+      key: AlarmLvelType.Serious,
+      name: i18n.formatMessage({ id: "alarm.rules.form.level.serious" }),
+    },
+  ];
 
   const handleClose = () => {
     alarmDraw.onChangeVisibleDraw(false);
@@ -187,6 +210,23 @@ const FormAlarmDraw = () => {
                 id: "alarm.rules.form.placeholder.alarmName",
               })}`}
             />
+          </Form.Item>
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "alarm.rules.form.level",
+            })}
+            name={"level"}
+            required
+          >
+            <Select
+              placeholder={i18n.formatMessage({
+                id: "alarm.rules.form.placeholder.level",
+              })}
+            >
+              {alarmLvelList.map((item: any) => {
+                return <Option value={item.key}>{item.name}</Option>;
+              })}
+            </Select>
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef} />

@@ -479,12 +479,17 @@ export default {
   "alarm.rules.selected.placeholder.status": "Please select alarm status",
   "alarm.rules.button.created": "Create Alarm",
   "alarm.rules.table.alarmName": "Alarm Name",
+  "alarm.rules.form.level": "Alarm level",
+  "alarm.rules.form.level.alarm": "Alarm",
+  "alarm.rules.form.level.notice": "Notice",
+  "alarm.rules.form.level.serious": "Serious",
   "alarm.rules.table.logLibrary": "Associated log library",
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
   "alarm.rules.form.description": "Alarm Description",
   "alarm.rules.form.channelIds": "Notification channels",
   "alarm.rules.form.placeholder.alarmName": "Please enter a alarm name",
+  "alarm.rules.form.placeholder.level": "Please select alarm level",
   "alarm.rules.form.placeholder.description":
     "Please enter an alarm description",
   "alarm.rules.form.placeholder.channelIds":
@@ -500,7 +505,15 @@ export default {
     "At least you need to add a trigger condition",
   "alarm.rules.form.noDataOp": "Alert state if no data or all values are null",
   "alarm.rules.form.preview": "Preview",
+  "alarm.rules.form.preview.aggregatedData": "Preview aggregated Data",
+  "alarm.rules.form.preview.aggregatedIndicators":
+    "Preview aggregation indicators",
   "alarm.rules.form.notPreview.content": "Please click preview first",
+  "alarm.rules.form.mode": "Alarm mode",
+  "alarm.rules.form.level.instructions":
+    "Description of alarm aggregation mode",
+  "alarm.rules.form.mode.normalMode": "Normal mode",
+  "alarm.rules.form.mode.aggregationMode": "Aggregation mode",
   "alarm.rules.inspectionFrequency.selectOption.logLibrary": "Log Library",
   "alarm.rules.inspectionFrequency.between": "Between",
   "alarm.rules.inspectionFrequency.database": "Database",
