@@ -24,6 +24,7 @@ const useTemporaryQuery = () => {
   const [visibleNode, setVisibleNode] = useState<boolean>(false);
   const [isUpdateFolder, setIsUpdateFolder] = useState<boolean>(false);
   const [isUpdateNode, setIsUpdateNode] = useState<boolean>(false);
+  const [temporaryQueryNodes, setTemporaryQueryNodes] = useState<any[]>([]);
 
   const [fileList, setFileList] = useState<DataNode[]>();
   // 选中包括右键的节点|文件的数据临时存储
@@ -156,7 +157,13 @@ const useTemporaryQuery = () => {
     if (folderList && [folderList].length > 0) {
       const generateData = (data: folderListType[] | any) => {
         let arr: any[] = [];
+        let nodesArr: any[] = [];
         data.map((item: folderListType) => {
+          if (item?.folderId) {
+            nodesArr.push(item);
+          }
+          console.log(item, "item");
+
           //key = 父级id_此id_此名称_此详情_是否可打开的节点_secondary_tertiary 构成
           let key: string = "";
           if (item.folderId == 0 || !!item.folderId) {
@@ -165,6 +172,7 @@ const useTemporaryQuery = () => {
             }!@#@!${item.desc}!@#@!true!@#@!${item.secondary}!@#@!${
               item.tertiary
             }`;
+            // key = `${item.workflowId}-${item.id}-${item.name}`;
           } else {
             key = `${item.parentId ?? item.folderId}!@#@!${item.id}!@#@!${
               item.name
@@ -210,6 +218,7 @@ const useTemporaryQuery = () => {
             }
           }
         });
+        setTemporaryQueryNodes(nodesArr);
         return arr;
       };
       setFileList(generateData([folderList]));
@@ -264,6 +273,7 @@ const useTemporaryQuery = () => {
     primaryList,
     tertiaryList,
     secondaryList,
+    temporaryQueryNodes,
 
     doFolderList,
     doCreatedFolder,

@@ -62,6 +62,8 @@ const FileTitle = ({
   }));
 
   const fileType = useMemo(() => {
+    console.log("selectNode-------------", selectNode);
+
     switch (selectNode.tertiary) {
       case TertiaryEnums.mysql:
         return (

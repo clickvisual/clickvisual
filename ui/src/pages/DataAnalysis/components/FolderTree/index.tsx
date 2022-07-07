@@ -54,7 +54,6 @@ const getParentKey = (key: React.Key, tree: DataNode[]): React.Key => {
 };
 
 const FolderTree: React.FC = () => {
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
   const {
@@ -74,7 +73,10 @@ const FolderTree: React.FC = () => {
     onKeyToImportantInfo,
   } = temporaryQuery;
 
-  const { setSelectNode } = manageNode;
+  const { setSelectNode, selectKeys } = manageNode;
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>(
+    selectKeys || []
+  );
 
   const onExpand = (newExpandedKeys: Key[]) => {
     setExpandedKeys(newExpandedKeys);
@@ -165,6 +167,8 @@ const FolderTree: React.FC = () => {
     onKeyToImportantInfo(value[0]);
     isOpen && changeOpenNodeId(id);
     isOpen && changeOpenNodeParentId(folderId);
+    console.log(node, "node");
+
     setSelectNode(node?.node);
   };
 

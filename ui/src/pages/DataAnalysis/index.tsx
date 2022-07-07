@@ -16,12 +16,19 @@ import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const DataAnalysis = () => {
-  const { navKey, currentInstances, openNodeId, changeOpenNodeId, manageNode } =
-    useModel("dataAnalysis");
+  const {
+    navKey,
+    currentInstances,
+    openNodeId,
+    changeOpenNodeId,
+    manageNode,
+    temporaryQuery,
+  } = useModel("dataAnalysis");
   const i18n = useIntl();
   const [urlState, setUrlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
   const { setSelectNode, nodes, setSelectKeys } = manageNode;
+  const { temporaryQueryNodes } = temporaryQuery;
 
   const NavContent = useMemo(() => {
     if (!currentInstances) {
@@ -80,10 +87,9 @@ const DataAnalysis = () => {
   }, []);
 
   useEffect(() => {
-    if (nodes?.length > 0) {
+    if (nodes?.length > 0 || temporaryQueryNodes?.length > 0) {
       let openId: any;
       if (urlState && urlState.nodeId) {
-        console.log("nodes: ", nodes);
         openId = urlState.nodeId;
       }
 
@@ -95,21 +101,23 @@ const DataAnalysis = () => {
         openId = localOpneId;
       }
 
+      let currentNodes = nodes.length > 0 ? nodes : temporaryQueryNodes;
+
       if (openId) {
-        const selectNodeData = nodes?.filter((item: any) => {
+        const selectNodeData = currentNodes?.filter((item: any) => {
           return item.id == parseInt(openId);
         });
-        console.log("selectNodeData", selectNodeData, selectNodeData[0]);
         const nodeData = selectNodeData[0];
         if (nodeData) {
           nodeData && setSelectNode(nodeData);
           setSelectKeys([
             `${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`,
           ]);
+          console.log(`${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`);
         }
       }
     }
-  }, [nodes]);
+  }, [nodes, temporaryQueryNodes]);
 
   return (
     <div className={style.main}>
