@@ -26,11 +26,11 @@ const WorkflowContent = () => {
   } = useModel("dataAnalysis");
 
   useEffect(() => {
-    changeOpenNodeId(selectNode.id);
+    selectNode?.id && changeOpenNodeId(selectNode.id);
     if (selectNode?.secondary == SecondaryEnums.dataMining) {
       changeOpenNodeParentId(selectNode.folderId);
     }
-  }, [selectNode, selectNode.id, selectNode.folderId, selectNode?.secondary]);
+  }, [selectNode, selectNode?.id, selectNode?.folderId, selectNode?.secondary]);
 
   const Content = useMemo(() => {
     switch (selectNode?.secondary) {

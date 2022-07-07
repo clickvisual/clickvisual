@@ -13,7 +13,8 @@ import { BigDataNavEnum } from "@/pages/DataAnalysis";
 
 const DataAnalysisNav = () => {
   const [urlState, setUrlState] = useUrlState<any>();
-  const { onChangeNavKey, navKey, realTimeTraffic } = useModel("dataAnalysis");
+  const { onChangeNavKey, navKey, realTimeTraffic, setNavKey } =
+    useModel("dataAnalysis");
   const { setNodes, setEdges } = realTimeTraffic;
 
   const navList = [
@@ -50,15 +51,8 @@ const DataAnalysisNav = () => {
   }, [navKey]);
 
   useEffect(() => {
-    urlState &&
-      urlState.navKey &&
-      urlState.navKey != navKey &&
-      onChangeNavKey(urlState.navKey);
-  }, [urlState, urlState.navKey]);
-
-  useEffect(() => {
-    if (urlState?.navKey && urlState.navKey != navKey) {
-      onChangeNavKey(urlState.navKey);
+    if (urlState?.navKey) {
+      setNavKey(urlState.navKey);
       return;
     }
     if (dataAnalysisNavKey) {

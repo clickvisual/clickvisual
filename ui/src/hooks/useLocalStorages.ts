@@ -9,6 +9,7 @@ export enum LocalModuleType {
   dataLogs = "data-Logs",
   dataAnalysis = "data-analysis",
   datalogsQuerySql = "datalogs-query-sql",
+  dataAnalysisOpenNodeId = "data-analysis-open-node-id",
 }
 
 export interface LastDataLogsStateType extends UrlStateType {
