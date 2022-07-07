@@ -179,12 +179,14 @@ const useTemporaryQuery = () => {
                 key: key,
                 title: item.name,
                 children: generateData(childrens),
+                node: item,
               });
             } else {
               arr = [
                 {
                   key: key,
                   title: item.name,
+                  node: item,
                   children: generateData(childrens),
                 },
               ];
@@ -195,6 +197,7 @@ const useTemporaryQuery = () => {
                 key: key,
                 title: item.name,
                 children: [],
+                node: item,
               });
             } else {
               arr = [
@@ -202,6 +205,7 @@ const useTemporaryQuery = () => {
                   key: key,
                   title: item.name,
                   children: [],
+                  node: item,
                 },
               ];
             }

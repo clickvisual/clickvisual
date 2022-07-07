@@ -6,7 +6,7 @@ import IconFont from "@/components/IconFont";
 import classNames from "classnames";
 import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
 import { useContext } from "react";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import { useModel } from "@@/plugin-model/useModel";
 import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
@@ -203,23 +203,20 @@ const InstanceTable = (props: InstanceTableProps) => {
             >
               <IconFont
                 onClick={() =>
-                  DeletedModal(
-                    {
-                      onOk: () => {
-                        if (record.id)
-                          doDeletedInstance
-                            .run(record.id)
-                            .then(() => doGetInstanceList());
-                      },
-                      content: i18n.formatMessage(
-                        {
-                          id: "instance.delete.confirmTip",
-                        },
-                        { name: record.name }
-                      ),
+                  deletedModal({
+                    onOk: () => {
+                      if (record.id)
+                        doDeletedInstance
+                          .run(record.id)
+                          .then(() => doGetInstanceList());
                     },
-                    doDeletedInstance.loading
-                  )
+                    content: i18n.formatMessage(
+                      {
+                        id: "instance.delete.confirmTip",
+                      },
+                      { name: record.name }
+                    ),
+                  })
                 }
                 className={classNames(instanceTableStyles.instanceTableIcon)}
                 type={"icon-delete"}

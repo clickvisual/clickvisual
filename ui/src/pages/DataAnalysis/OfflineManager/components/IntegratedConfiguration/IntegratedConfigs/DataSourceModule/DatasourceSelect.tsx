@@ -11,6 +11,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import Request from "umi-request";
 import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 import { ClusterMode } from "@/models/clusters";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
@@ -49,6 +50,7 @@ const DatasourceSelect = ({
     cancelTokenSourceTableRef,
     cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef,
+    selectNode,
   } = useModel("dataAnalysis", (model) => ({
     instances: model.instances,
     currentInstance: model.currentInstances,
@@ -66,16 +68,35 @@ const DatasourceSelect = ({
       model.integratedConfigs.cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef:
       model.integratedConfigs.cancelTokenSourceColumnsRef,
+    selectNode: model.manageNode.selectNode,
   }));
 
   const currentSource = useMemo(() => {
     return form.getFieldValue([...itemNamePath]);
   }, [itemNamePath]);
 
-  const targetNamePath: string[] = useMemo(() => {
-    if (!itemNamePath.includes("target")) return [];
-    return itemNamePath.filter((item) => item !== "target");
+  const parentNamePath: string[] = useMemo(() => {
+    return itemNamePath.filter(
+      (item) => item !== "target" && item !== "source"
+    );
   }, []);
+
+  const initTypeValue = useMemo(() => {
+    switch (selectNode.tertiary) {
+      case TertiaryEnums.realtime:
+        return (
+          itemNamePath.includes("source") && DataSourceTypeEnums.ClickHouse
+        );
+      case TertiaryEnums.offline:
+        if (itemNamePath.includes("source")) {
+          return DataSourceTypeEnums.MySQL;
+        }
+        if (itemNamePath.includes("target")) {
+          return DataSourceTypeEnums.ClickHouse;
+        }
+    }
+    return undefined;
+  }, [itemNamePath, selectNode]);
 
   const handleFormUpdate = useCallback((prevValues) => {
     let pre: any;
@@ -88,12 +109,32 @@ const DatasourceSelect = ({
   }, []);
 
   const TypesOptions = useMemo(() => {
-    if (!itemNamePath.includes("target")) return TypeOptions;
-    return TypeOptions.filter(
-      (item) =>
-        item.value !== form.getFieldValue([...targetNamePath, "source", "type"])
-    );
-  }, [sourceType, targetNamePath, currentSource]);
+    switch (selectNode.tertiary) {
+      case TertiaryEnums.realtime:
+        if (!itemNamePath.includes("target")) {
+          return TypeOptions;
+        }
+        return TypeOptions.filter(
+          (item) =>
+            item.value !==
+            form.getFieldValue([...parentNamePath, "source", "type"])
+        );
+      case TertiaryEnums.offline:
+        if (itemNamePath.includes("source")) {
+          return TypeOptions.filter(
+            (item) => item.value === DataSourceTypeEnums.MySQL
+          );
+        }
+        if (itemNamePath.includes("target")) {
+          return TypeOptions.filter(
+            (item) => item.value === DataSourceTypeEnums.ClickHouse
+          );
+        }
+        return TypeOptions;
+      default:
+        return TypeOptions;
+    }
+  }, [sourceType, selectNode, parentNamePath, currentSource]);
 
   const ClusterOptions = useMemo(
     () =>
@@ -328,9 +369,7 @@ const DatasourceSelect = ({
             name={[...itemNamePath, "type"]}
             labelCol={{ span: 6 }}
             wrapperCol={{ span: 18 }}
-            initialValue={
-              !itemNamePath.includes("target") && DataSourceTypeEnums.ClickHouse
-            }
+            initialValue={initTypeValue}
           >
             <Select
               disabled={isLock}

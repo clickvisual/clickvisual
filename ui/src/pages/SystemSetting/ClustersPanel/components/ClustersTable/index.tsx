@@ -5,7 +5,7 @@ import { useContext } from "react";
 import type { AlignType, FixedType } from "rc-table/lib/interface";
 import { EditOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import classNames from "classnames";
 import type { ClusterType } from "@/services/systemSetting";
 import { ClustersPanelContext } from "@/pages/SystemSetting/ClustersPanel";
@@ -93,7 +93,7 @@ const ClustersTable = () => {
             >
               <IconFont
                 onClick={() =>
-                  DeletedModal({
+                  deletedModal({
                     onOk: () => {
                       if (record.id)
                         doDeletedCluster

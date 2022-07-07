@@ -85,11 +85,11 @@ export enum TertiaryEnums {
    */
   mysql = 11,
   /**
-   * 离线分析
+   * 离线同步
    */
   offline = 20,
   /**
-   * 实时分析
+   * 实时同步
    */
   realtime = 21,
   /**

@@ -14,17 +14,22 @@ import {
   FlowNodeTypeEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import { useKeyPress } from "ahooks";
 
 export interface BoardProps {
   currentBoard: any;
-  onDelete: (nodeIds: number[]) => Promise<any>;
+  onDeleteRight: (node: any) => void;
   onCreate: (params: any, nodeInfo: any) => void;
   isLock: boolean;
 }
 
-const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
+const Board = ({
+  isLock,
+  currentBoard,
+  onDeleteRight,
+  onCreate,
+}: BoardProps) => {
   const BoardWrapper = useRef<any>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const [selectEdges, setSelectEdges] = useState<any[]>([]);
@@ -71,7 +76,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
   const handleDeleteEdges = useCallback(() => {
     if (selectEdges.length <= 0) return;
 
-    DeletedModal({
+    deletedModal({
       content: `确定删除连接吗？`,
       onOk: () => deleteEdges(selectEdges),
     });
@@ -225,7 +230,7 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
         id: node?.id?.toString(),
         type,
         data: {
-          label: <BoardNode node={node} onDelete={onDelete} />,
+          label: <BoardNode node={node} onDelete={onDeleteRight} />,
           node,
         },
         style: {
@@ -262,7 +267,6 @@ const Board = ({ isLock, currentBoard, onDelete, onCreate }: BoardProps) => {
         backgroundColor: "#fff",
       }}
     >
-      {/*isLock*/}
       <div className="dndflow">
         <ReactFlowProvider>
           <div className="reactflow-wrapper" ref={BoardWrapper}>

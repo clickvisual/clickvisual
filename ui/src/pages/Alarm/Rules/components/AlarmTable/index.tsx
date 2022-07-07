@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { AlarmsResponse, AlarmType } from "@/services/alarm";
 import IconFont from "@/components/IconFont";
 import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import BreadCrumbs from "@/components/BreadCrumbs";
 import classNames from "classnames";
 import { useDebounceFn } from "ahooks";
@@ -54,7 +54,7 @@ const AlarmTable = () => {
   };
 
   const handleDelete = (record: AlarmType) => {
-    DeletedModal({
+    deletedModal({
       content: i18n.formatMessage(
         { id: "alarm.rules.deleted.content" },
         { alarm: record.alarmName }

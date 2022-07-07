@@ -62,6 +62,7 @@ const FolderTree: React.FC = () => {
     temporaryQuery,
     changeOpenNodeId,
     changeOpenNodeParentId,
+    manageNode,
   } = useModel("dataAnalysis");
 
   const {
@@ -72,6 +73,8 @@ const FolderTree: React.FC = () => {
     currentFolder,
     onKeyToImportantInfo,
   } = temporaryQuery;
+
+  const { setSelectNode } = manageNode;
 
   const onExpand = (newExpandedKeys: Key[]) => {
     setExpandedKeys(newExpandedKeys);
@@ -94,7 +97,7 @@ const FolderTree: React.FC = () => {
   };
 
   const treeData = useMemo(() => {
-    const loop = (data: DataNode[]): DataNode[] =>
+    const loop = (data: any[]): any[] =>
       data.map((item) => {
         const strTitle = item.title as string;
         const index = strTitle.indexOf(searchValue);
@@ -116,6 +119,7 @@ const FolderTree: React.FC = () => {
             title: <FolderTitle id={parseInt(keyValueList[1])} title={title} />,
             key: item.key,
             children: loop(item.children),
+            node: item?.node,
           };
         }
         return {
@@ -130,19 +134,21 @@ const FolderTree: React.FC = () => {
               <FileOutlined style={{ color: "#2FABEE" }} />
             )),
           key: item.key,
+          node: item?.node,
         };
       });
 
     return loop(fileList || []);
   }, [fileList, searchValue]);
 
-  const handleSelect = (value: any) => {
+  const handleSelect = (value: any, { node }: any) => {
     const isOpen = value[0].split("!@#@!")[4] == "true";
     const id = parseInt(value[0].split("!@#@!")[1]);
     const folderId = parseInt(value[0].split("!@#@!")[0]);
     onKeyToImportantInfo(value[0]);
     isOpen && changeOpenNodeId(id);
     isOpen && changeOpenNodeParentId(folderId);
+    setSelectNode(node?.node);
   };
 
   const handleRightClick = (value: any) => {

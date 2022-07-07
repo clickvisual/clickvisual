@@ -21,7 +21,7 @@ import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/M
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
 import { ColumnsType } from "antd/es/table";
 import useUrlState from "@ahooksjs/use-url-state";
@@ -63,7 +63,7 @@ const SelectedDataBaseDraw = () => {
   const i18n = useIntl();
 
   const doDeletedDatabase = (record: DatabaseResponse) => {
-    DeletedModal({
+    deletedModal({
       content: i18n.formatMessage(
         { id: "datasource.deleted.content" },
         { database: record.name }

@@ -15,7 +15,7 @@ import {
 import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-import DeletedModal from "@/components/DeletedModal";
+import deletedModal from "@/components/DeletedModal";
 import lodash from "lodash";
 
 export interface RightMenuProps {
@@ -71,7 +71,7 @@ const RightMenu = (props: RightMenuProps) => {
 
   const handleClickDeleteWorkflow = useCallback(() => {
     if (!currentNode || !currentInstances) return;
-    DeletedModal({
+    deletedModal({
       content: i18n.formatMessage(
         { id: "bigdata.workflow.delete.content" },
         { workflow: currentNode.name }
@@ -161,7 +161,7 @@ const RightMenu = (props: RightMenuProps) => {
 
   const handleClickDeleteNode = useCallback(() => {
     if (!currentNode || !currentInstances) return;
-    DeletedModal({
+    deletedModal({
       content: `确定删除节点${currentNode.name}吗？`,
       onOk: () => {
         const hideMessage = message.loading(
@@ -224,7 +224,7 @@ const RightMenu = (props: RightMenuProps) => {
 
   const handleClickDeleteFolder = useCallback(() => {
     if (!currentNode || !currentInstances) return;
-    DeletedModal({
+    deletedModal({
       content: `确定删除文件夹${currentNode.name}吗？`,
       onOk: () => {
         const hideMessage = message.loading(
@@ -296,12 +296,22 @@ const RightMenu = (props: RightMenuProps) => {
       children: [
         {
           label: "实时同步",
-          key: "offline-sync",
+          key: "realTime-sync",
           onClick: () =>
             handleClickAddNode(
               PrimaryEnums.mining,
               SecondaryEnums.dataIntegration,
               TertiaryEnums.realtime
+            ),
+        },
+        {
+          label: "离线同步",
+          key: "offline-sync",
+          onClick: () =>
+            handleClickAddNode(
+              PrimaryEnums.mining,
+              SecondaryEnums.dataIntegration,
+              TertiaryEnums.offline
             ),
         },
       ],

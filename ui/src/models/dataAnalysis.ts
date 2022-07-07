@@ -162,10 +162,11 @@ const DataAnalysis = () => {
   const onGetFolderList = () => {
     openNodeId &&
       doGetNodeInfo.run(openNodeId).then((res: any) => {
-        if (res.code == 0) {
+        if (res?.code === 0) {
           setOpenNodeData(res.data);
           changeFolderContent(res.data.content);
-          if (res.data.result.length > 0) {
+          // todo: 此处不一定有 result 参数
+          if (res.data?.result?.length > 0) {
             changeSqlQueryResults(JSON.parse(res.data.result));
           }
         }
@@ -233,6 +234,7 @@ const DataAnalysis = () => {
   };
 
   useEffect(() => {
+    // todo: 修改为手动触发
     onGetFolderList();
   }, [openNodeId]);
 
