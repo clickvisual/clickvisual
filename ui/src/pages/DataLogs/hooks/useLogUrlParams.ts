@@ -20,6 +20,7 @@ import { DefaultPane } from "@/models/datalogs/useLogPanes";
 import { PaneType } from "@/models/datalogs/types";
 import useLocalStorages, {
   LastDataLogsStateType,
+  LocalModuleType,
 } from "@/hooks/useLocalStorages";
 
 export interface UrlStateType {
@@ -37,7 +38,6 @@ export interface UrlStateType {
   tab: string | number;
   index: string | number;
   queryType?: string;
-  querySql?: string;
 }
 
 export const RestUrlStates = {
@@ -91,7 +91,8 @@ export default function useLogUrlParams() {
   } = useModel("dataLogs");
   const { addLogPane } = logPanesHelper;
   const { activeQueryType, chartSql } = statisticalChartsHelper;
-  const { onChangeDataLogsState, getLastDataLogsState } = useLocalStorages();
+  const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
+    useLocalStorages();
 
   const handleResponse = (
     res: BaseRes<TableInfoResponse>,
@@ -108,6 +109,11 @@ export default function useLogUrlParams() {
       desc: res.data.desc,
     });
 
+    const dataLogsQuerySql = onSetLocalData(
+      undefined,
+      LocalModuleType.datalogsQuerySql
+    );
+
     const pane: PaneType = {
       ...DefaultPane,
       pane: res.data.name,
@@ -121,7 +127,7 @@ export default function useLogUrlParams() {
       activeTabKey: urlState.tab || lastDataLogsState.tab,
       activeIndex: parseInt(urlState.index || lastDataLogsState.index),
       queryType: urlState.queryType || lastDataLogsState.queryType,
-      querySql: urlState.querySql || lastDataLogsState.querySql,
+      querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
       desc: res.data.desc,
     };
 
@@ -140,7 +146,7 @@ export default function useLogUrlParams() {
         if (!res) return;
         pane.logs = {
           ...res.logs,
-          query: urlState?.querySql ?? res.logs.query,
+          query: res.logs.query,
         };
         pane.highCharts = res.highCharts;
         pane.logChart = { logs: [] };
@@ -176,7 +182,7 @@ export default function useLogUrlParams() {
         index: activeTimeOptionIndex,
         tab: activeTabKey,
         queryType: activeQueryType,
-        querySql: chartSql,
+        // querySql: chartSql,
       };
       setUrlState(data);
       onChangeDataLogsState(data);

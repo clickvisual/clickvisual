@@ -3,18 +3,20 @@ import SearchBar from "@/pages/DataLogs/components/SearchBar";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import OtherSearchBar from "@/pages/DataLogs/components/OtherSearchBar";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { QueryTypeEnum } from "@/config/config";
 import RawLogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog";
 import StatisticalTableContent from "@/pages/DataLogs/components/QueryResult/Content/StatisticalTable";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const SharePath = [
   process.env.PUBLIC_PATH + "share",
   process.env.PUBLIC_PATH + "share/",
 ];
 
-const QueryResult = () => {
+const QueryResult = (props: { tid?: string }) => {
   const { statisticalChartsHelper } = useModel("dataLogs");
+  const { onSetLocalData } = useLocalStorages();
 
   const { activeQueryType } = statisticalChartsHelper;
 
@@ -22,6 +24,18 @@ const QueryResult = () => {
     () => SharePath.includes(document.location.pathname),
     [document.location.pathname]
   );
+
+  // 关闭tid标签页的时候清除那一项的值
+  useEffect(() => {
+    return () => {
+      if (props.tid) {
+        const data = {
+          [props.tid]: false,
+        };
+        onSetLocalData(data, LocalModuleType.datalogsQuerySql);
+      }
+    };
+  }, []);
 
   const Content = useMemo(() => {
     switch (activeQueryType) {

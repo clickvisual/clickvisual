@@ -7,6 +7,8 @@ import { useIntl } from "umi";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 import useUrlState from "@ahooksjs/use-url-state";
 import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import { useEffect } from "react";
 
 const { TabPane } = Tabs;
 
@@ -21,6 +23,7 @@ const RawLogTabs = () => {
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, removeLogPane } = logPanesHelper;
+  const { onSetLocalData } = useLocalStorages();
 
   const i18n = useIntl();
   const { handleChangeRelativeAmountAndUnit } = useTimeOptions();
@@ -59,6 +62,17 @@ const RawLogTabs = () => {
     onChangeLogPane(tabPane);
   };
 
+  // 窗口关闭或刷新清除所有的datalogsQuerySql缓存值
+  useEffect(() => {
+    const listener = () => {
+      onSetLocalData(null, LocalModuleType.datalogsQuerySql);
+    };
+    window.addEventListener("beforeunload", listener);
+    return () => {
+      window.removeEventListener("beforeunload", listener);
+    };
+  }, []);
+
   return (
     <div className={rawLogTabsStyles.rawLogTabsMain}>
       {paneKeys.length > 0 ? (
@@ -75,7 +89,7 @@ const RawLogTabs = () => {
             return (
               pane && (
                 <TabPane key={pane.paneId} tab={pane.pane}>
-                  <QueryResult />
+                  <QueryResult tid={pane.paneId} />
                 </TabPane>
               )
             );

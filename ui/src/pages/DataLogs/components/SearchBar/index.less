@@ -1,4 +1,5 @@
 .searchBarMain {
+  position: relative;
   display: flex;
   flex: 1;
   margin-right: 8px;
@@ -6,6 +7,27 @@
     flex: 1;
     height: 32px;
     padding-right: 8px;
+  }
+  .formatButton {
+    position: absolute;
+    top: 100px;
+    right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #dbdbda;
+    // background-color: #dbdbda;
+    border-radius: 50%;
+    cursor: pointer;
+    &:hover {
+      transform: scale(1.1);
+    }
+    :first-child {
+      color: hsl(21, 85%, 56%);
+      font-size: 22px;
+    }
   }
   .searchBtn {
     flex: 0;
