@@ -7,6 +7,7 @@ export interface QueryLogsProps {
   query?: string | undefined;
   pageSize?: number;
   page?: number;
+  alarmMode?: number;
 }
 
 export interface GetTableIdRequest {
