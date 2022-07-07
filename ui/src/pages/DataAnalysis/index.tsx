@@ -1,6 +1,6 @@
 import style from "./index.less";
 import { Empty } from "antd";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useIntl, useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import DataAnalysisNav from "@/pages/DataAnalysis/components/Nav";
@@ -10,13 +10,17 @@ import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
 import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
 import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
-
 import ManageNodeModal from "@/pages/DataAnalysis/components/NodeManage/ManageNodeModal";
 import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/ManageFolderModal";
+import useUrlState from "@ahooksjs/use-url-state";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const DataAnalysis = () => {
-  const { navKey, currentInstances, openNodeId } = useModel("dataAnalysis");
+  const { navKey, currentInstances, openNodeId, changeOpenNodeId } =
+    useModel("dataAnalysis");
   const i18n = useIntl();
+  const [urlState, setUrlState] = useUrlState<any>();
+  const { onSetLocalData } = useLocalStorages();
 
   const NavContent = useMemo(() => {
     if (!currentInstances) {
@@ -54,6 +58,25 @@ const DataAnalysis = () => {
     }
     return <></>;
   }, [navKey, currentInstances, openNodeId]);
+
+  useEffect(() => {
+    setUrlState({ nodeId: openNodeId });
+    onSetLocalData({ openNodeId }, LocalModuleType.dataAnalysisOpenNodeId);
+  }, [openNodeId]);
+
+  useEffect(() => {
+    if (urlState && urlState.nodeId && urlState.nodeId != openNodeId) {
+      changeOpenNodeId(parseInt(urlState.nodeId));
+      return;
+    }
+    const openId = onSetLocalData(
+      undefined,
+      LocalModuleType.dataAnalysisOpenNodeId
+    );
+    if (openId) {
+      changeOpenNodeId(openId?.openNodeId);
+    }
+  }, []);
 
   return (
     <div className={style.main}>

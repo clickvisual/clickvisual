@@ -53,7 +53,7 @@ const DataAnalysis = () => {
   const integratedConfigs = useIntegratedConfigs();
   const workflowBoard = useWorkflowBoard();
 
-  const changeOpenNodeId = (id: number) => {
+  const changeOpenNodeId = (id?: number) => {
     setOpenNodeId(id);
   };
 
@@ -70,6 +70,12 @@ const DataAnalysis = () => {
   };
 
   const onChangeNavKey = (key: string) => {
+    changeOpenNodeId();
+    changeOpenNodeParentId(0);
+    changeOpenNodeData(undefined);
+    changeFolderContent("");
+    dataSourceManage.changeSourceList([]);
+    manageNode.setSelectNode({});
     setNavKey(key);
   };
 
@@ -148,15 +154,6 @@ const DataAnalysis = () => {
   const doNodeHistoriesInfo = useRequest(dataAnalysisApi.getNodeHistoriesInfo, {
     loadingText: false,
   });
-
-  useEffect(() => {
-    changeOpenNodeId(0);
-    changeOpenNodeParentId(0);
-    changeOpenNodeData(undefined);
-    changeFolderContent("");
-    dataSourceManage.changeSourceList([]);
-    manageNode.setSelectNode({});
-  }, [navKey]);
 
   // 获取文件信息
   const onGetFolderList = () => {
@@ -248,6 +245,7 @@ const DataAnalysis = () => {
     setInstances,
     onChangeCurrentInstances,
     onChangeNavKey,
+    setNavKey,
     changeSqlQueryResults,
     changeVisibleSqlQuery,
 
