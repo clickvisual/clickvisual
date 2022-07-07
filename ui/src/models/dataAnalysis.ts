@@ -70,12 +70,6 @@ const DataAnalysis = () => {
   };
 
   const onChangeNavKey = (key: string) => {
-    changeOpenNodeId();
-    changeOpenNodeParentId(0);
-    changeOpenNodeData(undefined);
-    changeFolderContent("");
-    dataSourceManage.changeSourceList([]);
-    manageNode.setSelectNode({});
     setNavKey(key);
   };
 
@@ -245,7 +239,6 @@ const DataAnalysis = () => {
     setInstances,
     onChangeCurrentInstances,
     onChangeNavKey,
-    setNavKey,
     changeSqlQueryResults,
     changeVisibleSqlQuery,
 

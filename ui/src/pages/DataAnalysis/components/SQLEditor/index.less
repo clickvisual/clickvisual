@@ -7,17 +7,25 @@
   color: hsl(0, 0%, 58%);
   border-left: 1px solid @border-color;
 
-  .spin {
+  .context {
+    flex: 1;
+    height: 100%;
+    background-color: #ccc;
+  }
+  .empty {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
   }
-
-  .context {
-    flex: 1;
+  
+  :global .ant-spin-nested-loading {
     height: 100%;
-    background-color: #ccc;
+    :global .ant-spin-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
   }
 }

@@ -126,7 +126,7 @@ const FileTitle = ({
       default:
         return "";
     }
-  }, file);
+  }, [file]);
 
   const handleSave = useThrottleFn(onSave, { wait: THROTTLE_WAIT }).run;
   const handleRun = useThrottleFn(onRun, { wait: THROTTLE_WAIT }).run;

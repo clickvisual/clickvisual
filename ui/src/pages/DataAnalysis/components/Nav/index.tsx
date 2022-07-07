@@ -10,11 +10,22 @@ import { useModel } from "umi";
 import useUrlState from "@ahooksjs/use-url-state";
 import { useEffect } from "react";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const DataAnalysisNav = () => {
   const [urlState, setUrlState] = useUrlState<any>();
-  const { onChangeNavKey, navKey, realTimeTraffic, setNavKey } =
-    useModel("dataAnalysis");
+  const { onSetLocalData } = useLocalStorages();
+  const {
+    onChangeNavKey,
+    navKey,
+    realTimeTraffic,
+    changeOpenNodeId,
+    changeOpenNodeParentId,
+    changeOpenNodeData,
+    changeFolderContent,
+    dataSourceManage,
+    manageNode,
+  } = useModel("dataAnalysis");
   const { setNodes, setEdges } = realTimeTraffic;
 
   const navList = [
@@ -47,12 +58,8 @@ const DataAnalysisNav = () => {
   const dataAnalysisNavKey = localStorage.getItem("data-analysis-nav-key");
 
   useEffect(() => {
-    setUrlState({ navKey: navKey });
-  }, [navKey]);
-
-  useEffect(() => {
     if (urlState?.navKey) {
-      setNavKey(urlState.navKey);
+      onChangeNavKey(urlState.navKey);
       return;
     }
     if (dataAnalysisNavKey) {
@@ -78,7 +85,16 @@ const DataAnalysisNav = () => {
                   setNodes([]);
                   setEdges([]);
                 }
+                setUrlState({ navKey: item.key, nodeId: undefined });
+                changeOpenNodeId();
+                changeOpenNodeParentId(0);
+                changeOpenNodeData(undefined);
+                changeFolderContent("");
+                dataSourceManage.changeSourceList([]);
+                manageNode.setSelectNode({});
+                manageNode.setSelectKeys([]);
                 onChangeNavKey(item.key);
+                onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
                 localStorage.setItem("data-analysis-nav-key", item.key);
               }}
               key={item.key}

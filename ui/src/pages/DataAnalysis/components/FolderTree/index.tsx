@@ -97,8 +97,8 @@ const FolderTree: React.FC = () => {
   };
 
   const treeData = useMemo(() => {
-    const loop = (data: any[]): any[] =>
-      data.map((item) => {
+    const loop = (data: any[]): any[] => {
+      return data.map((item) => {
         const strTitle = item.title as string;
         const index = strTitle.indexOf(searchValue);
         const beforeStr = strTitle.substring(0, index);
@@ -137,8 +137,25 @@ const FolderTree: React.FC = () => {
           node: item?.node,
         };
       });
+    };
 
-    return loop(fileList || []);
+    const handleAutoExpandParent = (arr: any[]) => {
+      let expandKey: any[] = [];
+      arr.map((item: any) => {
+        const key = item.key;
+        if (key.split("!@#@!")[4] == "false") {
+          expandKey.push(key);
+        }
+        if (item?.children?.length > 0) {
+          expandKey = [...expandKey, ...handleAutoExpandParent(item.children)];
+        }
+      });
+      return expandKey;
+    };
+    const treeArr = loop(fileList || []);
+    setExpandedKeys(handleAutoExpandParent(treeArr));
+
+    return treeArr;
   }, [fileList, searchValue]);
 
   const handleSelect = (value: any, { node }: any) => {

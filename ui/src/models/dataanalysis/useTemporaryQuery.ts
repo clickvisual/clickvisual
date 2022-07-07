@@ -20,7 +20,6 @@ export interface openNodeDataType {
 }
 
 const useTemporaryQuery = () => {
-  // TODO: 切换页面后状态的清除
   const [visibleFolder, setVisibleFolder] = useState<boolean>(false);
   const [visibleNode, setVisibleNode] = useState<boolean>(false);
   const [isUpdateFolder, setIsUpdateFolder] = useState<boolean>(false);
