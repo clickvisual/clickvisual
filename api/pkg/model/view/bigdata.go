@@ -188,6 +188,10 @@ type (
 		NC *db.BigdataNodeContent
 	}
 
+	ReqNodeRunOpenAPI struct {
+		Token string `json:"targetType"`
+	}
+
 	ReqNodeHistoryList struct {
 		db.ReqPage
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/ego-component/egorm"
 	"github.com/google/uuid"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -297,37 +298,41 @@ func NodeList(c *core.Context) {
 	return
 }
 
+func NodeRunOpenAPI(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var req view.ReqNodeRunOpenAPI
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if req.Token != econf.GetString("app.openAPI") {
+		c.JSONE(1, "token error", nil)
+		return
+	}
+	res, err := service.NodeRun(id, -1)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
 func NodeRun(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, id)
+	res, err := service.NodeRun(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if n.LockUid != c.Uid() {
-		c.JSONE(1, "please get the node lock and try again", nil)
-		return
-	}
-	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	res, err := node.Operator(&n, &nc, node.OperatorRun)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	afterNodeInfo, err := db.NodeInfo(invoker.Db, id)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	res.Status = afterNodeInfo.Status
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
