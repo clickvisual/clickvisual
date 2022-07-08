@@ -90,6 +90,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
 
   const [treeData, setTreeData] = useState<any[]>([]);
   const [currentNode, setCurrentNode] = useState<any>();
+  const [defaultExpandedKeys, setDefaultExpandedKeys] = useState<any[]>([]);
   const [clickSource, setClickSource] =
     useState<OfflineRightMenuClickSourceEnums>(
       OfflineRightMenuClickSourceEnums.workflowHeader
@@ -287,6 +288,20 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         ],
       },
     ];
+
+    const handleAutoExpandParent = (arr: any[]) => {
+      let expandKey: any[] = [];
+      arr.map((item: any) => {
+        if (item.nodeType == NodeType.folder) {
+          expandKey.push(item.key);
+        }
+        if (item?.children?.length > 0) {
+          expandKey = [...expandKey, ...handleAutoExpandParent(item.children)];
+        }
+      });
+      return expandKey;
+    };
+    setDefaultExpandedKeys(handleAutoExpandParent(nodeTree));
     setTreeData(nodeTree);
   }, [nodes, folders, workflowItem]);
 
@@ -306,6 +321,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
           onSelectNode={handleClickNode}
           treeData={treeData}
           selectKeys={selectKeys}
+          defaultExpandedKeys={defaultExpandedKeys}
           onRightClick={handleRightClick}
         />
       </NodeTreeItem>

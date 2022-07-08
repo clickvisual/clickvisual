@@ -34,6 +34,7 @@ export interface NodeInfo extends TimeBaseType {
 }
 
 export interface folderListType extends nodeListType {
+  workflowId: any;
   id: number;
   children: any[];
   desc: string;

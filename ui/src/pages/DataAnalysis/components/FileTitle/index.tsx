@@ -65,7 +65,7 @@ const FileTitle = ({
     switch (selectNode.tertiary) {
       case TertiaryEnums.mysql:
         return (
-          <div>
+          <div style={{ width: "200px" }}>
             <Space>
               <SVGIcon type={SVGTypeEnums.mysql} />
               <span>MySQL</span>
@@ -74,7 +74,7 @@ const FileTitle = ({
         );
       case TertiaryEnums.clickhouse:
         return (
-          <div>
+          <div style={{ width: "200px" }}>
             <Space>
               <SVGIcon type={SVGTypeEnums.clickhouse} />
               <span>ClickHouse</span>
@@ -83,7 +83,7 @@ const FileTitle = ({
         );
       case TertiaryEnums.realtime:
         return (
-          <div>
+          <div style={{ width: "200px" }}>
             <Space>
               <SVGIcon type={SVGTypeEnums.realtime} />
               <span>实时文件</span>
@@ -92,7 +92,7 @@ const FileTitle = ({
         );
       case TertiaryEnums.offline:
         return (
-          <div>
+          <div style={{ width: "200px" }}>
             <Space>
               <SVGIcon type={SVGTypeEnums.offline} />
               <span>离线文件</span>
@@ -101,7 +101,7 @@ const FileTitle = ({
         );
       default:
         return (
-          <div>
+          <div style={{ width: "200px" }}>
             <Space>
               <SVGIcon type={SVGTypeEnums.default} />
               <span>未知文件</span>
@@ -126,7 +126,7 @@ const FileTitle = ({
       default:
         return "";
     }
-  }, file);
+  }, [file]);
 
   const handleSave = useThrottleFn(onSave, { wait: THROTTLE_WAIT }).run;
   const handleRun = useThrottleFn(onRun, { wait: THROTTLE_WAIT }).run;

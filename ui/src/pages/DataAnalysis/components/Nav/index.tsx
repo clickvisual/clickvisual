@@ -10,10 +10,23 @@ import { useModel } from "umi";
 import useUrlState from "@ahooksjs/use-url-state";
 import { useEffect } from "react";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const DataAnalysisNav = () => {
   const [urlState, setUrlState] = useUrlState<any>();
-  const { onChangeNavKey, navKey, realTimeTraffic } = useModel("dataAnalysis");
+  const { onSetLocalData } = useLocalStorages();
+  const {
+    onChangeNavKey,
+    navKey,
+    realTimeTraffic,
+    changeOpenNodeId,
+    changeOpenNodeParentId,
+    changeOpenNodeData,
+    changeFolderContent,
+    dataSourceManage,
+    manageNode,
+    temporaryQuery,
+  } = useModel("dataAnalysis");
   const { setNodes, setEdges } = realTimeTraffic;
 
   const navList = [
@@ -46,18 +59,7 @@ const DataAnalysisNav = () => {
   const dataAnalysisNavKey = localStorage.getItem("data-analysis-nav-key");
 
   useEffect(() => {
-    setUrlState({ navKey: navKey });
-  }, [navKey]);
-
-  useEffect(() => {
-    urlState &&
-      urlState.navKey &&
-      urlState.navKey != navKey &&
-      onChangeNavKey(urlState.navKey);
-  }, [urlState, urlState.navKey]);
-
-  useEffect(() => {
-    if (urlState?.navKey && urlState.navKey != navKey) {
+    if (urlState?.navKey) {
       onChangeNavKey(urlState.navKey);
       return;
     }
@@ -84,7 +86,17 @@ const DataAnalysisNav = () => {
                   setNodes([]);
                   setEdges([]);
                 }
+                setUrlState({ navKey: item.key, nodeId: undefined });
+                changeOpenNodeId();
+                changeOpenNodeParentId(0);
+                changeOpenNodeData(undefined);
+                changeFolderContent("");
+                dataSourceManage.changeSourceList([]);
+                manageNode.setSelectNode({});
+                manageNode.setSelectKeys([]);
+                temporaryQuery.setSelectNodeKeys([]);
                 onChangeNavKey(item.key);
+                onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
                 localStorage.setItem("data-analysis-nav-key", item.key);
               }}
               key={item.key}

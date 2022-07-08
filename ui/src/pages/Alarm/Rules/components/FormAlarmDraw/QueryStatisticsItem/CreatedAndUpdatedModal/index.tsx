@@ -8,6 +8,7 @@ import {
   Select,
   Spin,
   Table,
+  Tooltip,
 } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
@@ -18,10 +19,34 @@ import api from "@/services/dataLogs";
 import Request, { Canceler } from "umi-request";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
-import { SaveOutlined } from "@ant-design/icons";
+import { QuestionCircleOutlined, SaveOutlined } from "@ant-design/icons";
+import queryStatisticsItemStyle from "../index.less";
 
 const { Option } = Select;
+const { TextArea } = Input;
 const { RangePicker } = DatePicker;
+
+export enum alarmModeType {
+  /**
+   * 普通模式
+   */
+  NormalMode = 0,
+  /**
+   * 聚合模式
+   */
+  AggregationMode = 1,
+}
+
+export enum alarmModePreviewType {
+  /**
+   * 预览聚合数据
+   */
+  AggregateData = 1,
+  /**
+   * 预览告警指标
+   */
+  AlarmIndicator = 2,
+}
 
 type CreatedAndUpdatedModalProps = {
   visible: boolean;
@@ -50,6 +75,9 @@ const CreatedAndUpdatedModal = ({
   const [isDisable, setIsDisable] = useState<boolean>(false);
   const [tableLogs, setTableLogs] = useState<any[]>([]);
   const [tableColumns, setTableColumns] = useState<ColumnsType<any>>([]);
+  const [isPreviewData, setIsPreviewData] = useState<number>(
+    alarmModePreviewType.AggregateData
+  );
 
   const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
     current: FIRST_PAGE,
@@ -59,6 +87,17 @@ const CreatedAndUpdatedModal = ({
 
   const { databaseList, logLibraryList, doGetDatabaseList, getLogLibraries } =
     useModel("dataLogs");
+
+  const alarmModeList = [
+    {
+      key: alarmModeType.NormalMode,
+      name: i18n.formatMessage({ id: "alarm.rules.form.mode.normalMode" }),
+    },
+    {
+      key: alarmModeType.AggregationMode,
+      name: i18n.formatMessage({ id: "alarm.rules.form.mode.aggregationMode" }),
+    },
+  ];
 
   const doQueryPreview = useRequest(api.getLogs, {
     loadingText: false,
@@ -85,9 +124,12 @@ const CreatedAndUpdatedModal = ({
 
   const handlePreview = (fields: any) => {
     if (!fields) return;
+    const { mode } = fields;
     doShowTable(true);
     onClickPreview.current = true;
     cancelTokenQueryPreviewRef.current?.();
+    const alarmMode =
+      mode != alarmModeType.AggregationMode ? undefined : isPreviewData;
     doQueryPreview
       .run(
         fields.tableId,
@@ -97,6 +139,7 @@ const CreatedAndUpdatedModal = ({
           query: fields.when,
           page: FIRST_PAGE,
           pageSize: PAGE_SIZE,
+          alarmMode: alarmMode,
         },
         new CancelToken(function executor(c) {
           cancelTokenQueryPreviewRef.current = c;
@@ -104,6 +147,13 @@ const CreatedAndUpdatedModal = ({
       )
       .then((res) => {
         if (res?.code === 0) {
+          if (mode == alarmModeType.AggregationMode) {
+            if (isPreviewData == alarmModePreviewType.AggregateData) {
+              setIsPreviewData(alarmModePreviewType.AlarmIndicator);
+            } else if (isPreviewData == alarmModePreviewType.AlarmIndicator) {
+              setIsPreviewData(0);
+            }
+          }
           const logs = res.data.logs.map((item, index) => {
             return { id: index, ...item };
           });
@@ -141,6 +191,9 @@ const CreatedAndUpdatedModal = ({
       };
     });
     cancelTokenQueryPreviewRef.current?.();
+    const { mode } = fields;
+    const alarmMode =
+      mode != alarmModeType.AggregationMode ? undefined : isPreviewData;
     doQueryPreview
       .run(
         fields.tableId,
@@ -150,6 +203,7 @@ const CreatedAndUpdatedModal = ({
           query: fields.when,
           page,
           pageSize,
+          alarmMode: alarmMode,
         },
         new CancelToken(function executor(c) {
           cancelTokenQueryPreviewRef.current = c;
@@ -157,6 +211,13 @@ const CreatedAndUpdatedModal = ({
       )
       .then((res) => {
         if (res?.code === 0) {
+          if (mode == alarmModeType.AggregationMode) {
+            if (isPreviewData == alarmModePreviewType.AggregateData) {
+              setIsPreviewData(alarmModePreviewType.AlarmIndicator);
+            } else if (isPreviewData == alarmModePreviewType.AlarmIndicator) {
+              setIsPreviewData(0);
+            }
+          }
           const logs = res.data.logs.map((item, index) => {
             return { id: index, ...item };
           });
@@ -171,7 +232,12 @@ const CreatedAndUpdatedModal = ({
   };
 
   const handleFinish = (fields: any) => {
-    if (!onClickPreview.current) {
+    const { mode } = fields;
+    const conditions =
+      mode == alarmModeType.NormalMode
+        ? !onClickPreview.current
+        : isPreviewData != 0;
+    if (conditions) {
       Modal.warning({
         content: i18n.formatMessage({
           id: "alarm.rules.form.notPreview.content",
@@ -205,8 +271,13 @@ const CreatedAndUpdatedModal = ({
 
   useEffect(() => {
     if (visible && modalForm.current && !isEdit) {
+      modalForm.current.setFieldsValue({
+        mode: alarmModeType.NormalMode,
+      });
       if (operations.selectDid) {
-        modalForm.current.setFieldsValue({ databaseId: operations.selectDid });
+        modalForm.current.setFieldsValue({
+          databaseId: operations.selectDid,
+        });
         getLogLibraries.run(operations.selectDid);
         handleChangeDisable(true);
       }
@@ -238,6 +309,7 @@ const CreatedAndUpdatedModal = ({
     if (!visible && modalForm.current) {
       modalForm.current.resetFields();
       onClickPreview.current = false;
+      setIsPreviewData(alarmModePreviewType.AggregateData);
       doShowTable(false);
     }
   }, [visible]);
@@ -249,7 +321,7 @@ const CreatedAndUpdatedModal = ({
         id: "alarm.rules.form.inspectionStatistics",
       })}
       visible={visible}
-      width={800}
+      width={"60%"}
       onOk={onSubmit}
       onCancel={onCancel}
       bodyStyle={{ maxHeight: "80vh", overflowY: "auto" }}
@@ -361,30 +433,88 @@ const CreatedAndUpdatedModal = ({
               );
             }}
           </Form.Item>
+          <div style={{ display: "block", position: "relative" }}>
+            <Form.Item
+              label={i18n.formatMessage({ id: "alarm.rules.form.mode" })}
+              name={"mode"}
+              required
+            >
+              <Select
+                defaultValue={alarmModeType.NormalMode}
+                style={{ width: "calc(100% - 40px)" }}
+              >
+                {alarmModeList.map((item: any) => {
+                  return <Option value={item.key}>{item.name}</Option>;
+                })}
+              </Select>
+            </Form.Item>
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "alarm.rules.form.level.instructions",
+              })}
+              className={queryStatisticsItemStyle.formItem}
+            >
+              <a
+                target="_blank"
+                href="https://clickvisual.gocn.vip/clickvisual/03funcintro/alarm-function-configuration-description.html#%E8%81%9A%E5%90%88%E6%A8%A1%E5%BC%8F"
+              >
+                <QuestionCircleOutlined />
+              </a>
+            </Tooltip>
+          </div>
+
           <Form.Item
             noStyle
             shouldUpdate={(prevValues, nextValues) =>
               prevValues.tableId !== nextValues.tableId ||
-              prevValues.when !== nextValues.when
+              prevValues.when !== nextValues.when ||
+              prevValues.mode !== nextValues.mode
             }
           >
             {({ getFieldValue, getFieldsValue }) => {
               if (!getFieldValue("tableId")) return <></>;
+              const mode = getFieldValue("mode");
               return (
                 <Form.Item label={i18n.formatMessage({ id: "search" })}>
                   <Input.Group compact>
                     <Form.Item noStyle name={"when"} initialValue={"1=1"}>
-                      <Input style={{ width: "85%" }} />
+                      <TextArea
+                        style={{
+                          width:
+                            mode != alarmModeType.AggregationMode
+                              ? "85%"
+                              : "80%",
+                          borderRadius: "10px",
+                        }}
+                        autoSize={{ minRows: 1, maxRows: 8 }}
+                      />
                     </Form.Item>
                     <Button
-                      style={{ width: "15%" }}
+                      style={{
+                        width:
+                          mode != alarmModeType.AggregationMode
+                            ? "calc(15% - 10px)"
+                            : "calc(20% - 10px)",
+                        borderRadius: "8px",
+                        marginLeft: "10px",
+                      }}
                       type={"primary"}
                       onClick={() => {
                         const fields = getFieldsValue();
                         handlePreview(fields);
                       }}
                     >
-                      {i18n.formatMessage({ id: "alarm.rules.form.preview" })}
+                      {mode != alarmModeType.AggregationMode
+                        ? i18n.formatMessage({ id: "alarm.rules.form.preview" })
+                        : isPreviewData == alarmModePreviewType.AggregateData
+                        ? i18n.formatMessage({
+                            id: "alarm.rules.form.preview.aggregatedData",
+                          })
+                        : isPreviewData == alarmModePreviewType.AlarmIndicator
+                        ? i18n.formatMessage({
+                            id: "alarm.rules.form.preview.aggregatedIndicators",
+                          })
+                        : ""}
                     </Button>
                   </Input.Group>
                   {showTable && (

@@ -15,8 +15,10 @@ export interface CustomTree extends TreeProps {
 }
 
 const CustomTree = (props: CustomTree) => {
-  const { onSelectNode, selectKeys } = props;
-  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+  const { onSelectNode, selectKeys, defaultExpandedKeys } = props;
+  const [expandedKeys, setExpandedKeys] = useState<any[]>(
+    defaultExpandedKeys || []
+  );
 
   const handleChangeExpanded = (node: any) => {
     if (node.nodeType === NodeType.folder) {

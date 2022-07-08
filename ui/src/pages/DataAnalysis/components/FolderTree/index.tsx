@@ -54,7 +54,6 @@ const getParentKey = (key: React.Key, tree: DataNode[]): React.Key => {
 };
 
 const FolderTree: React.FC = () => {
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
   const {
@@ -62,6 +61,7 @@ const FolderTree: React.FC = () => {
     temporaryQuery,
     changeOpenNodeId,
     changeOpenNodeParentId,
+    onGetFolderList,
     manageNode,
   } = useModel("dataAnalysis");
 
@@ -71,10 +71,13 @@ const FolderTree: React.FC = () => {
     changeVisibleFolder,
     changeVisibleNode,
     currentFolder,
-    onKeyToImportantInfo,
+    onItemToImportantInfo,
+    selectNodeKeys,
+    setSelectNodeKeys,
   } = temporaryQuery;
 
   const { setSelectNode } = manageNode;
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
 
   const onExpand = (newExpandedKeys: Key[]) => {
     setExpandedKeys(newExpandedKeys);
@@ -97,8 +100,8 @@ const FolderTree: React.FC = () => {
   };
 
   const treeData = useMemo(() => {
-    const loop = (data: any[]): any[] =>
-      data.map((item) => {
+    const loop = (data: any[]): any[] => {
+      return data.map((item) => {
         const strTitle = item.title as string;
         const index = strTitle.indexOf(searchValue);
         const beforeStr = strTitle.substring(0, index);
@@ -113,22 +116,22 @@ const FolderTree: React.FC = () => {
           ) : (
             <span>{item.title}</span>
           );
-        const keyValueList = item.key.toString().split("!@#@!");
+        const keyValue = item.node;
         if (item.children && item.children.length > 0) {
           return {
-            title: <FolderTitle id={parseInt(keyValueList[1])} title={title} />,
+            title: <FolderTitle id={parseInt(keyValue.id)} title={title} />,
             key: item.key,
             children: loop(item.children),
             node: item?.node,
           };
         }
         return {
-          title: <FolderTitle id={parseInt(keyValueList[1])} title={title} />,
+          title: <FolderTitle id={parseInt(keyValue.id)} title={title} />,
           icon:
-            keyValueList[4] == "true" &&
-            (keyValueList[6] === TertiaryEnums.clickhouse.toString() ? (
+            !!keyValue.iid &&
+            (keyValue.tertiary === TertiaryEnums.clickhouse ? (
               <SVGIcon type={SVGTypeEnums.clickhouse} />
-            ) : keyValueList[6] === TertiaryEnums.mysql.toString() ? (
+            ) : keyValue.tertiary === TertiaryEnums.mysql ? (
               <SVGIcon type={SVGTypeEnums.mysql} />
             ) : (
               <FileOutlined style={{ color: "#2FABEE" }} />
@@ -137,22 +140,43 @@ const FolderTree: React.FC = () => {
           node: item?.node,
         };
       });
+    };
 
-    return loop(fileList || []);
+    const handleAutoExpandParent = (arr: any[]) => {
+      let expandKey: any[] = [];
+      arr.map((item: any) => {
+        const key = item.key;
+        if (!item.node.iid) {
+          expandKey.push(key);
+        }
+        if (item?.children?.length > 0) {
+          expandKey = [...expandKey, ...handleAutoExpandParent(item.children)];
+        }
+      });
+      return expandKey;
+    };
+    const treeArr = loop(fileList || []);
+    setExpandedKeys(handleAutoExpandParent(treeArr));
+
+    return treeArr;
   }, [fileList, searchValue]);
 
   const handleSelect = (value: any, { node }: any) => {
-    const isOpen = value[0].split("!@#@!")[4] == "true";
-    const id = parseInt(value[0].split("!@#@!")[1]);
-    const folderId = parseInt(value[0].split("!@#@!")[0]);
-    onKeyToImportantInfo(value[0]);
-    isOpen && changeOpenNodeId(id);
-    isOpen && changeOpenNodeParentId(folderId);
-    setSelectNode(node?.node);
+    const isOpen = !!node?.node?.iid;
+    const id = parseInt(node?.node?.id);
+    const folderId = parseInt(node?.node?.folderId);
+    onItemToImportantInfo(node?.node);
+    if (isOpen) {
+      onGetFolderList(id);
+      changeOpenNodeId(id);
+      changeOpenNodeParentId(folderId);
+      setSelectNode(node?.node);
+    }
+    setSelectNodeKeys(value);
   };
 
   const handleRightClick = (value: any) => {
-    onKeyToImportantInfo(value.node.key);
+    onItemToImportantInfo(value.node.node);
   };
 
   const handleRefresh = () => {
@@ -224,14 +248,10 @@ const FolderTree: React.FC = () => {
             }
           />
         </div>
-        {/* <div className={TemporaryQueryStyle.button}>
-          <FilterOutlined />
-        </div> */}
       </div>
       <div className={FolderTreeStyle.content}>
         {treeData.length > 0 ? (
           <DirectoryTree
-            // showLine
             blockNode
             switcherIcon={<DownOutlined />}
             defaultExpandAll
@@ -241,6 +261,7 @@ const FolderTree: React.FC = () => {
             onSelect={handleSelect}
             onRightClick={handleRightClick}
             treeData={treeData}
+            selectedKeys={selectNodeKeys ?? []}
           />
         ) : (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={false} />
