@@ -314,7 +314,9 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	if req.Name == "" || req.Interval == 0 || len(req.ChannelIds) == 0 {
 		return errors.New("parameter error")
 	}
-
+	if len(req.Filters) > 0 {
+		req.Mode = req.Filters[0].Mode
+	}
 	tx := invoker.Db.Begin()
 	ups := make(map[string]interface{}, 0)
 	ups["name"] = req.Name

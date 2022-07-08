@@ -51,6 +51,9 @@ func Create(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	if len(req.Filters) > 0 {
+		req.Mode = req.Filters[0].Mode
+	}
 	tx := invoker.Db.Begin()
 	obj := &db.Alarm{
 		Tid:        tid,
