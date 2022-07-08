@@ -25,6 +25,9 @@ const LibraryTree = () => {
 
   const handleSearch = useDebounceFn(
     (field) => {
+      setBusinessChart([]);
+      setNodes([]);
+      setEdges([]);
       doGetBusinessChart
         .run({ ...field, iid: currentInstances })
         .then((res) => {
