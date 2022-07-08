@@ -18,9 +18,9 @@ func (m *BigdataDepend) TableName() string {
 
 type BigdataDepend struct {
 	Iid               int     `gorm:"column:iid;type:int(11);index:uix_iid_database_table,unique" json:"iid"`
-	Database          string  `gorm:"column:database;type:varchar(255);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
-	Table             string  `gorm:"column:table;type:varchar(255);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
-	Engine            string  `gorm:"column:engine;type:varchar(255);NOT NULL" json:"engine"`
+	Database          string  `gorm:"column:database;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
+	Table             string  `gorm:"column:table;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
+	Engine            string  `gorm:"column:engine;type:varchar(128);NOT NULL" json:"engine"`
 	DownDatabaseTable Strings `gorm:"column:down_dep_database_table;type:text;NOT NULL" json:"down_dep_database_table"`
 	UpDatabaseTable   Strings `gorm:"column:up_dep_database_table;type:text;NOT NULL" json:"up_dep_database_table"`
 	Rows              uint64  `gorm:"column:rows;type:bigint(20);default:0;NOT NULL" json:"rows"`
