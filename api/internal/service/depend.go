@@ -217,6 +217,9 @@ func addRespTableDeps(iid int, database, table string, ups []string, respTableDe
 		if len(dts) != 2 {
 			continue
 		}
+		if database == dts[0] && table == dts[1] {
+			continue
+		}
 		conds := egorm.Conds{}
 		conds["iid"] = iid
 		conds["database"] = dts[0]
@@ -273,7 +276,9 @@ func customDepsParsing(row *view.SystemTable) ([]string, []string) {
 		if len(a2) < 2 {
 			return downDeps, upDeps
 		}
-		upDeps = append(upDeps, fmt.Sprintf("%s.%s", row.Database, strings.TrimSpace(strings.ReplaceAll(a2[2], "'", ""))))
+		d := strings.TrimSpace(strings.ReplaceAll(a2[1], "'", ""))
+		t := strings.TrimSpace(strings.ReplaceAll(a2[2], "'", ""))
+		upDeps = append(upDeps, fmt.Sprintf("%s.%s", d, t))
 	}
 	return downDeps, upDeps
 }

@@ -44,7 +44,7 @@ func Test_customParsing(t *testing.T) {
 				},
 			},
 			downs: make([]string, 0),
-			ups:   []string{"t1.dws_collaboration_7d_statistic_by_department_daily"},
+			ups:   []string{"shard.dws_collaboration_7d_statistic_by_department_daily"},
 		},
 		{
 			name: "test-3",
@@ -56,7 +56,7 @@ func Test_customParsing(t *testing.T) {
 				},
 			},
 			downs: make([]string, 0),
-			ups:   []string{"t1.app_stdout_local"},
+			ups:   []string{"clickvisual_default.app_stdout_local"},
 		},
 	}
 	for _, tt := range tests {
