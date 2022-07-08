@@ -313,7 +313,7 @@ func NodeRunOpenAPI(c *core.Context) {
 		c.JSONE(1, "token error", nil)
 		return
 	}
-	res, err := service.NodeRun(id, -1)
+	res, err := node.NodeRun(id, -1)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -328,7 +328,7 @@ func NodeRun(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res, err := service.NodeRun(id, c.Uid())
+	res, err := node.NodeRun(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
