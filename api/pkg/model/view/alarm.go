@@ -28,6 +28,7 @@ type ReqAlarmFilterCreate struct {
 	When           string `json:"when" form:"when" binding:"required"` // 执行条件
 	SetOperatorTyp int    `json:"typ" form:"typ"`                      // 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS
 	SetOperatorExp string `json:"exp" form:"exp"`                      // 操作
+	Mode           int    `json:"mode" form:"mode"`
 }
 
 type ReqAlarmConditionCreate struct {
