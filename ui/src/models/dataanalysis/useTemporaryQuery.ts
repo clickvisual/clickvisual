@@ -34,7 +34,7 @@ const useTemporaryQuery = () => {
     id: number;
     parentId: number;
     name: string;
-    desc: string;
+    desc?: string;
     nodeType: number;
     secondary?: number;
     tertiary?: number;
@@ -61,7 +61,7 @@ const useTemporaryQuery = () => {
     id: number;
     parentId: number;
     name: string;
-    desc: string;
+    desc?: string;
     nodeType: number;
     secondary?: number;
     tertiary?: number;
@@ -100,7 +100,8 @@ const useTemporaryQuery = () => {
     },
   ];
 
-  const tertiaryList = [
+  // TODO:新增数据库类型后需要手动新增
+  const databaseTertiary = [
     {
       id: 201,
       title: "ClickHouse",
@@ -110,16 +111,6 @@ const useTemporaryQuery = () => {
       id: 202,
       title: "MySQL",
       enum: TertiaryEnums.mysql,
-    },
-    {
-      id: 203,
-      title: "离线分析",
-      enum: TertiaryEnums.offline,
-    },
-    {
-      id: 204,
-      title: "实时分析",
-      enum: TertiaryEnums.realtime,
     },
   ];
 
@@ -226,7 +217,7 @@ const useTemporaryQuery = () => {
         parentId: parseInt(data?.parentId ?? data?.folderId),
         name: data.name,
         nodeType: FolderEnums.folder,
-        desc: data.desc,
+        desc: data?.desc,
       });
     } else {
       changeCurrentFolder({
@@ -237,7 +228,7 @@ const useTemporaryQuery = () => {
         secondary: parseInt(data.secondary),
         sourceId: parseInt(data.sourceId),
         tertiary: parseInt(data.tertiary),
-        desc: data.desc,
+        desc: data?.desc,
       });
     }
   };
@@ -267,7 +258,7 @@ const useTemporaryQuery = () => {
     setSelectNodeKeys,
 
     primaryList,
-    tertiaryList,
+    databaseTertiary,
     secondaryList,
     temporaryQueryNodes,
 

@@ -10,7 +10,7 @@ import {
   Table,
   Tooltip,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
 import { FIRST_PAGE, MINUTES_UNIT_TIME, PAGE_SIZE } from "@/config/config";
@@ -314,6 +314,26 @@ const CreatedAndUpdatedModal = ({
     }
   }, [visible]);
 
+  const aggregatePreviewText = useMemo(() => {
+    switch (isPreviewData) {
+      case alarmModePreviewType.AggregateData:
+        return i18n.formatMessage({
+          id: "alarm.rules.form.preview.aggregatedData",
+        });
+        break;
+
+      case alarmModePreviewType.AlarmIndicator:
+        return i18n.formatMessage({
+          id: "alarm.rules.form.preview.aggregatedIndicators",
+        });
+        break;
+
+      default:
+        return "";
+        break;
+    }
+  }, [isPreviewData]);
+
   return (
     <Modal
       centered
@@ -439,10 +459,7 @@ const CreatedAndUpdatedModal = ({
               name={"mode"}
               required
             >
-              <Select
-                defaultValue={alarmModeType.NormalMode}
-                style={{ width: "calc(100% - 40px)" }}
-              >
+              <Select style={{ width: "calc(100% - 40px)" }}>
                 {alarmModeList.map((item: any) => {
                   return <Option value={item.key}>{item.name}</Option>;
                 })}
@@ -506,15 +523,7 @@ const CreatedAndUpdatedModal = ({
                     >
                       {mode != alarmModeType.AggregationMode
                         ? i18n.formatMessage({ id: "alarm.rules.form.preview" })
-                        : isPreviewData == alarmModePreviewType.AggregateData
-                        ? i18n.formatMessage({
-                            id: "alarm.rules.form.preview.aggregatedData",
-                          })
-                        : isPreviewData == alarmModePreviewType.AlarmIndicator
-                        ? i18n.formatMessage({
-                            id: "alarm.rules.form.preview.aggregatedIndicators",
-                          })
-                        : ""}
+                        : aggregatePreviewText}
                     </Button>
                   </Input.Group>
                   {showTable && (
