@@ -475,7 +475,7 @@ export default {
   "alarm.rules.form.preview": "预览",
   "alarm.rules.form.preview.aggregatedData": "预览聚合数据",
   "alarm.rules.form.preview.aggregatedIndicators": "预览聚合指标",
-  "alarm.rules.form.notPreview.content": "请先点击预览",
+  "alarm.rules.form.notPreview.content": "请先完成所有预览",
   "alarm.rules.form.mode": "告警模式",
   "alarm.rules.form.level.instructions": "告警聚合模式使用说明",
   "alarm.rules.form.mode.normalMode": "普通模式",

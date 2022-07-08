@@ -109,6 +109,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     updateBoardNode,
     createBoardNode,
     doSetNodesAndFolders,
+    onGetFolderList,
 
     cancelTokenTargetListRef,
     cancelTokenSourceListRef,
@@ -133,6 +134,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     updateBoardNode: model.manageNode.updateBoardNode,
     createBoardNode: model.manageNode.createBoardNode,
     doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
+    onGetFolderList: model.onGetFolderList,
 
     cancelTokenTargetListRef: model.dataSourceManage.cancelTokenTargetListRef,
     cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
@@ -178,6 +180,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     setSelectKeys([node.key]);
     if (nodeType === NodeType.node) {
       setSelectNode(currentNode);
+      onGetFolderList(currentNode.id);
     }
   };
 

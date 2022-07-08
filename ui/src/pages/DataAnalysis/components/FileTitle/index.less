@@ -10,22 +10,19 @@
   line-height: 40px;
   border-bottom: 1px solid @border-color;
   .name {
-    flex: 0;
     color: @font-bord-color;
     font-weight: bold;
   }
   .nameChange {
-    position: relative;
-    padding: 0 10px;
-    &::before {
-      position: absolute;
-      left: 0;
+    &::after {
+      position: relative;
+      left: 10px;
+      display: inline-block;
       width: 7px;
       height: 7px;
-      margin: auto 4px;
       background-color: @font-bord-color;
       border-radius: 50%;
-      transform: translateY(-50%);
+      transform: translateX(-50%) translateY(-50%);
       content: "";
     }
     .nodeStatus {
