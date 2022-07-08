@@ -108,7 +108,7 @@ const FileTitle = ({
           <div>
             <Space>
               <SVGIcon type={SVGTypeEnums.offline} />
-              <span>实时同步</span>
+              <span>离线同步</span>
             </Space>
           </div>
         );
