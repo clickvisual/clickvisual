@@ -13,7 +13,10 @@ import { useThrottleFn } from "ahooks";
 import { THROTTLE_WAIT } from "@/config/config";
 import classNames from "classnames";
 import { useMemo } from "react";
-import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import {
+  SecondaryEnums,
+  TertiaryEnums,
+} from "@/pages/DataAnalysis/service/enums";
 import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 export enum FileTitleType {
@@ -62,6 +65,16 @@ const FileTitle = ({
   }));
 
   const fileType = useMemo(() => {
+    if (selectNode.secondary === SecondaryEnums.board) {
+      return (
+        <div>
+          <Space>
+            {/*<SVGIcon type={SVGTypeEnums.board} />*/}
+            <span>看板</span>
+          </Space>
+        </div>
+      );
+    }
     switch (selectNode.tertiary) {
       case TertiaryEnums.mysql:
         return (
@@ -86,7 +99,7 @@ const FileTitle = ({
           <div style={{ width: "200px" }}>
             <Space>
               <SVGIcon type={SVGTypeEnums.realtime} />
-              <span>实时文件</span>
+              <span>实时同步</span>
             </Space>
           </div>
         );
@@ -95,7 +108,7 @@ const FileTitle = ({
           <div style={{ width: "200px" }}>
             <Space>
               <SVGIcon type={SVGTypeEnums.offline} />
-              <span>离线文件</span>
+              <span>离线同步</span>
             </Space>
           </div>
         );
