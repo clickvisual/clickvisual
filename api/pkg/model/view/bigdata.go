@@ -189,7 +189,7 @@ type (
 	}
 
 	ReqNodeRunOpenAPI struct {
-		Token string `json:"targetType"`
+		Token string `json:"token" form:"token" binding:"required"`
 	}
 
 	ReqNodeHistoryList struct {
