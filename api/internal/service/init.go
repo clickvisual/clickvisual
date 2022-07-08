@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/gotomicro/cetus/pkg/xgo"
 	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/clickvisual/clickvisual/api/internal/service/configure"
@@ -33,6 +34,9 @@ func Init() error {
 	user.Init()
 	permission.InitManager()
 
+	xgo.Go(func() {
+		DoDepsSync()
+	})
 	// bigdata dispatcher
 	// dispatcher.Init()
 	return nil

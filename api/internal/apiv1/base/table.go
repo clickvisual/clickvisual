@@ -861,12 +861,7 @@ func TableDeps(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(iid)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	res, err := op.Deps(dn, tn)
+	res, err := service.TableDeps(iid, dn, tn)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return

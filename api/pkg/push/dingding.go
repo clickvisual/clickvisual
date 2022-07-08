@@ -47,7 +47,7 @@ func (d *DingDing) Send(notification view.Notification, alarm *db.Alarm, channel
 // TransformToMarkdown transform alertmanager notification to dingtalk markdow message
 func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db.Alarm, oneTheLogs string) (markdown *view.DingTalkMarkdown, err error) {
 
-	groupKey := notification.GroupKey
+	// groupKey := notification.GroupKey
 	status := notification.Status
 	annotations := notification.CommonAnnotations
 
@@ -96,7 +96,7 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	markdown = &view.DingTalkMarkdown{
 		MsgType: "markdown",
 		Markdown: &view.Markdown{
-			Title: fmt.Sprintf("通知组：%s(当前状态:%s)", groupKey, status),
+			Title: fmt.Sprintf("【%s】%s", status, alarm.Name),
 			Text:  buffer.String(),
 		},
 		At: &view.At{

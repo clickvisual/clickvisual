@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -21,6 +22,7 @@ var models = []interface{}{
 	db.BigdataNodeContent{},
 	db.BigdataNodeStatus{},
 	db.BigdataNodeHistory{},
+	db.BigdataDepend{},
 
 	db.BaseView{},
 	db.BaseTable{},
@@ -110,6 +112,7 @@ func Install() (err error) {
 }
 
 func Migration() (err error) {
+	// table deps update
 	d, e := gorm.Open(
 		mysql.Open(econf.GetString("mysql.dsn")), &gorm.Config{
 			DisableForeignKeyConstraintWhenMigrating: true},
@@ -119,8 +122,10 @@ func Migration() (err error) {
 	d.Migrator()
 	err = d.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
 	if err != nil {
+		service.DepsBatch(true)
 		return
 	}
+	service.DepsBatch(true)
 	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '');")
 	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', ' ', ' ', ' ', ' ');")
 	pmsplugin.Invoker()
