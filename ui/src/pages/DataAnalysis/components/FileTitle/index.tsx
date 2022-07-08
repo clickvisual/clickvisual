@@ -69,7 +69,7 @@ const FileTitle = ({
       return (
         <div>
           <Space>
-            <SVGIcon type={SVGTypeEnums.board} />
+            {/*<SVGIcon type={SVGTypeEnums.board} />*/}
             <span>看板</span>
           </Space>
         </div>
