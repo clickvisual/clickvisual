@@ -51,6 +51,7 @@ const (
 	TableNameBigDataFolder      = "cv_bd_folder"
 	TableNameBigDataSource      = "cv_bd_source"
 	TableNameBigDataWorkflow    = "cv_bd_workflow"
+	TableNameBigDataDepend      = "cv_bd_depend"
 )
 
 type BaseModel struct {

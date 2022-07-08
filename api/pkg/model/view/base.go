@@ -1,6 +1,8 @@
 package view
 
 import (
+	"fmt"
+
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
@@ -202,6 +204,10 @@ type RespTableDeps struct {
 	Deps       []string `json:"deps"`
 }
 
+func (r *RespTableDeps) Name() string {
+	return fmt.Sprintf("%s.%s", r.Database, r.Table)
+}
+
 type ReqViewCreate struct {
 	Name             string `json:"viewName"`
 	IsUseDefaultTime int    `json:"isUseDefaultTime"`
@@ -212,4 +218,14 @@ type ReqViewCreate struct {
 type ReqViewList struct {
 	ID   int    `json:"id"`
 	Name string `json:"viewName"`
+}
+
+type SystemTable struct {
+	Table             string   `json:"table"`
+	Engine            string   `json:"engine"`
+	Database          string   `json:"database"`
+	DownDatabaseTable []string `json:"downDatabaseTable"`
+	CreateTableQuery  string   `json:"createTableQuery"`
+	TotalRows         uint64   `json:"totalRows"`
+	TotalBytes        uint64   `json:"totalBytes"`
 }

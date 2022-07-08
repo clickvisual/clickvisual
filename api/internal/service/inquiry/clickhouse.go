@@ -1173,72 +1173,49 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 	return
 }
 
-func (c *ClickHouse) Deps(dn, tn string) (res []view.RespTableDeps, err error) {
-	res = make([]view.RespTableDeps, 0)
-	cache := map[string]interface{}{}
-	checked := make(map[string]interface{}, 0)
-
-	for _, v := range c.deps(dn, tn, checked) {
-		if _, ok := cache[v.Database+"."+v.Table]; ok {
-			continue
-		}
-		cache[v.Database+"."+v.Table] = struct{}{}
-		res = append(res, v)
+func (c *ClickHouse) SystemTablesInfo(isReset bool) (res []*view.SystemTable) {
+	res = make([]*view.SystemTable, 0)
+	s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
+	if isReset {
+		// Get full data if it is reset mode
+		s = "select * from system.tables"
 	}
-	return
-}
-
-func (c *ClickHouse) deps(dn, tn string, checked map[string]interface{}) (res []view.RespTableDeps) {
-	res = make([]view.RespTableDeps, 0)
-	deps, _ := c.doQuery(fmt.Sprintf("select * from system.tables where database = '%s' and (table = '%s' or has(dependencies_table, '%s'))", dn, tn, tn))
-	var nextDeps []string
+	deps, err := c.doQuery(s)
+	if err != nil {
+		invoker.Logger.Error("SystemTablesInfo", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
+		return
+	}
 	for _, table := range deps {
-		tmp := view.RespTableDeps{
-			Database: table["database"].(string),
-			Table:    table["name"].(string),
-			Engine:   table["engine"].(string),
-			Deps:     table["dependencies_table"].([]string),
+		row := view.SystemTable{
+			Database:         table["database"].(string),
+			Table:            table["name"].(string),
+			Engine:           table["engine"].(string),
+			CreateTableQuery: table["create_table_query"].(string),
 		}
+		row.DownDatabaseTable = make([]string, 0)
 		if table["total_bytes"] != nil {
 			switch table["total_rows"].(type) {
 			case uint64:
-				tmp.TotalBytes = table["total_bytes"].(uint64)
+				row.TotalBytes = table["total_bytes"].(uint64)
 			}
 		}
 		if table["total_rows"] != nil {
 			switch table["total_rows"].(type) {
 			case uint64:
-				tmp.TotalRows = table["total_rows"].(uint64)
+				row.TotalRows = table["total_rows"].(uint64)
 			}
 		}
-		checked[table["database"].(string)+"."+table["name"].(string)] = struct{}{}
 		databases := table["dependencies_database"].([]string)
-		for i, tt := range table["dependencies_table"].([]string) {
-			nextDeps = append(nextDeps, databases[i]+"."+tt)
-		}
-		res = append(res, tmp)
-	}
-
-	var filterNextDeps []string
-	for _, dependsTableName := range nextDeps {
-		if _, ok := checked[dependsTableName]; ok {
+		tables := table["dependencies_table"].([]string)
+		if len(tables) != len(databases) {
 			continue
 		}
-		filterNextDeps = append(filterNextDeps, dependsTableName)
-	}
-	invoker.Logger.Debug("deps", elog.Any("nextDeps", nextDeps), elog.Any("filterNextDeps", filterNextDeps),
-		elog.Any("database", dn), elog.Any("table", tn),
-		elog.Any("checked", checked),
-		elog.Any("res", res),
-	)
-	for _, nextTable := range filterNextDeps {
-		dt := strings.Split(nextTable, ".")
-		if len(dt) != 2 {
-			continue
+		for key, _ := range tables {
+			row.DownDatabaseTable = append(row.DownDatabaseTable, fmt.Sprintf("%s.%s", databases[key], tables[key]))
 		}
-		res = append(res, c.deps(dt[0], dt[1], checked)...)
+		res = append(res, &row)
 	}
-	return res
+	return
 }
 
 func getUnixTime(val map[string]interface{}) (int64, bool) {
