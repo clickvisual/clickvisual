@@ -33,7 +33,7 @@ const NodeContent = ({ node }: NodeContentProps) => {
           })}
           :&nbsp;
         </span>
-        <Tooltip title={node.table} placement={"left"}>
+        <Tooltip title={node.database} placement={"left"}>
           <div className={classNames(nodeStyles.context, nodeStyles.textAlign)}>
             <span>{node.database}</span>
           </div>

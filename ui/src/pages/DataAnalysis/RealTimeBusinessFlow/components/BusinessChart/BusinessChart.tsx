@@ -2,6 +2,7 @@ import BusinessStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/index.less
 import { useCallback, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   addEdge,
+  Handle,
   MarkerType,
   MiniMap,
   ReactFlowProvider,
@@ -93,11 +94,12 @@ const BusinessChart = () => {
         default:
           break;
       }
+      // / <NodeContent node={business} />
 
       NodeList.push({
         id: business.table,
         type,
-        data: { label: <NodeContent node={business} /> },
+        data: { business },
         style: {
           width: DefaultWidth,
           height: DefaultHeight,
@@ -105,7 +107,10 @@ const BusinessChart = () => {
         },
       });
       if (isLast) {
-        EdgeList.push({ id: business.table, source: business.table });
+        EdgeList.push({
+          id: business.table,
+          source: business.table,
+        });
       } else {
         business.deps.map((dep) => {
           EdgeList.push({
@@ -123,6 +128,44 @@ const BusinessChart = () => {
     setNodes(() => getNodesPosition(NodeList, EdgeList));
     setEdges(EdgeList);
   }, [businessChart]);
+
+  const CustomInputNode = ({ data }: any) => {
+    return (
+      <>
+        <NodeContent node={data.business} />
+        <Handle type="source" position="bottom" />
+      </>
+    );
+  };
+
+  const CustomDefaultNode = ({ data }: any) => {
+    console.log("data", data);
+    return (
+      <>
+        <Handle type="target" position="top" />
+        <NodeContent node={data.business} />
+        <Handle type="source" position="bottom" />
+      </>
+    );
+  };
+  const CustomOutputNode = ({ data }: any) => {
+    console.log("data", data);
+    return (
+      <>
+        <Handle type="target" position="top" />
+        <NodeContent node={data.business} />
+      </>
+    );
+  };
+
+  const nodeTypes = useMemo(
+    () => ({
+      input: CustomInputNode,
+      default: CustomDefaultNode,
+      output: CustomOutputNode,
+    }),
+    []
+  );
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -170,12 +213,8 @@ const BusinessChart = () => {
             <ReactFlow
               nodes={nodes}
               edges={edges}
+              nodeTypes={nodeTypes}
               onNodesChange={onNodesChange}
-              style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
               attributionPosition="top-right"
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
