@@ -69,6 +69,7 @@ func GetRouter() *egin.Component {
 		v1Open.POST("/template/:id", core.Handle(template.Gen))
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
+		v1Open.POST("/bigdata/nodes/:id/run", core.Handle(bigdata.NodeRunOpenAPI))
 	}
 	admin := r.Group(apiPrefix + "/admin")
 	{
