@@ -23,6 +23,7 @@ import { QuestionCircleOutlined, SaveOutlined } from "@ant-design/icons";
 import queryStatisticsItemStyle from "../index.less";
 
 const { Option } = Select;
+const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
 export enum alarmModeType {
@@ -477,19 +478,25 @@ const CreatedAndUpdatedModal = ({
                 <Form.Item label={i18n.formatMessage({ id: "search" })}>
                   <Input.Group compact>
                     <Form.Item noStyle name={"when"} initialValue={"1=1"}>
-                      <Input
+                      <TextArea
                         style={{
                           width:
                             mode != alarmModeType.AggregationMode
                               ? "85%"
                               : "80%",
+                          borderRadius: "10px",
                         }}
+                        autoSize={{ minRows: 1, maxRows: 8 }}
                       />
                     </Form.Item>
                     <Button
                       style={{
                         width:
-                          mode != alarmModeType.AggregationMode ? "15%" : "20%",
+                          mode != alarmModeType.AggregationMode
+                            ? "calc(15% - 10px)"
+                            : "calc(20% - 10px)",
+                        borderRadius: "8px",
+                        marginLeft: "10px",
                       }}
                       type={"primary"}
                       onClick={() => {

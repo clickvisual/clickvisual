@@ -1,5 +1,5 @@
 import { Form, FormInstance, Input, message, Modal, Select } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
 import {
@@ -36,22 +36,22 @@ const CreateAndUpdateNode = () => {
     changeIsUpdateNode,
   } = temporaryQuery;
 
-  const newTertiaryList = tertiaryList.filter(
-    (item: { id: number; title: string; enum: number }) => {
-      return (
-        SecondaryEnums.database <= item.enum / 10 &&
-        item.enum / 10 < SecondaryEnums.database + 1
-      );
-    }
-  );
-
-  useEffect(() => {
-    if (newTertiaryList.length == 1) {
+  const newTertiaryList = useMemo(() => {
+    const arr = tertiaryList.filter(
+      (item: { id: number; title: string; enum: number }) => {
+        return (
+          SecondaryEnums.database <= item.enum / 10 &&
+          item.enum / 10 < SecondaryEnums.database + 1
+        );
+      }
+    );
+    if (arr.length == 1) {
       folderForm.current?.setFieldsValue({
-        tertiary: newTertiaryList[0].enum,
+        tertiary: arr[0].enum,
       });
     }
-  }, [newTertiaryList]);
+    return arr;
+  }, [tertiaryList]);
 
   useEffect(() => {
     if (visibleNode && currentFolder) {
@@ -82,11 +82,12 @@ const CreateAndUpdateNode = () => {
         name: currentFolder.name,
         desc: currentFolder.desc,
         secondary: currentFolder.secondary,
+        sourceId: currentFolder.sourceId,
         tertiary: currentFolder.tertiary,
       });
       return;
     }
-  }, [currentFolder, visibleNode, newTertiaryList]);
+  }, [currentFolder, visibleNode]);
 
   const handleSubmit = (file: {
     iid: number;

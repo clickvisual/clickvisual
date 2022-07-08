@@ -5,7 +5,7 @@ import useTemporaryQuery, {
   openNodeDataType,
 } from "@/models/dataanalysis/useTemporaryQuery";
 import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
 import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder";
 import temporaryQueryApi from "@/services/temporaryQuery";
@@ -150,9 +150,9 @@ const DataAnalysis = () => {
   });
 
   // 获取文件信息
-  const onGetFolderList = () => {
-    openNodeId &&
-      doGetNodeInfo.run(openNodeId).then((res: any) => {
+  const onGetFolderList = (id: number) => {
+    id &&
+      doGetNodeInfo.run(id).then((res: any) => {
         if (res?.code === 0) {
           setOpenNodeData(res.data);
           changeFolderContent(res.data.content);
@@ -176,7 +176,7 @@ const DataAnalysis = () => {
     if (openNodeData?.lockAt == 0 && nodeId) {
       doLockNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
-          onGetFolderList();
+          onGetFolderList(nodeId);
         }
       });
     }
@@ -191,7 +191,7 @@ const DataAnalysis = () => {
     nodeId &&
       doUnLockNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
-          onGetFolderList();
+          onGetFolderList(nodeId);
         }
       });
   };
@@ -208,7 +208,7 @@ const DataAnalysis = () => {
       doUpdateNode.run(openNodeId, data).then((res: any) => {
         if (res.code == 0) {
           message.success("保存成功");
-          onGetFolderList();
+          onGetFolderList(openNodeId);
         }
       });
   };
@@ -223,11 +223,6 @@ const DataAnalysis = () => {
         }
       });
   };
-
-  useEffect(() => {
-    // todo: 修改为手动触发
-    onGetFolderList();
-  }, [openNodeId]);
 
   return {
     instances,
@@ -269,11 +264,6 @@ const DataAnalysis = () => {
     doGetNodeInfo,
     doGetSourceList,
 
-    realTimeTraffic,
-    temporaryQuery,
-    workflow,
-    dataSourceManage,
-
     // node
     doCreatedNode,
     doUpdateNode,
@@ -295,6 +285,10 @@ const DataAnalysis = () => {
     manageNode,
     integratedConfigs,
     workflowBoard,
+    realTimeTraffic,
+    temporaryQuery,
+    workflow,
+    dataSourceManage,
   };
 };
 

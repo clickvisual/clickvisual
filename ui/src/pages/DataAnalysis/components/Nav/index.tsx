@@ -25,6 +25,7 @@ const DataAnalysisNav = () => {
     changeFolderContent,
     dataSourceManage,
     manageNode,
+    temporaryQuery,
   } = useModel("dataAnalysis");
   const { setNodes, setEdges } = realTimeTraffic;
 
@@ -93,6 +94,7 @@ const DataAnalysisNav = () => {
                 dataSourceManage.changeSourceList([]);
                 manageNode.setSelectNode({});
                 manageNode.setSelectKeys([]);
+                temporaryQuery.setSelectNodeKeys([]);
                 onChangeNavKey(item.key);
                 onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
                 localStorage.setItem("data-analysis-nav-key", item.key);

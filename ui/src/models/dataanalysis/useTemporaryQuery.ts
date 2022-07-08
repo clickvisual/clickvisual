@@ -25,18 +25,20 @@ const useTemporaryQuery = () => {
   const [isUpdateFolder, setIsUpdateFolder] = useState<boolean>(false);
   const [isUpdateNode, setIsUpdateNode] = useState<boolean>(false);
   const [temporaryQueryNodes, setTemporaryQueryNodes] = useState<any[]>([]);
+  const [selectNodeKeys, setSelectNodeKeys] = useState<any[]>([]);
 
   const [fileList, setFileList] = useState<DataNode[]>();
   // 选中包括右键的节点|文件的数据临时存储
   const [currentFolder, setCurrentFolder] = useState<{
+    sourceId?: any;
     id: number;
     parentId: number;
     name: string;
-    desc?: string;
+    desc: string;
     nodeType: number;
     secondary?: number;
     tertiary?: number;
-  }>({ id: 0, parentId: 0, name: "", nodeType: 0 });
+  }>({ id: 0, parentId: 0, name: "", desc: "", nodeType: 0 });
 
   const changeVisibleFolder = (flag: boolean) => {
     setVisibleFolder(flag);
@@ -59,10 +61,11 @@ const useTemporaryQuery = () => {
     id: number;
     parentId: number;
     name: string;
-    desc?: string;
+    desc: string;
     nodeType: number;
     secondary?: number;
     tertiary?: number;
+    sourceId?: number;
   }) => {
     setCurrentFolder(data);
   };
@@ -159,25 +162,11 @@ const useTemporaryQuery = () => {
         let arr: any[] = [];
         let nodesArr: any[] = [];
         data.map((item: folderListType) => {
-          if (item?.folderId) {
+          if (item?.folderId != undefined) {
             nodesArr.push(item);
           }
-          console.log(item, "item");
-
-          //key = 父级id_此id_此名称_此详情_是否可打开的节点_secondary_tertiary 构成
           let key: string = "";
-          if (item.folderId == 0 || !!item.folderId) {
-            key = `${item.parentId ?? item.folderId}!@#@!${item.id}!@#@!${
-              item.name
-            }!@#@!${item.desc}!@#@!true!@#@!${item.secondary}!@#@!${
-              item.tertiary
-            }`;
-            // key = `${item.workflowId}-${item.id}-${item.name}`;
-          } else {
-            key = `${item.parentId ?? item.folderId}!@#@!${item.id}!@#@!${
-              item.name
-            }!@#@!${item.desc}!@#@!false`;
-          }
+          key = `${item.workflowId}-${item.id}-${item.name}`;
           const childrens = (item.children || []).concat(item.nodes || []);
 
           if (childrens.length > 0) {
@@ -187,6 +176,7 @@ const useTemporaryQuery = () => {
                 title: item.name,
                 children: generateData(childrens),
                 node: item,
+                desc: item.desc,
               });
             } else {
               arr = [
@@ -195,6 +185,7 @@ const useTemporaryQuery = () => {
                   title: item.name,
                   node: item,
                   children: generateData(childrens),
+                  desc: item.desc,
                 },
               ];
             }
@@ -205,6 +196,7 @@ const useTemporaryQuery = () => {
                 title: item.name,
                 children: [],
                 node: item,
+                desc: item.desc,
               });
             } else {
               arr = [
@@ -213,6 +205,7 @@ const useTemporaryQuery = () => {
                   title: item.name,
                   children: [],
                   node: item,
+                  desc: item.desc,
                 },
               ];
             }
@@ -225,26 +218,26 @@ const useTemporaryQuery = () => {
     }
   };
 
-  // 拿目录的key存重要数据
-  const onKeyToImportantInfo = (str: string) => {
-    const dataList = str.split("!@#@!");
-    if (dataList[4] != "true") {
+  // 拿目录的item存重要数据
+  const onItemToImportantInfo = (data: any) => {
+    if (!data?.iid) {
       changeCurrentFolder({
-        id: parseInt(dataList[1]),
-        parentId: parseInt(dataList[0]),
-        name: dataList[2],
-        desc: dataList[3],
-        nodeType: dataList[4] == "true" ? FolderEnums.node : FolderEnums.folder,
+        id: parseInt(data?.id),
+        parentId: parseInt(data?.parentId ?? data?.folderId),
+        name: data.name,
+        nodeType: FolderEnums.folder,
+        desc: data.desc,
       });
     } else {
       changeCurrentFolder({
-        id: parseInt(dataList[1]),
-        parentId: parseInt(dataList[0]),
-        name: dataList[2],
-        desc: dataList[3],
-        nodeType: dataList[4] == "true" ? FolderEnums.node : FolderEnums.folder,
-        secondary: parseInt(dataList[5]),
-        tertiary: parseInt(dataList[6]),
+        id: parseInt(data?.id),
+        parentId: parseInt(data?.parentId ?? data?.folderId),
+        name: data.name,
+        nodeType: FolderEnums.node,
+        secondary: parseInt(data.secondary),
+        sourceId: parseInt(data.sourceId),
+        tertiary: parseInt(data.tertiary),
+        desc: data.desc,
       });
     }
   };
@@ -268,7 +261,10 @@ const useTemporaryQuery = () => {
     currentFolder,
     changeCurrentFolder,
 
-    onKeyToImportantInfo,
+    onItemToImportantInfo,
+
+    selectNodeKeys,
+    setSelectNodeKeys,
 
     primaryList,
     tertiaryList,

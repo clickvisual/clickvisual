@@ -22,13 +22,14 @@ const DataAnalysis = () => {
     openNodeId,
     changeOpenNodeId,
     manageNode,
+    onGetFolderList,
     temporaryQuery,
   } = useModel("dataAnalysis");
   const i18n = useIntl();
   const [urlState, setUrlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
   const { setSelectNode, nodes, setSelectKeys } = manageNode;
-  const { temporaryQueryNodes } = temporaryQuery;
+  const { temporaryQueryNodes, setSelectNodeKeys } = temporaryQuery;
 
   const NavContent = useMemo(() => {
     if (!currentInstances) {
@@ -75,6 +76,7 @@ const DataAnalysis = () => {
   useEffect(() => {
     if (urlState && urlState.nodeId && urlState.nodeId != openNodeId) {
       changeOpenNodeId(parseInt(urlState.nodeId));
+      onGetFolderList(parseInt(urlState.nodeId));
       return;
     }
     const openId = onSetLocalData(
@@ -83,6 +85,7 @@ const DataAnalysis = () => {
     );
     if (openId) {
       changeOpenNodeId(openId?.openNodeId);
+      onGetFolderList(openId?.openNodeId);
     }
   }, []);
 
@@ -110,10 +113,12 @@ const DataAnalysis = () => {
         const nodeData = selectNodeData[0];
         if (nodeData) {
           nodeData && setSelectNode(nodeData);
-          setSelectKeys([
-            `${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`,
-          ]);
-          console.log(`${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`);
+          const key = `${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`;
+          if (nodes.length > 0) {
+            setSelectKeys([key]);
+            return;
+          }
+          setSelectNodeKeys([key]);
         }
       }
     }
