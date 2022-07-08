@@ -37,7 +37,7 @@ const BusinessChart = () => {
 
   const getNodesPosition = useCallback((nodes: any[], edges: any[]) => {
     // compound: 支持复合查询
-    let g = new graphlib.Graph({ directed: true, compound: true });
+    let g = new graphlib.Graph({ directed: true });
     g.setGraph({});
     g.setDefaultEdgeLabel(function () {
       return {};
@@ -48,7 +48,6 @@ const BusinessChart = () => {
     for (const edge of edges) {
       g.setEdge(edge.source, edge.target);
     }
-    // g.setParent("bbbb", "aaaa");
     layout(g);
     const newNodes: any[] = [];
     for (const node of nodes) {
@@ -72,14 +71,14 @@ const BusinessChart = () => {
     for (const business of businessChart) {
       const isLast = business.deps.length === 0 && businessChart.length > 1;
 
-      const isHeader =
+      const isNotHeader =
         businessChart.length === 1 ||
         businessChart
           .filter((item) => item.table !== business.table)
-          .findIndex((item) => !item.deps.includes(business.table)) > -1;
+          .find((item) => item.deps.includes(business.table));
 
-      const type = isLast ? "output" : isHeader ? "input" : "default";
-
+      const headerType = !isNotHeader ? "input" : "default";
+      const type = isLast ? "output" : headerType;
       let background = "#fff";
       switch (business.engine) {
         case BusinessEngineEnum.Kafka:
