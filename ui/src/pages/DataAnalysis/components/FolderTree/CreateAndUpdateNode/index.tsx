@@ -1,5 +1,5 @@
 import { Form, FormInstance, Input, message, Modal, Select } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
 import {
@@ -27,7 +27,7 @@ const CreateAndUpdateNode = () => {
 
   const {
     secondaryList,
-    tertiaryList,
+    databaseTertiary,
     getDataList,
     currentFolder,
     isUpdateNode,
@@ -35,23 +35,6 @@ const CreateAndUpdateNode = () => {
     changeVisibleNode,
     changeIsUpdateNode,
   } = temporaryQuery;
-
-  const newTertiaryList = useMemo(() => {
-    const arr = tertiaryList.filter(
-      (item: { id: number; title: string; enum: number }) => {
-        return (
-          SecondaryEnums.database <= item.enum / 10 &&
-          item.enum / 10 < SecondaryEnums.database + 1
-        );
-      }
-    );
-    if (arr.length == 1) {
-      folderForm.current?.setFieldsValue({
-        tertiary: arr[0].enum,
-      });
-    }
-    return arr;
-  }, [tertiaryList]);
 
   useEffect(() => {
     if (visibleNode && currentFolder) {
@@ -194,7 +177,7 @@ const CreateAndUpdateNode = () => {
         </Form.Item>
         <Form.Item name={"tertiary"} label="tertiary" required>
           <Select placeholder="请选择tertiary">
-            {newTertiaryList.map(
+            {databaseTertiary.map(
               (item: { id: number; title: string; enum: number }) => (
                 <Option value={item.enum} key={item.id}>
                   {item.title}

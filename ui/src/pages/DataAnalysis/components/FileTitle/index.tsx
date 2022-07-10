@@ -78,48 +78,38 @@ const FileTitle = ({
     switch (selectNode.tertiary) {
       case TertiaryEnums.mysql:
         return (
-          <div style={{ width: "200px" }}>
-            <Space>
-              <SVGIcon type={SVGTypeEnums.mysql} />
-              <span>MySQL</span>
-            </Space>
-          </div>
+          <Space>
+            <SVGIcon type={SVGTypeEnums.mysql} />
+            <span>MySQL</span>
+          </Space>
         );
       case TertiaryEnums.clickhouse:
         return (
-          <div style={{ width: "200px" }}>
-            <Space>
-              <SVGIcon type={SVGTypeEnums.clickhouse} />
-              <span>ClickHouse</span>
-            </Space>
-          </div>
+          <Space>
+            <SVGIcon type={SVGTypeEnums.clickhouse} />
+            <span>ClickHouse</span>
+          </Space>
         );
       case TertiaryEnums.realtime:
         return (
-          <div style={{ width: "200px" }}>
-            <Space>
-              <SVGIcon type={SVGTypeEnums.realtime} />
-              <span>实时同步</span>
-            </Space>
-          </div>
+          <Space>
+            <SVGIcon type={SVGTypeEnums.realtime} />
+            <span>实时同步</span>
+          </Space>
         );
       case TertiaryEnums.offline:
         return (
-          <div style={{ width: "200px" }}>
-            <Space>
-              <SVGIcon type={SVGTypeEnums.offline} />
-              <span>离线同步</span>
-            </Space>
-          </div>
+          <Space>
+            <SVGIcon type={SVGTypeEnums.offline} />
+            <span>离线同步</span>
+          </Space>
         );
       default:
         return (
-          <div style={{ width: "200px" }}>
-            <Space>
-              <SVGIcon type={SVGTypeEnums.default} />
-              <span>未知文件</span>
-            </Space>
-          </div>
+          <Space>
+            <SVGIcon type={SVGTypeEnums.default} />
+            <span>未知文件</span>
+          </Space>
         );
     }
   }, [selectNode]);
@@ -162,10 +152,12 @@ const FileTitle = ({
     <div className={styles.fileTitle}>
       {!!file && (
         <>
-          {fileType}
           <div
             className={classNames(styles.name, isChange && styles.nameChange)}
-          />
+            style={{ width: "200px" }}
+          >
+            {fileType}
+          </div>
           {/* 1 等待定时任务 2 执行中 3 执行异常 4 执行完成 5 待执行 */}
           {file.status !== 0 && (
             <div className={styles.statusText}>
