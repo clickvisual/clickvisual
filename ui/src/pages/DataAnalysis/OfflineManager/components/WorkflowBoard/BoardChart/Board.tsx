@@ -3,6 +3,7 @@ import ReactFlow, {
   addEdge,
   Handle,
   MarkerType,
+  MiniMap,
   ReactFlowProvider,
 } from "react-flow-renderer";
 import { graphlib, layout } from "dagre";
@@ -16,6 +17,7 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import deletedModal from "@/components/DeletedModal";
 import { useKeyPress } from "ahooks";
+import { Spin } from "antd";
 
 export interface BoardProps {
   currentBoard: any;
@@ -280,6 +282,7 @@ const Board = ({
         flex: 1,
         overflow: "hidden",
         backgroundColor: "#fff",
+        position: "relative",
       }}
     >
       <div className="dndflow">
@@ -303,13 +306,30 @@ const Board = ({
               onlyRenderVisibleElements
               onDragOver={onDragOver}
               fitView
+              defaultZoom={0.5}
               nodesConnectable={!isLock}
               elementsSelectable={!isLock}
               nodesDraggable={!isLock}
-            />
+            >
+              <MiniMap />
+            </ReactFlow>
           </div>
         </ReactFlowProvider>
       </div>
+      {isLock && (
+        <div
+          style={{
+            cursor: "no-drop",
+            backgroundColor: "hsla(0,0%,0%,.1)",
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            left: 0,
+            top: 0,
+            zIndex: 10,
+          }}
+        />
+      )}
     </div>
   );
 };
