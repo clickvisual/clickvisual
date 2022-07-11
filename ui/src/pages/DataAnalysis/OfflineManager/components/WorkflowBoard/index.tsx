@@ -8,6 +8,7 @@ import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowB
 import { Modal } from "antd";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import deletedModal from "@/components/DeletedModal";
+import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
 
 export interface WorkflowBoardProps {
   currentBoard: any;
@@ -29,6 +30,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     onSaveBoardNodes,
   } = useModel("dataAnalysis", (model) => ({
     iid: model.currentInstances,
+    boardNodeList: model.manageNode.boardNodeList,
     updateNode: model.manageNode.doUpdatedNode,
     doLockNode: model.manageNode.doLockNode,
     doUnLockNode: model.manageNode.doUnLockNode,
@@ -87,7 +89,10 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
           }),
       });
     } else {
-      doUnLockNode.run(file.id);
+      doUnLockNode.run(file.id).then((res: any) => {
+        if (res.code !== 0) return;
+        doGetFile(file.id);
+      });
     }
   };
 
@@ -107,18 +112,16 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
       content: `确定删除节点: ${node.name} 吗？`,
       onOk: () => {
         return deleteNodeById(node.id).then(() => {
-          console.log("delete");
           if (
-            node.tertiary === TertiaryEnums.start ||
-            node.tertiary === TertiaryEnums.end
+            node.tertiary !== TertiaryEnums.start &&
+            node.tertiary !== TertiaryEnums.end
           ) {
-            return;
+            doSetNodesAndFolders({
+              iid: iid!,
+              primary: node.primary,
+              workflowId: node.workflowId,
+            });
           }
-          doSetNodesAndFolders({
-            iid: node.iid,
-            primary: node.primary,
-            workflowId: node.workflowId,
-          });
         });
       },
     });
@@ -133,18 +136,26 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
 
   const handleCreateNode = (node: any, nodeInfo: any) => {
     const newNode = {
-      ...node,
+      id: node.id,
+      name: node.name,
+      tertiary: node.tertiary,
+      primary: node?.primary,
+      secondary: node?.secondary,
+      workflowId: node?.workflowId,
+      sourceId: node?.sourceId,
       position: {
         x: nodeInfo.x,
         y: nodeInfo.y,
       },
     };
     createBoardNode(newNode);
-    doSetNodesAndFolders({
-      iid: currentBoard.iid,
-      primary: currentBoard.primary,
-      workflowId: currentBoard.workflowId,
-    });
+    if (!NodeBoardIdEnums[node.id]) {
+      doSetNodesAndFolders({
+        iid: currentBoard.iid,
+        primary: currentBoard.primary,
+        workflowId: currentBoard.workflowId,
+      });
+    }
   };
 
   // TODO

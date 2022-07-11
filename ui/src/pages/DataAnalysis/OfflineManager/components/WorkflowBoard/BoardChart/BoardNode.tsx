@@ -3,6 +3,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useMemo } from "react";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
+import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
 
 const BoardNode = ({
   node,
@@ -42,22 +43,30 @@ const BoardNode = ({
     setCurrentNode(node);
     showNodeModal(updateBoardNode);
   };
-  const menu = (
-    <Menu
-      items={[
+  const menu = () => {
+    let menuItems = [
+      {
+        onClick: handleDelete,
+        label: "删除节点",
+        key: "delete-node",
+      },
+    ];
+    if (
+      node.id !== NodeBoardIdEnums.start &&
+      node.id !== NodeBoardIdEnums.end
+    ) {
+      menuItems = [
         {
           onClick: handleUpdateNode,
           label: "修改节点",
           key: "updateNode",
         },
-        {
-          onClick: handleDelete,
-          label: "删除节点",
-          key: "delete-node",
-        },
-      ]}
-    />
-  );
+        ...menuItems,
+      ];
+    }
+    return <Menu items={menuItems} />;
+  };
+
   const Icon = useMemo(() => {
     switch (node.tertiary) {
       case TertiaryEnums.realtime:
@@ -81,7 +90,7 @@ const BoardNode = ({
     <Dropdown overlay={menu} trigger={["contextMenu"]}>
       <div style={{ display: "flex" }}>
         <div style={{ margin: "0 4px" }}>{Icon}</div>
-        <Tooltip title={"node.name"}>
+        <Tooltip title={node.name}>
           <div
             style={{
               flex: 1,

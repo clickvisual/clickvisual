@@ -5,18 +5,15 @@ import {
   SecondaryEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { ItemType } from "antd/es/menu/hooks/useItems";
-import {
-  AppstoreAddOutlined,
-  DashboardOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
+import { AppstoreAddOutlined, EditOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import deletedModal from "@/components/DeletedModal";
 import lodash from "lodash";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 
 export interface RightMenuProps {
   clickSource: OfflineRightMenuClickSourceEnums;
@@ -26,6 +23,7 @@ export interface RightMenuProps {
 const RightMenu = (props: RightMenuProps) => {
   const i18n = useIntl();
   const { clickSource, currentNode, handleCloseNodeModal } = props;
+  const selectNodeRef = useRef<any>(null);
   const { workflow, currentInstances, manageNode } = useModel("dataAnalysis");
   const {
     setVisibleWorkflowEditModal,
@@ -55,6 +53,7 @@ const RightMenu = (props: RightMenuProps) => {
 
   const handleClickBoard = useCallback(() => {
     setSelectNode(currentNode.board);
+    selectNodeRef.current = currentNode.board;
   }, [currentNode]);
 
   const handleClickUpdateWorkflow = useCallback(() => {
@@ -71,6 +70,7 @@ const RightMenu = (props: RightMenuProps) => {
 
   const handleClickDeleteWorkflow = useCallback(() => {
     if (!currentNode || !currentInstances) return;
+
     deletedModal({
       content: i18n.formatMessage(
         { id: "bigdata.workflow.delete.content" },
@@ -93,6 +93,9 @@ const RightMenu = (props: RightMenuProps) => {
             if (res?.code !== 0) {
               hideMessage();
               return;
+            }
+            if (selectNodeRef.current?.workflowId === currentNode?.id) {
+              setSelectNode(undefined);
             }
             getWorkflows.run({ iid: currentInstances! }).then((res) => {
               if (res?.code !== 0) {
@@ -269,7 +272,7 @@ const RightMenu = (props: RightMenuProps) => {
     {
       label: "看板",
       key: "workflow-board",
-      icon: <DashboardOutlined />,
+      icon: <SVGIcon type={SVGTypeEnums.board} />,
       onClick: handleClickBoard,
     },
     {
@@ -340,8 +343,8 @@ const RightMenu = (props: RightMenuProps) => {
       key: "add-node",
       children: [
         {
-          label: "MySql",
-          key: "MySql",
+          label: "MySQL",
+          key: "MySQL",
           onClick: () =>
             handleClickAddNode(
               PrimaryEnums.mining,

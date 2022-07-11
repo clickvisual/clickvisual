@@ -115,6 +115,18 @@ const Board = ({
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       });
+      if (
+        dropNodeInfo.tertiary === TertiaryEnums.start ||
+        dropNodeInfo.tertiary === TertiaryEnums.end
+      ) {
+        const params = {
+          id: dropNodeInfo.tertiary,
+          name: TertiaryEnums[dropNodeInfo.tertiary],
+          tertiary: dropNodeInfo.tertiary,
+        };
+        onCreate(params, position);
+        return;
+      }
       showCreateNode(
         currentBoard,
         { ...position, ...dropNodeInfo },
@@ -203,57 +215,60 @@ const Board = ({
     return newNodes;
   }, []);
 
-  const handleChangeNodes = useCallback((nodeList: any[], edgeList: any[]) => {
-    if (nodeList.length <= 0) {
-      setNodes([]);
-      return;
-    }
-    // Node
-    const NodeList: any[] = [];
-    const EdgeList: any[] = edgeList;
-    for (const node of nodeList) {
-      let type: any = FlowNodeTypeEnums.default;
-      switch (node.tertiary) {
-        case TertiaryEnums.start:
-          type = FlowNodeTypeEnums.input;
-          break;
-        case TertiaryEnums.end:
-          type = FlowNodeTypeEnums.output;
-          break;
-        default:
-          type = FlowNodeTypeEnums.default;
-          break;
+  const handleChangeNodes = useCallback(
+    (nodeList: any[], edgeList: any[]) => {
+      if (nodeList.length <= 0) {
+        setNodes([]);
+        return;
+      }
+      // Node
+      const NodeList: any[] = [];
+      const EdgeList: any[] = edgeList;
+      for (const node of nodeList) {
+        let type: any = FlowNodeTypeEnums.default;
+        switch (node.tertiary) {
+          case TertiaryEnums.start:
+            type = FlowNodeTypeEnums.input;
+            break;
+          case TertiaryEnums.end:
+            type = FlowNodeTypeEnums.output;
+            break;
+          default:
+            type = FlowNodeTypeEnums.default;
+            break;
+        }
+
+        // react-flow 组件 id 只支持 string 类型，如果不是 string 会出现许多 BUG，如：连接线不显示
+        NodeList.push({
+          id: node?.id?.toString(),
+          type,
+          data: {
+            label: <BoardNode node={node} onDelete={onDeleteRight} />,
+            node,
+          },
+          style: {
+            width: 100,
+            height: 32,
+            padding: 0,
+            lineHeight: "32px",
+          },
+          position: node?.position,
+        });
       }
 
-      // react-flow 组件 id 只支持 string 类型，如果不是 string 会出现许多 BUG，如：连接线不显示
-      NodeList.push({
-        id: node?.id?.toString(),
-        type,
-        data: {
-          label: <BoardNode node={node} onDelete={onDeleteRight} />,
-          node,
-        },
-        style: {
-          width: 100,
-          height: 32,
-          padding: 0,
-          lineHeight: "32px",
-        },
-        position: node?.position,
-      });
-    }
+      const newNodes = () => {
+        if (nodeList.findIndex((item) => !item?.position) > -1) {
+          return getNodesPosition(NodeList, EdgeList);
+        }
+        return NodeList;
+      };
 
-    const newNodes = () => {
-      if (nodeList.findIndex((item) => !item?.position) > -1) {
-        return getNodesPosition(NodeList, EdgeList);
-      }
-      return NodeList;
-    };
-
-    setNodes(() => newNodes());
-    nodeListRef.current = newNodes();
-    setEdges(() => [...EdgeList]);
-  }, []);
+      setNodes(() => newNodes());
+      nodeListRef.current = newNodes();
+      setEdges(() => [...EdgeList]);
+    },
+    [boardNodes, boardEdges]
+  );
 
   useEffect(() => {
     handleChangeNodes(boardNodes, boardEdges);
