@@ -152,18 +152,19 @@ const FileTitle = ({
     <div className={styles.fileTitle}>
       {!!file && (
         <>
-          <div
-            className={classNames(styles.name, isChange && styles.nameChange)}
-            style={{ width: "200px" }}
-          >
-            {fileType}
-          </div>
-          {/* 1 等待定时任务 2 执行中 3 执行异常 4 执行完成 5 待执行 */}
-          {file.status !== 0 && (
-            <div className={styles.statusText}>
-              <span>{NodeStatus}</span>
+          <div style={{ width: "200px", display: "flex" }}>
+            <div
+              className={classNames(styles.name, isChange && styles.nameChange)}
+            >
+              {fileType}
             </div>
-          )}
+            {/* 1 等待定时任务 2 执行中 3 执行异常 4 执行完成 5 待执行 */}
+            {file.status !== 0 && (
+              <div className={styles.statusText}>
+                <span>{NodeStatus}</span>
+              </div>
+            )}
+          </div>
           <div className={styles.userStatus}>
             {file.lockUid && file.lockUid !== 0
               ? `${file.username || "无效用户"} 正在编辑`

@@ -180,7 +180,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     setSelectKeys([node.key]);
     if (nodeType === NodeType.node) {
       setSelectNode(currentNode);
-      onGetFolderList(currentNode.id);
+      currentNode.secondary == 3 && onGetFolderList(currentNode.id);
     }
   };
 
