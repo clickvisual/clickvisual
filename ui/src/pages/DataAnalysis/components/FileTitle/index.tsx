@@ -69,7 +69,7 @@ const FileTitle = ({
       return (
         <div>
           <Space>
-            {/*<SVGIcon type={SVGTypeEnums.board} />*/}
+            <SVGIcon type={SVGTypeEnums.board} />
             <span>看板</span>
           </Space>
         </div>
@@ -154,7 +154,6 @@ const FileTitle = ({
         <>
           <div
             className={classNames(styles.name, isChange && styles.nameChange)}
-            style={{ width: "200px" }}
           >
             {fileType}
           </div>

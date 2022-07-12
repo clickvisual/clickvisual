@@ -1,8 +1,13 @@
 import RealTimeSVG from "@/assets/images/realtime.svg";
 import OfflineSVG from "@/assets/images/offline.svg";
-import MysqlSVG from "@/assets/images/mysql.svg";
+import MySQLSVG from "@/assets/images/mysql.svg";
 import ClickhouseSVG from "@/assets/images/clickhouse.svg";
-import { FileOutlined, LoginOutlined, LogoutOutlined } from "@ant-design/icons";
+import {
+  DashboardOutlined,
+  FileOutlined,
+  LoginOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
 
 export enum SVGTypeEnums {
   mysql = "mysql",
@@ -12,6 +17,7 @@ export enum SVGTypeEnums {
   default = "default",
   start = "start",
   end = "end",
+  board = "board",
 }
 
 const SVGIcon = ({ type }: { type: SVGTypeEnums }) => {
@@ -25,10 +31,14 @@ const SVGIcon = ({ type }: { type: SVGTypeEnums }) => {
     return <LogoutOutlined />;
   }
 
+  if (type === SVGTypeEnums.board) {
+    return <DashboardOutlined />;
+  }
+
   const srcType = () => {
     switch (type) {
       case SVGTypeEnums.mysql:
-        return MysqlSVG;
+        return MySQLSVG;
       case SVGTypeEnums.clickhouse:
         return ClickhouseSVG;
       case SVGTypeEnums.realtime:

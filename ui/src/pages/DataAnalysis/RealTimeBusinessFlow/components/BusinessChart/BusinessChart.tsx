@@ -139,7 +139,6 @@ const BusinessChart = () => {
   };
 
   const CustomDefaultNode = ({ data }: any) => {
-    console.log("data", data);
     return (
       <>
         <Handle type="target" position="top" />
@@ -149,7 +148,6 @@ const BusinessChart = () => {
     );
   };
   const CustomOutputNode = ({ data }: any) => {
-    console.log("data", data);
     return (
       <>
         <Handle type="target" position="top" />

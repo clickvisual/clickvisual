@@ -13,6 +13,7 @@ export interface NodeManageProps {
   isLock: boolean;
 }
 const NodeManage = ({ isLock }: NodeManageProps) => {
+  console.log("isLock: ", isLock);
   return (
     <div
       style={{
@@ -74,7 +75,10 @@ const NodeModule = ({
           <div>
             <div
               draggable={!isLock}
-              className={styles.nodeSelect}
+              className={classNames(
+                styles.nodeSelect,
+                isLock && styles.lockNode
+              )}
               onDragStart={(event) =>
                 onDragStart(
                   event,
@@ -91,7 +95,10 @@ const NodeModule = ({
             </div>
             <div
               draggable={!isLock}
-              className={styles.nodeSelect}
+              className={classNames(
+                styles.nodeSelect,
+                isLock && styles.lockNode
+              )}
               onDragStart={(event) =>
                 onDragStart(
                   event,
@@ -114,7 +121,10 @@ const NodeModule = ({
             <div>
               <div
                 draggable={!isLock}
-                className={styles.nodeSelect}
+                className={classNames(
+                  styles.nodeSelect,
+                  isLock && styles.lockNode
+                )}
                 onDragStart={(event) =>
                   onDragStart(
                     event,
@@ -133,7 +143,10 @@ const NodeModule = ({
             <div>
               <div
                 draggable={!isLock}
-                className={styles.nodeSelect}
+                className={classNames(
+                  styles.nodeSelect,
+                  isLock && styles.lockNode
+                )}
                 onDragStart={(event) =>
                   onDragStart(
                     event,
@@ -157,7 +170,10 @@ const NodeModule = ({
           <div>
             <div
               draggable={!isLock}
-              className={styles.nodeSelect}
+              className={classNames(
+                styles.nodeSelect,
+                isLock && styles.lockNode
+              )}
               onDragStart={(event) =>
                 onDragStart(event, "input", TertiaryEnums.start, nodeSecondary)
               }
@@ -169,7 +185,10 @@ const NodeModule = ({
             </div>
             <div
               draggable={!isLock}
-              className={styles.nodeSelect}
+              className={classNames(
+                styles.nodeSelect,
+                isLock && styles.lockNode
+              )}
               onDragStart={(event) =>
                 onDragStart(event, "output", TertiaryEnums.end, nodeSecondary)
               }

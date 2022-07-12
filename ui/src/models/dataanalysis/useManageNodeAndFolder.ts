@@ -47,6 +47,11 @@ export const SecondaryList = [
   },
 ];
 
+export enum NodeBoardIdEnums {
+  start = -1,
+  end = -2,
+}
+
 export const TertiaryList = [
   {
     id: TertiaryEnums.clickhouse,
@@ -281,27 +286,39 @@ const useManageNodeAndFolder = () => {
         const folders = res.data.children;
         const newNodes = getNodeList(folders, nodes);
         const content = parseJsonObject(file?.content);
-        if (!!content && content?.boardNodeList) {
-          newNodes.forEach((item) => {
-            const nodeItem = content?.boardNodeList?.find(
-              (nd: any) => nd.id === item.id
-            );
-            item.position = nodeItem?.position;
+        const newNodeList: any = [];
+        newNodes.forEach((item) => {
+          const nodeItem = content?.boardNodeList?.find(
+            (nd: any) => nd.id === item.id
+          );
+          item.position = nodeItem?.position;
+          newNodeList.push({
+            position: nodeItem?.position,
+            id: item.id,
+            name: item.name,
+            tertiary: item.tertiary,
+            primary: item?.primary,
+            secondary: item?.secondary,
+            workflowId: item?.workflowId,
+            sourceId: item?.sourceId,
           });
-          const startAndEnd =
-            content?.boardNodeList.filter((item: any) => !!item.node) ?? [];
-          if (startAndEnd.length > 0) {
-            newNodes.push(...startAndEnd.map((item: any) => item.node));
-          }
+        });
+        const startAndEnd =
+          content?.boardNodeList?.filter(
+            (item: any) =>
+              item.id === TertiaryEnums.start || item.id === TertiaryEnums.end
+          ) ?? [];
+        if (startAndEnd.length > 0) {
+          newNodeList.push(...startAndEnd.map((item: any) => item));
         }
         const newBoard: any = { nodeList: [], edgeList: [] };
         if (!!content && content?.boardEdges) {
           changeEdges?.(content.boardEdges);
           newBoard.edgeList = [...content.boardEdges];
         }
-        newBoard.nodeList = [...newNodes];
+        newBoard.nodeList = [...newNodeList];
         setBoardRef(newBoard);
-        setBoardNodeList(newNodes);
+        setBoardNodeList(newNodeList);
       });
   };
 
@@ -312,20 +329,29 @@ const useManageNodeAndFolder = () => {
     );
   }, [boardNodeList, boardEdges, boardRef]);
 
-  const deleteNodeById = (nodeId: number) => {
-    const node = boardNodeList.find((item) => item.id === nodeId);
-    if (
-      node?.tertiary === TertiaryEnums.end ||
-      node?.tertiary === TertiaryEnums.start
-    ) {
-      setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
-      return new Promise<any>(() => {});
-    }
-    return doDeletedNode.run(nodeId).then((res) => {
-      if (res?.code !== 0) return;
-      setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
-    });
-  };
+  const deleteNodeById = useCallback(
+    (nodeId: number) => {
+      const node = boardNodeList.find((item) => item.id === nodeId);
+
+      console.log("node: ", node, boardNodeList);
+      if (
+        node?.tertiary === TertiaryEnums.end ||
+        node?.tertiary === TertiaryEnums.start
+      ) {
+        setBoardNodeList((nodeList) => {
+          console.log(nodeList.filter((node) => node.id !== nodeId));
+          return nodeList.filter((node) => node.id !== nodeId);
+        });
+        return new Promise<any>((resolve) => resolve(true));
+      } else {
+        return doDeletedNode.run(nodeId).then((res) => {
+          if (res?.code !== 0) return;
+          setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
+        });
+      }
+    },
+    [boardNodeList]
+  );
 
   const createBoardNode = (node: any) => {
     setBoardNodeList((boardNodeList) => {
@@ -362,18 +388,10 @@ const useManageNodeAndFolder = () => {
         message.warning("必须存在且仅存在一组开始和结束节点");
         return;
       }
-      const boardNodes = boardNodeList.map((item) => ({
-        id: item.id,
-        position: item.position,
-        node:
-          (item.tertiary === TertiaryEnums.start ||
-            item.tertiary === TertiaryEnums.end) &&
-          item,
-      }));
       setBoardRef({ nodeList: boardNodeList, edgeList: boardEdges });
       doUpdatedNode.run(currentBoard.id, {
         ...currentBoard,
-        content: JSON.stringify({ boardNodeList: boardNodes, boardEdges }),
+        content: JSON.stringify({ boardNodeList, boardEdges }),
       });
     },
     [boardNodeList, boardEdges]
