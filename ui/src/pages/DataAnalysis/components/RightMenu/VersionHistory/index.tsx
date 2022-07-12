@@ -1,6 +1,6 @@
 import { Drawer, Table, Tooltip } from "antd";
 import moment from "moment";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useModel } from "umi";
 import MonacoEditor from "react-monaco-editor";
 import { format } from "sql-formatter";

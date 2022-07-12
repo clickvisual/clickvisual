@@ -3,22 +3,28 @@ import { useState } from "react";
 import { useModel } from "umi";
 import style from "./index.less";
 import Results from "./Results";
+import Scheduling from "./Scheduling";
 import VersionHistory from "./VersionHistory";
 
 export enum RightMenuType {
   /**
+   * 调度配置
+   */
+  Scheduling = 101,
+  /**
    * 历史版本
    */
-  VersionHistory = 101,
+  VersionHistory = 102,
   /**
    * 运行结果
    */
-  Results = 102,
+  Results = 103,
 }
 
 const RightMenu = () => {
   const [visibleVersionHistory, setVisibleVersionHistory] =
     useState<boolean>(false);
+  const [visibleScheduling, setVisibleScheduling] = useState<boolean>(false);
   const {
     openNodeId,
     doNodeHistories,
@@ -29,6 +35,14 @@ const RightMenu = () => {
   } = useModel("dataAnalysis");
 
   const rightMenu = [
+    {
+      id: RightMenuType.Scheduling,
+      title: "调度配置",
+      Tooltip: "调度配置",
+      onClick: () => {
+        setVisibleScheduling(true);
+      },
+    },
     {
       id: RightMenuType.VersionHistory,
       title: "版本",
@@ -75,6 +89,10 @@ const RightMenu = () => {
           </div>
         );
       })}
+      <Scheduling
+        visible={visibleScheduling}
+        setVisible={setVisibleScheduling}
+      />
       <Results visible={visibleResults} setVisible={setVisibleResults} />
       <VersionHistory
         visible={visibleVersionHistory}

@@ -152,7 +152,10 @@ const FileTitle = ({
     <div className={styles.fileTitle}>
       {!!file && (
         <>
-          <div style={{ width: "200px", display: "flex" }}>
+          <div
+            className={styles.nameBox}
+            style={{ width: "200px", display: "flex" }}
+          >
             <div
               className={classNames(styles.name, isChange && styles.nameChange)}
             >

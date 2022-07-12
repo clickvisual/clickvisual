@@ -62,6 +62,28 @@ export interface nodeHistoriesType {
   pageSize: number;
 }
 
+export interface CreateCrontabType extends UpdateCrontabType {
+  nodeId: number;
+}
+
+export interface UpdateCrontabType {
+  desc?: string;
+  dutyUid: number;
+  cron?: string;
+  typ?: number;
+}
+
+export enum CrontabTyp {
+  /**
+   * 正常执行
+   */
+  Normal = 0,
+  /**
+   * 停止执行
+   */
+  Suspended = 1,
+}
+
 export default {
   /**
    * Folder
@@ -192,7 +214,6 @@ export default {
 
   // 获取历史记录的list
   async getNodeHistories(noodeId: number, params?: nodeHistoriesType) {
-    // return request<API.Res<FolderListResponse>>(
     return request(
       process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${noodeId}/histories`,
       {
@@ -203,12 +224,53 @@ export default {
 
   // 获取历史记录info
   async getNodeHistoriesInfo(noodeId: number, uuid: number) {
-    // return request<API.Res<FolderListResponse>>(
     return request(
       process.env.PUBLIC_PATH +
         `api/v1/bigdata/nodes/${noodeId}/histories/${uuid}`
     );
   },
 
-  // /bigdata/nodes/:id/histories/:uuid
+  // mining
+  // 创建
+  async creatCrontab(data: CreateCrontabType) {
+    return request(process.env.PUBLIC_PATH + `api/v1/bigdata/mining/crontab`, {
+      method: "POST",
+      data,
+    });
+  },
+
+  // 获取crontab详情
+  async getCrontabInfo(id: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/mining/nodes/${id}/crontab`
+    );
+  },
+
+  // 修改crontab
+  async updateCrontab(id: number, data: UpdateCrontabType) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/mining/nodes/${id}/crontab`,
+      {
+        method: "PATCH",
+        data,
+      }
+    );
+  },
+
+  // 删除crontab
+  async deleteCrontab(id: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/mining/nodes/${id}/crontab`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+
+  /**
+   * 用户列表
+   */
+  async getUsers() {
+    return request(process.env.PUBLIC_PATH + `api/v1/users`);
+  },
 };
