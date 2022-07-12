@@ -45,6 +45,9 @@ const DataAnalysis = () => {
     total: 0,
   });
 
+  // 右侧边栏运行结果弹窗
+  const [visibleResults, setVisibleResults] = useState<boolean>(false);
+
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
   const workflow = useWorkflow();
@@ -219,7 +222,8 @@ const DataAnalysis = () => {
       doRunCodeNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
           changeSqlQueryResults(JSON.parse(res.data.result));
-          changeVisibleSqlQuery(true);
+          setVisibleResults(true);
+          // changeVisibleSqlQuery(true);
         }
       });
   };
@@ -251,6 +255,9 @@ const DataAnalysis = () => {
 
     currentPagination,
     setCurrentPagination,
+
+    visibleResults,
+    setVisibleResults,
 
     openNodeParentId,
     changeOpenNodeParentId,

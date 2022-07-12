@@ -19,12 +19,13 @@ export enum RightMenuType {
 const RightMenu = () => {
   const [visibleVersionHistory, setVisibleVersionHistory] =
     useState<boolean>(false);
-  const [visibleResults, setVisibleResults] = useState<boolean>(false);
   const {
     openNodeId,
     doNodeHistories,
     changeVersionHistoryList,
     setCurrentPagination,
+    visibleResults,
+    setVisibleResults,
   } = useModel("dataAnalysis");
 
   const rightMenu = [
