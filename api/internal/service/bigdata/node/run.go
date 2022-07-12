@@ -8,7 +8,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func NodeRun(nodeId, uid int) (res view.RespRunNode, err error) {
+func Run(nodeId, uid int) (res view.RespRunNode, err error) {
 	n, err := db.NodeInfo(invoker.Db, nodeId)
 	if err != nil {
 		return

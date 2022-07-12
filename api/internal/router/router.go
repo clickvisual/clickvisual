@@ -191,7 +191,7 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
 		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
 		v1.POST("/bigdata/nodes/:id/stop", core.Handle(bigdata.NodeStop))
-		v1.GET("/bigdata/nodes/:id/status", core.Handle(bigdata.NodeStatusList))
+		// v1.GET("/bigdata/nodes/:id/status", core.Handle(bigdata.NodeStatusList))
 		v1.GET("/instances/:iid/databases/:dn/tables/:tn/deps", core.Handle(base.TableDeps))
 		// bigdata node history
 		v1.GET("/bigdata/nodes/:id/histories", core.Handle(bigdata.NodeHistoryListPage))
@@ -213,12 +213,17 @@ func GetRouter() *egin.Component {
 		v1.GET("/bigdata/mining/instances/:id/tables", core.Handle(bigdata.InstanceTableList))
 		v1.GET("/bigdata/mining/instances/:id/columns", core.Handle(bigdata.InstanceColumnList))
 		v1.GET("/bigdata/mining/instances/:id/databases", core.Handle(bigdata.InstanceDatabaseList))
-		// data mining
+		// data mining workflows
 		v1.GET("/bigdata/mining/workflows", core.Handle(mining.WorkflowList))
 		v1.POST("/bigdata/mining/workflows", core.Handle(mining.WorkflowCreate))
 		v1.GET("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowInfo))
 		v1.PATCH("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowUpdate))
 		v1.DELETE("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowDelete))
+		// data mining crontab
+		v1.POST("/bigdata/mining/crontab", core.Handle(mining.CrontabCreate))
+		v1.GET("/bigdata/mining/crontab/:id", core.Handle(mining.CrontabInfo))
+		v1.PATCH("/bigdata/mining/crontab/:id", core.Handle(mining.CrontabUpdate))
+		v1.DELETE("/bigdata/mining/crontab/:id", core.Handle(mining.CrontabDelete))
 	}
 	return r
 }

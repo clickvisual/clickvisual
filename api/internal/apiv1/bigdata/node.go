@@ -313,7 +313,7 @@ func NodeRunOpenAPI(c *core.Context) {
 		c.JSONE(1, "token error", nil)
 		return
 	}
-	res, err := node.NodeRun(id, -1)
+	res, err := node.Run(id, -1)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -328,7 +328,7 @@ func NodeRun(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res, err := node.NodeRun(id, c.Uid())
+	res, err := node.Run(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -372,35 +372,36 @@ func NodeStop(c *core.Context) {
 	return
 }
 
-func NodeStatusList(c *core.Context) {
-	id := cast.ToInt(c.Param("id"))
-	if id == 0 {
-		c.JSONE(1, "invalid parameter", nil)
-		return
-	}
-	var resp view.RespRunNodeStatus
-	// node info
-	n, err := db.NodeInfo(invoker.Db, id)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	resp.Id = n.ID
-	resp.Status = n.Status
-	// node status info
-	conds := egorm.Conds{}
-	conds["node_id"] = id
-	_, nss := db.NodeStatusListPage(conds, &db.ReqPage{
-		Current:  1,
-		PageSize: 100,
-	})
-	if len(nss) > 0 {
-		resp.Current = nss[0]
-		resp.Histories = nss
-	}
-	c.JSONE(core.CodeOK, "succ", resp)
-	return
-}
+//
+// func NodeStatusList(c *core.Context) {
+// 	id := cast.ToInt(c.Param("id"))
+// 	if id == 0 {
+// 		c.JSONE(1, "invalid parameter", nil)
+// 		return
+// 	}
+// 	var resp view.RespRunNodeStatus
+// 	// node info
+// 	n, err := db.NodeInfo(invoker.Db, id)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, err.Error(), nil)
+// 		return
+// 	}
+// 	resp.Id = n.ID
+// 	resp.Status = n.Status
+// 	// node status info
+// 	conds := egorm.Conds{}
+// 	conds["node_id"] = id
+// 	_, nss := db.NodeStatusListPage(conds, &db.ReqPage{
+// 		Current:  1,
+// 		PageSize: 100,
+// 	})
+// 	if len(nss) > 0 {
+// 		resp.Current = nss[0]
+// 		resp.Histories = nss
+// 	}
+// 	c.JSONE(core.CodeOK, "succ", resp)
+// 	return
+// }
 
 func NodeHistoryInfo(c *core.Context) {
 	id := strings.TrimSpace(c.Param("uuid"))
