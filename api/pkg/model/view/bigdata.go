@@ -139,12 +139,12 @@ type (
 		Result          string `json:"result"`
 	}
 
-	RespRunNodeStatus struct {
-		Id        int                     `json:"id"`
-		Status    int                     `json:"status"`
-		Current   *db.BigdataNodeStatus   `json:"current"`
-		Histories []*db.BigdataNodeStatus `json:"histories"`
-	}
+	// RespRunNodeStatus struct {
+	// 	Id        int                     `json:"id"`
+	// 	Status    int                     `json:"status"`
+	// 	Current   *db.BigdataNodeStatus   `json:"current"`
+	// 	Histories []*db.BigdataNodeStatus `json:"histories"`
+	// }
 
 	RunNodeResult struct {
 		Logs         []map[string]interface{} `json:"logs"`
@@ -219,3 +219,18 @@ func (s *SyncContent) Cluster() string {
 	}
 	return ""
 }
+
+// crontab struct
+type (
+	ReqCreateCrontab struct {
+		NodeId int `json:"nodeId" from:"nodeId"`
+		ReqUpdateCrontab
+	}
+
+	ReqUpdateCrontab struct {
+		Desc    string `json:"desc" from:"desc"`
+		DutyUid int    `json:"dutyUid" from:"dutyUid"`
+		Cron    string `json:"cron" from:"cron"`
+		Typ     int    `json:"typ" from:"typ"`
+	}
+)

@@ -28,14 +28,12 @@ const (
 	TertiaryRealTimeSync = 21
 )
 
-// 0 无状态 1 等待定时任务 2 执行中 3 执行异常 4 执行完成 5 待执行
+// 0 No status 2 Executing 3 Abnormal execution 4 Completed
 const (
-	NodeStatusDefault int = iota
-	NodeStatusWaitCron
-	NodeStatusHandler
-	NodeStatusError
-	NodeStatusFinish
-	NodeStatusWaitHandler
+	NodeStatusDefault = 0
+	NodeStatusHandler = 2
+	NodeStatusError   = 3
+	NodeStatusFinish  = 4
 )
 
 func (m *BigdataNode) TableName() string {
@@ -44,10 +42,6 @@ func (m *BigdataNode) TableName() string {
 
 func (m *BigdataNodeContent) TableName() string {
 	return TableNameBigDataNodeContent
-}
-
-func (m *BigdataNodeStatus) TableName() string {
-	return TableNameBigDataNodeStatus
 }
 
 func (m *BigdataNodeHistory) TableName() string {
@@ -79,17 +73,7 @@ type (
 		Content         string `gorm:"column:content;type:longtext" json:"content"`
 		Result          string `gorm:"column:result;type:longtext" json:"result"`
 		PreviousContent string `gorm:"column:previous_content;type:longtext" json:"PreviousContent"`
-
-		Utime int64 `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
-	}
-
-	BigdataNodeStatus struct {
-		BaseModel
-
-		NodeId  int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
-		Total   int    `gorm:"column:total;type:int(11) unsigned" json:"total"`
-		Handled int    `gorm:"column:handled;type:int(11) unsigned" json:"handled"`
-		Reason  string `gorm:"column:reason;type:text" json:"reason"`
+		Utime           int64  `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
 	}
 
 	BigdataNodeHistory struct {
@@ -97,8 +81,7 @@ type (
 		NodeId  int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
 		Content string `gorm:"column:content;type:longtext" json:"content"`
 		Uid     int    `gorm:"column:uid;type:int(11)" json:"uid"`
-
-		Utime int64 `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
+		Utime   int64  `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
 	}
 )
 
@@ -180,50 +163,6 @@ func NodeContentDelete(db *gorm.DB, id int) (err error) {
 		elog.Error("delete error", zap.Error(err))
 		return
 	}
-	return
-}
-
-func NodeStatusInfo(db *gorm.DB, id int) (resp BigdataNodeStatus, err error) {
-	var sql = "`node_id`= ?"
-	var binds = []interface{}{id}
-	if err = db.Model(BigdataNodeStatus{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		elog.Error("info error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func NodeStatusCreate(db *gorm.DB, data *BigdataNodeStatus) (err error) {
-	if err = db.Model(BigdataNodeStatus{}).Create(data).Error; err != nil {
-		elog.Error("create error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func NodeStatusUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{id}
-	if err = db.Model(BigdataNodeStatus{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("update error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// NodeStatusListPage return item list by pagination
-func NodeStatusListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*BigdataNodeStatus) {
-	respList = make([]*BigdataNodeStatus, 0)
-	if reqList.PageSize == 0 {
-		reqList.PageSize = 10
-	}
-	if reqList.Current == 0 {
-		reqList.Current = 1
-	}
-	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Model(BigdataNodeStatus{}).Where(sql, binds...).Order("id desc")
-	db.Count(&total)
-	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }
 

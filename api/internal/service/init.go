@@ -29,7 +29,6 @@ func Init() error {
 	configure.InitConfigure()
 	kube.InitClusterManager()
 
-	// event
 	event.InitService()
 	user.Init()
 	permission.InitManager()
@@ -37,7 +36,5 @@ func Init() error {
 	xgo.Go(func() {
 		DoDepsSync()
 	})
-	// bigdata dispatcher
-	// dispatcher.Init()
 	return nil
 }

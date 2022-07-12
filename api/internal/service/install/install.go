@@ -20,9 +20,9 @@ var models = []interface{}{
 	db.BigdataFolder{},
 	db.BigdataNode{},
 	db.BigdataNodeContent{},
-	db.BigdataNodeStatus{},
 	db.BigdataNodeHistory{},
 	db.BigdataDepend{},
+	db.BigdataCrontab{},
 
 	db.BaseView{},
 	db.BaseTable{},

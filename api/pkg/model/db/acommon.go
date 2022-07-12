@@ -52,6 +52,7 @@ const (
 	TableNameBigDataSource      = "cv_bd_source"
 	TableNameBigDataWorkflow    = "cv_bd_workflow"
 	TableNameBigDataDepend      = "cv_bd_depend"
+	TableNameBigDataCrontab     = "cv_bd_crontab"
 )
 
 type BaseModel struct {
