@@ -126,6 +126,9 @@ const FolderTitle = (props: { id: number; title: any }) => {
       <div
         style={{
           width: "calc(100% - 24px)",
+          // overflow: "hidden", //超出的文本隐藏
+          // textOverflow: "ellipsis", //溢出用省略号显示
+          // whiteSpace: "nowrap", //溢出不换行
         }}
         id="folderTiele"
         onContextMenu={handleContextMenu}
