@@ -7,6 +7,7 @@ import {
   Form,
   FormInstance,
   Input,
+  message,
   Select,
   Space,
   Switch,
@@ -81,12 +82,14 @@ const Scheduling = (props: {
     switch (selectNode?.secondary) {
       case SecondaryEnums.all:
         return "任意";
-      case SecondaryEnums.board:
-        return "看板";
+      case SecondaryEnums.database:
+        return "数据库";
       case SecondaryEnums.dataIntegration:
         return "数据集成";
       case SecondaryEnums.dataMining:
         return "数据开发";
+      case SecondaryEnums.board:
+        return "看板";
       case SecondaryEnums.universal:
         return "通用节点";
       default:
@@ -127,7 +130,12 @@ const Scheduling = (props: {
         typ: Number(!file.typ),
         nodeId: selectNode.id,
       };
-      doCreatCrontab.run(data);
+      doCreatCrontab.run(data).then((res: any) => {
+        if (res.code == 0) {
+          message.success("新建成功");
+          onClose();
+        }
+      });
       return;
     }
     const data = {
@@ -138,7 +146,8 @@ const Scheduling = (props: {
     };
     doUpdateCrontab.run(selectNode.id, data).then((res: any) => {
       if (res.code == 0) {
-        console.log(res.data);
+        message.success("修改成功");
+        onClose();
       }
     });
   };
