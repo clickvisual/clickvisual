@@ -47,6 +47,7 @@ const DataAnalysis = () => {
 
   // 右侧边栏运行结果弹窗
   const [visibleResults, setVisibleResults] = useState<boolean>(false);
+  const [userList, setUserList] = useState<any[]>([]);
 
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
@@ -152,6 +153,27 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
+  // 调度配置
+  const doCreatCrontab = useRequest(dataAnalysisApi.creatCrontab, {
+    loadingText: false,
+  });
+
+  const doGetCrontabInfo = useRequest(dataAnalysisApi.getCrontabInfo, {
+    loadingText: false,
+  });
+
+  const doUpdateCrontab = useRequest(dataAnalysisApi.updateCrontab, {
+    loadingText: false,
+  });
+
+  const doDeleteCrontab = useRequest(dataAnalysisApi.deleteCrontab, {
+    loadingText: false,
+  });
+
+  const doGetUsers = useRequest(dataAnalysisApi.getUsers, {
+    loadingText: false,
+  });
+
   // 获取文件信息
   const onGetFolderList = (id: number) => {
     id &&
@@ -228,6 +250,15 @@ const DataAnalysis = () => {
       });
   };
 
+  // 获取用户责任人list
+  const getUserList = () => {
+    doGetUsers.run().then((res: any) => {
+      if (res.code == 0) {
+        setUserList(res.data);
+      }
+    });
+  };
+
   return {
     instances,
     currentInstances,
@@ -288,6 +319,14 @@ const DataAnalysis = () => {
     // histories
     doNodeHistories,
     doNodeHistoriesInfo,
+
+    // crontab
+    doCreatCrontab,
+    doGetCrontabInfo,
+    doUpdateCrontab,
+    doDeleteCrontab,
+    userList,
+    getUserList,
 
     manageNode,
     integratedConfigs,
