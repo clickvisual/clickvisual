@@ -6,6 +6,7 @@ import MonacoEditor from "react-monaco-editor";
 import Luckysheet from "./Luckysheet";
 import { useModel, useIntl } from "umi";
 import { format } from "sql-formatter";
+import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -17,24 +18,29 @@ const Results = (props: {
   const [SQLForm] = Form.useForm();
   const i18n = useIntl();
   const { visible, setVisible } = props;
-  const { sqlQueryResults, changeSqlQueryResults, doRunCodeNode } =
-    useModel("dataAnalysis");
+  const { sqlQueryResults, manageNode } = useModel("dataAnalysis");
+  const { results, selectNode } = manageNode;
   const [SQLContent, setSQLcontent] = useState<string>("");
+  const [activeKey, setActiveKey] = useState<string>("logs");
 
   const onClose = () => {
     setVisible(false);
   };
 
-  const SQLList = Object.keys(sqlQueryResults?.involvedSQLs || {}) || [];
+  const currentResults =
+    selectNode?.secondary != SecondaryEnums.dataIntegration
+      ? sqlQueryResults
+      : results;
+  const SQLList = Object.keys(currentResults?.involvedSQLs || {}) || [];
 
   const columns: ColumnsType<any> = useMemo(() => {
     const columnArr: any = [];
     if (
-      sqlQueryResults &&
-      sqlQueryResults?.logs &&
-      sqlQueryResults.logs?.length > 0
+      currentResults &&
+      currentResults?.logs &&
+      currentResults.logs?.length > 0
     ) {
-      const fields = Object.keys(sqlQueryResults.logs[0]) || [];
+      const fields = Object.keys(currentResults.logs[0]) || [];
       for (const fieldIndex in fields) {
         columnArr.push({
           r: 0,
@@ -46,15 +52,15 @@ const Results = (props: {
           },
         });
       }
-      for (const itemIndex in sqlQueryResults.logs) {
+      for (const itemIndex in currentResults.logs) {
         for (const fieldIndex in fields) {
           columnArr.push({
             r: parseInt(itemIndex) + 1,
             c: parseInt(fieldIndex),
             v: {
               ct: { fa: "General", t: "g" },
-              m: sqlQueryResults.logs[itemIndex][fields[fieldIndex]],
-              v: sqlQueryResults.logs[itemIndex][fields[fieldIndex]],
+              m: currentResults.logs[itemIndex][fields[fieldIndex]],
+              v: currentResults.logs[itemIndex][fields[fieldIndex]],
             },
           });
         }
@@ -74,12 +80,12 @@ const Results = (props: {
     //   },
     // ];
     return columnArr;
-  }, [sqlQueryResults]);
+  }, [currentResults]);
 
   useEffect(() => {
     if (visible) {
       if (SQLList.length > 0) {
-        const key = sqlQueryResults?.involvedSQLs[SQLList[0]];
+        const key = currentResults?.involvedSQLs[SQLList[0]];
         SQLForm.setFieldsValue({ key: SQLList[0] });
         setSQLcontent(key);
       }
@@ -90,7 +96,7 @@ const Results = (props: {
     if (!visible) {
       setSQLcontent("");
       SQLForm.resetFields();
-      changeSqlQueryResults("");
+      setActiveKey("logs");
     }
   }, [visible]);
 
@@ -119,7 +125,7 @@ const Results = (props: {
                 id: "bigdata.components.Results.involvedSQLs.key.placeholder",
               })}
               onChange={(value: string) => {
-                setSQLcontent(sqlQueryResults?.involvedSQLs[value]);
+                setSQLcontent(currentResults?.involvedSQLs[value]);
               }}
             >
               {SQLList.map((item: string) => {
@@ -166,15 +172,15 @@ const Results = (props: {
         <div className={style.infoItem}>
           <div className={style.infoKey}>message: </div>
           <div className={style.infoValue}>
-            {sqlQueryResults?.message && sqlQueryResults.message.length > 0
-              ? sqlQueryResults.message
+            {currentResults?.message && currentResults.message.length > 0
+              ? currentResults.message
               : "-"}
           </div>
         </div>
       </div>
 
       {/* <Button onClick={onSave}>保存</Button> */}
-      <Tabs defaultActiveKey="logs">
+      <Tabs activeKey={activeKey} onTabClick={(e) => setActiveKey(e)}>
         <TabPane
           tab="logs"
           key="logs"
@@ -185,7 +191,7 @@ const Results = (props: {
             borderRadius: "8px",
           }}
         >
-          {!doRunCodeNode.loading && <Luckysheet data={columns} id={15} />}
+          {visible && <Luckysheet data={columns} id={15} />}
         </TabPane>
         <TabPane tab="involvedSQLs" key="involvedSQLs">
           {involvedSQLsContent}

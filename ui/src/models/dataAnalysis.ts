@@ -186,10 +186,11 @@ const DataAnalysis = () => {
         if (res?.code === 0) {
           setOpenNodeData(res.data);
           changeFolderContent(res.data.content);
-          // todo: 此处不一定有 result 参数
           if (res.data?.result?.length > 0) {
             changeSqlQueryResults(JSON.parse(res.data.result));
+            return;
           }
+          changeSqlQueryResults("");
         }
       });
   };

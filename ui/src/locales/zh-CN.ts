@@ -797,7 +797,7 @@ export default {
   "bigdata.models.dataAnalysis.runLoadingDoneText": "运行成功",
   "bigdata.models.dataAnalysis.unlockTips": "当前修改暂未保存，确定要解锁吗",
 
-  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stoping": "停止中",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopping": "停止中",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess": "停止成功",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips":
     "必须存在且仅存在一组开始和结束节点",
