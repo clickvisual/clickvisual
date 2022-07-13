@@ -851,4 +851,18 @@ export default {
   "bigdata.components.FileTitle.exitEditor": "Exit the editor",
   "bigdata.components.FileTitle.formatting": "Formatting",
   "bigdata.components.FileTitle.run": "run",
+
+  "bigdata.models.dataAnalysis.runLoadingText": "The running",
+  "bigdata.models.dataAnalysis.runLoadingDoneText": "The successful running",
+  "bigdata.models.dataAnalysis.unlockTips":
+    "The current changes are not saved. Are you sure you want to unlock them",
+
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopping": "Stopping",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess":
+    "Stop success",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips":
+    "There must be and only one set of start and end nodes",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "All",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "Start node",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "End node",
 };

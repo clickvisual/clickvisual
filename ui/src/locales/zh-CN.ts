@@ -792,4 +792,16 @@ export default {
   "bigdata.components.FileTitle.exitEditor": "退出编辑",
   "bigdata.components.FileTitle.formatting": "格式化",
   "bigdata.components.FileTitle.run": "运行",
+
+  "bigdata.models.dataAnalysis.runLoadingText": "运行中",
+  "bigdata.models.dataAnalysis.runLoadingDoneText": "运行成功",
+  "bigdata.models.dataAnalysis.unlockTips": "当前修改暂未保存，确定要解锁吗",
+
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stoping": "停止中",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess": "停止成功",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips":
+    "必须存在且仅存在一组开始和结束节点",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "全部",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "输入节点",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "输出节点",
 };

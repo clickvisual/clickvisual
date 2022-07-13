@@ -7,19 +7,22 @@ import {
 import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 import { parseJsonObject } from "@/utils/string";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 import lodash from "lodash";
 import { message } from "antd";
 
 export const PrimaryList = [
   {
     id: PrimaryEnums.mining,
-    title: "数据开发",
+    title: formatMessage({
+      id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
+    }),
     enum: PrimaryEnums.mining,
   },
 
   {
     id: PrimaryEnums.short,
-    title: "临时查询",
+    title: formatMessage({ id: "menu.bigdata.temporaryQuery" }),
     enum: PrimaryEnums.short,
   },
 ];
@@ -27,22 +30,28 @@ export const PrimaryList = [
 export const SecondaryList = [
   {
     id: SecondaryEnums.all,
-    title: "全部",
+    title: formatMessage({
+      id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.all",
+    }),
     enum: SecondaryEnums.all,
   },
   {
     id: SecondaryEnums.database,
-    title: "数据库",
+    title: formatMessage({ id: "datasource.draw.table.datasource" }),
     enum: SecondaryEnums.database,
   },
   {
     id: SecondaryEnums.dataIntegration,
-    title: "数据集成",
+    title: formatMessage({
+      id: "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration",
+    }),
     enum: SecondaryEnums.dataIntegration,
   },
   {
     id: SecondaryEnums.dataMining,
-    title: "数据开发",
+    title: formatMessage({
+      id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
+    }),
     enum: SecondaryEnums.dataMining,
   },
 ];
@@ -76,19 +85,25 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.start,
-    title: "输入节点",
+    title: formatMessage({
+      id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.start",
+    }),
     enum: TertiaryEnums.start,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
     id: TertiaryEnums.end,
-    title: "输出节点",
+    title: formatMessage({
+      id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.end",
+    }),
     enum: TertiaryEnums.end,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
     id: TertiaryEnums.realtime,
-    title: "实时同步",
+    title: formatMessage({
+      id: "bigdata.components.FileTitle.fileType.realtime",
+    }),
     enum: TertiaryEnums.realtime,
     types: [
       SecondaryEnums.dataIntegration,
@@ -98,7 +113,9 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.offline,
-    title: "离线同步",
+    title: formatMessage({
+      id: "bigdata.components.FileTitle.fileType.offline ",
+    }),
     enum: TertiaryEnums.offline,
     types: [
       SecondaryEnums.dataIntegration,
@@ -173,15 +190,23 @@ const useManageNodeAndFolder = () => {
 
   const doRunCodeNode = useRequest(dataAnalysisApi.runCodeNode, {
     loadingText: {
-      loading: "运行中",
-      done: "运行成功",
+      loading: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingText",
+      }),
+      done: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingDoneText",
+      }),
     },
   });
 
   const doStopCodeNode = useRequest(dataAnalysisApi.stopCodeNode, {
     loadingText: {
-      loading: "停止中",
-      done: "停止成功",
+      loading: formatMessage({
+        id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopping",
+      }),
+      done: formatMessage({
+        id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess",
+      }),
     },
   });
 
@@ -385,7 +410,11 @@ const useManageNodeAndFolder = () => {
         boardNodeList.filter((item) => item.tertiary === TertiaryEnums.start)
           .length !== 1
       ) {
-        message.warning("必须存在且仅存在一组开始和结束节点");
+        message.warning(
+          formatMessage({
+            id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips",
+          })
+        );
         return;
       }
       setBoardRef({ nodeList: boardNodeList, edgeList: boardEdges });
