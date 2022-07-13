@@ -695,4 +695,53 @@ export default {
 
   "bigdata.workflow.dataIntegration": "数据集成",
   "bigdata.workflow.dataDevelopment": "数据开发",
+
+  // bigdata DataSourceManage
+  "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
+    "请选择数据源类型",
+  "bigdata.dataSourceManage.searchBar.dataSourceType.create": "新增数据源",
+
+  "bigdata.dataSourceManage.dataTable.dataSourceName": "数据源名称",
+  "bigdata.dataSourceManage.dataTable.linkInformation": "连接信息",
+  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "数据源描述",
+  "bigdata.dataSourceManage.dataTable.deleteDataSourceTips":
+    "确认删除数据源「{dataSource}」吗",
+
+  "bigdata.dataSourceManage.create.typ": "种类",
+  "bigdata.dataSourceManage.create.userName": "用户名",
+
+  // bigdata components
+  "bigdata.components.SQLEditor.selectFile": "请选择文件",
+  "bigdata.components.SQLEditor.results": "运行结果",
+
+  "bigdata.components.RightMenu.properties": "调度配置",
+  "bigdata.components.RightMenu.versions": "版本",
+  "bigdata.components.RightMenu.Versions.tips": "历史版本",
+  "bigdata.components.RightMenu.results": "结果",
+  "bigdata.components.RightMenu.results.tips": "运行结果",
+
+  "bigdata.components.RightMenu.VersionHistory.submitter": "提交人",
+  "bigdata.components.RightMenu.VersionHistory.SubmitTime": "提交时间",
+  "bigdata.components.RightMenu.VersionHistory.details": "详情",
+  "bigdata.components.RightMenu.VersionHistory.drawer.title": "版本历史",
+  "bigdata.components.RightMenu.VersionHistory.childDrawer.title": "查询语句",
+
+  "bigdata.components.RightMenu.Scheduling.Modify": "修改",
+  "bigdata.components.RightMenu.Scheduling.secondary.all": "任意",
+  "bigdata.components.RightMenu.Scheduling.secondary.database": "数据库",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration":
+    "数据集成",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataMining": "数据开发",
+  "bigdata.components.RightMenu.Scheduling.secondary.board": "看板",
+  "bigdata.components.RightMenu.Scheduling.secondary.universal": "通用节点",
+  "bigdata.components.RightMenu.Scheduling.name": "名称",
+  "bigdata.components.RightMenu.Scheduling.nodeType": "节点类型",
+  "bigdata.components.RightMenu.Scheduling.basicConfig": "基础配置",
+  "bigdata.components.RightMenu.Scheduling.isPerform": "是否执行",
+  "bigdata.components.RightMenu.Scheduling.thoseResponsible": "责任人",
+  "bigdata.components.RightMenu.Scheduling.cronTips":
+    "调度规则 cron 字段填写 帮助文档",
+
+  "bigdata.components.Results.involvedSQLs.key.placeholder": "请选择查看",
+  "bigdata.components.Results.involvedSQLs.drawer.title": "运行结果",
 };

@@ -4,11 +4,12 @@ import {
 } from "@/services/dataSourceManage";
 import { Form, FormInstance, Input, message, Modal, Select } from "antd";
 import { useEffect, useRef } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 
 const { Option } = Select;
 
 const CreateAndUpdateModel = () => {
+  const i18n = useIntl();
   const DataSourceForm = useRef<FormInstance>(null);
   const { dataSourceManage, currentInstances } = useModel("dataAnalysis");
   const {
@@ -33,7 +34,7 @@ const CreateAndUpdateModel = () => {
       };
       doCreateSource.run(data).then((res: any) => {
         if (res.code == 0) {
-          message.success("新建成功");
+          message.success(i18n.formatMessage({ id: "models.pms.create.suc" }));
           onSearch(currentInstances as number, {
             typ: currentTyp as number,
           });
@@ -49,7 +50,7 @@ const CreateAndUpdateModel = () => {
       .run(currentDataSource?.id as number, data)
       .then((res: any) => {
         if (res.code == 0) {
-          message.success("修改成功");
+          message.success(i18n.formatMessage({ id: "models.pms.update.suc" }));
           onSearch(currentInstances as number, {
             typ: currentTyp as number,
           });
@@ -83,7 +84,15 @@ const CreateAndUpdateModel = () => {
     <Modal
       width={700}
       confirmLoading={doUpdateSource.loading || doCreateSource.loading}
-      title={isUpdate ? "修改数据源" : "新增数据源"}
+      title={
+        isUpdate
+          ? i18n.formatMessage({
+              id: "bigdata.dataSourceManage.searchBar.dataSourceType.create",
+            })
+          : i18n.formatMessage({
+              id: "bigdata.dataSourceManage.searchBar.dataSourceType.create",
+            })
+      }
       visible={visibleDataSource}
       bodyStyle={{ paddingBottom: 0 }}
       onCancel={() => changeVisibleDataSource(false)}
@@ -96,7 +105,9 @@ const CreateAndUpdateModel = () => {
         onFinish={handleSubmit}
       >
         <Form.Item
-          label={`种类`}
+          label={i18n.formatMessage({
+            id: "bigdata.dataSourceManage.create.typ",
+          })}
           name={"typ"}
           // hidden
           rules={[{ required: true }]}
@@ -112,28 +123,37 @@ const CreateAndUpdateModel = () => {
           </Select>
         </Form.Item>
         <Form.Item
-          label={`数据源名称`}
+          label={i18n.formatMessage({
+            id: "bigdata.dataSourceManage.dataTable.dataSourceName",
+          })}
           name={"name"}
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
 
-        <Form.Item label={`数据源描述`} name={"desc"}>
+        <Form.Item
+          label={i18n.formatMessage({
+            id: "bigdata.dataSourceManage.dataTable.dataSourceDesc",
+          })}
+          name={"desc"}
+        >
           <Input />
         </Form.Item>
-        <Form.Item label={`url`} name={"url"} rules={[{ required: true }]}>
+        <Form.Item label={`Url`} name={"url"} rules={[{ required: true }]}>
           <Input />
         </Form.Item>
         <Form.Item
-          label={`用户名`}
+          label={i18n.formatMessage({
+            id: "bigdata.dataSourceManage.create.userName",
+          })}
           name={"username"}
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
-          label={`密码`}
+          label={i18n.formatMessage({ id: "login.password" })}
           name={"password"}
           rules={[{ required: true }]}
         >

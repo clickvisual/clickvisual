@@ -5,10 +5,11 @@ import FileTitle, {
 } from "@/pages/DataAnalysis/components/FileTitle";
 import EditorContent from "./EditorContent";
 import SqlTable from "./SqlTable";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { Empty, Spin } from "antd";
 
 const SQLEditor = (props: FileTitleProps) => {
+  const i18n = useIntl();
   const { file, onSave, onLock, onUnlock, onRun, isChange, onFormat } = props;
 
   const { doGetNodeInfo, manageNode } = useModel("dataAnalysis");
@@ -36,7 +37,9 @@ const SQLEditor = (props: FileTitleProps) => {
           <div className={style.empty}>
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="请选择文件"
+              description={i18n.formatMessage({
+                id: "bigdata.components.SQLEditor.selectFile",
+              })}
             />
           </div>
         )}

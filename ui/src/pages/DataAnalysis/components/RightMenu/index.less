@@ -1,15 +1,19 @@
 .rightMenu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 32px;
-    height: calc(100vh - 104px);
-    border-left: 1px solid hsla(0, 0%, 0%, 0.1);
-    padding-top: 40px;
-    .menuItem {
-        width: 14px;
-        font-size: 14px;
-        word-wrap: break-word;
-        margin-bottom: 20px;
-    }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  height: calc(100vh - 104px);
+  padding-top: 40px;
+  border-left: 1px solid hsla(0, 0%, 0%, 0.1);
+  .menuItem {
+    width: 22px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    word-wrap: break-word;
+    -webkit-writing-mode: vertical-lr;
+    -ms-writing-mode: tb-lr;
+    writing-mode: vertical-lr;
+  }
 }
