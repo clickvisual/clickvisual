@@ -27,17 +27,14 @@ func New(c *Config) *Service {
 
 func loadMenuTree(filePath string) Resource {
 	menu := Resource{}
-
 	resourceContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		invoker.Logger.Panic("Read Resource File Failed", elog.String("err", err.Error()))
 	}
-
 	err = yaml.Unmarshal(resourceContent, &menu)
 	if err != nil {
 		invoker.Logger.Panic("Unmarshall %s failed: %s", elog.String("filePath", filePath), elog.String("err", err.Error()))
 	}
-
 	return menu
 }
 
@@ -48,7 +45,8 @@ func (s *Service) AdminMenuList() []MenuTreeItem {
 func (s *Service) UserMenuList() []MenuTreeItem {
 	res := make([]MenuTreeItem, 0)
 	for _, p := range s.resource.Permission {
-		if p.Name == "log" || p.Name == "alarm" {
+		if p.Name == "log" || p.Name == "alarm" || p.Name == "bigdata" {
+
 			res = append(res, p)
 		}
 	}

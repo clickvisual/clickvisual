@@ -1,11 +1,15 @@
 package bigdata
 
 import (
+	"strconv"
+
 	"github.com/ego-component/egorm"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/source"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -15,6 +19,16 @@ func SourceCreate(c *core.Context) {
 	var req view.ReqCreateSource
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(req.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	obj := &db.BigdataSource{
@@ -41,8 +55,23 @@ func SourceUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	sourceInfo, err := db.SourceInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(sourceInfo.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	var req view.ReqUpdateSource
-	if err := c.Bind(&req); err != nil {
+	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
@@ -66,6 +95,16 @@ func SourceList(c *core.Context) {
 	var req view.ReqListSource
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(req.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
@@ -94,7 +133,22 @@ func SourceDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	if err := db.SourceDelete(invoker.Db, id); err != nil {
+	sourceInfo, err := db.SourceInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(sourceInfo.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActDelete},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	if err = db.SourceDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
@@ -112,6 +166,16 @@ func SourceInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(res.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -125,6 +189,16 @@ func SourceDatabaseList(c *core.Context) {
 	s, err := db.SourceInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "query error: "+err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(s.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -157,6 +231,16 @@ func SourceTableList(c *core.Context) {
 		c.JSONE(1, "query error: "+err.Error(), nil)
 		return
 	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(s.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	res, err := source.Instantiate(&source.Source{
 		URL:      s.URL,
 		UserName: s.UserName,
@@ -185,6 +269,16 @@ func SourceColumnList(c *core.Context) {
 	s, err := db.SourceInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "query error: "+err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(s.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{

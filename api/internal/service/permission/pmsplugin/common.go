@@ -279,22 +279,20 @@ func JointActs2RuleActStr(acts ...string) string {
 
 // 资源 常量
 const (
-	AllRsrc         = "*"
-	Role            = "role"
-	InstanceBase    = "base"
-	Alarm           = "alarm"
-	CollectionRules = "collectionRules"
-	FieldManagement = "fieldManagement"
+	AllRsrc = "*"
+	Role    = "role"
+	Log     = "base"
+	Alarm   = "alarm"
+	BigData = "bigdata"
 )
 
-var PermittedSubResourceList = []string{AllRsrc, Role, InstanceBase, Alarm, CollectionRules, FieldManagement}
+var PermittedSubResourceList = []string{AllRsrc, Role, Log, Alarm, BigData}
 var PermittedSubResource = map[string]string{
-	AllRsrc:         "All(全部)",
-	InstanceBase:    "基础操作",
-	Alarm:           "告警操作",
-	CollectionRules: "数据采集规则",
-	FieldManagement: "分析字段配置",
-	Role:            "角色操作",
+	AllRsrc: "All(全部)",
+	Log:     "日志",
+	Alarm:   "告警",
+	BigData: "分析",
+	Role:    "角色",
 }
 
 var PermittedAppAdminGrantSubResource = map[string]string{}

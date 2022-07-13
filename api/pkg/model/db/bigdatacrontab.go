@@ -25,9 +25,9 @@ func (m *BigdataCrontab) TableName() string {
 }
 
 type BigdataCrontab struct {
-	NodeId  int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"node_id"`
+	NodeId  int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
 	Desc    string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"` // description
-	DutyUid int    `gorm:"column:duty_uid;type:int(11)" json:"duty_uid"`       // person in charge
+	DutyUid int    `gorm:"column:duty_uid;type:int(11)" json:"dutyUid"`        // person in charge
 	Cron    string `gorm:"column:cron;type:varchar(255);NOT NULL" json:"cron"` // cron expression
 	Typ     int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // typ 0 Normal scheduling 1 Suspended scheduling
 	Status  int    `gorm:"column:status;type:int(11)" json:"status"`           // status 0 default 1 preempt 2 doing

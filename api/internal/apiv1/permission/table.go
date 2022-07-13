@@ -62,16 +62,15 @@ func ReAssignTableRolesUser(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(appId),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.SystemDom,
 		DomainId:    "",
 	}
-	if err := permission.Manager.CheckNormalPermission(reqPerm); err != nil {
+	if err = permission.Manager.CheckNormalPermission(reqPerm); err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	for i, reqRole := range reqModel.RolesInfo {
 		reqModel.RolesInfo[i].BelongType = pmsplugin.PrefixInstance
 		reqModel.RolesInfo[i].ReferId = appId

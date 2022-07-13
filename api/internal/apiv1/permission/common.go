@@ -48,7 +48,7 @@ func CheckPermission(c *core.Context) {
 		reqPerm.UserId = c.Uid()
 	}
 	// if objectIdx is appName
-	if _, err := strconv.Atoi(reqPerm.ObjectIdx); err != nil && reqPerm.ObjectType == pmsplugin.PrefixInstance {
+	if _, err = strconv.Atoi(reqPerm.ObjectIdx); err != nil && reqPerm.ObjectType == pmsplugin.PrefixInstance {
 		tid, err := strconv.Atoi(reqPerm.ObjectIdx)
 		if err != nil {
 			c.JSONE(1, "invalid appId "+reqPerm.ObjectIdx, err.Error())
@@ -61,7 +61,7 @@ func CheckPermission(c *core.Context) {
 		}
 		reqPerm.ObjectIdx = strconv.Itoa(tableInfo.ID)
 	}
-	if err := permission.Manager.CheckNormalPermission(reqPerm); err != nil {
+	if err = permission.Manager.CheckNormalPermission(reqPerm); err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}

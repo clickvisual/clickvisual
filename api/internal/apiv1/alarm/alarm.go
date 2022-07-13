@@ -14,6 +14,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -173,20 +174,38 @@ func List(c *core.Context) {
 	if status != 0 {
 		query["status"] = status
 	}
-
 	var (
 		total int64
 		list  []*db.Alarm
 	)
-
 	if tid != 0 {
+		table, _ := db.TableInfo(invoker.Db, tid)
+		if !service.IsPermissionTable(c.Uid(), table.Database.Iid, tid, pmsplugin.Alarm) {
+			c.JSONE(1, "", constx.ErrPmsCheck)
+			return
+		}
 		query["tid"] = tid
 		total, list = db.AlarmListPage(query, req)
 	} else if did != 0 {
+		database, _ := db.DatabaseInfo(invoker.Db, did)
+		if !service.IsPermissionDatabase(c.Uid(), database.Iid, did, pmsplugin.Alarm) {
+			c.JSONE(1, "", constx.ErrPmsCheck)
+			return
+		}
 		// query by database id
 		query[db.TableNameBaseTable+".did"] = did
 		total, list = db.AlarmListByDidPage(query, req)
 	} else if iid != 0 {
+		if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+			UserId:      c.Uid(),
+			ObjectType:  pmsplugin.PrefixInstance,
+			ObjectIdx:   strconv.Itoa(iid),
+			SubResource: pmsplugin.Alarm,
+			Acts:        []string{pmsplugin.ActView},
+		}); err != nil {
+			c.JSONE(1, err.Error(), nil)
+			return
+		}
 		conds := egorm.Conds{}
 		if iid != 0 {
 			conds["iid"] = iid
@@ -199,6 +218,17 @@ func List(c *core.Context) {
 			total += totalTmp
 		}
 	} else {
+		// Check whether you are an administrator.
+		err := permission.Manager.IsRootUser(c.Uid())
+		if err != nil {
+			// If you are not an administrator, get a list of instances that have permission
+			ts := service.ReadAllPermissionTable(c.Uid(), pmsplugin.Alarm)
+			query["tid"] = egorm.Cond{
+				Op:  "in",
+				Val: ts,
+			}
+			invoker.Logger.Debug("ReadAllPermissionInstance", elog.Any("tidList", ts))
+		}
 		total, list = db.AlarmListPage(query, req)
 	}
 	c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{

@@ -42,13 +42,13 @@ type (
 	defaultChecker struct{ baseChecker } // default checker, check all normal permission for user
 )
 
-// used for 99% cases (normal) permission check
+// Check used for 99% cases (normal) permission check
 func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 	invoker.Logger.Info("request check permission", zap.Any("data", reqPms))
 	// 1. check permission which has no domain
 	if reqPms.ObjectType == pmsplugin.PrefixRoute {
 		// TODO: check route permission
-		invoker.Logger.Info("==> route always pass currently.")
+		invoker.Logger.Info("Permission ==> route always pass currently.")
 		return nil
 	}
 
@@ -60,24 +60,30 @@ func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 
 	// 3. normal check by casbin
 	if isRootUser(reqPms.UserId) {
+		invoker.Logger.Info("Permission ==> isRootUser", elog.Any("reqPms", reqPms))
 		return nil
 	}
 
 	items, err := getCasbinItemsFromReqPermission(&reqPms)
 	if err != nil {
 		err = fmt.Errorf("ReqPermission is invalid. %w", err)
-		invoker.Logger.Error(err.Error())
+		invoker.Logger.Error("Permission", elog.Any("err", err.Error()))
 		return err
 	}
-	invoker.Logger.Debug("pms", elog.Any("items", items))
+	invoker.Logger.Debug("Permission", elog.Any("items", items))
 
 	var reqRules [][]interface{}
 	reqRules = append(reqRules, pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct, items.ReqDom))
 	reqRules = append(reqRules, checkAsterisk(reqPms)) // add * permission check
 	pmsPassed, err := pmsplugin.EnforceOneInMany(reqRules...)
+
+	invoker.Logger.Debug("Permission", elog.Any("reqRules", reqRules))
+
 	if err != nil {
 		invoker.Logger.Warn("reqPerm not pass", zap.Error(err))
 	}
+	invoker.Logger.Debug("Permission", elog.Any("pmsPassed", pmsPassed))
+
 	if !pmsPassed {
 		return fmt.Errorf(MsgNoPermission)
 	}
@@ -92,7 +98,7 @@ func checkAsterisk(reqPms view.ReqPermission) []interface{} {
 	if err != nil {
 		return res
 	}
-	invoker.Logger.Debug("pms", elog.Any("items", items))
+	invoker.Logger.Debug("Permission", elog.Any("items", items))
 	return pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct, items.ReqDom)
 }
 
