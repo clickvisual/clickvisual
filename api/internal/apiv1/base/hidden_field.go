@@ -33,7 +33,7 @@ func HiddenUpsert(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tid),
-		SubResource: pmsplugin.FieldManagement,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tid),

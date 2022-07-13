@@ -50,7 +50,7 @@ func InstanceUpdate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(id),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -124,11 +124,12 @@ func InstanceList(c *core.Context) {
 	res := make([]*db.BaseInstance, 0)
 	tmp, err := db.InstanceList(egorm.Conds{})
 	for _, row := range tmp {
-		if !service.InstanceManager.ReadPermissionInstance(c.Uid(), row.ID) {
-			continue
+		if service.IsPermissionInstance(c.Uid(), row.ID, pmsplugin.Log) ||
+			service.IsPermissionInstance(c.Uid(), row.ID, pmsplugin.Alarm) ||
+			service.IsPermissionInstance(c.Uid(), row.ID, pmsplugin.BigData) {
+			row.Dsn = "*"
+			res = append(res, row)
 		}
-		row.Dsn = "*"
-		res = append(res, row)
 	}
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -144,7 +145,7 @@ func InstanceInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	if !service.InstanceManager.ReadPermissionInstance(c.Uid(), id) {
+	if !service.IsPermissionInstance(c.Uid(), id, pmsplugin.Log) {
 		c.JSONE(1, "authentication failed", nil)
 		return
 	}
@@ -167,7 +168,7 @@ func InstanceDelete(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(id),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActDelete},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)

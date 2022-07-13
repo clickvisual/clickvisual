@@ -40,7 +40,7 @@ func IndexUpdate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.FieldManagement,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),

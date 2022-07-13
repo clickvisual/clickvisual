@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -102,15 +103,59 @@ func (i *instanceManager) All() []inquiry.Operator {
 	return res
 }
 
-func (i *instanceManager) ReadPermissionInstance(uid int, iid int) bool {
+func ReadAllPermissionTable(uid int, subResource string) []int {
+	tables, _ := db.TableList(invoker.Db, egorm.Conds{})
+	resArr := make([]int, 0)
+	for _, table := range tables {
+		if !IsPermissionTable(uid, table.Database.Iid, table.ID, subResource) {
+			invoker.Logger.Error("ReadAllPermissionTable",
+				elog.Any("uid", uid),
+				elog.Any("iid", table.Database.Iid),
+				elog.Any("tid", table.ID),
+				elog.Any("subResource", subResource))
+			continue
+		}
+		resArr = append(resArr, table.ID)
+	}
+	return resArr
+}
+
+func ReadAllPermissionInstance(uid int, subResource string) ([]int, string) {
+	ins, _ := db.InstanceList(egorm.Conds{})
+	resArr := make([]int, 0)
+	var resStr string
+	for _, instance := range ins {
+		if !IsPermissionInstance(uid, instance.ID, subResource) {
+			invoker.Logger.Error("ReadAllPermissionInstance",
+				elog.Any("uid", uid),
+				elog.Any("iid", instance.ID),
+				elog.Any("subResource", subResource))
+			continue
+		}
+		resArr = append(resArr, instance.ID)
+		if resStr == "" {
+			resStr = strconv.Itoa(instance.ID)
+		} else {
+			resStr = fmt.Sprintf("%s,%s", resStr, strconv.Itoa(instance.ID))
+		}
+	}
+	return resArr, resStr
+}
+
+func IsPermissionInstance(uid int, iid int, subResource string) bool {
 	// check instance permission
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: subResource,
 		Acts:        []string{pmsplugin.ActView},
 	}); err == nil {
+		invoker.Logger.Debug("ReadAllPermissionInstance",
+			elog.Any("uid", uid),
+			elog.Any("step", "IsPermissionInstance"),
+			elog.Any("iid", iid),
+			elog.Any("subResource", subResource))
 		return true
 	}
 	// check databases permission
@@ -122,24 +167,30 @@ func (i *instanceManager) ReadPermissionInstance(uid int, iid int) bool {
 		return false
 	}
 	for _, d := range databases {
-		if i.ReadPermissionDatabase(uid, iid, d.ID) {
+		if IsPermissionDatabase(uid, iid, d.ID, subResource) {
 			return true
 		}
 	}
 	return false
 }
 
-func (i *instanceManager) ReadPermissionDatabase(uid, iid, did int) bool {
+func IsPermissionDatabase(uid, iid, did int, subResource string) bool {
 	// check database permission
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: subResource,
 		Acts:        []string{pmsplugin.ActView},
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(did),
 	}); err == nil {
+		invoker.Logger.Debug("ReadAllPermissionInstance",
+			elog.Any("uid", uid),
+			elog.Any("step", "IsPermissionDatabase"),
+			elog.Any("iid", iid),
+			elog.Any("did", did),
+			elog.Any("subResource", subResource))
 		return true
 	}
 	// check databases permission
@@ -151,26 +202,38 @@ func (i *instanceManager) ReadPermissionDatabase(uid, iid, did int) bool {
 		return false
 	}
 	for _, t := range tables {
-		if i.ReadPermissionTable(uid, iid, t.ID) {
+		if IsPermissionTable(uid, iid, t.ID, subResource) {
 			return true
 		}
 	}
 	return false
 }
 
-func (i *instanceManager) ReadPermissionTable(uid, iid, tid int) bool {
+func IsPermissionTable(uid, iid, tid int, subResource string) bool {
 	// check database permission
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: subResource,
 		Acts:        []string{pmsplugin.ActView},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tid),
 	}); err == nil {
+		invoker.Logger.Debug("ReadAllPermissionInstance",
+			elog.Any("uid", uid),
+			elog.Any("step", "IsPermissionDatabase"),
+			elog.Any("iid", iid),
+			elog.Any("tid", tid),
+			elog.Any("subResource", subResource))
 		return true
 	}
+	invoker.Logger.Warn("ReadAllPermissionInstance",
+		elog.Any("uid", uid),
+		elog.Any("step", "IsPermissionDatabase"),
+		elog.Any("iid", iid),
+		elog.Any("tid", tid),
+		elog.Any("subResource", subResource))
 	return false
 }
 

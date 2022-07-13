@@ -1,10 +1,14 @@
 package bigdata
 
 import (
+	"strconv"
+
 	"github.com/ego-component/egorm"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -14,6 +18,16 @@ func FolderCreate(c *core.Context) {
 	var req view.ReqCreateFolder
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(req.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	obj := &db.BigdataFolder{
@@ -40,8 +54,23 @@ func FolderUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	f, err := db.FolderInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(f.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	var req view.ReqUpdateFolder
-	if err := c.Bind(&req); err != nil {
+	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
@@ -61,6 +90,21 @@ func FolderDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	f, err := db.FolderInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(f.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActDelete},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
@@ -90,6 +134,16 @@ func FolderInfo(c *core.Context) {
 	f, err := db.FolderInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(f.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	res := view.RespInfoFolder{

@@ -2,6 +2,7 @@ package bigdata
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ego-component/egorm"
@@ -12,6 +13,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/node"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -21,6 +24,16 @@ func NodeCreate(c *core.Context) {
 	var req view.ReqCreateNode
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(req.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	tx := invoker.Db.Begin()
@@ -63,6 +76,21 @@ func NodeUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	n, err := db.NodeInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	var req view.ReqUpdateNode
@@ -132,6 +160,16 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActDelete},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	if n.Status == db.NodeStatusHandler {
 		u, _ := db.UserInfo(n.LockUid)
 		c.JSONE(1, fmt.Sprintf("node %s is running by %s", n.Name, u.Nickname), nil)
@@ -172,6 +210,16 @@ func NodeInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -202,10 +250,20 @@ func NodeLock(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var node db.BigdataNode
-	err := invoker.Db.Where("id = ?", id).First(&node).Error
-	if err != nil || node.ID == 0 {
+	var n db.BigdataNode
+	err := invoker.Db.Where("id = ?", id).First(&n).Error
+	if err != nil || n.ID == 0 {
 		c.JSONE(1, "failed to get information", nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	err = service.NodeTryLock(c.Uid(), id)
@@ -223,7 +281,23 @@ func NodeUnlock(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	err := service.NodeUnlock(c.Uid(), id)
+	var n db.BigdataNode
+	err := invoker.Db.Where("id = ?", id).First(&n).Error
+	if err != nil || n.ID == 0 {
+		c.JSONE(1, "failed to get information", nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	err = service.NodeUnlock(c.Uid(), id)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
@@ -236,6 +310,16 @@ func NodeList(c *core.Context) {
 	var req view.ReqListNode
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(req.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
@@ -328,6 +412,21 @@ func NodeRun(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	n, err := db.NodeInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	res, err := node.Run(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -346,6 +445,16 @@ func NodeStop(c *core.Context) {
 	n, err := db.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	if n.LockUid != c.Uid() {
@@ -372,37 +481,6 @@ func NodeStop(c *core.Context) {
 	return
 }
 
-//
-// func NodeStatusList(c *core.Context) {
-// 	id := cast.ToInt(c.Param("id"))
-// 	if id == 0 {
-// 		c.JSONE(1, "invalid parameter", nil)
-// 		return
-// 	}
-// 	var resp view.RespRunNodeStatus
-// 	// node info
-// 	n, err := db.NodeInfo(invoker.Db, id)
-// 	if err != nil {
-// 		c.JSONE(core.CodeErr, err.Error(), nil)
-// 		return
-// 	}
-// 	resp.Id = n.ID
-// 	resp.Status = n.Status
-// 	// node status info
-// 	conds := egorm.Conds{}
-// 	conds["node_id"] = id
-// 	_, nss := db.NodeStatusListPage(conds, &db.ReqPage{
-// 		Current:  1,
-// 		PageSize: 100,
-// 	})
-// 	if len(nss) > 0 {
-// 		resp.Current = nss[0]
-// 		resp.Histories = nss
-// 	}
-// 	c.JSONE(core.CodeOK, "succ", resp)
-// 	return
-// }
-
 func NodeHistoryInfo(c *core.Context) {
 	id := strings.TrimSpace(c.Param("uuid"))
 	if id == "" {
@@ -412,6 +490,22 @@ func NodeHistoryInfo(c *core.Context) {
 	nh, err := db.NodeHistoryInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	var n db.BigdataNode
+	err = invoker.Db.Where("id = ?", nh.NodeId).First(&n).Error
+	if err != nil || n.ID == 0 {
+		c.JSONE(1, "failed to get information", nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	c.JSONE(core.CodeOK, "succ", nh)
@@ -424,8 +518,24 @@ func NodeHistoryListPage(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	var n db.BigdataNode
+	err := invoker.Db.Where("id = ?", id).First(&n).Error
+	if err != nil || n.ID == 0 {
+		c.JSONE(1, "failed to get information", nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(n.Iid),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	var req view.ReqNodeHistoryList
-	if err := c.Bind(&req); err != nil {
+	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "请求参数错误. "+err.Error(), nil)
 		return
 	}

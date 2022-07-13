@@ -1,10 +1,14 @@
 package bigdata
 
 import (
+	"strconv"
+
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/source"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -14,6 +18,16 @@ func InstanceDatabaseList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(id),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	s, err := db.InstanceInfo(invoker.Db, id)
@@ -37,6 +51,16 @@ func InstanceTableList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(id),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	var req view.ReqListSourceTable
@@ -65,6 +89,16 @@ func InstanceColumnList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
 		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(id),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	var req view.ReqListSourceColumn

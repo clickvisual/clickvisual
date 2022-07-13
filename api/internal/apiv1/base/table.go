@@ -80,7 +80,7 @@ func TableCreate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(databaseInfo.ID),
@@ -113,7 +113,7 @@ func TableInfo(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActView},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
@@ -195,7 +195,7 @@ func TableList(c *core.Context) {
 	}
 	res := make([]view.RespTableSimple, 0)
 	for _, row := range tableList {
-		if !service.InstanceManager.ReadPermissionTable(c.Uid(), row.Database.Iid, row.ID) {
+		if !service.IsPermissionTable(c.Uid(), row.Database.Iid, row.ID, pmsplugin.Log) {
 			continue
 		}
 		res = append(res, view.RespTableSimple{
@@ -224,7 +224,7 @@ func TableDelete(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActDelete},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
@@ -324,7 +324,7 @@ func TableLogs(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActView},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
@@ -385,7 +385,7 @@ func QueryComplete(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -439,7 +439,7 @@ func TableCharts(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActView},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
@@ -582,7 +582,7 @@ func TableIndexes(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActView},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
@@ -646,7 +646,7 @@ func TableCreateSelfBuilt(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -677,7 +677,7 @@ func TableCreateSelfBuiltBatch(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -825,7 +825,7 @@ func TableUpdate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(table.Database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(id),
@@ -855,7 +855,7 @@ func TableDeps(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.BigData,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)

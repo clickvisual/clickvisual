@@ -32,7 +32,7 @@ func DatabaseCreate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -89,7 +89,7 @@ func DatabaseList(c *core.Context) {
 	}
 	res := make([]view.RespDatabaseItem, 0)
 	for _, row := range dl {
-		if !service.InstanceManager.ReadPermissionDatabase(c.Uid(), row.Iid, row.ID) {
+		if !service.IsPermissionDatabase(c.Uid(), row.Iid, row.ID, pmsplugin.Log) {
 			continue
 		}
 		tmp := view.RespDatabaseItem{
@@ -127,7 +127,7 @@ func DatabaseDelete(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActDelete},
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(database.ID),
@@ -182,7 +182,7 @@ func DatabaseUpdate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(database.Iid),
-		SubResource: pmsplugin.InstanceBase,
+		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(id),

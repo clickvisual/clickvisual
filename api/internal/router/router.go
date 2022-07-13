@@ -63,7 +63,7 @@ func GetRouter() *egin.Component {
 	{
 		// webhook
 		v1Open.POST("/prometheus/alerts", core.Handle(alarm.Webhook))
-		// alarms channels send test
+		// alarms send test
 		v1Open.POST("/alarms-channels/send-test", core.Handle(alarm.ChannelSendTest))
 		// mock
 		v1Open.POST("/template/:id", core.Handle(template.Gen))
@@ -191,7 +191,6 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/nodes/:id", core.Handle(bigdata.NodeUpdate))
 		v1.DELETE("/bigdata/nodes/:id", core.Handle(bigdata.NodeDelete))
 		v1.POST("/bigdata/nodes/:id/stop", core.Handle(bigdata.NodeStop))
-		// v1.GET("/bigdata/nodes/:id/status", core.Handle(bigdata.NodeStatusList))
 		v1.GET("/instances/:iid/databases/:dn/tables/:tn/deps", core.Handle(base.TableDeps))
 		// bigdata node history
 		v1.GET("/bigdata/nodes/:id/histories", core.Handle(bigdata.NodeHistoryListPage))
@@ -221,9 +220,9 @@ func GetRouter() *egin.Component {
 		v1.DELETE("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowDelete))
 		// data mining crontab
 		v1.POST("/bigdata/mining/crontab", core.Handle(mining.CrontabCreate))
-		v1.GET("/bigdata/mining/crontab/:id", core.Handle(mining.CrontabInfo))
-		v1.PATCH("/bigdata/mining/crontab/:id", core.Handle(mining.CrontabUpdate))
-		v1.DELETE("/bigdata/mining/crontab/:id", core.Handle(mining.CrontabDelete))
+		v1.GET("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabInfo))
+		v1.PATCH("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabUpdate))
+		v1.DELETE("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabDelete))
 	}
 	return r
 }
