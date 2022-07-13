@@ -13,6 +13,7 @@ import dataAnalysisApi from "@/services/dataAnalysis";
 import realtimeApi from "@/services/realTimeTrafficFlow";
 import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
 import dataSourceManageApi from "@/services/dataSourceManage";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 import useWorkflowBoard from "@/models/dataanalysis/useWorkflowBoard";
 import { FIRST_PAGE } from "@/config/config";
@@ -136,8 +137,12 @@ const DataAnalysis = () => {
 
   const doRunCodeNode = useRequest(temporaryQueryApi.runCodekNode, {
     loadingText: {
-      loading: "运行中",
-      done: "运行成功",
+      loading: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingText",
+      }),
+      done: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingDoneText",
+      }),
     },
   });
 
@@ -210,7 +215,9 @@ const DataAnalysis = () => {
   // 解锁节点
   const handleUnLockFile = (nodeId: number) => {
     if (isUpdateStateFun()) {
-      message.warning("当前修改暂未保存，确定要解锁吗");
+      message.warning(
+        formatMessage({ id: "bigdata.models.dataAnalysis.unlockTips" })
+      );
       return;
     }
     nodeId &&
@@ -232,7 +239,9 @@ const DataAnalysis = () => {
     openNodeId &&
       doUpdateNode.run(openNodeId, data).then((res: any) => {
         if (res.code == 0) {
-          message.success("保存成功");
+          message.success(
+            formatMessage({ id: "log.index.manage.message.save.success" })
+          );
           onGetFolderList(openNodeId);
         }
       });
