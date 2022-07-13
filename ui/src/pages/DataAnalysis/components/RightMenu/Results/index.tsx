@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import style from "./index.less";
 import MonacoEditor from "react-monaco-editor";
 import Luckysheet from "./Luckysheet";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { format } from "sql-formatter";
 
 const { Option } = Select;
@@ -15,6 +15,7 @@ const Results = (props: {
   setVisible: (flag: boolean) => void;
 }) => {
   const [SQLForm] = Form.useForm();
+  const i18n = useIntl();
   const { visible, setVisible } = props;
   const { sqlQueryResults, changeSqlQueryResults, doRunCodeNode } =
     useModel("dataAnalysis");
@@ -114,7 +115,9 @@ const Results = (props: {
               showSearch
               allowClear
               style={{ width: "278px" }}
-              placeholder={"请选择查看"}
+              placeholder={i18n.formatMessage({
+                id: "bigdata.components.Results.involvedSQLs.key.placeholder",
+              })}
               onChange={(value: string) => {
                 setSQLcontent(sqlQueryResults?.involvedSQLs[value]);
               }}
@@ -151,7 +154,9 @@ const Results = (props: {
 
   return (
     <Drawer
-      title="运行结果"
+      title={i18n.formatMessage({
+        id: "bigdata.components.Results.involvedSQLs.drawer.title",
+      })}
       placement="bottom"
       onClose={onClose}
       visible={visible}

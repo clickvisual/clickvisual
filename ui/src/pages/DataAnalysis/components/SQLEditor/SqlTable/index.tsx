@@ -2,9 +2,10 @@ import { Drawer, Table } from "antd";
 import { ColumnsType } from "antd/lib/table";
 // import classNames from "classnames";
 import { useMemo, useState } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 
 const SqlTable = () => {
+  const i18n = useIntl();
   const { visibleSqlQuery, changeVisibleSqlQuery, sqlQueryResults } =
     useModel("dataAnalysis");
   const [sqlQueryData, setSqlQueryData] = useState<any>([]);
@@ -41,7 +42,7 @@ const SqlTable = () => {
 
   return (
     <Drawer
-      title="运行结果"
+      title={i18n.formatMessage({ id: "bigdata.components.SQLEditor.results" })}
       placement="bottom"
       height={"70%"}
       onClose={() => changeVisibleSqlQuery(false)}

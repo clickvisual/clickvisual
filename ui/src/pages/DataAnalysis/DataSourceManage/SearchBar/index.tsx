@@ -1,9 +1,10 @@
 import style from "@/pages/DataAnalysis/DataSourceManage/index.less";
 import { Button, Form, FormInstance, Select, Space } from "antd";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { useEffect, useRef } from "react";
 const { Option } = Select;
 const SearchBar = () => {
+  const i18n = useIntl();
   const { dataSourceManage, currentInstances } = useModel("dataAnalysis");
   const dataSourceFormRef = useRef<FormInstance>(null);
   const {
@@ -32,20 +33,24 @@ const SearchBar = () => {
     <div className={style.searchBar}>
       <Form
         ref={dataSourceFormRef}
-        labelCol={{ span: 5 }}
-        wrapperCol={{ span: 19 }}
+        labelCol={{ span: 8 }}
+        wrapperCol={{ span: 16 }}
         layout="inline"
       >
         <Space>
           <Form.Item
-            label="数据源类型"
+            label={i18n.formatMessage({
+              id: "log.editDatabaseModel.label.datasourceType",
+            })}
             style={{ margin: 0 }}
             name="typ"
             shouldUpdate
           >
             <Select
               style={{ width: "300px" }}
-              placeholder={"请选择数据源类型"}
+              placeholder={i18n.formatMessage({
+                id: "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder",
+              })}
               allowClear
               onChange={(value: number) => {
                 changeCurrentTyp(value);
@@ -70,12 +75,14 @@ const SearchBar = () => {
                 });
               }}
             >
-              搜索
+              {i18n.formatMessage({ id: "search" })}
             </Button>
           </Form.Item>
           <Form.Item>
             <Button type="primary" onClick={handleCreate}>
-              新增数据源
+              {i18n.formatMessage({
+                id: "bigdata.dataSourceManage.searchBar.dataSourceType.create",
+              })}
             </Button>
           </Form.Item>
         </Space>

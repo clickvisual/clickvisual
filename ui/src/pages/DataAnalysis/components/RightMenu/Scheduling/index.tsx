@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 
@@ -36,6 +36,7 @@ const Scheduling = (props: {
   visible: boolean;
   setVisible: (flag: boolean) => void;
 }) => {
+  const i18n = useIntl();
   const { visible, setVisible } = props;
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const {
@@ -54,13 +55,16 @@ const Scheduling = (props: {
   };
 
   useEffect(() => {
+    getUserList();
+  }, []);
+
+  useEffect(() => {
     if (visible && selectNode) {
       console.log(selectNode);
-      getUserList();
       doGetCrontabInfo.run(selectNode.id).then((res: any) => {
         if (res?.code == 0) {
           const { data } = res;
-          if (data) {
+          if (data != null) {
             CrontabFormRef.current?.setFieldsValue({
               dutyUid: data.dutyUid,
               desc: data.desc,
@@ -81,17 +85,29 @@ const Scheduling = (props: {
   const secondary = useMemo(() => {
     switch (selectNode?.secondary) {
       case SecondaryEnums.all:
-        return "任意";
+        return i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.secondary.all",
+        });
       case SecondaryEnums.database:
-        return "数据库";
+        return i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.secondary.database",
+        });
       case SecondaryEnums.dataIntegration:
-        return "数据集成";
+        return i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration",
+        });
       case SecondaryEnums.dataMining:
-        return "数据开发";
+        return i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
+        });
       case SecondaryEnums.board:
-        return "看板";
+        return i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.secondary.board",
+        });
       case SecondaryEnums.universal:
-        return "通用节点";
+        return i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.secondary.universal",
+        });
       default:
         break;
     }
@@ -101,12 +117,16 @@ const Scheduling = (props: {
   const infoList: any[] = [
     {
       id: 101,
-      title: "名称",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.Scheduling.name",
+      }),
       content: selectNode?.name,
     },
     {
       id: 102,
-      title: "节点类型",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.Scheduling.nodeType",
+      }),
       content: secondary,
     },
     // {
@@ -132,7 +152,7 @@ const Scheduling = (props: {
       };
       doCreatCrontab.run(data).then((res: any) => {
         if (res.code == 0) {
-          message.success("新建成功");
+          message.success(i18n.formatMessage({ id: "models.pms.create.suc" }));
           onClose();
         }
       });
@@ -146,7 +166,7 @@ const Scheduling = (props: {
     };
     doUpdateCrontab.run(selectNode.id, data).then((res: any) => {
       if (res.code == 0) {
-        message.success("修改成功");
+        message.success(i18n.formatMessage({ id: "models.pms.update.suc" }));
         onClose();
       }
     });
@@ -154,7 +174,9 @@ const Scheduling = (props: {
 
   return (
     <Drawer
-      title="调度配置"
+      title={i18n.formatMessage({
+        id: "bigdata.components.RightMenu.properties",
+      })}
       placement="right"
       onClose={onClose}
       visible={visible}
@@ -162,17 +184,29 @@ const Scheduling = (props: {
       className={styles.drawer}
       extra={
         <Space>
-          <Button onClick={onClose}>关闭</Button>
           <Button
             type="primary"
+            loading={
+              doUpdateCrontab.loading ||
+              doCreatCrontab.loading ||
+              doGetCrontabInfo.loading
+            }
             onClick={() => CrontabFormRef.current?.submit()}
           >
-            {isUpdate ? "修改" : "新建"}
+            {isUpdate
+              ? i18n.formatMessage({
+                  id: "bigdata.components.RightMenu.Scheduling.Modify",
+                })
+              : i18n.formatMessage({ id: "create" })}
           </Button>
         </Space>
       }
     >
-      <CustomCollapse title="基础配置">
+      <CustomCollapse
+        title={i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.basicConfig",
+        })}
+      >
         <div className={styles.basicInfo}>
           {infoList.map((item: any) => {
             return (
@@ -189,7 +223,13 @@ const Scheduling = (props: {
             onFinish={handleSubmit}
             labelAlign="left"
           >
-            <Form.Item valuePropName="checked" label="是否执行" name="typ">
+            <Form.Item
+              valuePropName="checked"
+              label={i18n.formatMessage({
+                id: "bigdata.components.RightMenu.Scheduling.isPerform",
+              })}
+              name="typ"
+            >
               <Switch />
               {/* <Select>
           {crontabList.map((item: any) => {
@@ -201,7 +241,13 @@ const Scheduling = (props: {
           })}
         </Select> */}
             </Form.Item>
-            <Form.Item label={"责任人"} name="dutyUid" required>
+            <Form.Item
+              label={i18n.formatMessage({
+                id: "bigdata.components.RightMenu.Scheduling.thoseResponsible",
+              })}
+              name="dutyUid"
+              required
+            >
               <Select
                 showSearch
                 filterOption={(input, option) =>
@@ -224,7 +270,11 @@ const Scheduling = (props: {
                 <Input />
               </Form.Item>
               <div className={styles.question}>
-                <Tooltip title="调度规则 cron 字段填写 帮助文档">
+                <Tooltip
+                  title={i18n.formatMessage({
+                    id: "bigdata.components.RightMenu.Scheduling.cronTips",
+                  })}
+                >
                   <a
                     target="blank"
                     href="https://clickvisual.gocn.vip/clickvisual/03funcintro/bigdata.html#%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%89%A7%E8%A1%8C%E8%A7%84%E5%88%99"
@@ -234,8 +284,15 @@ const Scheduling = (props: {
                 </Tooltip>
               </div>
             </Form.Item>
-            <Form.Item label={"描述"} name="desc">
-              <TextArea placeholder="请输入描述" />
+            <Form.Item
+              label={i18n.formatMessage({ id: "description" })}
+              name="desc"
+            >
+              <TextArea
+                placeholder={i18n.formatMessage({
+                  id: "datasource.logLibrary.from.newLogLibrary.desc.placeholder",
+                })}
+              />
             </Form.Item>
           </Form>
         </div>

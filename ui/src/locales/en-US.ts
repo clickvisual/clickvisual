@@ -744,4 +744,59 @@ export default {
   "bigdata.workflow.delete.content": "Confirm Business Process: {workflow}?",
   "bigdata.workflow.delete.loading": "Delete business process...",
   "bigdata.workflow.delete.success": "Delete business process successfully",
+
+  // bigdata DataSourceManage
+  "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
+    "Select a data source type",
+  "bigdata.dataSourceManage.searchBar.dataSourceType.create":
+    "Create data source",
+
+  "bigdata.dataSourceManage.dataTable.dataSourceName": "Name",
+  "bigdata.dataSourceManage.dataTable.linkInformation":
+    "The connection information",
+  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "Description",
+  "bigdata.dataSourceManage.dataTable.deleteDataSourceTips":
+    "Are you sure to delete dataSource 『{dataSource}』",
+
+  "bigdata.dataSourceManage.create.typ": "Type",
+  "bigdata.dataSourceManage.create.userName": "The user name",
+
+  // bigdata components
+  "bigdata.components.SQLEditor.selectFile": "Please select file",
+  "bigdata.components.SQLEditor.results": "The results",
+
+  "bigdata.components.RightMenu.properties": "Properties",
+  "bigdata.components.RightMenu.versions": "Versions",
+  "bigdata.components.RightMenu.Versions.tips": "Version history",
+  "bigdata.components.RightMenu.results": "Results",
+  "bigdata.components.RightMenu.results.tips": "The results",
+
+  "bigdata.components.RightMenu.VersionHistory.submitter": "Submit one",
+  "bigdata.components.RightMenu.VersionHistory.SubmitTime": "Submit time",
+  "bigdata.components.RightMenu.VersionHistory.details": "Details",
+  "bigdata.components.RightMenu.VersionHistory.drawer.title": "Version history",
+  "bigdata.components.RightMenu.VersionHistory.childDrawer.title": "The query",
+
+  "bigdata.components.RightMenu.Scheduling.Modify": "Modify the",
+  "bigdata.components.RightMenu.Scheduling.secondary.all": "Any",
+  "bigdata.components.RightMenu.Scheduling.secondary.database": "The database",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration":
+    "Data integration",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataMining":
+    "Data development",
+  "bigdata.components.RightMenu.Scheduling.secondary.board": "kanban",
+  "bigdata.components.RightMenu.Scheduling.secondary.universal": "General node",
+  "bigdata.components.RightMenu.Scheduling.name": "The name of the",
+  "bigdata.components.RightMenu.Scheduling.nodeType": "The node type",
+  "bigdata.components.RightMenu.Scheduling.basicConfig": "Basic configuration",
+  "bigdata.components.RightMenu.Scheduling.isPerform":
+    "Whether or not to perform",
+  "bigdata.components.RightMenu.Scheduling.thoseResponsible":
+    "Those responsible",
+  "bigdata.components.RightMenu.Scheduling.cronTips":
+    "Scheduling rule cron field fill in the help document",
+
+  "bigdata.components.Results.involvedSQLs.key.placeholder":
+    "Please select view",
+  "bigdata.components.Results.involvedSQLs.drawer.title": "The results",
 };

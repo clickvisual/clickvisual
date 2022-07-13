@@ -1,6 +1,6 @@
 import { Tooltip } from "antd";
 import { useState } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import style from "./index.less";
 import Results from "./Results";
 import Scheduling from "./Scheduling";
@@ -22,6 +22,7 @@ export enum RightMenuType {
 }
 
 const RightMenu = () => {
+  const i18n = useIntl();
   const [visibleVersionHistory, setVisibleVersionHistory] =
     useState<boolean>(false);
   const [visibleScheduling, setVisibleScheduling] = useState<boolean>(false);
@@ -37,16 +38,24 @@ const RightMenu = () => {
   const rightMenu = [
     {
       id: RightMenuType.Scheduling,
-      title: "调度配置",
-      Tooltip: "调度配置",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.properties",
+      }),
+      Tooltip: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.properties",
+      }),
       onClick: () => {
         setVisibleScheduling(true);
       },
     },
     {
       id: RightMenuType.VersionHistory,
-      title: "版本",
-      Tooltip: "历史版本",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.versions",
+      }),
+      Tooltip: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.Versions.tips",
+      }),
       onClick: () => {
         setVisibleVersionHistory(true);
         openNodeId &&
@@ -70,8 +79,10 @@ const RightMenu = () => {
     },
     {
       id: RightMenuType.Results,
-      title: "结果",
-      Tooltip: "运行结果",
+      title: i18n.formatMessage({ id: "bigdata.components.RightMenu.results" }),
+      Tooltip: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.results.tips",
+      }),
       onClick: () => {
         setVisibleResults(true);
       },
