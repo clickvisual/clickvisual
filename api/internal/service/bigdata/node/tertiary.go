@@ -21,6 +21,7 @@ func (r *tertiary) execute(n *node) (res view.RunNodeResult, err error) {
 	case db.TertiaryMySQL:
 		return doTyMySQL(n)
 	case db.TertiaryOfflineSync:
+		return doTyOfflineSync(n)
 	case db.TertiaryRealTimeSync:
 		return doTyRealTimeSync(n)
 	default:
