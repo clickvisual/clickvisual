@@ -344,11 +344,15 @@ const CreatedAndUpdatedModal = ({
         });
         break;
       case alarmModePreviewType.AfterPreview:
-        return "可确认";
+        return i18n.formatMessage({
+          id: "alarm.rules.form.preview.canConfirm",
+        });
         break;
 
       default:
-        return "未知状态";
+        return i18n.formatMessage({
+          id: "alarm.rules.form.preview.unknownState",
+        });
         break;
     }
   }, [isPreviewData]);
@@ -549,15 +553,17 @@ const CreatedAndUpdatedModal = ({
                   {mode == alarmModeType.AggregationMode && (
                     <div
                       style={{
-                        // backgroundColor: "#fa975a",
-                        // color: "#fff",
                         marginTop: "10px",
                         borderRadius: "2px",
                         display: "flex",
                         justifyContent: "space-around",
                       }}
                     >
-                      「聚合数据」
+                      「
+                      {i18n.formatMessage({
+                        id: "alarm.rules.form.aggregatedData",
+                      })}
+                      」
                       {mode == alarmModeType.AggregationMode && (
                         <Button
                           style={{
@@ -604,15 +610,17 @@ const CreatedAndUpdatedModal = ({
                   {isPreviewData != alarmModePreviewType.AggregateData && (
                     <div
                       style={{
-                        // backgroundColor: "#fa975a",
-                        // color: "#fff",
                         marginTop: "10px",
                         borderRadius: "2px",
                         display: "flex",
                         justifyContent: "space-around",
                       }}
                     >
-                      「告警指标」
+                      「
+                      {i18n.formatMessage({
+                        id: "alarm.rules.form.aggregatedIndicators",
+                      })}
+                      」
                       <Button
                         style={{
                           width: "230px",

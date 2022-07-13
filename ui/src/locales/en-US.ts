@@ -505,9 +505,13 @@ export default {
     "At least you need to add a trigger condition",
   "alarm.rules.form.noDataOp": "Alert state if no data or all values are null",
   "alarm.rules.form.preview": "Preview",
+  "alarm.rules.form.aggregatedData": "Aggregate data",
+  "alarm.rules.form.aggregatedIndicators": "Aggregation index",
   "alarm.rules.form.preview.aggregatedData": "Preview aggregated Data",
   "alarm.rules.form.preview.aggregatedIndicators":
     "Preview aggregation indicators",
+  "alarm.rules.form.preview.unknownState": "An unknown state",
+  "alarm.rules.form.preview.canConfirm": "Can be confirmed",
   "alarm.rules.form.notPreview.content": "Please click preview first",
   "alarm.rules.form.mode": "Alarm mode",
   "alarm.rules.form.level.instructions":
