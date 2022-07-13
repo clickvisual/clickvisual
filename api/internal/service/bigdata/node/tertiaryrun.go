@@ -5,6 +5,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/ofsync"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/rtsync"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/source"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
@@ -52,6 +53,32 @@ func doTyMySQL(n *node) (res view.RunNodeResult, err error) {
 // mysql -> clickhouse
 func doTyRealTimeSync(n *node) (res view.RunNodeResult, err error) {
 	c, err := rtsync.Creator(n.n.Iid, n.n.ID, n.nc.Content)
+	if err != nil {
+		return
+	}
+	switch n.op {
+	case OperatorRun:
+		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusHandler})
+		res.InvolvedSQLs, err = c.Run()
+	case OperatorStop:
+		err = c.Stop()
+		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusDefault})
+	default:
+		err = constx.ErrBigdataRTSyncOperatorTypeNotSupported
+	}
+	if err != nil {
+		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusError})
+		return
+	}
+	return res, nil
+}
+
+// doTyRealTimeSync ..
+// support:
+// clickhouse -> mysql
+// mysql -> clickhouse
+func doTyOfflineSync(n *node) (res view.RunNodeResult, err error) {
+	c, err := ofsync.Creator(n.n.Iid, n.n.ID, n.nc.Content)
 	if err != nil {
 		return
 	}
