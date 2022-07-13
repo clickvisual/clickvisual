@@ -14,15 +14,13 @@ import { message } from "antd";
 export const PrimaryList = [
   {
     id: PrimaryEnums.mining,
-    title: formatMessage({
-      id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
-    }),
+    title: "数据开发",
     enum: PrimaryEnums.mining,
   },
 
   {
     id: PrimaryEnums.short,
-    title: formatMessage({ id: "menu.bigdata.temporaryQuery" }),
+    title: "临时查询",
     enum: PrimaryEnums.short,
   },
 ];
@@ -30,28 +28,22 @@ export const PrimaryList = [
 export const SecondaryList = [
   {
     id: SecondaryEnums.all,
-    title: formatMessage({
-      id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.all",
-    }),
+    title: "全部",
     enum: SecondaryEnums.all,
   },
   {
     id: SecondaryEnums.database,
-    title: formatMessage({ id: "datasource.draw.table.datasource" }),
+    title: "数据库",
     enum: SecondaryEnums.database,
   },
   {
     id: SecondaryEnums.dataIntegration,
-    title: formatMessage({
-      id: "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration",
-    }),
+    title: "数据集成",
     enum: SecondaryEnums.dataIntegration,
   },
   {
     id: SecondaryEnums.dataMining,
-    title: formatMessage({
-      id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
-    }),
+    title: "数据开发",
     enum: SecondaryEnums.dataMining,
   },
 ];
@@ -85,25 +77,19 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.start,
-    title: formatMessage({
-      id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.start",
-    }),
+    title: "输入节点",
     enum: TertiaryEnums.start,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
     id: TertiaryEnums.end,
-    title: formatMessage({
-      id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.end",
-    }),
+    title: "输出节点",
     enum: TertiaryEnums.end,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
     id: TertiaryEnums.realtime,
-    title: formatMessage({
-      id: "bigdata.components.FileTitle.fileType.realtime",
-    }),
+    title: "实时同步",
     enum: TertiaryEnums.realtime,
     types: [
       SecondaryEnums.dataIntegration,
@@ -113,9 +99,7 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.offline,
-    title: formatMessage({
-      id: "bigdata.components.FileTitle.fileType.offline ",
-    }),
+    title: "离线同步",
     enum: TertiaryEnums.offline,
     types: [
       SecondaryEnums.dataIntegration,
@@ -202,7 +186,7 @@ const useManageNodeAndFolder = () => {
   const doStopCodeNode = useRequest(dataAnalysisApi.stopCodeNode, {
     loadingText: {
       loading: formatMessage({
-        id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopping",
+        id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.stoping",
       }),
       done: formatMessage({
         id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess",
