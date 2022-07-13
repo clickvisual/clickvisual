@@ -2,6 +2,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { folderListType } from "@/services/dataAnalysis";
 import { DataNode } from "antd/lib/tree";
 import { useState } from "react";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 import {
   FolderEnums,
   PrimaryEnums,
@@ -90,12 +91,14 @@ const useTemporaryQuery = () => {
   const primaryList = [
     {
       id: 101,
-      title: "数据开发",
+      title: formatMessage({
+        id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
+      }),
       enum: PrimaryEnums.mining,
     },
     {
       id: 102,
-      title: "临时查询",
+      title: formatMessage({ id: "menu.bigdata.temporaryQuery" }),
       enum: PrimaryEnums.short,
     },
   ];
@@ -117,12 +120,14 @@ const useTemporaryQuery = () => {
   const secondaryList = [
     {
       id: 301,
-      title: "数据库",
+      title: formatMessage({ id: "datasource.draw.table.datasource" }),
       enum: SecondaryEnums.database,
     },
     {
       id: 302,
-      title: "数据集成",
+      title: formatMessage({
+        id: "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration",
+      }),
       enum: SecondaryEnums.dataIntegration,
     },
   ];
@@ -140,7 +145,9 @@ const useTemporaryQuery = () => {
         })
         .then((res: any) => {
           if (res?.code == 0) {
-            res.data.name = "临时查询";
+            res.data.name = formatMessage({
+              id: "menu.bigdata.temporaryQuery",
+            });
             onProcessTreeData(res.data);
           }
         });

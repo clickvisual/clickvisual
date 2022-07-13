@@ -6,13 +6,14 @@ import {
   CodepenOutlined,
 } from "@ant-design/icons";
 import { Tooltip } from "antd";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import useUrlState from "@ahooksjs/use-url-state";
 import { useEffect } from "react";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const DataAnalysisNav = () => {
+  const i18n = useIntl();
   const [urlState, setUrlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
   const {
@@ -33,25 +34,33 @@ const DataAnalysisNav = () => {
     {
       id: 101,
       key: BigDataNavEnum.RealTimeTrafficFlow,
-      title: "实时业务",
+      title: i18n.formatMessage({
+        id: "menu.bigdata.realtime",
+      }),
       icon: <ClusterOutlined />,
     },
     {
       id: 102,
       key: BigDataNavEnum.TemporaryQuery,
-      title: "临时查询",
+      title: i18n.formatMessage({
+        id: "menu.bigdata.temporaryQuery",
+      }),
       icon: <MonitorOutlined />,
     },
     {
       id: 103,
       key: BigDataNavEnum.OfflineManage,
-      title: "数据开发",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
+      }),
       icon: <CodeOutlined />,
     },
     {
       id: 104,
       key: BigDataNavEnum.DataSourceManage,
-      title: "数据源管理",
+      title: i18n.formatMessage({
+        id: "bigdata.components.Nav.navList.dataSourceManage",
+      }),
       icon: <CodepenOutlined />,
     },
   ];

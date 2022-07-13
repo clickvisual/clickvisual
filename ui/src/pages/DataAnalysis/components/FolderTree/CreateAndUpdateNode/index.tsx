@@ -1,6 +1,6 @@
 import { Form, FormInstance, Input, message, Modal, Select } from "antd";
 import { useEffect, useRef, useState } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
 import {
   DataSourceReqTypEnums,
@@ -12,6 +12,7 @@ import {
 const { Option } = Select;
 
 const CreateAndUpdateNode = () => {
+  const i18n = useIntl();
   const folderForm = useRef<FormInstance>(null);
   const {
     currentInstances,
@@ -99,7 +100,7 @@ const CreateAndUpdateNode = () => {
       });
       doCreatedNode.run(data).then((res: any) => {
         if (res.code == 0) {
-          message.success("新建成功");
+          message.success(i18n.formatMessage({ id: "models.pms.create.suc" }));
           changeVisibleNode(false);
           getDataList(currentInstances as number);
         }
@@ -108,7 +109,7 @@ const CreateAndUpdateNode = () => {
     }
     doUpdateNode.run(data.id, data).then((res: any) => {
       if (res.code == 0) {
-        message.success("更新成功");
+        message.success(i18n.formatMessage({ id: "models.pms.update.suc" }));
         changeVisibleNode(false);
         getDataList(currentInstances as number);
       }
@@ -140,7 +141,15 @@ const CreateAndUpdateNode = () => {
   return (
     <Modal
       confirmLoading={doCreatedNode.loading || doUpdateNode.loading}
-      title={!isUpdateNode ? "新建节点" : "修改节点"}
+      title={
+        !isUpdateNode
+          ? i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateNode.createTitle",
+            })
+          : i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateNode.updateTitle",
+            })
+      }
       visible={visibleNode}
       bodyStyle={{ paddingBottom: 0 }}
       onCancel={() => changeVisibleNode(false)}
@@ -176,7 +185,11 @@ const CreateAndUpdateNode = () => {
           </Select>
         </Form.Item>
         <Form.Item name={"tertiary"} label="tertiary" required>
-          <Select placeholder="请选择tertiary">
+          <Select
+            placeholder={i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder",
+            })}
+          >
             {databaseTertiary.map(
               (item: { id: number; title: string; enum: number }) => (
                 <Option value={item.enum} key={item.id}>
@@ -204,7 +217,11 @@ const CreateAndUpdateNode = () => {
                     TertiaryEnums.mysql
                   }
                 >
-                  <Select placeholder="请选择source">
+                  <Select
+                    placeholder={i18n.formatMessage({
+                      id: "bigdata.components.FolderTree.crateNode.sourceSelect.placeholder",
+                    })}
+                  >
                     {sourceList?.map((item: { id: number; name: string }) => (
                       <Option value={item.id} key={item.id}>
                         {item.name}
@@ -218,10 +235,18 @@ const CreateAndUpdateNode = () => {
           }}
         </Form.Item>
         <Form.Item name={"name"} label="name" required>
-          <Input placeholder="请输入节点名称" />
+          <Input
+            placeholder={i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateNode.nodeName.placeholder",
+            })}
+          />
         </Form.Item>
         <Form.Item name={"desc"} label="desc">
-          <Input placeholder="请输入节点描述" />
+          <Input
+            placeholder={i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder",
+            })}
+          />
         </Form.Item>
       </Form>
     </Modal>

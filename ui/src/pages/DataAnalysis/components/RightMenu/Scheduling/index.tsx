@@ -90,7 +90,7 @@ const Scheduling = (props: {
         });
       case SecondaryEnums.database:
         return i18n.formatMessage({
-          id: "bigdata.components.RightMenu.Scheduling.secondary.database",
+          id: "datasource.draw.table.datasource",
         });
       case SecondaryEnums.dataIntegration:
         return i18n.formatMessage({

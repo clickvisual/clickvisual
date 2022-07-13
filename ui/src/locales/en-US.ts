@@ -658,6 +658,11 @@ export default {
   "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle":
     "Role authorization ( [subresource]: [To allow operation] )",
 
+  "systemSetting.instancePanel.roleAssign.editModel.title":
+    "The update operation",
+  "systemSetting.instancePanel.roleAssign.editModel.content":
+    "Are you sure you want to update the character content?",
+
   // sys -> role
   "systemSetting.role.delete.success": "Delete the success",
   "systemSetting.role.delete.title": "Delete operation",
@@ -745,6 +750,9 @@ export default {
   "bigdata.workflow.delete.loading": "Delete business process...",
   "bigdata.workflow.delete.success": "Delete business process successfully",
 
+  "bigdata.workflow.dataIntegration": "Data integration",
+  "bigdata.workflow.dataDevelopment": "Data Analytics",
+
   // bigdata DataSourceManage
   "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
     "Select a data source type",
@@ -779,18 +787,16 @@ export default {
 
   "bigdata.components.RightMenu.Scheduling.Modify": "Modify the",
   "bigdata.components.RightMenu.Scheduling.secondary.all": "Any",
-  "bigdata.components.RightMenu.Scheduling.secondary.database": "The database",
   "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration":
     "Data integration",
   "bigdata.components.RightMenu.Scheduling.secondary.dataMining":
-    "Data development",
-  "bigdata.components.RightMenu.Scheduling.secondary.board": "kanban",
+    "Data Analytics",
+  "bigdata.components.RightMenu.Scheduling.secondary.board": "Board",
   "bigdata.components.RightMenu.Scheduling.secondary.universal": "General node",
   "bigdata.components.RightMenu.Scheduling.name": "The name of the",
   "bigdata.components.RightMenu.Scheduling.nodeType": "The node type",
-  "bigdata.components.RightMenu.Scheduling.basicConfig": "Basic configuration",
-  "bigdata.components.RightMenu.Scheduling.isPerform":
-    "Whether or not to perform",
+  "bigdata.components.RightMenu.Scheduling.basicConfig": "General",
+  "bigdata.components.RightMenu.Scheduling.isPerform": "Perform",
   "bigdata.components.RightMenu.Scheduling.thoseResponsible":
     "Those responsible",
   "bigdata.components.RightMenu.Scheduling.cronTips":
@@ -799,4 +805,50 @@ export default {
   "bigdata.components.Results.involvedSQLs.key.placeholder":
     "Please select view",
   "bigdata.components.Results.involvedSQLs.drawer.title": "The results",
+
+  "bigdata.components.Nav.navList.dataSourceManage": "Data Source",
+
+  "bigdata.components.FolderTree.createFolderPrompt":
+    "Currently, only level 2 folders are supported~",
+  "bigdata.components.FolderTree.iconList.createNode": "Create a node",
+  "bigdata.components.FolderTree.iconList.createFolder": "Creating a folder",
+  "bigdata.components.FolderTree.folderName": "The file name",
+
+  "bigdata.components.FolderTree.FolderTitle.node": "Node",
+  "bigdata.components.FolderTree.FolderTitle.folder": "Folder",
+  "bigdata.components.FolderTree.FolderTitle.deleteTips":
+    "Are you sure to delete? type: ",
+
+  "bigdata.components.FolderTree.crateNode.createTitle": "Create a node",
+  "bigdata.components.FolderTree.crateNode.updateTitle": "Modify the node",
+  "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder":
+    "Please select a tertiary",
+  "bigdata.components.FolderTree.crateNode.sourceSelect.placeholder":
+    "Please select a source",
+  "bigdata.components.FolderTree.crateNode.nodeName.placeholder":
+    "Please enter a node name",
+  "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder":
+    "Please enter a node description",
+
+  "bigdata.components.FolderTree.crateFolder.createTitle": "Create Folder",
+  "bigdata.components.FolderTree.crateFolder.updateTitle": "Modifying folders",
+  "bigdata.components.FolderTree.crateFolder.secondary.placeholder":
+    "Please select a secondary",
+
+  "bigdata.components.FileTitle.fileType.realtime": "Realtime",
+  "bigdata.components.FileTitle.fileType.offline": "Offline",
+  "bigdata.components.FileTitle.fileType.default": "Unknown file",
+  "bigdata.components.FileTitle.NodeStatus.pending": "pending",
+  "bigdata.components.FileTitle.NodeStatus.inProgress": "The execution of",
+  "bigdata.components.FileTitle.NodeStatus.ExecutionException":
+    "Perform abnormal",
+  "bigdata.components.FileTitle.NodeStatus.ExecuteComplete": "completes",
+  "bigdata.components.FileTitle.NodeStatus.PendingRun": "Waiting for run",
+  "bigdata.components.FileTitle.user.invalidUser": "Invalid user",
+  "bigdata.components.FileTitle.user.editing": "Editing",
+  "bigdata.components.FileTitle.user.readOnly": "Read-only",
+  "bigdata.components.FileTitle.startEditing": "Start editing",
+  "bigdata.components.FileTitle.exitEditor": "Exit the editor",
+  "bigdata.components.FileTitle.formatting": "Formatting",
+  "bigdata.components.FileTitle.run": "run",
 };

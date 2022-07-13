@@ -15,7 +15,7 @@ import CreateAndUpdateFolder from "@/pages/DataAnalysis/components/FolderTree/Cr
 import CreateAndUpdateNode from "@/pages/DataAnalysis/components/FolderTree/CreateAndUpdateNode";
 import React, { useEffect, useMemo, useState } from "react";
 import { Key } from "antd/lib/table/interface";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import FolderTitle from "@/pages/DataAnalysis/components/FolderTree/FolderTitle";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
@@ -54,6 +54,7 @@ const getParentKey = (key: React.Key, tree: DataNode[]): React.Key => {
 };
 
 const FolderTree: React.FC = () => {
+  const i18n = useIntl();
   const [searchValue, setSearchValue] = useState("");
   const [autoExpandParent, setAutoExpandParent] = useState(true);
   const {
@@ -185,7 +186,11 @@ const FolderTree: React.FC = () => {
 
   const handleCreateFolder = () => {
     if (currentFolder && currentFolder.parentId >= 0) {
-      message.info("暂时只支持新建2级文件夹~");
+      message.info(
+        i18n.formatMessage({
+          id: "bigdata.components.FolderTree.createFolderPrompt",
+        })
+      );
       return;
     }
     changeVisibleFolder(true);
@@ -202,19 +207,23 @@ const FolderTree: React.FC = () => {
   const iconList = [
     {
       id: 101,
-      title: "新建节点",
+      title: i18n.formatMessage({
+        id: "bigdata.components.FolderTree.iconList.createNode",
+      }),
       icon: <FileAddOutlined />,
       onClick: handleCreateNode,
     },
     {
       id: 102,
-      title: "新建文件夹",
+      title: i18n.formatMessage({
+        id: "bigdata.components.FolderTree.iconList.createFolder",
+      }),
       icon: <FolderAddOutlined />,
       onClick: handleCreateFolder,
     },
     {
       id: 103,
-      title: "刷新",
+      title: i18n.formatMessage({ id: "table.column.filter.refresh" }),
       icon: <RedoOutlined />,
       onClick: handleRefresh,
     },
@@ -223,7 +232,9 @@ const FolderTree: React.FC = () => {
   return (
     <div className={TemporaryQueryStyle.folderTreeMain}>
       <div className={TemporaryQueryStyle.title}>
-        <span className={TemporaryQueryStyle.titleName}>临时查询</span>
+        <span className={TemporaryQueryStyle.titleName}>
+          {i18n.formatMessage({ id: "menu.bigdata.temporaryQuery" })}
+        </span>
         <div className={TemporaryQueryStyle.iconList}>
           {iconList.map((item: any) => {
             return (
@@ -241,7 +252,9 @@ const FolderTree: React.FC = () => {
       <div className={TemporaryQueryStyle.searchBox}>
         <div className={TemporaryQueryStyle.search}>
           <Input
-            placeholder="文件名称"
+            placeholder={i18n.formatMessage({
+              id: "bigdata.components.FolderTree.folderName",
+            })}
             onChange={handleChange}
             prefix={
               <SearchOutlined style={{ color: "#dfe1ef", fontSize: "20px" }} />
