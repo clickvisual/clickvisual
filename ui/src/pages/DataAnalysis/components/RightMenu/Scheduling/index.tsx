@@ -180,7 +180,7 @@ const Scheduling = (props: {
       placement="right"
       onClose={onClose}
       visible={visible}
-      width={"40vw"}
+      width={"50vw"}
       className={styles.drawer}
       extra={
         <Space>
@@ -222,6 +222,7 @@ const Scheduling = (props: {
             ref={CrontabFormRef}
             onFinish={handleSubmit}
             labelAlign="left"
+            labelWrap
           >
             <Form.Item
               valuePropName="checked"

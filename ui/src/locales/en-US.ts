@@ -793,12 +793,11 @@ export default {
     "Data Analytics",
   "bigdata.components.RightMenu.Scheduling.secondary.board": "Board",
   "bigdata.components.RightMenu.Scheduling.secondary.universal": "General node",
-  "bigdata.components.RightMenu.Scheduling.name": "The name of the",
-  "bigdata.components.RightMenu.Scheduling.nodeType": "The node type",
+  "bigdata.components.RightMenu.Scheduling.name": "Name",
+  "bigdata.components.RightMenu.Scheduling.nodeType": "Type",
   "bigdata.components.RightMenu.Scheduling.basicConfig": "General",
   "bigdata.components.RightMenu.Scheduling.isPerform": "Perform",
-  "bigdata.components.RightMenu.Scheduling.thoseResponsible":
-    "Those responsible",
+  "bigdata.components.RightMenu.Scheduling.thoseResponsible": "Owner",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "Scheduling rule cron field fill in the help document",
 
