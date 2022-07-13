@@ -1,6 +1,6 @@
 import { Form, FormInstance, Input, message, Modal, Select } from "antd";
 import { useEffect, useRef } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
 import {
   FolderEnums,
@@ -10,6 +10,7 @@ import {
 const { Option } = Select;
 
 const CreateAndUpdateFolder = () => {
+  const i18n = useIntl();
   const folderForm = useRef<FormInstance>(null);
   const { currentInstances, temporaryQuery, navKey } = useModel("dataAnalysis");
   const primary = navKey == BigDataNavEnum.TemporaryQuery ? 3 : 0;
@@ -88,7 +89,7 @@ const CreateAndUpdateFolder = () => {
     if (!isUpdateFolder) {
       doCreatedFolder.run(data).then((res: any) => {
         if (res.code == 0) {
-          message.success("新建成功");
+          message.success(i18n.formatMessage({ id: "models.pms.create.suc" }));
           changeVisibleFolder(false);
           getDataList(currentInstances as number);
         }
@@ -97,7 +98,7 @@ const CreateAndUpdateFolder = () => {
     }
     doUpdateFolder.run(data.id, data).then((res: any) => {
       if (res.code == 0) {
-        message.success("更新成功");
+        message.success(i18n.formatMessage({ id: "models.pms.update.suc" }));
         changeVisibleFolder(false);
         getDataList(currentInstances as number);
       }
@@ -106,7 +107,15 @@ const CreateAndUpdateFolder = () => {
   return (
     <Modal
       confirmLoading={doCreatedFolder.loading || doUpdateFolder.loading}
-      title={!isUpdateFolder ? "新建文件夹" : "修改文件夹"}
+      title={
+        !isUpdateFolder
+          ? i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateFolder.createTitle",
+            })
+          : i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateFolder.updateTitle",
+            })
+      }
       visible={visibleFolder}
       bodyStyle={{ paddingBottom: 0 }}
       onCancel={() => changeVisibleFolder(false)}
@@ -131,7 +140,11 @@ const CreateAndUpdateFolder = () => {
           <Input />
         </Form.Item>
         <Form.Item name={"secondary"} label="secondary" hidden>
-          <Select placeholder="请选择secondary">
+          <Select
+            placeholder={i18n.formatMessage({
+              id: "bigdata.components.FolderTree.crateFolder.secondary.placeholder",
+            })}
+          >
             {secondaryList.map(
               (item: { id: number; title: string; enum: number }) => (
                 <Option value={item.enum} key={item.id}>

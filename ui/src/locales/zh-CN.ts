@@ -616,6 +616,11 @@ export default {
   // sys -> instance -> roleAssign -> RolesList -> CollapseItem -> CollapseTitle
   "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle":
     "角色权限 ( [子资源]: [准许操作] )",
+
+  "systemSetting.instancePanel.roleAssign.editModel.title": "更新操作",
+  "systemSetting.instancePanel.roleAssign.editModel.content":
+    "您确定要更新角色内容吗？",
+
   // sys -> role
   "systemSetting.role.delete.success": "删除成功",
   "systemSetting.role.delete.title": "删除操作",
@@ -728,7 +733,6 @@ export default {
 
   "bigdata.components.RightMenu.Scheduling.Modify": "修改",
   "bigdata.components.RightMenu.Scheduling.secondary.all": "任意",
-  "bigdata.components.RightMenu.Scheduling.secondary.database": "数据库",
   "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration":
     "数据集成",
   "bigdata.components.RightMenu.Scheduling.secondary.dataMining": "数据开发",
@@ -744,4 +748,48 @@ export default {
 
   "bigdata.components.Results.involvedSQLs.key.placeholder": "请选择查看",
   "bigdata.components.Results.involvedSQLs.drawer.title": "运行结果",
+
+  "bigdata.components.Nav.navList.dataSourceManage": "数据源管理",
+
+  "bigdata.components.FolderTree.createFolderPrompt":
+    "暂时只支持新建2级文件夹~",
+  "bigdata.components.FolderTree.iconList.createNode": "新建节点",
+  "bigdata.components.FolderTree.iconList.createFolder": "新建文件夹",
+  "bigdata.components.FolderTree.folderName": "文件名称",
+
+  "bigdata.components.FolderTree.FolderTitle.node": "节点",
+  "bigdata.components.FolderTree.FolderTitle.folder": "文件夹",
+  "bigdata.components.FolderTree.FolderTitle.deleteTips": "确认删除吗?类型：",
+
+  "bigdata.components.FolderTree.crateNode.createTitle": "新建节点",
+  "bigdata.components.FolderTree.crateNode.updateTitle": "修改节点",
+  "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder":
+    "请选择tertiary",
+  "bigdata.components.FolderTree.crateNode.sourceSelect.placeholder":
+    "请选择source",
+  "bigdata.components.FolderTree.crateNode.nodeName.placeholder":
+    "请输入节点名称",
+  "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder":
+    "请输入节点描述",
+
+  "bigdata.components.FolderTree.crateFolder.createTitle": "新建文件夹",
+  "bigdata.components.FolderTree.crateFolder.updateTitle": "修改文件夹",
+  "bigdata.components.FolderTree.crateFolder.secondary.placeholder":
+    "请选择secondary",
+
+  "bigdata.components.FileTitle.fileType.realtime": "实时同步",
+  "bigdata.components.FileTitle.fileType.offline": "离线同步",
+  "bigdata.components.FileTitle.fileType.default": "未知文件",
+  "bigdata.components.FileTitle.NodeStatus.pending": "等待定时任务",
+  "bigdata.components.FileTitle.NodeStatus.inProgress": "执行中",
+  "bigdata.components.FileTitle.NodeStatus.ExecutionException": "执行异常",
+  "bigdata.components.FileTitle.NodeStatus.ExecuteComplete": "执行完成",
+  "bigdata.components.FileTitle.NodeStatus.PendingRun": "待执行",
+  "bigdata.components.FileTitle.user.invalidUser": "无效用户",
+  "bigdata.components.FileTitle.user.editing": "正在编辑",
+  "bigdata.components.FileTitle.user.readOnly": "只读",
+  "bigdata.components.FileTitle.startEditing": "开始编辑",
+  "bigdata.components.FileTitle.exitEditor": "退出编辑",
+  "bigdata.components.FileTitle.formatting": "格式化",
+  "bigdata.components.FileTitle.run": "运行",
 };
