@@ -190,7 +190,7 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
       dataIndex: "interval",
       align: "center",
-      width: "80px",
+      width: "90px",
       render: (interval: number, record: AlarmType) => {
         const unit = FixedTimeUnits.filter(
           (item) => item.key === record.unit
