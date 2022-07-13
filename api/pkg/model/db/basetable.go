@@ -12,7 +12,7 @@ import (
 type BaseTable struct {
 	BaseModel
 
-	Did            int    `gorm:"column:did;type:bigint(20);index:uix_did_name,unique" json:"did"`             // database id
+	Did            int    `gorm:"column:did;type:int(11);index:uix_did_name,unique" json:"did"`                // database id
 	Name           string `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_did_name,unique" json:"name"` // table
 	Typ            int    `gorm:"column:typ;type:int(11)" json:"typ"`                                          // table type, 1 string 2 float
 	Days           int    `gorm:"column:days;type:int(11)" json:"days"`                                        // data expire days

@@ -72,14 +72,14 @@ func depsInstance(iid int, rows []*view.SystemTable, isReset bool) {
 			}
 			downs, ups := customDepsParsing(row)
 			item := &db.BigdataDepend{
-				Iid:               iid,
-				Database:          row.Database,
-				Table:             row.Table,
-				Engine:            row.Engine,
-				DownDatabaseTable: downs,
-				UpDatabaseTable:   ups,
-				Rows:              row.TotalRows,
-				Bytes:             row.TotalBytes,
+				Iid:                  iid,
+				Database:             row.Database,
+				Table:                row.Table,
+				Engine:               row.Engine,
+				DownDepDatabaseTable: downs,
+				UpDepDatabaseTable:   ups,
+				Rows:                 row.TotalRows,
+				Bytes:                row.TotalBytes,
 			}
 			if _, ok := filter[item.Key()]; ok {
 				invoker.Logger.Error("DepsBatch", elog.String("step", "repeat"), elog.String("key", item.Key()))
@@ -98,14 +98,14 @@ func depsInstance(iid int, rows []*view.SystemTable, isReset bool) {
 	for _, row := range rows {
 		downs, ups := customDepsParsing(row)
 		if err := db.DependsCreateOrUpdate(invoker.Db, &db.BigdataDepend{
-			Iid:               iid,
-			Database:          row.Database,
-			Table:             row.Table,
-			Engine:            row.Engine,
-			DownDatabaseTable: downs,
-			UpDatabaseTable:   ups,
-			Rows:              row.TotalRows,
-			Bytes:             row.TotalBytes,
+			Iid:                  iid,
+			Database:             row.Database,
+			Table:                row.Table,
+			Engine:               row.Engine,
+			DownDepDatabaseTable: downs,
+			UpDepDatabaseTable:   ups,
+			Rows:                 row.TotalRows,
+			Bytes:                row.TotalBytes,
 		}); err != nil {
 			invoker.Logger.Error("doDependSyncInstance", elog.String("error", err.Error()))
 			continue
@@ -138,19 +138,19 @@ func loopDeps(iid int, database, table string, checked map[string]interface{}) (
 	for _, row := range deps {
 		// flushes into Downs
 		ups, _ := db.DependsUpsList(invoker.Db, iid, database, table)
-		row.DownDatabaseTable = addDatabaseTable(ups, row.DownDatabaseTable)
-		invoker.Logger.Debug("loopDeps", elog.String("step", "ups"), elog.Any("ups", ups), elog.Any("DownDatabaseTable", row.DownDatabaseTable))
-		nextDeps = append(nextDeps, row.DownDatabaseTable...)
+		row.DownDepDatabaseTable = addDatabaseTable(ups, row.DownDepDatabaseTable)
+		invoker.Logger.Debug("loopDeps", elog.String("step", "ups"), elog.Any("ups", ups), elog.Any("DownDepDatabaseTable", row.DownDepDatabaseTable))
+		nextDeps = append(nextDeps, row.DownDepDatabaseTable...)
 		res = append(res, view.RespTableDeps{
 			Database:   row.Database,
 			Table:      row.Table,
 			Engine:     row.Engine,
 			TotalRows:  row.Rows,
 			TotalBytes: row.Bytes,
-			Deps:       cutDatabase(row.DownDatabaseTable),
+			Deps:       cutDatabase(row.DownDepDatabaseTable),
 		})
 		invoker.Logger.Debug("addRespTableDeps", elog.Any("database", database), elog.Any("table", table))
-		res = append(res, addRespTableDeps(row.Iid, database, table, row.UpDatabaseTable, res)...)
+		res = append(res, addRespTableDeps(row.Iid, database, table, row.UpDepDatabaseTable, res)...)
 	}
 
 	var filterNextDeps []string
@@ -234,14 +234,14 @@ func addRespTableDeps(iid int, database, table string, ups []string, respTableDe
 			continue
 		}
 		respTableDepMap[dep.Name()] = struct{}{}
-		dep.DownDatabaseTable = append(dep.DownDatabaseTable, fmt.Sprintf("%s.%s", database, table))
+		dep.DownDepDatabaseTable = append(dep.DownDepDatabaseTable, fmt.Sprintf("%s.%s", database, table))
 		out = append(out, view.RespTableDeps{
 			Database:   dep.Database,
 			Table:      dep.Table,
 			Engine:     dep.Engine,
 			TotalRows:  dep.Rows,
 			TotalBytes: dep.Bytes,
-			Deps:       cutDatabase(dep.DownDatabaseTable),
+			Deps:       cutDatabase(dep.DownDepDatabaseTable),
 		})
 		invoker.Logger.Debug("addRespTableDeps", elog.Any("out", out), elog.Any("dep", dep))
 	}

@@ -48,3 +48,48 @@ func Test_hashTransform(t *testing.T) {
 		})
 	}
 }
+
+func Test_adaSelectPart(t *testing.T) {
+	type args struct {
+		in string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantOut string
+	}{
+		{
+			name: "test-1",
+			args: args{
+				in: `SELECT count(1)
+from mogo_shimo_dev.shimodev_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() - 3600)) AND ("_time_second_" < toDateTime(NOW()))   
+limit 1`,
+			},
+			wantOut: `SELECT count(1)
+,count(1) FROM mogo_shimo_dev.shimodev_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() - 3600)) AND ("_time_second_" < toDateTime(NOW()))   
+limit 1`,
+		},
+		{
+			name: "test-2",
+			args: args{
+				in: `SELECT count(1),count(1)
+from mogo_shimo_dev.shimodev_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() - 3600)) AND ("_time_second_" < toDateTime(NOW()))   
+limit 1`,
+			},
+			wantOut: `SELECT count(1),count(1)
+from mogo_shimo_dev.shimodev_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() - 3600)) AND ("_time_second_" < toDateTime(NOW()))   
+limit 1`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotOut := adaSelectPart(tt.args.in); gotOut != tt.wantOut {
+				t.Errorf("adaSelectPart() = %v, want %v", gotOut, tt.wantOut)
+			}
+		})
+	}
+}

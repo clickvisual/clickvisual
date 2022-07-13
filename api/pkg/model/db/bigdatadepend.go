@@ -17,14 +17,14 @@ func (m *BigdataDepend) TableName() string {
 }
 
 type BigdataDepend struct {
-	Iid               int     `gorm:"column:iid;type:int(11);index:uix_iid_database_table,unique" json:"iid"`
-	Database          string  `gorm:"column:database;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
-	Table             string  `gorm:"column:table;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
-	Engine            string  `gorm:"column:engine;type:varchar(128);NOT NULL" json:"engine"`
-	DownDatabaseTable Strings `gorm:"column:down_dep_database_table;type:text;NOT NULL" json:"down_dep_database_table"`
-	UpDatabaseTable   Strings `gorm:"column:up_dep_database_table;type:text;NOT NULL" json:"up_dep_database_table"`
-	Rows              uint64  `gorm:"column:rows;type:bigint(20);default:0;NOT NULL" json:"rows"`
-	Bytes             uint64  `gorm:"column:bytes;type:bigint(20);default:0;NOT NULL" json:"bytes"`
+	Iid                  int     `gorm:"column:iid;type:int(11);index:uix_iid_database_table,unique" json:"iid"`
+	Database             string  `gorm:"column:database;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
+	Table                string  `gorm:"column:table;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
+	Engine               string  `gorm:"column:engine;type:varchar(128);NOT NULL" json:"engine"`
+	DownDepDatabaseTable Strings `gorm:"column:down_dep_database_table;type:text;NOT NULL" json:"down_dep_database_table"`
+	UpDepDatabaseTable   Strings `gorm:"column:up_dep_database_table;type:text;NOT NULL" json:"up_dep_database_table"`
+	Rows                 uint64  `gorm:"column:rows;type:bigint(20);default:0;NOT NULL" json:"rows"`
+	Bytes                uint64  `gorm:"column:bytes;type:bigint(20);default:0;NOT NULL" json:"bytes"`
 
 	Utime int64 `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
 }
@@ -101,8 +101,8 @@ func DependsCreateOrUpdate(db *gorm.DB, data *BigdataDepend) (err error) {
 	// update
 	cu := egorm.Conds{}
 	cu["engine"] = data.Engine
-	cu["down_database_table"] = data.DownDatabaseTable
-	cu["up_database_table"] = data.UpDatabaseTable
+	cu["down_dep_database_table"] = data.DownDepDatabaseTable
+	cu["up_dep_database_table"] = data.UpDepDatabaseTable
 	cu["rows"] = data.Rows
 	cu["bytes"] = data.Bytes
 	return DependsUpdate(db, data.Iid, data.Database, data.Table, cu)

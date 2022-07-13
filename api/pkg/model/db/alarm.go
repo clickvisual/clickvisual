@@ -15,8 +15,8 @@ import (
 
 const (
 	AlarmModeDefault int = iota
-	AlarmModeAggregation
 	AlarmModeWithInSQL
+	AlarmModeAggregation
 )
 
 const (
@@ -86,6 +86,7 @@ type (
 		When           string `gorm:"column:when;type:text" json:"when"`                             // 执行条件
 		SetOperatorTyp int    `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"`      // 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS
 		SetOperatorExp string `gorm:"column:set_operator_exp;type:varchar(255);NOT NULL" json:"exp"` // 操作
+		Mode           int    `gorm:"column:mode;type:int(11)" json:"mode"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
 	}
 
 	// AlarmCondition 告警触发条件

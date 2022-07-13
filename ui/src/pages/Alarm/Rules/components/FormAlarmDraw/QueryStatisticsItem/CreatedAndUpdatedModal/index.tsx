@@ -612,7 +612,7 @@ const CreatedAndUpdatedModal = ({
                         justifyContent: "space-around",
                       }}
                     >
-                      「聚合指标」
+                      「告警指标」
                       <Button
                         style={{
                           width: "230px",
