@@ -51,7 +51,7 @@ SELECT
   toDate(%s) as date,
   '%s' as name,
   array(%s) as tags,
-  toFloat64(count(*)) as val,
+  toFloat64(limbo.1) as val,
   %s as ts,
   toDateTime(%s) as updated
 FROM %s

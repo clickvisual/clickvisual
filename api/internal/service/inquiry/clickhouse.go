@@ -552,9 +552,11 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 		CommonFields: TagsToString(alarm, true),
 		SourceTable:  sourceTableName,
 		Where:        whereCondition}
-	if alarm.Mode == db.AlarmModeAggregation {
+	if alarm.Mode == db.AlarmModeWithInSQL || alarm.Mode == db.AlarmModeAggregation {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
-		vp.WithSQL = whereCondition
+		vp.WithSQL = adaSelectPart(whereCondition)
+		invoker.Logger.Debug("AlertViewGen", elog.String("whereCondition", whereCondition), elog.String("ada", adaSelectPart(whereCondition)))
+
 	}
 	viewSQL = c.ViewDo(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,
@@ -658,10 +660,10 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 
 	var q string
 	switch param.AlarmMode {
-	case db.AlarmModeAggregation:
-		q = alarmAggregationSQL(param)
 	case db.AlarmModeWithInSQL:
 		q = param.Query
+	case db.AlarmModeAggregation:
+		q = alarmAggregationSQL(param)
 	default:
 		q = c.logsSQL(param, tid)
 	}
@@ -1061,9 +1063,24 @@ SELECT
    limbo.1 as "metrics",
    %s as timestamp
 FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
-`, param.Query, param.TimeField, param.DatabaseTable, param.TimeField, param.TimeField)
+`, adaSelectPart(param.Query), param.TimeField, param.DatabaseTable, param.TimeField, param.TimeField)
 	invoker.Logger.Debug("alarmAggregationSQL", elog.Any("out", out), elog.Any("param", param))
 	return out
+}
+
+func adaSelectPart(in string) (out string) {
+	arr := strings.Split(strings.Replace(in, "from", "FROM", 1), "FROM ")
+	if len(arr) <= 1 {
+		return in
+	}
+	if strings.Contains(arr[0], ",") {
+		return in
+	}
+	trimSelect := strings.Replace(arr[0], "select", "", 1)
+	trimSelect = strings.Replace(trimSelect, "SELECT", "", 1)
+	trimSelect = strings.Replace(trimSelect, "\n", "", 1)
+	onlySelect := strings.TrimSpace(trimSelect)
+	return fmt.Sprintf("%s,%s FROM %s", arr[0], onlySelect, arr[1])
 }
 
 func genSelectFields(tid int) string {

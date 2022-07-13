@@ -69,6 +69,7 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alertID int, filters []view.ReqAlarmFi
 			When:           filter.When,
 			SetOperatorTyp: filter.SetOperatorTyp,
 			SetOperatorExp: filter.SetOperatorExp,
+			Mode:           filter.Mode,
 		}
 		if filterObj.When == "" {
 			filterObj.When = "1=1"
@@ -266,7 +267,10 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	}
 	// exec view sql
 	if err = op.AlertViewCreate(viewTableName, viewSQL, tableInfo.Database.Cluster); err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 07"), elog.String("err", err.Error()))
+		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 07"),
+			elog.String("viewTableName", viewTableName),
+			elog.String("viewSQL", viewSQL),
+			elog.String("err", err.Error()))
 		return
 	}
 	// rule store
