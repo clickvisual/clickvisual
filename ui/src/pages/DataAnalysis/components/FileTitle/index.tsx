@@ -7,7 +7,7 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 import { Button, Space, Spin, Tooltip } from "antd";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { NodeRunningStatusEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import { useThrottleFn } from "ahooks";
 import { THROTTLE_WAIT } from "@/config/config";
@@ -49,6 +49,7 @@ const FileTitle = ({
   onStop,
   isChange,
 }: FileTitleProps) => {
+  const i18n = useIntl();
   const { currentUser } = useModel("@@initialState").initialState || {};
   const {
     doLockNode,
@@ -70,7 +71,11 @@ const FileTitle = ({
         <div>
           <Space>
             <SVGIcon type={SVGTypeEnums.board} />
-            <span>看板</span>
+            <span>
+              {i18n.formatMessage({
+                id: "bigdata.components.RightMenu.Scheduling.secondary.board",
+              })}
+            </span>
           </Space>
         </div>
       );
@@ -94,21 +99,33 @@ const FileTitle = ({
         return (
           <Space>
             <SVGIcon type={SVGTypeEnums.realtime} />
-            <span>实时同步</span>
+            <span>
+              {i18n.formatMessage({
+                id: "bigdata.components.FileTitle.fileType.realtime",
+              })}
+            </span>
           </Space>
         );
       case TertiaryEnums.offline:
         return (
           <Space>
             <SVGIcon type={SVGTypeEnums.offline} />
-            <span>离线同步</span>
+            <span>
+              {i18n.formatMessage({
+                id: "bigdata.components.FileTitle.fileType.offline",
+              })}
+            </span>
           </Space>
         );
       default:
         return (
           <Space>
             <SVGIcon type={SVGTypeEnums.default} />
-            <span>未知文件</span>
+            <span>
+              {i18n.formatMessage({
+                id: "bigdata.components.FileTitle.fileType.default",
+              })}
+            </span>
           </Space>
         );
     }
@@ -117,15 +134,25 @@ const FileTitle = ({
   const NodeStatus = useMemo(() => {
     switch (file?.status) {
       case NodeRunningStatusEnums.pending:
-        return "等待定时任务";
+        return i18n.formatMessage({
+          id: "bigdata.components.FileTitle.NodeStatus.pending",
+        });
       case NodeRunningStatusEnums.inProgress:
-        return "执行中";
+        return i18n.formatMessage({
+          id: "bigdata.components.FileTitle.NodeStatus.inProgress",
+        });
       case NodeRunningStatusEnums.ExecutionException:
-        return "执行异常";
+        return i18n.formatMessage({
+          id: "bigdata.components.FileTitle.NodeStatus.ExecutionException",
+        });
       case NodeRunningStatusEnums.ExecuteComplete:
-        return "执行完成";
+        return i18n.formatMessage({
+          id: "bigdata.components.FileTitle.NodeStatus.ExecuteComplete",
+        });
       case NodeRunningStatusEnums.PendingRun:
-        return "待执行";
+        return i18n.formatMessage({
+          id: "bigdata.components.FileTitle.NodeStatus.PendingRun",
+        });
       default:
         return "";
     }
@@ -152,7 +179,7 @@ const FileTitle = ({
     <div className={styles.fileTitle}>
       {!!file && (
         <>
-          <div style={{ width: "200px", display: "flex" }}>
+          <div className={styles.nameBox}>
             <div
               className={classNames(styles.name, isChange && styles.nameChange)}
             >
@@ -167,8 +194,17 @@ const FileTitle = ({
           </div>
           <div className={styles.userStatus}>
             {file.lockUid && file.lockUid !== 0
-              ? `${file.username || "无效用户"} 正在编辑`
-              : "只读"}
+              ? `${
+                  file.username ||
+                  i18n.formatMessage({
+                    id: "bigdata.components.FileTitle.user.invalidUser",
+                  })
+                } ${i18n.formatMessage({
+                  id: "bigdata.components.FileTitle.user.editing",
+                })}`
+              : i18n.formatMessage({
+                  id: "bigdata.components.FileTitle.user.readOnly",
+                })}
           </div>
           <div className={styles.icons}>
             <Space>
@@ -183,7 +219,9 @@ const FileTitle = ({
                   type={"primary"}
                   onClick={() => handleLock(file)}
                 >
-                  开始编辑
+                  {i18n.formatMessage({
+                    id: "bigdata.components.FileTitle.startEditing",
+                  })}
                 </Button>
               )}
               {(file.lockUid || file.lockUid !== 0) && (
@@ -194,11 +232,13 @@ const FileTitle = ({
                       type={"primary"}
                       onClick={() => handleUnlock(file)}
                     >
-                      退出编辑
+                      {i18n.formatMessage({
+                        id: "bigdata.components.FileTitle.exitEditor",
+                      })}
                     </Button>
                   )}
                   {file?.lockUid == currentUser?.id && isChange && (
-                    <Tooltip title={"保存"}>
+                    <Tooltip title={i18n.formatMessage({ id: "button.save" })}>
                       <Button
                         type={"link"}
                         onClick={handleSave}
@@ -209,7 +249,11 @@ const FileTitle = ({
                 </>
               )}
               {type == FileTitleType.sql && file.lockUid == currentUser?.id && (
-                <Tooltip title={"格式化"}>
+                <Tooltip
+                  title={i18n.formatMessage({
+                    id: "bigdata.components.FileTitle.formatting",
+                  })}
+                >
                   <Button
                     type={"link"}
                     onClick={() => handleFormat()}
@@ -218,7 +262,11 @@ const FileTitle = ({
                 </Tooltip>
               )}
               {!isChange && file.status !== NodeRunningStatusEnums.inProgress && (
-                <Tooltip title={"运行"}>
+                <Tooltip
+                  title={i18n.formatMessage({
+                    id: "bigdata.components.FileTitle.run",
+                  })}
+                >
                   <Button
                     type={"link"}
                     disabled={
@@ -233,7 +281,11 @@ const FileTitle = ({
               )}
               {type === FileTitleType.node &&
                 file.status === NodeRunningStatusEnums.inProgress && (
-                  <Tooltip title={"暂停"}>
+                  <Tooltip
+                    title={i18n.formatMessage({
+                      id: "alarm.rules.switch.close",
+                    })}
+                  >
                     <Button
                       type={"link"}
                       disabled={

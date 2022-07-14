@@ -24,7 +24,9 @@ const DataTable = () => {
   const deleteDataSource = (id: number) => {
     doDeleteSource.run(id).then((res: any) => {
       if (res.code == 0) {
-        message.success("删除成功");
+        message.success(
+          i18n.formatMessage({ id: "systemSetting.role.delete.success" })
+        );
         onSearch(currentInstances as number, { typ: currentTyp as number });
       }
     });
@@ -32,7 +34,9 @@ const DataTable = () => {
 
   const column: ColumnsType<any> = [
     {
-      title: `数据源名称`,
+      title: i18n.formatMessage({
+        id: "bigdata.dataSourceManage.dataTable.dataSourceName",
+      }),
       align: "center",
       dataIndex: "name",
       ellipsis: { showTitle: false },
@@ -41,7 +45,9 @@ const DataTable = () => {
       },
     },
     {
-      title: `数据源类型`,
+      title: i18n.formatMessage({
+        id: "log.editDatabaseModel.label.datasourceType",
+      }),
       align: "center",
       dataIndex: "typ",
       ellipsis: { showTitle: false },
@@ -54,7 +60,9 @@ const DataTable = () => {
       },
     },
     {
-      title: `连接信息`,
+      title: i18n.formatMessage({
+        id: "bigdata.dataSourceManage.dataTable.linkInformation",
+      }),
       align: "center",
       dataIndex: "url",
       ellipsis: { showTitle: false },
@@ -63,7 +71,9 @@ const DataTable = () => {
       },
     },
     {
-      title: `数据源描述`,
+      title: i18n.formatMessage({
+        id: "bigdata.dataSourceManage.dataTable.dataSourceDesc",
+      }),
       align: "center",
       dataIndex: "desc",
       ellipsis: { showTitle: false },
@@ -72,7 +82,7 @@ const DataTable = () => {
       },
     },
     {
-      title: `创建时间`,
+      title: i18n.formatMessage({ id: "alarm.rules.historyBorad.ctime" }),
       align: "center",
       dataIndex: "ctime",
       ellipsis: { showTitle: false },
@@ -114,9 +124,18 @@ const DataTable = () => {
               })}
             >
               <Popconfirm
-                title={`确认删除数据源「${record.name}」吗？`}
-                okText="是"
-                cancelText="否"
+                title={i18n.formatMessage(
+                  {
+                    id: "bigdata.dataSourceManage.dataTable.deleteDataSourceTips",
+                  },
+                  { dataSource: record.name }
+                )}
+                okText={i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.true",
+                })}
+                cancelText={i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.false",
+                })}
                 placement="left"
                 onConfirm={() => deleteDataSource(record.id)}
               >

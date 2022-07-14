@@ -29,7 +29,11 @@ const WorkflowTree = () => {
 
   return (
     <div className={offlineStyles.workflowMain}>
-      <div className={offlineStyles.navTitle}>数据开发</div>
+      <div className={offlineStyles.navTitle}>
+        {i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.secondary.dataMining",
+        })}
+      </div>
       <div className={offlineStyles.header}>
         <div className={offlineStyles.title} ref={titleParentRef}>
           <Dropdown

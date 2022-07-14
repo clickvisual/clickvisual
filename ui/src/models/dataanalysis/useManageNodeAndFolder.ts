@@ -7,6 +7,7 @@ import {
 import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
 import { parseJsonObject } from "@/utils/string";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 import lodash from "lodash";
 import { message } from "antd";
 
@@ -130,6 +131,9 @@ const useManageNodeAndFolder = () => {
   const [boardEdges, setBoardEdges] = useState<any[]>([]);
   const [boardRef, setBoardRef] = useState<any>({ nodeList: [], edgeList: [] });
 
+  // 侧边栏results参数
+  const [results, setResults] = useState<string>("");
+
   // Folder
   const getFolders = useRequest(dataAnalysisApi.getFolderList, {
     loadingText: false,
@@ -173,15 +177,23 @@ const useManageNodeAndFolder = () => {
 
   const doRunCodeNode = useRequest(dataAnalysisApi.runCodeNode, {
     loadingText: {
-      loading: "运行中",
-      done: "运行成功",
+      loading: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingText",
+      }),
+      done: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingDoneText",
+      }),
     },
   });
 
   const doStopCodeNode = useRequest(dataAnalysisApi.stopCodeNode, {
     loadingText: {
-      loading: "停止中",
-      done: "停止成功",
+      loading: formatMessage({
+        id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopping",
+      }),
+      done: formatMessage({
+        id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess",
+      }),
     },
   });
 
@@ -385,7 +397,11 @@ const useManageNodeAndFolder = () => {
         boardNodeList.filter((item) => item.tertiary === TertiaryEnums.start)
           .length !== 1
       ) {
-        message.warning("必须存在且仅存在一组开始和结束节点");
+        message.warning(
+          formatMessage({
+            id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips",
+          })
+        );
         return;
       }
       setBoardRef({ nodeList: boardNodeList, edgeList: boardEdges });
@@ -408,6 +424,7 @@ const useManageNodeAndFolder = () => {
     extra,
     nodes,
     folders,
+    results,
 
     showNodeModal,
     hideNodeModal,
@@ -419,6 +436,7 @@ const useManageNodeAndFolder = () => {
     setCurrentNode,
     setSelectNode,
     setExtra,
+    setResults,
 
     doLockNode,
     doUnLockNode,

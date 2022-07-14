@@ -473,8 +473,12 @@ export default {
   "alarm.rules.form.triggerCondition.error": "最少需要添加一条触发条件",
   "alarm.rules.form.noDataOp": "空数据处理策略",
   "alarm.rules.form.preview": "预览",
+  "alarm.rules.form.aggregatedData": "聚合数据",
+  "alarm.rules.form.aggregatedIndicators": "聚合指标",
   "alarm.rules.form.preview.aggregatedData": "预览聚合数据",
-  "alarm.rules.form.preview.aggregatedIndicators": "预览告警指标",
+  "alarm.rules.form.preview.aggregatedIndicators": "预览聚合指标",
+  "alarm.rules.form.preview.unknownState": "未知状态",
+  "alarm.rules.form.preview.canConfirm": "可确认",
   "alarm.rules.form.notPreview.content": "请先完成所有预览",
   "alarm.rules.form.mode": "告警模式",
   "alarm.rules.form.level.instructions": "告警聚合模式使用说明",
@@ -612,6 +616,11 @@ export default {
   // sys -> instance -> roleAssign -> RolesList -> CollapseItem -> CollapseTitle
   "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle":
     "角色权限 ( [子资源]: [准许操作] )",
+
+  "systemSetting.instancePanel.roleAssign.editModel.title": "更新操作",
+  "systemSetting.instancePanel.roleAssign.editModel.content":
+    "您确定要更新角色内容吗？",
+
   // sys -> role
   "systemSetting.role.delete.success": "删除成功",
   "systemSetting.role.delete.title": "删除操作",
@@ -691,4 +700,108 @@ export default {
 
   "bigdata.workflow.dataIntegration": "数据集成",
   "bigdata.workflow.dataDevelopment": "数据开发",
+
+  // bigdata DataSourceManage
+  "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
+    "请选择数据源类型",
+  "bigdata.dataSourceManage.searchBar.dataSourceType.create": "新增数据源",
+
+  "bigdata.dataSourceManage.dataTable.dataSourceName": "数据源名称",
+  "bigdata.dataSourceManage.dataTable.linkInformation": "连接信息",
+  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "数据源描述",
+  "bigdata.dataSourceManage.dataTable.deleteDataSourceTips":
+    "确认删除数据源「{dataSource}」吗",
+
+  "bigdata.dataSourceManage.create.typ": "种类",
+  "bigdata.dataSourceManage.create.userName": "用户名",
+
+  // bigdata components
+  "bigdata.components.SQLEditor.selectFile": "请选择文件",
+  "bigdata.components.SQLEditor.results": "运行结果",
+
+  "bigdata.components.RightMenu.properties": "调度配置",
+  "bigdata.components.RightMenu.versions": "版本",
+  "bigdata.components.RightMenu.Versions.tips": "历史版本",
+  "bigdata.components.RightMenu.results": "结果",
+  "bigdata.components.RightMenu.results.tips": "运行结果",
+
+  "bigdata.components.RightMenu.VersionHistory.submitter": "提交人",
+  "bigdata.components.RightMenu.VersionHistory.SubmitTime": "提交时间",
+  "bigdata.components.RightMenu.VersionHistory.details": "详情",
+  "bigdata.components.RightMenu.VersionHistory.drawer.title": "版本历史",
+  "bigdata.components.RightMenu.VersionHistory.childDrawer.title": "查询语句",
+
+  "bigdata.components.RightMenu.Scheduling.Modify": "修改",
+  "bigdata.components.RightMenu.Scheduling.secondary.all": "任意",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration":
+    "数据集成",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataMining": "数据开发",
+  "bigdata.components.RightMenu.Scheduling.secondary.board": "看板",
+  "bigdata.components.RightMenu.Scheduling.secondary.universal": "通用节点",
+  "bigdata.components.RightMenu.Scheduling.name": "名称",
+  "bigdata.components.RightMenu.Scheduling.nodeType": "节点类型",
+  "bigdata.components.RightMenu.Scheduling.basicConfig": "基础配置",
+  "bigdata.components.RightMenu.Scheduling.isPerform": "是否执行",
+  "bigdata.components.RightMenu.Scheduling.thoseResponsible": "责任人",
+  "bigdata.components.RightMenu.Scheduling.cronTips":
+    "调度规则 cron 字段填写 帮助文档",
+
+  "bigdata.components.Results.involvedSQLs.key.placeholder": "请选择查看",
+  "bigdata.components.Results.involvedSQLs.drawer.title": "运行结果",
+
+  "bigdata.components.Nav.navList.dataSourceManage": "数据源管理",
+
+  "bigdata.components.FolderTree.createFolderPrompt":
+    "暂时只支持新建2级文件夹~",
+  "bigdata.components.FolderTree.iconList.createNode": "新建节点",
+  "bigdata.components.FolderTree.iconList.createFolder": "新建文件夹",
+  "bigdata.components.FolderTree.folderName": "文件名称",
+
+  "bigdata.components.FolderTree.FolderTitle.node": "节点",
+  "bigdata.components.FolderTree.FolderTitle.folder": "文件夹",
+  "bigdata.components.FolderTree.FolderTitle.deleteTips": "确认删除吗?类型：",
+
+  "bigdata.components.FolderTree.crateNode.createTitle": "新建节点",
+  "bigdata.components.FolderTree.crateNode.updateTitle": "修改节点",
+  "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder":
+    "请选择tertiary",
+  "bigdata.components.FolderTree.crateNode.sourceSelect.placeholder":
+    "请选择source",
+  "bigdata.components.FolderTree.crateNode.nodeName.placeholder":
+    "请输入节点名称",
+  "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder":
+    "请输入节点描述",
+
+  "bigdata.components.FolderTree.crateFolder.createTitle": "新建文件夹",
+  "bigdata.components.FolderTree.crateFolder.updateTitle": "修改文件夹",
+  "bigdata.components.FolderTree.crateFolder.secondary.placeholder":
+    "请选择secondary",
+
+  "bigdata.components.FileTitle.fileType.realtime": "实时同步",
+  "bigdata.components.FileTitle.fileType.offline": "离线同步",
+  "bigdata.components.FileTitle.fileType.default": "未知文件",
+  "bigdata.components.FileTitle.NodeStatus.pending": "等待定时任务",
+  "bigdata.components.FileTitle.NodeStatus.inProgress": "执行中",
+  "bigdata.components.FileTitle.NodeStatus.ExecutionException": "执行异常",
+  "bigdata.components.FileTitle.NodeStatus.ExecuteComplete": "执行完成",
+  "bigdata.components.FileTitle.NodeStatus.PendingRun": "待执行",
+  "bigdata.components.FileTitle.user.invalidUser": "无效用户",
+  "bigdata.components.FileTitle.user.editing": "正在编辑",
+  "bigdata.components.FileTitle.user.readOnly": "只读",
+  "bigdata.components.FileTitle.startEditing": "开始编辑",
+  "bigdata.components.FileTitle.exitEditor": "退出编辑",
+  "bigdata.components.FileTitle.formatting": "格式化",
+  "bigdata.components.FileTitle.run": "运行",
+
+  "bigdata.models.dataAnalysis.runLoadingText": "运行中",
+  "bigdata.models.dataAnalysis.runLoadingDoneText": "运行成功",
+  "bigdata.models.dataAnalysis.unlockTips": "当前修改暂未保存，确定要解锁吗",
+
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopping": "停止中",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess": "停止成功",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips":
+    "必须存在且仅存在一组开始和结束节点",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "全部",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "输入节点",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "输出节点",
 };

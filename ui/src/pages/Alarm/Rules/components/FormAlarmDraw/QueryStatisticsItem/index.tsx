@@ -6,6 +6,8 @@ import { FormListOperation } from "antd/es/form/FormList";
 import { useIntl } from "umi";
 import { PlusOutlined } from "@ant-design/icons";
 
+const { TextArea } = Input;
+
 const QueryStatisticsItem = (props: { formRef: any }) => {
   const i18n = useIntl();
   const statisticOptionRef = useRef<FormListOperation>();
@@ -55,9 +57,11 @@ const QueryStatisticsItem = (props: { formRef: any }) => {
                   <div
                     key={field.key}
                     className={queryStatisticsStyles.formLine}
+                    style={{ height: "auto" }}
                   >
                     <Form.Item noStyle name={[field.name, "when"]}>
-                      <Input
+                      <TextArea
+                        autoSize={{ minRows: 1, maxRows: 15 }}
                         className={queryStatisticsStyles.whenItem}
                         disabled
                       />

@@ -1,7 +1,7 @@
 import { Drawer, Table, Tooltip } from "antd";
 import moment from "moment";
-import { useEffect, useRef, useState } from "react";
-import { useModel } from "umi";
+import { useEffect, useState } from "react";
+import { useModel, useIntl } from "umi";
 import MonacoEditor from "react-monaco-editor";
 import { format } from "sql-formatter";
 
@@ -10,6 +10,7 @@ const VersionHistory = (props: {
   setVisible: (flag: boolean) => void;
 }) => {
   const { visible, setVisible } = props;
+  const i18n = useIntl();
 
   const [visibleQuery, setVisibleQuery] = useState<boolean>(false);
   const [content, setContent] = useState<string>("");
@@ -65,7 +66,9 @@ const VersionHistory = (props: {
 
   const columns: any = [
     {
-      title: "版本",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.versions",
+      }),
       dataIndex: "uuid",
       key: "uuid",
       ellipsis: { showTitle: true },
@@ -74,7 +77,9 @@ const VersionHistory = (props: {
       ),
     },
     {
-      title: "提交人",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.VersionHistory.submitter",
+      }),
       dataIndex: "userName",
       key: "userName",
       render: (_: any, record: any) => (
@@ -82,7 +87,9 @@ const VersionHistory = (props: {
       ),
     },
     {
-      title: "提交时间",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.VersionHistory.SubmitTime",
+      }),
       dataIndex: "utime",
       key: "utime",
       ellipsis: { showTitle: true },
@@ -95,7 +102,7 @@ const VersionHistory = (props: {
       ),
     },
     {
-      title: "操作",
+      title: i18n.formatMessage({ id: "operation" }),
       dataIndex: "operation",
       key: "operation",
       width: 100,
@@ -112,7 +119,9 @@ const VersionHistory = (props: {
               });
           }}
         >
-          详情
+          {i18n.formatMessage({
+            id: "bigdata.components.RightMenu.VersionHistory.details",
+          })}
         </a>
       ),
       fixed: "right",
@@ -137,7 +146,9 @@ const VersionHistory = (props: {
 
   return (
     <Drawer
-      title="版本历史"
+      title={i18n.formatMessage({
+        id: "bigdata.components.RightMenu.VersionHistory.drawer.title",
+      })}
       placement="right"
       onClose={onClose}
       visible={visible}
@@ -166,9 +177,10 @@ const VersionHistory = (props: {
         rowKey={(item: any) => item.uuid}
       />
       <Drawer
-        title="查询语句"
+        title={i18n.formatMessage({
+          id: "bigdata.components.RightMenu.VersionHistory.childDrawer.title",
+        })}
         width={"50vw"}
-        // closable={false}
         onClose={() => setVisibleQuery(false)}
         visible={visibleQuery}
       >

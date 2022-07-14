@@ -505,9 +505,13 @@ export default {
     "At least you need to add a trigger condition",
   "alarm.rules.form.noDataOp": "Alert state if no data or all values are null",
   "alarm.rules.form.preview": "Preview",
+  "alarm.rules.form.aggregatedData": "Aggregate data",
+  "alarm.rules.form.aggregatedIndicators": "Aggregation index",
   "alarm.rules.form.preview.aggregatedData": "Preview aggregated Data",
   "alarm.rules.form.preview.aggregatedIndicators":
     "Preview aggregation indicators",
+  "alarm.rules.form.preview.unknownState": "An unknown state",
+  "alarm.rules.form.preview.canConfirm": "Can be confirmed",
   "alarm.rules.form.notPreview.content": "Please click preview first",
   "alarm.rules.form.mode": "Alarm mode",
   "alarm.rules.form.level.instructions":
@@ -654,6 +658,11 @@ export default {
   "systemSetting.instancePanel.roleAssign.rolesList.CollapseTitle":
     "Role authorization ( [subresource]: [To allow operation] )",
 
+  "systemSetting.instancePanel.roleAssign.editModel.title":
+    "The update operation",
+  "systemSetting.instancePanel.roleAssign.editModel.content":
+    "Are you sure you want to update the character content?",
+
   // sys -> role
   "systemSetting.role.delete.success": "Delete the success",
   "systemSetting.role.delete.title": "Delete operation",
@@ -740,4 +749,119 @@ export default {
   "bigdata.workflow.delete.content": "Confirm Business Process: {workflow}?",
   "bigdata.workflow.delete.loading": "Delete business process...",
   "bigdata.workflow.delete.success": "Delete business process successfully",
+
+  "bigdata.workflow.dataIntegration": "Data integration",
+  "bigdata.workflow.dataDevelopment": "Data Analytics",
+
+  // bigdata DataSourceManage
+  "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
+    "Select a data source type",
+  "bigdata.dataSourceManage.searchBar.dataSourceType.create":
+    "Create data source",
+
+  "bigdata.dataSourceManage.dataTable.dataSourceName": "Name",
+  "bigdata.dataSourceManage.dataTable.linkInformation":
+    "The connection information",
+  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "Description",
+  "bigdata.dataSourceManage.dataTable.deleteDataSourceTips":
+    "Are you sure to delete dataSource 『{dataSource}』",
+
+  "bigdata.dataSourceManage.create.typ": "Type",
+  "bigdata.dataSourceManage.create.userName": "The user name",
+
+  // bigdata components
+  "bigdata.components.SQLEditor.selectFile": "Please select file",
+  "bigdata.components.SQLEditor.results": "The results",
+
+  "bigdata.components.RightMenu.properties": "Properties",
+  "bigdata.components.RightMenu.versions": "Versions",
+  "bigdata.components.RightMenu.Versions.tips": "Version history",
+  "bigdata.components.RightMenu.results": "Results",
+  "bigdata.components.RightMenu.results.tips": "The results",
+
+  "bigdata.components.RightMenu.VersionHistory.submitter": "Submit one",
+  "bigdata.components.RightMenu.VersionHistory.SubmitTime": "Submit time",
+  "bigdata.components.RightMenu.VersionHistory.details": "Details",
+  "bigdata.components.RightMenu.VersionHistory.drawer.title": "Version history",
+  "bigdata.components.RightMenu.VersionHistory.childDrawer.title": "The query",
+
+  "bigdata.components.RightMenu.Scheduling.Modify": "Modify the",
+  "bigdata.components.RightMenu.Scheduling.secondary.all": "Any",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataIntegration":
+    "Data integration",
+  "bigdata.components.RightMenu.Scheduling.secondary.dataMining":
+    "Data Analytics",
+  "bigdata.components.RightMenu.Scheduling.secondary.board": "Board",
+  "bigdata.components.RightMenu.Scheduling.secondary.universal": "General node",
+  "bigdata.components.RightMenu.Scheduling.name": "Name",
+  "bigdata.components.RightMenu.Scheduling.nodeType": "Type",
+  "bigdata.components.RightMenu.Scheduling.basicConfig": "General",
+  "bigdata.components.RightMenu.Scheduling.isPerform": "Perform",
+  "bigdata.components.RightMenu.Scheduling.thoseResponsible": "Owner",
+  "bigdata.components.RightMenu.Scheduling.cronTips":
+    "Scheduling rule cron field fill in the help document",
+
+  "bigdata.components.Results.involvedSQLs.key.placeholder":
+    "Please select view",
+  "bigdata.components.Results.involvedSQLs.drawer.title": "The results",
+
+  "bigdata.components.Nav.navList.dataSourceManage": "Data Source",
+
+  "bigdata.components.FolderTree.createFolderPrompt":
+    "Currently, only level 2 folders are supported~",
+  "bigdata.components.FolderTree.iconList.createNode": "Create a node",
+  "bigdata.components.FolderTree.iconList.createFolder": "Creating a folder",
+  "bigdata.components.FolderTree.folderName": "The file name",
+
+  "bigdata.components.FolderTree.FolderTitle.node": "Node",
+  "bigdata.components.FolderTree.FolderTitle.folder": "Folder",
+  "bigdata.components.FolderTree.FolderTitle.deleteTips":
+    "Are you sure to delete? type: ",
+
+  "bigdata.components.FolderTree.crateNode.createTitle": "Create a node",
+  "bigdata.components.FolderTree.crateNode.updateTitle": "Modify the node",
+  "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder":
+    "Please select a tertiary",
+  "bigdata.components.FolderTree.crateNode.sourceSelect.placeholder":
+    "Please select a source",
+  "bigdata.components.FolderTree.crateNode.nodeName.placeholder":
+    "Please enter a node name",
+  "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder":
+    "Please enter a node description",
+
+  "bigdata.components.FolderTree.crateFolder.createTitle": "Create Folder",
+  "bigdata.components.FolderTree.crateFolder.updateTitle": "Modifying folders",
+  "bigdata.components.FolderTree.crateFolder.secondary.placeholder":
+    "Please select a secondary",
+
+  "bigdata.components.FileTitle.fileType.realtime": "Realtime",
+  "bigdata.components.FileTitle.fileType.offline": "Offline",
+  "bigdata.components.FileTitle.fileType.default": "Unknown file",
+  "bigdata.components.FileTitle.NodeStatus.pending": "pending",
+  "bigdata.components.FileTitle.NodeStatus.inProgress": "The execution of",
+  "bigdata.components.FileTitle.NodeStatus.ExecutionException":
+    "Perform abnormal",
+  "bigdata.components.FileTitle.NodeStatus.ExecuteComplete": "completes",
+  "bigdata.components.FileTitle.NodeStatus.PendingRun": "Waiting for run",
+  "bigdata.components.FileTitle.user.invalidUser": "Invalid user",
+  "bigdata.components.FileTitle.user.editing": "Editing",
+  "bigdata.components.FileTitle.user.readOnly": "Read-only",
+  "bigdata.components.FileTitle.startEditing": "Start editing",
+  "bigdata.components.FileTitle.exitEditor": "Exit the editor",
+  "bigdata.components.FileTitle.formatting": "Formatting",
+  "bigdata.components.FileTitle.run": "run",
+
+  "bigdata.models.dataAnalysis.runLoadingText": "The running",
+  "bigdata.models.dataAnalysis.runLoadingDoneText": "The successful running",
+  "bigdata.models.dataAnalysis.unlockTips":
+    "The current changes are not saved. Are you sure you want to unlock them",
+
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopping": "Stopping",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.stopSuccess":
+    "Stop success",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips":
+    "There must be and only one set of start and end nodes",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "All",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "Start node",
+  "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "End node",
 };

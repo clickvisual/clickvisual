@@ -13,6 +13,7 @@ import dataAnalysisApi from "@/services/dataAnalysis";
 import realtimeApi from "@/services/realTimeTrafficFlow";
 import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
 import dataSourceManageApi from "@/services/dataSourceManage";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 import useWorkflowBoard from "@/models/dataanalysis/useWorkflowBoard";
 import { FIRST_PAGE } from "@/config/config";
@@ -47,6 +48,7 @@ const DataAnalysis = () => {
 
   // 右侧边栏运行结果弹窗
   const [visibleResults, setVisibleResults] = useState<boolean>(false);
+  const [userList, setUserList] = useState<any[]>([]);
 
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
@@ -135,8 +137,12 @@ const DataAnalysis = () => {
 
   const doRunCodeNode = useRequest(temporaryQueryApi.runCodekNode, {
     loadingText: {
-      loading: "运行中",
-      done: "运行成功",
+      loading: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingText",
+      }),
+      done: formatMessage({
+        id: "bigdata.models.dataAnalysis.runLoadingDoneText",
+      }),
     },
   });
 
@@ -152,6 +158,27 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
+  // 调度配置
+  const doCreatCrontab = useRequest(dataAnalysisApi.creatCrontab, {
+    loadingText: false,
+  });
+
+  const doGetCrontabInfo = useRequest(dataAnalysisApi.getCrontabInfo, {
+    loadingText: false,
+  });
+
+  const doUpdateCrontab = useRequest(dataAnalysisApi.updateCrontab, {
+    loadingText: false,
+  });
+
+  const doDeleteCrontab = useRequest(dataAnalysisApi.deleteCrontab, {
+    loadingText: false,
+  });
+
+  const doGetUsers = useRequest(dataAnalysisApi.getUsers, {
+    loadingText: false,
+  });
+
   // 获取文件信息
   const onGetFolderList = (id: number) => {
     id &&
@@ -159,10 +186,11 @@ const DataAnalysis = () => {
         if (res?.code === 0) {
           setOpenNodeData(res.data);
           changeFolderContent(res.data.content);
-          // todo: 此处不一定有 result 参数
           if (res.data?.result?.length > 0) {
             changeSqlQueryResults(JSON.parse(res.data.result));
+            return;
           }
+          changeSqlQueryResults("");
         }
       });
   };
@@ -188,7 +216,9 @@ const DataAnalysis = () => {
   // 解锁节点
   const handleUnLockFile = (nodeId: number) => {
     if (isUpdateStateFun()) {
-      message.warning("当前修改暂未保存，确定要解锁吗");
+      message.warning(
+        formatMessage({ id: "bigdata.models.dataAnalysis.unlockTips" })
+      );
       return;
     }
     nodeId &&
@@ -210,7 +240,9 @@ const DataAnalysis = () => {
     openNodeId &&
       doUpdateNode.run(openNodeId, data).then((res: any) => {
         if (res.code == 0) {
-          message.success("保存成功");
+          message.success(
+            formatMessage({ id: "log.index.manage.message.save.success" })
+          );
           onGetFolderList(openNodeId);
         }
       });
@@ -226,6 +258,15 @@ const DataAnalysis = () => {
           // changeVisibleSqlQuery(true);
         }
       });
+  };
+
+  // 获取用户责任人list
+  const getUserList = () => {
+    doGetUsers.run().then((res: any) => {
+      if (res.code == 0) {
+        setUserList(res.data);
+      }
+    });
   };
 
   return {
@@ -288,6 +329,14 @@ const DataAnalysis = () => {
     // histories
     doNodeHistories,
     doNodeHistoriesInfo,
+
+    // crontab
+    doCreatCrontab,
+    doGetCrontabInfo,
+    doUpdateCrontab,
+    doDeleteCrontab,
+    userList,
+    getUserList,
 
     manageNode,
     integratedConfigs,

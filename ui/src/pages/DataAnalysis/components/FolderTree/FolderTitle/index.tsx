@@ -1,9 +1,10 @@
 import { Dropdown, Menu, message, Popconfirm } from "antd";
 import { useState } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import { FolderEnums } from "@/pages/DataAnalysis/service/enums";
 
 const FolderTitle = (props: { id: number; title: any }) => {
+  const i18n = useIntl();
   const { id, title } = props;
   const [visibleDropdown, setVisibleDropdown] = useState<boolean>(false);
   const { currentInstances, temporaryQuery, doDeleteNode } =
@@ -23,7 +24,9 @@ const FolderTitle = (props: { id: number; title: any }) => {
   const rightClickMenuItem = [
     {
       key: "rename",
-      label: "修改",
+      label: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.Scheduling.Modify",
+      }),
     },
     // {
     //   key: "move",
@@ -33,14 +36,28 @@ const FolderTitle = (props: { id: number; title: any }) => {
       key: "delete",
       label: (
         <Popconfirm
-          title={`确认删除吗?类型：${
-            currentFolder.nodeType == FolderEnums.node ? "节点" : "文件夹"
+          title={`${i18n.formatMessage({
+            id: "bigdata.components.FolderTree.FolderTitle.deleteTips",
+          })}${
+            currentFolder.nodeType == FolderEnums.node
+              ? i18n.formatMessage({
+                  id: "bigdata.components.FolderTree.FolderTitle.node",
+                })
+              : i18n.formatMessage({
+                  id: "bigdata.components.FolderTree.FolderTitle.folder",
+                })
           }`}
-          okText="是"
-          cancelText="否"
+          okText={i18n.formatMessage({
+            id: "alarm.rules.history.isPushed.true",
+          })}
+          cancelText={i18n.formatMessage({
+            id: "alarm.rules.history.isPushed.false",
+          })}
           onConfirm={() => handleDeleteFolder()}
         >
-          <div style={{ width: "100%" }}>删除</div>
+          <div style={{ width: "100%" }}>
+            {i18n.formatMessage({ id: "delete" })}
+          </div>
         </Popconfirm>
       ),
     },
@@ -75,7 +92,9 @@ const FolderTitle = (props: { id: number; title: any }) => {
     if (currentFolder.nodeType == FolderEnums.node) {
       doDeleteNode.run(id).then((res: any) => {
         if (res.code == 0) {
-          message.success("删除成功");
+          message.success(
+            i18n.formatMessage({ id: "systemSetting.role.delete.success" })
+          );
           getDataList(currentInstances as number);
           setVisibleDropdown(false);
         }
@@ -84,7 +103,9 @@ const FolderTitle = (props: { id: number; title: any }) => {
     }
     doDeleteFolder.run(id).then((res: any) => {
       if (res.code == 0) {
-        message.success("删除成功");
+        message.success(
+          i18n.formatMessage({ id: "systemSetting.role.delete.success" })
+        );
         getDataList(currentInstances as number);
         setVisibleDropdown(false);
       }

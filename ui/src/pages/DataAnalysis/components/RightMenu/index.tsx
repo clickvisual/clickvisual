@@ -1,24 +1,31 @@
 import { Tooltip } from "antd";
 import { useState } from "react";
-import { useModel } from "umi";
+import { useModel, useIntl } from "umi";
 import style from "./index.less";
 import Results from "./Results";
+import Scheduling from "./Scheduling";
 import VersionHistory from "./VersionHistory";
 
 export enum RightMenuType {
   /**
+   * 调度配置
+   */
+  Scheduling = 101,
+  /**
    * 历史版本
    */
-  VersionHistory = 101,
+  VersionHistory = 102,
   /**
    * 运行结果
    */
-  Results = 102,
+  Results = 103,
 }
 
 const RightMenu = () => {
+  const i18n = useIntl();
   const [visibleVersionHistory, setVisibleVersionHistory] =
     useState<boolean>(false);
+  const [visibleScheduling, setVisibleScheduling] = useState<boolean>(false);
   const {
     openNodeId,
     doNodeHistories,
@@ -30,9 +37,25 @@ const RightMenu = () => {
 
   const rightMenu = [
     {
+      id: RightMenuType.Scheduling,
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.properties",
+      }),
+      Tooltip: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.properties",
+      }),
+      onClick: () => {
+        setVisibleScheduling(true);
+      },
+    },
+    {
       id: RightMenuType.VersionHistory,
-      title: "版本",
-      Tooltip: "历史版本",
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.versions",
+      }),
+      Tooltip: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.Versions.tips",
+      }),
       onClick: () => {
         setVisibleVersionHistory(true);
         openNodeId &&
@@ -56,8 +79,10 @@ const RightMenu = () => {
     },
     {
       id: RightMenuType.Results,
-      title: "结果",
-      Tooltip: "运行结果",
+      title: i18n.formatMessage({ id: "bigdata.components.RightMenu.results" }),
+      Tooltip: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.results.tips",
+      }),
       onClick: () => {
         setVisibleResults(true);
       },
@@ -75,6 +100,10 @@ const RightMenu = () => {
           </div>
         );
       })}
+      <Scheduling
+        visible={visibleScheduling}
+        setVisible={setVisibleScheduling}
+      />
       <Results visible={visibleResults} setVisible={setVisibleResults} />
       <VersionHistory
         visible={visibleVersionHistory}
