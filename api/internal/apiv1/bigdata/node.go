@@ -13,6 +13,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/node"
+	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -69,6 +70,7 @@ func NodeCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK(obj)
 }
 
@@ -146,6 +148,7 @@ func NodeUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -195,6 +198,7 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeDelete, map[string]interface{}{"obj": n})
 
 	c.JSONOK()
 }
@@ -271,6 +275,8 @@ func NodeLock(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
+
 	c.JSONOK()
 	return
 }
@@ -302,6 +308,8 @@ func NodeUnlock(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeUnlock, map[string]interface{}{"obj": n})
+
 	c.JSONOK()
 	return
 }
@@ -402,6 +410,8 @@ func NodeRunOpenAPI(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": req})
+
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -432,6 +442,7 @@ func NodeRun(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -477,6 +488,7 @@ func NodeStop(c *core.Context) {
 		return
 	}
 	res.Status = afterNodeInfo.Status
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeStop, map[string]interface{}{"obj": n})
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -577,10 +589,11 @@ func NodeResultInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	nodeInfo, _ := db.NodeInfo(invoker.Db, nr.NodeId)
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(nr.NodeId),
+		ObjectIdx:   strconv.Itoa(nodeInfo.Iid),
 		SubResource: pmsplugin.BigData,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
@@ -597,10 +610,11 @@ func NodeResultListPage(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	nodeInfo, _ := db.NodeInfo(invoker.Db, id)
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(id),
+		ObjectIdx:   strconv.Itoa(nodeInfo.Iid),
 		SubResource: pmsplugin.BigData,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {

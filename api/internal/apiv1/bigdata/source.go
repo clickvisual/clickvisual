@@ -8,6 +8,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/source"
+	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -46,7 +47,9 @@ func SourceCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataSourceCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
+	return
 }
 
 func SourceUpdate(c *core.Context) {
@@ -88,6 +91,7 @@ func SourceUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataSourceUpdate, map[string]interface{}{"ups": ups})
 	c.JSONOK()
 }
 
@@ -152,7 +156,9 @@ func SourceDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataSourceDelete, map[string]interface{}{"obj": sourceInfo})
 	c.JSONOK()
+	return
 }
 
 func SourceInfo(c *core.Context) {

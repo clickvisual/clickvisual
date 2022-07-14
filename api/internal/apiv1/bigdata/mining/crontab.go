@@ -7,6 +7,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/worker"
+	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -48,6 +49,7 @@ func CrontabCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCrontabCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -94,6 +96,7 @@ func CrontabUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCrontabUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -118,10 +121,11 @@ func CrontabDelete(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err := db.CrontabDelete(invoker.Db, id); err != nil {
+	if err = db.CrontabDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCrontabDelete, map[string]interface{}{"nodeId": id})
 	c.JSONOK()
 }
 

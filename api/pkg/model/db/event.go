@@ -7,9 +7,9 @@ type Event struct {
 	UID           int64  `gorm:"not null;default:0;comment:操作用户的uid" json:"uid"`
 	Operation     string `gorm:"not null;default:'';size:64;index:idx_operation;comment:操作名" json:"operation"`
 	ObjectType    string `gorm:"not null;default:'';size:64;comment:被操作对象的类型(一般为db.Table名)" json:"objectType"`
-	ObjectId      int    `gorm:"not null;default:0;comment:被操作对象类型(db.BaseTable)下的具体对象的主键(id)" json:"ObjectId"`
+	ObjectId      int    `gorm:"not null;default:0;comment:被操作对象类型(db.BaseTable)下的具体对象的主键(id)" json:"objectId"`
 	Metadata      string `gorm:"not null;type:text;comment:事件内容" json:"metadata"`
-	Ctime         int64  `gorm:"not null;default:0;type:bigint;autoCreateTime;comment:事件发生时间" json:"ctime"`
+	Ctime         int64  `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
 	OperationName string `gorm:"-" json:"operationName"`
 	SourceName    string `gorm:"-" json:"sourceName"`
 }
@@ -69,67 +69,111 @@ const (
 	OpnAlarmsChannelsDelete = "opn_alarms_channels_delete"
 	OpnAlarmsChannelsCreate = "opn_alarms_channels_create"
 	OpnAlarmsChannelsUpdate = "opn_alarms_channels_update"
+
+	OpnBigDataNodeCreate        = "opn_big_data_node_create"
+	OpnBigDataNodeUpdate        = "opn_big_data_node_update"
+	OpnBigDataNodeDelete        = "opn_big_data_node_delete"
+	OpnBigDataFolderCreate      = "opn_big_data_folder_create"
+	OpnBigDataFolderUpdate      = "opn_big_data_folder_update"
+	OpnBigDataFolderDelete      = "opn_big_data_folder_delete"
+	OpnBigDataNodeCrontabCreate = "opn_big_data_node_crontab_create"
+	OpnBigDataNodeCrontabUpdate = "opn_big_data_node_crontab_update"
+	OpnBigDataNodeCrontabDelete = "opn_big_data_node_crontab_delete"
+	OpnBigDataNodeCrontabStop   = "opn_big_data_node_crontab_stop"
+	OpnBigDataWorkflowCreate    = "opn_big_data_workflow_create"
+	OpnBigDataWorkflowUpdate    = "opn_big_data_workflow_update"
+	OpnBigDataWorkflowDelete    = "opn_big_data_workflow_delete"
+	OpnBigDataSourceCreate      = "opn_big_data_source_create"
+	OpnBigDataSourceUpdate      = "opn_big_data_source_update"
+	OpnBigDataSourceDelete      = "opn_big_data_source_delete"
+	OpnBigDataNodeLock          = "opn_big_data_node_lock"
+	OpnBigDataNodeUnlock        = "opn_big_data_node_unlock"
+	OpnBigDataNodeRun           = "opn_big_data_node_run"
+	OpnBigDataNodeStop          = "opn_big_data_node_strop"
 )
 
 var OperationMap = map[string]string{
-	OpnLocalUsersPwdChange: "Change the password",
+	OpnLocalUsersPwdChange: "change the password",
 
-	OpnTablesDelete:         "BaseTable delete",
-	OpnTablesCreate:         "BaseTable create",
-	OpnTablesUpdate:         "BaseTable update",
-	OpnTableCreateSelfBuilt: "An existing data table is connected",
-	OpnTablesIndexUpdate:    "BaseTable analysis field updates",
-	OpnTablesLogsQuery:      "Log query",
-	OpnDatabasesDelete:      "BaseDatabase delete",
-	OpnDatabasesCreate:      "BaseDatabase create",
-	OpnDatabasesUpdate:      "BaseDatabase update",
-	OpnInstancesDelete:      "BaseInstance delete",
-	OpnInstancesCreate:      "BaseInstance create",
-	OpnInstancesUpdate:      "BaseInstance update",
-	OpnViewsDelete:          "Custom time field delete",
-	OpnViewsCreate:          "Custom time field create",
-	OpnViewsUpdate:          "Custom time field update",
+	OpnTablesDelete:         "table delete",
+	OpnTablesCreate:         "table create",
+	OpnTablesUpdate:         "table update",
+	OpnTableCreateSelfBuilt: "an existing data table is connected",
+	OpnTablesIndexUpdate:    "table analysis field updates",
+	OpnTablesLogsQuery:      "log query",
+	OpnDatabasesDelete:      "database delete",
+	OpnDatabasesCreate:      "database create",
+	OpnDatabasesUpdate:      "database update",
+	OpnInstancesDelete:      "instance delete",
+	OpnInstancesCreate:      "instance create",
+	OpnInstancesUpdate:      "instance update",
+	OpnViewsDelete:          "custom time field delete",
+	OpnViewsCreate:          "custom time field create",
+	OpnViewsUpdate:          "custom time field update",
 
-	OpnConfigsDelete:  "Config delete",
-	OpnConfigsCreate:  "Config create",
-	OpnConfigsUpdate:  "Config update",
-	OpnConfigsPublish: "Config publish",
-	OpnConfigsSync:    "Synchronize the configuration from the target cluster",
+	OpnConfigsDelete:  "config delete",
+	OpnConfigsCreate:  "config create",
+	OpnConfigsUpdate:  "config update",
+	OpnConfigsPublish: "config publish",
+	OpnConfigsSync:    "synchronize the configuration from the target cluster",
 
-	OpnClustersDelete:          "Cluster delete",
-	OpnClustersCreate:          "Cluster create",
-	OpnClustersUpdate:          "Cluster update",
-	OpnClustersConfigMapDelete: "Cluster configmap delete",
-	OpnClustersConfigMapCreate: "Cluster configmap create",
-	OpnClustersConfigMapUpdate: "Cluster configmap update",
+	OpnClustersDelete:          "cluster delete",
+	OpnClustersCreate:          "cluster create",
+	OpnClustersUpdate:          "cluster update",
+	OpnClustersConfigMapDelete: "cluster configmap delete",
+	OpnClustersConfigMapCreate: "cluster configmap create",
+	OpnClustersConfigMapUpdate: "cluster configmap update",
 
-	OpnAlarmsDelete:         "Alarm delete",
-	OpnAlarmsCreate:         "Alarm create",
-	OpnAlarmsUpdate:         "Alarm update",
-	OpnAlarmsChannelsDelete: "Alarm channel delete",
-	OpnAlarmsChannelsCreate: "Alarm channel create",
-	OpnAlarmsChannelsUpdate: "Alarm channel update",
+	OpnAlarmsDelete:         "alarm delete",
+	OpnAlarmsCreate:         "alarm create",
+	OpnAlarmsUpdate:         "alarm update",
+	OpnAlarmsChannelsDelete: "alarm channel delete",
+	OpnAlarmsChannelsCreate: "alarm channel create",
+	OpnAlarmsChannelsUpdate: "alarm channel update",
 
-	OpnMigration: "The database table structure is upgraded",
+	OpnMigration: "upgrading the database structure",
+
+	OpnBigDataNodeCreate:        "node create",
+	OpnBigDataNodeUpdate:        "node update",
+	OpnBigDataNodeDelete:        "node delete",
+	OpnBigDataFolderCreate:      "folder create",
+	OpnBigDataFolderUpdate:      "folder update",
+	OpnBigDataFolderDelete:      "folder delete",
+	OpnBigDataNodeCrontabCreate: "node crontab create",
+	OpnBigDataNodeCrontabUpdate: "node crontab update",
+	OpnBigDataNodeCrontabDelete: "node crontab delete",
+	OpnBigDataNodeCrontabStop:   "node crontab stop",
+	OpnBigDataWorkflowCreate:    "workflow create",
+	OpnBigDataWorkflowUpdate:    "workflow update",
+	OpnBigDataWorkflowDelete:    "workflow delete",
+	OpnBigDataSourceCreate:      "source create",
+	OpnBigDataSourceUpdate:      "source update",
+	OpnBigDataSourceDelete:      "source delete",
+	OpnBigDataNodeLock:          "node lock",
+	OpnBigDataNodeUnlock:        "node unlock",
+	OpnBigDataNodeRun:           "node run",
+	OpnBigDataNodeStop:          "node stop",
 }
 
 const (
-	SourceInquiryMgtCenter = "inquiry_mgt"
+	SourceInquiryMgtCenter = "log_mgt"
 	SourceUserMgtCenter    = "user_mgt"
 	SourceSystemSetting    = "system_setting"
 	SourceClusterMgtCenter = "cluster_mgt"
 	SourceAlarmMgtCenter   = "alarm_mgt"
 	SourceConfigMgtCenter  = "config_mgt"
+	SourceBigDataMgtCenter = "bigdata_mgt"
 )
 
 var (
 	SourceMap = map[string]string{
-		SourceInquiryMgtCenter: "Log Management Center",
-		SourceUserMgtCenter:    "User Management Center",
-		SourceSystemSetting:    "System Settings",
-		SourceClusterMgtCenter: "K8s Management Center",
-		SourceAlarmMgtCenter:   "Alarm Management Center",
-		SourceConfigMgtCenter:  "Configuration Management Center",
+		SourceInquiryMgtCenter: "Log",
+		SourceUserMgtCenter:    "User",
+		SourceSystemSetting:    "System",
+		SourceClusterMgtCenter: "K8s",
+		SourceAlarmMgtCenter:   "Alarm",
+		SourceConfigMgtCenter:  "Configuration",
+		SourceBigDataMgtCenter: "Analysis",
 	}
 	SourceOpnMap = map[string][]string{
 		SourceInquiryMgtCenter: {
@@ -169,6 +213,27 @@ var (
 		},
 		SourceUserMgtCenter: {OpnLocalUsersPwdChange},
 		SourceSystemSetting: {OpnMigration},
+		SourceBigDataMgtCenter: {
+			OpnBigDataNodeCreate,
+			OpnBigDataNodeUpdate,
+			OpnBigDataNodeDelete,
+			OpnBigDataFolderCreate,
+			OpnBigDataFolderUpdate,
+			OpnBigDataFolderDelete,
+			OpnBigDataNodeCrontabCreate,
+			OpnBigDataNodeCrontabUpdate,
+			OpnBigDataNodeCrontabDelete,
+			OpnBigDataNodeCrontabStop,
+			OpnBigDataWorkflowCreate,
+			OpnBigDataWorkflowUpdate,
+			OpnBigDataWorkflowDelete,
+			OpnBigDataSourceCreate,
+			OpnBigDataSourceUpdate,
+			OpnBigDataSourceDelete,
+			OpnBigDataNodeLock,
+			OpnBigDataNodeUnlock,
+			OpnBigDataNodeRun,
+			OpnBigDataNodeStop},
 	}
 )
 
