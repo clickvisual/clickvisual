@@ -29,7 +29,7 @@ type department interface {
 	setNext(department)
 }
 
-func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int) (view.RespRunNode, error) {
+func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (view.RespRunNode, error) {
 	// Building chains of Responsibility
 	t := &tertiary{}
 	s := &secondary{next: t}
@@ -52,14 +52,30 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int) (view.RespRu
 	}
 	// record execute result
 	execResultBytes, _ := json.Marshal(execResult)
+	execResultStr := string(execResultBytes)
+	res := view.RespRunNode{
+		Result: execResultStr,
+	}
+	// record update
+	tx := invoker.Db.Begin()
 	ups := make(map[string]interface{}, 0)
-	ups["result"] = string(execResultBytes)
+	ups["result"] = execResultStr
 	if op == OperatorRun {
 		ups["previous_content"] = nc.Content
+		if err = db.NodeResultCreate(tx, &db.BigdataNodeResult{
+			NodeId:  n.ID,
+			Content: nc.Content,
+			Result:  execResultStr,
+			Uid:     uid,
+		}); err != nil {
+			tx.Rollback()
+			return res, err
+		}
 	}
-	_ = db.NodeContentUpdate(invoker.Db, n.ID, ups)
-	res := view.RespRunNode{
-		Result: string(execResultBytes),
+	if err = db.NodeContentUpdate(invoker.Db, n.ID, ups); err != nil {
+		tx.Rollback()
+		return res, err
 	}
+	tx.Commit()
 	return res, err
 }

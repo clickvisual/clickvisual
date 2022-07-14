@@ -94,7 +94,7 @@ func NodeUpdate(c *core.Context) {
 		return
 	}
 	var req view.ReqUpdateNode
-	if err := c.Bind(&req); err != nil {
+	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
@@ -119,7 +119,7 @@ func NodeUpdate(c *core.Context) {
 	// create node content history
 	onlyId := uuid.New().String()
 	ups["uuid"] = onlyId
-	if err := db.NodeUpdate(tx, id, ups); err != nil {
+	if err = db.NodeUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
@@ -127,12 +127,12 @@ func NodeUpdate(c *core.Context) {
 
 	upsContent := make(map[string]interface{}, 0)
 	upsContent["content"] = req.Content
-	if err := db.NodeContentUpdate(tx, id, upsContent); err != nil {
+	if err = db.NodeContentUpdate(tx, id, upsContent); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	if err := db.NodeHistoryCreate(tx, &db.BigdataNodeHistory{
+	if err = db.NodeHistoryCreate(tx, &db.BigdataNodeHistory{
 		UUID:    onlyId,
 		NodeId:  id,
 		Content: req.Content,
@@ -142,7 +142,7 @@ func NodeUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	if err := tx.Commit().Error; err != nil {
+	if err = tx.Commit().Error; err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
@@ -466,7 +466,7 @@ func NodeStop(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res, err := node.Operator(&n, &nc, node.OperatorStop)
+	res, err := node.Operator(&n, &nc, node.OperatorStop, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -556,6 +556,71 @@ func NodeHistoryListPage(c *core.Context) {
 		})
 	}
 	c.JSONPage(view.RespNodeHistoryList{
+		Total: total,
+		List:  list,
+	}, core.Pagination{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+		Total:    total,
+	})
+	return
+}
+
+func NodeResultInfo(c *core.Context) {
+	id := cast.ToInt(c.Param("rid"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	nr, err := db.NodeResultInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(nr.NodeId),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONE(core.CodeOK, "succ", service.NodeResultRespAssemble(&nr))
+	return
+}
+
+func NodeResultListPage(c *core.Context) {
+	id := cast.ToInt(c.Param("id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(id),
+		SubResource: pmsplugin.BigData,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	var req view.ReqNodeHistoryList
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "request parameter error: "+err.Error(), nil)
+		return
+	}
+	total, nodeResList := db.NodeResultListPage(egorm.Conds{"node_id": id}, &db.ReqPage{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+	})
+	list := make([]view.RespNodeResult, 0)
+	for _, nodeRes := range nodeResList {
+		list = append(list, service.NodeResultRespAssemble(nodeRes))
+	}
+	c.JSONPage(view.RespNodeResultList{
 		Total: total,
 		List:  list,
 	}, core.Pagination{

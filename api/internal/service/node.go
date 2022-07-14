@@ -8,6 +8,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func NodeTryLock(uid, configId int) (err error) {
@@ -64,4 +65,25 @@ func NodeUnlock(uid, configId int) (err error) {
 		}
 	}
 	return tx.Commit().Error
+}
+
+func NodeResultRespAssemble(nr *db.BigdataNodeResult) view.RespNodeResult {
+	res := view.RespNodeResult{
+		ID:      nr.ID,
+		Ctime:   nr.Ctime,
+		NodeId:  nr.NodeId,
+		Content: nr.Content,
+		Result:  nr.Result,
+	}
+	if nr.Uid == -1 {
+		res.RespUserSimpleInfo = view.RespUserSimpleInfo{
+			Uid:      -1,
+			Username: "Crontab",
+			Nickname: "Crontab",
+		}
+	} else {
+		u, _ := db.UserInfo(nr.Uid)
+		res.RespUserSimpleInfo.Gen(u)
+	}
+	return res
 }

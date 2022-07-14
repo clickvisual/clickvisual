@@ -195,6 +195,9 @@ func GetRouter() *egin.Component {
 		// bigdata node history
 		v1.GET("/bigdata/nodes/:id/histories", core.Handle(bigdata.NodeHistoryListPage))
 		v1.GET("/bigdata/nodes/:id/histories/:uuid", core.Handle(bigdata.NodeHistoryInfo))
+		// bigdata node result
+		v1.GET("/bigdata/nodes/:id/result", core.Handle(bigdata.NodeResultListPage))
+		v1.GET("/bigdata/nodes/:id/result/:rid", core.Handle(bigdata.NodeResultInfo))
 		// bigdata node lock
 		v1.PATCH("/bigdata/nodes/:id/lock", core.Handle(bigdata.NodeLock))
 		v1.PATCH("/bigdata/nodes/:id/unlock", core.Handle(bigdata.NodeUnlock))

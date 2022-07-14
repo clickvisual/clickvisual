@@ -6,6 +6,7 @@ export default {
   edit: "Edit",
   delete: "Delete",
   submit: "Submit",
+  name: "Name",
   description: "Description",
   DescAsAlias: "Alias",
   loading: "loading",

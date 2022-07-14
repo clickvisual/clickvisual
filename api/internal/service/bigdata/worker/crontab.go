@@ -14,6 +14,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
+const crontabUid = -1
+
 var CrontabRules *crontabRules
 
 type crontabRules struct {
@@ -26,18 +28,27 @@ func Init() error {
 		crones: sync.Map{},
 	}
 	xgo.Go(looper)
+	xgo.Go(clear)
 	return nil
 }
 
 func Close() error {
 	CrontabRules.crones.Range(func(k, v interface{}) bool {
 		nodeId := k.(int)
+		invoker.Logger.Debug("crontabRules", elog.String("step", "close"), elog.Any("nodeId", nodeId))
 		_ = db.CrontabUpdate(invoker.Db, nodeId, map[string]interface{}{"status": db.CrontabStatusWait})
 		c := v.(*cron.Cron)
 		c.Stop()
 		return true
 	})
 	return nil
+}
+
+func clear() {
+	for {
+		time.Sleep(time.Minute)
+		db.NodeResultDelete30Days()
+	}
 }
 
 func looper() {
@@ -51,9 +62,8 @@ func looper() {
 		)
 		if crs, err = fetchNodeCrontabs(); err != nil {
 			invoker.Logger.Error("sync", elog.String("step", "nodes"), elog.String("error", err.Error()))
-			return
+			continue
 		}
-		invoker.Logger.Debug("crontabRules", elog.Any("crontabs", crs))
 		// Execute scheduling process: cron -> branch -> run
 		dispatch(crs)
 	}
@@ -62,6 +72,7 @@ func looper() {
 func fetchNodeCrontabs() ([]*db.BigdataCrontab, error) {
 	conds := egorm.Conds{}
 	conds["status"] = db.CrontabStatusWait
+	conds["typ"] = 0
 	return db.CrontabList(conds)
 }
 
@@ -71,13 +82,11 @@ func dispatch(crontabs []*db.BigdataCrontab) {
 	// no folder node
 	for _, n := range crontabs {
 		_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusPreempt})
-		xgo.Go(func() {
-			invoker.Logger.Debug("crontabRules", elog.String("step", "node"), elog.Any("crontabRule", n))
-			if err := buildCronFn(n); err != nil {
-				_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusWait})
-				invoker.Logger.Error("sync", elog.String("step", "buildCronFn"), elog.String("error", err.Error()))
-			}
-		})
+		invoker.Logger.Debug("crontabRules", elog.String("step", "node"), elog.Any("crontabRule", n))
+		if err := buildCronFn(n); err != nil {
+			_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusWait})
+			invoker.Logger.Error("sync", elog.String("step", "buildCronFn"), elog.String("error", err.Error()))
+		}
 	}
 }
 
@@ -100,7 +109,7 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 				elog.Any("nodeId", cr.NodeId), elog.Any("err", errNodeContentInfo))
 			return
 		}
-		res, errOperator := node.Operator(&n, &nc, node.OperatorStop)
+		res, errOperator := node.Operator(&n, &nc, node.OperatorRun, crontabUid)
 		if errOperator != nil {
 			invoker.Logger.Error("crontabRules", elog.String("step", "buildCronFn"),
 				elog.Any("nodeId", cr.NodeId), elog.Any("err", errOperator), elog.Any("res", res))
