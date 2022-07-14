@@ -93,14 +93,14 @@ const AlarmHistory = () => {
     kw && !getUrlParam("kw") && setDashboardUrl(dashboardUrl + "&kw=" + kw);
   }, [kw, dashboardUrl]);
 
-  function getUrlParam(name: string) {
+  const getUrlParam = (name: string) => {
     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
     var r =
       dashboardUrl.split("?").length >= 2 &&
       dashboardUrl.split("?")[1].match(reg); //匹配目标参数
     if (r != null) return unescape(r[2]);
     return null; //返回参数值
-  }
+  };
 
   return (
     <>
