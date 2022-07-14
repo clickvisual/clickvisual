@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -41,6 +42,7 @@ func WorkflowCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataWorkflowCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -66,7 +68,7 @@ func WorkflowUpdate(c *core.Context) {
 		return
 	}
 	var req view.ReqUpdateWorkflow
-	if err := c.Bind(&req); err != nil {
+	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
@@ -75,10 +77,11 @@ func WorkflowUpdate(c *core.Context) {
 	ups["name"] = req.Name
 	ups["desc"] = req.Desc
 
-	if err := db.WorkflowUpdate(invoker.Db, id, ups); err != nil {
+	if err = db.WorkflowUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataWorkflowUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -130,10 +133,11 @@ func WorkflowDelete(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err := db.WorkflowDelete(invoker.Db, id); err != nil {
+	if err = db.WorkflowDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataWorkflowDelete, map[string]interface{}{"obj": res})
 	c.JSONOK()
 }
 

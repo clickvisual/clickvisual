@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -45,6 +46,7 @@ func FolderCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataFolderCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -79,10 +81,11 @@ func FolderUpdate(c *core.Context) {
 	ups["desc"] = req.Desc
 	ups["parent_id"] = req.ParentId
 	ups["uid"] = c.Uid()
-	if err := db.FolderUpdate(invoker.Db, id, ups); err != nil {
+	if err = db.FolderUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataFolderUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -122,6 +125,7 @@ func FolderDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataFolderDelete, map[string]interface{}{"obj": f})
 	c.JSONOK()
 }
 
