@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/worker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -82,6 +83,13 @@ func CrontabUpdate(c *core.Context) {
 	ups["desc"] = req.Desc
 	ups["cron"] = req.Cron
 	ups["duty_uid"] = req.DutyUid
+	if req.Typ == db.CrontabTypSuspended {
+		if err = worker.NodeCrontabStop(id); err != nil {
+			c.JSONE(1, "update failed: "+err.Error(), nil)
+			return
+		}
+		ups["status"] = db.CrontabStatusWait
+	}
 	if err = db.CrontabUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return

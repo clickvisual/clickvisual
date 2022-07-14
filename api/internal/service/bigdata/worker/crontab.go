@@ -44,6 +44,19 @@ func Close() error {
 	return nil
 }
 
+func NodeCrontabStop(nodeId int) error {
+	CrontabRules.crones.Range(func(k, v interface{}) bool {
+		if k.(int) != nodeId {
+			return true
+		}
+		invoker.Logger.Debug("crontabRules", elog.String("step", "stop"), elog.Any("nodeId", nodeId))
+		c := v.(*cron.Cron)
+		c.Stop()
+		return true
+	})
+	return nil
+}
+
 func clear() {
 	for {
 		time.Sleep(time.Minute)
