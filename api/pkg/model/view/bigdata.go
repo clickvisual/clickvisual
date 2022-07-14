@@ -208,6 +208,24 @@ type (
 		Total int64             `json:"total"`
 		List  []NodeHistoryItem `json:"list"`
 	}
+
+	ReqNodeResultList struct {
+		db.ReqPage
+	}
+
+	RespNodeResult struct {
+		ID      int    `json:"id"`
+		Ctime   int64  `json:"ctime"`
+		NodeId  int    `json:"nodeId"`
+		Content string `json:"content,omitempty"`
+		Result  string `json:"result,omitempty"`
+		RespUserSimpleInfo
+	}
+
+	RespNodeResultList struct {
+		Total int64            `json:"total"`
+		List  []RespNodeResult `json:"list"`
+	}
 )
 
 func (s *SyncContent) Cluster() string {

@@ -6,6 +6,7 @@ export default {
   edit: "编辑",
   delete: "删除",
   submit: "提交",
+  name: "名称",
   description: "描述",
   DescAsAlias: "别名",
   loading: "正在加载",
@@ -764,9 +765,9 @@ export default {
   "bigdata.components.FolderTree.crateNode.createTitle": "新建节点",
   "bigdata.components.FolderTree.crateNode.updateTitle": "修改节点",
   "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder":
-    "请选择tertiary",
+    "请选择数据源类型",
   "bigdata.components.FolderTree.crateNode.sourceSelect.placeholder":
-    "请选择source",
+    "请选择数据源",
   "bigdata.components.FolderTree.crateNode.nodeName.placeholder":
     "请输入节点名称",
   "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder":

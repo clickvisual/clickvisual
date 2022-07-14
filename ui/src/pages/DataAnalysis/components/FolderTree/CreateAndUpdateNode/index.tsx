@@ -184,7 +184,9 @@ const CreateAndUpdateNode = () => {
             )}
           </Select>
         </Form.Item>
-        <Form.Item name={"tertiary"} label="tertiary" required>
+        <Form.Item name={"tertiary"} label={i18n.formatMessage({
+          id: "log.editDatabaseModel.label.datasourceType",
+        })} required>
           <Select
             placeholder={i18n.formatMessage({
               id: "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder",
@@ -234,14 +236,18 @@ const CreateAndUpdateNode = () => {
             return <></>;
           }}
         </Form.Item>
-        <Form.Item name={"name"} label="name" required>
+        <Form.Item name={"name"} label={i18n.formatMessage({
+          id: "name",
+        })} required>
           <Input
             placeholder={i18n.formatMessage({
               id: "bigdata.components.FolderTree.crateNode.nodeName.placeholder",
             })}
           />
         </Form.Item>
-        <Form.Item name={"desc"} label="desc">
+        <Form.Item name={"desc"} label={i18n.formatMessage({
+          id: "description",
+        })}>
           <Input
             placeholder={i18n.formatMessage({
               id: "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder",

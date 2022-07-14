@@ -31,3 +31,19 @@ type ReqCreateCluster struct {
 	ApiServer   string `json:"apiServer"`
 	KubeConfig  string `json:"kubeConfig"`
 }
+
+type RespUserSimpleInfo struct {
+	Uid      int    `json:"uid"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Email    string `json:"email"`
+	Avatar   string `json:"avatar"`
+}
+
+func (r *RespUserSimpleInfo) Gen(u db.User) {
+	r.Uid = u.Uid
+	r.Username = u.Username
+	r.Nickname = u.Nickname
+	r.Email = u.Email
+	r.Avatar = u.Avatar
+}

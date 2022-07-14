@@ -21,6 +21,7 @@ var models = []interface{}{
 	db.BigdataNode{},
 	db.BigdataNodeContent{},
 	db.BigdataNodeHistory{},
+	db.BigdataNodeResult{},
 	db.BigdataDepend{},
 	db.BigdataCrontab{},
 

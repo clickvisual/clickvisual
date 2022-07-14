@@ -193,7 +193,7 @@ const Results = (props: {
         >
           {visible && <Luckysheet data={columns} id={15} />}
         </TabPane>
-        <TabPane tab="involvedSQLs" key="involvedSQLs">
+        <TabPane tab="sqls" key="involvedSQLs">
           {involvedSQLsContent}
         </TabPane>
       </Tabs>

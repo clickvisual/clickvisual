@@ -21,7 +21,7 @@ func Run(nodeId, uid int) (res view.RespRunNode, err error) {
 	if err != nil {
 		return
 	}
-	res, err = Operator(&n, &nc, OperatorRun)
+	res, err = Operator(&n, &nc, OperatorRun, uid)
 	if err != nil {
 		return
 	}
