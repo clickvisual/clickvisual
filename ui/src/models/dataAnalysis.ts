@@ -27,7 +27,6 @@ const DataAnalysis = () => {
   const [instances, setInstances] = useState<InstanceType[]>([]);
   const [currentInstances, setCurrentInstances] = useState<number>();
   const [sqlQueryResults, setSqlQueryResults] = useState<any>();
-  const [visibleSqlQuery, setVisibleSqlQuery] = useState<boolean>(false);
   // 打开的文件节点id
   const [openNodeId, setOpenNodeId] = useState<number>();
   // 打开的文件节点父级id
@@ -92,10 +91,6 @@ const DataAnalysis = () => {
 
   const changeSqlQueryResults = (data: any) => {
     setSqlQueryResults(data);
-  };
-
-  const changeVisibleSqlQuery = (flag: boolean) => {
-    setVisibleSqlQuery(flag);
   };
 
   const onChangeCurrentInstances = (value?: number) => {
@@ -288,13 +283,11 @@ const DataAnalysis = () => {
     currentInstances,
     navKey,
     sqlQueryResults,
-    visibleSqlQuery,
 
     setInstances,
     onChangeCurrentInstances,
     onChangeNavKey,
     changeSqlQueryResults,
-    changeVisibleSqlQuery,
 
     folderContent,
     changeFolderContent,

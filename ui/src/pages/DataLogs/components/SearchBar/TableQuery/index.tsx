@@ -11,6 +11,7 @@ import { LogsResponse } from "@/services/dataLogs";
 import { format } from "sql-formatter";
 import { FormatPainterOutlined } from "@ant-design/icons";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const { TextArea } = Input;
 
@@ -23,11 +24,18 @@ const TableQuery = () => {
     currentLogLibrary,
     logPanesHelper,
     onChangeCurrentLogPane,
+    logs,
   } = useModel("dataLogs");
   const { onSetLocalData } = useLocalStorages();
+  const [urlState] = useUrlState();
   const { logPanes } = logPanesHelper;
-  const { chartSql, onChangeChartSql, doGetStatisticalTable } =
-    statisticalChartsHelper;
+  const {
+    chartSql,
+    onChangeChartSql,
+    aggregationChartSql,
+    onChangeAggregationChartSql,
+    doGetStatisticalTable,
+  } = statisticalChartsHelper;
   const [sql, setSql] = useState<string | undefined>(chartSql);
 
   const debouncedSql = useDebounce(sql, { wait: DEBOUNCE_WAIT });
@@ -77,12 +85,32 @@ const TableQuery = () => {
   }, [debouncedSql]);
 
   useEffect(() => {
-    dataLogsQuerySql[tid] && setSql(dataLogsQuerySql[tid]);
+    if (urlState?.mode != 1) {
+      dataLogsQuerySql[tid] && setSql(dataLogsQuerySql[tid]);
+    }
   }, [dataLogsQuerySql[tid]]);
 
   useEffect(() => {
-    setSql(chartSql);
+    if (urlState?.mode != 1) {
+      setSql(chartSql);
+    }
   }, [chartSql]);
+
+  useEffect(() => {
+    // mode == 1为报警的聚合模式，此时直接拿url上的kw作为查询语句
+    if (urlState?.mode == 1) {
+      // 初次
+      if (chartSql == undefined) {
+        onChangeAggregationChartSql(urlState?.kw);
+        setSql(urlState.kw);
+        doSearch.run();
+        return;
+      }
+      if (!logs?.query) {
+        setSql(aggregationChartSql);
+      }
+    }
+  }, [urlState?.mode, urlState?.kw]);
 
   return (
     <>
@@ -95,6 +123,9 @@ const TableQuery = () => {
         onChange={(e) => {
           changeLocalStorage(e.target.value);
           setSql(e.target.value);
+          if (urlState?.mode == 1) {
+            onChangeAggregationChartSql(e.target.value);
+          }
         }}
         autoSize={{ minRows: 10, maxRows: 10 }}
         onPressEnter={() => doSearch.run()}

@@ -4,7 +4,6 @@ import FileTitle, {
   FileTitleType,
 } from "@/pages/DataAnalysis/components/FileTitle";
 import EditorContent from "./EditorContent";
-import SqlTable from "./SqlTable";
 import { useModel, useIntl } from "umi";
 import { Empty, Spin } from "antd";
 
@@ -44,7 +43,6 @@ const SQLEditor = (props: FileTitleProps) => {
           </div>
         )}
       </Spin>
-      <SqlTable />
     </div>
   );
 };

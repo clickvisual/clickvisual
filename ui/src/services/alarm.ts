@@ -34,6 +34,7 @@ export interface AlarmType extends TimeBaseType {
 }
 
 export interface AlarmFilterType extends TimeBaseType {
+  mode: number;
   tid: number;
   alarmId: number;
   when: string;
@@ -220,5 +221,3 @@ export default {
     );
   },
 };
-
-

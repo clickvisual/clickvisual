@@ -38,6 +38,7 @@ export interface UrlStateType {
   tab: string | number;
   index: string | number;
   queryType?: string;
+  mode?: number;
 }
 
 export const RestUrlStates = {
@@ -129,10 +130,18 @@ export default function useLogUrlParams() {
       queryType: urlState.queryType || lastDataLogsState.queryType,
       querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
       desc: res.data.desc,
+      mode: urlState?.mode, // 为1时：聚合报警详情页面过来的
     };
 
     addLogPane(pane.paneId, pane);
     onChangeLogPane(pane);
+    doParseQuery(urlState.kw);
+
+    // 聚合告警模式调用这两接口会报错
+    if (urlState?.mode == 1) {
+      return;
+    }
+
     doGetLogsAndHighCharts(tid, {
       reqParams: {
         st: pane.start,
@@ -153,7 +162,6 @@ export default function useLogUrlParams() {
         onChangeLogPane(pane);
       })
       .catch();
-    doParseQuery(urlState.kw);
   };
 
   const doSetUrlQuery = (tid: number) => {
