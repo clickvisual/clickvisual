@@ -42,7 +42,9 @@ const SqlTable = () => {
 
   return (
     <Drawer
-      title={i18n.formatMessage({ id: "bigdata.components.SQLEditor.results" })}
+      title={i18n.formatMessage({
+        id: "bigdata.components.RightMenu.results.tips",
+      })}
       placement="bottom"
       height={"70%"}
       onClose={() => changeVisibleSqlQuery(false)}

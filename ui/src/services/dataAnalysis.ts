@@ -213,9 +213,9 @@ export default {
   },
 
   // 获取历史记录的list
-  async getNodeHistories(noodeId: number, params?: nodeHistoriesType) {
+  async getNodeHistories(nodeId: number, params?: nodeHistoriesType) {
     return request(
-      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${noodeId}/histories`,
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${nodeId}/histories`,
       {
         params,
       }
@@ -223,10 +223,27 @@ export default {
   },
 
   // 获取历史记录info
-  async getNodeHistoriesInfo(noodeId: number, uuid: number) {
+  async getNodeHistoriesInfo(nodeId: number, uuid: number) {
     return request(
       process.env.PUBLIC_PATH +
-        `api/v1/bigdata/nodes/${noodeId}/histories/${uuid}`
+        `api/v1/bigdata/nodes/${nodeId}/histories/${uuid}`
+    );
+  },
+
+  // 获取结果的list
+  async getResultsList(nodeId: number, params?: nodeHistoriesType) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${nodeId}/result`,
+      {
+        params,
+      }
+    );
+  },
+
+  // 获取结果Item的info
+  async getResultsInfo(nodeId: number, rid: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${nodeId}/result/${rid}`
     );
   },
 

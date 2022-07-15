@@ -33,6 +33,9 @@ const RightMenu = () => {
     setCurrentPagination,
     visibleResults,
     setVisibleResults,
+    doResultsList,
+    setCurrentResultsPagination,
+    setResultsList,
   } = useModel("dataAnalysis");
 
   const rightMenu = [
@@ -84,6 +87,22 @@ const RightMenu = () => {
         id: "bigdata.components.RightMenu.results.tips",
       }),
       onClick: () => {
+        openNodeId &&
+          doResultsList
+            .run(openNodeId as number, {
+              current: 1,
+              pageSize: 10,
+            })
+            .then((res: any) => {
+              if (res.code == 0) {
+                setResultsList(res.data);
+                setCurrentResultsPagination({
+                  current: 1,
+                  pageSize: 10,
+                  total: res.data.total,
+                });
+              }
+            });
         setVisibleResults(true);
       },
     },

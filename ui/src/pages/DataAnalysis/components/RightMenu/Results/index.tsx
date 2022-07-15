@@ -1,204 +1,177 @@
-import { Button, Drawer, Form, Select, Tabs } from "antd";
-import { ColumnsType } from "antd/lib/table";
-import { useEffect, useMemo, useState } from "react";
-import style from "./index.less";
-import MonacoEditor from "react-monaco-editor";
-import Luckysheet from "./Luckysheet";
+import { ClockCircleOutlined } from "@ant-design/icons";
+import { Drawer, Table, Tooltip } from "antd";
+import moment from "moment";
+import { useEffect } from "react";
 import { useModel, useIntl } from "umi";
-import { format } from "sql-formatter";
-import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
+import ResultsItem from "./ResultsItem";
 
-const { Option } = Select;
-const { TabPane } = Tabs;
-
-const Results = (props: {
+const VersionHistory = (props: {
   visible: boolean;
   setVisible: (flag: boolean) => void;
 }) => {
-  const [SQLForm] = Form.useForm();
-  const i18n = useIntl();
   const { visible, setVisible } = props;
-  const { sqlQueryResults, manageNode } = useModel("dataAnalysis");
-  const { results, selectNode } = manageNode;
-  const [SQLContent, setSQLcontent] = useState<string>("");
-  const [activeKey, setActiveKey] = useState<string>("logs");
+  const i18n = useIntl();
+
+  //   const [visibleResultsItem, setVisibleResultsItem] = useState<boolean>(false);
+
+  const {
+    openNodeId,
+    doResultsList,
+    doResultsInfo,
+    setResultsList,
+    // versionHistoryList,
+    currentResultsPagination,
+    setCurrentResultsPagination,
+    resultsList,
+    setCurrentPagination,
+    visibleResultsItem,
+    setVisibleResultsItem,
+    changeSqlQueryResults,
+  } = useModel("dataAnalysis");
+
+  const getList = (page: number, pageSize: number) => {
+    openNodeId &&
+      doResultsList
+        .run(openNodeId as number, {
+          current: page,
+          pageSize,
+        })
+        .then((res: any) => {
+          if (res.code == 0) {
+            setResultsList(res.data);
+            setCurrentResultsPagination({
+              current: page,
+              pageSize: pageSize,
+              total: res.data.total,
+            });
+          }
+          return;
+        });
+  };
+
+  useEffect(() => {
+    if (!visible) {
+      setResultsList({ list: [], total: 0 });
+    }
+  }, [visible]);
 
   const onClose = () => {
     setVisible(false);
   };
 
-  const currentResults =
-    selectNode?.secondary != SecondaryEnums.dataIntegration
-      ? sqlQueryResults
-      : results;
-  const SQLList = Object.keys(currentResults?.involvedSQLs || {}) || [];
-
-  const columns: ColumnsType<any> = useMemo(() => {
-    const columnArr: any = [];
-    if (
-      currentResults &&
-      currentResults?.logs &&
-      currentResults.logs?.length > 0
-    ) {
-      const fields = Object.keys(currentResults.logs[0]) || [];
-      for (const fieldIndex in fields) {
-        columnArr.push({
-          r: 0,
-          c: parseInt(fieldIndex),
-          v: {
-            ct: { fa: "General", t: "g" },
-            m: fields[fieldIndex],
-            v: fields[fieldIndex],
-          },
-        });
-      }
-      for (const itemIndex in currentResults.logs) {
-        for (const fieldIndex in fields) {
-          columnArr.push({
-            r: parseInt(itemIndex) + 1,
-            c: parseInt(fieldIndex),
-            v: {
-              ct: { fa: "General", t: "g" },
-              m: currentResults.logs[itemIndex][fields[fieldIndex]],
-              v: currentResults.logs[itemIndex][fields[fieldIndex]],
-            },
-          });
-        }
-      }
-    }
-    // return [
-    //   {
-    //     r: 0,
-    //     c: 0,
-    //     ct: {
-    //       fa: "General",
-    //       t: "g",
-    //     },
-    //     m: "active_source",
-    //     v: "active_source",
-    //     fc: "#ff0000",
-    //   },
-    // ];
-    return columnArr;
-  }, [currentResults]);
-
-  useEffect(() => {
-    if (visible) {
-      if (SQLList.length > 0) {
-        const key = currentResults?.involvedSQLs[SQLList[0]];
-        SQLForm.setFieldsValue({ key: SQLList[0] });
-        setSQLcontent(key);
-      }
-    }
-  }, [visible]);
-
-  useEffect(() => {
-    if (!visible) {
-      setSQLcontent("");
-      SQLForm.resetFields();
-      setActiveKey("logs");
-    }
-  }, [visible]);
-
-  // const onSave = () => {
-  //   const luckysheet = window.luckysheet;
-  //   // console.log(luckysheet.getAllSheets());
-
-  //   let a: any = [];
-  //   luckysheet.getcellvalue().map((item: any) => {
-  //     let b = item.filter((items: any) => items != null);
-  //     a.push(...b);
-  //   });
-  //   console.log(a);
-  // };
-
-  const involvedSQLsContent = (
-    <div className={style.involvedSQLsContent}>
-      <div className={style.select}>
-        <Form form={SQLForm}>
-          <Form.Item name={"key"} label={"key"}>
-            <Select
-              showSearch
-              allowClear
-              style={{ width: "278px" }}
-              placeholder={i18n.formatMessage({
-                id: "bigdata.components.Results.involvedSQLs.key.placeholder",
+  const columns: any = [
+    {
+      title: "id",
+      dataIndex: "id",
+      key: "id",
+      ellipsis: { showTitle: true },
+      render: (_: any, record: any) => (
+        <Tooltip title={record.id}>{record.id}</Tooltip>
+      ),
+    },
+    {
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.VersionHistory.submitter",
+      }),
+      dataIndex: "nickname",
+      key: "nickname",
+      render: (_: any, record: any) => (
+        <>
+          {record.uid == -1 ? (
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "bigdata.components.RightMenu.results.timingTask",
               })}
-              onChange={(value: string) => {
-                setSQLcontent(currentResults?.involvedSQLs[value]);
-              }}
             >
-              {SQLList.map((item: string) => {
-                return (
-                  <Option key={item} value={item}>
-                    {item}
-                  </Option>
-                );
-              })}
-            </Select>
-          </Form.Item>
-        </Form>
-      </div>
-      <div className={style.monacoEditor}>
-        <MonacoEditor
-          height={"100%"}
-          language={"mysql"}
-          theme="vs-white"
-          options={{
-            automaticLayout: true,
-            scrollBeyondLastLine: false,
-            minimap: {
-              enabled: true,
-            },
-            readOnly: true,
+              <ClockCircleOutlined style={{ color: "#2FABEE" }} />
+            </Tooltip>
+          ) : (
+            <Tooltip title={"uid: " + record.uid}>{record.nickname}</Tooltip>
+          )}
+        </>
+      ),
+    },
+    {
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.results.executionTime",
+      }),
+      dataIndex: "ctime",
+      key: "ctime",
+      ellipsis: { showTitle: true },
+      render: (_: any, record: any) => (
+        <Tooltip
+          title={moment(record.ctime, "X").format("YYYY-MM-DD HH:mm:ss")}
+        >
+          {moment(record.ctime, "X").format("MM-DD HH:mm:ss")}
+        </Tooltip>
+      ),
+    },
+    {
+      title: i18n.formatMessage({ id: "operation" }),
+      dataIndex: "operation",
+      key: "operation",
+      width: 100,
+      render: (_: any, record: any) => (
+        <a
+          onClick={() => {
+            doResultsInfo
+              .run(openNodeId as number, record.id)
+              .then((res: any) => {
+                if (res.code == 0) {
+                  setVisibleResultsItem(true);
+                  changeSqlQueryResults(JSON.parse(res.data.result));
+                }
+              });
           }}
-          value={format(SQLContent)}
-        />
-      </div>
-    </div>
-  );
+        >
+          {i18n.formatMessage({
+            id: "bigdata.components.RightMenu.VersionHistory.details",
+          })}
+        </a>
+      ),
+      fixed: "right",
+    },
+  ];
 
   return (
     <Drawer
       title={i18n.formatMessage({
-        id: "bigdata.components.Results.involvedSQLs.drawer.title",
+        id: "bigdata.components.RightMenu.results.title",
       })}
-      placement="bottom"
+      placement="right"
       onClose={onClose}
       visible={visible}
-      height={"80vh"}
+      width={"50vw"}
+      style={{ transform: "none" }}
     >
-      <div className={style.infoList}>
-        <div className={style.infoItem}>
-          <div className={style.infoKey}>message: </div>
-          <div className={style.infoValue}>
-            {currentResults?.message && currentResults.message.length > 0
-              ? currentResults.message
-              : "-"}
-          </div>
-        </div>
-      </div>
-
-      {/* <Button onClick={onSave}>保存</Button> */}
-      <Tabs activeKey={activeKey} onTabClick={(e) => setActiveKey(e)}>
-        <TabPane
-          tab="logs"
-          key="logs"
-          style={{
-            position: "relative",
-            border: "1px solid #ccc",
-            minHeight: "700px",
-            borderRadius: "8px",
-          }}
-        >
-          {visible && <Luckysheet data={columns} id={15} />}
-        </TabPane>
-        <TabPane tab="sqls" key="involvedSQLs">
-          {involvedSQLsContent}
-        </TabPane>
-      </Tabs>
+      <Table
+        columns={columns}
+        pagination={{
+          responsive: true,
+          showSizeChanger: true,
+          size: "small",
+          ...currentResultsPagination,
+          onChange: (page, pageSize) => {
+            setCurrentPagination({
+              ...currentResultsPagination,
+              current: page,
+              pageSize,
+            });
+            getList(page, pageSize);
+          },
+        }}
+        dataSource={resultsList.list}
+        loading={doResultsList.loading}
+        size="middle"
+        scroll={{ x: 600 }}
+        rowKey={(item: any) => item.id}
+      />
+      <ResultsItem
+        visible={visibleResultsItem}
+        setVisible={setVisibleResultsItem}
+      />
     </Drawer>
   );
 };
 
-export default Results;
+export default VersionHistory;
