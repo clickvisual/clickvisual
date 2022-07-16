@@ -7,6 +7,7 @@ import { useEffect, useMemo } from "react";
 import { QueryTypeEnum } from "@/config/config";
 import RawLogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog";
 import StatisticalTableContent from "@/pages/DataLogs/components/QueryResult/Content/StatisticalTable";
+import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const SharePath = [
@@ -15,6 +16,7 @@ const SharePath = [
 ];
 
 const QueryResult = (props: { tid?: string }) => {
+  const [usrState] = useUrlState<any>();
   const { statisticalChartsHelper } = useModel("dataLogs");
   const { onSetLocalData } = useLocalStorages();
 
@@ -46,7 +48,7 @@ const QueryResult = (props: { tid?: string }) => {
       default:
         return RawLogContent;
     }
-  }, [activeQueryType]);
+  }, [activeQueryType, usrState, usrState?.mode]);
 
   return (
     <div
@@ -57,9 +59,12 @@ const QueryResult = (props: { tid?: string }) => {
     >
       <div className={queryResultStyles.header}>
         <SearchBar />
-        <OtherSearchBar isShare={isShare} />
+        <OtherSearchBar
+          isShare={isShare}
+          isShowSwitch={!(usrState?.mode && usrState?.mode == 0)}
+        />
       </div>
-      <Content />
+      <Content isShare={isShare} isAggregationAlarm={usrState?.mode == 1} />
     </div>
   );
 };

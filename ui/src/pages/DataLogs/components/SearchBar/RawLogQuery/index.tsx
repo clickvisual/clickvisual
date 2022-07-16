@@ -11,8 +11,10 @@ import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const RawLogQuery = () => {
+  const [urlState] = useUrlState();
   const {
     currentLogLibrary,
     logPanesHelper,
@@ -101,8 +103,17 @@ const RawLogQuery = () => {
   }, [debouncedQueryKeyword]);
 
   useEffect(() => {
-    setQueryKeyword(keywordInput);
+    if (urlState?.mode != 1) {
+      setQueryKeyword(keywordInput);
+    }
   }, [keywordInput]);
+
+  useEffect(() => {
+    if (urlState?.mode == 1) {
+      // onChangeKeywordInput("");
+      setQueryKeyword("");
+    }
+  }, [urlState?.mode]);
 
   return (
     <>

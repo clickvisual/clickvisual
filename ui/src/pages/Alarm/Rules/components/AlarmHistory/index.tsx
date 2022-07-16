@@ -8,6 +8,7 @@ import useUrlState from "@ahooksjs/use-url-state";
 import { Card } from "antd";
 import { SelectLang } from "umi";
 import historyStyles from "./index.less";
+import { QueryTypeEnum } from "@/config/config";
 
 const AlarmHistory = () => {
   const [urlState, setUrlState] = useUrlState<any>();
@@ -17,6 +18,7 @@ const AlarmHistory = () => {
   const [dashboardUrl, setDashboardUrl] = useState<string>("");
   const [kw, setKw] = useState<string>("");
   const [tid, setTid] = useState<number>(0);
+  const [mode, setMode] = useState<number>(0);
   const { alarmHistory, alarmDraw } = useModel("alarm");
   const { doGetAlarmInfo } = alarmDraw;
   const {
@@ -32,6 +34,7 @@ const AlarmHistory = () => {
     if (!urlState?.id) return;
     doGetAlarmInfo.run(parseInt(urlState.id)).then((res) => {
       if (res?.code !== 0) return;
+      setMode(res.data?.filters[0]?.mode);
       alarmHistory.setCurrentAlarm({
         ...res.data,
         id: parseInt(urlState.id),
@@ -90,17 +93,32 @@ const AlarmHistory = () => {
   }, [tid, dashboardUrl]);
 
   useEffect(() => {
-    kw && !getUrlParam("kw") && setDashboardUrl(dashboardUrl + "&kw=" + kw);
+    if (kw) {
+      // 不转换会被input删掉换行符导致关键词之间没有间隔而连在一起（_tracker\nWHERE）=>(_trackerWHERE)
+      const newWw = kw?.replace(/\n/g, " ");
+      !getUrlParam("kw") && setDashboardUrl(dashboardUrl + "&kw=" + newWw);
+    }
   }, [kw, dashboardUrl]);
 
-  function getUrlParam(name: string) {
+  useEffect(() => {
+    mode != undefined &&
+      !getUrlParam("mode") &&
+      setDashboardUrl(
+        dashboardUrl +
+          "&mode=" +
+          mode +
+          (mode == 1 ? "&queryType=" + QueryTypeEnum.TABLE : "")
+      );
+  }, [mode, dashboardUrl]);
+
+  const getUrlParam = (name: string) => {
     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
     var r =
       dashboardUrl.split("?").length >= 2 &&
       dashboardUrl.split("?")[1].match(reg); //匹配目标参数
     if (r != null) return unescape(r[2]);
     return null; //返回参数值
-  }
+  };
 
   return (
     <>

@@ -94,7 +94,7 @@ const HistoryBoard = ({
       isCopy: false,
     },
     {
-      id: 108,
+      id: 106,
       title: i18n.formatMessage({
         id: "alarm.rules.historyBorad.lastUpdateTime",
       }),

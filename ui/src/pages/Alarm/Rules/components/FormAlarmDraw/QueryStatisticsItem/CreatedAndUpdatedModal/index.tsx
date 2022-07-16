@@ -134,7 +134,9 @@ const CreatedAndUpdatedModal = ({
     if (!fields) return;
     const { mode } = fields;
     doShowTable(true);
-    onClickPreview.current = true;
+    if (mode != alarmModeType.AggregationMode) {
+      onClickPreview.current = true;
+    }
     cancelTokenQueryPreviewRef.current?.();
     const alarmMode =
       mode != alarmModeType.AggregationMode ? undefined : num || isPreviewData;
@@ -482,7 +484,17 @@ const CreatedAndUpdatedModal = ({
               name={"mode"}
               required
             >
-              <Select style={{ width: "calc(100% - 40px)" }}>
+              <Select
+                style={{ width: "calc(100% - 40px)" }}
+                onChange={() => {
+                  setIsPreviewData(alarmModePreviewType.AggregateData);
+                  setAggregationTableLogs;
+                  setAggregationTableLogs([]);
+                  setTableLogs([]);
+                  setShowTable(false);
+                  onClickPreview.current = false;
+                }}
+              >
                 {alarmModeList.map((item: any) => {
                   return <Option value={item.key}>{item.name}</Option>;
                 })}
@@ -607,61 +619,63 @@ const CreatedAndUpdatedModal = ({
                       bordered
                     />
                   )}
-                  {isPreviewData != alarmModePreviewType.AggregateData && (
-                    <div
-                      style={{
-                        marginTop: "10px",
-                        borderRadius: "2px",
-                        display: "flex",
-                        justifyContent: "space-around",
-                      }}
-                    >
-                      「
-                      {i18n.formatMessage({
-                        id: "alarm.rules.form.aggregatedIndicators",
-                      })}
-                      」
-                      <Button
+                  {isPreviewData != alarmModePreviewType.AggregateData &&
+                    mode == alarmModeType.AggregationMode && (
+                      <div
                         style={{
-                          width: "230px",
-                          borderRadius: "8px",
-                          marginLeft: "10px",
-                        }}
-                        size="small"
-                        type={"primary"}
-                        onClick={() => {
-                          const fields = getFieldsValue();
-                          handlePreview(
-                            fields,
-                            alarmModePreviewType.AlarmIndicator
-                          );
+                          marginTop: "10px",
+                          borderRadius: "2px",
+                          display: "flex",
+                          justifyContent: "space-around",
                         }}
                       >
+                        「
                         {i18n.formatMessage({
-                          id: "alarm.rules.form.preview.aggregatedIndicators",
+                          id: "alarm.rules.form.aggregatedIndicators",
                         })}
-                      </Button>
-                    </div>
-                  )}
-                  {isPreviewData == alarmModePreviewType.AfterPreview && (
-                    <Table
-                      rowKey={"id"}
-                      style={{ marginTop: 10 }}
-                      loading={doQueryPreview.loading}
-                      scroll={{ y: 400 }}
-                      columns={aggregationTableColumns}
-                      dataSource={aggregationTableLogs}
-                      // pagination={{
-                      //   ...currentPagination,
-                      //   onChange: (page, pageSize) => {
-                      //     const fields = getFieldsValue();
-                      //     handleChangePage(page, pageSize, fields);
-                      //   },
-                      // }}
-                      showSorterTooltip
-                      bordered
-                    />
-                  )}
+                        」
+                        <Button
+                          style={{
+                            width: "230px",
+                            borderRadius: "8px",
+                            marginLeft: "10px",
+                          }}
+                          size="small"
+                          type={"primary"}
+                          onClick={() => {
+                            const fields = getFieldsValue();
+                            handlePreview(
+                              fields,
+                              alarmModePreviewType.AlarmIndicator
+                            );
+                          }}
+                        >
+                          {i18n.formatMessage({
+                            id: "alarm.rules.form.preview.aggregatedIndicators",
+                          })}
+                        </Button>
+                      </div>
+                    )}
+                  {isPreviewData == alarmModePreviewType.AfterPreview &&
+                    mode == alarmModeType.AggregationMode && (
+                      <Table
+                        rowKey={"id"}
+                        style={{ marginTop: 10 }}
+                        loading={doQueryPreview.loading}
+                        scroll={{ y: 400 }}
+                        columns={aggregationTableColumns}
+                        dataSource={aggregationTableLogs}
+                        // pagination={{
+                        //   ...currentPagination,
+                        //   onChange: (page, pageSize) => {
+                        //     const fields = getFieldsValue();
+                        //     handleChangePage(page, pageSize, fields);
+                        //   },
+                        // }}
+                        showSorterTooltip
+                        bordered
+                      />
+                    )}
                 </Form.Item>
               );
             }}

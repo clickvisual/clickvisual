@@ -9,7 +9,11 @@ import ExportExcelButton from "@/components/ExportExcelButton";
 
 const PageSize = 5;
 
-const StatisticalTableContent = () => {
+const StatisticalTableContent = (props: {
+  isShare: boolean;
+  isAggregationAlarm: boolean;
+}) => {
+  const { isShare, isAggregationAlarm } = props;
   const i18n = useIntl();
   const { statisticalChartsHelper, resizeMenuWidth } = useModel("dataLogs");
   const { logChart, doGetStatisticalTable } = statisticalChartsHelper;
@@ -64,7 +68,9 @@ const StatisticalTableContent = () => {
         </span>
       </div>
       <div
-        style={{ width: `calc( 100vw - ${resizeMenuWidth}px - 83px)` }}
+        style={{
+          width: !isShare ? `calc(100vw - ${resizeMenuWidth}px - 83px)` : "",
+        }}
         className={classNames(queryResultStyles.sqlTable)}
       >
         <Table

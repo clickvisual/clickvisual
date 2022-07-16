@@ -718,13 +718,15 @@ export default {
 
   // bigdata components
   "bigdata.components.SQLEditor.selectFile": "请选择文件",
-  "bigdata.components.SQLEditor.results": "运行结果",
 
   "bigdata.components.RightMenu.properties": "调度配置",
   "bigdata.components.RightMenu.versions": "版本",
   "bigdata.components.RightMenu.Versions.tips": "历史版本",
+  "bigdata.components.RightMenu.results.title": "运行历史",
   "bigdata.components.RightMenu.results": "结果",
   "bigdata.components.RightMenu.results.tips": "运行结果",
+  "bigdata.components.RightMenu.results.executionTime": "执行时间",
+  "bigdata.components.RightMenu.results.timingTask": "定时任务",
 
   "bigdata.components.RightMenu.VersionHistory.submitter": "提交人",
   "bigdata.components.RightMenu.VersionHistory.SubmitTime": "提交时间",
@@ -748,7 +750,6 @@ export default {
     "调度规则 cron 字段填写 帮助文档",
 
   "bigdata.components.Results.involvedSQLs.key.placeholder": "请选择查看",
-  "bigdata.components.Results.involvedSQLs.drawer.title": "运行结果",
 
   "bigdata.components.Nav.navList.dataSourceManage": "数据源管理",
 

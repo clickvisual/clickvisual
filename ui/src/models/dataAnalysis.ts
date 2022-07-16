@@ -27,7 +27,6 @@ const DataAnalysis = () => {
   const [instances, setInstances] = useState<InstanceType[]>([]);
   const [currentInstances, setCurrentInstances] = useState<number>();
   const [sqlQueryResults, setSqlQueryResults] = useState<any>();
-  const [visibleSqlQuery, setVisibleSqlQuery] = useState<boolean>(false);
   // 打开的文件节点id
   const [openNodeId, setOpenNodeId] = useState<number>();
   // 打开的文件节点父级id
@@ -49,6 +48,18 @@ const DataAnalysis = () => {
   // 右侧边栏运行结果弹窗
   const [visibleResults, setVisibleResults] = useState<boolean>(false);
   const [userList, setUserList] = useState<any[]>([]);
+
+  // 右侧运行列表数据
+  const [resultsList, setResultsList] = useState<any>({});
+  const [visibleResultsItem, setVisibleResultsItem] = useState<boolean>(false);
+
+  // 运行list的分页
+  const [currentResultsPagination, setCurrentResultsPagination] =
+    useState<API.Pagination>({
+      current: FIRST_PAGE,
+      pageSize: 10,
+      total: 0,
+    });
 
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
@@ -80,10 +91,6 @@ const DataAnalysis = () => {
 
   const changeSqlQueryResults = (data: any) => {
     setSqlQueryResults(data);
-  };
-
-  const changeVisibleSqlQuery = (flag: boolean) => {
-    setVisibleSqlQuery(flag);
   };
 
   const onChangeCurrentInstances = (value?: number) => {
@@ -158,6 +165,14 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
+  const doResultsList = useRequest(dataAnalysisApi.getResultsList, {
+    loadingText: false,
+  });
+
+  const doResultsInfo = useRequest(dataAnalysisApi.getResultsInfo, {
+    loadingText: false,
+  });
+
   // 调度配置
   const doCreatCrontab = useRequest(dataAnalysisApi.creatCrontab, {
     loadingText: false,
@@ -186,11 +201,6 @@ const DataAnalysis = () => {
         if (res?.code === 0) {
           setOpenNodeData(res.data);
           changeFolderContent(res.data.content);
-          if (res.data?.result?.length > 0) {
-            changeSqlQueryResults(JSON.parse(res.data.result));
-            return;
-          }
-          changeSqlQueryResults("");
         }
       });
   };
@@ -254,8 +264,7 @@ const DataAnalysis = () => {
       doRunCodeNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
           changeSqlQueryResults(JSON.parse(res.data.result));
-          setVisibleResults(true);
-          // changeVisibleSqlQuery(true);
+          setVisibleResultsItem(true);
         }
       });
   };
@@ -274,13 +283,11 @@ const DataAnalysis = () => {
     currentInstances,
     navKey,
     sqlQueryResults,
-    visibleSqlQuery,
 
     setInstances,
     onChangeCurrentInstances,
     onChangeNavKey,
     changeSqlQueryResults,
-    changeVisibleSqlQuery,
 
     folderContent,
     changeFolderContent,
@@ -296,6 +303,12 @@ const DataAnalysis = () => {
 
     currentPagination,
     setCurrentPagination,
+
+    visibleResultsItem,
+    setVisibleResultsItem,
+
+    currentResultsPagination,
+    setCurrentResultsPagination,
 
     visibleResults,
     setVisibleResults,
@@ -329,6 +342,12 @@ const DataAnalysis = () => {
     // histories
     doNodeHistories,
     doNodeHistoriesInfo,
+
+    // results
+    doResultsList,
+    doResultsInfo,
+    resultsList,
+    setResultsList,
 
     // crontab
     doCreatCrontab,

@@ -27,7 +27,6 @@ const IntegratedConfiguration = ({
     mapping,
     updateNode,
     getNodeInfo,
-    setResults,
     doLockNode,
     doUnLockNode,
     doRunCodeNode,
@@ -41,7 +40,6 @@ const IntegratedConfiguration = ({
     setMapping: model.integratedConfigs.setMappingData,
     updateNode: model.manageNode.doUpdatedNode,
     getNodeInfo: model.manageNode.doGetNodeInfo,
-    setResults: model.manageNode.setResults,
     doLockNode: model.manageNode.doLockNode,
     doUnLockNode: model.manageNode.doUnLockNode,
     doRunCodeNode: model.manageNode.doRunCodeNode,
@@ -86,12 +84,6 @@ const IntegratedConfiguration = ({
     getNodeInfo.run(id).then((res) => {
       if (res?.code !== 0) return;
       setNodeInfo(res.data);
-      if (res.data?.result?.length > 0) {
-        setResults(JSON.parse(res.data.result));
-        return;
-      }
-      setResults("");
-
       const formData = parseJsonObject(res.data.content);
       if (!formData) return;
       const sourceType =

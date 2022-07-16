@@ -34,9 +34,10 @@ const FieldMappingModule = ({
     },
   ];
   const sourceData = useMemo(() => {
-    if (!form.getFieldValue(["source", "table"])) {
+    if (!form.getFieldValue(["source", "table"]) || source.length == 0) {
       return [];
     }
+
     return [
       {
         id: "source",
@@ -53,7 +54,7 @@ const FieldMappingModule = ({
   }, [source]);
 
   const targetData = useMemo(() => {
-    if (!form.getFieldValue(["target", "table"])) {
+    if (!form.getFieldValue(["target", "table"]) || target.length == 0) {
       return [];
     }
     return [
@@ -201,7 +202,11 @@ const FieldMappingModule = ({
             className={"butterfly-data-mappint mapping"}
             sourceClassName={"source-column"}
             targetClassName={"target-column"}
-            onChange={onChange}
+            onChange={(e: any) => {
+              // TODO: 这里默认会change一次  导致修改状态的改变
+              console.log("4?", e);
+              onChange(e);
+            }}
             readonly={isLock}
             onCheckChange={() => {}}
             onLoaded={() => {}}

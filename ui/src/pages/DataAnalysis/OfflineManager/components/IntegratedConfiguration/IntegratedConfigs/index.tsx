@@ -81,6 +81,9 @@ const IntegratedConfigs = ({
           children={<DataSourceModule file={file} form={form} iid={iid} />}
           type={CustomCollapseEnums.dataSource}
         />
+        {/* {
+          source?.length > 0 && target?.length > 0 && ()
+        } */}
         <CustomCollapse
           children={
             <FieldMappingModule

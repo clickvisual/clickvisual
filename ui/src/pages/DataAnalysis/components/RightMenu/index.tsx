@@ -1,6 +1,7 @@
 import { Tooltip } from "antd";
 import { useState } from "react";
 import { useModel, useIntl } from "umi";
+import { TertiaryEnums } from "../../service/enums";
 import style from "./index.less";
 import Results from "./Results";
 import Scheduling from "./Scheduling";
@@ -21,6 +22,13 @@ export enum RightMenuType {
   Results = 103,
 }
 
+// 离线同步和数据库脚本执行才显示调度配置  其他不显示
+const SchedulingList = [
+  TertiaryEnums.clickhouse,
+  TertiaryEnums.mysql,
+  TertiaryEnums.offline,
+];
+
 const RightMenu = () => {
   const i18n = useIntl();
   const [visibleVersionHistory, setVisibleVersionHistory] =
@@ -33,9 +41,14 @@ const RightMenu = () => {
     setCurrentPagination,
     visibleResults,
     setVisibleResults,
+    doResultsList,
+    setCurrentResultsPagination,
+    setResultsList,
+    manageNode,
   } = useModel("dataAnalysis");
+  const { selectNode } = manageNode;
 
-  const rightMenu = [
+  let rightMenu = [
     {
       id: RightMenuType.Scheduling,
       title: i18n.formatMessage({
@@ -84,10 +97,30 @@ const RightMenu = () => {
         id: "bigdata.components.RightMenu.results.tips",
       }),
       onClick: () => {
+        openNodeId &&
+          doResultsList
+            .run(openNodeId as number, {
+              current: 1,
+              pageSize: 10,
+            })
+            .then((res: any) => {
+              if (res.code == 0) {
+                setResultsList(res.data);
+                setCurrentResultsPagination({
+                  current: 1,
+                  pageSize: 10,
+                  total: res.data.total,
+                });
+              }
+            });
         setVisibleResults(true);
       },
     },
   ];
+
+  if (selectNode?.tertiary && !SchedulingList.includes(selectNode.tertiary)) {
+    rightMenu.splice(0, 1);
+  }
 
   return (
     <div className={style.rightMenu}>

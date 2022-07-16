@@ -131,9 +131,6 @@ const useManageNodeAndFolder = () => {
   const [boardEdges, setBoardEdges] = useState<any[]>([]);
   const [boardRef, setBoardRef] = useState<any>({ nodeList: [], edgeList: [] });
 
-  // 侧边栏results参数
-  const [results, setResults] = useState<string>("");
-
   // Folder
   const getFolders = useRequest(dataAnalysisApi.getFolderList, {
     loadingText: false,
@@ -424,7 +421,6 @@ const useManageNodeAndFolder = () => {
     extra,
     nodes,
     folders,
-    results,
 
     showNodeModal,
     hideNodeModal,
@@ -436,7 +432,6 @@ const useManageNodeAndFolder = () => {
     setCurrentNode,
     setSelectNode,
     setExtra,
-    setResults,
 
     doLockNode,
     doUnLockNode,

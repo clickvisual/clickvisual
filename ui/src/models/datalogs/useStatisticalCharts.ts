@@ -12,6 +12,7 @@ const useStatisticalCharts = () => {
   const [logChart, setLogChart] = useState<StatisticalTableResponse>({
     logs: [],
   });
+  const [aggregationChartSql, setAggregationChartSql] = useState<string>("");
 
   const doGetStatisticalTable = useRequest(api.getStatisticalTable, {
     loadingText: false,
@@ -22,11 +23,17 @@ const useStatisticalCharts = () => {
     setChartSql(sql);
   };
 
+  const onChangeAggregationChartSql = (str: string) => {
+    setAggregationChartSql(str);
+  };
+
   return {
     activeQueryType,
     setActiveQueryType,
     chartSql,
     onChangeChartSql,
+    aggregationChartSql,
+    onChangeAggregationChartSql,
     doGetStatisticalTable,
     logChart,
     setLogChart,

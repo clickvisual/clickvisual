@@ -60,7 +60,6 @@ const Scheduling = (props: {
 
   useEffect(() => {
     if (visible && selectNode) {
-      console.log(selectNode);
       doGetCrontabInfo.run(selectNode.id).then((res: any) => {
         if (res?.code == 0) {
           const { data } = res;
@@ -247,7 +246,9 @@ const Scheduling = (props: {
                 id: "bigdata.components.RightMenu.Scheduling.thoseResponsible",
               })}
               name="dutyUid"
-              required
+              rules={[
+                { required: true, message: "Please Select your dutyUid!" },
+              ]}
             >
               <Select
                 showSearch
@@ -266,8 +267,12 @@ const Scheduling = (props: {
                 })}
               </Select>
             </Form.Item>
-            <Form.Item label={"cron"}>
-              <Form.Item name="cron" noStyle>
+            <Form.Item label={"cron"} required>
+              <Form.Item
+                name="cron"
+                noStyle
+                rules={[{ required: true, message: "Please input your cron!" }]}
+              >
                 <Input />
               </Form.Item>
               <div className={styles.question}>
