@@ -11,6 +11,8 @@ const useIntegratedConfigs = () => {
   const [sourceColumns, setSourceColumns] = useState<any[]>([]);
   const [targetColumns, setTargetColumns] = useState<any[]>([]);
   const [mappingData, setMappingData] = useState<any[]>([]);
+  // 最初的mappingData
+  const [defaultMappingData, setDefaultMappingData] = useState<any[]>([]);
 
   const [openVisible, setOpenVisible] = useState<boolean>(false);
   const [openType, setOpenType] = useState<OpenTypeEnums | undefined>();
@@ -73,9 +75,11 @@ const useIntegratedConfigs = () => {
     sourceColumns,
     targetColumns,
     mappingData,
+    defaultMappingData,
     setSourceColumns,
     setTargetColumns,
     setMappingData,
+    setDefaultMappingData,
 
     cancelTokenTargetRef,
     cancelTokenSourceRef,

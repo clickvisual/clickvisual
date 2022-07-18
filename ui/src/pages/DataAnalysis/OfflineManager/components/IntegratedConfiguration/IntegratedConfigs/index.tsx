@@ -5,6 +5,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import CustomCollapse from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/CustomCollapse";
 import { useMemo } from "react";
+import { isEqual } from "lodash";
 
 export interface IntegratedConfigsProps {
   file: any;
@@ -21,12 +22,13 @@ const IntegratedConfigs = ({
   onSubmit,
   onFormChange,
 }: IntegratedConfigsProps) => {
-  const { source, target, mapping, setMapping } = useModel(
+  const { source, target, mapping, setMapping, defaultMappingData } = useModel(
     "dataAnalysis",
     (model) => ({
       source: model.integratedConfigs.sourceColumns,
       target: model.integratedConfigs.targetColumns,
       mapping: model.integratedConfigs.mappingData,
+      defaultMappingData: model.integratedConfigs.defaultMappingData,
       setMapping: model.integratedConfigs.setMappingData,
       // selectNode: model.manageNode.selectNode,
     })
@@ -40,7 +42,6 @@ const IntegratedConfigs = ({
   );
 
   const handelChangeMapping = (data: any) => {
-    onFormChange();
     const { mappingData, sourceData, targetData } = data;
     const result: any[] = [];
     mappingData.forEach((item: any) => {
@@ -56,6 +57,8 @@ const IntegratedConfigs = ({
         targetType,
       });
     });
+    // 接口返回的值和修改后的值是否全等
+    !isEqual(defaultMappingData, result) && onFormChange();
     setMapping(result);
   };
 
