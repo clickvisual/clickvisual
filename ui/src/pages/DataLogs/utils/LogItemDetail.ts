@@ -107,6 +107,7 @@ const LogItemDetail = (logs: LogsResponse | undefined, log: any) => {
     resultLog,
     rawLogFields,
     rawLogIndexFields,
+    hiddenFields,
   };
 };
 
