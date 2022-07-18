@@ -108,17 +108,9 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
         );
       }
       // 过滤隐藏字段
-      tagFields = tagFields.filter((item: any) => {
-        if (!hiddenFields.includes(item.field)) {
-          console.log(
-            "item.field",
-            item.field,
-            hiddenFields.includes(item.field),
-            hiddenFields
-          );
-        }
-        return !hiddenFields.includes(item.field);
-      });
+      tagFields = tagFields.filter(
+        (item: any) => !hiddenFields.includes(item.field)
+      );
 
       return { tagFields };
     }, [systemFields, indexList, secondaryIndexList, resultLog]);
