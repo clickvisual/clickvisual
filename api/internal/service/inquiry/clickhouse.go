@@ -24,35 +24,13 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func genTimeCondition(param view.ReqQuery) string {
-	switch param.TimeFieldType {
-	case db.TimeFieldTypeDT:
-		return fmt.Sprintf("%s >= toDateTime(%s) and %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
-	case db.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s >= toDateTime64(%s, 3) and %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
-	case db.TimeFieldTypeTsMs:
-		return fmt.Sprintf("intDiv(%s,1000) >= %s and intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
-	}
-	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
-}
-
-func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
-	switch param.TimeFieldType {
-	case db.TimeFieldTypeDT:
-		return fmt.Sprintf("%s = toDateTime(%d)", param.TimeField, t.Unix())
-	case db.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
-	case db.TimeFieldTypeTsMs:
-		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
-	}
-	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
-}
-
-const defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
+const (
+	defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
   toDateTime64(parseDateTimeBestEffort(_time_), 9, 'Asia/Shanghai') AS _time_nanosecond_`
-
-const defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
+	defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
   fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
+	defaultCondition = "1='1'"
+)
 
 // time_field 高精度数据解析选择
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
@@ -78,6 +56,30 @@ const (
 	ModeStandalone int = iota
 	ModeCluster
 )
+
+func genTimeCondition(param view.ReqQuery) string {
+	switch param.TimeFieldType {
+	case db.TimeFieldTypeDT:
+		return fmt.Sprintf("%s >= toDateTime(%s) and %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
+	case db.TimeFieldTypeDT3:
+		return fmt.Sprintf("%s >= toDateTime64(%s, 3) and %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
+	case db.TimeFieldTypeTsMs:
+		return fmt.Sprintf("intDiv(%s,1000) >= %s and intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
+	}
+	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
+}
+
+func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
+	switch param.TimeFieldType {
+	case db.TimeFieldTypeDT:
+		return fmt.Sprintf("%s = toDateTime(%d)", param.TimeField, t.Unix())
+	case db.TimeFieldTypeDT3:
+		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
+	case db.TimeFieldTypeTsMs:
+		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
+	}
+	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
+}
 
 type ClickHouse struct {
 	id   int
@@ -212,7 +214,7 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 		res.PageSize = 20
 	}
 	if res.Query == "" {
-		res.Query = "1='1'"
+		res.Query = defaultCondition
 	}
 	if res.ET == res.ST && res.ST != 0 {
 		res.ET = res.ST + 1
@@ -539,12 +541,8 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 	}
 
 	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
-
-	// if c.mode == ModeCluster {
-	// 	sourceTableName = fmt.Sprintf("%s.%s_local", tableInfo.Database.Name, tableInfo.Name)
-	// } else {
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
-	// }
+
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
 		ViewTable:    viewTableName,
@@ -1013,11 +1011,11 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
-	sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d",
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d",
 		param.TimeField,
 		param.DatabaseTable,
-		c.queryHashTransform(param),
 		param.ST, param.ET,
+		c.queryHashTransform(param),
 		param.PageSize*param.Page)
 	invoker.Logger.Debug("logsTimelineSQL", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
@@ -1032,24 +1030,24 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 		orderByField = db.TimeFieldNanoseconds
 	}
 	selectFields := genSelectFields(tid)
-	if param.Page*param.PageSize <= 100 {
-		timeFieldEqual := c.TimeFieldEqual(param, tid)
-		if timeFieldEqual != "" {
-			sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
-				selectFields,
-				param.DatabaseTable,
-				c.queryHashTransform(param),
-				timeFieldEqual,
-				param.PageSize, (param.Page-1)*param.PageSize)
-			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
-			return
-		}
-	}
-	sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND "+genTimeCondition(param)+" ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	// if param.Page*param.PageSize <= 100 {
+	// 	timeFieldEqual := c.TimeFieldEqual(param, tid)
+	// 	if timeFieldEqual != "" {
+	// 		sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	// 			selectFields,
+	// 			param.DatabaseTable,
+	// 			c.queryHashTransform(param),
+	// 			timeFieldEqual,
+	// 			param.PageSize, (param.Page-1)*param.PageSize)
+	// 		invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
+	// 		return
+	// 	}
+	// }
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
 		param.DatabaseTable,
-		c.queryHashTransform(param),
 		param.ST, param.ET,
+		c.queryHashTransform(param),
 		param.PageSize, (param.Page-1)*param.PageSize)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
@@ -1104,7 +1102,10 @@ func (c *ClickHouse) queryHashTransform(params view.ReqQuery) string {
 		query = hashTransform(query, index)
 	}
 	invoker.Logger.Debug("countSQL", elog.Any("step", "queryHashTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
-	return query
+	if query == defaultCondition {
+		return ""
+	}
+	return fmt.Sprintf("AND %s", query)
 }
 
 func hashTransform(query string, index *db.BaseIndex) string {
@@ -1129,7 +1130,7 @@ func hashTransform(query string, index *db.BaseIndex) string {
 }
 
 func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE "+genTimeCondition(param)+" AND %s",
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE "+genTimeCondition(param)+" %s",
 		param.DatabaseTable,
 		param.ST, param.ET,
 		c.queryHashTransform(param))
@@ -1138,11 +1139,12 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE %s AND "+genTimeCondition(param)+" group by %s  order by count desc limit 10",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE "+genTimeCondition(param)+" %s group by %s  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
+		param.ST, param.ET,
 		c.queryHashTransform(param),
-		param.ST, param.ET, param.Field)
+		param.Field)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "groupBySQL"), elog.Any("sql", sql))
 	return
 }
