@@ -52,8 +52,14 @@ interface LogItemFoldProps {
 const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
   const { logs, doUpdatedQuery } = useModel("dataLogs");
 
-  const { indexList, secondaryIndexList, logFields, resultLog, systemFields } =
-    useMemo(() => LogItemDetail(logs, log), [logs, log]);
+  const {
+    indexList,
+    secondaryIndexList,
+    logFields,
+    resultLog,
+    systemFields,
+    hiddenFields,
+  } = useMemo(() => LogItemDetail(logs, log), [logs, log]);
 
   const handleClick = useCallback(
     (field: string, value: string) => {
@@ -101,6 +107,11 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
           }
         );
       }
+      // 过滤隐藏字段
+      tagFields = tagFields.filter(
+        (item: any) => !hiddenFields.includes(item.field)
+      );
+
       return { tagFields };
     }, [systemFields, indexList, secondaryIndexList, resultLog]);
 

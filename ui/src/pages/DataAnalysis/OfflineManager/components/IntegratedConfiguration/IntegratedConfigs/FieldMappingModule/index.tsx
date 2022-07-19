@@ -202,11 +202,7 @@ const FieldMappingModule = ({
             className={"butterfly-data-mappint mapping"}
             sourceClassName={"source-column"}
             targetClassName={"target-column"}
-            onChange={(e: any) => {
-              // TODO: 这里默认会change一次  导致修改状态的改变
-              console.log("4?", e);
-              onChange(e);
-            }}
+            onChange={onChange}
             readonly={isLock}
             onCheckChange={() => {}}
             onLoaded={() => {}}

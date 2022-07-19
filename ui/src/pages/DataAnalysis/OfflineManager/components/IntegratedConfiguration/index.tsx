@@ -24,6 +24,7 @@ const IntegratedConfiguration = ({
     setSource,
     setTarget,
     setMapping,
+    setDefaultMappingData,
     mapping,
     updateNode,
     getNodeInfo,
@@ -38,6 +39,7 @@ const IntegratedConfiguration = ({
     mapping: model.integratedConfigs.mappingData,
     doGetColumns: model.integratedConfigs.doGetColumns,
     setMapping: model.integratedConfigs.setMappingData,
+    setDefaultMappingData: model.integratedConfigs.setDefaultMappingData,
     updateNode: model.manageNode.doUpdatedNode,
     getNodeInfo: model.manageNode.doGetNodeInfo,
     doLockNode: model.manageNode.doLockNode,
@@ -109,6 +111,7 @@ const IntegratedConfiguration = ({
         },
       });
       setMapping(formData.mapping);
+      setDefaultMappingData(formData.mapping);
       handleSetMapping(formData);
     });
   };
@@ -187,6 +190,7 @@ const IntegratedConfiguration = ({
   };
 
   const handleUnlock = (file: any) => {
+    setIsChangeForm(false);
     doUnLockNode.run(file.id).then((res: any) => {
       if (res.code !== 0) return;
       doGetNodeInfo(file.id);

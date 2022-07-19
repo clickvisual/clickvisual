@@ -34,7 +34,6 @@ export type PaneType = {
   histogramChecked: boolean;
   foldingChecked: boolean;
   mode?: number;
-  kk?: string;
 };
 
 export enum hashType {
