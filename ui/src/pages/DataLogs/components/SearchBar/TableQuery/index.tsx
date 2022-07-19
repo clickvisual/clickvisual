@@ -1,4 +1,4 @@
-import { Button, Input } from "antd";
+import { Button, Tooltip } from "antd";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import IconFont from "@/components/IconFont";
 import { useIntl } from "umi";
@@ -9,11 +9,10 @@ import { DEBOUNCE_WAIT } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
 import { LogsResponse } from "@/services/dataLogs";
 import { format } from "sql-formatter";
-import { FormatPainterOutlined } from "@ant-design/icons";
+import ExportExcelButton from "@/components/ExportExcelButton";
+import MonacoEditor from "react-monaco-editor";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import useUrlState from "@ahooksjs/use-url-state";
-
-const { TextArea } = Input;
 
 const TableQuery = () => {
   const i18n = useIntl();
@@ -25,6 +24,7 @@ const TableQuery = () => {
     logPanesHelper,
     onChangeCurrentLogPane,
     logs,
+    logExcelData,
   } = useModel("dataLogs");
   const { onSetLocalData } = useLocalStorages();
   const [urlState] = useUrlState();
@@ -114,44 +114,68 @@ const TableQuery = () => {
 
   return (
     <>
-      <TextArea
-        allowClear
-        value={sql}
-        placeholder={`${i18n.formatMessage({
-          id: "log.search.placeholder",
-        })}`}
-        onChange={(e) => {
-          changeLocalStorage(e.target.value);
-          setSql(e.target.value);
-          if (urlState?.mode == 1) {
-            onChangeAggregationChartSql(e.target.value);
-          }
-        }}
-        autoSize={{ minRows: 10, maxRows: 10 }}
-        onPressEnter={() => doSearch.run()}
-      />
-      <div
-        className={searchBarStyles.formatButton}
-        onClick={() => {
-          if (sql) {
-            setSql(format(sql as string));
-            changeLocalStorage(format(sql as string));
-          }
-        }}
-      >
-        <FormatPainterOutlined />
+      <div className={searchBarStyles.editor}>
+        <MonacoEditor
+          height={"100%"}
+          width={"100%"}
+          language={"mysql"}
+          theme="vs-white"
+          options={{
+            selectOnLineNumbers: true,
+            automaticLayout: true,
+            wordWrap: "on",
+            wrappingStrategy: "simple",
+            wordWrapBreakBeforeCharacters: ",",
+            wordWrapBreakAfterCharacters: ",",
+            disableLayerHinting: true,
+            scrollBeyondLastLine: false,
+            minimap: {
+              enabled: true,
+            },
+            readOnly: true,
+          }}
+          value={sql}
+          onChange={(value) => {
+            changeLocalStorage(value);
+            setSql(value);
+            if (urlState?.mode == 1) {
+              onChangeAggregationChartSql(value);
+            }
+          }}
+        />
       </div>
-      <Button
-        loading={doGetStatisticalTable.loading}
-        className={searchBarStyles.searchBtn}
-        type="primary"
-        icon={<IconFont type={"icon-log-search"} />}
-        onClick={() => {
-          doSearch.run();
-        }}
-      >
-        {i18n.formatMessage({ id: "search" })}
-      </Button>
+      <div className={searchBarStyles.btnList}>
+        <Tooltip title={i18n.formatMessage({ id: "log.table.note" })}>
+          <Button
+            loading={doGetStatisticalTable.loading}
+            className={searchBarStyles.searchBtn}
+            type="primary"
+            icon={<IconFont type={"icon-log-search"} />}
+            onClick={() => {
+              doSearch.run();
+            }}
+          >
+            {i18n.formatMessage({ id: "search" })}
+          </Button>
+        </Tooltip>
+
+        <Button
+          loading={doGetStatisticalTable.loading}
+          className={searchBarStyles.searchBtn}
+          type="primary"
+          onClick={() => {
+            if (sql) {
+              setSql(format(sql as string));
+              changeLocalStorage(format(sql as string));
+            }
+          }}
+        >
+          {i18n.formatMessage({
+            id: "bigdata.components.FileTitle.formatting",
+          })}
+        </Button>
+        <ExportExcelButton data={logExcelData} />
+      </div>
     </>
   );
 };

@@ -86,6 +86,9 @@ const DataLogsModel = () => {
   // 是否展示索引列表
   const [visibleIndexModal, setVisibleIndexModal] = useState<boolean>(false);
 
+  // 日志表格导出数据
+  const [logExcelData, setLogExcelData] = useState<any[]>([]);
+
   // 用于关闭无效请求
   const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
   const cancelTokenLogsRef = useRef<Canceler | null>(null);
@@ -696,6 +699,9 @@ const DataLogsModel = () => {
     statisticalChartsHelper,
     quickInsertLikeQuery,
     quickInsertLikeExclusion,
+
+    logExcelData,
+    setLogExcelData,
   };
 };
 export default DataLogsModel;
