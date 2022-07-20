@@ -1,6 +1,7 @@
 package mining
 
 import (
+	"encoding/json"
 	"strconv"
 
 	"github.com/spf13/cast"
@@ -36,12 +37,14 @@ func CrontabCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	argsBytes, _ := json.Marshal(req.Args)
 	obj := &db.BigdataCrontab{
 		NodeId:  req.NodeId,
 		Desc:    req.Desc,
 		DutyUid: req.DutyUid,
 		Cron:    req.Cron,
 		Typ:     req.Typ,
+		Args:    string(argsBytes),
 		Uid:     c.Uid(),
 	}
 	err = db.CrontabCreate(invoker.Db, obj)
@@ -79,12 +82,14 @@ func CrontabUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
+	argsBytes, _ := json.Marshal(req.Args)
 	ups := make(map[string]interface{}, 0)
 	ups["uid"] = c.Uid()
 	ups["typ"] = req.Typ
 	ups["desc"] = req.Desc
 	ups["cron"] = req.Cron
 	ups["duty_uid"] = req.DutyUid
+	ups["args"] = string(argsBytes)
 	if req.Typ == db.CrontabTypSuspended {
 		if err = worker.NodeCrontabStop(id); err != nil {
 			c.JSONE(1, "update failed: "+err.Error(), nil)
