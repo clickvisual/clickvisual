@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
-const Luckysheet = (props: { data: any; id: number }) => {
-  const { data, id } = props;
+const Luckysheet = (props: { data: any }) => {
+  const { data } = props;
   // console.log(data);
   const tabData = data;
 
@@ -59,11 +59,11 @@ const Luckysheet = (props: { data: any; id: number }) => {
         },
       ],
       showinfobar: false, // 标题部分信息
-      showsheetbar: true, // 底部sheet页
+      showsheetbar: false, // 底部sheet页
       sheetFormulaBar: true, // 是否显示公示栏
       showstatisticBar: false, // 自定义计数栏
       showtoolbar: true, // 默认工具栏是否显示
-      enableAddRow: true, // 底部添加行按钮
+      enableAddRow: false, // 底部添加行按钮
       showtoolbarConfig: {
         // 自定义配置工具栏
         undoRedo: true, // 撤销重做，注意撤消重做是两个按钮，由这一个配置决定显示还是隐藏
@@ -96,6 +96,7 @@ const Luckysheet = (props: { data: any; id: number }) => {
     position: "absolute",
     width: "100%",
     height: "100%",
+    borderradius: "8px",
     left: "0px",
     top: "0px",
   };

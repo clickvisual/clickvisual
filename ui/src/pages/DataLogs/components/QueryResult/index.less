@@ -57,18 +57,21 @@
     flex-direction: column;
     min-height: 0;
     margin-top: 10px;
-    .tableTopBar{
+    .tableTopBar {
       flex: 0 0 24px;
-      .sqlTip{
+      .sqlTip {
         margin-left: 5px;
         color: red;
         line-height: 24px;
+        word-wrap: break-word;
       }
     }
     .sqlTable {
+      position: relative;
       flex: 1;
       padding-right: 10px;
       overflow: auto;
+      border-radius: 8px;
     }
   }
 }

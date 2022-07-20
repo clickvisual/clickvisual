@@ -8,30 +8,42 @@
     height: 32px;
     padding-right: 8px;
   }
-  .formatButton {
-    position: absolute;
-    top: 100px;
-    right: 0px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    border: 1px solid #dbdbda;
-    // background-color: #dbdbda;
-    border-radius: 50%;
-    cursor: pointer;
-    &:hover {
-      transform: scale(1.1);
-    }
-    :first-child {
-      color: hsl(21, 85%, 56%);
-      font-size: 22px;
-    }
+
+  .editor {
+    flex: 1;
+    height: 250px;
+    overflow: hidden;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
   }
-  .searchBtn {
-    flex: 0;
-    margin-left: 8px;
+
+  .btnList {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .formatButton {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      border: 1px solid #dbdbda;
+      border-radius: 50%;
+      cursor: pointer;
+      &:hover {
+        transform: scale(1.1);
+      }
+      :first-child {
+        color: hsl(21, 85%, 56%);
+        font-size: 22px;
+      }
+    }
+    .searchBtn {
+      flex: 0;
+      margin-left: 8px;
+      margin-bottom: 9px;
+      width: 100px;
+    }
   }
 }
 
@@ -51,4 +63,8 @@
   ul {
     margin-left: 14.5px;
   }
+}
+
+:global .luckysheet-scrollbar-ltr {
+  z-index: 999;
 }

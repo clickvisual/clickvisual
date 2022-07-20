@@ -4,6 +4,7 @@ import ReactFlow, {
   Handle,
   MarkerType,
   MiniMap,
+  Position,
   ReactFlowProvider,
 } from "react-flow-renderer";
 import { graphlib, layout } from "dagre";
@@ -17,7 +18,7 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import deletedModal from "@/components/DeletedModal";
 import { useKeyPress } from "ahooks";
-import { Spin } from "antd";
+// import { Spin } from "antd";
 
 export interface BoardProps {
   currentBoard: any;
@@ -167,13 +168,13 @@ const Board = ({
       <>
         <Handle
           type="target"
-          position="top"
+          position={Position.Top}
           isValidConnection={isValidConnection}
         />
         <div>{data.label}</div>
         <Handle
           type="source"
-          position="bottom"
+          position={Position.Bottom}
           isValidConnection={isValidConnection}
         />
       </>

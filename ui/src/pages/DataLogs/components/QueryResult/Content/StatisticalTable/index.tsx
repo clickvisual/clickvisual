@@ -1,58 +1,65 @@
 import queryResultStyles from "@/pages/DataLogs/components/QueryResult/index.less";
 import { useModel } from "@@/plugin-model/useModel";
-import { Table } from "antd";
-import { useMemo, useRef, useState } from "react";
+import Luckysheet from "./Luckysheet/inex";
+import { useMemo, useRef } from "react";
 import { ColumnsType } from "antd/es/table";
 import classNames from "classnames";
-import { useIntl } from "umi";
-import ExportExcelButton from "@/components/ExportExcelButton";
+import { Empty } from "antd";
 
-const PageSize = 5;
-
-const StatisticalTableContent = (props: {
-  isShare: boolean;
-  isAggregationAlarm: boolean;
-}) => {
-  const { isShare, isAggregationAlarm } = props;
-  const i18n = useIntl();
-  const { statisticalChartsHelper, resizeMenuWidth } = useModel("dataLogs");
+const StatisticalTableContent = (props: { isShare: boolean }) => {
+  const { isShare } = props;
+  const { statisticalChartsHelper, resizeMenuWidth, setLogExcelData } =
+    useModel("dataLogs");
   const { logChart, doGetStatisticalTable } = statisticalChartsHelper;
-  const [data, setData] = useState<any[]>([]);
 
   const tableRef = useRef(null);
 
   const columns: ColumnsType<any> = useMemo(() => {
-    const columnArr: ColumnsType = [];
-    if (logChart.logs?.length > 0) {
-      const fields = Object.keys(logChart.logs[0]) || [];
-      const list = [];
+    const columnArr: any = [];
+    const list = [];
+    if (logChart && logChart?.logs && logChart.logs?.length > 0) {
+      //
       for (const itemIndex in logChart.logs) {
         list.push({
           ...logChart.logs[itemIndex],
           key: parseInt(itemIndex) + 1,
         });
       }
-      setData(list);
-      columnArr.push({
-        title: "line",
-        dataIndex: "key",
-        align: "center",
-        width: 60,
-        fixed: "left",
-      });
+      setLogExcelData(list);
+
+      const fields = Object.keys(logChart.logs[0]) || [];
       for (const fieldIndex in fields) {
         columnArr.push({
-          title: fields[fieldIndex],
-          dataIndex: fields[fieldIndex],
-          width: 200,
-          align: "left",
+          r: 0,
+          c: parseInt(fieldIndex),
+          v: {
+            ct: { fa: "General", t: "g" },
+            m: fields[fieldIndex],
+            v: fields[fieldIndex],
+          },
         });
       }
+
+      for (const itemIndex in logChart.logs) {
+        for (const fieldIndex in fields) {
+          columnArr.push({
+            r: parseInt(itemIndex) + 1,
+            c: parseInt(fieldIndex),
+            v: {
+              ct: { fa: "General", t: "g" },
+              m: logChart.logs[itemIndex][fields[fieldIndex]],
+              v: logChart.logs[itemIndex][fields[fieldIndex]],
+            },
+          });
+        }
+      }
     } else {
-      setData([]);
+      setLogExcelData([]);
     }
+
     return columnArr;
-  }, [logChart]);
+  }, [logChart, logChart?.logs]);
+
   return (
     <div
       ref={tableRef}
@@ -61,29 +68,17 @@ const StatisticalTableContent = (props: {
         queryResultStyles.tableContent
       )}
     >
-      <div className={classNames(queryResultStyles.tableTopBar)}>
-        <ExportExcelButton data={data} />
-        <span className={classNames(queryResultStyles.sqlTip)}>
-          {i18n.formatMessage({ id: "log.table.note" })}
-        </span>
-      </div>
       <div
         style={{
           width: !isShare ? `calc(100vw - ${resizeMenuWidth}px - 83px)` : "",
         }}
         className={classNames(queryResultStyles.sqlTable)}
       >
-        <Table
-          loading={doGetStatisticalTable.loading}
-          size={"small"}
-          scroll={{ x: "max-content" }}
-          columns={columns}
-          dataSource={data}
-          pagination={{
-            defaultPageSize: PageSize,
-            showSizeChanger: true,
-          }}
-        />
+        {columns.length > 0 && !doGetStatisticalTable.loading ? (
+          <Luckysheet data={columns} />
+        ) : (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        )}
       </div>
     </div>
   );

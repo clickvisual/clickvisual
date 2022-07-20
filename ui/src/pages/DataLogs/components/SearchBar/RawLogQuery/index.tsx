@@ -137,6 +137,7 @@ const RawLogQuery = () => {
           doSearchLog.run();
         }}
         className={searchBarStyles.searchBtn}
+        style={{ width: "100px" }}
         type="primary"
         icon={<IconFont type={"icon-log-search"} />}
       >

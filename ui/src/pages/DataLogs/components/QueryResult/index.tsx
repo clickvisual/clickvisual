@@ -64,7 +64,7 @@ const QueryResult = (props: { tid?: string }) => {
           isShowSwitch={!(usrState?.mode && usrState?.mode == 0)}
         />
       </div>
-      <Content isShare={isShare} isAggregationAlarm={usrState?.mode == 1} />
+      <Content isShare={isShare} />
     </div>
   );
 };

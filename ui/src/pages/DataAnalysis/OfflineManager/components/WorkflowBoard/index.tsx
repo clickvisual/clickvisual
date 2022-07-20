@@ -1,5 +1,5 @@
 import { useModel } from "@@/plugin-model/useModel";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import FileTitle, {
   FileTitleType,
 } from "@/pages/DataAnalysis/components/FileTitle";
@@ -28,6 +28,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     createBoardNode,
     isChangeBoard,
     onSaveBoardNodes,
+    setBoardEdges,
   } = useModel("dataAnalysis", (model) => ({
     iid: model.currentInstances,
     boardNodeList: model.manageNode.boardNodeList,
@@ -44,6 +45,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     setNodes: model.workflowBoard.setNodes,
     createBoardNode: model.manageNode.createBoardNode,
     isChangeBoard: model.manageNode.isChangeBoard,
+    setBoardEdges: model.manageNode.setBoardEdges,
 
     onSaveBoardNodes: model.manageNode.onSaveBoardNodes,
   }));
@@ -77,6 +79,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
         onOk: () =>
           doUnLockNode.run(file.id).then((res: any) => {
             if (res?.code !== 0) return;
+            setBoardEdges([]);
             doGetFile(file.id).then((res) => {
               if (res?.code !== 0) return;
               doGetNodes(currentBoard, res.data);
@@ -111,7 +114,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     deletedModal({
       content: `确定删除节点: ${node.name} 吗？`,
       onOk: () => {
-        return deleteNodeById(node.id).then(() => {
+        return deleteNodeById(node.id).then((res: any) => {
           if (
             node.tertiary !== TertiaryEnums.start &&
             node.tertiary !== TertiaryEnums.end
@@ -121,6 +124,9 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
               primary: node.primary,
               workflowId: node.workflowId,
             });
+          }
+          if (res.code == 0) {
+            setBoardEdges([]);
           }
         });
       },
@@ -166,6 +172,10 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
       doGetNodes(currentBoard, res.data);
     });
   }, [currentBoard]);
+
+  useEffect(() => {
+    setBoardEdges([]);
+  }, [boardFile?.id]);
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>

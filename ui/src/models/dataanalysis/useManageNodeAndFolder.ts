@@ -262,10 +262,16 @@ const useManageNodeAndFolder = () => {
   }, []);
 
   const connectEdge = (edge: any) => {
-    setBoardEdges((boardEdges) => [
-      ...boardEdges,
-      { id: `edge-${edge.source}-${edge.target}`, ...edge },
-    ]);
+    setBoardEdges((boardEdges) => {
+      // 禁止同一对node之间连接两次=>会出现新的bug 甚至包括绘图组件内部也会出问题 特别是连接两次的时候删一根线 组件直接懵了
+      const newBoardEdges = boardEdges.filter((item: any) => {
+        return item.id != `edge-${edge.source}-${edge.target}`;
+      });
+      return [
+        ...newBoardEdges,
+        { id: `edge-${edge.source}-${edge.target}`, ...edge },
+      ];
+    });
   };
 
   const deleteEdges = (edgeList: any[]) => {
@@ -347,6 +353,10 @@ const useManageNodeAndFolder = () => {
         node?.tertiary === TertiaryEnums.end ||
         node?.tertiary === TertiaryEnums.start
       ) {
+        const temporaryBoardEdges = boardEdges.filter((item: any) => {
+          return item.target != nodeId && item.source != nodeId;
+        });
+        setBoardEdges(temporaryBoardEdges);
         setBoardNodeList((nodeList) => {
           console.log(nodeList.filter((node) => node.id !== nodeId));
           return nodeList.filter((node) => node.id !== nodeId);
@@ -355,6 +365,10 @@ const useManageNodeAndFolder = () => {
       } else {
         return doDeletedNode.run(nodeId).then((res) => {
           if (res?.code !== 0) return;
+          const temporaryBoardEdges = boardEdges.filter((item: any) => {
+            return item.target != nodeId && item.source != nodeId;
+          });
+          setBoardEdges(temporaryBoardEdges);
           setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
         });
       }
@@ -432,6 +446,7 @@ const useManageNodeAndFolder = () => {
     setCurrentNode,
     setSelectNode,
     setExtra,
+    setBoardEdges,
 
     doLockNode,
     doUnLockNode,
