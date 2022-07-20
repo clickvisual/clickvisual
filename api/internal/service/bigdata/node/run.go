@@ -2,6 +2,7 @@ package node
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
@@ -13,8 +14,9 @@ func Run(nodeId, uid int) (res view.RespRunNode, err error) {
 	if err != nil {
 		return
 	}
-	if n.LockUid != uid {
-		err = errors.New("please get the node lock and try again")
+	if n.LockUid != uid && n.LockUid != 0 {
+		u, _ := db.UserInfo(n.LockUid)
+		err = errors.New(fmt.Sprintf("%s is editing %s", u.Nickname, n.Name))
 		return
 	}
 	nc, err := db.NodeContentInfo(invoker.Db, n.ID)

@@ -20,7 +20,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     doGetFile,
     doLockNode,
     doUnLockNode,
-    // doRunCodeNode,
+    doRunCodeNode,
     doStopCodeNode,
     doGetNodes,
     doSetNodesAndFolders,
@@ -100,14 +100,10 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   };
 
   const handleRun = (file: any) => {
-    Modal.info({
-      title: "提示",
-      content: "看板运行功能正在开发中...",
+    doRunCodeNode.run(file.id).then((res) => {
+      if (res?.code !== 0) return;
+      doGetFile(file.id);
     });
-    // doRunCodeNode.run(file.id).then((res) => {
-    //   if (res?.code !== 0) return;
-    //   doGetFile(file.id);
-    // });
   };
 
   const handleBoardDeleteNode = (node: any) => {

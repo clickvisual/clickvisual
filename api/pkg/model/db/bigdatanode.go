@@ -21,6 +21,7 @@ const (
 	SecondaryDatabase        = 1
 	SecondaryDataIntegration = 2
 	SecondaryDataMining      = 3
+	SecondaryDashboard       = 4
 )
 
 const (

@@ -60,11 +60,11 @@ const (
 func genTimeCondition(param view.ReqQuery) string {
 	switch param.TimeFieldType {
 	case db.TimeFieldTypeDT:
-		return fmt.Sprintf("%s >= toDateTime(%s) and %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
+		return fmt.Sprintf("%s >= toDateTime(%s) AND %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
 	case db.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s >= toDateTime64(%s, 3) and %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
+		return fmt.Sprintf("%s >= toDateTime64(%s, 3) AND %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
 	case db.TimeFieldTypeTsMs:
-		return fmt.Sprintf("intDiv(%s,1000) >= %s and intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
+		return fmt.Sprintf("intDiv(%s,1000) >= %s AND intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
 	}
 	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
 }

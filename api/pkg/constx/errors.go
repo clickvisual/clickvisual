@@ -23,6 +23,7 @@ var (
 	ErrBigdataRTSyncTypeNotSupported         = &kerror.KError{Code: 10201, Message: "This type of synchronization operation is not supported"}
 	ErrBigdataRTSyncOperatorTypeNotSupported = &kerror.KError{Code: 10202, Message: "This type of node operation is not supported "}
 	ErrBigdataNotSupportNodeType             = &kerror.KError{Code: 10203, Message: "Node type is not supported"}
+	ErrDagExecFailed                         = &kerror.KError{Code: 10204, Message: "DAG execution failed"}
 )
 
 func New(msg string, err string) error {

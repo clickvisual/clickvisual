@@ -147,9 +147,10 @@ type (
 	// }
 
 	RunNodeResult struct {
-		Logs         []map[string]interface{} `json:"logs"`
-		InvolvedSQLs map[string]string        `json:"involvedSQLs"`
-		Message      string                   `json:"message"`
+		Logs           []map[string]interface{} `json:"logs"`
+		InvolvedSQLs   map[string]string        `json:"involvedSQLs"`
+		Message        string                   `json:"message"`
+		DagFailedNodes map[int]string           `json:"dagFailedNodes"`
 	}
 
 	RespRunNode struct {
@@ -250,5 +251,24 @@ type (
 		DutyUid int    `json:"dutyUid" from:"dutyUid"`
 		Cron    string `json:"cron" from:"cron"`
 		Typ     int    `json:"typ" from:"typ"`
+	}
+)
+
+// DAG ...
+type (
+	ReqDAG struct {
+		BoardNodeList []ReqDagNode `json:"boardNodeList"`
+		BoardEdges    []ReqDagEdge `json:"boardEdges"`
+	}
+	ReqDagNode struct {
+		Id int `json:"id"` // node id
+	}
+	ReqDagEdge struct {
+		Source string `json:"source"`
+		Target string `json:"target"`
+	}
+	DagExecFlow struct {
+		NodeId   int           `json:"nodeId"`
+		Children []DagExecFlow `json:"children"`
 	}
 )
