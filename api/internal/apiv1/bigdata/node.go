@@ -437,12 +437,12 @@ func NodeRun(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
 	res, err := node.Run(id, c.Uid())
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), res)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -469,7 +469,8 @@ func NodeStop(c *core.Context) {
 		return
 	}
 	if n.LockUid != c.Uid() {
-		c.JSONE(1, "please get the node lock and try again", nil)
+		u, _ := db.UserInfo(n.LockUid)
+		c.JSONE(1, fmt.Sprintf("%s is editing %s", u.Nickname, n.Name), nil)
 		return
 	}
 	nc, err := db.NodeContentInfo(invoker.Db, n.ID)

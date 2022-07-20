@@ -15,7 +15,7 @@ func (r *primary) execute(n *node) (res view.RunNodeResult, err error) {
 		r.next.execute(n)
 		return
 	}
-	n.secondaryDone = true
+	n.primaryDone = true
 	switch n.n.Primary {
 	case db.PrimaryMining:
 	case db.PrimaryShort:
