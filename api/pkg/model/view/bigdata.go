@@ -247,10 +247,15 @@ type (
 	}
 
 	ReqUpdateCrontab struct {
-		Desc    string `json:"desc" from:"desc"`
-		DutyUid int    `json:"dutyUid" from:"dutyUid"`
-		Cron    string `json:"cron" from:"cron"`
-		Typ     int    `json:"typ" from:"typ"`
+		Desc    string          `json:"desc" from:"desc"`
+		DutyUid int             `json:"dutyUid" from:"dutyUid"`
+		Cron    string          `json:"cron" from:"cron"`
+		Typ     int             `json:"typ" from:"typ"`
+		Args    []ReqCrontabArg `json:"args" from:"args"`
+	}
+	ReqCrontabArg struct {
+		Key string `json:"key" from:"key"`
+		Val string `json:"val" from:"val"`
 	}
 )
 

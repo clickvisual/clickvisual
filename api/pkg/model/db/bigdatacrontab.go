@@ -32,6 +32,7 @@ type BigdataCrontab struct {
 	Typ     int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // typ 0 Normal scheduling 1 Suspended scheduling
 	Status  int    `gorm:"column:status;type:int(11)" json:"status"`           // status 0 default 1 preempt 2 doing
 	Uid     int    `gorm:"column:uid;type:int(11)" json:"uid"`
+	Args    string `gorm:"args:sql_view;type:text" json:"args"` // sql_view
 	Ctime   int64  `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
 	Utime   int64  `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
 }

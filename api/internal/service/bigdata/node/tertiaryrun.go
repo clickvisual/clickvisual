@@ -1,6 +1,10 @@
 package node
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
+
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -19,7 +23,7 @@ func doTyClickHouse(n *node) (res view.RunNodeResult, err error) {
 		return
 	}
 	invoker.Logger.Debug("node", elog.String("content", n.nc.Content))
-	tmp, err := op.Complete(n.nc.Content)
+	tmp, err := op.Complete(argsReplace(n.n.ID, n.nc.Content))
 	if err != nil {
 		invoker.Logger.Error("node", elog.String("step", "doTyClickHouse"), elog.Any("err", err))
 		return
@@ -39,7 +43,7 @@ func doTyMySQL(n *node) (res view.RunNodeResult, err error) {
 		UserName: s.UserName,
 		Password: s.Password,
 		Typ:      s.Typ,
-	}).Query(n.nc.Content)
+	}).Query(argsReplace(n.n.ID, n.nc.Content))
 	if err != nil {
 		return
 	}
@@ -97,4 +101,22 @@ func doTyOfflineSync(n *node) (res view.RunNodeResult, err error) {
 		return
 	}
 	return res, nil
+}
+
+// Make a variable substitution from the parameters of the task schedule
+func argsReplace(nodeId int, sql string) (res string) {
+	crontab, _ := db.CrontabInfo(invoker.Db, nodeId)
+	args := make([]view.ReqCrontabArg, 0)
+	_ = json.Unmarshal([]byte(crontab.Args), &args)
+	if len(args) == 0 {
+		return sql
+	}
+	return argsReplaces(args, sql)
+}
+
+func argsReplaces(replaces []view.ReqCrontabArg, sql string) string {
+	for _, r := range replaces {
+		sql = strings.ReplaceAll(sql, fmt.Sprintf("${%s}", r.Key), r.Val)
+	}
+	return sql
 }
