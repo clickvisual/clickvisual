@@ -14,6 +14,8 @@ import { useIntl } from "umi";
 import deletedModal from "@/components/DeletedModal";
 import lodash from "lodash";
 import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useUrlState from "@ahooksjs/use-url-state";
 
 export interface RightMenuProps {
   clickSource: OfflineRightMenuClickSourceEnums;
@@ -23,6 +25,8 @@ export interface RightMenuProps {
 const RightMenu = (props: RightMenuProps) => {
   const i18n = useIntl();
   const { clickSource, currentNode, handleCloseNodeModal } = props;
+  const { onSetLocalData } = useLocalStorages();
+  const [_, setUrlState] = useUrlState();
   const selectNodeRef = useRef<any>(null);
   const { workflow, currentInstances, manageNode } = useModel("dataAnalysis");
   const {
@@ -96,6 +100,8 @@ const RightMenu = (props: RightMenuProps) => {
             }
             if (selectNodeRef.current?.workflowId === currentNode?.id) {
               setSelectNode(undefined);
+              onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
+              setUrlState({ nodeId: undefined });
             }
             getWorkflows.run({ iid: currentInstances! }).then((res) => {
               if (res?.code !== 0) {
@@ -272,7 +278,11 @@ const RightMenu = (props: RightMenuProps) => {
     {
       label: "看板",
       key: "workflow-board",
-      icon: <SVGIcon type={SVGTypeEnums.board} />,
+      icon: (
+        <div style={{ marginRight: "8px", minWidth: "12px", fontSize: "12px" }}>
+          <SVGIcon type={SVGTypeEnums.board} />
+        </div>
+      ),
       onClick: handleClickBoard,
     },
     {

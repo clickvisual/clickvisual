@@ -235,7 +235,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
           workflowItem.board = res.data.nodes[0];
         }
       });
-  }, [workflow.id]);
+  }, [workflow, workflow?.id]);
 
   useMemo(() => {
     const folderList =
