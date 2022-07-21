@@ -53,7 +53,7 @@ export enum SecondaryEnums {
    */
   all = 0,
   /**
-   * 数据库
+   * 数据库 （临时查询、临时脚本）
    */
   database = 1,
   /**

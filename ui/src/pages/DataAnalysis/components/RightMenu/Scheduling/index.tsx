@@ -137,7 +137,12 @@ const Scheduling = (props: {
               cron: data.cron,
               typ: !Boolean(data.typ),
               uid: data.uid,
-              args: JSON.parse(data.args) || [{ key: "", val: "" }],
+              args:
+                selectNode?.secondary != SecondaryEnums.dataIntegration
+                  ? JSON.parse(data.args?.length > 0 ? data.args : "[]") || [
+                      { key: "", val: "" },
+                    ]
+                  : undefined,
             });
             setIsUpdate(true);
             return;
@@ -199,13 +204,16 @@ const Scheduling = (props: {
           <BasisConfig infoList={infoList} userList={userList} />
         </CustomCollapse>
         {/* 参数 */}
-        <CustomCollapse
-          title={i18n.formatMessage({
-            id: "bigdata.components.RightMenu.Scheduling.Parameter.title",
-          })}
-        >
-          <Parameter />
-        </CustomCollapse>
+        {(selectNode?.secondary == SecondaryEnums.database ||
+          selectNode?.secondary == SecondaryEnums.dataMining) && (
+          <CustomCollapse
+            title={i18n.formatMessage({
+              id: "bigdata.components.RightMenu.Scheduling.Parameter.title",
+            })}
+          >
+            <Parameter />
+          </CustomCollapse>
+        )}
       </Form>
     </Drawer>
   );
