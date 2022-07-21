@@ -21,6 +21,7 @@ const ManageNodeModal = () => {
     setCurrentNode,
     currentNode,
     doGetSqlSource,
+    isBoardCreateNode,
     iid,
   } = useModel("dataAnalysis", (model) => ({
     doGetSqlSource: model.dataSourceManage.doGetSourceList,
@@ -33,6 +34,7 @@ const ManageNodeModal = () => {
     hideNodeModal: model.manageNode.hideNodeModal,
     setCurrentNode: model.manageNode.setCurrentNode,
     currentNode: model.manageNode.currentNode,
+    isBoardCreateNode: model.manageNode.isBoardCreateNode,
     iid: model.currentInstances,
   }));
 
@@ -125,7 +127,7 @@ const ManageNodeModal = () => {
         onFinish={handleSubmit}
       >
         <Form.Item name={"tertiary"} label="tertiary">
-          <Select placeholder="请选择tertiary">
+          <Select placeholder="请选择tertiary" disabled={isBoardCreateNode}>
             {TertiaryList.filter((item) =>
               item.types.includes(extra?.secondary)
             ).map((item: { id: number; title: string; enum: number }) => (
@@ -147,7 +149,7 @@ const ManageNodeModal = () => {
               return null;
             }
             return (
-              <Form.Item name={"sourceId"} label={"Datasource"}>
+              <Form.Item name={"sourceId"} label={"datasource"}>
                 <Select options={SourceOptions} placeholder="请选择 source" />
               </Form.Item>
             );
@@ -157,7 +159,7 @@ const ManageNodeModal = () => {
           <Input placeholder="请输入节点名称" />
         </Form.Item>
         <Form.Item name={"desc"} label="desc">
-          <Input placeholder="请输入节点名称" />
+          <Input placeholder="请输入节点描述" />
         </Form.Item>
       </Form>
     </Modal>
