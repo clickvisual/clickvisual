@@ -753,6 +753,7 @@ export default {
 
   "bigdata.workflow.dataIntegration": "Data integration",
   "bigdata.workflow.dataDevelopment": "Data Analytics",
+  "bigdata.workflow.board": "Board",
 
   // bigdata DataSourceManage
   "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":

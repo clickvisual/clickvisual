@@ -127,6 +127,10 @@ export enum OfflineRightMenuClickSourceEnums {
    * 文件夹
    */
   folder = "folder",
+  /**
+   * 看板
+   */
+  board = "board",
 }
 
 export enum DataSourceReqTypEnums {

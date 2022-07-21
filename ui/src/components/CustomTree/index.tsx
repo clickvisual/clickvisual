@@ -7,6 +7,7 @@ import { DownOutlined } from "@ant-design/icons";
 export enum NodeType {
   folder = "folder",
   node = "node",
+  board = "board",
 }
 
 export interface CustomTree extends TreeProps {

@@ -701,6 +701,7 @@ export default {
 
   "bigdata.workflow.dataIntegration": "数据集成",
   "bigdata.workflow.dataDevelopment": "数据开发",
+  "bigdata.workflow.board": "看板",
 
   // bigdata DataSourceManage
   "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
