@@ -26,4 +26,41 @@
       width: 200px;
     }
   }
+  .parameter {
+    padding: 0 20px;
+
+    .newBtn {
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .argsItem {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 90%;
+
+      .span {
+        margin-bottom: 24px;
+      }
+
+      :global .ant-form-item {
+        width: 43%;
+        .ant-form-item-control {
+          width: 100%;
+          .ant-form-item-control-input {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+
+  :global .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    border-radius: 4px;
+  }
+
+  :global .ant-input {
+    border-radius: 4px;
+  }
 }

@@ -804,6 +804,13 @@ export default {
   "bigdata.components.RightMenu.Scheduling.thoseResponsible": "Owner",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "Scheduling rule cron field fill in the help document",
+  "bigdata.components.RightMenu.Scheduling.Parameter.title": "Parameter",
+  "bigdata.components.RightMenu.Scheduling.Parameter.newButton":
+    "The new parameters",
+  "bigdata.components.RightMenu.Scheduling.Parameter.key.placeholder":
+    "Please enter a parameter name",
+  "bigdata.components.RightMenu.Scheduling.Parameter.val.placeholder":
+    "Assign values to the parameters",
 
   "bigdata.components.Results.involvedSQLs.key.placeholder":
     "Please select view",

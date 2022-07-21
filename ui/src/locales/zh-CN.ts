@@ -750,6 +750,13 @@ export default {
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "调度规则 cron 字段填写 帮助文档",
 
+  "bigdata.components.RightMenu.Scheduling.Parameter.title": "参数",
+  "bigdata.components.RightMenu.Scheduling.Parameter.newButton": "新增参数",
+  "bigdata.components.RightMenu.Scheduling.Parameter.key.placeholder":
+    "请输入参数名",
+  "bigdata.components.RightMenu.Scheduling.Parameter.val.placeholder":
+    "请为参数赋值",
+
   "bigdata.components.Results.involvedSQLs.key.placeholder": "请选择查看",
 
   "bigdata.components.Nav.navList.dataSourceManage": "数据源管理",
