@@ -48,12 +48,12 @@ func IndexUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesIndexUpdate,
+		map[string]interface{}{"req": req})
 	if err = service.AnalysisFieldsUpdate(tid, req.Data); err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesIndexUpdate,
-		map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
