@@ -11,11 +11,19 @@
 ClickVisual 是一个轻量级的基于浏览器的日志分析和查询平台，底层数据存储采用 ClickHouse。
 
 ## 文档
-
 访问 <https://clickvisual.gocn.vip/> 查看最新文档。
 
-### 日志查询界面
-![log-search](https://cdn.gocn.vip/clickvisual/assets/img/table-query.9e035f3f.png)
+### 日志查询演示
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/logs.b24e990e.gif)
+
+### 告警配置演示
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/alarm.c7d6042a.gif)
+
+### 数据分析演示
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/bigdata.cabd03b8.gif)
+
+### DAG 工作流
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/dag.f8977497.png)
 
 ### 可视化配置界面
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/visual-configuration.62ebf9ad.png)

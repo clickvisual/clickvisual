@@ -14,10 +14,19 @@ ClickVisual is a lightweight browser-based logs analytics and logs search platfo
 
 See <https://clickvisual.gocn.vip>
 
-### log search page
-![log-search](https://cdn.gocn.vip/clickvisual/assets/img/table-query.9e035f3f.png)
+### Log query demonstration
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/logs.b24e990e.gif)
 
-### configuration page
+### Alarm process demonstration
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/alarm.c7d6042a.gif)
+
+### Data analysis demonstration
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/bigdata.cabd03b8.gif)
+
+### DAG workflow
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/dag.f8977497.png)
+
+### Configuration page
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/visual-configuration.62ebf9ad.png)
 
 ## Features
