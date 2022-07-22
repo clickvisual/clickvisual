@@ -373,7 +373,7 @@ export default {
 
   // Data Logs-Statistical Table
   "log.table.note":
-    "注：当前请求默认限制返回 100 行，若要获取更多结果，请自行添加 limit 语句",
+    "注：谨慎操作",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",

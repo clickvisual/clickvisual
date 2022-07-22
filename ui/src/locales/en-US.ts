@@ -398,7 +398,7 @@ export default {
 
   // Data Logs-Statistical Table
   "log.table.note":
-    "Note: The default return limit for the current request is 100 lines. For more results, add your own restriction statements",
+    "Note: Careful operation",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",
