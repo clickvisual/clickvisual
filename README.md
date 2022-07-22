@@ -21,7 +21,7 @@ See <https://clickvisual.gocn.vip>
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/alarm.c7d6042a.gif)
 
 ### Data analysis demonstration
-![log-search](https://cdn.gocn.vip/clickvisual/assets/img/bigdata.cabd03b8.gif)
+![log-search](https://cdn.gocn.vip/clickvisual/assets/img/bigdata.d91a94f0.gif)
 
 ### DAG workflow
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/dag.f8977497.png)
