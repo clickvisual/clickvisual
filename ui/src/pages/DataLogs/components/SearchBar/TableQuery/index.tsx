@@ -132,7 +132,6 @@ const TableQuery = () => {
             minimap: {
               enabled: true,
             },
-            readOnly: true,
           }}
           value={sql}
           onChange={(value) => {
