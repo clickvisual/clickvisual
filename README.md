@@ -20,9 +20,6 @@ See <https://clickvisual.gocn.vip>
 ### Alarm process demonstration
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/alarm.c7d6042a.gif)
 
-### Data analysis demonstration
-![log-search](https://cdn.gocn.vip/clickvisual/assets/img/bigdata.d91a94f0.gif)
-
 ### DAG workflow
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/dag.f8977497.png)
 

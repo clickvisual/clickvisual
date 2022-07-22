@@ -641,11 +641,7 @@ func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
 	if err != nil {
 		return
 	}
-	if len(tmp) > 100 {
-		res.Logs = tmp[:100]
-	} else {
-		res.Logs = tmp
-	}
+	res.Logs = tmp
 	invoker.Logger.Debug("Complete", elog.String("sql", sql), elog.Any("logs", res.Logs))
 	return
 }

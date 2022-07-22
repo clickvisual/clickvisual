@@ -19,9 +19,6 @@ ClickVisual 是一个轻量级的基于浏览器的日志分析和查询平台�
 ### 告警配置演示
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/alarm.c7d6042a.gif)
 
-### 数据分析演示
-![log-search](https://cdn.gocn.vip/clickvisual/assets/img/bigdata.cabd03b8.gif)
-
 ### DAG 工作流
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/dag.f8977497.png)
 
