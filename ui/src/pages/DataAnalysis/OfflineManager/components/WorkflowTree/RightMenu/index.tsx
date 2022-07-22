@@ -5,7 +5,7 @@ import {
   SecondaryEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ItemType } from "antd/es/menu/hooks/useItems";
 import { AppstoreAddOutlined, EditOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
@@ -13,7 +13,7 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import deletedModal from "@/components/DeletedModal";
 import lodash from "lodash";
-import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
+// import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import useUrlState from "@ahooksjs/use-url-state";
 
@@ -55,10 +55,14 @@ const RightMenu = (props: RightMenuProps) => {
     []
   );
 
-  const handleClickBoard = useCallback(() => {
-    setSelectNode(currentNode.board);
+  // const handleClickBoard = useCallback(() => {
+  //   setSelectNode(currentNode.board);
+  //   selectNodeRef.current = currentNode.board;
+  // }, [currentNode]);
+
+  useEffect(() => {
     selectNodeRef.current = currentNode.board;
-  }, [currentNode]);
+  }, [currentNode, currentNode.board]);
 
   const handleClickUpdateWorkflow = useCallback(() => {
     if (!currentNode) return;
@@ -275,16 +279,17 @@ const RightMenu = (props: RightMenuProps) => {
   ];
 
   const workflowMenu: ItemType[] = [
-    {
-      label: "看板",
-      key: "workflow-board",
-      icon: (
-        <div style={{ marginRight: "8px", minWidth: "12px", fontSize: "12px" }}>
-          <SVGIcon type={SVGTypeEnums.board} />
-        </div>
-      ),
-      onClick: handleClickBoard,
-    },
+    // TODO: delete
+    // {
+    //   label: "看板",
+    //   key: "workflow-board",
+    //   icon: (
+    //     <div style={{ marginRight: "8px", minWidth: "12px", fontSize: "12px" }}>
+    //       <SVGIcon type={SVGTypeEnums.board} />
+    //     </div>
+    //   ),
+    //   onClick: handleClickBoard,
+    // },
     {
       label: i18n.formatMessage({ id: "bigdata.workflow.rightMenu.update" }),
       key: "update-workflow",

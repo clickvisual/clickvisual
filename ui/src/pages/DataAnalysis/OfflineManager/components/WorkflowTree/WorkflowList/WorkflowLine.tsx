@@ -181,6 +181,8 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     if (nodeType === NodeType.node) {
       setSelectNode(currentNode);
       currentNode.secondary == 3 && onGetFolderList(currentNode.id);
+    } else if (nodeType === NodeType.board) {
+      setSelectNode(currentNode.board);
     }
   };
 
@@ -250,6 +252,19 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         source: OfflineRightMenuClickSourceEnums.workflowItem,
         nodeType: NodeType.folder,
         children: [
+          {
+            key: `${workflow.id}-${OfflineRightMenuClickSourceEnums.board}`,
+            title: i18n.formatMessage({
+              id: "bigdata.workflow.board",
+            }),
+            currentNode: {
+              ...workflowItem,
+              primary: PrimaryEnums.mining,
+              secondary: SecondaryEnums.dataIntegration,
+            },
+            source: OfflineRightMenuClickSourceEnums.board,
+            nodeType: NodeType.board,
+          },
           {
             key: `${workflow.id}-${OfflineRightMenuClickSourceEnums.dataIntegration}`,
             title: i18n.formatMessage({

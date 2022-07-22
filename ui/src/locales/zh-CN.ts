@@ -701,6 +701,7 @@ export default {
 
   "bigdata.workflow.dataIntegration": "数据集成",
   "bigdata.workflow.dataDevelopment": "数据开发",
+  "bigdata.workflow.board": "看板",
 
   // bigdata DataSourceManage
   "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
@@ -748,6 +749,13 @@ export default {
   "bigdata.components.RightMenu.Scheduling.thoseResponsible": "责任人",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "调度规则 cron 字段填写 帮助文档",
+
+  "bigdata.components.RightMenu.Scheduling.Parameter.title": "参数",
+  "bigdata.components.RightMenu.Scheduling.Parameter.newButton": "新增参数",
+  "bigdata.components.RightMenu.Scheduling.Parameter.key.placeholder":
+    "请输入参数名",
+  "bigdata.components.RightMenu.Scheduling.Parameter.val.placeholder":
+    "请为参数赋值",
 
   "bigdata.components.Results.involvedSQLs.key.placeholder": "请选择查看",
 

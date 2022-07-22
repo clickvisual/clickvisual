@@ -34,7 +34,7 @@ const FieldMappingModule = ({
     },
   ];
   const sourceData = useMemo(() => {
-    if (!form.getFieldValue(["source", "table"]) || source.length == 0) {
+    if (!form.getFieldValue(["source", "table"]) || source?.length == 0) {
       return [];
     }
 
@@ -54,7 +54,7 @@ const FieldMappingModule = ({
   }, [source]);
 
   const targetData = useMemo(() => {
-    if (!form.getFieldValue(["target", "table"]) || target.length == 0) {
+    if (!form.getFieldValue(["target", "table"]) || target?.length == 0) {
       return [];
     }
     return [

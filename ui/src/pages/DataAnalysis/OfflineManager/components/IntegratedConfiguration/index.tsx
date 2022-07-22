@@ -61,7 +61,7 @@ const IntegratedConfiguration = ({
         sourceFilter: sourceForm.sourceFilter,
       },
       target: {
-        typ: DataSourceTypeEnums[targetForm.type].toLowerCase(),
+        typ: DataSourceTypeEnums[targetForm.type]?.toLowerCase(),
         sourceId: targetForm.datasource,
         cluster: targetForm.cluster,
         database: targetForm.database,

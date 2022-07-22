@@ -55,6 +55,7 @@ const Board = ({
     connectEdge,
     deleteEdges,
     onChangeBoardNodes,
+    setIsBoardCreateNode,
   } = useModel("dataAnalysis", (model) => ({
     nodes: model.workflowBoard.nodes,
     setNodes: model.workflowBoard.setNodes,
@@ -70,6 +71,7 @@ const Board = ({
     boardEdges: model.manageNode.boardEdges,
     connectEdge: model.manageNode.connectEdge,
     deleteEdges: model.manageNode.deleteEdges,
+    setIsBoardCreateNode: model.manageNode.setIsBoardCreateNode,
   }));
 
   const onSelectionChange = useCallback(({ edges }) => {
@@ -137,6 +139,7 @@ const Board = ({
         showNodeModal,
         onCreate
       );
+      setIsBoardCreateNode(true);
     },
     [reactFlowInstance]
   );

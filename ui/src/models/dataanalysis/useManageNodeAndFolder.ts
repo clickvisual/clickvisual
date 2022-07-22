@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   PrimaryEnums,
   SecondaryEnums,
@@ -56,7 +56,7 @@ export enum NodeBoardIdEnums {
 export const TertiaryList = [
   {
     id: TertiaryEnums.clickhouse,
-    title: "clickhouse",
+    title: "ClickHouse",
     enum: TertiaryEnums.clickhouse,
     types: [
       SecondaryEnums.database,
@@ -67,7 +67,7 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.mysql,
-    title: "mysql",
+    title: "MySQL",
     enum: TertiaryEnums.mysql,
     types: [
       SecondaryEnums.dataMining,
@@ -111,6 +111,8 @@ export const TertiaryList = [
 
 const useManageNodeAndFolder = () => {
   const [visibleNode, setVisibleNode] = useState<boolean>(false);
+  // 是否是通过看板拖动的方式创建的节点
+  const [isBoardCreateNode, setIsBoardCreateNode] = useState<boolean>(false);
   const [visibleFolder, setVisibleFolder] = useState<boolean>(false);
   const [isEditNode, setIsEditNode] = useState<boolean>(false);
   // 当前需要修改的节点
@@ -424,6 +426,10 @@ const useManageNodeAndFolder = () => {
     [boardNodeList, boardEdges]
   );
 
+  useEffect(() => {
+    !visibleNode && setIsBoardCreateNode(false);
+  }, [visibleNode]);
+
   return {
     visibleNode,
     visibleFolder,
@@ -435,6 +441,7 @@ const useManageNodeAndFolder = () => {
     extra,
     nodes,
     folders,
+    isBoardCreateNode,
 
     showNodeModal,
     hideNodeModal,
@@ -447,6 +454,7 @@ const useManageNodeAndFolder = () => {
     setSelectNode,
     setExtra,
     setBoardEdges,
+    setIsBoardCreateNode,
 
     doLockNode,
     doUnLockNode,

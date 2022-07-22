@@ -237,15 +237,6 @@ const FileTitle = ({
                       })}
                     </Button>
                   )}
-                  {file?.lockUid == currentUser?.id && isChange && (
-                    <Tooltip title={i18n.formatMessage({ id: "button.save" })}>
-                      <Button
-                        type={"link"}
-                        onClick={handleSave}
-                        icon={<SaveOutlined />}
-                      />
-                    </Tooltip>
-                  )}
                 </>
               )}
               {type == FileTitleType.sql && file.lockUid == currentUser?.id && (
@@ -276,6 +267,15 @@ const FileTitle = ({
                     }
                     onClick={() => handleRun(file)}
                     icon={<PlayCircleOutlined />}
+                  />
+                </Tooltip>
+              )}
+              {file?.lockUid == currentUser?.id && isChange && (
+                <Tooltip title={i18n.formatMessage({ id: "button.save" })}>
+                  <Button
+                    type={"link"}
+                    onClick={handleSave}
+                    icon={<SaveOutlined />}
                   />
                 </Tooltip>
               )}
