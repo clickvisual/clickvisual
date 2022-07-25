@@ -7,6 +7,8 @@ import (
 
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/server/egin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
@@ -20,6 +22,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/setting"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/template"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/user"
+	"github.com/clickvisual/clickvisual/api/internal/apiv2/search"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -226,6 +229,17 @@ func GetRouter() *egin.Component {
 		v1.GET("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabInfo))
 		v1.PATCH("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabUpdate))
 		v1.DELETE("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabDelete))
+	}
+
+	// Defines interface prefixes in terms of module overrides：
+	// The log module - search
+	// The alarm module - alarm
+	// The configuration module - config
+	// The system management module - system
+	v2 := r.Group(apiPrefix+"/v2", middlewares.AuthChecker())
+	{
+		v2.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+		v2.GET("/search/instances", core.Handle(search.InstanceList))
 	}
 	return r
 }

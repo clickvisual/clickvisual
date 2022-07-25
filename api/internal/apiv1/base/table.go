@@ -195,7 +195,7 @@ func TableList(c *core.Context) {
 	}
 	res := make([]view.RespTableSimple, 0)
 	for _, row := range tableList {
-		if !service.IsPermissionTable(c.Uid(), row.Database.Iid, row.ID, pmsplugin.Log) {
+		if !service.TableIsPermission(c.Uid(), row.Database.Iid, row.ID, pmsplugin.Log) {
 			continue
 		}
 		res = append(res, view.RespTableSimple{

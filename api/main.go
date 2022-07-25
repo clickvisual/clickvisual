@@ -7,6 +7,8 @@ import (
 	"github.com/gotomicro/ego/server/egovernor"
 	"github.com/gotomicro/ego/task/ejob"
 
+	_ "github.com/clickvisual/clickvisual/api/docs"
+
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/router"
 	"github.com/clickvisual/clickvisual/api/internal/service"
@@ -14,6 +16,11 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/job"
 )
 
+// 添加注释以描述 server 信息
+// @title           Swagger Example API
+// @version         1.0
+// @description     This is a sample server celler server.
+// @BasePath  		/api/v2
 func main() {
 	app := ego.New(
 		ego.WithBeforeStopClean(

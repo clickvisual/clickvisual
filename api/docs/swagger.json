@@ -1,0 +1,106 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server celler server.",
+        "title": "Swagger Example API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api/v2",
+    "paths": {
+        "/api/v2/search/instances": {
+            "get": {
+                "description": "gets all instances, databases, and table nested data for the log page",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "instance list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/view.RespInstanceSimple"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "view.RespDatabaseSimple": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "string"
+                },
+                "databaseName": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "iid": {
+                    "type": "integer"
+                },
+                "isCreateByCV": {
+                    "type": "integer"
+                },
+                "tables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.RespTableSimple"
+                    }
+                }
+            }
+        },
+        "view.RespInstanceSimple": {
+            "type": "object",
+            "properties": {
+                "databases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.RespDatabaseSimple"
+                    }
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "instanceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "view.RespTableSimple": {
+            "type": "object",
+            "properties": {
+                "createType": {
+                    "type": "integer"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "did": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,70 @@
+basePath: /api/v2
+definitions:
+  view.RespDatabaseSimple:
+    properties:
+      cluster:
+        type: string
+      databaseName:
+        type: string
+      desc:
+        type: string
+      id:
+        type: integer
+      iid:
+        type: integer
+      isCreateByCV:
+        type: integer
+      tables:
+        items:
+          $ref: '#/definitions/view.RespTableSimple'
+        type: array
+    type: object
+  view.RespInstanceSimple:
+    properties:
+      databases:
+        items:
+          $ref: '#/definitions/view.RespDatabaseSimple'
+        type: array
+      desc:
+        type: string
+      id:
+        type: integer
+      instanceName:
+        type: string
+    type: object
+  view.RespTableSimple:
+    properties:
+      createType:
+        type: integer
+      desc:
+        type: string
+      did:
+        type: integer
+      id:
+        type: integer
+      tableName:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a sample server celler server.
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /api/v2/search/instances:
+    get:
+      description: gets all instances, databases, and table nested data for the log
+        page
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/view.RespInstanceSimple'
+            type: array
+      summary: instance list
+      tags:
+      - search
+swagger: "2.0"
