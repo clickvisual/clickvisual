@@ -19,6 +19,7 @@ const DataAnalysisNav = () => {
   const {
     onChangeNavKey,
     navKey,
+    openNodeId,
     realTimeTraffic,
     changeOpenNodeId,
     changeOpenNodeParentId,
@@ -76,6 +77,12 @@ const DataAnalysisNav = () => {
       onChangeNavKey(dataAnalysisNavKey);
     }
   }, []);
+
+  // setUrlState同一时间只能执行一个于是将navKey和nodeId写在一起 参考 https://github.com/alibaba/hooks/issues/1394
+  useEffect(() => {
+    setUrlState({ navKey: navKey, nodeId: openNodeId });
+    onSetLocalData({ openNodeId }, LocalModuleType.dataAnalysisOpenNodeId);
+  }, [openNodeId, navKey]);
 
   useEffect(() => {
     if ((!urlState || !urlState.navKey) && !dataAnalysisNavKey) {

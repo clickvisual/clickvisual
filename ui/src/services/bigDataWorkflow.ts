@@ -6,6 +6,7 @@ export interface BaseWorkflowPayload {
 }
 
 export interface WorkflowInfo extends TimeBaseType {
+  board: any;
   desc: string;
   id: number;
   iid: number;
