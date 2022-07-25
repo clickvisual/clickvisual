@@ -26,7 +26,7 @@ const DataAnalysis = () => {
     temporaryQuery,
   } = useModel("dataAnalysis");
   const i18n = useIntl();
-  const [urlState, setUrlState] = useUrlState<any>();
+  const [urlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
   const { setSelectNode, nodes, setSelectKeys } = manageNode;
   const { temporaryQueryNodes, setSelectNodeKeys } = temporaryQuery;
@@ -67,11 +67,6 @@ const DataAnalysis = () => {
     }
     return <></>;
   }, [navKey, currentInstances, openNodeId]);
-
-  useEffect(() => {
-    setUrlState({ nodeId: openNodeId });
-    onSetLocalData({ openNodeId }, LocalModuleType.dataAnalysisOpenNodeId);
-  }, [openNodeId]);
 
   useEffect(() => {
     if (urlState && urlState.nodeId && urlState.nodeId != openNodeId) {

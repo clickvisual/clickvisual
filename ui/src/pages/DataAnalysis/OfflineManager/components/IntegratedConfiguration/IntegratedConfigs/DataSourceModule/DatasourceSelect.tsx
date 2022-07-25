@@ -206,7 +206,10 @@ const DatasourceSelect = ({
                 }
               })
             )
-            .then((res: any) => setDatabaseList(res?.data || []));
+            .then((res: any) => {
+              if (res?.code !== 0) return;
+              setDatabaseList(res?.data || []);
+            });
           break;
         case DataSourceTypeEnums.MySQL:
           doGetSqlSource
@@ -221,7 +224,10 @@ const DatasourceSelect = ({
                 }
               })
             )
-            .then((res: any) => setDatasourceList(res?.data || []));
+            .then((res: any) => {
+              if (res?.code !== 0) return;
+              setDatasourceList(res?.data || []);
+            });
           break;
       }
     },
@@ -243,7 +249,10 @@ const DatasourceSelect = ({
             }
           })
         )
-        .then((res: any) => setDatabaseList(res?.data || []));
+        .then((res: any) => {
+          if (res?.code !== 0) return;
+          setDatabaseList(res?.data || []);
+        });
     },
     [itemNamePath]
   );
@@ -268,7 +277,10 @@ const DatasourceSelect = ({
                 }
               })
             )
-            .then((res: any) => setSourceTableList(res?.data || []));
+            .then((res: any) => {
+              if (res?.code !== 0) return;
+              setSourceTableList(res?.data || []);
+            });
           break;
         case DataSourceTypeEnums.MySQL:
           doGetSourceTable
@@ -287,7 +299,10 @@ const DatasourceSelect = ({
                 }
               })
             )
-            .then((res: any) => setSourceTableList(res?.data || []));
+            .then((res: any) => {
+              if (res?.code !== 0) return;
+              setSourceTableList(res?.data || []);
+            });
       }
     },
     [itemNamePath]
