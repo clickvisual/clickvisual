@@ -89,7 +89,7 @@ func DatabaseList(c *core.Context) {
 	}
 	res := make([]view.RespDatabaseItem, 0)
 	for _, row := range dl {
-		if !service.IsPermissionDatabase(c.Uid(), row.Iid, row.ID, pmsplugin.Log) {
+		if !service.DatabaseViewIsPermission(c.Uid(), row.Iid, row.ID) {
 			continue
 		}
 		tmp := view.RespDatabaseItem{

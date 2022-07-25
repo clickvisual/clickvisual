@@ -11,7 +11,16 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func TableIsPermission(uid, iid, tid int, subResource string) bool {
+func TableViewIsPermission(uid, iid, tid int) bool {
+	if tableViewIsPermission(uid, iid, tid, pmsplugin.Log) ||
+		tableViewIsPermission(uid, iid, tid, pmsplugin.Alarm) ||
+		tableViewIsPermission(uid, iid, tid, pmsplugin.BigData) {
+		return true
+	}
+	return false
+}
+
+func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 	// check database permission
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,
@@ -24,7 +33,7 @@ func TableIsPermission(uid, iid, tid int, subResource string) bool {
 	}); err == nil {
 		invoker.Logger.Debug("ReadAllPermissionInstance",
 			elog.Any("uid", uid),
-			elog.Any("step", "IsPermissionDatabase"),
+			elog.Any("step", "DatabaseViewIsPermission"),
 			elog.Any("iid", iid),
 			elog.Any("tid", tid),
 			elog.Any("subResource", subResource))
@@ -32,7 +41,7 @@ func TableIsPermission(uid, iid, tid int, subResource string) bool {
 	}
 	invoker.Logger.Warn("ReadAllPermissionInstance",
 		elog.Any("uid", uid),
-		elog.Any("step", "IsPermissionDatabase"),
+		elog.Any("step", "DatabaseViewIsPermission"),
 		elog.Any("iid", iid),
 		elog.Any("tid", tid),
 		elog.Any("subResource", subResource))

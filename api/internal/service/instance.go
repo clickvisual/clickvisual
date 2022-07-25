@@ -107,7 +107,7 @@ func ReadAllPermissionTable(uid int, subResource string) []int {
 	tables, _ := db.TableList(invoker.Db, egorm.Conds{})
 	resArr := make([]int, 0)
 	for _, table := range tables {
-		if !TableIsPermission(uid, table.Database.Iid, table.ID, subResource) {
+		if !TableViewIsPermission(uid, table.Database.Iid, table.ID) {
 			invoker.Logger.Error("ReadAllPermissionTable",
 				elog.Any("uid", uid),
 				elog.Any("iid", table.Database.Iid),
@@ -125,7 +125,7 @@ func ReadAllPermissionInstance(uid int, subResource string) ([]int, string) {
 	resArr := make([]int, 0)
 	var resStr string
 	for _, instance := range ins {
-		if !IsPermissionInstance(uid, instance.ID, subResource) {
+		if !InstanceViewIsPermission(uid, instance.ID, subResource) {
 			invoker.Logger.Error("ReadAllPermissionInstance",
 				elog.Any("uid", uid),
 				elog.Any("iid", instance.ID),
@@ -142,7 +142,7 @@ func ReadAllPermissionInstance(uid int, subResource string) ([]int, string) {
 	return resArr, resStr
 }
 
-func IsPermissionInstance(uid int, iid int, subResource string) bool {
+func InstanceViewIsPermission(uid int, iid int, subResource string) bool {
 	// check instance permission
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,
@@ -153,7 +153,7 @@ func IsPermissionInstance(uid int, iid int, subResource string) bool {
 	}); err == nil {
 		invoker.Logger.Debug("ReadAllPermissionInstance",
 			elog.Any("uid", uid),
-			elog.Any("step", "IsPermissionInstance"),
+			elog.Any("step", "InstanceViewIsPermission"),
 			elog.Any("iid", iid),
 			elog.Any("subResource", subResource))
 		return true
@@ -167,42 +167,7 @@ func IsPermissionInstance(uid int, iid int, subResource string) bool {
 		return false
 	}
 	for _, d := range databases {
-		if IsPermissionDatabase(uid, iid, d.ID, subResource) {
-			return true
-		}
-	}
-	return false
-}
-
-func IsPermissionDatabase(uid, iid, did int, subResource string) bool {
-	// check database permission
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      uid,
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: subResource,
-		Acts:        []string{pmsplugin.ActView},
-		DomainType:  pmsplugin.PrefixDatabase,
-		DomainId:    strconv.Itoa(did),
-	}); err == nil {
-		invoker.Logger.Debug("ReadAllPermissionInstance",
-			elog.Any("uid", uid),
-			elog.Any("step", "IsPermissionDatabase"),
-			elog.Any("iid", iid),
-			elog.Any("did", did),
-			elog.Any("subResource", subResource))
-		return true
-	}
-	// check databases permission
-	conds := egorm.Conds{}
-	conds["did"] = did
-	tables, err := db.TableList(invoker.Db, conds)
-	if err != nil {
-		invoker.Logger.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
-		return false
-	}
-	for _, t := range tables {
-		if TableIsPermission(uid, iid, t.ID, subResource) {
+		if databaseViewIsPermission(uid, iid, d.ID, subResource) {
 			return true
 		}
 	}
@@ -387,8 +352,8 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 	return nil
 }
 
-func InstanceFilterPms(uid int, sr string) (res []view.RespInstanceSimple, err error) {
-	dArr, err := DatabaseListFilterPms(uid, sr)
+func InstanceFilterPms(uid int) (res []view.RespInstanceSimple, err error) {
+	dArr, err := DatabaseListFilterPms(uid)
 	if err != nil {
 		return
 	}
