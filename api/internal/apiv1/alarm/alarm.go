@@ -180,7 +180,7 @@ func List(c *core.Context) {
 	)
 	if tid != 0 {
 		table, _ := db.TableInfo(invoker.Db, tid)
-		if !service.TableIsPermission(c.Uid(), table.Database.Iid, tid, pmsplugin.Alarm) {
+		if !service.TableViewIsPermission(c.Uid(), table.Database.Iid, tid) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}
@@ -188,7 +188,7 @@ func List(c *core.Context) {
 		total, list = db.AlarmListPage(query, req)
 	} else if did != 0 {
 		database, _ := db.DatabaseInfo(invoker.Db, did)
-		if !service.IsPermissionDatabase(c.Uid(), database.Iid, did, pmsplugin.Alarm) {
+		if !service.DatabaseViewIsPermission(c.Uid(), database.Iid, did) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}

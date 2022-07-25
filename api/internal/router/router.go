@@ -22,7 +22,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/setting"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/template"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/user"
-	"github.com/clickvisual/clickvisual/api/internal/apiv2/search"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -232,6 +231,7 @@ func GetRouter() *egin.Component {
 	}
 
 	// Defines interface prefixes in terms of module overrides：
+	// The global basic readable information module - base
 	// The log module - search
 	// The alarm module - alarm
 	// The configuration module - config
@@ -239,7 +239,9 @@ func GetRouter() *egin.Component {
 	v2 := r.Group(apiPrefix+"/v2", middlewares.AuthChecker())
 	{
 		v2.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-		v2.GET("/search/instances", core.Handle(search.InstanceList))
+	}
+	{
+		v2.GET("/base/instances", core.Handle(base.InstanceList))
 	}
 	return r
 }

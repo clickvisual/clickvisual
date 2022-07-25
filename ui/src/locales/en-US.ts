@@ -330,7 +330,7 @@ export default {
   "datasource.logLibrary.quickAdd": "Create log library",
   "datasource.tooltip.icon.info": "Log Library Details",
   "datasource.tooltip.icon.edit": "Edit log library",
-  "datasource.tooltip.icon.alarmRuleList": "Alarm Rule List",
+  "datasource.tooltip.icon.alarmRuleList": "Viewing Related Alarms",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
