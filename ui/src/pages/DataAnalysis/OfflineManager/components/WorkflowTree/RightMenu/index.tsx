@@ -61,8 +61,8 @@ const RightMenu = (props: RightMenuProps) => {
   // }, [currentNode]);
 
   useEffect(() => {
-    selectNodeRef.current = currentNode.board;
-  }, [currentNode, currentNode.board]);
+    currentNode?.board && (selectNodeRef.current = currentNode.board);
+  }, [currentNode, currentNode?.board]);
 
   const handleClickUpdateWorkflow = useCallback(() => {
     if (!currentNode) return;

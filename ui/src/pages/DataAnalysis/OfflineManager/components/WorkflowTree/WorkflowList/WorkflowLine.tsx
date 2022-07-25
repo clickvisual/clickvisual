@@ -180,7 +180,8 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     setSelectKeys([node.key]);
     if (nodeType === NodeType.node) {
       setSelectNode(currentNode);
-      currentNode.secondary == 3 && onGetFolderList(currentNode.id);
+      currentNode.secondary == SecondaryEnums.dataMining &&
+        onGetFolderList(currentNode.id);
     } else if (nodeType === NodeType.board) {
       setSelectNode(currentNode.board);
     }
@@ -253,7 +254,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
         nodeType: NodeType.folder,
         children: [
           {
-            key: `${workflow.id}-${OfflineRightMenuClickSourceEnums.board}`,
+            key: `${workflow.id}-${workflowItem.board?.id}-${workflowItem.board?.name}`,
             title: i18n.formatMessage({
               id: "bigdata.workflow.board",
             }),
@@ -321,7 +322,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     };
     setDefaultExpandedKeys(handleAutoExpandParent(nodeTree));
     setTreeData(nodeTree);
-  }, [nodes, folders, workflowItem]);
+  }, [nodes, folders, workflowItem, workflowItem?.board]);
 
   return (
     <>
