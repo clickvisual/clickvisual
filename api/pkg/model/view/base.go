@@ -153,12 +153,31 @@ type ReqTableId struct {
 	Datasource string `form:"datasource" binding:"required"`
 }
 
-type RespTableSimple struct {
-	Id         int    `json:"id"`
-	TableName  string `json:"tableName"`
-	CreateType int    `json:"createType"`
-	Desc       string `json:"desc"`
-}
+// instance list filter with pms
+type (
+	RespInstanceSimple struct {
+		Id           int                  `json:"id"`
+		InstanceName string               `json:"instanceName"`
+		Desc         string               `json:"desc"`
+		Databases    []RespDatabaseSimple `json:"databases"`
+	}
+	RespDatabaseSimple struct {
+		Id           int               `json:"id"`
+		Iid          int               `json:"iid"`
+		DatabaseName string            `json:"databaseName"`
+		IsCreateByCV int               `json:"isCreateByCV"`
+		Desc         string            `json:"desc"`
+		Cluster      string            `json:"cluster"`
+		Tables       []RespTableSimple `json:"tables"`
+	}
+	RespTableSimple struct {
+		Id         int    `json:"id"`
+		Did        int    `json:"did"`
+		TableName  string `json:"tableName"`
+		CreateType int    `json:"createType"`
+		Desc       string `json:"desc"`
+	}
+)
 
 type RespTableDetail struct {
 	Did        int    `json:"did"`     // 数据库 id

@@ -180,7 +180,7 @@ func List(c *core.Context) {
 	)
 	if tid != 0 {
 		table, _ := db.TableInfo(invoker.Db, tid)
-		if !service.IsPermissionTable(c.Uid(), table.Database.Iid, tid, pmsplugin.Alarm) {
+		if !service.TableIsPermission(c.Uid(), table.Database.Iid, tid, pmsplugin.Alarm) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}

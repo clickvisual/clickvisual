@@ -107,7 +107,7 @@ func ReadAllPermissionTable(uid int, subResource string) []int {
 	tables, _ := db.TableList(invoker.Db, egorm.Conds{})
 	resArr := make([]int, 0)
 	for _, table := range tables {
-		if !IsPermissionTable(uid, table.Database.Iid, table.ID, subResource) {
+		if !TableIsPermission(uid, table.Database.Iid, table.ID, subResource) {
 			invoker.Logger.Error("ReadAllPermissionTable",
 				elog.Any("uid", uid),
 				elog.Any("iid", table.Database.Iid),
@@ -202,38 +202,10 @@ func IsPermissionDatabase(uid, iid, did int, subResource string) bool {
 		return false
 	}
 	for _, t := range tables {
-		if IsPermissionTable(uid, iid, t.ID, subResource) {
+		if TableIsPermission(uid, iid, t.ID, subResource) {
 			return true
 		}
 	}
-	return false
-}
-
-func IsPermissionTable(uid, iid, tid int, subResource string) bool {
-	// check database permission
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      uid,
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(iid),
-		SubResource: subResource,
-		Acts:        []string{pmsplugin.ActView},
-		DomainType:  pmsplugin.PrefixTable,
-		DomainId:    strconv.Itoa(tid),
-	}); err == nil {
-		invoker.Logger.Debug("ReadAllPermissionInstance",
-			elog.Any("uid", uid),
-			elog.Any("step", "IsPermissionDatabase"),
-			elog.Any("iid", iid),
-			elog.Any("tid", tid),
-			elog.Any("subResource", subResource))
-		return true
-	}
-	invoker.Logger.Warn("ReadAllPermissionInstance",
-		elog.Any("uid", uid),
-		elog.Any("step", "IsPermissionDatabase"),
-		elog.Any("iid", iid),
-		elog.Any("tid", tid),
-		elog.Any("subResource", subResource))
 	return false
 }
 
@@ -413,4 +385,38 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 		return
 	}
 	return nil
+}
+
+func InstanceFilterPms(uid int, sr string) (res []view.RespInstanceSimple, err error) {
+	dArr, err := DatabaseListFilterPms(uid, sr)
+	if err != nil {
+		return
+	}
+	res = make([]view.RespInstanceSimple, 0)
+	iMap := make(map[int]view.RespInstanceSimple)
+	for _, d := range dArr {
+		// exist
+		if item, ok := iMap[d.Iid]; ok {
+			item.Databases = append(item.Databases, d)
+			iMap[d.Iid] = item
+			continue
+		}
+		// not exist
+		ins, errInstanceInfo := db.InstanceInfo(invoker.Db, d.Iid)
+		if errInstanceInfo != nil {
+			return res, errInstanceInfo
+		}
+		dArrTemp := make([]view.RespDatabaseSimple, 0)
+		dArrTemp = append(dArrTemp, d)
+		iMap[d.Iid] = view.RespInstanceSimple{
+			Id:           ins.ID,
+			InstanceName: ins.Name,
+			Desc:         ins.Desc,
+			Databases:    dArrTemp,
+		}
+	}
+	for _, v := range iMap {
+		res = append(res, v)
+	}
+	return
 }
