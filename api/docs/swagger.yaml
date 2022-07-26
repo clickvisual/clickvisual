@@ -1,5 +1,54 @@
-basePath: /api/v2
+basePath: /
 definitions:
+  view.ReqCreateCrontab:
+    properties:
+      args:
+        items:
+          $ref: '#/definitions/view.ReqCrontabArg'
+        type: array
+      cron:
+        type: string
+      desc:
+        type: string
+      dutyUid:
+        type: integer
+      isRetry:
+        type: integer
+      retryInterval:
+        type: integer
+      retryTimes:
+        type: integer
+      typ:
+        type: integer
+    type: object
+  view.ReqCrontabArg:
+    properties:
+      key:
+        type: string
+      val:
+        type: string
+    type: object
+  view.ReqUpdateCrontab:
+    properties:
+      args:
+        items:
+          $ref: '#/definitions/view.ReqCrontabArg'
+        type: array
+      cron:
+        type: string
+      desc:
+        type: string
+      dutyUid:
+        type: integer
+      isRetry:
+        type: integer
+      retryInterval:
+        type: integer
+      retryTimes:
+        type: integer
+      typ:
+        type: integer
+    type: object
   view.RespDatabaseSimple:
     properties:
       cluster:
@@ -47,14 +96,20 @@ definitions:
     type: object
 info:
   contact: {}
-  description: This is a sample server celler server.
-  title: Swagger Example API
-  version: "1.0"
+  description: |-
+    Defines interface prefixes in terms of module overrides：
+    - base : the global basic readable information module
+    - search : the log module
+    - alarm : the alarm module
+    - pandas : the data analysis module
+    - cmdb : the configuration module
+    - sysop : the system management module
+  title: ClickVisual API
+  version: 0.4.0
 paths:
-  /api/v2/search/instances:
+  /api/v2/base/instances:
     get:
-      description: gets all instances, databases, and table nested data for the log
-        page
+      description: gets all instances, databases, and table nested data
       produces:
       - application/json
       responses:
@@ -64,7 +119,85 @@ paths:
             items:
               $ref: '#/definitions/view.RespInstanceSimple'
             type: array
-      summary: instance list
+      summary: Gets all instance database and table data filtered by permissions
       tags:
-      - search
+      - base
+  /api/v2/pandas/nodes/:nodeId/crontab:
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        isRetry: 0 no 1 yes
+        retryInterval: the unit is in seconds, 100 means 100s
+      parameters:
+      - description: node id
+        in: path
+        name: nodeId
+        required: true
+        type: integer
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/view.ReqUpdateCrontab'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Updating a scheduled node scheduling task
+      tags:
+      - pandas
+    post:
+      consumes:
+      - application/json
+      description: |-
+        isRetry: 0 no 1 yes
+        retryInterval: the unit is in seconds, 100 means 100s
+      parameters:
+      - description: node id
+        in: path
+        name: nodeId
+        required: true
+        type: integer
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/view.ReqCreateCrontab'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Creating a scheduled node scheduling task
+      tags:
+      - pandas
+  /api/v2/pandas/nodes/:nodeId/lock-acquire:
+    post:
+      consumes:
+      - application/json
+      description: Force the file edit lock to be acquired
+      parameters:
+      - description: node id
+        in: path
+        name: nodeId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Force the file edit lock to be acquired
+      tags:
+      - pandas
 swagger: "2.0"

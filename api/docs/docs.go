@@ -16,16 +16,16 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v2/search/instances": {
+        "/api/v2/base/instances": {
             "get": {
-                "description": "gets all instances, databases, and table nested data for the log page",
+                "description": "gets all instances, databases, and table nested data",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "search"
+                    "base"
                 ],
-                "summary": "instance list",
+                "summary": "Gets all instance database and table data filtered by permissions",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -38,9 +38,196 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v2/pandas/nodes/:nodeId/crontab": {
+            "post": {
+                "description": "isRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Creating a scheduled node scheduling task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "node id",
+                        "name": "nodeId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/view.ReqCreateCrontab"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "isRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Updating a scheduled node scheduling task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "node id",
+                        "name": "nodeId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/view.ReqUpdateCrontab"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/pandas/nodes/:nodeId/lock-acquire": {
+            "post": {
+                "description": "Force the file edit lock to be acquired",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Force the file edit lock to be acquired",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "node id",
+                        "name": "nodeId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "view.ReqCreateCrontab": {
+            "type": "object",
+            "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.ReqCrontabArg"
+                    }
+                },
+                "cron": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "dutyUid": {
+                    "type": "integer"
+                },
+                "isRetry": {
+                    "type": "integer"
+                },
+                "retryInterval": {
+                    "type": "integer"
+                },
+                "retryTimes": {
+                    "type": "integer"
+                },
+                "typ": {
+                    "type": "integer"
+                }
+            }
+        },
+        "view.ReqCrontabArg": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "val": {
+                    "type": "string"
+                }
+            }
+        },
+        "view.ReqUpdateCrontab": {
+            "type": "object",
+            "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.ReqCrontabArg"
+                    }
+                },
+                "cron": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "dutyUid": {
+                    "type": "integer"
+                },
+                "isRetry": {
+                    "type": "integer"
+                },
+                "retryInterval": {
+                    "type": "integer"
+                },
+                "retryTimes": {
+                    "type": "integer"
+                },
+                "typ": {
+                    "type": "integer"
+                }
+            }
+        },
         "view.RespDatabaseSimple": {
             "type": "object",
             "properties": {
@@ -115,12 +302,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "0.4.0",
 	Host:             "",
-	BasePath:         "/api/v2",
+	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Swagger Example API",
-	Description:      "This is a sample server celler server.",
+	Title:            "ClickVisual API",
+	Description:      "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- search : the log module\n- alarm : the alarm module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

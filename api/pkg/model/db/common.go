@@ -204,38 +204,38 @@ func BuildQuery(conds Conds) (sql string, binds []interface{}) {
 	sql = "1=1"
 	binds = make([]interface{}, 0, len(conds))
 	for field, cond := range conds {
-		cond := assertCond(cond)
+		cd := assertCond(cond)
 
-		switch strings.ToLower(cond.Op) {
+		switch strings.ToLower(cd.Op) {
 		case "like":
-			if cond.Val != "" {
+			if cd.Val != "" {
 				sql += " AND `" + field + "` like ?"
-				cond.Val = "%" + cond.Val.(string) + "%"
+				cd.Val = "%" + cd.Val.(string) + "%"
 			}
 		case "%like":
-			if cond.Val != "" {
+			if cd.Val != "" {
 				sql += " AND `" + field + "` like ?"
-				cond.Val = "%" + cond.Val.(string)
+				cd.Val = "%" + cd.Val.(string)
 			}
 		case "like%":
-			if cond.Val != "" {
+			if cd.Val != "" {
 				sql += " AND `" + field + "` like ?"
-				cond.Val = cond.Val.(string) + "%"
+				cd.Val = cd.Val.(string) + "%"
 			}
 		case "in", "not in":
-			sql += " AND `" + field + "` " + cond.Op + " (?) "
+			sql += " AND `" + field + "` " + cd.Op + " (?) "
 		case "between":
-			sql += " AND `" + field + "` " + cond.Op + " ? AND ?"
-			val := cast.ToStringSlice(cond.Val)
+			sql += " AND `" + field + "` " + cd.Op + " ? AND ?"
+			val := cast.ToStringSlice(cd.Val)
 			binds = append(binds, val[0], val[1])
 			continue
 		case "exp":
 			sql += " AND `" + field + "` ? "
-			cond.Val = gorm.Expr(cond.Val.(string))
+			cd.Val = gorm.Expr(cd.Val.(string))
 		default:
-			sql += " AND `" + field + "` " + cond.Op + " ? "
+			sql += " AND `" + field + "` " + cd.Op + " ? "
 		}
-		binds = append(binds, cond.Val)
+		binds = append(binds, cd.Val)
 	}
 	return
 }
@@ -244,38 +244,38 @@ func BuildPreloadArgs(conds Conds) (args []interface{}) {
 	var sqlItems = make([]string, 0)
 	var binds = make([]interface{}, 0, len(conds))
 	for field, cond := range conds {
-		cond := assertCond(cond)
+		cd := assertCond(cond)
 
-		switch strings.ToLower(cond.Op) {
+		switch strings.ToLower(cd.Op) {
 		case "like":
-			if cond.Val != "" {
+			if cd.Val != "" {
 				sqlItems = append(sqlItems, "`"+field+"` like ?")
-				cond.Val = "%" + cond.Val.(string) + "%"
+				cd.Val = "%" + cd.Val.(string) + "%"
 			}
 		case "%like":
-			if cond.Val != "" {
+			if cd.Val != "" {
 				sqlItems = append(sqlItems, "`"+field+"` like ?")
-				cond.Val = "%" + cond.Val.(string)
+				cd.Val = "%" + cd.Val.(string)
 			}
 		case "like%":
-			if cond.Val != "" {
+			if cd.Val != "" {
 				sqlItems = append(sqlItems, "`"+field+"` like ?")
-				cond.Val = cond.Val.(string) + "%"
+				cd.Val = cd.Val.(string) + "%"
 			}
 		case "in", "not in":
-			sqlItems = append(sqlItems, "`"+field+"` "+cond.Op+" (?) ")
+			sqlItems = append(sqlItems, "`"+field+"` "+cd.Op+" (?) ")
 		case "between":
-			sqlItems = append(sqlItems, "`"+field+"` "+cond.Op+" ? AND ?")
-			val := cast.ToStringSlice(cond.Val)
+			sqlItems = append(sqlItems, "`"+field+"` "+cd.Op+" ? AND ?")
+			val := cast.ToStringSlice(cd.Val)
 			binds = append(binds, val[0], val[1])
 			continue
 		case "exp":
 			sqlItems = append(sqlItems, "`"+field+"` ? ")
-			cond.Val = gorm.Expr(cond.Val.(string))
+			cd.Val = gorm.Expr(cd.Val.(string))
 		default:
-			sqlItems = append(sqlItems, "`"+field+"` "+cond.Op+" ? ")
+			sqlItems = append(sqlItems, "`"+field+"` "+cd.Op+" ? ")
 		}
-		binds = append(binds, cond.Val)
+		binds = append(binds, cd.Val)
 	}
 	sql := strings.Join(sqlItems, " AND ")
 	if sql == "" {

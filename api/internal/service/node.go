@@ -11,9 +11,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func NodeTryLock(uid, configId int) (err error) {
+func NodeTryLock(uid, configId int, isForced bool) (err error) {
 	var n db.BigdataNode
-
 	tx := invoker.Db.Begin()
 	{
 		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&n).Error
@@ -21,12 +20,12 @@ func NodeTryLock(uid, configId int) (err error) {
 			tx.Rollback()
 			return fmt.Errorf("configuration does not exist")
 		}
-
-		if n.LockUid != 0 && n.LockUid != uid {
-			tx.Rollback()
-			return fmt.Errorf("failed to release the edit lock because another client is currently editing")
+		if !isForced {
+			if n.LockUid != 0 && n.LockUid != uid {
+				tx.Rollback()
+				return fmt.Errorf("failed to release the edit lock because another client is currently editing")
+			}
 		}
-
 		err = tx.Model(&db.BigdataNode{}).Where("id = ?", n.ID).Updates(map[string]interface{}{
 			"lock_at":  time.Now().Unix(),
 			"lock_uid": uid,
@@ -41,7 +40,6 @@ func NodeTryLock(uid, configId int) (err error) {
 
 func NodeUnlock(uid, configId int) (err error) {
 	var n db.BigdataNode
-
 	tx := invoker.Db.Begin()
 	{
 		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&n).Error
@@ -49,12 +47,10 @@ func NodeUnlock(uid, configId int) (err error) {
 			tx.Rollback()
 			return fmt.Errorf("configuration does not exist")
 		}
-
 		if n.LockUid != 0 && n.LockUid != uid {
 			tx.Rollback()
 			return fmt.Errorf("failed to release the edit lock because another client is currently editing")
 		}
-
 		err = tx.Model(&db.BigdataNode{}).Where("id = ?", n.ID).Updates(map[string]interface{}{
 			"lock_at":  nil,
 			"lock_uid": 0,

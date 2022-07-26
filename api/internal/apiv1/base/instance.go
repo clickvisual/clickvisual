@@ -126,7 +126,7 @@ func InstanceList(c *core.Context) {
 	for _, row := range tmp {
 		if service.InstanceViewIsPermission(c.Uid(), row.ID, pmsplugin.Log) ||
 			service.InstanceViewIsPermission(c.Uid(), row.ID, pmsplugin.Alarm) ||
-			service.InstanceViewIsPermission(c.Uid(), row.ID, pmsplugin.BigData) {
+			service.InstanceViewIsPermission(c.Uid(), row.ID, pmsplugin.Pandas) {
 			row.Dsn = "*"
 			res = append(res, row)
 		}

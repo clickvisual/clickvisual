@@ -57,7 +57,7 @@ func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 func DatabaseViewIsPermission(uid, iid, tid int) bool {
 	if databaseViewIsPermission(uid, iid, tid, pmsplugin.Log) ||
 		databaseViewIsPermission(uid, iid, tid, pmsplugin.Alarm) ||
-		databaseViewIsPermission(uid, iid, tid, pmsplugin.BigData) {
+		databaseViewIsPermission(uid, iid, tid, pmsplugin.Pandas) {
 		return true
 	}
 	return false

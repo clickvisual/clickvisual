@@ -24,7 +24,7 @@ func InstanceDatabaseList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(id),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -57,7 +57,7 @@ func InstanceTableList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(id),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -95,7 +95,7 @@ func InstanceColumnList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(id),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
