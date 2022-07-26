@@ -23,7 +23,7 @@ import (
 // @Tags         pandas
 // @Accept       json
 // @Produce      json
-// @Param        nodeId path int true "node id"
+// @Param        node-id path int true "node id"
 // @Success      200  {string} ok
 // @Router       /api/v2/pandas/nodes/:nodeId/lock-acquire [post]
 func NodeLockAcquire(c *core.Context) {
@@ -51,7 +51,7 @@ func NodeLockAcquire(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
 	c.JSONOK()
 	return
 }
@@ -63,7 +63,7 @@ func NodeLockAcquire(c *core.Context) {
 // @Tags         pandas
 // @Accept       json
 // @Produce      json
-// @Param        nodeId path int true "node id"
+// @Param        node-id path int true "node id"
 // @Param        req body view.ReqCreateCrontab true "params"
 // @Success      200 {string} ok
 // @Router       /api/v2/pandas/nodes/:nodeId/crontab [post]
@@ -111,7 +111,7 @@ func NodeCrontabCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCrontabCreate, map[string]interface{}{"obj": obj})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeCrontabCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -122,7 +122,7 @@ func NodeCrontabCreate(c *core.Context) {
 // @Tags         pandas
 // @Accept       json
 // @Produce      json
-// @Param        nodeId path int true "node id"
+// @Param        node-id path int true "node id"
 // @Param        req body view.ReqUpdateCrontab true "params"
 // @Success      200 {string} ok
 // @Router       /api/v2/pandas/nodes/:nodeId/crontab [patch]
@@ -174,6 +174,55 @@ func NodeCrontabUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCrontabUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeCrontabUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
+}
+
+// NodeResultUpdate  godoc
+// @Summary	     Updates the action on the execution result
+// @Description  only support excelProcess update
+// @Tags         pandas
+// @Accept       json
+// @Produce      json
+// @Param        result-id path int true "result id"
+// @Param        req body view.ReqNodeRunResult true "params"
+// @Success      200 {string} ok
+// @Router       /api/v2/pandas/nodes-results/:result-id [patch]
+func NodeResultUpdate(c *core.Context) {
+	resultId := cast.ToInt(c.Param("result-id"))
+	if resultId == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var req view.ReqNodeRunResult
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	nr, err := db.NodeResultInfo(invoker.Db, resultId)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	nodeInfo, _ := db.NodeInfo(invoker.Db, nr.NodeId)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(nodeInfo.Iid),
+		SubResource: pmsplugin.Pandas,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["uid"] = c.Uid()
+	ups["excel_process"] = req.ExcelProcess
+	if err = db.NodeResultUpdate(invoker.Db, resultId, ups); err != nil {
+		c.JSONE(1, "update failed: "+err.Error(), nil)
+		return
+	}
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeResultUpdate, map[string]interface{}{"obj": req})
+	c.JSONE(core.CodeOK, "succ", service.NodeResultRespAssemble(&nr))
+	return
 }

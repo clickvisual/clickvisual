@@ -70,7 +70,7 @@ func NodeCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCreate, map[string]interface{}{"obj": obj})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK(obj)
 }
 
@@ -148,7 +148,7 @@ func NodeUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -198,7 +198,7 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeDelete, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeDelete, map[string]interface{}{"obj": n})
 
 	c.JSONOK()
 }
@@ -275,7 +275,7 @@ func NodeLock(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
 
 	c.JSONOK()
 	return
@@ -308,7 +308,7 @@ func NodeUnlock(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeUnlock, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeUnlock, map[string]interface{}{"obj": n})
 
 	c.JSONOK()
 	return
@@ -410,7 +410,7 @@ func NodeRunOpenAPI(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": req})
 
 	c.JSONE(core.CodeOK, "succ", res)
 	return
@@ -437,7 +437,7 @@ func NodeRun(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
 	res, err := node.Run(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), res)
@@ -489,7 +489,7 @@ func NodeStop(c *core.Context) {
 		return
 	}
 	res.Status = afterNodeInfo.Status
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeStop, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeStop, map[string]interface{}{"obj": n})
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }

@@ -166,7 +166,7 @@ func Oauth(c *core.Context) {
 	// get user info
 	userInfo, err := connect.UserInfo(client, token)
 	if err != nil {
-		if _, ok := err.(*kauth.Error); ok {
+		if _, ok = err.(*kauth.Error); ok {
 			// todo
 			c.Redirect(http.StatusFound, appSubURL+"/login")
 			return

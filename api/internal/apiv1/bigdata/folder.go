@@ -46,7 +46,7 @@ func FolderCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataFolderCreate, map[string]interface{}{"obj": obj})
+	event.Event.Pandas(c.User(), db.OpnBigDataFolderCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -85,7 +85,7 @@ func FolderUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataFolderUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db.OpnBigDataFolderUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -125,7 +125,7 @@ func FolderDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataFolderDelete, map[string]interface{}{"obj": f})
+	event.Event.Pandas(c.User(), db.OpnBigDataFolderDelete, map[string]interface{}{"obj": f})
 	c.JSONOK()
 }
 

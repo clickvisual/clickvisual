@@ -26,7 +26,6 @@ import (
 // @description  	- pandas : the data analysis module
 // @description  	- cmdb : the configuration module
 // @description  	- sysop : the system management module
-// @BasePath  		/
 func main() {
 	app := ego.New(
 		ego.WithBeforeStopClean(

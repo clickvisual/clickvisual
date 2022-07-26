@@ -102,7 +102,7 @@ type BigdataFolder struct {
 	Primary    int    `gorm:"column:primary;type:int(11)" json:"primary"`
 	Secondary  int    `gorm:"column:secondary;type:int(11)" json:"secondary"`
 	WorkflowId int    `gorm:"column:workflow_id;type:int(11)" json:"workflowId"`
-	ParentId   int    `gorm:"column:parent_id;type:int(11)" db:"parent_id" json:"parentId"`
+	ParentId   int    `gorm:"column:parent_id;type:int(11)" json:"parentId"`
 }
 
 type (
@@ -129,7 +129,7 @@ type (
 		NodeId          int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
 		Content         string `gorm:"column:content;type:longtext" json:"content"`
 		Result          string `gorm:"column:result;type:longtext" json:"result"`
-		PreviousContent string `gorm:"column:previous_content;type:longtext" json:"PreviousContent"`
+		PreviousContent string `gorm:"column:previous_content;type:longtext" json:"previousContent"`
 		Utime           int64  `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
 	}
 
@@ -144,10 +144,11 @@ type (
 	BigdataNodeResult struct {
 		BaseModel
 
-		NodeId  int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
-		Content string `gorm:"column:content;type:longtext" json:"content"`
-		Result  string `gorm:"column:result;type:longtext" json:"result"`
-		Uid     int    `gorm:"column:uid;type:int(11)" json:"uid"`
+		NodeId       int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
+		Content      string `gorm:"column:content;type:longtext" json:"content"`
+		Result       string `gorm:"column:result;type:longtext" json:"result"`
+		ExcelProcess string `gorm:"column:excel_process;type:longtext" json:"excelProcess"`
+		Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`
 	}
 )
 
@@ -178,8 +179,8 @@ type BigdataDepend struct {
 	Database             string  `gorm:"column:database;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
 	Table                string  `gorm:"column:table;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
 	Engine               string  `gorm:"column:engine;type:varchar(128);NOT NULL" json:"engine"`
-	DownDepDatabaseTable Strings `gorm:"column:down_dep_database_table;type:text;NOT NULL" json:"down_dep_database_table"`
-	UpDepDatabaseTable   Strings `gorm:"column:up_dep_database_table;type:text;NOT NULL" json:"up_dep_database_table"`
+	DownDepDatabaseTable Strings `gorm:"column:down_dep_database_table;type:text;NOT NULL" json:"downDepDatabaseTable"`
+	UpDepDatabaseTable   Strings `gorm:"column:up_dep_database_table;type:text;NOT NULL" json:"upDepDatabaseTable"`
 	Rows                 uint64  `gorm:"column:rows;type:bigint(20);default:0;NOT NULL" json:"rows"`
 	Bytes                uint64  `gorm:"column:bytes;type:bigint(20);default:0;NOT NULL" json:"bytes"`
 
@@ -195,9 +196,9 @@ type BigdataCrontab struct {
 	Status        int    `gorm:"column:status;type:int(11)" json:"status"`           // status 0 default 1 preempt 2 doing
 	Uid           int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // user id
 	Args          string `gorm:"args:sql_view;type:text" json:"args"`                // sql_view
-	IsRetry       int    `gorm:"column:is_retry;type:tinyint(1" json:"is_retry"`
-	RetryTimes    int    `gorm:"column:retry_times;type:int(11)" json:"retry_times"`
-	RetryInterval int    `gorm:"column:retry_interval;type:int(11)" json:"retry_interval"`
+	IsRetry       int    `gorm:"column:is_retry;type:tinyint(1" json:"isRetry"`
+	RetryTimes    int    `gorm:"column:retry_times;type:int(11)" json:"retryTimes"`
+	RetryInterval int    `gorm:"column:retry_interval;type:int(11)" json:"retryInterval"`
 	Ctime         int64  `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
 	Utime         int64  `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
 }

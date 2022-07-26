@@ -42,7 +42,7 @@ func WorkflowCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataWorkflowCreate, map[string]interface{}{"obj": obj})
+	event.Event.Pandas(c.User(), db.OpnBigDataWorkflowCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -81,7 +81,7 @@ func WorkflowUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataWorkflowUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db.OpnBigDataWorkflowUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -137,7 +137,7 @@ func WorkflowDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataWorkflowDelete, map[string]interface{}{"obj": res})
+	event.Event.Pandas(c.User(), db.OpnBigDataWorkflowDelete, map[string]interface{}{"obj": res})
 	c.JSONOK()
 }
 

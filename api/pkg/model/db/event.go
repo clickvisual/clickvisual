@@ -80,6 +80,7 @@ const (
 	OpnBigDataNodeCrontabUpdate = "opn_big_data_node_crontab_update"
 	OpnBigDataNodeCrontabDelete = "opn_big_data_node_crontab_delete"
 	OpnBigDataNodeCrontabStop   = "opn_big_data_node_crontab_stop"
+	OpnBigDataNodeResultUpdate  = "opn_big_data_node_result_update"
 	OpnBigDataWorkflowCreate    = "opn_big_data_workflow_create"
 	OpnBigDataWorkflowUpdate    = "opn_big_data_workflow_update"
 	OpnBigDataWorkflowDelete    = "opn_big_data_workflow_delete"
@@ -143,6 +144,7 @@ var OperationMap = map[string]string{
 	OpnBigDataNodeCrontabUpdate: "node crontab update",
 	OpnBigDataNodeCrontabDelete: "node crontab delete",
 	OpnBigDataNodeCrontabStop:   "node crontab stop",
+	OpnBigDataNodeResultUpdate:  "node run result update",
 	OpnBigDataWorkflowCreate:    "workflow create",
 	OpnBigDataWorkflowUpdate:    "workflow update",
 	OpnBigDataWorkflowDelete:    "workflow delete",
@@ -224,6 +226,7 @@ var (
 			OpnBigDataNodeCrontabUpdate,
 			OpnBigDataNodeCrontabDelete,
 			OpnBigDataNodeCrontabStop,
+			OpnBigDataNodeResultUpdate,
 			OpnBigDataWorkflowCreate,
 			OpnBigDataWorkflowUpdate,
 			OpnBigDataWorkflowDelete,
