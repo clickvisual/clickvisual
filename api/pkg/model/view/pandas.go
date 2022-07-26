@@ -242,16 +242,17 @@ func (s *SyncContent) Cluster() string {
 // crontab struct
 type (
 	ReqCreateCrontab struct {
-		NodeId int `json:"nodeId" from:"nodeId"`
 		ReqUpdateCrontab
 	}
-
 	ReqUpdateCrontab struct {
-		Desc    string          `json:"desc" from:"desc"`
-		DutyUid int             `json:"dutyUid" from:"dutyUid"`
-		Cron    string          `json:"cron" from:"cron"`
-		Typ     int             `json:"typ" from:"typ"`
-		Args    []ReqCrontabArg `json:"args" from:"args"`
+		Desc          string          `json:"desc" from:"desc"`
+		DutyUid       int             `json:"dutyUid" from:"dutyUid"`
+		Cron          string          `json:"cron" from:"cron"`
+		Typ           int             `json:"typ" from:"typ"`
+		Args          []ReqCrontabArg `json:"args" from:"args"`
+		IsRetry       int             `json:"isRetry" from:"isRetry"`
+		RetryTimes    int             `json:"retryTimes" from:"retryTimes"`
+		RetryInterval int             `json:"retryInterval" from:"retryInterval"`
 	}
 	ReqCrontabArg struct {
 		Key string `json:"key" from:"key"`

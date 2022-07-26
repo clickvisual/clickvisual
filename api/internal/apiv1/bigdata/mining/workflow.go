@@ -25,7 +25,7 @@ func WorkflowCreate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -61,7 +61,7 @@ func WorkflowUpdate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(res.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -95,7 +95,7 @@ func WorkflowList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -127,7 +127,7 @@ func WorkflowDelete(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(res.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -156,7 +156,7 @@ func WorkflowInfo(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(res.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)

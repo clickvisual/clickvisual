@@ -17,10 +17,16 @@ import (
 )
 
 // 添加注释以描述 server 信息
-// @title           Swagger Example API
-// @version         1.0
-// @description     This is a sample server celler server.
-// @BasePath  		/api/v2
+// @title           ClickVisual API
+// @version         0.4.0
+// @description    	Defines interface prefixes in terms of module overrides：
+// @description  	- base : the global basic readable information module
+// @description  	- search : the log module
+// @description  	- alarm : the alarm module
+// @description  	- pandas : the data analysis module
+// @description  	- cmdb : the configuration module
+// @description  	- sysop : the system management module
+// @BasePath  		/
 func main() {
 	app := ego.New(
 		ego.WithBeforeStopClean(

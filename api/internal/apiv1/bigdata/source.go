@@ -26,7 +26,7 @@ func SourceCreate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -67,7 +67,7 @@ func SourceUpdate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(sourceInfo.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -105,7 +105,7 @@ func SourceList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -146,7 +146,7 @@ func SourceDelete(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(sourceInfo.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActDelete},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -176,7 +176,7 @@ func SourceInfo(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(res.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -201,7 +201,7 @@ func SourceDatabaseList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(s.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -241,7 +241,7 @@ func SourceTableList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(s.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -281,7 +281,7 @@ func SourceColumnList(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(s.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)

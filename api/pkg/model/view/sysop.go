@@ -4,6 +4,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
+type RespNamespaceConfigmaps struct {
+	Namespace  string          `json:"namespace"`
+	Configmaps []RespConfigmap `json:"configmaps"`
+}
+
+type RespConfigmap struct {
+	Name string `json:"configmapName"`
+}
+
 type ReqTestInstance struct {
 	Dsn string `json:"dsn" binding:"required"`
 }

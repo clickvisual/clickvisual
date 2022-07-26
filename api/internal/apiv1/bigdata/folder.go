@@ -25,7 +25,7 @@ func FolderCreate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -65,7 +65,7 @@ func FolderUpdate(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(f.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -104,7 +104,7 @@ func FolderDelete(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(f.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActDelete},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -144,7 +144,7 @@ func FolderInfo(c *core.Context) {
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(f.Iid),
-		SubResource: pmsplugin.BigData,
+		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
 		c.JSONE(1, err.Error(), nil)

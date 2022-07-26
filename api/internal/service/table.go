@@ -14,7 +14,7 @@ import (
 func TableViewIsPermission(uid, iid, tid int) bool {
 	if tableViewIsPermission(uid, iid, tid, pmsplugin.Log) ||
 		tableViewIsPermission(uid, iid, tid, pmsplugin.Alarm) ||
-		tableViewIsPermission(uid, iid, tid, pmsplugin.BigData) {
+		tableViewIsPermission(uid, iid, tid, pmsplugin.Pandas) {
 		return true
 	}
 	return false

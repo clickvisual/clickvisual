@@ -283,15 +283,15 @@ const (
 	Role    = "role"
 	Log     = "base"
 	Alarm   = "alarm"
-	BigData = "bigdata"
+	Pandas  = "bigdata"
 )
 
-var PermittedSubResourceList = []string{AllRsrc, Role, Log, Alarm, BigData}
+var PermittedSubResourceList = []string{AllRsrc, Role, Log, Alarm, Pandas}
 var PermittedSubResource = map[string]string{
 	AllRsrc: "All(全部)",
 	Log:     "日志",
 	Alarm:   "告警",
-	BigData: "分析",
+	Pandas:  "分析",
 	Role:    "角色",
 }
 

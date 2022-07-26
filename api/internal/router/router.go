@@ -22,6 +22,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/setting"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/template"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/user"
+	"github.com/clickvisual/clickvisual/api/internal/apiv2/pandas"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -224,9 +225,7 @@ func GetRouter() *egin.Component {
 		v1.PATCH("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowUpdate))
 		v1.DELETE("/bigdata/mining/workflows/:id", core.Handle(mining.WorkflowDelete))
 		// data mining crontab
-		v1.POST("/bigdata/mining/crontab", core.Handle(mining.CrontabCreate))
 		v1.GET("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabInfo))
-		v1.PATCH("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabUpdate))
 		v1.DELETE("/bigdata/mining/nodes/:id/crontab", core.Handle(mining.CrontabDelete))
 	}
 
@@ -234,14 +233,25 @@ func GetRouter() *egin.Component {
 	// The global basic readable information module - base
 	// The log module - search
 	// The alarm module - alarm
-	// The configuration module - config
-	// The system management module - system
+	// The data analysis module - pandas
+	// The configuration module - cmdb
+	// The system management module - sysop
 	v2 := r.Group(apiPrefix+"/v2", middlewares.AuthChecker())
+	// swagger docs
 	{
 		v2.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
+	// The global basic readable information module - base
 	{
 		v2.GET("/base/instances", core.Handle(base.InstanceList))
+	}
+	// The data analysis module - pandas
+	{
+		// The edit lock can be actively obtained if the file is in the edit state
+		v2.POST("/pandas/nodes/:node-id/lock-acquire", core.Handle(pandas.NodeLockAcquire))
+		// Scheduled Task Scheduling
+		v2.POST("/pandas/nodes/:node-id/crontab", core.Handle(pandas.NodeCrontabCreate))
+		v2.PATCH("/pandas/nodes/:node-id/crontab", core.Handle(pandas.NodeCrontabUpdate))
 	}
 	return r
 }
