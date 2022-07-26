@@ -19,6 +19,7 @@ const RawLogTabs = () => {
     onChangeLogPane,
     onChangeLogLibrary,
     resetLogs,
+    resizeMenuWidth,
     logPanesHelper,
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
@@ -85,6 +86,7 @@ const RawLogTabs = () => {
           className={rawLogTabsStyles.tabs}
           onEdit={onEdit}
           destroyInactiveTabPane
+          style={{ width: `calc(100vw - ${83 + resizeMenuWidth}px)` }}
         >
           {paneKeys.map((item) => {
             const pane = logPanes[item];
