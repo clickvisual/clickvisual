@@ -21,7 +21,7 @@ func (a *event) AlarmCMDB(opUser *core.User, operation string, metaData map[stri
 	a.PutEvent(userEvent)
 }
 
-func (a *event) BigDataCMDB(opUser *core.User, operation string, metaData map[string]interface{}) {
+func (a *event) Pandas(opUser *core.User, operation string, metaData map[string]interface{}) {
 	res, _ := json.Marshal(metaData)
 	userEvent := db.Event{
 		Source:     db.SourceBigDataMgtCenter,

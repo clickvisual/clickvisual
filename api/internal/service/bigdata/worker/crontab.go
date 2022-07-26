@@ -106,8 +106,6 @@ func dispatch(crontabs []*db.BigdataCrontab) {
 // Cron task trigger
 func buildCronFn(cr *db.BigdataCrontab) (err error) {
 	c := cron.New()
-	// spec := "*/2 * * * *"
-	// spec := "@every 10s"
 	spec := cr.Cron
 	id, err := c.AddFunc(spec, func() {
 		n, errNodeInfo := db.NodeInfo(invoker.Db, cr.NodeId)
@@ -122,8 +120,24 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 				elog.Any("nodeId", cr.NodeId), elog.Any("err", errNodeContentInfo))
 			return
 		}
-		res, errOperator := node.Operator(&n, &nc, node.OperatorRun, crontabUid)
-		if errOperator != nil {
+		if cr.IsRetry == 1 {
+			// return mode
+			invoker.Logger.Debug("crontabRules", elog.String("step", "IsRetry"), elog.Any("nodeId", cr.NodeId))
+			for i := 0; i < cr.RetryTimes; i++ {
+				if res, errOperator := node.Operator(&n, &nc, node.OperatorRun, crontabUid); errOperator != nil {
+					invoker.Logger.Error("crontabRules", elog.String("step", "IsRetry"),
+						elog.Any("nodeId", cr.NodeId), elog.Any("err", errOperator), elog.Any("res", res))
+					time.Sleep(time.Duration(cr.RetryInterval) * time.Second)
+				} else {
+					invoker.Logger.Debug("crontabRules", elog.String("step", "IsRetryFinish"), elog.Any("nodeId", cr.NodeId),
+						elog.Any("res", res))
+					return
+				}
+			}
+			return
+		}
+		// do only once
+		if res, errOperator := node.Operator(&n, &nc, node.OperatorRun, crontabUid); errOperator != nil {
 			invoker.Logger.Error("crontabRules", elog.String("step", "buildCronFn"),
 				elog.Any("nodeId", cr.NodeId), elog.Any("err", errOperator), elog.Any("res", res))
 			return

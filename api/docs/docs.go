@@ -39,6 +39,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/pandas/nodes-results/:result-id": {
+            "patch": {
+                "description": "only support excelProcess update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Updates the action on the execution result",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "result id",
+                        "name": "result-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/view.ReqNodeRunResult"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/pandas/nodes/:nodeId/crontab": {
             "post": {
                 "description": "isRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
@@ -56,7 +97,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "node id",
-                        "name": "nodeId",
+                        "name": "node-id",
                         "in": "path",
                         "required": true
                     },
@@ -95,7 +136,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "node id",
-                        "name": "nodeId",
+                        "name": "node-id",
                         "in": "path",
                         "required": true
                     },
@@ -136,7 +177,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "node id",
-                        "name": "nodeId",
+                        "name": "node-id",
                         "in": "path",
                         "required": true
                     }
@@ -192,6 +233,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "val": {
+                    "type": "string"
+                }
+            }
+        },
+        "view.ReqNodeRunResult": {
+            "type": "object",
+            "properties": {
+                "excelProcess": {
                     "type": "string"
                 }
             }
@@ -304,7 +353,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.4.0",
 	Host:             "",
-	BasePath:         "/",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "ClickVisual API",
 	Description:      "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- search : the log module\n- alarm : the alarm module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",

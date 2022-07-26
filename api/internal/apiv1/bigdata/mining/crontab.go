@@ -39,7 +39,7 @@ func CrontabDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
-	event.Event.BigDataCMDB(c.User(), db.OpnBigDataNodeCrontabDelete, map[string]interface{}{"nodeId": id})
+	event.Event.Pandas(c.User(), db.OpnBigDataNodeCrontabDelete, map[string]interface{}{"nodeId": id})
 	c.JSONOK()
 }
 

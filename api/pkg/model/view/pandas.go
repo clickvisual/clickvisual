@@ -258,6 +258,9 @@ type (
 		Key string `json:"key" from:"key"`
 		Val string `json:"val" from:"val"`
 	}
+	ReqNodeRunResult struct {
+		ExcelProcess string `json:"excelProcess" from:"excelProcess"`
+	}
 )
 
 // DAG ...

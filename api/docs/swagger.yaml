@@ -1,4 +1,3 @@
-basePath: /
 definitions:
   view.ReqCreateCrontab:
     properties:
@@ -26,6 +25,11 @@ definitions:
       key:
         type: string
       val:
+        type: string
+    type: object
+  view.ReqNodeRunResult:
+    properties:
+      excelProcess:
         type: string
     type: object
   view.ReqUpdateCrontab:
@@ -122,6 +126,33 @@ paths:
       summary: Gets all instance database and table data filtered by permissions
       tags:
       - base
+  /api/v2/pandas/nodes-results/:result-id:
+    patch:
+      consumes:
+      - application/json
+      description: only support excelProcess update
+      parameters:
+      - description: result id
+        in: path
+        name: result-id
+        required: true
+        type: integer
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/view.ReqNodeRunResult'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Updates the action on the execution result
+      tags:
+      - pandas
   /api/v2/pandas/nodes/:nodeId/crontab:
     patch:
       consumes:
@@ -132,7 +163,7 @@ paths:
       parameters:
       - description: node id
         in: path
-        name: nodeId
+        name: node-id
         required: true
         type: integer
       - description: params
@@ -160,7 +191,7 @@ paths:
       parameters:
       - description: node id
         in: path
-        name: nodeId
+        name: node-id
         required: true
         type: integer
       - description: params
@@ -187,7 +218,7 @@ paths:
       parameters:
       - description: node id
         in: path
-        name: nodeId
+        name: node-id
         required: true
         type: integer
       produces:

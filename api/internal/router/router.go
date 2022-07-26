@@ -252,6 +252,9 @@ func GetRouter() *egin.Component {
 		// Scheduled Task Scheduling
 		v2.POST("/pandas/nodes/:node-id/crontab", core.Handle(pandas.NodeCrontabCreate))
 		v2.PATCH("/pandas/nodes/:node-id/crontab", core.Handle(pandas.NodeCrontabUpdate))
+		// The node running data is processed by Excel
+		v2.GET("/pandas/nodes-results/:result-id", core.Handle(pandas.NodeResultUpdate))
+
 	}
 	return r
 }
