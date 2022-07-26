@@ -13,6 +13,10 @@ const Instances = () => {
     number | undefined
   >();
 
+  const doGetAllInstances = useRequest(api.getAllInstances, {
+    loadingText: false,
+  });
+
   const getInstanceList = useRequest(api.getInstances, {
     loadingText: false,
     onSuccess: (res) => setInstanceList(res.data),
@@ -57,6 +61,7 @@ const Instances = () => {
     instanceList,
     selectedInstance,
     listLoading: getInstanceList.loading,
+    doGetAllInstances,
     doGetInstanceList,
     doGetInstanceInfo,
     doTestInstance,

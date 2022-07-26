@@ -63,6 +63,7 @@ export default {
   "navbar.changePassword": "Change password",
   "navbar.logOut": "Log out",
   "navbar.upgrade": "Database Structure Upgrade",
+  "navbar.interfaceDoc": "Interface documentation",
   "navbar.upgrade.lodingText": "In the upgrade",
   "navbar.upgrade.successText": "Upgrade success",
   "footer.copyright": `@2021~${new Date().getFullYear()} by ClickVisual`,
@@ -397,8 +398,7 @@ export default {
   "log.switch.unfold": "Collapse Log",
 
   // Data Logs-Statistical Table
-  "log.table.note":
-    "Note: Careful operation",
+  "log.table.note": "Note: Careful operation",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",

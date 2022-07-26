@@ -63,6 +63,7 @@ export default {
   "navbar.changePassword": "修改密码",
   "navbar.logOut": "退出登录",
   "navbar.upgrade": "数据库结构升级",
+  "navbar.interfaceDoc": "接口文档",
   "navbar.upgrade.lodingText": "升级中",
   "navbar.upgrade.successText": "升级成功",
   "footer.copyright": `@2021~${new Date().getFullYear()} ClickVisual`,
@@ -372,8 +373,7 @@ export default {
   "log.switch.unfold": "折叠日志",
 
   // Data Logs-Statistical Table
-  "log.table.note":
-    "注：谨慎操作",
+  "log.table.note": "注：谨慎操作",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
