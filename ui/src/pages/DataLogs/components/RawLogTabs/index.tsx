@@ -73,6 +73,7 @@ const RawLogTabs = () => {
     };
   }, []);
 
+  // TODO: Tabs性能待优化
   return (
     <div className={rawLogTabsStyles.rawLogTabsMain}>
       {paneKeys.length > 0 ? (
@@ -83,6 +84,7 @@ const RawLogTabs = () => {
           onChange={handleChangeTab}
           className={rawLogTabsStyles.tabs}
           onEdit={onEdit}
+          destroyInactiveTabPane
         >
           {paneKeys.map((item) => {
             const pane = logPanes[item];
