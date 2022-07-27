@@ -3,6 +3,10 @@ package service
 import (
 	"database/sql"
 	"testing"
+
+	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 func Test_clickHouseLink(t *testing.T) {
@@ -45,6 +49,8 @@ func Test_clickHouseLink(t *testing.T) {
 }
 
 func Test_clickhouseDsnConvert(t *testing.T) {
+	invoker.Logger = elog.DefaultLogger
+
 	type args struct {
 		req string
 	}
@@ -59,7 +65,7 @@ func Test_clickhouseDsnConvert(t *testing.T) {
 			args: args{
 				req: "tcp://host1:9000?username=username&password=password&read_timeout=10&write_timeout=20&debug=true&max_execution_time=30",
 			},
-			wantRes: "clickhouse://username:password@host1:9000/default?debug=true&max_execution_time=30&read_timeout=10&write_timeout=20",
+			wantRes: "clickhouse://username:password@host1:9000/default?debug=true&max_execution_time=30&read_timeout=10ms&write_timeout=20ms",
 		},
 	}
 	for _, tt := range tests {

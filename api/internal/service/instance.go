@@ -175,6 +175,13 @@ func InstanceViewIsPermission(uid int, iid int, subResource string) bool {
 	return false
 }
 
+func queryValAssembly(query url.Values, key, unit string) {
+	if query.Has(key) {
+		rt := query.Get(key)
+		query.Set(key, rt+unit)
+	}
+}
+
 // convert clickhouse-go v1.5 to v2.0
 func clickhouseDsnConvert(req string) (res string) {
 	if strings.HasPrefix(req, "clickhouse://") {
@@ -182,7 +189,7 @@ func clickhouseDsnConvert(req string) (res string) {
 	}
 	u, err := url.Parse(req)
 	if err != nil {
-		elog.Error("clickhouseDsnConvert", elog.Any("error", err))
+		invoker.Logger.Error("clickhouseDsnConvert", elog.Any("error", err))
 		return req
 	}
 	query := u.Query()
@@ -194,13 +201,21 @@ func clickhouseDsnConvert(req string) (res string) {
 	query.Del("username")
 	query.Del("password")
 	query.Del("database")
-	res = fmt.Sprintf("%s?%s", res, query.Encode())
 
-	elog.Debug("clickhouseDsnConvert", elog.String("req", req), elog.String("res", res))
+	queryValAssembly(query, "read_timeout", "ms")
+	queryValAssembly(query, "write_timeout", "ms")
+
+	if len(query) != 0 {
+		res = fmt.Sprintf("%s?%s", res, query.Encode())
+	}
+
 	return
 }
 
 func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
+
+	invoker.Logger.Debug("clickhouseDsnConvert", elog.String("dsn", clickhouseDsnConvert(dsn)))
+
 	conn, err = sql.Open("clickhouse", clickhouseDsnConvert(dsn))
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
