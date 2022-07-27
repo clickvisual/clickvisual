@@ -90,7 +90,7 @@ func isNotAuthProxy(c *gin.Context) bool {
 			return true
 		}
 	}
-	// is Root
+	// root？
 	if econf.GetString("auth.proxy.rootTokenValue") != "" && c.GetHeader(econf.GetString("auth.proxy.rootTokenKey")) == econf.GetString("auth.proxy.rootTokenValue") {
 		errRoot := permission.Manager.IsRootUser(u.ID)
 		invoker.Logger.Debug("isNotAuthProxy", elog.Any("errRoot", errRoot), elog.Any("u.ID", u.ID))

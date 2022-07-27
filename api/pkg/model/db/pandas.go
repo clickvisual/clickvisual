@@ -149,6 +149,7 @@ type (
 		Result       string `gorm:"column:result;type:longtext" json:"result"`
 		ExcelProcess string `gorm:"column:excel_process;type:longtext" json:"excelProcess"`
 		Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`
+		Cost         int64  `gorm:"column:cost;type:bigint(20)" json:"cost"` // ms
 	}
 )
 
