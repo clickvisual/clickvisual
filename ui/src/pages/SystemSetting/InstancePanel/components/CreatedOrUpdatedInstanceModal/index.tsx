@@ -419,7 +419,7 @@ const CreatedOrUpdatedInstanceModal = (
               { id: "instance.form.placeholder.dsn" },
               {
                 example:
-                  "tcp://127.0.0.1:9000?username=root&password=pass&read_timeout=10&write_timeout=20&debug=true",
+                  "clickhouse://username:password@host1:9000,host2:9000/database?dial_timeout=200ms&max_execution_time=60",
               }
             )}
             onChange={() => setDisabledSubmit(true)}

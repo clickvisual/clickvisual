@@ -3,11 +3,12 @@ package service
 import (
 	"database/sql"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/ClickHouse/clickhouse-go"
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -174,25 +175,44 @@ func InstanceViewIsPermission(uid int, iid int, subResource string) bool {
 	return false
 }
 
-func ClickHouseLink(dsn string) (db *sql.DB, err error) {
-	if strings.Contains(dsn, "?") && !strings.Contains(dsn, "max_execution_time=") {
-		dsn = dsn + "&max_execution_time=60"
+// convert clickhouse-go v1.5 to v2.0
+func clickhouseDsnConvert(req string) (res string) {
+	if strings.HasPrefix(req, "clickhouse://") {
+		return req
 	}
-	db, err = sql.Open("clickhouse", dsn)
+	u, err := url.Parse(req)
+	if err != nil {
+		elog.Error("clickhouseDsnConvert", elog.Any("error", err))
+		return req
+	}
+	query := u.Query()
+	database := query.Get("database")
+	if database == "" {
+		database = "default"
+	}
+	res = fmt.Sprintf("clickhouse://%s:%s@%s/%s", query.Get("username"), query.Get("password"), u.Host, database)
+	query.Del("username")
+	query.Del("password")
+	query.Del("database")
+	res = fmt.Sprintf("%s?%s", res, query.Encode())
+
+	elog.Debug("clickhouseDsnConvert", elog.String("req", req), elog.String("res", res))
+	return
+}
+
+func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
+	conn, err = sql.Open("clickhouse", clickhouseDsnConvert(dsn))
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
 		return
 	}
-	if err = db.Ping(); err != nil {
-		if exception, ok := err.(*clickhouse.Exception); ok {
-			invoker.Logger.Error("ClickHouse", elog.String("step", "exception"), elog.Any("Code", exception.Code), elog.Any("Message", exception.Message), elog.Any("StackTrace", exception.StackTrace))
-		} else {
-			invoker.Logger.Error("ClickHouse", elog.String("step", "notException"), elog.Any("error", err.Error()))
-		}
+	conn.SetMaxIdleConns(5)
+	conn.SetMaxOpenConns(10)
+	conn.SetConnMaxLifetime(time.Minute * 3)
+	if err = conn.Ping(); err != nil {
+		invoker.Logger.Error("ClickHouse", elog.String("step", "notException"), elog.Any("error", err.Error()))
 		return
 	}
-	db.SetMaxIdleConns(100)
-	db.SetMaxOpenConns(50)
 	return
 }
 
