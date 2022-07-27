@@ -39,7 +39,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v2/pandas/nodes-results/:result-id": {
+        "/api/v2/pandas/nodes-results/{result-id}": {
             "patch": {
                 "description": "only support excelProcess update",
                 "consumes": [
@@ -61,13 +61,9 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "params",
-                        "name": "req",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/view.ReqNodeRunResult"
-                        }
+                        "type": "string",
+                        "name": "excelProcess",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -191,6 +187,53 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v2/pandas/nodes/{node-id}/results": {
+            "get": {
+                "description": "Obtain the node execution result record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Obtain the node execution result record",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "node id",
+                        "name": "node-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "isExcludeCrontabResult",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/view.RespNodeResultList"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -233,14 +276,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "val": {
-                    "type": "string"
-                }
-            }
-        },
-        "view.ReqNodeRunResult": {
-            "type": "object",
-            "properties": {
-                "excelProcess": {
                     "type": "string"
                 }
             }
@@ -323,6 +358,58 @@ const docTemplate = `{
                 },
                 "instanceName": {
                     "type": "string"
+                }
+            }
+        },
+        "view.RespNodeResult": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "cost": {
+                    "type": "integer"
+                },
+                "ctime": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "nodeId": {
+                    "type": "integer"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "view.RespNodeResultList": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.RespNodeResult"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

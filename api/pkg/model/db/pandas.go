@@ -628,7 +628,7 @@ func NodeResultListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 		reqList.Current = 1
 	}
 	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Select("id, ctime, uid").Model(BigdataNodeResult{}).Where(sql, binds...).Order("id desc")
+	db := invoker.Db.Select("id, ctime, uid, cost").Model(BigdataNodeResult{}).Where(sql, binds...).Order("id desc")
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
