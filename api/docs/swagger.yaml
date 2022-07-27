@@ -27,11 +27,6 @@ definitions:
       val:
         type: string
     type: object
-  view.ReqNodeRunResult:
-    properties:
-      excelProcess:
-        type: string
-    type: object
   view.ReqUpdateCrontab:
     properties:
       args:
@@ -85,6 +80,40 @@ definitions:
       instanceName:
         type: string
     type: object
+  view.RespNodeResult:
+    properties:
+      avatar:
+        type: string
+      content:
+        type: string
+      cost:
+        type: integer
+      ctime:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      nodeId:
+        type: integer
+      result:
+        type: string
+      uid:
+        type: integer
+      username:
+        type: string
+    type: object
+  view.RespNodeResultList:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/view.RespNodeResult'
+        type: array
+      total:
+        type: integer
+    type: object
   view.RespTableSimple:
     properties:
       createType:
@@ -126,7 +155,7 @@ paths:
       summary: Gets all instance database and table data filtered by permissions
       tags:
       - base
-  /api/v2/pandas/nodes-results/:result-id:
+  /api/v2/pandas/nodes-results/{result-id}:
     patch:
       consumes:
       - application/json
@@ -137,12 +166,9 @@ paths:
         name: result-id
         required: true
         type: integer
-      - description: params
-        in: body
-        name: req
-        required: true
-        schema:
-          $ref: '#/definitions/view.ReqNodeRunResult'
+      - in: query
+        name: excelProcess
+        type: string
       produces:
       - application/json
       responses:
@@ -229,6 +255,36 @@ paths:
           schema:
             type: string
       summary: Force the file edit lock to be acquired
+      tags:
+      - pandas
+  /api/v2/pandas/nodes/{node-id}/results:
+    get:
+      consumes:
+      - application/json
+      description: Obtain the node execution result record
+      parameters:
+      - description: node id
+        in: path
+        name: node-id
+        required: true
+        type: integer
+      - in: query
+        name: current
+        type: integer
+      - in: query
+        name: isExcludeCrontabResult
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/view.RespNodeResultList'
+      summary: Obtain the node execution result record
       tags:
       - pandas
 swagger: "2.0"

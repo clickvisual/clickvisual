@@ -199,7 +199,6 @@ func GetRouter() *egin.Component {
 		v1.GET("/bigdata/nodes/:id/histories", core.Handle(bigdata.NodeHistoryListPage))
 		v1.GET("/bigdata/nodes/:id/histories/:uuid", core.Handle(bigdata.NodeHistoryInfo))
 		// bigdata node result
-		v1.GET("/bigdata/nodes/:id/result", core.Handle(bigdata.NodeResultListPage))
 		v1.GET("/bigdata/nodes/:id/result/:rid", core.Handle(bigdata.NodeResultInfo))
 		// bigdata node lock
 		v1.PATCH("/bigdata/nodes/:id/lock", core.Handle(bigdata.NodeLock))
@@ -254,7 +253,7 @@ func GetRouter() *egin.Component {
 		v2.PATCH("/pandas/nodes/:node-id/crontab", core.Handle(pandas.NodeCrontabUpdate))
 		// The node running data is processed by Excel
 		v2.GET("/pandas/nodes-results/:result-id", core.Handle(pandas.NodeResultUpdate))
-
+		v2.GET("/pandas/nodes/:node-id/results", core.Handle(pandas.NodeResultListPage))
 	}
 	return r
 }

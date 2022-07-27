@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -185,9 +187,9 @@ func NodeCrontabUpdate(c *core.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        result-id path int true "result id"
-// @Param        req body view.ReqNodeRunResult true "params"
+// @Param        req query view.ReqNodeRunResult true "params"
 // @Success      200 {string} ok
-// @Router       /api/v2/pandas/nodes-results/:result-id [patch]
+// @Router       /api/v2/pandas/nodes-results/{result-id} [patch]
 func NodeResultUpdate(c *core.Context) {
 	resultId := cast.ToInt(c.Param("result-id"))
 	if resultId == 0 {
@@ -224,5 +226,65 @@ func NodeResultUpdate(c *core.Context) {
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeResultUpdate, map[string]interface{}{"obj": req})
 	c.JSONE(core.CodeOK, "succ", service.NodeResultRespAssemble(&nr))
+	return
+}
+
+// NodeResultListPage  godoc
+// @Summary	     Obtain the node execution result record
+// @Description  Obtain the node execution result record
+// @Tags         pandas
+// @Accept       json
+// @Produce      json
+// @Param        node-id path int true "node id"
+// @Param        req query view.ReqNodeHistoryList true "params"
+// @Success      200 {object} view.RespNodeResultList
+// @Router       /api/v2/pandas/nodes/{node-id}/results [get]
+func NodeResultListPage(c *core.Context) {
+	id := cast.ToInt(c.Param("node-id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	nodeInfo, _ := db.NodeInfo(invoker.Db, id)
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(nodeInfo.Iid),
+		SubResource: pmsplugin.Pandas,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	var req view.ReqNodeHistoryList
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "request parameter error: "+err.Error(), nil)
+		return
+	}
+	invoker.Logger.Debug("nodeResultList", elog.Any("req", req))
+	conds := egorm.Conds{}
+	conds["node_id"] = id
+	if req.IsExcludeCrontabResult == 1 {
+		conds["uid"] = egorm.Cond{
+			Op:  "!=",
+			Val: -1,
+		}
+	}
+	total, nodeResList := db.NodeResultListPage(conds, &db.ReqPage{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+	})
+	list := make([]view.RespNodeResult, 0)
+	for _, nodeRes := range nodeResList {
+		list = append(list, service.NodeResultRespAssemble(nodeRes))
+	}
+	c.JSONPage(view.RespNodeResultList{
+		Total: total,
+		List:  list,
+	}, core.Pagination{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+		Total:    total,
+	})
 	return
 }

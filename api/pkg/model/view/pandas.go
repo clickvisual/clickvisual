@@ -195,6 +195,8 @@ type (
 
 	ReqNodeHistoryList struct {
 		db.ReqPage
+
+		IsExcludeCrontabResult int `json:"isExcludeCrontabResult" form:"isExcludeCrontabResult"`
 	}
 
 	NodeHistoryItem struct {
@@ -220,6 +222,7 @@ type (
 		NodeId  int    `json:"nodeId"`
 		Content string `json:"content,omitempty"`
 		Result  string `json:"result,omitempty"`
+		Cost    int64  `json:"cost,omitempty"`
 		RespUserSimpleInfo
 	}
 
@@ -245,21 +248,21 @@ type (
 		ReqUpdateCrontab
 	}
 	ReqUpdateCrontab struct {
-		Desc          string          `json:"desc" from:"desc"`
-		DutyUid       int             `json:"dutyUid" from:"dutyUid"`
-		Cron          string          `json:"cron" from:"cron"`
-		Typ           int             `json:"typ" from:"typ"`
-		Args          []ReqCrontabArg `json:"args" from:"args"`
-		IsRetry       int             `json:"isRetry" from:"isRetry"`
-		RetryTimes    int             `json:"retryTimes" from:"retryTimes"`
-		RetryInterval int             `json:"retryInterval" from:"retryInterval"`
+		Desc          string          `json:"desc" form:"desc"`
+		DutyUid       int             `json:"dutyUid" form:"dutyUid"`
+		Cron          string          `json:"cron" form:"cron"`
+		Typ           int             `json:"typ" form:"typ"`
+		Args          []ReqCrontabArg `json:"args" form:"args"`
+		IsRetry       int             `json:"isRetry" form:"isRetry"`
+		RetryTimes    int             `json:"retryTimes" form:"retryTimes"`
+		RetryInterval int             `json:"retryInterval" form:"retryInterval"`
 	}
 	ReqCrontabArg struct {
-		Key string `json:"key" from:"key"`
-		Val string `json:"val" from:"val"`
+		Key string `json:"key" form:"key"`
+		Val string `json:"val" form:"val"`
 	}
 	ReqNodeRunResult struct {
-		ExcelProcess string `json:"excelProcess" from:"excelProcess"`
+		ExcelProcess string `json:"excelProcess" form:"excelProcess"`
 	}
 )
 

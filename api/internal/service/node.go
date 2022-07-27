@@ -70,6 +70,7 @@ func NodeResultRespAssemble(nr *db.BigdataNodeResult) view.RespNodeResult {
 		NodeId:  nr.NodeId,
 		Content: nr.Content,
 		Result:  nr.Result,
+		Cost:    nr.Cost,
 	}
 	if nr.Uid == -1 {
 		res.RespUserSimpleInfo = view.RespUserSimpleInfo{
