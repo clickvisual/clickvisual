@@ -2,6 +2,7 @@ package node
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -47,7 +48,7 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 	res := view.RespRunNode{}
 
 	invoker.Logger.Debug("doSyDashboard", elog.Any("node", n))
-
+	now := time.Now()
 	execResult, err := p.execute(&node{
 		n:             n,
 		nc:            nc,
@@ -57,6 +58,8 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 		secondaryDone: false,
 		tertiaryDone:  false,
 	})
+	cost := time.Since(now).Milliseconds()
+
 	if err != nil {
 		execResult.Message = err.Error()
 	} else {
@@ -80,6 +83,7 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 			Content: nc.Content,
 			Result:  execResultStr,
 			Uid:     uid,
+			Cost:    cost,
 		}); errNodeCreate != nil {
 			tx.Rollback()
 			return res, errors.Wrap(errNodeCreate, execResult.Message)
