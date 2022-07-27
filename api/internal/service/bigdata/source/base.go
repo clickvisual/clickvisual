@@ -43,7 +43,7 @@ func (s *Source) GetDSN() string {
 	}
 	switch s.Typ {
 	case db.SourceTypClickHouse:
-		return fmt.Sprintf("tcp://%s?username=%s&password=%s", s.URL, s.UserName, s.Password)
+		return fmt.Sprintf("clickhouse://%s:%s@%s/%s", s.UserName, s.Password, s.URL, "default")
 	case db.SourceTypMySQL:
 		return fmt.Sprintf("%s:%s@tcp(%s)/sys", s.UserName, s.Password, s.URL)
 	}

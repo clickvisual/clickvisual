@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/gotomicro/ego/core/elog"
 
@@ -27,14 +28,15 @@ func (c *ClickHouse) Tables(database string) (res []string, err error) {
 }
 
 func (c *ClickHouse) Columns(database, table string) (res []Column, err error) {
-	obj, err := sql.Open("clickhouse", c.s.GetDSN())
+	conn, err := sql.Open("clickhouse", c.s.GetDSN())
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
 		return
 	}
-	defer func() { _ = obj.Close() }()
+	conn.SetConnMaxIdleTime(time.Minute * 3)
+	defer func() { _ = conn.Close() }()
 	query := fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
-	list, err := c.doQuery(obj, query)
+	list, err := c.doQuery(conn, query)
 	if err != nil {
 		return
 	}

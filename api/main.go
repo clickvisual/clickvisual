@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/clickvisual/prom2click"
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/server/egovernor"
 	"github.com/gotomicro/ego/task/ejob"
 
-	_ "github.com/clickvisual/clickvisual/api/docs"
+	_ "github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/clickvisual/prom2click"
 
+	_ "github.com/clickvisual/clickvisual/api/docs"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/router"
 	"github.com/clickvisual/clickvisual/api/internal/service"

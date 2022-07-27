@@ -154,6 +154,14 @@ func NodeCrontabUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	nodeCrontabInfo, _ := db.CrontabInfo(invoker.Db, nodeId)
+	var isReload bool = false
+	if req.Cron != nodeCrontabInfo.Cron ||
+		req.IsRetry != nodeCrontabInfo.IsRetry ||
+		req.RetryTimes != nodeCrontabInfo.RetryTimes ||
+		req.RetryInterval != nodeCrontabInfo.RetryInterval {
+		isReload = true
+	}
 	argsBytes, _ := json.Marshal(req.Args)
 	ups := make(map[string]interface{}, 0)
 	ups["uid"] = c.Uid()
@@ -165,7 +173,7 @@ func NodeCrontabUpdate(c *core.Context) {
 	ups["is_retry"] = req.IsRetry
 	ups["retry_times"] = req.RetryTimes
 	ups["retry_interval"] = req.RetryInterval
-	if req.Typ == db.CrontabTypSuspended {
+	if req.Typ == db.CrontabTypSuspended || isReload {
 		if err = worker.NodeCrontabStop(nodeId); err != nil {
 			c.JSONE(1, "update failed: "+err.Error(), nil)
 			return
