@@ -239,6 +239,16 @@ const DataAnalysis = () => {
       });
   };
 
+  const handleGrabLock = (file: any) => {
+    manageNode.doMandatoryGetFileLock.run(file?.id).then((res: any) => {
+      if (res.code != 0) return;
+      message.success(
+        formatMessage({ id: "bigdata.components.FileTitle.grabLockSuccessful" })
+      );
+      onGetFolderList(file?.id);
+    });
+  };
+
   // 保存编辑后的文件节点
   const handleSaveNode = () => {
     const data: any = {
@@ -338,6 +348,7 @@ const DataAnalysis = () => {
     handleUnLockFile,
     handleSaveNode,
     handleRunCode,
+    handleGrabLock,
 
     // histories
     doNodeHistories,

@@ -862,6 +862,8 @@ export default {
   "bigdata.components.FileTitle.user.readOnly": "Read-only",
   "bigdata.components.FileTitle.startEditing": "Start editing",
   "bigdata.components.FileTitle.exitEditor": "Exit the editor",
+  "bigdata.components.FileTitle.grabTheLock": "Grab the lock",
+  "bigdata.components.FileTitle.grabLockSuccessful": "Grab lock successfully",
   "bigdata.components.FileTitle.formatting": "Formatting",
   "bigdata.components.FileTitle.run": "run",
 

@@ -803,6 +803,8 @@ export default {
   "bigdata.components.FileTitle.user.readOnly": "只读",
   "bigdata.components.FileTitle.startEditing": "开始编辑",
   "bigdata.components.FileTitle.exitEditor": "退出编辑",
+  "bigdata.components.FileTitle.grabTheLock": "抢锁",
+  "bigdata.components.FileTitle.grabLockSuccessful": "抢锁成功",
   "bigdata.components.FileTitle.formatting": "格式化",
   "bigdata.components.FileTitle.run": "运行",
 

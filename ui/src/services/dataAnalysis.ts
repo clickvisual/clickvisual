@@ -290,4 +290,16 @@ export default {
   async getUsers() {
     return request(process.env.PUBLIC_PATH + `api/v1/users`);
   },
+
+  /**
+   * 抢锁
+   */
+  async mandatoryGetFileLock(nodeId: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/pandas/nodes/${nodeId}/lock-acquire`,
+      {
+        method: "POST",
+      }
+    );
+  },
 };

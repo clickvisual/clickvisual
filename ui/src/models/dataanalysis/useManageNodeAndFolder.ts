@@ -185,6 +185,13 @@ const useManageNodeAndFolder = () => {
     },
   });
 
+  const doMandatoryGetFileLock = useRequest(
+    dataAnalysisApi.mandatoryGetFileLock,
+    {
+      loadingText: false,
+    }
+  );
+
   const doStopCodeNode = useRequest(dataAnalysisApi.stopCodeNode, {
     loadingText: {
       loading: formatMessage({
@@ -465,6 +472,7 @@ const useManageNodeAndFolder = () => {
     doUpdatedNode,
     doDeletedNode,
     doSetNodesAndFolders,
+    doMandatoryGetFileLock,
 
     getFolders,
     doCreatedFolder,
