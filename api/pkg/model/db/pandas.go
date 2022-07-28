@@ -197,7 +197,7 @@ type BigdataCrontab struct {
 	Status        int    `gorm:"column:status;type:int(11)" json:"status"`           // status 0 default 1 preempt 2 doing
 	Uid           int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // user id
 	Args          string `gorm:"args:sql_view;type:text" json:"args"`                // sql_view
-	IsRetry       int    `gorm:"column:is_retry;type:tinyint(1" json:"isRetry"`
+	IsRetry       int    `gorm:"column:is_retry;type:tinyint(1)" json:"isRetry"`
 	RetryTimes    int    `gorm:"column:retry_times;type:int(11)" json:"retryTimes"`
 	RetryInterval int    `gorm:"column:retry_interval;type:int(11)" json:"retryInterval"`
 	Ctime         int64  `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
