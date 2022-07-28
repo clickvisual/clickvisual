@@ -816,6 +816,11 @@ export default {
   "bigdata.components.RightMenu.Scheduling.Parameter.val.placeholder":
     "Assign values to the parameters",
 
+  "bigdata.components.RightMenu.Scheduling.Schedule": "Schedule",
+  "bigdata.components.RightMenu.Scheduling.autoRerun": "Auto Rerun upon Error",
+  "bigdata.components.RightMenu.Scheduling.rerunsNumber": "Number of Reruns",
+  "bigdata.components.RightMenu.Scheduling.rerunInterval": "Rerun Interval",
+
   "bigdata.components.Results.involvedSQLs.key.placeholder":
     "Please select view",
 

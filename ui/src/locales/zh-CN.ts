@@ -753,6 +753,11 @@ export default {
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "调度规则 cron 字段填写 帮助文档",
 
+  "bigdata.components.RightMenu.Scheduling.Schedule": "时间属性",
+  "bigdata.components.RightMenu.Scheduling.autoRerun": "出错自动重跑",
+  "bigdata.components.RightMenu.Scheduling.rerunsNumber": "重跑次数",
+  "bigdata.components.RightMenu.Scheduling.rerunInterval": "重跑间隔",
+
   "bigdata.components.RightMenu.Scheduling.Parameter.title": "参数",
   "bigdata.components.RightMenu.Scheduling.Parameter.newButton": "新增参数",
   "bigdata.components.RightMenu.Scheduling.Parameter.key.placeholder":
