@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 type Operator interface {
@@ -39,7 +40,7 @@ type Source struct {
 
 func (s *Source) GetDSN() string {
 	if s.DSN != "" {
-		return s.DSN
+		return utils.ClickhouseDsnConvert(s.DSN)
 	}
 	switch s.Typ {
 	case db.SourceTypClickHouse:

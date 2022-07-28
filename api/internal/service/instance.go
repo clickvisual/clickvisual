@@ -2,8 +2,6 @@ package service
 
 import (
 	"database/sql"
-	"fmt"
-	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +18,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 type instanceManager struct {
@@ -121,29 +120,16 @@ func ReadAllPermissionTable(uid int, subResource string) []int {
 	return resArr
 }
 
-func ReadAllPermissionInstance(uid int, subResource string) ([]int, string) {
-	ins, _ := db.InstanceList(egorm.Conds{})
-	resArr := make([]int, 0)
-	var resStr string
-	for _, instance := range ins {
-		if !InstanceViewIsPermission(uid, instance.ID, subResource) {
-			invoker.Logger.Error("ReadAllPermissionInstance",
-				elog.Any("uid", uid),
-				elog.Any("iid", instance.ID),
-				elog.Any("subResource", subResource))
-			continue
-		}
-		resArr = append(resArr, instance.ID)
-		if resStr == "" {
-			resStr = strconv.Itoa(instance.ID)
-		} else {
-			resStr = fmt.Sprintf("%s,%s", resStr, strconv.Itoa(instance.ID))
-		}
+func InstanceViewIsPermission(uid, iid int) bool {
+	if instanceViewIsPermission(uid, iid, pmsplugin.Log) ||
+		instanceViewIsPermission(uid, iid, pmsplugin.Alarm) ||
+		instanceViewIsPermission(uid, iid, pmsplugin.Pandas) {
+		return true
 	}
-	return resArr, resStr
+	return false
 }
 
-func InstanceViewIsPermission(uid int, iid int, subResource string) bool {
+func instanceViewIsPermission(uid int, iid int, subResource string) bool {
 	// check instance permission
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,
@@ -175,48 +161,11 @@ func InstanceViewIsPermission(uid int, iid int, subResource string) bool {
 	return false
 }
 
-func queryValAssembly(query url.Values, key, unit string) {
-	if query.Has(key) {
-		rt := query.Get(key)
-		query.Set(key, rt+unit)
-	}
-}
-
-// convert clickhouse-go v1.5 to v2.0
-func clickhouseDsnConvert(req string) (res string) {
-	if strings.HasPrefix(req, "clickhouse://") {
-		return req
-	}
-	u, err := url.Parse(req)
-	if err != nil {
-		invoker.Logger.Error("clickhouseDsnConvert", elog.Any("error", err))
-		return req
-	}
-	query := u.Query()
-	database := query.Get("database")
-	if database == "" {
-		database = "default"
-	}
-	res = fmt.Sprintf("clickhouse://%s:%s@%s/%s", query.Get("username"), query.Get("password"), u.Host, database)
-	query.Del("username")
-	query.Del("password")
-	query.Del("database")
-
-	queryValAssembly(query, "read_timeout", "ms")
-	queryValAssembly(query, "write_timeout", "ms")
-
-	if len(query) != 0 {
-		res = fmt.Sprintf("%s?%s", res, query.Encode())
-	}
-
-	return
-}
-
 func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
 
-	invoker.Logger.Debug("clickhouseDsnConvert", elog.String("dsn", clickhouseDsnConvert(dsn)))
+	invoker.Logger.Debug("clickhouseDsnConvert", elog.String("dsn", utils.ClickhouseDsnConvert(dsn)))
 
-	conn, err = sql.Open("clickhouse", clickhouseDsnConvert(dsn))
+	conn, err = sql.Open("clickhouse", utils.ClickhouseDsnConvert(dsn))
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
 		return
@@ -394,26 +343,27 @@ func InstanceFilterPms(uid int) (res []view.RespInstanceSimple, err error) {
 	}
 	res = make([]view.RespInstanceSimple, 0)
 	iMap := make(map[int]view.RespInstanceSimple)
-	for _, d := range dArr {
-		// exist
-		if item, ok := iMap[d.Iid]; ok {
-			item.Databases = append(item.Databases, d)
-			iMap[d.Iid] = item
+	// Fill in all database information and verify related permissions
+	is, _ := db.InstanceList(egorm.Conds{})
+	for _, i := range is {
+		if !InstanceViewIsPermission(uid, i.ID) {
 			continue
 		}
-		// not exist
-		ins, errInstanceInfo := db.InstanceInfo(invoker.Db, d.Iid)
-		if errInstanceInfo != nil {
-			return res, errInstanceInfo
+		iMap[i.ID] = view.RespInstanceSimple{
+			Id:           i.ID,
+			InstanceName: i.Name,
+			Desc:         i.Desc,
+			Databases:    make([]view.RespDatabaseSimple, 0),
 		}
-		dArrTemp := make([]view.RespDatabaseSimple, 0)
-		dArrTemp = append(dArrTemp, d)
-		iMap[d.Iid] = view.RespInstanceSimple{
-			Id:           ins.ID,
-			InstanceName: ins.Name,
-			Desc:         ins.Desc,
-			Databases:    dArrTemp,
+	}
+	for _, d := range dArr {
+		// exist
+		item, ok := iMap[d.Iid]
+		if !ok {
+			continue
 		}
+		item.Databases = append(item.Databases, d)
+		iMap[d.Iid] = item
 	}
 	for _, v := range iMap {
 		res = append(res, v)
