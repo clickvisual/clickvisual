@@ -18,7 +18,7 @@ const TableQuery = () => {
   const i18n = useIntl();
 
   const {
-    currentDatabase,
+    // currentDatabase,
     statisticalChartsHelper,
     currentLogLibrary,
     logPanesHelper,
@@ -26,6 +26,7 @@ const TableQuery = () => {
     logs,
     logExcelData,
   } = useModel("dataLogs");
+  const { currentlyTableToIid } = useModel("instances");
   const { onSetLocalData } = useLocalStorages();
   const [urlState] = useUrlState();
   const { logPanes } = logPanesHelper;
@@ -54,9 +55,8 @@ const TableQuery = () => {
 
   const doSearch = useDebounceFn(
     () => {
-      if (!currentDatabase) return;
       doGetStatisticalTable
-        .run(currentDatabase.iid, {
+        .run(currentlyTableToIid, {
           query: sql ?? "",
         })
         .then((res) => {

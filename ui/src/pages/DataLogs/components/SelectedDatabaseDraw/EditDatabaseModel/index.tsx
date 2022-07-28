@@ -16,7 +16,10 @@ const EditDatabaseModel = () => {
 
   useEffect(() => {
     if (isEditDatabase) {
-      editDatabaseFormRef.current?.setFieldsValue(currentEditDatabase);
+      editDatabaseFormRef.current?.setFieldsValue({
+        name: currentEditDatabase.databaseName,
+        ...currentEditDatabase,
+      });
     } else {
       editDatabaseFormRef.current?.resetFields();
     }
@@ -52,12 +55,6 @@ const EditDatabaseModel = () => {
         <Form.Item name={"id"} hidden>
           <Input />
         </Form.Item>
-        <Form.Item name={"uid"} hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item name={"iid"} hidden>
-          <Input />
-        </Form.Item>
         <Form.Item
           label={i18n.formatMessage({ id: "database.form.label.name" })}
           name={"name"}
@@ -66,30 +63,19 @@ const EditDatabaseModel = () => {
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "instance.instanceName",
+            id: "log.editLogLibraryModal.label.isCreateCV.name",
           })}
-          name={"instanceName"}
+          name={"isCreateByCV"}
         >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "log.editDatabaseModel.label.datasourceType",
-          })}
-          name={"datasourceType"}
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item label={i18n.formatMessage({ id: "type" })} name={"mode"}>
           <Select disabled>
             <Option value={1}>
               {i18n.formatMessage({
-                id: "instance.form.title.cluster",
+                id: "alarm.rules.history.isPushed.true",
               })}
             </Option>
             <Option value={0}>
               {i18n.formatMessage({
-                id: "instance.form.title.modeType.single",
+                id: "alarm.rules.history.isPushed.false",
               })}
             </Option>
           </Select>
@@ -99,7 +85,7 @@ const EditDatabaseModel = () => {
             id: "instance.form.title.cluster",
           })}
           hidden={editDatabaseFormRef.current?.getFieldValue("mode") == 0}
-          name={"clusters"}
+          name={"cluster"}
         >
           <Input disabled />
         </Form.Item>

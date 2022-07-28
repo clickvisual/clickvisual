@@ -1,21 +1,25 @@
 import searchLogLibraryStyles from "@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary/index.less";
+import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
 import { Button, Input, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { PlusOutlined } from "@ant-design/icons";
+import IconFont from "@/components/IconFont";
 
 type SearchLogLibraryProps = {
   onSearch: (val: string) => void;
+  onGetList: any;
 };
 
 const SearchLogLibrary = (props: SearchLogLibraryProps) => {
-  const { onSearch } = props;
+  const { onSearch, onGetList } = props;
   const {
-    currentDatabase,
+    // currentDatabase,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsLogLibraryAllDatabase,
   } = useModel("dataLogs");
+  const { onChangeCreatedDatabaseModal } = useModel("database");
   const [value, setValue] = useState<string | undefined>(undefined);
   const i18n = useIntl();
 
@@ -25,9 +29,9 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
     };
   }, []);
 
-  useEffect(() => {
-    setValue(undefined);
-  }, [currentDatabase]);
+  // useEffect(() => {
+  //   setValue(undefined);
+  // }, [currentDatabase]);
 
   return (
     <div className={searchLogLibraryStyles.searchLogLibraryMain}>
@@ -37,7 +41,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
           placeholder={i18n.formatMessage({
             id: "datasource.logLibrary.search.placeholder",
           })}
-          allowClear
+          // allowClear
           style={{ paddingRight: "8px", flex: 1 }}
           onSearch={onSearch}
           onChange={(ev) => setValue(ev.target.value)}
@@ -46,10 +50,9 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
           title={i18n.formatMessage({
             id: "datasource.logLibrary.search.created",
           })}
-          placement="right"
+          placement="top"
         >
           <Button
-            disabled={!currentDatabase}
             onClick={() => {
               onChangeLogLibraryCreatedModalVisible(true);
               onChangeIsLogLibraryAllDatabase(true);
@@ -59,6 +62,24 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
             icon={<PlusOutlined />}
           />
         </Tooltip>
+        <Tooltip
+          title={i18n.formatMessage({
+            id: "instance.operation.addDatabase",
+          })}
+          placement={"top"}
+        >
+          <Button
+            onClick={() => {
+              onChangeCreatedDatabaseModal(true);
+            }}
+            style={{ width: "32px", marginLeft: "8px" }}
+            icon={
+              <IconFont type={"icon-add-database"} style={{ color: "#fff" }} />
+            }
+          />
+        </Tooltip>
+
+        <CreatedDatabaseModal onGetList={onGetList} />
       </div>
     </div>
   );

@@ -29,13 +29,14 @@ import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import { PlusSquareOutlined } from "@ant-design/icons";
 
 const { Search } = Input;
-const SelectedDataBaseDraw = () => {
+const SelectedDataBaseDraw = (props: { onGetList: any }) => {
+  const { onGetList } = props;
   const [, setUrlState] = useUrlState();
   const [treeDatabaseList, setTreeDatabaseList] = useState<any>([]);
   const {
     databaseList,
-    currentDatabase,
-    onChangeCurrentDatabase,
+    // currentDatabase,
+    // onChangeCurrentDatabase,
     getDatabases,
     visibleDataBaseDraw,
     doSelectedDatabase,
@@ -55,8 +56,8 @@ const SelectedDataBaseDraw = () => {
     doGetInstanceList,
     getInstanceList,
     instanceList,
-    selectedInstance,
-    onChangeSelectedInstance,
+    // selectedInstance,
+    // onChangeSelectedInstance,
   } = useModel("instances");
   const { deletedDatabase, onChangeCreatedDatabaseModal } =
     useModel("database");
@@ -86,10 +87,11 @@ const SelectedDataBaseDraw = () => {
               hideMessage();
               return;
             }
-            if (currentDatabase?.id === record.id) {
-              onChangeCurrentDatabase(undefined);
-            }
-            doGetDatabaseList(selectedInstance);
+            onGetList();
+            // if (currentDatabase?.id === record.id) {
+            //   onChangeCurrentDatabase(undefined);
+            // }
+            // doGetDatabaseList(selectedInstance);
             message.success(
               {
                 content: i18n.formatMessage(
@@ -145,9 +147,9 @@ const SelectedDataBaseDraw = () => {
     setTreeDatabaseList(arrList);
   };
 
-  useEffect(() => {
-    if (visibleDataBaseDraw) doGetDatabaseList(selectedInstance);
-  }, [selectedInstance, visibleDataBaseDraw]);
+  // useEffect(() => {
+  //   if (visibleDataBaseDraw) doGetDatabaseList(selectedInstance);
+  // }, [selectedInstance, visibleDataBaseDraw]);
 
   useEffect(() => {
     if (!visibleDataBaseDraw) return;
@@ -167,7 +169,7 @@ const SelectedDataBaseDraw = () => {
   useEffect(() => {
     if (!visibleDataBaseDraw) {
       onChangeAddLogToDatabase(undefined);
-      onChangeSelectedInstance(undefined);
+      // onChangeSelectedInstance(undefined);
     }
   }, [visibleDataBaseDraw]);
 
@@ -416,8 +418,8 @@ const SelectedDataBaseDraw = () => {
           />
         )}
       </div>
-      <CreatedDatabaseModal />
-      <ModalCreatedLogLibrary />
+      <CreatedDatabaseModal onGetList={() => {}} />
+      <ModalCreatedLogLibrary onGetList={onGetList} />
       <EditDatabaseModel />
     </Drawer>
   );

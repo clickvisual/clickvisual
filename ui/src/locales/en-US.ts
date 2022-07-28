@@ -387,6 +387,8 @@ export default {
   "datasource.draw.table.empty.type.tip": "None Database type",
   "datasource.draw.table.operation.tip":
     "Add a log library under this database",
+  "datasource.draw.table.delete.tip": "Delete this database",
+  "datasource.draw.table.edit.tip": "Edit the database",
 
   "log.share": "Share",
   "log.share.success": "The URL is pasted to the clipboard",
@@ -458,6 +460,8 @@ export default {
   "log.editLogLibraryModal.label.tabName": "Log library Name",
   "log.editLogLibraryModal.label.createType": "Create a type",
   "log.editLogLibraryModal.label.desc.placeholder": "Please enter an alias",
+  "log.editLogLibraryModal.label.isCreateCV.name":
+    "Whether created by ClickVisual",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "Edit the database",

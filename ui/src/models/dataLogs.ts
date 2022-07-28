@@ -403,11 +403,11 @@ const DataLogsModel = () => {
     return;
   };
 
-  const doGetLogLibraryList = () => {
-    if (currentDatabase) {
-      getLogLibraries.run(currentDatabase.id);
-    }
-  };
+  // const doGetLogLibraryList = () => {
+  //   if (currentDatabase) {
+  //     getLogLibraries.run(currentDatabase.id);
+  //   }
+  // };
 
   const doGetDatabaseList = (selectedInstance?: number) => {
     getDatabases.run(selectedInstance);
@@ -562,25 +562,25 @@ const DataLogsModel = () => {
     doUpdatedQuery(currentSelected);
   };
 
-  useEffect(() => {
-    if (!currentDatabase) {
-      setLogs(undefined);
-      setHighChartList([]);
-      setLogLibraryList([]);
-      setCurrentLogLibrary(undefined);
-    }
-    if (currentDatabase) {
-      doGetLogLibraryList();
-    }
-  }, [currentDatabase]);
+  // useEffect(() => {
+  //   if (!currentDatabase) {
+  //     setLogs(undefined);
+  //     setHighChartList([]);
+  //     setLogLibraryList([]);
+  //     setCurrentLogLibrary(undefined);
+  //   }
+  //   // if (currentDatabase) {
+  //   //   // doGetLogLibraryList();
+  //   // }
+  // }, [currentDatabase]);
 
-  useEffect(() => {
-    if (databaseList.length == 0) return;
-    const obj = databaseList.find(
-      (item: any) => item.id == currentDatabase?.id
-    );
-    onChangeCurrentDatabase(obj);
-  }, [databaseList]);
+  // useEffect(() => {
+  //   if (databaseList.length == 0) return;
+  //   const obj = databaseList.find(
+  //     (item: any) => item.id == currentDatabase?.id
+  //   );
+  //   onChangeCurrentDatabase(obj);
+  // }, [databaseList]);
 
   return {
     keywordInput,
@@ -615,7 +615,7 @@ const DataLogsModel = () => {
     doGetLogs,
     doGetHighCharts,
     doGetLogsAndHighCharts,
-    doGetLogLibraryList,
+    // doGetLogLibraryList,
     doGetDatabaseList,
 
     onChangeKeywordInput,

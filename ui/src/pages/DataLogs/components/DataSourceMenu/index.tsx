@@ -1,25 +1,100 @@
 import dataSourceMenuStyles from "@/pages/DataLogs/components/DataSourceMenu/index.less";
 import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import { Empty } from "antd";
 import { useIntl } from "umi";
 import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth";
+import LogLibraryItem from "./LogLibraryList/LogLibraryItem";
+import DatabaseItem from "./LogLibraryList/DatabaseItem";
+import InstanceItem from "./LogLibraryList/InstanceItem";
 
 const MENU_MIN = 200;
 const MENU_MAX = 400;
 
 const DataSourceMenu = () => {
-  const { doGetDatabaseList, currentDatabase } = useModel("dataLogs");
-  const { foldingState, onChangeResizeMenuWidth, resizeMenuWidth } =
-    useModel("dataLogs");
+  const {
+    foldingState,
+    onChangeResizeMenuWidth,
+    resizeMenuWidth,
+    doGetDatabaseList,
+  } = useModel("dataLogs");
+  const { doGetAllInstances } = useModel("instances");
+  // const [instanceTree, setInstanceTree] = useState<any[]>([]);
+  const [allInstancesData, setAllInstancesData] = useState<any>([]);
 
   const i18n = useIntl();
 
   useEffect(() => {
     doGetDatabaseList();
+    getList();
   }, []);
+
+  const getList = () => {
+    doGetAllInstances.run().then((res: any) => {
+      if (res.code != 0) return;
+      if (res.data?.length > 0) {
+        setAllInstancesData(res.data);
+        // const treeList = treeDataConversion(res.data);
+        // setInstanceTree(treeList);
+      }
+    });
+  };
+
+  const treeList = useMemo(() => {
+    if (allInstancesData?.length > 0) {
+      let arr: any = [];
+      for (let i = 0; i < allInstancesData.length; i++) {
+        const item = allInstancesData[i];
+        let databasesList: any[] = [];
+        if (item.databases?.length > 0) {
+          for (let j = 0; j < item.databases.length; j++) {
+            const databasesItem = item.databases[j];
+            const tabList: any[] = [];
+            if (databasesItem.tables?.length > 0) {
+              for (let k = 0; k < databasesItem.tables.length; k++) {
+                const tablesItem = databasesItem.tables[k];
+                tabList.push({
+                  title: (
+                    <LogLibraryItem
+                      logLibrary={tablesItem}
+                      key={`table-${tablesItem.id}`}
+                      onGetList={getList}
+                    />
+                  ),
+                  key: `table-${tablesItem.id}`,
+                  node: tablesItem,
+                  istable: true,
+                  iid: databasesItem.iid,
+                  name: `${tablesItem.tableName}|${tablesItem.desc}`,
+                });
+              }
+            }
+            databasesList.push({
+              title: (
+                <DatabaseItem
+                  databasesItem={databasesItem}
+                  onGetList={getList}
+                />
+              ),
+              key: `databases-${databasesItem.id}`,
+              children: tabList,
+              node: databasesItem,
+            });
+          }
+        }
+        arr.push({
+          title: <InstanceItem instanceItem={item} />,
+          key: `instance-${item.id}`,
+          children: databasesList,
+          node: item,
+        });
+      }
+      return arr;
+    }
+    return allInstancesData;
+  }, [allInstancesData]);
 
   const handleResize = useCallback(
     (offset) => {
@@ -43,20 +118,20 @@ const DataSourceMenu = () => {
   );
 
   const LogLibrary = useMemo(() => {
-    if (!currentDatabase) {
+    if (treeList.length == 0) {
       return (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           style={{ marginBottom: 10 }}
           description={i18n.formatMessage({
-            id: "alarm.rules.selected.placeholder.database",
+            id: "log.index.item.empty",
           })}
         />
       );
     }
 
-    return <LoggingLibrary />;
-  }, [currentDatabase]);
+    return <LoggingLibrary instanceTree={treeList} onGetList={getList} />;
+  }, [treeList]);
 
   return (
     <div

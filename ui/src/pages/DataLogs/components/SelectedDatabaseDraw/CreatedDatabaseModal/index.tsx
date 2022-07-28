@@ -11,14 +11,16 @@ import { InstanceType } from "@/services/systemSetting";
 
 const { Option } = Select;
 
-const CreatedDatabaseModal = () => {
+const CreatedDatabaseModal = (props: { onGetList: any }) => {
+  const { onGetList } = props;
   const {
     visibleCreatedDatabaseModal,
     onChangeCreatedDatabaseModal,
     createdDatabase,
   } = useModel("database");
-  const { doGetDatabaseList } = useModel("dataLogs");
-  const { selectedInstance, instanceList } = useModel("instances");
+  // const { doGetDatabaseList } = useModel("dataLogs");
+  const { instanceList, getInstanceList } = useModel("instances");
+  // const { onChangeExpandedKeys } = useModel("instances");
   const databaseFormRef = useRef<FormInstance>(null);
 
   const [clustersList, steClustersList] = useState<any>([]);
@@ -33,8 +35,10 @@ const CreatedDatabaseModal = () => {
     (field) => {
       createdDatabase.run(field.iid, field).then((res) => {
         if (res?.code === 0) {
-          doGetDatabaseList(selectedInstance);
+          // doGetDatabaseList(selectedInstance);
           onChangeCreatedDatabaseModal(false);
+          // onChangeExpandedKeys([]);
+          onGetList();
         }
       });
     },
@@ -42,18 +46,12 @@ const CreatedDatabaseModal = () => {
   ).run;
 
   useEffect(() => {
-    if (
-      selectedInstance &&
-      visibleCreatedDatabaseModal &&
-      databaseFormRef.current
-    ) {
-      databaseFormRef.current.setFieldsValue({ iid: selectedInstance });
+    if (!visibleCreatedDatabaseModal) {
+      databaseFormRef.current?.resetFields();
+      return;
     }
-  }, [selectedInstance, visibleCreatedDatabaseModal]);
-
-  useEffect(() => {
-    if (!visibleCreatedDatabaseModal && databaseFormRef.current) {
-      databaseFormRef.current.resetFields();
+    if (instanceList?.length == 0) {
+      getInstanceList.run();
     }
   }, [visibleCreatedDatabaseModal]);
 

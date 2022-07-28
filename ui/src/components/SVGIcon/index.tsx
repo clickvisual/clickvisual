@@ -8,6 +8,8 @@ import {
   LoginOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
+import styled from "styled-components";
+import { ReactNode, useMemo } from "react";
 
 export enum SVGTypeEnums {
   mysql = "mysql",
@@ -19,40 +21,32 @@ export enum SVGTypeEnums {
   end = "end",
   board = "board",
 }
+const ImgIcon = ({ src }: { src: string }) => {
+  return <img src={src} alt={""} />;
+};
+
+const icons: { [K in keyof typeof SVGTypeEnums]: ReactNode } = {
+  [SVGTypeEnums.mysql]: <ImgIcon src={MySQLSVG} />,
+  [SVGTypeEnums.clickhouse]: <ImgIcon src={ClickhouseSVG} />,
+  [SVGTypeEnums.realtime]: <ImgIcon src={RealTimeSVG} />,
+  [SVGTypeEnums.offline]: <ImgIcon src={OfflineSVG} />,
+  [SVGTypeEnums.default]: <FileOutlined />,
+  [SVGTypeEnums.start]: <LoginOutlined />,
+  [SVGTypeEnums.end]: <LogoutOutlined />,
+  [SVGTypeEnums.board]: <DashboardOutlined />,
+};
 
 const SVGIcon = ({ type }: { type: SVGTypeEnums }) => {
-  if (type === SVGTypeEnums.default) {
-    return <FileOutlined />;
-  }
-  if (type === SVGTypeEnums.start) {
-    return <LoginOutlined />;
-  }
-  if (type === SVGTypeEnums.end) {
-    return <LogoutOutlined />;
-  }
+  const SvgIcon = useMemo(() => icons[type], [type]);
 
-  if (type === SVGTypeEnums.board) {
-    return <DashboardOutlined />;
-  }
-
-  const srcType = () => {
-    switch (type) {
-      case SVGTypeEnums.mysql:
-        return MySQLSVG;
-      case SVGTypeEnums.clickhouse:
-        return ClickhouseSVG;
-      case SVGTypeEnums.realtime:
-        return RealTimeSVG;
-      case SVGTypeEnums.offline:
-        return OfflineSVG;
-    }
-  };
-  return (
-    <img
-      src={srcType()}
-      style={{ display: "inline-block", width: 16, height: 16 }}
-      alt={"sql"}
-    />
-  );
+  return <StyleSvgSpan>{SvgIcon}</StyleSvgSpan>;
 };
+
+const StyleSvgSpan = styled.span`
+  img {
+    display: "inline-block";
+    width: 16px;
+    height: 16px;
+  }
+`;
 export default SVGIcon;

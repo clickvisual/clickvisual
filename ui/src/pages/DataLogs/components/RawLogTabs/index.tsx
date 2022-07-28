@@ -23,6 +23,7 @@ const RawLogTabs = () => {
     logPanesHelper,
     onChangeCurrentLogPane,
   } = useModel("dataLogs");
+  const { onChangeSelectKeys } = useModel("instances");
   const { logPanes, paneKeys, removeLogPane } = logPanesHelper;
   const { onSetLocalData } = useLocalStorages();
 
@@ -55,6 +56,7 @@ const RawLogTabs = () => {
   };
 
   const handleChangeTab = (key: string) => {
+    onChangeSelectKeys([`table-${key}`]);
     const logLibraryId = parseInt(key);
     if (logLibraryId === currentLogLibrary?.id) return;
     const tabPane = logPanes[key];

@@ -363,6 +363,8 @@ export default {
   "datasource.draw.table.type": "数据库类型",
   "datasource.draw.table.empty.type.tip": "无数据库类型",
   "datasource.draw.table.operation.tip": "在此数据库下新增日志库",
+  "datasource.draw.table.delete.tip": "删除此数据库",
+  "datasource.draw.table.edit.tip": "编辑此数据库",
 
   "log.share": "分享",
   "log.share.success": "URL 已粘贴至剪切板",
@@ -431,6 +433,7 @@ export default {
   "log.editLogLibraryModal.label.tabName": "日志库名称",
   "log.editLogLibraryModal.label.createType": "创建类型",
   "log.editLogLibraryModal.label.desc.placeholder": "请输入别名",
+  "log.editLogLibraryModal.label.isCreateCV.name": "是否由ClickVisual创建",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "编辑数据库",

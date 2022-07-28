@@ -33,19 +33,20 @@ import { ALARMRULES_PATH } from "@/config/config";
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;
-  onChange: (logLibrary: TablesResponse) => void;
+  onGetList: any;
 };
 
 const LogLibraryItem = (props: LogLibraryItemProps) => {
-  const { onChange, logLibrary } = props;
+  const { logLibrary, onGetList } = props;
   const [, setUrlState] = useUrlState();
+  const { resizeMenuWidth } = useModel("dataLogs");
   const {
-    doGetLogLibraryList,
+    // doGetLogLibraryList,
     doDeletedLogLibrary,
     doGetLogLibrary,
     onChangeLogLibrary,
     currentLogLibrary,
-    currentDatabase,
+    // currentDatabase,
     logPanesHelper,
     resetCurrentHighChart,
     onChangeLogLibraryInfoDrawVisible,
@@ -111,7 +112,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   };
 
   const doDeleted = () => {
-    if (!currentDatabase) return;
+    // if (!currentDatabase) return;
     const hideMessage = message.loading(
       {
         content: i18n.formatMessage(
@@ -139,7 +140,8 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             },
             3
           );
-          doGetLogLibraryList();
+          // doGetLogLibraryList();
+          onGetList();
           // 不在打开的日志库中
           if (!paneKeys.includes(currentKey)) return;
 
@@ -179,7 +181,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       <MenuItem
         icon={<FileTextOutlined />}
         onClick={() => {
-          onChange(logLibrary);
           onChangeLogLibraryInfoDrawVisible(true);
         }}
       >
@@ -214,7 +215,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         icon={<FundViewOutlined />}
         disabled={logLibrary.createType !== 0}
         onClick={() => {
-          onChange(logLibrary);
           onChangeViewsVisibleDraw(true);
         }}
       >
@@ -271,38 +271,32 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
 
   return (
     <li
-      className={classNames(
-        currentLogLibrary?.id === logLibrary.id &&
-          logLibraryListStyles.activeLogLibrary,
-        mouseEnter && logLibraryListStyles.LogLibraryHover
-      )}
+      className={classNames(logLibraryListStyles.tableTitle)}
+      style={{ width: `${resizeMenuWidth - 80}px` }}
     >
-      <Tooltip
-        title={tooltipTitle}
-        placement="right"
-        overlayClassName={logLibraryListStyles.logLibraryToolTip}
-        overlayInnerStyle={{ width: 300 }}
-      >
-        <span
-          onClick={() => {
-            if (currentLogLibrary?.id === logLibrary.id) return;
-            onChangeLogLibrary(logLibrary);
-            resetCurrentHighChart();
-            onChangePanes();
-          }}
-          onMouseEnter={() => setMouseEnter(true)}
-          onMouseLeave={() => setMouseEnter(false)}
-          className={classNames(logLibraryListStyles.title)}
+      <Dropdown overlay={menu} trigger={["contextMenu"]}>
+        <Tooltip
+          title={tooltipTitle}
+          placement="right"
+          overlayClassName={logLibraryListStyles.logLibraryToolTip}
+          overlayInnerStyle={{ width: 300 }}
         >
-          {logLibrary.tableName}
-        </span>
-      </Tooltip>
-
-      <div style={{ position: "absolute", right: "8px" }}>
-        <Dropdown overlay={menu} trigger={["click"]}>
-          <MoreOutlined className={classNames(logLibraryListStyles.icon)} />
-        </Dropdown>
-      </div>
+          <span
+            onClick={() => {
+              if (currentLogLibrary?.id === logLibrary.id) return;
+              onChangeLogLibrary(logLibrary);
+              resetCurrentHighChart();
+              onChangePanes();
+            }}
+            onMouseEnter={() => setMouseEnter(true)}
+            onMouseLeave={() => setMouseEnter(false)}
+            className={classNames(logLibraryListStyles.title)}
+          >
+            <FileTextOutlined style={{ marginRight: "4px" }} />
+            {logLibrary.tableName}
+          </span>
+        </Tooltip>
+      </Dropdown>
     </li>
   );
 };

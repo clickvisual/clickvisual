@@ -4,15 +4,10 @@
   flex: 1;
   overflow-y: auto;
   font-size: 14px;
-  ul {
-    margin: 0;
-    padding: 0;
-    & > li {
+  overflow-x: hidden;
+     li {
       display: flex;
       align-items: center;
-      margin: 2px 0;
-      padding: 0 8px;
-      line-height: 32px;
       cursor: pointer;
 
       .title {
@@ -21,22 +16,13 @@
         white-space: nowrap;
         text-overflow: ellipsis;
         user-select: none;
-        padding-right: 30px;
+        padding-right: 20px;
       }
 
       .icon {
         margin: 0 4px;
       }
     }
-    .activeLogLibrary {
-      color: @font-color-white;
-      background: @primary-color;
-    }
-    .LogLibraryHover {
-      color: @font-color-white;
-      background: @primary-color-70;
-    }
-  }
 }
 
 .emptyBtn {
