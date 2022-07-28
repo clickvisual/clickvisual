@@ -6,7 +6,7 @@ import {
   FileTextOutlined,
   FundProjectionScreenOutlined,
   FundViewOutlined,
-  MoreOutlined,
+  // MoreOutlined,
 } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import {
@@ -20,7 +20,7 @@ import { useIntl } from "umi";
 import lodash from "lodash";
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { useState } from "react";
+// import { useState } from "react";
 import deletedModal from "@/components/DeletedModal";
 import { TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
@@ -61,7 +61,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
 
-  const [mouseEnter, setMouseEnter] = useState<boolean>(false);
+  // const [mouseEnter, setMouseEnter] = useState<boolean>(false);
 
   const i18n = useIntl();
   const { handleChangeRelativeAmountAndUnit } = useTimeOptions();
@@ -288,8 +288,8 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
               resetCurrentHighChart();
               onChangePanes();
             }}
-            onMouseEnter={() => setMouseEnter(true)}
-            onMouseLeave={() => setMouseEnter(false)}
+            // onMouseEnter={() => setMouseEnter(true)}
+            // onMouseLeave={() => setMouseEnter(false)}
             className={classNames(logLibraryListStyles.title)}
           >
             <FileTextOutlined style={{ marginRight: "4px" }} />
