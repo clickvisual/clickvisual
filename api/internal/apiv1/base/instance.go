@@ -124,9 +124,7 @@ func InstanceList(c *core.Context) {
 	res := make([]*db.BaseInstance, 0)
 	tmp, err := db.InstanceList(egorm.Conds{})
 	for _, row := range tmp {
-		if service.InstanceViewIsPermission(c.Uid(), row.ID, pmsplugin.Log) ||
-			service.InstanceViewIsPermission(c.Uid(), row.ID, pmsplugin.Alarm) ||
-			service.InstanceViewIsPermission(c.Uid(), row.ID, pmsplugin.Pandas) {
+		if service.InstanceViewIsPermission(c.Uid(), row.ID) {
 			row.Dsn = "*"
 			res = append(res, row)
 		}
@@ -145,7 +143,7 @@ func InstanceInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	if !service.InstanceViewIsPermission(c.Uid(), id, pmsplugin.Log) {
+	if !service.InstanceViewIsPermission(c.Uid(), id) {
 		c.JSONE(1, "authentication failed", nil)
 		return
 	}

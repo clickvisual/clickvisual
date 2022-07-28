@@ -16,11 +16,31 @@ import (
 func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 	res = make([]view.RespDatabaseSimple, 0)
 	dMap := make(map[int]view.RespDatabaseSimple)
+	// Fill in all database information and verify related permissions
+	ds, _ := db.DatabaseList(invoker.Db, egorm.Conds{})
+	for _, d := range ds {
+		if !DatabaseViewIsPermission(uid, d.Iid, d.ID) {
+			continue
+		}
+		dMap[d.ID] = view.RespDatabaseSimple{
+			Id:           d.ID,
+			Iid:          d.Iid,
+			DatabaseName: d.Name,
+			IsCreateByCV: d.IsCreateByCV,
+			Desc:         d.Desc,
+			Cluster:      d.Cluster,
+			Tables:       make([]view.RespTableSimple, 0),
+		}
+	}
 	ts, err := db.TableList(invoker.Db, egorm.Conds{})
 	if err != nil {
 		return
 	}
 	for _, row := range ts {
+		item, ok := dMap[row.Database.ID]
+		if !ok {
+			continue
+		}
 		if !TableViewIsPermission(uid, row.Database.Iid, row.ID) {
 			continue
 		}
@@ -31,22 +51,8 @@ func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 			CreateType: row.CreateType,
 			Desc:       row.Desc,
 		}
-		if item, ok := dMap[row.Database.ID]; ok {
-			item.Tables = append(item.Tables, respTableSimple)
-			dMap[row.Database.ID] = item
-			continue
-		}
-		tArr := make([]view.RespTableSimple, 0)
-		tArr = append(tArr, respTableSimple)
-		dMap[row.Database.ID] = view.RespDatabaseSimple{
-			Id:           row.Database.ID,
-			Iid:          row.Database.Iid,
-			DatabaseName: row.Database.Name,
-			IsCreateByCV: row.Database.IsCreateByCV,
-			Desc:         row.Database.Desc,
-			Cluster:      row.Database.Cluster,
-			Tables:       tArr,
-		}
+		item.Tables = append(item.Tables, respTableSimple)
+		dMap[row.Database.ID] = item
 	}
 	for _, v := range dMap {
 		res = append(res, v)
@@ -54,10 +60,10 @@ func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 	return
 }
 
-func DatabaseViewIsPermission(uid, iid, tid int) bool {
-	if databaseViewIsPermission(uid, iid, tid, pmsplugin.Log) ||
-		databaseViewIsPermission(uid, iid, tid, pmsplugin.Alarm) ||
-		databaseViewIsPermission(uid, iid, tid, pmsplugin.Pandas) {
+func DatabaseViewIsPermission(uid, iid, did int) bool {
+	if databaseViewIsPermission(uid, iid, did, pmsplugin.Log) ||
+		databaseViewIsPermission(uid, iid, did, pmsplugin.Alarm) ||
+		databaseViewIsPermission(uid, iid, did, pmsplugin.Pandas) {
 		return true
 	}
 	return false
