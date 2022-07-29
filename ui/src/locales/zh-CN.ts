@@ -63,6 +63,7 @@ export default {
   "navbar.changePassword": "修改密码",
   "navbar.logOut": "退出登录",
   "navbar.upgrade": "数据库结构升级",
+  "navbar.interfaceDoc": "接口文档",
   "navbar.upgrade.lodingText": "升级中",
   "navbar.upgrade.successText": "升级成功",
   "footer.copyright": `@2021~${new Date().getFullYear()} ClickVisual`,
@@ -362,6 +363,8 @@ export default {
   "datasource.draw.table.type": "数据库类型",
   "datasource.draw.table.empty.type.tip": "无数据库类型",
   "datasource.draw.table.operation.tip": "在此数据库下新增日志库",
+  "datasource.draw.table.delete.tip": "删除此数据库",
+  "datasource.draw.table.edit.tip": "编辑此数据库",
 
   "log.share": "分享",
   "log.share.success": "URL 已粘贴至剪切板",
@@ -372,8 +375,7 @@ export default {
   "log.switch.unfold": "折叠日志",
 
   // Data Logs-Statistical Table
-  "log.table.note":
-    "注：谨慎操作",
+  "log.table.note": "注：谨慎操作",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
@@ -431,6 +433,7 @@ export default {
   "log.editLogLibraryModal.label.tabName": "日志库名称",
   "log.editLogLibraryModal.label.createType": "创建类型",
   "log.editLogLibraryModal.label.desc.placeholder": "请输入别名",
+  "log.editLogLibraryModal.label.isCreateCV.name": "是否由ClickVisual创建",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "编辑数据库",
@@ -750,6 +753,11 @@ export default {
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "调度规则 cron 字段填写 帮助文档",
 
+  "bigdata.components.RightMenu.Scheduling.Schedule": "时间属性",
+  "bigdata.components.RightMenu.Scheduling.autoRerun": "出错自动重跑",
+  "bigdata.components.RightMenu.Scheduling.rerunsNumber": "重跑次数",
+  "bigdata.components.RightMenu.Scheduling.rerunInterval": "重跑间隔",
+
   "bigdata.components.RightMenu.Scheduling.Parameter.title": "参数",
   "bigdata.components.RightMenu.Scheduling.Parameter.newButton": "新增参数",
   "bigdata.components.RightMenu.Scheduling.Parameter.key.placeholder":
@@ -800,6 +808,8 @@ export default {
   "bigdata.components.FileTitle.user.readOnly": "只读",
   "bigdata.components.FileTitle.startEditing": "开始编辑",
   "bigdata.components.FileTitle.exitEditor": "退出编辑",
+  "bigdata.components.FileTitle.grabTheLock": "抢锁",
+  "bigdata.components.FileTitle.grabLockSuccessful": "抢锁成功",
   "bigdata.components.FileTitle.formatting": "格式化",
   "bigdata.components.FileTitle.run": "运行",
 

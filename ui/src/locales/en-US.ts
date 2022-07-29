@@ -63,6 +63,7 @@ export default {
   "navbar.changePassword": "Change password",
   "navbar.logOut": "Log out",
   "navbar.upgrade": "Database Structure Upgrade",
+  "navbar.interfaceDoc": "Interface documentation",
   "navbar.upgrade.lodingText": "In the upgrade",
   "navbar.upgrade.successText": "Upgrade success",
   "footer.copyright": `@2021~${new Date().getFullYear()} by ClickVisual`,
@@ -386,6 +387,8 @@ export default {
   "datasource.draw.table.empty.type.tip": "None Database type",
   "datasource.draw.table.operation.tip":
     "Add a log library under this database",
+  "datasource.draw.table.delete.tip": "Delete this database",
+  "datasource.draw.table.edit.tip": "Edit the database",
 
   "log.share": "Share",
   "log.share.success": "The URL is pasted to the clipboard",
@@ -397,8 +400,7 @@ export default {
   "log.switch.unfold": "Collapse Log",
 
   // Data Logs-Statistical Table
-  "log.table.note":
-    "Note: Careful operation",
+  "log.table.note": "Note: Careful operation",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",
@@ -458,6 +460,8 @@ export default {
   "log.editLogLibraryModal.label.tabName": "Log library Name",
   "log.editLogLibraryModal.label.createType": "Create a type",
   "log.editLogLibraryModal.label.desc.placeholder": "Please enter an alias",
+  "log.editLogLibraryModal.label.isCreateCV.name":
+    "Whether created by ClickVisual",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "Edit the database",
@@ -812,6 +816,11 @@ export default {
   "bigdata.components.RightMenu.Scheduling.Parameter.val.placeholder":
     "Assign values to the parameters",
 
+  "bigdata.components.RightMenu.Scheduling.Schedule": "Schedule",
+  "bigdata.components.RightMenu.Scheduling.autoRerun": "Auto Rerun upon Error",
+  "bigdata.components.RightMenu.Scheduling.rerunsNumber": "Number of Reruns",
+  "bigdata.components.RightMenu.Scheduling.rerunInterval": "Rerun Interval",
+
   "bigdata.components.Results.involvedSQLs.key.placeholder":
     "Please select view",
 
@@ -858,6 +867,8 @@ export default {
   "bigdata.components.FileTitle.user.readOnly": "Read-only",
   "bigdata.components.FileTitle.startEditing": "Start editing",
   "bigdata.components.FileTitle.exitEditor": "Exit the editor",
+  "bigdata.components.FileTitle.grabTheLock": "Grab the lock",
+  "bigdata.components.FileTitle.grabLockSuccessful": "Grab lock successfully",
   "bigdata.components.FileTitle.formatting": "Formatting",
   "bigdata.components.FileTitle.run": "run",
 

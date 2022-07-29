@@ -10,6 +10,7 @@ import message from "antd/es/message";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
 import { parseJsonObject } from "@/utils/string";
 import styles from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/index.less";
+import { useIntl } from "umi";
 
 export interface IntegratedConfigurationProps {
   currentNode: any;
@@ -17,6 +18,7 @@ export interface IntegratedConfigurationProps {
 const IntegratedConfiguration = ({
   currentNode,
 }: IntegratedConfigurationProps) => {
+  const i18n = useIntl();
   const [form] = Form.useForm();
   const [nodeInfo, setNodeInfo] = useState<any>();
   const [isChangeForm, setIsChangeForm] = useState<boolean>(false);
@@ -33,6 +35,7 @@ const IntegratedConfiguration = ({
     doRunCodeNode,
     doStopCodeNode,
     doGetColumns,
+    doMandatoryGetFileLock,
   } = useModel("dataAnalysis", (model) => ({
     setSource: model.integratedConfigs.setSourceColumns,
     setTarget: model.integratedConfigs.setTargetColumns,
@@ -46,6 +49,7 @@ const IntegratedConfiguration = ({
     doUnLockNode: model.manageNode.doUnLockNode,
     doRunCodeNode: model.manageNode.doRunCodeNode,
     doStopCodeNode: model.manageNode.doStopCodeNode,
+    doMandatoryGetFileLock: model.manageNode.doMandatoryGetFileLock,
   }));
 
   const handleSubmit = (fields: any) => {
@@ -211,6 +215,18 @@ const IntegratedConfiguration = ({
     });
   };
 
+  const handleGrabLock = (file: any) => {
+    doMandatoryGetFileLock.run(file?.id).then((res: any) => {
+      if (res.code != 0) return;
+      doGetNodeInfo(file.id);
+      message.success(
+        i18n.formatMessage({
+          id: "bigdata.components.FileTitle.grabLockSuccessful",
+        })
+      );
+    });
+  };
+
   const handleChangeForm = (changedValues: any, allValues: any) => {
     setIsChangeForm(true);
   };
@@ -261,6 +277,7 @@ const IntegratedConfiguration = ({
           onUnlock={handleUnlock}
           onRun={handleRun}
           onStop={handleStop}
+          onGrabLock={handleGrabLock}
         />
         <IntegratedConfigs
           onFormChange={handleChangeForm}

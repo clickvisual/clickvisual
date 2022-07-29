@@ -42,6 +42,12 @@ export interface CreatedDatabaseRequest {
 }
 
 export default {
+  async getAllInstances() {
+    return request(process.env.PUBLIC_PATH + `api/v2/base/instances`, {
+      method: "GET",
+    });
+  },
+
   // Getting a list of instances
   async getInstances() {
     return request<API.Res<InstanceType[]>>(

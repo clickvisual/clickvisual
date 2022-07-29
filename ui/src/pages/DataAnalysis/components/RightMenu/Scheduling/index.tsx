@@ -6,6 +6,7 @@ import { useModel, useIntl } from "umi";
 import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 import BasisConfig from "./BasisConfig";
 import Parameter from "./Parameter";
+import TimeProperty from "./TimeProperty";
 
 const Scheduling = (props: {
   visible: boolean;
@@ -76,6 +77,11 @@ const Scheduling = (props: {
 
   // 函数
 
+  const setValue = (key: string, value: boolean | number) => {
+    CrontabFormRef.current?.setFieldsValue({ key: value });
+    CrontabFormRef.current?.getFieldValue;
+  };
+
   const onClose = () => {
     setVisible(false);
   };
@@ -86,6 +92,9 @@ const Scheduling = (props: {
     cron?: string;
     typ: number;
     args: { key: string; val: string }[];
+    isRetry: number;
+    retryInterval?: number;
+    retryTimes?: number;
   }) => {
     if (!isUpdate) {
       const data = {
@@ -95,8 +104,11 @@ const Scheduling = (props: {
         typ: Number(!file.typ),
         nodeId: selectNode.id,
         args: file.args,
+        isRetry: file.isRetry ? 1 : 0,
+        retryInterval: file.retryInterval,
+        retryTimes: file.retryTimes,
       };
-      doCreatCrontab.run(data).then((res: any) => {
+      doCreatCrontab.run(selectNode.id, data).then((res: any) => {
         if (res.code == 0) {
           message.success(i18n.formatMessage({ id: "models.pms.create.suc" }));
           onClose();
@@ -110,6 +122,9 @@ const Scheduling = (props: {
       cron: file.cron,
       typ: Number(!file.typ),
       args: file.args,
+      isRetry: file.isRetry ? 1 : 0,
+      retryInterval: file.retryInterval,
+      retryTimes: file.retryTimes,
     };
     doUpdateCrontab.run(selectNode.id, data).then((res: any) => {
       if (res.code == 0) {
@@ -137,12 +152,15 @@ const Scheduling = (props: {
               cron: data.cron,
               typ: !Boolean(data.typ),
               uid: data.uid,
+              isRetry: Boolean(data.isRetry),
               args:
                 selectNode?.secondary != SecondaryEnums.dataIntegration
                   ? JSON.parse(data.args?.length > 0 ? data.args : "[]") || [
                       { key: "", val: "" },
                     ]
                   : undefined,
+              retryInterval: data.retryInterval || 3,
+              retryTimes: data.retryTimes || 2,
             });
             setIsUpdate(true);
             return;
@@ -194,6 +212,10 @@ const Scheduling = (props: {
         onFinish={handleSubmit}
         labelAlign="left"
         labelWrap
+        initialValues={{
+          retryInterval: 3,
+          retryTimes: 2,
+        }}
       >
         {/* 基础配置 */}
         <CustomCollapse
@@ -214,6 +236,14 @@ const Scheduling = (props: {
             <Parameter />
           </CustomCollapse>
         )}
+        {/* 时间属性 */}
+        <CustomCollapse
+          title={i18n.formatMessage({
+            id: "bigdata.components.RightMenu.Scheduling.Schedule",
+          })}
+        >
+          <TimeProperty form={CrontabFormRef} />
+        </CustomCollapse>
       </Form>
     </Drawer>
   );

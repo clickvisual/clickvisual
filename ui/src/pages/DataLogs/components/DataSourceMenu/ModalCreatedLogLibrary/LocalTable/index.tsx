@@ -13,21 +13,21 @@ import {
 import { useModel } from "@@/plugin-model/useModel";
 import { InstanceType } from "@/services/systemSetting";
 import { LocalTables } from "@/services/dataLogs";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 type LocalTableProps = {
   formRef: FormInstance | null;
-  instanceName: string | undefined;
-  databaseName: string | undefined;
+  // instanceName: string | undefined;
+  // databaseName: string | undefined;
 };
 const LocalTable = ({
   formRef,
-  instanceName,
-  databaseName,
-}: LocalTableProps) => {
+}: // instanceName,
+// databaseName,
+LocalTableProps) => {
   const i18n = useIntl();
   const {
     getLocalTables,
@@ -45,7 +45,7 @@ const LocalTable = ({
     let newList: any = list;
     // 从已有数据库新增
     if (!isLogLibraryAllDatabase) {
-      const currentDatabaseName = addLogToDatabase?.name || databaseName;
+      const currentDatabaseName = addLogToDatabase?.name;
       const newArr = [
         list.find((item: any) => {
           return item.name == currentDatabaseName;
@@ -104,21 +104,21 @@ const LocalTable = ({
     });
   };
 
-  useEffect(() => {
-    if (instanceList.length <= 0) return;
-    const instanceObj = instanceList.find(
-      (item: any) =>
-        item.name == (addLogToDatabase?.instanceName || instanceName)
-    );
-    if (!instanceObj || !instanceObj.id) return;
-    formRef?.setFieldsValue({
-      instance: instanceObj.id,
-    });
-    getLocalTables.run(instanceObj.id as number).then((res) => {
-      if (res?.code !== 0) return;
-      formatOptions(res.data);
-    });
-  }, [instanceList]);
+  // useEffect(() => {
+  //   if (instanceList.length <= 0) return;
+  //   const instanceObj = instanceList.find(
+  //     (item: any) =>
+  //       item.name == (addLogToDatabase?.instanceName || instanceName)
+  //   );
+  //   if (!instanceObj || !instanceObj.id) return;
+  //   formRef?.setFieldsValue({
+  //     instance: instanceObj.id,
+  //   });
+  //   getLocalTables.run(instanceObj.id as number).then((res) => {
+  //     if (res?.code !== 0) return;
+  //     formatOptions(res.data);
+  //   });
+  // }, [instanceList]);
 
   // useEffect(() => {
   //   if (!options || !(addLogToDatabase?.name || databaseName) || !instanceList)

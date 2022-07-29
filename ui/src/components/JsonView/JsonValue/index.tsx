@@ -124,7 +124,6 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
             highLightFlag && jsonViewStyles.jsonViewHighlight
           )}
         >
-          {val.toString()}
           <ClickMenu
             field={jsonKey}
             content={val.toString()}

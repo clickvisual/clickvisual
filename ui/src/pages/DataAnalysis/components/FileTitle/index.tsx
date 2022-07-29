@@ -18,6 +18,7 @@ import {
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
 import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
+import moment from "moment";
 
 export enum FileTitleType {
   node = "node",
@@ -33,6 +34,7 @@ export interface FileTitleProps {
   onStop?: (file: any) => void;
   onFormat?: () => void;
   type: FileTitleType;
+  onGrabLock: (file: any) => void;
   /**
    * 是否发生改变，true 为是，false 为否
    */
@@ -47,6 +49,7 @@ const FileTitle = ({
   onFormat,
   onRun,
   onStop,
+  onGrabLock,
   isChange,
 }: FileTitleProps) => {
   const i18n = useIntl();
@@ -168,6 +171,7 @@ const FileTitle = ({
   ).run;
   const handleLock = useThrottleFn(onLock, { wait: THROTTLE_WAIT }).run;
   const handleUnlock = useThrottleFn(onUnlock, { wait: THROTTLE_WAIT }).run;
+  const handleGrabLock = useThrottleFn(onGrabLock, { wait: THROTTLE_WAIT }).run;
   const handleFormat = useThrottleFn(
     () => {
       onFormat?.();
@@ -201,10 +205,17 @@ const FileTitle = ({
                   })
                 } ${i18n.formatMessage({
                   id: "bigdata.components.FileTitle.user.editing",
-                })}`
+                })} | `
               : i18n.formatMessage({
                   id: "bigdata.components.FileTitle.user.readOnly",
                 })}
+            {file.lockUid && file.lockUid !== 0 ? (
+              <Tooltip
+                title={moment(file.lockAt * 1000).format("YYYY-MM-DD hh:mm:ss")}
+              >
+                {moment(file.lockAt * 1000).format("MM-DD hh:mm:ss")}
+              </Tooltip>
+            ) : null}
           </div>
           <div className={styles.icons}>
             <Space>
@@ -213,6 +224,17 @@ const FileTitle = ({
                 indicator={<LoadingOutlined style={{ fontSize: 14 }} spin />}
                 spinning={doLockNode.loading || doUnLockNode.loading}
               />
+              {file.lockUid && file.lockUid !== currentUser?.id ? (
+                <Button
+                  size={"small"}
+                  type={"primary"}
+                  onClick={() => handleGrabLock(file)}
+                >
+                  {i18n.formatMessage({
+                    id: "bigdata.components.FileTitle.grabTheLock",
+                  })}
+                </Button>
+              ) : null}
               {(!file.lockUid || file.lockUid === 0) && (
                 <Button
                   size={"small"}

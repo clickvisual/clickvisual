@@ -1,28 +1,43 @@
 import LoggingLibraryStyles from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary/index.less";
 import SearchLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary";
 import LogLibraryList from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList";
+import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
+import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import { useEffect, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import { TablesResponse } from "@/services/dataLogs";
+import { useModel } from "umi";
+import { cloneDeep } from "lodash";
+// import { useEffect, useState } from "react";
+// import { useModel } from "@@/plugin-model/useModel";
+// import { TablesResponse } from "@/services/dataLogs";
 
-const LoggingLibrary = () => {
-  const { logLibraryList } = useModel("dataLogs");
-  const [list, setList] = useState<TablesResponse[]>([]);
+const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
+  const { instanceTree, onGetList } = props;
+  const [listData, setListData] = useState<any[]>(instanceTree);
+  const { filterSelectedTree } = useModel("instances");
+  // const { logLibraryList } = useModel("dataLogs");
+  // const [list, setList] = useState<TablesResponse[]>([]);
+  let cloneList = cloneDeep(instanceTree);
   const onSearch = (val: string) => {
-    setList(
-      logLibraryList.filter((item) =>
-        item.tableName.toLowerCase().includes(val.toLowerCase())
-      ) || []
-    );
+    if (val.trim().length != 0) {
+      setListData(filterSelectedTree(cloneList, val));
+      return;
+    }
+    setListData(cloneList);
   };
 
   useEffect(() => {
-    setList(logLibraryList);
-  }, [logLibraryList]);
+    setListData(instanceTree);
+  }, [instanceTree]);
+
+  // useEffect(() => {
+  //   setList(logLibraryList);
+  // }, [logLibraryList]);
   return (
     <div className={LoggingLibraryStyles.loggingLibraryMain}>
-      <SearchLogLibrary onSearch={onSearch} />
-      <LogLibraryList list={list} />
+      <SearchLogLibrary onSearch={onSearch} onGetList={onGetList} />
+      <LogLibraryList list={listData} onGetList={onGetList} />
+      <CreatedDatabaseModal onGetList={onGetList} />
+      <ModalCreatedLogLibrary onGetList={onGetList} />
     </div>
   );
 };

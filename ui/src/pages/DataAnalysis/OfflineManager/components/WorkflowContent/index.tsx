@@ -23,6 +23,7 @@ const WorkflowContent = () => {
     handleRunCode,
     changeFolderContent,
     folderContent,
+    handleGrabLock,
   } = useModel("dataAnalysis");
 
   useEffect(() => {
@@ -47,6 +48,7 @@ const WorkflowContent = () => {
             onRun={() => handleRunCode(openNodeData?.id as number)}
             type={FileTitleType.sql}
             onFormat={() => changeFolderContent(format(folderContent))}
+            onGrabLock={handleGrabLock}
           />
         );
       case SecondaryEnums.board:

@@ -4,14 +4,15 @@ import { useModel, useIntl } from "umi";
 import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import style from "./index.less";
 
-const EditLogLibraryModal = () => {
+const EditLogLibraryModal = (props: { onGetList: any }) => {
+  const { onGetList } = props;
   const { Option } = Select;
   const i18n = useIntl();
   const {
     isModifyLog,
     onChangeIsModifyLog,
     currentEditLogLibrary,
-    doGetLogLibraryList,
+    // doGetLogLibraryList,
     doGetLogLibrary,
     doUpdateLogLibrary,
     updateLogLibraryLoading,
@@ -51,7 +52,8 @@ const EditLogLibraryModal = () => {
           i18n.formatMessage({ id: "log.editLogLibraryModal.modifySuc" })
         );
         onChangeIsModifyLog(false);
-        doGetLogLibraryList();
+        onGetList();
+        // doGetLogLibraryList();
       })
       .catch((res) => {
         res?.msg && message.error(res.msg);

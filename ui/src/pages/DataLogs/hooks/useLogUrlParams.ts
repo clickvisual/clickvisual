@@ -70,12 +70,12 @@ export default function useLogUrlParams() {
   const [tid, setTid] = useState<any>();
   const {
     doGetLogsAndHighCharts,
-    databaseList,
-    currentDatabase,
+    // databaseList,
+    // currentDatabase,
     currentLogLibrary,
     getTableId,
     onChangeLogLibrary,
-    onChangeCurrentDatabase,
+    // onChangeCurrentDatabase,
     startDateTime,
     endDateTime,
     currentPage,
@@ -88,7 +88,7 @@ export default function useLogUrlParams() {
     onChangeLogPane,
     logPanesHelper,
     statisticalChartsHelper,
-    onChangeVisibleDatabaseDraw,
+    // onChangeVisibleDatabaseDraw,
   } = useModel("dataLogs");
   const { addLogPane } = logPanesHelper;
   const { activeQueryType, chartSql } = statisticalChartsHelper;
@@ -100,9 +100,9 @@ export default function useLogUrlParams() {
     tid: number,
     lastDataLogsState: LastDataLogsStateType
   ) => {
-    if (res.data.database) {
-      onChangeCurrentDatabase(res.data.database);
-    }
+    // if (res.data.database) {
+    // onChangeCurrentDatabase(res.data.database);
+    // }
     onChangeLogLibrary({
       id: tid,
       tableName: res.data.name,
@@ -181,7 +181,7 @@ export default function useLogUrlParams() {
     () => {
       const data = {
         tid: currentLogLibrary?.id,
-        did: currentDatabase?.id,
+        // did: currentDatabase?.id,
         start: startDateTime,
         end: endDateTime,
         page: currentPage,
@@ -202,7 +202,7 @@ export default function useLogUrlParams() {
     setUrlQuery.run();
   }, [
     currentLogLibrary,
-    currentDatabase,
+    // currentDatabase,
     startDateTime,
     endDateTime,
     currentPage,
@@ -241,16 +241,16 @@ export default function useLogUrlParams() {
     }
   }, [tid]);
 
-  useEffect(() => {
-    const lastDataLogsState: LastDataLogsStateType = getLastDataLogsState();
-    const tid = urlState.tid || lastDataLogsState.tid;
-    const did = urlState.did || lastDataLogsState.did;
-    if (databaseList.length > 0 && did && !currentDatabase) {
-      const database = databaseList.find((item) => parseInt(did) === item.id);
-      onChangeCurrentDatabase(database);
-    } else if (!tid && !did && databaseList.length > 0 && !currentDatabase) {
-      // onChangeCurrentDatabase(databaseList[0]);
-      onChangeVisibleDatabaseDraw(true);
-    }
-  }, [databaseList, currentDatabase, urlState.did, urlState.tid]);
+  // useEffect(() => {
+  //   const lastDataLogsState: LastDataLogsStateType = getLastDataLogsState();
+  //   const tid = urlState.tid || lastDataLogsState.tid;
+  //   const did = urlState.did || lastDataLogsState.did;
+  //   if (databaseList.length > 0 && did && !currentDatabase) {
+  //     const database = databaseList.find((item) => parseInt(did) === item.id);
+  //     // onChangeCurrentDatabase(database);
+  //   } else if (!tid && !did && databaseList.length > 0 && !currentDatabase) {
+  //     // onChangeCurrentDatabase(databaseList[0]);
+  //     onChangeVisibleDatabaseDraw(true);
+  //   }
+  // }, [databaseList, currentDatabase, urlState.did, urlState.tid]);
 }

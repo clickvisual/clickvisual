@@ -63,7 +63,7 @@ export interface nodeHistoriesType {
 }
 
 export interface CreateCrontabType extends UpdateCrontabType {
-  nodeId: number;
+  // nodeId: number;
 }
 
 export interface UpdateCrontabType {
@@ -71,6 +71,10 @@ export interface UpdateCrontabType {
   dutyUid: number;
   cron?: string;
   typ?: number;
+  args?: any[];
+  isRetry: number;
+  retryInterval?: number;
+  retryTimes?: number;
 }
 
 export enum CrontabTyp {
@@ -249,11 +253,14 @@ export default {
 
   // mining
   // 创建
-  async creatCrontab(data: CreateCrontabType) {
-    return request(process.env.PUBLIC_PATH + `api/v1/bigdata/mining/crontab`, {
-      method: "POST",
-      data,
-    });
+  async creatCrontab(id: number, data: CreateCrontabType) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/pandas/nodes/${id}/crontab`,
+      {
+        method: "POST",
+        data,
+      }
+    );
   },
 
   // 获取crontab详情
@@ -266,7 +273,7 @@ export default {
   // 修改crontab
   async updateCrontab(id: number, data: UpdateCrontabType) {
     return request(
-      process.env.PUBLIC_PATH + `api/v1/bigdata/mining/nodes/${id}/crontab`,
+      process.env.PUBLIC_PATH + `api/v2/pandas/nodes/${id}/crontab`,
       {
         method: "PATCH",
         data,
@@ -289,5 +296,17 @@ export default {
    */
   async getUsers() {
     return request(process.env.PUBLIC_PATH + `api/v1/users`);
+  },
+
+  /**
+   * 抢锁
+   */
+  async mandatoryGetFileLock(nodeId: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/pandas/nodes/${nodeId}/lock-acquire`,
+      {
+        method: "POST",
+      }
+    );
   },
 };

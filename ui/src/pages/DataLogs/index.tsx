@@ -1,17 +1,17 @@
 import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
 import DataSourceMenu from "@/pages/DataLogs/components/DataSourceMenu";
-import SelectedDataBaseDraw from "@/pages/DataLogs/components/SelectedDatabaseDraw";
+// import SelectedDataBaseDraw from "@/pages/DataLogs/components/SelectedDatabaseDraw";
 import classNames from "classnames";
 import { useEffect } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
-import BreadcrumbNavigation from "@/pages/DataLogs/components/BreadcrumbNavigation";
+// import BreadcrumbNavigation from "@/pages/DataLogs/components/BreadcrumbNavigation";
 import useLogUrlParams from "@/pages/DataLogs/hooks/useLogUrlParams";
 import CollapseMenu from "@/pages/DataLogs/components/CollapseAndExpandMenu/CollapseMenu";
 
 const DataLogs = () => {
   const {
-    onChangeCurrentDatabase,
+    // onChangeCurrentDatabase,
     onChangeVisibleDatabaseDraw,
     logPanesHelper,
   } = useModel("dataLogs");
@@ -20,7 +20,7 @@ const DataLogs = () => {
   useEffect(() => {
     return () => {
       onChangeVisibleDatabaseDraw(false);
-      onChangeCurrentDatabase(undefined);
+      // onChangeCurrentDatabase(undefined);
       logPanesHelper.resetPane();
     };
   }, []);
@@ -33,10 +33,10 @@ const DataLogs = () => {
         dataLogsStyles.menuBtnMain
       )}
     >
-      <BreadcrumbNavigation />
+      {/* <BreadcrumbNavigation /> */}
       <DataSourceMenu />
       <RawLogTabs />
-      <SelectedDataBaseDraw />
+      {/* <SelectedDataBaseDraw  /> */}
       <CollapseMenu />
     </div>
   );

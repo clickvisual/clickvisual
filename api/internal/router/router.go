@@ -9,7 +9,7 @@ import (
 	"github.com/gotomicro/ego/server/egin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
+    basev2 "github.com/clickvisual/clickvisual/api/internal/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata"
@@ -242,7 +242,7 @@ func GetRouter() *egin.Component {
 	}
 	// The global basic readable information module - base
 	{
-		v2.GET("/base/instances", core.Handle(base.InstanceList))
+		v2.GET("/base/instances", core.Handle(basev2.InstanceList))
 	}
 	// The data analysis module - pandas
 	{

@@ -9,7 +9,16 @@ import { Empty, Spin } from "antd";
 
 const SQLEditor = (props: FileTitleProps) => {
   const i18n = useIntl();
-  const { file, onSave, onLock, onUnlock, onRun, isChange, onFormat } = props;
+  const {
+    file,
+    onSave,
+    onLock,
+    onUnlock,
+    onRun,
+    isChange,
+    onFormat,
+    onGrabLock,
+  } = props;
 
   const { doGetNodeInfo, manageNode } = useModel("dataAnalysis");
 
@@ -28,6 +37,7 @@ const SQLEditor = (props: FileTitleProps) => {
               onUnlock={onUnlock}
               onRun={onRun}
               onFormat={onFormat}
+              onGrabLock={onGrabLock}
               type={FileTitleType.sql}
             />
             <EditorContent />

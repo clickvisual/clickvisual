@@ -5,15 +5,17 @@ import FileTitle, {
 } from "@/pages/DataAnalysis/components/FileTitle";
 import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
-import { Modal } from "antd";
+import { message, Modal } from "antd";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import deletedModal from "@/components/DeletedModal";
 import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
+import { useIntl } from "umi";
 
 export interface WorkflowBoardProps {
   currentBoard: any;
 }
 const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
+  const i18n = useIntl();
   const {
     iid,
     boardFile,
@@ -29,6 +31,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     isChangeBoard,
     onSaveBoardNodes,
     setBoardEdges,
+    doMandatoryGetFileLock,
   } = useModel("dataAnalysis", (model) => ({
     iid: model.currentInstances,
     boardNodeList: model.manageNode.boardNodeList,
@@ -48,6 +51,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     setBoardEdges: model.manageNode.setBoardEdges,
 
     onSaveBoardNodes: model.manageNode.onSaveBoardNodes,
+    doMandatoryGetFileLock: model.manageNode.doMandatoryGetFileLock,
   }));
   const { currentUser } = useModel("@@initialState").initialState || {};
 
@@ -160,6 +164,18 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     }
   };
 
+  const handleGrabLock = (file: any) => {
+    doMandatoryGetFileLock.run(file?.id).then((res: any) => {
+      if (res.code != 0) return;
+      doGetFile(file.id);
+      message.success(
+        i18n.formatMessage({
+          id: "bigdata.components.FileTitle.grabLockSuccessful",
+        })
+      );
+    });
+  };
+
   // TODO
   useMemo(() => {
     if (!currentBoard.id || !iid) return;
@@ -185,6 +201,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
           onLock={handleLock}
           onUnlock={handleUnlock}
           file={boardFile}
+          onGrabLock={handleGrabLock}
         />
       )}
       <div style={{ flex: 1, display: "flex" }}>

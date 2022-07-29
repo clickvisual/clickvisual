@@ -1,4 +1,8 @@
-import { LogoutOutlined, UpCircleOutlined } from "@ant-design/icons";
+import {
+  FileTextOutlined,
+  LogoutOutlined,
+  UpCircleOutlined,
+} from "@ant-design/icons";
 import { Avatar, Menu, Spin } from "antd";
 import HeaderDropdown from "../HeaderDropdown";
 import styles from "./index.less";
@@ -63,6 +67,13 @@ const AvatarDropdown = () => {
         {i18n.formatMessage({
           id: "navbar.upgrade",
         })}
+      </Menu.Item>
+      <Menu.Item icon={<FileTextOutlined />} key="interfaceDoc">
+        <a href="/api/v2/swagger/index.html" target="_blank">
+          {i18n.formatMessage({
+            id: "navbar.interfaceDoc",
+          })}
+        </a>
       </Menu.Item>
       {hiddenLogOut && (
         <Menu.Item

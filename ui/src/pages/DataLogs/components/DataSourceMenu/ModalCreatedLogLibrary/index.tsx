@@ -14,25 +14,26 @@ export const logLibraryTypes = [
   { value: 2, type: "float" },
 ];
 
-const ModalCreatedLogLibrary = () => {
+const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
+  const { onGetList } = props;
   const logFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const {
-    currentDatabase,
+    // currentDatabase,
     addLogToDatabase,
     onChangeAddLogToDatabase,
     logLibraryCreatedModalVisible,
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibrary,
-    doGetLogLibraryList,
+    // doGetLogLibraryList,
     doCreatedLocalLogLibraryBatch,
     isAccessLogLibrary,
     onChangeIsAccessLogLibrary,
     onChangeIsLogLibraryAllDatabase,
   } = useModel("dataLogs");
 
-  const instanceName = currentDatabase?.instanceName;
-  const databaseName = currentDatabase?.name;
+  // const instanceName = currentDatabase?.instanceName;
+  // const databaseName = currentDatabase?.name;
 
   const { doGetInstanceList, instanceList } = useModel("instances");
 
@@ -48,8 +49,8 @@ const ModalCreatedLogLibrary = () => {
               tableList: field.tableList,
             })
           : doCreatedLogLibrary.run(
-              (addLogToDatabase?.id as number) ||
-                (currentDatabase?.id as number),
+              addLogToDatabase?.id as number,
+              // (currentDatabase?.id as number),
               field
             );
       response
@@ -60,7 +61,8 @@ const ModalCreatedLogLibrary = () => {
                 id: "datasource.logLibrary.created.success",
               })
             );
-            doGetLogLibraryList();
+            // doGetLogLibraryList();
+            onGetList();
           }
           onChangeLogLibraryCreatedModalVisible(false);
         })
@@ -157,13 +159,7 @@ const ModalCreatedLogLibrary = () => {
               case 0:
                 return <NewTable />;
               case 1:
-                return (
-                  <LocalTable
-                    formRef={logFormRef.current}
-                    instanceName={instanceName}
-                    databaseName={databaseName}
-                  />
-                );
+                return <LocalTable formRef={logFormRef.current} />;
               default:
                 return <NewTable />;
             }

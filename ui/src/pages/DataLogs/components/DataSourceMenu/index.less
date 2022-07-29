@@ -6,10 +6,62 @@
   max-width: 400px;
   margin-right: 5px;
   padding: 5px;
-  background: hsla(0, 0%, 92%, 0.4);
+  background: #fff;
+  border-radius: 8px;
+
+  :global .ant-tree-indent-unit {
+    width: 18px;
+  }
+
+  // :global .ant-tree-switcher-noop {
+  //   width: 12px;
+  // }
+
+  :global .ant-tree-treenode {
+    display: flex;
+  }
+
+  :global .ant-tree-node-content-wrapper {
+    display: flex;
+  }
+
+  :global .ant-tree-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    li {
+      display: flex;
+      justify-content: space-between;
+      .title {
+        flex: 1;
+      }
+    }
+  }
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  ::-webkit-scrollbar {
+
+    display: none; /* Chrome Safari */
+  
+  }
+
+  // .treeTitle {
+  //   width: 100px;
+  //   white-space: nowrap;
+  //   text-overflow: ellipsis;
+  // }
 }
 
 .dataSourceMenuHidden {
   position: relative;
   display: none;
 }
+
+// .treeTitle {
+//   display: inline-block;
+//   width: 100px;
+//   overflow: hidden;
+//   white-space: normal;
+//   text-overflow: ellipsis;
+// }

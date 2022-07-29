@@ -41,10 +41,6 @@ const OtherSearchBar = ({
         : QueryTypeEnum.LOG;
     setActiveQueryType(queryType);
     onChangeCurrentLogPane({ ...(oldPane as PaneType), queryType });
-    console.log("{ ...(oldPane as PaneType), queryType }", {
-      ...(oldPane as PaneType),
-      queryType,
-    });
   };
 
   useEffect(() => {

@@ -16,6 +16,7 @@ const TemporaryQuery = () => {
     handleRunCode,
     changeFolderContent,
     folderContent,
+    handleGrabLock,
   } = useModel("dataAnalysis");
 
   return (
@@ -30,6 +31,7 @@ const TemporaryQuery = () => {
         onRun={() => handleRunCode(openNodeId as number)}
         onFormat={() => changeFolderContent(format(folderContent))}
         type={FileTitleType.sql}
+        onGrabLock={handleGrabLock}
       />
     </div>
   );
