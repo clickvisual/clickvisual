@@ -9,17 +9,16 @@ const InstanceItem = (props: { instanceItem: any }) => {
   const tooltipTitle = (
     <div>
       <div className={logLibraryListStyles.logTipTitle}>
-        <span>{i18n.formatMessage({ id: "instance.instanceName" })}:</span>
-      </div>
-      <div>
-        <span>{instanceItem.instanceName}</span>
+        <span>
+          {i18n.formatMessage({ id: "instance.instanceName" })}:&nbsp;
+          {instanceItem.instanceName}
+        </span>
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
           {i18n.formatMessage({ id: "DescAsAlias" })}
-          :&nbsp;
+          :&nbsp; {!instanceItem?.desc ? "" : instanceItem.desc}
         </div>
-        <div>{!instanceItem?.desc ? "" : instanceItem.desc}</div>
       </div>
     </div>
   );

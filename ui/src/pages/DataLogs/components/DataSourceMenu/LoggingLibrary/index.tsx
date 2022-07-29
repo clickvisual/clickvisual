@@ -6,16 +6,11 @@ import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/M
 import { useEffect, useState } from "react";
 import { useModel } from "umi";
 import { cloneDeep } from "lodash";
-// import { useEffect, useState } from "react";
-// import { useModel } from "@@/plugin-model/useModel";
-// import { TablesResponse } from "@/services/dataLogs";
 
 const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
   const { instanceTree, onGetList } = props;
   const [listData, setListData] = useState<any[]>(instanceTree);
   const { filterSelectedTree } = useModel("instances");
-  // const { logLibraryList } = useModel("dataLogs");
-  // const [list, setList] = useState<TablesResponse[]>([]);
   let cloneList = cloneDeep(instanceTree);
   const onSearch = (val: string) => {
     if (val.trim().length != 0) {
@@ -29,9 +24,6 @@ const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
     setListData(instanceTree);
   }, [instanceTree]);
 
-  // useEffect(() => {
-  //   setList(logLibraryList);
-  // }, [logLibraryList]);
   return (
     <div className={LoggingLibraryStyles.loggingLibraryMain}>
       <SearchLogLibrary onSearch={onSearch} onGetList={onGetList} />

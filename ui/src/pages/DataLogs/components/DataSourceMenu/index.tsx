@@ -3,8 +3,6 @@ import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLi
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
-import { Empty } from "antd";
-import { useIntl } from "umi";
 import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth";
 import LogLibraryItem from "./LogLibraryList/LogLibraryItem";
 import DatabaseItem from "./LogLibraryList/DatabaseItem";
@@ -23,8 +21,6 @@ const DataSourceMenu = () => {
   const { doGetAllInstances } = useModel("instances");
   // const [instanceTree, setInstanceTree] = useState<any[]>([]);
   const [allInstancesData, setAllInstancesData] = useState<any>([]);
-
-  const i18n = useIntl();
 
   useEffect(() => {
     doGetDatabaseList();
@@ -117,22 +113,6 @@ const DataSourceMenu = () => {
     [resizeMenuWidth]
   );
 
-  const LogLibrary = useMemo(() => {
-    if (treeList.length == 0) {
-      return (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          style={{ marginBottom: 10 }}
-          description={i18n.formatMessage({
-            id: "log.index.item.empty",
-          })}
-        />
-      );
-    }
-
-    return <LoggingLibrary instanceTree={treeList} onGetList={getList} />;
-  }, [treeList]);
-
   return (
     <div
       className={classNames(
@@ -141,7 +121,7 @@ const DataSourceMenu = () => {
       )}
       style={{ flex: `0 0 ${resizeMenuWidth}px` }}
     >
-      {LogLibrary}
+      <LoggingLibrary instanceTree={treeList} onGetList={getList} />
       <ResizeWidth
         onResize={handleResize}
         onToggleExpand={handleToggleExpand}
