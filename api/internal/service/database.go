@@ -1,6 +1,7 @@
 package service
 
 import (
+	"sort"
 	"strconv"
 
 	"github.com/ego-component/egorm"
@@ -57,6 +58,9 @@ func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 	for _, v := range dMap {
 		res = append(res, v)
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].DatabaseName < res[j].DatabaseName
+	})
 	return
 }
 

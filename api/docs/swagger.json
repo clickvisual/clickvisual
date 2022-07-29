@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- search : the log module\n- alarm : the alarm module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",
+        "description": "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- storage : the log module\n- alarm : the alarm module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",
         "title": "ClickVisual API",
         "contact": {},
         "version": "0.4.0"
@@ -225,9 +225,132 @@
                     }
                 }
             }
+        },
+        "/api/v2/storage": {
+            "post": {
+                "description": "Kafka JSON field mapping",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Kafka JSON field mapping",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "brokers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "consumers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "databaseId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "days",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "desc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "tableName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "topics",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "typ",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/storage/mapping-json": {
+            "post": {
+                "description": "Kafka JSON field mapping",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Kafka JSON field mapping",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "data",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/mapping.StructMapping"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "mapping.StructMapping": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mapping.StructMappingItem"
+                    }
+                }
+            }
+        },
+        "mapping.StructMappingItem": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "view.ReqCreateCrontab": {
             "type": "object",
             "properties": {

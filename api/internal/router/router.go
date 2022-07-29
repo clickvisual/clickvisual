@@ -9,7 +9,7 @@ import (
 	"github.com/gotomicro/ego/server/egin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-    basev2 "github.com/clickvisual/clickvisual/api/internal/apiv2/base"
+
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata"
@@ -22,7 +22,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/setting"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/template"
 	"github.com/clickvisual/clickvisual/api/internal/apiv1/user"
+	basev2 "github.com/clickvisual/clickvisual/api/internal/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/apiv2/pandas"
+	"github.com/clickvisual/clickvisual/api/internal/apiv2/storage"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -230,7 +232,7 @@ func GetRouter() *egin.Component {
 
 	// Defines interface prefixes in terms of module overrides：
 	// The global basic readable information module - base
-	// The log module - search
+	// The log module - storage
 	// The alarm module - alarm
 	// The data analysis module - pandas
 	// The configuration module - cmdb
@@ -254,6 +256,11 @@ func GetRouter() *egin.Component {
 		// The node running data is processed by Excel
 		v2.GET("/pandas/nodes-results/:result-id", core.Handle(pandas.NodeResultUpdate))
 		v2.GET("/pandas/nodes/:node-id/results", core.Handle(pandas.NodeResultListPage))
+	}
+	// The log module - storage
+	{
+		v2.POST("/storage", core.Handle(storage.Create))
+		v2.POST("/storage/mapping-json", core.Handle(storage.KafkaJsonMapping))
 	}
 	return r
 }

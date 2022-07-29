@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -368,5 +369,8 @@ func InstanceFilterPms(uid int) (res []view.RespInstanceSimple, err error) {
 	for _, v := range iMap {
 		res = append(res, v)
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].InstanceName < res[j].InstanceName
+	})
 	return
 }

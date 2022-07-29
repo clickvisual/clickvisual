@@ -1,4 +1,18 @@
 definitions:
+  mapping.StructMapping:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mapping.StructMappingItem'
+        type: array
+    type: object
+  mapping.StructMappingItem:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    type: object
   view.ReqCreateCrontab:
     properties:
       args:
@@ -132,7 +146,7 @@ info:
   description: |-
     Defines interface prefixes in terms of module overrides：
     - base : the global basic readable information module
-    - search : the log module
+    - storage : the log module
     - alarm : the alarm module
     - pandas : the data analysis module
     - cmdb : the configuration module
@@ -287,4 +301,69 @@ paths:
       summary: Obtain the node execution result record
       tags:
       - pandas
+  /api/v2/storage:
+    post:
+      consumes:
+      - application/json
+      description: Kafka JSON field mapping
+      parameters:
+      - in: query
+        name: brokers
+        required: true
+        type: string
+      - in: query
+        name: consumers
+        required: true
+        type: integer
+      - in: query
+        name: databaseId
+        type: integer
+      - in: query
+        name: days
+        required: true
+        type: integer
+      - in: query
+        name: desc
+        type: string
+      - in: query
+        name: tableName
+        required: true
+        type: string
+      - in: query
+        name: topics
+        required: true
+        type: string
+      - in: query
+        name: typ
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Kafka JSON field mapping
+      tags:
+      - storage
+  /api/v2/storage/mapping-json:
+    post:
+      consumes:
+      - application/json
+      description: Kafka JSON field mapping
+      parameters:
+      - in: query
+        name: data
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mapping.StructMapping'
+      summary: Kafka JSON field mapping
+      tags:
+      - storage
 swagger: "2.0"

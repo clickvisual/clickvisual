@@ -474,7 +474,7 @@ func TableUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err erro
 func TableList(db *gorm.DB, conds egorm.Conds) (resp []*BaseTable, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
-	if err = db.Table(TableNameBaseTable).Preload("Database").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = db.Table(TableNameBaseTable).Preload("Database").Where(sql, binds...).Order("id asc").Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("list error", elog.String("err", err.Error()))
 		return
 	}

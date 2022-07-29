@@ -22,7 +22,7 @@ import (
 // @version         0.4.0
 // @description    	Defines interface prefixes in terms of module overrides：
 // @description  	- base : the global basic readable information module
-// @description  	- search : the log module
+// @description  	- storage : the log module
 // @description  	- alarm : the alarm module
 // @description  	- pandas : the data analysis module
 // @description  	- cmdb : the configuration module
