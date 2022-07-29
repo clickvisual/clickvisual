@@ -105,35 +105,32 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
   const tooltipTitle = (
     <div>
       <div className={logLibraryListStyles.logTipTitle}>
-        <span>{i18n.formatMessage({ id: "database.form.label.name" })}:</span>
-      </div>
-      <div>
-        <span>{databasesItem.databaseName}</span>
+        <span>
+          {i18n.formatMessage({ id: "database.form.label.name" })}: &nbsp;
+          {databasesItem.databaseName}
+        </span>
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
           {i18n.formatMessage({ id: "DescAsAlias" })}
-          :&nbsp;
+          :&nbsp; {!databasesItem?.desc ? "" : databasesItem.desc}
         </div>
-        <div>{!databasesItem?.desc ? "" : databasesItem.desc}</div>
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
           {i18n.formatMessage({
             id: "log.editLogLibraryModal.label.isCreateCV.name",
           })}
-          :&nbsp;
+          :&nbsp; {Boolean(databasesItem.isCreateByCV).toString()}
         </div>
-        <div>{Boolean(databasesItem.isCreateByCV).toString()}</div>
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
           {i18n.formatMessage({
             id: "instance.form.title.cluster",
           })}
-          :&nbsp;
+          :&nbsp;{Boolean(databasesItem.cluster)}
         </div>
-        <div>{Boolean(databasesItem.cluster)}</div>
       </div>
     </div>
   );

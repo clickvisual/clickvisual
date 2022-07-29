@@ -253,18 +253,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     <div>
       <div className={logLibraryListStyles.logTipTitle}>
         <span>
-          {i18n.formatMessage({ id: "datasource.logLibrary.from.tableName" })}:
+          {i18n.formatMessage({ id: "datasource.logLibrary.from.tableName" })}
+          :&nbsp; {logLibrary.tableName}
         </span>
-      </div>
-      <div>
-        <span>{logLibrary.tableName}</span>
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
           {i18n.formatMessage({ id: "DescAsAlias" })}
-          :&nbsp;
+          :&nbsp;{!logLibrary?.desc ? "" : logLibrary.desc}
         </div>
-        <div>{!logLibrary?.desc ? "" : logLibrary.desc}</div>
       </div>
     </div>
   );
