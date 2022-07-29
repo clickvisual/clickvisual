@@ -117,22 +117,6 @@ const DataSourceMenu = () => {
     [resizeMenuWidth]
   );
 
-  const LogLibrary = useMemo(() => {
-    if (treeList.length == 0) {
-      return (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          style={{ marginBottom: 10 }}
-          description={i18n.formatMessage({
-            id: "log.index.item.empty",
-          })}
-        />
-      );
-    }
-
-    return <LoggingLibrary instanceTree={treeList} onGetList={getList} />;
-  }, [treeList]);
-
   return (
     <div
       className={classNames(
@@ -141,7 +125,7 @@ const DataSourceMenu = () => {
       )}
       style={{ flex: `0 0 ${resizeMenuWidth}px` }}
     >
-      {LogLibrary}
+      <LoggingLibrary instanceTree={treeList} onGetList={getList} />
       <ResizeWidth
         onResize={handleResize}
         onToggleExpand={handleToggleExpand}
