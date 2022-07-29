@@ -117,9 +117,9 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
 
   return (
     <div className={logItemStyles.logItemHideMain} onClick={onFoldClick}>
-      {tagFields.length > 0 && (
-        <div className={logItemStyles.logItemHideIndex}>
-          {tagFields.map((item) => (
+      <div className={logItemStyles.logItemHideIndex}>
+        {tagFields.length > 0 &&
+          tagFields.map((item) => (
             <TagFieldContent
               key={item.field}
               {...item}
@@ -128,17 +128,17 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
             />
           ))}
 
-          {logFields
+        {logFields.length > 0 &&
+          logFields
             .filter((item) => !indexList.includes(item))
             .map((field) => {
               return (
                 <span key={field}>
-                  {field}:{` "${JSON.stringify(resultLog[field])}" `}
+                  {field}:{`${JSON.stringify(resultLog[field])}`}
                 </span>
               );
             })}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
