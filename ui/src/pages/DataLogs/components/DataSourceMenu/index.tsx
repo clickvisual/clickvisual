@@ -3,8 +3,6 @@ import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLi
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
-import { Empty } from "antd";
-import { useIntl } from "umi";
 import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth";
 import LogLibraryItem from "./LogLibraryList/LogLibraryItem";
 import DatabaseItem from "./LogLibraryList/DatabaseItem";
@@ -23,8 +21,6 @@ const DataSourceMenu = () => {
   const { doGetAllInstances } = useModel("instances");
   // const [instanceTree, setInstanceTree] = useState<any[]>([]);
   const [allInstancesData, setAllInstancesData] = useState<any>([]);
-
-  const i18n = useIntl();
 
   useEffect(() => {
     doGetDatabaseList();
