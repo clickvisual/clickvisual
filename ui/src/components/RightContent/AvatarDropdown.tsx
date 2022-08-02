@@ -69,7 +69,10 @@ const AvatarDropdown = () => {
         })}
       </Menu.Item>
       <Menu.Item icon={<FileTextOutlined />} key="interfaceDoc">
-        <a href="/api/v2/swagger/index.html" target="_blank">
+        <a
+          href={process.env.PUBLIC_PATH + `api/v2/swagger/index.html`}
+          target="_blank"
+        >
           {i18n.formatMessage({
             id: "navbar.interfaceDoc",
           })}

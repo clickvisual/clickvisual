@@ -4,6 +4,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import { useState } from "react";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
+import { cloneDeep } from "lodash";
 
 const Instances = () => {
   // 实例列表
@@ -78,7 +79,7 @@ const Instances = () => {
     getInstanceList.run();
   };
 
-  // 三层循环查找替换
+  // 三层循环查找替换 name版
   const filterSelectedTree = (list: any, val: string) => {
     let cloneInstanceList = list.filter((instanceItem: any) => {
       const cloneDatabase = instanceItem.children.filter(
@@ -106,6 +107,33 @@ const Instances = () => {
     return cloneInstanceList;
   };
 
+  // 三层循环查找替换 tid版
+  const expandParent = (list: any[], tid: number) => {
+    let cloneInstanceList = cloneDeep(list).filter((instanceItem: any) => {
+      const cloneDatabase = instanceItem.children.filter(
+        (databaseItem: any) => {
+          const cloneTable = databaseItem.children.filter((tableItem: any) => {
+            return tableItem.key == `table-${tid}`;
+          });
+          databaseItem.children = cloneTable;
+          return cloneTable.length > 0;
+        }
+      );
+      instanceItem.children = cloneDatabase;
+      return cloneDatabase.length > 0;
+    });
+
+    // 展开所有的实例和数据库
+    let keys: any = [];
+    cloneInstanceList.map((item: any) => {
+      keys.push(item.key);
+      item.children.map((databaseItem: any) => {
+        keys.push(databaseItem.key);
+      });
+    });
+    onChangeExpandedKeys(keys);
+  };
+
   return {
     instanceList,
     // selectedInstance,
@@ -126,6 +154,7 @@ const Instances = () => {
     onChangeExpandedKeys,
 
     filterSelectedTree,
+    expandParent,
 
     selectKeys,
     onChangeSelectKeys,

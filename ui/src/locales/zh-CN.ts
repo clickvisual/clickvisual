@@ -485,7 +485,7 @@ export default {
   "alarm.rules.form.preview.canConfirm": "可确认",
   "alarm.rules.form.notPreview.content": "请先完成所有预览",
   "alarm.rules.form.mode": "告警模式",
-  "alarm.rules.form.level.instructions": "告警聚合模式使用说明",
+  "alarm.rules.form.level.instructions": "使用帮助",
   "alarm.rules.form.mode.normalMode": "普通模式",
   "alarm.rules.form.mode.aggregationMode": "聚合模式",
   "alarm.rules.inspectionFrequency.selectOption.logLibrary": "日志库",

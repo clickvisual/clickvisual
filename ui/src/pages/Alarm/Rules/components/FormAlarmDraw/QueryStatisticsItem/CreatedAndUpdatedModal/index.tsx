@@ -8,7 +8,6 @@ import {
   Select,
   Spin,
   Table,
-  Tooltip,
 } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
@@ -19,7 +18,7 @@ import api from "@/services/dataLogs";
 import Request, { Canceler } from "umi-request";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
-import { QuestionCircleOutlined, SaveOutlined } from "@ant-design/icons";
+import { SaveOutlined } from "@ant-design/icons";
 import queryStatisticsItemStyle from "../index.less";
 
 const { Option } = Select;
@@ -485,7 +484,7 @@ const CreatedAndUpdatedModal = ({
               required
             >
               <Select
-                style={{ width: "calc(100% - 40px)" }}
+                style={{ width: "calc(100% - 110px)" }}
                 onChange={() => {
                   setIsPreviewData(alarmModePreviewType.AggregateData);
                   setAggregationTableLogs;
@@ -500,19 +499,16 @@ const CreatedAndUpdatedModal = ({
                 })}
               </Select>
             </Form.Item>
-            <Tooltip
-              title={i18n.formatMessage({
-                id: "alarm.rules.form.level.instructions",
-              })}
-              className={queryStatisticsItemStyle.formItem}
-            >
+            <Button className={queryStatisticsItemStyle.formItem} type="link">
               <a
-                target="_blank"
                 href="https://clickvisual.gocn.vip/clickvisual/03funcintro/alarm-function-configuration-description.html#%E8%81%9A%E5%90%88%E6%A8%A1%E5%BC%8F"
+                target="_bank"
               >
-                <QuestionCircleOutlined />
+                {i18n.formatMessage({
+                  id: "alarm.rules.form.level.instructions",
+                })}
               </a>
-            </Tooltip>
+            </Button>
           </div>
 
           <Form.Item

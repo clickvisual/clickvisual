@@ -67,7 +67,11 @@ const SQLEditor = (props: {
               type={FileTitleType.sql}
             />
             <EditorContent />
-            <SQLResult resultsList={resultsList} nodeId={selectNode?.id} />
+            <SQLResult
+              resultsList={resultsList}
+              lockUid={file?.lockUid}
+              nodeId={selectNode?.id}
+            />
           </>
         ) : (
           <div className={style.empty}>

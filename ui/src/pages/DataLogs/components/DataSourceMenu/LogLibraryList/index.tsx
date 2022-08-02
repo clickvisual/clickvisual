@@ -11,6 +11,7 @@ import LogLibraryInfoDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLi
 import { DownOutlined, PlusOutlined } from "@ant-design/icons";
 import { cloneDeep } from "lodash";
 import useUrlState from "@ahooksjs/use-url-state";
+import useLocalStorages from "@/hooks/useLocalStorages";
 
 type LogLibraryListProps = {
   list: any[];
@@ -29,7 +30,9 @@ const LogLibraryList = (props: LogLibraryListProps) => {
     onChangeCurrentlyTableToIid,
     selectKeys,
     onChangeSelectKeys,
+    expandParent,
   } = useModel("instances");
+  const { getLastDataLogsState } = useLocalStorages();
 
   const [selectedLogLibrary, setSelectedLogLibrary] = useState<
     TablesResponse | undefined
@@ -61,37 +64,24 @@ const LogLibraryList = (props: LogLibraryListProps) => {
     onChangeExpandedKeys(expandedKeys);
   };
 
-  useEffect(() => {
-    if (urlState?.tid) {
-      onChangeSelectKeys([`table-${urlState?.tid}`]);
-      // 三层循环查找替换
-      let cloneInstanceList = cloneDeep(list).filter((instanceItem: any) => {
-        const cloneDatabase = instanceItem.children.filter(
-          (databaseItem: any) => {
-            const cloneTable = databaseItem.children.filter(
-              (tableItem: any) => {
-                return tableItem.key.indexOf(`table-${urlState?.tid}`) != -1;
-              }
-            );
-            databaseItem.children = cloneTable;
-            return cloneTable.length > 0;
-          }
-        );
-        instanceItem.children = cloneDatabase;
-        return cloneDatabase.length > 0;
-      });
+  const lastDataLogsState = getLastDataLogsState();
 
-      // 展开所有的实例和数据库
-      let keys: any = [];
-      cloneInstanceList.map((item: any) => {
-        keys.push(item.key);
-        item.children.map((databaseItem: any) => {
-          keys.push(databaseItem.key);
-        });
-      });
-      onChangeExpandedKeys(keys);
-    }
-  }, []);
+  useEffect(() => {
+    if (list.length > 0)
+      if (urlState?.tid) {
+        onChangeSelectKeys([`table-${urlState?.tid}`]);
+        // 三层循环查找替换 tid版
+        expandParent(list, urlState?.tid);
+      } else if (lastDataLogsState?.tid) {
+        onChangeSelectKeys([`table-${lastDataLogsState?.tid}`]);
+        // 三层循环查找替换 tid版
+        expandParent(list, parseInt(lastDataLogsState.tid.toString()));
+      }
+  }, [lastDataLogsState.tid]);
+
+  // useEffect(() => {
+  //   console.log(lastDataLogsState.tid, "lastDataLogsState.tid");
+  // }, []);
 
   const i18n = useIntl();
 

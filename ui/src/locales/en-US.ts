@@ -519,8 +519,7 @@ export default {
   "alarm.rules.form.preview.canConfirm": "Can be confirmed",
   "alarm.rules.form.notPreview.content": "Please click preview first",
   "alarm.rules.form.mode": "Alarm mode",
-  "alarm.rules.form.level.instructions":
-    "Description of alarm aggregation mode",
+  "alarm.rules.form.level.instructions": "Use the help",
   "alarm.rules.form.mode.normalMode": "Normal mode",
   "alarm.rules.form.mode.aggregationMode": "Aggregation mode",
   "alarm.rules.inspectionFrequency.selectOption.logLibrary": "Log Library",

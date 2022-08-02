@@ -62,13 +62,16 @@ const DataLogsModel = () => {
   >();
   // 数据库列表
   const [databaseList, setDataBaseList] = useState<DatabaseResponse[]>([]);
-  const [currentDatabase, setCurrentDatabase] = useState<
-    DatabaseResponse | undefined
-  >();
+  // const [currentDatabase, setCurrentDatabase] = useState<
+  //   DatabaseResponse | undefined
+  // >();
   // 从数据库列表选择
   const [addLogToDatabase, setAddLogToDatabase] = useState<
     DatabaseResponse | undefined
   >();
+
+  // 树中是否含有数据库
+  const [isHasDatabase, setIsHasDatabase] = useState<boolean>(false);
 
   // 是否展示日志切换抽屉
   const [visibleDataBaseDraw, setVisibleDataBaseDraw] =
@@ -167,9 +170,9 @@ const DataLogsModel = () => {
     setEndDateTime(TimeStamp);
   };
 
-  const onChangeCurrentDatabase = (database: DatabaseResponse | undefined) => {
-    setCurrentDatabase(database);
-  };
+  // const onChangeCurrentDatabase = (database: DatabaseResponse | undefined) => {
+  //   setCurrentDatabase(database);
+  // };
 
   const onChangeAddLogToDatabase = (database: DatabaseResponse | undefined) => {
     setAddLogToDatabase(database);
@@ -181,6 +184,10 @@ const DataLogsModel = () => {
 
   const onChangeVisibleDatabaseDraw = (visible: boolean) => {
     setVisibleDataBaseDraw(visible);
+  };
+
+  const onChangeIsHasDatabase = (flag: boolean) => {
+    setIsHasDatabase(flag);
   };
 
   const onChangeActiveTabKey = (key: string) => {
@@ -413,9 +420,9 @@ const DataLogsModel = () => {
     getDatabases.run(selectedInstance);
   };
 
-  const doSelectedDatabase = (database: DatabaseResponse | undefined) => {
-    onChangeCurrentDatabase(database);
-  };
+  // const doSelectedDatabase = (database: DatabaseResponse | undefined) => {
+  //   onChangeCurrentDatabase(database);
+  // };
 
   const doParseQuery = (keyword?: string) => {
     const defaultInput = lodash
@@ -589,7 +596,8 @@ const DataLogsModel = () => {
     logLibraryList,
     currentLogLibrary,
     databaseList,
-    currentDatabase,
+    // currentDatabase,
+    isHasDatabase,
     addLogToDatabase,
     logs,
     logCount,
@@ -619,7 +627,8 @@ const DataLogsModel = () => {
     doGetDatabaseList,
 
     onChangeKeywordInput,
-    onChangeCurrentDatabase,
+    onChangeIsHasDatabase,
+    // onChangeCurrentDatabase,
     onChangeLogLibrary,
     onCopyRawLogDetails,
     onChangeStartDateTime,
@@ -641,7 +650,7 @@ const DataLogsModel = () => {
     onChangeCurrentEditDatabase,
     onChangeCurrentEditLogLibrary,
 
-    doSelectedDatabase,
+    // doSelectedDatabase,
     doParseQuery,
     doUpdatedQuery,
 
@@ -651,7 +660,7 @@ const DataLogsModel = () => {
     resetLogPaneLogsAndHighCharts,
 
     getTableId,
-    getDatabases,
+    // getDatabases,
     settingIndexes,
     getLogLibraries,
 
