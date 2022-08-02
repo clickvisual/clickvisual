@@ -26,7 +26,8 @@ const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
   const [instances, setInstances] = useState<InstanceType[]>([]);
   const [currentInstances, setCurrentInstances] = useState<number>();
-  const [sqlQueryResults, setSqlQueryResults] = useState<any>();
+  // 数据集成运行结果的id
+  const [resultId, setResultId] = useState<number>(0);
   // 打开的文件节点id
   const [openNodeId, setOpenNodeId] = useState<number>();
   // 打开的文件节点父级id
@@ -89,8 +90,8 @@ const DataAnalysis = () => {
     setNavKey(key);
   };
 
-  const changeSqlQueryResults = (data: any) => {
-    setSqlQueryResults(data);
+  const changeResultId = (num: number) => {
+    setResultId(num);
   };
 
   const onChangeCurrentInstances = (value?: number) => {
@@ -166,6 +167,10 @@ const DataAnalysis = () => {
   });
 
   const doResultsList = useRequest(dataAnalysisApi.getResultsList, {
+    loadingText: false,
+  });
+
+  const doModifyResults = useRequest(dataAnalysisApi.modifyResults, {
     loadingText: false,
   });
 
@@ -269,12 +274,11 @@ const DataAnalysis = () => {
   };
 
   // run
-  const handleRunCode = (nodeId: number) => {
+  const handleRunCode = async (nodeId: number, func?: any) => {
     nodeId &&
       doRunCodeNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
-          changeSqlQueryResults(JSON.parse(res.data.result));
-          setVisibleResultsItem(true);
+          func(nodeId);
         }
       });
   };
@@ -292,12 +296,13 @@ const DataAnalysis = () => {
     instances,
     currentInstances,
     navKey,
-    sqlQueryResults,
 
     setInstances,
     onChangeCurrentInstances,
     onChangeNavKey,
-    changeSqlQueryResults,
+
+    resultId,
+    changeResultId,
 
     folderContent,
     changeFolderContent,
@@ -357,6 +362,7 @@ const DataAnalysis = () => {
     // results
     doResultsList,
     doResultsInfo,
+    doModifyResults,
     resultsList,
     setResultsList,
 

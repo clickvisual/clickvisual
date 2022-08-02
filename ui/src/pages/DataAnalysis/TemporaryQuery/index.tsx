@@ -13,7 +13,6 @@ const TemporaryQuery = () => {
     handleLockFile,
     handleUnLockFile,
     handleSaveNode,
-    handleRunCode,
     changeFolderContent,
     folderContent,
     handleGrabLock,
@@ -28,7 +27,6 @@ const TemporaryQuery = () => {
         onSave={() => handleSaveNode()}
         onLock={() => handleLockFile(openNodeId as number)}
         onUnlock={() => handleUnLockFile(openNodeId as number)}
-        onRun={() => handleRunCode(openNodeId as number)}
         onFormat={() => changeFolderContent(format(folderContent))}
         type={FileTitleType.sql}
         onGrabLock={handleGrabLock}

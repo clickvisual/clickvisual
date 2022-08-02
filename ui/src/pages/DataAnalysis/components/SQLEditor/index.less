@@ -12,6 +12,44 @@
     height: 100%;
     background-color: #ccc;
   }
+
+  .sqlResult {
+    position: relative;
+    height: 40vh;
+
+    .title {
+      position: relative;
+      line-height: 32px;
+      text-align: center;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+
+      .saveIcon {
+        position: absolute;
+        top: 50%;
+        left: 8px;
+        transform: translateY(-50%);
+        color: @primary-color;
+      }
+    }
+
+    .resultTabs {
+      :global .ant-tabs {
+        .ant-tabs-tab {
+          padding: 5px 0;
+        }
+      }
+      :global .ant-tabs-top > .ant-tabs-nav {
+        margin-bottom: 0px;
+      }
+    }
+
+    .luckysheet {
+      position: relative;
+      height: calc(40vh - 32px - 32px);
+    }
+  }
+
   .empty {
     display: flex;
     align-items: center;
@@ -19,13 +57,13 @@
     width: 100%;
     height: 100%;
   }
-  
+
   :global .ant-spin-nested-loading {
     height: 100%;
     :global .ant-spin-container {
-      height: 100%;
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
   }
 }

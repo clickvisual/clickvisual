@@ -60,6 +60,11 @@ export interface nodeListType {
 export interface nodeHistoriesType {
   current: number;
   pageSize: number;
+  isExcludeCrontabResult: number;
+}
+
+export interface resultsType {
+  excelProcess: string;
 }
 
 export interface CreateCrontabType extends UpdateCrontabType {
@@ -237,9 +242,20 @@ export default {
   // 获取结果的list
   async getResultsList(nodeId: number, params?: nodeHistoriesType) {
     return request(
-      process.env.PUBLIC_PATH + `api/v1/bigdata/nodes/${nodeId}/result`,
+      process.env.PUBLIC_PATH + `api/v2/pandas/nodes/${nodeId}/results`,
       {
         params,
+      }
+    );
+  },
+
+  // 修改结果
+  async modifyResults(resultId: number, data: resultsType) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/pandas/nodes-results/${resultId}`,
+      {
+        method: "PATCH",
+        data,
       }
     );
   },

@@ -20,7 +20,6 @@ const WorkflowContent = () => {
     handleLockFile,
     handleUnLockFile,
     handleSaveNode,
-    handleRunCode,
     changeFolderContent,
     folderContent,
     handleGrabLock,
@@ -45,7 +44,6 @@ const WorkflowContent = () => {
             onSave={() => handleSaveNode()}
             onLock={() => handleLockFile(openNodeData?.id as number)}
             onUnlock={() => handleUnLockFile(openNodeData?.id as number)}
-            onRun={() => handleRunCode(openNodeData?.id as number)}
             type={FileTitleType.sql}
             onFormat={() => changeFolderContent(format(folderContent))}
             onGrabLock={handleGrabLock}

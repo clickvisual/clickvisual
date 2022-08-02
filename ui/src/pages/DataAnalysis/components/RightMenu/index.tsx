@@ -1,7 +1,7 @@
 import { Tooltip } from "antd";
 import { useState } from "react";
 import { useModel, useIntl } from "umi";
-import { TertiaryEnums } from "../../service/enums";
+import { SecondaryEnums, TertiaryEnums } from "../../service/enums";
 import style from "./index.less";
 import Results from "./Results";
 import Scheduling from "./Scheduling";
@@ -29,6 +29,9 @@ const SchedulingList = [
   TertiaryEnums.offline,
 ];
 
+// 数据开发的结果更替在sql编辑器下方
+const ResultList = [SecondaryEnums.dataMining, SecondaryEnums.database];
+
 const RightMenu = () => {
   const i18n = useIntl();
   const [visibleVersionHistory, setVisibleVersionHistory] =
@@ -49,6 +52,7 @@ const RightMenu = () => {
   const { selectNode } = manageNode;
 
   let rightMenu = [
+    // 调度配置
     {
       id: RightMenuType.Scheduling,
       title: i18n.formatMessage({
@@ -57,10 +61,14 @@ const RightMenu = () => {
       Tooltip: i18n.formatMessage({
         id: "bigdata.components.RightMenu.properties",
       }),
+      isHidden: selectNode?.tertiary
+        ? !SchedulingList.includes(selectNode.tertiary)
+        : true,
       onClick: () => {
         setVisibleScheduling(true);
       },
     },
+    // 版本
     {
       id: RightMenuType.VersionHistory,
       title: i18n.formatMessage({
@@ -69,6 +77,7 @@ const RightMenu = () => {
       Tooltip: i18n.formatMessage({
         id: "bigdata.components.RightMenu.Versions.tips",
       }),
+      isHidden: !selectNode?.tertiary,
       onClick: () => {
         setVisibleVersionHistory(true);
         openNodeId &&
@@ -76,6 +85,7 @@ const RightMenu = () => {
             .run(openNodeId as number, {
               current: 1,
               pageSize: 10,
+              isExcludeCrontabResult: 0,
             })
             .then((res: any) => {
               if (res.code == 0) {
@@ -90,18 +100,23 @@ const RightMenu = () => {
             });
       },
     },
+    // 结果
     {
       id: RightMenuType.Results,
       title: i18n.formatMessage({ id: "bigdata.components.RightMenu.results" }),
       Tooltip: i18n.formatMessage({
         id: "bigdata.components.RightMenu.results.tips",
       }),
+      isHidden: selectNode?.secondary
+        ? ResultList.includes(selectNode.secondary)
+        : true,
       onClick: () => {
         openNodeId &&
           doResultsList
             .run(openNodeId as number, {
               current: 1,
               pageSize: 10,
+              isExcludeCrontabResult: 1,
             })
             .then((res: any) => {
               if (res.code == 0) {
@@ -118,13 +133,13 @@ const RightMenu = () => {
     },
   ];
 
-  if (selectNode?.tertiary && !SchedulingList.includes(selectNode.tertiary)) {
-    rightMenu.splice(0, 1);
-  }
-
   return (
     <div className={style.rightMenu}>
       {rightMenu.map((item: any) => {
+        if (item.isHidden) {
+          // 返回空标签会有key值的问题
+          return null;
+        }
         return (
           <div className={style.menuItem} key={item.id}>
             <Tooltip title={item.Tooltip}>

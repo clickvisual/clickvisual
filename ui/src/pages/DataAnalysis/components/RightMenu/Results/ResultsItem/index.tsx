@@ -1,9 +1,8 @@
-import { Button, Drawer, Form, Select, Tabs } from "antd";
-import { ColumnsType } from "antd/lib/table";
+import { Button, Drawer, Form, message, Select, Tabs } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import style from "./index.less";
 import MonacoEditor from "react-monaco-editor";
-import Luckysheet from "../Luckysheet";
+import Luckysheet from "@/components/Luckysheet";
 import { useModel, useIntl } from "umi";
 import { format } from "sql-formatter";
 
@@ -12,30 +11,59 @@ const { TabPane } = Tabs;
 
 const Results = (props: {
   visible: boolean;
+  nodeId: number | undefined;
   setVisible: (flag: boolean) => void;
 }) => {
   const [SQLForm] = Form.useForm();
   const i18n = useIntl();
-  const { visible, setVisible } = props;
-  const { sqlQueryResults } = useModel("dataAnalysis");
+  const { visible, setVisible, nodeId } = props;
+  const { doModifyResults, doResultsInfo, resultId } = useModel("dataAnalysis");
   const [SQLContent, setSQLcontent] = useState<string>("");
   const [activeKey, setActiveKey] = useState<string>("logs");
+  const [defaultResultsData, setDefaultResultsData] = useState<any>({});
+  const [updatedResults, setUpdatedResults] = useState<any>({});
 
   const onClose = () => {
     setVisible(false);
   };
 
-  const currentResults = sqlQueryResults;
-  const SQLList = Object.keys(currentResults?.involvedSQLs || {}) || [];
+  const currentResults = useMemo(() => {
+    return updatedResults.length > 0 ? updatedResults : defaultResultsData;
+  }, [defaultResultsData, updatedResults]);
 
-  const columns: ColumnsType<any> = useMemo(() => {
-    const columnArr: any = [];
+  const SQLList = useMemo(() => {
+    return Object.keys(currentResults?.involvedSQLs || {}) || [];
+  }, [currentResults]);
+
+  const luckysheetData: any = useMemo(() => {
+    if (updatedResults && updatedResults.length > 0) {
+      return [
+        {
+          name: "luckysheet",
+          celldata: updatedResults,
+        },
+      ];
+    }
     if (
-      currentResults &&
-      currentResults?.logs &&
-      currentResults.logs?.length > 0
+      Object.keys(defaultResultsData).length == 0 ||
+      defaultResultsData.logs?.length == 0
     ) {
-      const fields = Object.keys(currentResults.logs[0]) || [];
+      return [
+        {
+          name: "luckysheet",
+          celldata: [],
+        },
+      ];
+    }
+
+    const columnArr: any = [];
+
+    if (
+      defaultResultsData &&
+      defaultResultsData?.logs &&
+      defaultResultsData.logs?.length > 0
+    ) {
+      const fields = Object.keys(defaultResultsData.logs[0]) || [];
       for (const fieldIndex in fields) {
         columnArr.push({
           r: 0,
@@ -44,38 +72,29 @@ const Results = (props: {
             ct: { fa: "General", t: "g" },
             m: fields[fieldIndex],
             v: fields[fieldIndex],
+            fc: "#EE2F6C",
+            vt: 0,
           },
         });
       }
-      for (const itemIndex in currentResults.logs) {
+      for (const itemIndex in defaultResultsData.logs) {
         for (const fieldIndex in fields) {
           columnArr.push({
             r: parseInt(itemIndex) + 1,
             c: parseInt(fieldIndex),
             v: {
               ct: { fa: "General", t: "g" },
-              m: currentResults.logs[itemIndex][fields[fieldIndex]],
-              v: currentResults.logs[itemIndex][fields[fieldIndex]],
+              m: defaultResultsData.logs[itemIndex][fields[fieldIndex]],
+              v: defaultResultsData.logs[itemIndex][fields[fieldIndex]],
+              vt: 0,
             },
           });
         }
       }
     }
-    // return [
-    //   {
-    //     r: 0,
-    //     c: 0,
-    //     ct: {
-    //       fa: "General",
-    //       t: "g",
-    //     },
-    //     m: "active_source",
-    //     v: "active_source",
-    //     fc: "#ff0000",
-    //   },
-    // ];
-    return columnArr;
-  }, [currentResults]);
+
+    return [{ name: "luckysheet", celldata: columnArr }];
+  }, [defaultResultsData, updatedResults]);
 
   useEffect(() => {
     if (visible) {
@@ -92,20 +111,53 @@ const Results = (props: {
       setSQLcontent("");
       SQLForm.resetFields();
       setActiveKey("logs");
+      setUpdatedResults({});
+      setDefaultResultsData({});
     }
   }, [visible]);
 
-  // const onSave = () => {
-  //   const luckysheet = window.luckysheet;
-  //   // console.log(luckysheet.getAllSheets());
+  const getResultsInfo = (resultId: number) => {
+    nodeId &&
+      doResultsInfo.run(nodeId, resultId).then((res: any) => {
+        if (res.code != 0) return;
+        setDefaultResultsData(JSON.parse(res.data.result));
+        res?.data?.excelProcess &&
+          res.data?.excelProcess.length > 0 &&
+          setUpdatedResults(JSON.parse(res.data.excelProcess));
+      });
+  };
 
-  //   let a: any = [];
-  //   luckysheet.getcellvalue().map((item: any) => {
-  //     let b = item.filter((items: any) => items != null);
-  //     a.push(...b);
-  //   });
-  //   console.log(a);
-  // };
+  useEffect(() => {
+    resultId && getResultsInfo(resultId);
+  }, [resultId]);
+
+  const handleSave = () => {
+    const luckysheet = window.luckysheet;
+    let boardData: any = [];
+    luckysheet.getcellvalue().map((lineItem: any, lineIndex: number) => {
+      lineItem.map((columnItem: any, columnIndex: number) => {
+        if (columnItem != null) {
+          boardData.push({
+            c: columnIndex,
+            r: lineIndex,
+            v: columnItem,
+          });
+        }
+      });
+    });
+    const excelProcess = JSON.stringify(boardData);
+    doModifyResults
+      .run(resultId, {
+        excelProcess: excelProcess,
+      })
+      .then((res: any) => {
+        if (res.code != 0) return;
+        getResultsInfo(resultId);
+        message.success(
+          i18n.formatMessage({ id: "log.index.manage.message.save.success" })
+        );
+      });
+  };
 
   const involvedSQLsContent = (
     <div className={style.involvedSQLsContent}>
@@ -173,8 +225,13 @@ const Results = (props: {
           </div>
         </div>
       </div>
-
-      {/* <Button onClick={onSave}>保存</Button> */}
+      <div className={style.saveBtnBox}>
+        {activeKey == "logs" ? (
+          <Button size="small" type="primary" onClick={handleSave}>
+            {i18n.formatMessage({ id: "button.save" })}
+          </Button>
+        ) : null}
+      </div>
       <Tabs activeKey={activeKey} onTabClick={(e) => setActiveKey(e)}>
         <TabPane
           tab="logs"
@@ -186,7 +243,7 @@ const Results = (props: {
             borderRadius: "8px",
           }}
         >
-          {visible && <Luckysheet data={columns} id={15} />}
+          {visible && <Luckysheet data={luckysheetData} />}
         </TabPane>
         <TabPane tab="sqls" key="involvedSQLs">
           {involvedSQLsContent}
