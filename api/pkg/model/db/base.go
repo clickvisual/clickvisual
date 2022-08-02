@@ -130,6 +130,9 @@ type BaseTable struct {
 	TimeField      string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
 	TimeFieldType  int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"` // custom time filed type name of _time_
 	Desc           string `gorm:"column:desc;type:varchar(255)" json:"desc"`
+	RawLogField    string `gorm:"column:raw_log_field;type:varchar(255)" json:"rawLogField"`
+	SelectFields   string `gorm:"column:select_fields;type:text" json:"selectFields"` // sql_distributed
+	AnyJSON        string `gorm:"column:any_json;type:text" json:"anyJSON"`
 
 	Database *BaseDatabase `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
 }

@@ -76,7 +76,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v2/pandas/nodes/:nodeId/crontab": {
+        "/api/v2/pandas/nodes/{node-id}/crontab": {
             "post": {
                 "description": "isRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
                 "consumes": [
@@ -156,7 +156,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v2/pandas/nodes/:nodeId/lock-acquire": {
+        "/api/v2/pandas/nodes/{node-id}/lock-acquire": {
             "post": {
                 "description": "Force the file edit lock to be acquired",
                 "consumes": [
@@ -237,7 +237,7 @@ const docTemplate = `{
         },
         "/api/v2/storage": {
             "post": {
-                "description": "Kafka JSON field mapping",
+                "description": "Creating a log library",
                 "consumes": [
                     "application/json"
                 ],
@@ -247,7 +247,7 @@ const docTemplate = `{
                 "tags": [
                     "storage"
                 ],
-                "summary": "Kafka JSON field mapping",
+                "summary": "Creating a log library",
                 "parameters": [
                     {
                         "type": "string",
@@ -264,7 +264,8 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "name": "databaseId",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -279,7 +280,26 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "name": "rawLogField",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Raw JSON data",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "name": "tableName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "timeField",
                         "in": "query",
                         "required": true
                     },
@@ -291,6 +311,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "description": "1 string 2 float",
                         "name": "typ",
                         "in": "query",
                         "required": true
@@ -330,7 +351,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/mapping.StructMapping"
+                            "$ref": "#/definitions/view.MappingStruct"
                         }
                     }
                 }
@@ -338,18 +359,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "mapping.StructMapping": {
+        "view.MappingStruct": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/mapping.StructMappingItem"
+                        "$ref": "#/definitions/view.MappingStructItem"
                     }
                 }
             }
         },
-        "mapping.StructMappingItem": {
+        "view.MappingStructItem": {
             "type": "object",
             "properties": {
                 "key": {

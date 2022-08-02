@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/cetus/pkg/kutl"
@@ -115,7 +116,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 	}
 	invoker.Logger.Debug("IndexUpdate", elog.Any("newList", newList))
 	// err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
-	err = op.IndexUpdate(databaseInfo, tableInfo, filterSystemField(adds), filterSystemField(dels), filterSystemField(newList))
+	err = op.IndexUpdate(databaseInfo, tableInfo, filterSystemField(adds, req.Tid), filterSystemField(dels, req.Tid), filterSystemField(newList, req.Tid))
 	if err != nil {
 		tx.Rollback()
 		return
@@ -128,10 +129,11 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 	return
 }
 
-func filterSystemField(input map[string]*db.BaseIndex) (out map[string]*db.BaseIndex) {
+func filterSystemField(input map[string]*db.BaseIndex, tid int) (out map[string]*db.BaseIndex) {
 	out = make(map[string]*db.BaseIndex)
+	ifm := innerFieldMap(tid)
 	for key, val := range input {
-		if isSystemField(val.Field) {
+		if _, ok := ifm[val.Field]; ok {
 			continue
 		}
 		out[key] = val
@@ -139,16 +141,17 @@ func filterSystemField(input map[string]*db.BaseIndex) (out map[string]*db.BaseI
 	return out
 }
 
-func isSystemField(input string) bool {
-	innerFieldMap := make(map[string]interface{}, 0)
+func innerFieldMap(tid int) map[string]interface{} {
+	resp := make(map[string]interface{}, 0)
 	for _, hidden := range econf.GetStringSlice("app.hiddenFields") {
-		innerFieldMap[hidden] = struct{}{}
+		resp[hidden] = struct{}{}
 	}
 	for _, show := range econf.GetStringSlice("app.defaultFields") {
-		innerFieldMap[show] = struct{}{}
+		resp[show] = struct{}{}
 	}
-	if _, ok := innerFieldMap[input]; ok {
-		return true
+	table, _ := db.TableInfo(invoker.Db, tid)
+	for _, key := range strings.Split(table.SelectFields, ",") {
+		resp[strings.Replace(key, "`", "", -1)] = struct{}{}
 	}
-	return false
+	return resp
 }

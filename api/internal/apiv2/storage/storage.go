@@ -1,9 +1,11 @@
 package storage
 
 import (
+	"encoding/json"
 	"strconv"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/mapping"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
@@ -20,7 +22,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqKafkaJSONMapping true "params"
-// @Success      200 {object} mapping.StructMapping
+// @Success      200 {object} view.MappingStruct
 // @Router       /api/v2/storage/mapping-json [post]
 func KafkaJsonMapping(c *core.Context) {
 	var req view.ReqKafkaJSONMapping
@@ -53,7 +55,7 @@ func Create(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	databaseInfo, err := db.DatabaseInfo(invoker.Db, 1)
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -70,7 +72,20 @@ func Create(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	// _, err = service.TableCreate(c.Uid(), databaseInfo, param)
+
+	param.SourceMapping, err = mapping.Handle(param.Source)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+
+	if err = json.Unmarshal([]byte(param.Source), &param.SourceMapping); err != nil {
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
+	}
+	_, err = service.StorageCreate(c.Uid(), databaseInfo, param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return

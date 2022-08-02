@@ -1,12 +1,12 @@
 definitions:
-  mapping.StructMapping:
+  view.MappingStruct:
     properties:
       data:
         items:
-          $ref: '#/definitions/mapping.StructMappingItem'
+          $ref: '#/definitions/view.MappingStructItem'
         type: array
     type: object
-  mapping.StructMappingItem:
+  view.MappingStructItem:
     properties:
       key:
         type: string
@@ -193,7 +193,7 @@ paths:
       summary: Updates the action on the execution result
       tags:
       - pandas
-  /api/v2/pandas/nodes/:nodeId/crontab:
+  /api/v2/pandas/nodes/{node-id}/crontab:
     patch:
       consumes:
       - application/json
@@ -250,7 +250,7 @@ paths:
       summary: Creating a scheduled node scheduling task
       tags:
       - pandas
-  /api/v2/pandas/nodes/:nodeId/lock-acquire:
+  /api/v2/pandas/nodes/{node-id}/lock-acquire:
     post:
       consumes:
       - application/json
@@ -305,7 +305,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Kafka JSON field mapping
+      description: Creating a log library
       parameters:
       - in: query
         name: brokers
@@ -317,6 +317,7 @@ paths:
         type: integer
       - in: query
         name: databaseId
+        required: true
         type: integer
       - in: query
         name: days
@@ -326,14 +327,28 @@ paths:
         name: desc
         type: string
       - in: query
+        name: rawLogField
+        required: true
+        type: string
+      - description: Raw JSON data
+        in: query
+        name: source
+        required: true
+        type: string
+      - in: query
         name: tableName
+        required: true
+        type: string
+      - in: query
+        name: timeField
         required: true
         type: string
       - in: query
         name: topics
         required: true
         type: string
-      - in: query
+      - description: 1 string 2 float
+        in: query
         name: typ
         required: true
         type: integer
@@ -344,7 +359,7 @@ paths:
           description: OK
           schema:
             type: string
-      summary: Kafka JSON field mapping
+      summary: Creating a log library
       tags:
       - storage
   /api/v2/storage/mapping-json:
@@ -362,7 +377,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/mapping.StructMapping'
+            $ref: '#/definitions/view.MappingStruct'
       summary: Kafka JSON field mapping
       tags:
       - storage

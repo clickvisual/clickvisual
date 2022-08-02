@@ -13,11 +13,14 @@ type QueryAssembly struct {
 }
 
 type Params struct {
-	Cluster       string
-	ReplicaStatus int
-	Data          ParamsData
-	View          ParamsView
-	Stream        ParamsStream
+	Cluster          string
+	ReplicaStatus    int
+	KafkaJsonMapping string
+	LogField         string
+	TimeField        string
+	Data             ParamsData
+	View             ParamsView
+	Stream           ParamsStream
 }
 
 type ParamsData struct {
@@ -41,10 +44,10 @@ type ParamsView struct {
 	ViewType     int
 	ViewTable    string
 	TargetTable  string
-	TimeField    string
 	CommonFields string
 	SourceTable  string
 	Where        string
+	TimeConvert  string
 }
 
 const PrometheusMetricName = "clickvisual_alert_metrics"

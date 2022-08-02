@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/common"
 )
 
 // DataBuilder stand-alone cluster version
@@ -22,20 +23,7 @@ func (b *DataBuilder) BuilderCreate() {
 }
 
 func (b *DataBuilder) BuilderFields() {
-	b.QueryAssembly.Result += `(
-  _time_second_ DateTime,
-  _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
-  _source_ String,
-  _cluster_ String,
-  _log_agent_ String,
-  _namespace_ String,
-  _node_name_ String,
-  _node_ip_ String,
-  _container_name_ String,
-  _pod_name_ String,
-  _raw_log_ String
-)
-`
+	b.QueryAssembly.Result += common.BuilderFieldsData(b.QueryAssembly.Params.KafkaJsonMapping)
 }
 
 func (b *DataBuilder) BuilderWhere() {
@@ -54,7 +42,7 @@ func (b *DataBuilder) BuilderTTL() {
 }
 
 func (b *DataBuilder) BuilderSetting() {
-	b.QueryAssembly.Result += "SETTINGS index_granularity = 8192\n"
+	b.QueryAssembly.Result += "SETTINGS index_granularity = 8192\n\n"
 }
 
 func (b *DataBuilder) GetResult() interface{} { return b.QueryAssembly }

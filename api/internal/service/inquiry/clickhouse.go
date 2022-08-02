@@ -25,16 +25,16 @@ import (
 )
 
 const (
-	defaultStringTimeParse = `parseDateTimeBestEffort(_time_) AS _time_second_,
-  toDateTime64(parseDateTimeBestEffort(_time_), 9, 'Asia/Shanghai') AS _time_nanosecond_`
-	defaultFloatTimeParse = `toDateTime(toInt64(_time_)) AS _time_second_,
-  fromUnixTimestamp64Nano(toInt64(_time_*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
+	defaultStringTimeParse = `parseDateTimeBestEffort(%s) AS _time_second_,
+  toDateTime64(parseDateTimeBestEffort(%s), 9, 'Asia/Shanghai') AS _time_nanosecond_`
+	defaultFloatTimeParse = `toDateTime(toInt64(%s)) AS _time_second_,
+  fromUnixTimestamp64Nano(toInt64(%s*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 	defaultCondition = "1='1'"
 )
 
 // time_field 高精度数据解析选择
-var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(_log_, '%s'))) AS _time_second_, 
-  fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(_log_, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
+var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_, 
+  fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
 
 var typORM = map[int]string{
 	-2: "DateTime64(3)",
@@ -104,51 +104,51 @@ func (c *ClickHouse) ID() int {
 	return c.id
 }
 
-func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.BaseIndex) string {
+func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogField string) string {
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
 		if obj.RootName == "" {
 			if hashFieldName, ok := obj.GetHashFieldName(); ok {
 				switch obj.HashTyp {
 				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(_log_, '%s')) AS `%s`,\n", obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
 				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(_log_, '%s')) AS `%s`,\n", obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
 				}
 			}
 			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(_log_, '%s')) AS `%s`,\n", obj.Field, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, obj.GetFieldName())
 				continue
 			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(_log_, '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.Field, obj.GetFieldName())
+			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(%s, '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.Field, obj.GetFieldName())
 		} else {
 			if hashFieldName, ok := obj.GetHashFieldName(); ok {
 				switch obj.HashTyp {
 				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,\n", obj.RootName, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
 				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,\n", obj.RootName, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
 				}
 			}
 			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(_log_, '%s'), '%s')) AS `%s`,\n", obj.RootName, obj.Field, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
 				continue
 			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(JSONExtractRaw(_log_, '%s'), '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], obj.RootName, obj.Field, obj.GetFieldName())
+			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(JSONExtractRaw(%s, '%s'), '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
 		}
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",\n")
 	return jsonExtractSQL
 }
 
-func (c *ClickHouse) whereConditionSQLCurrent(current *db.BaseView) string {
+func (c *ClickHouse) whereConditionSQLCurrent(current *db.BaseView, rawLogField string) string {
 	if current == nil {
 		return "1=1"
 	}
-	return fmt.Sprintf("JSONHas(_log_, '%s') = 1", current.Key)
+	return fmt.Sprintf("JSONHas(%s, '%s') = 1", rawLogField, current.Key)
 }
 
-func (c *ClickHouse) whereConditionSQLDefault(list []*db.BaseView) string {
+func (c *ClickHouse) whereConditionSQLDefault(list []*db.BaseView, rawLogField string) string {
 	if list == nil {
 		return "1=1"
 	}
@@ -156,9 +156,9 @@ func (c *ClickHouse) whereConditionSQLDefault(list []*db.BaseView) string {
 	// It is required to obtain all the view parameters under the current table and construct the default and current view query conditions
 	for k, viewRow := range list {
 		if k == 0 {
-			defaultSQL = fmt.Sprintf("JSONHas(_log_, '%s') = 0", viewRow.Key)
+			defaultSQL = fmt.Sprintf("JSONHas(%s, '%s') = 0", rawLogField, viewRow.Key)
 		} else {
-			defaultSQL = fmt.Sprintf("%s AND JSONHas(_log_, '%s') = 0", defaultSQL, viewRow.Key)
+			defaultSQL = fmt.Sprintf("%s AND JSONHas(%s, '%s') = 0", defaultSQL, rawLogField, viewRow.Key)
 		}
 	}
 	if defaultSQL == "" {
@@ -167,15 +167,17 @@ func (c *ClickHouse) whereConditionSQLDefault(list []*db.BaseView) string {
 	return defaultSQL
 }
 
-func (c *ClickHouse) timeParseSQL(typ int, v *db.BaseView) string {
-	if v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
-		return fmt.Sprintf(nanosecondTimeParse, v.Key, v.Key)
+func (c *ClickHouse) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogField string) string {
+	if timeField == "" {
+		timeField = "_time_"
 	}
-	invoker.Logger.Debug("timeParseSQL", elog.Any("typ", typ))
+	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
+		return fmt.Sprintf(nanosecondTimeParse, rawLogField, v.Key, rawLogField, v.Key)
+	}
 	if typ == TimeTypeString {
-		return defaultStringTimeParse
+		return fmt.Sprintf(defaultStringTimeParse, timeField, timeField)
 	}
-	return defaultFloatTimeParse
+	return fmt.Sprintf(defaultFloatTimeParse, timeField, timeField)
 }
 
 // ViewSync
@@ -370,7 +372,8 @@ func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqT
 	return
 }
 
-func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView, list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
+func (c *ClickHouse) storageViewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
+	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool, ct view.ReqStorageCreate) (res string, err error) {
 	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
 	if err != nil {
 		return
@@ -392,7 +395,7 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	)
 	jsonExtractSQL := ""
 	if tid != 0 {
-		jsonExtractSQL = c.genJsonExtractSQL(indexes)
+		jsonExtractSQL = c.genJsonExtractSQL(indexes, ct.GetRawLogField())
 	}
 	dName := genName(databaseInfo.Name, table)
 	streamName := genStreamName(databaseInfo.Name, table)
@@ -407,50 +410,37 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	}
 	_, err = c.db.Exec(viewDropSQL)
 	if err != nil {
-		elog.Error("viewOperator", elog.String("viewDropSQL", viewDropSQL),
-			elog.String("jsonExtractSQL", jsonExtractSQL),
-			elog.String("viewName", viewName),
-			elog.String("cluster", databaseInfo.Cluster))
+		elog.Error("viewOperator", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
 		return "", err
 	}
 	// create
+	var timeConv string
+	var whereCond string
 	if customTimeField == "" {
-		// default time field, use _time_
-		var dtp string
-		if typ == TimeTypeString {
-			dtp = defaultStringTimeParse
-		} else {
-			dtp = defaultFloatTimeParse
-		}
-		viewSQL = c.ViewDo(bumo.Params{
-			Cluster:       databaseInfo.Cluster,
-			ReplicaStatus: c.rs,
-			View: bumo.ParamsView{
-				ViewTable:    viewName,
-				TargetTable:  dName,
-				TimeField:    dtp,
-				CommonFields: jsonExtractSQL,
-				SourceTable:  streamName,
-				Where:        c.whereConditionSQLDefault(list),
-			},
-		})
+		timeConv = c.timeParseSQL(typ, nil, ct.TimeField, ct.GetRawLogField())
+		whereCond = c.whereConditionSQLDefault(list, ct.GetRawLogField())
 	} else {
 		if current == nil {
 			return "", errors.New("the process processes abnormal data errors, current view cannot be nil")
 		}
-		viewSQL = c.ViewDo(bumo.Params{
-			Cluster:       databaseInfo.Cluster,
-			ReplicaStatus: c.rs,
-			View: bumo.ParamsView{
-				ViewTable:    viewName,
-				TargetTable:  dName,
-				TimeField:    c.timeParseSQL(typ, current),
-				CommonFields: jsonExtractSQL,
-				SourceTable:  streamName,
-				Where:        c.whereConditionSQLCurrent(current),
-			},
-		})
+		timeConv = c.timeParseSQL(typ, current, ct.TimeField, ct.GetRawLogField())
+		whereCond = c.whereConditionSQLCurrent(current, ct.GetRawLogField())
 	}
+	viewSQL = c.ViewDo(bumo.Params{
+		KafkaJsonMapping: ct.Mapping2String(false),
+		LogField:         ct.RawLogField,
+		TimeField:        ct.TimeField,
+		Cluster:          databaseInfo.Cluster,
+		ReplicaStatus:    c.rs,
+		View: bumo.ParamsView{
+			ViewTable:    viewName,
+			TargetTable:  dName,
+			TimeConvert:  timeConv,
+			CommonFields: jsonExtractSQL,
+			SourceTable:  streamName,
+			Where:        whereCond,
+		},
+	})
 	if isCreate {
 		_, err = c.db.Exec(viewSQL)
 		if err != nil {
@@ -458,6 +448,16 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 		}
 	}
 	return viewSQL, nil
+}
+
+func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
+	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
+	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	rsc := view.ReqStorageCreate{}
+	if tableInfo.AnyJSON != "" {
+		rsc = view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
+	}
+	return c.storageViewOperator(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, rsc)
 }
 
 func (c *ClickHouse) DatabaseCreate(name, cluster string) error {
@@ -546,19 +546,20 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
 		ViewTable:    viewTableName,
-		TimeField:    tableInfo.GetTimeField(),
 		CommonFields: TagsToString(alarm, true),
 		SourceTable:  sourceTableName,
 		Where:        whereCondition}
+
 	if alarm.Mode == db.AlarmModeWithInSQL || alarm.Mode == db.AlarmModeAggregation {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
 		vp.WithSQL = adaSelectPart(whereCondition)
 		invoker.Logger.Debug("AlertViewGen", elog.String("whereCondition", whereCondition), elog.String("ada", adaSelectPart(whereCondition)))
-
 	}
+
 	viewSQL = c.ViewDo(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,
 		ReplicaStatus: c.rs,
+		TimeField:     tableInfo.GetTimeField(),
 		View:          vp})
 	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
@@ -774,12 +775,18 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 			switch v["f"].(type) {
 			case string:
 				key = v["f"].(string)
+			case *string:
+				key = *(v["f"].(*string))
 			case uint16:
 				key = fmt.Sprintf("%d", v["f"].(uint16))
 			case int32:
 				key = fmt.Sprintf("%d", v["f"].(int32))
+			case *int64:
+				key = fmt.Sprintf("%d", *(v["f"].(*int64)))
 			case int64:
 				key = fmt.Sprintf("%d", v["f"].(int64))
+			case *float64:
+				key = fmt.Sprintf("%f", *(v["f"].(*float64)))
 			case float64:
 				key = fmt.Sprintf("%f", v["f"].(float64))
 			default:
@@ -1026,19 +1033,6 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 		orderByField = db.TimeFieldNanoseconds
 	}
 	selectFields := genSelectFields(tid)
-	// if param.Page*param.PageSize <= 100 {
-	// 	timeFieldEqual := c.TimeFieldEqual(param, tid)
-	// 	if timeFieldEqual != "" {
-	// 		sql = fmt.Sprintf("SELECT %s FROM %s WHERE %s AND %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
-	// 			selectFields,
-	// 			param.DatabaseTable,
-	// 			c.queryHashTransform(param),
-	// 			timeFieldEqual,
-	// 			param.PageSize, (param.Page-1)*param.PageSize)
-	// 		invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
-	// 		return
-	// 	}
-	// }
 	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
 		param.DatabaseTable,
@@ -1080,7 +1074,10 @@ func adaSelectPart(in string) (out string) {
 func genSelectFields(tid int) string {
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
 	if tableInfo.CreateType == 0 {
-		return "_time_second_,_time_nanosecond_,_source_,_cluster_,_log_agent_,_namespace_,_node_name_,_node_ip_,_container_name_,_pod_name_,_raw_log_"
+		if tableInfo.SelectFields != "" {
+			return tableInfo.SelectFields
+		}
+		return "_source_,_cluster_,_log_agent_,_namespace_,_node_name_,_node_ip_,_container_name_,_pod_name_,_time_second_,_time_nanosecond_,_raw_log_"
 	}
 	return "*"
 }
@@ -1272,4 +1269,91 @@ func isEmpty(input interface{}) bool {
 		return true
 	}
 	return false
+}
+
+// StorageCreate create default stream data table and view
+func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+	dName := genName(database.Name, ct.TableName)
+	dStreamName := genStreamName(database.Name, ct.TableName)
+	if c.mode == ModeCluster {
+		dName = genName(database.Name, ct.TableName+"_local")
+		dStreamName = genStreamName(database.Name, ct.TableName+"_local")
+	}
+	// build view statement
+	var timeTyp string
+	if ct.Typ == TimeTypeString {
+		timeTyp = "String"
+	} else if ct.Typ == TimeTypeFloat {
+		timeTyp = "Float64"
+	} else {
+		err = errors.New("invalid time type")
+		return
+	}
+	dataParams := bumo.Params{
+		KafkaJsonMapping: ct.Mapping2String(true),
+		LogField:         ct.RawLogField,
+		TimeField:        ct.TimeField,
+		Data: bumo.ParamsData{
+			TableName: dName,
+			Days:      ct.Days,
+		},
+	}
+	streamParams := bumo.Params{
+		KafkaJsonMapping: ct.Mapping2String(true),
+		LogField:         ct.RawLogField,
+		TimeField:        ct.TimeField,
+		Stream: bumo.ParamsStream{
+			TableName:   dStreamName,
+			TimeTyp:     timeTyp,
+			Brokers:     ct.Brokers,
+			Topic:       ct.Topics,
+			Group:       database.Name + "_" + ct.TableName,
+			ConsumerNum: ct.Consumers,
+		},
+	}
+
+	if c.mode == ModeCluster {
+		dataParams.Cluster = database.Cluster
+		dataParams.ReplicaStatus = c.rs
+		streamParams.Cluster = database.Cluster
+		streamParams.ReplicaStatus = c.rs
+		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
+		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+	} else {
+		dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
+		dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+	}
+	_, err = c.db.Exec(dStreamSQL)
+	if err != nil {
+		invoker.Logger.Error("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		return
+	}
+	_, err = c.db.Exec(dDataSQL)
+	if err != nil {
+		invoker.Logger.Error("TableCreate", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		return
+	}
+	dViewSQL, err = c.storageViewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true, ct)
+	if err != nil {
+		invoker.Logger.Error("TableCreate", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
+		return
+	}
+	if c.mode == ModeCluster {
+		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
+			Cluster:       database.Cluster,
+			ReplicaStatus: c.rs,
+			Data: bumo.ParamsData{
+				DataType:    bumo.DataTypeDistributed,
+				TableName:   genName(database.Name, ct.TableName),
+				SourceTable: dName,
+			},
+		})
+		invoker.Logger.Debug("TableCreate", elog.Any("distributeSQL", dDistributedSQL))
+		_, err = c.db.Exec(dDistributedSQL)
+		if err != nil {
+			invoker.Logger.Error("TableCreate", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			return
+		}
+	}
+	return
 }

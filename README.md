@@ -14,16 +14,16 @@ ClickVisual is a lightweight browser-based logs analytics and logs search platfo
 
 See <https://clickvisual.gocn.vip>
 
-### Log query demonstration
+### Log Query Demonstration
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/logs.b24e990e.gif)
 
-### Alarm process demonstration
+### Alarm Process Demonstration
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/alarm.c7d6042a.gif)
 
-### DAG workflow
+### DAG Workflow
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/dag.f8977497.png)
 
-### Configuration page
+### Configuration Page
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/visual-configuration.62ebf9ad.png)
 
 ## Features
@@ -83,7 +83,7 @@ cd ./clickvisual-${latest} && ./clickvisual -config config/default.toml
 
 ## Main Tasks
 
-## Bugs or features
+## Bugs or Features
 
 If you want to report a bug or request for a feature, create a issue [here](https://github.com/clickvisual/clickvisual/issues).
 
@@ -129,7 +129,7 @@ Thanks for these wonderful people:
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-## Thank you
+## Thank You
  
 - [Jetbrains](https://www.jetbrains.com)
 
