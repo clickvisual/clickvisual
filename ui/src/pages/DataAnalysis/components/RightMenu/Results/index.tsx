@@ -17,7 +17,6 @@ const VersionHistory = (props: {
   const {
     openNodeId,
     doResultsList,
-    doResultsInfo,
     setResultsList,
     // versionHistoryList,
     currentResultsPagination,
@@ -26,7 +25,7 @@ const VersionHistory = (props: {
     setCurrentPagination,
     visibleResultsItem,
     setVisibleResultsItem,
-    changeSqlQueryResults,
+    changeResultId,
   } = useModel("dataAnalysis");
 
   const getList = (page: number, pageSize: number) => {
@@ -35,6 +34,7 @@ const VersionHistory = (props: {
         .run(openNodeId as number, {
           current: page,
           pageSize,
+          isExcludeCrontabResult: 0,
         })
         .then((res: any) => {
           if (res.code == 0) {
@@ -107,6 +107,19 @@ const VersionHistory = (props: {
       ),
     },
     {
+      title: i18n.formatMessage({
+        id: "bigdata.components.RightMenu.results.ExecutionDuration",
+      }),
+      dataIndex: "cost",
+      key: "cost",
+      ellipsis: { showTitle: true },
+      render: (_: any, record: any) => (
+        <Tooltip title={record.cost ? record.cost + "ms" : "unknown"}>
+          {record.cost ? record.cost + "ms" : "unknown"}
+        </Tooltip>
+      ),
+    },
+    {
       title: i18n.formatMessage({ id: "operation" }),
       dataIndex: "operation",
       key: "operation",
@@ -114,14 +127,8 @@ const VersionHistory = (props: {
       render: (_: any, record: any) => (
         <a
           onClick={() => {
-            doResultsInfo
-              .run(openNodeId as number, record.id)
-              .then((res: any) => {
-                if (res.code == 0) {
-                  setVisibleResultsItem(true);
-                  changeSqlQueryResults(JSON.parse(res.data.result));
-                }
-              });
+            setVisibleResultsItem(true);
+            record.id && changeResultId(record.id);
           }}
         >
           {i18n.formatMessage({
@@ -169,6 +176,7 @@ const VersionHistory = (props: {
       <ResultsItem
         visible={visibleResultsItem}
         setVisible={setVisibleResultsItem}
+        nodeId={openNodeId}
       />
     </Drawer>
   );

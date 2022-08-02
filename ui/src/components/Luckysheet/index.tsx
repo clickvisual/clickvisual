@@ -1,34 +1,33 @@
+import { cloneDeep } from "lodash";
 import { useEffect } from "react";
 
-const Luckysheet = (props: { data: any }) => {
-  const { data } = props;
-  // console.log(data);
-  const tabData = data;
+export interface LuckysheetProps {
+  data: {
+    name: string;
+    celldata: any;
+  }[];
+}
 
-  // data.map((item: any, index: number) => {
-  //   if (cLength > 0) {
-  //     console.log(item, index % cLength, Math.floor(index / cLength));
-  //   }
-  // });
+const Luckysheet = (props: LuckysheetProps) => {
+  const { data } = props;
+  const tabData = cloneDeep(data);
 
   useEffect(() => {
-    const luckysheet = window.luckysheet;
-    luckysheet.create({
-      container: "luckysheet",
-      lang: "zh",
-      data: [
-        {
-          name: "luckysheet", //工作表名称
+    let dataList: any = [];
+    tabData.length > 0 &&
+      tabData.map((item: any, index: number) => {
+        dataList.push({
+          name: item.name, //工作表名称
           color: "", //工作表颜色
-          index: 0, //工作表索引
+          index: item.name, //工作表索引
           status: 1, //激活状态
-          order: 0, //工作表的下标
+          order: item.name, //工作表的下标
           hide: 0, //是否隐藏
-          row: 30, //行数
-          column: 30, //列数
-          defaultRowHeight: 20, //自定义行高
+          row: 10, //行数
+          column: 10, //列数
+          defaultRowHeight: 24, //自定义行高
           defaultColWidth: 200, //自定义列宽
-          celldata: tabData, //初始化使用的单元格数据
+          celldata: item.celldata, //初始化使用的单元格数据
           data: [],
           config: {
             merge: {}, //合并单元格
@@ -50,20 +49,28 @@ const Luckysheet = (props: { data: any }) => {
           luckysheet_alternateformat_save: [], //交替颜色
           luckysheet_alternateformat_save_modelCustom: [], //自定义交替颜色
           luckysheet_conditionformat_save: {}, //条件格式
-          frozen: {}, //冻结行列配置
+          frozen: { type: "row" }, //冻结行列配置
           chart: [], //图表配置
           zoomRatio: 1, // 缩放比例
           image: [], //图片
           showGridLines: 1, //是否显示网格线
           dataVerification: {}, //数据验证配置
-        },
-      ],
+        });
+      });
+
+    // if (dataList.length == 1 && dataList[0].name == "luckysheet") return;
+    const luckysheet = window.luckysheet;
+    // return;
+    luckysheet.create({
+      container: "luckysheet",
+      lang: "zh",
+      data: dataList,
       showinfobar: false, // 标题部分信息
-      showsheetbar: true, // 底部sheet页
+      showsheetbar: false, // 底部sheet页
       sheetFormulaBar: true, // 是否显示公示栏
       showstatisticBar: false, // 自定义计数栏
       showtoolbar: true, // 默认工具栏是否显示
-      enableAddRow: true, // 底部添加行按钮
+      enableAddRow: false, // 底部添加行按钮
       showtoolbarConfig: {
         // 自定义配置工具栏
         undoRedo: true, // 撤销重做，注意撤消重做是两个按钮，由这一个配置决定显示还是隐藏
@@ -87,6 +94,7 @@ const Luckysheet = (props: { data: any }) => {
       },
       // loadUrl: `/api/v1/bigdata/nodes/${id}`,
     });
+    // luckysheet.setRangeShow("A2", { show: false });
     return () => luckysheet.destroy();
   }, [data]);
 

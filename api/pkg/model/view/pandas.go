@@ -223,6 +223,7 @@ type (
 		Content string `json:"content,omitempty"`
 		Result  string `json:"result,omitempty"`
 		Cost    int64  `json:"cost,omitempty"`
+		ExcelProcess string `json:"excelProcess,omitempty"`
 		RespUserSimpleInfo
 	}
 

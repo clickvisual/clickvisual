@@ -784,8 +784,12 @@ export default {
   "bigdata.components.RightMenu.results.title": "Running history",
   "bigdata.components.RightMenu.results": "Results",
   "bigdata.components.RightMenu.results.tips": "The results",
+  "bigdata.components.RightMenu.notResults": "There is no running history",
   "bigdata.components.RightMenu.results.executionTime": "The execution time",
+  "bigdata.components.RightMenu.results.ExecutionDuration":
+    "Execution duration",
   "bigdata.components.RightMenu.results.timingTask": "Timing task",
+  "bigdata.components.RightMenu.results.notResultsId": "No result ID found",
 
   "bigdata.components.RightMenu.VersionHistory.submitter": "Submit one",
   "bigdata.components.RightMenu.VersionHistory.SubmitTime": "Submit time",

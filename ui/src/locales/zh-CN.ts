@@ -729,8 +729,11 @@ export default {
   "bigdata.components.RightMenu.results.title": "运行历史",
   "bigdata.components.RightMenu.results": "结果",
   "bigdata.components.RightMenu.results.tips": "运行结果",
+  "bigdata.components.RightMenu.notResults": "暂无运行结果",
   "bigdata.components.RightMenu.results.executionTime": "执行时间",
+  "bigdata.components.RightMenu.results.ExecutionDuration": "执行时长",
   "bigdata.components.RightMenu.results.timingTask": "定时任务",
+  "bigdata.components.RightMenu.results.notResultsId": "未找到结果id",
 
   "bigdata.components.RightMenu.VersionHistory.submitter": "提交人",
   "bigdata.components.RightMenu.VersionHistory.SubmitTime": "提交时间",
