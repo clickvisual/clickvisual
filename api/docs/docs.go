@@ -76,7 +76,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v2/pandas/nodes/:nodeId/crontab": {
+        "/api/v2/pandas/nodes/{node-id}/crontab": {
             "post": {
                 "description": "isRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
                 "consumes": [
@@ -156,7 +156,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v2/pandas/nodes/:nodeId/lock-acquire": {
+        "/api/v2/pandas/nodes/{node-id}/lock-acquire": {
             "post": {
                 "description": "Force the file edit lock to be acquired",
                 "consumes": [
@@ -234,9 +234,153 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v2/storage": {
+            "post": {
+                "description": "Creating a log library",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Creating a log library",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "brokers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "consumers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "databaseId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "days",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "desc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "rawLogField",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Raw JSON data",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "tableName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "timeField",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "topics",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1 string 2 float",
+                        "name": "typ",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/storage/mapping-json": {
+            "post": {
+                "description": "Kafka JSON field mapping",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Kafka JSON field mapping",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "data",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/view.MappingStruct"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "view.MappingStruct": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.MappingStructItem"
+                    }
+                }
+            }
+        },
+        "view.MappingStructItem": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "view.ReqCreateCrontab": {
             "type": "object",
             "properties": {
@@ -443,7 +587,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "ClickVisual API",
-	Description:      "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- search : the log module\n- alarm : the alarm module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",
+	Description:      "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- storage : the log module\n- alarm : the alarm module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

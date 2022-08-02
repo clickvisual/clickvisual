@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/common"
 )
 
 // StreamBuilder stand-alone cluster version
@@ -21,19 +22,11 @@ func (b *StreamBuilder) BuilderCreate() {
 }
 
 func (b *StreamBuilder) BuilderFields() {
-	b.QueryAssembly.Result += fmt.Sprintf(`(
-  _source_ String,
-  _pod_name_ String,
-  _namespace_ String,
-  _node_name_ String,
-  _container_name_ String,
-  _cluster_ String,
-  _log_agent_ String,
-  _node_ip_ String,
-  _time_ %s,
-  _log_ String
-)
-`, b.QueryAssembly.Params.Stream.TimeTyp)
+	b.QueryAssembly.Result += common.BuilderFieldsStream(b.QueryAssembly.Params.KafkaJsonMapping,
+		b.QueryAssembly.Params.TimeField,
+		b.QueryAssembly.Params.Stream.TimeTyp,
+		b.QueryAssembly.Params.LogField,
+	)
 }
 
 func (b *StreamBuilder) BuilderWhere() {

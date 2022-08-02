@@ -20,7 +20,6 @@ import (
 
 func AuthChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		switch {
 		case !isNotAnonymousUser(c):
 		case !isNotAuthProxy(c):

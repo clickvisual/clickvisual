@@ -332,7 +332,6 @@ func TableLogs(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "TableInfo"), elog.Any("cost", time.Since(t)))
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/common"
 )
 
 // ViewBuilder stand-alone cluster version
@@ -37,11 +38,11 @@ func (b *ViewBuilder) BuilderFields() {
   toDateTime(%s) as updated
 FROM %s
 `,
-			b.QueryAssembly.Params.View.TimeField,
+			b.QueryAssembly.Params.TimeField,
 			bumo.PrometheusMetricName,
 			b.QueryAssembly.Params.View.CommonFields,
-			b.QueryAssembly.Params.View.TimeField,
-			b.QueryAssembly.Params.View.TimeField,
+			b.QueryAssembly.Params.TimeField,
+			b.QueryAssembly.Params.TimeField,
 			b.QueryAssembly.Params.View.SourceTable)
 	case bumo.ViewTypePrometheusMetricAggregation:
 		b.QueryAssembly.Result += fmt.Sprintf(`with(
@@ -57,35 +58,25 @@ SELECT
 FROM %s
 `,
 			b.QueryAssembly.Params.View.WithSQL,
-			b.QueryAssembly.Params.View.TimeField,
+			b.QueryAssembly.Params.TimeField,
 			bumo.PrometheusMetricName,
 			b.QueryAssembly.Params.View.CommonFields,
-			b.QueryAssembly.Params.View.TimeField,
-			b.QueryAssembly.Params.View.TimeField,
+			b.QueryAssembly.Params.TimeField,
+			b.QueryAssembly.Params.TimeField,
 			b.QueryAssembly.Params.View.SourceTable)
 	default:
-		b.QueryAssembly.Result += fmt.Sprintf(`SELECT
-  %s,
-  _source_,
-  _cluster_,
-  _log_agent_,
-  _namespace_,
-  _node_name_,
-  _node_ip_,
-  _container_name_,
-  _pod_name_,
-  _log_ AS _raw_log_%s
-FROM %s
-`, b.QueryAssembly.Params.View.TimeField, b.QueryAssembly.Params.View.CommonFields, b.QueryAssembly.Params.View.SourceTable)
+		b.QueryAssembly.Result += common.BuilderFieldsView(b.QueryAssembly.Params.KafkaJsonMapping,
+			b.QueryAssembly.Params.LogField,
+			b.QueryAssembly.Params.View)
 	}
 }
 
 func (b *ViewBuilder) BuilderWhere() {
 	switch b.QueryAssembly.Params.View.ViewType {
 	case bumo.ViewTypePrometheusMetric:
-		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s GROUP BY %s\n", b.QueryAssembly.Params.View.Where, b.QueryAssembly.Params.View.TimeField)
+		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s GROUP BY %s\n", b.QueryAssembly.Params.View.Where, b.QueryAssembly.Params.TimeField)
 	case bumo.ViewTypePrometheusMetricAggregation:
-		b.QueryAssembly.Result += fmt.Sprintf("GROUP BY %s\n", b.QueryAssembly.Params.View.TimeField)
+		b.QueryAssembly.Result += fmt.Sprintf("GROUP BY %s\n", b.QueryAssembly.Params.TimeField)
 	default:
 		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s\n", b.QueryAssembly.Params.View.Where)
 	}

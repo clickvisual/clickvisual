@@ -25,7 +25,7 @@ const IndexHeader = () => {
           </Tooltip>
         </div>
       </Space>
-      {currentLogLibrary?.createType === 0 && (
+      {currentLogLibrary?.createType !== 1 && (
         <div className={indexHeaderStyles.icon}>
           <Button
             onClick={() => {

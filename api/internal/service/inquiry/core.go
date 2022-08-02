@@ -26,13 +26,15 @@ type Operator interface {
 	AlertViewGen(*db.Alarm, string) (string, string, error)
 	ViewSync(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
 	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
+	StorageCreate(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
 	SystemTablesInfo(bool) []*view.SystemTable
 	IndexUpdate(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error // Data table index operation
 }
 
 const (
-	TableCreateTypeCV    = 0
-	TableCreateTypeExist = 1
+	TableCreateTypeCV      = 0
+	TableCreateTypeExist   = 1
+	TableCreateTypeAnyJSON = 2
 )
 
 const (
