@@ -22,6 +22,7 @@ import useLocalStorages, {
   LastDataLogsStateType,
   LocalModuleType,
 } from "@/hooks/useLocalStorages";
+import { cloneDeep, isEqual } from "lodash";
 
 export interface UrlStateType {
   tid?: string | number;
@@ -67,6 +68,7 @@ export default function useLogUrlParams() {
     index: ACTIVE_TIME_INDEX,
     queryType: QueryTypeEnum.LOG,
   });
+
   const [tid, setTid] = useState<any>();
   const {
     doGetLogsAndHighCharts,
@@ -192,6 +194,7 @@ export default function useLogUrlParams() {
         queryType: activeQueryType,
         // querySql: chartSql,
       };
+
       setUrlState(data);
       onChangeDataLogsState(data);
     },
@@ -199,7 +202,30 @@ export default function useLogUrlParams() {
   );
 
   useEffect(() => {
-    setUrlQuery.run();
+    const data = {
+      tid: currentLogLibrary?.id,
+      start: startDateTime,
+      end: endDateTime,
+      page: currentPage,
+      size: pageSize,
+      kw: keywordInput,
+      index: activeTimeOptionIndex,
+      tab: activeTabKey,
+      queryType: activeQueryType,
+    };
+    const defaultData = {
+      end: undefined,
+      index: 2,
+      kw: undefined,
+      page: undefined,
+      queryType: QueryTypeEnum.LOG,
+      size: undefined,
+      start: undefined,
+      tab: TimeRangeType.Relative,
+      tid: undefined,
+    };
+    // 初始化的时候时不时会执行一次，无法稳定复现，于是排除初始化的情况
+    !isEqual(data, defaultData) && setUrlQuery.run();
   }, [
     currentLogLibrary,
     // currentDatabase,

@@ -27,7 +27,9 @@ const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
   return (
     <div className={LoggingLibraryStyles.loggingLibraryMain}>
       <SearchLogLibrary onSearch={onSearch} onGetList={onGetList} />
-      <LogLibraryList list={listData} onGetList={onGetList} />
+      {listData.length > 0 ? (
+        <LogLibraryList list={listData} onGetList={onGetList} />
+      ) : null}
       <CreatedDatabaseModal onGetList={onGetList} />
       <ModalCreatedLogLibrary onGetList={onGetList} />
     </div>

@@ -16,15 +16,17 @@ const DataSourceMenu = () => {
     foldingState,
     onChangeResizeMenuWidth,
     resizeMenuWidth,
-    doGetDatabaseList,
+    onChangeIsHasDatabase,
+    // doGetDatabaseList,
   } = useModel("dataLogs");
   const { doGetAllInstances } = useModel("instances");
   // const [instanceTree, setInstanceTree] = useState<any[]>([]);
   const [allInstancesData, setAllInstancesData] = useState<any>([]);
 
   useEffect(() => {
-    doGetDatabaseList();
+    // doGetDatabaseList();
     getList();
+    return () => onChangeIsHasDatabase(false);
   }, []);
 
   const getList = () => {
@@ -34,6 +36,10 @@ const DataSourceMenu = () => {
         setAllInstancesData(res.data);
         // const treeList = treeDataConversion(res.data);
         // setInstanceTree(treeList);
+        const hasDatabaseList = res.data.filter((item: any) => {
+          return item.databases.length > 0;
+        });
+        onChangeIsHasDatabase(hasDatabaseList.length > 0);
       }
     });
   };

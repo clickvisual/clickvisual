@@ -37,7 +37,7 @@ const TagFieldContent = ({
         handleOutCondition={() => onClickOut(field, content)}
       >
         <Tag color={"#fdebe1"} className={logItemStyles.tag}>
-          {content}
+          {content.replace(eval('/"/g'), "")}
         </Tag>
       </ClickMenu>
     </span>

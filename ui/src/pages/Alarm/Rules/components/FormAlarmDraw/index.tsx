@@ -19,6 +19,7 @@ import TextArea from "antd/es/input/TextArea";
 import { SaveOutlined } from "@ant-design/icons";
 import { AlarmRequest, ChannelType } from "@/services/alarm";
 import { NoDataConfigs } from "@/pages/Alarm/service/type";
+import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
 
 export enum AlarmLvelType {
   Alarm = 0,
@@ -36,8 +37,10 @@ const FormAlarmDraw = () => {
     onChangeRowAlarm,
     operations,
     alarmChannel,
+    alarmChannelModal,
   } = useModel("alarm");
   const { doGetChannels } = alarmChannel;
+  const { setVisibleCreate } = alarmChannelModal;
   const alarmFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const [channelList, setChannelList] = useState<ChannelType[]>([]);
@@ -104,6 +107,12 @@ const FormAlarmDraw = () => {
     });
   };
 
+  const getChannelList = () => {
+    doGetChannels.run().then((res) => {
+      if (res?.code === 0) setChannelList(res.data);
+    });
+  };
+
   const handleSubmit = (field: AlarmRequest) => {
     !alarmDraw.isEditor ? doCreated(field) : doUpdated(field);
   };
@@ -140,10 +149,7 @@ const FormAlarmDraw = () => {
   }, [alarmDraw.visibleDraw, alarmDraw.isEditor, currentRowAlarm]);
 
   useEffect(() => {
-    if (alarmDraw.visibleDraw)
-      doGetChannels.run().then((res) => {
-        if (res?.code === 0) setChannelList(res.data);
-      });
+    if (alarmDraw.visibleDraw) getChannelList();
   }, [alarmDraw.visibleDraw]);
 
   useEffect(() => {
@@ -235,9 +241,21 @@ const FormAlarmDraw = () => {
             showMoreOptions={showMoreOptions}
           />
           <Form.Item
-            label={i18n.formatMessage({
-              id: "alarm.rules.form.channelIds",
-            })}
+            label={
+              <Space>
+                {i18n.formatMessage({
+                  id: "alarm.rules.form.channelIds",
+                })}
+                <Button
+                  size="small"
+                  onClick={() => {
+                    setVisibleCreate(true);
+                  }}
+                >
+                  {i18n.formatMessage({ id: "alarm.notify.modal.created" })}
+                </Button>
+              </Space>
+            }
             name={"channelIds"}
             rules={[
               {
@@ -276,6 +294,7 @@ const FormAlarmDraw = () => {
           </Form.Item>
         </Form>
       </Spin>
+      <CreateChannelModal loadList={getChannelList} />
     </Drawer>
   );
 };

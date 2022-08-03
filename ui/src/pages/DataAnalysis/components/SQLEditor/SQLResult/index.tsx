@@ -6,10 +6,15 @@ import styles from "../index.less";
 import Luckysheet from "@/components/Luckysheet";
 const { TabPane } = Tabs;
 
-const SQLResult = (props: { resultsList: any[]; nodeId: number }) => {
+const SQLResult = (props: {
+  resultsList: any[];
+  nodeId: number;
+  lockUid: number;
+}) => {
   const i18n = useIntl();
-  const { resultsList, nodeId } = props;
+  const { resultsList, nodeId, lockUid } = props;
   const { doResultsInfo, doModifyResults } = useModel("dataAnalysis");
+  const { currentUser } = useModel("@@initialState").initialState || {};
   const [defaultResultsData, setDefaultResultsData] = useState<any>({});
   const [resultsId, setResultsId] = useState<number>(0);
   const [updatedResults, setUpdatedResults] = useState<any>({});
@@ -148,7 +153,7 @@ const SQLResult = (props: { resultsList: any[]; nodeId: number }) => {
     <div className={styles.sqlResult}>
       <Spin spinning={doResultsInfo.loading || doModifyResults.loading}>
         <div className={styles.title}>
-          {resultsId ? (
+          {resultsId && lockUid == currentUser?.id ? (
             <SaveOutlined onClick={handleSave} className={styles.saveIcon} />
           ) : null}
           <span>
@@ -160,8 +165,10 @@ const SQLResult = (props: { resultsList: any[]; nodeId: number }) => {
         <div className={styles.resultTabs}>
           {resultsList.length > 0 ? (
             <Tabs onChange={handleTabsChange} activeKey={activeKey}>
-              {resultsList.map((item: any) => {
-                return <TabPane tab={item.id} key={item.id}></TabPane>;
+              {resultsList.map((item: any, index: number) => {
+                return (
+                  <TabPane tab={`result ${index}`} key={item.id}></TabPane>
+                );
               })}
             </Tabs>
           ) : (

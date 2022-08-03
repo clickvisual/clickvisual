@@ -18,6 +18,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
     // currentDatabase,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsLogLibraryAllDatabase,
+    isHasDatabase,
   } = useModel("dataLogs");
   const { onChangeCreatedDatabaseModal } = useModel("database");
   const [value, setValue] = useState<string | undefined>(undefined);
@@ -46,22 +47,24 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
           onSearch={onSearch}
           onChange={(ev) => setValue(ev.target.value)}
         />
-        <Tooltip
-          title={i18n.formatMessage({
-            id: "datasource.logLibrary.search.created",
-          })}
-          placement="top"
-        >
-          <Button
-            onClick={() => {
-              onChangeLogLibraryCreatedModalVisible(true);
-              onChangeIsLogLibraryAllDatabase(true);
-            }}
-            type={"primary"}
-            style={{ width: "32px" }}
-            icon={<PlusOutlined />}
-          />
-        </Tooltip>
+        {isHasDatabase ? (
+          <Tooltip
+            title={i18n.formatMessage({
+              id: "datasource.logLibrary.search.created",
+            })}
+            placement="top"
+          >
+            <Button
+              onClick={() => {
+                onChangeLogLibraryCreatedModalVisible(true);
+                onChangeIsLogLibraryAllDatabase(true);
+              }}
+              type={"primary"}
+              style={{ width: "32px" }}
+              icon={<PlusOutlined />}
+            />
+          </Tooltip>
+        ) : null}
         <Tooltip
           title={i18n.formatMessage({
             id: "instance.operation.addDatabase",
