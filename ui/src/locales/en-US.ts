@@ -875,6 +875,8 @@ export default {
   "bigdata.components.FileTitle.grabLockSuccessful": "Grab lock successfully",
   "bigdata.components.FileTitle.formatting": "Formatting",
   "bigdata.components.FileTitle.run": "run",
+  "bigdata.components.sqlSaveTips":
+    "After obtaining the edit permission, you can save it",
 
   "bigdata.models.dataAnalysis.runLoadingText": "The running",
   "bigdata.models.dataAnalysis.runLoadingDoneText": "The successful running",

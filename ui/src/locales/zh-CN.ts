@@ -815,6 +815,7 @@ export default {
   "bigdata.components.FileTitle.grabLockSuccessful": "抢锁成功",
   "bigdata.components.FileTitle.formatting": "格式化",
   "bigdata.components.FileTitle.run": "运行",
+  "bigdata.components.sqlSaveTips": "获取编辑权限后可以保存",
 
   "bigdata.models.dataAnalysis.runLoadingText": "运行中",
   "bigdata.models.dataAnalysis.runLoadingDoneText": "运行成功",

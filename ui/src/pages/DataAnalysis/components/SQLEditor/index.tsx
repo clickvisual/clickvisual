@@ -4,7 +4,7 @@ import FileTitle, {
 } from "@/pages/DataAnalysis/components/FileTitle";
 import EditorContent from "./EditorContent";
 import { useModel, useIntl } from "umi";
-import { Empty, Spin } from "antd";
+import { Empty } from "antd";
 import SQLResult from "./SQLResult";
 import { useEffect, useState } from "react";
 
@@ -27,8 +27,7 @@ const SQLEditor = (props: {
     props;
   const [resultsList, setResultsList] = useState<any[]>([]);
 
-  const { doGetNodeInfo, manageNode, doResultsList, handleRunCode } =
-    useModel("dataAnalysis");
+  const { manageNode, doResultsList, handleRunCode } = useModel("dataAnalysis");
   const { selectNode } = manageNode;
 
   const handleGetResultsList = (id: number) => {
@@ -50,40 +49,38 @@ const SQLEditor = (props: {
 
   return (
     <div className={style.editorMain}>
-      <Spin spinning={doGetNodeInfo.loading || doResultsList.loading}>
-        {selectNode?.id ? (
-          <>
-            <FileTitle
-              isChange={isChange}
-              file={file}
-              onSave={onSave}
-              onLock={onLock}
-              onUnlock={onUnlock}
-              onRun={() => {
-                handleRunCode(file.id, handleGetResultsList);
-              }}
-              onFormat={onFormat}
-              onGrabLock={onGrabLock}
-              type={FileTitleType.sql}
-            />
-            <EditorContent />
-            <SQLResult
-              resultsList={resultsList}
-              lockUid={file?.lockUid}
-              nodeId={selectNode?.id}
-            />
-          </>
-        ) : (
-          <div className={style.empty}>
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={i18n.formatMessage({
-                id: "bigdata.components.SQLEditor.selectFile",
-              })}
-            />
-          </div>
-        )}
-      </Spin>
+      {selectNode?.id ? (
+        <>
+          <FileTitle
+            isChange={isChange}
+            file={file}
+            onSave={onSave}
+            onLock={onLock}
+            onUnlock={onUnlock}
+            onRun={() => {
+              handleRunCode(file.id, handleGetResultsList);
+            }}
+            onFormat={onFormat}
+            onGrabLock={onGrabLock}
+            type={FileTitleType.sql}
+          />
+          <EditorContent />
+          <SQLResult
+            resultsList={resultsList}
+            lockUid={file?.lockUid}
+            nodeId={selectNode?.id}
+          />
+        </>
+      ) : (
+        <div className={style.empty}>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={i18n.formatMessage({
+              id: "bigdata.components.SQLEditor.selectFile",
+            })}
+          />
+        </div>
+      )}
     </div>
   );
 };

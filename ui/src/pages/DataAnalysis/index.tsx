@@ -5,7 +5,6 @@ import { useIntl, useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import DataAnalysisNav from "@/pages/DataAnalysis/components/Nav";
 import ScreeningRow from "@/pages/DataAnalysis/components/ScreeningRow";
-import RightMenu from "@/pages/DataAnalysis/components/RightMenu";
 import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
 import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
@@ -55,18 +54,6 @@ const DataAnalysis = () => {
         return <></>;
     }
   }, [navKey, currentInstances]);
-
-  const rightMenu = useMemo(() => {
-    if (
-      currentInstances &&
-      openNodeId &&
-      (navKey == BigDataNavEnum.TemporaryQuery ||
-        navKey == BigDataNavEnum.OfflineManage)
-    ) {
-      return <RightMenu />;
-    }
-    return <></>;
-  }, [navKey, currentInstances, openNodeId]);
 
   useEffect(() => {
     if (urlState && urlState.nodeId && urlState.nodeId != openNodeId) {
@@ -124,7 +111,6 @@ const DataAnalysis = () => {
       <div className={style.contentBox}>
         <DataAnalysisNav />
         <div className={style.content}>{NavContent}</div>
-        {rightMenu}
       </div>
       <div className={style.positionBox}>
         <ScreeningRow />
