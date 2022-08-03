@@ -66,5 +66,28 @@
     flex: 1;
     flex-direction: column;
     height: 100%;
+
+    .fileNameList {
+      width: 100%;
+    }
+
+    .contentMain {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 137px);
+      overflow-y: scroll;
+    }
+
+    :global .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+      padding: 4px 8px;
+    }
+    :global .ant-tabs-top > .ant-tabs-nav {
+      margin: 0;
+    }
+
+    :global .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
+      border-radius: 0;
+    }
   }
 }

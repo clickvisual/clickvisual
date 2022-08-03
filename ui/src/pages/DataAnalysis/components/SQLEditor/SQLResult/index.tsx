@@ -1,5 +1,5 @@
 import { SaveOutlined } from "@ant-design/icons";
-import { message, Spin, Tabs } from "antd";
+import { Button, Empty, message, Spin, Tabs, Tooltip } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { useIntl, useModel } from "umi";
 import styles from "../index.less";
@@ -153,8 +153,20 @@ const SQLResult = (props: {
     <div className={styles.sqlResult}>
       <Spin spinning={doResultsInfo.loading || doModifyResults.loading}>
         <div className={styles.title}>
-          {resultsId && lockUid == currentUser?.id ? (
-            <SaveOutlined onClick={handleSave} className={styles.saveIcon} />
+          {resultsId ? (
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "bigdata.components.sqlSaveTips",
+              })}
+            >
+              <Button
+                type="text"
+                className={styles.saveIcon}
+                disabled={lockUid != currentUser?.id}
+                onClick={handleSave}
+                icon={<SaveOutlined />}
+              ></Button>
+            </Tooltip>
           ) : null}
           <span>
             {i18n.formatMessage({
@@ -167,14 +179,17 @@ const SQLResult = (props: {
             <Tabs onChange={handleTabsChange} activeKey={activeKey}>
               {resultsList.map((item: any, index: number) => {
                 return (
-                  <TabPane tab={`result ${index}`} key={item.id}></TabPane>
+                  <TabPane tab={`result ${index + 1}`} key={item.id}></TabPane>
                 );
               })}
             </Tabs>
           ) : (
-            i18n.formatMessage({
-              id: "bigdata.components.RightMenu.notResults",
-            })
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={i18n.formatMessage({
+                id: "bigdata.components.RightMenu.notResults",
+              })}
+            />
           )}
         </div>
         <div className={styles.luckysheet}>

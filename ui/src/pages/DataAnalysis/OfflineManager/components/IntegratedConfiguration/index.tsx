@@ -263,30 +263,27 @@ const IntegratedConfiguration = ({
 
   return (
     <div className={styles.integratedConfigMain}>
-      <Spin
-        spinning={
+      {/* 
           getNodeInfo.loading || doUnLockNode.loading || updateNode.loading
-        }
-      >
-        <FileTitle
-          type={FileTitleType.node}
-          isChange={isChangeForm}
-          file={nodeInfo}
-          onSave={handleSave}
-          onLock={handleLock}
-          onUnlock={handleUnlock}
-          onRun={handleRun}
-          onStop={handleStop}
-          onGrabLock={handleGrabLock}
-        />
-        <IntegratedConfigs
-          onFormChange={handleChangeForm}
-          onSubmit={handleSubmit}
-          iid={iid}
-          form={form}
-          file={nodeInfo}
-        />
-      </Spin>
+       */}
+      <FileTitle
+        type={FileTitleType.node}
+        isChange={isChangeForm}
+        file={nodeInfo}
+        onSave={handleSave}
+        onLock={handleLock}
+        onUnlock={handleUnlock}
+        onRun={handleRun}
+        onStop={handleStop}
+        onGrabLock={handleGrabLock}
+      />
+      <IntegratedConfigs
+        onFormChange={handleChangeForm}
+        onSubmit={handleSubmit}
+        iid={iid}
+        form={form}
+        file={nodeInfo}
+      />
     </div>
   );
 };
