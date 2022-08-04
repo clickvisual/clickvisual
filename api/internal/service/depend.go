@@ -30,7 +30,7 @@ func depsClear() {
 
 // DepsBatch Periodically synchronize the data of each instance
 func DepsBatch(isReset bool) {
-	// 获取全部实例数据
+	// Get all the instance data
 	instances, err := db.InstanceList(egorm.Conds{})
 	if err != nil {
 		invoker.Logger.Error("DepsBatch", elog.String("step", "instances"), elog.String("error", err.Error()))
@@ -64,7 +64,7 @@ func depsInstance(iid int, rows []*view.SystemTable, isReset bool) {
 			return
 		}
 		filter := make(map[string]interface{})
-		// 批量插入
+		// Bulk insert
 		depends := make([]*db.BigdataDepend, 0)
 		for _, row := range rows {
 			if strings.ToLower(row.Database) == "system" || strings.ToLower(row.Database) == "information_schema" {

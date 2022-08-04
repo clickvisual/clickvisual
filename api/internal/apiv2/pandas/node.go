@@ -49,7 +49,7 @@ func NodeLockAcquire(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err := service.NodeTryLock(c.Uid(), nodeId, true); err != nil {
+	if err := service.Node.NodeTryLock(c.Uid(), nodeId, true); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
@@ -233,7 +233,7 @@ func NodeResultUpdate(c *core.Context) {
 		return
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeResultUpdate, map[string]interface{}{"obj": req})
-	c.JSONE(core.CodeOK, "succ", service.NodeResultRespAssemble(&nr))
+	c.JSONE(core.CodeOK, "succ", service.Node.NodeResultRespAssemble(&nr))
 	return
 }
 
@@ -284,9 +284,93 @@ func NodeResultListPage(c *core.Context) {
 	})
 	list := make([]view.RespNodeResult, 0)
 	for _, nodeRes := range nodeResList {
-		list = append(list, service.NodeResultRespAssemble(nodeRes))
+		list = append(list, service.Node.NodeResultRespAssemble(nodeRes))
 	}
 	c.JSONPage(view.RespNodeResultList{
+		Total: total,
+		List:  list,
+	}, core.Pagination{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+		Total:    total,
+	})
+	return
+}
+
+// WorkerDashboard  godoc
+// @Summary	     Kanban on the execution status of a scheduled task
+// @Description  Kanban on the execution status of a scheduled task
+// @Tags         pandas
+// @Accept       json
+// @Produce      json
+// @Param        req query view.ReqWorkerDashboard true "params"
+// @Success      200 {object} view.RespWorkerDashboard
+// @Router       /api/v2/pandas/workers/dashboard [get]
+func WorkerDashboard(c *core.Context) {
+	var req view.ReqWorkerDashboard
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	ins, _ := service.InstanceFilterPms(c.Uid())
+	res := service.Node.WorkerDashboard(req, ins)
+	c.JSONE(core.CodeOK, "succ", res)
+	return
+}
+
+// WorkerList  godoc
+// @Summary	     The scheduled task list
+// @Description   The scheduled task list
+// @Tags         pandas
+// @Accept       json
+// @Produce      json
+// @Param        req query view.ReqWorkerList true "params"
+// @Success      200 {object} core.ResPage{data=view.RespWorkerList}
+// @Router       /api/v2/pandas/workers [get]
+func WorkerList(c *core.Context) {
+	var req view.ReqWorkerList
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	// Read node data according to user instance permissions
+	instances, _ := service.InstanceFilterPms(c.Uid())
+	instanceIdArr := make([]int, 0)
+	for _, ins := range instances {
+		instanceIdArr = append(instanceIdArr, ins.Id)
+	}
+	condsNodes := egorm.Conds{}
+	if req.Tertiary != 0 {
+		condsNodes["tertiary"] = req.Tertiary
+	}
+	condsNodes["iid"] = egorm.Cond{
+		Op:  "in",
+		Val: instanceIdArr,
+	}
+	nodes, _ := db.NodeList(condsNodes)
+	invoker.Logger.Debug("WorkerList", elog.Any("instanceIdArr", instanceIdArr), elog.Any("nodes", nodes))
+	// Read the execution result based on the node information
+	nodeIdArr := make([]int, 0)
+	for _, n := range nodes {
+		nodeIdArr = append(nodeIdArr, n.ID)
+	}
+	conds := egorm.Conds{}
+	conds["uid"] = -1
+	condsNodes["node_id"] = egorm.Cond{
+		Op:  "in",
+		Val: nodeIdArr,
+	}
+	total, nodeResList := db.NodeResultListPage(conds, &db.ReqPage{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+	})
+	invoker.Logger.Debug("WorkerList", elog.Any("nodeIdArr", nodeIdArr), elog.Any("nodeResList", nodeResList))
+	list := make([]view.RespWorkerRow, 0)
+	// data processing: increase relevant plural information;
+	for _, nodeRes := range nodeResList {
+		list = append(list, service.Node.RespWorkerAssemble(nodeRes))
+	}
+	c.JSONPage(view.RespWorkerList{
 		Total: total,
 		List:  list,
 	}, core.Pagination{

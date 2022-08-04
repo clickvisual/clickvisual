@@ -235,6 +235,128 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/pandas/workers": {
+            "get": {
+                "description": "The scheduled task list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "The scheduled task list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Current 总记录数",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "nodeName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "PageSize 每页记录数",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort 顺序",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "start",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ClickHouse 10; MySQL 11; OfflineSync 20",
+                        "name": "tertiary",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Total 总页数",
+                        "name": "total",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.ResPage"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/view.RespWorkerList"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/pandas/workers/dashboard": {
+            "get": {
+                "description": "Kanban on the execution status of a scheduled task",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Kanban on the execution status of a scheduled task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "isInCharge",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "start",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/view.RespWorkerDashboard"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/storage": {
             "post": {
                 "description": "Creating a log library",
@@ -359,6 +481,46 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "core.Pagination": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "description": "Current means current page number",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "PageSize means max item count of a page",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "Sort means sort expression",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "Total means total page count",
+                    "type": "integer"
+                }
+            }
+        },
+        "core.ResPage": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Code means response business code",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Data means response data payload"
+                },
+                "msg": {
+                    "description": "Msg means response extra message",
+                    "type": "string"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/core.Pagination"
+                }
+            }
+        },
         "view.MappingStruct": {
             "type": "object",
             "properties": {
@@ -523,6 +685,9 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "excelProcess": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -574,6 +739,129 @@ const docTemplate = `{
                 },
                 "tableName": {
                     "type": "string"
+                }
+            }
+        },
+        "view.RespUserSimpleInfo": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "view.RespWorkerDashboard": {
+            "type": "object",
+            "properties": {
+                "flows": {
+                    "description": "Execution trend chart",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.WorkerStatsRow"
+                    }
+                },
+                "nodeFailed": {
+                    "description": "node status",
+                    "type": "integer"
+                },
+                "nodeSuccess": {
+                    "description": "node status",
+                    "type": "integer"
+                },
+                "nodeUnknown": {
+                    "description": "node status",
+                    "type": "integer"
+                },
+                "workerFailed": {
+                    "description": "Execution status of each periodic schedule",
+                    "type": "integer"
+                },
+                "workerSuccess": {
+                    "description": "Execution status of each periodic schedule",
+                    "type": "integer"
+                },
+                "workerUnknown": {
+                    "description": "Execution status of each periodic schedule",
+                    "type": "integer"
+                }
+            }
+        },
+        "view.RespWorkerList": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.RespWorkerRow"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "view.RespWorkerRow": {
+            "type": "object",
+            "properties": {
+                "chargePerson": {
+                    "$ref": "#/definitions/view.RespUserSimpleInfo"
+                },
+                "cost": {
+                    "type": "integer"
+                },
+                "crontab": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nodeId": {
+                    "type": "integer"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "unknown 0; success 1; failed 2",
+                    "type": "integer"
+                },
+                "tertiary": {
+                    "type": "integer"
+                }
+            }
+        },
+        "view.WorkerStatsRow": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "integer"
+                },
+                "success": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "unknown": {
+                    "type": "integer"
                 }
             }
         }

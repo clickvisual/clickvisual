@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
@@ -44,11 +45,22 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 	t := &tertiary{}
 	s := &secondary{next: t}
 	p := &primary{next: s}
-
 	res := view.RespRunNode{}
 
 	invoker.Logger.Debug("doSyDashboard", elog.Any("node", n))
 	now := time.Now()
+	// record update
+	tx := invoker.Db.Begin()
+	// create result record
+	nodeResult := db.BigdataNodeResult{
+		NodeId:  n.ID,
+		Content: nc.Content,
+		Uid:     uid,
+	}
+	if errNodeCreate := db.NodeResultCreate(tx, &nodeResult); errNodeCreate != nil {
+		tx.Rollback()
+		return res, errNodeCreate
+	}
 	execResult, err := p.execute(&node{
 		n:             n,
 		nc:            nc,
@@ -59,10 +71,12 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 		tertiaryDone:  false,
 	})
 	cost := time.Since(now).Milliseconds()
-
+	execStatus := db.BigdataNodeResultUnknown
 	if err != nil {
+		execStatus = db.BigdataNodeResultFailed
 		execResult.Message = err.Error()
 	} else {
+		execStatus = db.BigdataNodeResultSucc
 		execResult.Message = "success"
 	}
 	if execResult.Logs == nil {
@@ -72,21 +86,18 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 	execResultBytes, _ := json.Marshal(execResult)
 	execResultStr := string(execResultBytes)
 	res.Result = execResultStr
-	// record update
-	tx := invoker.Db.Begin()
+
 	ups := make(map[string]interface{}, 0)
 	ups["result"] = execResultStr
 	if op == OperatorRun {
 		ups["previous_content"] = nc.Content
-		if errNodeCreate := db.NodeResultCreate(tx, &db.BigdataNodeResult{
-			NodeId:  n.ID,
-			Content: nc.Content,
-			Result:  execResultStr,
-			Uid:     uid,
-			Cost:    cost,
-		}); errNodeCreate != nil {
+		conds := egorm.Conds{}
+		conds["result"] = execResultStr
+		conds["cost"] = cost
+		conds["status"] = execStatus
+		if errNodeUpdate := db.NodeResultUpdate(tx, nodeResult.ID, conds); errNodeUpdate != nil {
 			tx.Rollback()
-			return res, errors.Wrap(errNodeCreate, execResult.Message)
+			return res, errors.Wrap(errNodeUpdate, execResult.Message)
 		}
 	}
 	if errContentUpdate := db.NodeContentUpdate(invoker.Db, n.ID, ups); errContentUpdate != nil {
