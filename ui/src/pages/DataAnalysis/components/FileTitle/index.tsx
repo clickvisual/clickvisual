@@ -39,6 +39,7 @@ export interface FileTitleProps {
    * 是否发生改变，true 为是，false 为否
    */
   isChange: boolean;
+  node: any;
 }
 const FileTitle = ({
   file,
@@ -51,25 +52,22 @@ const FileTitle = ({
   onStop,
   onGrabLock,
   isChange,
+  node,
 }: FileTitleProps) => {
   const i18n = useIntl();
   const { currentUser } = useModel("@@initialState").initialState || {};
-  const {
-    doLockNode,
-    doUnLockNode,
-    doRunCodeNode,
-    doStopCodeNode,
-    selectNode,
-  } = useModel("dataAnalysis", (model) => ({
-    doLockNode: model.manageNode.doLockNode,
-    doUnLockNode: model.manageNode.doUnLockNode,
-    doRunCodeNode: model.manageNode.doRunCodeNode,
-    doStopCodeNode: model.manageNode.doStopCodeNode,
-    selectNode: model.manageNode.selectNode,
-  }));
+  const { doLockNode, doUnLockNode, doRunCodeNode, doStopCodeNode } = useModel(
+    "dataAnalysis",
+    (model) => ({
+      doLockNode: model.manageNode.doLockNode,
+      doUnLockNode: model.manageNode.doUnLockNode,
+      doRunCodeNode: model.manageNode.doRunCodeNode,
+      doStopCodeNode: model.manageNode.doStopCodeNode,
+    })
+  );
 
   const fileType = useMemo(() => {
-    if (selectNode.secondary === SecondaryEnums.board) {
+    if (node.secondary === SecondaryEnums.board) {
       return (
         <div>
           <Space>
@@ -83,7 +81,7 @@ const FileTitle = ({
         </div>
       );
     }
-    switch (selectNode.tertiary) {
+    switch (node.tertiary) {
       case TertiaryEnums.mysql:
         return (
           <Space>
@@ -132,7 +130,7 @@ const FileTitle = ({
           </Space>
         );
     }
-  }, [selectNode]);
+  }, [node]);
 
   const NodeStatus = useMemo(() => {
     switch (file?.status) {

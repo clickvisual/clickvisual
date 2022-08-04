@@ -243,7 +243,12 @@ const Results = (props: {
             borderRadius: "8px",
           }}
         >
-          {visible && <Luckysheet data={luckysheetData} />}
+          {visible && (
+            <Luckysheet
+              data={luckysheetData}
+              luckysheetId={`results-${nodeId}`}
+            />
+          )}
         </TabPane>
         <TabPane tab="sqls" key="involvedSQLs">
           {involvedSQLsContent}

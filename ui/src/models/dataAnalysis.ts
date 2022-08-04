@@ -16,7 +16,7 @@ import dataSourceManageApi from "@/services/dataSourceManage";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 import useWorkflowBoard from "@/models/dataanalysis/useWorkflowBoard";
-import { FIRST_PAGE } from "@/config/config";
+import { LuckysheetProps } from "@/components/Luckysheet";
 export interface versionHistoryListType {
   list: any[];
   total: number;
@@ -26,41 +26,30 @@ const DataAnalysis = () => {
   const [navKey, setNavKey] = useState<string>();
   const [instances, setInstances] = useState<InstanceType[]>([]);
   const [currentInstances, setCurrentInstances] = useState<number>();
+  // 把luckysheet的值存到model可以值渲染一个luckysheet
+  const [luckysheetData, setLuckysheetData] = useState<LuckysheetProps["data"]>(
+    [
+      {
+        name: "luckysheet",
+        celldata: [],
+      },
+    ]
+  );
+
+  // TODO: 下面所有state需要调整到panes里面去
+
   // 数据集成运行结果的id
   const [resultId, setResultId] = useState<number>(0);
   // 打开的文件节点id
   const [openNodeId, setOpenNodeId] = useState<number>();
   // 打开的文件节点父级id
   const [openNodeParentId, setOpenNodeParentId] = useState<number>();
+
   const [openNodeData, setOpenNodeData] = useState<openNodeDataType>();
   // 节点修改后的value
   const [folderContent, setFolderContent] = useState<string>("");
 
-  // 版本历史list
-  const [versionHistoryList, setVersionHistoryList] =
-    useState<versionHistoryListType>({ list: [], total: 0 });
-  // 版本历史的分页
-  const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
-    current: FIRST_PAGE,
-    pageSize: 10,
-    total: 0,
-  });
-
-  // 右侧边栏运行结果弹窗
-  const [visibleResults, setVisibleResults] = useState<boolean>(false);
   const [userList, setUserList] = useState<any[]>([]);
-
-  // 右侧运行列表数据
-  const [resultsList, setResultsList] = useState<any>({});
-  const [visibleResultsItem, setVisibleResultsItem] = useState<boolean>(false);
-
-  // 运行list的分页
-  const [currentResultsPagination, setCurrentResultsPagination] =
-    useState<API.Pagination>({
-      current: FIRST_PAGE,
-      pageSize: 10,
-      total: 0,
-    });
 
   const realTimeTraffic = useRealTimeTraffic();
   const temporaryQuery = useTemporaryQuery();
@@ -98,8 +87,8 @@ const DataAnalysis = () => {
     setCurrentInstances(value);
   };
 
-  const changeVersionHistoryList = (value: versionHistoryListType) => {
-    setVersionHistoryList(value);
+  const onChangeLuckysheetData = (obj: LuckysheetProps["data"]) => {
+    setLuckysheetData(obj);
   };
 
   /**
@@ -200,7 +189,7 @@ const DataAnalysis = () => {
   });
 
   // 获取文件信息
-  const onGetFolderList = (id: number) => {
+  const onGetFolderInfo = (id: number) => {
     id &&
       doGetNodeInfo.run(id).then((res: any) => {
         if (res?.code === 0) {
@@ -222,7 +211,7 @@ const DataAnalysis = () => {
     if (openNodeData?.lockAt == 0 && nodeId) {
       doLockNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
-          onGetFolderList(nodeId);
+          onGetFolderInfo(nodeId);
         }
       });
     }
@@ -239,7 +228,7 @@ const DataAnalysis = () => {
     nodeId &&
       doUnLockNode.run(nodeId).then((res: any) => {
         if (res.code == 0) {
-          onGetFolderList(nodeId);
+          onGetFolderInfo(nodeId);
         }
       });
   };
@@ -250,7 +239,7 @@ const DataAnalysis = () => {
       message.success(
         formatMessage({ id: "bigdata.components.FileTitle.grabLockSuccessful" })
       );
-      onGetFolderList(file?.id);
+      onGetFolderInfo(file?.id);
     });
   };
 
@@ -268,7 +257,7 @@ const DataAnalysis = () => {
           message.success(
             formatMessage({ id: "log.index.manage.message.save.success" })
           );
-          onGetFolderList(openNodeId);
+          onGetFolderInfo(openNodeId);
         }
       });
   };
@@ -313,26 +302,14 @@ const DataAnalysis = () => {
     openNodeId,
     changeOpenNodeId,
 
-    versionHistoryList,
-    changeVersionHistoryList,
-
-    currentPagination,
-    setCurrentPagination,
-
-    visibleResultsItem,
-    setVisibleResultsItem,
-
-    currentResultsPagination,
-    setCurrentResultsPagination,
-
-    visibleResults,
-    setVisibleResults,
-
     openNodeParentId,
     changeOpenNodeParentId,
     isUpdateStateFun,
 
-    onGetFolderList,
+    luckysheetData,
+    onChangeLuckysheetData,
+
+    onGetFolderInfo,
 
     doGetInstance,
     doGetDatabase,
@@ -363,8 +340,6 @@ const DataAnalysis = () => {
     doResultsList,
     doResultsInfo,
     doModifyResults,
-    resultsList,
-    setResultsList,
 
     // crontab
     doCreatCrontab,

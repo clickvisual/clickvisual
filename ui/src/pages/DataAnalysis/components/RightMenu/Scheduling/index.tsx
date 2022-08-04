@@ -11,9 +11,11 @@ import TimeProperty from "./TimeProperty";
 const Scheduling = (props: {
   visible: boolean;
   setVisible: (flag: boolean) => void;
+  node: any;
+  currentPaneActiveKey: string;
 }) => {
   const i18n = useIntl();
-  const { visible, setVisible } = props;
+  const { visible, setVisible, node, currentPaneActiveKey } = props;
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const {
     doGetCrontabInfo,
@@ -21,13 +23,14 @@ const Scheduling = (props: {
     doUpdateCrontab,
     userList,
     getUserList,
-    manageNode,
+    // manageNode,
   } = useModel("dataAnalysis");
-  const { selectNode } = manageNode;
+  // const { selectNode } = manageNode;
   const CrontabFormRef = useRef<FormInstance>(null);
 
   const secondary = useMemo(() => {
-    switch (selectNode?.secondary) {
+    if (node.id != currentPaneActiveKey) return;
+    switch (node?.secondary) {
       case SecondaryEnums.all:
         return i18n.formatMessage({
           id: "bigdata.components.RightMenu.Scheduling.secondary.all",
@@ -56,7 +59,7 @@ const Scheduling = (props: {
         break;
     }
     return;
-  }, [selectNode?.secondary]);
+  }, [node?.secondary]);
 
   const infoList: any[] = [
     {
@@ -64,7 +67,7 @@ const Scheduling = (props: {
       title: i18n.formatMessage({
         id: "bigdata.components.RightMenu.Scheduling.name",
       }),
-      content: selectNode?.name,
+      content: node?.name,
     },
     {
       id: 102,
@@ -96,19 +99,20 @@ const Scheduling = (props: {
     retryInterval?: number;
     retryTimes?: number;
   }) => {
+    if (node.id != currentPaneActiveKey) return;
     if (!isUpdate) {
       const data = {
         desc: file.desc,
         dutyUid: file.dutyUid,
         cron: file.cron,
         typ: Number(!file.typ),
-        nodeId: selectNode.id,
+        nodeId: node.id,
         args: file.args,
         isRetry: file.isRetry ? 1 : 0,
         retryInterval: file.retryInterval,
         retryTimes: file.retryTimes,
       };
-      doCreatCrontab.run(selectNode.id, data).then((res: any) => {
+      doCreatCrontab.run(node.id, data).then((res: any) => {
         if (res.code == 0) {
           message.success(i18n.formatMessage({ id: "models.pms.create.suc" }));
           onClose();
@@ -126,7 +130,7 @@ const Scheduling = (props: {
       retryInterval: file.retryInterval,
       retryTimes: file.retryTimes,
     };
-    doUpdateCrontab.run(selectNode.id, data).then((res: any) => {
+    doUpdateCrontab.run(node.id, data).then((res: any) => {
       if (res.code == 0) {
         message.success(i18n.formatMessage({ id: "models.pms.update.suc" }));
         onClose();
@@ -141,8 +145,9 @@ const Scheduling = (props: {
   }, []);
 
   useEffect(() => {
-    if (visible && selectNode) {
-      doGetCrontabInfo.run(selectNode.id).then((res: any) => {
+    if (node.id != currentPaneActiveKey) return;
+    if (visible && node) {
+      doGetCrontabInfo.run(node.id).then((res: any) => {
         if (res?.code == 0) {
           const { data } = res;
           if (data != null) {
@@ -154,7 +159,7 @@ const Scheduling = (props: {
               uid: data.uid,
               isRetry: Boolean(data.isRetry),
               args:
-                selectNode?.secondary != SecondaryEnums.dataIntegration
+                node?.secondary != SecondaryEnums.dataIntegration
                   ? JSON.parse(data.args?.length > 0 ? data.args : "[]") || [
                       { key: "", val: "" },
                     ]
@@ -173,7 +178,7 @@ const Scheduling = (props: {
       return;
     }
     CrontabFormRef.current?.resetFields();
-  }, [visible, selectNode?.id]);
+  }, [visible, node?.id, currentPaneActiveKey]);
 
   return (
     <Drawer
@@ -226,8 +231,8 @@ const Scheduling = (props: {
           <BasisConfig infoList={infoList} userList={userList} />
         </CustomCollapse>
         {/* 参数 */}
-        {(selectNode?.secondary == SecondaryEnums.database ||
-          selectNode?.secondary == SecondaryEnums.dataMining) && (
+        {(node?.secondary == SecondaryEnums.database ||
+          node?.secondary == SecondaryEnums.dataMining) && (
           <CustomCollapse
             title={i18n.formatMessage({
               id: "bigdata.components.RightMenu.Scheduling.Parameter.title",

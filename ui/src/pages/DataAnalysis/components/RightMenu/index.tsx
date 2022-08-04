@@ -1,3 +1,5 @@
+import { FIRST_PAGE } from "@/config/config";
+import { versionHistoryListType } from "@/models/dataAnalysis";
 import { Tooltip } from "antd";
 import { useState } from "react";
 import { useModel, useIntl } from "umi";
@@ -32,24 +34,42 @@ const SchedulingList = [
 // 数据开发的结果更替在sql编辑器下方
 const ResultList = [SecondaryEnums.dataMining, SecondaryEnums.database];
 
-const RightMenu = () => {
+export interface RightMenu {
+  node: any;
+  currentPaneActiveKey: string;
+}
+
+const RightMenu = (props: RightMenu) => {
+  const { node, currentPaneActiveKey } = props;
   const i18n = useIntl();
   const [visibleVersionHistory, setVisibleVersionHistory] =
     useState<boolean>(false);
   const [visibleScheduling, setVisibleScheduling] = useState<boolean>(false);
-  const {
-    openNodeId,
-    doNodeHistories,
-    changeVersionHistoryList,
-    setCurrentPagination,
-    visibleResults,
-    setVisibleResults,
-    doResultsList,
-    setCurrentResultsPagination,
-    setResultsList,
-    manageNode,
-  } = useModel("dataAnalysis");
-  const { selectNode } = manageNode;
+  // 版本历史list
+  const [versionHistoryList, setVersionHistoryList] =
+    useState<versionHistoryListType>({ list: [], total: 0 });
+  // 版本历史的分页
+  const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
+    current: FIRST_PAGE,
+    pageSize: 10,
+    total: 0,
+  });
+
+  // 右侧边栏运行结果弹窗
+  const [visibleResults, setVisibleResults] = useState<boolean>(false);
+
+  // 右侧运行列表数据
+  const [resultsList, setResultsList] = useState<any>({});
+  const [visibleResultsItem, setVisibleResultsItem] = useState<boolean>(false);
+
+  // 运行list的分页
+  const [currentResultsPagination, setCurrentResultsPagination] =
+    useState<API.Pagination>({
+      current: FIRST_PAGE,
+      pageSize: 10,
+      total: 0,
+    });
+  const { doNodeHistories, doResultsList } = useModel("dataAnalysis");
 
   let rightMenu = [
     // 调度配置
@@ -61,9 +81,7 @@ const RightMenu = () => {
       Tooltip: i18n.formatMessage({
         id: "bigdata.components.RightMenu.properties",
       }),
-      isHidden: selectNode?.tertiary
-        ? !SchedulingList.includes(selectNode.tertiary)
-        : true,
+      isHidden: node?.tertiary ? !SchedulingList.includes(node.tertiary) : true,
       onClick: () => {
         setVisibleScheduling(true);
       },
@@ -77,19 +95,20 @@ const RightMenu = () => {
       Tooltip: i18n.formatMessage({
         id: "bigdata.components.RightMenu.Versions.tips",
       }),
-      isHidden: !selectNode?.tertiary,
+      isHidden: !node?.tertiary,
       onClick: () => {
+        if (node.id != currentPaneActiveKey) return;
         setVisibleVersionHistory(true);
-        openNodeId &&
+        node.id &&
           doNodeHistories
-            .run(openNodeId as number, {
+            .run(node.id as number, {
               current: 1,
               pageSize: 10,
               isExcludeCrontabResult: 0,
             })
             .then((res: any) => {
               if (res.code == 0) {
-                changeVersionHistoryList(res.data);
+                setVersionHistoryList(res.data);
                 setCurrentPagination({
                   current: 1,
                   pageSize: 10,
@@ -107,13 +126,12 @@ const RightMenu = () => {
       Tooltip: i18n.formatMessage({
         id: "bigdata.components.RightMenu.results.tips",
       }),
-      isHidden: selectNode?.secondary
-        ? ResultList.includes(selectNode.secondary)
-        : true,
+      isHidden: node?.secondary ? ResultList.includes(node.secondary) : true,
       onClick: () => {
-        openNodeId &&
+        if (node.id != currentPaneActiveKey) return;
+        node.id &&
           doResultsList
-            .run(openNodeId as number, {
+            .run(node.id as number, {
               current: 1,
               pageSize: 10,
               isExcludeCrontabResult: 0,
@@ -151,11 +169,29 @@ const RightMenu = () => {
       <Scheduling
         visible={visibleScheduling}
         setVisible={setVisibleScheduling}
+        node={node}
+        currentPaneActiveKey={currentPaneActiveKey}
       />
-      <Results visible={visibleResults} setVisible={setVisibleResults} />
+      <Results
+        visible={visibleResults}
+        setVisible={setVisibleResults}
+        resultsList={resultsList}
+        currentResultsPagination={currentResultsPagination}
+        visibleResultsItem={visibleResultsItem}
+        setVisibleResultsItem={setVisibleResultsItem}
+        onChangeResultsList={setResultsList}
+        onChangeCurrentResultsPagination={setCurrentResultsPagination}
+        onChangeCurrentPagination={setCurrentPagination}
+      />
       <VersionHistory
+        node={node}
         visible={visibleVersionHistory}
         setVisible={setVisibleVersionHistory}
+        versionHistoryList={versionHistoryList}
+        currentPagination={currentPagination}
+        onChangeVersionHistoryList={setVersionHistoryList}
+        onChangeCurrentPagination={setCurrentPagination}
+        currentPaneActiveKey={currentPaneActiveKey}
       />
     </div>
   );

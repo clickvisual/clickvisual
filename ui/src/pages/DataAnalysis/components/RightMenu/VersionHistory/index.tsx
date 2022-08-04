@@ -8,35 +8,44 @@ import { format } from "sql-formatter";
 const VersionHistory = (props: {
   visible: boolean;
   setVisible: (flag: boolean) => void;
+  node: any;
+  onChangeVersionHistoryList: any;
+  versionHistoryList: any;
+  currentPagination: any;
+  onChangeCurrentPagination: any;
+  currentPaneActiveKey: string;
 }) => {
-  const { visible, setVisible } = props;
+  const {
+    visible,
+    setVisible,
+    node,
+    onChangeVersionHistoryList,
+    versionHistoryList,
+    currentPagination,
+    onChangeCurrentPagination,
+    currentPaneActiveKey,
+  } = props;
   const i18n = useIntl();
 
   const [visibleQuery, setVisibleQuery] = useState<boolean>(false);
   const [content, setContent] = useState<string>("");
   const [sqlLanguage, setSqlLanguage] = useState<string>("mysql");
 
-  const {
-    openNodeId,
-    doNodeHistories,
-    doNodeHistoriesInfo,
-    changeVersionHistoryList,
-    versionHistoryList,
-    currentPagination,
-    setCurrentPagination,
-  } = useModel("dataAnalysis");
+  const { doNodeHistories, doNodeHistoriesInfo } = useModel("dataAnalysis");
 
   const getList = (page: number, pageSize: number) => {
-    openNodeId &&
+    if (node.id != currentPaneActiveKey) return;
+    node.id &&
       doNodeHistories
-        .run(openNodeId as number, {
+        .run(node.id as number, {
           current: page,
           pageSize,
+          isExcludeCrontabResult: 0,
         })
         .then((res: any) => {
           if (res.code == 0) {
-            changeVersionHistoryList(res.data);
-            setCurrentPagination({
+            onChangeVersionHistoryList(res.data);
+            onChangeCurrentPagination({
               current: page,
               pageSize: pageSize,
               total: res.data.total,
@@ -48,7 +57,7 @@ const VersionHistory = (props: {
 
   useEffect(() => {
     if (!visible) {
-      changeVersionHistoryList({ list: [], total: 0 });
+      onChangeVersionHistoryList({ list: [], total: 0 });
     }
   }, [visible]);
 
@@ -109,8 +118,9 @@ const VersionHistory = (props: {
       render: (_: any, record: any) => (
         <a
           onClick={() => {
+            if (node.id != currentPaneActiveKey) return;
             doNodeHistoriesInfo
-              .run(openNodeId as number, record.uuid)
+              .run(node.id as number, record.uuid)
               .then((res: any) => {
                 if (res.code == 0) {
                   setContent(res.data.content);
@@ -162,7 +172,7 @@ const VersionHistory = (props: {
           size: "small",
           ...currentPagination,
           onChange: (page, pageSize) => {
-            setCurrentPagination({
+            onChangeCurrentPagination({
               ...currentPagination,
               current: page,
               pageSize,

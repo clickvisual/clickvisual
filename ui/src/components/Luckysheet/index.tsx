@@ -1,16 +1,20 @@
 import { cloneDeep } from "lodash";
 import { useEffect } from "react";
+import { useModel } from "umi";
 
 export interface LuckysheetProps {
   data: {
     name: string;
     celldata: any;
   }[];
+  luckysheetId: string;
 }
 
-const Luckysheet = (props: LuckysheetProps) => {
-  const { data } = props;
-  const tabData = cloneDeep(data);
+const Luckysheet = () => {
+  // const { data, luckysheetId } = props;
+
+  const { luckysheetData } = useModel("dataAnalysis");
+  const tabData = cloneDeep(luckysheetData);
 
   useEffect(() => {
     let dataList: any = [];
@@ -96,7 +100,7 @@ const Luckysheet = (props: LuckysheetProps) => {
     });
     // luckysheet.setRangeShow("A2", { show: false });
     return () => luckysheet.destroy();
-  }, [data]);
+  }, [luckysheetData]);
 
   const luckyCss: any = {
     margin: "0px",
@@ -108,7 +112,7 @@ const Luckysheet = (props: LuckysheetProps) => {
     top: "0px",
   };
 
-  return <div id="luckysheet" style={luckyCss}></div>;
+  return <div id={`luckysheet`} style={luckyCss}></div>;
 };
 
 export default Luckysheet;

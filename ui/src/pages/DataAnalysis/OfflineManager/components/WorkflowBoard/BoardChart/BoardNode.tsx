@@ -20,7 +20,7 @@ const BoardNode = ({
     updateBoardNode,
     changeOpenNodeId,
     setSelectNode,
-    onGetFolderList,
+    onGetFolderInfo,
     setSelectKeys,
   } = useModel("dataAnalysis", (model) => ({
     setExtra: model.manageNode.setExtra,
@@ -30,7 +30,7 @@ const BoardNode = ({
     updateBoardNode: model.manageNode.updateBoardNode,
     changeOpenNodeId: model.changeOpenNodeId,
     setSelectNode: model.manageNode.setSelectNode,
-    onGetFolderList: model.onGetFolderList,
+    onGetFolderInfo: model.onGetFolderInfo,
     setSelectKeys: model.manageNode.setSelectKeys,
   }));
   const [clickNum, setClickNum] = useState<number>(0);
@@ -70,7 +70,7 @@ const BoardNode = ({
             node.tertiary === TertiaryEnums.clickhouse ||
             node.tertiary === TertiaryEnums.mysql
           ) {
-            onGetFolderList(node.id);
+            onGetFolderInfo(node.id);
           }
         }
       }
