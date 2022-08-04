@@ -7,7 +7,6 @@ import (
 
 	"github.com/ego-component/egorm"
 	"github.com/google/uuid"
-	"github.com/gotomicro/ego/core/econf"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -390,32 +389,6 @@ func NodeList(c *core.Context) {
 	return
 }
 
-func NodeRunOpenAPI(c *core.Context) {
-	id := cast.ToInt(c.Param("id"))
-	if id == 0 {
-		c.JSONE(1, "invalid parameter", nil)
-		return
-	}
-	var req view.ReqNodeRunOpenAPI
-	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	if req.Token != econf.GetString("app.openAPI") {
-		c.JSONE(1, "token error", nil)
-		return
-	}
-	res, err := node.Run(id, -1)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": req})
-
-	c.JSONE(core.CodeOK, "succ", res)
-	return
-}
-
 func NodeRun(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -438,6 +411,15 @@ func NodeRun(c *core.Context) {
 		return
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
+	// if n.Tertiary == db.TertiaryOfflineSync {
+	// 	xgo.Go(func() {
+	// 		_, _ = node.Run(id, c.Uid())
+	// 	})
+	// 	c.JSONE(core.CodeOK, "Task execution, to view the results later", view.RespRunNode{
+	// 		Status: 4,
+	// 	})
+	// 	return
+	// }
 	res, err := node.Run(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), res)

@@ -25,6 +25,19 @@ func mapping(mappings []view.IntegrationMapping) (res string) {
 	return
 }
 
+func columns(mappings []view.IntegrationMapping) (source, target string) {
+	for k, m := range mappings {
+		if k == 0 {
+			source = fmt.Sprintf("`%s`", m.Source)
+			target = fmt.Sprintf("`%s`", m.Target)
+			continue
+		}
+		source = fmt.Sprintf("%s, `%s`", source, m.Source)
+		target = fmt.Sprintf("%s, `%s`", target, m.Target)
+	}
+	return
+}
+
 func mappingKV(typ string, val string) string {
 	lowerTyp := strings.ToLower(typ)
 	if strings.Contains(lowerTyp, "int") {
