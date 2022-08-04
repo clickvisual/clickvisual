@@ -5,6 +5,7 @@ import { useIntl } from "umi";
 
 const Parameter = () => {
   const i18n = useIntl();
+
   return (
     <div className={styles.parameter}>
       <Form.List name="args">

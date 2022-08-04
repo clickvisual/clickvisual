@@ -3,8 +3,7 @@ import FileTitle, {
   FileTitleType,
 } from "@/pages/DataAnalysis/components/FileTitle";
 import EditorContent from "./EditorContent";
-import { useModel, useIntl } from "umi";
-import { Empty } from "antd";
+import { useModel } from "umi";
 import SQLResult from "./SQLResult";
 import { useEffect, useState } from "react";
 
@@ -21,14 +20,27 @@ const SQLEditor = (props: {
    * 是否发生改变，true 为是，false 为否
    */
   isChange: boolean;
+  folderContent: string;
+  node: any;
+  setFolderContent: (str: string) => void;
+  currentPaneActiveKey: string;
 }) => {
-  const i18n = useIntl();
-  const { file, onSave, onLock, onUnlock, isChange, onFormat, onGrabLock } =
-    props;
+  const {
+    file,
+    onSave,
+    onLock,
+    onUnlock,
+    isChange,
+    onFormat,
+    onGrabLock,
+    folderContent,
+    node,
+    setFolderContent,
+    currentPaneActiveKey,
+  } = props;
   const [resultsList, setResultsList] = useState<any[]>([]);
 
-  const { manageNode, doResultsList, handleRunCode } = useModel("dataAnalysis");
-  const { selectNode } = manageNode;
+  const { doResultsList, handleRunCode } = useModel("dataAnalysis");
 
   const handleGetResultsList = (id: number) => {
     doResultsList
@@ -49,38 +61,31 @@ const SQLEditor = (props: {
 
   return (
     <div className={style.editorMain}>
-      {selectNode?.id ? (
-        <>
-          <FileTitle
-            isChange={isChange}
-            file={file}
-            onSave={onSave}
-            onLock={onLock}
-            onUnlock={onUnlock}
-            onRun={() => {
-              handleRunCode(file.id, handleGetResultsList);
-            }}
-            onFormat={onFormat}
-            onGrabLock={onGrabLock}
-            type={FileTitleType.sql}
-          />
-          <EditorContent />
-          <SQLResult
-            resultsList={resultsList}
-            lockUid={file?.lockUid}
-            nodeId={selectNode?.id}
-          />
-        </>
-      ) : (
-        <div className={style.empty}>
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={i18n.formatMessage({
-              id: "bigdata.components.SQLEditor.selectFile",
-            })}
-          />
-        </div>
-      )}
+      <FileTitle
+        isChange={isChange}
+        file={file}
+        onSave={onSave}
+        onLock={onLock}
+        onUnlock={onUnlock}
+        onRun={() => {
+          handleRunCode(file.id, handleGetResultsList);
+        }}
+        onFormat={onFormat}
+        onGrabLock={onGrabLock}
+        type={FileTitleType.sql}
+        node={node}
+      />
+      <EditorContent
+        file={file}
+        folderContent={folderContent}
+        setFolderContent={setFolderContent}
+      />
+      <SQLResult
+        resultsList={resultsList}
+        lockUid={file?.lockUid}
+        nodeId={file?.id}
+        currentPaneActiveKey={currentPaneActiveKey}
+      />
     </div>
   );
 };

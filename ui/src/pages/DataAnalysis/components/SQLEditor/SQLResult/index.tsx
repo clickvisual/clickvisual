@@ -1,19 +1,20 @@
 import { SaveOutlined } from "@ant-design/icons";
-import { Button, Empty, message, Spin, Tabs, Tooltip } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { Button, message, Spin, Tabs, Tooltip } from "antd";
+import { useEffect, useState } from "react";
 import { useIntl, useModel } from "umi";
 import styles from "../index.less";
-import Luckysheet from "@/components/Luckysheet";
 const { TabPane } = Tabs;
 
 const SQLResult = (props: {
   resultsList: any[];
   nodeId: number;
   lockUid: number;
+  currentPaneActiveKey: string;
 }) => {
   const i18n = useIntl();
-  const { resultsList, nodeId, lockUid } = props;
-  const { doResultsInfo, doModifyResults } = useModel("dataAnalysis");
+  const { resultsList, nodeId, lockUid, currentPaneActiveKey } = props;
+  const { doResultsInfo, doModifyResults, onChangeLuckysheetData } =
+    useModel("dataAnalysis");
   const { currentUser } = useModel("@@initialState").initialState || {};
   const [defaultResultsData, setDefaultResultsData] = useState<any>({});
   const [resultsId, setResultsId] = useState<number>(0);
@@ -73,25 +74,29 @@ const SQLResult = (props: {
       });
   };
 
-  const luckysheetData: any = useMemo(() => {
+  useEffect(() => {
+    // 当前tab是本页面的时候才执行
+    if (parseInt(currentPaneActiveKey) != nodeId) return;
     if (updatedResults && updatedResults.length > 0) {
-      return [
+      onChangeLuckysheetData([
         {
           name: "luckysheet",
           celldata: updatedResults,
         },
-      ];
+      ]);
+      return;
     }
     if (
       Object.keys(defaultResultsData).length == 0 ||
       defaultResultsData.logs?.length == 0
     ) {
-      return [
+      onChangeLuckysheetData([
         {
           name: "luckysheet",
           celldata: [],
         },
-      ];
+      ]);
+      return;
     }
 
     const columnArr: any = [];
@@ -130,9 +135,8 @@ const SQLResult = (props: {
         }
       }
     }
-
-    return [{ name: "luckysheet", celldata: columnArr }];
-  }, [defaultResultsData, updatedResults]);
+    onChangeLuckysheetData([{ name: "luckysheet", celldata: columnArr }]);
+  }, [defaultResultsData, updatedResults, currentPaneActiveKey]);
 
   useEffect(() => {
     if (resultsList && resultsList.length > 0 && resultsList[0]?.id) {
@@ -151,6 +155,7 @@ const SQLResult = (props: {
 
   return (
     <div className={styles.sqlResult}>
+      {/* <Spin spinning={false}> */}
       <Spin spinning={doResultsInfo.loading || doModifyResults.loading}>
         <div className={styles.title}>
           {resultsId ? (
@@ -183,17 +188,7 @@ const SQLResult = (props: {
                 );
               })}
             </Tabs>
-          ) : (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={i18n.formatMessage({
-                id: "bigdata.components.RightMenu.notResults",
-              })}
-            />
-          )}
-        </div>
-        <div className={styles.luckysheet}>
-          {resultsList.length > 0 && <Luckysheet data={luckysheetData} />}
+          ) : null}
         </div>
       </Spin>
     </div>

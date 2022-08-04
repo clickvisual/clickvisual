@@ -1,5 +1,5 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
-import FolderTreeStyle from "@/pages/DataAnalysis/components/FolderTree/index.less";
+import FolderTreeStyle from "./index.less";
 import { Empty, Input, message, Tooltip, Tree } from "antd";
 import {
   DownOutlined,
@@ -10,15 +10,16 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { DataNode } from "antd/lib/tree";
-import "@/pages/DataAnalysis/components/FolderTree/index";
-import CreateAndUpdateFolder from "@/pages/DataAnalysis/components/FolderTree/CreateAndUpdateFolder";
-import CreateAndUpdateNode from "@/pages/DataAnalysis/components/FolderTree/CreateAndUpdateNode";
+import "./index.less";
+import CreateAndUpdateFolder from "./CreateAndUpdateFolder";
+import CreateAndUpdateNode from "./CreateAndUpdateNode";
+import FolderTitle from "./FolderTitle";
 import React, { useEffect, useMemo, useState } from "react";
 import { Key } from "antd/lib/table/interface";
 import { useModel, useIntl } from "umi";
-import FolderTitle from "@/pages/DataAnalysis/components/FolderTree/FolderTitle";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
+import { cloneDeep } from "lodash";
 
 const { DirectoryTree } = Tree;
 
@@ -62,9 +63,12 @@ const FolderTree: React.FC = () => {
     temporaryQuery,
     changeOpenNodeId,
     changeOpenNodeParentId,
-    onGetFolderList,
+    onGetFolderInfo,
     manageNode,
   } = useModel("dataAnalysis");
+  const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
+    "dataanalysis.useFilePane"
+  );
 
   const {
     fileList,
@@ -168,9 +172,22 @@ const FolderTree: React.FC = () => {
     const folderId = parseInt(node?.node?.folderId);
     onItemToImportantInfo(node?.node);
     if (isOpen) {
-      onGetFolderList(id);
-      changeOpenNodeId(id);
-      changeOpenNodeParentId(folderId);
+      const clonePaneList = cloneDeep(paneList);
+      if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
+        onChangePaneList([
+          ...clonePaneList,
+          {
+            key: id.toString(),
+            title: node?.node?.name || "not name",
+            parentId: folderId,
+            node: node?.node,
+          },
+        ]);
+        onGetFolderInfo(id);
+        changeOpenNodeId(id);
+        changeOpenNodeParentId(folderId);
+      }
+      onChangeCurrentPaneActiveKey(`${id}`);
       setSelectNode(node?.node);
     }
     setSelectNodeKeys(value);

@@ -4,6 +4,7 @@ import { useIntl } from "umi";
 const TimeProperty = (props: { form: any }) => {
   const i18n = useIntl();
   const { form } = props;
+
   return (
     <div style={{ padding: "10px 0 0 20px" }}>
       <Form.Item
