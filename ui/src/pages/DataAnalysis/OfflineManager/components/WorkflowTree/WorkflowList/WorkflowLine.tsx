@@ -14,7 +14,7 @@ import CustomTree, { NodeType } from "@/components/CustomTree";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
-import lodash from "lodash";
+import lodash, { cloneDeep } from "lodash";
 
 const folderTree = (
   workflow: any,
@@ -121,6 +121,11 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     cancelTokenSourceColumnsRef,
     setSourceColumns,
     setTargetColumns,
+
+    offlinePaneList,
+    onChangeOfflinePaneList,
+    onChangeCurrentOfflinePaneActiveKey,
+    changeOpenNodeId,
   } = useModel("dataAnalysis", (model) => ({
     setSelectNode: model.manageNode.setSelectNode,
     setSelectKeys: model.manageNode.setSelectKeys,
@@ -150,6 +155,11 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       model.integratedConfigs.cancelTokenSourceColumnsRef,
     setSourceColumns: model.integratedConfigs.setSourceColumns,
     setTargetColumns: model.integratedConfigs.setTargetColumns,
+    offlinePaneList: model.filePane.offlinePaneList,
+    onChangeOfflinePaneList: model.filePane.onChangeOfflinePaneList,
+    onChangeCurrentOfflinePaneActiveKey:
+      model.filePane.onChangeCurrentOfflinePaneActiveKey,
+    changeOpenNodeId: model.changeOpenNodeId,
   }));
 
   const handleRightClick = ({ node }: any) => {
@@ -179,6 +189,24 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     const { currentNode, nodeType } = node;
     setSelectKeys([node.key]);
     if (nodeType === NodeType.node) {
+      const id = parseInt(node?.currentNode?.id);
+      const folderId = parseInt(node?.currentNode?.folderId);
+      const clonePaneList = cloneDeep(offlinePaneList);
+      if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
+        onChangeOfflinePaneList([
+          ...clonePaneList,
+          {
+            key: id.toString(),
+            title: node?.currentNode?.name || "not name",
+            parentId: folderId,
+            node: node?.currentNode,
+          },
+        ]);
+        onGetFolderInfo(id);
+      }
+      onChangeCurrentOfflinePaneActiveKey(`${id}`);
+      changeOpenNodeId(id);
+
       setSelectNode(currentNode);
       currentNode.secondary == SecondaryEnums.dataMining &&
         onGetFolderInfo(currentNode.id);

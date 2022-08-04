@@ -97,7 +97,7 @@ const RightMenu = (props: RightMenu) => {
       }),
       isHidden: !node?.tertiary,
       onClick: () => {
-        if (node.id != currentPaneActiveKey) return;
+        if (node?.id != currentPaneActiveKey) return;
         setVisibleVersionHistory(true);
         node.id &&
           doNodeHistories
@@ -128,7 +128,7 @@ const RightMenu = (props: RightMenu) => {
       }),
       isHidden: node?.secondary ? ResultList.includes(node.secondary) : true,
       onClick: () => {
-        if (node.id != currentPaneActiveKey) return;
+        if (node?.id != currentPaneActiveKey) return;
         node.id &&
           doResultsList
             .run(node.id as number, {

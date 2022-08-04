@@ -13,7 +13,7 @@ import ManageNodeModal from "@/pages/DataAnalysis/components/NodeManage/ManageNo
 import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/ManageFolderModal";
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
-import { cloneDeep } from "lodash";
+// import { cloneDeep } from "lodash";
 
 const DataAnalysis = () => {
   const {
@@ -27,9 +27,9 @@ const DataAnalysis = () => {
     changeOpenNodeData,
     changeFolderContent,
   } = useModel("dataAnalysis");
-  const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
-    "dataanalysis.useFilePane"
-  );
+  // const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
+  //   "dataanalysis.useFilePane"
+  // );
   const i18n = useIntl();
   const [urlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
@@ -115,17 +115,17 @@ const DataAnalysis = () => {
         if (nodeData) {
           nodeData && setSelectNode(nodeData);
           const key = `${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`;
-          const clonePaneList = cloneDeep(paneList);
-          onChangePaneList([
-            ...clonePaneList,
-            {
-              key: openId.toString(),
-              title: nodeData?.name || "not name",
-              parentId: nodeData.folderId,
-              node: nodeData,
-            },
-          ]);
-          onChangeCurrentPaneActiveKey(`${openId}`);
+          // const clonePaneList = cloneDeep(paneList);
+          // onChangePaneList([
+          // ...clonePaneList,
+          //   {
+          //     key: openId.toString(),
+          //     title: nodeData?.name || "not name",
+          //     parentId: nodeData.folderId,
+          //     node: nodeData,
+          //   },
+          // ]);
+          // onChangeCurrentPaneActiveKey(`${openId}`);
           if (nodes.length > 0) {
             setSelectKeys([key]);
             return;

@@ -29,7 +29,7 @@ const Scheduling = (props: {
   const CrontabFormRef = useRef<FormInstance>(null);
 
   const secondary = useMemo(() => {
-    if (node.id != currentPaneActiveKey) return;
+    if (node?.id != currentPaneActiveKey) return;
     switch (node?.secondary) {
       case SecondaryEnums.all:
         return i18n.formatMessage({
@@ -99,7 +99,7 @@ const Scheduling = (props: {
     retryInterval?: number;
     retryTimes?: number;
   }) => {
-    if (node.id != currentPaneActiveKey) return;
+    if (node?.id != currentPaneActiveKey) return;
     if (!isUpdate) {
       const data = {
         desc: file.desc,
@@ -145,7 +145,7 @@ const Scheduling = (props: {
   }, []);
 
   useEffect(() => {
-    if (node.id != currentPaneActiveKey) return;
+    if (node?.id != currentPaneActiveKey) return;
     if (visible && node) {
       doGetCrontabInfo.run(node.id).then((res: any) => {
         if (res?.code == 0) {

@@ -1,61 +1,143 @@
 import WorkflowSql from "@/pages/DataAnalysis/components/SQLEditor";
 import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo } from "react";
-import { Empty } from "antd";
+import { useEffect, useMemo, useState } from "react";
+import { Empty, message } from "antd";
 import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 import IntegratedConfiguration from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration";
 import WorkflowBoard from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard";
 import { FileTitleType } from "@/pages/DataAnalysis/components/FileTitle";
 import { format } from "sql-formatter";
+import { useIntl } from "umi";
 
-const WorkflowContent = () => {
-  const { selectNode } = useModel("dataAnalysis", (model) => ({
-    selectNode: model.manageNode.selectNode,
-  }));
-  const {
-    openNodeData,
-    isUpdateStateFun,
-    changeOpenNodeId,
-    changeOpenNodeParentId,
-    handleLockFile,
-    handleUnLockFile,
-    handleSaveNode,
-    changeFolderContent,
-    folderContent,
-    handleGrabLock,
-  } = useModel("dataAnalysis");
-  // TODO:整改
+export interface WorkflowContentType {
+  id: number;
+  parentId: number;
+  node: any;
+  currentPaneActiveKey: string;
+}
+
+const WorkflowContent = (props: WorkflowContentType) => {
+  const { id, parentId, node, currentPaneActiveKey } = props;
+
+  const i18n = useIntl();
+  const [folderContent, setFolderContent] = useState<string>("");
+  const [fileData, setFileData] = useState<any>({});
+
+  const { doGetNodeInfo, doUpdateNode, doUnLockNode, doLockNode, manageNode } =
+    useModel("dataAnalysis");
+
+  // 是否修改
+  const isUpdateStateFun = () => {
+    return folderContent !== fileData?.content;
+  };
+
+  // 获取文件信息
+  const onGetFolderInfo = (id: number) => {
+    id &&
+      doGetNodeInfo.run(id).then((res: any) => {
+        if (res?.code === 0) {
+          setFileData(res.data);
+          setFolderContent(res.data.content);
+        }
+      });
+  };
+
+  /**文件夹标题*/
+
+  // 锁定节点
+  const handleLockFile = (nodeId: number) => {
+    if (fileData?.lockAt == 0 && nodeId) {
+      doLockNode.run(nodeId).then((res: any) => {
+        if (res.code == 0) {
+          onGetFolderInfo(nodeId);
+        }
+      });
+    }
+  };
+
+  // 解锁节点
+  const handleUnLockFile = (nodeId: number) => {
+    if (isUpdateStateFun()) {
+      message.warning(
+        i18n.formatMessage({ id: "bigdata.models.dataAnalysis.unlockTips" })
+      );
+      return;
+    }
+    nodeId &&
+      doUnLockNode.run(nodeId).then((res: any) => {
+        if (res.code == 0) {
+          onGetFolderInfo(nodeId);
+        }
+      });
+  };
+
+  const handleGrabLock = (file: any) => {
+    manageNode.doMandatoryGetFileLock.run(file?.id).then((res: any) => {
+      if (res.code != 0) return;
+      message.success(
+        i18n.formatMessage({
+          id: "bigdata.components.FileTitle.grabLockSuccessful",
+        })
+      );
+      onGetFolderInfo(file?.id);
+    });
+  };
+
+  // 保存编辑后的文件节点
+  const handleSaveNode = () => {
+    const data: any = {
+      name: fileData?.name,
+      content: folderContent,
+      desc: fileData?.desc,
+      folderId: parentId,
+    };
+    id &&
+      doUpdateNode.run(id, data).then((res: any) => {
+        if (res.code == 0) {
+          message.success(
+            i18n.formatMessage({ id: "log.index.manage.message.save.success" })
+          );
+          onGetFolderInfo(id);
+        }
+      });
+  };
 
   useEffect(() => {
-    selectNode?.id && changeOpenNodeId(selectNode.id);
-    if (selectNode?.secondary == SecondaryEnums.dataMining) {
-      changeOpenNodeParentId(selectNode.folderId);
-    }
-  }, [selectNode, selectNode?.id, selectNode?.folderId, selectNode?.secondary]);
+    onGetFolderInfo(id);
+  }, []);
 
   const Content = useMemo(() => {
-    switch (selectNode?.secondary) {
+    switch (node?.secondary) {
       case SecondaryEnums.dataIntegration:
-        return <IntegratedConfiguration currentNode={selectNode} />;
+        return <IntegratedConfiguration currentNode={node} />;
       case SecondaryEnums.dataMining:
         return (
           <WorkflowSql
             isChange={isUpdateStateFun()}
-            file={openNodeData}
+            file={fileData}
             onSave={() => handleSaveNode()}
-            onLock={() => handleLockFile(openNodeData?.id as number)}
-            onUnlock={() => handleUnLockFile(openNodeData?.id as number)}
+            onLock={() => handleLockFile(id as number)}
+            onUnlock={() => handleUnLockFile(id as number)}
             type={FileTitleType.sql}
-            onFormat={() => changeFolderContent(format(folderContent))}
+            onFormat={() => setFolderContent(format(folderContent))}
             onGrabLock={handleGrabLock}
+            folderContent={folderContent}
+            setFolderContent={setFolderContent}
+            node={node}
+            currentPaneActiveKey={currentPaneActiveKey}
           />
         );
       case SecondaryEnums.board:
-        return <WorkflowBoard currentBoard={selectNode} />;
+        return <WorkflowBoard currentBoard={node} />;
       default:
-        return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+        return (
+          <Empty
+            style={{ width: "100%" }}
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+        );
     }
-  }, [selectNode, openNodeData, isUpdateStateFun(), folderContent]);
+  }, [node, fileData, isUpdateStateFun(), folderContent, currentPaneActiveKey]);
   return <>{Content}</>;
 };
 
