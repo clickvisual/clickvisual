@@ -137,7 +137,7 @@ func (n *node) NodeTryLock(uid, configId int, isForced bool) (err error) {
 	var nodeInfo db.BigdataNode
 	tx := invoker.Db.Begin()
 	{
-		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&n).Error
+		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&nodeInfo).Error
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("configuration does not exist")
@@ -164,7 +164,7 @@ func (n *node) NodeUnlock(uid, configId int) (err error) {
 	var nodeInfo db.BigdataNode
 	tx := invoker.Db.Begin()
 	{
-		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&n).Error
+		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&nodeInfo).Error
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("configuration does not exist")
