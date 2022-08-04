@@ -18,16 +18,10 @@ const TemporaryQuery = () => {
     currentPaneActiveKey,
     onChangeCurrentPaneActiveKey,
   } = useModel("dataanalysis.useFilePane");
-  const {
-    manageNode,
-    temporaryQuery,
-    changeOpenNodeId,
-    doGetNodeInfo,
-    luckysheetData,
-  } = useModel("dataAnalysis");
-  const { selectNode } = manageNode;
+  const { temporaryQuery, changeOpenNodeId, doGetNodeInfo, luckysheetData } =
+    useModel("dataAnalysis");
 
-  const { setSelectNodeKeys } = temporaryQuery;
+  const { setSelectNodeKeys, temporaryQueryNodes } = temporaryQuery;
 
   const panes = useMemo(() => {
     return cloneDeep(paneList);
@@ -43,18 +37,27 @@ const TemporaryQuery = () => {
   const remove = (targetKey: string) => {
     const targetIndex = panes.findIndex((pane) => pane.key == targetKey);
     const newPanes = panes.filter((pane) => pane.key != targetKey);
-    if (newPanes.length && targetKey === currentPaneActiveKey) {
+    console.log(targetIndex, newPanes, "targetKey??");
+
+    if (targetKey === currentPaneActiveKey) {
       const index =
         targetIndex === newPanes.length ? targetIndex - 1 : targetIndex;
-      const { key } = newPanes[index];
-      onChangeCurrentPaneActiveKey(key.toString());
-      setSelectNodeKeys([`0-${key}-${newPanes[index].title}`]);
-      changeOpenNodeId(parseInt(key));
+      if (newPanes.length) {
+        const { key } = newPanes[index];
+        onChangeCurrentPaneActiveKey(key.toString());
+        setSelectNodeKeys([`0-${key}-${newPanes[index].title}`]);
+        changeOpenNodeId(parseInt(key));
+      } else {
+        setSelectNodeKeys([]);
+        changeOpenNodeId(undefined);
+      }
     }
     onChangePaneList(newPanes);
   };
 
   const onEdit = (targetKey: any, action: "add" | "remove") => {
+    console.log(targetKey, action);
+
     if (action === "add") {
       // add();
     } else {
@@ -63,17 +66,20 @@ const TemporaryQuery = () => {
   };
 
   useEffect(() => {
-    if (panes.length == 0) {
-      setSelectNodeKeys([]);
-      changeOpenNodeId(undefined);
+    if (currentPaneActiveKey) {
+      changeOpenNodeId(parseInt(currentPaneActiveKey));
+      const item = temporaryQueryNodes.filter(
+        (item: any) => item.id == currentPaneActiveKey
+      );
+      setSelectNodeKeys([`0-${currentPaneActiveKey}-${item[0].name}`]);
     }
-  }, [panes]);
+  }, []);
 
   return (
     <div className={TemporaryQueryStyle.queryMain}>
       <FolderTree />
       <div className={TemporaryQueryStyle.content}>
-        {selectNode?.id && panes?.length > 0 ? (
+        {panes?.length > 0 ? (
           <div style={{ width: "100%" }}>
             <Tabs
               hideAdd
