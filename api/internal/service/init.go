@@ -16,6 +16,7 @@ var (
 	InstanceManager *instanceManager
 	Index           *index
 	Alarm           *alarm
+	Node            *node
 )
 
 func Init() error {
@@ -36,5 +37,7 @@ func Init() error {
 	xgo.Go(func() {
 		DoDepsSync()
 	})
+
+	Node = NewNode()
 	return nil
 }

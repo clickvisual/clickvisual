@@ -270,7 +270,7 @@ func NodeLock(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	err = service.NodeTryLock(c.Uid(), id, false)
+	err = service.Node.NodeTryLock(c.Uid(), id, false)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
@@ -303,7 +303,7 @@ func NodeUnlock(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	err = service.NodeUnlock(c.Uid(), id)
+	err = service.Node.NodeUnlock(c.Uid(), id)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
@@ -601,6 +601,6 @@ func NodeResultInfo(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", service.NodeResultRespAssemble(&nr))
+	c.JSONE(core.CodeOK, "succ", service.Node.NodeResultRespAssemble(&nr))
 	return
 }

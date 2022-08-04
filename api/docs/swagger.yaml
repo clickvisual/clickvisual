@@ -1,4 +1,32 @@
 definitions:
+  core.Pagination:
+    properties:
+      current:
+        description: Current means current page number
+        type: integer
+      pageSize:
+        description: PageSize means max item count of a page
+        type: integer
+      sort:
+        description: Sort means sort expression
+        type: string
+      total:
+        description: Total means total page count
+        type: integer
+    type: object
+  core.ResPage:
+    properties:
+      code:
+        description: Code means response business code
+        type: integer
+      data:
+        description: Data means response data payload
+      msg:
+        description: Msg means response extra message
+        type: string
+      pagination:
+        $ref: '#/definitions/core.Pagination'
+    type: object
   view.MappingStruct:
     properties:
       data:
@@ -106,6 +134,8 @@ definitions:
         type: integer
       email:
         type: string
+      excelProcess:
+        type: string
       id:
         type: integer
       nickname:
@@ -140,6 +170,89 @@ definitions:
         type: integer
       tableName:
         type: string
+    type: object
+  view.RespUserSimpleInfo:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      nickname:
+        type: string
+      uid:
+        type: integer
+      username:
+        type: string
+    type: object
+  view.RespWorkerDashboard:
+    properties:
+      flows:
+        description: Execution trend chart
+        items:
+          $ref: '#/definitions/view.WorkerStatsRow'
+        type: array
+      nodeFailed:
+        description: node status
+        type: integer
+      nodeSuccess:
+        description: node status
+        type: integer
+      nodeUnknown:
+        description: node status
+        type: integer
+      workerFailed:
+        description: Execution status of each periodic schedule
+        type: integer
+      workerSuccess:
+        description: Execution status of each periodic schedule
+        type: integer
+      workerUnknown:
+        description: Execution status of each periodic schedule
+        type: integer
+    type: object
+  view.RespWorkerList:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/view.RespWorkerRow'
+        type: array
+      total:
+        type: integer
+    type: object
+  view.RespWorkerRow:
+    properties:
+      chargePerson:
+        $ref: '#/definitions/view.RespUserSimpleInfo'
+      cost:
+        type: integer
+      crontab:
+        type: string
+      endTime:
+        type: integer
+      id:
+        type: integer
+      nodeId:
+        type: integer
+      nodeName:
+        type: string
+      startTime:
+        type: integer
+      status:
+        description: unknown 0; success 1; failed 2
+        type: integer
+      tertiary:
+        type: integer
+    type: object
+  view.WorkerStatsRow:
+    properties:
+      failed:
+        type: integer
+      success:
+        type: integer
+      timestamp:
+        type: integer
+      unknown:
+        type: integer
     type: object
 info:
   contact: {}
@@ -299,6 +412,81 @@ paths:
           schema:
             $ref: '#/definitions/view.RespNodeResultList'
       summary: Obtain the node execution result record
+      tags:
+      - pandas
+  /api/v2/pandas/workers:
+    get:
+      consumes:
+      - application/json
+      description: The scheduled task list
+      parameters:
+      - description: Current 总记录数
+        in: query
+        name: current
+        type: integer
+      - in: query
+        name: end
+        type: integer
+      - in: query
+        name: nodeName
+        type: string
+      - description: PageSize 每页记录数
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort 顺序
+        in: query
+        name: sort
+        type: string
+      - in: query
+        name: start
+        type: integer
+      - description: ClickHouse 10; MySQL 11; OfflineSync 20
+        in: query
+        name: tertiary
+        type: integer
+      - description: Total 总页数
+        in: query
+        name: total
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.ResPage'
+            - properties:
+                data:
+                  $ref: '#/definitions/view.RespWorkerList'
+              type: object
+      summary: The scheduled task list
+      tags:
+      - pandas
+  /api/v2/pandas/workers/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Kanban on the execution status of a scheduled task
+      parameters:
+      - in: query
+        name: end
+        type: integer
+      - in: query
+        name: isInCharge
+        type: integer
+      - in: query
+        name: start
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/view.RespWorkerDashboard'
+      summary: Kanban on the execution status of a scheduled task
       tags:
       - pandas
   /api/v2/storage:

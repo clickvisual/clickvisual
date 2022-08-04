@@ -256,6 +256,10 @@ func GetRouter() *egin.Component {
 		// The node running data is processed by Excel
 		v2.PATCH("/pandas/nodes-results/:result-id", core.Handle(pandas.NodeResultUpdate))
 		v2.GET("/pandas/nodes/:node-id/results", core.Handle(pandas.NodeResultListPage))
+		// Timing schedule stats
+		v2.GET("/pandas/workers", core.Handle(pandas.WorkerList))
+		v2.GET("/pandas/workers/dashboard", core.Handle(pandas.WorkerDashboard))
+
 	}
 	// The log module - storage
 	{

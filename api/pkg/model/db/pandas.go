@@ -56,6 +56,12 @@ const (
 	NodeStatusFinish  = 4
 )
 
+const (
+	BigdataNodeResultUnknown int = iota
+	BigdataNodeResultSucc
+	BigdataNodeResultFailed
+)
+
 func (m *BigdataWorkflow) TableName() string {
 	return TableNameBigDataWorkflow
 }
@@ -150,6 +156,7 @@ type (
 		ExcelProcess string `gorm:"column:excel_process;type:longtext" json:"excelProcess"`
 		Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`
 		Cost         int64  `gorm:"column:cost;type:bigint(20)" json:"cost"` // ms
+		Status       int    `gorm:"column:status;type:int(11)" json:"status"`
 	}
 )
 
@@ -471,6 +478,19 @@ func NodeList(conds egorm.Conds) (resp []*BigdataNode, err error) {
 	return
 }
 
+// NodeListWithWorker ...
+// TertiaryClickHouse   = 10
+// TertiaryMySQL        = 11
+// TertiaryOfflineSync  = 20
+func NodeListWithWorker() (resp []*BigdataNode, err error) {
+	if err = invoker.Db.Model(BigdataNode{}).
+		Where("tertiary=? or tertiary=? or tertiary=?", 10, 11, 20).Find(&resp).Error; err != nil {
+		elog.Error("list error", zap.Error(err))
+		return
+	}
+	return
+}
+
 func NodeCreate(db *gorm.DB, data *BigdataNode) (err error) {
 	if err = db.Model(BigdataNode{}).Create(data).Error; err != nil {
 		elog.Error("create error", zap.Error(err))
@@ -576,15 +596,6 @@ func NodeResultInfo(db *gorm.DB, id int) (resp BigdataNodeResult, err error) {
 	return
 }
 
-func NodeResultList(conds egorm.Conds) (resp []*BigdataNodeResult, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(BigdataNodeResult{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
-		return
-	}
-	return
-}
-
 func NodeResultCreate(db *gorm.DB, data *BigdataNodeResult) (err error) {
 	if err = db.Model(BigdataNodeResult{}).Create(data).Error; err != nil {
 		elog.Error("create error", zap.Error(err))
@@ -619,6 +630,15 @@ func NodeResultDelete30Days() {
 	}
 }
 
+func NodeResultList(conds egorm.Conds) (resp []*BigdataNodeResult, err error) {
+	sql, binds := egorm.BuildQuery(conds)
+	if err = invoker.Db.Select("id, ctime, status").Where(sql, binds...).Order("id desc").Find(&resp).Error; err != nil {
+		elog.Error("list error", zap.Error(err))
+		return
+	}
+	return
+}
+
 func NodeResultListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*BigdataNodeResult) {
 	respList = make([]*BigdataNodeResult, 0)
 	if reqList.PageSize == 0 {
@@ -628,7 +648,7 @@ func NodeResultListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 		reqList.Current = 1
 	}
 	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Select("id, ctime, uid, cost").Model(BigdataNodeResult{}).Where(sql, binds...).Order("id desc")
+	db := invoker.Db.Select("id, ctime, utime, uid, cost, status, node_id").Model(BigdataNodeResult{}).Where(sql, binds...).Order("id desc")
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return

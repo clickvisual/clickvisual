@@ -50,7 +50,7 @@ type RespUserSimpleInfo struct {
 }
 
 func (r *RespUserSimpleInfo) Gen(u db.User) {
-	r.Uid = u.Uid
+	r.Uid = u.ID
 	r.Username = u.Username
 	r.Nickname = u.Nickname
 	r.Email = u.Email

@@ -217,12 +217,12 @@ type (
 	}
 
 	RespNodeResult struct {
-		ID      int    `json:"id"`
-		Ctime   int64  `json:"ctime"`
-		NodeId  int    `json:"nodeId"`
-		Content string `json:"content,omitempty"`
-		Result  string `json:"result,omitempty"`
-		Cost    int64  `json:"cost,omitempty"`
+		ID           int    `json:"id"`
+		Ctime        int64  `json:"ctime"`
+		NodeId       int    `json:"nodeId"`
+		Content      string `json:"content,omitempty"`
+		Result       string `json:"result,omitempty"`
+		Cost         int64  `json:"cost,omitempty"`
 		ExcelProcess string `json:"excelProcess,omitempty"`
 		RespUserSimpleInfo
 	}
@@ -230,6 +230,62 @@ type (
 	RespNodeResultList struct {
 		Total int64            `json:"total"`
 		List  []RespNodeResult `json:"list"`
+	}
+)
+
+type (
+	WorkerStats struct {
+		Iid  int
+		Uid  int
+		Data map[int64]WorkerStatsRow
+	}
+	WorkerStatsRow struct {
+		Timestamp int64 `json:"timestamp"`
+		Unknown   int   `json:"unknown"`
+		Failed    int   `json:"failed"`
+		Success   int   `json:"success"`
+	}
+	// ReqWorkerDashboard Request start and end time
+	ReqWorkerDashboard struct {
+		Start      int64 `json:"start" form:"start"`
+		End        int64 `json:"end" form:"end"`
+		IsInCharge int   `json:"isInCharge" form:"isInCharge"`
+	}
+	RespWorkerDashboard struct {
+		NodeFailed    int              `json:"nodeFailed"`    // node status
+		NodeSuccess   int              `json:"nodeSuccess"`   // node status
+		NodeUnknown   int              `json:"nodeUnknown"`   // node status
+		WorkerFailed  int              `json:"workerFailed"`  // Execution status of each periodic schedule
+		WorkerSuccess int              `json:"workerSuccess"` // Execution status of each periodic schedule
+		WorkerUnknown int              `json:"workerUnknown"` // Execution status of each periodic schedule
+		Flows         []WorkerStatsRow `json:"flows"`         // Execution trend chart
+	}
+	ReqWorkerList struct {
+		Start    int    `json:"start" form:"start"`
+		End      int    `json:"end" form:"end"`
+		NodeName string `json:"nodeName" form:"nodeName"`
+		Tertiary int    `json:"tertiary" form:"tertiary"` // ClickHouse 10; MySQL 11; OfflineSync 20
+		Pagination
+	}
+
+	RespWorkerRow struct {
+		NodeName  string `json:"nodeName"`
+		Status    int    `json:"status"` // unknown 0; success 1; failed 2
+		Tertiary  int    `json:"tertiary"`
+		Crontab   string `json:"crontab"`
+		StartTime int64  `json:"startTime"`
+		EndTime   int64  `json:"endTime"`
+
+		ID     int   `json:"id"`
+		NodeId int   `json:"nodeId"`
+		Cost   int64 `json:"cost"`
+
+		ChargePerson RespUserSimpleInfo `json:"chargePerson"`
+	}
+
+	RespWorkerList struct {
+		Total int64           `json:"total"`
+		List  []RespWorkerRow `json:"list"`
 	}
 )
 
