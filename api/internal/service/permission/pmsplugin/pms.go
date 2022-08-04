@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	rediswatcher "github.com/billcobbler/casbin-redis-watcher"
+	"github.com/casbin/casbin/persist"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/ego-component/egorm"
@@ -23,6 +25,7 @@ import (
 var (
 	enforcer     *casbin.Enforcer
 	enforcerLock = &sync.Mutex{}
+	watcher      *persist.Watcher
 )
 
 // Invoker SetUp permission handler
@@ -35,6 +38,23 @@ func Invoker() {
 	enforcer, err = casbin.NewEnforcer(rulePath, a)
 	if err != nil {
 		elog.Panic("Casbin NewEnforcer panic", zap.Error(err))
+	}
+	if econf.GetBool("app.isMultiCopy") {
+		// Distributed watcher
+		w, err := rediswatcher.NewWatcher(econf.GetString("redis.addr"), rediswatcher.Password(econf.GetString("redis.password")))
+		if err != nil {
+			elog.Panic("redis connect panic", zap.Error(err))
+		}
+		watcher = &w
+		enforcer.SetWatcher(w)
+		// @Overwrite
+		// See if policy changed and do distributed notification
+		_ = w.SetUpdateCallback(func(s string) {
+			invoker.Logger.Info("Casbin policies changed")
+			enforcerLock.Lock()
+			_ = enforcer.LoadPolicy()
+			enforcerLock.Unlock()
+		})
 	}
 }
 

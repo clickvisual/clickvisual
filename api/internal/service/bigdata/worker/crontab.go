@@ -1,22 +1,29 @@
 package worker
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/cetus/pkg/xgo"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/robfig/cron/v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/bigdata/node"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/preempt"
 )
 
 const crontabUid = -1
 
-var CrontabRules *crontabRules
+var (
+	CrontabRules *crontabRules
+	ppt          *preempt.Preempt
+	crontabFlag  bool
+)
 
 type crontabRules struct {
 	crones sync.Map
@@ -24,15 +31,27 @@ type crontabRules struct {
 
 // Init Gets the tasks that need to be performed
 func Init() error {
+	crontabFlag = true
 	CrontabRules = &crontabRules{
 		crones: sync.Map{},
 	}
-	xgo.Go(looper)
 	xgo.Go(clear)
+	// Support for multiple copies mode
+	if econf.GetBool("app.isMultiCopy") {
+		sf := func() { looper() }
+		ef := func() { crontabFlag = false }
+		invoker.Logger.Debug("crontabRules", elog.String("step", "isMultiCopy"))
+		ppt = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:worker", sf, ef)
+		return nil
+	}
+	xgo.Go(looper)
 	return nil
 }
 
 func Close() error {
+	if econf.GetBool("app.isMultiCopy") {
+		ppt.Close()
+	}
 	CrontabRules.crones.Range(func(k, v interface{}) bool {
 		nodeId := k.(int)
 		invoker.Logger.Debug("crontabRules", elog.String("step", "close"), elog.Any("nodeId", nodeId))
@@ -67,6 +86,9 @@ func clear() {
 func looper() {
 	for {
 		time.Sleep(time.Second * 3)
+		if !crontabFlag {
+			continue
+		}
 		// Obtain the offline synchronization task to be executed
 		// TODO Currently, only offline synchronization tasks can be detected
 		var (
@@ -77,6 +99,7 @@ func looper() {
 			invoker.Logger.Error("sync", elog.String("step", "nodes"), elog.String("error", err.Error()))
 			continue
 		}
+		invoker.Logger.Debug("crontabRules", elog.String("step", "lopper"), elog.Any("crs", crs))
 		// Execute scheduling process: cron -> branch -> run
 		dispatch(crs)
 	}

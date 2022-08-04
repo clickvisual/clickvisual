@@ -30,11 +30,12 @@ port = 19011
 level = "debug"
 name = "clickvisual.log"
 
+# if isMultiCopy is true
 [redis]
 debug = true
 addr = "127.0.0.1:6379"
 writeTimeout = "3s"
-password = "hA5pHeXHZzdH"
+password = "**"
 
 [mysql]
 debug = true

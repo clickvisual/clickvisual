@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/BurntSushi/toml v1.2.0
 	github.com/ClickHouse/clickhouse-go/v2 v2.2.0
+	github.com/billcobbler/casbin-redis-watcher v0.0.0-20190706023639-52f9bd47d420
 	github.com/casbin/casbin/v2 v2.51.0
 	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/clickvisual/prom2click v0.0.2
@@ -60,6 +61,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.20 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
+	github.com/casbin/casbin v1.9.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
@@ -72,6 +74,7 @@ require (
 	github.com/felixge/fgprof v0.9.2 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/garyburd/redigo v0.0.0-20150301180006-535138d7bcd7 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.16.0 // indirect
 	github.com/glebarez/sqlite v1.4.3 // indirect
@@ -146,6 +149,7 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/prometheus/prometheus v0.35.0 // indirect
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b // indirect
+	github.com/rafaeljusto/redigomock v2.4.0+incompatible // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
