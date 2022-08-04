@@ -184,9 +184,9 @@ const FolderTree: React.FC = () => {
           },
         ]);
         onGetFolderInfo(id);
-        changeOpenNodeId(id);
-        changeOpenNodeParentId(folderId);
       }
+      changeOpenNodeId(id);
+      changeOpenNodeParentId(folderId);
       onChangeCurrentPaneActiveKey(`${id}`);
       setSelectNode(node?.node);
     }

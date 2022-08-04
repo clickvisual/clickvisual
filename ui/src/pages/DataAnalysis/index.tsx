@@ -91,6 +91,7 @@ const DataAnalysis = () => {
   useEffect(() => {
     if (nodes?.length > 0 || temporaryQueryNodes?.length > 0) {
       let openId: any;
+
       if (urlState && urlState.nodeId) {
         openId = urlState.nodeId;
       }
@@ -99,6 +100,7 @@ const DataAnalysis = () => {
         undefined,
         LocalModuleType.dataAnalysisOpenNodeId
       );
+
       if (!urlState?.nodeId && localOpneId) {
         openId = localOpneId;
       }
