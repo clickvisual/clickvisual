@@ -34,7 +34,7 @@ const VersionHistory = (props: {
   const { doNodeHistories, doNodeHistoriesInfo } = useModel("dataAnalysis");
 
   const getList = (page: number, pageSize: number) => {
-    if (node.id != currentPaneActiveKey) return;
+    if (node?.id != currentPaneActiveKey) return;
     node.id &&
       doNodeHistories
         .run(node.id as number, {
@@ -118,7 +118,7 @@ const VersionHistory = (props: {
       render: (_: any, record: any) => (
         <a
           onClick={() => {
-            if (node.id != currentPaneActiveKey) return;
+            if (node?.id != currentPaneActiveKey) return;
             doNodeHistoriesInfo
               .run(node.id as number, record.uuid)
               .then((res: any) => {

@@ -7,11 +7,15 @@ import { useIntl, useModel } from "umi";
 import { cloneDeep } from "lodash";
 import { PaneItemType } from "@/models/dataanalysis/useFilePane";
 import Luckysheet from "@/components/Luckysheet";
+import useUrlState from "@ahooksjs/use-url-state";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const { TabPane } = Tabs;
 
 const TemporaryQuery = () => {
   const i18n = useIntl();
+  const [urlState] = useUrlState();
+  const { onSetLocalData } = useLocalStorages();
   const {
     paneList,
     onChangePaneList,
@@ -37,7 +41,6 @@ const TemporaryQuery = () => {
   const remove = (targetKey: string) => {
     const targetIndex = panes.findIndex((pane) => pane.key == targetKey);
     const newPanes = panes.filter((pane) => pane.key != targetKey);
-    console.log(targetIndex, newPanes, "targetKey??");
 
     if (targetKey === currentPaneActiveKey) {
       const index =
@@ -56,8 +59,6 @@ const TemporaryQuery = () => {
   };
 
   const onEdit = (targetKey: any, action: "add" | "remove") => {
-    console.log(targetKey, action);
-
     if (action === "add") {
       // add();
     } else {
@@ -66,12 +67,57 @@ const TemporaryQuery = () => {
   };
 
   useEffect(() => {
+    if (temporaryQueryNodes?.length > 0) {
+      let openId: any;
+
+      if (urlState && urlState.nodeId) {
+        openId = urlState.nodeId;
+      }
+
+      const localOpneId = onSetLocalData(
+        undefined,
+        LocalModuleType.dataAnalysisOpenNodeId
+      );
+
+      if (!urlState?.nodeId && localOpneId) {
+        openId = localOpneId;
+      }
+
+      if (openId) {
+        const selectNodeData = temporaryQueryNodes?.filter((item: any) => {
+          return item.id == parseInt(openId);
+        });
+        const nodeData = selectNodeData[0];
+        if (nodeData) {
+          const clonePaneList = cloneDeep(paneList);
+          if (
+            clonePaneList.filter((item: any) => item.key == nodeData.id)
+              .length == 0
+          ) {
+            onChangePaneList([
+              ...clonePaneList,
+              {
+                key: openId.toString(),
+                title: nodeData?.name || "not name",
+                parentId: nodeData.folderId,
+                node: nodeData,
+              },
+            ]);
+            onChangeCurrentPaneActiveKey(`${openId}`);
+          }
+        }
+      }
+    }
+  }, [temporaryQueryNodes]);
+
+  useEffect(() => {
     if (currentPaneActiveKey) {
       changeOpenNodeId(parseInt(currentPaneActiveKey));
       const item = temporaryQueryNodes.filter(
         (item: any) => item.id == currentPaneActiveKey
       );
-      setSelectNodeKeys([`0-${currentPaneActiveKey}-${item[0].name}`]);
+      item.length > 0 &&
+        setSelectNodeKeys([`0-${currentPaneActiveKey}-${item[0].name}`]);
     }
   }, []);
 

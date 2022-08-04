@@ -16,6 +16,7 @@ import dataSourceManageApi from "@/services/dataSourceManage";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 import useWorkflowBoard from "@/models/dataanalysis/useWorkflowBoard";
+import useFilePane from "@/models/dataanalysis/useFilePane";
 import { LuckysheetProps } from "@/components/Luckysheet";
 export interface versionHistoryListType {
   list: any[];
@@ -58,6 +59,7 @@ const DataAnalysis = () => {
   const manageNode = useManageNodeAndFolder();
   const integratedConfigs = useIntegratedConfigs();
   const workflowBoard = useWorkflowBoard();
+  const filePane = useFilePane();
 
   const changeOpenNodeId = (id?: number) => {
     setOpenNodeId(id);
@@ -356,6 +358,7 @@ const DataAnalysis = () => {
     temporaryQuery,
     workflow,
     dataSourceManage,
+    filePane,
   };
 };
 

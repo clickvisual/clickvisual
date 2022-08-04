@@ -6,8 +6,16 @@ import { useMemo } from "react";
 import { useModel } from "umi";
 import WorkflowContent from "../WorkflowContent";
 
-const TabPaneItem = () => {
-  const { navKey, currentInstances, doGetNodeInfo, doResultsList, openNodeId } =
+export interface TabPaneItemType {
+  id: number;
+  node: any;
+  currentOfflinePaneActiveKey: string;
+  parentId: number;
+}
+
+const TabPaneItem = (props: TabPaneItemType) => {
+  const { id, node, currentOfflinePaneActiveKey, parentId } = props;
+  const { navKey, currentInstances, doGetNodeInfo, doResultsList } =
     useModel("dataAnalysis");
   const { updateNode, getNodeInfo, doUnLockNode } = useModel(
     "dataAnalysis",
@@ -21,14 +29,19 @@ const TabPaneItem = () => {
   const rightMenu = useMemo(() => {
     if (
       currentInstances &&
-      openNodeId &&
+      id &&
       (navKey == BigDataNavEnum.TemporaryQuery ||
         navKey == BigDataNavEnum.OfflineManage)
     ) {
-      return <RightMenu />;
+      return (
+        <RightMenu
+          node={node}
+          currentPaneActiveKey={currentOfflinePaneActiveKey}
+        />
+      );
     }
     return <></>;
-  }, [navKey, currentInstances, openNodeId]);
+  }, [navKey, currentInstances, id]);
   return (
     <>
       <Spin
@@ -41,7 +54,12 @@ const TabPaneItem = () => {
         }
       >
         <div className={offlineStyles.contentMain}>
-          <WorkflowContent />
+          <WorkflowContent
+            id={id}
+            parentId={parentId}
+            node={node}
+            currentPaneActiveKey={currentOfflinePaneActiveKey}
+          />
           {rightMenu}
         </div>
       </Spin>
