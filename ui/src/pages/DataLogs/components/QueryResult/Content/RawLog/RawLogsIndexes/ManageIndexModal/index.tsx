@@ -114,7 +114,7 @@ const ManageIndexModal = () => {
   return (
     <CustomModal
       onCancel={cancel}
-      title={i18n.formatMessage({ id: "log.index.manage" })}
+      title={i18n.formatMessage({ id: "log.index.manage.desc" })}
       visible={visibleIndexModal}
       width={"70vw"}
       footer={

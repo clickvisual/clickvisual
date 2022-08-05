@@ -362,9 +362,9 @@ export default {
   "datasource.draw.table.deployment": "部署方式",
   "datasource.draw.table.type": "数据库类型",
   "datasource.draw.table.empty.type.tip": "无数据库类型",
-  "datasource.draw.table.operation.tip": "在此数据库下新增日志库",
-  "datasource.draw.table.delete.tip": "删除此数据库",
-  "datasource.draw.table.edit.tip": "编辑此数据库",
+  "datasource.draw.table.operation.tip": "新增日志库",
+  "datasource.draw.table.delete.tip": "删除数据库",
+  "datasource.draw.table.edit.tip": "编辑数据库",
 
   "log.share": "分享",
   "log.share.success": "URL 已粘贴至剪切板",

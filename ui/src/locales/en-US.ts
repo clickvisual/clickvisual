@@ -419,7 +419,8 @@ export default {
   "log.index.search.placeholder": "Search field",
   "log.index.empty": "Temporarily not create fields",
   "log.index.item.empty": "No Data",
-  "log.index.manage":
+  "log.index.manage": "Index Management",
+  "log.index.manage.desc":
     "Index Management(This function is available when the _RAW_log_ field format is JSON)",
   "log.index.help":
     "Fields with an orange background color are system fields or index fields, and fields with a gray background color are fields that are not indexed. Index statistics take effect only for data that has been indexed",
