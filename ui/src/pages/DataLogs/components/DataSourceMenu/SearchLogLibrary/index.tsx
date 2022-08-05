@@ -47,7 +47,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
           onSearch={onSearch}
           onChange={(ev) => setValue(ev.target.value)}
         />
-        {isHasDatabase ? (
+        {/* {isHasDatabase ? (
           <Tooltip
             title={i18n.formatMessage({
               id: "datasource.logLibrary.search.created",
@@ -64,7 +64,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
               icon={<PlusOutlined />}
             />
           </Tooltip>
-        ) : null}
+        ) : null} */}
         <Tooltip
           title={i18n.formatMessage({
             id: "instance.operation.addDatabase",

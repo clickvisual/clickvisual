@@ -116,7 +116,7 @@ const RightMenu = () => {
             .run(openNodeId as number, {
               current: 1,
               pageSize: 10,
-              isExcludeCrontabResult: 1,
+              isExcludeCrontabResult: 0,
             })
             .then((res: any) => {
               if (res.code == 0) {

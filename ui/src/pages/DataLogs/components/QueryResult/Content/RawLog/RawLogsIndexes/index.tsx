@@ -27,7 +27,7 @@ const RawLogsIndexes = () => {
   return (
     <div className={classNames(logsIndexStyles.logsIndexMain)}>
       <IndexHeader />
-      <IndexSearchBar onSearch={onSearch} />
+      {/* <IndexSearchBar onSearch={onSearch} /> */}
       <IndexList list={indexList} />
     </div>
   );
