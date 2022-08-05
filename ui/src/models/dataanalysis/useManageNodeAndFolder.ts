@@ -125,7 +125,7 @@ const useManageNodeAndFolder = () => {
   const [folders, setFolders] = useState<any[]>([]);
 
   // 当前选中的 节点
-  const [selectNode, setSelectNode] = useState<any>();
+  // const [selectNode, setSelectNode] = useState<any>();
   const [selectKeys, setSelectKeys] = useState<string[]>([]);
 
   const [boardFile, setBoardFile] = useState<any>();
@@ -442,7 +442,7 @@ const useManageNodeAndFolder = () => {
     visibleFolder,
     isEditNode,
     currentNode,
-    selectNode,
+    // selectNode,
     selectKeys,
     setSelectKeys,
     extra,
@@ -458,7 +458,7 @@ const useManageNodeAndFolder = () => {
 
     setIsEditNode,
     setCurrentNode,
-    setSelectNode,
+    // setSelectNode,
     setExtra,
     setBoardEdges,
     setIsBoardCreateNode,

@@ -101,7 +101,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     folders,
     getFolders,
     currentInstances,
-    setSelectNode,
+    // setSelectNode,
     setSelectKeys,
     selectKeys,
     createdNode,
@@ -119,15 +119,13 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     cancelTokenSourceTableRef,
     cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef,
-    setSourceColumns,
-    setTargetColumns,
 
     offlinePaneList,
     onChangeOfflinePaneList,
     onChangeCurrentOfflinePaneActiveKey,
     changeOpenNodeId,
   } = useModel("dataAnalysis", (model) => ({
-    setSelectNode: model.manageNode.setSelectNode,
+    // setSelectNode: model.manageNode.setSelectNode,
     setSelectKeys: model.manageNode.setSelectKeys,
     selectKeys: model.manageNode.selectKeys,
     getFolders: model.manageNode.getFolders,
@@ -153,8 +151,6 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       model.integratedConfigs.cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef:
       model.integratedConfigs.cancelTokenSourceColumnsRef,
-    setSourceColumns: model.integratedConfigs.setSourceColumns,
-    setTargetColumns: model.integratedConfigs.setTargetColumns,
     offlinePaneList: model.filePane.offlinePaneList,
     onChangeOfflinePaneList: model.filePane.onChangeOfflinePaneList,
     onChangeCurrentOfflinePaneActiveKey:
@@ -183,15 +179,13 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     cancelTokenSourceRef.current?.();
     cancelTokenTargetListRef.current?.();
     cancelTokenTargetRef.current?.();
-    setSourceColumns([]);
-    setTargetColumns([]);
 
     const { currentNode, nodeType } = node;
     setSelectKeys([node.key]);
+    const id = parseInt(node?.currentNode?.id);
+    const folderId = parseInt(node?.currentNode?.folderId);
+    const clonePaneList = cloneDeep(offlinePaneList);
     if (nodeType === NodeType.node) {
-      const id = parseInt(node?.currentNode?.id);
-      const folderId = parseInt(node?.currentNode?.folderId);
-      const clonePaneList = cloneDeep(offlinePaneList);
       if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
         onChangeOfflinePaneList([
           ...clonePaneList,
@@ -206,12 +200,26 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       }
       onChangeCurrentOfflinePaneActiveKey(`${id}`);
       changeOpenNodeId(id);
-
-      setSelectNode(currentNode);
+      // TODO:
+      // setSelectNode(currentNode);
       currentNode.secondary == SecondaryEnums.dataMining &&
         onGetFolderInfo(currentNode.id);
     } else if (nodeType === NodeType.board) {
-      setSelectNode(currentNode.board);
+      if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
+        onChangeOfflinePaneList([
+          ...clonePaneList,
+          {
+            key: id.toString(),
+            title: node?.currentNode?.name || "not name",
+            parentId: folderId,
+            node: node?.currentNode.board,
+          },
+        ]);
+        onGetFolderInfo(id);
+      }
+      onChangeCurrentOfflinePaneActiveKey(`${id}`);
+      changeOpenNodeId(id);
+      // setSelectNode(currentNode.board);
     }
   };
 
@@ -248,7 +256,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       })
       .then((res) => {
         if (res?.code !== 0) return;
-        if (res.data.nodes.length <= 0) {
+        if (res.data?.nodes.length <= 0) {
           createdNode
             .run({
               primary: PrimaryEnums.mining,

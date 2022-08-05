@@ -18,9 +18,9 @@ const BoardNode = ({
     setCurrentNode,
     showNodeModal,
     updateBoardNode,
-    changeOpenNodeId,
-    setSelectNode,
-    onGetFolderInfo,
+    // changeOpenNodeId,
+    // setSelectNode,
+    // onGetFolderInfo,
     setSelectKeys,
   } = useModel("dataAnalysis", (model) => ({
     setExtra: model.manageNode.setExtra,
@@ -28,9 +28,9 @@ const BoardNode = ({
     setCurrentNode: model.manageNode.setCurrentNode,
     showNodeModal: model.manageNode.showNodeModal,
     updateBoardNode: model.manageNode.updateBoardNode,
-    changeOpenNodeId: model.changeOpenNodeId,
-    setSelectNode: model.manageNode.setSelectNode,
-    onGetFolderInfo: model.onGetFolderInfo,
+    // changeOpenNodeId: model.changeOpenNodeId,
+    // setSelectNode: model.manageNode.setSelectNode,
+    // onGetFolderInfo: model.onGetFolderInfo,
     setSelectKeys: model.manageNode.setSelectKeys,
   }));
   const [clickNum, setClickNum] = useState<number>(0);
@@ -63,14 +63,15 @@ const BoardNode = ({
         //双击事件
         if (node.tertiary > 0) {
           // 退出编辑
-          changeOpenNodeId(node.id);
+          // changeOpenNodeId(node.id);
           setSelectKeys([`${node.workflowId}-${node.id}-${node.name}`]);
-          setSelectNode(node);
+          // TODO:
+          // setSelectNode(node);
           if (
             node.tertiary === TertiaryEnums.clickhouse ||
             node.tertiary === TertiaryEnums.mysql
           ) {
-            onGetFolderInfo(node.id);
+            // onGetFolderInfo(node.id);
           }
         }
       }

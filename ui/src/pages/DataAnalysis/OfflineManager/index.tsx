@@ -8,11 +8,14 @@ import { useModel } from "umi";
 import { cloneDeep } from "lodash";
 import Luckysheet from "@/components/Luckysheet";
 import { useIntl } from "umi";
+import { SecondaryEnums } from "../service/enums";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const { TabPane } = Tabs;
 
 const OfflineManager = () => {
   const i18n = useIntl();
+  const { onSetLocalData } = useLocalStorages();
   const {
     offlinePaneList,
     onChangeOfflinePaneList,
@@ -61,6 +64,8 @@ const OfflineManager = () => {
     } else {
       setSelectKeys([]);
       changeOpenNodeId(undefined);
+      onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
+      onChangeCurrentOfflinePaneActiveKey("");
     }
     onChangeOfflinePaneList(newPanes);
   };
@@ -71,6 +76,15 @@ const OfflineManager = () => {
     } else {
       remove(targetKey);
     }
+  };
+
+  const getCurrentPane = () => {
+    if (currentOfflinePaneActiveKey.length > 0) {
+      return panes.filter((item: any) => {
+        return item.key == currentOfflinePaneActiveKey;
+      });
+    }
+    return [];
   };
 
   useEffect(() => {
@@ -113,31 +127,25 @@ const OfflineManager = () => {
                 );
               })}
             </Tabs>
-            <Spin spinning={doGetNodeInfo.loading}>
-              <div
-                style={{
-                  position: "relative",
-                  width: "calc(100% - 32px)",
-                  height: "calc(40vh - 32px - 32px)",
-                  top: "calc(-40vh + 32px + 32px)",
-                  zIndex: 10,
-                }}
-              >
-                {luckysheetData[0].celldata.length > 0 ? (
-                  <Luckysheet />
-                ) : (
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={i18n.formatMessage({
-                      id: "bigdata.components.RightMenu.notResults",
-                    })}
-                  />
-                )}
-              </div>
-            </Spin>
+            {getCurrentPane()[0].node.secondary == SecondaryEnums.dataMining ? (
+              <Spin spinning={doGetNodeInfo.loading}>
+                <div className={offlineStyles.luckysheet}>
+                  {luckysheetData[0].celldata.length > 0 ? (
+                    <Luckysheet />
+                  ) : (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={i18n.formatMessage({
+                        id: "bigdata.components.RightMenu.notResults",
+                      })}
+                    />
+                  )}
+                </div>
+              </Spin>
+            ) : null}
           </>
         ) : (
-          <div>
+          <div className={offlineStyles.empty}>
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description={i18n.formatMessage({

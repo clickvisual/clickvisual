@@ -209,6 +209,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
           onUnlock={handleUnlock}
           file={boardFile}
           onGrabLock={handleGrabLock}
+          node={currentBoard}
         />
       )}
       <div style={{ flex: 1, display: "flex" }}>

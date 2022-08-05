@@ -62,9 +62,9 @@ const FolderTree: React.FC = () => {
     currentInstances,
     temporaryQuery,
     changeOpenNodeId,
-    changeOpenNodeParentId,
+    // changeOpenNodeParentId,
     onGetFolderInfo,
-    manageNode,
+    // manageNode,
   } = useModel("dataAnalysis");
   const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
     "dataanalysis.useFilePane"
@@ -81,7 +81,7 @@ const FolderTree: React.FC = () => {
     setSelectNodeKeys,
   } = temporaryQuery;
 
-  const { setSelectNode } = manageNode;
+  // const { setSelectNode } = manageNode;
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
 
   const onExpand = (newExpandedKeys: Key[]) => {
@@ -186,9 +186,9 @@ const FolderTree: React.FC = () => {
         onGetFolderInfo(id);
       }
       changeOpenNodeId(id);
-      changeOpenNodeParentId(folderId);
+      // changeOpenNodeParentId(folderId);
       onChangeCurrentPaneActiveKey(`${id}`);
-      setSelectNode(node?.node);
+      // setSelectNode(node?.node);
     }
     setSelectNodeKeys(value);
   };

@@ -51,8 +51,10 @@ const TemporaryQuery = () => {
         setSelectNodeKeys([`0-${key}-${newPanes[index].title}`]);
         changeOpenNodeId(parseInt(key));
       } else {
+        onChangeCurrentPaneActiveKey("");
         setSelectNodeKeys([]);
         changeOpenNodeId(undefined);
+        onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
       }
     }
     onChangePaneList(newPanes);
@@ -154,15 +156,7 @@ const TemporaryQuery = () => {
               })}
             </Tabs>
             <Spin spinning={doGetNodeInfo.loading}>
-              <div
-                style={{
-                  position: "relative",
-                  width: "calc(100% - 32px)",
-                  height: "calc(40vh - 32px - 32px)",
-                  top: "calc(-40vh + 32px + 32px)",
-                  zIndex: 10,
-                }}
-              >
+              <div className={TemporaryQueryStyle.luckysheet}>
                 {luckysheetData[0].celldata.length > 0 ? (
                   <Luckysheet />
                 ) : (
