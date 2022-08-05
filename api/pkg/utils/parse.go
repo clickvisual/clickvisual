@@ -17,7 +17,7 @@ func ParseAppUrlAndSubUrl(appUrl string) (string, string, error) {
 	if appUrl[len(appUrl)-1] != '/' {
 		appUrl += "/"
 	}
-	// Check if has app suburl.
+	// Check whether contains subpaths;
 	urlParsed, err := url.Parse(appUrl)
 	if err != nil {
 		invoker.Logger.Error("Invalid root_url.", elog.String("url", appUrl), elog.String("error", err.Error()))

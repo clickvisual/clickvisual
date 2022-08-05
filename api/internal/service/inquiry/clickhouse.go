@@ -652,24 +652,28 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Logs = make([]map[string]interface{}, 0)
 	res.Keys = make([]*db.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
-
-	var q string
+	var (
+		defaultSQL  string
+		optimizeSQL string
+	)
 	switch param.AlarmMode {
 	case db.AlarmModeWithInSQL:
-		q = param.Query
+		defaultSQL = param.Query
 	case db.AlarmModeAggregation:
-		q = alarmAggregationSQL(param)
+		defaultSQL = alarmAggregationSQL(param)
 	default:
-		q = c.logsSQL(param, tid)
+		defaultSQL, optimizeSQL = c.logsSQL(param, tid)
 	}
-	res.Logs, err = c.doQuery(q)
+	var execSQL = defaultSQL
+	if optimizeSQL != "" {
+		execSQL = optimizeSQL
+	}
+	res.Logs, err = c.doQuery(execSQL)
 	if err != nil {
 		return
 	}
 	// try again
-	res.Query = q
-	invoker.Logger.Debug("test", elog.Any("step", "GET"), elog.Any("sql", q))
-
+	res.Query = defaultSQL
 	if param.TimeField != db.TimeFieldSecond {
 		for k := range res.Logs {
 			if param.TimeFieldType == db.TimeFieldTypeTsMs {
@@ -1024,7 +1028,7 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 	return
 }
 
-func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
+func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) {
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, _ := db.ViewList(invoker.Db, conds)
@@ -1033,6 +1037,20 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql string) {
 		orderByField = db.TimeFieldNanoseconds
 	}
 	selectFields := genSelectFields(tid)
+	// Request for the first 100 pages of data
+	// optimizing, the idea is to reduce the number of fields involved in operation;
+	if param.Page*param.PageSize <= 100 {
+		timeFieldEqual := c.TimeFieldEqual(param, tid)
+		if timeFieldEqual != "" {
+			optSQL = fmt.Sprintf("SELECT %s FROM %s WHERE %s %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+				selectFields,
+				param.DatabaseTable,
+				timeFieldEqual,
+				c.queryHashTransform(param),
+				param.PageSize, (param.Page-1)*param.PageSize)
+			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
+		}
+	}
 	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
 		param.DatabaseTable,
