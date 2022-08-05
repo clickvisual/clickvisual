@@ -109,7 +109,12 @@ const WorkflowContent = (props: WorkflowContentType) => {
   const Content = useMemo(() => {
     switch (node?.secondary) {
       case SecondaryEnums.dataIntegration:
-        return <IntegratedConfiguration currentNode={node} />;
+        return (
+          <IntegratedConfiguration
+            currentNode={node}
+            currentPaneActiveKey={currentPaneActiveKey}
+          />
+        );
       case SecondaryEnums.dataMining:
         return (
           <WorkflowSql

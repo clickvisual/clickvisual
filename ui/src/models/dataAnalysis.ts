@@ -40,15 +40,15 @@ const DataAnalysis = () => {
   // TODO: 下面所有state需要调整到panes里面去
 
   // 数据集成运行结果的id
-  const [resultId, setResultId] = useState<number>(0);
-  // 打开的文件节点id
+  // const [resultId, setResultId] = useState<number>(0);
+  // // 打开的文件节点id
   const [openNodeId, setOpenNodeId] = useState<number>();
-  // 打开的文件节点父级id
-  const [openNodeParentId, setOpenNodeParentId] = useState<number>();
+  // // 打开的文件节点父级id
+  // const [openNodeParentId, setOpenNodeParentId] = useState<number>();
 
   const [openNodeData, setOpenNodeData] = useState<openNodeDataType>();
-  // 节点修改后的value
-  const [folderContent, setFolderContent] = useState<string>("");
+  // // 节点修改后的value
+  // const [folderContent, setFolderContent] = useState<string>("");
 
   const [userList, setUserList] = useState<any[]>([]);
 
@@ -65,25 +65,25 @@ const DataAnalysis = () => {
     setOpenNodeId(id);
   };
 
-  const changeOpenNodeParentId = (parentId: number) => {
-    setOpenNodeParentId(parentId);
-  };
+  // const changeOpenNodeParentId = (parentId: number) => {
+  //   setOpenNodeParentId(parentId);
+  // };
 
   const changeOpenNodeData = (value: any) => {
     setOpenNodeData(value);
   };
 
-  const changeFolderContent = (str: string) => {
-    setFolderContent(str);
-  };
+  // const changeFolderContent = (str: string) => {
+  //   setFolderContent(str);
+  // };
 
   const onChangeNavKey = (key: string) => {
     setNavKey(key);
   };
 
-  const changeResultId = (num: number) => {
-    setResultId(num);
-  };
+  // const changeResultId = (num: number) => {
+  //   setResultId(num);
+  // };
 
   const onChangeCurrentInstances = (value?: number) => {
     setCurrentInstances(value);
@@ -196,75 +196,75 @@ const DataAnalysis = () => {
       doGetNodeInfo.run(id).then((res: any) => {
         if (res?.code === 0) {
           setOpenNodeData(res.data);
-          changeFolderContent(res.data.content);
+          // changeFolderContent(res.data.content);
         }
       });
   };
 
-  // 是否修改
-  const isUpdateStateFun = () => {
-    return folderContent !== openNodeData?.content;
-  };
+  // // 是否修改
+  // const isUpdateStateFun = () => {
+  //   return folderContent !== openNodeData?.content;
+  // };
 
-  /**文件夹标题*/
+  // /**文件夹标题*/
 
-  // 锁定节点
-  const handleLockFile = (nodeId: number) => {
-    if (openNodeData?.lockAt == 0 && nodeId) {
-      doLockNode.run(nodeId).then((res: any) => {
-        if (res.code == 0) {
-          onGetFolderInfo(nodeId);
-        }
-      });
-    }
-  };
+  // // 锁定节点
+  // const handleLockFile = (nodeId: number) => {
+  //   if (openNodeData?.lockAt == 0 && nodeId) {
+  //     doLockNode.run(nodeId).then((res: any) => {
+  //       if (res.code == 0) {
+  //         onGetFolderInfo(nodeId);
+  //       }
+  //     });
+  //   }
+  // };
 
-  // 解锁节点
-  const handleUnLockFile = (nodeId: number) => {
-    if (isUpdateStateFun()) {
-      message.warning(
-        formatMessage({ id: "bigdata.models.dataAnalysis.unlockTips" })
-      );
-      return;
-    }
-    nodeId &&
-      doUnLockNode.run(nodeId).then((res: any) => {
-        if (res.code == 0) {
-          onGetFolderInfo(nodeId);
-        }
-      });
-  };
+  // // 解锁节点
+  // const handleUnLockFile = (nodeId: number) => {
+  //   if (isUpdateStateFun()) {
+  //     message.warning(
+  //       formatMessage({ id: "bigdata.models.dataAnalysis.unlockTips" })
+  //     );
+  //     return;
+  //   }
+  //   nodeId &&
+  //     doUnLockNode.run(nodeId).then((res: any) => {
+  //       if (res.code == 0) {
+  //         onGetFolderInfo(nodeId);
+  //       }
+  //     });
+  // };
 
-  const handleGrabLock = (file: any) => {
-    manageNode.doMandatoryGetFileLock.run(file?.id).then((res: any) => {
-      if (res.code != 0) return;
-      message.success(
-        formatMessage({ id: "bigdata.components.FileTitle.grabLockSuccessful" })
-      );
-      onGetFolderInfo(file?.id);
-    });
-  };
+  // const handleGrabLock = (file: any) => {
+  //   manageNode.doMandatoryGetFileLock.run(file?.id).then((res: any) => {
+  //     if (res.code != 0) return;
+  //     message.success(
+  //       formatMessage({ id: "bigdata.components.FileTitle.grabLockSuccessful" })
+  //     );
+  //     onGetFolderInfo(file?.id);
+  //   });
+  // };
 
-  // 保存编辑后的文件节点
-  const handleSaveNode = () => {
-    const data: any = {
-      name: openNodeData?.name,
-      content: folderContent,
-      desc: openNodeData?.desc,
-      folderId: openNodeParentId,
-    };
-    openNodeId &&
-      doUpdateNode.run(openNodeId, data).then((res: any) => {
-        if (res.code == 0) {
-          message.success(
-            formatMessage({ id: "log.index.manage.message.save.success" })
-          );
-          onGetFolderInfo(openNodeId);
-        }
-      });
-  };
+  // // 保存编辑后的文件节点
+  // const handleSaveNode = () => {
+  //   const data: any = {
+  //     name: openNodeData?.name,
+  //     content: folderContent,
+  //     desc: openNodeData?.desc,
+  //     folderId: openNodeParentId,
+  //   };
+  //   openNodeId &&
+  //     doUpdateNode.run(openNodeId, data).then((res: any) => {
+  //       if (res.code == 0) {
+  //         message.success(
+  //           formatMessage({ id: "log.index.manage.message.save.success" })
+  //         );
+  //         onGetFolderInfo(openNodeId);
+  //       }
+  //     });
+  // };
 
-  // run
+  // // run
   const handleRunCode = async (nodeId: number, func?: any) => {
     nodeId &&
       doRunCodeNode.run(nodeId).then((res: any) => {
@@ -292,11 +292,11 @@ const DataAnalysis = () => {
     onChangeCurrentInstances,
     onChangeNavKey,
 
-    resultId,
-    changeResultId,
+    // resultId,
+    // changeResultId,
 
-    folderContent,
-    changeFolderContent,
+    // folderContent,
+    // changeFolderContent,
 
     openNodeData,
     changeOpenNodeData,
@@ -304,9 +304,9 @@ const DataAnalysis = () => {
     openNodeId,
     changeOpenNodeId,
 
-    openNodeParentId,
-    changeOpenNodeParentId,
-    isUpdateStateFun,
+    // openNodeParentId,
+    // changeOpenNodeParentId,
+    // isUpdateStateFun,
 
     luckysheetData,
     onChangeLuckysheetData,
@@ -328,11 +328,11 @@ const DataAnalysis = () => {
     doRunCodeNode,
 
     // sqlTitle
-    handleLockFile,
-    handleUnLockFile,
-    handleSaveNode,
+    // handleLockFile,
+    // handleUnLockFile,
+    // handleSaveNode,
     handleRunCode,
-    handleGrabLock,
+    // handleGrabLock,
 
     // histories
     doNodeHistories,

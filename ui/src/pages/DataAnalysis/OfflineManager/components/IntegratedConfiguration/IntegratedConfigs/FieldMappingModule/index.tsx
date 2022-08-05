@@ -57,6 +57,7 @@ const FieldMappingModule = ({
     if (!form.getFieldValue(["target", "table"]) || target?.length == 0) {
       return [];
     }
+
     return [
       {
         id: "target",
@@ -130,7 +131,7 @@ const FieldMappingModule = ({
 
     for (const index in targetFields) {
       const source = sourceFields.find(
-        (item) => item.id === targetFields[index].id
+        (item: any) => item.id === targetFields[index].id
       );
       if (source) {
         mappingData.push({

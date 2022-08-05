@@ -47,7 +47,7 @@ const RightMenu = (props: RightMenuProps) => {
     setCurrentNode,
     doDeletedNode,
     doDeleteFolder,
-    setSelectNode,
+    // setSelectNode,
   } = manageNode;
 
   const handleClickAddWorkflow = useCallback(
@@ -103,7 +103,7 @@ const RightMenu = (props: RightMenuProps) => {
               return;
             }
             if (selectNodeRef.current?.workflowId === currentNode?.id) {
-              setSelectNode(undefined);
+              // setSelectNode(undefined);
               onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
               setUrlState({ nodeId: undefined });
             }

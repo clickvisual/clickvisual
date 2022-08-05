@@ -1,25 +1,20 @@
 import { Card, Form, Input } from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
-import { useModel } from "@@/plugin-model/useModel";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 
 export interface TargetCardProps extends SourceCardProps {
   sourceType?: DataSourceTypeEnums;
+  setTarget: (arr: any[]) => void;
+  setMapping: (arr: any[]) => void;
+  node: any;
 }
 
 const TargetCard = (props: TargetCardProps) => {
-  const { setTargetColumns, setMapping } = useModel(
-    "dataAnalysis",
-    (model) => ({
-      setTargetColumns: model.integratedConfigs.setTargetColumns,
-      setMapping: model.integratedConfigs.setMappingData,
-    })
-  );
-  const { isLock } = props;
+  const { isLock, setMapping, setTarget, node } = props;
 
   const handleChangeColumns = (columns: any[], isChange?: boolean) => {
-    setTargetColumns(columns);
+    setTarget(columns);
     if (!!isChange) setMapping([]);
   };
 
@@ -35,6 +30,7 @@ const TargetCard = (props: TargetCardProps) => {
           {...props}
           itemNamePath={["target"]}
           onChangeColumns={handleChangeColumns}
+          node={node}
         />
         <Form.Item name={["target", "targetBefore"]} label={"导入前语句"}>
           <Input.TextArea

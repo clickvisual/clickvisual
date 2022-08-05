@@ -25,7 +25,7 @@ const DataAnalysis = () => {
     temporaryQuery,
     doGetNodeInfo,
     changeOpenNodeData,
-    changeFolderContent,
+    // changeFolderContent,
   } = useModel("dataAnalysis");
   // const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
   //   "dataanalysis.useFilePane"
@@ -33,7 +33,7 @@ const DataAnalysis = () => {
   const i18n = useIntl();
   const [urlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
-  const { setSelectNode, nodes, setSelectKeys } = manageNode;
+  const { nodes, setSelectKeys } = manageNode;
   const { temporaryQueryNodes, setSelectNodeKeys } = temporaryQuery;
 
   // 获取文件信息
@@ -42,7 +42,7 @@ const DataAnalysis = () => {
       doGetNodeInfo.run(id).then((res: any) => {
         if (res?.code === 0) {
           changeOpenNodeData(res.data);
-          changeFolderContent(res.data.content);
+          // changeFolderContent(res.data.content);
         }
       });
   };
@@ -113,19 +113,7 @@ const DataAnalysis = () => {
         });
         const nodeData = selectNodeData[0];
         if (nodeData) {
-          nodeData && setSelectNode(nodeData);
           const key = `${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`;
-          // const clonePaneList = cloneDeep(paneList);
-          // onChangePaneList([
-          // ...clonePaneList,
-          //   {
-          //     key: openId.toString(),
-          //     title: nodeData?.name || "not name",
-          //     parentId: nodeData.folderId,
-          //     node: nodeData,
-          //   },
-          // ]);
-          // onChangeCurrentPaneActiveKey(`${openId}`);
           if (nodes.length > 0) {
             setSelectKeys([key]);
             return;

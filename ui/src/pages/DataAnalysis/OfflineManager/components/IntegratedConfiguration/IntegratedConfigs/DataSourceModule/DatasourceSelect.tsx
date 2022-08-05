@@ -17,6 +17,8 @@ export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
   onChangeColumns: (columns: any[], isChange?: boolean) => void;
   sourceType?: DataSourceTypeEnums;
+  openModal: any;
+  node: any;
 }
 
 const CancelToken = Request.CancelToken;
@@ -34,13 +36,14 @@ const DatasourceSelect = ({
   isLock,
   onSelectType,
   sourceType,
+  openModal,
+  node,
 }: DatasourceSelectProps) => {
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
   const [sourceTableList, setSourceTableList] = useState<any[]>([]);
   const {
     instances,
-    openModal,
     currentInstance,
     cancelTokenTargetListRef,
     cancelTokenSourceListRef,
@@ -50,7 +53,7 @@ const DatasourceSelect = ({
     cancelTokenSourceTableRef,
     cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef,
-    selectNode,
+    // selectNode,
   } = useModel("dataAnalysis", (model) => ({
     instances: model.instances,
     currentInstance: model.currentInstances,
@@ -59,7 +62,6 @@ const DatasourceSelect = ({
     cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
     cancelTokenTargetRef: model.integratedConfigs.cancelTokenTargetRef,
     cancelTokenSourceRef: model.integratedConfigs.cancelTokenSourceRef,
-    openModal: model.integratedConfigs.openModal,
     cancelTokenTargetTableRef:
       model.integratedConfigs.cancelTokenTargetTableRef,
     cancelTokenSourceTableRef:
@@ -68,7 +70,7 @@ const DatasourceSelect = ({
       model.integratedConfigs.cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef:
       model.integratedConfigs.cancelTokenSourceColumnsRef,
-    selectNode: model.manageNode.selectNode,
+    // selectNode: model.manageNode.selectNode,
   }));
 
   const currentSource = useMemo(() => {
@@ -82,7 +84,7 @@ const DatasourceSelect = ({
   }, []);
 
   const initTypeValue = useMemo(() => {
-    switch (selectNode.tertiary) {
+    switch (node.tertiary) {
       case TertiaryEnums.realtime:
         return (
           itemNamePath.includes("source") && DataSourceTypeEnums.ClickHouse
@@ -96,7 +98,7 @@ const DatasourceSelect = ({
         }
     }
     return undefined;
-  }, [itemNamePath, selectNode]);
+  }, [itemNamePath, node]);
 
   const handleFormUpdate = useCallback((prevValues) => {
     let pre: any;
@@ -109,7 +111,7 @@ const DatasourceSelect = ({
   }, []);
 
   const TypesOptions = useMemo(() => {
-    switch (selectNode.tertiary) {
+    switch (node.tertiary) {
       case TertiaryEnums.realtime:
         if (!itemNamePath.includes("target")) {
           return TypeOptions;
@@ -134,7 +136,7 @@ const DatasourceSelect = ({
       default:
         return TypeOptions;
     }
-  }, [sourceType, selectNode, parentNamePath, currentSource]);
+  }, [sourceType, node, parentNamePath, currentSource]);
 
   const ClusterOptions = useMemo(
     () =>

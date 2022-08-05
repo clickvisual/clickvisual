@@ -77,11 +77,19 @@
     flex: 1;
     flex-direction: column;
     height: 100%;
-    border-left: 1px solid @border-color;
     overflow: hidden;
+    border-left: 1px solid @border-color;
 
     .fileNameList {
       width: 100%;
+    }
+
+    .luckysheet {
+      position: relative;
+      top: calc(-40vh + 32px + 32px);
+      width: calc(100% - 32px);
+      height: calc(40vh - 32px - 32px);
+      z-index: 10;
     }
 
     .empty {

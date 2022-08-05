@@ -6,6 +6,7 @@ import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/config"
 import CustomCollapse from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/CustomCollapse";
 import { useMemo } from "react";
 import { isEqual } from "lodash";
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 
 export interface IntegratedConfigsProps {
   file: any;
@@ -13,6 +14,21 @@ export interface IntegratedConfigsProps {
   form: FormInstance<any>;
   onSubmit: (field: any) => void;
   onFormChange: (changedValues?: any, allValues?: any) => void;
+  node: any;
+  source: any;
+  setSource: (arr: any[]) => void;
+  target: any;
+  setTarget: (arr: any[]) => void;
+  mapping: any;
+  setMapping: (arr: any[]) => void;
+  defaultMappingData: any;
+  openVisible: any;
+  setOpenVisible: (val: boolean) => void;
+  openType: any;
+  setOpenType: (val: OpenTypeEnums | undefined) => void;
+  tableName: any;
+  setTableName: (val: string | undefined) => void;
+  currentPaneActiveKey: string;
 }
 
 const IntegratedConfigs = ({
@@ -21,19 +37,23 @@ const IntegratedConfigs = ({
   form,
   onSubmit,
   onFormChange,
-}: IntegratedConfigsProps) => {
-  const { source, target, mapping, setMapping, defaultMappingData } = useModel(
-    "dataAnalysis",
-    (model) => ({
-      source: model.integratedConfigs.sourceColumns,
-      target: model.integratedConfigs.targetColumns,
-      mapping: model.integratedConfigs.mappingData,
-      defaultMappingData: model.integratedConfigs.defaultMappingData,
-      setMapping: model.integratedConfigs.setMappingData,
-      // selectNode: model.manageNode.selectNode,
-    })
-  );
+  node,
+  source,
+  setSource,
+  target,
+  setTarget,
+  mapping,
+  setMapping,
+  defaultMappingData,
 
+  openVisible,
+  setOpenVisible,
+  openType,
+  setOpenType,
+  tableName,
+  setTableName,
+  currentPaneActiveKey,
+}: IntegratedConfigsProps) => {
   const { currentUser } = useModel("@@initialState").initialState || {};
   const isLock = useMemo(
     () =>
@@ -81,12 +101,27 @@ const IntegratedConfigs = ({
         onValuesChange={onFormChange}
       >
         <CustomCollapse
-          children={<DataSourceModule file={file} form={form} iid={iid} />}
+          children={
+            <DataSourceModule
+              file={file}
+              form={form}
+              iid={iid}
+              setSource={setSource}
+              setTarget={setTarget}
+              setMapping={setMapping}
+              source={source}
+              target={target}
+              openVisible={openVisible}
+              setOpenVisible={setOpenVisible}
+              openType={openType}
+              setOpenType={setOpenType}
+              tableName={tableName}
+              setTableName={setTableName}
+              node={node}
+            />
+          }
           type={CustomCollapseEnums.dataSource}
         />
-        {/* {
-          source?.length > 0 && target?.length > 0 && ()
-        } */}
         <CustomCollapse
           children={
             <FieldMappingModule
@@ -96,7 +131,7 @@ const IntegratedConfigs = ({
               target={target}
               mapping={
                 mapping.length > 0
-                  ? mapping.map((item) => ({
+                  ? mapping.map((item: any) => ({
                       ...item,
                       sourceNode: "source",
                       targetNode: "target",
