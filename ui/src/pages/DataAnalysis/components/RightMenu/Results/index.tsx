@@ -51,14 +51,6 @@ const VersionHistory = (props: {
     );
   };
 
-  console.log(
-    getTime(50000),
-    getTime(70000),
-    getTime(3552002),
-    getTime(2652002),
-    getTime(8689835)
-  );
-
   const getList = (page: number, pageSize: number) => {
     openNodeId &&
       doResultsList
