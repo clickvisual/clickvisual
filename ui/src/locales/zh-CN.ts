@@ -394,7 +394,9 @@ export default {
   "log.index.search.placeholder": "搜索字段",
   "log.index.empty": "暂未创建字段",
   "log.index.item.empty": "暂无数据",
-  "log.index.manage": "字段管理（该功能在 _raw_log_ 字段格式为 JSON 时可用）",
+  "log.index.manage": "字段管理",
+  "log.index.manage.desc":
+    "字段管理（该功能在 _raw_log_ 字段格式为 JSON 时可用）",
   "log.index.help":
     "橙色背景色的字段是系统字段或用户字段，灰色背景色的字段是未设置字段，统计只对配置的字段生效",
   "log.index.manage.table.header.indexName": "字段名称",
