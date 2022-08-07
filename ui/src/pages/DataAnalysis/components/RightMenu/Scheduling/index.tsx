@@ -22,7 +22,6 @@ const Scheduling = (props: {
     doCreatCrontab,
     doUpdateCrontab,
     userList,
-    getUserList,
     // manageNode,
   } = useModel("dataAnalysis");
   // const { selectNode } = manageNode;
@@ -137,12 +136,6 @@ const Scheduling = (props: {
       }
     });
   };
-
-  // 副作用
-
-  useEffect(() => {
-    getUserList();
-  }, []);
 
   useEffect(() => {
     if (node?.id != currentPaneActiveKey) return;
