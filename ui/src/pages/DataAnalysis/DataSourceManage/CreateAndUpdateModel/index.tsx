@@ -157,7 +157,7 @@ const CreateAndUpdateModel = () => {
           name={"password"}
           rules={[{ required: true }]}
         >
-          <Input />
+          <Input.Password />
         </Form.Item>
       </Form>
     </Modal>
