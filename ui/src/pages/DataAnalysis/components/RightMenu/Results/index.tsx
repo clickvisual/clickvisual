@@ -29,8 +29,35 @@ const VersionHistory = (props: {
   } = props;
   const i18n = useIntl();
 
-  const { openNodeId, doResultsList, changeResultId } =
-    useModel("dataAnalysis");
+  const { openNodeId, doResultsList } = useModel("dataAnalysis");
+
+  const getTime = (time: number) => {
+    if (time < 1000) {
+      return time + "ms";
+    }
+    if (1000 <= time && time < 60000) {
+      return time / 1000 + "s";
+    }
+    if (60000 <= time && time < 3600000) {
+      return Math.floor(time / 60000) + "min " + (time % 60000) / 1000 + "s";
+    }
+    return (
+      Math.floor(time / 3600000) +
+      "h " +
+      Math.floor((time % 3600000) / 60000) +
+      "min " +
+      ((time % 3600000) % 60000) / 1000 +
+      "s"
+    );
+  };
+
+  console.log(
+    getTime(50000),
+    getTime(70000),
+    getTime(3552002),
+    getTime(2652002),
+    getTime(8689835)
+  );
 
   const getList = (page: number, pageSize: number) => {
     openNodeId &&
@@ -119,7 +146,7 @@ const VersionHistory = (props: {
       ellipsis: { showTitle: true },
       render: (_: any, record: any) => (
         <Tooltip title={record.cost ? record.cost + "ms" : "unknown"}>
-          {record.cost ? record.cost + "ms" : "unknown"}
+          {record.cost ? getTime(record.cost) : "unknown"}
         </Tooltip>
       ),
     },
@@ -132,7 +159,6 @@ const VersionHistory = (props: {
         <a
           onClick={() => {
             setVisibleResultsItem(true);
-            record.id && changeResultId(record.id);
           }}
         >
           {i18n.formatMessage({
