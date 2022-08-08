@@ -21,7 +21,7 @@ func BuilderFieldsData(mapping string) string {
   %s
   _time_second_ DateTime,
   _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
-  _raw_log_ String
+  _raw_log_ String CODEC(ZSTD(1))
 )
 `, mapping)
 }
@@ -46,7 +46,7 @@ func BuilderFieldsStream(mapping, timeField, timeTyp, logField string) string {
 	return fmt.Sprintf(`(
   %s
   %s %s,
-  %s String
+  %s String CODEC(ZSTD(1))
 )
 `, mapping, timeField, timeTyp, logField)
 }
