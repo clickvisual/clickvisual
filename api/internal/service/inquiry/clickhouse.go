@@ -738,7 +738,9 @@ func (c *ClickHouse) TimeFieldEqual(param view.ReqQuery, tid int) string {
 				if res == "" {
 					res = genTimeConditionEqual(param, t)
 				} else {
-					res = fmt.Sprintf("%s or %s", res, genTimeConditionEqual(param, t))
+					if !strings.Contains(res, genTimeConditionEqual(param, t)) {
+						res = fmt.Sprintf("%s or %s", res, genTimeConditionEqual(param, t))
+					}
 				}
 			default:
 				invoker.Logger.Warn("TimeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("type", reflect.TypeOf(v[param.TimeField])))
