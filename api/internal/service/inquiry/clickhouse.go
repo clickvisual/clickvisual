@@ -543,6 +543,9 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 
 	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
+	if c.mode == ModeCluster {
+		sourceTableName += "_local"
+	}
 
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
@@ -714,7 +717,7 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.HiddenFields = econf.GetStringSlice("app.hiddenFields")
 	res.DefaultFields = econf.GetStringSlice("app.defaultFields")
 	for _, k := range res.Keys {
-		res.DefaultFields = append(res.DefaultFields, k.Field)
+		res.DefaultFields = append(res.DefaultFields, k.GetFieldName())
 	}
 	return
 }

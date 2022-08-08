@@ -275,7 +275,7 @@ func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 	}
 	sql, binds := egorm.BuildQuery(conds)
 	db := invoker.Db.Select("cv_alarm.id").Model(Alarm{}).Preload("User").Joins("JOIN cv_base_table ON cv_alarm.tid = cv_base_table.id").Where(sql, binds...)
-	db.Count(&total)
+	db.Count(&total).Order("id desc")
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }
