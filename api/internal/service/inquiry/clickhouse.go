@@ -1023,7 +1023,7 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 		param.TimeField,
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryHashTransform(param),
+		c.queryTransform(param),
 		param.PageSize*param.Page)
 	invoker.Logger.Debug("logsTimelineSQL", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
@@ -1047,7 +1047,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 				selectFields,
 				param.DatabaseTable,
 				timeFieldEqual,
-				c.queryHashTransform(param),
+				c.queryTransform(param),
 				param.PageSize, (param.Page-1)*param.PageSize)
 			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
 		}
@@ -1056,7 +1056,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 		selectFields,
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryHashTransform(param),
+		c.queryTransform(param),
 		param.PageSize, (param.Page-1)*param.PageSize)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
@@ -1101,7 +1101,54 @@ func genSelectFields(tid int) string {
 	return "*"
 }
 
-func (c *ClickHouse) queryHashTransform(params view.ReqQuery) string {
+func (c *ClickHouse) queryTransform(params view.ReqQuery) string {
+	query := queryTransformHash(params) // hash transform
+	query = queryTransformLike(params)  // _raw_log_ like
+	if query == "" {
+		return query
+	}
+	return fmt.Sprintf("AND %s", query)
+}
+
+func queryTransformLike(params view.ReqQuery) string {
+	if params.Query == "" {
+		return params.Query
+	}
+	table, _ := db.TableInfo(invoker.Db, params.Tid)
+	var query string
+	andArr := likeTransformAndArr(params.Query)
+	if len(andArr) > 0 {
+		for k, item := range andArr {
+			if k == 0 {
+				query = likeTransformField(table, item)
+				continue
+			}
+			query = fmt.Sprintf("%s AND %s", query, likeTransformField(table, item))
+		}
+		return query
+	}
+	return likeTransformField(table, params.Query)
+}
+
+func likeTransformField(table db.BaseTable, query string) string {
+	if strings.Contains(query, "=") || strings.Contains(query, "like") {
+		return query
+	}
+	return likeTransform(table, query)
+}
+
+func likeTransformAndArr(query string) []string {
+	var res = make([]string, 0)
+	if strings.Contains(query, "AND") {
+		res = strings.Split(query, "AND")
+	}
+	if strings.Contains(query, "and") {
+		res = strings.Split(query, "and")
+	}
+	return res
+}
+
+func queryTransformHash(params view.ReqQuery) string {
 	query := params.Query
 	conds := egorm.Conds{}
 	conds["tid"] = params.Tid
@@ -1113,11 +1160,23 @@ func (c *ClickHouse) queryHashTransform(params view.ReqQuery) string {
 		}
 		query = hashTransform(query, index)
 	}
-	invoker.Logger.Debug("countSQL", elog.Any("step", "queryHashTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
+	invoker.Logger.Debug("countSQL", elog.Any("step", "queryTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
 	if query == defaultCondition {
 		return ""
 	}
-	return fmt.Sprintf("AND %s", query)
+	return query
+}
+
+func likeTransform(table db.BaseTable, query string) string {
+	rawLogField := "_raw_log_"
+	if table.CreateType == TableCreateTypeExist {
+		rawLogField = table.RawLogField
+	}
+	query = strings.ReplaceAll(query, "'", "")
+	query = strings.ReplaceAll(query, "\"", "")
+	query = strings.ReplaceAll(query, "`", "")
+	query = strings.TrimSpace(query)
+	return rawLogField + " like '%" + query + "%'"
 }
 
 func hashTransform(query string, index *db.BaseIndex) string {
@@ -1145,7 +1204,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE "+genTimeCondition(param)+" %s",
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryHashTransform(param))
+		c.queryTransform(param))
 	invoker.Logger.Debug("countSQL", elog.Any("step", "countSQL"), elog.Any("param", param), elog.Any("sql", sql))
 	return
 }
@@ -1155,7 +1214,7 @@ func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
 		param.Field,
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryHashTransform(param),
+		c.queryTransform(param),
 		param.Field)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "groupBySQL"), elog.Any("sql", sql))
 	return
