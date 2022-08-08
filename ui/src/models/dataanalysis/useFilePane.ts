@@ -3,7 +3,7 @@ import { useState } from "react";
 export interface PaneItemType {
   key: string;
   title: string;
-  parentId: number;
+  parentId?: number;
   node: any;
 }
 

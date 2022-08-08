@@ -23,9 +23,10 @@ const DataAnalysis = () => {
     changeOpenNodeId,
     manageNode,
     temporaryQuery,
-    doGetNodeInfo,
-    changeOpenNodeData,
+    // doGetNodeInfo,
+    // changeOpenNodeData,
     // changeFolderContent,
+    getUserList,
   } = useModel("dataAnalysis");
   // const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
   //   "dataanalysis.useFilePane"
@@ -37,15 +38,15 @@ const DataAnalysis = () => {
   const { temporaryQueryNodes, setSelectNodeKeys } = temporaryQuery;
 
   // 获取文件信息
-  const onGetFolderInfo = (id: number) => {
-    id &&
-      doGetNodeInfo.run(id).then((res: any) => {
-        if (res?.code === 0) {
-          changeOpenNodeData(res.data);
-          // changeFolderContent(res.data.content);
-        }
-      });
-  };
+  // const onGetFolderInfo = (id: number) => {
+  //   id &&
+  //     doGetNodeInfo.run(id).then((res: any) => {
+  //       if (res?.code === 0) {
+  //         changeOpenNodeData(res.data);
+  //         // changeFolderContent(res.data.content);
+  //       }
+  //     });
+  // };
 
   const NavContent = useMemo(() => {
     if (!currentInstances) {
@@ -72,10 +73,15 @@ const DataAnalysis = () => {
     }
   }, [navKey, currentInstances]);
 
+  // 副作用
+
+  useEffect(() => {
+    getUserList();
+  }, []);
+
   useEffect(() => {
     if (urlState && urlState.nodeId && urlState.nodeId != openNodeId) {
       changeOpenNodeId(parseInt(urlState.nodeId));
-      onGetFolderInfo(parseInt(urlState.nodeId));
       return;
     }
     const openId = onSetLocalData(
@@ -84,7 +90,6 @@ const DataAnalysis = () => {
     );
     if (openId) {
       changeOpenNodeId(openId?.openNodeId);
-      onGetFolderInfo(openId?.openNodeId);
     }
   }, []);
 

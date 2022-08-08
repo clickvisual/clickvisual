@@ -1,8 +1,26 @@
 import { Form, FormInstance, Input, Modal } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel } from "@@/plugin-model/useModel";
+export interface ManageFolderModalType {
+  // // visibleFolder: any;
+  // isEditNode: any;
+  // // extra: any;
+  // callbackRef: any;
+  // hideFolderModal: any;
+  // setCurrentNode: any;
+  // currentNode: any;
+}
 
-const ManageFolderModal = () => {
+const ManageFolderModal = (props: ManageFolderModalType) => {
+  const {
+    // visibleFolder,
+    // isEditNode,
+    // extra,
+    // callbackRef,
+    // hideFolderModal,
+    // setCurrentNode,
+    // currentNode,
+  } = props;
   const formRef = useRef<FormInstance>(null);
   const { manageNode } = useModel("dataAnalysis");
   const {

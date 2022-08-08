@@ -4,34 +4,56 @@ import { useEffect, useMemo, useState } from "react";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
 import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
+import { cloneDeep } from "lodash";
 
 const BoardNode = ({
   node,
   onDelete,
-}: {
+  // showNodeModal,
+  updateBoardNode,
+}: // setExtra,
+// setIsEditNode,
+// setCurrentNode,
+{
   node: any;
   onDelete: (node: any) => void;
+  // showNodeModal: any;
+  updateBoardNode: any;
+  // setExtra: any;
+  // setIsEditNode: any;
+  // setCurrentNode: any;
 }) => {
   const {
     setExtra,
     setIsEditNode,
     setCurrentNode,
     showNodeModal,
-    updateBoardNode,
+    // updateBoardNode,
     // changeOpenNodeId,
     // setSelectNode,
     // onGetFolderInfo,
     setSelectKeys,
+    offlinePaneList,
+    onChangeOfflinePaneList,
+    onChangeCurrentOfflinePaneActiveKey,
+    changeOpenNodeId,
+    nodes,
   } = useModel("dataAnalysis", (model) => ({
     setExtra: model.manageNode.setExtra,
     setIsEditNode: model.manageNode.setIsEditNode,
     setCurrentNode: model.manageNode.setCurrentNode,
     showNodeModal: model.manageNode.showNodeModal,
-    updateBoardNode: model.manageNode.updateBoardNode,
+    // updateBoardNode: model.manageNode.updateBoardNode,
     // changeOpenNodeId: model.changeOpenNodeId,
     // setSelectNode: model.manageNode.setSelectNode,
     // onGetFolderInfo: model.onGetFolderInfo,
     setSelectKeys: model.manageNode.setSelectKeys,
+    offlinePaneList: model.filePane.offlinePaneList,
+    onChangeOfflinePaneList: model.filePane.onChangeOfflinePaneList,
+    onChangeCurrentOfflinePaneActiveKey:
+      model.filePane.onChangeCurrentOfflinePaneActiveKey,
+    changeOpenNodeId: model.changeOpenNodeId,
+    nodes: model.manageNode.nodes,
   }));
   const [clickNum, setClickNum] = useState<number>(0);
   const [timeNum, setTimeNum] = useState<number>(0);
@@ -66,13 +88,32 @@ const BoardNode = ({
           // changeOpenNodeId(node.id);
           setSelectKeys([`${node.workflowId}-${node.id}-${node.name}`]);
           // TODO:
-          // setSelectNode(node);
+          const clonePaneList = cloneDeep(offlinePaneList);
           if (
-            node.tertiary === TertiaryEnums.clickhouse ||
-            node.tertiary === TertiaryEnums.mysql
+            clonePaneList.filter((item: any) => item.key == node.id).length == 0
           ) {
-            // onGetFolderInfo(node.id);
+            const nodeItem = nodes.filter((item: any) => {
+              return item.id == node.id;
+            });
+            onChangeOfflinePaneList([
+              ...clonePaneList,
+              {
+                key: node.id.toString(),
+                title: node.name || "not name",
+                parentId: parseInt(node.parentId),
+                node: nodeItem[0],
+              },
+            ]);
           }
+          onChangeCurrentOfflinePaneActiveKey(`${node.id}`);
+          changeOpenNodeId(node.id);
+          // setSelectNode(node);
+          // if (
+          //   node.tertiary === TertiaryEnums.clickhouse ||
+          //   node.tertiary === TertiaryEnums.mysql
+          // ) {
+          //   onGetFolderInfo(node.id);
+          // }
         }
       }
       setClickNum(0);

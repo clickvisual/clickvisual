@@ -22,7 +22,7 @@ import useLocalStorages, {
   LastDataLogsStateType,
   LocalModuleType,
 } from "@/hooks/useLocalStorages";
-import { cloneDeep, isEqual } from "lodash";
+import { isEqual } from "lodash";
 
 export interface UrlStateType {
   tid?: string | number;
@@ -92,6 +92,7 @@ export default function useLogUrlParams() {
     statisticalChartsHelper,
     // onChangeVisibleDatabaseDraw,
   } = useModel("dataLogs");
+  const { onChangeCurrentlyTableToIid } = useModel("instances");
   const { addLogPane } = logPanesHelper;
   const { activeQueryType, chartSql } = statisticalChartsHelper;
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
@@ -172,6 +173,7 @@ export default function useLogUrlParams() {
         if (res?.code !== 0) {
           return;
         }
+        onChangeCurrentlyTableToIid(res?.data?.database?.iid);
         handleResponse(res, tid, getLastDataLogsState());
       });
     } catch (e) {

@@ -8,13 +8,15 @@ import { useModel } from "umi";
 import { cloneDeep } from "lodash";
 import Luckysheet from "@/components/Luckysheet";
 import { useIntl } from "umi";
-import { SecondaryEnums } from "../service/enums";
+import { PrimaryEnums, SecondaryEnums } from "../service/enums";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const { TabPane } = Tabs;
 
 const OfflineManager = () => {
   const i18n = useIntl();
+  const [urlState] = useUrlState();
   const { onSetLocalData } = useLocalStorages();
   const {
     offlinePaneList,
@@ -25,6 +27,9 @@ const OfflineManager = () => {
     luckysheetData,
     changeOpenNodeId,
     setSelectKeys,
+    nodes,
+    workflowList,
+    getFolders,
   } = useModel("dataAnalysis", (model) => ({
     offlinePaneList: model.filePane.offlinePaneList,
     onChangeOfflinePaneList: model.filePane.onChangeOfflinePaneList,
@@ -35,6 +40,9 @@ const OfflineManager = () => {
     luckysheetData: model.luckysheetData,
     changeOpenNodeId: model.changeOpenNodeId,
     setSelectKeys: model.manageNode.setSelectKeys,
+    nodes: model.manageNode.nodes,
+    workflowList: model.workflow.workflowList,
+    getFolders: model.manageNode.getFolders,
   }));
 
   const panes = useMemo(() => {
@@ -88,10 +96,75 @@ const OfflineManager = () => {
   };
 
   useEffect(() => {
-    if (currentOfflinePaneActiveKey) {
-      changeOpenNodeId(parseInt(currentOfflinePaneActiveKey));
+    if (nodes?.length > 0) {
+      let openId: any;
+
+      if (urlState && urlState.nodeId) {
+        openId = urlState.nodeId;
+      }
+
+      const localOpneId = onSetLocalData(
+        undefined,
+        LocalModuleType.dataAnalysisOpenNodeId
+      );
+
+      if (!urlState?.nodeId && localOpneId) {
+        openId = localOpneId;
+      }
+
+      if (openId) {
+        const nodesItem = nodes?.filter((item: any) => {
+          return item.id == parseInt(openId);
+        });
+        const workflowListItem = workflowList?.filter((workflowItem: any) => {
+          return workflowItem.id == parseInt(openId);
+        });
+        const selectNodeData =
+          nodesItem.length > 0 ? nodesItem : workflowListItem;
+
+        const nodeData: any = selectNodeData[0];
+        if (nodeData) {
+          const clonePaneList = cloneDeep(offlinePaneList);
+          if (
+            clonePaneList.filter((item: any) => item.key == nodeData.id)
+              .length == 0
+          ) {
+            if (nodesItem.length == 0 && workflowListItem[0]) {
+              getFolders
+                .run({
+                  iid: workflowListItem[0].iid,
+                  primary: PrimaryEnums.mining,
+                  workflowId: workflowListItem[0].id,
+                  secondary: SecondaryEnums.board,
+                })
+                .then((res: any) => {
+                  onChangeOfflinePaneList([
+                    ...clonePaneList,
+                    {
+                      key: openId.toString(),
+                      title: nodeData?.name || "not name",
+                      parentId: nodeData.folderId || 0,
+                      node: res.data.nodes[0],
+                    },
+                  ]);
+                });
+            } else {
+              onChangeOfflinePaneList([
+                ...clonePaneList,
+                {
+                  key: openId.toString(),
+                  title: nodeData?.name || "not name",
+                  parentId: nodeData.folderId || 0,
+                  node: nodeData,
+                },
+              ]);
+            }
+            onChangeCurrentOfflinePaneActiveKey(`${openId}`);
+          }
+        }
+      }
     }
-  }, []);
+  }, [nodes, workflowList]);
 
   return (
     <div className={offlineStyles.offlineMain} style={{ background: "#fff" }}>

@@ -10,7 +10,7 @@ import CreatedAndEditorWorkflow from "@/pages/DataAnalysis/OfflineManager/compon
 import { useIntl } from "umi";
 import WorkflowList from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/WorkflowList";
 
-const WorkflowTree = () => {
+const WorkflowTree = (props: {}) => {
   const i18n = useIntl();
   const { workflow, currentInstances } = useModel("dataAnalysis");
   const { isFold, setIsFold, getWorkflows, setWorkflowList } = workflow;

@@ -1,9 +1,8 @@
 import useRequest from "@/hooks/useRequest/useRequest";
 import systemApi, { InstanceType } from "@/services/systemSetting";
 import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
-import useTemporaryQuery, {
-  openNodeDataType,
-} from "@/models/dataanalysis/useTemporaryQuery";
+import useTemporaryQuery from // openNodeDataType,
+"@/models/dataanalysis/useTemporaryQuery";
 import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
 import { useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
@@ -14,7 +13,7 @@ import realtimeApi from "@/services/realTimeTrafficFlow";
 import useIntegratedConfigs from "@/models/dataanalysis/useIntegratedConfigs";
 import dataSourceManageApi from "@/services/dataSourceManage";
 import { formatMessage } from "@@/plugin-locale/localeExports";
-import { message } from "antd";
+// import { message } from "antd";
 import useWorkflowBoard from "@/models/dataanalysis/useWorkflowBoard";
 import useFilePane from "@/models/dataanalysis/useFilePane";
 import { LuckysheetProps } from "@/components/Luckysheet";
@@ -46,7 +45,7 @@ const DataAnalysis = () => {
   // // 打开的文件节点父级id
   // const [openNodeParentId, setOpenNodeParentId] = useState<number>();
 
-  const [openNodeData, setOpenNodeData] = useState<openNodeDataType>();
+  // const [openNodeData, setOpenNodeData] = useState<openNodeDataType>();
   // // 节点修改后的value
   // const [folderContent, setFolderContent] = useState<string>("");
 
@@ -69,9 +68,9 @@ const DataAnalysis = () => {
   //   setOpenNodeParentId(parentId);
   // };
 
-  const changeOpenNodeData = (value: any) => {
-    setOpenNodeData(value);
-  };
+  // const changeOpenNodeData = (value: any) => {
+  //   setOpenNodeData(value);
+  // };
 
   // const changeFolderContent = (str: string) => {
   //   setFolderContent(str);
@@ -190,16 +189,16 @@ const DataAnalysis = () => {
     loadingText: false,
   });
 
-  // 获取文件信息
-  const onGetFolderInfo = (id: number) => {
-    id &&
-      doGetNodeInfo.run(id).then((res: any) => {
-        if (res?.code === 0) {
-          setOpenNodeData(res.data);
-          // changeFolderContent(res.data.content);
-        }
-      });
-  };
+  // // 获取文件信息
+  // const onGetFolderInfo = (id: number) => {
+  //   id &&
+  //     doGetNodeInfo.run(id).then((res: any) => {
+  //       if (res?.code === 0) {
+  //         setOpenNodeData(res.data);
+  //         // changeFolderContent(res.data.content);
+  //       }
+  //     });
+  // };
 
   // // 是否修改
   // const isUpdateStateFun = () => {
@@ -298,8 +297,8 @@ const DataAnalysis = () => {
     // folderContent,
     // changeFolderContent,
 
-    openNodeData,
-    changeOpenNodeData,
+    // openNodeData,
+    // changeOpenNodeData,
 
     openNodeId,
     changeOpenNodeId,
@@ -311,7 +310,7 @@ const DataAnalysis = () => {
     luckysheetData,
     onChangeLuckysheetData,
 
-    onGetFolderInfo,
+    // onGetFolderInfo,
 
     doGetInstance,
     doGetDatabase,

@@ -66,6 +66,12 @@ const DataAnalysisNav = () => {
     },
   ];
 
+  useEffect(() => {
+    if ((!urlState || !urlState.navKey) && !dataAnalysisNavKey) {
+      onChangeNavKey(BigDataNavEnum.RealTimeTrafficFlow);
+    }
+  }, []);
+
   const dataAnalysisNavKey = localStorage.getItem("data-analysis-nav-key");
 
   useEffect(() => {
@@ -83,12 +89,6 @@ const DataAnalysisNav = () => {
     setUrlState({ navKey: navKey, nodeId: openNodeId });
     onSetLocalData({ openNodeId }, LocalModuleType.dataAnalysisOpenNodeId);
   }, [openNodeId, navKey]);
-
-  useEffect(() => {
-    if ((!urlState || !urlState.navKey) && !dataAnalysisNavKey) {
-      onChangeNavKey(BigDataNavEnum.RealTimeTrafficFlow);
-    }
-  }, []);
 
   return (
     <div className={style.nav}>

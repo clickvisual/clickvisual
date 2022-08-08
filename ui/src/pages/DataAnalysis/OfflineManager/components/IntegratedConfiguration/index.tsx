@@ -3,7 +3,7 @@ import FileTitle, {
 } from "@/pages/DataAnalysis/components/FileTitle";
 import IntegratedConfigs from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs";
 import { Form, Spin } from "antd";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 import message from "antd/es/message";
@@ -236,6 +236,12 @@ const IntegratedConfiguration = ({
   useMemo(() => {
     if (currentNode?.id == currentPaneActiveKey) doGetNodeInfo(currentNode.id);
   }, []);
+
+  // 看板打开修改key会慢初始化一步，从看板打开的文件的key初始化是看板的key
+  useEffect(() => {
+    if (currentNode?.id == currentPaneActiveKey && !nodeInfo)
+      doGetNodeInfo(currentNode.id);
+  }, [currentPaneActiveKey, currentNode?.id]);
 
   const iid = useMemo(() => currentNode.iid, [currentNode.iid]);
 

@@ -80,7 +80,17 @@ const folderTree = (
   return result;
 };
 
-const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
+const WorkflowLine = ({
+  workflow,
+}: // boardNodeList,
+// updateBoardNode,
+// createBoardNode,
+{
+  workflow: WorkflowInfo;
+  // boardNodeList: any;
+  // updateBoardNode: any;
+  // createBoardNode: any;
+}) => {
   const i18n = useIntl();
 
   const workflowItem: any = useMemo(
@@ -105,11 +115,10 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     setSelectKeys,
     selectKeys,
     createdNode,
-    boardNodeList,
-    updateBoardNode,
-    createBoardNode,
+    // allBoardNodeList,
+    // updateBoardNode,
+    // createBoardNode,
     doSetNodesAndFolders,
-    onGetFolderInfo,
 
     cancelTokenTargetListRef,
     cancelTokenSourceListRef,
@@ -133,11 +142,10 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     currentInstances: model.currentInstances,
     nodes: model.manageNode.nodes,
     folders: model.manageNode.folders,
-    boardNodeList: model.manageNode.boardNodeList,
-    updateBoardNode: model.manageNode.updateBoardNode,
-    createBoardNode: model.manageNode.createBoardNode,
+    // allBoardNodeList: model.manageNode.allBoardNodeList,
+    // updateBoardNode: model.manageNode.updateBoardNode,
+    // createBoardNode: model.manageNode.createBoardNode,
     doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
-    onGetFolderInfo: model.onGetFolderInfo,
 
     cancelTokenTargetListRef: model.dataSourceManage.cancelTokenTargetListRef,
     cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
@@ -182,40 +190,35 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
 
     const { currentNode, nodeType } = node;
     setSelectKeys([node.key]);
-    const id = parseInt(node?.currentNode?.id);
-    const folderId = parseInt(node?.currentNode?.folderId);
+    const id = parseInt(currentNode?.id);
+    const folderId = parseInt(currentNode?.folderId);
     const clonePaneList = cloneDeep(offlinePaneList);
+
     if (nodeType === NodeType.node) {
       if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
         onChangeOfflinePaneList([
           ...clonePaneList,
           {
             key: id.toString(),
-            title: node?.currentNode?.name || "not name",
+            title: currentNode?.name || "not name",
             parentId: folderId,
-            node: node?.currentNode,
+            node: currentNode,
           },
         ]);
-        onGetFolderInfo(id);
       }
       onChangeCurrentOfflinePaneActiveKey(`${id}`);
       changeOpenNodeId(id);
-      // TODO:
-      // setSelectNode(currentNode);
-      currentNode.secondary == SecondaryEnums.dataMining &&
-        onGetFolderInfo(currentNode.id);
     } else if (nodeType === NodeType.board) {
       if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
         onChangeOfflinePaneList([
           ...clonePaneList,
           {
             key: id.toString(),
-            title: node?.currentNode?.name || "not name",
-            parentId: folderId,
-            node: node?.currentNode.board,
+            title: currentNode?.name || "not name",
+            parentId: 0,
+            node: currentNode.board,
           },
         ]);
-        onGetFolderInfo(id);
       }
       onChangeCurrentOfflinePaneActiveKey(`${id}`);
       changeOpenNodeId(id);
@@ -226,11 +229,15 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
   const handleCloseModal = useCallback(
     (params?: any) => {
       if (!currentInstances) return;
-      if (params) {
-        const isUpdate =
-          boardNodeList.findIndex((item) => item.id === params.id) > -1;
-        isUpdate ? updateBoardNode(params) : createBoardNode(params);
-      }
+      // TODO: 注释需要解开 暂未实现
+
+      // if (params) {
+      //   const isUpdate =
+      //     allBoardNodeList && allBoardNodeList[params.workflowId.toString()];
+      //   console.log(isUpdate, "isUpdate", allBoardNodeList);
+
+      //   // isUpdate ? updateBoardNode(params) : createBoardNode(params);
+      // }
       doSetNodesAndFolders({
         iid: currentInstances,
         primary: PrimaryEnums.mining,

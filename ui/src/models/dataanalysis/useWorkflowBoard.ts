@@ -5,14 +5,14 @@ import {
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
 
-type BoardCreateNodeInfo = {
+export interface BoardCreateNodeInfo {
   x: number;
   y: number;
   nodeType: string;
   tertiary: TertiaryEnums;
   secondary: SecondaryEnums;
   nodeInfo: any;
-};
+}
 
 const useWorkflowBoard = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

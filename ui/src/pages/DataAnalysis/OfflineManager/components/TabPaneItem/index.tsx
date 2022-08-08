@@ -10,7 +10,7 @@ export interface TabPaneItemType {
   id: number;
   node: any;
   currentOfflinePaneActiveKey: string;
-  parentId: number;
+  parentId?: number;
 }
 
 const TabPaneItem = (props: TabPaneItemType) => {
