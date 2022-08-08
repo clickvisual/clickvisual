@@ -274,20 +274,21 @@ func TableCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqTableCreat
 		return
 	}
 	tableInfo = db.BaseTable{
-		Did:            databaseInfo.ID,
-		Name:           param.TableName,
-		Typ:            param.Typ,
-		Days:           param.Days,
-		Brokers:        param.Brokers,
-		Topic:          param.Topics,
-		Desc:           param.Desc,
-		SqlData:        d,
-		SqlStream:      s,
-		SqlView:        v,
-		SqlDistributed: a,
-		TimeField:      db.TimeFieldSecond,
-		CreateType:     inquiry.TableCreateTypeCV,
-		Uid:            uid,
+		Did:                     databaseInfo.ID,
+		Name:                    param.TableName,
+		Typ:                     param.Typ,
+		Days:                    param.Days,
+		Brokers:                 param.Brokers,
+		Topic:                   param.Topics,
+		Desc:                    param.Desc,
+		SqlData:                 d,
+		SqlStream:               s,
+		SqlView:                 v,
+		SqlDistributed:          a,
+		TimeField:               db.TimeFieldSecond,
+		CreateType:              inquiry.TableCreateTypeCV,
+		Uid:                     uid,
+		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
 	}
 	err = db.TableCreate(invoker.Db, &tableInfo)
 	if err != nil {

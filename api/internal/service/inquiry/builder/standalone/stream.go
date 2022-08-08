@@ -33,9 +33,7 @@ func (b *StreamBuilder) BuilderWhere() {
 }
 
 func (b *StreamBuilder) BuilderEngine() {
-	b.QueryAssembly.Result += fmt.Sprintf("ENGINE = Kafka SETTINGS kafka_broker_list = '%s', kafka_topic_list = '%s', kafka_group_name = '%s', kafka_format = 'JSONEachRow', kafka_num_consumers = %d\n",
-		b.QueryAssembly.Params.Stream.Brokers, b.QueryAssembly.Params.Stream.Topic,
-		b.QueryAssembly.Params.Stream.Group, b.QueryAssembly.Params.Stream.ConsumerNum)
+	b.QueryAssembly.Result += common.BuilderEngineStream(b.QueryAssembly.Params.Stream)
 }
 
 func (b *StreamBuilder) BuilderOrder() {}

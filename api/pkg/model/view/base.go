@@ -137,13 +137,14 @@ type ReqTableUpdate struct {
 }
 
 type ReqTableCreate struct {
-	TableName string `form:"tableName" binding:"required"`
-	Typ       int    `form:"typ" binding:"required"`
-	Days      int    `form:"days" binding:"required"`
-	Brokers   string `form:"brokers" binding:"required"`
-	Topics    string `form:"topics" binding:"required"`
-	Consumers int    `form:"consumers" binding:"required"`
-	Desc      string `form:"desc"`
+	TableName               string `form:"tableName" binding:"required"`
+	Typ                     int    `form:"typ" binding:"required"`
+	Days                    int    `form:"days" binding:"required"`
+	Brokers                 string `form:"brokers" binding:"required"`
+	Topics                  string `form:"topics" binding:"required"`
+	Consumers               int    `form:"consumers" binding:"required"`
+	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
+	Desc                    string `form:"desc"`
 }
 
 type ReqTableId struct {

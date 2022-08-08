@@ -31,12 +31,13 @@ type ParamsData struct {
 }
 
 type ParamsStream struct {
-	TableName   string
-	TimeTyp     string
-	Brokers     string
-	Topic       string
-	Group       string
-	ConsumerNum int
+	TableName               string
+	TimeTyp                 string
+	Brokers                 string
+	Topic                   string
+	Group                   string
+	ConsumerNum             int
+	KafkaSkipBrokenMessages int
 }
 
 type ParamsView struct {
