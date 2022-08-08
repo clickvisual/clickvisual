@@ -76,6 +76,9 @@ const LogLibraryList = (props: LogLibraryListProps) => {
         onChangeSelectKeys([`table-${lastDataLogsState?.tid}`]);
         // 三层循环查找替换 tid版
         expandParent(list, parseInt(lastDataLogsState.tid.toString()));
+      } else {
+        // 展开所有实例
+        expandParent(list, NaN);
       }
   }, [lastDataLogsState.tid]);
 

@@ -17,6 +17,8 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     visibleCreatedDatabaseModal,
     onChangeCreatedDatabaseModal,
     createdDatabase,
+    createDatabaseCurrentInstance,
+    onChangeCreateDatabaseCurrentInstance,
   } = useModel("database");
   // const { doGetDatabaseList } = useModel("dataLogs");
   const { instanceList, getInstanceList } = useModel("instances");
@@ -53,6 +55,16 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     if (instanceList?.length == 0) {
       getInstanceList.run();
     }
+  }, [visibleCreatedDatabaseModal]);
+
+  useEffect(() => {
+    if (visibleCreatedDatabaseModal && createDatabaseCurrentInstance) {
+      databaseFormRef.current?.setFieldsValue({
+        iid: createDatabaseCurrentInstance,
+      });
+      return;
+    }
+    onChangeCreateDatabaseCurrentInstance(undefined);
   }, [visibleCreatedDatabaseModal]);
 
   return (

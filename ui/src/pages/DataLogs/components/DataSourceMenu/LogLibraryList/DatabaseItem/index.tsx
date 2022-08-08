@@ -143,10 +143,7 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
         overlayClassName={logLibraryListStyles.logLibraryToolTip}
         overlayInnerStyle={{ width: 300 }}
       >
-        <div style={{ width: "100%" }}>
-          {databasesItem.databaseName}
-          {databasesItem.desc.length > 0 ? " | " + databasesItem.desc : ""}
-        </div>
+        <div style={{ width: "100%" }}>{databasesItem.databaseName}</div>
       </Tooltip>
     </Dropdown>
   );
