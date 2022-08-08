@@ -317,12 +317,13 @@ func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqT
 	}
 	streamParams := bumo.Params{
 		Stream: bumo.ParamsStream{
-			TableName:   dStreamName,
-			TimeTyp:     timeTyp,
-			Brokers:     ct.Brokers,
-			Topic:       ct.Topics,
-			Group:       database.Name + "_" + ct.TableName,
-			ConsumerNum: ct.Consumers,
+			TableName:               dStreamName,
+			TimeTyp:                 timeTyp,
+			Brokers:                 ct.Brokers,
+			Topic:                   ct.Topics,
+			Group:                   database.Name + "_" + ct.TableName,
+			ConsumerNum:             ct.Consumers,
+			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
 		},
 	}
 
@@ -1321,12 +1322,13 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Stream: bumo.ParamsStream{
-			TableName:   dStreamName,
-			TimeTyp:     timeTyp,
-			Brokers:     ct.Brokers,
-			Topic:       ct.Topics,
-			Group:       database.Name + "_" + ct.TableName,
-			ConsumerNum: ct.Consumers,
+			TableName:               dStreamName,
+			TimeTyp:                 timeTyp,
+			Brokers:                 ct.Brokers,
+			Topic:                   ct.Topics,
+			Group:                   database.Name + "_" + ct.TableName,
+			ConsumerNum:             ct.Consumers,
+			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
 		},
 	}
 

@@ -73,3 +73,19 @@ FROM %s
 `,
 		mapping, paramsView.TimeConvert, logField, paramsView.CommonFields, paramsView.SourceTable)
 }
+
+func BuilderEngineStream(stream bumo.ParamsStream) string {
+	return fmt.Sprintf(`ENGINE = Kafka SETTINGS kafka_broker_list = '%s', 
+kafka_topic_list = '%s', 
+kafka_group_name = '%s', 
+kafka_format = 'JSONEachRow', 
+kafka_num_consumers = %d,
+kafka_skip_broken_messages = %d
+`,
+		stream.Brokers,
+		stream.Topic,
+		stream.Group,
+		stream.ConsumerNum,
+		stream.KafkaSkipBrokenMessages)
+
+}
