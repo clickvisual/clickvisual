@@ -114,7 +114,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
   return (
     <div
       className={logLibraryListStyles.logLibraryListMain}
-      style={{ width: `${resizeMenuWidth}px` }}
+      style={{ width: `${resizeMenuWidth - 10}px` }}
     >
       <Spin
         spinning={doGetAllInstances.loading}

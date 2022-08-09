@@ -3,6 +3,7 @@ import { useIntl, useModel } from "umi";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
 import MenuItem from "antd/lib/menu/MenuItem";
 import { PlusSquareOutlined } from "@ant-design/icons";
+import IconFont from "@/components/IconFont";
 
 const InstanceItem = (props: { instanceItem: any }) => {
   const {
@@ -53,7 +54,10 @@ const InstanceItem = (props: { instanceItem: any }) => {
         overlayClassName={logLibraryListStyles.logLibraryToolTip}
         overlayInnerStyle={{ width: 300 }}
       >
-        <div style={{ width: "100%" }}>{instanceItem.instanceName}</div>
+        <div style={{ width: "100%" }}>
+          <IconFont type="icon-instance" style={{ marginRight: "4px" }} />
+          {instanceItem.instanceName}
+        </div>
       </Tooltip>
     </Dropdown>
   );

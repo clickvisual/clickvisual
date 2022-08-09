@@ -289,7 +289,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             // onMouseLeave={() => setMouseEnter(false)}
             className={classNames(logLibraryListStyles.title)}
           >
-            <FileTextOutlined style={{ marginRight: "4px" }} />
+            <IconFont type="icon-table" style={{ marginRight: "4px" }} />
             {logLibrary.tableName}
           </span>
         </Tooltip>
