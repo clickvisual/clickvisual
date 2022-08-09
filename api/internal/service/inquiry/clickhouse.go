@@ -1028,7 +1028,7 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 		param.TimeField,
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryTransform(param),
+		c.queryTransform(param, true),
 		param.PageSize*param.Page)
 	invoker.Logger.Debug("logsTimelineSQL", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
@@ -1052,18 +1052,18 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 				selectFields,
 				param.DatabaseTable,
 				timeFieldEqual,
-				c.queryTransform(param),
+				c.queryTransform(param, true),
 				param.PageSize, (param.Page-1)*param.PageSize)
 			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
 		}
 	}
-	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+"%s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryTransform(param),
+		c.queryTransform(param, false),
 		param.PageSize, (param.Page-1)*param.PageSize)
-	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
+	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql), elog.Any("optSQL", optSQL))
 	return
 }
 
@@ -1106,9 +1106,11 @@ func genSelectFields(tid int) string {
 	return "*"
 }
 
-func (c *ClickHouse) queryTransform(params view.ReqQuery) string {
-	query := queryTransformHash(params) // hash transform
-	query = queryTransformLike(params)  // _raw_log_ like
+func (c *ClickHouse) queryTransform(params view.ReqQuery, isOptimized bool) string {
+	if isOptimized {
+		params.Query = queryTransformHash(params) // hash transform
+	}
+	query := queryTransformLike(params) // _raw_log_ like
 	if query == "" {
 		return query
 	}
@@ -1186,15 +1188,19 @@ func likeTransform(table db.BaseTable, query string) string {
 
 func hashTransform(query string, index *db.BaseIndex) string {
 	var (
-		key              = index.Field
+		key              = index.GetFieldName()
 		hashTyp          = index.HashTyp
 		hashFieldName, _ = index.GetHashFieldName()
 	)
 	if strings.Contains(query, key+"=") && (hashTyp == 1 || hashTyp == 2) {
 		r, _ := regexp.Compile(key + "='(\\S*)'")
 		val := r.FindString(query)
+		invoker.Logger.Debug("hashTransform", elog.Any("step", "1"), elog.Any("val", val))
 		val = strings.Replace(val, key+"=", "", 1)
+		invoker.Logger.Debug("hashTransform", elog.Any("step", "2"), elog.Any("val", val))
+		invoker.Logger.Debug("hashTransform", elog.Any("step", "3"), elog.Any("query", query))
 		query = strings.Replace(query, key+"=", hashFieldName+"=", 1)
+		invoker.Logger.Debug("hashTransform", elog.Any("step", "4"), elog.Any("query", query))
 		if hashTyp == db.HashTypeSip {
 			query = strings.Replace(query, val, fmt.Sprintf("sipHash64(%s)", val), 1)
 		}
@@ -1209,7 +1215,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE "+genTimeCondition(param)+" %s",
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryTransform(param))
+		c.queryTransform(param, true))
 	invoker.Logger.Debug("countSQL", elog.Any("step", "countSQL"), elog.Any("param", param), elog.Any("sql", sql))
 	return
 }
@@ -1219,7 +1225,7 @@ func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
 		param.Field,
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryTransform(param),
+		c.queryTransform(param, true),
 		param.Field)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "groupBySQL"), elog.Any("sql", sql))
 	return
