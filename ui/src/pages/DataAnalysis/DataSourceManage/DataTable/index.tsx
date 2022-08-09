@@ -89,7 +89,7 @@ const DataTable = () => {
       render: (_: any, record: SourceInfoType) => (
         <>
           {record.ctime &&
-            moment(record.ctime * 1000).format("YYYY-MM-DD hh:mm:ss")}
+            moment(record.ctime * 1000).format("YYYY-MM-DD HH:mm:ss")}
         </>
       ),
     },

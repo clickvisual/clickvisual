@@ -237,9 +237,9 @@ const AlarmTable = () => {
       width: "130px",
       align: "center",
       render: (utime: any) => (
-        <Tooltip title={moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss")}>
+        <Tooltip title={moment(utime * 1000).format("YYYY-MM-DD HH:mm:ss")}>
           <div className={alarmStyles.columnsEllipsis}>
-            <span>{moment(utime * 1000).format("MM-DD hh:mm:ss")}</span>
+            <span>{moment(utime * 1000).format("MM-DD HH:mm:ss")}</span>
           </div>
         </Tooltip>
       ),

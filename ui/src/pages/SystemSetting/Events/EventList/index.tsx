@@ -58,8 +58,9 @@ const EventList = ({ loading, data, loadList }: EventListProps) => {
                 title={item.userName}
                 description={
                   <span>
-                    {moment(item.ctime * 1000).format("YYYY-MM-DD hh:mm:ss")} &nbsp;
-                      {item.sourceName}&nbsp;-&gt;&nbsp;
+                    {moment(item.ctime * 1000).format("YYYY-MM-DD HH:mm:ss")}{" "}
+                    &nbsp;
+                    {item.sourceName}&nbsp;-&gt;&nbsp;
                     {item.operationName}
                   </span>
                 }
