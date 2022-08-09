@@ -2,7 +2,11 @@ package storage
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
+
+	"github.com/ego-component/egorm"
+	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
@@ -92,4 +96,45 @@ func Create(c *core.Context) {
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
 	c.JSONOK()
+}
+
+// AnalysisFields  godoc
+// @Summary	     Storage analysis field list
+// @Description  Storage analysis field list
+// @Tags         storage
+// @Accept       json
+// @Produce      json
+// @Param        storage-id path int true "table id"
+// @Success      200 {object} view.RespStorageAnalysisFields
+// @Router       /api/v2/storage/{storage-id}/analysis-fields [get]
+func AnalysisFields(c *core.Context) {
+	storageId := cast.ToInt(c.Param("storage-id"))
+	if storageId == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	res := view.RespStorageAnalysisFields{}
+	// Read the index data
+	conds := egorm.Conds{}
+	conds["tid"] = storageId
+	fields, _ := db.IndexList(conds)
+	for _, row := range fields {
+		res.Keys = append(res.Keys, view.StorageAnalysisField{
+			Id:       row.ID,
+			Tid:      row.Tid,
+			Field:    row.Field,
+			RootName: row.RootName,
+			Typ:      row.Typ,
+			HashTyp:  row.HashTyp,
+			Alias:    row.Alias,
+			Ctime:    row.Ctime,
+			Utime:    row.Utime,
+		})
+	}
+	// keys sort by the first letter
+	sort.Slice(res.Keys, func(i, j int) bool {
+		return res.Keys[i].Field < res.Keys[j].Field
+	})
+	c.JSONE(core.CodeOK, "succ", res)
+	return
 }

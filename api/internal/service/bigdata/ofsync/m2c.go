@@ -110,13 +110,7 @@ func (c *MySQL2ClickHouse) Stop() error {
 	return nil
 }
 
-// materializedView
-// @Description: Insert data directly using the insert way, don't use the table in the middle of the way;
-// @Description: INSERT INTO [db.]table [(c1, c2, c3)] select * from mysql('host:port', 'db', 'table_name', 'user', 'password')
-// @receiver c
-// @param ins
-// @return string
-// @return error
+// materializedView ...
 func (c *MySQL2ClickHouse) materializedView(ins db.BaseInstance) (string, error) {
 	viewClusterInfo := materialView(c.sc)
 	if ins.Mode == inquiry.ModeCluster {
@@ -138,12 +132,6 @@ func (c *MySQL2ClickHouse) materializedView(ins db.BaseInstance) (string, error)
 }
 
 // insert into `local_mex_2`.`test_0701` select * from `local_mex_2`.`clickvisualrtsync_test_0701_view`
-// @Description: Insert data directly using the insert way, don't use the table in the middle of the way;
-// @Description: INSERT INTO [db.]table [(c1, c2, c3)] select * from mysql('host:port', 'db', 'table_name', 'user', 'password')
-// @receiver c
-// @param ins
-// @param viewTableName
-// @return error
 func (c *MySQL2ClickHouse) insert(ins db.BaseInstance) error {
 	sourceTableName := fmt.Sprintf("`%s`.`%s`", mysqlEngineDatabaseName(c.sc), c.sc.Source.Table)
 	targetTableName := fmt.Sprintf("`%s`.`%s`", c.sc.Target.Database, c.sc.Target.Table)

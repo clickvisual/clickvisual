@@ -401,6 +401,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "name": "kafkaSkipBrokenMessages",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "rawLogField",
                         "in": "query",
@@ -474,6 +479,38 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/view.MappingStruct"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/storage/{storage-id}/analysis-fields": {
+            "get": {
+                "description": "Storage analysis field list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Storage analysis field list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "table id",
+                        "name": "storage-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/view.RespStorageAnalysisFields"
                         }
                     }
                 }
@@ -722,6 +759,17 @@ const docTemplate = `{
                 }
             }
         },
+        "view.RespStorageAnalysisFields": {
+            "type": "object",
+            "properties": {
+                "keys": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.StorageAnalysisField"
+                    }
+                }
+            }
+        },
         "view.RespTableSimple": {
             "type": "object",
             "properties": {
@@ -844,6 +892,38 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "tertiary": {
+                    "type": "integer"
+                }
+            }
+        },
+        "view.StorageAnalysisField": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "ctime": {
+                    "type": "integer"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "hashTyp": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "rootName": {
+                    "type": "string"
+                },
+                "tid": {
+                    "type": "integer"
+                },
+                "typ": {
+                    "type": "integer"
+                },
+                "utime": {
                     "type": "integer"
                 }
             }
