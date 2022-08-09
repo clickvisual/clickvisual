@@ -3,10 +3,15 @@ package inquiry
 import (
 	"testing"
 
+	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func Test_hashTransform(t *testing.T) {
+	invoker.Logger = elog.DefaultLogger
+	invoker.Logger.SetLevel(elog.DebugLevel)
 	type args struct {
 		query string
 		index *db.BaseIndex
@@ -38,6 +43,18 @@ func Test_hashTransform(t *testing.T) {
 				},
 			},
 			want: "url='123' and _inner_urlhash_application_=URLHash('xx-xxx') and url='123'",
+		},
+		{
+			name: "test-3",
+			args: args{
+				query: "body.tag='123'",
+				index: &db.BaseIndex{
+					Field:    "tag",
+					HashTyp:  2,
+					RootName: "body",
+				},
+			},
+			want: "_inner_urlhash_body.tag_=URLHash('123')",
 		},
 	}
 	for _, tt := range tests {
