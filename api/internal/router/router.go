@@ -264,6 +264,8 @@ func GetRouter() *egin.Component {
 	{
 		v2.POST("/storage", core.Handle(storage.Create))
 		v2.POST("/storage/mapping-json", core.Handle(storage.KafkaJsonMapping))
+		v2.GET("/storage/:storage-id/analysis-fields", core.Handle(storage.AnalysisFields))
+
 	}
 	return r
 }

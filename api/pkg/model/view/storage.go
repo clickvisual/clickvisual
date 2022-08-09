@@ -101,3 +101,19 @@ func (m *MappingStructItem) Assemble(withType bool) string {
 	}
 	return fmt.Sprintf("`%s`,", m.Key)
 }
+
+type RespStorageAnalysisFields struct {
+	Keys []StorageAnalysisField `json:"keys"`
+}
+
+type StorageAnalysisField struct {
+	Id       int    `json:"id"`
+	Tid      int    `json:"tid"`
+	Field    string `json:"field"`
+	RootName string `json:"rootName"`
+	Typ      int    `json:"typ"`
+	HashTyp  int    `json:"hashTyp"`
+	Alias    string `json:"alias"`
+	Ctime    int64  `json:"ctime"`
+	Utime    int64  `json:"utime"`
+}

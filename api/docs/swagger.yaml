@@ -158,6 +158,13 @@ definitions:
       total:
         type: integer
     type: object
+  view.RespStorageAnalysisFields:
+    properties:
+      keys:
+        items:
+          $ref: '#/definitions/view.StorageAnalysisField'
+        type: array
+    type: object
   view.RespTableSimple:
     properties:
       createType:
@@ -241,6 +248,27 @@ definitions:
         description: unknown 0; success 1; failed 2
         type: integer
       tertiary:
+        type: integer
+    type: object
+  view.StorageAnalysisField:
+    properties:
+      alias:
+        type: string
+      ctime:
+        type: integer
+      field:
+        type: string
+      hashTyp:
+        type: integer
+      id:
+        type: integer
+      rootName:
+        type: string
+      tid:
+        type: integer
+      typ:
+        type: integer
+      utime:
         type: integer
     type: object
   view.WorkerStatsRow:
@@ -515,6 +543,9 @@ paths:
         name: desc
         type: string
       - in: query
+        name: kafkaSkipBrokenMessages
+        type: integer
+      - in: query
         name: rawLogField
         required: true
         type: string
@@ -548,6 +579,27 @@ paths:
           schema:
             type: string
       summary: Creating a log library
+      tags:
+      - storage
+  /api/v2/storage/{storage-id}/analysis-fields:
+    get:
+      consumes:
+      - application/json
+      description: Storage analysis field list
+      parameters:
+      - description: table id
+        in: path
+        name: storage-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/view.RespStorageAnalysisFields'
+      summary: Storage analysis field list
       tags:
       - storage
   /api/v2/storage/mapping-json:
