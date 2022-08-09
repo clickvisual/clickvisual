@@ -2,13 +2,18 @@ import style from "@/pages/DataAnalysis/components/SQLEditor/index.less";
 import MonacoEditor from "react-monaco-editor";
 import { useModel } from "umi";
 
-const EditorContent = () => {
-  const { openNodeData, changeFolderContent, folderContent } =
-    useModel("dataAnalysis");
+export interface EditorContentType {
+  file: any;
+  folderContent: string;
+  setFolderContent: (str: string) => void;
+}
+
+const EditorContent = (props: EditorContentType) => {
+  const { file, folderContent, setFolderContent } = props;
   const { currentUser } = useModel("@@initialState").initialState || {};
 
   const onChangeFolderContent = (value: string) => {
-    changeFolderContent(value);
+    setFolderContent(value);
   };
 
   return (
@@ -23,7 +28,7 @@ const EditorContent = () => {
           minimap: {
             enabled: true,
           },
-          readOnly: !(openNodeData && openNodeData.lockUid === currentUser?.id),
+          readOnly: !(file && file.lockUid === currentUser?.id),
         }}
         value={folderContent}
         onChange={onChangeFolderContent}

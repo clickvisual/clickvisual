@@ -4,6 +4,7 @@
   flex: 1;
   overflow-y: auto;
   font-size: 14px;
+  scrollbar-width: none;
   overflow-x: hidden;
      li {
       display: flex;
@@ -22,6 +23,9 @@
       .icon {
         margin: 0 4px;
       }
+    }
+    :global .ant-tree {
+      background-color: transparent;
     }
 }
 

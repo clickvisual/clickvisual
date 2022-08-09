@@ -19,6 +19,7 @@ import Request, { Canceler } from "umi-request";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
 import { SaveOutlined } from "@ant-design/icons";
+import { format } from "sql-formatter";
 import queryStatisticsItemStyle from "../index.less";
 
 const { Option } = Select;
@@ -531,31 +532,49 @@ const CreatedAndUpdatedModal = ({
                         style={{
                           width:
                             mode != alarmModeType.AggregationMode
-                              ? "calc(85% - 10px)"
+                              ? "calc(100% - 200px)"
                               : "100%",
                           borderRadius: "8px",
                         }}
                       />
                     </Form.Item>
                     {mode != alarmModeType.AggregationMode && (
-                      <Button
-                        style={{
-                          width: "calc(15% - 10px)",
-                          borderRadius: "8px",
-                          marginLeft: "10px",
-                        }}
-                        type={"primary"}
-                        onClick={() => {
-                          const fields = getFieldsValue();
-                          handlePreview(fields);
-                        }}
-                      >
-                        {mode != alarmModeType.AggregationMode
-                          ? i18n.formatMessage({
-                              id: "alarm.rules.form.preview",
-                            })
-                          : aggregatePreviewText}
-                      </Button>
+                      <>
+                        <Button
+                          style={{
+                            width: "calc(90px)",
+                            borderRadius: "8px",
+                            marginLeft: "10px",
+                          }}
+                          onClick={() => {
+                            modalForm.current?.setFieldsValue({
+                              when: format(getFieldValue("when")),
+                            });
+                          }}
+                        >
+                          {i18n.formatMessage({
+                            id: "bigdata.components.FileTitle.formatting",
+                          })}
+                        </Button>
+                        <Button
+                          style={{
+                            width: "calc(90px)",
+                            borderRadius: "8px",
+                            marginLeft: "10px",
+                          }}
+                          type={"primary"}
+                          onClick={() => {
+                            const fields = getFieldsValue();
+                            handlePreview(fields);
+                          }}
+                        >
+                          {mode != alarmModeType.AggregationMode
+                            ? i18n.formatMessage({
+                                id: "alarm.rules.form.preview",
+                              })
+                            : aggregatePreviewText}
+                        </Button>
+                      </>
                     )}
                   </Input.Group>
                   {mode == alarmModeType.AggregationMode && (

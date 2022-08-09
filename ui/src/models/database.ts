@@ -5,6 +5,8 @@ import { formatMessage } from "@@/plugin-locale/localeExports";
 import { useState } from "react";
 const Database = () => {
   const [visibleModal, setVisibleModal] = useState<boolean>(false);
+  const [createDatabaseCurrentInstance, setCreateDatabaseCurrentInstance] =
+    useState<number | undefined>();
 
   const createdDatabase = useRequest(api.createdDatabase, {
     loadingText: false,
@@ -25,12 +27,18 @@ const Database = () => {
     setVisibleModal(visible);
   };
 
+  const onChangeCreateDatabaseCurrentInstance = (iid: number | undefined) => {
+    setCreateDatabaseCurrentInstance(iid);
+  };
+
   return {
     createdDatabase,
     deletedDatabase,
     doUpdatedDatabase,
     visibleCreatedDatabaseModal: visibleModal,
     onChangeCreatedDatabaseModal,
+    createDatabaseCurrentInstance,
+    onChangeCreateDatabaseCurrentInstance,
   };
 };
 export default Database;

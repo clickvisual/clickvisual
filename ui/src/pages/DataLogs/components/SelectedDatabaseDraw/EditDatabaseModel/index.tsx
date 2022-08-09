@@ -24,6 +24,7 @@ const EditDatabaseModel = () => {
       editDatabaseFormRef.current?.resetFields();
     }
   }, [isEditDatabase]);
+
   const handleSubmit = (val: any) => {
     if (!val.id) return;
     doUpdatedDatabase.run(val.id, val).then((res: any) => {
@@ -38,6 +39,7 @@ const EditDatabaseModel = () => {
       doGetDatabaseList();
     });
   };
+
   return (
     <Modal
       title={i18n.formatMessage({ id: "log.editDatabaseModel.title" })}

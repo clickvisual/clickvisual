@@ -66,5 +66,44 @@
     flex: 1;
     flex-direction: column;
     height: 100%;
+
+    .fileNameList {
+      width: 100%;
+    }
+
+    .contentMain {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 137px);
+      overflow-y: scroll;
+    }
+
+    .luckysheet {
+      position: relative;
+      top: calc(-40vh + 32px + 32px);
+      z-index: 10;
+      width: calc(100% - 32px);
+      height: calc(40vh - 32px - 32px);
+    }
+
+    .empty {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    :global .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+      padding: 4px 8px;
+    }
+    :global .ant-tabs-top > .ant-tabs-nav {
+      margin: 0;
+    }
+
+    :global .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
+      border-radius: 0;
+    }
   }
 }

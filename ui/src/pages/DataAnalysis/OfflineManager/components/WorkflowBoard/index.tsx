@@ -10,47 +10,111 @@ import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import deletedModal from "@/components/DeletedModal";
 import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
 import { useIntl } from "umi";
+import { useEdgesState, useNodesState } from "react-flow-renderer";
+// import { BoardCreateNodeInfo } from "@/models/dataanalysis/useWorkflowBoard";
 
 export interface WorkflowBoardProps {
   currentBoard: any;
+  currentPaneActiveKey: string;
+  boardFile: any;
+  doGetFile: any;
+  doGetNodes: (board: any, file?: any) => void;
+  doSetNodesAndFolders: any;
+  deleteNodeById: any;
+  createBoardNode: any;
+  isChangeBoard: any;
+  setBoardEdges: any;
+  onSaveBoardNodes: any;
+  boardNodeList: any;
+  onChangeBoardNodes: any;
+  updateBoardNode: any;
+  connectEdge: any;
+  deleteEdges: any;
+  changeEdges: any;
+  boardEdges: any;
+  showCreateNode: any;
+  // showNodeModal: any;
+  // hideNodeModal: any;
+  // showFolderModal: any;
+  // hideFolderModal: any;
+  // setIsBoardCreateNode: any;
+  // setIsEditNode: any;
+  // setCurrentNode: any;
+
+  // isBoardCreateNode: any;
+  // visibleFolder: any;
+  // isEditNode: any;
+  // currentNode: any;
 }
-const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
-  const i18n = useIntl();
+const WorkflowBoard = (props: WorkflowBoardProps) => {
   const {
-    iid,
-    boardFile,
+    currentBoard,
+    // currentPaneActiveKey,
     doGetFile,
-    doLockNode,
-    doUnLockNode,
-    doRunCodeNode,
-    doStopCodeNode,
+    boardFile,
     doGetNodes,
     doSetNodesAndFolders,
     deleteNodeById,
     createBoardNode,
     isChangeBoard,
-    onSaveBoardNodes,
     setBoardEdges,
+    onSaveBoardNodes,
+    boardNodeList,
+    onChangeBoardNodes,
+    updateBoardNode,
+    connectEdge,
+    deleteEdges,
+    changeEdges,
+    boardEdges,
+    showCreateNode,
+    // showNodeModal,
+    // hideNodeModal,
+    // showFolderModal,
+    // hideFolderModal,
+    // setIsBoardCreateNode,
+    // setIsEditNode,
+    // setCurrentNode,
+    // isBoardCreateNode,
+    // visibleFolder,
+    // isEditNode,
+    // currentNode,
+  } = props;
+  const i18n = useIntl();
+  const {
+    iid,
+    // boardFile,
+    // doGetFile,
+    doLockNode,
+    doUnLockNode,
+    doRunCodeNode,
+    doStopCodeNode,
+    // doGetNodes,
+    // doSetNodesAndFolders,
+    // deleteNodeById,
+    // createBoardNode,
+    // isChangeBoard,
+    // onSaveBoardNodes,
+    // setBoardEdges,
     doMandatoryGetFileLock,
   } = useModel("dataAnalysis", (model) => ({
     iid: model.currentInstances,
-    boardNodeList: model.manageNode.boardNodeList,
+    // boardNodeList: model.manageNode.boardNodeList,
+    // boardFile: model.manageNode.boardFile,
+    // doGetFile: model.manageNode.doGetBoardFile,
+    // doGetNodes: model.manageNode.doGetBoardNodes,
+    // doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
+    // deleteNodeById: model.manageNode.deleteNodeById,
+    // setNodes: model.workflowBoard.setNodes,
+    // createBoardNode: model.manageNode.createBoardNode, // ?
+    // isChangeBoard: model.manageNode.isChangeBoard,
+    // setBoardEdges: model.manageNode.setBoardEdges,
+    // onSaveBoardNodes: model.manageNode.onSaveBoardNodes,
+
     updateNode: model.manageNode.doUpdatedNode,
     doLockNode: model.manageNode.doLockNode,
     doUnLockNode: model.manageNode.doUnLockNode,
     doRunCodeNode: model.manageNode.doRunCodeNode,
     doStopCodeNode: model.manageNode.doStopCodeNode,
-    boardFile: model.manageNode.boardFile,
-    doGetFile: model.manageNode.doGetBoardFile,
-    doGetNodes: model.manageNode.doGetBoardNodes,
-    doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
-    deleteNodeById: model.manageNode.deleteNodeById,
-    setNodes: model.workflowBoard.setNodes,
-    createBoardNode: model.manageNode.createBoardNode,
-    isChangeBoard: model.manageNode.isChangeBoard,
-    setBoardEdges: model.manageNode.setBoardEdges,
-
-    onSaveBoardNodes: model.manageNode.onSaveBoardNodes,
     doMandatoryGetFileLock: model.manageNode.doMandatoryGetFileLock,
   }));
   const { currentUser } = useModel("@@initialState").initialState || {};
@@ -84,7 +148,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
           doUnLockNode.run(file.id).then((res: any) => {
             if (res?.code !== 0) return;
             setBoardEdges([]);
-            doGetFile(file.id).then((res) => {
+            doGetFile(file.id).then((res: { code: number; data: any }) => {
               if (res?.code !== 0) return;
               doGetNodes(currentBoard, res.data);
               doSetNodesAndFolders({
@@ -179,7 +243,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
   // TODO
   useMemo(() => {
     if (!currentBoard.id || !iid) return;
-    doGetFile(currentBoard.id).then((res) => {
+    doGetFile(currentBoard.id).then((res: { code: number; data: any }) => {
       if (res?.code !== 0) return;
       doGetNodes(currentBoard, res.data);
     });
@@ -189,8 +253,19 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
     setBoardEdges([]);
   }, [boardFile?.id]);
 
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  // const [isChange, setIsChange] = useState<boolean>(false);
+
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
       {boardFile && (
         <FileTitle
           type={FileTitleType.node}
@@ -202,6 +277,7 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
           onUnlock={handleUnlock}
           file={boardFile}
           onGrabLock={handleGrabLock}
+          node={currentBoard}
         />
       )}
       <div style={{ flex: 1, display: "flex" }}>
@@ -212,6 +288,27 @@ const WorkflowBoard = ({ currentBoard }: WorkflowBoardProps) => {
             currentBoard={currentBoard}
             onDeleteRight={handleBoardDeleteNode}
             onCreate={handleCreateNode}
+            nodes={nodes}
+            setNodes={setNodes}
+            onNodesChange={onNodesChange}
+            edges={edges}
+            setEdges={setEdges}
+            onEdgesChange={onEdgesChange}
+            showCreateNode={showCreateNode}
+            boardNodes={boardNodeList}
+            onChangeBoardNodes={onChangeBoardNodes}
+            updateBoardNode={updateBoardNode}
+            connectEdge={connectEdge}
+            deleteEdges={deleteEdges}
+            changeEdges={changeEdges}
+            boardEdges={boardEdges}
+            // showNodeModal={showNodeModal}
+            // hideNodeModal={hideNodeModal}
+            // showFolderModal={showFolderModal}
+            // hideFolderModal={hideFolderModal}
+            // setIsBoardCreateNode={setIsBoardCreateNode}
+            // setIsEditNode={setIsEditNode}
+            // setCurrentNode={setCurrentNode}
           />
         )}
       </div>

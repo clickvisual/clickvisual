@@ -149,6 +149,14 @@ const NewTable = () => {
         />
       </Form.Item>
       <Form.Item
+        label={"kafkaSkipBrokenMessages"}
+        name={"kafkaSkipBrokenMessages"}
+        initialValue={0}
+      >
+        <InputNumber min={0} style={{ width: "100%" }} />
+      </Form.Item>
+
+      <Form.Item
         label={i18n.formatMessage({
           id: "description",
         })}

@@ -76,8 +76,11 @@ const LogLibraryList = (props: LogLibraryListProps) => {
         onChangeSelectKeys([`table-${lastDataLogsState?.tid}`]);
         // 三层循环查找替换 tid版
         expandParent(list, parseInt(lastDataLogsState.tid.toString()));
+      } else {
+        // 展开所有实例
+        expandParent(list, NaN);
       }
-  }, [lastDataLogsState.tid]);
+  }, []);
 
   // useEffect(() => {
   //   console.log(lastDataLogsState.tid, "lastDataLogsState.tid");
@@ -111,7 +114,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
   return (
     <div
       className={logLibraryListStyles.logLibraryListMain}
-      style={{ width: `${resizeMenuWidth}px` }}
+      style={{ width: `${resizeMenuWidth - 10}px` }}
     >
       <Spin
         spinning={doGetAllInstances.loading}

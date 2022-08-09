@@ -8,25 +8,48 @@ import ResultsItem from "./ResultsItem";
 const VersionHistory = (props: {
   visible: boolean;
   setVisible: (flag: boolean) => void;
+  resultsList: any;
+  currentResultsPagination: any;
+  visibleResultsItem: any;
+  setVisibleResultsItem: any;
+  onChangeResultsList: (arr: any) => void;
+  onChangeCurrentResultsPagination: (val: any) => void;
+  onChangeCurrentPagination: (val: any) => void;
 }) => {
-  const { visible, setVisible } = props;
-  const i18n = useIntl();
-
-  //   const [visibleResultsItem, setVisibleResultsItem] = useState<boolean>(false);
-
   const {
-    openNodeId,
-    doResultsList,
-    setResultsList,
-    // versionHistoryList,
-    currentResultsPagination,
-    setCurrentResultsPagination,
+    visible,
+    setVisible,
     resultsList,
-    setCurrentPagination,
+    currentResultsPagination,
     visibleResultsItem,
     setVisibleResultsItem,
-    changeResultId,
-  } = useModel("dataAnalysis");
+    onChangeResultsList,
+    onChangeCurrentResultsPagination,
+    onChangeCurrentPagination,
+  } = props;
+  const i18n = useIntl();
+
+  const { openNodeId, doResultsList } = useModel("dataAnalysis");
+
+  const getTime = (time: number) => {
+    if (time < 1000) {
+      return time + "ms";
+    }
+    if (1000 <= time && time < 60000) {
+      return time / 1000 + "s";
+    }
+    if (60000 <= time && time < 3600000) {
+      return Math.floor(time / 60000) + "min " + (time % 60000) / 1000 + "s";
+    }
+    return (
+      Math.floor(time / 3600000) +
+      "h " +
+      Math.floor((time % 3600000) / 60000) +
+      "min " +
+      ((time % 3600000) % 60000) / 1000 +
+      "s"
+    );
+  };
 
   const getList = (page: number, pageSize: number) => {
     openNodeId &&
@@ -38,8 +61,8 @@ const VersionHistory = (props: {
         })
         .then((res: any) => {
           if (res.code == 0) {
-            setResultsList(res.data);
-            setCurrentResultsPagination({
+            onChangeResultsList(res.data);
+            onChangeCurrentResultsPagination({
               current: page,
               pageSize: pageSize,
               total: res.data.total,
@@ -51,7 +74,7 @@ const VersionHistory = (props: {
 
   useEffect(() => {
     if (!visible) {
-      setResultsList({ list: [], total: 0 });
+      onChangeResultsList({ list: [], total: 0 });
     }
   }, [visible]);
 
@@ -115,7 +138,7 @@ const VersionHistory = (props: {
       ellipsis: { showTitle: true },
       render: (_: any, record: any) => (
         <Tooltip title={record.cost ? record.cost + "ms" : "unknown"}>
-          {record.cost ? record.cost + "ms" : "unknown"}
+          {record.cost ? getTime(record.cost) : "unknown"}
         </Tooltip>
       ),
     },
@@ -128,7 +151,6 @@ const VersionHistory = (props: {
         <a
           onClick={() => {
             setVisibleResultsItem(true);
-            record.id && changeResultId(record.id);
           }}
         >
           {i18n.formatMessage({
@@ -159,7 +181,7 @@ const VersionHistory = (props: {
           size: "small",
           ...currentResultsPagination,
           onChange: (page, pageSize) => {
-            setCurrentPagination({
+            onChangeCurrentPagination({
               ...currentResultsPagination,
               current: page,
               pageSize,

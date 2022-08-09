@@ -7,7 +7,28 @@ import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config"
 
 const { Option } = Select;
 
-const ManageNodeModal = () => {
+export interface ManageNodeModalType {
+  // visibleNode: any;
+  // callbackRef: any;
+  // hideNodeModal: any;
+  // isBoardCreateNode: any;
+  // isEditNode: any;
+  // // extra: any;
+  // setCurrentNode: any;
+  // currentNode: any;
+}
+
+const ManageNodeModal = (props: ManageNodeModalType) => {
+  // const {
+  //   visibleNode,
+  //   callbackRef,
+  //   hideNodeModal,
+  //   isBoardCreateNode,
+  //   isEditNode,
+  //   // extra,
+  //   setCurrentNode,
+  //   currentNode,
+  // } = props;
   const formRef = useRef<FormInstance>(null);
   const [sources, setSources] = useState<any[]>([]);
   const {

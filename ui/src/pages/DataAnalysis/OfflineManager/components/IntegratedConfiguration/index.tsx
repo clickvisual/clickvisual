@@ -11,23 +11,21 @@ import { BigDataSourceType } from "@/services/bigDataWorkflow";
 import { parseJsonObject } from "@/utils/string";
 import styles from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/index.less";
 import { useIntl } from "umi";
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 
 export interface IntegratedConfigurationProps {
   currentNode: any;
+  currentPaneActiveKey: string;
 }
 const IntegratedConfiguration = ({
   currentNode,
+  currentPaneActiveKey,
 }: IntegratedConfigurationProps) => {
   const i18n = useIntl();
   const [form] = Form.useForm();
   const [nodeInfo, setNodeInfo] = useState<any>();
   const [isChangeForm, setIsChangeForm] = useState<boolean>(false);
   const {
-    setSource,
-    setTarget,
-    setMapping,
-    setDefaultMappingData,
-    mapping,
     updateNode,
     getNodeInfo,
     doLockNode,
@@ -37,12 +35,7 @@ const IntegratedConfiguration = ({
     doGetColumns,
     doMandatoryGetFileLock,
   } = useModel("dataAnalysis", (model) => ({
-    setSource: model.integratedConfigs.setSourceColumns,
-    setTarget: model.integratedConfigs.setTargetColumns,
-    mapping: model.integratedConfigs.mappingData,
     doGetColumns: model.integratedConfigs.doGetColumns,
-    setMapping: model.integratedConfigs.setMappingData,
-    setDefaultMappingData: model.integratedConfigs.setDefaultMappingData,
     updateNode: model.manageNode.doUpdatedNode,
     getNodeInfo: model.manageNode.doGetNodeInfo,
     doLockNode: model.manageNode.doLockNode,
@@ -51,6 +44,15 @@ const IntegratedConfiguration = ({
     doStopCodeNode: model.manageNode.doStopCodeNode,
     doMandatoryGetFileLock: model.manageNode.doMandatoryGetFileLock,
   }));
+
+  const [source, setSource] = useState<any[]>([]);
+  const [target, setTarget] = useState<any[]>([]);
+  const [mapping, setMapping] = useState<any[]>([]);
+  // 最初的mappingData
+  const [defaultMappingData, setDefaultMappingData] = useState<any[]>([]);
+  const [openVisible, setOpenVisible] = useState<boolean>(false);
+  const [openType, setOpenType] = useState<OpenTypeEnums | undefined>();
+  const [tableName, setTableName] = useState<string | undefined>();
 
   const handleSubmit = (fields: any) => {
     const sourceForm = fields.source;
@@ -232,16 +234,14 @@ const IntegratedConfiguration = ({
   };
 
   useMemo(() => {
-    if (currentNode) doGetNodeInfo(currentNode.id);
-  }, [currentNode]);
+    if (currentNode?.id == currentPaneActiveKey) doGetNodeInfo(currentNode.id);
+  }, []);
 
+  // 看板打开修改key会慢初始化一步，从看板打开的文件的key初始化是看板的key
   useEffect(() => {
-    form.resetFields();
-    setNodeInfo(undefined);
-    setSource([]);
-    setTarget([]);
-    setIsChangeForm(false);
-  }, [currentNode]);
+    if (currentNode?.id == currentPaneActiveKey && !nodeInfo)
+      doGetNodeInfo(currentNode.id);
+  }, [currentPaneActiveKey, currentNode?.id]);
 
   const iid = useMemo(() => currentNode.iid, [currentNode.iid]);
 
@@ -263,30 +263,43 @@ const IntegratedConfiguration = ({
 
   return (
     <div className={styles.integratedConfigMain}>
-      <Spin
-        spinning={
+      {/* 
           getNodeInfo.loading || doUnLockNode.loading || updateNode.loading
-        }
-      >
-        <FileTitle
-          type={FileTitleType.node}
-          isChange={isChangeForm}
-          file={nodeInfo}
-          onSave={handleSave}
-          onLock={handleLock}
-          onUnlock={handleUnlock}
-          onRun={handleRun}
-          onStop={handleStop}
-          onGrabLock={handleGrabLock}
-        />
-        <IntegratedConfigs
-          onFormChange={handleChangeForm}
-          onSubmit={handleSubmit}
-          iid={iid}
-          form={form}
-          file={nodeInfo}
-        />
-      </Spin>
+       */}
+      <FileTitle
+        type={FileTitleType.node}
+        isChange={isChangeForm}
+        file={nodeInfo}
+        onSave={handleSave}
+        onLock={handleLock}
+        onUnlock={handleUnlock}
+        onRun={handleRun}
+        onStop={handleStop}
+        onGrabLock={handleGrabLock}
+        node={currentNode}
+      />
+      <IntegratedConfigs
+        onFormChange={handleChangeForm}
+        onSubmit={handleSubmit}
+        iid={iid}
+        form={form}
+        file={nodeInfo}
+        node={currentNode}
+        source={source}
+        setSource={setSource}
+        target={target}
+        setTarget={setTarget}
+        mapping={mapping}
+        setMapping={setMapping}
+        defaultMappingData={defaultMappingData}
+        openVisible={openVisible}
+        setOpenVisible={setOpenVisible}
+        openType={openType}
+        setOpenType={setOpenType}
+        tableName={tableName}
+        setTableName={setTableName}
+        currentPaneActiveKey={currentPaneActiveKey}
+      />
     </div>
   );
 };

@@ -1,20 +1,35 @@
 import { Button, Table } from "antd";
 import { ColumnsType } from "antd/es/table";
-import { useModel } from "@@/plugin-model/useModel";
 import { useMemo } from "react";
 import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 import CustomModal from "@/components/CustomModal";
 
-const TableColumns = () => {
-  const { cancelModal, openVisible, openType, tableName, source, target } =
-    useModel("dataAnalysis", (model) => ({
-      openVisible: model.integratedConfigs.openVisible,
-      tableName: model.integratedConfigs.tableName,
-      openType: model.integratedConfigs.openType,
-      cancelModal: model.integratedConfigs.cancelModal,
-      source: model.integratedConfigs.sourceColumns,
-      target: model.integratedConfigs.targetColumns,
-    }));
+export interface TableColumnsType {
+  source: any;
+  target: any;
+  openVisible: boolean;
+  setOpenVisible: (val: boolean) => void;
+  openType: any;
+  setOpenType: (val: OpenTypeEnums | undefined) => void;
+  tableName: any;
+  setTableName: (val: string | undefined) => void;
+}
+
+const TableColumns = ({
+  source,
+  target,
+  openVisible,
+  setOpenVisible,
+  openType,
+  setOpenType,
+  tableName,
+  setTableName,
+}: TableColumnsType) => {
+  const cancelModal = () => {
+    setOpenType(undefined);
+    setTableName(undefined);
+    setOpenVisible(false);
+  };
 
   const title = useMemo(() => {
     if (openType && tableName) {

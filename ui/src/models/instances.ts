@@ -79,7 +79,7 @@ const Instances = () => {
     getInstanceList.run();
   };
 
-  // 三层循环查找替换 name版
+  // 三层循环查找表并展开它的父级 name版
   const filterSelectedTree = (list: any, val: string) => {
     let cloneInstanceList = list.filter((instanceItem: any) => {
       const cloneDatabase = instanceItem.children.filter(
@@ -92,7 +92,9 @@ const Instances = () => {
         }
       );
       instanceItem.children = cloneDatabase;
-      return cloneDatabase.length > 0;
+      // 展开所有实例
+      return true;
+      // return cloneDatabase.length > 0;
     });
 
     // 展开所有的实例和数据库
@@ -107,7 +109,7 @@ const Instances = () => {
     return cloneInstanceList;
   };
 
-  // 三层循环查找替换 tid版
+  // 三层循环查找表并展开它的父级 tid版
   const expandParent = (list: any[], tid: number) => {
     let cloneInstanceList = cloneDeep(list).filter((instanceItem: any) => {
       const cloneDatabase = instanceItem.children.filter(
@@ -120,7 +122,9 @@ const Instances = () => {
         }
       );
       instanceItem.children = cloneDatabase;
-      return cloneDatabase.length > 0;
+      // 展开所有实例
+      return true;
+      // return cloneDatabase.length > 0;
     });
 
     // 展开所有的实例和数据库

@@ -1,6 +1,6 @@
 import logsIndexStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/index.less";
 import classNames from "classnames";
-import IndexSearchBar from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexSearchBar";
+// import IndexSearchBar from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexSearchBar";
 import IndexHeader from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader";
 import IndexList from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexList";
 import { useModel } from "@@/plugin-model/useModel";
@@ -11,14 +11,14 @@ const RawLogsIndexes = () => {
   const { logs } = useModel("dataLogs");
   const [indexList, setIndexList] = useState<IndexInfoType[]>(logs?.keys || []);
 
-  const onSearch = (val: string) => {
-    const list = logs?.keys || [];
-    setIndexList(
-      list.filter((item) =>
-        item.field.toLowerCase().includes(val.toLowerCase())
-      ) || []
-    );
-  };
+  // const onSearch = (val: string) => {
+  //   const list = logs?.keys || [];
+  //   setIndexList(
+  //     list.filter((item) =>
+  //       item.field.toLowerCase().includes(val.toLowerCase())
+  //     ) || []
+  //   );
+  // };
 
   useEffect(() => {
     setIndexList(logs?.keys || []);

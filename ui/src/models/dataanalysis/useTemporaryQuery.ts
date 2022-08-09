@@ -156,6 +156,7 @@ const useTemporaryQuery = () => {
   // 处理树状结构
   const onProcessTreeData = (folderList: folderListType[]) => {
     if (folderList && [folderList].length > 0) {
+      let allNodesArr: any = [];
       const generateData = (data: folderListType[] | any) => {
         let arr: any[] = [];
         let nodesArr: any[] = [];
@@ -209,10 +210,11 @@ const useTemporaryQuery = () => {
             }
           }
         });
-        setTemporaryQueryNodes(nodesArr);
+        allNodesArr = [...allNodesArr, ...nodesArr];
         return arr;
       };
       setFileList(generateData([folderList]));
+      setTemporaryQueryNodes(allNodesArr);
     }
   };
 

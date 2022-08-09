@@ -1,7 +1,6 @@
 import { Card, Form, Input } from "antd";
 import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
 import { DataSourceModuleProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/index";
-import { useModel } from "@@/plugin-model/useModel";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
 
 export interface SourceCardProps extends DataSourceModuleProps {
@@ -12,20 +11,17 @@ export interface SourceCardProps extends DataSourceModuleProps {
   doGetColumns: any;
   isLock: boolean;
   onSelectType?: (type: DataSourceTypeEnums) => void;
+  setSource: (arr: any[]) => void;
+  setMapping: (arr: any[]) => void;
+  openModal: any;
+  node: any;
 }
 
 const SourceCard = (props: SourceCardProps) => {
-  const { isLock } = props;
-  const { setSourceColumns, setMapping } = useModel(
-    "dataAnalysis",
-    (model) => ({
-      setSourceColumns: model.integratedConfigs.setSourceColumns,
-      setMapping: model.integratedConfigs.setMappingData,
-    })
-  );
+  const { isLock, setMapping, setSource, openModal, node } = props;
 
   const handleChangeColumns = (columns: any[], isChange?: boolean) => {
-    setSourceColumns(columns);
+    setSource(columns);
     if (!!isChange) setMapping([]);
   };
 
@@ -41,6 +37,8 @@ const SourceCard = (props: SourceCardProps) => {
           {...props}
           itemNamePath={["source"]}
           onChangeColumns={handleChangeColumns}
+          openModal={openModal}
+          node={node}
         />
         <Form.Item name={["source", "sourceFilter"]} label={"数据过滤"}>
           <Input.TextArea

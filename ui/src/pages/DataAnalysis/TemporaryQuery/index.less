@@ -9,8 +9,8 @@
     display: flex;
     flex: 0 0 300px;
     flex-direction: column;
-    color: #abb2bf;
     padding-top: 50px;
+    color: #abb2bf;
 
     .title {
       display: flex;
@@ -34,8 +34,8 @@
           justify-content: center;
           width: 34px;
           height: 34px;
-          font-size: 18px;
           color: #5c5c5c;
+          font-size: 18px;
           cursor: pointer;
         }
       }
@@ -70,6 +70,45 @@
         height: 34px;
         font-size: 18px;
       }
+    }
+  }
+  .content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-left: 1px solid @border-color;
+
+    .fileNameList {
+      width: 100%;
+    }
+
+    .luckysheet {
+      position: relative;
+      top: calc(-40vh + 32px + 32px);
+      width: calc(100% - 32px);
+      height: calc(40vh - 32px - 32px);
+      z-index: 10;
+    }
+
+    .empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    :global .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+      padding: 4px 8px;
+    }
+    :global .ant-tabs-top > .ant-tabs-nav {
+      margin: 0;
+    }
+
+    :global .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
+      border-radius: 0;
     }
   }
 }

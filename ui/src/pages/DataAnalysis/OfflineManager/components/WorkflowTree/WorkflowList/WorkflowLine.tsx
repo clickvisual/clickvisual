@@ -14,7 +14,7 @@ import CustomTree, { NodeType } from "@/components/CustomTree";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
-import lodash from "lodash";
+import lodash, { cloneDeep } from "lodash";
 
 const folderTree = (
   workflow: any,
@@ -80,7 +80,17 @@ const folderTree = (
   return result;
 };
 
-const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
+const WorkflowLine = ({
+  workflow,
+}: // boardNodeList,
+// updateBoardNode,
+// createBoardNode,
+{
+  workflow: WorkflowInfo;
+  // boardNodeList: any;
+  // updateBoardNode: any;
+  // createBoardNode: any;
+}) => {
   const i18n = useIntl();
 
   const workflowItem: any = useMemo(
@@ -101,15 +111,14 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     folders,
     getFolders,
     currentInstances,
-    setSelectNode,
+    // setSelectNode,
     setSelectKeys,
     selectKeys,
     createdNode,
-    boardNodeList,
-    updateBoardNode,
-    createBoardNode,
+    // allBoardNodeList,
+    // updateBoardNode,
+    // createBoardNode,
     doSetNodesAndFolders,
-    onGetFolderList,
 
     cancelTokenTargetListRef,
     cancelTokenSourceListRef,
@@ -119,10 +128,13 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     cancelTokenSourceTableRef,
     cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef,
-    setSourceColumns,
-    setTargetColumns,
+
+    offlinePaneList,
+    onChangeOfflinePaneList,
+    onChangeCurrentOfflinePaneActiveKey,
+    changeOpenNodeId,
   } = useModel("dataAnalysis", (model) => ({
-    setSelectNode: model.manageNode.setSelectNode,
+    // setSelectNode: model.manageNode.setSelectNode,
     setSelectKeys: model.manageNode.setSelectKeys,
     selectKeys: model.manageNode.selectKeys,
     getFolders: model.manageNode.getFolders,
@@ -130,11 +142,10 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     currentInstances: model.currentInstances,
     nodes: model.manageNode.nodes,
     folders: model.manageNode.folders,
-    boardNodeList: model.manageNode.boardNodeList,
-    updateBoardNode: model.manageNode.updateBoardNode,
-    createBoardNode: model.manageNode.createBoardNode,
+    // allBoardNodeList: model.manageNode.allBoardNodeList,
+    // updateBoardNode: model.manageNode.updateBoardNode,
+    // createBoardNode: model.manageNode.createBoardNode,
     doSetNodesAndFolders: model.manageNode.doSetNodesAndFolders,
-    onGetFolderList: model.onGetFolderList,
 
     cancelTokenTargetListRef: model.dataSourceManage.cancelTokenTargetListRef,
     cancelTokenSourceListRef: model.dataSourceManage.cancelTokenSourceListRef,
@@ -148,8 +159,11 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       model.integratedConfigs.cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef:
       model.integratedConfigs.cancelTokenSourceColumnsRef,
-    setSourceColumns: model.integratedConfigs.setSourceColumns,
-    setTargetColumns: model.integratedConfigs.setTargetColumns,
+    offlinePaneList: model.filePane.offlinePaneList,
+    onChangeOfflinePaneList: model.filePane.onChangeOfflinePaneList,
+    onChangeCurrentOfflinePaneActiveKey:
+      model.filePane.onChangeCurrentOfflinePaneActiveKey,
+    changeOpenNodeId: model.changeOpenNodeId,
   }));
 
   const handleRightClick = ({ node }: any) => {
@@ -173,28 +187,57 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
     cancelTokenSourceRef.current?.();
     cancelTokenTargetListRef.current?.();
     cancelTokenTargetRef.current?.();
-    setSourceColumns([]);
-    setTargetColumns([]);
 
     const { currentNode, nodeType } = node;
     setSelectKeys([node.key]);
+    const id = parseInt(currentNode?.id);
+    const folderId = parseInt(currentNode?.folderId);
+    const clonePaneList = cloneDeep(offlinePaneList);
+
     if (nodeType === NodeType.node) {
-      setSelectNode(currentNode);
-      currentNode.secondary == SecondaryEnums.dataMining &&
-        onGetFolderList(currentNode.id);
+      if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
+        onChangeOfflinePaneList([
+          ...clonePaneList,
+          {
+            key: id.toString(),
+            title: currentNode?.name || "not name",
+            parentId: folderId,
+            node: currentNode,
+          },
+        ]);
+      }
+      onChangeCurrentOfflinePaneActiveKey(`${id}`);
+      changeOpenNodeId(id);
     } else if (nodeType === NodeType.board) {
-      setSelectNode(currentNode.board);
+      if (clonePaneList.filter((item: any) => item.key == id).length == 0) {
+        onChangeOfflinePaneList([
+          ...clonePaneList,
+          {
+            key: id.toString(),
+            title: currentNode?.name || "not name",
+            parentId: 0,
+            node: currentNode.board,
+          },
+        ]);
+      }
+      onChangeCurrentOfflinePaneActiveKey(`${id}`);
+      changeOpenNodeId(id);
+      // setSelectNode(currentNode.board);
     }
   };
 
   const handleCloseModal = useCallback(
     (params?: any) => {
       if (!currentInstances) return;
-      if (params) {
-        const isUpdate =
-          boardNodeList.findIndex((item) => item.id === params.id) > -1;
-        isUpdate ? updateBoardNode(params) : createBoardNode(params);
-      }
+      // TODO: 注释需要解开 暂未实现
+
+      // if (params) {
+      //   const isUpdate =
+      //     allBoardNodeList && allBoardNodeList[params.workflowId.toString()];
+      //   console.log(isUpdate, "isUpdate", allBoardNodeList);
+
+      //   // isUpdate ? updateBoardNode(params) : createBoardNode(params);
+      // }
       doSetNodesAndFolders({
         iid: currentInstances,
         primary: PrimaryEnums.mining,
@@ -220,7 +263,7 @@ const WorkflowLine = ({ workflow }: { workflow: WorkflowInfo }) => {
       })
       .then((res) => {
         if (res?.code !== 0) return;
-        if (res.data.nodes.length <= 0) {
+        if (res.data?.nodes.length <= 0) {
           createdNode
             .run({
               primary: PrimaryEnums.mining,

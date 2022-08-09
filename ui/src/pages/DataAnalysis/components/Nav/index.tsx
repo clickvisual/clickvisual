@@ -21,10 +21,10 @@ const DataAnalysisNav = () => {
     navKey,
     openNodeId,
     realTimeTraffic,
-    changeOpenNodeId,
-    changeOpenNodeParentId,
-    changeOpenNodeData,
-    changeFolderContent,
+    // changeOpenNodeId,
+    // changeOpenNodeParentId,
+    // changeOpenNodeData,
+    // changeFolderContent,
     dataSourceManage,
     manageNode,
     temporaryQuery,
@@ -66,6 +66,12 @@ const DataAnalysisNav = () => {
     },
   ];
 
+  useEffect(() => {
+    if ((!urlState || !urlState.navKey) && !dataAnalysisNavKey) {
+      onChangeNavKey(BigDataNavEnum.RealTimeTrafficFlow);
+    }
+  }, []);
+
   const dataAnalysisNavKey = localStorage.getItem("data-analysis-nav-key");
 
   useEffect(() => {
@@ -84,12 +90,6 @@ const DataAnalysisNav = () => {
     onSetLocalData({ openNodeId }, LocalModuleType.dataAnalysisOpenNodeId);
   }, [openNodeId, navKey]);
 
-  useEffect(() => {
-    if ((!urlState || !urlState.navKey) && !dataAnalysisNavKey) {
-      onChangeNavKey(BigDataNavEnum.RealTimeTrafficFlow);
-    }
-  }, []);
-
   return (
     <div className={style.nav}>
       {navList.map(
@@ -103,12 +103,12 @@ const DataAnalysisNav = () => {
                   setEdges([]);
                 }
                 setUrlState({ navKey: item.key, nodeId: undefined });
-                changeOpenNodeId();
-                changeOpenNodeParentId(0);
-                changeOpenNodeData(undefined);
-                changeFolderContent("");
+                // changeOpenNodeId();
+                // changeOpenNodeParentId(0);
+                // changeOpenNodeData(undefined);
+                // changeFolderContent("");
                 dataSourceManage.changeSourceList([]);
-                manageNode.setSelectNode({});
+                // manageNode.setSelectNode({});
                 manageNode.setSelectKeys([]);
                 temporaryQuery.setSelectNodeKeys([]);
                 onChangeNavKey(item.key);

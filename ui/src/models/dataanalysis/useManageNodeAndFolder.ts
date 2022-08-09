@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PrimaryEnums,
   SecondaryEnums,
@@ -6,10 +6,10 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import useRequest from "@/hooks/useRequest/useRequest";
 import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
-import { parseJsonObject } from "@/utils/string";
+// import { parseJsonObject } from "@/utils/string";
 import { formatMessage } from "@@/plugin-locale/localeExports";
-import lodash from "lodash";
-import { message } from "antd";
+// import lodash from "lodash";
+// import { message } from "antd";
 
 export const PrimaryList = [
   {
@@ -125,13 +125,30 @@ const useManageNodeAndFolder = () => {
   const [folders, setFolders] = useState<any[]>([]);
 
   // 当前选中的 节点
-  const [selectNode, setSelectNode] = useState<any>();
+  // const [selectNode, setSelectNode] = useState<any>();
   const [selectKeys, setSelectKeys] = useState<string[]>([]);
 
-  const [boardFile, setBoardFile] = useState<any>();
-  const [boardNodeList, setBoardNodeList] = useState<any[]>([]);
-  const [boardEdges, setBoardEdges] = useState<any[]>([]);
-  const [boardRef, setBoardRef] = useState<any>({ nodeList: [], edgeList: [] });
+  // 全部的boardNodeList列表
+  // const [allBoardNodeList, setAllBoardNodeList] = useState({});
+
+  // const [boardFile, setBoardFile] = useState<any>();
+  // const [boardNodeList, setBoardNodeList] = useState<any[]>([]);
+  // const [boardEdges, setBoardEdges] = useState<any[]>([]);
+  // const [boardRef, setBoardRef] = useState<any>({ nodeList: [], edgeList: [] });
+
+  // 是否是通过看板拖动的方式创建的节点
+  // const [visibleFolder, setVisibleFolder] = useState<boolean>(false);
+  // const [isEditNode, setIsEditNode] = useState<boolean>(false);
+  // const [currentNode, setCurrentNode] = useState<any>();
+
+  // const onChangeAllBoardNodeList = (key: string, arr: any[]) => {
+  //   if (!allBoardNodeList[key]) {
+  //     setAllBoardNodeList({
+  //       ...allBoardNodeList,
+  //       key: arr,
+  //     });
+  //   }
+  // };
 
   // Folder
   const getFolders = useRequest(dataAnalysisApi.getFolderList, {
@@ -244,194 +261,194 @@ const useManageNodeAndFolder = () => {
     setIsEditNode(false);
   };
 
-  const doGetBoardFile = async (id: number) => {
-    return doGetNodeInfo.run(id).then((res) => {
-      if (res?.code !== 0) return;
-      setBoardFile(res.data);
-      return res;
-    });
-  };
+  // const doGetBoardFile = async (id: number) => {
+  //   return doGetNodeInfo.run(id).then((res) => {
+  //     if (res?.code !== 0) return;
+  //     setBoardFile(res.data);
+  //     return res;
+  //   });
+  // };
 
-  const getNodeList = useCallback((folders: any[], nodes: any[]) => {
-    const list = nodes.filter(
-      (node) => node.secondary !== SecondaryEnums.board
-    );
-    if (folders.length <= 0) {
-      return list;
-    }
-    const folderNodes: any[] = folders
-      .map((folder) => {
-        if (folder.children.length > 0) {
-          return getNodeList(folder.children, folder.nodes);
-        }
-        return folder.nodes;
-      })
-      .flat();
-    return [...list, ...folderNodes];
-  }, []);
+  // const getNodeList = useCallback((folders: any[], nodes: any[]) => {
+  //   const list = nodes.filter(
+  //     (node) => node.secondary !== SecondaryEnums.board
+  //   );
+  //   if (folders.length <= 0) {
+  //     return list;
+  //   }
+  //   const folderNodes: any[] = folders
+  //     .map((folder) => {
+  //       if (folder.children.length > 0) {
+  //         return getNodeList(folder.children, folder.nodes);
+  //       }
+  //       return folder.nodes;
+  //     })
+  //     .flat();
+  //   return [...list, ...folderNodes];
+  // }, []);
 
-  const connectEdge = (edge: any) => {
-    setBoardEdges((boardEdges) => {
-      // 禁止同一对node之间连接两次=>会出现新的bug 甚至包括绘图组件内部也会出问题 特别是连接两次的时候删一根线 组件直接懵了
-      const newBoardEdges = boardEdges.filter((item: any) => {
-        return item.id != `edge-${edge.source}-${edge.target}`;
-      });
-      return [
-        ...newBoardEdges,
-        { id: `edge-${edge.source}-${edge.target}`, ...edge },
-      ];
-    });
-  };
+  // const connectEdge = (edge: any) => {
+  //   setBoardEdges((boardEdges) => {
+  //     // 禁止同一对node之间连接两次=>会出现新的bug 甚至包括绘图组件内部也会出问题 特别是连接两次的时候删一根线 组件直接懵了
+  //     const newBoardEdges = boardEdges.filter((item: any) => {
+  //       return item.id != `edge-${edge.source}-${edge.target}`;
+  //     });
+  //     return [
+  //       ...newBoardEdges,
+  //       { id: `edge-${edge.source}-${edge.target}`, ...edge },
+  //     ];
+  //   });
+  // };
 
-  const deleteEdges = (edgeList: any[]) => {
-    setBoardEdges((boardEdges) => [
-      ...boardEdges.filter(
-        (edge) => edgeList.findIndex((item) => item.id === edge.id) < 0
-      ),
-    ]);
-  };
+  // const deleteEdges = (edgeList: any[]) => {
+  //   setBoardEdges((boardEdges) => [
+  //     ...boardEdges.filter(
+  //       (edge) => edgeList.findIndex((item) => item.id === edge.id) < 0
+  //     ),
+  //   ]);
+  // };
 
-  const changeEdges = (edges: any[]) => {
-    setBoardEdges(edges);
-  };
+  // const changeEdges = (edges: any[]) => {
+  //   setBoardEdges(edges);
+  // };
 
-  const doGetBoardNodes = (board: any, file?: any) => {
-    getFolders
-      .run({
-        iid: board.iid,
-        primary: board.primary,
-        workflowId: board.workflowId,
-      })
-      .then((res) => {
-        if (res?.code !== 0) return;
-        const nodes = res.data.nodes.filter(
-          (node) => node.secondary !== SecondaryEnums.board
-        );
-        const folders = res.data.children;
-        const newNodes = getNodeList(folders, nodes);
-        const content = parseJsonObject(file?.content);
-        const newNodeList: any = [];
-        newNodes.forEach((item) => {
-          const nodeItem = content?.boardNodeList?.find(
-            (nd: any) => nd.id === item.id
-          );
-          item.position = nodeItem?.position;
-          newNodeList.push({
-            position: nodeItem?.position,
-            id: item.id,
-            name: item.name,
-            tertiary: item.tertiary,
-            primary: item?.primary,
-            secondary: item?.secondary,
-            workflowId: item?.workflowId,
-            sourceId: item?.sourceId,
-          });
-        });
-        const startAndEnd =
-          content?.boardNodeList?.filter(
-            (item: any) =>
-              item.id === TertiaryEnums.start || item.id === TertiaryEnums.end
-          ) ?? [];
-        if (startAndEnd.length > 0) {
-          newNodeList.push(...startAndEnd.map((item: any) => item));
-        }
-        const newBoard: any = { nodeList: [], edgeList: [] };
-        if (!!content && content?.boardEdges) {
-          changeEdges?.(content.boardEdges);
-          newBoard.edgeList = [...content.boardEdges];
-        }
-        newBoard.nodeList = [...newNodeList];
-        setBoardRef(newBoard);
-        setBoardNodeList(newNodeList);
-      });
-  };
+  // const doGetBoardNodes = (board: any, file?: any) => {
+  //   getFolders
+  //     .run({
+  //       iid: board.iid,
+  //       primary: board.primary,
+  //       workflowId: board.workflowId,
+  //     })
+  //     .then((res) => {
+  //       if (res?.code !== 0) return;
+  //       const nodes = res.data.nodes.filter(
+  //         (node) => node.secondary !== SecondaryEnums.board
+  //       );
+  //       const folders = res.data.children;
+  //       const newNodes = getNodeList(folders, nodes);
+  //       const content = parseJsonObject(file?.content);
+  //       const newNodeList: any = [];
+  //       newNodes.forEach((item) => {
+  //         const nodeItem = content?.boardNodeList?.find(
+  //           (nd: any) => nd.id === item.id
+  //         );
+  //         item.position = nodeItem?.position;
+  //         newNodeList.push({
+  //           position: nodeItem?.position,
+  //           id: item.id,
+  //           name: item.name,
+  //           tertiary: item.tertiary,
+  //           primary: item?.primary,
+  //           secondary: item?.secondary,
+  //           workflowId: item?.workflowId,
+  //           sourceId: item?.sourceId,
+  //         });
+  //       });
+  //       const startAndEnd =
+  //         content?.boardNodeList?.filter(
+  //           (item: any) =>
+  //             item.id === TertiaryEnums.start || item.id === TertiaryEnums.end
+  //         ) ?? [];
+  //       if (startAndEnd.length > 0) {
+  //         newNodeList.push(...startAndEnd.map((item: any) => item));
+  //       }
+  //       const newBoard: any = { nodeList: [], edgeList: [] };
+  //       if (!!content && content?.boardEdges) {
+  //         changeEdges?.(content.boardEdges);
+  //         newBoard.edgeList = [...content.boardEdges];
+  //       }
+  //       newBoard.nodeList = [...newNodeList];
+  //       setBoardRef(newBoard);
+  //       setBoardNodeList(newNodeList);
+  //     });
+  // };
 
-  const isChangeBoard = useMemo(() => {
-    return (
-      !lodash.isEqual(boardNodeList, boardRef.nodeList) ||
-      !lodash.isEqual(boardEdges, boardRef.edgeList)
-    );
-  }, [boardNodeList, boardEdges, boardRef]);
+  // const isChangeBoard = useMemo(() => {
+  //   return (
+  //     !lodash.isEqual(boardNodeList, boardRef.nodeList) ||
+  //     !lodash.isEqual(boardEdges, boardRef.edgeList)
+  //   );
+  // }, [boardNodeList, boardEdges, boardRef]);
 
-  const deleteNodeById = useCallback(
-    (nodeId: number) => {
-      const node = boardNodeList.find((item) => item.id === nodeId);
+  // const deleteNodeById = useCallback(
+  //   (nodeId: number) => {
+  //     const node = boardNodeList.find((item) => item.id === nodeId);
 
-      console.log("node: ", node, boardNodeList);
-      if (
-        node?.tertiary === TertiaryEnums.end ||
-        node?.tertiary === TertiaryEnums.start
-      ) {
-        const temporaryBoardEdges = boardEdges.filter((item: any) => {
-          return item.target != nodeId && item.source != nodeId;
-        });
-        setBoardEdges(temporaryBoardEdges);
-        setBoardNodeList((nodeList) => {
-          console.log(nodeList.filter((node) => node.id !== nodeId));
-          return nodeList.filter((node) => node.id !== nodeId);
-        });
-        return new Promise<any>((resolve) => resolve(true));
-      } else {
-        return doDeletedNode.run(nodeId).then((res) => {
-          if (res?.code !== 0) return;
-          const temporaryBoardEdges = boardEdges.filter((item: any) => {
-            return item.target != nodeId && item.source != nodeId;
-          });
-          setBoardEdges(temporaryBoardEdges);
-          setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
-        });
-      }
-    },
-    [boardNodeList]
-  );
+  //     console.log("node: ", node, boardNodeList);
+  //     if (
+  //       node?.tertiary === TertiaryEnums.end ||
+  //       node?.tertiary === TertiaryEnums.start
+  //     ) {
+  //       const temporaryBoardEdges = boardEdges.filter((item: any) => {
+  //         return item.target != nodeId && item.source != nodeId;
+  //       });
+  //       setBoardEdges(temporaryBoardEdges);
+  //       setBoardNodeList((nodeList) => {
+  //         console.log(nodeList.filter((node) => node.id !== nodeId));
+  //         return nodeList.filter((node) => node.id !== nodeId);
+  //       });
+  //       return new Promise<any>((resolve) => resolve(true));
+  //     } else {
+  //       return doDeletedNode.run(nodeId).then((res) => {
+  //         if (res?.code !== 0) return;
+  //         const temporaryBoardEdges = boardEdges.filter((item: any) => {
+  //           return item.target != nodeId && item.source != nodeId;
+  //         });
+  //         setBoardEdges(temporaryBoardEdges);
+  //         setBoardNodeList((node) => node.filter((item) => item.id !== nodeId));
+  //       });
+  //     }
+  //   },
+  //   [boardNodeList]
+  // );
 
-  const createBoardNode = (node: any) => {
-    setBoardNodeList((boardNodeList) => {
-      return [...boardNodeList, node];
-    });
-  };
+  // const createBoardNode = (node: any) => {
+  //   setBoardNodeList((boardNodeList) => {
+  //     return [...boardNodeList, node];
+  //   });
+  // };
 
-  const onChangeBoardNodes = (nodes: any[]) => {
-    setBoardNodeList(nodes);
-    setBoardRef((boardRef: any) => ({
-      nodeList: nodes,
-      edgeList: boardRef.boardEdges,
-    }));
-  };
-  const updateBoardNode = (node: any) => {
-    setBoardNodeList((boardNodeList) =>
-      boardNodeList.map((item) => {
-        if (item.id === node.id) {
-          return node;
-        }
-        return item;
-      })
-    );
-  };
+  // const onChangeBoardNodes = (nodes: any[]) => {
+  //   setBoardNodeList(nodes);
+  //   setBoardRef((boardRef: any) => ({
+  //     nodeList: nodes,
+  //     edgeList: boardRef.boardEdges,
+  //   }));
+  // };
+  // const updateBoardNode = (node: any) => {
+  //   setBoardNodeList((boardNodeList) =>
+  //     boardNodeList.map((item) => {
+  //       if (item.id === node.id) {
+  //         return node;
+  //       }
+  //       return item;
+  //     })
+  //   );
+  // };
 
-  const onSaveBoardNodes = useCallback(
-    (currentBoard: any) => {
-      if (
-        boardNodeList.filter((item) => item.tertiary === TertiaryEnums.end)
-          .length !== 1 ||
-        boardNodeList.filter((item) => item.tertiary === TertiaryEnums.start)
-          .length !== 1
-      ) {
-        message.warning(
-          formatMessage({
-            id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips",
-          })
-        );
-        return;
-      }
-      setBoardRef({ nodeList: boardNodeList, edgeList: boardEdges });
-      doUpdatedNode.run(currentBoard.id, {
-        ...currentBoard,
-        content: JSON.stringify({ boardNodeList, boardEdges }),
-      });
-    },
-    [boardNodeList, boardEdges]
-  );
+  // const onSaveBoardNodes = useCallback(
+  //   (currentBoard: any) => {
+  //     if (
+  //       boardNodeList.filter((item) => item.tertiary === TertiaryEnums.end)
+  //         .length !== 1 ||
+  //       boardNodeList.filter((item) => item.tertiary === TertiaryEnums.start)
+  //         .length !== 1
+  //     ) {
+  //       message.warning(
+  //         formatMessage({
+  //           id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.saveBoardNodesTips",
+  //         })
+  //       );
+  //       return;
+  //     }
+  //     setBoardRef({ nodeList: boardNodeList, edgeList: boardEdges });
+  //     doUpdatedNode.run(currentBoard.id, {
+  //       ...currentBoard,
+  //       content: JSON.stringify({ boardNodeList, boardEdges }),
+  //     });
+  //   },
+  //   [boardNodeList, boardEdges]
+  // );
 
   useEffect(() => {
     !visibleNode && setIsBoardCreateNode(false);
@@ -442,12 +459,14 @@ const useManageNodeAndFolder = () => {
     visibleFolder,
     isEditNode,
     currentNode,
-    selectNode,
+    // selectNode,
     selectKeys,
     setSelectKeys,
     extra,
     nodes,
+    setNodes,
     folders,
+    setFolders,
     isBoardCreateNode,
 
     showNodeModal,
@@ -458,9 +477,9 @@ const useManageNodeAndFolder = () => {
 
     setIsEditNode,
     setCurrentNode,
-    setSelectNode,
+    // setSelectNode,
     setExtra,
-    setBoardEdges,
+    // setBoardEdges,
     setIsBoardCreateNode,
 
     doLockNode,
@@ -479,20 +498,23 @@ const useManageNodeAndFolder = () => {
     doUpdateFolder,
     doDeleteFolder,
 
-    boardFile,
-    boardNodeList,
-    boardEdges,
-    connectEdge,
-    changeEdges,
-    onSaveBoardNodes,
-    isChangeBoard,
-    createBoardNode,
-    updateBoardNode,
-    doGetBoardFile,
-    doGetBoardNodes,
-    deleteNodeById,
-    deleteEdges,
-    onChangeBoardNodes,
+    // allBoardNodeList,
+    // onChangeAllBoardNodeList,
+
+    // boardFile,
+    // boardNodeList,
+    // boardEdges,
+    // connectEdge,
+    // changeEdges,
+    // onSaveBoardNodes,
+    // isChangeBoard,
+    // createBoardNode,
+    // updateBoardNode,
+    // doGetBoardFile,
+    // doGetBoardNodes,
+    // deleteNodeById,
+    // deleteEdges,
+    // onChangeBoardNodes,
   };
 };
 export default useManageNodeAndFolder;

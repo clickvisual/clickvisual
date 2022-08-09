@@ -7,6 +7,7 @@ import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth"
 import LogLibraryItem from "./LogLibraryList/LogLibraryItem";
 import DatabaseItem from "./LogLibraryList/DatabaseItem";
 import InstanceItem from "./LogLibraryList/InstanceItem";
+import EditDatabaseModel from "../SelectedDatabaseDraw/EditDatabaseModel";
 
 const MENU_MIN = 200;
 const MENU_MAX = 400;
@@ -17,14 +18,11 @@ const DataSourceMenu = () => {
     onChangeResizeMenuWidth,
     resizeMenuWidth,
     onChangeIsHasDatabase,
-    // doGetDatabaseList,
   } = useModel("dataLogs");
   const { doGetAllInstances } = useModel("instances");
-  // const [instanceTree, setInstanceTree] = useState<any[]>([]);
   const [allInstancesData, setAllInstancesData] = useState<any>([]);
 
   useEffect(() => {
-    // doGetDatabaseList();
     getList();
     return () => onChangeIsHasDatabase(false);
   }, []);
@@ -34,8 +32,6 @@ const DataSourceMenu = () => {
       if (res.code != 0) return;
       if (res.data?.length > 0) {
         setAllInstancesData(res.data);
-        // const treeList = treeDataConversion(res.data);
-        // setInstanceTree(treeList);
         const hasDatabaseList = res.data.filter((item: any) => {
           return item.databases.length > 0;
         });
@@ -132,6 +128,7 @@ const DataSourceMenu = () => {
         onResize={handleResize}
         onToggleExpand={handleToggleExpand}
       />
+      <EditDatabaseModel />
     </div>
   );
 };

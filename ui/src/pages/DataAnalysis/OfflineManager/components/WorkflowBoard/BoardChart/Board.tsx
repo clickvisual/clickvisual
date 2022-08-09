@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   addEdge,
+  Edge,
   Handle,
   MarkerType,
   MiniMap,
@@ -10,7 +11,7 @@ import ReactFlow, {
 import { graphlib, layout } from "dagre";
 
 import "./styles/index.less";
-import { useModel } from "@@/plugin-model/useModel";
+// import { useModel } from "@@/plugin-model/useModel";
 import BoardNode from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart/BoardNode";
 import {
   FlowNodeTypeEnums,
@@ -18,6 +19,7 @@ import {
 } from "@/pages/DataAnalysis/service/enums";
 import deletedModal from "@/components/DeletedModal";
 import { useKeyPress } from "ahooks";
+import { useModel } from "umi";
 // import { Spin } from "antd";
 
 export interface BoardProps {
@@ -25,6 +27,32 @@ export interface BoardProps {
   onDeleteRight: (node: any) => void;
   onCreate: (params: any, nodeInfo: any) => void;
   isLock: boolean;
+  nodes: any;
+  setNodes: any;
+  onNodesChange: any;
+  edges: any;
+  setEdges: any;
+  onEdgesChange: any;
+  showCreateNode: any;
+  boardNodes: any;
+  onChangeBoardNodes: any;
+  updateBoardNode: any;
+  connectEdge: any;
+  deleteEdges: any;
+  changeEdges: any;
+  boardEdges: any;
+  // setIsBoardCreateNode: any;
+  setIsEditNode: any;
+  setCurrentNode: any;
+
+  // showNodeModal: any;
+  // hideNodeModal: any;
+  // showFolderModal: any;
+  // hideFolderModal: any;
+  // isBoardCreateNode: any;
+  // visibleFolder: any;
+  // isEditNode: any;
+  // currentNode: any;
 }
 
 const Board = ({
@@ -32,7 +60,33 @@ const Board = ({
   currentBoard,
   onDeleteRight,
   onCreate,
-}: BoardProps) => {
+  nodes,
+  setNodes,
+  onNodesChange,
+  edges,
+  setEdges,
+  onEdgesChange,
+  showCreateNode,
+  // setExtra,
+  boardNodes,
+  onChangeBoardNodes,
+  updateBoardNode,
+  connectEdge,
+  deleteEdges,
+  changeEdges,
+  boardEdges,
+  // setIsBoardCreateNode,
+  setIsEditNode,
+  setCurrentNode,
+}: // showNodeModal,
+// hideNodeModal,
+// showFolderModal,
+// hideFolderModal,
+// isBoardCreateNode,
+// visibleFolder,
+// isEditNode,
+// currentNode,
+BoardProps) => {
   const BoardWrapper = useRef<any>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const [selectEdges, setSelectEdges] = useState<any[]>([]);
@@ -41,36 +95,36 @@ const Board = ({
   // const [selectNodes, setSelectNodes] = useState<any[]>([]);
 
   const {
-    nodes,
-    setNodes,
-    onNodesChange,
-    edges,
-    setEdges,
-    onEdgesChange,
-    showCreateNode,
+    // nodes,
+    // setNodes,
+    // onNodesChange,
+    // edges,
+    // setEdges,
+    // onEdgesChange,
+    // showCreateNode,
     showNodeModal,
     setExtra,
-    boardNodes,
-    boardEdges,
-    connectEdge,
-    deleteEdges,
-    onChangeBoardNodes,
+    // boardNodes,
+    // boardEdges,
+    // connectEdge,
+    // deleteEdges,
+    // onChangeBoardNodes,
     setIsBoardCreateNode,
   } = useModel("dataAnalysis", (model) => ({
-    nodes: model.workflowBoard.nodes,
-    setNodes: model.workflowBoard.setNodes,
-    onNodesChange: model.workflowBoard.onNodesChange,
-    edges: model.workflowBoard.edges,
-    setEdges: model.workflowBoard.setEdges,
-    onEdgesChange: model.workflowBoard.onEdgesChange,
-    showCreateNode: model.workflowBoard.showCreateNode,
+    // nodes: model.workflowBoard.nodes,
+    // setNodes: model.workflowBoard.setNodes,
+    // onNodesChange: model.workflowBoard.onNodesChange,
+    // edges: model.workflowBoard.edges,
+    // setEdges: model.workflowBoard.setEdges,
+    // onEdgesChange: model.workflowBoard.onEdgesChange,
+    // showCreateNode: model.workflowBoard.showCreateNode,
     setExtra: model.manageNode.setExtra,
     showNodeModal: model.manageNode.showNodeModal,
-    boardNodes: model.manageNode.boardNodeList,
-    onChangeBoardNodes: model.manageNode.onChangeBoardNodes,
-    boardEdges: model.manageNode.boardEdges,
-    connectEdge: model.manageNode.connectEdge,
-    deleteEdges: model.manageNode.deleteEdges,
+    // boardNodes: model.manageNode.boardNodeList,
+    // onChangeBoardNodes: model.manageNode.onChangeBoardNodes,
+    // boardEdges: model.manageNode.boardEdges,
+    // connectEdge: model.manageNode.connectEdge,
+    // deleteEdges: model.manageNode.deleteEdges,
     setIsBoardCreateNode: model.manageNode.setIsBoardCreateNode,
   }));
 
@@ -97,7 +151,7 @@ const Board = ({
         type: MarkerType.ArrowClosed,
       },
     };
-    setEdges((eds) => addEdge(edge, eds));
+    setEdges((eds: Edge<any>[]) => addEdge(edge, eds));
     connectEdge(edge);
   }, []);
 
@@ -249,7 +303,16 @@ const Board = ({
           id: node?.id?.toString(),
           type,
           data: {
-            label: <BoardNode node={node} onDelete={onDeleteRight} />,
+            label: (
+              <BoardNode
+                node={node}
+                onDelete={onDeleteRight}
+                // showNodeModal={showNodeModal}
+                updateBoardNode={updateBoardNode}
+                // setIsEditNode={setIsEditNode}
+                // setCurrentNode={setCurrentNode}
+              />
+            ),
             node,
           },
           style: {

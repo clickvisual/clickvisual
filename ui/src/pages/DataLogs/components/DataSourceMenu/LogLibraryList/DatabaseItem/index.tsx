@@ -10,9 +10,6 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
   const { databasesItem, onGetList } = props;
   const i18n = useIntl();
   const {
-    // currentDatabase,
-    // onChangeCurrentDatabase,
-    // doGetDatabaseList,
     onChangeLogLibraryCreatedModalVisible,
     onChangeAddLogToDatabase,
     onChangeIsEditDatabase,
@@ -45,10 +42,6 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
               return;
             }
             onGetList();
-            // if (currentDatabase?.id === record.id) {
-            //   onChangeCurrentDatabase(undefined);
-            // }
-            // doGetDatabaseList(selectedInstance);
             message.success(
               {
                 content: i18n.formatMessage(
@@ -65,42 +58,38 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
     });
   };
 
-  const menu = (
-    <Menu>
-      <MenuItem
-        icon={
-          <IconFont style={{ color: "#000" }} type={"icon-database-edit"} />
-        }
-        onClick={() => {
-          onChangeIsEditDatabase(true);
-          onChangeCurrentEditDatabase(databasesItem);
-        }}
-      >
-        {i18n.formatMessage({ id: "datasource.draw.table.edit.tip" })}
-      </MenuItem>
-      <MenuItem
-        icon={<PlusSquareOutlined style={{ color: "#000" }} />}
-        onClick={() => {
-          onChangeAddLogToDatabase(databasesItem);
-          onChangeLogLibraryCreatedModalVisible(true);
-        }}
-      >
-        {i18n.formatMessage({
-          id: "datasource.draw.table.operation.tip",
-        })}
-      </MenuItem>
-      <MenuItem
-        icon={<IconFont type={"icon-delete"} />}
-        onClick={() => {
-          doDeletedDatabase(databasesItem);
-        }}
-      >
-        <span style={{ color: "#de6464" }}>
-          {i18n.formatMessage({ id: "datasource.draw.table.delete.tip" })}
-        </span>
-      </MenuItem>
-    </Menu>
-  );
+  const items = [
+    {
+      label: i18n.formatMessage({ id: "datasource.draw.table.edit.tip" }),
+      key: "database-edit",
+      onClick: () => {
+        onChangeIsEditDatabase(true);
+        onChangeCurrentEditDatabase(databasesItem);
+      },
+      icon: <IconFont style={{ color: "#000" }} type={"icon-database-edit"} />,
+    },
+    {
+      label: i18n.formatMessage({
+        id: "datasource.draw.table.operation.tip",
+      }),
+      key: "database-creat",
+      onClick: () => {
+        onChangeAddLogToDatabase(databasesItem);
+        onChangeLogLibraryCreatedModalVisible(true);
+      },
+      icon: <PlusSquareOutlined style={{ color: "#000" }} />,
+    },
+    {
+      label: i18n.formatMessage({ id: "datasource.draw.table.delete.tip" }),
+      key: "database-delete",
+      onClick: () => {
+        doDeletedDatabase(databasesItem);
+      },
+      icon: <IconFont type={"icon-delete"} />,
+    },
+  ];
+
+  const menu = <Menu items={items} />;
 
   const tooltipTitle = (
     <div>
@@ -144,8 +133,8 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
         overlayInnerStyle={{ width: 300 }}
       >
         <div style={{ width: "100%" }}>
+          <IconFont type="icon-database" style={{ marginRight: "4px" }} />
           {databasesItem.databaseName}
-          {databasesItem.desc.length > 0 ? " | " + databasesItem.desc : ""}
         </div>
       </Tooltip>
     </Dropdown>

@@ -5,7 +5,6 @@ import { useIntl, useModel } from "umi";
 import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import DataAnalysisNav from "@/pages/DataAnalysis/components/Nav";
 import ScreeningRow from "@/pages/DataAnalysis/components/ScreeningRow";
-import RightMenu from "@/pages/DataAnalysis/components/RightMenu";
 import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
 import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
@@ -14,6 +13,7 @@ import ManageNodeModal from "@/pages/DataAnalysis/components/NodeManage/ManageNo
 import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/ManageFolderModal";
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+// import { cloneDeep } from "lodash";
 
 const DataAnalysis = () => {
   const {
@@ -22,14 +22,31 @@ const DataAnalysis = () => {
     openNodeId,
     changeOpenNodeId,
     manageNode,
-    onGetFolderList,
     temporaryQuery,
+    // doGetNodeInfo,
+    // changeOpenNodeData,
+    // changeFolderContent,
+    getUserList,
   } = useModel("dataAnalysis");
+  // const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
+  //   "dataanalysis.useFilePane"
+  // );
   const i18n = useIntl();
   const [urlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
-  const { setSelectNode, nodes, setSelectKeys } = manageNode;
+  const { nodes, setSelectKeys } = manageNode;
   const { temporaryQueryNodes, setSelectNodeKeys } = temporaryQuery;
+
+  // 获取文件信息
+  // const onGetFolderInfo = (id: number) => {
+  //   id &&
+  //     doGetNodeInfo.run(id).then((res: any) => {
+  //       if (res?.code === 0) {
+  //         changeOpenNodeData(res.data);
+  //         // changeFolderContent(res.data.content);
+  //       }
+  //     });
+  // };
 
   const NavContent = useMemo(() => {
     if (!currentInstances) {
@@ -56,22 +73,15 @@ const DataAnalysis = () => {
     }
   }, [navKey, currentInstances]);
 
-  const rightMenu = useMemo(() => {
-    if (
-      currentInstances &&
-      openNodeId &&
-      (navKey == BigDataNavEnum.TemporaryQuery ||
-        navKey == BigDataNavEnum.OfflineManage)
-    ) {
-      return <RightMenu />;
-    }
-    return <></>;
-  }, [navKey, currentInstances, openNodeId]);
+  // 副作用
+
+  useEffect(() => {
+    getUserList();
+  }, []);
 
   useEffect(() => {
     if (urlState && urlState.nodeId && urlState.nodeId != openNodeId) {
       changeOpenNodeId(parseInt(urlState.nodeId));
-      onGetFolderList(parseInt(urlState.nodeId));
       return;
     }
     const openId = onSetLocalData(
@@ -80,13 +90,13 @@ const DataAnalysis = () => {
     );
     if (openId) {
       changeOpenNodeId(openId?.openNodeId);
-      onGetFolderList(openId?.openNodeId);
     }
   }, []);
 
   useEffect(() => {
     if (nodes?.length > 0 || temporaryQueryNodes?.length > 0) {
       let openId: any;
+
       if (urlState && urlState.nodeId) {
         openId = urlState.nodeId;
       }
@@ -95,6 +105,7 @@ const DataAnalysis = () => {
         undefined,
         LocalModuleType.dataAnalysisOpenNodeId
       );
+
       if (!urlState?.nodeId && localOpneId) {
         openId = localOpneId;
       }
@@ -107,7 +118,6 @@ const DataAnalysis = () => {
         });
         const nodeData = selectNodeData[0];
         if (nodeData) {
-          nodeData && setSelectNode(nodeData);
           const key = `${nodeData.workflowId}-${nodeData.id}-${nodeData.name}`;
           if (nodes.length > 0) {
             setSelectKeys([key]);
@@ -124,7 +134,6 @@ const DataAnalysis = () => {
       <div className={style.contentBox}>
         <DataAnalysisNav />
         <div className={style.content}>{NavContent}</div>
-        {rightMenu}
       </div>
       <div className={style.positionBox}>
         <ScreeningRow />

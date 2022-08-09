@@ -3,7 +3,9 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useMemo } from "react";
 import WorkflowLine from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/WorkflowList/WorkflowLine";
 
-const WorkflowList = () => {
+export interface WorkflowListType {}
+
+const WorkflowList = (props: WorkflowListType) => {
   const { workflowList } = useModel("dataAnalysis", (model) => ({
     workflowList: model.workflow.workflowList,
   }));
