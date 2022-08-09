@@ -4,7 +4,7 @@ import { Button, Input, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-import { PlusOutlined } from "@ant-design/icons";
+// import { PlusOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 
 type SearchLogLibraryProps = {
@@ -14,12 +14,12 @@ type SearchLogLibraryProps = {
 
 const SearchLogLibrary = (props: SearchLogLibraryProps) => {
   const { onSearch, onGetList } = props;
-  const {
-    // currentDatabase,
-    onChangeLogLibraryCreatedModalVisible,
-    onChangeIsLogLibraryAllDatabase,
-    isHasDatabase,
-  } = useModel("dataLogs");
+  // const {
+  //   // currentDatabase,
+  //   // onChangeLogLibraryCreatedModalVisible,
+  //   // onChangeIsLogLibraryAllDatabase,
+  //   // isHasDatabase,
+  // } = useModel("dataLogs");
   const { onChangeCreatedDatabaseModal } = useModel("database");
   const [value, setValue] = useState<string | undefined>(undefined);
   const i18n = useIntl();
@@ -43,7 +43,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
             id: "datasource.logLibrary.search.placeholder",
           })}
           // allowClear
-          style={{ paddingRight: "8px", flex: 1 }}
+          style={{ flex: 1 }}
           onSearch={onSearch}
           onChange={(ev) => setValue(ev.target.value)}
         />
@@ -75,7 +75,7 @@ const SearchLogLibrary = (props: SearchLogLibraryProps) => {
             onClick={() => {
               onChangeCreatedDatabaseModal(true);
             }}
-            style={{ width: "32px", marginLeft: "8px" }}
+            style={{ width: "32px", marginLeft: "10px" }}
             icon={
               <IconFont type={"icon-add-database"} style={{ color: "#fff" }} />
             }
