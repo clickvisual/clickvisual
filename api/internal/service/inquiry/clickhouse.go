@@ -1112,7 +1112,7 @@ func (c *ClickHouse) queryTransform(params view.ReqQuery) string {
 	if query == "" {
 		return query
 	}
-	return fmt.Sprintf("AND %s", query)
+	return fmt.Sprintf("AND (%s)", query)
 }
 
 func queryTransformLike(params view.ReqQuery) string {
