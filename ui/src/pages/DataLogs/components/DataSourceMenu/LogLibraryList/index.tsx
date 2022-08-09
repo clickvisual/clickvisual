@@ -80,7 +80,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
         // 展开所有实例
         expandParent(list, NaN);
       }
-  }, [lastDataLogsState.tid]);
+  }, []);
 
   // useEffect(() => {
   //   console.log(lastDataLogsState.tid, "lastDataLogsState.tid");
