@@ -92,7 +92,7 @@ export default function useLogUrlParams() {
     statisticalChartsHelper,
     // onChangeVisibleDatabaseDraw,
   } = useModel("dataLogs");
-  const { onChangeCurrentlyTableToIid } = useModel("instances");
+  const { onChangeCurrentlyTableToIid, allTables } = useModel("instances");
   const { addLogPane } = logPanesHelper;
   const { activeQueryType, chartSql } = statisticalChartsHelper;
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
@@ -249,7 +249,12 @@ export default function useLogUrlParams() {
 
   useEffect(() => {
     if (tid) {
-      doSetUrlQuery(parseInt(tid));
+      // 并且该tid在树中存在
+      const currentTable = allTables.filter((item: any) => {
+        return item.key == `table-${tid}`;
+      });
+
+      currentTable.length == 1 && doSetUrlQuery(parseInt(tid));
     } else if (
       urlState.instance &&
       urlState.database &&
@@ -267,7 +272,7 @@ export default function useLogUrlParams() {
         }
       });
     }
-  }, [tid]);
+  }, [tid, allTables]);
 
   // useEffect(() => {
   //   const lastDataLogsState: LastDataLogsStateType = getLastDataLogsState();

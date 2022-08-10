@@ -21,7 +21,8 @@ const ScreeningRow = (props: { style?: any }) => {
   const { setDatabases, setTables, setNodes, setEdges } = realTimeTraffic;
   const { setIsFold } = workflow;
 
-  const dataAnalysisIid = localStorage.getItem("data-analysis-iid") || false;
+  const dataAnalysisIid =
+    localStorage.getItem("clickvisual-data-analysis-iid") || false;
 
   useEffect(() => {
     doGetInstance.run().then((res: any) => {
@@ -75,13 +76,16 @@ const ScreeningRow = (props: { style?: any }) => {
               onChangeCurrentInstances(iid);
               setUrlState({ iid: iid });
               if (iid) {
-                localStorage.setItem("data-analysis-iid", iid.toString());
+                localStorage.setItem(
+                  "clickvisual-data-analysis-iid",
+                  iid.toString()
+                );
                 doGetDatabase
                   .run(iid as number)
                   .then((res) => setDatabases(res?.data ?? []));
                 return;
               }
-              localStorage.removeItem("data-analysis-iid");
+              localStorage.removeItem("clickvisual-data-analysis-iid");
             }}
           />
         </Form.Item>

@@ -23,6 +23,9 @@ const Instances = () => {
   // 树状选中项
   const [selectKeys, setSelectKeys] = useState<any[]>([]);
 
+  // 全部的表
+  const [allTables, setAllTables] = useState<any[]>([]);
+
   const onChangeCurrentlyTableToIid = (iid: number) => {
     setCurrentlyTableToIid(iid);
   };
@@ -138,6 +141,16 @@ const Instances = () => {
     onChangeExpandedKeys(keys);
   };
 
+  const getAllTables = (list: any[]) => {
+    let arr: any[] = [];
+    list.forEach((instanceItem: any) => {
+      instanceItem.children.map((databaseItem: any) => {
+        arr = [...arr, ...databaseItem.children];
+      });
+    });
+    setAllTables(arr || []);
+  };
+
   return {
     instanceList,
     // selectedInstance,
@@ -159,6 +172,8 @@ const Instances = () => {
 
     filterSelectedTree,
     expandParent,
+    allTables,
+    getAllTables,
 
     selectKeys,
     onChangeSelectKeys,
