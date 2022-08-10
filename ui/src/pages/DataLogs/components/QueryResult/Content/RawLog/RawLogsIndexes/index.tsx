@@ -14,13 +14,13 @@ const RawLogsIndexes = (props: { tid: number | undefined }) => {
 
   useEffect(() => {
     if (logs && logs?.keys) {
-      setIndexList(logs?.keys);
+      setIndexList(logs?.keys || []);
       return;
     }
     tid &&
       doGetAnalysisField.run(tid).then((res: any) => {
         if (res.code != 0) return;
-        setIndexList(res.data?.keys);
+        setIndexList(res.data?.keys || []);
       });
   }, [logs]);
 
