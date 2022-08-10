@@ -14,10 +14,17 @@ const useStatisticalCharts = () => {
   });
   const [aggregationChartSql, setAggregationChartSql] = useState<string>("");
 
+  // 只格式化一次的标记
+  const [isFormat, setIsFormat] = useState<boolean>(false);
+
   const doGetStatisticalTable = useRequest(api.getStatisticalTable, {
     loadingText: false,
     onSuccess: (res) => setLogChart(res.data),
   });
+
+  const onChangeIsFormat = (flag: boolean) => {
+    setIsFormat(flag);
+  };
 
   const onChangeChartSql = (sql: string | undefined) => {
     setChartSql(sql);
@@ -37,6 +44,9 @@ const useStatisticalCharts = () => {
     doGetStatisticalTable,
     logChart,
     setLogChart,
+
+    isFormat,
+    onChangeIsFormat,
   };
 };
 export default useStatisticalCharts;
