@@ -666,6 +666,8 @@ func (p *pms) GrantRootUsers(newRootUids []int) {
 		userStr, _ := pmsplugin.Assemble2CasbinStr(pmsplugin.PrefixUser, strconv.Itoa(rmUid))
 		_, _ = pmsplugin.DelRule(pmsplugin.RuleTypeG3, userStr, "role__root")
 	}
+	// do not forget to reload casbin policy, because we just modified records in db above.
+	pmsplugin.EnforcerLoadPolicy()
 }
 
 // GetAllRoles would return all Rules of a user
