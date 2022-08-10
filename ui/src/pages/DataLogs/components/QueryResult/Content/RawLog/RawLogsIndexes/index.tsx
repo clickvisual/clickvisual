@@ -7,9 +7,18 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useEffect, useState } from "react";
 import { IndexInfoType } from "@/services/dataLogs";
 
-const RawLogsIndexes = () => {
-  const { logs } = useModel("dataLogs");
-  const [indexList, setIndexList] = useState<IndexInfoType[]>(logs?.keys || []);
+const RawLogsIndexes = (props: { tid: number | undefined }) => {
+  const { tid } = props;
+  const { doGetAnalysisField } = useModel("dataLogs");
+  const [indexList, setIndexList] = useState<IndexInfoType[]>([]);
+
+  useEffect(() => {
+    tid &&
+      doGetAnalysisField.run(tid).then((res: any) => {
+        if (res.code != 0) return;
+        setIndexList(res.data?.keys);
+      });
+  }, []);
 
   // const onSearch = (val: string) => {
   //   const list = logs?.keys || [];
@@ -20,9 +29,9 @@ const RawLogsIndexes = () => {
   //   );
   // };
 
-  useEffect(() => {
-    setIndexList(logs?.keys || []);
-  }, [logs]);
+  // useEffect(() => {
+  //   setIndexList(logs?.keys || []);
+  // }, [logs]);
 
   return (
     <div className={classNames(logsIndexStyles.logsIndexMain)}>

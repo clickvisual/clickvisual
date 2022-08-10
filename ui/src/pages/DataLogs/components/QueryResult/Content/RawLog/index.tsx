@@ -28,7 +28,7 @@ const RawLogContent = () => {
 
   return (
     <div className={queryResultStyles.content}>
-      <RawLogsIndexes />
+      <RawLogsIndexes tid={currentLogLibrary?.id} />
       <div className={queryResultStyles.queryDetail}>
         {oldPane?.histogramChecked && (
           <Spin

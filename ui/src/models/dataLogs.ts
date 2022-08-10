@@ -309,6 +309,10 @@ const DataLogsModel = () => {
     onSuccess: (res) => setDataBaseList(res.data || []),
   });
 
+  const doGetAnalysisField = useRequest(api.getAnalysisField, {
+    loadingText: false,
+  });
+
   const settingIndexes = useRequest(api.setIndexes, {
     loadingText: false,
     onSuccess() {
@@ -681,6 +685,7 @@ const DataLogsModel = () => {
     getTableColumns,
     doCreatedLocalLogLibrary,
     doCreatedLocalLogLibraryBatch,
+    doGetAnalysisField,
 
     viewsVisibleDraw,
     getViewList,
