@@ -26,7 +26,7 @@ const CollapseMenu = () => {
     <div
       onClick={onClickBtn}
       style={{
-        left: !foldingState ? `${resizeMenuWidth + 3}px` : undefined,
+        left: !foldingState ? `${resizeMenuWidth - 2}px` : undefined,
         borderRadius: !foldingState
           ? "100% 0 0 100%  / 50%"
           : "0 100% 100% 0 / 50%",

@@ -88,14 +88,18 @@ const RawLogTabs = () => {
           className={rawLogTabsStyles.tabs}
           onEdit={onEdit}
           destroyInactiveTabPane
+          animated={false}
           style={{ width: `calc(100vw - ${83 + resizeMenuWidth}px)` }}
         >
           {paneKeys.map((item) => {
             const pane = logPanes[item];
             return (
               pane && (
-                <TabPane key={pane.paneId} tab={pane.pane}>
-                  <QueryResult tid={pane.paneId} />
+                <TabPane key={pane.paneId} tab={pane.pane} forceRender>
+                  <QueryResult
+                    tid={pane.paneId}
+                    activeKey={currentLogLibrary?.id.toString()}
+                  />
                 </TabPane>
               )
             );

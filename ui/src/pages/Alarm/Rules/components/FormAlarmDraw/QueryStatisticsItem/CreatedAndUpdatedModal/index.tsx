@@ -496,7 +496,11 @@ const CreatedAndUpdatedModal = ({
                 }}
               >
                 {alarmModeList.map((item: any) => {
-                  return <Option value={item.key}>{item.name}</Option>;
+                  return (
+                    <Option value={item.key} key={item.key}>
+                      {item.name}
+                    </Option>
+                  );
                 })}
               </Select>
             </Form.Item>

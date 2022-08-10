@@ -443,4 +443,11 @@ export default {
       }
     );
   },
+
+  // Storage analysis field list
+  async getAnalysisField(tid: number) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v2/storage/${tid}/analysis-fields`
+    );
+  },
 };

@@ -36,6 +36,8 @@ const TableQuery = () => {
     aggregationChartSql,
     onChangeAggregationChartSql,
     doGetStatisticalTable,
+    isFormat,
+    onChangeIsFormat,
   } = statisticalChartsHelper;
   const [sql, setSql] = useState<string | undefined>(chartSql);
 
@@ -92,17 +94,23 @@ const TableQuery = () => {
 
   useEffect(() => {
     if (urlState?.mode != 1) {
-      setSql(chartSql);
+      // 初次格式化
+      if (!isFormat && chartSql) {
+        setSql(format(chartSql));
+        onChangeIsFormat(true);
+      } else {
+        setSql(chartSql);
+      }
     }
   }, [chartSql]);
 
   useEffect(() => {
     // mode == 1为报警的聚合模式，此时直接拿url上的kw作为查询语句
     if (urlState?.mode == 1) {
-      // 初次
+      // 报警的聚合模式的初次
       if (chartSql == undefined) {
-        onChangeAggregationChartSql(urlState?.kw);
-        setSql(urlState.kw);
+        onChangeAggregationChartSql(format(urlState?.kw));
+        setSql(format(urlState.kw));
         doSearch.run();
         return;
       }

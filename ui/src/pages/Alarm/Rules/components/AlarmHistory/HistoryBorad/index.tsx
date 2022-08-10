@@ -82,7 +82,7 @@ const HistoryBoard = ({
     {
       id: 104,
       title: i18n.formatMessage({ id: "alarm.rules.historyBorad.ctime" }),
-      content: ctime && moment(ctime * 1000).format("YYYY-MM-DD hh:mm:ss"),
+      content: ctime && moment(ctime * 1000).format("YYYY-MM-DD HH:mm:ss"),
       isCopy: false,
     },
     {
@@ -98,7 +98,7 @@ const HistoryBoard = ({
       title: i18n.formatMessage({
         id: "alarm.rules.historyBorad.lastUpdateTime",
       }),
-      content: utime && moment(utime * 1000).format("YYYY-MM-DD hh:mm:ss"),
+      content: utime && moment(utime * 1000).format("YYYY-MM-DD HH:mm:ss"),
       isCopy: false,
     },
     {

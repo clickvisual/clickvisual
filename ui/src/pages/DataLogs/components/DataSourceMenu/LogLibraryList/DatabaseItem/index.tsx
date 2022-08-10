@@ -3,7 +3,6 @@ import IconFont from "@/components/IconFont";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
 import { PlusSquareOutlined } from "@ant-design/icons";
 import { Dropdown, Menu, message, Tooltip } from "antd";
-import MenuItem from "antd/es/menu/MenuItem";
 import { useIntl, useModel } from "umi";
 
 const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
@@ -80,7 +79,11 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
       icon: <PlusSquareOutlined style={{ color: "#000" }} />,
     },
     {
-      label: i18n.formatMessage({ id: "datasource.draw.table.delete.tip" }),
+      label: (
+        <span className={logLibraryListStyles.deletedSpan}>
+          {i18n.formatMessage({ id: "datasource.draw.table.delete.tip" })}
+        </span>
+      ),
       key: "database-delete",
       onClick: () => {
         doDeletedDatabase(databasesItem);

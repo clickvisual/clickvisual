@@ -209,9 +209,9 @@ const FileTitle = ({
                 })}
             {file.lockUid && file.lockUid !== 0 ? (
               <Tooltip
-                title={moment(file.lockAt * 1000).format("YYYY-MM-DD hh:mm:ss")}
+                title={moment(file.lockAt * 1000).format("YYYY-MM-DD HH:mm:ss")}
               >
-                {moment(file.lockAt * 1000).format("MM-DD hh:mm:ss")}
+                {moment(file.lockAt * 1000).format("MM-DD HH:mm:ss")}
               </Tooltip>
             ) : null}
           </div>

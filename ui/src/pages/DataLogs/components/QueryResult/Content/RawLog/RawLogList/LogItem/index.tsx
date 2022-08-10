@@ -23,13 +23,15 @@ const LogItem = ({ log, foldingChecked }: LogItemProps) => {
   return (
     <div className={logItemStyles.logItemMain}>
       <div className={logItemStyles.left}>
-        <div>
+        <div className={logItemStyles.flexBox}>
           <Button
             size={"small"}
             type={"link"}
             onClick={handleFoldClick}
+            style={{ height: "19px" }}
             icon={isFold ? <CaretRightOutlined /> : <CaretDownOutlined />}
           />
+          {/* <span onClick={handleFoldClick}>{isFold ? <CaretRightOutlined /> : <CaretDownOutlined />}</span> */}
         </div>
         <div className={logItemStyles.dateTime}>
           <div>
