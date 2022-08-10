@@ -15,7 +15,8 @@ const SharePath = [
   process.env.PUBLIC_PATH + "share/",
 ];
 
-const QueryResult = (props: { tid?: string }) => {
+const QueryResult = (props: { tid?: string; activeKey?: string }) => {
+  const { tid, activeKey } = props;
   const [usrState] = useUrlState<any>();
   const { statisticalChartsHelper } = useModel("dataLogs");
   const { onSetLocalData } = useLocalStorages();
@@ -30,25 +31,25 @@ const QueryResult = (props: { tid?: string }) => {
   // 关闭tid标签页的时候清除那一项的值
   useEffect(() => {
     return () => {
-      if (props.tid) {
+      if (tid) {
         const data = {
-          [props.tid]: false,
+          [tid]: false,
         };
         onSetLocalData(data, LocalModuleType.datalogsQuerySql);
       }
     };
   }, []);
-
-  const Content = useMemo(() => {
+  const content = useMemo(() => {
+    if (activeKey != tid) return <></>;
     switch (activeQueryType) {
       case QueryTypeEnum.LOG:
-        return RawLogContent;
+        return <RawLogContent />;
       case QueryTypeEnum.TABLE:
-        return StatisticalTableContent;
+        return <StatisticalTableContent isShare={isShare} />;
       default:
-        return RawLogContent;
+        return <RawLogContent />;
     }
-  }, [activeQueryType, usrState, usrState?.mode]);
+  }, [activeQueryType, usrState, usrState?.mode, activeKey, tid]);
 
   return (
     <div
@@ -64,7 +65,7 @@ const QueryResult = (props: { tid?: string }) => {
           isShowSwitch={!(usrState?.mode && usrState?.mode == 0)}
         />
       </div>
-      <Content isShare={isShare} />
+      {content}
     </div>
   );
 };

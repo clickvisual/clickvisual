@@ -9,16 +9,20 @@ import { IndexInfoType } from "@/services/dataLogs";
 
 const RawLogsIndexes = (props: { tid: number | undefined }) => {
   const { tid } = props;
-  const { doGetAnalysisField } = useModel("dataLogs");
+  const { logs, doGetAnalysisField } = useModel("dataLogs");
   const [indexList, setIndexList] = useState<IndexInfoType[]>([]);
 
   useEffect(() => {
+    if (logs && logs?.keys) {
+      setIndexList(logs?.keys);
+      return;
+    }
     tid &&
       doGetAnalysisField.run(tid).then((res: any) => {
         if (res.code != 0) return;
         setIndexList(res.data?.keys);
       });
-  }, []);
+  }, [logs]);
 
   // const onSearch = (val: string) => {
   //   const list = logs?.keys || [];
@@ -28,10 +32,6 @@ const RawLogsIndexes = (props: { tid: number | undefined }) => {
   //     ) || []
   //   );
   // };
-
-  // useEffect(() => {
-  //   setIndexList(logs?.keys || []);
-  // }, [logs]);
 
   return (
     <div className={classNames(logsIndexStyles.logsIndexMain)}>
