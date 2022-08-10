@@ -1,15 +1,16 @@
 package pmsplugin
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"sync"
 
-	rediswatcher "github.com/billcobbler/casbin-redis-watcher"
-	"github.com/casbin/casbin/persist"
 	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/persist"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	rediswatcher "github.com/clickvisual/casbin-redis-watcher"
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
@@ -33,17 +34,18 @@ func Invoker() {
 	rulePath := econf.GetString("casbin.rule.path")
 	a, err := gormadapter.NewAdapterByDBUseTableName(invoker.Db, "", db.TableNamePmsCasbinRule)
 	if err != nil {
-		elog.Panic("Casbin gorm-adapter panic", zap.Error(err))
+		invoker.Logger.Panic("Casbin gorm-adapter panic", zap.Error(err))
 	}
 	enforcer, err = casbin.NewEnforcer(rulePath, a)
 	if err != nil {
-		elog.Panic("Casbin NewEnforcer panic", zap.Error(err))
+		invoker.Logger.Panic("Casbin NewEnforcer panic", zap.Error(err))
 	}
 	if econf.GetBool("app.isMultiCopy") {
+		invoker.Logger.Info("Casbin policies changed MultiCopy")
 		// Distributed watcher
-		w, err := rediswatcher.NewWatcher(econf.GetString("redis.addr"), rediswatcher.Password(econf.GetString("redis.password")))
+		w, err := rediswatcher.NewWatcher(context.Background(), econf.GetString("redis.addr"), rediswatcher.Password(econf.GetString("redis.password")))
 		if err != nil {
-			elog.Panic("redis connect panic", zap.Error(err))
+			invoker.Logger.Panic("Casbin redis connect panic", zap.Error(err))
 		}
 		watcher = &w
 		enforcer.SetWatcher(w)
@@ -795,4 +797,12 @@ func EnforceEX(params ...interface{}) (bool, []string, error) {
 
 func EnforcerLoadPolicy() {
 	_ = enforcer.LoadPolicy()
+	invoker.Logger.Debug("Casbin LoadPolicy")
+	if watcher != nil {
+		err := (*watcher).Update()
+		invoker.Logger.Debug("Casbin watcher.Update")
+		if err != nil {
+			invoker.Logger.Debug("Casbin watcher.Update failed", elog.FieldErr(err))
+		}
+	}
 }
