@@ -120,6 +120,7 @@ const DataLogsModel = () => {
     getTableColumns,
     doCreatedLocalLogLibrary,
     doCreatedLocalLogLibraryBatch,
+    doGetMappingJson,
   } = useLogLibrary();
 
   const {
@@ -685,6 +686,7 @@ const DataLogsModel = () => {
     getTableColumns,
     doCreatedLocalLogLibrary,
     doCreatedLocalLogLibraryBatch,
+    doGetMappingJson,
     doGetAnalysisField,
 
     viewsVisibleDraw,

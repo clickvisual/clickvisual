@@ -1,11 +1,12 @@
 import { Form, FormInstance, message, Modal, Select } from "antd";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIntl } from "umi";
 import { useModel } from "@@/plugin-model/useModel";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
 import LocalTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/LocalTable";
+import SelectField from "./SelectField";
 
 const { Option } = Select;
 
@@ -19,21 +20,19 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
   const logFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const {
-    // currentDatabase,
     addLogToDatabase,
     onChangeAddLogToDatabase,
     logLibraryCreatedModalVisible,
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibrary,
-    // doGetLogLibraryList,
     doCreatedLocalLogLibraryBatch,
     isAccessLogLibrary,
     onChangeIsAccessLogLibrary,
     onChangeIsLogLibraryAllDatabase,
+    doGetMappingJson,
   } = useModel("dataLogs");
-
-  // const instanceName = currentDatabase?.instanceName;
-  // const databaseName = currentDatabase?.name;
+  const [visibleSelectField, setVisibleSelectField] = useState<boolean>(false);
+  const [mappingJson, setMappingJson] = useState<any>({});
 
   const { doGetInstanceList, instanceList } = useModel("instances");
 
@@ -42,17 +41,15 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
       const response =
         field.mode === 1
           ? doCreatedLocalLogLibraryBatch.run(field.instance, {
-              // ...field,
               mode: field.mode,
               timeField: field.timeField,
               instance: field.instance,
               tableList: field.tableList,
             })
-          : doCreatedLogLibrary.run(
-              addLogToDatabase?.id as number,
-              // (currentDatabase?.id as number),
-              field
-            );
+          : doCreatedLogLibrary.run({
+              databaseId: addLogToDatabase?.id as number,
+              ...field,
+            });
       response
         .then((res) => {
           if (res?.code === 0) {
@@ -61,7 +58,6 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                 id: "datasource.logLibrary.created.success",
               })
             );
-            // doGetLogLibraryList();
             onGetList();
           }
           onChangeLogLibraryCreatedModalVisible(false);
@@ -70,6 +66,22 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
+
+  const handleConversionMappingJson = (str: string) => {
+    doGetMappingJson.run({ data: str }).then((res: any) => {
+      if (res.code != 0) return;
+      console.log(res.data);
+      setMappingJson(res.data.data);
+      setVisibleSelectField(true);
+    });
+  };
+
+  const handleConfirm = (data: { rawLogField: string; timeField: string }) => {
+    logFormRef.current?.setFieldsValue({
+      rawLogField: data.rawLogField,
+      timeField: data.timeField,
+    });
+  };
 
   useEffect(() => {
     !logLibraryCreatedModalVisible &&
@@ -156,16 +168,27 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
           {({ getFieldValue }) => {
             const mode = getFieldValue("mode");
             switch (mode) {
-              case 0:
-                return <NewTable />;
               case 1:
                 return <LocalTable formRef={logFormRef.current} />;
               default:
-                return <NewTable />;
+                return (
+                  <NewTable
+                    formRef={logFormRef}
+                    onConversionMappingJson={handleConversionMappingJson}
+                  />
+                );
             }
           }}
         </Form.Item>
       </Form>
+      {visibleSelectField && (
+        <SelectField
+          mappingJson={mappingJson}
+          visible={visibleSelectField}
+          onCancel={() => setVisibleSelectField(false)}
+          onConfirm={handleConfirm}
+        />
+      )}
     </Modal>
   );
 };

@@ -31,6 +31,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
     selectKeys,
     onChangeSelectKeys,
     expandParent,
+    getAllTables,
   } = useModel("instances");
   const { getLastDataLogsState } = useLocalStorages();
 
@@ -67,7 +68,8 @@ const LogLibraryList = (props: LogLibraryListProps) => {
   const lastDataLogsState = getLastDataLogsState();
 
   useEffect(() => {
-    if (list.length > 0)
+    if (list.length > 0) {
+      getAllTables(list);
       if (urlState?.tid) {
         onChangeSelectKeys([`table-${urlState?.tid}`]);
         // 三层循环查找替换 tid版
@@ -80,6 +82,7 @@ const LogLibraryList = (props: LogLibraryListProps) => {
         // 展开所有实例
         expandParent(list, NaN);
       }
+    }
   }, []);
 
   // useEffect(() => {

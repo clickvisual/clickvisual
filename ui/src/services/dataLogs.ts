@@ -37,12 +37,19 @@ export interface ViewResponse {
 }
 
 export interface CreatedLogLibraryRequest {
+  databaseId: number;
   tableName: string;
   typ: number;
   days: number;
   brokers: string;
   topics: string;
   consumers: number;
+  kafkaSkipBrokenMessages?: number;
+  desc?: string;
+
+  timeField: string;
+  rawLogField: string;
+  source: string;
 }
 
 export interface CreatedViewRequest {
@@ -250,9 +257,30 @@ export default {
   },
 
   // Create a log library
-  async createdTable(did: number, data: CreatedLogLibraryRequest) {
+  // async createdTable(did: number, data: CreatedLogLibraryRequest) {
+  //   return request<API.Res<string>>(
+  //     process.env.PUBLIC_PATH + `api/v1/databases/${did}/tables`,
+  //     {
+  //       method: "POST",
+  //       data,
+  //     }
+  //   );
+  // },
+
+  // Create a log library V2
+  async createdTable(data: CreatedLogLibraryRequest) {
     return request<API.Res<string>>(
-      process.env.PUBLIC_PATH + `api/v1/databases/${did}/tables`,
+      process.env.PUBLIC_PATH + `api/v2/storage`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
+  async getMappingJson(data: { data: string }) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v2/storage/mapping-json`,
       {
         method: "POST",
         data,

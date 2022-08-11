@@ -23,6 +23,12 @@ const Instances = () => {
   // 树状选中项
   const [selectKeys, setSelectKeys] = useState<any[]>([]);
 
+  // 全部的表
+  const [allTables, setAllTables] = useState<any[]>([]);
+
+  // 是否通过tid初始化过
+  const [isTidInitialize, setIsTidInitialize] = useState<boolean>(false);
+
   const onChangeCurrentlyTableToIid = (iid: number) => {
     setCurrentlyTableToIid(iid);
   };
@@ -33,6 +39,10 @@ const Instances = () => {
 
   const onChangeSelectKeys = (arr: any) => {
     setSelectKeys(arr);
+  };
+
+  const onChangeIsTidInitialize = (falg: boolean) => {
+    setIsTidInitialize(falg);
   };
 
   const doGetAllInstances = useRequest(api.getAllInstances, {
@@ -138,6 +148,16 @@ const Instances = () => {
     onChangeExpandedKeys(keys);
   };
 
+  const getAllTables = (list: any[]) => {
+    let arr: any[] = [];
+    list.forEach((instanceItem: any) => {
+      instanceItem.children.map((databaseItem: any) => {
+        arr = [...arr, ...databaseItem.children];
+      });
+    });
+    setAllTables(arr || []);
+  };
+
   return {
     instanceList,
     // selectedInstance,
@@ -159,6 +179,11 @@ const Instances = () => {
 
     filterSelectedTree,
     expandParent,
+    allTables,
+    getAllTables,
+
+    isTidInitialize,
+    onChangeIsTidInitialize,
 
     selectKeys,
     onChangeSelectKeys,

@@ -35,6 +35,10 @@ export default function useLogLibrary() {
     loadingText: false,
   });
 
+  const doGetMappingJson = useRequest(api.getMappingJson, {
+    loadingText: false,
+  });
+
   const doCreatedLocalLogLibrary = useRequest(api.createdLocalTable, {
     loadingText: false,
   });
@@ -76,6 +80,7 @@ export default function useLogLibrary() {
     onChangeCurrentEditDatabase,
 
     doCreatedLogLibrary: createdLogLibrary,
+    doGetMappingJson,
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
     getLogLibraryLoading: getLogLibrary.loading,
