@@ -1057,7 +1057,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
 		}
 	}
-	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+"%s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
 		param.DatabaseTable,
 		param.ST, param.ET,
@@ -1445,5 +1445,21 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 			return
 		}
 	}
+	return
+}
+
+// AlertMergeTreeTable ...
+// ALTER TABLE dev.test MODIFY TTL toDateTime(time_second) + toIntervalDay(7)
+func (c *ClickHouse) AlertMergeTreeTable(table db.BaseTable, ttl string) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+	tableName := table.Name
+	if c.mode == ModeCluster {
+		tableName = tableName + "_local"
+	}
+	// sql := fmt.Sprintf("ALTER TABLE %s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)", genName(table.Database.Name, table.Name))
+	return
+}
+
+func (c *ClickHouse) ReCreateKafkaTable(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+
 	return
 }
