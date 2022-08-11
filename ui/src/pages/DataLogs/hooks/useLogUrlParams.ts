@@ -92,7 +92,12 @@ export default function useLogUrlParams() {
     statisticalChartsHelper,
     // onChangeVisibleDatabaseDraw,
   } = useModel("dataLogs");
-  const { onChangeCurrentlyTableToIid, allTables } = useModel("instances");
+  const {
+    onChangeCurrentlyTableToIid,
+    allTables,
+    isTidInitialize,
+    onChangeIsTidInitialize,
+  } = useModel("instances");
   const { addLogPane } = logPanesHelper;
   const { activeQueryType, chartSql } = statisticalChartsHelper;
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
@@ -248,13 +253,16 @@ export default function useLogUrlParams() {
   }, []);
 
   useEffect(() => {
-    if (tid) {
-      // 并且该tid在树中存在
-      const currentTable = allTables.filter((item: any) => {
-        return item.key == `table-${tid}`;
-      });
+    if (tid && allTables.length > 0) {
+      // 并且该tid在树中存在且为初始化时执行
+      if (!isTidInitialize) {
+        const currentTable = allTables.filter((item: any) => {
+          return item.key == `table-${tid}`;
+        });
 
-      currentTable.length == 1 && doSetUrlQuery(parseInt(tid));
+        currentTable.length == 1 && doSetUrlQuery(parseInt(tid));
+        onChangeIsTidInitialize(true);
+      }
     } else if (
       urlState.instance &&
       urlState.database &&

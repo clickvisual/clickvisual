@@ -26,6 +26,9 @@ const Instances = () => {
   // 全部的表
   const [allTables, setAllTables] = useState<any[]>([]);
 
+  // 是否通过tid初始化过
+  const [isTidInitialize, setIsTidInitialize] = useState<boolean>(false);
+
   const onChangeCurrentlyTableToIid = (iid: number) => {
     setCurrentlyTableToIid(iid);
   };
@@ -36,6 +39,10 @@ const Instances = () => {
 
   const onChangeSelectKeys = (arr: any) => {
     setSelectKeys(arr);
+  };
+
+  const onChangeIsTidInitialize = (falg: boolean) => {
+    setIsTidInitialize(falg);
   };
 
   const doGetAllInstances = useRequest(api.getAllInstances, {
@@ -174,6 +181,9 @@ const Instances = () => {
     expandParent,
     allTables,
     getAllTables,
+
+    isTidInitialize,
+    onChangeIsTidInitialize,
 
     selectKeys,
     onChangeSelectKeys,

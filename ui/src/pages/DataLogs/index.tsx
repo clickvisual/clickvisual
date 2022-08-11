@@ -15,6 +15,7 @@ const DataLogs = () => {
     onChangeVisibleDatabaseDraw,
     logPanesHelper,
   } = useModel("dataLogs");
+  const { onChangeIsTidInitialize } = useModel("instances");
   useLogUrlParams();
 
   useEffect(() => {
@@ -22,6 +23,7 @@ const DataLogs = () => {
       onChangeVisibleDatabaseDraw(false);
       // onChangeCurrentDatabase(undefined);
       logPanesHelper.resetPane();
+      onChangeIsTidInitialize(false);
     };
   }, []);
 
