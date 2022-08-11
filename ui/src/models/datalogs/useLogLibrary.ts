@@ -3,7 +3,7 @@ import api from "@/services/dataLogs";
 import useRequest from "@/hooks/useRequest/useRequest";
 
 export default function useLogLibrary() {
-  const [createdVisible, setCreatedVisible] = useState<boolean>(true);
+  const [createdVisible, setCreatedVisible] = useState<boolean>(false);
   const [infoVisible, setInfoVisible] = useState<boolean>(false);
   const [isAccessLogLibrary, setIsAccessLogLibrary] = useState<boolean>(false);
   const [isLogLibraryAllDatabase, setIsLogLibraryAllDatabase] =
