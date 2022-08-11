@@ -325,6 +325,17 @@ export default {
   "datasource.logLibrary.placeholder.topics":
     "Please type Topics with numbers, letters, or hyphens",
   "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
+  "datasource.logLibrary.placeholder.source": "Please enter Source",
+  "datasource.logLibrary.placeholder.rawLogField":
+    "Enter Source and convert to select RawLogField",
+  "datasource.logLibrary.placeholder.timeField":
+    "Enter Source and convert to select TimeField",
+  "datasource.logLibrary.conversionBtn": "Conversion",
+  "datasource.logLibrary.conversion.warning":
+    "Please fill in the content and then convert",
+  "datasource.logLibrary.selectField.title": "Field selection",
+  "datasource.logLibrary.selectField.okTips":
+    "Select the timeField and rawLogField fields to confirm",
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
@@ -829,6 +840,7 @@ export default {
     "Please select view",
 
   "bigdata.components.Nav.navList.dataSourceManage": "Data Source",
+  "bigdata.components.Nav.navList.statisticalBoard": "Statistical Board",
 
   "bigdata.components.FolderTree.createFolderPrompt":
     "Currently, only level 2 folders are supported~",

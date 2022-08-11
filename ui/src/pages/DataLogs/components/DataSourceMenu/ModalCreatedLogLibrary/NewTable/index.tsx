@@ -1,12 +1,29 @@
-import { Form, Input, InputNumber, Select } from "antd";
+import { Button, Form, Input, InputNumber, message, Select } from "antd";
 import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import { useIntl } from "umi";
+import styles from "./index.less";
 import TextArea from "antd/lib/input/TextArea";
 
 const { Option } = Select;
 
-const NewTable = () => {
+const NewTable = (props: {
+  onConversionMappingJson: (str: string) => void;
+  formRef: any;
+}) => {
+  const { onConversionMappingJson, formRef } = props;
   const i18n = useIntl();
+
+  const handelConversion = () => {
+    const sourceValue = formRef.current.getFieldValue("source");
+    if (sourceValue && sourceValue.trim().length > 0) {
+      onConversionMappingJson(sourceValue);
+      return;
+    }
+    message.warning(
+      i18n.formatMessage({ id: "datasource.logLibrary.conversion.warning" })
+    );
+  };
+
   return (
     <>
       <Form.Item
@@ -155,7 +172,65 @@ const NewTable = () => {
       >
         <InputNumber min={0} style={{ width: "100%" }} />
       </Form.Item>
-
+      <Form.Item label={"source"} required>
+        <div className={styles.sourceRow}>
+          <Form.Item
+            name="source"
+            noStyle
+            required
+            rules={[
+              {
+                required: true,
+                message: i18n.formatMessage({
+                  id: "datasource.logLibrary.placeholder.source",
+                }),
+              },
+            ]}
+          >
+            <TextArea
+              autoSize={{ minRows: 3, maxRows: 8 }}
+              placeholder={i18n.formatMessage({
+                id: "datasource.logLibrary.placeholder.source",
+              })}
+            ></TextArea>
+          </Form.Item>
+          <Button
+            className={styles.sourceButton}
+            onClick={handelConversion}
+            // loading={doGetMappingJson.loading}
+          >
+            {i18n.formatMessage({ id: "datasource.logLibrary.conversionBtn" })}
+          </Button>
+        </div>
+      </Form.Item>
+      <Form.Item
+        label={"rawLogField"}
+        name={"rawLogField"}
+        rules={[
+          {
+            required: true,
+            message: i18n.formatMessage({
+              id: "datasource.logLibrary.placeholder.rawLogField",
+            }),
+          },
+        ]}
+      >
+        <Input disabled />
+      </Form.Item>
+      <Form.Item
+        label={"timeField"}
+        name={"timeField"}
+        rules={[
+          {
+            required: true,
+            message: i18n.formatMessage({
+              id: "datasource.logLibrary.placeholder.timeField",
+            }),
+          },
+        ]}
+      >
+        <Input disabled />
+      </Form.Item>
       <Form.Item
         label={i18n.formatMessage({
           id: "description",

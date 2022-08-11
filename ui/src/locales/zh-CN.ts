@@ -313,6 +313,17 @@ export default {
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持数字、英文字母，或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
+  "datasource.logLibrary.placeholder.source": "请输入 Source",
+  "datasource.logLibrary.placeholder.rawLogField":
+    "请输入 Source 并转换选择 RawLogField",
+  "datasource.logLibrary.placeholder.timeField":
+    "请输入 Source 并转换选择 TimeField",
+
+  "datasource.logLibrary.conversionBtn": "转换",
+  "datasource.logLibrary.conversion.warning": "请填写内容再转换",
+  "datasource.logLibrary.selectField.title": "字段选择",
+  "datasource.logLibrary.selectField.okTips":
+    "请选择timeField字段和rawLogField字段再确认",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
   "datasource.logLibrary.quickAdd": "快速创建日志库",
@@ -773,6 +784,7 @@ export default {
   "bigdata.components.Results.involvedSQLs.key.placeholder": "请选择查看",
 
   "bigdata.components.Nav.navList.dataSourceManage": "数据源管理",
+  "bigdata.components.Nav.navList.statisticalBoard": "统计看板",
 
   "bigdata.components.FolderTree.createFolderPrompt":
     "暂时只支持新建2级文件夹~",

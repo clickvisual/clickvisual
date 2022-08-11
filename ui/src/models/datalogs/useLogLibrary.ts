@@ -3,7 +3,7 @@ import api from "@/services/dataLogs";
 import useRequest from "@/hooks/useRequest/useRequest";
 
 export default function useLogLibrary() {
-  const [createdVisible, setCreatedVisible] = useState<boolean>(false);
+  const [createdVisible, setCreatedVisible] = useState<boolean>(true);
   const [infoVisible, setInfoVisible] = useState<boolean>(false);
   const [isAccessLogLibrary, setIsAccessLogLibrary] = useState<boolean>(false);
   const [isLogLibraryAllDatabase, setIsLogLibraryAllDatabase] =
@@ -32,6 +32,10 @@ export default function useLogLibrary() {
   };
 
   const createdLogLibrary = useRequest(api.createdTable, {
+    loadingText: false,
+  });
+
+  const doGetMappingJson = useRequest(api.getMappingJson, {
     loadingText: false,
   });
 
@@ -76,6 +80,7 @@ export default function useLogLibrary() {
     onChangeCurrentEditDatabase,
 
     doCreatedLogLibrary: createdLogLibrary,
+    doGetMappingJson,
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
     getLogLibraryLoading: getLogLibrary.loading,

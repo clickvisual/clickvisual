@@ -19,14 +19,14 @@ export interface LastDataLogsStateType extends UrlStateType {
 const useLocalStorages = () => {
   const getCurrentFoldLogFlag = (tid: string) => {
     const foldLogStorages: FoldLogStorageType[] = JSON.parse(
-      localStorage.getItem("fold-log-flag") || "[]"
+      localStorage.getItem("clickvisual-fold-log-flag") || "[]"
     );
     return foldLogStorages.find((item: any) => item.tid === tid);
   };
 
   const onChangeFoldLogStorage = (foldFlag: FoldLogStorageType) => {
     const foldLogStorages: FoldLogStorageType[] = JSON.parse(
-      localStorage.getItem("fold-log-flag") || "[]"
+      localStorage.getItem("clickvisual-fold-log-flag") || "[]"
     );
     const currentIndex = foldLogStorages.findIndex(
       (item: any) => item.tid === foldFlag.tid
@@ -36,24 +36,30 @@ const useLocalStorages = () => {
     } else {
       foldLogStorages.push(foldFlag);
     }
-    localStorage.setItem("fold-log-flag", JSON.stringify(foldLogStorages));
+    localStorage.setItem(
+      "clickvisual-fold-log-flag",
+      JSON.stringify(foldLogStorages)
+    );
   };
 
   const getLastDataLogsState = () => {
     const lastDataLogsState: LastDataLogsStateType = JSON.parse(
-      localStorage.getItem("last-datalogs-state") || "[]"
+      localStorage.getItem("clickvisual-last-datalogs-state") || "[]"
     );
     return lastDataLogsState;
   };
 
   const onChangeDataLogsState = (value: LastDataLogsStateType) => {
-    localStorage.setItem("last-datalogs-state", JSON.stringify(value));
+    localStorage.setItem(
+      "clickvisual-last-datalogs-state",
+      JSON.stringify(value)
+    );
   };
 
   const onSetLocalData = (value: any, moduleName: string) => {
     try {
       let AllClickHouse = JSON.parse(
-        localStorage.getItem("click-house") || JSON.stringify({})
+        localStorage.getItem("clickvisual") || JSON.stringify({})
       );
       let oldClickHouse = AllClickHouse[moduleName] || {};
       if (value === undefined) {
@@ -61,7 +67,7 @@ const useLocalStorages = () => {
       }
       if (value === null) {
         AllClickHouse[moduleName] = undefined;
-        localStorage.setItem("click-house", JSON.stringify(AllClickHouse));
+        localStorage.setItem("clickvisual", JSON.stringify(AllClickHouse));
         return true;
       }
       const newClickHouse = value;
@@ -94,7 +100,7 @@ const useLocalStorages = () => {
       });
       AllClickHouse[moduleName] = oldClickHouse;
       isChange &&
-        localStorage.setItem("click-house", JSON.stringify(AllClickHouse));
+        localStorage.setItem("clickvisual", JSON.stringify(AllClickHouse));
       return returnObj;
     } catch (e) {
       console.error("localaStorage存取的onSetLocalData函数内部执行出错");
