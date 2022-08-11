@@ -90,12 +90,12 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       newLog = Object.assign(cloneRawLogJson, oldLog);
 
       // 合并 log 和 rawLog 的 key，并去重
-      keys = [...keys, ...indexRawLogKeys, ...rawLogKeys]
-        .filter((key, index) => {
+      keys = [...keys, ...indexRawLogKeys, ...rawLogKeys].filter(
+        (key, index) => {
           const preIdx = keys.indexOf(key);
           return preIdx < 0 || preIdx === index;
-        })
-        .filter((key) => !hiddenFields.includes(key));
+        }
+      );
 
       // 删除 原日志中 raw log 字段
       delete newLog._raw_log_;
@@ -103,6 +103,8 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       // 去掉 keys 中的 raw log 字段
       keys = keys.filter((key) => key !== "_raw_log_");
     }
+    //去除隐藏字段
+    keys = keys.filter((key) => !hiddenFields.includes(key));
 
     return {
       keys,

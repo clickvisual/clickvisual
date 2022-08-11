@@ -94,10 +94,10 @@ const LogItemDetail = (logs: LogsResponse | undefined, log: any) => {
     // 移除 _raw_log_ 字段
     delete resultLog._raw_log_;
 
-    logFields = logFields
-      .filter((field) => field !== RawLogField)
-      .filter((field) => !hiddenFields.includes(field));
+    logFields = logFields.filter((field) => field !== RawLogField);
   }
+  //去除隐藏字段
+  logFields = logFields.filter((field) => !hiddenFields.includes(field));
 
   return {
     indexList,
