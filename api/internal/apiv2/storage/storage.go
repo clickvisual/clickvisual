@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -76,7 +77,6 @@ func Create(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	param.SourceMapping, err = mapping.Handle(param.Source)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -146,7 +146,8 @@ func AnalysisFields(c *core.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        storage-id path int true "table id"
-// @Success      200 {object} view.RespStorageAnalysisFields
+// @Param        req query view.ReqStorageUpdate true "params"
+// @Success      200 {string} ok
 // @Router       /api/v2/storage/{storage-id} [patch]
 func Update(c *core.Context) {
 	id := cast.ToInt(c.Param("storage-id"))
@@ -175,28 +176,45 @@ func Update(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	invoker.Logger.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		c.JSONE(1, "update failed 01: "+err.Error(), nil)
+		return
+	}
 	// check merge tree
 	if req.MergeTreeTTL != tableInfo.Days {
 		// alert merge tree engine table
+		if err = op.AlterMergeTreeTable(&tableInfo, req); err != nil {
+			c.JSONE(1, "update failed 02: "+err.Error(), nil)
+			return
+		}
 	}
+	var streamSQL string
 	// check kafka
 	if req.KafkaSkipBrokenMessages != tableInfo.KafkaSkipBrokenMessages ||
 		req.KafkaBrokers != tableInfo.Brokers ||
 		req.KafkaConsumerNum != tableInfo.ConsumerNum ||
 		req.KafkaTopic != tableInfo.Topic {
 		// drop & create kafka engine table
+		if streamSQL, err = op.ReCreateKafkaTable(&tableInfo, req); err != nil {
+			c.JSONE(1, "update failed 03: "+err.Error(), nil)
+			return
+		}
 	}
-
 	// just mysql record update
 	ups := make(map[string]interface{}, 0)
 	ups["uid"] = c.Uid()
 	ups["days"] = req.MergeTreeTTL
-	ups["topics"] = req.KafkaTopic
+	ups["topic"] = req.KafkaTopic
 	ups["brokers"] = req.KafkaBrokers
 	ups["consumer_num"] = req.KafkaConsumerNum
-	ups["kafkaSkipBrokenMessages"] = req.KafkaSkipBrokenMessages
+	ups["kafka_skip_broken_messages"] = req.KafkaSkipBrokenMessages
+	if streamSQL != "" {
+		ups["sql_stream"] = streamSQL
+	}
 	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
-		c.JSONE(1, "update failed 01"+err.Error(), nil)
+		c.JSONE(1, "update failed 04: "+err.Error(), nil)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})

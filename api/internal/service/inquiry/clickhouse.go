@@ -174,7 +174,7 @@ func (c *ClickHouse) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogFiel
 	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, rawLogField, v.Key, rawLogField, v.Key)
 	}
-	if typ == TimeTypeString {
+	if typ == TableTypeString {
 		return fmt.Sprintf(defaultStringTimeParse, timeField, timeField)
 	}
 	return fmt.Sprintf(defaultFloatTimeParse, timeField, timeField)
@@ -293,22 +293,8 @@ func (c *ClickHouse) TableDrop(database, table, cluster string, tid int) (err er
 
 // TableCreate create default stream data table and view
 func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genName(database.Name, ct.TableName)
-	dStreamName := genStreamName(database.Name, ct.TableName)
-	if c.mode == ModeCluster {
-		dName = genName(database.Name, ct.TableName+"_local")
-		dStreamName = genStreamName(database.Name, ct.TableName+"_local")
-	}
-	// build view statement
-	var timeTyp = "String"
-	if ct.Typ == TimeTypeString {
-		timeTyp = "String"
-	} else if ct.Typ == TimeTypeFloat {
-		timeTyp = "Float64"
-	} else {
-		err = errors.New("invalid time type")
-		return
-	}
+	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
+	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	dataParams := bumo.Params{
 		Data: bumo.ParamsData{
 			TableName: dName,
@@ -318,7 +304,7 @@ func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqT
 	streamParams := bumo.Params{
 		Stream: bumo.ParamsStream{
 			TableName:               dStreamName,
-			TimeTyp:                 timeTyp,
+			TableTyp:                TableTypStr(ct.Typ),
 			Brokers:                 ct.Brokers,
 			Topic:                   ct.Topics,
 			Group:                   database.Name + "_" + ct.TableName,
@@ -1362,17 +1348,13 @@ func isEmpty(input interface{}) bool {
 
 // StorageCreate create default stream data table and view
 func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genName(database.Name, ct.TableName)
-	dStreamName := genStreamName(database.Name, ct.TableName)
-	if c.mode == ModeCluster {
-		dName = genName(database.Name, ct.TableName+"_local")
-		dStreamName = genStreamName(database.Name, ct.TableName+"_local")
-	}
+	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
+	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
 	var timeTyp string
-	if ct.Typ == TimeTypeString {
+	if ct.Typ == TableTypeString {
 		timeTyp = "String"
-	} else if ct.Typ == TimeTypeFloat {
+	} else if ct.Typ == TableTypeFloat {
 		timeTyp = "Float64"
 	} else {
 		err = errors.New("invalid time type")
@@ -1393,7 +1375,7 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 		TimeField:        ct.TimeField,
 		Stream: bumo.ParamsStream{
 			TableName:               dStreamName,
-			TimeTyp:                 timeTyp,
+			TableTyp:                timeTyp,
 			Brokers:                 ct.Brokers,
 			Topic:                   ct.Topics,
 			Group:                   database.Name + "_" + ct.TableName,
@@ -1448,18 +1430,68 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 	return
 }
 
-// AlertMergeTreeTable ...
+// AlterMergeTreeTable ...
 // ALTER TABLE dev.test MODIFY TTL toDateTime(time_second) + toIntervalDay(7)
-func (c *ClickHouse) AlertMergeTreeTable(table db.BaseTable, ttl string) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	tableName := table.Name
-	if c.mode == ModeCluster {
-		tableName = tableName + "_local"
+func (c *ClickHouse) AlterMergeTreeTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (err error) {
+	s := fmt.Sprintf("ALTER TABLE %s%s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)",
+		genNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster),
+		params.MergeTreeTTL)
+	_, err = c.db.Exec(s)
+	if err != nil {
+		invoker.Logger.Error("AlterMergeTreeTable", elog.Any("sql", s), elog.Any("err", err.Error()))
+		return
 	}
-	// sql := fmt.Sprintf("ALTER TABLE %s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)", genName(table.Database.Name, table.Name))
 	return
 }
 
-func (c *ClickHouse) ReCreateKafkaTable(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+// ReCreateKafkaTable Drop and Create
+func (c *ClickHouse) ReCreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
+	currentKafkaSQL := tableInfo.SqlStream
+	// Drop Table
+	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s",
+		genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
+	if _, err = c.db.Exec(dropSQL); err != nil {
+		invoker.Logger.Error("ReCreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
+		return
+	}
+	// Create Table
+	streamParams := bumo.Params{
+		Stream: bumo.ParamsStream{
+			TableName: genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+			TableTyp:  TableTypStr(tableInfo.Typ),
+			Group:     tableInfo.Database.Name + "_" + tableInfo.Name,
 
+			Brokers:                 params.KafkaBrokers,
+			Topic:                   params.KafkaTopic,
+			ConsumerNum:             params.KafkaConsumerNum,
+			KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
+		},
+	}
+	if c.mode == ModeCluster {
+		streamParams.Cluster = tableInfo.Database.Cluster
+		streamParams.ReplicaStatus = c.rs
+		streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+	} else {
+		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+	}
+
+	invoker.Logger.Error("ReCreateKafkaTable", elog.Any("params", params))
+
+	if _, err = c.db.Exec(streamSQL); err != nil {
+		invoker.Logger.Error("ReCreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
+		_, _ = c.db.Exec(currentKafkaSQL)
+		return
+	}
 	return
+}
+
+func TableTypStr(typ int) string {
+	if typ == TableTypeString {
+		return "String"
+	} else if typ == TableTypeFloat {
+		return "Float64"
+	}
+	return ""
 }

@@ -122,7 +122,7 @@ type ReqStorageUpdate struct {
 	MergeTreeTTL            int    `form:"mergeTreeTTL"`
 	KafkaBrokers            string `form:"kafkaBrokers"`
 	KafkaTopic              string `form:"kafkaTopic"`
-	KafkaConsumerNum        int    `form:"KafkaConsumerNum"`
+	KafkaConsumerNum        int    `form:"kafkaConsumerNum"` // min 1 max 8
 	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
 	Desc                    string `form:"desc"`
 }
