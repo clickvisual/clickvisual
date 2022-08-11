@@ -581,6 +581,46 @@ paths:
       summary: Creating a log library
       tags:
       - storage
+  /api/v2/storage/{storage-id}:
+    patch:
+      consumes:
+      - application/json
+      description: Storage update
+      parameters:
+      - description: table id
+        in: path
+        name: storage-id
+        required: true
+        type: integer
+      - in: query
+        name: desc
+        type: string
+      - in: query
+        name: kafkaBrokers
+        type: string
+      - description: min 1 max 8
+        in: query
+        name: kafkaConsumerNum
+        type: integer
+      - in: query
+        name: kafkaSkipBrokenMessages
+        type: integer
+      - in: query
+        name: kafkaTopic
+        type: string
+      - in: query
+        name: mergeTreeTTL
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Storage update
+      tags:
+      - storage
   /api/v2/storage/{storage-id}/analysis-fields:
     get:
       consumes:

@@ -56,6 +56,19 @@ func Test_hashTransform(t *testing.T) {
 			},
 			want: "_inner_urlhash_body.tag_=URLHash('123')",
 		},
+		{
+			name: "test-4",
+			args: args{
+				query: "upstream_proxy_host='fabio-crm-api'",
+				index: &db.BaseIndex{
+					Field:    "upstream_proxy_host",
+					HashTyp:  1,
+					RootName: "",
+					Alias:    "upstream_proxy_host",
+				},
+			},
+			want: "_inner_siphash_upstream_proxy_host_=sipHash64('fabio-crm-api')",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

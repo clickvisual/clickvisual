@@ -475,6 +475,69 @@
                 }
             }
         },
+        "/api/v2/storage/{storage-id}": {
+            "patch": {
+                "description": "Storage update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Storage update",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "table id",
+                        "name": "storage-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "desc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "kafkaBrokers",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "min 1 max 8",
+                        "name": "kafkaConsumerNum",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "kafkaSkipBrokenMessages",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "kafkaTopic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "mergeTreeTTL",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/storage/{storage-id}/analysis-fields": {
             "get": {
                 "description": "Storage analysis field list",

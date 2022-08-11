@@ -75,6 +75,10 @@ FROM %s
 }
 
 func BuilderEngineStream(stream bumo.ParamsStream) string {
+	consumerNum := 1
+	if stream.ConsumerNum != 0 {
+		consumerNum = stream.ConsumerNum
+	}
 	return fmt.Sprintf(`ENGINE = Kafka SETTINGS kafka_broker_list = '%s', 
 kafka_topic_list = '%s', 
 kafka_group_name = '%s', 
@@ -85,7 +89,7 @@ kafka_skip_broken_messages = %d
 		stream.Brokers,
 		stream.Topic,
 		stream.Group,
-		stream.ConsumerNum,
+		consumerNum,
 		stream.KafkaSkipBrokenMessages)
 
 }
