@@ -280,6 +280,7 @@ func TableCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqTableCreat
 		Days:                    param.Days,
 		Brokers:                 param.Brokers,
 		Topic:                   param.Topics,
+		ConsumerNum:             param.Consumers,
 		Desc:                    param.Desc,
 		SqlData:                 d,
 		SqlStream:               s,

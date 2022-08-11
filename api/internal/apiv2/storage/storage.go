@@ -138,3 +138,67 @@ func AnalysisFields(c *core.Context) {
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
+
+// Update  godoc
+// @Summary	     Storage update
+// @Description  Storage update
+// @Tags         storage
+// @Accept       json
+// @Produce      json
+// @Param        storage-id path int true "table id"
+// @Success      200 {object} view.RespStorageAnalysisFields
+// @Router       /api/v2/storage/{storage-id} [patch]
+func Update(c *core.Context) {
+	id := cast.ToInt(c.Param("storage-id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var (
+		req view.ReqStorageUpdate
+		err error
+	)
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(id),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	// check merge tree
+	if req.MergeTreeTTL != tableInfo.Days {
+		// alert merge tree engine table
+	}
+	// check kafka
+	if req.KafkaSkipBrokenMessages != tableInfo.KafkaSkipBrokenMessages ||
+		req.KafkaBrokers != tableInfo.Brokers ||
+		req.KafkaConsumerNum != tableInfo.ConsumerNum ||
+		req.KafkaTopic != tableInfo.Topic {
+		// drop & create kafka engine table
+	}
+
+	// just mysql record update
+	ups := make(map[string]interface{}, 0)
+	ups["uid"] = c.Uid()
+	ups["days"] = req.MergeTreeTTL
+	ups["topics"] = req.KafkaTopic
+	ups["brokers"] = req.KafkaBrokers
+	ups["consumer_num"] = req.KafkaConsumerNum
+	ups["kafkaSkipBrokenMessages"] = req.KafkaSkipBrokenMessages
+	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
+		c.JSONE(1, "update failed 01"+err.Error(), nil)
+		return
+	}
+	event.Event.AlarmCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	c.JSONOK()
+}

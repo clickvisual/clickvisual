@@ -117,3 +117,12 @@ type StorageAnalysisField struct {
 	Ctime    int64  `json:"ctime"`
 	Utime    int64  `json:"utime"`
 }
+
+type ReqStorageUpdate struct {
+	MergeTreeTTL            int    `form:"mergeTreeTTL"`
+	KafkaBrokers            string `form:"kafkaBrokers"`
+	KafkaTopic              string `form:"kafkaTopic"`
+	KafkaConsumerNum        int    `form:"KafkaConsumerNum"`
+	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
+	Desc                    string `form:"desc"`
+}

@@ -121,6 +121,7 @@ type BaseTable struct {
 	Days                    int           `gorm:"column:days;type:int(11)" json:"days"`                                        // data expire days
 	Brokers                 string        `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`                    // kafka broker
 	Topic                   string        `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`                        // kafka topic
+	ConsumerNum             int           `gorm:"column:consumer_num;type:int(11)" json:"consumerNum"`                         // kafka consumer number
 	SqlData                 string        `gorm:"column:sql_data;type:text" json:"sqlData"`                                    // sql_data
 	SqlStream               string        `gorm:"column:sql_stream;type:text" json:"sqlStream"`                                // sql_stream
 	SqlView                 string        `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
