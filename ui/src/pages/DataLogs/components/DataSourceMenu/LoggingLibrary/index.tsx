@@ -11,9 +11,11 @@ const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
   const { instanceTree, onGetList } = props;
   const [listData, setListData] = useState<any[]>(instanceTree);
   const { filterSelectedTree } = useModel("instances");
+
   let cloneList = useMemo(() => {
     return cloneDeep(instanceTree);
-  }, []);
+  }, [instanceTree]);
+
   const onSearch = (val: string) => {
     if (val.trim().length != 0) {
       setListData(filterSelectedTree(cloneList, val));
