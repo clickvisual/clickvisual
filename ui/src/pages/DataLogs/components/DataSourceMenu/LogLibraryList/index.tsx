@@ -85,10 +85,6 @@ const LogLibraryList = (props: LogLibraryListProps) => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   console.log(lastDataLogsState.tid, "lastDataLogsState.tid");
-  // }, []);
-
   const i18n = useIntl();
 
   if (list?.length <= 0) {

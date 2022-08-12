@@ -21,6 +21,10 @@ export enum BigDataNavEnum {
    * 数据源管理
    */
   DataSourceManage = "datasourceManage",
+  /**
+   * 统计看板
+   */
+  StatisticalBoard = "statisticalBoard",
 }
 
 export enum FolderEnums {

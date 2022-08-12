@@ -6,6 +6,7 @@ import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import DataAnalysisNav from "@/pages/DataAnalysis/components/Nav";
 import ScreeningRow from "@/pages/DataAnalysis/components/ScreeningRow";
 import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
+import StatisticalBoard from "@/pages/DataAnalysis/StatisticalBoard";
 import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
 import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
@@ -68,6 +69,8 @@ const DataAnalysis = () => {
         return <OfflineManager />;
       case BigDataNavEnum.DataSourceManage:
         return <DataSourceManage />;
+      case BigDataNavEnum.StatisticalBoard:
+        return <StatisticalBoard />;
       default:
         return <></>;
     }

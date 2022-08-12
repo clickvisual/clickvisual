@@ -22,8 +22,6 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     quickInsertLikeExclusion,
   } = useModel("dataLogs");
 
-  // TODO: 数据处理
-
   const {
     keys,
     newLog,
@@ -159,7 +157,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       isIndexAndRawLogKey ? rawLogJson[keyItem] : newLog[keyItem]
     );
   };
-  // TODO:
+
   const logItemList = useMemo(() => {
     if (keys.length <= 0) return [];
     return keys.map((keyItem) => {

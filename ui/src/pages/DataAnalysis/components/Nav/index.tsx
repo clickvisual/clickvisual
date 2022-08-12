@@ -4,6 +4,7 @@ import {
   MonitorOutlined,
   CodeOutlined,
   CodepenOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { useModel, useIntl } from "umi";
@@ -64,6 +65,14 @@ const DataAnalysisNav = () => {
       }),
       icon: <CodepenOutlined />,
     },
+    {
+      id: 105,
+      key: BigDataNavEnum.StatisticalBoard,
+      title: i18n.formatMessage({
+        id: "bigdata.components.Nav.navList.statisticalBoard",
+      }),
+      icon: <DashboardOutlined />,
+    },
   ];
 
   useEffect(() => {
@@ -72,7 +81,9 @@ const DataAnalysisNav = () => {
     }
   }, []);
 
-  const dataAnalysisNavKey = localStorage.getItem("data-analysis-nav-key");
+  const dataAnalysisNavKey = localStorage.getItem(
+    "clickvisual-data-analysis-nav-key"
+  );
 
   useEffect(() => {
     if (urlState?.navKey) {
@@ -113,7 +124,10 @@ const DataAnalysisNav = () => {
                 temporaryQuery.setSelectNodeKeys([]);
                 onChangeNavKey(item.key);
                 onSetLocalData(null, LocalModuleType.dataAnalysisOpenNodeId);
-                localStorage.setItem("data-analysis-nav-key", item.key);
+                localStorage.setItem(
+                  "clickvisual-data-analysis-nav-key",
+                  item.key
+                );
               }}
               key={item.key}
               style={{ backgroundColor: item.key == navKey ? "#F9CDB5" : "" }}

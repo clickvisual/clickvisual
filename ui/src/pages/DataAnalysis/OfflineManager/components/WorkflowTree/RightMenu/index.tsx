@@ -279,17 +279,6 @@ const RightMenu = (props: RightMenuProps) => {
   ];
 
   const workflowMenu: ItemType[] = [
-    // TODO: delete
-    // {
-    //   label: "看板",
-    //   key: "workflow-board",
-    //   icon: (
-    //     <div style={{ marginRight: "8px", minWidth: "12px", fontSize: "12px" }}>
-    //       <SVGIcon type={SVGTypeEnums.board} />
-    //     </div>
-    //   ),
-    //   onClick: handleClickBoard,
-    // },
     {
       label: i18n.formatMessage({ id: "bigdata.workflow.rightMenu.update" }),
       key: "update-workflow",
