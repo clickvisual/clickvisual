@@ -12,6 +12,7 @@ import useUrlState from "@ahooksjs/use-url-state";
 import { useEffect } from "react";
 import { BigDataNavEnum } from "@/pages/DataAnalysis";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import IconFont from "@/components/IconFont";
 
 const DataAnalysisNav = () => {
   const i18n = useIntl();
@@ -72,6 +73,14 @@ const DataAnalysisNav = () => {
         id: "bigdata.components.Nav.navList.statisticalBoard",
       }),
       icon: <DashboardOutlined />,
+    },
+    {
+      id: 106,
+      key: BigDataNavEnum.TaskExecutionDetails,
+      title: i18n.formatMessage({
+        id: "bigdata.components.Nav.navList.taskExecutionDetails",
+      }),
+      icon: <IconFont type="icon-task" />,
     },
   ];
 

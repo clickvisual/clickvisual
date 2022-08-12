@@ -1,6 +1,6 @@
 import { request } from "umi";
 
-enum TaskListTertiaryEnum {
+export enum TaskListTertiaryEnum {
   ClickHouse = 10,
   MySQL = 11,
   OfflineSync = 20,
@@ -11,12 +11,18 @@ export interface getTaskListType {
   current?: number;
   end?: number;
   start?: number;
-  nodeName?: number;
+  nodeName?: string;
   pageSize?: number;
   sort?: string;
   tertiary?: TaskListTertiaryEnum;
   total?: number;
 }
+
+export const EnumsTertiary = {
+  10: "ClickHouse",
+  11: "MySQL",
+  20: "OfflineSync",
+};
 export interface getDashboardType {
   end?: number;
   start?: number;

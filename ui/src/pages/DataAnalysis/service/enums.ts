@@ -25,6 +25,10 @@ export enum BigDataNavEnum {
    * 统计看板
    */
   StatisticalBoard = "statisticalBoard",
+  /**
+   * 任务执行详情
+   */
+  TaskExecutionDetails = "TaskExecutionDetails",
 }
 
 export enum FolderEnums {

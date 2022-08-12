@@ -841,6 +841,8 @@ export default {
 
   "bigdata.components.Nav.navList.dataSourceManage": "Data Source",
   "bigdata.components.Nav.navList.statisticalBoard": "Statistical Board",
+  "bigdata.components.Nav.navList.taskExecutionDetails":
+    "Task Execution Details",
 
   "bigdata.components.FolderTree.createFolderPrompt":
     "Currently, only level 2 folders are supported~",

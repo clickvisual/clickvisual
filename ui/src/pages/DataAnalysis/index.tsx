@@ -14,6 +14,7 @@ import ManageNodeModal from "@/pages/DataAnalysis/components/NodeManage/ManageNo
 import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/ManageFolderModal";
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import TaskExecutionDetails from "./TaskExecutionDetails";
 // import { cloneDeep } from "lodash";
 
 const DataAnalysis = () => {
@@ -71,6 +72,8 @@ const DataAnalysis = () => {
         return <DataSourceManage />;
       case BigDataNavEnum.StatisticalBoard:
         return <StatisticalBoard />;
+      case BigDataNavEnum.TaskExecutionDetails:
+        return <TaskExecutionDetails />;
       default:
         return <></>;
     }

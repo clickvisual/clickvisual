@@ -785,6 +785,7 @@ export default {
 
   "bigdata.components.Nav.navList.dataSourceManage": "数据源管理",
   "bigdata.components.Nav.navList.statisticalBoard": "统计看板",
+  "bigdata.components.Nav.navList.taskExecutionDetails": "任务执行详情",
 
   "bigdata.components.FolderTree.createFolderPrompt":
     "暂时只支持新建2级文件夹~",
