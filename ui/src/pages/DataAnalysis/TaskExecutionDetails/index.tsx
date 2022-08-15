@@ -55,12 +55,13 @@ const TaskExecutionDetails = () => {
       title: "名称",
       dataIndex: "nodeName",
       align: "center",
-      render: (nodeName: number, item: any) => {
+      render: (nodeName: string, item: any) => {
         return (
           <Tooltip title={item.nodeId}>
             <a
               href={`${process.env.PUBLIC_PATH}bigdata?iid=${item.iid}&navKey=offline&nodeId=${item.nodeId}`}
               target="_blank"
+              rel="noopener"
             >
               {nodeName}
             </a>
