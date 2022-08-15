@@ -460,6 +460,7 @@ export default {
   "log.item.copy.success": "Copy success",
   "log.item.copy.failed": "Replication failed. Please manually copy the data",
   "log.item.moreTag": "View more logs",
+  "log.perform.time": "Perform time-consuming",
 
   // JsonView
   "log.JsonView.unfoldTip": "Please expand and then click",

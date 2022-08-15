@@ -434,6 +434,7 @@ export default {
   "log.item.copy.success": "复制成功",
   "log.item.copy.failed": "复制失败，请手动复制",
   "log.item.moreTag": "查看更多日志信息",
+  "log.perform.time": "执行耗时",
 
   // JsonView
   "log.JsonView.unfoldTip": "请先展开再点击~",

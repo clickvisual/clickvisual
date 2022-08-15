@@ -46,7 +46,8 @@ const TaskExecutionDetails = () => {
       end: data.end == 0 ? undefined : data.end || endTime,
       start: data.start == 0 ? undefined : data.start || endTime,
       nodeName: data.nodeName || nodeName,
-      tertiary: data.tertiary || tertiary,
+      tertiary:
+        data.tertiary === undefined ? undefined : data.tertiary || tertiary,
       ...currentPagination,
     });
 

@@ -23,6 +23,7 @@ export interface StatisticalTableResponse {
 
 export interface LogsResponse extends StatisticalTableResponse {
   count: number;
+  cost: number;
   hiddenFields: string[];
   defaultFields: string[];
   keys: IndexInfoType[];
@@ -194,6 +195,15 @@ export interface IndexDetail {
   percent: number;
 }
 
+export interface updateTableInfoType {
+  desc?: string;
+  kafkaBrokers?: string;
+  kafkaConsumerNum?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  kafkaSkipBrokenMessages?: string;
+  kafkaTopic?: string;
+  mergeTreeTTL?: number;
+}
+
 export default {
   // Get chart information
   async getHighCharts(
@@ -332,8 +342,8 @@ export default {
   },
 
   // Get log library details
-  async updateTableInfo(id: number, data: any) {
-    return request<any>(process.env.PUBLIC_PATH + `api/v1/tables/${id}`, {
+  async updateTableInfo(id: number, data: updateTableInfoType) {
+    return request<any>(process.env.PUBLIC_PATH + `api/v2/storage/${id}`, {
       method: "PATCH",
       data,
     });
