@@ -43,8 +43,8 @@ const TaskExecutionDetails = () => {
     tertiary?: number;
   }) =>
     getList({
-      end: data.end || endTime,
-      start: data.start || startTime,
+      end: data.end == 0 ? undefined : data.end || endTime,
+      start: data.start == 0 ? undefined : data.start || endTime,
       nodeName: data.nodeName || nodeName,
       tertiary: data.tertiary || tertiary,
       ...currentPagination,

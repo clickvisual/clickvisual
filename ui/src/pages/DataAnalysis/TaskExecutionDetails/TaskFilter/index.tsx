@@ -45,6 +45,8 @@ const TaskFilter = (props: TaskFilterType) => {
             <Input
               allowClear
               size="small"
+              style={{ width: "150px" }}
+              placeholder={"节点名称"}
               onPressEnter={(e: any) => {
                 const nodeName = e.target.value;
                 setNodeName(nodeName);
@@ -54,15 +56,26 @@ const TaskFilter = (props: TaskFilterType) => {
           </Space>
         </div>
         <div className={styles.time}>
-          <span>时间：</span>
+          <span>业务日期：</span>
           <RangePicker
             size="small"
             showTime
+            style={{ width: "360px" }}
             allowClear
             value={[
               startTime ? moment(startTime / 1000, "X") : null,
               endTime ? moment(endTime / 1000, "X") : null,
             ]}
+            ranges={{
+              昨天: [
+                moment().startOf("day").subtract(1, "d"),
+                moment().endOf("day").subtract(1, "d"),
+              ],
+              前天: [
+                moment().startOf("day").subtract(2, "d"),
+                moment().endOf("day").subtract(2, "d"),
+              ],
+            }}
             onChange={(timeList: any) => {
               const start = timeList && timeList.length > 1 ? +timeList[0] : 0;
               const end = timeList && timeList.length > 1 ? +timeList[1] : 0;
@@ -76,10 +89,11 @@ const TaskFilter = (props: TaskFilterType) => {
           />
         </div>
         <div className={styles.type}>
-          <span>类型：</span>
+          <span>节点类型：</span>
           <Select
-            style={{ width: 120 }}
+            style={{ width: 150 }}
             onChange={handleSelectChange}
+            placeholder={"请选择节点类型"}
             allowClear
             size="small"
           >
