@@ -72,11 +72,11 @@ const LogLibraryList = (props: LogLibraryListProps) => {
       getAllTables(list);
       if (urlState?.tid) {
         onChangeSelectKeys([`table-${urlState?.tid}`]);
-        // 三层循环查找替换 tid版
+        // 三层循环查找表并展开它的父级 tid版
         expandParent(list, urlState?.tid);
       } else if (lastDataLogsState?.tid) {
         onChangeSelectKeys([`table-${lastDataLogsState?.tid}`]);
-        // 三层循环查找替换 tid版
+        // 三层循环查找表并展开它的父级 tid版
         expandParent(list, parseInt(lastDataLogsState.tid.toString()));
       } else {
         // 展开所有实例

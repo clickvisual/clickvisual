@@ -272,6 +272,8 @@ export default {
   "datasource.header.switch": "切换数据库",
   "datasource.logLibrary.search.placeholder": "搜索日志库",
   "datasource.logLibrary.search.created": "新增日志库",
+  "datasource.logLibrary.noInstance": "暂无实例",
+  "datasource.logLibrary.toCreate": "去创建",
   "datasource.deleted.content": "确认删除数据库：{database} 吗？",
   "datasource.deleted.loading": "正在删除数据库：{database}...",
   "datasource.deleted.success": "删除数据库：{database} 成功",

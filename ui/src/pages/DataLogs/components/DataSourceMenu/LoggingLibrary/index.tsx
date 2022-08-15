@@ -4,10 +4,12 @@ import LogLibraryList from "@/pages/DataLogs/components/DataSourceMenu/LogLibrar
 import CreatedDatabaseModal from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal";
 import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import { useEffect, useMemo, useState } from "react";
-import { useModel } from "umi";
+import { useIntl, useModel } from "umi";
 import { cloneDeep } from "lodash";
+import { Empty } from "antd";
 
 const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
+  const i18n = useIntl();
   const { instanceTree, onGetList } = props;
   const [listData, setListData] = useState<any[]>(instanceTree);
   const { filterSelectedTree } = useModel("instances");
@@ -33,7 +35,19 @@ const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
       <SearchLogLibrary onSearch={onSearch} onGetList={onGetList} />
       {listData.length > 0 ? (
         <LogLibraryList list={listData} onGetList={onGetList} />
-      ) : null}
+      ) : (
+        <div className={LoggingLibraryStyles.flexBox}>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={i18n.formatMessage({
+              id: "datasource.logLibrary.noInstance",
+            })}
+          />
+          <a href={`${process.env.PUBLIC_PATH}sys/instances`}>
+            {i18n.formatMessage({ id: "datasource.logLibrary.toCreate" })}
+          </a>
+        </div>
+      )}
       <CreatedDatabaseModal onGetList={onGetList} />
       <ModalCreatedLogLibrary onGetList={onGetList} />
     </div>
