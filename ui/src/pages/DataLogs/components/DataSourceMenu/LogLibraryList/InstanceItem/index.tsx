@@ -1,7 +1,6 @@
 import { Dropdown, Menu, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import MenuItem from "antd/lib/menu/MenuItem";
 import { PlusSquareOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 
@@ -10,6 +9,11 @@ const InstanceItem = (props: { instanceItem: any }) => {
     onChangeCreatedDatabaseModal,
     onChangeCreateDatabaseCurrentInstance,
   } = useModel("database");
+  const {
+    onChangeIsAccessLogLibrary,
+    onChangeLogLibraryCreatedModalVisible,
+    onChangeIsLogLibraryAllDatabase,
+  } = useModel("dataLogs");
   const { instanceItem } = props;
   const i18n = useIntl();
 
@@ -30,21 +34,31 @@ const InstanceItem = (props: { instanceItem: any }) => {
     </div>
   );
 
-  const menu = (
-    <Menu>
-      <MenuItem
-        icon={
-          <PlusSquareOutlined style={{ color: "#000", marginRight: "3px" }} />
-        }
-        onClick={() => {
-          onChangeCreatedDatabaseModal(true);
-          onChangeCreateDatabaseCurrentInstance(instanceItem.id);
-        }}
-      >
-        {i18n.formatMessage({ id: "instance.operation.addDatabase" })}
-      </MenuItem>
-    </Menu>
-  );
+  const menuList = [
+    {
+      label: i18n.formatMessage({ id: "instance.operation.addDatabase" }),
+      key: "database-create",
+      onClick: () => {
+        onChangeCreatedDatabaseModal(true);
+        onChangeCreateDatabaseCurrentInstance(instanceItem.id);
+      },
+      icon: (
+        <PlusSquareOutlined style={{ color: "#000", marginRight: "8px" }} />
+      ),
+    },
+    {
+      label: i18n.formatMessage({ id: "datasource.draw.logLibraryButton" }),
+      key: "loglibrary-Access",
+      onClick: () => {
+        onChangeIsAccessLogLibrary(true);
+        onChangeLogLibraryCreatedModalVisible(true);
+        onChangeIsLogLibraryAllDatabase(true);
+      },
+      icon: <IconFont type={"icon-addLogLibrary"} />,
+    },
+  ];
+
+  const menu = <Menu items={menuList} />;
 
   return (
     <Dropdown overlay={menu} trigger={["contextMenu"]}>
