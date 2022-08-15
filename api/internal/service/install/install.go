@@ -123,10 +123,10 @@ func Migration() (err error) {
 	d.Migrator()
 	err = d.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
 	if err != nil {
-		service.DepsBatch(true)
+		service.DepsBatch()
 		return
 	}
-	service.DepsBatch(true)
+	service.DepsBatch()
 	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '');")
 	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', ' ', ' ', ' ', ' ');")
 	pmsplugin.Invoker()

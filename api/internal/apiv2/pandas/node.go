@@ -347,6 +347,12 @@ func WorkerList(c *core.Context) {
 		Op:  "in",
 		Val: instanceIdArr,
 	}
+	if req.NodeName != "" {
+		condsNodes["name"] = egorm.Cond{
+			Op:  "like",
+			Val: req.NodeName,
+		}
+	}
 	nodes, _ := db.NodeList(condsNodes)
 	invoker.Logger.Debug("WorkerList", elog.Any("instanceIdArr", instanceIdArr), elog.Any("nodes", nodes))
 	// Read the execution result based on the node information
@@ -354,13 +360,25 @@ func WorkerList(c *core.Context) {
 	for _, n := range nodes {
 		nodeIdArr = append(nodeIdArr, n.ID)
 	}
-	conds := egorm.Conds{}
-	conds["uid"] = -1
-	condsNodes["node_id"] = egorm.Cond{
+	condsResult := egorm.Conds{}
+	condsResult["uid"] = -1
+	condsResult["node_id"] = egorm.Cond{
 		Op:  "in",
 		Val: nodeIdArr,
 	}
-	total, nodeResList := db.NodeResultListPage(conds, &db.ReqPage{
+	if req.Start != 0 {
+		condsResult["utime"] = egorm.Cond{
+			Op:  ">=",
+			Val: req.Start,
+		}
+	}
+	if req.End != 0 {
+		condsResult["utime"] = egorm.Cond{
+			Op:  "<=",
+			Val: req.End,
+		}
+	}
+	total, nodeResList := db.NodeResultListPage(condsResult, &db.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
@@ -377,6 +395,50 @@ func WorkerList(c *core.Context) {
 		Current:  req.Current,
 		PageSize: req.PageSize,
 		Total:    total,
+	})
+	return
+}
+
+// TableDependencies  godoc
+// @Summary	     Result of table dependency resolution
+// @Description  Result of table dependency resolution
+// @Tags         pandas
+// @Accept       json
+// @Produce      json
+// @Param        instance-id path int true "instance id"
+// @Param        req query view.ReqTableDependencies true "params"
+// @Success      200 {object} core.ResPage{data=view.RespTableDependencies}
+// @Router       /api/v2/pandas/instances/{instance-id}/table-dependencies [get]
+func TableDependencies(c *core.Context) {
+	iid := cast.ToInt(c.Param("instance-id"))
+	if iid == 0 {
+		c.JSONE(core.CodeErr, "invalid parameter", nil)
+		return
+	}
+	var req view.ReqTableDependencies
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(iid),
+		SubResource: pmsplugin.Pandas,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	data, err := service.TableDeps(iid, req.DatabaseName, req.TableName)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	row, _ := db.EarliestDependRow()
+	c.JSONOK(view.RespTableDependencies{
+		Utime: row.Utime,
+		Data:  data,
 	})
 	return
 }

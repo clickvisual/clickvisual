@@ -222,6 +222,7 @@ func (n *node) RespWorkerAssemble(nr *db.BigdataNodeResult) view.RespWorkerRow {
 		NodeId:       nr.NodeId,
 		Cost:         nr.Cost,
 		ChargePerson: view.RespUserSimpleInfo{},
+		Iid:          nodeInfo.Iid,
 	}
 	u, _ := db.UserInfo(nodeCrontabInfo.DutyUid)
 	res.ChargePerson.Gen(u)

@@ -260,6 +260,7 @@ type (
 		WorkerUnknown int              `json:"workerUnknown"` // Execution status of each periodic schedule
 		Flows         []WorkerStatsRow `json:"flows"`         // Execution trend chart
 	}
+
 	ReqWorkerList struct {
 		Start    int    `json:"start" form:"start"`
 		End      int    `json:"end" form:"end"`
@@ -275,10 +276,10 @@ type (
 		Crontab   string `json:"crontab"`
 		StartTime int64  `json:"startTime"`
 		EndTime   int64  `json:"endTime"`
-
-		ID     int   `json:"id"`
-		NodeId int   `json:"nodeId"`
-		Cost   int64 `json:"cost"`
+		Iid       int    `json:"iid"`
+		ID        int    `json:"id"`
+		NodeId    int    `json:"nodeId"`
+		Cost      int64  `json:"cost"`
 
 		ChargePerson RespUserSimpleInfo `json:"chargePerson"`
 	}
@@ -341,3 +342,13 @@ type (
 		Children []DagExecFlow `json:"children"`
 	}
 )
+
+type ReqTableDependencies struct {
+	DatabaseName string `json:"databaseName" form:"databaseName" binding:"required"`
+	TableName    string `json:"tableName" form:"tableName" binding:"required"`
+}
+
+type RespTableDependencies struct {
+	Utime int64           `json:"utime"`
+	Data  []RespTableDeps `json:"data"`
+}

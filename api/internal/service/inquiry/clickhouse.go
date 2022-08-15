@@ -1082,13 +1082,13 @@ func adaSelectPart(in string) (out string) {
 }
 
 func genSelectFields(tid int) string {
-	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	if tableInfo.CreateType == 0 {
-		if tableInfo.SelectFields != "" {
-			return tableInfo.SelectFields
-		}
-		return "_source_,_cluster_,_log_agent_,_namespace_,_node_name_,_node_ip_,_container_name_,_pod_name_,_time_second_,_time_nanosecond_,_raw_log_"
-	}
+	// tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	// if tableInfo.CreateType == 0 {
+	// 	if tableInfo.SelectFields != "" {
+	// 		return tableInfo.SelectFields
+	// 	}
+	// 	return "_source_,_cluster_,_log_agent_,_namespace_,_node_name_,_node_ip_,_container_name_,_pod_name_,_time_second_,_time_nanosecond_,_raw_log_"
+	// }
 	return "*"
 }
 
@@ -1260,13 +1260,11 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 	return
 }
 
-func (c *ClickHouse) SystemTablesInfo(isReset bool) (res []*view.SystemTable) {
+func (c *ClickHouse) SystemTablesInfo() (res []*view.SystemTable) {
 	res = make([]*view.SystemTable, 0)
-	s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
-	if isReset {
-		// Get full data if it is reset mode
-		s = "select * from system.tables"
-	}
+	// s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
+	// Get full data if it is reset mode
+	s := "select * from system.tables"
 	deps, err := c.doQuery(s)
 	if err != nil {
 		invoker.Logger.Error("SystemTablesInfo", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
@@ -1282,14 +1280,14 @@ func (c *ClickHouse) SystemTablesInfo(isReset bool) (res []*view.SystemTable) {
 		row.DownDatabaseTable = make([]string, 0)
 		if table["total_bytes"] != nil {
 			switch table["total_rows"].(type) {
-			case uint64:
-				row.TotalBytes = table["total_bytes"].(uint64)
+			case *uint64:
+				row.TotalBytes = *table["total_bytes"].(*uint64)
 			}
 		}
 		if table["total_rows"] != nil {
 			switch table["total_rows"].(type) {
-			case uint64:
-				row.TotalRows = table["total_rows"].(uint64)
+			case *uint64:
+				row.TotalRows = *table["total_rows"].(*uint64)
 			}
 		}
 		databases := table["dependencies_database"].([]string)
