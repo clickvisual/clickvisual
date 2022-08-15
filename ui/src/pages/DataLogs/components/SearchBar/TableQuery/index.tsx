@@ -13,6 +13,7 @@ import ExportExcelButton from "@/components/ExportExcelButton";
 import MonacoEditor from "react-monaco-editor";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import useUrlState from "@ahooksjs/use-url-state";
+import UrlShareButton from "@/components/UrlShareButton";
 
 const TableQuery = () => {
   const i18n = useIntl();
@@ -181,6 +182,7 @@ const TableQuery = () => {
             id: "bigdata.components.FileTitle.formatting",
           })}
         </Button>
+        <UrlShareButton style={{ margin: "0 0 9px 8px", width: "100px" }} />
         <ExportExcelButton data={logExcelData} />
       </div>
     </>
