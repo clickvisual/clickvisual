@@ -249,3 +249,7 @@ type SystemTable struct {
 	TotalRows         uint64   `json:"totalRows"`
 	TotalBytes        uint64   `json:"totalBytes"`
 }
+
+func (r *SystemTable) Name() string {
+	return fmt.Sprintf("%s.%s", r.Database, r.Table)
+}

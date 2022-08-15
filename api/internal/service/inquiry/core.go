@@ -27,7 +27,7 @@ type Operator interface {
 	ViewSync(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
 	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
 	StorageCreate(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
-	SystemTablesInfo(bool) []*view.SystemTable
+	SystemTablesInfo() []*view.SystemTable
 	AlterMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
 	ReCreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)
 	IndexUpdate(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error // Data table index operation
