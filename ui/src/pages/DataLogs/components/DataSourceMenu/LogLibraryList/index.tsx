@@ -1,8 +1,7 @@
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import { Button, Empty, Spin, Tree } from "antd";
+import { Button, Empty, Tree } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-// import LogLibraryItem from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryItem";
 import DatabaseViewsDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw";
 import EditLogLibraryModal from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/EditLogLibraryModal";
 import { useEffect, useState } from "react";
@@ -24,7 +23,6 @@ const LogLibraryList = (props: LogLibraryListProps) => {
   const { onChangeLogLibraryCreatedModalVisible, resizeMenuWidth } =
     useModel("dataLogs");
   const {
-    doGetAllInstances,
     expandedKeys,
     onChangeExpandedKeys,
     onChangeCurrentlyTableToIid,
@@ -115,22 +113,16 @@ const LogLibraryList = (props: LogLibraryListProps) => {
       className={logLibraryListStyles.logLibraryListMain}
       style={{ width: `${resizeMenuWidth - 10}px` }}
     >
-      <Spin
-        spinning={doGetAllInstances.loading}
-        tip={i18n.formatMessage({ id: "spin" })}
-        style={{ background: "hsla(0, 0%, 92%, 0.4)" }}
-      >
-        <Tree
-          showIcon
-          blockNode
-          selectedKeys={selectKeys ?? []}
-          switcherIcon={<DownOutlined />}
-          onSelect={handleOnSelect}
-          onExpand={handleOnExpand}
-          expandedKeys={expandedKeys}
-          treeData={list}
-        />
-      </Spin>
+      <Tree
+        showIcon
+        blockNode
+        selectedKeys={selectKeys ?? []}
+        switcherIcon={<DownOutlined />}
+        onSelect={handleOnSelect}
+        onExpand={handleOnExpand}
+        expandedKeys={expandedKeys}
+        treeData={list}
+      />
       <DatabaseViewsDraw logLibrary={selectedLogLibrary as TablesResponse} />
       <LogLibraryInfoDraw logLibrary={selectedLogLibrary as TablesResponse} />
       <EditLogLibraryModal onGetList={onGetList} />
