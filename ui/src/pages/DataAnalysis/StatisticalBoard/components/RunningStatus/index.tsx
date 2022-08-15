@@ -1,6 +1,7 @@
 import CustomCard from "@/components/CustomCard";
 import { Chart, Axis, Tooltip, Coordinate, Interval } from "bizcharts";
 import { useMemo } from "react";
+import { useIntl } from "umi";
 import { dashboardDataType } from "../..";
 
 export interface RunningStatusType {
@@ -17,6 +18,7 @@ const cols = {
 
 const RunningStatus = (props: RunningStatusType) => {
   const { dashboardData } = props;
+  const i18n = useIntl();
   const {
     nodeFailed,
     nodeSuccess,
@@ -29,19 +31,25 @@ const RunningStatus = (props: RunningStatusType) => {
   const pieData = useMemo(() => {
     return [
       {
-        item: "失败实例",
+        item: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance",
+        }),
         percent:
           workerFailed / (workerFailed + workerSuccess + workerUnknown) || 0,
         value: workerFailed,
       },
       {
-        item: "成功实例",
+        item: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance",
+        }),
         percent:
           workerSuccess / (workerFailed + workerSuccess + workerUnknown) || 0,
         value: workerSuccess,
       },
       {
-        item: "未知实例",
+        item: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance",
+        }),
         percent:
           workerUnknown / (workerFailed + workerSuccess + workerUnknown) || 0,
         value: workerUnknown,
@@ -52,17 +60,23 @@ const RunningStatus = (props: RunningStatusType) => {
   const pieData2 = useMemo(() => {
     return [
       {
-        item: "失败节点",
+        item: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode",
+        }),
         percent: nodeFailed / (nodeFailed + nodeSuccess + nodeUnknown) || 0,
         value: nodeFailed,
       },
       {
-        item: "成功节点",
+        item: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode",
+        }),
         percent: nodeSuccess / (nodeFailed + nodeSuccess + nodeUnknown) || 0,
         value: nodeSuccess,
       },
       {
-        item: "未知节点",
+        item: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode",
+        }),
         percent: nodeUnknown / (nodeFailed + nodeSuccess + nodeUnknown) || 0,
         value: nodeUnknown,
       },
@@ -136,7 +150,9 @@ const RunningStatus = (props: RunningStatusType) => {
 
   return (
     <CustomCard
-      title={"运行状态分布"}
+      title={i18n.formatMessage({
+        id: "bigdata.dataAnalysis.statisticalBoard.RunningStatus.title",
+      })}
       style={{ flex: 1, marginRight: "10px" }}
       content={content}
     />

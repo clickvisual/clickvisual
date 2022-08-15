@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import ItemCard from "./ItemCard";
 import IconFont from "@/components/IconFont";
 import { dashboardDataType } from "../..";
+import { useIntl } from "umi";
 
 enum IconFontListType {
   /**
@@ -32,9 +33,8 @@ enum IconFontListType {
   unknownNode = "unknownNode",
 }
 
-const title = <>重点关注</>;
-
 const DashboardTop = (props: { dashboardData: dashboardDataType }) => {
+  const i18n = useIntl();
   const { dashboardData } = props;
   const {
     nodeFailed,
@@ -49,37 +49,49 @@ const DashboardTop = (props: { dashboardData: dashboardDataType }) => {
     return [
       {
         key: IconFontListType.failureInstance,
-        name: "失败实例",
+        name: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance",
+        }),
         icon: "icon-failure-instance",
         num: workerFailed,
       },
       {
         key: IconFontListType.successfulInstance,
-        name: "成功实例",
+        name: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance",
+        }),
         icon: "icon-successful-instance",
         num: workerSuccess,
       },
       {
         key: IconFontListType.unknownInstance,
-        name: "未知实例",
+        name: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance",
+        }),
         icon: "icon-unknown-instance",
         num: workerUnknown,
       },
       {
         key: IconFontListType.failureNode,
-        name: "失败节点",
+        name: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode",
+        }),
         icon: "icon-failure-node",
         num: nodeFailed,
       },
       {
         key: IconFontListType.successfulNode,
-        name: "成功节点",
+        name: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode",
+        }),
         icon: "icon-successful-node",
         num: nodeSuccess,
       },
       {
         key: IconFontListType.unknownNode,
-        name: "未知节点",
+        name: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode",
+        }),
         icon: "icon-unknown-node",
         num: nodeUnknown,
         style: { marginRight: 0 },
@@ -112,7 +124,14 @@ const DashboardTop = (props: { dashboardData: dashboardDataType }) => {
     );
   }, [iconList]);
 
-  return <CustomCard title={title} content={content} />;
+  return (
+    <CustomCard
+      title={i18n.formatMessage({
+        id: "bigdata.dataAnalysis.statisticalBoard.DashboardTop.title",
+      })}
+      content={content}
+    />
+  );
 };
 
 export default DashboardTop;

@@ -1,6 +1,7 @@
 import styles from "./index.less";
 import { DatePicker, Input, Select, Space } from "antd";
 import moment from "moment";
+import { useIntl } from "umi";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -20,7 +21,6 @@ export interface TaskFilterType {
   startTime?: number;
 }
 const TaskFilter = (props: TaskFilterType) => {
-  //   const [nodeValue, setNodeValue] = useState<string>("");
   const {
     setNodeName,
     onGetList,
@@ -30,6 +30,7 @@ const TaskFilter = (props: TaskFilterType) => {
     setEndTime,
     setTertiary,
   } = props;
+  const i18n = useIntl();
 
   const handleSelectChange = (num: number) => {
     setTertiary(num);
@@ -41,12 +42,19 @@ const TaskFilter = (props: TaskFilterType) => {
       <Space>
         <div className={styles.node}>
           <Space>
-            <span>节点搜索：</span>
+            <span>
+              {i18n.formatMessage({
+                id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeSearch",
+              })}
+              ：
+            </span>
             <Input
               allowClear
               size="small"
               style={{ width: "150px" }}
-              placeholder={"节点名称"}
+              placeholder={i18n.formatMessage({
+                id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName",
+              })}
               onPressEnter={(e: any) => {
                 const nodeName = e.target.value;
                 setNodeName(nodeName);
@@ -56,7 +64,12 @@ const TaskFilter = (props: TaskFilterType) => {
           </Space>
         </div>
         <div className={styles.time}>
-          <span>业务日期：</span>
+          <span>
+            {i18n.formatMessage({
+              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.businessDate",
+            })}
+            ：
+          </span>
           <RangePicker
             size="small"
             showTime
@@ -89,11 +102,18 @@ const TaskFilter = (props: TaskFilterType) => {
           />
         </div>
         <div className={styles.type}>
-          <span>节点类型：</span>
+          <span>
+            {i18n.formatMessage({
+              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType",
+            })}
+            ：
+          </span>
           <Select
             style={{ width: 150 }}
             onChange={handleSelectChange}
-            placeholder={"请选择节点类型"}
+            placeholder={i18n.formatMessage({
+              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder",
+            })}
             allowClear
             size="small"
           >

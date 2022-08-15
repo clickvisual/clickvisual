@@ -2,6 +2,7 @@ import styles from "./index.less";
 import { Button, DatePicker } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import moment from "moment";
+import { useIntl } from "umi";
 const { RangePicker } = DatePicker;
 
 export enum timeStateType {
@@ -27,6 +28,7 @@ const Screening = (props: {
   }) => void;
 }) => {
   const { onGetList } = props;
+  const i18n = useIntl();
   const [timeState, setTimeState] = useState<string>("yesterday");
   const [isInCharge, setIsInCharge] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<number>(0);
@@ -42,7 +44,9 @@ const Screening = (props: {
     return [
       {
         key: timeStateType.yesterday,
-        title: "昨天",
+        title: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.yesterday",
+        }),
         onClick: () => {
           const start = +moment().startOf("day").subtract(1, "d");
           const end = +moment().endOf("day").subtract(1, "d");
@@ -57,7 +61,9 @@ const Screening = (props: {
       },
       {
         key: timeStateType.beforeYesterday,
-        title: "前天",
+        title: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.beforeYesterday",
+        }),
         onClick: () => {
           const start = +moment().startOf("day").subtract(2, "d");
           const end = +moment().endOf("day").subtract(2, "d");
@@ -72,7 +78,9 @@ const Screening = (props: {
       },
       {
         key: timeStateType.nearlyWeek,
-        title: "近七天",
+        title: i18n.formatMessage({
+          id: "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek",
+        }),
         onClick: () => {
           const start = +moment().subtract(7, "d");
           const end = +moment();
@@ -142,7 +150,9 @@ const Screening = (props: {
               }
             }}
           >
-            全部
+            {i18n.formatMessage({
+              id: "bigdata.models.dataAnalysis.useManageNodeAndFolder.all",
+            })}
           </Button>
           <Button
             type="link"
@@ -162,7 +172,9 @@ const Screening = (props: {
               setIsInCharge(true);
             }}
           >
-            我负责的
+            {i18n.formatMessage({
+              id: "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge",
+            })}
           </Button>
         </>
       </div>
