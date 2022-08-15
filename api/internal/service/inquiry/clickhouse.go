@@ -658,10 +658,12 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	if optimizeSQL != "" {
 		execSQL = optimizeSQL
 	}
+	st := time.Now()
 	res.Logs, err = c.doQuery(execSQL)
 	if err != nil {
 		return
 	}
+	res.Cost = time.Since(st).Milliseconds()
 	// try again
 	res.Query = defaultSQL
 	if param.TimeField != db.TimeFieldSecond {

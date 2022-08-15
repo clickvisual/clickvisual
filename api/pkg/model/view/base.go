@@ -70,6 +70,7 @@ type (
 		DefaultFields []string                 `json:"defaultFields"`
 		Logs          []map[string]interface{} `json:"logs"`
 		Query         string                   `json:"query"`
+		Cost          int64                    `json:"cost"`
 	}
 
 	ReqComplete struct {
