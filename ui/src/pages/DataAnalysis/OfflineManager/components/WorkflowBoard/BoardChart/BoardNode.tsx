@@ -87,7 +87,6 @@ const BoardNode = ({
           // 退出编辑
           // changeOpenNodeId(node.id);
           setSelectKeys([`${node.workflowId}-${node.id}-${node.name}`]);
-          // TODO:
           const clonePaneList = cloneDeep(offlinePaneList);
           if (
             clonePaneList.filter((item: any) => item.key == node.id).length == 0

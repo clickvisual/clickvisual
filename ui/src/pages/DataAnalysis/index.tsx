@@ -6,6 +6,7 @@ import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import DataAnalysisNav from "@/pages/DataAnalysis/components/Nav";
 import ScreeningRow from "@/pages/DataAnalysis/components/ScreeningRow";
 import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
+import StatisticalBoard from "@/pages/DataAnalysis/StatisticalBoard";
 import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
 import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
@@ -13,6 +14,7 @@ import ManageNodeModal from "@/pages/DataAnalysis/components/NodeManage/ManageNo
 import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/ManageFolderModal";
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import TaskExecutionDetails from "./TaskExecutionDetails";
 // import { cloneDeep } from "lodash";
 
 const DataAnalysis = () => {
@@ -68,6 +70,10 @@ const DataAnalysis = () => {
         return <OfflineManager />;
       case BigDataNavEnum.DataSourceManage:
         return <DataSourceManage />;
+      case BigDataNavEnum.StatisticalBoard:
+        return <StatisticalBoard />;
+      case BigDataNavEnum.TaskExecutionDetails:
+        return <TaskExecutionDetails />;
       default:
         return <></>;
     }

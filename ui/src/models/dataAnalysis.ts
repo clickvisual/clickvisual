@@ -1,12 +1,12 @@
 import useRequest from "@/hooks/useRequest/useRequest";
 import systemApi, { InstanceType } from "@/services/systemSetting";
 import useRealTimeTraffic from "@/models/dataanalysis/useRealTimeTraffic";
-import useTemporaryQuery from // openNodeDataType,
-"@/models/dataanalysis/useTemporaryQuery";
+import useTemporaryQuery from "@/models/dataanalysis/useTemporaryQuery"; // openNodeDataType,
 import useDataSourceManage from "@/models/dataanalysis/useDataSourceManage";
 import { useState } from "react";
 import useWorkflow from "@/models/dataanalysis/useWorkflow";
 import useManageNodeAndFolder from "@/models/dataanalysis/useManageNodeAndFolder";
+import useStatisticalBoard from "@/models/dataanalysis/useStatisticalBoard";
 import temporaryQueryApi from "@/services/temporaryQuery";
 import dataAnalysisApi from "@/services/dataAnalysis";
 import realtimeApi from "@/services/realTimeTrafficFlow";
@@ -36,8 +36,6 @@ const DataAnalysis = () => {
     ]
   );
 
-  // TODO: 下面所有state需要调整到panes里面去
-
   // 数据集成运行结果的id
   // const [resultId, setResultId] = useState<number>(0);
   // // 打开的文件节点id
@@ -59,6 +57,7 @@ const DataAnalysis = () => {
   const integratedConfigs = useIntegratedConfigs();
   const workflowBoard = useWorkflowBoard();
   const filePane = useFilePane();
+  const statisticalBoard = useStatisticalBoard();
 
   const changeOpenNodeId = (id?: number) => {
     setOpenNodeId(id);
@@ -358,6 +357,7 @@ const DataAnalysis = () => {
     workflow,
     dataSourceManage,
     filePane,
+    statisticalBoard,
   };
 };
 

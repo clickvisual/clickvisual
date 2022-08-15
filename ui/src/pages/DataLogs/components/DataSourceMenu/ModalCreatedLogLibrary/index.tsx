@@ -70,7 +70,6 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
   const handleConversionMappingJson = (str: string) => {
     doGetMappingJson.run({ data: str }).then((res: any) => {
       if (res.code != 0) return;
-      console.log(res.data);
       setMappingJson(res.data.data);
       setVisibleSelectField(true);
     });
