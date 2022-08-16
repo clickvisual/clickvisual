@@ -3,6 +3,19 @@
   flex: 1;
   flex-direction: column;
   overflow-y: hidden;
+  .spin {
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 14px;
+    background: "hsla(0, 0%, 92%, 0.4)";
+    scrollbar-width: none;
+  }
+  :global .ant-spin-nested-loading {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 
   .flexBox {
     display: flex;

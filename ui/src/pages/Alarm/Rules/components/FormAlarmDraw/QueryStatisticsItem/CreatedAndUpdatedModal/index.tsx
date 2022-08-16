@@ -612,9 +612,11 @@ const CreatedAndUpdatedModal = ({
                             );
                           }}
                         >
-                          {i18n.formatMessage({
-                            id: "alarm.rules.form.preview.aggregatedData",
-                          })}
+                          <a href="#bottom">
+                            {i18n.formatMessage({
+                              id: "alarm.rules.form.preview.aggregatedData",
+                            })}
+                          </a>
                         </Button>
                       )}
                     </div>
@@ -701,6 +703,7 @@ const CreatedAndUpdatedModal = ({
           </Form.Item>
         </Form>
       </Spin>
+      <span id="bottom" />
     </Modal>
   );
 };

@@ -27,11 +27,21 @@ const RawLogsOperations = () => {
     return logPanes[currentLogLibrary?.id.toString()];
   }, [currentLogLibrary?.id, logPanes]);
 
+  const performTime = useMemo(() => {
+    return logPanes[currentLogLibrary?.id || 0]?.logs?.cost;
+  }, [logPanes]);
+
   return (
     <div className={rawLogsOperationsStyles.rawLogsOperationsMain}>
       <div className={rawLogsOperationsStyles.operationsBtn}>
         <HistogramSwitch />
       </div>
+      {performTime ? (
+        <div style={{ flex: 1, textAlign: "right", marginRight: "20px" }}>
+          {i18n.formatMessage({ id: "log.perform.time" })}：
+          {logPanes[currentLogLibrary?.id || 0]?.logs?.cost}ms
+        </div>
+      ) : null}
       <div className={rawLogsOperationsStyles.pagination}>
         <Pagination
           size={"small"}

@@ -36,7 +36,7 @@ const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
       <Spin
         spinning={doGetAllInstances.loading}
         tip={i18n.formatMessage({ id: "spin" })}
-        style={{ background: "hsla(0, 0%, 92%, 0.4)" }}
+        className={LoggingLibraryStyles.spin}
       >
         {listData.length > 0 ? (
           <LogLibraryList list={listData} onGetList={onGetList} />

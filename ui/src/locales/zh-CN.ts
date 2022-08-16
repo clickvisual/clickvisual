@@ -332,6 +332,7 @@ export default {
   "datasource.tooltip.icon.info": "日志库详情",
   "datasource.tooltip.icon.edit": "编辑日志库",
   "datasource.tooltip.icon.alarmRuleList": "查看相关告警",
+  "datasource.tooltip.icon.topology": "查看对应拓扑结构",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
@@ -434,6 +435,7 @@ export default {
   "log.item.copy.success": "复制成功",
   "log.item.copy.failed": "复制失败，请手动复制",
   "log.item.moreTag": "查看更多日志信息",
+  "log.perform.time": "执行耗时",
 
   // JsonView
   "log.JsonView.unfoldTip": "请先展开再点击~",

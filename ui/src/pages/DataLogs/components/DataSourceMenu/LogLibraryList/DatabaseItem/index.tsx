@@ -113,7 +113,10 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
           {i18n.formatMessage({
             id: "log.editLogLibraryModal.label.isCreateCV.name",
           })}
-          :&nbsp; {Boolean(databasesItem.isCreateByCV).toString()}
+          :&nbsp;{" "}
+          {databasesItem.isCreateByCV
+            ? i18n.formatMessage({ id: "alarm.rules.history.isPushed.true" })
+            : i18n.formatMessage({ id: "alarm.rules.history.isPushed.false" })}
         </div>
       </div>
       <div>

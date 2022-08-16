@@ -15,7 +15,6 @@ import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/Manage
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import TaskExecutionDetails from "./TaskExecutionDetails";
-// import { cloneDeep } from "lodash";
 
 const DataAnalysis = () => {
   const {
@@ -25,30 +24,13 @@ const DataAnalysis = () => {
     changeOpenNodeId,
     manageNode,
     temporaryQuery,
-    // doGetNodeInfo,
-    // changeOpenNodeData,
-    // changeFolderContent,
     getUserList,
   } = useModel("dataAnalysis");
-  // const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
-  //   "dataanalysis.useFilePane"
-  // );
   const i18n = useIntl();
   const [urlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
   const { nodes, setSelectKeys } = manageNode;
   const { temporaryQueryNodes, setSelectNodeKeys } = temporaryQuery;
-
-  // 获取文件信息
-  // const onGetFolderInfo = (id: number) => {
-  //   id &&
-  //     doGetNodeInfo.run(id).then((res: any) => {
-  //       if (res?.code === 0) {
-  //         changeOpenNodeData(res.data);
-  //         // changeFolderContent(res.data.content);
-  //       }
-  //     });
-  // };
 
   const NavContent = useMemo(() => {
     if (!currentInstances) {

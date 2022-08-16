@@ -6,9 +6,12 @@ import { useDebounceFn } from "ahooks";
 import { useIntl } from "umi";
 import { SearchOutlined } from "@ant-design/icons";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import useUrlState from "@ahooksjs/use-url-state";
 
-const LibraryTree = () => {
+const LibraryTree = (props: { setUtime: (num?: number) => void }) => {
+  const { setUtime } = props;
   const [form] = Form.useForm();
+  const [urlState, setUrlState] = useUrlState();
   const i18n = useIntl();
   const { doGetTables, currentInstances, realTimeTraffic } =
     useModel("dataAnalysis");
@@ -28,18 +31,33 @@ const LibraryTree = () => {
       setBusinessChart([]);
       setNodes([]);
       setEdges([]);
-      doGetBusinessChart
-        .run({ ...field, iid: currentInstances })
-        .then((res) => {
-          if (res?.code === 0) setBusinessChart(res.data);
-        });
+      doGetBusinessChart.run(Number(currentInstances), field).then((res) => {
+        if (res?.code === 0) {
+          setBusinessChart(res.data?.data);
+          setUtime(res.data?.utime);
+        }
+      });
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
 
   useEffect(() => {
-    form.resetFields(["dn", "tn"]);
+    form.resetFields(["databaseName", "tableName"]);
+    setUtime(undefined);
   }, [currentInstances]);
+
+  useEffect(() => {
+    if (urlState?.dName && urlState?.tName && urlState?.iid) {
+      doGetTables
+        .run(parseInt(urlState?.iid), { database: urlState.dName })
+        .then((res) => setTables(res?.data ?? []));
+      form.setFieldsValue({
+        databaseName: urlState.dName,
+        tableName: urlState.tName,
+      });
+      form.submit();
+    }
+  }, []);
 
   return (
     <div className={TrafficStyles.libraryTree}>
@@ -51,7 +69,7 @@ const LibraryTree = () => {
           <Form.Item noStyle shouldUpdate>
             {() => {
               return (
-                <Form.Item name={"dn"} required>
+                <Form.Item name={"databaseName"} required>
                   <Select
                     showSearch
                     options={databases.map((item) => ({
@@ -66,12 +84,14 @@ const LibraryTree = () => {
                       setTables([]);
                       setNodes([]);
                       setEdges([]);
+                      setUtime(undefined);
+                      setUrlState({ dName: databaseName });
                       if (databaseName) {
                         doGetTables
                           .run(currentInstances!, { database: databaseName })
                           .then((res) => setTables(res?.data ?? []));
                       }
-                      form.resetFields(["tn"]);
+                      form.resetFields(["tableName"]);
                     }}
                     filterOption={(input: any, option: any) =>
                       (option!.label as unknown as string)
@@ -83,10 +103,13 @@ const LibraryTree = () => {
               );
             }}
           </Form.Item>
-          <Form.Item noStyle shouldUpdate={(pre, next) => pre.dn !== next.dn}>
+          <Form.Item
+            noStyle
+            shouldUpdate={(pre, next) => pre.databaseName !== next.databaseName}
+          >
             {() => {
               return (
-                <Form.Item name={"tn"} required>
+                <Form.Item name={"tableName"} required>
                   <Select
                     showSearch
                     options={tables.map((item) => ({
@@ -97,9 +120,11 @@ const LibraryTree = () => {
                       id: "alarm.rules.selected.placeholder.logLibrary",
                     })}
                     optionFilterProp="label"
-                    onChange={() => {
+                    onChange={(tableName: string) => {
                       setNodes([]);
                       setEdges([]);
+                      setUtime(undefined);
+                      setUrlState({ tName: tableName });
                     }}
                     filterOption={(input: any, option: any) =>
                       (option!.label as unknown as string)

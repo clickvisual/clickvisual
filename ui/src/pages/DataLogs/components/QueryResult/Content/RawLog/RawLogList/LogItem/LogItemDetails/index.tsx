@@ -152,10 +152,8 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     insert(keyItem);
   };
 
-  const handleCopyLog = (keyItem: string, isIndexAndRawLogKey: boolean) => {
-    onCopyRawLogDetails(
-      isIndexAndRawLogKey ? rawLogJson[keyItem] : newLog[keyItem]
-    );
+  const handleCopyLog = (keyItem: string) => {
+    onCopyRawLogDetails(keyItem);
   };
 
   const logItemList = useMemo(() => {
@@ -241,7 +239,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
                   logItemStyles.logKey,
                   logItemStyles.logKeyHover
                 )}
-                onClick={() => handleCopyLog(key, isIndexAndRawLogKey)}
+                onClick={() => handleCopyLog(key)}
               >
                 <span
                   className={classNames(

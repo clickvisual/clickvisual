@@ -2,16 +2,17 @@ import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
 import { Dropdown, Menu, message, Tooltip } from "antd";
 import {
+  ApartmentOutlined,
   CalendarOutlined,
   FileTextOutlined,
   FundProjectionScreenOutlined,
   FundViewOutlined,
-  // MoreOutlined,
 } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import {
   FIFTEEN_TIME,
   FIRST_PAGE,
+  LOGTOPOLOGY_PATH,
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
 } from "@/config/config";
@@ -20,7 +21,6 @@ import { useIntl } from "umi";
 import lodash from "lodash";
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-// import { useState } from "react";
 import deletedModal from "@/components/DeletedModal";
 import { TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
@@ -28,7 +28,6 @@ import { DefaultPane } from "@/models/datalogs/useLogPanes";
 import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
 import { PaneType } from "@/models/datalogs/types";
-import MenuItem from "antd/es/menu/MenuItem";
 import { ALARMRULES_PATH } from "@/config/config";
 
 type LogLibraryItemProps = {
@@ -41,12 +40,10 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   const [, setUrlState] = useUrlState();
   const { resizeMenuWidth } = useModel("dataLogs");
   const {
-    // doGetLogLibraryList,
     doDeletedLogLibrary,
     doGetLogLibrary,
     onChangeLogLibrary,
     currentLogLibrary,
-    // currentDatabase,
     logPanesHelper,
     resetCurrentHighChart,
     onChangeLogLibraryInfoDrawVisible,
@@ -60,8 +57,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeCurrentEditLogLibrary,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
-
-  // const [mouseEnter, setMouseEnter] = useState<boolean>(false);
 
   const i18n = useIntl();
   const { handleChangeRelativeAmountAndUnit } = useTimeOptions();
@@ -109,6 +104,11 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   const getGoToAlarmRulesPagePathByid = async () => {
     const res = await doGetLogLibrary.run(logLibrary.id);
     return `${ALARMRULES_PATH}?iid=${res?.data.database.iid}&did=${res?.data.database.id}&tid=${logLibrary.id}`;
+  };
+
+  const getGoToTheLogTopology = async () => {
+    const res = await doGetLogLibrary.run(logLibrary.id);
+    return `${LOGTOPOLOGY_PATH}?iid=${res?.data.database.iid}&dName=${res?.data.database.name}&tName=${logLibrary.tableName}&navKey=realtime`;
   };
 
   const doDeleted = () => {
@@ -176,78 +176,82 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       .catch(() => hideMessage());
   };
 
-  const menu = (
-    <Menu>
-      <MenuItem
-        icon={<FileTextOutlined />}
-        onClick={() => {
-          onChangeLogLibraryInfoDrawVisible(true);
-        }}
-      >
-        <span>
-          {i18n.formatMessage({
-            id: "datasource.tooltip.icon.info",
-          })}
-        </span>
-      </MenuItem>
-      <MenuItem
-        icon={<FundProjectionScreenOutlined />}
-        onClick={() => {
-          onChangeCurrentEditLogLibrary(logLibrary);
-          onChangeIsModifyLog(true);
-        }}
-      >
-        <span>
-          {i18n.formatMessage({ id: "datasource.tooltip.icon.edit" })}
-        </span>
-      </MenuItem>
-      <MenuItem
-        icon={<CalendarOutlined />}
-        onClick={async () => {
-          window.open(await getGoToAlarmRulesPagePathByid(), "_blank");
-        }}
-      >
-        <span>
-          {i18n.formatMessage({ id: "datasource.tooltip.icon.alarmRuleList" })}
-        </span>
-      </MenuItem>
-      <MenuItem
-        icon={<FundViewOutlined />}
-        disabled={logLibrary.createType !== 0}
-        onClick={() => {
-          onChangeViewsVisibleDraw(true);
-        }}
-      >
-        <span>
-          {i18n.formatMessage({
-            id: "datasource.tooltip.icon.view",
-          })}
-        </span>
-      </MenuItem>
-      <MenuItem
-        icon={<IconFont type={"icon-delete"} />}
-        onClick={() => {
-          deletedModal({
-            onOk: () => {
-              doDeleted();
-            },
-            content: i18n.formatMessage(
-              {
-                id: "datasource.logLibrary.deleted.content",
-              },
-              { logLibrary: logLibrary.tableName }
-            ),
-          });
-        }}
-      >
+  const items = [
+    {
+      label: i18n.formatMessage({
+        id: "datasource.tooltip.icon.info",
+      }),
+      key: "log-details",
+      onClick: () => {
+        onChangeLogLibraryInfoDrawVisible(true);
+      },
+      icon: <FileTextOutlined />,
+    },
+    {
+      label: i18n.formatMessage({ id: "datasource.tooltip.icon.edit" }),
+      key: "log-edit",
+      onClick: () => {
+        onChangeCurrentEditLogLibrary(logLibrary);
+        onChangeIsModifyLog(true);
+      },
+      icon: <FundProjectionScreenOutlined />,
+    },
+    {
+      label: i18n.formatMessage({
+        id: "datasource.tooltip.icon.alarmRuleList",
+      }),
+      key: "log-alarm",
+      onClick: async () => {
+        window.open(await getGoToAlarmRulesPagePathByid(), "_blank");
+      },
+      icon: <CalendarOutlined />,
+    },
+    {
+      label: i18n.formatMessage({ id: "datasource.tooltip.icon.topology" }),
+      key: "log-topology",
+      onClick: async () => {
+        window.open(await getGoToTheLogTopology(), "_blank");
+      },
+      icon: <ApartmentOutlined />,
+    },
+    {
+      label: i18n.formatMessage({
+        id: "datasource.tooltip.icon.view",
+      }),
+      key: "log-rules",
+      onClick: async () => {
+        onChangeViewsVisibleDraw(true);
+      },
+      icon: <FundViewOutlined />,
+      disabled: logLibrary.createType !== 0,
+    },
+    {
+      label: (
         <span className={logLibraryListStyles.deletedSpan}>
           {i18n.formatMessage({
             id: "datasource.tooltip.icon.deleted",
           })}
         </span>
-      </MenuItem>
-    </Menu>
-  );
+      ),
+      key: "log-delete",
+      onClick: () => {
+        deletedModal({
+          onOk: () => {
+            doDeleted();
+          },
+          content: i18n.formatMessage(
+            {
+              id: "datasource.logLibrary.deleted.content",
+            },
+            { logLibrary: logLibrary.tableName }
+          ),
+        });
+      },
+      icon: <IconFont type={"icon-delete"} />,
+    },
+  ];
+
+  const menu = <Menu items={items} />;
 
   const tooltipTitle = (
     <div>
@@ -285,8 +289,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
               resetCurrentHighChart();
               onChangePanes();
             }}
-            // onMouseEnter={() => setMouseEnter(true)}
-            // onMouseLeave={() => setMouseEnter(false)}
             className={classNames(logLibraryListStyles.title)}
           >
             <IconFont type="icon-table" style={{ marginRight: "4px" }} />
