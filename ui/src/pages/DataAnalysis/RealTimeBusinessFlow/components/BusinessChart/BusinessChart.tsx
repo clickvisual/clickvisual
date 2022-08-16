@@ -5,6 +5,7 @@ import ReactFlow, {
   Handle,
   MarkerType,
   MiniMap,
+  Position,
   ReactFlowProvider,
 } from "react-flow-renderer";
 
@@ -14,6 +15,8 @@ import "./styles/index.less";
 import { useModel } from "@@/plugin-model/useModel";
 import NodeContent from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart/NodeContent";
 import { BusinessEngineEnum } from "@/pages/DataAnalysis/service/enums";
+import moment from "moment";
+import { useIntl } from "umi";
 
 const DefaultWidth = 240;
 const DefaultHeight = 100;
@@ -21,7 +24,9 @@ const DefaultHeight = 100;
 let id = 0;
 const getId = () => `dndNode_${id++}`;
 
-const BusinessChart = () => {
+const BusinessChart = (props: { utime: number }) => {
+  const i18n = useIntl();
+  const { utime } = props;
   const { realTimeTraffic } = useModel("dataAnalysis");
   const {
     businessChart,
@@ -133,7 +138,7 @@ const BusinessChart = () => {
     return (
       <>
         <NodeContent node={data.business} />
-        <Handle type="source" position="bottom" />
+        <Handle type="source" position={Position.Bottom} />
       </>
     );
   };
@@ -141,16 +146,16 @@ const BusinessChart = () => {
   const CustomDefaultNode = ({ data }: any) => {
     return (
       <>
-        <Handle type="target" position="top" />
+        <Handle type="target" position={Position.Top} />
         <NodeContent node={data.business} />
-        <Handle type="source" position="bottom" />
+        <Handle type="source" position={Position.Bottom} />
       </>
     );
   };
   const CustomOutputNode = ({ data }: any) => {
     return (
       <>
-        <Handle type="target" position="top" />
+        <Handle type="target" position={Position.Top} />
         <NodeContent node={data.business} />
       </>
     );
@@ -205,6 +210,12 @@ const BusinessChart = () => {
 
   return (
     <div className={BusinessStyles.businessEChart}>
+      {utime ? (
+        <div className={BusinessStyles.fixedBox}>
+          {i18n.formatMessage({ id: "utime" })}:
+          {moment(utime * 1000).format("YYYY-MM-DD HH:mm:ss")}
+        </div>
+      ) : null}
       <div className="dndflow">
         <ReactFlowProvider>
           <div className="reactflow-wrapper" ref={reactFlowWrapper}>
