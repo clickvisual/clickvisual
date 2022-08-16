@@ -12,6 +12,7 @@ import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
+import UrlShareButton from "@/components/UrlShareButton";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -131,6 +132,7 @@ const RawLogQuery = () => {
         }}
       />
       <DarkTimeSelect />
+      <UrlShareButton style={{ marginRight: "8px" }} />
       <Button
         loading={logsLoading || highChartLoading}
         onClick={() => {

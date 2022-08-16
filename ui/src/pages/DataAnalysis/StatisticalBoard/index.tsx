@@ -4,6 +4,7 @@ import { useModel } from "umi";
 import DashboardTop from "./components/DashboardTop";
 import RunningStatus from "./components/RunningStatus";
 import CompletionTask from "./components/CompletionTask";
+import Screening from "./components/Screening";
 import { Spin } from "antd";
 
 export interface dashboardDataType {
@@ -46,16 +47,14 @@ const StatisticalBoard = () => {
   };
 
   useEffect(() => {
-    // doGetTaskList.run({}).then((res: any) => {
-    //   if (res.code != 0) return;
-    // });
     getList({});
   }, []);
 
   return (
     <div className={styles.statisticalBoard}>
+      <Screening onGetList={getList} />
       <Spin spinning={doGetDashboard.loading}>
-        <DashboardTop dashboardData={dashboardData} onGetList={getList} />
+        <DashboardTop dashboardData={dashboardData} />
         <div className={styles.flexBox}>
           <RunningStatus dashboardData={dashboardData} />
           <CompletionTask dataList={dashboardData?.flows || []} />

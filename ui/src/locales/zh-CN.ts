@@ -272,6 +272,8 @@ export default {
   "datasource.header.switch": "切换数据库",
   "datasource.logLibrary.search.placeholder": "搜索日志库",
   "datasource.logLibrary.search.created": "新增日志库",
+  "datasource.logLibrary.noInstance": "暂无实例",
+  "datasource.logLibrary.toCreate": "去创建",
   "datasource.deleted.content": "确认删除数据库：{database} 吗？",
   "datasource.deleted.loading": "正在删除数据库：{database}...",
   "datasource.deleted.success": "删除数据库：{database} 成功",
@@ -843,4 +845,41 @@ export default {
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "全部",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "输入节点",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "输出节点",
+
+  // dataAnalysis -> StatisticalBoard
+  "bigdata.dataAnalysis.statisticalBoard.Screening.yesterday": "昨天",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.beforeYesterday": "前天",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek": "近七天",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge": "我负责的",
+
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
+    "成功实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "失败节点",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode": "成功节点",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode": "未知节点",
+
+  "bigdata.dataAnalysis.statisticalBoard.DashboardTop.title": "重点关注",
+  "bigdata.dataAnalysis.statisticalBoard.RunningStatus.title": "运行状态分布",
+  "bigdata.dataAnalysis.statisticalBoard.CompletionTask.title": "任务完成情况",
+
+  // dataAnalysis -> TaskExecutionDetails
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.name": "执行状态",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful":
+    "执行成功",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure": "执行失败",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.tertiary.name": "任务类型",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.crontab.name": "定时时间",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.cost.name": "运行时长",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.startTime.name": "开始时间",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.endTime.name": "结束时间",
+
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeSearch": "节点搜索",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName": "节点名称",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.businessDate":
+    "业务日期",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType": "节点类型",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder":
+    "请选择节点类型",
 };

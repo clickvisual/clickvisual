@@ -66,9 +66,9 @@ const SearchBar = () => {
               })}
             </Select>
           </Form.Item>
-          <Form.Item>
+          <Form.Item noStyle>
             <Button
-              type="primary"
+              // type="primary"
               onClick={() => {
                 onSearch(currentInstances as number, {
                   typ: currentTyp as number,
@@ -78,7 +78,7 @@ const SearchBar = () => {
               {i18n.formatMessage({ id: "search" })}
             </Button>
           </Form.Item>
-          <Form.Item>
+          <Form.Item noStyle>
             <Button type="primary" onClick={handleCreate}>
               {i18n.formatMessage({
                 id: "bigdata.dataSourceManage.searchBar.dataSourceType.create",

@@ -43,8 +43,8 @@ const TaskExecutionDetails = () => {
     tertiary?: number;
   }) =>
     getList({
-      end: data.end || endTime,
-      start: data.start || startTime,
+      end: data.end == 0 ? undefined : data.end || endTime,
+      start: data.start == 0 ? undefined : data.start || endTime,
       nodeName: data.nodeName || nodeName,
       tertiary: data.tertiary || tertiary,
       ...currentPagination,
@@ -52,15 +52,16 @@ const TaskExecutionDetails = () => {
 
   const column: any = [
     {
-      title: "名称",
+      title: i18n.formatMessage({ id: "name" }),
       dataIndex: "nodeName",
       align: "center",
-      render: (nodeName: number, item: any) => {
+      render: (nodeName: string, item: any) => {
         return (
           <Tooltip title={item.nodeId}>
             <a
               href={`${process.env.PUBLIC_PATH}bigdata?iid=${item.iid}&navKey=offline&nodeId=${item.nodeId}`}
               target="_blank"
+              rel="noopener"
             >
               {nodeName}
             </a>
@@ -69,23 +70,35 @@ const TaskExecutionDetails = () => {
       },
     },
     {
-      title: "执行状态",
+      title: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.name",
+      }),
       dataIndex: "status",
       align: "center",
       render: (status: number) => {
         return (
           <Tooltip title={status}>
             {status ? (
-              <Tag color="lime">执行成功</Tag>
+              <Tag color="lime">
+                {i18n.formatMessage({
+                  id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful",
+                })}
+              </Tag>
             ) : (
-              <Tag color="red">执行失败</Tag>
+              <Tag color="red">
+                {i18n.formatMessage({
+                  id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure",
+                })}
+              </Tag>
             )}
           </Tooltip>
         );
       },
     },
     {
-      title: "任务类型",
+      title: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.tertiary.name",
+      }),
       dataIndex: "tertiary",
       align: "center",
       render: (tertiary: number) => {
@@ -93,12 +106,16 @@ const TaskExecutionDetails = () => {
       },
     },
     {
-      title: "定时时间",
+      title: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.crontab.name",
+      }),
       dataIndex: "crontab",
       align: "center",
     },
     {
-      title: "运行时长",
+      title: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.cost.name",
+      }),
       dataIndex: "cost",
       align: "center",
       render: (cost: number) => {
@@ -110,7 +127,9 @@ const TaskExecutionDetails = () => {
       },
     },
     {
-      title: "开始时间",
+      title: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.startTime.name",
+      }),
       dataIndex: "startTime",
       align: "center",
       render: (time: number) => {
@@ -122,7 +141,9 @@ const TaskExecutionDetails = () => {
       },
     },
     {
-      title: "结束时间",
+      title: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.endTime.name",
+      }),
       dataIndex: "endTime",
       align: "center",
       render: (time: number) => {

@@ -1,6 +1,7 @@
 import styles from "./index.less";
 import { DatePicker, Input, Select, Space } from "antd";
 import moment from "moment";
+import { useIntl } from "umi";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -20,7 +21,6 @@ export interface TaskFilterType {
   startTime?: number;
 }
 const TaskFilter = (props: TaskFilterType) => {
-  //   const [nodeValue, setNodeValue] = useState<string>("");
   const {
     setNodeName,
     onGetList,
@@ -30,6 +30,7 @@ const TaskFilter = (props: TaskFilterType) => {
     setEndTime,
     setTertiary,
   } = props;
+  const i18n = useIntl();
 
   const handleSelectChange = (num: number) => {
     setTertiary(num);
@@ -41,10 +42,19 @@ const TaskFilter = (props: TaskFilterType) => {
       <Space>
         <div className={styles.node}>
           <Space>
-            <span>节点搜索：</span>
+            <span>
+              {i18n.formatMessage({
+                id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeSearch",
+              })}
+              ：
+            </span>
             <Input
               allowClear
               size="small"
+              style={{ width: "150px" }}
+              placeholder={i18n.formatMessage({
+                id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName",
+              })}
               onPressEnter={(e: any) => {
                 const nodeName = e.target.value;
                 setNodeName(nodeName);
@@ -54,15 +64,31 @@ const TaskFilter = (props: TaskFilterType) => {
           </Space>
         </div>
         <div className={styles.time}>
-          <span>时间：</span>
+          <span>
+            {i18n.formatMessage({
+              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.businessDate",
+            })}
+            ：
+          </span>
           <RangePicker
             size="small"
             showTime
+            style={{ width: "360px" }}
             allowClear
             value={[
               startTime ? moment(startTime / 1000, "X") : null,
               endTime ? moment(endTime / 1000, "X") : null,
             ]}
+            ranges={{
+              昨天: [
+                moment().startOf("day").subtract(1, "d"),
+                moment().endOf("day").subtract(1, "d"),
+              ],
+              前天: [
+                moment().startOf("day").subtract(2, "d"),
+                moment().endOf("day").subtract(2, "d"),
+              ],
+            }}
             onChange={(timeList: any) => {
               const start = timeList && timeList.length > 1 ? +timeList[0] : 0;
               const end = timeList && timeList.length > 1 ? +timeList[1] : 0;
@@ -76,10 +102,18 @@ const TaskFilter = (props: TaskFilterType) => {
           />
         </div>
         <div className={styles.type}>
-          <span>类型：</span>
+          <span>
+            {i18n.formatMessage({
+              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType",
+            })}
+            ：
+          </span>
           <Select
-            style={{ width: 120 }}
+            style={{ width: 150 }}
             onChange={handleSelectChange}
+            placeholder={i18n.formatMessage({
+              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder",
+            })}
             allowClear
             size="small"
           >

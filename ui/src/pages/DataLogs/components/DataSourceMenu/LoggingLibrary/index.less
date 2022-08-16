@@ -3,4 +3,16 @@
   flex: 1;
   flex-direction: column;
   overflow-y: hidden;
+
+  .flexBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 14px;
+    :global .ant-empty-normal {
+      margin-bottom: 0;
+    }
+  }
 }

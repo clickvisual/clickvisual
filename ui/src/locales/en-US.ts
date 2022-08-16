@@ -279,6 +279,8 @@ export default {
   "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
   "datasource.logLibrary.search.created": "Creating a Log library",
+  "datasource.logLibrary.noInstance": "No instance",
+  "datasource.logLibrary.toCreate": "To create",
   "datasource.deleted.content": "Confirm deleting database: {database}?",
   "datasource.deleted.loading": "Deleting a database: {database}...",
   "datasource.deleted.success": "Delete database: {database} succeeded",
@@ -905,4 +907,58 @@ export default {
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "All",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "Start node",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "End node",
+
+  // dataAnalysis -> StatisticalBoard
+  "bigdata.dataAnalysis.statisticalBoard.Screening.yesterday": "Yesterday",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.beforeYesterday":
+    "The day before yesterday",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek": "In seven days",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge":
+    "I am in charge of the",
+
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance":
+    "Instance of failure",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
+    "Successful instances",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance":
+    "Unknown instance",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "Node failure",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode":
+    "Successful node",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode":
+    "The unknown node",
+
+  "bigdata.dataAnalysis.statisticalBoard.DashboardTop.title": "Focus on the",
+  "bigdata.dataAnalysis.statisticalBoard.RunningStatus.title":
+    "Running status distribution",
+  "bigdata.dataAnalysis.statisticalBoard.CompletionTask.title":
+    "Completion of task",
+
+  // dataAnalysis -> TaskExecutionDetails
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.name":
+    "Execution status",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful":
+    "Execute successfully",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure":
+    "On failure",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.tertiary.name": "Task type",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.crontab.name":
+    "Regular time",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.cost.name":
+    "The running time",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.startTime.name":
+    "The start time",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.endTime.name":
+    "The end of time",
+
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeSearch":
+    "Nodes in the search",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName":
+    "The name of the node",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.businessDate":
+    "Business date",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType":
+    "The node type",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder":
+    "Select a node type",
 };
