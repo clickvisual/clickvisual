@@ -345,6 +345,7 @@ export default {
   "datasource.tooltip.icon.info": "Log Library Details",
   "datasource.tooltip.icon.edit": "Edit log library",
   "datasource.tooltip.icon.alarmRuleList": "Viewing Related Alarms",
+  "datasource.tooltip.icon.topology": "View the corresponding topology",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
