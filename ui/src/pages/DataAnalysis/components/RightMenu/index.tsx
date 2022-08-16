@@ -31,8 +31,9 @@ const SchedulingList = [
   TertiaryEnums.offline,
 ];
 
-// 数据开发的结果更替在sql编辑器下方
-const ResultList = [SecondaryEnums.dataMining, SecondaryEnums.database];
+// 不显示结果的secondary
+// const ResultList = [SecondaryEnums.dataMining, SecondaryEnums.database];
+const ResultList: any = [];
 
 export interface RightMenu {
   node: any;

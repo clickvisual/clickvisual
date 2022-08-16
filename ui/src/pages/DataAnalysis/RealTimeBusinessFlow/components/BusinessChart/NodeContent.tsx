@@ -30,7 +30,6 @@ const NodeContent = ({ node }: NodeContentProps) => {
         numStr.length - 4,
         numStr.length - 4 + point
       );
-      console.log(decimal);
       // 由千位,百位组成的一个数字
       return parseFloat(Math.floor(num / 10000) + "." + decimal) + "万";
     } else {
@@ -39,7 +38,6 @@ const NodeContent = ({ node }: NodeContentProps) => {
         numStr.length - 8,
         numStr.length - 8 + point
       );
-      console.log(decimal);
       return parseFloat(Math.floor(num / 100000000) + "." + decimal) + "亿";
     }
   };
