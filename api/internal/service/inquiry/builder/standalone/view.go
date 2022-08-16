@@ -45,25 +45,7 @@ FROM %s
 			b.QueryAssembly.Params.TimeField,
 			b.QueryAssembly.Params.View.SourceTable)
 	case bumo.ViewTypePrometheusMetricAggregation:
-		b.QueryAssembly.Result += fmt.Sprintf(`with(
-%s
-) as limbo 
-SELECT
-  toDate(%s) as date,
-  '%s' as name,
-  array(%s) as tags,
-  toFloat64(limbo.1) as val,
-  %s as ts,
-  toDateTime(%s) as updated
-FROM %s
-`,
-			b.QueryAssembly.Params.View.WithSQL,
-			b.QueryAssembly.Params.TimeField,
-			bumo.PrometheusMetricName,
-			b.QueryAssembly.Params.View.CommonFields,
-			b.QueryAssembly.Params.TimeField,
-			b.QueryAssembly.Params.TimeField,
-			b.QueryAssembly.Params.View.SourceTable)
+		b.QueryAssembly.Result += common.BuilderViewAlarmAggregation(b.QueryAssembly.Params)
 	default:
 		b.QueryAssembly.Result += common.BuilderFieldsView(b.QueryAssembly.Params.KafkaJsonMapping,
 			b.QueryAssembly.Params.LogField,
@@ -76,7 +58,6 @@ func (b *ViewBuilder) BuilderWhere() {
 	case bumo.ViewTypePrometheusMetric:
 		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s GROUP BY %s\n", b.QueryAssembly.Params.View.Where, b.QueryAssembly.Params.TimeField)
 	case bumo.ViewTypePrometheusMetricAggregation:
-		b.QueryAssembly.Result += fmt.Sprintf("GROUP BY %s\n", b.QueryAssembly.Params.TimeField)
 	default:
 		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s\n", b.QueryAssembly.Params.View.Where)
 	}

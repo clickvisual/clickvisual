@@ -224,6 +224,7 @@ type (
 		Result       string `json:"result,omitempty"`
 		Cost         int64  `json:"cost,omitempty"`
 		ExcelProcess string `json:"excelProcess,omitempty"`
+		Status       int    `json:"status"`
 		RespUserSimpleInfo
 	}
 

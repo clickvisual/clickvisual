@@ -74,6 +74,21 @@ FROM %s
 		mapping, paramsView.TimeConvert, logField, paramsView.CommonFields, paramsView.SourceTable)
 }
 
+func BuilderViewAlarmAggregation(params bumo.Params) string {
+	return fmt.Sprintf(`SELECT
+  toDate(now()) as date,
+  '%s' as name,
+  array(%s) as tags,
+  toFloat64(val) as val,
+  now() as ts,
+  toDateTime(now()) as updated
+FROM (%s)
+`,
+		bumo.PrometheusMetricName,
+		params.View.CommonFields,
+		params.View.WithSQL)
+}
+
 func BuilderEngineStream(stream bumo.ParamsStream) string {
 	consumerNum := 1
 	if stream.ConsumerNum != 0 {

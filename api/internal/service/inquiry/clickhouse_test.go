@@ -123,3 +123,37 @@ limit 1`,
 		})
 	}
 }
+
+func Test_adaSelectPart1(t *testing.T) {
+	type args struct {
+		in string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantOut string
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test-1",
+			args: args{
+				in: `SELECT  
+       round(sum( case when status > 499 then 1 else 0 end ) * 100.0 / count(1), 2) as "访问失败率", 
+proxy_upstream_name  as service
+from dev_0801.stdout_2
+WHERE ("_time_second_" >= toDateTime(NOW() - 3600)) AND ("_time_second_" < toDateTime(NOW()))
+group by service
+ORDER by "访问失败率" desc    
+limit 1`,
+			},
+			wantOut: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotOut := adaSelectPart(tt.args.in); gotOut != tt.wantOut {
+				t.Errorf("adaSelectPart() = %v, want %v", gotOut, tt.wantOut)
+			}
+		})
+	}
+}
