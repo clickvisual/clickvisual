@@ -29,6 +29,7 @@ import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
 import { PaneType } from "@/models/datalogs/types";
 import { ALARMRULES_PATH } from "@/config/config";
+import { useMemo } from "react";
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;
@@ -251,23 +252,37 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     },
   ];
 
-  const menu = <Menu items={items} />;
+  const menu = useMemo(() => <Menu items={items} />, [items]);
 
-  const tooltipTitle = (
-    <div>
-      <div className={logLibraryListStyles.logTipTitle}>
-        <span>
-          {i18n.formatMessage({ id: "datasource.logLibrary.from.tableName" })}
-          :&nbsp; {logLibrary.tableName}
-        </span>
-      </div>
+  const tooltipTitle = useMemo(
+    () => (
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
-          {i18n.formatMessage({ id: "DescAsAlias" })}
-          :&nbsp;{!logLibrary?.desc ? "" : logLibrary.desc}
+          <span>
+            {i18n.formatMessage({ id: "datasource.logLibrary.from.tableName" })}
+            :&nbsp; {logLibrary.tableName}
+          </span>
+        </div>
+        <div>
+          <div className={logLibraryListStyles.logTipTitle}>
+            {i18n.formatMessage({ id: "DescAsAlias" })}
+            :&nbsp;{!logLibrary?.desc ? "" : logLibrary.desc}
+          </div>
+        </div>
+        <div>
+          <div className={logLibraryListStyles.logTipTitle}>
+            {i18n.formatMessage({
+              id: "log.editLogLibraryModal.label.isCreateCV.name",
+            })}
+            :&nbsp;
+            {logLibrary.createType == 1
+              ? i18n.formatMessage({ id: "alarm.rules.history.isPushed.false" })
+              : i18n.formatMessage({ id: "alarm.rules.history.isPushed.true" })}
+          </div>
         </div>
       </div>
-    </div>
+    ),
+    [logLibrary]
   );
 
   return (
@@ -291,7 +306,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             }}
             className={classNames(logLibraryListStyles.title)}
           >
-            <IconFont type="icon-table" style={{ marginRight: "4px" }} />
+            {logLibrary.createType == 1 ? (
+              <IconFont type="icon-table" style={{ marginRight: "4px" }} />
+            ) : (
+              <IconFont
+                type="icon-active-table"
+                style={{ marginRight: "4px" }}
+              />
+            )}
+
             {logLibrary.tableName}
           </span>
         </Tooltip>
