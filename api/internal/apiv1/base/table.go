@@ -150,6 +150,9 @@ func TableInfo(c *core.Context) {
 			InstanceDesc:   instance.Desc,
 		},
 	}
+	if res.TimeField == "" {
+		res.TimeField = db.TimeFieldSecond
+	}
 	keys := make([]string, 0)
 	data := make(map[string]string, 0)
 	keys = append(keys, "data_sql", "stream_sql", "view_sql")

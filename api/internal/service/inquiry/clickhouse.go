@@ -1056,14 +1056,16 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 }
 
 func alarmAggregationSQL(param view.ReqQuery) (sql string) {
-	out := fmt.Sprintf(`with(
-%s
-) as limbo
-SELECT
-   limbo.1 as "metrics",
-   %s as timestamp
-FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
-`, adaSelectPart(param.Query), param.TimeField, param.DatabaseTable, param.TimeField, param.TimeField)
+	out := fmt.Sprintf(`SELECT
+  toDate(now()) as date,
+  '%s' as name,
+  toFloat64(val) as val,
+  now() as ts,
+  toDateTime(now()) as updated
+FROM (%s)
+`,
+		bumo.PrometheusMetricName,
+		adaSelectPart(param.Query))
 	invoker.Logger.Debug("alarmAggregationSQL", elog.Any("out", out), elog.Any("param", param))
 	return out
 }
@@ -1084,13 +1086,13 @@ func adaSelectPart(in string) (out string) {
 }
 
 func genSelectFields(tid int) string {
-	// tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	// if tableInfo.CreateType == 0 {
-	// 	if tableInfo.SelectFields != "" {
-	// 		return tableInfo.SelectFields
-	// 	}
-	// 	return "_source_,_cluster_,_log_agent_,_namespace_,_node_name_,_node_ip_,_container_name_,_pod_name_,_time_second_,_time_nanosecond_,_raw_log_"
-	// }
+	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	if tableInfo.CreateType == 0 {
+		if tableInfo.SelectFields != "" {
+			return tableInfo.SelectFields
+		}
+		return "_source_,_cluster_,_log_agent_,_namespace_,_node_name_,_node_ip_,_container_name_,_pod_name_,_time_second_,_time_nanosecond_,_raw_log_"
+	}
 	return "*"
 }
 
