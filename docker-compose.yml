@@ -143,7 +143,7 @@ services:
       - clickvisual-net
     image: fhalim/prom2click:latest
     command:
-      - '-ch.dsn=tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeout=10&debug=true'
+      - '-ch.dsn=tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&write_timeout=10&debug=true'
       - '-ch.db=metrics'
       - '-ch.table=samples'
     expose:
