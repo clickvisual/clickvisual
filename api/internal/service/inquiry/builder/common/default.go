@@ -82,7 +82,9 @@ func BuilderViewAlarmAggregation(params bumo.Params) string {
   toFloat64(val) as val,
   now() as ts,
   toDateTime(now()) as updated
-FROM (%s)
+FROM (
+  %s
+)
 `,
 		bumo.PrometheusMetricName,
 		params.View.CommonFields,
