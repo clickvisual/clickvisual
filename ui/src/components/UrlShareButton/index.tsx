@@ -1,10 +1,10 @@
 import { ShareAltOutlined } from "@ant-design/icons";
-import { Button, message } from "antd";
+import { Button, message, Tooltip } from "antd";
 import copy from "copy-to-clipboard";
 import { useIntl } from "umi";
 
-const UrlShareButton = (props: { style?: any }) => {
-  const { style } = props;
+const UrlShareButton = (props: { style?: any; text?: string }) => {
+  const { style, text } = props;
   const i18n = useIntl();
 
   const handleShare = () => {
@@ -18,9 +18,11 @@ const UrlShareButton = (props: { style?: any }) => {
   };
 
   return (
-    <Button onClick={handleShare} style={style} icon={<ShareAltOutlined />}>
-      {i18n.formatMessage({ id: "log.share" })}
-    </Button>
+    <Tooltip title={i18n.formatMessage({ id: "log.share" })}>
+      <Button onClick={handleShare} style={style} icon={<ShareAltOutlined />}>
+        {text}
+      </Button>
+    </Tooltip>
   );
 };
 export default UrlShareButton;

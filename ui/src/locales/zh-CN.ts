@@ -26,6 +26,8 @@ export default {
   "table.column.filter.placeholder": "请输入查询条件",
   "table.column.filter.reset": "重置",
   "table.column.filter.refresh": "刷新",
+  "input.placeholder": "请输入{name}",
+  "select.placeholder": "请选择{name}",
   required: "必填",
 
   type: "类型",
@@ -389,7 +391,7 @@ export default {
   "log.switch.unfold": "折叠日志",
 
   // Data Logs-Statistical Table
-  "log.table.note": "注：谨慎操作",
+  "log.table.note": "搜索(注：谨慎操作)",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
