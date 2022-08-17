@@ -83,4 +83,4 @@ teamIds = []
 allowedOrganizations = []
 
 [defaultCh]
-dsn="tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&writer_timeout=10&debug=true"
+dsn="tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&write_timeout=10&debug=true"
