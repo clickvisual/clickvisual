@@ -26,6 +26,8 @@ export default {
   "table.column.filter.placeholder": "Please input conditions",
   "table.column.filter.reset": "Reset",
   "table.column.filter.refresh": "Refresh",
+  "input.placeholder": "Please enter the{name}",
+  "select.placeholder": "Please select a{name}",
   required: "Required",
 
   type: "Type",
@@ -414,7 +416,7 @@ export default {
   "log.switch.unfold": "Collapse Log",
 
   // Data Logs-Statistical Table
-  "log.table.note": "Note: Careful operation",
+  "log.table.note": "Search(Note: Careful operation)",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",

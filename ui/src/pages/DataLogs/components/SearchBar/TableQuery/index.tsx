@@ -162,27 +162,26 @@ const TableQuery = () => {
             onClick={() => {
               doSearch.run();
             }}
-          >
-            {i18n.formatMessage({ id: "search" })}
-          </Button>
+          />
         </Tooltip>
-
-        <Button
-          loading={doGetStatisticalTable.loading}
-          className={searchBarStyles.searchBtn}
-          type="primary"
-          onClick={() => {
-            if (sql) {
-              setSql(format(sql as string));
-              changeLocalStorage(format(sql as string));
-            }
-          }}
-        >
-          {i18n.formatMessage({
+        <Tooltip
+          title={i18n.formatMessage({
             id: "bigdata.components.FileTitle.formatting",
           })}
-        </Button>
-        <UrlShareButton style={{ margin: "0 0 9px 8px", width: "100px" }} />
+        >
+          <Button
+            loading={doGetStatisticalTable.loading}
+            className={searchBarStyles.searchBtn}
+            icon={<IconFont type="icon-formatting" />}
+            onClick={() => {
+              if (sql) {
+                setSql(format(sql as string));
+                changeLocalStorage(format(sql as string));
+              }
+            }}
+          />
+        </Tooltip>
+        <UrlShareButton style={{ margin: "0 0 9px 8px" }} />
         <ExportExcelButton data={logExcelData} />
       </div>
     </>

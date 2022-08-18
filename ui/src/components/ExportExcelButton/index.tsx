@@ -1,8 +1,9 @@
-import { Button, Input, message, Modal } from "antd";
+import { Button, Input, message, Modal, Tooltip } from "antd";
 import { ExportExcel } from "@/utils/excel";
 import { useIntl } from "umi";
 import { useEffect, useState } from "react";
 import { useRef } from "react";
+import IconFont from "../IconFont";
 
 interface ExportExcelButtonProps {
   data: any;
@@ -45,12 +46,13 @@ const ExportExcelButton = ({ data }: ExportExcelButtonProps) => {
   };
   return (
     <>
-      <Button
-        onClick={handleExportExcel}
-        style={{ width: "100px", marginLeft: "8px" }}
-      >
-        {i18n.formatMessage({ id: "export" })}
-      </Button>
+      <Tooltip title={i18n.formatMessage({ id: "export" })}>
+        <Button
+          onClick={handleExportExcel}
+          style={{ marginLeft: "8px" }}
+          icon={<IconFont type="icon-export-excel" />}
+        />
+      </Tooltip>
       {isModalVisible ? (
         <Modal
           title={i18n.formatMessage({ id: "export" })}

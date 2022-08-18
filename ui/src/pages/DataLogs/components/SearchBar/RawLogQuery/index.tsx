@@ -1,4 +1,4 @@
-import { Button, Input } from "antd";
+import { Button, Input, Tooltip } from "antd";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
 import { PaneType, QueryParams } from "@/models/datalogs/types";
@@ -133,18 +133,17 @@ const RawLogQuery = () => {
       />
       <DarkTimeSelect />
       <UrlShareButton style={{ marginRight: "8px" }} />
-      <Button
-        loading={logsLoading || highChartLoading}
-        onClick={() => {
-          doSearchLog.run();
-        }}
-        className={searchBarStyles.searchBtn}
-        style={{ width: "100px" }}
-        type="primary"
-        icon={<IconFont type={"icon-log-search"} />}
-      >
-        {i18n.formatMessage({ id: "search" })}
-      </Button>
+      <Tooltip title={i18n.formatMessage({ id: "search" })}>
+        <Button
+          loading={logsLoading || highChartLoading}
+          onClick={() => {
+            doSearchLog.run();
+          }}
+          className={searchBarStyles.searchBtn}
+          type="primary"
+          icon={<IconFont type={"icon-log-search"} />}
+        />
+      </Tooltip>
     </>
   );
 };
