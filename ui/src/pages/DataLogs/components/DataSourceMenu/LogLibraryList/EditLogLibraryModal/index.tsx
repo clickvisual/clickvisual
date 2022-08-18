@@ -1,7 +1,15 @@
-import { Form, FormInstance, Input, message, Modal, Select, Spin } from "antd";
-import { useEffect, useRef } from "react";
+import {
+  Form,
+  FormInstance,
+  Input,
+  InputNumber,
+  message,
+  Modal,
+  Select,
+  Spin,
+} from "antd";
+import { useEffect, useMemo, useRef } from "react";
 import { useModel, useIntl } from "umi";
-import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import style from "./index.less";
 
 const EditLogLibraryModal = (props: { onGetList: any }) => {
@@ -12,7 +20,6 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
     isModifyLog,
     onChangeIsModifyLog,
     currentEditLogLibrary,
-    // doGetLogLibraryList,
     doGetLogLibrary,
     doUpdateLogLibrary,
     updateLogLibraryLoading,
@@ -29,7 +36,15 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
             message.error(res.msg);
             return;
           }
-          editDatabaseFormRef.current?.setFieldsValue(res.data);
+          editDatabaseFormRef.current?.setFieldsValue({
+            name: res.data.name,
+            desc: res.data.desc,
+            kafkaBrokers: res.data.brokers,
+            kafkaConsumerNum: res.data.consumerNum || undefined,
+            kafkaSkipBrokenMessages: res.data.KafkaSkipBrokenMessages,
+            kafkaTopic: res.data.topic,
+            mergeTreeTTL: res.data.days,
+          });
         })
         .catch((res) => {
           res?.msg && message.error(res.msg);
@@ -38,6 +53,10 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
       editDatabaseFormRef.current?.resetFields();
     }
   }, [isModifyLog]);
+
+  const isCVCreate = useMemo(() => {
+    return currentEditLogLibrary?.createType !== 1;
+  }, [currentEditLogLibrary]);
 
   const handleSubmit = (val: any) => {
     if (!currentEditLogLibrary?.id) return;
@@ -53,7 +72,6 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
         );
         onChangeIsModifyLog(false);
         onGetList();
-        // doGetLogLibraryList();
       })
       .catch((res) => {
         res?.msg && message.error(res.msg);
@@ -76,95 +94,98 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
         onFinish={handleSubmit}
         className={style.form}
       >
-        <Form.Item name={"id"} hidden>
-          <Input />
-        </Form.Item>
-
-        {getLogLibraryLoading && (
-          <div className={style.spin}>
-            <Spin />
-          </div>
-        )}
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "log.editLogLibraryModal.label.tabName",
-          })}
-          name={"name"}
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "log.editLogLibraryModal.label.createType",
-          })}
-          name={"createType"}
-        >
-          <Select disabled>
-            <Option value={0}>
-              {i18n.formatMessage({
-                id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
-              })}
-            </Option>
-            <Option value={1}>
-              {i18n.formatMessage({
-                id: "datasource.logLibrary.from.creationMode.option.logLibrary",
-              })}
-            </Option>
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "datasource.logLibrary.from.type",
-          })}
-          name={"typ"}
-        >
-          <Select
-            placeholder={`${i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.type",
-            })}`}
-            disabled
-          >
-            {logLibraryTypes.map((item) => (
-              <Option key={item.value} value={item.value}>
-                {item.type}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "datasource.logLibrary.from.newLogLibrary.timeResolutionField",
-          })}
-          name={"timeField"}
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "datasource.logLibrary.from.days",
-          })}
-          name={"tpy"}
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item label="Topics" name={"topic"}>
-          <Input disabled />
-        </Form.Item>
-        <Form.Item label="Brokers" name={"brokers"}>
-          <Input disabled />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "DescAsAlias",
-          })}
-          name={"desc"}
-        >
-          <Input
-            placeholder={i18n.formatMessage({
-              id: "log.editLogLibraryModal.label.desc.placeholder",
+        <Spin spinning={getLogLibraryLoading || updateLogLibraryLoading}>
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "log.editLogLibraryModal.label.tabName",
             })}
-          />
-        </Form.Item>
+            name={"name"}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item label="Topics" name={"kafkaTopic"}>
+            <Input
+              disabled={!isCVCreate}
+              placeholder={i18n.formatMessage(
+                { id: "input.placeholder" },
+                { name: "Topics" }
+              )}
+            />
+          </Form.Item>
+          <Form.Item label="Brokers" name={"kafkaBrokers"}>
+            <Input
+              disabled={!isCVCreate}
+              placeholder={i18n.formatMessage(
+                { id: "input.placeholder" },
+                { name: "Brokers" }
+              )}
+            />
+          </Form.Item>
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "datasource.logLibrary.from.days",
+            })}
+            name={"mergeTreeTTL"}
+          >
+            <InputNumber
+              disabled={!isCVCreate}
+              placeholder={i18n.formatMessage(
+                { id: "input.placeholder" },
+                {
+                  name: i18n.formatMessage({
+                    id: "datasource.logLibrary.from.days",
+                  }),
+                }
+              )}
+            />
+          </Form.Item>
+          <Form.Item label="ConsumerNum" name={"kafkaConsumerNum"}>
+            <InputNumber
+              max={8}
+              min={1}
+              placeholder={i18n.formatMessage(
+                { id: "input.placeholder" },
+                { name: "ConsumerNum(1~8)" }
+              )}
+              disabled={!isCVCreate}
+            />
+          </Form.Item>
+          <Form.Item
+            label="SkipBrokenMessages"
+            name={"kafkaSkipBrokenMessages"}
+          >
+            <Select
+              disabled={!isCVCreate}
+              placeholder={i18n.formatMessage(
+                { id: "select.placeholder" },
+                { name: "SkipBrokenMessages" }
+              )}
+            >
+              <Option value={1}>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.true",
+                })}
+              </Option>
+              <Option value={0}>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.false",
+                })}
+              </Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "DescAsAlias",
+            })}
+            name={"desc"}
+          >
+            <Input
+              placeholder={i18n.formatMessage({
+                id: "log.editLogLibraryModal.label.desc.placeholder",
+              })}
+            />
+          </Form.Item>
+        </Spin>
       </Form>
     </Modal>
   );

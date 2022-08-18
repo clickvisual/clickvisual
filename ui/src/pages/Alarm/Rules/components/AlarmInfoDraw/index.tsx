@@ -138,6 +138,7 @@ const AlarmInfoDraw = () => {
                 automaticLayout: true,
                 scrollBeyondLastLine: false,
                 smoothScrolling: true,
+                wordWrap: "on",
                 scrollbar: { alwaysConsumeMouseWheel: false },
               }}
             />
@@ -155,6 +156,7 @@ const AlarmInfoDraw = () => {
               options={{
                 automaticLayout: true,
                 scrollBeyondLastLine: false,
+                wordWrap: "on",
                 smoothScrolling: true,
                 scrollbar: { alwaysConsumeMouseWheel: false },
               }}

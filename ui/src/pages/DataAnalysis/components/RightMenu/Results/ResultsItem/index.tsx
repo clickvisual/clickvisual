@@ -30,67 +30,6 @@ const Results = (props: {
     return Object.keys(defaultResultsData?.involvedSQLs || {}) || [];
   }, [defaultResultsData]);
 
-  // const luckysheetData: any = useMemo(() => {
-  //   if (updatedResults && updatedResults.length > 0) {
-  //     return [
-  //       {
-  //         name: "luckysheet",
-  //         celldata: updatedResults,
-  //       },
-  //     ];
-  //   }
-  //   if (
-  //     Object.keys(defaultResultsData).length == 0 ||
-  //     defaultResultsData.logs?.length == 0
-  //   ) {
-  //     return [
-  //       {
-  //         name: "luckysheet",
-  //         celldata: [],
-  //       },
-  //     ];
-  //   }
-
-  //   const columnArr: any = [];
-
-  //   if (
-  //     defaultResultsData &&
-  //     defaultResultsData?.logs &&
-  //     defaultResultsData.logs?.length > 0
-  //   ) {
-  //     const fields = Object.keys(defaultResultsData.logs[0]) || [];
-  //     for (const fieldIndex in fields) {
-  //       columnArr.push({
-  //         r: 0,
-  //         c: parseInt(fieldIndex),
-  //         v: {
-  //           ct: { fa: "General", t: "g" },
-  //           m: fields[fieldIndex],
-  //           v: fields[fieldIndex],
-  //           fc: "#EE2F6C",
-  //           vt: 0,
-  //         },
-  //       });
-  //     }
-  //     for (const itemIndex in defaultResultsData.logs) {
-  //       for (const fieldIndex in fields) {
-  //         columnArr.push({
-  //           r: parseInt(itemIndex) + 1,
-  //           c: parseInt(fieldIndex),
-  //           v: {
-  //             ct: { fa: "General", t: "g" },
-  //             m: defaultResultsData.logs[itemIndex][fields[fieldIndex]],
-  //             v: defaultResultsData.logs[itemIndex][fields[fieldIndex]],
-  //             vt: 0,
-  //           },
-  //         });
-  //       }
-  //     }
-  //   }
-
-  //   return [{ name: "luckysheet", celldata: columnArr }];
-  // }, [defaultResultsData, updatedResults]);
-
   useEffect(() => {
     if (visible) {
       if (SQLList.length > 0) {
@@ -158,6 +97,7 @@ const Results = (props: {
           options={{
             automaticLayout: true,
             scrollBeyondLastLine: false,
+            wordWrap: "on",
             minimap: {
               enabled: true,
             },
@@ -209,6 +149,7 @@ const Results = (props: {
               options={{
                 automaticLayout: true,
                 scrollBeyondLastLine: false,
+                wordWrap: "on",
                 minimap: {
                   enabled: true,
                 },
