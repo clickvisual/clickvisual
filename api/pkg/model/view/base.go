@@ -182,15 +182,17 @@ type (
 )
 
 type RespTableDetail struct {
-	Did        int    `json:"did"`     // 数据库 id
-	Name       string `json:"name"`    // table
-	Typ        int    `json:"typ"`     // table 类型 1 app 2 ego 3 ingress
-	Days       int    `json:"days"`    // 数据过期时间
-	Brokers    string `json:"brokers"` // kafka broker
-	Topic      string `json:"topic"`   // kafka topic
-	Uid        int    `json:"uid"`     // 操作人
-	Desc       string `json:"desc"`    //
-	SQLContent struct {
+	Did                     int    `json:"did"`     // 数据库 id
+	Name                    string `json:"name"`    // table
+	Typ                     int    `json:"typ"`     // table 类型 1 app 2 ego 3 ingress
+	Days                    int    `json:"days"`    // 数据过期时间
+	Brokers                 string `json:"brokers"` // kafka broker
+	Topic                   string `json:"topic"`   // kafka topic
+	Uid                     int    `json:"uid"`     // 操作人
+	Desc                    string `json:"desc"`
+	ConsumerNum             int    `json:"consumerNum"`
+	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
+	SQLContent              struct {
 		Keys []string          `json:"keys"`
 		Data map[string]string `json:"data"`
 	} `json:"sqlContent"`
