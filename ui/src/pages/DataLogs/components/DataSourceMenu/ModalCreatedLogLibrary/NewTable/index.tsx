@@ -52,6 +52,65 @@ const NewTable = (props: {
           })}`}
         />
       </Form.Item>
+        <Form.Item label={"source"} required>
+            <div className={styles.sourceRow}>
+                <Form.Item
+                    name="source"
+                    noStyle
+                    required
+                    rules={[
+                        {
+                            required: true,
+                            message: i18n.formatMessage({
+                                id: "datasource.logLibrary.placeholder.source",
+                            }),
+                        },
+                    ]}
+                >
+                    <TextArea
+                        autoSize={{ minRows: 3, maxRows: 8 }}
+                        placeholder={i18n.formatMessage({
+                            id: "datasource.logLibrary.placeholder.source",
+                        })}
+                    ></TextArea>
+                </Form.Item>
+                <Button
+                    className={styles.sourceButton}
+                    onClick={handelConversion}
+                    // loading={doGetMappingJson.loading}
+                >
+                    {i18n.formatMessage({ id: "datasource.logLibrary.conversionBtn" })}
+                </Button>
+            </div>
+        </Form.Item>
+        <Form.Item
+            label={"rawLogField"}
+            name={"rawLogField"}
+            rules={[
+                {
+                    required: true,
+                    message: i18n.formatMessage({
+                        id: "datasource.logLibrary.placeholder.rawLogField",
+                    }),
+                },
+            ]}
+        >
+            <Input disabled />
+        </Form.Item>
+        <Form.Item
+            label={"timeField"}
+            name={"timeField"}
+            rules={[
+                {
+                    required: true,
+                    message: i18n.formatMessage({
+                        id: "datasource.logLibrary.placeholder.timeField",
+                    }),
+                },
+            ]}
+        >
+            <Input disabled />
+        </Form.Item>
       <Form.Item
         label={i18n.formatMessage({ id: "datasource.logLibrary.from.type" })}
         name={"typ"}
@@ -172,65 +231,7 @@ const NewTable = (props: {
       >
         <InputNumber min={0} style={{ width: "100%" }} />
       </Form.Item>
-      <Form.Item label={"source"} required>
-        <div className={styles.sourceRow}>
-          <Form.Item
-            name="source"
-            noStyle
-            required
-            rules={[
-              {
-                required: true,
-                message: i18n.formatMessage({
-                  id: "datasource.logLibrary.placeholder.source",
-                }),
-              },
-            ]}
-          >
-            <TextArea
-              autoSize={{ minRows: 3, maxRows: 8 }}
-              placeholder={i18n.formatMessage({
-                id: "datasource.logLibrary.placeholder.source",
-              })}
-            ></TextArea>
-          </Form.Item>
-          <Button
-            className={styles.sourceButton}
-            onClick={handelConversion}
-            // loading={doGetMappingJson.loading}
-          >
-            {i18n.formatMessage({ id: "datasource.logLibrary.conversionBtn" })}
-          </Button>
-        </div>
-      </Form.Item>
-      <Form.Item
-        label={"rawLogField"}
-        name={"rawLogField"}
-        rules={[
-          {
-            required: true,
-            message: i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.rawLogField",
-            }),
-          },
-        ]}
-      >
-        <Input disabled />
-      </Form.Item>
-      <Form.Item
-        label={"timeField"}
-        name={"timeField"}
-        rules={[
-          {
-            required: true,
-            message: i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.timeField",
-            }),
-          },
-        ]}
-      >
-        <Input disabled />
-      </Form.Item>
+
       <Form.Item
         label={i18n.formatMessage({
           id: "description",
