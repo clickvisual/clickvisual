@@ -1100,38 +1100,42 @@ func (c *ClickHouse) queryTransform(params view.ReqQuery, isOptimized bool) stri
 	if isOptimized {
 		params.Query = queryTransformHash(params) // hash transform
 	}
-	query := queryTransformLike(params) // _raw_log_ like
+	table, _ := db.TableInfo(invoker.Db, params.Tid)
+	query := queryTransformLike(table.CreateType, table.RawLogField, params.Query) // _raw_log_ like
 	if query == "" {
 		return query
 	}
 	return fmt.Sprintf("AND (%s)", query)
 }
 
-func queryTransformLike(params view.ReqQuery) string {
-	if params.Query == "" {
-		return params.Query
+func queryTransformLike(createType int, rawLogField, query string) string {
+	if query == "" {
+		return query
 	}
-	table, _ := db.TableInfo(invoker.Db, params.Tid)
-	var query string
-	andArr := likeTransformAndArr(params.Query)
+	var res string
+	andArr := likeTransformAndArr(query)
 	if len(andArr) > 0 {
 		for k, item := range andArr {
+			item = strings.TrimSpace(item)
 			if k == 0 {
-				query = likeTransformField(table, item)
+				res = likeTransformField(createType, rawLogField, item)
 				continue
 			}
-			query = fmt.Sprintf("%s AND %s", query, likeTransformField(table, item))
+			res = fmt.Sprintf("%s AND %s", res, likeTransformField(createType, rawLogField, item))
 		}
-		return query
+		return res
 	}
-	return likeTransformField(table, params.Query)
+	return likeTransformField(createType, rawLogField, query)
 }
 
-func likeTransformField(table db.BaseTable, query string) string {
-	if strings.Contains(query, "=") || strings.Contains(query, "like") {
+func likeTransformField(createType int, rawLogField, query string) string {
+	if strings.Contains(query, "=") ||
+		strings.Contains(query, "like") ||
+		strings.Contains(query, ">") ||
+		strings.Contains(query, "<") {
 		return query
 	}
-	return likeTransform(table, query)
+	return likeTransform(createType, rawLogField, query)
 }
 
 func likeTransformAndArr(query string) []string {
@@ -1164,16 +1168,16 @@ func queryTransformHash(params view.ReqQuery) string {
 	return query
 }
 
-func likeTransform(table db.BaseTable, query string) string {
-	rawLogField := "_raw_log_"
-	if table.CreateType == TableCreateTypeExist {
-		rawLogField = table.RawLogField
+func likeTransform(createType int, rawLogField, query string) string {
+	field := "_raw_log_"
+	if createType == TableCreateTypeExist {
+		field = rawLogField
 	}
 	query = strings.ReplaceAll(query, "'", "")
 	query = strings.ReplaceAll(query, "\"", "")
 	query = strings.ReplaceAll(query, "`", "")
 	query = strings.TrimSpace(query)
-	return rawLogField + " like '%" + query + "%'"
+	return field + " like '%" + query + "%'"
 }
 
 func hashTransform(query string, index *db.BaseIndex) string {

@@ -157,3 +157,42 @@ limit 1`,
 		})
 	}
 }
+
+func Test_queryTransformLike(t *testing.T) {
+	type args struct {
+		createType  int
+		rawLogField string
+		query       string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "test-1",
+			args: args{
+				createType:  1,
+				rawLogField: "_raw_log_",
+				query:       "tt",
+			},
+			want: "_raw_log_ like '%tt%'",
+		},
+		{
+			name: "test-2",
+			args: args{
+				createType:  1,
+				rawLogField: "_raw_log_",
+				query:       "(`_container_name_`='app-uploader' or `_container_name_`='app-api') AND `_namespace_`='default' AND `code`>'499'",
+			},
+			want: "(`_container_name_`='app-uploader' or `_container_name_`='app-api') AND `_namespace_`='default' AND `code`>'499'",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := queryTransformLike(tt.args.createType, tt.args.rawLogField, tt.args.query); got != tt.want {
+				t.Errorf("queryTransformLike() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
