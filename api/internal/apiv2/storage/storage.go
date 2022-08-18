@@ -209,6 +209,7 @@ func Update(c *core.Context) {
 	ups["topic"] = req.KafkaTopic
 	ups["brokers"] = req.KafkaBrokers
 	ups["consumer_num"] = req.KafkaConsumerNum
+	ups["desc"] = req.Desc
 	ups["kafka_skip_broken_messages"] = req.KafkaSkipBrokenMessages
 	if streamSQL != "" {
 		ups["sql_stream"] = streamSQL

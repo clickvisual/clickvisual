@@ -85,8 +85,8 @@ const SelectField = (props: SelectFieldType) => {
     >
       <div className={SelectFieldStyle.flexBox}>
         <div className={SelectFieldStyle.titleRow}>
-          <div className={SelectFieldStyle.titleText}>timeField</div>
-          <div className={SelectFieldStyle.titleText}>rawLogField</div>
+          <div className={SelectFieldStyle.titleText}>{i18n.formatMessage({ id: "datasource.logLibrary.from.timeField" })}</div>
+          <div className={SelectFieldStyle.titleText}>{i18n.formatMessage({ id: "datasource.logLibrary.from.rawLogField" })}</div>
         </div>
         <Space>
           <Table
