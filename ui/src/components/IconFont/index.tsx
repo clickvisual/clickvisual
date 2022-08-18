@@ -1,6 +1,8 @@
 import { createFromIconfontCN } from "@ant-design/icons";
 const IconFont = createFromIconfontCN({
-  scriptUrl: "//at.alicdn.com/t/c/font_3023111_ubl2v4t334n.js",
+  scriptUrl: process.env.PUBLIC_PATH + "iconfont.js",
 });
+
+// 更新public下的iconfont.js文件
 
 export default IconFont;
