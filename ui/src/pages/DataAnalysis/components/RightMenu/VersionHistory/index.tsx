@@ -201,12 +201,12 @@ const VersionHistory = (props: {
           options={{
             selectOnLineNumbers: true,
             automaticLayout: true,
-            wordWrap: "wordWrapColumn",
             wrappingStrategy: "simple",
             wordWrapBreakBeforeCharacters: ",",
             wordWrapBreakAfterCharacters: ",",
             disableLayerHinting: true,
             scrollBeyondLastLine: false,
+            wordWrap: "on",
             minimap: {
               enabled: true,
             },
