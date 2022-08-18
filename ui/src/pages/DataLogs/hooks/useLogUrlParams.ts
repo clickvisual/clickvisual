@@ -13,7 +13,7 @@ import {
 } from "@/config/config";
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TableInfoResponse } from "@/services/dataLogs";
 import { BaseRes } from "@/hooks/useRequest/useRequest";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
@@ -58,6 +58,11 @@ export const RestUrlStates = {
   queryType: undefined,
 };
 
+const SharePath = [
+  process.env.PUBLIC_PATH + "share",
+  process.env.PUBLIC_PATH + "share/",
+];
+
 export default function useLogUrlParams() {
   const [urlState, setUrlState] = useUrlState<UrlStateType>({
     start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
@@ -72,12 +77,9 @@ export default function useLogUrlParams() {
   const [tid, setTid] = useState<any>();
   const {
     doGetLogsAndHighCharts,
-    // databaseList,
-    // currentDatabase,
     currentLogLibrary,
     getTableId,
     onChangeLogLibrary,
-    // onChangeCurrentDatabase,
     startDateTime,
     endDateTime,
     currentPage,
@@ -90,7 +92,6 @@ export default function useLogUrlParams() {
     onChangeLogPane,
     logPanesHelper,
     statisticalChartsHelper,
-    // onChangeVisibleDatabaseDraw,
   } = useModel("dataLogs");
   const {
     onChangeCurrentlyTableToIid,
@@ -103,14 +104,16 @@ export default function useLogUrlParams() {
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
     useLocalStorages();
 
+  const isShare = useMemo(
+    () => SharePath.includes(document.location.pathname),
+    [document.location.pathname]
+  );
+
   const handleResponse = (
     res: BaseRes<TableInfoResponse>,
     tid: number,
     lastDataLogsState: LastDataLogsStateType
   ) => {
-    // if (res.data.database) {
-    // onChangeCurrentDatabase(res.data.database);
-    // }
     onChangeLogLibrary({
       id: tid,
       tableName: res.data.name,
@@ -253,6 +256,10 @@ export default function useLogUrlParams() {
   }, []);
 
   useEffect(() => {
+    if (isShare && tid && !isTidInitialize) {
+      doSetUrlQuery(parseInt(tid));
+      onChangeIsTidInitialize(true);
+    }
     if (tid && allTables.length > 0) {
       // 并且该tid在树中存在且为初始化时执行
       if (!isTidInitialize) {
@@ -281,17 +288,4 @@ export default function useLogUrlParams() {
       });
     }
   }, [tid, allTables]);
-
-  // useEffect(() => {
-  //   const lastDataLogsState: LastDataLogsStateType = getLastDataLogsState();
-  //   const tid = urlState.tid || lastDataLogsState.tid;
-  //   const did = urlState.did || lastDataLogsState.did;
-  //   if (databaseList.length > 0 && did && !currentDatabase) {
-  //     const database = databaseList.find((item) => parseInt(did) === item.id);
-  //     // onChangeCurrentDatabase(database);
-  //   } else if (!tid && !did && databaseList.length > 0 && !currentDatabase) {
-  //     // onChangeCurrentDatabase(databaseList[0]);
-  //     onChangeVisibleDatabaseDraw(true);
-  //   }
-  // }, [databaseList, currentDatabase, urlState.did, urlState.tid]);
 }
