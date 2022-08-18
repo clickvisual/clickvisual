@@ -21,7 +21,8 @@ func BuilderFieldsData(mapping string) string {
   %s
   _time_second_ DateTime,
   _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
-  _raw_log_ String CODEC(ZSTD(1))
+  _raw_log_ String CODEC(ZSTD(1)),
+  INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
 )
 `, mapping)
 }

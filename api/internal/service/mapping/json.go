@@ -2,7 +2,6 @@ package mapping
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 
 	"github.com/gotomicro/ego/core/elog"
@@ -14,8 +13,9 @@ import (
 func Handle(req string) (res view.MappingStruct, err error) {
 	items := make([]view.MappingStructItem, 0)
 	data := []byte(req)
+	// Converted to json string structure type, the need to pay attention to is the json string type;
 	var obj = map[string]interface{}{}
-	err = json.Unmarshal(data, &obj) // 将json字符串转化成结构体类型，此处需要注意json是字符串类型。
+	err = json.Unmarshal(data, &obj)
 	if err != nil {
 		invoker.Logger.Error("Handle", elog.Any("req", req), elog.Any("err", err.Error()))
 		return
@@ -32,9 +32,6 @@ func Handle(req string) (res view.MappingStruct, err error) {
 // fieldTypeJudgment json -> clickhouse
 func fieldTypeJudgment(req interface{}) string {
 	var val string
-
-	fmt.Println("req.(type)", reflect.TypeOf(req))
-
 	switch req.(type) {
 	case string:
 		val = "String"
@@ -46,14 +43,20 @@ func fieldTypeJudgment(req interface{}) string {
 	// 	val = "int32"
 	// case int64:
 	// 	val = "int64"
+	// case []interface{}:
+	// 	val = "Array(T)"
+	// case map[string]interface{}:
+	// 	val = "JSON"
 	case float64:
 		val = "Float64"
 	case bool:
 		val = "Bool"
 	default:
 		if reflect.TypeOf(req) == nil {
+			invoker.Logger.Warn("fieldTypeJudgment", elog.Any("type", reflect.TypeOf(req)))
 			return "unknown"
 		}
+		invoker.Logger.Info("fieldTypeJudgment", elog.Any("type", reflect.TypeOf(req)))
 		return "unknown"
 	}
 	return val

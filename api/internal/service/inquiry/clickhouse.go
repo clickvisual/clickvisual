@@ -1385,7 +1385,6 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
 		},
 	}
-
 	if c.mode == ModeCluster {
 		dataParams.Cluster = database.Cluster
 		dataParams.ReplicaStatus = c.rs

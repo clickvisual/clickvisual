@@ -283,7 +283,9 @@ export default {
   "datasource.logLibrary.from.tableName": "数据表名称",
   "datasource.logLibrary.from.rule.tableName":
     "请输入小写字母、大写字母，或下划线",
-  "datasource.logLibrary.from.type": "timeField 类型",
+  "datasource.logLibrary.from.type": "采集时间类型",
+  "datasource.logLibrary.from.timeField": "采集时间",
+  "datasource.logLibrary.from.rawLogField": "业务日志内容",
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",

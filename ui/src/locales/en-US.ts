@@ -291,6 +291,8 @@ export default {
   "datasource.logLibrary.from.rule.tableName":
     "Please enter lowercase letters, uppercase letters, or underscores",
   "datasource.logLibrary.from.type": "_time_ Field Type",
+  "datasource.logLibrary.from.timeField": "timestamp field",
+  "datasource.logLibrary.from.rawLogField": "rawLog field",
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
