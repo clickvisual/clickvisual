@@ -12,13 +12,6 @@
     <title>ClickVisual</title>
     <link rel="icon" href="<%= context.config.publicPath + 'cv.png'%>" type="image/x-icon" />
 
-    <!-- Luckysheet -->
-    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet@2.0.0/dist/plugins/css/pluginsCss.css' />
-    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet@2.0.0/dist/plugins/plugins.css' />
-    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet@2.0.0/dist/css/luckysheet.css' />
-    <script crossorigin src="https://cdn.jsdelivr.net/npm/luckysheet@2.0.0/dist/plugins/js/plugin.js"></script>
-    <script crossorigin src="https://cdn.jsdelivr.net/npm/luckysheet@2.0.0/dist/luckysheet.umd.js"></script>
-
   </head>
   <body>
     <div id="root">
@@ -38,5 +31,11 @@
           <div><span>ClickVisual</span></div>
       </div>
     </div>
+    <!-- Luckysheet -->
+    <link rel='stylesheet' href="<%= context.config.publicPath + 'luckysheet/css/pluginsCss.css'%>" />
+    <link rel='stylesheet' href="<%= context.config.publicPath + 'luckysheet/css/plugins.css'%>" />
+    <link rel='stylesheet' href="<%= context.config.publicPath + 'luckysheet/css/luckysheet.css'%>" />
+    <script  src="<%= context.config.publicPath + 'luckysheet/js/plugin.js'%>" ></script>
+    <script  src="<%= context.config.publicPath + 'luckysheet/js/luckysheet.umd.js'%>" ></script>
   </body>
 </html>
