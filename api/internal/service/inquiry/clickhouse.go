@@ -828,7 +828,7 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
-		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'UInt32'", "'Nullable(Int64)'", "'Int64'", "'UInt64'"}, ","))
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime64(3, \\'Asia/Shanghai\\')'", "'DateTime'", "'Int32'", "'UInt32'", "'Nullable(Int64)'", "'Int64'", "'UInt64'"}, ","))
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
@@ -1140,11 +1140,11 @@ func likeTransformField(createType int, rawLogField, query string) string {
 
 func likeTransformAndArr(query string) []string {
 	var res = make([]string, 0)
-	if strings.Contains(query, "AND") {
-		res = strings.Split(query, "AND")
+	if strings.Contains(query, " AND ") {
+		res = strings.Split(query, " AND ")
 	}
-	if strings.Contains(query, "and") {
-		res = strings.Split(query, "and")
+	if strings.Contains(query, " and ") {
+		res = strings.Split(query, " and ")
 	}
 	return res
 }

@@ -183,9 +183,36 @@ func Test_queryTransformLike(t *testing.T) {
 			args: args{
 				createType:  1,
 				rawLogField: "_raw_log_",
+				query:       "_raw_log_ like '%handleCreated%' AND _container_name_='svc-task'",
+			},
+			want: "_raw_log_ like '%handleCreated%' AND _container_name_='svc-task'",
+		},
+		{
+			name: "test-3",
+			args: args{
+				createType:  1,
+				rawLogField: "_raw_log_",
 				query:       "(`_container_name_`='app-uploader' or `_container_name_`='app-api') AND `_namespace_`='default' AND `code`>'499'",
 			},
 			want: "(`_container_name_`='app-uploader' or `_container_name_`='app-api') AND `_namespace_`='default' AND `code`>'499'",
+		},
+		{
+			name: "test-5",
+			args: args{
+				createType:  1,
+				rawLogField: "_raw_log_",
+				query:       "_raw_log_ like '%handleCreated%' or _container_name_='svc-task'",
+			},
+			want: "_raw_log_ like '%handleCreated%' or _container_name_='svc-task'",
+		},
+		{
+			name: "test-6",
+			args: args{
+				createType:  1,
+				rawLogField: "_raw_log_",
+				query:       "handleCreated and _container_name_='svc-task'",
+			},
+			want: "_raw_log_ like '%handleCreated%' AND _container_name_='svc-task'",
 		},
 	}
 	for _, tt := range tests {
