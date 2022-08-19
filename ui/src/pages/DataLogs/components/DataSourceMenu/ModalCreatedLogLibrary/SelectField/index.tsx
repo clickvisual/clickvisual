@@ -1,7 +1,7 @@
 import CustomModal from "@/components/CustomModal";
 import { Button, message, Space, Table } from "antd";
 import { ColumnsType } from "antd/lib/table";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useIntl } from "umi";
 import SelectFieldStyle from "./index.less";
 
@@ -52,6 +52,26 @@ const SelectField = (props: SelectFieldType) => {
     }),
   };
 
+  useEffect(() => {
+    mappingJson.map((item: any) => {
+      if (item.value == "unknown") {
+        message.error({
+          content: (
+            <a
+              target="_blank"
+              href="https://clickvisual.gocn.vip/clickvisual/02install/quick-start.html#source-%E8%AF%B4%E6%98%8E"
+            >
+              {i18n.formatMessage({
+                id: "datasource.logLibrary.from.souceTips",
+              })}
+            </a>
+          ),
+          duration: 6,
+        });
+      }
+    });
+  }, [mappingJson]);
+
   return (
     <CustomModal
       title={i18n.formatMessage({
@@ -88,8 +108,14 @@ const SelectField = (props: SelectFieldType) => {
     >
       <div className={SelectFieldStyle.flexBox}>
         <div className={SelectFieldStyle.titleRow}>
-          <div className={SelectFieldStyle.titleText}>{i18n.formatMessage({ id: "datasource.logLibrary.from.timeField" })}</div>
-          <div className={SelectFieldStyle.titleText}>{i18n.formatMessage({ id: "datasource.logLibrary.from.rawLogField" })}</div>
+          <div className={SelectFieldStyle.titleText}>
+            {i18n.formatMessage({ id: "datasource.logLibrary.from.timeField" })}
+          </div>
+          <div className={SelectFieldStyle.titleText}>
+            {i18n.formatMessage({
+              id: "datasource.logLibrary.from.rawLogField",
+            })}
+          </div>
         </div>
         <Space>
           <Table

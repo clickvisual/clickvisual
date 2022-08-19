@@ -1,16 +1,12 @@
-import { Form, FormInstance, Input, message, Modal, Select } from "antd";
+import { Form, FormInstance, Input, message, Modal } from "antd";
 import { useEffect, useRef } from "react";
 import { useModel, useIntl } from "umi";
 
-const EditDatabaseModel = () => {
-  const { Option } = Select;
+const EditDatabaseModel = (props: { onGetList: () => void }) => {
+  const { onGetList } = props;
   const i18n = useIntl();
-  const {
-    isEditDatabase,
-    onChangeIsEditDatabase,
-    currentEditDatabase,
-    doGetDatabaseList,
-  } = useModel("dataLogs");
+  const { isEditDatabase, onChangeIsEditDatabase, currentEditDatabase } =
+    useModel("dataLogs");
   const { doUpdatedDatabase } = useModel("database");
   const editDatabaseFormRef = useRef<FormInstance>(null);
 
@@ -36,7 +32,7 @@ const EditDatabaseModel = () => {
         i18n.formatMessage({ id: "log.editLogLibraryModal.modifySuc" })
       );
       onChangeIsEditDatabase(false);
-      doGetDatabaseList();
+      onGetList();
     });
   };
 
@@ -46,7 +42,7 @@ const EditDatabaseModel = () => {
       visible={isEditDatabase}
       onCancel={() => onChangeIsEditDatabase(false)}
       onOk={() => editDatabaseFormRef.current?.submit()}
-      width={"60%"}
+      width={"45%"}
     >
       <Form
         ref={editDatabaseFormRef}
@@ -60,34 +56,6 @@ const EditDatabaseModel = () => {
         <Form.Item
           label={i18n.formatMessage({ id: "database.form.label.name" })}
           name={"name"}
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "log.editLogLibraryModal.label.isCreateCV.name",
-          })}
-          name={"isCreateByCV"}
-        >
-          <Select disabled>
-            <Option value={1}>
-              {i18n.formatMessage({
-                id: "alarm.rules.history.isPushed.true",
-              })}
-            </Option>
-            <Option value={0}>
-              {i18n.formatMessage({
-                id: "alarm.rules.history.isPushed.false",
-              })}
-            </Option>
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({
-            id: "instance.form.title.cluster",
-          })}
-          hidden={editDatabaseFormRef.current?.getFieldValue("mode") == 0}
-          name={"cluster"}
         >
           <Input disabled />
         </Form.Item>
