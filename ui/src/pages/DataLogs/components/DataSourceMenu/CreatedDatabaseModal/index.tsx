@@ -1,4 +1,4 @@
-import databaseModalStyles from "@/pages/DataLogs/components/SelectedDatabaseDraw/CreatedDatabaseModal/index.less";
+import databaseModalStyles from "./index.less";
 import { Button, Form, FormInstance, Input, Select } from "antd";
 import { useIntl } from "umi";
 import { useEffect, useRef, useState } from "react";
@@ -20,9 +20,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     createDatabaseCurrentInstance,
     onChangeCreateDatabaseCurrentInstance,
   } = useModel("database");
-  // const { doGetDatabaseList } = useModel("dataLogs");
   const { instanceList, getInstanceList } = useModel("instances");
-  // const { onChangeExpandedKeys } = useModel("instances");
   const databaseFormRef = useRef<FormInstance>(null);
 
   const [clustersList, steClustersList] = useState<any>([]);
@@ -37,9 +35,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     (field) => {
       createdDatabase.run(field.iid, field).then((res) => {
         if (res?.code === 0) {
-          // doGetDatabaseList(selectedInstance);
           onChangeCreatedDatabaseModal(false);
-          // onChangeExpandedKeys([]);
           onGetList();
         }
       });

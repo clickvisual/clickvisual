@@ -52,65 +52,80 @@ const NewTable = (props: {
           })}`}
         />
       </Form.Item>
-        <Form.Item label={"source"} required>
-            <div className={styles.sourceRow}>
-                <Form.Item
-                    name="source"
-                    noStyle
-                    required
-                    rules={[
-                        {
-                            required: true,
-                            message: i18n.formatMessage({
-                                id: "datasource.logLibrary.placeholder.source",
-                            }),
-                        },
-                    ]}
-                >
-                    <TextArea
-                        autoSize={{ minRows: 3, maxRows: 8 }}
-                        placeholder={i18n.formatMessage({
-                            id: "datasource.logLibrary.placeholder.source",
-                        })}
-                    ></TextArea>
-                </Form.Item>
-                <Button
-                    className={styles.sourceButton}
-                    onClick={handelConversion}
-                    // loading={doGetMappingJson.loading}
-                >
-                    {i18n.formatMessage({ id: "datasource.logLibrary.conversionBtn" })}
-                </Button>
-            </div>
-        </Form.Item>
-        <Form.Item
-            label={i18n.formatMessage({ id: "datasource.logLibrary.from.rawLogField" })}
-            name={"rawLogField"}
+      <Form.Item label={"source"} required>
+        <div className={styles.sourceRow}>
+          <Form.Item
+            name="source"
+            noStyle
+            required
             rules={[
-                {
-                    required: true,
-                    message: i18n.formatMessage({
-                        id: "datasource.logLibrary.placeholder.rawLogField",
-                    }),
-                },
+              {
+                required: true,
+                message: i18n.formatMessage({
+                  id: "datasource.logLibrary.placeholder.source",
+                }),
+              },
             ]}
-        >
-            <Input disabled />
-        </Form.Item>
-        <Form.Item
-            label={i18n.formatMessage({ id: "datasource.logLibrary.from.timeField" })}
-            name={"timeField"}
-            rules={[
-                {
-                    required: true,
-                    message: i18n.formatMessage({
-                        id: "datasource.logLibrary.placeholder.timeField",
-                    }),
-                },
-            ]}
-        >
-            <Input disabled />
-        </Form.Item>
+          >
+            <TextArea
+              autoSize={{ minRows: 3, maxRows: 8 }}
+              placeholder={i18n.formatMessage({
+                id: "datasource.logLibrary.placeholder.source",
+              })}
+            ></TextArea>
+          </Form.Item>
+          <div className={styles.buttonBox}>
+            <Button
+              className={styles.sourceButton}
+              onClick={handelConversion}
+              // loading={doGetMappingJson.loading}
+            >
+              {i18n.formatMessage({
+                id: "datasource.logLibrary.conversionBtn",
+              })}
+            </Button>
+            <Button
+              type="link"
+              href="https://clickvisual.gocn.vip/clickvisual/02install/quick-start.html#source-%E8%AF%B4%E6%98%8E"
+              target="_blank"
+            >
+              {i18n.formatMessage({ id: "datasource.logLibrary.documentBtn" })}
+            </Button>
+          </div>
+        </div>
+      </Form.Item>
+      <Form.Item
+        label={i18n.formatMessage({
+          id: "datasource.logLibrary.from.rawLogField",
+        })}
+        name={"rawLogField"}
+        rules={[
+          {
+            required: true,
+            message: i18n.formatMessage({
+              id: "datasource.logLibrary.placeholder.rawLogField",
+            }),
+          },
+        ]}
+      >
+        <Input disabled />
+      </Form.Item>
+      <Form.Item
+        label={i18n.formatMessage({
+          id: "datasource.logLibrary.from.timeField",
+        })}
+        name={"timeField"}
+        rules={[
+          {
+            required: true,
+            message: i18n.formatMessage({
+              id: "datasource.logLibrary.placeholder.timeField",
+            }),
+          },
+        ]}
+      >
+        <Input disabled />
+      </Form.Item>
       <Form.Item
         label={i18n.formatMessage({ id: "datasource.logLibrary.from.type" })}
         name={"typ"}

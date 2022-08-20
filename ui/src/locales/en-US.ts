@@ -300,6 +300,8 @@ export default {
   "datasource.logLibrary.from.rule.topics":
     "Please enter numbers/letters/hyphens/underline",
   "datasource.logLibrary.from.creationMode": "Creation Mode",
+  "datasource.logLibrary.from.souceTips":
+    "Souce does not meet the requirements, click Go to Document",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary":
     "Create a log library",
@@ -337,6 +339,7 @@ export default {
   "datasource.logLibrary.placeholder.timeField":
     "Enter Source and convert to select TimeField",
   "datasource.logLibrary.conversionBtn": "Conversion",
+  "datasource.logLibrary.documentBtn": "Help document",
   "datasource.logLibrary.conversion.warning":
     "Please fill in the content and then convert",
   "datasource.logLibrary.selectField.title": "Field selection",

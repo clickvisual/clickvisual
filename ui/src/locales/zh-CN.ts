@@ -293,6 +293,7 @@ export default {
   "datasource.logLibrary.from.rule.topics":
     "请输入数字、英文字母，中划线、下划线或 . ",
   "datasource.logLibrary.from.creationMode": "创建方式",
+  "datasource.logLibrary.from.souceTips": "souce内容不符合要求，点击跳转文档",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary": "新建日志库",
   "datasource.logLibrary.from.creationMode.option.logLibrary": "接入日志库",
@@ -326,6 +327,7 @@ export default {
     "请输入 Source 并转换选择 TimeField",
 
   "datasource.logLibrary.conversionBtn": "转换",
+  "datasource.logLibrary.documentBtn": "帮助文档",
   "datasource.logLibrary.conversion.warning": "请填写内容再转换",
   "datasource.logLibrary.selectField.title": "字段选择",
   "datasource.logLibrary.selectField.okTips":

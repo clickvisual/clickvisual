@@ -76,6 +76,13 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
   };
 
   const handleConfirm = (data: { rawLogField: string; timeField: string }) => {
+    mappingJson.map((item: { key: string; value: string }) => {
+      if (item.key == data.timeField) {
+        logFormRef.current?.setFieldsValue({
+          typ: item.value == "String" ? 1 : 2,
+        });
+      }
+    });
     logFormRef.current?.setFieldsValue({
       rawLogField: data.rawLogField,
       timeField: data.timeField,
