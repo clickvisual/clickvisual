@@ -38,6 +38,9 @@ func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 		return
 	}
 	for _, row := range ts {
+		if row.Database == nil {
+			continue
+		}
 		item, ok := dMap[row.Database.ID]
 		if !ok {
 			continue
