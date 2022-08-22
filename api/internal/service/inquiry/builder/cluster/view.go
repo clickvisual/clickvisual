@@ -50,7 +50,7 @@ FROM %s
 			b.QueryAssembly.Params.TimeField,
 			b.QueryAssembly.Params.View.SourceTable)
 	case bumo.ViewTypePrometheusMetricAggregation:
-		b.QueryAssembly.Result += common.BuilderViewAlarmAggregation(b.QueryAssembly.Params)
+		b.QueryAssembly.Result += common.BuilderViewAlarmAggregationWith(b.QueryAssembly.Params)
 	default:
 		b.QueryAssembly.Result += common.BuilderFieldsView(b.QueryAssembly.Params.KafkaJsonMapping,
 			b.QueryAssembly.Params.LogField,
@@ -63,6 +63,7 @@ func (b *ViewBuilder) BuilderWhere() {
 	case bumo.ViewTypePrometheusMetric:
 		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s GROUP BY %s\n", b.QueryAssembly.Params.View.Where, b.QueryAssembly.Params.TimeField)
 	case bumo.ViewTypePrometheusMetricAggregation:
+		b.QueryAssembly.Result += fmt.Sprintf("GROUP BY %s\n", b.QueryAssembly.Params.TimeField)
 	default:
 		b.QueryAssembly.Result += fmt.Sprintf("WHERE %s\n", b.QueryAssembly.Params.View.Where)
 	}
