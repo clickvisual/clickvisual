@@ -74,7 +74,10 @@ const AlarmTable = () => {
               hideMessage();
               return;
             }
-            doGetAlarms.run(operations.searchQuery);
+            doGetAlarms.run({
+              ...operations.searchQuery,
+              ...currentPagination,
+            });
             message.success(
               {
                 content: i18n.formatMessage({ id: "alarm.rules.deleted" }),
@@ -120,7 +123,7 @@ const AlarmTable = () => {
             },
             3
           );
-          doGetAlarms.run(operations.searchQuery);
+          doGetAlarms.run({ ...operations.searchQuery, ...currentPagination });
         })
         .catch(() => hideMessage());
     },
