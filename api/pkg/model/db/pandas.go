@@ -248,6 +248,14 @@ func DependsList(conds egorm.Conds) (resp []*BigdataDepend, err error) {
 	return
 }
 
+func EarliestDependRow() (resp BigdataDepend, err error) {
+	if err = invoker.Db.Model(BigdataDepend{}).Order("utime asc").Limit(1).Find(&resp).Error; err != nil {
+		elog.Error("list error", zap.Error(err))
+		return
+	}
+	return
+}
+
 func DependsUpsList(db *gorm.DB, iid int, database, table string) (resp []*BigdataDepend, err error) {
 	var conds = make(map[string]interface{}, 0)
 	conds["iid"] = iid

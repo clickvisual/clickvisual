@@ -1,0 +1,32 @@
+.CustomCard {
+    padding: 10px;
+    // background-color: #f0f2f5;
+    // border: 1px solid #ccc;
+  .titleBox {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 500;
+    .title {
+        position: relative;
+        padding-left: 8px;
+        &::before {
+            position: absolute;
+            content: '';
+            top: 4px;
+            left: 2px;
+            width: 2px;
+            height: 13px;
+            background-color: @primary-color;
+        }
+    }
+    .operation {
+
+    }
+  }
+  .content {
+    width: 100%;
+  }
+}

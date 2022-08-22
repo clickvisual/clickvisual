@@ -2,14 +2,7 @@ import { useEffect } from "react";
 
 const Luckysheet = (props: { data: any }) => {
   const { data } = props;
-  // console.log(data);
   const tabData = data;
-
-  // data.map((item: any, index: number) => {
-  //   if (cLength > 0) {
-  //     console.log(item, index % cLength, Math.floor(index / cLength));
-  //   }
-  // });
 
   useEffect(() => {
     const luckysheet = window.luckysheet;

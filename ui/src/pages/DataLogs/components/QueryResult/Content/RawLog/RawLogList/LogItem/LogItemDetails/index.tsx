@@ -22,8 +22,6 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     quickInsertLikeExclusion,
   } = useModel("dataLogs");
 
-  // TODO: 数据处理
-
   const {
     keys,
     newLog,
@@ -154,12 +152,10 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     insert(keyItem);
   };
 
-  const handleCopyLog = (keyItem: string, isIndexAndRawLogKey: boolean) => {
-    onCopyRawLogDetails(
-      isIndexAndRawLogKey ? rawLogJson[keyItem] : newLog[keyItem]
-    );
+  const handleCopyLog = (keyItem: string) => {
+    onCopyRawLogDetails(keyItem);
   };
-  // TODO:
+
   const logItemList = useMemo(() => {
     if (keys.length <= 0) return [];
     return keys.map((keyItem) => {
@@ -243,7 +239,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
                   logItemStyles.logKey,
                   logItemStyles.logKeyHover
                 )}
-                onClick={() => handleCopyLog(key, isIndexAndRawLogKey)}
+                onClick={() => handleCopyLog(key)}
               >
                 <span
                   className={classNames(

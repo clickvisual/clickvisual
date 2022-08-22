@@ -25,6 +25,7 @@ const EditorContent = (props: EditorContentType) => {
         options={{
           automaticLayout: true,
           scrollBeyondLastLine: false,
+          wordWrap: "on",
           minimap: {
             enabled: true,
           },

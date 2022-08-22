@@ -13,11 +13,17 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+const (
+	DepSearchOpUp   = 1 << 0
+	DepSearchOpDown = 1 << 1
+)
+
 func DoDepsSync() {
-	DepsBatch(true)
+	DepsBatch()
 	for {
-		time.Sleep(time.Minute)
-		DepsBatch(false)
+		time.Sleep(time.Minute * 15)
+		// depsClear()
+		DepsBatch()
 	}
 }
 
@@ -29,7 +35,7 @@ func depsClear() {
 }
 
 // DepsBatch Periodically synchronize the data of each instance
-func DepsBatch(isReset bool) {
+func DepsBatch() {
 	// Get all the instance data
 	instances, err := db.InstanceList(egorm.Conds{})
 	if err != nil {
@@ -43,61 +49,38 @@ func DepsBatch(isReset bool) {
 			continue
 		}
 		// Try again once
-		rows := op.SystemTablesInfo(isReset)
-		if isReset && len(rows) == 0 {
+		rows := op.SystemTablesInfo()
+		if len(rows) == 0 {
 			for i := 0; i < 10; i++ {
 				time.Sleep(time.Second)
-				rows = op.SystemTablesInfo(isReset)
+				rows = op.SystemTablesInfo()
 				if len(rows) > 0 {
 					break
 				}
 			}
 		}
-		depsInstance(instance.ID, rows, isReset)
+		depsInstance(instance.ID, rows)
 	}
 }
 
-func depsInstance(iid int, rows []*view.SystemTable, isReset bool) {
-	if isReset {
-		if err := db.DependsDeleteAll(invoker.Db, iid); err != nil {
-			invoker.Logger.Error("DepsBatch", elog.String("step", "DependsDeleteAll"), elog.String("error", err.Error()))
-			return
-		}
-		filter := make(map[string]interface{})
-		// Bulk insert
-		depends := make([]*db.BigdataDepend, 0)
-		for _, row := range rows {
-			if strings.ToLower(row.Database) == "system" || strings.ToLower(row.Database) == "information_schema" {
-				continue
-			}
-			downs, ups := customDepsParsing(row)
-			item := &db.BigdataDepend{
-				Iid:                  iid,
-				Database:             row.Database,
-				Table:                row.Table,
-				Engine:               row.Engine,
-				DownDepDatabaseTable: downs,
-				UpDepDatabaseTable:   ups,
-				Rows:                 row.TotalRows,
-				Bytes:                row.TotalBytes,
-			}
-			if _, ok := filter[item.Key()]; ok {
-				invoker.Logger.Error("DepsBatch", elog.String("step", "repeat"), elog.String("key", item.Key()))
-				continue
-			}
-			filter[item.Key()] = struct{}{}
-			depends = append(depends, item)
-		}
-		err := db.DependsBatchInsert(invoker.Db, depends)
-		if err != nil {
-			invoker.Logger.Error("depsInstance", elog.String("step", "DependsBatchInsert"), elog.String("error", err.Error()))
-			return
-		}
+func depsInstance(iid int, rows []*view.SystemTable) {
+	if err := db.DependsDeleteAll(invoker.Db, iid); err != nil {
+		invoker.Logger.Error("DepsBatch", elog.String("step", "DependsDeleteAll"), elog.String("error", err.Error()))
 		return
 	}
+	filter := make(map[string]*db.BigdataDepend)
+	// stdout_2_ts_view ["dev_0801.stdout_2"]
+	deriveUps := make(map[string][]string)
 	for _, row := range rows {
+		if strings.ToLower(row.Database) == "system" || strings.ToLower(row.Database) == "information_schema" {
+			continue
+		}
 		downs, ups := customDepsParsing(row)
-		if err := db.DependsCreateOrUpdate(invoker.Db, &db.BigdataDepend{
+		// update derive ups
+		for _, down := range downs {
+			deriveUps[down] = append(deriveUps[down], row.Name())
+		}
+		item := &db.BigdataDepend{
 			Iid:                  iid,
 			Database:             row.Database,
 			Table:                row.Table,
@@ -106,18 +89,56 @@ func depsInstance(iid int, rows []*view.SystemTable, isReset bool) {
 			UpDepDatabaseTable:   ups,
 			Rows:                 row.TotalRows,
 			Bytes:                row.TotalBytes,
-		}); err != nil {
-			invoker.Logger.Error("doDependSyncInstance", elog.String("error", err.Error()))
+		}
+		if _, ok := filter[item.Name()]; ok {
+			invoker.Logger.Error("DepsBatch", elog.String("step", "repeat"), elog.String("key", item.Key()))
 			continue
 		}
+		filter[item.Name()] = item
 	}
+
+	for databaseTable, deriveUp := range deriveUps {
+		item, ok := filter[databaseTable]
+		if !ok {
+			continue
+		}
+		item.UpDepDatabaseTable = arrayFilter(item.UpDepDatabaseTable, deriveUp)
+	}
+
+	// Bulk insert
+	depends := make([]*db.BigdataDepend, 0)
+	for _, depend := range filter {
+		depends = append(depends, depend)
+	}
+	err := db.DependsBatchInsert(invoker.Db, depends)
+	if err != nil {
+		invoker.Logger.Error("depsInstance", elog.String("step", "DependsBatchInsert"), elog.String("error", err.Error()))
+		return
+	}
+	return
+
+}
+
+func arrayFilter(source, target []string) []string {
+	res := make([]string, 0)
+	filter := make(map[string]interface{})
+	for _, v := range source {
+		filter[v] = struct{}{}
+	}
+	for _, v := range target {
+		filter[v] = struct{}{}
+	}
+	for k, _ := range filter {
+		res = append(res, k)
+	}
+	return res
 }
 
 func TableDeps(iid int, database, table string) (res []view.RespTableDeps, err error) {
 	res = make([]view.RespTableDeps, 0)
 	cache := map[string]interface{}{}
 	checked := make(map[string]interface{}, 0)
-	for _, v := range loopDeps(iid, database, table, checked) {
+	for _, v := range loopDepsV2(iid, database, table, checked, DepSearchOpUp+DepSearchOpDown) {
 		if _, ok := cache[v.Database+"."+v.Table]; ok {
 			continue
 		}
@@ -127,55 +148,102 @@ func TableDeps(iid int, database, table string) (res []view.RespTableDeps, err e
 	return
 }
 
-func loopDeps(iid int, database, table string, checked map[string]interface{}) (res []view.RespTableDeps) {
+func loopDepsV2(iid int, database, table string, checked map[string]interface{}, op int) (res []view.RespTableDeps) {
 	res = make([]view.RespTableDeps, 0)
 	conds := egorm.Conds{}
 	conds["iid"] = iid
-	conds["database"] = database
 	conds["table"] = table
+	conds["database"] = database
 	deps, _ := db.DependsList(conds)
-	var nextDeps []string
-	for _, row := range deps {
-		// flushes into Downs
-		ups, _ := db.DependsUpsList(invoker.Db, iid, database, table)
-		row.DownDepDatabaseTable = addDatabaseTable(ups, row.DownDepDatabaseTable)
-		invoker.Logger.Debug("loopDeps", elog.String("step", "ups"), elog.Any("ups", ups), elog.Any("DownDepDatabaseTable", row.DownDepDatabaseTable))
-		nextDeps = append(nextDeps, row.DownDepDatabaseTable...)
-		res = append(res, view.RespTableDeps{
-			Database:   row.Database,
-			Table:      row.Table,
-			Engine:     row.Engine,
-			TotalRows:  row.Rows,
-			TotalBytes: row.Bytes,
-			Deps:       cutDatabase(row.DownDepDatabaseTable),
-		})
-		invoker.Logger.Debug("addRespTableDeps", elog.Any("database", database), elog.Any("table", table))
-		res = append(res, addRespTableDeps(row.Iid, database, table, row.UpDepDatabaseTable, res)...)
+	if len(deps) != 1 {
+		return res
 	}
-
-	var filterNextDeps []string
-	for _, dependsTableName := range nextDeps {
-		if _, ok := checked[dependsTableName]; ok {
-			continue
-		}
-		filterNextDeps = append(filterNextDeps, dependsTableName)
+	// get current table dependencies info
+	if _, ok := checked[deps[0].Name()]; ok {
+		return res
 	}
-	invoker.Logger.Debug("loopDeps", elog.Any("nextDeps", nextDeps),
-		elog.Any("filterNextDeps", filterNextDeps),
-		elog.Any("database", database),
-		elog.Any("table", table),
-		elog.Any("checked", checked),
-		elog.Any("res", res),
-	)
-	for _, nextTable := range filterNextDeps {
-		dt := strings.Split(nextTable, ".")
-		if len(dt) != 2 {
-			continue
+	checked[deps[0].Name()] = struct{}{}
+	res = append(res, view.RespTableDeps{
+		Database:   deps[0].Database,
+		Table:      deps[0].Table,
+		Engine:     deps[0].Engine,
+		TotalRows:  deps[0].Rows,
+		TotalBytes: deps[0].Bytes,
+		Deps:       cutDatabase(deps[0].DownDepDatabaseTable),
+	})
+	// up search
+	if op&DepSearchOpUp == DepSearchOpUp {
+		for _, up := range deps[0].UpDepDatabaseTable {
+			dt := strings.Split(up, ".")
+			if len(dt) != 2 {
+				continue
+			}
+			res = append(res, loopDepsV2(iid, dt[0], dt[1], checked, DepSearchOpUp)...)
 		}
-		res = append(res, loopDeps(iid, dt[0], dt[1], checked)...)
+	}
+	// down
+	if op&DepSearchOpDown == DepSearchOpDown {
+		for _, down := range deps[0].DownDepDatabaseTable {
+			dt := strings.Split(down, ".")
+			if len(dt) != 2 {
+				continue
+			}
+			res = append(res, loopDepsV2(iid, dt[0], dt[1], checked, DepSearchOpDown)...)
+		}
 	}
 	return res
 }
+
+//
+// func loopDeps(iid int, database, table string, checked map[string]interface{}) (res []view.RespTableDeps) {
+// 	res = make([]view.RespTableDeps, 0)
+// 	conds := egorm.Conds{}
+// 	conds["iid"] = iid
+// 	conds["database"] = database
+// 	conds["table"] = table
+// 	deps, _ := db.DependsList(conds)
+// 	var nextDeps []string
+// 	for _, row := range deps {
+// 		// flushes into Downs
+// 		ups, _ := db.DependsUpsList(invoker.Db, iid, database, table)
+// 		row.DownDepDatabaseTable = addDatabaseTable(ups, row.DownDepDatabaseTable)
+// 		invoker.Logger.Debug("loopDeps", elog.String("step", "ups"), elog.Any("ups", ups), elog.Any("DownDepDatabaseTable", row.DownDepDatabaseTable))
+// 		nextDeps = append(nextDeps, row.DownDepDatabaseTable...)
+// 		res = append(res, view.RespTableDeps{
+// 			Database:   row.Database,
+// 			Table:      row.Table,
+// 			Engine:     row.Engine,
+// 			TotalRows:  row.Rows,
+// 			TotalBytes: row.Bytes,
+// 			Deps:       cutDatabase(row.DownDepDatabaseTable),
+// 		})
+// 		invoker.Logger.Debug("loopDeps", elog.Any("database", database), elog.Any("table", table))
+// 		res = append(res, addRespTableDeps(row.Iid, database, table, row.UpDepDatabaseTable, res)...)
+// 	}
+//
+// 	var filterNextDeps []string
+// 	for _, dependsTableName := range nextDeps {
+// 		if _, ok := checked[dependsTableName]; ok {
+// 			continue
+// 		}
+// 		filterNextDeps = append(filterNextDeps, dependsTableName)
+// 	}
+// 	invoker.Logger.Debug("loopDeps", elog.Any("nextDeps", nextDeps),
+// 		elog.Any("filterNextDeps", filterNextDeps),
+// 		elog.Any("database", database),
+// 		elog.Any("table", table),
+// 		elog.Any("checked", checked),
+// 		elog.Any("res", res),
+// 	)
+// 	for _, nextTable := range filterNextDeps {
+// 		dt := strings.Split(nextTable, ".")
+// 		if len(dt) != 2 {
+// 			continue
+// 		}
+// 		res = append(res, loopDeps(iid, dt[0], dt[1], checked)...)
+// 	}
+// 	return res
+// }
 
 func cutDatabase(input []string) (output []string) {
 	output = make([]string, 0)

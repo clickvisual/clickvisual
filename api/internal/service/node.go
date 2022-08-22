@@ -194,6 +194,7 @@ func (n *node) NodeResultRespAssemble(nr *db.BigdataNodeResult) view.RespNodeRes
 		Result:       nr.Result,
 		Cost:         nr.Cost,
 		ExcelProcess: nr.ExcelProcess,
+		Status:       nr.Status,
 	}
 	if nr.Uid == -1 {
 		res.RespUserSimpleInfo = view.RespUserSimpleInfo{
@@ -222,6 +223,7 @@ func (n *node) RespWorkerAssemble(nr *db.BigdataNodeResult) view.RespWorkerRow {
 		NodeId:       nr.NodeId,
 		Cost:         nr.Cost,
 		ChargePerson: view.RespUserSimpleInfo{},
+		Iid:          nodeInfo.Iid,
 	}
 	u, _ := db.UserInfo(nodeCrontabInfo.DutyUid)
 	res.ChargePerson.Gen(u)

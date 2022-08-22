@@ -165,6 +165,32 @@ definitions:
           $ref: '#/definitions/view.StorageAnalysisField'
         type: array
     type: object
+  view.RespTableDependencies:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/view.RespTableDeps'
+        type: array
+      utime:
+        type: integer
+    type: object
+  view.RespTableDeps:
+    properties:
+      database:
+        type: string
+      deps:
+        items:
+          type: string
+        type: array
+      engine:
+        type: string
+      table:
+        type: string
+      totalBytes:
+        type: integer
+      totalRows:
+        type: integer
+    type: object
   view.RespTableSimple:
     properties:
       createType:
@@ -238,6 +264,8 @@ definitions:
         type: integer
       id:
         type: integer
+      iid:
+        type: integer
       nodeId:
         type: integer
       nodeName:
@@ -310,6 +338,40 @@ paths:
       summary: Gets all instance database and table data filtered by permissions
       tags:
       - base
+  /api/v2/pandas/instances/{instance-id}/table-dependencies:
+    get:
+      consumes:
+      - application/json
+      description: Result of table dependency resolution
+      parameters:
+      - description: instance id
+        in: path
+        name: instance-id
+        required: true
+        type: integer
+      - in: query
+        name: databaseName
+        required: true
+        type: string
+      - in: query
+        name: tableName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.ResPage'
+            - properties:
+                data:
+                  $ref: '#/definitions/view.RespTableDependencies'
+              type: object
+      summary: Result of table dependency resolution
+      tags:
+      - pandas
   /api/v2/pandas/nodes-results/{result-id}:
     patch:
       consumes:
@@ -579,6 +641,46 @@ paths:
           schema:
             type: string
       summary: Creating a log library
+      tags:
+      - storage
+  /api/v2/storage/{storage-id}:
+    patch:
+      consumes:
+      - application/json
+      description: Storage update
+      parameters:
+      - description: table id
+        in: path
+        name: storage-id
+        required: true
+        type: integer
+      - in: query
+        name: desc
+        type: string
+      - in: query
+        name: kafkaBrokers
+        type: string
+      - description: min 1 max 8
+        in: query
+        name: kafkaConsumerNum
+        type: integer
+      - in: query
+        name: kafkaSkipBrokenMessages
+        type: integer
+      - in: query
+        name: kafkaTopic
+        type: string
+      - in: query
+        name: mergeTreeTTL
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Storage update
       tags:
       - storage
   /api/v2/storage/{storage-id}/analysis-fields:

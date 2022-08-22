@@ -43,6 +43,9 @@ export const QUERY_PATH = process.env.PUBLIC_PATH + "query";
 // 报警规则路由
 export const ALARMRULES_PATH = process.env.PUBLIC_PATH + "alarm/rules";
 
+// 日志拓扑路由
+export const LOGTOPOLOGY_PATH = process.env.PUBLIC_PATH + "bigdata";
+
 // 免登录路由
 export const AVOID_CLOSE_ROUTING = [
   "/user/login",

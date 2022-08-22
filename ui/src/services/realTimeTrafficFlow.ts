@@ -1,9 +1,8 @@
 import { request } from "umi";
 
 interface BusinessChartRequest {
-  iid: number;
-  dn: string;
-  tn: string;
+  databaseName: string;
+  tableName: string;
 }
 
 export interface BusinessChartResponse {
@@ -36,12 +35,14 @@ export default {
     );
   },
 
-  async getBusinessChart({ iid, dn, tn }: BusinessChartRequest) {
-    return request<API.Res<BusinessChartResponse[]>>(
+  async getBusinessChart(iid: number, params: BusinessChartRequest) {
+    return request<API.Res<{ data: BusinessChartResponse[]; utime: number }>>(
       process.env.PUBLIC_PATH +
-        `api/v1/instances/${iid}/databases/${dn}/tables/${tn}/deps`,
+        // `api/v1/instances/${iid}/databases/${dn}/tables/${tn}/deps`,
+        `api/v2/pandas/instances/${iid}/table-dependencies`,
       {
         method: "GET",
+        params,
       }
     );
   },

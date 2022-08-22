@@ -6,6 +6,7 @@ import { BigDataNavEnum } from "@/pages/DataAnalysis/service/enums";
 import DataAnalysisNav from "@/pages/DataAnalysis/components/Nav";
 import ScreeningRow from "@/pages/DataAnalysis/components/ScreeningRow";
 import TemporaryQuery from "@/pages/DataAnalysis/TemporaryQuery";
+import StatisticalBoard from "@/pages/DataAnalysis/StatisticalBoard";
 import RealTimeTrafficFlow from "@/pages/DataAnalysis/RealTimeBusinessFlow";
 import DataSourceManage from "@/pages/DataAnalysis/DataSourceManage";
 import OfflineManager from "@/pages/DataAnalysis/OfflineManager";
@@ -13,7 +14,7 @@ import ManageNodeModal from "@/pages/DataAnalysis/components/NodeManage/ManageNo
 import ManageFolderModal from "@/pages/DataAnalysis/components/NodeManage/ManageFolderModal";
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
-// import { cloneDeep } from "lodash";
+import TaskExecutionDetails from "./TaskExecutionDetails";
 
 const DataAnalysis = () => {
   const {
@@ -23,30 +24,13 @@ const DataAnalysis = () => {
     changeOpenNodeId,
     manageNode,
     temporaryQuery,
-    // doGetNodeInfo,
-    // changeOpenNodeData,
-    // changeFolderContent,
     getUserList,
   } = useModel("dataAnalysis");
-  // const { paneList, onChangePaneList, onChangeCurrentPaneActiveKey } = useModel(
-  //   "dataanalysis.useFilePane"
-  // );
   const i18n = useIntl();
   const [urlState] = useUrlState<any>();
   const { onSetLocalData } = useLocalStorages();
   const { nodes, setSelectKeys } = manageNode;
   const { temporaryQueryNodes, setSelectNodeKeys } = temporaryQuery;
-
-  // 获取文件信息
-  // const onGetFolderInfo = (id: number) => {
-  //   id &&
-  //     doGetNodeInfo.run(id).then((res: any) => {
-  //       if (res?.code === 0) {
-  //         changeOpenNodeData(res.data);
-  //         // changeFolderContent(res.data.content);
-  //       }
-  //     });
-  // };
 
   const NavContent = useMemo(() => {
     if (!currentInstances) {
@@ -68,6 +52,10 @@ const DataAnalysis = () => {
         return <OfflineManager />;
       case BigDataNavEnum.DataSourceManage:
         return <DataSourceManage />;
+      case BigDataNavEnum.StatisticalBoard:
+        return <StatisticalBoard />;
+      case BigDataNavEnum.TaskExecutionDetails:
+        return <TaskExecutionDetails />;
       default:
         return <></>;
     }

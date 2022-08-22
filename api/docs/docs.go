@@ -39,6 +39,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/pandas/instances/{instance-id}/table-dependencies": {
+            "get": {
+                "description": "Result of table dependency resolution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Result of table dependency resolution",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "instance id",
+                        "name": "instance-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "databaseName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "tableName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.ResPage"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/view.RespTableDependencies"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/pandas/nodes-results/{result-id}": {
             "patch": {
                 "description": "only support excelProcess update",
@@ -484,6 +540,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/storage/{storage-id}": {
+            "patch": {
+                "description": "Storage update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Storage update",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "table id",
+                        "name": "storage-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "desc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "kafkaBrokers",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "min 1 max 8",
+                        "name": "kafkaConsumerNum",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "kafkaSkipBrokenMessages",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "kafkaTopic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "mergeTreeTTL",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/storage/{storage-id}/analysis-fields": {
             "get": {
                 "description": "Storage analysis field list",
@@ -770,6 +889,46 @@ const docTemplate = `{
                 }
             }
         },
+        "view.RespTableDependencies": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.RespTableDeps"
+                    }
+                },
+                "utime": {
+                    "type": "integer"
+                }
+            }
+        },
+        "view.RespTableDeps": {
+            "type": "object",
+            "properties": {
+                "database": {
+                    "type": "string"
+                },
+                "deps": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "engine": {
+                    "type": "string"
+                },
+                "table": {
+                    "type": "string"
+                },
+                "totalBytes": {
+                    "type": "integer"
+                },
+                "totalRows": {
+                    "type": "integer"
+                }
+            }
+        },
         "view.RespTableSimple": {
             "type": "object",
             "properties": {
@@ -876,6 +1035,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "iid": {
                     "type": "integer"
                 },
                 "nodeId": {

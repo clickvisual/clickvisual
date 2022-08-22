@@ -1,9 +1,30 @@
+import IconFont from "@/components/IconFont";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import { Drawer, Table, Tooltip } from "antd";
 import moment from "moment";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useModel, useIntl } from "umi";
 import ResultsItem from "./ResultsItem";
+
+export const getTime = (time: number) => {
+  if (time < 1000) {
+    return time + "ms";
+  }
+  if (1000 <= time && time < 60000) {
+    return time / 1000 + "s";
+  }
+  if (60000 <= time && time < 3600000) {
+    return Math.floor(time / 60000) + "min " + (time % 60000) / 1000 + "s";
+  }
+  return (
+    Math.floor(time / 3600000) +
+    "h " +
+    Math.floor((time % 3600000) / 60000) +
+    "min " +
+    ((time % 3600000) % 60000) / 1000 +
+    "s"
+  );
+};
 
 const VersionHistory = (props: {
   visible: boolean;
@@ -28,28 +49,9 @@ const VersionHistory = (props: {
     onChangeCurrentPagination,
   } = props;
   const i18n = useIntl();
+  const [resultId, setResultId] = useState<number>();
 
   const { openNodeId, doResultsList } = useModel("dataAnalysis");
-
-  const getTime = (time: number) => {
-    if (time < 1000) {
-      return time + "ms";
-    }
-    if (1000 <= time && time < 60000) {
-      return time / 1000 + "s";
-    }
-    if (60000 <= time && time < 3600000) {
-      return Math.floor(time / 60000) + "min " + (time % 60000) / 1000 + "s";
-    }
-    return (
-      Math.floor(time / 3600000) +
-      "h " +
-      Math.floor((time % 3600000) / 60000) +
-      "min " +
-      ((time % 3600000) % 60000) / 1000 +
-      "s"
-    );
-  };
 
   const getList = (page: number, pageSize: number) => {
     openNodeId &&
@@ -82,6 +84,19 @@ const VersionHistory = (props: {
     setVisible(false);
   };
 
+  const stateList = {
+    0: (
+      <IconFont
+        type="icon-unknown-instance"
+        style={{ fontSize: "20px", color: "#41464beb" }}
+      />
+    ),
+    1: (
+      <IconFont type="icon-successful-instance" style={{ fontSize: "20px" }} />
+    ),
+    2: <IconFont type="icon-failure-instance" style={{ fontSize: "20px" }} />,
+  };
+
   const columns: any = [
     {
       title: "id",
@@ -92,6 +107,18 @@ const VersionHistory = (props: {
         <Tooltip title={record.id}>{record.id}</Tooltip>
       ),
     },
+    {
+      title: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.name",
+      }),
+      dataIndex: "status",
+      key: "status",
+      ellipsis: { showTitle: true },
+      render: (_: any, record: any) => (
+        <Tooltip title={record.status}>{stateList[record.status]}</Tooltip>
+      ),
+    },
+
     {
       title: i18n.formatMessage({
         id: "bigdata.components.RightMenu.VersionHistory.submitter",
@@ -151,6 +178,7 @@ const VersionHistory = (props: {
         <a
           onClick={() => {
             setVisibleResultsItem(true);
+            setResultId(record.id);
           }}
         >
           {i18n.formatMessage({
@@ -199,6 +227,7 @@ const VersionHistory = (props: {
         visible={visibleResultsItem}
         setVisible={setVisibleResultsItem}
         nodeId={openNodeId}
+        resultId={resultId}
       />
     </Drawer>
   );

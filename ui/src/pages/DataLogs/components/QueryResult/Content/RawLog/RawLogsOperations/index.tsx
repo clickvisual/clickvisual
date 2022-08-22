@@ -20,11 +20,21 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   const i18n = useIntl();
 
+  const performTime = useMemo(() => {
+    return logPanes[currentLogLibrary?.id || 0]?.logs?.cost;
+  }, [logPanes]);
+
   return (
     <div className={rawLogsOperationsStyles.rawLogsOperationsMain}>
       <div className={rawLogsOperationsStyles.operationsBtn}>
         <HistogramSwitch oldPane={oldPane} />
       </div>
+      {performTime ? (
+        <div style={{ flex: 1, textAlign: "right", marginRight: "20px" }}>
+          {i18n.formatMessage({ id: "log.perform.time" })}：
+          {logPanes[currentLogLibrary?.id || 0]?.logs?.cost}ms
+        </div>
+      ) : null}
       <div className={rawLogsOperationsStyles.pagination}>
         <Pagination
           size={"small"}

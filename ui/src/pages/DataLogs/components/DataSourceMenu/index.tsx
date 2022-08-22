@@ -7,7 +7,7 @@ import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth"
 import LogLibraryItem from "./LogLibraryList/LogLibraryItem";
 import DatabaseItem from "./LogLibraryList/DatabaseItem";
 import InstanceItem from "./LogLibraryList/InstanceItem";
-import EditDatabaseModel from "../SelectedDatabaseDraw/EditDatabaseModel";
+import EditDatabaseModel from "./EditDatabaseModel";
 
 const MENU_MIN = 200;
 const MENU_MAX = 400;
@@ -128,7 +128,7 @@ const DataSourceMenu = () => {
         onResize={handleResize}
         onToggleExpand={handleToggleExpand}
       />
-      <EditDatabaseModel />
+      <EditDatabaseModel onGetList={getList} />
     </div>
   );
 };

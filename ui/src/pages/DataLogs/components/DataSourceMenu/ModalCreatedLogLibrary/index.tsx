@@ -70,13 +70,19 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
   const handleConversionMappingJson = (str: string) => {
     doGetMappingJson.run({ data: str }).then((res: any) => {
       if (res.code != 0) return;
-      console.log(res.data);
       setMappingJson(res.data.data);
       setVisibleSelectField(true);
     });
   };
 
   const handleConfirm = (data: { rawLogField: string; timeField: string }) => {
+    mappingJson.map((item: { key: string; value: string }) => {
+      if (item.key == data.timeField) {
+        logFormRef.current?.setFieldsValue({
+          typ: item.value == "String" ? 1 : 2,
+        });
+      }
+    });
     logFormRef.current?.setFieldsValue({
       rawLogField: data.rawLogField,
       timeField: data.timeField,

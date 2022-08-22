@@ -1,4 +1,4 @@
-import { Button, Input } from "antd";
+import { Button, Input, Tooltip } from "antd";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
 import { PaneType, QueryParams } from "@/models/datalogs/types";
@@ -12,6 +12,7 @@ import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
+import UrlShareButton from "@/components/UrlShareButton";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -131,18 +132,18 @@ const RawLogQuery = () => {
         }}
       />
       <DarkTimeSelect />
-      <Button
-        loading={logsLoading || highChartLoading}
-        onClick={() => {
-          doSearchLog.run();
-        }}
-        className={searchBarStyles.searchBtn}
-        style={{ width: "100px" }}
-        type="primary"
-        icon={<IconFont type={"icon-log-search"} />}
-      >
-        {i18n.formatMessage({ id: "search" })}
-      </Button>
+      <UrlShareButton style={{ marginRight: "8px" }} />
+      <Tooltip title={i18n.formatMessage({ id: "search" })}>
+        <Button
+          loading={logsLoading || highChartLoading}
+          onClick={() => {
+            doSearchLog.run();
+          }}
+          className={searchBarStyles.searchBtn}
+          type="primary"
+          icon={<IconFont type={"icon-log-search"} />}
+        />
+      </Tooltip>
     </>
   );
 };

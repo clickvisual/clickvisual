@@ -128,17 +128,19 @@ func TableInfo(c *core.Context) {
 		return
 	}
 	res := view.RespTableDetail{
-		Did:       tableInfo.Did,
-		Name:      tableInfo.Name,
-		Typ:       tableInfo.Typ,
-		Days:      tableInfo.Days,
-		Brokers:   tableInfo.Brokers,
-		Topic:     tableInfo.Topic,
-		Uid:       tableInfo.Uid,
-		TimeField: tableInfo.TimeField,
-		Ctime:     tableInfo.Ctime,
-		Utime:     tableInfo.Utime,
-		Desc:      tableInfo.Desc,
+		Did:                     tableInfo.Did,
+		Name:                    tableInfo.Name,
+		Typ:                     tableInfo.Typ,
+		Days:                    tableInfo.Days,
+		Brokers:                 tableInfo.Brokers,
+		Topic:                   tableInfo.Topic,
+		Uid:                     tableInfo.Uid,
+		TimeField:               tableInfo.TimeField,
+		Ctime:                   tableInfo.Ctime,
+		Utime:                   tableInfo.Utime,
+		Desc:                    tableInfo.Desc,
+		ConsumerNum:             tableInfo.ConsumerNum,
+		KafkaSkipBrokenMessages: tableInfo.KafkaSkipBrokenMessages,
 		Database: view.RespDatabaseItem{
 			Id:             tableInfo.Database.ID,
 			Iid:            tableInfo.Database.Iid,
@@ -149,6 +151,9 @@ func TableInfo(c *core.Context) {
 			InstanceName:   instance.Name,
 			InstanceDesc:   instance.Desc,
 		},
+	}
+	if res.TimeField == "" {
+		res.TimeField = db.TimeFieldSecond
 	}
 	keys := make([]string, 0)
 	data := make(map[string]string, 0)

@@ -26,6 +26,8 @@ export default {
   "table.column.filter.placeholder": "Please input conditions",
   "table.column.filter.reset": "Reset",
   "table.column.filter.refresh": "Refresh",
+  "input.placeholder": "Please enter the{name}",
+  "select.placeholder": "Please select a{name}",
   required: "Required",
 
   type: "Type",
@@ -279,6 +281,8 @@ export default {
   "datasource.header.switch": "Switch Database",
   "datasource.logLibrary.search.placeholder": "Search log library",
   "datasource.logLibrary.search.created": "Creating a Log library",
+  "datasource.logLibrary.noInstance": "No instance",
+  "datasource.logLibrary.toCreate": "To create",
   "datasource.deleted.content": "Confirm deleting database: {database}?",
   "datasource.deleted.loading": "Deleting a database: {database}...",
   "datasource.deleted.success": "Delete database: {database} succeeded",
@@ -287,6 +291,8 @@ export default {
   "datasource.logLibrary.from.rule.tableName":
     "Please enter lowercase letters, uppercase letters, or underscores",
   "datasource.logLibrary.from.type": "_time_ Field Type",
+  "datasource.logLibrary.from.timeField": "timestamp field",
+  "datasource.logLibrary.from.rawLogField": "rawLog field",
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
@@ -294,6 +300,8 @@ export default {
   "datasource.logLibrary.from.rule.topics":
     "Please enter numbers/letters/hyphens/underline",
   "datasource.logLibrary.from.creationMode": "Creation Mode",
+  "datasource.logLibrary.from.souceTips":
+    "Souce does not meet the requirements, click Go to Document",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary":
     "Create a log library",
@@ -331,6 +339,7 @@ export default {
   "datasource.logLibrary.placeholder.timeField":
     "Enter Source and convert to select TimeField",
   "datasource.logLibrary.conversionBtn": "Conversion",
+  "datasource.logLibrary.documentBtn": "Help document",
   "datasource.logLibrary.conversion.warning":
     "Please fill in the content and then convert",
   "datasource.logLibrary.selectField.title": "Field selection",
@@ -343,6 +352,7 @@ export default {
   "datasource.tooltip.icon.info": "Log Library Details",
   "datasource.tooltip.icon.edit": "Edit log library",
   "datasource.tooltip.icon.alarmRuleList": "Viewing Related Alarms",
+  "datasource.tooltip.icon.topology": "View the corresponding topology",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
@@ -411,7 +421,7 @@ export default {
   "log.switch.unfold": "Collapse Log",
 
   // Data Logs-Statistical Table
-  "log.table.note": "Note: Careful operation",
+  "log.table.note": "Search(Note: Careful operation)",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",
@@ -458,6 +468,7 @@ export default {
   "log.item.copy.success": "Copy success",
   "log.item.copy.failed": "Replication failed. Please manually copy the data",
   "log.item.moreTag": "View more logs",
+  "log.perform.time": "Perform time-consuming",
 
   // JsonView
   "log.JsonView.unfoldTip": "Please expand and then click",
@@ -841,6 +852,8 @@ export default {
 
   "bigdata.components.Nav.navList.dataSourceManage": "Data Source",
   "bigdata.components.Nav.navList.statisticalBoard": "Statistical Board",
+  "bigdata.components.Nav.navList.taskExecutionDetails":
+    "Task Execution Details",
 
   "bigdata.components.FolderTree.createFolderPrompt":
     "Currently, only level 2 folders are supported~",
@@ -903,4 +916,58 @@ export default {
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "All",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "Start node",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "End node",
+
+  // dataAnalysis -> StatisticalBoard
+  "bigdata.dataAnalysis.statisticalBoard.Screening.yesterday": "Yesterday",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.beforeYesterday":
+    "The day before yesterday",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek": "In seven days",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge":
+    "I am in charge of the",
+
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance":
+    "Instance of failure",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
+    "Successful instances",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance":
+    "Unknown instance",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "Node failure",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode":
+    "Successful node",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode":
+    "The unknown node",
+
+  "bigdata.dataAnalysis.statisticalBoard.DashboardTop.title": "Focus on the",
+  "bigdata.dataAnalysis.statisticalBoard.RunningStatus.title":
+    "Running status distribution",
+  "bigdata.dataAnalysis.statisticalBoard.CompletionTask.title":
+    "Completion of task",
+
+  // dataAnalysis -> TaskExecutionDetails
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.name":
+    "Execution status",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful":
+    "Execute successfully",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure":
+    "On failure",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.tertiary.name": "Task type",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.crontab.name":
+    "Regular time",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.cost.name":
+    "The running time",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.startTime.name":
+    "The start time",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.endTime.name":
+    "The end of time",
+
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeSearch":
+    "Nodes in the search",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName":
+    "The name of the node",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.businessDate":
+    "Business date",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType":
+    "The node type",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder":
+    "Select a node type",
 };

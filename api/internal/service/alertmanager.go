@@ -6,6 +6,7 @@ import (
 	"github.com/ego-component/egorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/pkg/push"
@@ -60,8 +61,12 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 	}
 	param, _ = op.Prepare(param, false)
 	resp, err := op.GET(param, table.ID)
-	if len(resp.Logs) > 0 {
-		if val, ok := resp.Logs[0]["_raw_log_"]; ok {
+	if table.CreateType != inquiry.TableCreateTypeExist && len(resp.Logs) > 0 {
+		logField := "_raw_log_"
+		if table.RawLogField != "" {
+			logField = table.RawLogField
+		}
+		if val, ok := resp.Logs[0][logField]; ok {
 			oneTheLogs = val.(string)
 		}
 	}

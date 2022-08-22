@@ -13,7 +13,6 @@ export interface NodeManageProps {
   isLock: boolean;
 }
 const NodeManage = ({ isLock }: NodeManageProps) => {
-  // console.log("isLock: ", isLock);
   return (
     <div
       style={{

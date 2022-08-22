@@ -119,6 +119,7 @@ const Editor = () => {
           options={{
             automaticLayout: true,
             scrollBeyondLastLine: false,
+            wordWrap: "on",
             readOnly: !(
               currentEditorUser && currentEditorUser.id === currentUser?.id
             ),

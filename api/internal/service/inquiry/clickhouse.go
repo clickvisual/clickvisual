@@ -174,7 +174,7 @@ func (c *ClickHouse) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogFiel
 	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, rawLogField, v.Key, rawLogField, v.Key)
 	}
-	if typ == TimeTypeString {
+	if typ == TableTypeString {
 		return fmt.Sprintf(defaultStringTimeParse, timeField, timeField)
 	}
 	return fmt.Sprintf(defaultFloatTimeParse, timeField, timeField)
@@ -293,22 +293,8 @@ func (c *ClickHouse) TableDrop(database, table, cluster string, tid int) (err er
 
 // TableCreate create default stream data table and view
 func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genName(database.Name, ct.TableName)
-	dStreamName := genStreamName(database.Name, ct.TableName)
-	if c.mode == ModeCluster {
-		dName = genName(database.Name, ct.TableName+"_local")
-		dStreamName = genStreamName(database.Name, ct.TableName+"_local")
-	}
-	// build view statement
-	var timeTyp = "String"
-	if ct.Typ == TimeTypeString {
-		timeTyp = "String"
-	} else if ct.Typ == TimeTypeFloat {
-		timeTyp = "Float64"
-	} else {
-		err = errors.New("invalid time type")
-		return
-	}
+	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
+	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	dataParams := bumo.Params{
 		Data: bumo.ParamsData{
 			TableName: dName,
@@ -318,7 +304,7 @@ func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqT
 	streamParams := bumo.Params{
 		Stream: bumo.ParamsStream{
 			TableName:               dStreamName,
-			TimeTyp:                 timeTyp,
+			TableTyp:                TableTypStr(ct.Typ),
 			Brokers:                 ct.Brokers,
 			Topic:                   ct.Topics,
 			Group:                   database.Name + "_" + ct.TableName,
@@ -664,7 +650,7 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	case db.AlarmModeWithInSQL:
 		defaultSQL = param.Query
 	case db.AlarmModeAggregation:
-		defaultSQL = alarmAggregationSQL(param)
+		defaultSQL = alarmAggregationSQLWith(param)
 	default:
 		defaultSQL, optimizeSQL = c.logsSQL(param, tid)
 	}
@@ -672,10 +658,12 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	if optimizeSQL != "" {
 		execSQL = optimizeSQL
 	}
+	st := time.Now()
 	res.Logs, err = c.doQuery(execSQL)
 	if err != nil {
 		return
 	}
+	res.Cost = time.Since(st).Milliseconds()
 	// try again
 	res.Query = defaultSQL
 	if param.TimeField != db.TimeFieldSecond {
@@ -840,7 +828,7 @@ func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*v
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
-		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime'", "'Int32'", "'UInt32'", "'Nullable(Int64)'", "'Int64'", "'UInt64'"}, ","))
+		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and type in (%s)", database, table, strings.Join([]string{"'DateTime64(3)'", "'DateTime64(3, \\'Asia/Shanghai\\')'", "'DateTime'", "'Int32'", "'UInt32'", "'Nullable(Int64)'", "'Int64'", "'UInt64'"}, ","))
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
@@ -1067,7 +1055,22 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 	return
 }
 
-func alarmAggregationSQL(param view.ReqQuery) (sql string) {
+func alarmAggregationSQLSelect(param view.ReqQuery) (sql string) {
+	out := fmt.Sprintf(`SELECT
+  toDate(now()) as date,
+  '%s' as name,
+  toFloat64(val) as val,
+  now() as ts,
+  toDateTime(now()) as updated
+FROM (%s)
+`,
+		bumo.PrometheusMetricName,
+		adaSelectPart(param.Query))
+	invoker.Logger.Debug("alarmAggregationSQLSelect", elog.Any("out", out), elog.Any("param", param))
+	return out
+}
+
+func alarmAggregationSQLWith(param view.ReqQuery) (sql string) {
 	out := fmt.Sprintf(`with(
 %s
 ) as limbo
@@ -1110,47 +1113,51 @@ func (c *ClickHouse) queryTransform(params view.ReqQuery, isOptimized bool) stri
 	if isOptimized {
 		params.Query = queryTransformHash(params) // hash transform
 	}
-	query := queryTransformLike(params) // _raw_log_ like
+	table, _ := db.TableInfo(invoker.Db, params.Tid)
+	query := queryTransformLike(table.CreateType, table.RawLogField, params.Query) // _raw_log_ like
 	if query == "" {
 		return query
 	}
 	return fmt.Sprintf("AND (%s)", query)
 }
 
-func queryTransformLike(params view.ReqQuery) string {
-	if params.Query == "" {
-		return params.Query
+func queryTransformLike(createType int, rawLogField, query string) string {
+	if query == "" {
+		return query
 	}
-	table, _ := db.TableInfo(invoker.Db, params.Tid)
-	var query string
-	andArr := likeTransformAndArr(params.Query)
+	var res string
+	andArr := likeTransformAndArr(query)
 	if len(andArr) > 0 {
 		for k, item := range andArr {
+			item = strings.TrimSpace(item)
 			if k == 0 {
-				query = likeTransformField(table, item)
+				res = likeTransformField(createType, rawLogField, item)
 				continue
 			}
-			query = fmt.Sprintf("%s AND %s", query, likeTransformField(table, item))
+			res = fmt.Sprintf("%s AND %s", res, likeTransformField(createType, rawLogField, item))
 		}
-		return query
+		return res
 	}
-	return likeTransformField(table, params.Query)
+	return likeTransformField(createType, rawLogField, query)
 }
 
-func likeTransformField(table db.BaseTable, query string) string {
-	if strings.Contains(query, "=") || strings.Contains(query, "like") {
+func likeTransformField(createType int, rawLogField, query string) string {
+	if strings.Contains(query, "=") ||
+		strings.Contains(query, "like") ||
+		strings.Contains(query, ">") ||
+		strings.Contains(query, "<") {
 		return query
 	}
-	return likeTransform(table, query)
+	return likeTransform(createType, rawLogField, query)
 }
 
 func likeTransformAndArr(query string) []string {
 	var res = make([]string, 0)
-	if strings.Contains(query, "AND") {
-		res = strings.Split(query, "AND")
+	if strings.Contains(query, " AND ") {
+		res = strings.Split(query, " AND ")
 	}
-	if strings.Contains(query, "and") {
-		res = strings.Split(query, "and")
+	if strings.Contains(query, " and ") {
+		res = strings.Split(query, " and ")
 	}
 	return res
 }
@@ -1174,16 +1181,16 @@ func queryTransformHash(params view.ReqQuery) string {
 	return query
 }
 
-func likeTransform(table db.BaseTable, query string) string {
-	rawLogField := "_raw_log_"
-	if table.CreateType == TableCreateTypeExist {
-		rawLogField = table.RawLogField
+func likeTransform(createType int, rawLogField, query string) string {
+	field := "_raw_log_"
+	if createType == TableCreateTypeExist {
+		field = rawLogField
 	}
 	query = strings.ReplaceAll(query, "'", "")
 	query = strings.ReplaceAll(query, "\"", "")
 	query = strings.ReplaceAll(query, "`", "")
 	query = strings.TrimSpace(query)
-	return rawLogField + " like '%" + query + "%'"
+	return field + " like '%" + query + "%'"
 }
 
 func hashTransform(query string, index *db.BaseIndex) string {
@@ -1274,13 +1281,11 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 	return
 }
 
-func (c *ClickHouse) SystemTablesInfo(isReset bool) (res []*view.SystemTable) {
+func (c *ClickHouse) SystemTablesInfo() (res []*view.SystemTable) {
 	res = make([]*view.SystemTable, 0)
-	s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
-	if isReset {
-		// Get full data if it is reset mode
-		s = "select * from system.tables"
-	}
+	// s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
+	// Get full data if it is reset mode
+	s := "select * from system.tables"
 	deps, err := c.doQuery(s)
 	if err != nil {
 		invoker.Logger.Error("SystemTablesInfo", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
@@ -1296,14 +1301,14 @@ func (c *ClickHouse) SystemTablesInfo(isReset bool) (res []*view.SystemTable) {
 		row.DownDatabaseTable = make([]string, 0)
 		if table["total_bytes"] != nil {
 			switch table["total_rows"].(type) {
-			case uint64:
-				row.TotalBytes = table["total_bytes"].(uint64)
+			case *uint64:
+				row.TotalBytes = *table["total_bytes"].(*uint64)
 			}
 		}
 		if table["total_rows"] != nil {
 			switch table["total_rows"].(type) {
-			case uint64:
-				row.TotalRows = table["total_rows"].(uint64)
+			case *uint64:
+				row.TotalRows = *table["total_rows"].(*uint64)
 			}
 		}
 		databases := table["dependencies_database"].([]string)
@@ -1362,17 +1367,13 @@ func isEmpty(input interface{}) bool {
 
 // StorageCreate create default stream data table and view
 func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genName(database.Name, ct.TableName)
-	dStreamName := genStreamName(database.Name, ct.TableName)
-	if c.mode == ModeCluster {
-		dName = genName(database.Name, ct.TableName+"_local")
-		dStreamName = genStreamName(database.Name, ct.TableName+"_local")
-	}
+	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
+	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
 	var timeTyp string
-	if ct.Typ == TimeTypeString {
+	if ct.Typ == TableTypeString {
 		timeTyp = "String"
-	} else if ct.Typ == TimeTypeFloat {
+	} else if ct.Typ == TableTypeFloat {
 		timeTyp = "Float64"
 	} else {
 		err = errors.New("invalid time type")
@@ -1393,7 +1394,7 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 		TimeField:        ct.TimeField,
 		Stream: bumo.ParamsStream{
 			TableName:               dStreamName,
-			TimeTyp:                 timeTyp,
+			TableTyp:                timeTyp,
 			Brokers:                 ct.Brokers,
 			Topic:                   ct.Topics,
 			Group:                   database.Name + "_" + ct.TableName,
@@ -1401,7 +1402,6 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
 		},
 	}
-
 	if c.mode == ModeCluster {
 		dataParams.Cluster = database.Cluster
 		dataParams.ReplicaStatus = c.rs
@@ -1448,18 +1448,68 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 	return
 }
 
-// AlertMergeTreeTable ...
+// AlterMergeTreeTable ...
 // ALTER TABLE dev.test MODIFY TTL toDateTime(time_second) + toIntervalDay(7)
-func (c *ClickHouse) AlertMergeTreeTable(table db.BaseTable, ttl string) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	tableName := table.Name
-	if c.mode == ModeCluster {
-		tableName = tableName + "_local"
+func (c *ClickHouse) AlterMergeTreeTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (err error) {
+	s := fmt.Sprintf("ALTER TABLE %s%s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)",
+		genNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster),
+		params.MergeTreeTTL)
+	_, err = c.db.Exec(s)
+	if err != nil {
+		invoker.Logger.Error("AlterMergeTreeTable", elog.Any("sql", s), elog.Any("err", err.Error()))
+		return
 	}
-	// sql := fmt.Sprintf("ALTER TABLE %s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)", genName(table.Database.Name, table.Name))
 	return
 }
 
-func (c *ClickHouse) ReCreateKafkaTable(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+// ReCreateKafkaTable Drop and Create
+func (c *ClickHouse) ReCreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
+	currentKafkaSQL := tableInfo.SqlStream
+	// Drop Table
+	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s",
+		genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
+	if _, err = c.db.Exec(dropSQL); err != nil {
+		invoker.Logger.Error("ReCreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
+		return
+	}
+	// Create Table
+	streamParams := bumo.Params{
+		Stream: bumo.ParamsStream{
+			TableName: genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+			TableTyp:  TableTypStr(tableInfo.Typ),
+			Group:     tableInfo.Database.Name + "_" + tableInfo.Name,
 
+			Brokers:                 params.KafkaBrokers,
+			Topic:                   params.KafkaTopic,
+			ConsumerNum:             params.KafkaConsumerNum,
+			KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
+		},
+	}
+	if c.mode == ModeCluster {
+		streamParams.Cluster = tableInfo.Database.Cluster
+		streamParams.ReplicaStatus = c.rs
+		streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+	} else {
+		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+	}
+
+	invoker.Logger.Error("ReCreateKafkaTable", elog.Any("params", params))
+
+	if _, err = c.db.Exec(streamSQL); err != nil {
+		invoker.Logger.Error("ReCreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
+		_, _ = c.db.Exec(currentKafkaSQL)
+		return
+	}
 	return
+}
+
+func TableTypStr(typ int) string {
+	if typ == TableTypeString {
+		return "String"
+	} else if typ == TableTypeFloat {
+		return "Float64"
+	}
+	return ""
 }

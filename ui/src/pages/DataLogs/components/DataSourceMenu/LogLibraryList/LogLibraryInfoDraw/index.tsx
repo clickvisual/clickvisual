@@ -178,6 +178,7 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
             scrollBeyondLastLine: false,
             smoothScrolling: true,
             scrollbar: { alwaysConsumeMouseWheel: false },
+            wordWrap: "on",
           }}
         />
       </div>

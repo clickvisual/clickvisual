@@ -55,7 +55,7 @@ SETTINGS index_granularity = 8192;`,
 				params: bumo.Params{
 					Stream: bumo.ParamsStream{
 						TableName:   "dev.app_stdout_stream",
-						TimeTyp:     "String", // 1 string 2 float
+						TableTyp:    "String", // 1 string 2 float
 						Brokers:     "kafka:9092",
 						Topic:       "topic",
 						Group:       "app_stdout",

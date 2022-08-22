@@ -13,7 +13,6 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       {list.map((logItem: any, index: number) => (
         <LogItem
           foldingChecked={oldPane?.foldingChecked}
-          // TODO: 日志数据替换
           log={logItem}
           key={index}
         />

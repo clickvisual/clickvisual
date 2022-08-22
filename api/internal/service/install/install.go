@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -106,9 +105,9 @@ func Install() (err error) {
 	}
 
 	d.Exec("INSERT INTO cv_user (`oa_id`, `username`, `nickname`, `secret`, `email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES ( 0, 'clickvisual', 'clickvisual', '', '', '', '', '', '', '', '', '$2a$10$mj/hP5ToyVYZsyH2.84sr.nXPT.c2iTenx6euMHZQhNQlGXFJlDBa', '', 'init', '{}', 1640624435, 1640624435, 0);")
-	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '');")
-	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', ' ', ' ', ' ', ' ');")
-	pmsplugin.Invoker()
+	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '', '','');")
+	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', '', '', '', '', '', '');")
+	pmsplugin.EnforcerLoadPolicy()
 	return
 }
 
@@ -123,12 +122,10 @@ func Migration() (err error) {
 	d.Migrator()
 	err = d.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
 	if err != nil {
-		service.DepsBatch(true)
 		return
 	}
-	service.DepsBatch(true)
-	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '');")
-	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', ' ', ' ', ' ', ' ');")
-	pmsplugin.Invoker()
+	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '', '','');")
+	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', '', '', '', '', '', '');")
+	pmsplugin.EnforcerLoadPolicy()
 	return
 }

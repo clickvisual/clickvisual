@@ -258,7 +258,7 @@ func GetRouter() *egin.Component {
 		// Timing schedule stats
 		v2.GET("/pandas/workers", core.Handle(pandas.WorkerList))
 		v2.GET("/pandas/workers/dashboard", core.Handle(pandas.WorkerDashboard))
-
+		v2.GET("/pandas/instances/:instance-id/table-dependencies", core.Handle(pandas.TableDependencies))
 	}
 	// The log module - storage
 	{

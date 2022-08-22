@@ -26,6 +26,8 @@ export default {
   "table.column.filter.placeholder": "请输入查询条件",
   "table.column.filter.reset": "重置",
   "table.column.filter.refresh": "刷新",
+  "input.placeholder": "请输入{name}",
+  "select.placeholder": "请选择{name}",
   required: "必填",
 
   type: "类型",
@@ -272,6 +274,8 @@ export default {
   "datasource.header.switch": "切换数据库",
   "datasource.logLibrary.search.placeholder": "搜索日志库",
   "datasource.logLibrary.search.created": "新增日志库",
+  "datasource.logLibrary.noInstance": "暂无实例",
+  "datasource.logLibrary.toCreate": "去创建",
   "datasource.deleted.content": "确认删除数据库：{database} 吗？",
   "datasource.deleted.loading": "正在删除数据库：{database}...",
   "datasource.deleted.success": "删除数据库：{database} 成功",
@@ -279,7 +283,9 @@ export default {
   "datasource.logLibrary.from.tableName": "数据表名称",
   "datasource.logLibrary.from.rule.tableName":
     "请输入小写字母、大写字母，或下划线",
-  "datasource.logLibrary.from.type": "_time_ 字段类型",
+  "datasource.logLibrary.from.type": "采集时间类型",
+  "datasource.logLibrary.from.timeField": "采集时间",
+  "datasource.logLibrary.from.rawLogField": "业务日志内容",
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
@@ -287,6 +293,7 @@ export default {
   "datasource.logLibrary.from.rule.topics":
     "请输入数字、英文字母，中划线、下划线或 . ",
   "datasource.logLibrary.from.creationMode": "创建方式",
+  "datasource.logLibrary.from.souceTips": "souce内容不符合要求，点击跳转文档",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary": "新建日志库",
   "datasource.logLibrary.from.creationMode.option.logLibrary": "接入日志库",
@@ -320,6 +327,7 @@ export default {
     "请输入 Source 并转换选择 TimeField",
 
   "datasource.logLibrary.conversionBtn": "转换",
+  "datasource.logLibrary.documentBtn": "帮助文档",
   "datasource.logLibrary.conversion.warning": "请填写内容再转换",
   "datasource.logLibrary.selectField.title": "字段选择",
   "datasource.logLibrary.selectField.okTips":
@@ -330,6 +338,7 @@ export default {
   "datasource.tooltip.icon.info": "日志库详情",
   "datasource.tooltip.icon.edit": "编辑日志库",
   "datasource.tooltip.icon.alarmRuleList": "查看相关告警",
+  "datasource.tooltip.icon.topology": "查看对应拓扑结构",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
@@ -386,7 +395,7 @@ export default {
   "log.switch.unfold": "折叠日志",
 
   // Data Logs-Statistical Table
-  "log.table.note": "注：谨慎操作",
+  "log.table.note": "搜索(注：谨慎操作)",
 
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
@@ -432,6 +441,7 @@ export default {
   "log.item.copy.success": "复制成功",
   "log.item.copy.failed": "复制失败，请手动复制",
   "log.item.moreTag": "查看更多日志信息",
+  "log.perform.time": "执行耗时",
 
   // JsonView
   "log.JsonView.unfoldTip": "请先展开再点击~",
@@ -785,6 +795,7 @@ export default {
 
   "bigdata.components.Nav.navList.dataSourceManage": "数据源管理",
   "bigdata.components.Nav.navList.statisticalBoard": "统计看板",
+  "bigdata.components.Nav.navList.taskExecutionDetails": "任务执行详情",
 
   "bigdata.components.FolderTree.createFolderPrompt":
     "暂时只支持新建2级文件夹~",
@@ -842,4 +853,41 @@ export default {
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.all": "全部",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.start": "输入节点",
   "bigdata.models.dataAnalysis.useManageNodeAndFolder.end": "输出节点",
+
+  // dataAnalysis -> StatisticalBoard
+  "bigdata.dataAnalysis.statisticalBoard.Screening.yesterday": "昨天",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.beforeYesterday": "前天",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek": "近七天",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge": "我负责的",
+
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
+    "成功实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "失败节点",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode": "成功节点",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode": "未知节点",
+
+  "bigdata.dataAnalysis.statisticalBoard.DashboardTop.title": "重点关注",
+  "bigdata.dataAnalysis.statisticalBoard.RunningStatus.title": "运行状态分布",
+  "bigdata.dataAnalysis.statisticalBoard.CompletionTask.title": "任务完成情况",
+
+  // dataAnalysis -> TaskExecutionDetails
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.name": "执行状态",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful":
+    "执行成功",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure": "执行失败",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.tertiary.name": "任务类型",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.crontab.name": "定时时间",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.cost.name": "运行时长",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.startTime.name": "开始时间",
+  "bigdata.dataAnalysis.taskExecutionDetails.column.endTime.name": "结束时间",
+
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeSearch": "节点搜索",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName": "节点名称",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.businessDate":
+    "业务日期",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType": "节点类型",
+  "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder":
+    "请选择节点类型",
 };

@@ -49,28 +49,8 @@ const OtherSearchBar = ({
     }
   }, [usrState?.mode]);
 
-  const handleShare = () => {
-    try {
-      message.success(i18n.formatMessage({ id: "log.share.success" }));
-      copy(window.location.href);
-    } catch (e) {
-      console.log("【Copy Share Error】: ", e);
-      message.success(i18n.formatMessage({ id: "log.share.error" }));
-    }
-  };
-
   return (
     <>
-      {isShare && (
-        <Button
-          onClick={handleShare}
-          className={searchBarStyles.checkBtn}
-          style={{ marginRight: "8px" }}
-          icon={<ShareAltOutlined />}
-        >
-          {i18n.formatMessage({ id: "log.share" })}
-        </Button>
-      )}
       {isShowSwitch && (
         <Button
           onClick={handleClick}

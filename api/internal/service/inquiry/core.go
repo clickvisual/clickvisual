@@ -27,7 +27,9 @@ type Operator interface {
 	ViewSync(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
 	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
 	StorageCreate(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
-	SystemTablesInfo(bool) []*view.SystemTable
+	SystemTablesInfo() []*view.SystemTable
+	AlterMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
+	ReCreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)
 	IndexUpdate(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error // Data table index operation
 }
 
@@ -38,15 +40,36 @@ const (
 )
 
 const (
-	TimeTypeString = 1
-	TimeTypeFloat  = 2
+	TableTypeString = 1
+	TableTypeFloat  = 2
 )
 
 func genName(database, tableName string) string {
 	return fmt.Sprintf("`%s`.`%s`", database, tableName)
 }
 
+func genNameWithMode(clusterMode int, database, tableName string) string {
+	if clusterMode == ModeCluster {
+		return fmt.Sprintf("`%s`.`%s_local`", database, tableName)
+	}
+	return fmt.Sprintf("`%s`.`%s`", database, tableName)
+}
+
+func genSQLClusterInfo(clusterMode int, clusterName string) string {
+	if clusterMode == ModeCluster {
+		return fmt.Sprintf(" ON CLUSTER `%s`", clusterName)
+	}
+	return ""
+}
+
 func genStreamName(database, tableName string) string {
+	return fmt.Sprintf("`%s`.`%s_stream`", database, tableName)
+}
+
+func genStreamNameWithMode(clusterMode int, database, tableName string) string {
+	if clusterMode == ModeCluster {
+		return fmt.Sprintf("`%s`.`%s_local_stream`", database, tableName)
+	}
 	return fmt.Sprintf("`%s`.`%s_stream`", database, tableName)
 }
 
