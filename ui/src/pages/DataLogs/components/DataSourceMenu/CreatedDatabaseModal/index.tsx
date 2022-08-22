@@ -43,6 +43,16 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     { wait: DEBOUNCE_WAIT }
   ).run;
 
+  const fillCluster = (iid: number) => {
+    const dataList = instanceList.filter((item) => item.id == iid);
+
+    if (dataList[0]?.mode == 1) {
+      steClustersList(dataList[0].clusters);
+    } else {
+      steClustersList([]);
+    }
+  };
+
   useEffect(() => {
     if (!visibleCreatedDatabaseModal) {
       databaseFormRef.current?.resetFields();
@@ -54,14 +64,19 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
   }, [visibleCreatedDatabaseModal]);
 
   useEffect(() => {
-    if (visibleCreatedDatabaseModal && createDatabaseCurrentInstance) {
+    if (
+      visibleCreatedDatabaseModal &&
+      createDatabaseCurrentInstance &&
+      instanceList.length > 0
+    ) {
       databaseFormRef.current?.setFieldsValue({
         iid: createDatabaseCurrentInstance,
       });
+      fillCluster(createDatabaseCurrentInstance);
+      onChangeCreateDatabaseCurrentInstance(undefined);
       return;
     }
-    onChangeCreateDatabaseCurrentInstance(undefined);
-  }, [visibleCreatedDatabaseModal]);
+  }, [visibleCreatedDatabaseModal, instanceList]);
 
   return (
     <CustomModal
@@ -95,14 +110,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
             placeholder={`${i18n.formatMessage({
               id: "datasource.draw.selected",
             })}`}
-            onChange={(id: any) => {
-              const dataList = instanceList.filter((item) => item.id == id);
-              if (dataList[0].mode == 0) {
-                steClustersList([]);
-              } else {
-                steClustersList(dataList[0].clusters);
-              }
-            }}
+            onChange={fillCluster}
           >
             {instanceList.map((item: InstanceType, index: number) => (
               <Option key={index} value={item.id as number}>
