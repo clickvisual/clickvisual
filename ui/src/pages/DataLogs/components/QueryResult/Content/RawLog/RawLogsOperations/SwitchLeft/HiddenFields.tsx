@@ -10,11 +10,10 @@ import { useIntl } from "umi";
 import { parseJsonObject } from "@/utils/string";
 import { PaneType } from "@/models/datalogs/types";
 
-const HiddenFieldModal = () => {
+const HiddenFieldModal = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const i18n = useIntl();
   const {
     logs,
-    logPanes,
     currentLogLibrary,
     visibleHideField,
     getHideFields,
@@ -34,11 +33,6 @@ const HiddenFieldModal = () => {
     onChangeCurrentLogPane: model.onChangeCurrentLogPane,
   }));
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
-
-  const oldPane = useMemo(() => {
-    if (!currentLogLibrary?.id) return;
-    return logPanes[currentLogLibrary?.id.toString()];
-  }, [currentLogLibrary?.id, logPanes]);
 
   const logKeys: any[] = useMemo(() => {
     if (!logs || logs.logs.length <= 0) {
@@ -161,7 +155,7 @@ const HiddenFieldModal = () => {
   );
 };
 
-const HiddenFields = () => {
+const HiddenFields = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const { logOptionsHelper } = useModel("dataLogs");
   const { visibleHideField, setVisibleHideField } = logOptionsHelper;
 
@@ -182,7 +176,7 @@ const HiddenFields = () => {
           onClick={handleClick}
         />
       </Tooltip>
-      <HiddenFieldModal />
+      <HiddenFieldModal oldPane={oldPane} />
     </>
   );
 };

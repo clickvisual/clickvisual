@@ -3,14 +3,14 @@ import { Chart, Tooltip, Interval, Interaction } from "bizcharts";
 import { Empty } from "antd";
 import classNames from "classnames";
 import { useModel } from "@@/plugin-model/useModel";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import HighChartsTooltip from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts/HighChartsTooltip";
 import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
 import { PaneType } from "@/models/datalogs/types";
 
-const HighCharts = () => {
+const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {
     currentLogLibrary,
     doGetLogsAndHighCharts,
@@ -19,10 +19,8 @@ const HighCharts = () => {
     onChangeLogPane,
     onChangeCurrentLogPane,
     currentRelativeUnit,
-    logPanesHelper,
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
-  const { logPanes } = logPanesHelper;
 
   const [highChartPosition, setHighChartPosition] = useState<"left" | "right">(
     "left"
@@ -43,11 +41,6 @@ const HighCharts = () => {
     months: "L",
     years: "YYYY/MM",
   };
-
-  const oldPane = useMemo(() => {
-    if (!currentLogLibrary?.id) return;
-    return logPanes[currentLogLibrary?.id.toString()];
-  }, [currentLogLibrary?.id, logPanes]);
 
   const scale = {
     from: {

@@ -5,8 +5,9 @@ import { useModel } from "@@/plugin-model/useModel";
 import { Empty } from "antd";
 import { useIntl } from "umi";
 import { useMemo } from "react";
+import { PaneType } from "@/models/datalogs/types";
 
-const RawLogs = () => {
+const RawLogs = (props: { oldPane: PaneType | undefined }) => {
   const { logs } = useModel("dataLogs");
   const i18n = useIntl();
 
@@ -17,8 +18,8 @@ const RawLogs = () => {
       <div className={rawLogsStyles.rawLogs}>
         {logList.length > 0 ? (
           <>
-            <RawLogsOperations />
-            <RawLogList />
+            <RawLogsOperations {...props} />
+            <RawLogList {...props} />
           </>
         ) : (
           <Empty

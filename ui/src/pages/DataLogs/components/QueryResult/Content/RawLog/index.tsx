@@ -41,7 +41,7 @@ const RawLogContent = () => {
                 : queryResultStyles.highCharts
             )}
           >
-            <HighCharts />
+            <HighCharts oldPane={oldPane} />
           </Spin>
         )}
         <Spin
@@ -52,7 +52,7 @@ const RawLogContent = () => {
             queryResultStyles.logs
           )}
         >
-          <RawLogs />
+          <RawLogs oldPane={oldPane} />
         </Spin>
       </div>
       <ManageIndexModal />
