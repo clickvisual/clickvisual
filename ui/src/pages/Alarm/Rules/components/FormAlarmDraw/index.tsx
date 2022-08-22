@@ -35,6 +35,7 @@ const FormAlarmDraw = () => {
     currentRowAlarm,
     doGetAlarms,
     onChangeRowAlarm,
+    currentPagination,
     operations,
     alarmChannel,
     alarmChannelModal,
@@ -84,6 +85,7 @@ const FormAlarmDraw = () => {
           operations.searchQuery.tid || operations.searchQuery.did
             ? undefined
             : operations.searchQuery.iid,
+        ...currentPagination,
       });
       handleClose();
     });
@@ -101,6 +103,7 @@ const FormAlarmDraw = () => {
           operations.searchQuery.tid || operations.searchQuery.did
             ? undefined
             : operations.searchQuery.iid,
+        ...currentPagination,
       });
       message.success(i18n.formatMessage({ id: "alarm.rules.updated" }));
       handleClose();

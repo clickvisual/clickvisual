@@ -1,4 +1,5 @@
-import { Button, Tooltip } from "antd";
+import styles from "./index.less";
+import { Tooltip } from "antd";
 import { QUERY_PATH } from "@/config/config";
 import { logLibraryInfoType } from "@/components/BreadCrumbs/type";
 import { CSSProperties } from "react";
@@ -17,35 +18,58 @@ const BreadCrumbs = (props: BreadCrumbsProps) => {
 
   return (
     <div style={style}>
-      {logLibraryInfo.instanceName && (
-        <span style={{ fontSize: "14px" }}>
-          <Tooltip title={logLibraryInfo.instanceDesc}>
-            {logLibraryInfo.instanceName}
-          </Tooltip>
-        </span>
-      )}
-      {logLibraryInfo.databaseName && (
-        <span style={{ fontSize: "14px" }}>
-          &nbsp;{separator || "/"}&nbsp;
-          <Tooltip title={logLibraryInfo.databaseDesc}>
+      <Tooltip
+        title={
+          <>
+            <p>
+              instance:&nbsp;
+              {logLibraryInfo.instanceDesc ||
+                logLibraryInfo.instanceName ||
+                "unknown"}
+            </p>
+            <p>
+              database:&nbsp;
+              {logLibraryInfo?.databaseDesc ||
+                logLibraryInfo.databaseName ||
+                "unknown"}
+            </p>
+            <p>
+              table:&nbsp;
+              <a
+                href={getGoToQueryPagePathByTid(logLibraryInfo.tid)}
+                target="_blank"
+              >
+                {logLibraryInfo.tableDesc ||
+                  logLibraryInfo.tableName ||
+                  "unknown"}
+              </a>
+            </p>
+          </>
+        }
+      >
+        {logLibraryInfo.instanceName && (
+          <span className={styles.nameSpan}>{logLibraryInfo.instanceName}</span>
+        )}
+        {logLibraryInfo.databaseName && (
+          // <Tooltip title={logLibraryInfo.databaseDesc}>
+          <span className={styles.nameSpan}>
+            &nbsp;{separator || "|"}&nbsp;
             {logLibraryInfo.databaseName}
-          </Tooltip>
-        </span>
-      )}
-      {logLibraryInfo.tableName && (
-        <Button
-          type={"link"}
-          style={{ padding: 0 }}
-          onClick={() =>
-            window.open(getGoToQueryPagePathByTid(logLibraryInfo.tid), "_blank")
-          }
-        >
-          &nbsp;{separator || "/"}&nbsp;
-          <Tooltip title={logLibraryInfo.tableDesc}>
-            {logLibraryInfo.tableName}
-          </Tooltip>
-        </Button>
-      )}
+          </span>
+        )}
+        {logLibraryInfo.tableName && (
+          // <Tooltip title={logLibraryInfo.tableDesc}>
+          <span className={styles.nameSpan}>
+            &nbsp;{separator || "|"}&nbsp;
+            <a
+              href={getGoToQueryPagePathByTid(logLibraryInfo.tid)}
+              target="_blank"
+            >
+              {logLibraryInfo.tableName}
+            </a>
+          </span>
+        )}
+      </Tooltip>
     </div>
   );
 };
