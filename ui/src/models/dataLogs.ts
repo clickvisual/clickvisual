@@ -62,9 +62,6 @@ const DataLogsModel = () => {
   >();
   // 数据库列表
   const [databaseList, setDataBaseList] = useState<DatabaseResponse[]>([]);
-  // const [currentDatabase, setCurrentDatabase] = useState<
-  //   DatabaseResponse | undefined
-  // >();
   // 从数据库列表选择
   const [addLogToDatabase, setAddLogToDatabase] = useState<
     DatabaseResponse | undefined
@@ -72,10 +69,6 @@ const DataLogsModel = () => {
 
   // 树中是否含有数据库
   const [isHasDatabase, setIsHasDatabase] = useState<boolean>(false);
-
-  // 是否展示日志切换抽屉
-  const [visibleDataBaseDraw, setVisibleDataBaseDraw] =
-    useState<boolean>(false);
 
   // 时间选择器
   const [activeTabKey, setActiveTabKey] = useState<string>(
@@ -171,20 +164,12 @@ const DataLogsModel = () => {
     setEndDateTime(TimeStamp);
   };
 
-  // const onChangeCurrentDatabase = (database: DatabaseResponse | undefined) => {
-  //   setCurrentDatabase(database);
-  // };
-
   const onChangeAddLogToDatabase = (database: DatabaseResponse | undefined) => {
     setAddLogToDatabase(database);
   };
 
   const onChangeLogLibrary = (logLibrary: TablesResponse | undefined) => {
     setCurrentLogLibrary(logLibrary);
-  };
-
-  const onChangeVisibleDatabaseDraw = (visible: boolean) => {
-    setVisibleDataBaseDraw(visible);
   };
 
   const onChangeIsHasDatabase = (flag: boolean) => {
@@ -305,6 +290,7 @@ const DataLogsModel = () => {
     loadingText: false,
     onSuccess: (res) => setLogLibraryList(res.data || []),
   });
+
   const getDatabases = useRequest(api.getDatabaseList, {
     loadingText: false,
     onSuccess: (res) => setDataBaseList(res.data || []),
@@ -415,19 +401,9 @@ const DataLogsModel = () => {
     return;
   };
 
-  // const doGetLogLibraryList = () => {
-  //   if (currentDatabase) {
-  //     getLogLibraries.run(currentDatabase.id);
-  //   }
-  // };
-
   const doGetDatabaseList = (selectedInstance?: number) => {
     getDatabases.run(selectedInstance);
   };
-
-  // const doSelectedDatabase = (database: DatabaseResponse | undefined) => {
-  //   onChangeCurrentDatabase(database);
-  // };
 
   const doParseQuery = (keyword?: string) => {
     const defaultInput = lodash
@@ -574,26 +550,6 @@ const DataLogsModel = () => {
     doUpdatedQuery(currentSelected);
   };
 
-  // useEffect(() => {
-  //   if (!currentDatabase) {
-  //     setLogs(undefined);
-  //     setHighChartList([]);
-  //     setLogLibraryList([]);
-  //     setCurrentLogLibrary(undefined);
-  //   }
-  //   // if (currentDatabase) {
-  //   //   // doGetLogLibraryList();
-  //   // }
-  // }, [currentDatabase]);
-
-  // useEffect(() => {
-  //   if (databaseList.length == 0) return;
-  //   const obj = databaseList.find(
-  //     (item: any) => item.id == currentDatabase?.id
-  //   );
-  //   onChangeCurrentDatabase(obj);
-  // }, [databaseList]);
-
   return {
     keywordInput,
     isHiddenHighChart,
@@ -601,7 +557,6 @@ const DataLogsModel = () => {
     logLibraryList,
     currentLogLibrary,
     databaseList,
-    // currentDatabase,
     isHasDatabase,
     addLogToDatabase,
     logs,
@@ -617,7 +572,6 @@ const DataLogsModel = () => {
     currentRelativeUnit,
     activeTimeOptionIndex,
     highlightKeywords,
-    visibleDataBaseDraw,
     visibleIndexModal,
     isAccessLogLibrary,
     isEditDatabase,
@@ -633,7 +587,6 @@ const DataLogsModel = () => {
 
     onChangeKeywordInput,
     onChangeIsHasDatabase,
-    // onChangeCurrentDatabase,
     onChangeLogLibrary,
     onCopyRawLogDetails,
     onChangeStartDateTime,
@@ -644,7 +597,6 @@ const DataLogsModel = () => {
     onChangeCurrentRelativeAmount,
     onChangeCurrentRelativeUnit,
     onChangeLogPane,
-    onChangeVisibleDatabaseDraw,
     onChangeVisibleIndexModal,
     onChangeHiddenHighChart,
     onChangeCurrentLogPane,
@@ -655,7 +607,6 @@ const DataLogsModel = () => {
     onChangeCurrentEditDatabase,
     onChangeCurrentEditLogLibrary,
 
-    // doSelectedDatabase,
     doParseQuery,
     doUpdatedQuery,
 
@@ -665,7 +616,6 @@ const DataLogsModel = () => {
     resetLogPaneLogsAndHighCharts,
 
     getTableId,
-    // getDatabases,
     settingIndexes,
     getLogLibraries,
 
