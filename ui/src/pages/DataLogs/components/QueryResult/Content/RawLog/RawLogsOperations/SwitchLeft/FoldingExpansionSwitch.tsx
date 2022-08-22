@@ -2,16 +2,15 @@ import { Space, Switch } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import switchStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft/index.less";
-import { useMemo } from "react";
+import { PaneType } from "@/models/datalogs/types";
 
-const FoldingExpansionSwitch = () => {
-  const { currentLogLibrary, logPanesHelper } = useModel("dataLogs");
+const FoldingExpansionSwitch = ({
+  oldPane,
+}: {
+  oldPane: PaneType | undefined;
+}) => {
+  const { logPanesHelper } = useModel("dataLogs");
   const { updateLogPane, logPanes } = logPanesHelper;
-
-  const oldPane = useMemo(() => {
-    if (!currentLogLibrary?.id) return;
-    return logPanes[currentLogLibrary?.id.toString()];
-  }, [currentLogLibrary?.id, logPanes]);
 
   const handleChangeFoldingExpansionChecked = () => {
     if (!oldPane) return;

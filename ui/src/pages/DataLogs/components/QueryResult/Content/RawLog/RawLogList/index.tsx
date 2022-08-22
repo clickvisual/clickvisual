@@ -1,17 +1,11 @@
 import rawLogListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/index.less";
 import LogItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem";
 import { useModel } from "@@/plugin-model/useModel";
-import { useMemo } from "react";
 import classNames from "classnames";
+import { PaneType } from "@/models/datalogs/types";
 
-const RawLogList = () => {
-  const { currentLogLibrary, logs, logPanesHelper } = useModel("dataLogs");
-  const { logPanes } = logPanesHelper;
-
-  const oldPane = useMemo(() => {
-    if (!currentLogLibrary?.id) return;
-    return logPanes[currentLogLibrary?.id.toString()];
-  }, [currentLogLibrary?.id, logPanes]);
+const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
+  const { logs } = useModel("dataLogs");
 
   const list = logs?.logs || [];
   return (

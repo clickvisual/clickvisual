@@ -3,11 +3,10 @@ import { Pagination } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { FIRST_PAGE } from "@/config/config";
-import { useMemo } from "react";
 import { PaneType } from "@/models/datalogs/types";
 import HistogramSwitch from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft";
 
-const RawLogsOperations = () => {
+const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {
     logCount,
     pageSize,
@@ -16,21 +15,15 @@ const RawLogsOperations = () => {
     currentLogLibrary,
     doGetLogsAndHighCharts,
     onChangeLogPane,
-    logPanesHelper,
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
-  const { logPanes } = logPanesHelper;
-  const i18n = useIntl();
 
-  const oldPane = useMemo(() => {
-    if (!currentLogLibrary?.id) return;
-    return logPanes[currentLogLibrary?.id.toString()];
-  }, [currentLogLibrary?.id, logPanes]);
+  const i18n = useIntl();
 
   return (
     <div className={rawLogsOperationsStyles.rawLogsOperationsMain}>
       <div className={rawLogsOperationsStyles.operationsBtn}>
-        <HistogramSwitch />
+        <HistogramSwitch oldPane={oldPane} />
       </div>
       <div className={rawLogsOperationsStyles.pagination}>
         <Pagination
