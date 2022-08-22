@@ -650,7 +650,7 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	case db.AlarmModeWithInSQL:
 		defaultSQL = param.Query
 	case db.AlarmModeAggregation:
-		defaultSQL = alarmAggregationSQL(param)
+		defaultSQL = alarmAggregationSQLWith(param)
 	default:
 		defaultSQL, optimizeSQL = c.logsSQL(param, tid)
 	}
@@ -1055,7 +1055,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 	return
 }
 
-func alarmAggregationSQL(param view.ReqQuery) (sql string) {
+func alarmAggregationSQLSelect(param view.ReqQuery) (sql string) {
 	out := fmt.Sprintf(`SELECT
   toDate(now()) as date,
   '%s' as name,
@@ -1066,6 +1066,19 @@ FROM (%s)
 `,
 		bumo.PrometheusMetricName,
 		adaSelectPart(param.Query))
+	invoker.Logger.Debug("alarmAggregationSQLSelect", elog.Any("out", out), elog.Any("param", param))
+	return out
+}
+
+func alarmAggregationSQLWith(param view.ReqQuery) (sql string) {
+	out := fmt.Sprintf(`with(
+%s
+) as limbo
+SELECT
+   limbo.1 as "metrics",
+   %s as timestamp
+FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
+`, adaSelectPart(param.Query), param.TimeField, param.DatabaseTable, param.TimeField, param.TimeField)
 	invoker.Logger.Debug("alarmAggregationSQL", elog.Any("out", out), elog.Any("param", param))
 	return out
 }

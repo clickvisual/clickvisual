@@ -84,7 +84,7 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alertID int, filters []view.ReqAlarmFi
 }
 
 func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate) (exp string, err error) {
-	expVal := fmt.Sprintf("%s{%s}", bumo.PrometheusMetricName, inquiry.TagsToString(obj, false))
+	expVal := fmt.Sprintf("%s{%s} offset 10s", bumo.PrometheusMetricName, inquiry.TagsToString(obj, false))
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].SetOperatorTyp < conditions[j].SetOperatorTyp
 	})

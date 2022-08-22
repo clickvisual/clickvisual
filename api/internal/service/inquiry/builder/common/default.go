@@ -75,7 +75,7 @@ FROM %s
 		mapping, paramsView.TimeConvert, logField, paramsView.CommonFields, paramsView.SourceTable)
 }
 
-func BuilderViewAlarmAggregation(params bumo.Params) string {
+func BuilderViewAlarmAggregationSelect(params bumo.Params) string {
 	return fmt.Sprintf(`SELECT
   toDate(now()) as date,
   '%s' as name,
@@ -90,6 +90,28 @@ FROM (
 		bumo.PrometheusMetricName,
 		params.View.CommonFields,
 		params.View.WithSQL)
+}
+
+func BuilderViewAlarmAggregationWith(params bumo.Params) string {
+	return fmt.Sprintf(`with(
+%s
+) as limbo 
+SELECT
+  toDate(%s) as date,
+  '%s' as name,
+  array(%s) as tags,
+  toFloat64(limbo.1) as val,
+  %s as ts,
+  toDateTime(%s) as updated
+FROM %s
+`,
+		params.View.WithSQL,
+		params.TimeField,
+		bumo.PrometheusMetricName,
+		params.View.CommonFields,
+		params.TimeField,
+		params.TimeField,
+		params.View.SourceTable)
 }
 
 func BuilderEngineStream(stream bumo.ParamsStream) string {
