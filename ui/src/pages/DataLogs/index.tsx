@@ -8,13 +8,12 @@ import useLogUrlParams from "@/pages/DataLogs/hooks/useLogUrlParams";
 import CollapseMenu from "@/pages/DataLogs/components/CollapseAndExpandMenu/CollapseMenu";
 
 const DataLogs = () => {
-  const { onChangeVisibleDatabaseDraw, logPanesHelper } = useModel("dataLogs");
+  const { logPanesHelper } = useModel("dataLogs");
   const { onChangeIsTidInitialize } = useModel("instances");
   useLogUrlParams();
 
   useEffect(() => {
     return () => {
-      onChangeVisibleDatabaseDraw(false);
       logPanesHelper.resetPane();
       onChangeIsTidInitialize(false);
     };

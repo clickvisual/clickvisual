@@ -156,8 +156,8 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "alarm.rules.table.alarmName" }),
       dataIndex: "alarmName",
-      align: "center",
       ellipsis: { showTitle: true },
+      width: 200,
       render: (alarmName: string, record: AlarmType) => (
         <Tooltip title={alarmName}>
           <div
@@ -180,8 +180,8 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "alarm.rules.table.logLibrary" }),
       key: "alarmSource",
-      align: "center",
       ellipsis: { showTitle: true },
+      width: 400,
       render: (_: any, record: AlarmType) => {
         return <BreadCrumbs logLibraryInfo={record} />;
       },
@@ -190,7 +190,7 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "alarm.rules.inspectionFrequency" }),
       dataIndex: "interval",
       align: "center",
-      width: "90px",
+      width: 90,
       render: (interval: number, record: AlarmType) => {
         const unit = FixedTimeUnits.filter(
           (item) => item.key === record.unit
@@ -205,7 +205,7 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "user" }),
       dataIndex: "user",
-      width: "150px",
+      width: 150,
       align: "center",
       ellipsis: { showTitle: true },
       render: (user: any) => (
@@ -219,8 +219,7 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "description" }),
       dataIndex: "desc",
-      width: "15%",
-      align: "center",
+      width: 300,
       ellipsis: { showTitle: true },
       render: (desc: string) => (
         <Tooltip title={desc}>
@@ -234,7 +233,7 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "utime" }),
       dataIndex: "utime",
       ellipsis: { showTitle: true },
-      width: "130px",
+      width: 130,
       align: "center",
       render: (utime: any) => (
         <Tooltip title={moment(utime * 1000).format("YYYY-MM-DD HH:mm:ss")}>
@@ -268,6 +267,7 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "operation" }),
       dataIndex: "operations",
       align: "center",
+      fixed: "right",
       width: 180,
       render: (_: any, record: AlarmType) => (
         <Space>
@@ -327,6 +327,7 @@ const AlarmTable = () => {
         rowKey={"id"}
         size={"small"}
         columns={column}
+        scroll={{ x: 1080 }}
         dataSource={alarmList}
         rowClassName={alarmStyles.tableWrapper}
         pagination={{
