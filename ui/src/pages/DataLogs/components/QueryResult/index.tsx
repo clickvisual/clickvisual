@@ -15,8 +15,8 @@ const SharePath = [
   process.env.PUBLIC_PATH + "share/",
 ];
 
-const QueryResult = (props: { tid?: string; activeKey?: string }) => {
-  const { tid, activeKey } = props;
+const QueryResult = (props: { tid: string }) => {
+  const { tid } = props;
   const [usrState] = useUrlState<any>();
   const { statisticalChartsHelper } = useModel("dataLogs");
   const { onSetLocalData } = useLocalStorages();
@@ -39,17 +39,17 @@ const QueryResult = (props: { tid?: string; activeKey?: string }) => {
       }
     };
   }, []);
+
   const content = useMemo(() => {
-    if (activeKey != tid) return <></>;
     switch (activeQueryType) {
       case QueryTypeEnum.LOG:
-        return <RawLogContent />;
+        return <RawLogContent tid={tid} />;
       case QueryTypeEnum.TABLE:
         return <StatisticalTableContent isShare={isShare} />;
       default:
-        return <RawLogContent />;
+        return <RawLogContent tid={tid} />;
     }
-  }, [activeQueryType, usrState, usrState?.mode, activeKey, tid]);
+  }, [activeQueryType, usrState, usrState?.mode]);
 
   return (
     <div

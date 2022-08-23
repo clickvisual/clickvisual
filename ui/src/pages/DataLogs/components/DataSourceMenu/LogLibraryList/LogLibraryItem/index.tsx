@@ -56,6 +56,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     resetLogPaneLogsAndHighCharts,
     onChangeIsModifyLog,
     onChangeCurrentEditLogLibrary,
+    onChangeLastLoadingTid,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
 
@@ -113,7 +114,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   };
 
   const doDeleted = () => {
-    // if (!currentDatabase) return;
     const hideMessage = message.loading(
       {
         content: i18n.formatMessage(
@@ -141,7 +141,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             },
             3
           );
-          // doGetLogLibraryList();
           onGetList();
           // 不在打开的日志库中
           if (!paneKeys.includes(currentKey)) return;
@@ -300,6 +299,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           <span
             onClick={() => {
               if (currentLogLibrary?.id === logLibrary.id) return;
+              onChangeLastLoadingTid(logLibrary.id);
               onChangeLogLibrary(logLibrary);
               resetCurrentHighChart();
               onChangePanes();

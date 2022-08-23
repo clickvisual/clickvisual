@@ -9,13 +9,15 @@ import { useIntl } from "umi";
 import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
 import { useMemo } from "react";
 
-const RawLogContent = () => {
+const RawLogContent = (props: { tid: string }) => {
+  const { tid } = props;
   const {
     currentLogLibrary,
     logsLoading,
     highChartLoading,
     isHiddenHighChart,
     logPanesHelper,
+    lastLoadingTid,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -26,13 +28,17 @@ const RawLogContent = () => {
 
   const i18n = useIntl();
 
+  console.log(lastLoadingTid, tid);
+
   return (
     <div className={queryResultStyles.content}>
       <RawLogsIndexes tid={currentLogLibrary?.id} />
       <div className={queryResultStyles.queryDetail}>
         {oldPane?.histogramChecked && (
           <Spin
-            spinning={highChartLoading}
+            spinning={
+              lastLoadingTid == parseInt(tid) ? highChartLoading : false
+            }
             tip={i18n.formatMessage({ id: "spin" })}
             wrapperClassName={classNames(
               queryResultStyles.querySpinning,
@@ -45,7 +51,7 @@ const RawLogContent = () => {
           </Spin>
         )}
         <Spin
-          spinning={logsLoading}
+          spinning={lastLoadingTid == parseInt(tid) ? logsLoading : false}
           tip={i18n.formatMessage({ id: "spin" })}
           wrapperClassName={classNames(
             queryResultStyles.querySpinning,
