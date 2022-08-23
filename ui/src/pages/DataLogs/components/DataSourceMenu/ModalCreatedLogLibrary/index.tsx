@@ -59,8 +59,8 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               })
             );
             onGetList();
+            onChangeLogLibraryCreatedModalVisible(false);
           }
-          onChangeLogLibraryCreatedModalVisible(false);
         })
         .catch(() => onChangeLogLibraryCreatedModalVisible(false));
     },
