@@ -244,6 +244,8 @@ func GetRouter() *egin.Component {
 	// The global basic readable information module - base
 	{
 		v2.GET("/base/instances", core.Handle(basev2.InstanceList))
+		v2.GET("/base/su/:s-code", core.Handle(basev2.ShortURLRedirect))
+		v2.POST("/base/shorturls", core.Handle(basev2.ShortURLCreate))
 	}
 	// The data analysis module - pandas
 	{

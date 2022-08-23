@@ -14,6 +14,17 @@ definitions:
         description: Total means total page count
         type: integer
     type: object
+  core.Res:
+    properties:
+      code:
+        description: Code means response business code
+        type: integer
+      data:
+        description: Data means response data payload
+      msg:
+        description: Msg means response extra message
+        type: string
+    type: object
   core.ResPage:
     properties:
       code:
@@ -67,6 +78,11 @@ definitions:
       key:
         type: string
       val:
+        type: string
+    type: object
+  view.ReqShortURLCreate:
+    properties:
+      originUrl:
         type: string
     type: object
   view.ReqUpdateCrontab:
@@ -144,6 +160,8 @@ definitions:
         type: integer
       result:
         type: string
+      status:
+        type: integer
       uid:
         type: integer
       username:
@@ -338,6 +356,45 @@ paths:
       summary: Gets all instance database and table data filtered by permissions
       tags:
       - base
+  /api/v2/base/shorturls:
+    post:
+      description: Create short links
+      parameters:
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/view.ReqShortURLCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Create short links
+      tags:
+      - base
+  /api/v2/base/su/{s-code}:
+    get:
+      description: Get short links
+      parameters:
+      - description: short code
+        in: path
+        name: s-code
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "301":
+          description: Moved Permanently
+          schema:
+            type: string
+      summary: Get short links
+      tags:
+      - base
   /api/v2/pandas/instances/{instance-id}/table-dependencies:
     get:
       consumes:
@@ -392,7 +449,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/core.Res'
       summary: Updates the action on the execution result
       tags:
       - pandas
@@ -421,7 +478,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/core.Res'
       summary: Updating a scheduled node scheduling task
       tags:
       - pandas
@@ -449,7 +506,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/core.Res'
       summary: Creating a scheduled node scheduling task
       tags:
       - pandas
@@ -470,7 +527,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/core.Res'
       summary: Force the file edit lock to be acquired
       tags:
       - pandas
@@ -639,7 +696,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/core.Res'
       summary: Creating a log library
       tags:
       - storage
@@ -679,7 +736,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/core.Res'
       summary: Storage update
       tags:
       - storage

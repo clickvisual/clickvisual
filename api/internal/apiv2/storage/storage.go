@@ -51,7 +51,7 @@ func KafkaJsonMapping(c *core.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqStorageCreate true "params"
-// @Success      200 {string} ok
+// @Success      200 {object} core.Res{}
 // @Router       /api/v2/storage [post]
 func Create(c *core.Context) {
 	var param view.ReqStorageCreate
@@ -147,7 +147,7 @@ func AnalysisFields(c *core.Context) {
 // @Produce      json
 // @Param        storage-id path int true "table id"
 // @Param        req query view.ReqStorageUpdate true "params"
-// @Success      200 {string} ok
+// @Success      200 {object} core.Res{}
 // @Router       /api/v2/storage/{storage-id} [patch]
 func Update(c *core.Context) {
 	id := cast.ToInt(c.Param("storage-id"))

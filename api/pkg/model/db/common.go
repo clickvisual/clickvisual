@@ -24,6 +24,7 @@ const (
 	TableNameBaseIndex       = "cv_base_index"
 	TableNameBaseDatabase    = "cv_base_database"
 	TableNameBaseInstance    = "cv_base_instance"
+	TableBaseShortURL        = "cv_base_short_url"
 	TableNameBaseHiddenField = "cv_base_hidden_field"
 
 	TableAlarm          = "cv_alarm"

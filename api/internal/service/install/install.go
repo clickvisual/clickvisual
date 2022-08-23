@@ -27,6 +27,7 @@ var models = []interface{}{
 	db.BaseView{},
 	db.BaseTable{},
 	db.BaseIndex{},
+	db.BaseShortURL{},
 	db.BaseDatabase{},
 	db.BaseInstance{},
 	db.BaseHiddenField{},

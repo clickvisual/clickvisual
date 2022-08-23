@@ -26,6 +26,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/slack-go/slack v0.11.2
 	github.com/smartystreets/goconvey v1.7.2
+	github.com/speps/go-hashids/v2 v2.0.1
 	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe

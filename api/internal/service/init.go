@@ -37,6 +37,9 @@ func Init() error {
 	xgo.Go(func() {
 		DoDepsSync()
 	})
+	xgo.Go(func() {
+		ShortURLClean()
+	})
 
 	Node = NewNode()
 	return nil

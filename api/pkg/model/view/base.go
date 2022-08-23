@@ -191,7 +191,7 @@ type RespTableDetail struct {
 	Uid                     int    `json:"uid"`     // 操作人
 	Desc                    string `json:"desc"`
 	ConsumerNum             int    `json:"consumerNum"`
-	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
+	KafkaSkipBrokenMessages int    `json:"kafkaSkipBrokenMessages"`
 	SQLContent              struct {
 		Keys []string          `json:"keys"`
 		Data map[string]string `json:"data"`
@@ -256,3 +256,13 @@ type SystemTable struct {
 func (r *SystemTable) Name() string {
 	return fmt.Sprintf("%s.%s", r.Database, r.Table)
 }
+
+type (
+	ReqShortURLInfo struct {
+		SCode string `json:"sCode" form:"sCode"`
+	}
+
+	ReqShortURLCreate struct {
+		OriginUrl string `json:"originUrl" form:"originUrl"`
+	}
+)

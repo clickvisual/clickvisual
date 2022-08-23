@@ -39,6 +39,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/base/shorturls": {
+            "post": {
+                "description": "Create short links",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "Create short links",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/view.ReqShortURLCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/base/su/{s-code}": {
+            "get": {
+                "description": "Get short links",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "Get short links",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "short code",
+                        "name": "s-code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "301": {
+                        "description": "Moved Permanently",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/pandas/instances/{instance-id}/table-dependencies": {
             "get": {
                 "description": "Result of table dependency resolution",
@@ -126,7 +186,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/core.Res"
                         }
                     }
                 }
@@ -167,7 +227,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/core.Res"
                         }
                     }
                 }
@@ -206,7 +266,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/core.Res"
                         }
                     }
                 }
@@ -238,7 +298,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/core.Res"
                         }
                     }
                 }
@@ -504,7 +564,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/core.Res"
                         }
                     }
                 }
@@ -597,7 +657,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/core.Res"
                         }
                     }
                 }
@@ -655,6 +715,22 @@ const docTemplate = `{
                 "total": {
                     "description": "Total means total page count",
                     "type": "integer"
+                }
+            }
+        },
+        "core.Res": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Code means response business code",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Data means response data payload"
+                },
+                "msg": {
+                    "description": "Msg means response extra message",
+                    "type": "string"
                 }
             }
         },
@@ -738,6 +814,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "val": {
+                    "type": "string"
+                }
+            }
+        },
+        "view.ReqShortURLCreate": {
+            "type": "object",
+            "properties": {
+                "originUrl": {
                     "type": "string"
                 }
             }
@@ -855,6 +939,9 @@ const docTemplate = `{
                 },
                 "result": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "integer"
                 },
                 "uid": {
                     "type": "integer"

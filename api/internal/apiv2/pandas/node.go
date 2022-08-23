@@ -26,7 +26,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        node-id path int true "node id"
-// @Success      200  {string} ok
+// @Success      200 {object} core.Res{}
 // @Router       /api/v2/pandas/nodes/{node-id}/lock-acquire [post]
 func NodeLockAcquire(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
@@ -67,7 +67,7 @@ func NodeLockAcquire(c *core.Context) {
 // @Produce      json
 // @Param        node-id path int true "node id"
 // @Param        req body view.ReqCreateCrontab true "params"
-// @Success      200 {string} ok
+// @Success      200 {object} core.Res{}
 // @Router       /api/v2/pandas/nodes/{node-id}/crontab [post]
 func NodeCrontabCreate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
@@ -126,7 +126,7 @@ func NodeCrontabCreate(c *core.Context) {
 // @Produce      json
 // @Param        node-id path int true "node id"
 // @Param        req body view.ReqUpdateCrontab true "params"
-// @Success      200 {string} ok
+// @Success      200 {object} core.Res{}
 // @Router       /api/v2/pandas/nodes/{node-id}/crontab [patch]
 func NodeCrontabUpdate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
@@ -196,7 +196,7 @@ func NodeCrontabUpdate(c *core.Context) {
 // @Produce      json
 // @Param        result-id path int true "result id"
 // @Param        req query view.ReqNodeRunResult true "params"
-// @Success      200 {string} ok
+// @Success      200 {object} core.Res{}
 // @Router       /api/v2/pandas/nodes-results/{result-id} [patch]
 func NodeResultUpdate(c *core.Context) {
 	resultId := cast.ToInt(c.Param("result-id"))
