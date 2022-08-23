@@ -94,13 +94,15 @@ FROM (
 
 func BuilderViewAlarmAggregationWith(params bumo.Params) string {
 	return fmt.Sprintf(`with(
-%s
+	select val from (
+		%s
+	) limit 1
 ) as limbo 
 SELECT
   toDate(%s) as date,
   '%s' as name,
   array(%s) as tags,
-  toFloat64(limbo.1) as val,
+  ifNull(toFloat64(limbo), -1) as val,
   %s as ts,
   toDateTime(%s) as updated
 FROM %s

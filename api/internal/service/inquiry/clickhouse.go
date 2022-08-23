@@ -540,7 +540,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 		SourceTable:  sourceTableName,
 		Where:        whereCondition}
 
-	if alarm.Mode == db.AlarmModeWithInSQL || alarm.Mode == db.AlarmModeAggregation {
+	if alarm.Mode == db.AlarmModeAggregation || alarm.Mode == db.AlarmModeAggregationCheck {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
 		vp.WithSQL = adaSelectPart(whereCondition)
 		invoker.Logger.Debug("AlertViewGen", elog.String("whereCondition", whereCondition), elog.String("ada", adaSelectPart(whereCondition)))
@@ -647,9 +647,9 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 		optimizeSQL string
 	)
 	switch param.AlarmMode {
-	case db.AlarmModeWithInSQL:
-		defaultSQL = param.Query
 	case db.AlarmModeAggregation:
+		defaultSQL = param.Query
+	case db.AlarmModeAggregationCheck:
 		defaultSQL = alarmAggregationSQLWith(param)
 	default:
 		defaultSQL, optimizeSQL = c.logsSQL(param, tid)
@@ -1072,10 +1072,10 @@ FROM (%s)
 
 func alarmAggregationSQLWith(param view.ReqQuery) (sql string) {
 	out := fmt.Sprintf(`with(
-%s
+select val from (%s) limit 1
 ) as limbo
 SELECT
-   limbo.1 as "metrics",
+   limbo as "metrics",
    %s as timestamp
 FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
 `, adaSelectPart(param.Query), param.TimeField, param.DatabaseTable, param.TimeField, param.TimeField)

@@ -131,7 +131,8 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	}
 
 	// empty data alert
-	exp = noDataOp(exp, expVal, obj.NoDataOp)
+	exp = aggregationOp(obj.Mode, exp, expVal)
+	exp = noDataOp(obj.NoDataOp, exp, expVal)
 	return
 }
 
@@ -141,7 +142,16 @@ const (
 	NoDataOpAlert   = 2
 )
 
-func noDataOp(exp, expVal string, op int) string {
+func aggregationOp(mode int, exp string, expVal string) string {
+	switch mode {
+	case db.AlarmModeAggregation:
+		return fmt.Sprintf("%s and %s!=-1", exp, expVal)
+	default:
+		return exp
+	}
+}
+
+func noDataOp(op int, exp, expVal string) string {
 	switch op {
 	case NoDataOpDefault:
 		return exp

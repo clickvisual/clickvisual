@@ -15,8 +15,8 @@ import (
 
 const (
 	AlarmModeDefault int = iota
-	AlarmModeWithInSQL
 	AlarmModeAggregation
+	AlarmModeAggregationCheck
 )
 
 const (
@@ -165,7 +165,7 @@ func (m *Alarm) AlertInterval() string {
 }
 
 func WhereConditionFromFilter(alarm *Alarm, filters []*AlarmFilter) (filter string) {
-	if alarm.Mode == AlarmModeAggregation {
+	if alarm.Mode == AlarmModeAggregationCheck {
 		return getWithSQL(filters)
 	}
 	for i, f := range filters {
