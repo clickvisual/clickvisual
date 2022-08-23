@@ -1,9 +1,9 @@
 export interface logLibraryInfoType {
-  instanceName?: string;
+  instanceName: string;
   instanceDesc?: string;
-  databaseName?: string;
+  databaseName: string;
   databaseDesc?: string;
-  tableName?: string;
+  tableName: string;
   tableDesc?: string;
   tid?: number;
   did?: number;
