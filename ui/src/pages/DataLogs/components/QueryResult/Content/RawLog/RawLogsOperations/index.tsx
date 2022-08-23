@@ -5,6 +5,7 @@ import { useIntl } from "umi";
 import { FIRST_PAGE } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
 import HistogramSwitch from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft";
+import { useMemo } from "react";
 
 const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {
@@ -15,11 +16,14 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     currentLogLibrary,
     doGetLogsAndHighCharts,
     onChangeLogPane,
+    logPanesHelper,
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
+  const { logPanes } = logPanesHelper;
 
   const i18n = useIntl();
 
+  // todo: logPanes[currentLogLibrary?.id || 0] 和 oldPane 是否是一样的？
   const performTime = useMemo(() => {
     return logPanes[currentLogLibrary?.id || 0]?.logs?.cost;
   }, [logPanes]);
@@ -32,6 +36,7 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       {performTime ? (
         <div style={{ flex: 1, textAlign: "right", marginRight: "20px" }}>
           {i18n.formatMessage({ id: "log.perform.time" })}：
+          {/* todo: performTime 和 logPanes[currentLogLibrary?.id || 0]?.logs?.cost 不是一样的吗？*/}
           {logPanes[currentLogLibrary?.id || 0]?.logs?.cost}ms
         </div>
       ) : null}
