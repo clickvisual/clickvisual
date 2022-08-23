@@ -74,7 +74,10 @@ const AlarmTable = () => {
               hideMessage();
               return;
             }
-            doGetAlarms.run(operations.searchQuery);
+            doGetAlarms.run({
+              ...operations.searchQuery,
+              ...currentPagination,
+            });
             message.success(
               {
                 content: i18n.formatMessage({ id: "alarm.rules.deleted" }),
@@ -120,7 +123,7 @@ const AlarmTable = () => {
             },
             3
           );
-          doGetAlarms.run(operations.searchQuery);
+          doGetAlarms.run({ ...operations.searchQuery, ...currentPagination });
         })
         .catch(() => hideMessage());
     },
@@ -157,9 +160,19 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "alarm.rules.table.alarmName" }),
       dataIndex: "alarmName",
       ellipsis: { showTitle: true },
-      width: 200,
       render: (alarmName: string, record: AlarmType) => (
-        <Tooltip title={alarmName}>
+        <Tooltip
+          title={
+            <>
+              <p>
+                {i18n.formatMessage({ id: "name" })}: {alarmName}
+              </p>
+              <p>
+                {i18n.formatMessage({ id: "description" })}: {record.desc}
+              </p>
+            </>
+          }
+        >
           <div
             style={{ color: "red" }}
             className={classNames(
@@ -181,7 +194,6 @@ const AlarmTable = () => {
       title: i18n.formatMessage({ id: "alarm.rules.table.logLibrary" }),
       key: "alarmSource",
       ellipsis: { showTitle: true },
-      width: 400,
       render: (_: any, record: AlarmType) => {
         return <BreadCrumbs logLibraryInfo={record} />;
       },
@@ -212,19 +224,6 @@ const AlarmTable = () => {
         <Tooltip title={user.nickname}>
           <div className={alarmStyles.columnsEllipsis}>
             <span>{user.username}</span>
-          </div>
-        </Tooltip>
-      ),
-    },
-    {
-      title: i18n.formatMessage({ id: "description" }),
-      dataIndex: "desc",
-      width: 300,
-      ellipsis: { showTitle: true },
-      render: (desc: string) => (
-        <Tooltip title={desc}>
-          <div className={alarmStyles.columnsEllipsis}>
-            <span>{desc}</span>
           </div>
         </Tooltip>
       ),
