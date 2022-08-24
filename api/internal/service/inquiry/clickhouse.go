@@ -53,8 +53,7 @@ var jsonExtractORM = map[int]string{
 }
 
 const (
-	ModeStandalone int = iota
-	ModeCluster
+	ModeCluster int = 1
 )
 
 func genTimeCondition(param view.ReqQuery) string {
@@ -508,13 +507,14 @@ func (c *ClickHouse) ViewDo(params bumo.Params) string {
 
 // AlertViewGen TableTypePrometheusMetric: `CREATE MATERIALIZED VIEW %s TO metrics.samples AS
 // SELECT
-//        toDate(_timestamp_) as date,
-//        %s as name,
-//        array(%s) as tags,
-//        toFloat64(count(*)) as val,
-//        _timestamp_ as ts,
-//        toDateTime(_timestamp_) as updated
-//    FROM %s WHERE %s GROUP by _timestamp_;`,
+//
+//	    toDate(_timestamp_) as date,
+//	    %s as name,
+//	    array(%s) as tags,
+//	    toFloat64(count(*)) as val,
+//	    _timestamp_ as ts,
+//	    toDateTime(_timestamp_) as updated
+//	FROM %s WHERE %s GROUP by _timestamp_;`,
 func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (string, string, error) {
 	var (
 		viewSQL         string
@@ -1055,20 +1055,20 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 	return
 }
 
-func alarmAggregationSQLSelect(param view.ReqQuery) (sql string) {
-	out := fmt.Sprintf(`SELECT
-  toDate(now()) as date,
-  '%s' as name,
-  toFloat64(val) as val,
-  now() as ts,
-  toDateTime(now()) as updated
-FROM (%s)
-`,
-		bumo.PrometheusMetricName,
-		adaSelectPart(param.Query))
-	invoker.Logger.Debug("alarmAggregationSQLSelect", elog.Any("out", out), elog.Any("param", param))
-	return out
-}
+// func alarmAggregationSQLSelect(param view.ReqQuery) (sql string) {
+// 	out := fmt.Sprintf(`SELECT
+//   toDate(now()) as date,
+//   '%s' as name,
+//   toFloat64(val) as val,
+//   now() as ts,
+//   toDateTime(now()) as updated
+// FROM (%s)
+// `,
+// 		bumo.PrometheusMetricName,
+// 		adaSelectPart(param.Query))
+// 	invoker.Logger.Debug("alarmAggregationSQLSelect", elog.Any("out", out), elog.Any("param", param))
+// 	return out
+// }
 
 func alarmAggregationSQLWith(param view.ReqQuery) (sql string) {
 	out := fmt.Sprintf(`with(
@@ -1200,19 +1200,19 @@ func hashTransform(query string, index *db.BaseIndex) string {
 		hashFieldName, _ = index.GetHashFieldName()
 	)
 	if strings.Contains(query, key+"=") && (hashTyp == 1 || hashTyp == 2) {
+		cache := query
 		r, _ := regexp.Compile(key + "='(\\S*)'")
 		val := r.FindString(query)
-		invoker.Logger.Debug("hashTransform", elog.Any("step", "1"), elog.Any("val", val))
 		val = strings.Replace(val, key+"=", "", 1)
-		invoker.Logger.Debug("hashTransform", elog.Any("step", "2"), elog.Any("val", val))
-		invoker.Logger.Debug("hashTransform", elog.Any("step", "3"), elog.Any("query", query))
 		query = strings.Replace(query, key+"=", hashFieldName+"=", 1)
-		invoker.Logger.Debug("hashTransform", elog.Any("step", "4"), elog.Any("query", query))
 		if hashTyp == db.HashTypeSip {
 			query = strings.Replace(query, val, fmt.Sprintf("sipHash64(%s)", val), 1)
 		}
 		if hashTyp == db.HashTypeURL {
 			query = strings.Replace(query, val, fmt.Sprintf("URLHash(%s)", val), 1)
+		}
+		if !strings.HasPrefix(query, "_inner") && !strings.Contains(query, " _inner") {
+			query = cache
 		}
 	}
 	return query
@@ -1264,7 +1264,7 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 			invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
 			return
 		}
-		for k, _ := range fields {
+		for k := range fields {
 			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
 			if isEmpty(values[k]) {
 				line[fields[k]] = ""
@@ -1316,7 +1316,7 @@ func (c *ClickHouse) SystemTablesInfo() (res []*view.SystemTable) {
 		if len(tables) != len(databases) {
 			continue
 		}
-		for key, _ := range tables {
+		for key := range tables {
 			row.DownDatabaseTable = append(row.DownDatabaseTable, fmt.Sprintf("%s.%s", databases[key], tables[key]))
 		}
 		res = append(res, &row)
@@ -1324,17 +1324,17 @@ func (c *ClickHouse) SystemTablesInfo() (res []*view.SystemTable) {
 	return
 }
 
-func getUnixTime(val map[string]interface{}) (int64, bool) {
-	v, ok := val[db.TimeFieldNanoseconds]
-	if !ok {
-		return 0, false
-	}
-	switch v.(type) {
-	case time.Time:
-		return v.(time.Time).UnixNano(), true
-	}
-	return 0, false
-}
+// func getUnixTime(val map[string]interface{}) (int64, bool) {
+// 	v, ok := val[db.TimeFieldNanoseconds]
+// 	if !ok {
+// 		return 0, false
+// 	}
+// 	switch v.(type) {
+// 	case time.Time:
+// 		return v.(time.Time).UnixNano(), true
+// 	}
+// 	return 0, false
+// }
 
 // isEmpty filter empty index value
 func isEmpty(input interface{}) bool {

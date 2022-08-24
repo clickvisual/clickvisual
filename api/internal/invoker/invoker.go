@@ -23,8 +23,6 @@ var (
 	HashId *hashids.HashID
 )
 
-const Alphabet = "023456789abcdefghjkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ"
-
 // Init invoker
 func Init() (err error) {
 	Db = egorm.Load("mysql").Build()
