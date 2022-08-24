@@ -2,7 +2,8 @@ import styles from "./index.less";
 import { Tooltip } from "antd";
 import { QUERY_PATH } from "@/config/config";
 import { logLibraryInfoType } from "@/components/BreadCrumbs/type";
-import { CSSProperties } from "react";
+import { CSSProperties, useEffect, useState } from "react";
+import { getTextWith } from "@/utils/textWith";
 interface BreadCrumbsProps {
   logLibraryInfo: logLibraryInfoType;
   style?: CSSProperties;
@@ -11,10 +12,26 @@ interface BreadCrumbsProps {
 
 const BreadCrumbs = (props: BreadCrumbsProps) => {
   const { logLibraryInfo, style, separator } = props;
+  const [tableWidth, setTableWidth] = useState<number>(115);
 
   const getGoToQueryPagePathByTid = (tid?: number) => {
     return `${QUERY_PATH}?tid=${tid}`;
   };
+
+  useEffect(() => {
+    // 将实例、数据库的文字放到canvas里面，获取文本的长度，然后计算table字段最多还能占据的长度
+    const instanceWidth =
+      (getTextWith(logLibraryInfo.instanceName) || 0) > 115
+        ? 115
+        : getTextWith(logLibraryInfo.instanceName) || 0;
+
+    const databaseWidth =
+      (getTextWith(logLibraryInfo.databaseName) || 0) > 115
+        ? 115
+        : getTextWith(logLibraryInfo.databaseName) || 0;
+
+    setTableWidth(325 - instanceWidth - databaseWidth);
+  }, [logLibraryInfo]);
 
   return (
     <div style={style}>
@@ -52,22 +69,33 @@ const BreadCrumbs = (props: BreadCrumbsProps) => {
         )}
         {logLibraryInfo.databaseName && (
           // <Tooltip title={logLibraryInfo.databaseDesc}>
-          <span className={styles.nameSpan}>
-            &nbsp;{separator || "|"}&nbsp;
-            {logLibraryInfo.databaseName}
-          </span>
+          <>
+            <span className={styles.nameSpan}>
+              &nbsp;{separator || "/"}&nbsp;
+            </span>
+            <span className={styles.nameSpan}>
+              {logLibraryInfo.databaseName}
+            </span>
+          </>
         )}
         {logLibraryInfo.tableName && (
           // <Tooltip title={logLibraryInfo.tableDesc}>
-          <span className={styles.nameSpan}>
-            &nbsp;{separator || "|"}&nbsp;
-            <a
-              href={getGoToQueryPagePathByTid(logLibraryInfo.tid)}
-              target="_blank"
+          <>
+            <span className={styles.nameSpan}>
+              &nbsp;{separator || "/"}&nbsp;
+            </span>
+            <span
+              className={styles.nameSpan}
+              style={{ maxWidth: tableWidth + "px" }}
             >
-              {logLibraryInfo.tableName}
-            </a>
-          </span>
+              <a
+                href={getGoToQueryPagePathByTid(logLibraryInfo.tid)}
+                target="_blank"
+              >
+                {logLibraryInfo.tableName}
+              </a>
+            </span>
+          </>
         )}
       </Tooltip>
     </div>

@@ -96,10 +96,9 @@ const RawLogTabs = () => {
             return (
               pane && (
                 <TabPane key={pane.paneId} tab={pane.pane} forceRender>
-                  <QueryResult
-                    tid={pane.paneId}
-                    activeKey={currentLogLibrary?.id.toString()}
-                  />
+                  {pane.paneId === currentLogLibrary?.id.toString() ? (
+                    <QueryResult tid={pane.paneId} />
+                  ) : null}
                 </TabPane>
               )
             );

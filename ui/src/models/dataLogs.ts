@@ -90,6 +90,9 @@ const DataLogsModel = () => {
   const cancelTokenLogsRef = useRef<Canceler | null>(null);
   const CancelToken = Request.CancelToken;
 
+  // 最近一次正在加载的tid
+  const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
+
   const {
     logLibraryCreatedModalVisible,
     logLibraryInfoDrawVisible,
@@ -194,6 +197,10 @@ const DataLogsModel = () => {
 
   const onChangeVisibleIndexModal = (visible: boolean) => {
     setVisibleIndexModal(visible);
+  };
+
+  const onChangeLastLoadingTid = (tid: number) => {
+    setLastLoadingTid(tid);
   };
 
   const onChangeLogPane = (tabPane: PaneType) => {
@@ -360,6 +367,7 @@ const DataLogsModel = () => {
     cancelTokenHighChartsRef.current?.();
     const currentPane = logPanesHelper.logPanes[id.toString()];
     const histogramChecked = currentPane?.histogramChecked ?? true;
+    onChangeLastLoadingTid(id);
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
@@ -650,10 +658,12 @@ const DataLogsModel = () => {
     editView,
     isModifyLog,
     doGetViewInfo,
+    lastLoadingTid,
     onChangeViewIsEdit,
     onChangeViewVisibleModal,
     onChangeViewsVisibleDraw,
     onChangeIsModifyLog,
+    onChangeLastLoadingTid,
 
     foldingState,
     onChangeFoldingState,

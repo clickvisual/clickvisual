@@ -23,7 +23,6 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   const i18n = useIntl();
 
-  // todo: logPanes[currentLogLibrary?.id || 0] 和 oldPane 是否是一样的？
   const performTime = useMemo(() => {
     return logPanes[currentLogLibrary?.id || 0]?.logs?.cost;
   }, [logPanes]);
@@ -36,7 +35,6 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       {performTime ? (
         <div style={{ flex: 1, textAlign: "right", marginRight: "20px" }}>
           {i18n.formatMessage({ id: "log.perform.time" })}：
-          {/* todo: performTime 和 logPanes[currentLogLibrary?.id || 0]?.logs?.cost 不是一样的吗？*/}
           {logPanes[currentLogLibrary?.id || 0]?.logs?.cost}ms
         </div>
       ) : null}
