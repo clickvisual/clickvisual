@@ -18,6 +18,7 @@ const RawLogContent = (props: { tid: string }) => {
     isHiddenHighChart,
     logPanesHelper,
     lastLoadingTid,
+    doGetAnalysisField,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -28,16 +29,16 @@ const RawLogContent = (props: { tid: string }) => {
 
   const i18n = useIntl();
 
-  console.log(lastLoadingTid, tid);
-
   return (
     <div className={queryResultStyles.content}>
-      <RawLogsIndexes tid={currentLogLibrary?.id} />
+      <RawLogsIndexes oldPane={oldPane} />
       <div className={queryResultStyles.queryDetail}>
         {oldPane?.histogramChecked && (
           <Spin
             spinning={
-              lastLoadingTid == parseInt(tid) ? highChartLoading : false
+              lastLoadingTid == parseInt(tid)
+                ? highChartLoading || doGetAnalysisField.loading
+                : false
             }
             tip={i18n.formatMessage({ id: "spin" })}
             wrapperClassName={classNames(
@@ -51,7 +52,11 @@ const RawLogContent = (props: { tid: string }) => {
           </Spin>
         )}
         <Spin
-          spinning={lastLoadingTid == parseInt(tid) ? logsLoading : false}
+          spinning={
+            lastLoadingTid == parseInt(tid)
+              ? logsLoading || doGetAnalysisField.loading
+              : false
+          }
           tip={i18n.formatMessage({ id: "spin" })}
           wrapperClassName={classNames(
             queryResultStyles.querySpinning,

@@ -177,6 +177,9 @@ export interface IndexInfoType {
   typ: number;
   rootName: string;
   jsonIndex: IndexInfoType[];
+  hashTyp: number;
+  ctime: number;
+  utime: number;
 }
 
 export interface IndexRequest {
@@ -487,5 +490,13 @@ export default {
     return request<API.Res<string>>(
       process.env.PUBLIC_PATH + `api/v2/storage/${tid}/analysis-fields`
     );
+  },
+
+  // 创建短链接
+  async getShorturls(data: { originUrl: string }) {
+    return request(process.env.PUBLIC_PATH + `api/v2/base/shorturls`, {
+      method: "POST",
+      data,
+    });
   },
 };

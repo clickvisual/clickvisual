@@ -61,7 +61,6 @@ const QueryResult = (props: { tid: string }) => {
       <div className={queryResultStyles.header}>
         <SearchBar />
         <OtherSearchBar
-          isShare={isShare}
           isShowSwitch={!(usrState?.mode && usrState?.mode == 0)}
         />
       </div>

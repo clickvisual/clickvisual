@@ -75,7 +75,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
           className={classNames(
             logItemStyles.logContent,
             highlightFlag && logItemStyles.logContentHighlight,
-            isNotTimeKey && logItemStyles.logHover
+            logItemStyles.logHover
           )}
         >
           <ClickMenu
@@ -87,6 +87,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
             handleOutCondition={() =>
               onInsertExclusion(keyItem, isIndexAndRawLogKey)
             }
+            isHidden={!isNotTimeKey}
           >
             <span>{value}</span>
           </ClickMenu>
@@ -99,7 +100,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
           className={classNames(
             logItemStyles.logContent,
             highlightFlag && logItemStyles.logContentHighlight,
-            isNotTimeKey && logItemStyles.logHover
+            logItemStyles.logHover
           )}
         >
           <ClickMenu
@@ -111,6 +112,7 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
             handleOutCondition={() =>
               onInsertExclusion(keyItem, isIndexAndRawLogKey)
             }
+            isHidden={!isNotTimeKey}
           >
             <span>{value}</span>
           </ClickMenu>

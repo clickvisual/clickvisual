@@ -9,10 +9,17 @@ interface ClickMenuProps {
   field: string | undefined;
   handleAddCondition: () => void;
   handleOutCondition: () => void;
+  isHidden?: boolean;
 }
 const ClickMenu = (props: ClickMenuProps) => {
   const i18n = useIntl();
-  const { content, children, handleAddCondition, handleOutCondition } = props;
+  const {
+    content,
+    children,
+    handleAddCondition,
+    handleOutCondition,
+    isHidden,
+  } = props;
 
   const handleCopyLog = () => {
     copy(content.toString());
@@ -21,13 +28,17 @@ const ClickMenu = (props: ClickMenuProps) => {
 
   const menu = (
     <Menu style={{ width: "190px" }}>
-      <Menu.Item key="addQuery" onClick={handleAddCondition}>
-        {i18n.formatMessage({ id: "log.ClickMenu.addCondition" })}
-      </Menu.Item>
-      <Menu.Item key="reduceQuery" onClick={handleOutCondition}>
-        {i18n.formatMessage({ id: "log.ClickMenu.excludeCondition" })}
-      </Menu.Item>
-      <Menu.Divider />
+      {!isHidden && (
+        <>
+          <Menu.Item key="addQuery" onClick={handleAddCondition}>
+            {i18n.formatMessage({ id: "log.ClickMenu.addCondition" })}
+          </Menu.Item>
+          <Menu.Item key="reduceQuery" onClick={handleOutCondition}>
+            {i18n.formatMessage({ id: "log.ClickMenu.excludeCondition" })}
+          </Menu.Item>
+          <Menu.Divider />
+        </>
+      )}
       <Menu.Item key="copyValue">
         <div onClick={handleCopyLog}>
           {i18n.formatMessage({ id: "log.ClickMenu.copyValues" })}

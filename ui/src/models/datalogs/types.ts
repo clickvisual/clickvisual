@@ -1,5 +1,6 @@
 import {
   HighChartsResponse,
+  IndexInfoType,
   LogsResponse,
   StatisticalTableResponse,
   TablesResponse,
@@ -34,6 +35,7 @@ export type PaneType = {
   histogramChecked: boolean;
   foldingChecked: boolean;
   mode?: number;
+  rawLogsIndexeList?: IndexInfoType[];
 };
 
 export enum hashType {

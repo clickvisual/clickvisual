@@ -174,7 +174,9 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       const isRawLog =
         (rawLogJson && rawLogKeys.includes(keyItem)) || keyItem === "_raw_log_";
 
-      const isNotTimeKey = !["_time_nanosecond_"].includes(keyItem);
+      const isNotTimeKey = !["_time_nanosecond_", "_time_second_"].includes(
+        keyItem
+      );
 
       let content = "";
       if (isIndexAndRawLogKey && !!parseJsonObject(rawLogJson[keyItem])) {

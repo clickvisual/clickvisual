@@ -412,7 +412,8 @@ export default {
   "datasource.draw.table.edit.tip": "Edit the database",
 
   "log.share": "Share",
-  "log.share.success": "The URL is pasted to the clipboard",
+  "log.share.success":
+    "The short link is generated successfully and is valid for 30 days",
   "log.share.error":
     "Share URL error, please try to share again, or refresh the page after operation",
 
