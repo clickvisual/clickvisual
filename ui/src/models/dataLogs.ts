@@ -388,7 +388,6 @@ const DataLogsModel = () => {
         return {
           logs: logsRes.data,
           highCharts: currentPane?.highCharts,
-          rawLogsIndexeList: rawLogsIndexeList,
         };
       }
     } else {
@@ -412,7 +411,6 @@ const DataLogsModel = () => {
         return {
           logs: logsRes.data,
           highCharts: highChartsRes?.data,
-          rawLogsIndexeList: rawLogsIndexeList,
         };
       }
     }

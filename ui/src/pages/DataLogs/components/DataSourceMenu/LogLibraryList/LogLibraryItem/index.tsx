@@ -77,21 +77,23 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     const paneId = logLibrary.id.toString();
     const tabPane = currentPanes[paneId];
     if (!tabPane) {
+      const pane: PaneType = {
+        ...DefaultPane,
+        pane: logLibrary.tableName,
+        paneId,
+        paneType: logLibrary.createType,
+        desc: logLibrary.desc,
+      };
+
+      addLogPane(paneId, pane);
       doGetAnalysisField.run(parseInt(paneId)).then((res: any) => {
         if (res.code != 0) return;
         onChangeRawLogsIndexeList(res.data?.keys);
-
-        const pane: PaneType = {
-          ...DefaultPane,
-          pane: logLibrary.tableName,
-          paneId,
-          paneType: logLibrary.createType,
-          desc: logLibrary.desc,
-          rawLogsIndexeList: res.data?.keys,
+        let newPane = {
+          ...pane,
+          rawLogsIndexeList: res.data.keys,
         };
-
-        addLogPane(paneId, pane);
-        onChangeCurrentLogPane(pane);
+        onChangeCurrentLogPane(newPane);
         doGetLogsAndHighCharts(logLibrary.id, {
           reqParams: {
             st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
@@ -103,16 +105,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         })
           .then((res) => {
             if (!res) {
-              resetLogPaneLogsAndHighCharts(pane);
+              resetLogPaneLogsAndHighCharts(newPane);
             } else {
-              pane.logs = res.logs;
-              pane.highCharts = res?.highCharts;
-              pane.logChart = { logs: [] };
-              pane.rawLogsIndexeList = res.rawLogsIndexeList;
-              onChangeLogPane(pane);
+              newPane.logs = res.logs;
+              newPane.highCharts = res?.highCharts;
+              newPane.logChart = { logs: [] };
+              onChangeLogPane(newPane);
             }
           })
-          .catch(() => resetLogPaneLogsAndHighCharts(pane));
+          .catch(() => resetLogPaneLogsAndHighCharts(newPane));
       });
     } else {
       onChangeLogPane(tabPane);

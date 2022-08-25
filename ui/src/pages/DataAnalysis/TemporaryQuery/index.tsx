@@ -147,7 +147,7 @@ const TemporaryQuery = () => {
                   >
                     <SQLTabPaneItem
                       id={parseInt(pane.key)}
-                      parentId={pane.parentId}
+                      parentId={pane.parentId || 0}
                       node={pane.node}
                       currentPaneActiveKey={currentPaneActiveKey}
                     />
