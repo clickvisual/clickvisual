@@ -14,7 +14,7 @@ This Helm chart is a lightweight way to configure and run clickvisual image
 - Clone repo:
 ```bash
 git clone https://github.com/clickvisual/clickvisual.git
-cd clickvisual && cp api/config/default.toml data/helm/clickvisual/default.toml
+cd clickvisual && cp config/default.toml data/helm/clickvisual/default.toml
 ```
 
 - [**suggested**] use helm install to install clickvisual directly
