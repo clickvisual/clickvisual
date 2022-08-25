@@ -8,7 +8,7 @@ import { useIntl } from "umi";
 import { IndexInfoType } from "@/services/dataLogs";
 
 type IndexListProps = {
-  list: IndexInfoType[];
+  list?: IndexInfoType[];
 };
 const IndexList = (props: IndexListProps) => {
   const [activeList, setActiveList] = useState<number[]>([]);
@@ -19,7 +19,7 @@ const IndexList = (props: IndexListProps) => {
   }, [list]);
   return (
     <div className={classNames(indexListStyles.indexListMain)}>
-      {list.length > 0 ? (
+      {list && list?.length > 0 ? (
         <ul>
           {list.map((index) => {
             const isActive = activeList.indexOf(index.id as number) > -1;

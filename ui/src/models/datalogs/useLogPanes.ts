@@ -24,6 +24,7 @@ export const DefaultPane = {
   logs: undefined,
   histogramChecked: true,
   foldingChecked: false,
+  rawLogsIndexeList: undefined,
 };
 
 const useLogPanes = () => {

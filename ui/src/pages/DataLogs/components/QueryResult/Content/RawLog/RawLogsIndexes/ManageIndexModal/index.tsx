@@ -24,6 +24,8 @@ const ManageIndexModal = () => {
     doGetLogsAndHighCharts,
     logPanesHelper,
     onChangeCurrentLogPane,
+    doGetAnalysisField,
+    onChangeRawLogsIndexeList,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
   const indexFormRef = useRef<FormInstance>(null);
@@ -52,12 +54,17 @@ const ManageIndexModal = () => {
       settingIndexes.run(currentLogLibrary.id, { data: params }).then((res) => {
         if (res?.code === 0) {
           cancel();
-          doGetLogsAndHighCharts(currentLogLibrary.id).then((res) => {
-            if (!res) return;
-            onChangeCurrentLogPane({
-              ...(oldPane as PaneType),
-              logs: res.logs,
-              highCharts: res.highCharts,
+          doGetAnalysisField.run(currentLogLibrary.id).then((resField: any) => {
+            if (resField.code != 0) return;
+            onChangeRawLogsIndexeList(resField.data?.keys);
+            doGetLogsAndHighCharts(currentLogLibrary.id).then((res) => {
+              if (!res) return;
+              onChangeCurrentLogPane({
+                ...(oldPane as PaneType),
+                logs: res.logs,
+                highCharts: res.highCharts,
+                rawLogsIndexeList: resField.data?.keys || [],
+              });
             });
           });
         }
@@ -83,6 +90,9 @@ const ManageIndexModal = () => {
             jsonIndex: [current],
             alias: "",
             rootName: "",
+            hashTyp: 0,
+            ctime: 0,
+            utime: 0,
           });
         }
 

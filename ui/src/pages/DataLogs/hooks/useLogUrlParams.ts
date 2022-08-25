@@ -13,8 +13,8 @@ import {
 } from "@/config/config";
 import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect, useMemo, useState } from "react";
-import { TableInfoResponse } from "@/services/dataLogs";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { IndexInfoType, TableInfoResponse } from "@/services/dataLogs";
 import { BaseRes } from "@/hooks/useRequest/useRequest";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
 import { PaneType } from "@/models/datalogs/types";
@@ -92,6 +92,10 @@ export default function useLogUrlParams() {
     onChangeLogPane,
     logPanesHelper,
     statisticalChartsHelper,
+    rawLogsIndexeList,
+    doGetAnalysisField,
+    onChangeRawLogsIndexeList,
+    onChangeCurrentLogPane,
   } = useModel("dataLogs");
   const {
     onChangeCurrentlyTableToIid,
@@ -103,12 +107,16 @@ export default function useLogUrlParams() {
   const { activeQueryType, chartSql } = statisticalChartsHelper;
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
     useLocalStorages();
+  const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
+    rawLogsIndexeList
+  );
 
   const isShare = useMemo(
     () => SharePath.includes(document.location.pathname),
     [document.location.pathname]
   );
 
+  rawLogsIndexeListRef.current = rawLogsIndexeList;
   const handleResponse = (
     res: BaseRes<TableInfoResponse>,
     tid: number,
@@ -153,26 +161,36 @@ export default function useLogUrlParams() {
       return;
     }
 
-    doGetLogsAndHighCharts(tid, {
-      reqParams: {
-        st: pane.start,
-        et: pane.end,
-        kw: pane.keyword,
-        page: pane.page,
-        pageSize: pane.pageSize,
-      },
-    })
-      .then((res) => {
-        if (!res) return;
-        pane.logs = {
-          ...res.logs,
-          query: res.logs.query,
-        };
-        pane.highCharts = res.highCharts;
-        pane.logChart = { logs: [] };
-        onChangeLogPane(pane);
+    doGetAnalysisField.run(tid).then((res: any) => {
+      if (res.code != 0) return;
+      onChangeRawLogsIndexeList(res.data?.keys);
+      onChangeCurrentLogPane({
+        ...(pane as PaneType),
+        rawLogsIndexeList: res.data?.keys,
+      });
+
+      doGetLogsAndHighCharts(tid, {
+        reqParams: {
+          st: pane.start,
+          et: pane.end,
+          kw: pane.keyword,
+          page: pane.page,
+          pageSize: pane.pageSize,
+        },
       })
-      .catch();
+        .then((res) => {
+          if (!res) return;
+          pane.logs = {
+            ...res.logs,
+            query: res.logs.query,
+          };
+          pane.highCharts = res.highCharts;
+          pane.logChart = { logs: [] };
+          pane.rawLogsIndexeList = rawLogsIndexeListRef.current;
+          onChangeLogPane(pane);
+        })
+        .catch();
+    });
   };
 
   const doSetUrlQuery = (tid: number) => {

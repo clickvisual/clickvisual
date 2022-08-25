@@ -28,11 +28,9 @@ const RawLogContent = (props: { tid: string }) => {
 
   const i18n = useIntl();
 
-  console.log(lastLoadingTid, tid);
-
   return (
     <div className={queryResultStyles.content}>
-      <RawLogsIndexes tid={currentLogLibrary?.id} />
+      <RawLogsIndexes oldPane={oldPane} />
       <div className={queryResultStyles.queryDetail}>
         {oldPane?.histogramChecked && (
           <Spin

@@ -4,6 +4,7 @@ import { message } from "antd";
 import api, {
   DatabaseResponse,
   HighCharts,
+  IndexInfoType,
   LogsResponse,
   TablesResponse,
 } from "@/services/dataLogs";
@@ -60,6 +61,8 @@ const DataLogsModel = () => {
   const [highlightKeywords, setHighlightKeywords] = useState<
     { key: string; value: string }[] | undefined
   >();
+  // 日志索引
+  const [rawLogsIndexeList, setRawLogsIndexeList] = useState<IndexInfoType[]>();
   // 数据库列表
   const [databaseList, setDataBaseList] = useState<DatabaseResponse[]>([]);
   // 从数据库列表选择
@@ -203,6 +206,10 @@ const DataLogsModel = () => {
     setLastLoadingTid(tid);
   };
 
+  const onChangeRawLogsIndexeList = (list?: IndexInfoType[]) => {
+    setRawLogsIndexeList(list);
+  };
+
   const onChangeLogPane = (tabPane: PaneType) => {
     onChangeLogLibrary({
       id: parseInt(tabPane.paneId),
@@ -224,6 +231,7 @@ const DataLogsModel = () => {
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
     setLogs(tabPane.logs);
+    onChangeRawLogsIndexeList(tabPane?.rawLogsIndexeList);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
     setLogCount(tabPane?.highCharts?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
@@ -380,6 +388,7 @@ const DataLogsModel = () => {
         return {
           logs: logsRes.data,
           highCharts: currentPane?.highCharts,
+          rawLogsIndexeList: rawLogsIndexeList,
         };
       }
     } else {
@@ -403,6 +412,7 @@ const DataLogsModel = () => {
         return {
           logs: logsRes.data,
           highCharts: highChartsRes?.data,
+          rawLogsIndexeList: rawLogsIndexeList,
         };
       }
     }
@@ -479,6 +489,7 @@ const DataLogsModel = () => {
         } else {
           newPane.logs = res.logs;
           newPane.highCharts = res.highCharts;
+          newPane.rawLogsIndexeList = rawLogsIndexeList;
           if (res.logs.query !== pane.querySql) {
             newPane.logChart = { logs: [] };
           }
@@ -659,11 +670,13 @@ const DataLogsModel = () => {
     isModifyLog,
     doGetViewInfo,
     lastLoadingTid,
+    rawLogsIndexeList,
     onChangeViewIsEdit,
     onChangeViewVisibleModal,
     onChangeViewsVisibleDraw,
     onChangeIsModifyLog,
     onChangeLastLoadingTid,
+    onChangeRawLogsIndexeList,
 
     foldingState,
     onChangeFoldingState,

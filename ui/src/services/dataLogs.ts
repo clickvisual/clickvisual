@@ -177,6 +177,9 @@ export interface IndexInfoType {
   typ: number;
   rootName: string;
   jsonIndex: IndexInfoType[];
+  hashTyp: number;
+  ctime: number;
+  utime: number;
 }
 
 export interface IndexRequest {
