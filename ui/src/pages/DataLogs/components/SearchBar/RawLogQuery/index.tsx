@@ -31,6 +31,7 @@ const RawLogQuery = () => {
     activeTabKey,
     currentRelativeAmount,
     currentRelativeUnit,
+    doGetAnalysisField,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -87,7 +88,11 @@ const RawLogQuery = () => {
             if (res.logs.query !== pane.querySql) {
               pane.logChart = { logs: [] };
             }
-            onChangeCurrentLogPane(pane);
+            doGetAnalysisField.run(currentLogLibrary?.id).then((res: any) => {
+              if (res.code != 0) return;
+              (pane.rawLogsIndexeList = res.data.keys),
+                onChangeCurrentLogPane(pane);
+            });
           }
         }
       );
