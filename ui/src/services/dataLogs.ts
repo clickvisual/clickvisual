@@ -491,4 +491,12 @@ export default {
       process.env.PUBLIC_PATH + `api/v2/storage/${tid}/analysis-fields`
     );
   },
+
+  // 创建短链接
+  async getShorturls(data: { originUrl: string }) {
+    return request(process.env.PUBLIC_PATH + `api/v2/base/shorturls`, {
+      method: "POST",
+      data,
+    });
+  },
 };

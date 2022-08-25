@@ -387,7 +387,7 @@ export default {
   "datasource.draw.table.edit.tip": "编辑数据库",
 
   "log.share": "分享",
-  "log.share.success": "URL 已粘贴至剪切板",
+  "log.share.success": "短链接生成成功，有效期30天",
   "log.share.error": "分享 URL 出错啦，请尝试重新分享，或者刷新页面后操作",
 
   // log nva
