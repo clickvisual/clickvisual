@@ -13,6 +13,7 @@ type QueryAssembly struct {
 }
 
 type Params struct {
+	TableCreateType  int
 	Cluster          string
 	ReplicaStatus    int
 	KafkaJsonMapping string

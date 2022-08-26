@@ -4,9 +4,19 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 )
 
-func BuilderFieldsData(mapping string) string {
+func BuilderFieldsData(tableCreateType int, mapping string) string {
+	if tableCreateType == constx.TableCreateTypeUBW {
+		return fmt.Sprintf(`(
+  _time_second_ DateTime,
+  _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
+  _raw_log_ String CODEC(ZSTD(1)),
+  INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
+)
+`)
+	}
 	if mapping == "" {
 		mapping = `_source_ String,
   _cluster_ String,
@@ -27,7 +37,13 @@ func BuilderFieldsData(mapping string) string {
 `, mapping)
 }
 
-func BuilderFieldsStream(mapping, timeField, timeTyp, logField string) string {
+func BuilderFieldsStream(tableCreateType int, mapping, timeField, timeTyp, logField string) string {
+	if tableCreateType == constx.TableCreateTypeUBW {
+		return fmt.Sprintf(`(
+  body String
+)
+`)
+	}
 	if timeField == "" {
 		timeField = "_time_"
 	}
@@ -52,7 +68,14 @@ func BuilderFieldsStream(mapping, timeField, timeTyp, logField string) string {
 `, mapping, timeField, timeTyp, logField)
 }
 
-func BuilderFieldsView(mapping, logField string, paramsView bumo.ParamsView) string {
+func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView bumo.ParamsView) string {
+	if tableCreateType == constx.TableCreateTypeUBW {
+		return fmt.Sprintf(`SELECT
+  %s,
+  body AS _raw_log_%s
+FROM %s
+`, paramsView.TimeConvert, paramsView.CommonFields, paramsView.SourceTable)
+	}
 	if logField == "" {
 		logField = "_log_"
 	}
@@ -73,23 +96,6 @@ func BuilderFieldsView(mapping, logField string, paramsView bumo.ParamsView) str
 FROM %s
 `,
 		mapping, paramsView.TimeConvert, logField, paramsView.CommonFields, paramsView.SourceTable)
-}
-
-func BuilderViewAlarmAggregationSelect(params bumo.Params) string {
-	return fmt.Sprintf(`SELECT
-  toDate(now()) as date,
-  '%s' as name,
-  array(%s) as tags,
-  toFloat64(val) as val,
-  now() as ts,
-  toDateTime(now()) as updated
-FROM (
-  %s
-)
-`,
-		bumo.PrometheusMetricName,
-		params.View.CommonFields,
-		params.View.WithSQL)
 }
 
 func BuilderViewAlarmAggregationWith(params bumo.Params) string {
@@ -116,7 +122,12 @@ FROM %s
 		params.View.SourceTable)
 }
 
-func BuilderEngineStream(stream bumo.ParamsStream) string {
+func BuilderEngineStream(tableCreateType int, stream bumo.ParamsStream) string {
+	kafkaFormat := "JSONEachRow"
+	if tableCreateType == constx.TableCreateTypeUBW {
+		kafkaFormat = "JSONAsString"
+
+	}
 	consumerNum := 1
 	if stream.ConsumerNum != 0 {
 		consumerNum = stream.ConsumerNum
@@ -124,14 +135,14 @@ func BuilderEngineStream(stream bumo.ParamsStream) string {
 	return fmt.Sprintf(`ENGINE = Kafka SETTINGS kafka_broker_list = '%s', 
 kafka_topic_list = '%s', 
 kafka_group_name = '%s', 
-kafka_format = 'JSONEachRow', 
+kafka_format = '%s', 
 kafka_num_consumers = %d,
 kafka_skip_broken_messages = %d
 `,
 		stream.Brokers,
 		stream.Topic,
 		stream.Group,
+		kafkaFormat,
 		consumerNum,
 		stream.KafkaSkipBrokenMessages)
-
 }

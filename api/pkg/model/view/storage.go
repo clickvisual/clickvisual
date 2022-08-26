@@ -27,6 +27,19 @@ type ReqStorageCreate struct {
 	SourceMapping MappingStruct `form:"-"`
 }
 
+type ReqStorageCreateV3 struct {
+	TableName               string `form:"tableName" binding:"required"`
+	Days                    int    `form:"days" binding:"required"`
+	Brokers                 string `form:"brokers" binding:"required"`
+	Topics                  string `form:"topics" binding:"required"`
+	Consumers               int    `form:"consumers" binding:"required"`
+	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
+	Desc                    string `form:"desc"`
+	DatabaseId              int    `form:"databaseId" binding:"required"`
+	TimeField               string `form:"timeField" binding:"required"`
+	TimeFieldType           int    `form:"timeFieldType" binding:"required"` // 1 string 2 float
+}
+
 func (r *ReqStorageCreate) GetRawLogField() string {
 	if r.RawLogField != "" {
 		return r.RawLogField

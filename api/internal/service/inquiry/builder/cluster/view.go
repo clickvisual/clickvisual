@@ -52,7 +52,7 @@ FROM %s
 	case bumo.ViewTypePrometheusMetricAggregation:
 		b.QueryAssembly.Result += common.BuilderViewAlarmAggregationWith(b.QueryAssembly.Params)
 	default:
-		b.QueryAssembly.Result += common.BuilderFieldsView(b.QueryAssembly.Params.KafkaJsonMapping,
+		b.QueryAssembly.Result += common.BuilderFieldsView(b.QueryAssembly.Params.TableCreateType, b.QueryAssembly.Params.KafkaJsonMapping,
 			b.QueryAssembly.Params.LogField,
 			b.QueryAssembly.Params.View)
 	}

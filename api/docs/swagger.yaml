@@ -780,4 +780,59 @@ paths:
       summary: Kafka JSON field mapping
       tags:
       - storage
+  /api/v3/storage:
+    post:
+      consumes:
+      - application/json
+      description: Creating a no format restrictions log library
+      parameters:
+      - in: query
+        name: brokers
+        required: true
+        type: string
+      - in: query
+        name: consumers
+        required: true
+        type: integer
+      - in: query
+        name: databaseId
+        required: true
+        type: integer
+      - in: query
+        name: days
+        required: true
+        type: integer
+      - in: query
+        name: desc
+        type: string
+      - in: query
+        name: kafkaSkipBrokenMessages
+        type: integer
+      - in: query
+        name: tableName
+        required: true
+        type: string
+      - in: query
+        name: timeField
+        required: true
+        type: string
+      - description: 1 string 2 float
+        in: query
+        name: timeFieldType
+        required: true
+        type: integer
+      - in: query
+        name: topics
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Creating a no format restrictions log library
+      tags:
+      - storage
 swagger: "2.0"

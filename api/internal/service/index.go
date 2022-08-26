@@ -11,6 +11,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -116,7 +117,10 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 	}
 	invoker.Logger.Debug("IndexUpdate", elog.Any("newList", newList))
 	// err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
-	err = op.IndexUpdate(databaseInfo, tableInfo, filterSystemField(adds, req.Tid), filterSystemField(dels, req.Tid), filterSystemField(newList, req.Tid))
+	err = op.IndexUpdate(databaseInfo, tableInfo,
+		filterSystemField(tableInfo.CreateType, adds, req.Tid),
+		filterSystemField(tableInfo.CreateType, dels, req.Tid),
+		filterSystemField(tableInfo.CreateType, newList, req.Tid))
 	if err != nil {
 		tx.Rollback()
 		return
@@ -129,9 +133,14 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 	return
 }
 
-func filterSystemField(input map[string]*db.BaseIndex, tid int) (out map[string]*db.BaseIndex) {
+func filterSystemField(createType int, input map[string]*db.BaseIndex, tid int) (out map[string]*db.BaseIndex) {
 	out = make(map[string]*db.BaseIndex)
-	ifm := innerFieldMap(tid)
+	var ifm map[string]interface{}
+	if createType == constx.TableCreateTypeUBW {
+		ifm = constx.DefaultFields
+	} else {
+		ifm = innerFieldMap(tid)
+	}
 	for key, val := range input {
 		if _, ok := ifm[val.Field]; ok {
 			continue

@@ -16,10 +16,10 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
@@ -270,7 +270,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
 		return
 	}
-	if tableInfo.CreateType == inquiry.TableCreateTypeCV {
+	if tableInfo.CreateType == constx.TableCreateTypeCV {
 		table := tableInfo.Name
 		iid := tableInfo.Database.Iid
 		database := tableInfo.Database.Name
@@ -311,9 +311,8 @@ func TableLogs(c *core.Context) {
 	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "params"), elog.Any("cost", time.Since(t)))
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
-	if tableInfo.TimeField == "" {
-		param.TimeField = db.TimeFieldSecond
-	} else {
+	param.TimeField = db.TimeFieldSecond
+	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
 	param.Tid = tableInfo.ID
@@ -324,7 +323,6 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -424,10 +422,8 @@ func TableCharts(c *core.Context) {
 		return
 	}
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
-	// default time field
-	if tableInfo.TimeField == "" {
-		param.TimeField = db.TimeFieldSecond
-	} else {
+	param.TimeField = db.TimeFieldSecond
+	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
 	param.Tid = tableInfo.ID
@@ -569,9 +565,8 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	if tableInfo.TimeField == "" {
-		param.TimeField = db.TimeFieldSecond
-	} else {
+	param.TimeField = db.TimeFieldSecond
+	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
 	param.Table = tableInfo.Name
@@ -731,7 +726,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		Did:           databaseInfo.ID,
 		Name:          param.TableName,
 		Uid:           uid,
-		CreateType:    inquiry.TableCreateTypeExist,
+		CreateType:    constx.TableCreateTypeExist,
 		TimeField:     param.TimeField,
 		TimeFieldType: param.TimeFieldType,
 		Desc:          param.Desc,

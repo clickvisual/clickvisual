@@ -287,7 +287,7 @@ func TableCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqTableCreat
 		SqlView:                 v,
 		SqlDistributed:          a,
 		TimeField:               db.TimeFieldSecond,
-		CreateType:              inquiry.TableCreateTypeCV,
+		CreateType:              constx.TableCreateTypeCV,
 		Uid:                     uid,
 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
 	}

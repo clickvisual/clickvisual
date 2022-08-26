@@ -34,7 +34,7 @@ func (b *DataBuilder) BuilderFields() {
 	switch b.QueryAssembly.Params.Data.DataType {
 	case bumo.DataTypeDistributed:
 	default:
-		b.QueryAssembly.Result += common.BuilderFieldsData(b.QueryAssembly.Params.KafkaJsonMapping)
+		b.QueryAssembly.Result += common.BuilderFieldsData(b.QueryAssembly.Params.TableCreateType, b.QueryAssembly.Params.KafkaJsonMapping)
 	}
 }
 

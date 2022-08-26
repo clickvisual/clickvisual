@@ -31,13 +31,9 @@ type Operator interface {
 	AlterMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
 	ReCreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)
 	IndexUpdate(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error // Data table index operation
-}
 
-const (
-	TableCreateTypeCV      = 0
-	TableCreateTypeExist   = 1
-	TableCreateTypeAnyJSON = 2
-)
+	StorageCreateV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
+}
 
 const (
 	TableTypeString = 1

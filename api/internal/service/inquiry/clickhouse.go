@@ -32,6 +32,13 @@ const (
 	defaultCondition = "1='1'"
 )
 
+const (
+	defaultStringTimeParseV3 = `parseDateTimeBestEffort(JSONExtractString(%s, '%s')) AS _time_second_,
+  toDateTime64(parseDateTimeBestEffort(JSONExtractString(%s, '%s')), 9, 'Asia/Shanghai') AS _time_nanosecond_`
+	defaultFloatTimeParseV3 = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_,
+  fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
+)
+
 // time_field 高精度数据解析选择
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_, 
   fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
@@ -439,6 +446,9 @@ func (c *ClickHouse) storageViewOperator(typ, tid int, did int, table, customTim
 func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
 	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+	if tableInfo.CreateType == constx.TableCreateTypeUBW {
+		return c.storageViewOperatorV3(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, tableInfo.TimeField)
+	}
 	rsc := view.ReqStorageCreate{}
 	if tableInfo.AnyJSON != "" {
 		rsc = view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
@@ -1100,7 +1110,7 @@ func adaSelectPart(in string) (out string) {
 
 func genSelectFields(tid int) string {
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	if tableInfo.CreateType == 0 {
+	if tableInfo.CreateType == constx.TableCreateTypeCV {
 		if tableInfo.SelectFields != "" {
 			return tableInfo.SelectFields
 		}
@@ -1183,7 +1193,7 @@ func queryTransformHash(params view.ReqQuery) string {
 
 func likeTransform(createType int, rawLogField, query string) string {
 	field := "_raw_log_"
-	if createType == TableCreateTypeExist {
+	if createType == constx.TableCreateTypeExist && rawLogField != "" {
 		field = rawLogField
 	}
 	query = strings.ReplaceAll(query, "'", "")

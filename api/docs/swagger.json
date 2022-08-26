@@ -685,6 +685,90 @@
                     }
                 }
             }
+        },
+        "/api/v3/storage": {
+            "post": {
+                "description": "Creating a no format restrictions log library",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Creating a no format restrictions log library",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "brokers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "consumers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "databaseId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "days",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "desc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "kafkaSkipBrokenMessages",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "tableName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "timeField",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1 string 2 float",
+                        "name": "timeFieldType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "topics",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

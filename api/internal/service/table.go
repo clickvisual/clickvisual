@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -73,12 +73,47 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		SqlStream:               s,
 		SqlView:                 v,
 		SqlDistributed:          a,
-		CreateType:              inquiry.TableCreateTypeAnyJSON,
+		CreateType:              constx.TableCreateTypeAnyJSON,
 		Uid:                     uid,
 		RawLogField:             param.RawLogField,
 		TimeField:               db.TimeFieldSecond,
 		SelectFields:            param.SelectFields(),
 		AnyJSON:                 param.JSON(),
+		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
+	}
+	err = db.TableCreate(invoker.Db, &tableInfo)
+	if err != nil {
+		err = errors.Wrap(err, "create failed 02:")
+		return
+	}
+	return tableInfo, nil
+}
+
+func StorageCreateV3(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreateV3) (tableInfo db.BaseTable, err error) {
+	op, err := InstanceManager.Load(databaseInfo.Iid)
+	if err != nil {
+		return
+	}
+	s, d, v, a, err := op.StorageCreateV3(databaseInfo.ID, databaseInfo, param)
+	if err != nil {
+		err = errors.Wrap(err, "create failed 01:")
+		return
+	}
+	tableInfo = db.BaseTable{
+		Did:                     databaseInfo.ID,
+		Name:                    param.TableName,
+		Typ:                     param.TimeFieldType,
+		Days:                    param.Days,
+		Brokers:                 param.Brokers,
+		Topic:                   param.Topics,
+		Desc:                    param.Desc,
+		SqlData:                 d,
+		SqlStream:               s,
+		SqlView:                 v,
+		SqlDistributed:          a,
+		CreateType:              constx.TableCreateTypeUBW,
+		Uid:                     uid,
+		TimeField:               param.TimeField,
 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
 	}
 	err = db.TableCreate(invoker.Db, &tableInfo)
