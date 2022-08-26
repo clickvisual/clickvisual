@@ -19,8 +19,6 @@ const UrlShareButton = (props: { style?: any; text?: string }) => {
         .run({ originUrl: window.location.href })
         .then((res: any) => {
           if (res.code != 0) return;
-          console.log(res.data);
-
           message.success(i18n.formatMessage({ id: "log.share.success" }));
           copy(res.data);
         });

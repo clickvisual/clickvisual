@@ -99,7 +99,7 @@ const IndexItem = ({
                 <Form.Item noStyle name={[indexField.name, "typ"]}>
                   <Select
                     style={{ width: "100%" }}
-                    onSelect={(value) => {
+                    onSelect={(value: number) => {
                       setFields([
                         {
                           name: ["data", indexField.name, "hashTyp"],
