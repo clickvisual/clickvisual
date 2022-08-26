@@ -131,7 +131,6 @@ const HiddenFieldModal = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       <div style={{ height: 40 }}>
         <Button
           type={"primary"}
-          disabled={!hasSelected}
           onClick={handleSave}
           loading={updateFields.loading}
         >
