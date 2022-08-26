@@ -23,13 +23,13 @@ import lodash from "lodash";
 import moment from "moment";
 import {currentTimeStamp} from "@/utils/momentUtils";
 import deletedModal from "@/components/DeletedModal";
-import {TablesResponse} from "@/services/dataLogs";
+import {IndexInfoType, TablesResponse} from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 import {DefaultPane} from "@/models/datalogs/useLogPanes";
 import {RestUrlStates} from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
 import {PaneType} from "@/models/datalogs/types";
-import {useMemo} from "react";
+import {useEffect, useMemo, useRef} from "react";
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;
@@ -39,7 +39,7 @@ type LogLibraryItemProps = {
 const LogLibraryItem = (props: LogLibraryItemProps) => {
   const { logLibrary, onGetList } = props;
   const [, setUrlState] = useUrlState();
-  const { resizeMenuWidth } = useModel("dataLogs");
+  const { resizeMenuWidth, rawLogsIndexeList } = useModel("dataLogs");
   const {
     doDeletedLogLibrary,
     doGetLogLibrary,
@@ -57,8 +57,17 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeIsModifyLog,
     onChangeCurrentEditLogLibrary,
     onChangeLastLoadingTid,
+    doGetAnalysisField,
+    onChangeRawLogsIndexeList,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
+  const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
+    rawLogsIndexeList
+  );
+
+  useEffect(() => {
+    rawLogsIndexeListRef.current = rawLogsIndexeList;
+  }, [rawLogsIndexeList]);
 
   const i18n = useIntl();
   const { handleChangeRelativeAmountAndUnit } = useTimeOptions();
@@ -75,28 +84,37 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         paneType: logLibrary.createType,
         desc: logLibrary.desc,
       };
+
       addLogPane(paneId, pane);
-      onChangeCurrentLogPane(pane);
-      doGetLogsAndHighCharts(logLibrary.id, {
-        reqParams: {
-          st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-          et: currentTimeStamp(),
-          page: FIRST_PAGE,
-          pageSize: PAGE_SIZE,
-          kw: "",
-        },
-      })
-        .then((res) => {
-          if (!res) {
-            resetLogPaneLogsAndHighCharts(pane);
-          } else {
-            pane.logs = res.logs;
-            pane.highCharts = res?.highCharts;
-            pane.logChart = { logs: [] };
-            onChangeLogPane(pane);
-          }
+      doGetAnalysisField.run(parseInt(paneId)).then((res: any) => {
+        if (res.code != 0) return;
+        onChangeRawLogsIndexeList(res.data?.keys);
+        let newPane = {
+          ...pane,
+          rawLogsIndexeList: res.data.keys,
+        };
+        onChangeCurrentLogPane(newPane);
+        doGetLogsAndHighCharts(logLibrary.id, {
+          reqParams: {
+            st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+            et: currentTimeStamp(),
+            page: FIRST_PAGE,
+            pageSize: PAGE_SIZE,
+            kw: "",
+          },
         })
-        .catch(() => resetLogPaneLogsAndHighCharts(pane));
+          .then((res) => {
+            if (!res) {
+              resetLogPaneLogsAndHighCharts(newPane);
+            } else {
+              newPane.logs = res.logs;
+              newPane.highCharts = res?.highCharts;
+              newPane.logChart = { logs: [] };
+              onChangeLogPane(newPane);
+            }
+          })
+          .catch(() => resetLogPaneLogsAndHighCharts(newPane));
+      });
     } else {
       onChangeLogPane(tabPane);
       handleChangeRelativeAmountAndUnit(tabPane);

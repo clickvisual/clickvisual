@@ -1,14 +1,14 @@
 import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
 import FolderTree from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree";
-import { Empty, Spin, Tabs } from "antd";
-import { useEffect, useMemo } from "react";
+import {Empty, Spin, Tabs} from "antd";
+import {useEffect, useMemo} from "react";
 import SQLTabPaneItem from "./components/SQLTabPaneItem";
-import { useIntl, useModel } from "umi";
-import { cloneDeep } from "lodash";
-import { PaneItemType } from "@/models/dataanalysis/useFilePane";
+import {useIntl, useModel} from "umi";
+import {cloneDeep} from "lodash";
+import {PaneItemType} from "@/models/dataanalysis/useFilePane";
 import Luckysheet from "@/components/Luckysheet";
 import useUrlState from "@ahooksjs/use-url-state";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useLocalStorages, {LocalModuleType} from "@/hooks/useLocalStorages";
 
 const { TabPane } = Tabs;
 
@@ -147,7 +147,7 @@ const TemporaryQuery = () => {
                   >
                     <SQLTabPaneItem
                       id={parseInt(pane.key)}
-                      parentId={pane.parentId}
+                      parentId={pane.parentId || 0}
                       node={pane.node}
                       currentPaneActiveKey={currentPaneActiveKey}
                     />

@@ -1,16 +1,16 @@
-import { Button, Input, Tooltip } from "antd";
+import {Button, Input, Tooltip} from "antd";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
-import { PaneType, QueryParams } from "@/models/datalogs/types";
+import {PaneType, QueryParams} from "@/models/datalogs/types";
 import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
 import IconFont from "@/components/IconFont";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import { useDebounce, useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
-import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
-import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect, useMemo, useState } from "react";
+import {useModel} from "@@/plugin-model/useModel";
+import {useIntl} from "umi";
+import {useDebounce, useDebounceFn} from "ahooks";
+import {DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType} from "@/config/config";
+import moment, {DurationInputArg1, DurationInputArg2} from "moment";
+import {currentTimeStamp} from "@/utils/momentUtils";
+import {useEffect, useMemo, useState} from "react";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
 
@@ -31,6 +31,7 @@ const RawLogQuery = () => {
     activeTabKey,
     currentRelativeAmount,
     currentRelativeUnit,
+    doGetAnalysisField,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -87,7 +88,11 @@ const RawLogQuery = () => {
             if (res.logs.query !== pane.querySql) {
               pane.logChart = { logs: [] };
             }
-            onChangeCurrentLogPane(pane);
+            doGetAnalysisField.run(currentLogLibrary?.id).then((res: any) => {
+              if (res.code != 0) return;
+              (pane.rawLogsIndexeList = res.data.keys),
+                onChangeCurrentLogPane(pane);
+            });
           }
         }
       );

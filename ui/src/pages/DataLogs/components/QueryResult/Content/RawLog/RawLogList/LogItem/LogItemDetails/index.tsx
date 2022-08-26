@@ -1,10 +1,10 @@
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import { useMemo } from "react";
-import { useModel } from "@@/plugin-model/useModel";
+import {useMemo} from "react";
+import {useModel} from "@@/plugin-model/useModel";
 import classNames from "classnames";
-import { parseJsonObject } from "@/utils/string";
+import {parseJsonObject} from "@/utils/string";
 import lodash from "lodash";
-import { REG_SEPARATORS } from "@/components/JsonView/JsonStringValue";
+import {REG_SEPARATORS} from "@/components/JsonView/JsonStringValue";
 import LogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContent";
 
 interface LogItemDetailsProps {
@@ -174,7 +174,9 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       const isRawLog =
         (rawLogJson && rawLogKeys.includes(keyItem)) || keyItem === "_raw_log_";
 
-      const isNotTimeKey = !["_time_nanosecond_"].includes(keyItem);
+      const isNotTimeKey = !["_time_nanosecond_", "_time_second_"].includes(
+        keyItem
+      );
 
       let content = "";
       if (isIndexAndRawLogKey && !!parseJsonObject(rawLogJson[keyItem])) {

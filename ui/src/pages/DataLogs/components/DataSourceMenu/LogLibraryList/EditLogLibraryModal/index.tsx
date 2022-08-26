@@ -1,20 +1,10 @@
-import {
-  Form,
-  FormInstance,
-  Input,
-  InputNumber,
-  message,
-  Modal,
-  Select,
-  Spin,
-} from "antd";
-import { useEffect, useMemo, useRef } from "react";
-import { useModel, useIntl } from "umi";
+import {Form, FormInstance, Input, InputNumber, message, Modal, Spin,} from "antd";
+import {useEffect, useMemo, useRef} from "react";
+import {useIntl, useModel} from "umi";
 import style from "./index.less";
 
 const EditLogLibraryModal = (props: { onGetList: any }) => {
   const { onGetList } = props;
-  const { Option } = Select;
   const i18n = useIntl();
   const {
     isModifyLog,
@@ -154,24 +144,13 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
             label="SkipBrokenMessages"
             name={"kafkaSkipBrokenMessages"}
           >
-            <Select
+            <InputNumber
               disabled={!isCVCreate}
               placeholder={i18n.formatMessage(
-                { id: "select.placeholder" },
+                { id: "input.placeholder" },
                 { name: "SkipBrokenMessages" }
               )}
-            >
-              <Option value={1}>
-                {i18n.formatMessage({
-                  id: "alarm.rules.history.isPushed.true",
-                })}
-              </Option>
-              <Option value={0}>
-                {i18n.formatMessage({
-                  id: "alarm.rules.history.isPushed.false",
-                })}
-              </Option>
-            </Select>
+            />
           </Form.Item>
           <Form.Item
             label={i18n.formatMessage({

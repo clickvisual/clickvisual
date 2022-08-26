@@ -1,22 +1,13 @@
-import { Button, message } from "antd";
+import {Button} from "antd";
 import IconFont from "@/components/IconFont";
-import { PaneType } from "@/models/datalogs/types";
-import { useIntl } from "umi";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo } from "react";
-import { QueryTypeEnum } from "@/config/config";
+import {PaneType} from "@/models/datalogs/types";
+import {useModel} from "@@/plugin-model/useModel";
+import {useEffect, useMemo} from "react";
+import {QueryTypeEnum} from "@/config/config";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
-import copy from "copy-to-clipboard";
 import useUrlState from "@ahooksjs/use-url-state";
-import { ShareAltOutlined } from "@ant-design/icons";
 
-const OtherSearchBar = ({
-  isShare,
-  isShowSwitch,
-}: {
-  isShare: boolean;
-  isShowSwitch: boolean;
-}) => {
+const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
   const [usrState] = useUrlState<any>();
   const {
     statisticalChartsHelper,
@@ -31,8 +22,6 @@ const OtherSearchBar = ({
     if (!currentLogLibrary?.id) return;
     return logPanes[currentLogLibrary?.id.toString()];
   }, [currentLogLibrary?.id, logPanes]);
-
-  const i18n = useIntl();
 
   const handleClick = () => {
     const queryType =

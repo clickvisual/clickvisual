@@ -1,14 +1,14 @@
 import queryResultStyles from "@/pages/DataLogs/components/QueryResult/index.less";
 import SearchBar from "@/pages/DataLogs/components/SearchBar";
-import { useModel } from "@@/plugin-model/useModel";
+import {useModel} from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import OtherSearchBar from "@/pages/DataLogs/components/OtherSearchBar";
-import { useEffect, useMemo } from "react";
-import { QueryTypeEnum } from "@/config/config";
+import {useEffect, useMemo} from "react";
+import {QueryTypeEnum} from "@/config/config";
 import RawLogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog";
 import StatisticalTableContent from "@/pages/DataLogs/components/QueryResult/Content/StatisticalTable";
 import useUrlState from "@ahooksjs/use-url-state";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useLocalStorages, {LocalModuleType} from "@/hooks/useLocalStorages";
 
 const SharePath = [
   process.env.PUBLIC_PATH + "share",
@@ -61,7 +61,6 @@ const QueryResult = (props: { tid: string }) => {
       <div className={queryResultStyles.header}>
         <SearchBar />
         <OtherSearchBar
-          isShare={isShare}
           isShowSwitch={!(usrState?.mode && usrState?.mode == 0)}
         />
       </div>

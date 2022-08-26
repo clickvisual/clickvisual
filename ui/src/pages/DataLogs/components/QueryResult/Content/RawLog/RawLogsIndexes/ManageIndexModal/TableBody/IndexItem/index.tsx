@@ -1,13 +1,17 @@
 import classNames from "classnames";
-import mangeIndexModalStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/index.less";
-import { Button, Form, FormInstance, Input, Select } from "antd";
-import { IndexInfoType } from "@/services/dataLogs";
-import { CloseOutlined } from "@ant-design/icons";
-import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
-import { useIntl } from "umi";
-import Index from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody/JsonIndexItem";
-import { hashType } from "@/models/datalogs/types";
-import { ColSpan } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableFooter";
+import mangeIndexModalStyles
+    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/index.less";
+import {Button, Form, FormInstance, Input, Select} from "antd";
+import {IndexInfoType} from "@/services/dataLogs";
+import {CloseOutlined} from "@ant-design/icons";
+import {FormListFieldData, FormListOperation} from "antd/es/form/FormList";
+import {useIntl} from "umi";
+import Index
+    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody/JsonIndexItem";
+import {hashType} from "@/models/datalogs/types";
+import {
+    ColSpan
+} from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableFooter";
 
 const { Option } = Select;
 
@@ -99,7 +103,7 @@ const IndexItem = ({
                 <Form.Item noStyle name={[indexField.name, "typ"]}>
                   <Select
                     style={{ width: "100%" }}
-                    onSelect={(value) => {
+                    onSelect={(value: number) => {
                       setFields([
                         {
                           name: ["data", indexField.name, "hashTyp"],
