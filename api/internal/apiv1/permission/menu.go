@@ -1,9 +1,13 @@
 package permission
 
 import (
+	"github.com/ego-component/egorm"
+
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func MenuList(c *core.Context) {
@@ -11,6 +15,31 @@ func MenuList(c *core.Context) {
 		c.JSONOK(service.Permission.AdminMenuList())
 		return
 	}
-	c.JSONOK(service.Permission.UserMenuList())
+	res := make([]permission.MenuTreeItem, 0)
+	ins, _ := db.InstanceList(egorm.Conds{})
+	logFlag, alarmFlag, pandasFlag := false, false, false
+	for _, row := range ins {
+		if !logFlag && service.InstanceViewPmsWithSubResource(c.Uid(), row.ID, pmsplugin.Log) {
+			logFlag = true
+		}
+		if !alarmFlag && service.InstanceViewPmsWithSubResource(c.Uid(), row.ID, pmsplugin.Alarm) {
+			alarmFlag = true
+		}
+		if !pandasFlag && service.InstanceViewPmsWithSubResource(c.Uid(), row.ID, pmsplugin.Pandas) {
+			pandasFlag = true
+		}
+	}
+	for _, p := range service.Permission.AdminMenuList() {
+		if logFlag && p.Name == "log" {
+			res = append(res, p)
+		}
+		if alarmFlag && p.Name == "alarm" {
+			res = append(res, p)
+		}
+		if pandasFlag && p.Name == "bigdata" {
+			res = append(res, p)
+		}
+	}
+	c.JSONOK(res)
 	return
 }

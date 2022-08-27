@@ -122,15 +122,15 @@ func ReadAllPermissionTable(uid int, subResource string) []int {
 }
 
 func InstanceViewIsPermission(uid, iid int) bool {
-	if instanceViewIsPermission(uid, iid, pmsplugin.Log) ||
-		instanceViewIsPermission(uid, iid, pmsplugin.Alarm) ||
-		instanceViewIsPermission(uid, iid, pmsplugin.Pandas) {
+	if InstanceViewPmsWithSubResource(uid, iid, pmsplugin.Log) ||
+		InstanceViewPmsWithSubResource(uid, iid, pmsplugin.Alarm) ||
+		InstanceViewPmsWithSubResource(uid, iid, pmsplugin.Pandas) {
 		return true
 	}
 	return false
 }
 
-func instanceViewIsPermission(uid int, iid int, subResource string) bool {
+func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 	// check instance permission
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,

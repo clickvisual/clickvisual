@@ -1,7 +1,7 @@
 package permission
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/gotomicro/ego/core/elog"
 	"gopkg.in/yaml.v3"
@@ -27,7 +27,7 @@ func New(c *Config) *Service {
 
 func loadMenuTree(filePath string) Resource {
 	menu := Resource{}
-	resourceContent, err := ioutil.ReadFile(filePath)
+	resourceContent, err := os.ReadFile(filePath)
 	if err != nil {
 		invoker.Logger.Panic("Read Resource File Failed", elog.String("err", err.Error()))
 	}
@@ -40,15 +40,4 @@ func loadMenuTree(filePath string) Resource {
 
 func (s *Service) AdminMenuList() []MenuTreeItem {
 	return s.resource.Permission
-}
-
-func (s *Service) UserMenuList() []MenuTreeItem {
-	res := make([]MenuTreeItem, 0)
-	for _, p := range s.resource.Permission {
-		if p.Name == "log" || p.Name == "alarm" || p.Name == "bigdata" {
-
-			res = append(res, p)
-		}
-	}
-	return res
 }

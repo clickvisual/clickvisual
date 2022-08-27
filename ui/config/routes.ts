@@ -1,5 +1,5 @@
 export default [
-  { path: "/", redirect: "/query" },
+  { path: "/", redirect: "/" },
   {
     path: "/query",
     component: "./DataLogs",
