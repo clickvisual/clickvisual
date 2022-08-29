@@ -96,22 +96,6 @@ const NewTable = (props: {
       </Form.Item>
       <Form.Item
         label={i18n.formatMessage({
-          id: "datasource.logLibrary.from.rawLogField",
-        })}
-        name={"rawLogField"}
-        rules={[
-          {
-            required: true,
-            message: i18n.formatMessage({
-              id: "datasource.logLibrary.placeholder.rawLogField",
-            }),
-          },
-        ]}
-      >
-        <Input disabled />
-      </Form.Item>
-      <Form.Item
-        label={i18n.formatMessage({
           id: "datasource.logLibrary.from.timeField",
         })}
         name={"timeField"}
@@ -128,7 +112,7 @@ const NewTable = (props: {
       </Form.Item>
       <Form.Item
         label={i18n.formatMessage({ id: "datasource.logLibrary.from.type" })}
-        name={"typ"}
+        name={"timeFieldType"}
         rules={[
           {
             required: true,

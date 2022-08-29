@@ -62,16 +62,22 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
   } = useMemo(() => LogItemDetail(logs, log), [logs, log]);
 
   const handleClick = useCallback(
-    (field: string, value: string) => {
-      const currentSelected = `\`${field}\`='${value}'`;
+    (field: string, value: any) => {
+      const isFloat = Boolean(value % 1);
+      const currentSelected = `\`${field}\`=${
+        isFloat ? value : "'" + value + "'"
+      }`;
       doUpdatedQuery(currentSelected);
     },
     [doUpdatedQuery]
   );
 
   const handleClickOut = useCallback(
-    (field: string, value: string) => {
-      const currentSelected = `\`${field}\`!='${value}'`;
+    (field: string, value: any) => {
+      const isFloat = Boolean(value % 1);
+      const currentSelected = `\`${field}\`!=${
+        isFloat ? value : "'" + value + "'"
+      }`;
       doUpdatedQuery(currentSelected);
     },
     [doUpdatedQuery]

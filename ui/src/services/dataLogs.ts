@@ -1,5 +1,5 @@
-import {request} from "umi";
-import {TimeBaseType} from "@/services/systemSetting";
+import { request } from "umi";
+import { TimeBaseType } from "@/services/systemSetting";
 
 export interface QueryLogsProps {
   st: number;
@@ -40,17 +40,14 @@ export interface ViewResponse {
 export interface CreatedLogLibraryRequest {
   databaseId: number;
   tableName: string;
-  typ: number;
+  timeFieldType: number;
   days: number;
   brokers: string;
   topics: string;
   consumers: number;
   kafkaSkipBrokenMessages?: number;
   desc?: string;
-
   timeField: string;
-  rawLogField: string;
-  source: string;
 }
 
 export interface CreatedViewRequest {
@@ -281,9 +278,20 @@ export default {
   // },
 
   // Create a log library V2
+  // async createdTable(data: CreatedLogLibraryRequest) {
+  //   return request<API.Res<string>>(
+  //     process.env.PUBLIC_PATH + `api/v2/storage`,
+  //     {
+  //       method: "POST",
+  //       data,
+  //     }
+  //   );
+  // },
+
+  // Create a log library V3
   async createdTable(data: CreatedLogLibraryRequest) {
     return request<API.Res<string>>(
-      process.env.PUBLIC_PATH + `api/v2/storage`,
+      process.env.PUBLIC_PATH + `api/v3/storage`,
       {
         method: "POST",
         data,
