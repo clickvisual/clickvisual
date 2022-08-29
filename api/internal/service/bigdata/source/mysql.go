@@ -9,6 +9,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type MySQL struct {
@@ -27,34 +28,38 @@ func (c *MySQL) Tables(database string) (res []string, err error) {
 	return c.queryStringArr(fmt.Sprintf("SHOW TABLES FROM %s", database))
 }
 
-func (c *MySQL) Columns(database, table string) (res []Column, err error) {
+func (c *MySQL) Columns(database, table string) (res []view.Column, err error) {
 	obj, err := gorm.Open("mysql", c.s.GetDSN())
 	if err != nil {
 		return
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
-	rows, err := obj.Debug().Raw(fmt.Sprintf("SHOW COLUMNS FROM %s FROM %s", table, database)).Rows()
+	rows, err := obj.Debug().Raw(fmt.Sprintf("SHOW FULL COLUMNS FROM %s FROM %s", table, database)).Rows()
 	if err != nil {
 		return
 	}
 	var (
-		Field   string
-		Type    string
-		Null    string
-		Key     string
-		Default interface{}
-		Extra   string
+		Field      string
+		Type       string
+		Collation  string
+		Null       string
+		Key        string
+		Default    interface{}
+		Extra      string
+		Privileges string
+		Comment    string
 	)
 	for rows.Next() {
-		errScan := rows.Scan(&Field, &Type, &Null, &Key, &Default, &Extra)
+		errScan := rows.Scan(&Field, &Type, &Collation, &Null, &Key, &Default, &Extra, &Privileges, &Comment)
 		if errScan != nil {
 			invoker.Logger.Error("source", elog.String("err", errScan.Error()))
 			continue
 		}
-		res = append(res, Column{
-			Field: Field,
-			Type:  Type,
+		res = append(res, view.Column{
+			Field:   Field,
+			Type:    Type,
+			Comment: Comment,
 		})
 	}
 	return
@@ -99,13 +104,9 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 			invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
 			return
 		}
-		for k, _ := range fields {
+		for k := range fields {
 			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
-			// if isEmpty(values[k]) {
-			// 	line[fields[k]] = ""
-			// } else {
 			line[fields[k]] = values[k]
-			// }
 		}
 		res = append(res, line)
 	}

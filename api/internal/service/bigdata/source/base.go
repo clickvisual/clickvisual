@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 type Operator interface {
 	Databases() ([]string, error)
 	Tables(string) ([]string, error)
-	Columns(string, string) ([]Column, error)
+	Columns(string, string) ([]view.Column, error)
 	Query(s string) (res []map[string]interface{}, err error)
 	Exec(s string) error
 }
@@ -23,11 +24,6 @@ func Instantiate(s *Source) Operator {
 		return NewMySQL(s)
 	}
 	return nil
-}
-
-type Column struct {
-	Field string `json:"field"`
-	Type  string `json:"type"`
 }
 
 type Source struct {

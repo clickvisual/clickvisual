@@ -351,6 +351,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/pandas/utils/structural-transfer": {
+            "post": {
+                "description": "source: mysql\ntarget: clickhouse",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "Data field mapping transformation",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/view.ReqStructuralTransfer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/pandas/workers": {
             "get": {
                 "description": "The scheduled task list",
@@ -837,6 +883,20 @@ const docTemplate = `{
                 }
             }
         },
+        "view.Column": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "view.MappingStruct": {
             "type": "object",
             "properties": {
@@ -906,6 +966,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "originUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "view.ReqStructuralTransfer": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.Column"
+                    }
+                },
+                "source": {
+                    "type": "string"
+                },
+                "target": {
                     "type": "string"
                 }
             }

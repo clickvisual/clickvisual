@@ -9,6 +9,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type ClickHouse struct {
@@ -27,7 +28,7 @@ func (c *ClickHouse) Tables(database string) (res []string, err error) {
 	return c.queryStringArr(fmt.Sprintf("SHOW TABLES FROM %s", database))
 }
 
-func (c *ClickHouse) Columns(database, table string) (res []Column, err error) {
+func (c *ClickHouse) Columns(database, table string) (res []view.Column, err error) {
 	conn, err := sql.Open("clickhouse", c.s.GetDSN())
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
@@ -41,7 +42,7 @@ func (c *ClickHouse) Columns(database, table string) (res []Column, err error) {
 		return
 	}
 	for _, row := range list {
-		res = append(res, Column{
+		res = append(res, view.Column{
 			Field: row["name"].(string),
 			Type:  row["type"].(string),
 		})
@@ -115,7 +116,7 @@ func (c *ClickHouse) doQuery(ins *sql.DB, sql string) (res []map[string]interfac
 			return
 		}
 		invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
-		for k, _ := range fields {
+		for k := range fields {
 			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
 			line[fields[k]] = values[k]
 		}

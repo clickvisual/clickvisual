@@ -43,6 +43,8 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/pandas/workers", core.Handle(pandas.WorkerList))
 		r.GET("/pandas/workers/dashboard", core.Handle(pandas.WorkerDashboard))
 		r.GET("/pandas/instances/:instance-id/table-dependencies", core.Handle(pandas.TableDependencies))
+		// DDL structural transfer
+		r.POST("/pandas/utils/structural-transfer", core.Handle(pandas.StructuralTransfer))
 	}
 	// The log module - storage
 	{

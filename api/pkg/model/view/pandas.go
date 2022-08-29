@@ -36,34 +36,37 @@ type RespInfoFolder struct {
 	NickName string `json:"nickName"`
 }
 
-type ReqCreateSource struct {
-	Iid int `json:"iid" form:"iid" binding:"required"`
-	ReqUpdateSource
-}
-
-type ReqUpdateSource struct {
-	Name     string `json:"name" form:"name" binding:"required"`
-	Desc     string `json:"desc" form:"desc"`
-	URL      string `json:"url" form:"url"`
-	UserName string `json:"username" form:"username"`
-	Password string `json:"password" form:"password"`
-	Typ      int    `json:"typ" form:"typ"`
-}
-
-type ReqListSource struct {
-	Iid  int    `json:"iid" form:"iid" binding:"required"`
-	Typ  int    `json:"typ" form:"typ"`
-	Name string `json:"name" form:"name"`
-}
-
-type ReqListSourceTable struct {
-	Database string `json:"database" form:"database" binding:"required"`
-}
-
-type ReqListSourceColumn struct {
-	Database string `json:"database" form:"database" binding:"required"`
-	Table    string `json:"table" form:"table" binding:"required"`
-}
+type (
+	ReqCreateSource struct {
+		Iid int `json:"iid" form:"iid" binding:"required"`
+		ReqUpdateSource
+	}
+	ReqUpdateSource struct {
+		Name     string `json:"name" form:"name" binding:"required"`
+		Desc     string `json:"desc" form:"desc"`
+		URL      string `json:"url" form:"url"`
+		UserName string `json:"username" form:"username"`
+		Password string `json:"password" form:"password"`
+		Typ      int    `json:"typ" form:"typ"`
+	}
+	ReqListSource struct {
+		Iid  int    `json:"iid" form:"iid" binding:"required"`
+		Typ  int    `json:"typ" form:"typ"`
+		Name string `json:"name" form:"name"`
+	}
+	ReqListSourceTable struct {
+		Database string `json:"database" form:"database" binding:"required"`
+	}
+	ReqListSourceColumn struct {
+		Database string `json:"database" form:"database" binding:"required"`
+		Table    string `json:"table" form:"table" binding:"required"`
+	}
+	Column struct {
+		Field   string `json:"field" form:"field"`
+		Type    string `json:"type" form:"type"`
+		Comment string `json:"comment" form:"comment"`
+	}
+)
 
 type ReqCreateWorkflow struct {
 	Iid int `json:"iid" form:"iid" binding:"required"`
@@ -138,13 +141,6 @@ type (
 		PreviousContent string `json:"previousContent"`
 		Result          string `json:"result"`
 	}
-
-	// RespRunNodeStatus struct {
-	// 	Id        int                     `json:"id"`
-	// 	Status    int                     `json:"status"`
-	// 	Current   *db.BigdataNodeStatus   `json:"current"`
-	// 	Histories []*db.BigdataNodeStatus `json:"histories"`
-	// }
 
 	RunNodeResult struct {
 		Logs           []map[string]interface{} `json:"logs"`
@@ -268,6 +264,12 @@ type (
 		NodeName string `json:"nodeName" form:"nodeName"`
 		Tertiary int    `json:"tertiary" form:"tertiary"` // ClickHouse 10; MySQL 11; OfflineSync 20
 		Pagination
+	}
+
+	ReqStructuralTransfer struct {
+		Source  string   `json:"source" form:"source"`
+		Target  string   `json:"target" form:"target"`
+		Columns []Column `json:"columns" form:"columns"`
 	}
 
 	RespWorkerRow struct {

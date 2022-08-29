@@ -38,6 +38,15 @@ definitions:
       pagination:
         $ref: '#/definitions/core.Pagination'
     type: object
+  view.Column:
+    properties:
+      comment:
+        type: string
+      field:
+        type: string
+      type:
+        type: string
+    type: object
   view.MappingStruct:
     properties:
       data:
@@ -83,6 +92,17 @@ definitions:
   view.ReqShortURLCreate:
     properties:
       originUrl:
+        type: string
+    type: object
+  view.ReqStructuralTransfer:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/view.Column'
+        type: array
+      source:
+        type: string
+      target:
         type: string
     type: object
   view.ReqUpdateCrontab:
@@ -559,6 +579,35 @@ paths:
           schema:
             $ref: '#/definitions/view.RespNodeResultList'
       summary: Obtain the node execution result record
+      tags:
+      - pandas
+  /api/v2/pandas/utils/structural-transfer:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        source: mysql
+        target: clickhouse
+      parameters:
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/view.ReqStructuralTransfer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Data field mapping transformation
       tags:
       - pandas
   /api/v2/pandas/workers:
