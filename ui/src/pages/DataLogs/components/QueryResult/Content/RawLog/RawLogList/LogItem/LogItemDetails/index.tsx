@@ -1,10 +1,10 @@
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import {useMemo} from "react";
-import {useModel} from "@@/plugin-model/useModel";
+import { useMemo } from "react";
+import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
-import {parseJsonObject} from "@/utils/string";
+import { parseJsonObject } from "@/utils/string";
 import lodash from "lodash";
-import {REG_SEPARATORS} from "@/components/JsonView/JsonStringValue";
+import { REG_SEPARATORS } from "@/components/JsonView/JsonStringValue";
 import LogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContent";
 
 interface LogItemDetailsProps {
@@ -116,12 +116,23 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
   }, [logs, logs?.keys, log]);
 
   const quickInsertQuery = (keyItem: string) => {
-    const currentSelected = "`" + keyItem + "`" + "=" + `'${newLog[keyItem]}'`;
+    const isFloat = Boolean(newLog[keyItem] % 1);
+    const currentSelected =
+      "`" +
+      keyItem +
+      "`" +
+      "=" +
+      (isFloat ? newLog[keyItem] : `'${newLog[keyItem]}'`);
+    console.log(isFloat, keyItem, currentSelected);
     doUpdatedQuery(currentSelected);
   };
 
   const quickInsertExclusion = (keyItem: string) => {
-    const currentSelected = "`" + keyItem + "`" + "!=" + `'${newLog[keyItem]}'`;
+    const isFloat = Boolean(newLog[keyItem] % 1);
+    const currentSelected =
+      "`" + keyItem + "`" + "!=" + isFloat
+        ? newLog[keyItem]
+        : `'${newLog[keyItem]}'`;
     doUpdatedQuery(currentSelected);
   };
 
@@ -190,6 +201,23 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       if (!isIndexAndRawLogKey && newLog.hasOwnProperty(keyItem)) {
         content = newLog[keyItem];
       }
+
+      // TODO: 兼容json字符串
+      // if (
+      //   !isIndexAndRawLogKey &&
+      //   newLog.hasOwnProperty(keyItem) &&
+      //   !parseJsonObject(newLog[keyItem])
+      // ) {
+      //   content = newLog[keyItem];
+      // }
+
+      // if (
+      //   !isIndexAndRawLogKey &&
+      //   newLog.hasOwnProperty(keyItem) &&
+      //   !!parseJsonObject(newLog[keyItem])
+      // ) {
+      //   content = JSON.parse(newLog[keyItem]);
+      // }
 
       let regSpeFlag = false;
 
