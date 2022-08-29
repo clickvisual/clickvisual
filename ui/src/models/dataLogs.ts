@@ -1,27 +1,33 @@
-import {useRef, useState} from "react";
+import { useRef, useState } from "react";
 import copy from "copy-to-clipboard";
-import {message} from "antd";
-import api, {DatabaseResponse, HighCharts, IndexInfoType, LogsResponse, TablesResponse,} from "@/services/dataLogs";
+import { message } from "antd";
+import api, {
+  DatabaseResponse,
+  HighCharts,
+  IndexInfoType,
+  LogsResponse,
+  TablesResponse,
+} from "@/services/dataLogs";
 import useRequest from "@/hooks/useRequest/useRequest";
-import {currentTimeStamp} from "@/utils/momentUtils";
+import { currentTimeStamp } from "@/utils/momentUtils";
 import {
-    ACTIVE_TIME_INDEX,
-    FIFTEEN_TIME,
-    FIRST_PAGE,
-    MINUTES_UNIT_TIME,
-    PAGE_SIZE,
-    QueryTypeEnum,
-    TimeRangeType,
+  ACTIVE_TIME_INDEX,
+  FIFTEEN_TIME,
+  FIRST_PAGE,
+  MINUTES_UNIT_TIME,
+  PAGE_SIZE,
+  QueryTypeEnum,
+  TimeRangeType,
 } from "@/config/config";
 import moment from "moment";
-import Request, {Canceler} from "umi-request";
+import Request, { Canceler } from "umi-request";
 import lodash from "lodash";
-import {formatMessage} from "@@/plugin-locale/localeExports";
+import { formatMessage } from "@@/plugin-locale/localeExports";
 import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
 import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
 import useLogPanes from "@/models/datalogs/useLogPanes";
-import {Extra, PaneType, QueryParams} from "@/models/datalogs/types";
+import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 import useLogOptions from "@/models/datalogs/useLogOptions";
 
@@ -419,7 +425,7 @@ const DataLogsModel = () => {
     const defaultInput = lodash
       .cloneDeep(keyword ? keyword : keywordInput)
       ?.split(" and ") || [""];
-    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'([^']+)'/g;
+    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'?([^']+)'?/g;
     const allQuery: any[] = [];
     defaultInput.map((inputStr) =>
       Array.from(inputStr.replaceAll("`", "").matchAll(strReg))?.map((item) => {

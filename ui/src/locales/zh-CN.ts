@@ -329,9 +329,8 @@ export default {
   "datasource.logLibrary.conversionBtn": "转换",
   "datasource.logLibrary.documentBtn": "帮助文档",
   "datasource.logLibrary.conversion.warning": "请填写内容再转换",
-  "datasource.logLibrary.selectField.title": "字段选择",
-  "datasource.logLibrary.selectField.okTips":
-    "请选择timeField字段和rawLogField字段再确认",
+  "datasource.logLibrary.selectField.title": "时间采集字段选择",
+  "datasource.logLibrary.selectField.okTips": "请选择timeField字段再确认",
 
   "datasource.logLibrary.empty": "未查询到相关日志库列表",
   "datasource.logLibrary.quickAdd": "快速创建日志库",
