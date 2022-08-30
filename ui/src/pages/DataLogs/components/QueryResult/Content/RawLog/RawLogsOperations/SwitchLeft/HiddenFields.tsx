@@ -107,7 +107,7 @@ const HiddenFieldModal = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   useEffect(() => {
     if (visibleHideField && currentLogLibrary && logs) {
       getHideFields.run(currentLogLibrary.id).then((res: any) => {
-        if (res?.code === 0)
+        if (res?.code === 0 && res?.data && res?.data.length > 0)
           setSelectedRowKeys([
             ...res.data,
             ...logs.hiddenFields.filter((item) => !res.data.includes(item)),
