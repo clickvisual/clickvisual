@@ -130,9 +130,11 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
   const quickInsertExclusion = (keyItem: string) => {
     const isFloat = Boolean(newLog[keyItem] % 1);
     const currentSelected =
-      "`" + keyItem + "`" + "!=" + isFloat
-        ? newLog[keyItem]
-        : `'${newLog[keyItem]}'`;
+      "`" +
+      keyItem +
+      "`" +
+      "!=" +
+      (isFloat ? newLog[keyItem] : `'${newLog[keyItem]}'`);
     doUpdatedQuery(currentSelected);
   };
 
