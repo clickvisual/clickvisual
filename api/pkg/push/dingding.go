@@ -77,15 +77,15 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		annotations = alert.Annotations
 		buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", exp))
 
-		buffer.WriteString(fmt.Sprintf("##### 首次触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
+		buffer.WriteString(fmt.Sprintf("##### 触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", ins.Name, ins.Desc))
-		buffer.WriteString(fmt.Sprintf("##### 相关日志库：%s %s\n", table.Name, table.Desc))
+		buffer.WriteString(fmt.Sprintf("##### 日志库：%s %s\n", table.Name, table.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 状态：%s\n", status))
 		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
 
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
 
-		buffer.WriteString(fmt.Sprintf("##### 详情: %s/alarm/rules/history?id=%d&start=%d&end=%d\n\n",
+		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/alarm/rules/history?id=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, start, end,
 		))
 		if oneTheLogs != "" {

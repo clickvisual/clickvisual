@@ -653,8 +653,9 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Keys = make([]*db.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
 	var (
-		defaultSQL  string
-		optimizeSQL string
+		defaultSQL    string
+		originalWhere string
+		optimizeSQL   string
 	)
 	switch param.AlarmMode {
 	case db.AlarmModeAggregation:
@@ -662,7 +663,7 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	case db.AlarmModeAggregationCheck:
 		defaultSQL = alarmAggregationSQLWith(param)
 	default:
-		defaultSQL, optimizeSQL = c.logsSQL(param, tid)
+		defaultSQL, optimizeSQL, originalWhere = c.logsSQL(param, tid)
 	}
 	var execSQL = defaultSQL
 	if optimizeSQL != "" {
@@ -676,7 +677,12 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Cost = time.Since(st).Milliseconds()
 	// try again
 	res.Query = defaultSQL
+	res.Where = strings.TrimSuffix(strings.TrimPrefix(originalWhere, "AND ("), ")")
+	res.IsTrace = 1
 	for k := range res.Logs {
+		if res.IsTrace == 1 {
+			res.IsTrace = isTrace(res.Logs[k])
+		}
 		if param.TimeField != db.TimeFieldSecond {
 			if param.TimeFieldType == db.TimeFieldTypeTsMs {
 				if _, ok := res.Logs[k][db.TimeFieldSecond]; !ok {
@@ -1037,7 +1043,7 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 	return
 }
 
-func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) {
+func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, originalWhere string) {
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, _ := db.ViewList(invoker.Db, conds)
@@ -1060,11 +1066,12 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL string) 
 			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
 		}
 	}
+	originalWhere = c.queryTransform(param, false)
 	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
 		param.DatabaseTable,
 		param.ST, param.ET,
-		c.queryTransform(param, false),
+		originalWhere,
 		param.PageSize, (param.Page-1)*param.PageSize)
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql), elog.Any("optSQL", optSQL))
 	return
