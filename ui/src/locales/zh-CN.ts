@@ -435,7 +435,7 @@ export default {
   "log.highChart.tooltip.prompt": "点击查询精确结果",
 
   "log.empty": "暂未查询到日志",
-  "log.pagination.total": "日志总条数：{total}",
+  "log.pagination.total": "日志总条数: {total}",
   "log.item.copy": "复制",
   "log.item.copy.success": "复制成功",
   "log.item.copy.failed": "复制失败，请手动复制",
