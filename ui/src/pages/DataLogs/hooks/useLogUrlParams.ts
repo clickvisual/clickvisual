@@ -40,6 +40,7 @@ export interface UrlStateType {
   index: string | number;
   queryType?: string;
   mode?: number;
+  isTrace?: number;
 }
 
 export const RestUrlStates = {
@@ -96,6 +97,7 @@ export default function useLogUrlParams() {
     doGetAnalysisField,
     onChangeRawLogsIndexeList,
     onChangeCurrentLogPane,
+    isTrace,
   } = useModel("dataLogs");
   const {
     onChangeCurrentlyTableToIid,
@@ -223,6 +225,7 @@ export default function useLogUrlParams() {
         index: activeTimeOptionIndex,
         tab: activeTabKey,
         queryType: activeQueryType,
+        isTrace: isTrace,
         // querySql: chartSql,
       };
 
