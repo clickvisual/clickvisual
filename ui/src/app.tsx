@@ -12,13 +12,18 @@ import * as Icon from "@ant-design/icons/lib/icons";
 import Logo from "../public/cv.png";
 import { FetchCurrentUserInfo } from "@/services/users";
 import { AVOID_CLOSE_ROUTING, LOGIN_PATH } from "@/config/config";
-import { history } from "umi";
+import { history, IRoute } from "umi";
 
 export interface InitialStateType {
   settings: ProSettings;
   menus: MenuDataItem[];
   currentUser?: API.CurrentUser;
 }
+const LoginPath = [
+  process.env.PUBLIC_PATH + "user/login",
+  process.env.PUBLIC_PATH + "user/login/",
+];
+let routeList: IRoute[] = [];
 
 const fetchMenu = async () => {
   const res = await AccountMenus();
@@ -33,8 +38,28 @@ const fetchMenu = async () => {
       return item;
     });
   };
+  routeList = menuDataRender(res.data);
   return menuDataRender(res.data);
 };
+
+// 登录情况下添加重定向路由
+export async function patchRoutes({ routes }: { routes: IRoute[] }) {
+  if (LoginPath.includes(document.location.pathname)) {
+    return routeList;
+  }
+  await fetchMenu();
+  let pagesRoutes: IRoute[] = routes[0].routes || [];
+  if (routeList[0]) {
+    pagesRoutes?.unshift({
+      path: "/",
+      exact: true,
+      redirect: routeList[0]?.children
+        ? routeList[0]?.children[0].path
+        : routeList[0]?.path,
+    });
+  }
+  return;
+}
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
   const pathname = history.location.pathname;
@@ -52,8 +77,8 @@ export async function getInitialState(): Promise<InitialStateType | undefined> {
     return undefined;
   };
   const currentUser = await fetchUserInfo();
-  let menus = [];
-  if (currentUser) menus = (await fetchMenu()) || [];
+  let menus: IRoute[] = [];
+  if (currentUser) menus = routeList || [];
   return {
     menus,
     settings: defaultSettings,

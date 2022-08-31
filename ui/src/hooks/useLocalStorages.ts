@@ -14,6 +14,7 @@ export enum LocalModuleType {
 
 export interface LastDataLogsStateType extends UrlStateType {
   querySql?: any;
+  where?: string;
 }
 
 const useLocalStorages = () => {

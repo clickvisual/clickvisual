@@ -46,10 +46,21 @@ const useIntegratedConfigs = () => {
     },
   });
 
+  const doStructuralTransfer = useRequest(workflowApi.structuralTransfer, {
+    loadingText: false,
+    onError: (e) => {
+      if (Request.isCancel(e)) {
+        return false;
+      }
+      return;
+    },
+  });
+
   return {
     doGetSources,
     doGetColumns,
     doGetSourceTables,
+    doStructuralTransfer,
 
     cancelTokenTargetRef,
     cancelTokenSourceRef,

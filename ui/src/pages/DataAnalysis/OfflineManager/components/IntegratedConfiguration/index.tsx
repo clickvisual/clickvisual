@@ -53,6 +53,8 @@ const IntegratedConfiguration = ({
   const [openVisible, setOpenVisible] = useState<boolean>(false);
   const [openType, setOpenType] = useState<OpenTypeEnums | undefined>();
   const [tableName, setTableName] = useState<string | undefined>();
+  // 是否加载过
+  const [isLoad, setIsLoad] = useState<Boolean>(false);
 
   const handleSubmit = (fields: any) => {
     const sourceForm = fields.source;
@@ -89,6 +91,7 @@ const IntegratedConfiguration = ({
   };
 
   const doGetNodeInfo = (id: number) => {
+    setIsLoad(true);
     getNodeInfo.run(id).then((res) => {
       if (res?.code !== 0) return;
       setNodeInfo(res.data);
@@ -239,7 +242,7 @@ const IntegratedConfiguration = ({
 
   // 看板打开修改key会慢初始化一步，从看板打开的文件的key初始化是看板的key
   useEffect(() => {
-    if (currentNode?.id == currentPaneActiveKey && !nodeInfo)
+    if (currentNode?.id == currentPaneActiveKey && !nodeInfo && !isLoad)
       doGetNodeInfo(currentNode.id);
   }, [currentPaneActiveKey, currentNode?.id]);
 

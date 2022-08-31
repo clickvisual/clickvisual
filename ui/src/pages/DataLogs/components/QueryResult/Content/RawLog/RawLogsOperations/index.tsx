@@ -33,9 +33,9 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         <HistogramSwitch oldPane={oldPane} />
       </div>
       {performTime ? (
-        <div style={{ flex: 1, textAlign: "right", marginRight: "20px" }}>
-          {i18n.formatMessage({ id: "log.perform.time" })}：
-          {logPanes[currentLogLibrary?.id || 0]?.logs?.cost}ms
+        <div style={{ flex: 1, textAlign: "right", marginRight: "13px" }}>
+          {i18n.formatMessage({ id: "log.perform.time" })}:&nbsp;
+          {performTime}ms
         </div>
       ) : null}
       <div className={rawLogsOperationsStyles.pagination}>

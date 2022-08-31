@@ -22,7 +22,7 @@ export const REG_SEPARATORS = [
   "{",
   "}",
   "'",
-  "=",
+  // "=", 该分隔符已被移除
   "\u001b",
 ];
 

@@ -1,25 +1,28 @@
 import useUrlState from "@ahooksjs/use-url-state";
-import {useModel} from "@@/plugin-model/useModel";
-import {useDebounceFn} from "ahooks";
+import { useModel } from "@@/plugin-model/useModel";
+import { useDebounceFn } from "ahooks";
 import {
-    ACTIVE_TIME_INDEX,
-    DEBOUNCE_WAIT,
-    FIFTEEN_TIME,
-    FIRST_PAGE,
-    MINUTES_UNIT_TIME,
-    PAGE_SIZE,
-    QueryTypeEnum,
-    TimeRangeType,
+  ACTIVE_TIME_INDEX,
+  DEBOUNCE_WAIT,
+  FIFTEEN_TIME,
+  FIRST_PAGE,
+  MINUTES_UNIT_TIME,
+  PAGE_SIZE,
+  QueryTypeEnum,
+  TimeRangeType,
 } from "@/config/config";
 import moment from "moment";
-import {currentTimeStamp} from "@/utils/momentUtils";
-import {useEffect, useMemo, useRef, useState} from "react";
-import {IndexInfoType, TableInfoResponse} from "@/services/dataLogs";
-import {BaseRes} from "@/hooks/useRequest/useRequest";
-import {DefaultPane} from "@/models/datalogs/useLogPanes";
-import {PaneType} from "@/models/datalogs/types";
-import useLocalStorages, {LastDataLogsStateType, LocalModuleType,} from "@/hooks/useLocalStorages";
-import {isEqual} from "lodash";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { IndexInfoType, TableInfoResponse } from "@/services/dataLogs";
+import { BaseRes } from "@/hooks/useRequest/useRequest";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import { PaneType } from "@/models/datalogs/types";
+import useLocalStorages, {
+  LastDataLogsStateType,
+  LocalModuleType,
+} from "@/hooks/useLocalStorages";
+import { isEqual } from "lodash";
 
 export interface UrlStateType {
   tid?: string | number;
@@ -37,6 +40,7 @@ export interface UrlStateType {
   index: string | number;
   queryType?: string;
   mode?: number;
+  isTrace?: number;
 }
 
 export const RestUrlStates = {
@@ -93,6 +97,7 @@ export default function useLogUrlParams() {
     doGetAnalysisField,
     onChangeRawLogsIndexeList,
     onChangeCurrentLogPane,
+    isTrace,
   } = useModel("dataLogs");
   const {
     onChangeCurrentlyTableToIid,
@@ -141,7 +146,10 @@ export default function useLogUrlParams() {
       keyword: urlState.kw || lastDataLogsState.kw,
       page: parseInt(urlState.page || lastDataLogsState.page),
       pageSize: parseInt(urlState.size || lastDataLogsState.size),
-      activeTabKey: urlState.tab || lastDataLogsState.tab,
+      activeTabKey:
+        (urlState.start && urlState.end && "custom") ||
+        urlState.tab ||
+        lastDataLogsState.tab,
       activeIndex: parseInt(urlState.index || lastDataLogsState.index),
       queryType: urlState.queryType || lastDataLogsState.queryType,
       querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
@@ -217,6 +225,7 @@ export default function useLogUrlParams() {
         index: activeTimeOptionIndex,
         tab: activeTabKey,
         queryType: activeQueryType,
+        isTrace: isTrace,
         // querySql: chartSql,
       };
 

@@ -19,6 +19,16 @@ export interface CreatedWorkflowData extends BaseWorkflowPayload {
   desc: string;
 }
 
+export interface structuralTransferType {
+  source: string;
+  target: string;
+  columns: {
+    comment: string;
+    field: string;
+    type: string;
+  }[];
+}
+
 export enum BigDataSourceType {
   /**
    * clickhouse 源
@@ -117,6 +127,16 @@ export default {
     return request(
       process.env.PUBLIC_PATH + `api/v1/bigdata/mining/${source}/${id}/columns`,
       { method: "GET", params, cancelToken, skipErrorHandler: true }
+    );
+  },
+
+  async structuralTransfer(data: structuralTransferType) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v2/pandas/utils/structural-transfer`,
+      {
+        method: "POST",
+        data,
+      }
     );
   },
 };

@@ -96,6 +96,9 @@ const DataLogsModel = () => {
   // 最近一次正在加载的tid
   const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
 
+  // 是否链路模式
+  const [isTrace, setIsTrace] = useState<number>(0);
+
   const {
     logLibraryCreatedModalVisible,
     logLibraryInfoDrawVisible,
@@ -206,6 +209,10 @@ const DataLogsModel = () => {
     setLastLoadingTid(tid);
   };
 
+  const onChangeIsTrace = (num: number) => {
+    setIsTrace(num);
+  };
+
   const onChangeRawLogsIndexeList = (list?: IndexInfoType[]) => {
     setRawLogsIndexeList(list);
   };
@@ -242,7 +249,7 @@ const DataLogsModel = () => {
       tabPane?.logs?.query ?? tabPane?.querySql
     );
     statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
-    doParseQuery(tabPane?.keyword || keywordInput);
+    doParseQuery(tabPane.logs?.where || keywordInput);
   };
 
   const onCopyRawLogDetails = (log: any) => {
@@ -595,6 +602,7 @@ const DataLogsModel = () => {
     currentEditDatabase,
     currentEditLogLibrary,
     isLogLibraryAllDatabase,
+    isTrace,
 
     doGetLogs,
     doGetHighCharts,
@@ -623,6 +631,7 @@ const DataLogsModel = () => {
     onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
     onChangeCurrentEditLogLibrary,
+    onChangeIsTrace,
 
     doParseQuery,
     doUpdatedQuery,
