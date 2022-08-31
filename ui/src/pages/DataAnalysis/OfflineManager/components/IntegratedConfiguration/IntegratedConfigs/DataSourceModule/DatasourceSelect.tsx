@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
-import { Button, Col, Form, Row, Select } from "antd";
+import {
+  Button,
+  Col,
+  Form,
+  message,
+  notification,
+  Row,
+  Select,
+  Space,
+} from "antd";
 import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
 import {
   DataSourceTypeEnums,
@@ -38,6 +47,7 @@ const DatasourceSelect = ({
   sourceType,
   openModal,
   node,
+  source,
 }: DatasourceSelectProps) => {
   const [databaseList, setDatabaseList] = useState<any[]>([]);
   const [datasourceList, setDatasourceList] = useState<any[]>([]);
@@ -53,6 +63,7 @@ const DatasourceSelect = ({
     cancelTokenSourceTableRef,
     cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef,
+    doStructuralTransfer,
     // selectNode,
   } = useModel("dataAnalysis", (model) => ({
     instances: model.instances,
@@ -70,6 +81,7 @@ const DatasourceSelect = ({
       model.integratedConfigs.cancelTokenTargetColumnsRef,
     cancelTokenSourceColumnsRef:
       model.integratedConfigs.cancelTokenSourceColumnsRef,
+    doStructuralTransfer: model.integratedConfigs.doStructuralTransfer,
     // selectNode: model.manageNode.selectNode,
   }));
 
@@ -479,7 +491,7 @@ const DatasourceSelect = ({
       </Form.Item>
       <Form.Item label={"Table"}>
         <Row gutter={12}>
-          <Col span={19}>
+          <Col span={itemNamePath.includes("target") ? 13 : 19}>
             <Form.Item noStyle name={[...itemNamePath, "table"]}>
               <Select
                 showSearch
@@ -491,21 +503,53 @@ const DatasourceSelect = ({
               />
             </Form.Item>
           </Col>
-          <Col span={5}>
-            <Button
-              type={"primary"}
-              onClick={() => {
-                const table = form.getFieldValue([...itemNamePath, "table"]);
-                if (itemNamePath.includes("source")) {
-                  openModal(OpenTypeEnums.source, table);
-                }
-                if (itemNamePath.includes("target")) {
-                  openModal(OpenTypeEnums.target, table);
-                }
-              }}
-            >
-              表结构
-            </Button>
+          <Col span={itemNamePath.includes("target") ? 11 : 5}>
+            <Space>
+              <Button
+                type={"primary"}
+                onClick={() => {
+                  const table = form.getFieldValue([...itemNamePath, "table"]);
+                  if (itemNamePath.includes("source")) {
+                    openModal(OpenTypeEnums.source, table);
+                  }
+                  if (itemNamePath.includes("target")) {
+                    openModal(OpenTypeEnums.target, table);
+                  }
+                }}
+              >
+                表结构
+              </Button>
+              {itemNamePath.includes("target") ? (
+                <Button
+                  type={"primary"}
+                  onClick={() => {
+                    const table = form.getFieldValue(["source", "table"]);
+                    console.log(itemNamePath, "itemNamePath", table, source);
+                    if (source.length == 0) {
+                      message.warning("数据来源表结构为空");
+                      return;
+                    }
+                    doStructuralTransfer
+                      .run({
+                        source: "mysql",
+                        target: "clickhouse",
+                        columns: source,
+                      })
+                      .then((res: any) => {
+                        if (res.code != 0 || !res.data) return;
+                        notification.open({
+                          message: `字段展示`,
+                          description: res.data,
+                          placement: "top",
+                          duration: null,
+                        });
+                      });
+                  }}
+                >
+                  字段生成
+                </Button>
+              ) : null}
+            </Space>
           </Col>
         </Row>
       </Form.Item>
