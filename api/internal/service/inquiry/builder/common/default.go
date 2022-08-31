@@ -12,6 +12,7 @@ func BuilderFieldsData(tableCreateType int, mapping string) string {
 		return fmt.Sprintf(`(
   _time_second_ DateTime,
   _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
+  _key String CODEC(ZSTD(1)),
   _raw_log_ String CODEC(ZSTD(1)),
   INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
 )
@@ -72,6 +73,7 @@ func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView
 	if tableCreateType == constx.TableCreateTypeUBW {
 		return fmt.Sprintf(`SELECT
   %s,
+  _key AS _key,
   body AS _raw_log_%s
 FROM %s
 `, paramsView.TimeConvert, paramsView.CommonFields, paramsView.SourceTable)

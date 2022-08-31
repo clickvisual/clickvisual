@@ -676,8 +676,8 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Cost = time.Since(st).Milliseconds()
 	// try again
 	res.Query = defaultSQL
-	if param.TimeField != db.TimeFieldSecond {
-		for k := range res.Logs {
+	for k := range res.Logs {
+		if param.TimeField != db.TimeFieldSecond {
 			if param.TimeFieldType == db.TimeFieldTypeTsMs {
 				if _, ok := res.Logs[k][db.TimeFieldSecond]; !ok {
 					res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
@@ -686,6 +686,11 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 			} else {
 				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
 				res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField]
+			}
+		} else {
+			// If Kafka's key is empty, it will not be displayed on the interface
+			if val, ok := res.Logs[k]["_key"]; ok && val == "" {
+				delete(res.Logs[k], "_key")
 			}
 		}
 	}
