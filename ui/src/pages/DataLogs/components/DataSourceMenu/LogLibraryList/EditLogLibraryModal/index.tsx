@@ -1,6 +1,14 @@
-import {Form, FormInstance, Input, InputNumber, message, Modal, Spin,} from "antd";
-import {useEffect, useMemo, useRef} from "react";
-import {useIntl, useModel} from "umi";
+import {
+  Form,
+  FormInstance,
+  Input,
+  InputNumber,
+  message,
+  Modal,
+  Spin,
+} from "antd";
+import { useEffect, useMemo, useRef } from "react";
+import { useIntl, useModel } from "umi";
 import style from "./index.less";
 
 const EditLogLibraryModal = (props: { onGetList: any }) => {
@@ -31,7 +39,7 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
             desc: res.data.desc,
             kafkaBrokers: res.data.brokers,
             kafkaConsumerNum: res.data.consumerNum || undefined,
-            kafkaSkipBrokenMessages: res.data.KafkaSkipBrokenMessages,
+            kafkaSkipBrokenMessages: res.data.kafkaSkipBrokenMessages,
             kafkaTopic: res.data.topic,
             mergeTreeTTL: res.data.days,
           });
