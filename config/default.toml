@@ -3,8 +3,6 @@ isMultiCopy = false  # multi-copy mode: Redis must be configured, otherwise the 
 secretKey = "secretKey"
 rootURL = "http://localhost:19001"
 baseURL = "/api/admin/login/"
-hiddenFields = ["_cluster_", "_log_agent_", "_node_ip_", "_node_name_", "_source_", "_time_nanosecond_"]
-defaultFields = ["_namespace_","_container_name_","_pod_name_","_raw_log_","_time_second_"]
 permissionFile = './config/resource.yaml'
 serveFromSubPath = false
 

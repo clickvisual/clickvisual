@@ -1,6 +1,6 @@
-import { Button, Form, Input, InputNumber, message, Select } from "antd";
-import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
-import { useIntl } from "umi";
+import {Button, Form, Input, InputNumber, message, Select} from "antd";
+import {logLibraryTypes} from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
+import {useIntl} from "umi";
 import styles from "./index.less";
 import TextArea from "antd/lib/input/TextArea";
 
@@ -86,7 +86,7 @@ const NewTable = (props: {
             </Button>
             <Button
               type="link"
-              href="https://clickvisual.gocn.vip/clickvisual/02install/quick-start.html#source-%E8%AF%B4%E6%98%8E"
+              href="https://clickvisual.gocn.vip/clickvisual/02install/quick-start.html#第六步-创建日志库"
               target="_blank"
             >
               {i18n.formatMessage({ id: "datasource.logLibrary.documentBtn" })}
