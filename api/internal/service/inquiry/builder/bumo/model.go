@@ -42,27 +42,26 @@ type ParamsStream struct {
 }
 
 type ParamsView struct {
-	WithSQL      string
-	ViewType     int
-	ViewTable    string
-	TargetTable  string
-	CommonFields string
-	SourceTable  string
-	Where        string
-	TimeConvert  string
+	WithSQL          string
+	ViewType         int
+	ViewTable        string
+	TargetTable      string
+	CommonFields     string
+	SourceTable      string
+	Where            string
+	TimeConvert      string
+	IsKafkaTimestamp int
 }
 
 const PrometheusMetricName = "clickvisual_alert_metrics"
 
 const (
-	ViewTypeDefault = iota
-	ViewTypePrometheusMetric
-	ViewTypePrometheusMetricAggregation
+	ViewTypePrometheusMetric            = 1
+	ViewTypePrometheusMetricAggregation = 2
 )
 
 const (
-	DataTypeDefault = iota
-	DataTypeDistributed
+	DataTypeDistributed = 1
 )
 
 const (

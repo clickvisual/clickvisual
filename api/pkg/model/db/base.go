@@ -32,7 +32,6 @@ const TimeFieldSecond = "_time_second_"
 const TimeFieldNanoseconds = "_time_nanosecond_"
 const (
 	TimeFieldTypeDT   = 0 // DateTime
-	TimeFieldTypeTs   = 1 // unix seconds
 	TimeFieldTypeTsMs = 2 // unix ms
 	TimeFieldTypeDT3  = 3 // DataTime64(3)
 )
@@ -120,27 +119,29 @@ type BaseInstance struct {
 type BaseTable struct {
 	BaseModel
 
-	Did                     int           `gorm:"column:did;type:int(11);index:uix_did_name,unique" json:"did"`                // database id
-	Name                    string        `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_did_name,unique" json:"name"` // table
-	Typ                     int           `gorm:"column:typ;type:int(11)" json:"typ"`                                          // table type, 1 string 2 float
-	Days                    int           `gorm:"column:days;type:int(11)" json:"days"`                                        // data expire days
-	Brokers                 string        `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`                    // kafka broker
-	Topic                   string        `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`                        // kafka topic
-	ConsumerNum             int           `gorm:"column:consumer_num;type:int(11)" json:"consumerNum"`                         // kafka consumer number
-	SqlData                 string        `gorm:"column:sql_data;type:text" json:"sqlData"`                                    // sql_data
-	SqlStream               string        `gorm:"column:sql_stream;type:text" json:"sqlStream"`                                // sql_stream
-	SqlView                 string        `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
-	SqlDistributed          string        `gorm:"column:sql_distributed;type:text" json:"sqlDistributed"`                      // sql_distributed
-	Uid                     int           `gorm:"column:uid;type:int(11)" json:"uid"`                                          // operator uid
-	CreateType              int           `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create clickvisual fresh table, 1 means use exists table
-	TimeField               string        `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
-	TimeFieldType           int           `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"` // custom time filed type name of _time_
-	Desc                    string        `gorm:"column:desc;type:varchar(255)" json:"desc"`
-	RawLogField             string        `gorm:"column:raw_log_field;type:varchar(255)" json:"rawLogField"`
-	SelectFields            string        `gorm:"column:select_fields;type:text" json:"selectFields"` // sql_distributed
-	AnyJSON                 string        `gorm:"column:any_json;type:text" json:"anyJSON"`
-	KafkaSkipBrokenMessages int           `gorm:"column:kafka_skip_broken_messages;type:int(11)" json:"kafkaSkipBrokenMessages"`
-	Database                *BaseDatabase `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
+	Did                     int    `gorm:"column:did;type:int(11);index:uix_did_name,unique" json:"did"`                // database id
+	Name                    string `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_did_name,unique" json:"name"` // table
+	Typ                     int    `gorm:"column:typ;type:int(11)" json:"typ"`                                          // table type, 1 string 2 float
+	Days                    int    `gorm:"column:days;type:int(11)" json:"days"`                                        // data expire days
+	Brokers                 string `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`                    // kafka broker
+	Topic                   string `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`                        // kafka topic
+	ConsumerNum             int    `gorm:"column:consumer_num;type:int(11)" json:"consumerNum"`                         // kafka consumer number
+	SqlData                 string `gorm:"column:sql_data;type:text" json:"sqlData"`                                    // sql_data
+	SqlStream               string `gorm:"column:sql_stream;type:text" json:"sqlStream"`                                // sql_stream
+	SqlView                 string `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
+	SqlDistributed          string `gorm:"column:sql_distributed;type:text" json:"sqlDistributed"`                      // sql_distributed
+	Uid                     int    `gorm:"column:uid;type:int(11)" json:"uid"`                                          // operator uid
+	CreateType              int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create clickvisual fresh table, 1 means use exists table
+	TimeField               string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
+	TimeFieldType           int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"` // custom time filed type name of _time_
+	Desc                    string `gorm:"column:desc;type:varchar(255)" json:"desc"`
+	RawLogField             string `gorm:"column:raw_log_field;type:varchar(255)" json:"rawLogField"`
+	SelectFields            string `gorm:"column:select_fields;type:text" json:"selectFields"` // sql_distributed
+	AnyJSON                 string `gorm:"column:any_json;type:text" json:"anyJSON"`
+	KafkaSkipBrokenMessages int    `gorm:"column:kafka_skip_broken_messages;type:int(11)" json:"kafkaSkipBrokenMessages"`
+	IsKafkaTimestamp        int    `gorm:"column:is_kafka_timestamp;type:tinyint(1)" json:"isKafkaTimestamp"`
+
+	Database *BaseDatabase `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
 }
 
 // BaseView Materialized view management
@@ -324,26 +325,8 @@ func IndexCreate(db *gorm.DB, data *BaseIndex) (err error) {
 	return
 }
 
-func IndexUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{id}
-	if err = db.Model(BaseIndex{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("release update error", zap.Error(err))
-		return
-	}
-	return
-}
-
 func IndexDeleteBatch(db *gorm.DB, tid int) (err error) {
 	if err = db.Model(BaseIndex{}).Where("`tid`=?", tid).Unscoped().Delete(&BaseIndex{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func IndexDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(BaseIndex{}).Unscoped().Delete(&BaseIndex{}, id).Error; err != nil {
 		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
@@ -378,16 +361,6 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*BaseInstance, err
 func InstanceCreate(db *gorm.DB, data *BaseInstance) (err error) {
 	if err = db.Model(BaseInstance{}).Create(data).Error; err != nil {
 		invoker.Logger.Error("create release error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func InstanceByName(dt, name string) (resp BaseInstance, err error) {
-	var sql = "`datasource`= ? and `name`= ?"
-	var binds = []interface{}{dt, name}
-	if err = invoker.Db.Model(BaseInstance{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -576,25 +549,6 @@ func ShortURLInfoBySCode(db *gorm.DB, sCode string) (resp BaseShortURL, err erro
 	return
 }
 
-func ShortURLInfo(db *gorm.DB, id int) (resp BaseShortURL, err error) {
-	var sql = "`id`= ?"
-	var binds = []interface{}{id}
-	if err = db.Model(BaseShortURL{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("get info error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func ShortURLList(conds egorm.Conds) (resp []*BaseShortURL, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(BaseShortURL{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("get list error", zap.Error(err))
-		return
-	}
-	return
-}
-
 func ShortURLCreate(db *gorm.DB, data *BaseShortURL) (err error) {
 	if err = db.Model(BaseShortURL{}).Create(data).Error; err != nil {
 		invoker.Logger.Error("create error", zap.Error(err))
@@ -608,22 +562,6 @@ func ShortURLUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 	var binds = []interface{}{id}
 	if err = db.Model(BaseShortURL{}).Where(sql, binds...).Updates(ups).Error; err != nil {
 		invoker.Logger.Error("update error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func ShortURLDeleteBatch(db *gorm.DB, tid int) (err error) {
-	if err = db.Model(BaseShortURL{}).Where("`tid`=?", tid).Unscoped().Delete(&BaseShortURL{}).Error; err != nil {
-		invoker.Logger.Error("delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func ShortURLDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(BaseShortURL{}).Unscoped().Delete(&BaseShortURL{}, id).Error; err != nil {
-		invoker.Logger.Error("delete error", zap.Error(err))
 		return
 	}
 	return

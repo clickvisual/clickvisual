@@ -3,6 +3,8 @@ package view
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 type ReqKafkaJSONMapping struct {
@@ -38,6 +40,7 @@ type ReqStorageCreateV3 struct {
 	DatabaseId              int    `form:"databaseId" binding:"required"`
 	TimeField               string `form:"timeField" binding:"required"`
 	TimeFieldType           int    `form:"timeFieldType" binding:"required"` // 1 string 2 float
+	IsKafkaTimestamp        int    `form:"isKafkaTimestamp"`                 // 1 yes
 }
 
 func (r *ReqStorageCreate) GetRawLogField() string {
@@ -138,4 +141,18 @@ type ReqStorageUpdate struct {
 	KafkaConsumerNum        int    `form:"kafkaConsumerNum"` // min 1 max 8
 	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
 	Desc                    string `form:"desc"`
+}
+
+type OperatorViewParams struct {
+	Typ              int
+	Tid              int
+	Did              int
+	Table            string
+	CustomTimeField  string
+	Current          *db.BaseView
+	List             []*db.BaseView
+	Indexes          map[string]*db.BaseIndex
+	IsCreate         bool
+	TimeField        string
+	IsKafkaTimestamp int
 }

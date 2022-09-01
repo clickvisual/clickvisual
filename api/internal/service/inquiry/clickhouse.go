@@ -447,7 +447,19 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
 	tableInfo, _ := db.TableInfo(invoker.Db, tid)
 	if tableInfo.CreateType == constx.TableCreateTypeUBW {
-		return c.storageViewOperatorV3(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, tableInfo.TimeField)
+		return c.storageViewOperatorV3(view.OperatorViewParams{
+			Typ:              typ,
+			Tid:              tid,
+			Did:              did,
+			Table:            table,
+			CustomTimeField:  customTimeField,
+			Current:          current,
+			List:             list,
+			Indexes:          indexes,
+			IsCreate:         isCreate,
+			TimeField:        tableInfo.TimeField,
+			IsKafkaTimestamp: tableInfo.IsKafkaTimestamp,
+		})
 	}
 	rsc := view.ReqStorageCreate{}
 	if tableInfo.AnyJSON != "" {

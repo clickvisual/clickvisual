@@ -71,6 +71,17 @@ func BuilderFieldsStream(tableCreateType int, mapping, timeField, timeTyp, logFi
 
 func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView bumo.ParamsView) string {
 	if tableCreateType == constx.TableCreateTypeUBW {
+		if paramsView.IsKafkaTimestamp == 1 {
+			// use kafka timestamp
+			return fmt.Sprintf(`SELECT
+	toDateTime(toInt64(_timestamp)) AS _time_second_,
+	toDateTime64(toInt64(_timestamp_ms), 9, 'Asia/Shanghai') AS _time_nanosecond_,
+	_key AS _key,
+	body AS _raw_log_%s
+FROM %s
+`, paramsView.CommonFields, paramsView.SourceTable)
+		}
+		// log time field
 		return fmt.Sprintf(`SELECT
   %s,
   _key AS _key,
@@ -78,6 +89,7 @@ func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView
 FROM %s
 `, paramsView.TimeConvert, paramsView.CommonFields, paramsView.SourceTable)
 	}
+	// v1 or v2
 	if logField == "" {
 		logField = "_log_"
 	}

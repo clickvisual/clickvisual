@@ -73,7 +73,19 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 		invoker.Logger.Error("TableCreate", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
-	dViewSQL, err = c.storageViewOperatorV3(ct.TimeFieldType, 0, did, ct.TableName, "", nil, nil, nil, true, ct.TimeField)
+	dViewSQL, err = c.storageViewOperatorV3(view.OperatorViewParams{
+		Typ:              ct.TimeFieldType,
+		Tid:              0,
+		Did:              did,
+		Table:            ct.TableName,
+		CustomTimeField:  "",
+		Current:          nil,
+		List:             nil,
+		Indexes:          nil,
+		IsCreate:         true,
+		TimeField:        ct.TimeField,
+		IsKafkaTimestamp: ct.IsKafkaTimestamp,
+	})
 	if err != nil {
 		invoker.Logger.Error("TableCreate", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
@@ -98,32 +110,29 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 	return
 }
 
-func (c *ClickHouse) storageViewOperatorV3(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
-	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool, timeField string) (res string, err error) {
-	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
+func (c *ClickHouse) storageViewOperatorV3(param view.OperatorViewParams) (res string, err error) {
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.Did)
 	if err != nil {
 		return
 	}
 	if c.mode == ModeCluster {
-		table += "_local"
+		param.Table += "_local"
 	}
-	viewName := genViewName(databaseInfo.Name, table, customTimeField)
-
+	viewName := genViewName(databaseInfo.Name, param.Table, param.CustomTimeField)
 	defer func() {
 		if err != nil {
-			invoker.Logger.Info("viewOperator", elog.Any("tid", tid), elog.Any("customTimeField", customTimeField), elog.Any("database", databaseInfo.Name), elog.Any("table", table), elog.String("step", "doViewRollback"))
-			c.viewRollback(tid, customTimeField)
+			c.viewRollback(param.Tid, param.CustomTimeField)
 		}
 	}()
 	var (
 		viewSQL string
 	)
 	jsonExtractSQL := ""
-	if tid != 0 {
-		jsonExtractSQL = c.genJsonExtractSQLV3(indexes)
+	if param.Tid != 0 {
+		jsonExtractSQL = c.genJsonExtractSQLV3(param.Indexes)
 	}
-	dName := genName(databaseInfo.Name, table)
-	streamName := genStreamName(databaseInfo.Name, table)
+	dName := genName(databaseInfo.Name, param.Table)
+	streamName := genStreamName(databaseInfo.Name, param.Table)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
 	if c.mode == ModeCluster {
@@ -141,31 +150,32 @@ func (c *ClickHouse) storageViewOperatorV3(typ, tid int, did int, table, customT
 	// create
 	var timeConv string
 	var whereCond string
-	if customTimeField == "" {
-		timeConv = c.timeParseSQLV3(typ, nil, timeField)
-		whereCond = c.whereConditionSQLDefaultV3(list)
+	if param.CustomTimeField == "" {
+		timeConv = c.timeParseSQLV3(param.Typ, nil, param.TimeField)
+		whereCond = c.whereConditionSQLDefaultV3(param.List)
 	} else {
-		if current == nil {
+		if param.Current == nil {
 			return "", errors.New("the process processes abnormal data errors, current view cannot be nil")
 		}
-		timeConv = c.timeParseSQLV3(typ, current, timeField)
-		whereCond = c.whereConditionSQLCurrentV3(current)
+		timeConv = c.timeParseSQLV3(param.Typ, param.Current, param.TimeField)
+		whereCond = c.whereConditionSQLCurrentV3(param.Current)
 	}
 	viewSQL = c.ViewDo(bumo.Params{
 		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       timeField,
+		TimeField:       param.TimeField,
 		Cluster:         databaseInfo.Cluster,
 		ReplicaStatus:   c.rs,
 		View: bumo.ParamsView{
-			ViewTable:    viewName,
-			TargetTable:  dName,
-			TimeConvert:  timeConv,
-			CommonFields: jsonExtractSQL,
-			SourceTable:  streamName,
-			Where:        whereCond,
+			ViewTable:        viewName,
+			TargetTable:      dName,
+			TimeConvert:      timeConv,
+			CommonFields:     jsonExtractSQL,
+			SourceTable:      streamName,
+			Where:            whereCond,
+			IsKafkaTimestamp: param.IsKafkaTimestamp,
 		},
 	})
-	if isCreate {
+	if param.IsCreate {
 		_, err = c.db.Exec(viewSQL)
 		if err != nil {
 			return viewSQL, err
