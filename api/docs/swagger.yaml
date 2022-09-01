@@ -624,6 +624,9 @@ paths:
         name: end
         type: integer
       - in: query
+        name: iid
+        type: integer
+      - in: query
         name: nodeName
         type: string
       - description: PageSize 每页记录数
@@ -668,6 +671,9 @@ paths:
       parameters:
       - in: query
         name: end
+        type: integer
+      - in: query
+        name: iid
         type: integer
       - in: query
         name: isInCharge
@@ -854,6 +860,10 @@ paths:
       - in: query
         name: desc
         type: string
+      - description: 1 yes
+        in: query
+        name: isKafkaTimestamp
+        type: integer
       - in: query
         name: kafkaSkipBrokenMessages
         type: integer

@@ -423,6 +423,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "name": "iid",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "nodeName",
                         "in": "query"
@@ -496,6 +501,11 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "iid",
                         "in": "query"
                     },
                     {
@@ -782,6 +792,12 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "desc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1 yes",
+                        "name": "isKafkaTimestamp",
                         "in": "query"
                     },
                     {
