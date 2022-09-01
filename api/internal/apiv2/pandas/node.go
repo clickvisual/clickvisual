@@ -312,8 +312,17 @@ func WorkerDashboard(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	ins, _ := service.InstanceFilterPms(c.Uid())
-	res := service.Node.WorkerDashboard(req, ins)
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(req.Iid),
+		SubResource: pmsplugin.Pandas,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	res := service.Node.WorkerDashboard(req, c.Uid())
 	c.JSONE(core.CodeOK, "succ", res)
 	return
 }
@@ -333,20 +342,22 @@ func WorkerList(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	// Read node data according to user instance permissions
-	instances, _ := service.InstanceFilterPms(c.Uid())
-	instanceIdArr := make([]int, 0)
-	for _, ins := range instances {
-		instanceIdArr = append(instanceIdArr, ins.Id)
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(req.Iid),
+		SubResource: pmsplugin.Pandas,
+		Acts:        []string{pmsplugin.ActView},
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
 	}
+	// Read node data according to user instance permissions
 	condsNodes := egorm.Conds{}
 	if req.Tertiary != 0 {
 		condsNodes["tertiary"] = req.Tertiary
 	}
-	condsNodes["iid"] = egorm.Cond{
-		Op:  "in",
-		Val: instanceIdArr,
-	}
+	condsNodes["iid"] = req.Iid
 	if req.NodeName != "" {
 		condsNodes["name"] = egorm.Cond{
 			Op:  "like",
@@ -354,7 +365,6 @@ func WorkerList(c *core.Context) {
 		}
 	}
 	nodes, _ := db.NodeList(condsNodes)
-	invoker.Logger.Debug("WorkerList", elog.Any("instanceIdArr", instanceIdArr), elog.Any("nodes", nodes))
 	// Read the execution result based on the node information
 	nodeIdArr := make([]int, 0)
 	for _, n := range nodes {

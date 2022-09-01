@@ -1,18 +1,21 @@
 import instancePanelStyles from "@/pages/SystemSetting/InstancePanel/styles/index.less";
 import InstanceSearchBar from "@/pages/SystemSetting/InstancePanel/components/InstanceSearchBar";
 import InstanceTable from "@/pages/SystemSetting/InstancePanel/components/InstanceTable";
-import { useModel } from "@@/plugin-model/useModel";
-import React, { useEffect, useState } from "react";
-import CreatedOrUpdatedInstanceModal from "@/pages/SystemSetting/InstancePanel/components/CreatedOrUpdatedInstanceModal";
-import type { InstanceType } from "@/services/systemSetting";
+import {useModel} from "@@/plugin-model/useModel";
+import React, {useEffect, useState} from "react";
+import CreatedOrUpdatedInstanceModal
+    from "@/pages/SystemSetting/InstancePanel/components/CreatedOrUpdatedInstanceModal";
+import type {InstanceType} from "@/services/systemSetting";
 
 type InstancePanelContextType = {
   onChangeVisible?: (flag: boolean) => void;
   onChangeIsEditor?: (flag: boolean) => void;
   onChangeCurrentInstance?: (param: InstanceType | undefined) => void;
 };
+
 export const InstancePanelContext =
   React.createContext<InstancePanelContextType>({});
+
 const InstancePanel = () => {
   const { doGetInstanceList, instanceList } = useModel("instances");
   const [list, setList] = useState<any[]>([]);
@@ -25,6 +28,7 @@ const InstancePanel = () => {
   const [currentInstance, setCurrentInstance] = useState<
     InstanceType | undefined
   >();
+
   useEffect(() => {
     doGetInstanceList();
   }, []);

@@ -246,6 +246,7 @@ type (
 	ReqWorkerDashboard struct {
 		Start      int64 `json:"start" form:"start"`
 		End        int64 `json:"end" form:"end"`
+		Iid        int   `json:"iid" form:"iid"`
 		IsInCharge int   `json:"isInCharge" form:"isInCharge"`
 	}
 	RespWorkerDashboard struct {
@@ -263,6 +264,7 @@ type (
 		End      int    `json:"end" form:"end"`
 		NodeName string `json:"nodeName" form:"nodeName"`
 		Tertiary int    `json:"tertiary" form:"tertiary"` // ClickHouse 10; MySQL 11; OfflineSync 20
+		Iid      int    `json:"iid" form:"iid"`
 		Pagination
 	}
 

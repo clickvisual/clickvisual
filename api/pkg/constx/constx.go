@@ -13,8 +13,9 @@ const (
 
 var (
 	DefaultFields = map[string]interface{}{
-		"_time_second_":     struct{}{},
 		"_time_nanosecond_": struct{}{},
+		"_time_second_":     struct{}{},
 		"_raw_log_":         struct{}{},
+		"_key":              struct{}{},
 	}
 )

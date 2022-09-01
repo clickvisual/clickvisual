@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -26,10 +27,10 @@ func NewNode() *node {
 	}
 	xgo.Go(func() {
 		n.SetStats(true)
-		for {
-			time.Sleep(time.Minute)
-			n.SetStats(false)
-		}
+		// for {
+		// time.Sleep(time.Minute)
+		// n.SetStats(false)
+		// }
 	})
 	return n
 }
@@ -41,7 +42,6 @@ func NewNode() *node {
 // nodeResultMap := make(map[string]view.WorkerStatsRow, 0)
 func (n *node) SetStats(isInit bool) {
 	nodes, _ := db.NodeListWithWorker()
-	invoker.Logger.Debug("SetStats", elog.Any("nodes", nodes))
 	startTime := time.Now().Add(-time.Hour).Unix()
 	key := hourPrecision(time.Now().Unix())
 	for _, nodeInfo := range nodes {
@@ -58,7 +58,6 @@ func (n *node) SetStats(isInit bool) {
 			}
 		}
 		nodeResults, _ := db.NodeResultList(conds)
-		invoker.Logger.Debug("SetStats", elog.Any("nodeResults", nodeResults))
 		// Split the data by time point (hour)
 		for _, result := range nodeResults {
 			var stats view.WorkerStatsRow
@@ -79,8 +78,12 @@ func (n *node) SetStats(isInit bool) {
 			}
 			workerStatsRow[hour] = stats
 		}
-		invoker.Logger.Debug("SetStats", elog.Any("nodeResultMap", workerStatsRow))
 		crontab, _ := db.CrontabInfo(invoker.Db, nodeInfo.ID)
+		invoker.Logger.Debug("SetStats", elog.Int("nodeId", nodeInfo.ID), elog.Any("nodeResultMap", view.WorkerStats{
+			Iid:  nodeInfo.Iid,
+			Uid:  crontab.DutyUid,
+			Data: workerStatsRow,
+		}))
 		n.Stats.Store(nodeInfo.ID, view.WorkerStats{
 			Iid:  nodeInfo.Iid,
 			Uid:  crontab.DutyUid,
@@ -89,47 +92,60 @@ func (n *node) SetStats(isInit bool) {
 	}
 }
 
-func (n *node) WorkerDashboard(req view.ReqWorkerDashboard, ins []view.RespInstanceSimple) (res view.RespWorkerDashboard) {
-	insMap := make(map[int]interface{})
-	for _, i := range ins {
-		insMap[i.Id] = struct{}{}
-	}
+func (n *node) WorkerDashboard(req view.ReqWorkerDashboard, uid int) (res view.RespWorkerDashboard) {
 	start := hourPrecision(req.Start)
 	end := hourPrecision(req.End)
-	n.Stats.Range(func(key, obj interface{}) bool {
-		workerStats := obj.(view.WorkerStats)
-		if _, ok := insMap[workerStats.Iid]; !ok {
+	collectsFlow := make(map[int64]view.WorkerStatsRow)
+	collectsNode := make(map[int]view.WorkerStatsRow)
+	n.Stats.Range(func(nodeId, obj interface{}) bool {
+		ws := obj.(view.WorkerStats)
+		if ws.Iid != req.Iid {
 			return true
 		}
-		nodeFailed := 0
-		nodeSuccess := 0
-		nodeUnknown := 0
-		for dayHour, row := range workerStats.Data {
-			if dayHour > end || start > dayHour {
+		if nodeId.(int) == 264 {
+			fmt.Println(264)
+		}
+		if req.IsInCharge != 0 && ws.Uid != uid {
+			return true
+		}
+		for timestamp, row := range ws.Data {
+			if timestamp > end || start > timestamp {
 				continue
 			}
-			res.WorkerFailed += row.Failed
-			res.WorkerSuccess += row.Success
-			res.WorkerUnknown += row.Unknown
-			if row.Failed > 0 {
-				nodeFailed = 1
-				nodeSuccess = 0
-			} else if row.Success > 0 {
-				nodeFailed = 1
-				nodeSuccess = 0
-			}
-			row.Timestamp = dayHour
-			res.Flows = append(res.Flows, row)
+			// set flow
+			flowItem := collectsFlow[timestamp]
+			flowItem.Timestamp = timestamp
+			flowItem.Success += row.Success
+			flowItem.Failed += row.Failed
+			flowItem.Unknown += row.Unknown
+			collectsFlow[timestamp] = flowItem
+			// set node
+			nodeItem := collectsNode[nodeId.(int)]
+			nodeItem.Success += row.Success
+			nodeItem.Failed += row.Failed
+			nodeItem.Unknown += row.Unknown
+			collectsNode[nodeId.(int)] = nodeItem
 		}
-		if nodeFailed == 0 && nodeSuccess == 0 {
-			nodeUnknown = 1
-		}
-		res.NodeSuccess += nodeSuccess
-		res.NodeFailed += nodeFailed
-		res.NodeUnknown += nodeUnknown
 		return true
 	})
-
+	for _, row := range collectsFlow {
+		res.WorkerFailed += row.Failed
+		res.WorkerSuccess += row.Success
+		res.WorkerUnknown += row.Unknown
+		res.Flows = append(res.Flows, row)
+	}
+	sort.Slice(res.Flows, func(i, j int) bool {
+		return res.Flows[i].Timestamp < res.Flows[j].Timestamp
+	})
+	for _, nodeStats := range collectsNode {
+		if nodeStats.Failed > 0 {
+			res.NodeFailed += 1
+		} else if nodeStats.Success > 0 {
+			res.NodeSuccess += 1
+		} else {
+			res.NodeUnknown += 1
+		}
+	}
 	return res
 }
 
