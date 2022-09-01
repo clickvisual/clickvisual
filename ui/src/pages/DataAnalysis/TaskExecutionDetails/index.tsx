@@ -12,7 +12,7 @@ import TaskFilter from "./TaskFilter";
 
 const TaskExecutionDetails = () => {
   const i18n = useIntl();
-  const { statisticalBoard } = useModel("dataAnalysis");
+  const { statisticalBoard, currentInstances } = useModel("dataAnalysis");
   const { doGetTaskList } = statisticalBoard;
   const [taskList, setTaskList] = useState<any[]>([]);
   const [endTime, setEndTime] = useState<number>();
@@ -42,7 +42,9 @@ const TaskExecutionDetails = () => {
     nodeName?: string;
     tertiary?: number;
   }) =>
+    currentInstances &&
     getList({
+      iid: currentInstances,
       end: data.end == 0 ? undefined : data.end || endTime,
       start: data.start == 0 ? undefined : data.start || endTime,
       nodeName: data.nodeName || nodeName,
@@ -158,8 +160,14 @@ const TaskExecutionDetails = () => {
   ];
 
   useEffect(() => {
-    getList({ current: 1, pageSize: 10 });
-  }, []);
+    if (currentInstances) {
+      setEndTime(undefined);
+      setStartTime(undefined);
+      setNodeName("");
+      setTertiary(undefined);
+      getList({ current: 1, pageSize: 10, iid: currentInstances });
+    }
+  }, [currentInstances]);
 
   return (
     <div style={{ height: "calc(100vh - 105px)" }}>
@@ -176,6 +184,8 @@ const TaskExecutionDetails = () => {
           setEndTime={setEndTime}
           setStartTime={setStartTime}
           setTertiary={setTertiary}
+          tertiary={tertiary}
+          nodeName={nodeName}
           endTime={endTime}
           startTime={startTime}
         />
@@ -200,10 +210,12 @@ const TaskExecutionDetails = () => {
                 current: page,
                 pageSize,
               });
-              getList({
-                current: page,
-                pageSize,
-              });
+              currentInstances &&
+                getList({
+                  iid: currentInstances,
+                  current: page,
+                  pageSize,
+                });
             },
           }}
         />

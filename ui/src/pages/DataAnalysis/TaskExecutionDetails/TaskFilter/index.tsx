@@ -17,8 +17,10 @@ export interface TaskFilterType {
   setEndTime: (num: number) => void;
   setStartTime: (num: number) => void;
   setTertiary: (num: number) => void;
+  nodeName?: string;
   endTime?: number;
   startTime?: number;
+  tertiary?: number;
 }
 const TaskFilter = (props: TaskFilterType) => {
   const {
@@ -26,9 +28,11 @@ const TaskFilter = (props: TaskFilterType) => {
     onGetList,
     endTime,
     startTime,
+    nodeName,
     setStartTime,
     setEndTime,
     setTertiary,
+    tertiary,
   } = props;
   const i18n = useIntl();
 
@@ -55,6 +59,11 @@ const TaskFilter = (props: TaskFilterType) => {
               placeholder={i18n.formatMessage({
                 id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName",
               })}
+              value={nodeName}
+              onChange={(e) => {
+                const nodeName = e.target.value;
+                setNodeName(nodeName);
+              }}
               onPressEnter={(e: any) => {
                 const nodeName = e.target.value;
                 setNodeName(nodeName);
@@ -111,6 +120,7 @@ const TaskFilter = (props: TaskFilterType) => {
           <Select
             style={{ width: 150 }}
             onChange={handleSelectChange}
+            value={tertiary}
             placeholder={i18n.formatMessage({
               id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder",
             })}
