@@ -38,9 +38,9 @@ type ReqStorageCreateV3 struct {
 	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
 	Desc                    string `form:"desc"`
 	DatabaseId              int    `form:"databaseId" binding:"required"`
-	TimeField               string `form:"timeField" binding:"required"`
-	TimeFieldType           int    `form:"timeFieldType" binding:"required"` // 1 string 2 float
-	IsKafkaTimestamp        int    `form:"isKafkaTimestamp"`                 // 1 yes
+	TimeField               string `form:"timeField"`
+	TimeFieldType           int    `form:"timeFieldType"`    // 1 string 2 float
+	IsKafkaTimestamp        int    `form:"isKafkaTimestamp"` // 1 yes
 }
 
 func (r *ReqStorageCreate) GetRawLogField() string {

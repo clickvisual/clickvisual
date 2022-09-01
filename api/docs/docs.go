@@ -814,15 +814,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "timeField",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
                         "description": "1 string 2 float",
                         "name": "timeFieldType",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",

@@ -873,12 +873,10 @@ paths:
         type: string
       - in: query
         name: timeField
-        required: true
         type: string
       - description: 1 string 2 float
         in: query
         name: timeFieldType
-        required: true
         type: integer
       - in: query
         name: topics

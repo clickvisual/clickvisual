@@ -1510,6 +1510,7 @@ func (c *ClickHouse) ReCreateKafkaTable(tableInfo *db.BaseTable, params view.Req
 	}
 	// Create Table
 	streamParams := bumo.Params{
+		TableCreateType: tableInfo.CreateType,
 		Stream: bumo.ParamsStream{
 			TableName: genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
 			TableTyp:  TableTypStr(tableInfo.Typ),
