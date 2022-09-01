@@ -26,13 +26,15 @@ const Screening = (props: {
     end?: number;
     isInCharge?: number;
   }) => void;
+  iid: number;
 }) => {
-  const { onGetList } = props;
+  const { onGetList, iid } = props;
   const i18n = useIntl();
   const [timeState, setTimeState] = useState<string>("yesterday");
   const [isInCharge, setIsInCharge] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [endTime, setEndTime] = useState<number>(0);
+  const [isFirst, setIsFirst] = useState<boolean>(true);
 
   const timeChange = (start: number, end: number) => {
     setStartTime(start);
@@ -95,12 +97,6 @@ const Screening = (props: {
       },
     ];
   }, [timeState, isInCharge]);
-
-  useEffect(() => {
-    const start = +moment().startOf("day").subtract(1, "d");
-    const end = +moment().endOf("day").subtract(1, "d");
-    timeChange(start, end);
-  }, []);
 
   const operation = useMemo(() => {
     return (
@@ -180,6 +176,23 @@ const Screening = (props: {
       </div>
     );
   }, [timeList, startTime, endTime]);
+
+  useEffect(() => {
+    if (isFirst) {
+      const start = +moment().startOf("day").subtract(1, "d");
+      const end = +moment().endOf("day").subtract(1, "d");
+      timeChange(start, end);
+      setIsFirst(false);
+      return;
+    }
+
+    onGetList({
+      end: endTime,
+      start: startTime,
+      isInCharge: Number(isInCharge),
+    });
+  }, [iid]);
+
   return <div className={styles.ScreeningBox}>{operation}</div>;
 };
 export default Screening;

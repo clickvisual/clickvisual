@@ -7,6 +7,7 @@ export enum TaskListTertiaryEnum {
 }
 
 export interface getTaskListType {
+  iid: number;
   // 总记录数
   current?: number;
   end?: number;
@@ -24,6 +25,7 @@ export const EnumsTertiary = {
   20: "OfflineSync",
 };
 export interface getDashboardType {
+  iid: number;
   end?: number;
   start?: number;
   isInCharge?: number;

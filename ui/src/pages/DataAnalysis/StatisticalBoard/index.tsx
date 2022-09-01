@@ -32,7 +32,7 @@ const StatisticalBoard = () => {
     workerUnknown: 0,
     flows: [],
   });
-  const { statisticalBoard } = useModel("dataAnalysis");
+  const { statisticalBoard, currentInstances } = useModel("dataAnalysis");
   const { doGetDashboard } = statisticalBoard;
 
   const getList = (data: {
@@ -40,19 +40,22 @@ const StatisticalBoard = () => {
     end?: number;
     isInCharge?: number;
   }) => {
-    doGetDashboard.run(data).then((res: any) => {
+    if (!currentInstances) return;
+    const newData = {
+      iid: currentInstances,
+      isInCharge: data.isInCharge,
+      end: Math.floor((data?.end || 0) / 1000),
+      start: Math.floor((data?.start || 0) / 1000),
+    };
+    doGetDashboard.run(newData).then((res: any) => {
       if (res.code != 0) return;
       setDashboardData(res.data);
     });
   };
 
-  useEffect(() => {
-    getList({});
-  }, []);
-
   return (
     <div className={styles.statisticalBoard}>
-      <Screening onGetList={getList} />
+      <Screening onGetList={getList} iid={currentInstances as number} />
       <Spin spinning={doGetDashboard.loading}>
         <DashboardTop dashboardData={dashboardData} />
         <div className={styles.flexBox}>
