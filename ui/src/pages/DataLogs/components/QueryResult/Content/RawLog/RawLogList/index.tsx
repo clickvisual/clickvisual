@@ -3,20 +3,216 @@ import LogItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawL
 import { useModel } from "@@/plugin-model/useModel";
 import classNames from "classnames";
 import { PaneType } from "@/models/datalogs/types";
+import LinkItem from "./LinkItem";
+import LinkItemTitle from "./LinkItemTitle";
+import { useEffect, useMemo } from "react";
+import { notification } from "antd";
+import { parseJsonObject } from "@/utils/string";
+import { microsecondTimeStamp } from "@/utils/time";
+
+// 链路主题色，循环使用，可直接在末尾新增
+const themeColor = [
+  "#ee722e90",
+  "#f5b84590",
+  "#208aae90",
+  "#de5b9690",
+  "#ecb9cc90",
+];
 
 const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
-  const { logs } = useModel("dataLogs");
+  const { logs, logState } = useModel("dataLogs");
 
   const list = logs?.logs || [];
+
+  const handleFindChild = (
+    oneselfId: string,
+    data: any,
+    first: any,
+    hierarchy: number,
+    endTime: number,
+    themeColorList: string[]
+  ) => {
+    let dataList: any[] = [];
+    data.map((item: any) => {
+      if (
+        oneselfId ==
+        (item?.rawLogJson?.references &&
+          item?.rawLogJson?.references[0]?.spanId)
+      ) {
+        dataList.push({
+          title: (
+            <LinkItemTitle
+              title={
+                <>
+                  {item?.rawLogJson.process.serviceName} &nbsp;
+                  <span style={{ color: "#9c9c9c" }}>
+                    {item?.rawLogJson.operationName}
+                  </span>
+                </>
+              }
+              log={item}
+              initial={microsecondTimeStamp(first.rawLogJson?.startTime)}
+              totalLength={
+                endTime - microsecondTimeStamp(first.rawLogJson?.startTime)
+              }
+              hierarchy={hierarchy}
+              themeColor={
+                themeColor[
+                  themeColorList.indexOf(
+                    item?.rawLogJson?.process?.serviceName
+                  ) % themeColor.length
+                ]
+              }
+            />
+          ),
+          key: item.rawLogJson.spanId,
+          children: handleFindChild(
+            item.rawLogJson.spanId,
+            data,
+            first,
+            hierarchy + 1,
+            endTime,
+            themeColorList
+          ),
+          data: item,
+        });
+      }
+    });
+
+    return dataList;
+  };
+
+  const linkDataList = useMemo(() => {
+    if (logs?.isTrace !== 1) {
+      return [];
+    }
+    const handleGetTotalLength = (
+      list: any[],
+      arr: any[],
+      serviceNameList: string[]
+    ) => {
+      list.map((item: any) => {
+        arr.push(
+          item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6) +
+            microsecondTimeStamp(item?.rawLogJson?.startTime)
+        );
+        // name对应主题色
+        if (
+          item?.rawLogJson?.process?.serviceName &&
+          !serviceNameList.includes(item?.rawLogJson?.process?.serviceName)
+        ) {
+          serviceNameList.push(item?.rawLogJson?.process?.serviceName);
+        }
+      });
+      return arr;
+    };
+
+    let keyList: string[] = [];
+    let dataList: any = {};
+    list.map((item: any) => {
+      item.rawLogJson = parseJsonObject(item["_raw_log_"]);
+      if (!keyList.includes(item._key)) {
+        keyList.push(item._key);
+        dataList = {
+          ...dataList,
+          [item._key]: [item],
+        };
+      } else {
+        dataList[item._key].push(item);
+      }
+    });
+
+    let treeDataList: any[] = [];
+    Object.keys(dataList).map((key: string) => {
+      let endTime: number = 0;
+      let themeColorList: any[] = [];
+      handleGetTotalLength(dataList[key], [], themeColorList).map(
+        (item: any) => {
+          if (item > endTime) {
+            endTime = item;
+          }
+        }
+      );
+
+      dataList[key].map((item: any) => {
+        if (!item.rawLogJson.references) {
+          treeDataList.push({
+            title: (
+              <LinkItemTitle
+                title={
+                  <>
+                    {item?.rawLogJson.process.serviceName} &nbsp;
+                    <span style={{ color: "#9c9c9c" }}>
+                      {item?.rawLogJson.operationName}
+                    </span>
+                  </>
+                }
+                log={item}
+                initial={microsecondTimeStamp(item.rawLogJson?.startTime)}
+                totalLength={
+                  endTime - microsecondTimeStamp(item.rawLogJson?.startTime)
+                }
+                hierarchy={1}
+                themeColor={
+                  themeColor[
+                    themeColorList.indexOf(
+                      item?.rawLogJson?.process?.serviceName
+                    ) % themeColor.length
+                  ]
+                }
+              />
+            ),
+            children: handleFindChild(
+              item?.rawLogJson.spanId,
+              dataList[key],
+              item,
+              2,
+              endTime,
+              themeColorList
+            ),
+            key: key,
+            data: item,
+          });
+          return;
+        }
+      });
+    });
+
+    return treeDataList;
+  }, [list, logs?.isTrace]);
+
+  // 出现第二个_key的时候就需要提示输入赛选条件
+  useEffect(() => {
+    if (
+      logs?.isTrace == 1 &&
+      logState == 1 &&
+      Object.keys(linkDataList).length > 1
+    ) {
+      notification.info({
+        message: "提示",
+        description: "需要具体的链路id，_key='链路ID'",
+        duration: null,
+        placement: "top",
+      });
+    }
+  }, [linkDataList]);
+
   return (
     <div className={classNames(rawLogListStyles.rawLogListMain)}>
-      {list.map((logItem: any, index: number) => (
-        <LogItem
-          foldingChecked={oldPane?.foldingChecked}
-          log={logItem}
-          key={index}
-        />
-      ))}
+      {logs?.isTrace == 0 || logState != 1
+        ? list.map((logItem: any, index: number) => {
+            return (
+              <LogItem
+                foldingChecked={oldPane?.foldingChecked}
+                log={logItem}
+                key={index}
+              />
+            );
+          })
+        : // 链路日志
+          linkDataList.map((item: any) => {
+            return <LinkItem key={item.key} log={item} />;
+          })}
     </div>
   );
 };

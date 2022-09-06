@@ -1,0 +1,68 @@
+.progressContentItemTitle {
+  margin-top: 8px;
+  overflow: hidden; //超出的文本隐藏
+  font-weight: 600;
+  font-size: 14px;
+  // white-space: nowrap; //溢出不换行
+  text-overflow: ellipsis; //溢出用省略号显示
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .titleSpan {
+    color: #aaa;
+
+    .titleSpanItem {
+      display: inline-block;
+      font-weight: 500;
+    }
+  }
+}
+
+.progressContentItemContent {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+
+  .detailsItem {
+    display: flex;
+    padding-left: 10px;
+
+    &:hover {
+      .copyBtn {
+        opacity: 1;
+      }
+    }
+
+    .detailsItemKeys {
+      width: 200px;
+      color: #888;
+    }
+
+    .detailsItemValues {
+      flex: 1;
+      width: 100%;
+      color: rgb(237, 129, 66);
+    }
+
+    .copyBtn {
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+    }
+  }
+}
+
+.none {
+  display: none;
+}
+
+.bg_gray {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.bg_white {
+  background: #f9f9f9;
+}

@@ -1,0 +1,49 @@
+.linkItem {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 20px;
+  font-size: 13px;
+  .calibration {
+    display: flex;
+    width: 100%;
+    line-height: 25px;
+    background: #ececec;
+    border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
+    .calibrationLeft {
+      width: 15vw;
+      padding-left: 10px;
+    }
+    .calibrationRight {
+      position: relative;
+      display: flex;
+      flex: 1;
+
+      &::before {
+        position: absolute;
+        right: 4px;
+        content: attr(data-time);
+      }
+
+      span {
+        display: inline-block;
+        flex: 1;
+        padding-left: 4px;
+        line-height: 25px;
+        border-left: 1px solid hsla(0, 0%, 0%, 0.1);
+      }
+    }
+  }
+  .linkContent {
+    display: flex;
+    width: 100%;
+    // height: 300px;
+    .linkTree {
+      //   width: 15vw;
+      width: 100%;
+    }
+    .linkRight {
+      flex: 1;
+    }
+  }
+}

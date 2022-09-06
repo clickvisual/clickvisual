@@ -99,6 +99,9 @@ const DataLogsModel = () => {
   // 是否链路模式
   const [isTrace, setIsTrace] = useState<number>(0);
 
+  // 链路模式下日志的三种状态
+  const [logState, setLogState] = useState<number>(0);
+
   const {
     logLibraryCreatedModalVisible,
     logLibraryInfoDrawVisible,
@@ -211,6 +214,10 @@ const DataLogsModel = () => {
 
   const onChangeIsTrace = (num: number) => {
     setIsTrace(num);
+  };
+
+  const onChangeLogState = (num: number) => {
+    setLogState(num);
   };
 
   const onChangeRawLogsIndexeList = (list?: IndexInfoType[]) => {
@@ -603,6 +610,7 @@ const DataLogsModel = () => {
     currentEditLogLibrary,
     isLogLibraryAllDatabase,
     isTrace,
+    logState,
 
     doGetLogs,
     doGetHighCharts,
@@ -632,6 +640,7 @@ const DataLogsModel = () => {
     onChangeCurrentEditDatabase,
     onChangeCurrentEditLogLibrary,
     onChangeIsTrace,
+    onChangeLogState,
 
     doParseQuery,
     doUpdatedQuery,
