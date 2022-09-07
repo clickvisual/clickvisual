@@ -523,8 +523,8 @@ const DatasourceSelect = ({
                 <Button
                   type={"primary"}
                   onClick={() => {
-                    const table = form.getFieldValue(["source", "table"]);
-                    console.log(itemNamePath, "itemNamePath", table, source);
+                    // const table = form.getFieldValue(["source", "table"]);
+                    // console.log(itemNamePath, "itemNamePath", table, source);
                     if (source.length == 0) {
                       message.warning("数据来源表结构为空");
                       return;

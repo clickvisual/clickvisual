@@ -1,26 +1,42 @@
-.duration {
-  position: relative;
-  height: 11px;
-  margin-top: 6px;
-  background: rgba(40, 154, 233, 0.4);
-  border-radius: 3px;
-  z-index: 10;
+.progressBar {
+  width: 100%;
 
-  &::before {
+  .duration {
     position: absolute;
-    top: -6px;
-    right: calc(100% + 4px);
-    color: #666;
-    font-size: 12px;
-    content: attr(data-left-time);
+    top: 50%;
+    z-index: 10;
+    height: 11px;
+    background: rgba(40, 154, 233, 0.4);
+    border-radius: 3px;
+    transform: translateY(-50%);
+
+    &::before {
+      position: absolute;
+      top: 50%;
+      right: calc(100% + 4px);
+      color: #666;
+      font-size: 12px;
+      transform: translateY(-50%);
+      content: attr(data-left-time);
+    }
+
+    &::after {
+      position: absolute;
+      top: 50%;
+      left: calc(100% + 4px);
+      color: #666;
+      font-size: 12px;
+      transform: translateY(-50%);
+      content: attr(data-right-time);
+    }
   }
 
-  &::after {
+  .errorLine {
     position: absolute;
-    top: -6px;
-    left: calc(100% + 4px);
-    color: #666;
-    font-size: 12px;
-    content: attr(data-right-time);
+    top: 50%;
+    line-height: 11px;
+    height: 16px;
+    transform: translateY(-50%);
+    z-index: 11;
   }
 }

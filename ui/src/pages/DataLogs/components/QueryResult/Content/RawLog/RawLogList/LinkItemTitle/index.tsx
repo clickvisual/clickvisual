@@ -1,17 +1,14 @@
-import classNames from "classnames";
 import { useMemo, useState } from "react";
 import styles from "./index.less";
-import {
-  microsecondTimeStamp,
-  nanosecondTimeUnitConversion,
-} from "@/utils/time";
-import {
-  DownOutlined,
-  ExclamationCircleFilled,
-  RightOutlined,
-} from "@ant-design/icons";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 import ProgressBar from "./ProgressBar";
 import ContentItem from "./ContentItem";
+import LogsItem from "./LogsItem";
+import classNames from "classnames";
+import {
+  microsecondTimeStamp,
+  microsecondsTimeUnitConversion,
+} from "@/utils/time";
 
 const LinkItemTitle = (props: {
   title: any;
@@ -23,7 +20,6 @@ const LinkItemTitle = (props: {
 }) => {
   const { title, log, initial, totalLength, hierarchy, themeColor } = props;
   const [isHidden, setIsHidden] = useState<boolean>(true);
-  const [isLogsHidden, setIsLogsHidden] = useState<boolean>(true);
 
   const titleWidth = useMemo(() => {
     return `calc(15vw - ${24 * hierarchy + 4}px)`;
@@ -69,6 +65,7 @@ const LinkItemTitle = (props: {
           }}
         >
           <ProgressBar
+            log={log}
             initial={initial}
             start={microsecondTimeStamp(log.rawLogJson?.startTime)}
             totalLength={totalLength}
@@ -110,7 +107,7 @@ const LinkItemTitle = (props: {
                 &nbsp;|&nbsp;Duration: &nbsp;
               </span>
               <span>
-                {nanosecondTimeUnitConversion(
+                {microsecondsTimeUnitConversion(
                   log.rawLogJson?.duration.slice(0, -1) * 1000000
                 )}
               </span>
@@ -118,7 +115,7 @@ const LinkItemTitle = (props: {
                 &nbsp;|&nbsp;Start Time: &nbsp;
               </span>
               <span>
-                {nanosecondTimeUnitConversion(
+                {microsecondsTimeUnitConversion(
                   microsecondTimeStamp(log.rawLogJson?.startTime) - initial
                 )}
               </span>
@@ -140,40 +137,7 @@ const LinkItemTitle = (props: {
                 !log?.rawLogJson?.logs && styles.none,
               ])}
             >
-              <div
-                className={styles.logsTitle}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsLogsHidden(!isLogsHidden);
-                }}
-              >
-                {isLogsHidden ? <RightOutlined /> : <DownOutlined />}
-                Logs ({log?.rawLogJson?.logs?.length})
-              </div>
-              <div
-                className={classNames([
-                  styles.logsContent,
-                  isLogsHidden && styles.none,
-                ])}
-              >
-                {log?.rawLogJson?.logs &&
-                  Object.keys(log?.rawLogJson?.logs).map((key: any) => {
-                    const item = log?.rawLogJson?.logs[key];
-                    return (
-                      <ContentItem
-                        key={key}
-                        title={
-                          <>
-                            {nanosecondTimeUnitConversion(
-                              microsecondTimeStamp(item.timestamp) - initial
-                            )}
-                          </>
-                        }
-                        list={log.rawLogJson?.process.tags}
-                      />
-                    );
-                  })}
-              </div>
+              <LogsItem log={log} initial={initial} />
             </div>
           </div>
           <div className={styles.bottomInfo} data-text="SpanID: ">

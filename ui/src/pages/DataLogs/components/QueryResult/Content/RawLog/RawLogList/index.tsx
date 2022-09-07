@@ -179,6 +179,8 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       });
     });
 
+    // console.log(treeDataList, "treeDataList");
+
     return treeDataList;
   }, [list, logs?.isTrace]);
 

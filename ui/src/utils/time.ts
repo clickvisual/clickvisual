@@ -20,8 +20,7 @@ export const microsecondTimeStamp: (time: string) => number = (
  * @param time  number 1000
  * @returns string  0.000001ms
  */
-export const nanosecondTimeUnitConversion = (time: number) => {
-  console.log(time, "time");
+export const microsecondsTimeUnitConversion = (time: number) => {
   if (time > Math.pow(10, 6)) {
     const list = (time / Math.pow(10, 6)).toString().split(".");
     const num =
