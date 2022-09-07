@@ -33,8 +33,12 @@ const TagFieldContent = ({
       <ClickMenu
         field={field}
         content={content}
-        handleAddCondition={() => onClick(field, content)}
-        handleOutCondition={() => onClickOut(field, content)}
+        handleAddCondition={() =>
+          onClick(field, content.replace(eval('/"/g'), ""))
+        }
+        handleOutCondition={() =>
+          onClickOut(field, content.replace(eval('/"/g'), ""))
+        }
       >
         <Tag color={"#fdebe1"} className={logItemStyles.tag}>
           {content.replace(eval('/"/g'), "")}
