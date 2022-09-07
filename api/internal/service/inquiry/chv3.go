@@ -28,8 +28,8 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 	} else if ct.TimeFieldType == TableTypeFloat {
 		timeTyp = "Float64"
 	} else {
-		err = errors.New("invalid time type")
-		return
+		// TODO more check
+		timeTyp = "Float64"
 	}
 	dataParams := bumo.Params{
 		TableCreateType: constx.TableCreateTypeUBW,
