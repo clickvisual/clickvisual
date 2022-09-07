@@ -86,6 +86,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     if (logs?.isTrace !== 1) {
       return [];
     }
+    // 计算总长度
     const handleGetTotalLength = (
       list: any[],
       arr: any[],

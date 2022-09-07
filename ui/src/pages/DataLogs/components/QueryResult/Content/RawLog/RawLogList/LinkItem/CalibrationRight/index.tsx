@@ -1,3 +1,4 @@
+import { nanosecondTimeUnitConversion } from "@/utils/time";
 import styles from "../index.less";
 const CalibrationRight = (props: { endTime: number; startTime: number }) => {
   const { endTime, startTime } = props;
@@ -5,23 +6,19 @@ const CalibrationRight = (props: { endTime: number; startTime: number }) => {
   return (
     <div
       className={styles.calibrationRight}
-      data-time={(((endTime - startTime) * 4) / 4).toFixed(2) + "us"}
+      data-time={nanosecondTimeUnitConversion(((endTime - startTime) * 4) / 4)}
     >
       <span>
-        {(((endTime - startTime) * 0) / 4).toFixed(2)}
-        us
+        {nanosecondTimeUnitConversion(((endTime - startTime) * 0) / 4)}
       </span>
       <span>
-        {(((endTime - startTime) * 1) / 4).toFixed(2)}
-        us
+        {nanosecondTimeUnitConversion(((endTime - startTime) * 1) / 4)}
       </span>
       <span>
-        {(((endTime - startTime) * 2) / 4).toFixed(2)}
-        us
+        {nanosecondTimeUnitConversion(((endTime - startTime) * 2) / 4)}
       </span>
       <span>
-        {(((endTime - startTime) * 3) / 4).toFixed(2)}
-        us
+        {nanosecondTimeUnitConversion(((endTime - startTime) * 3) / 4)}
       </span>
     </div>
   );

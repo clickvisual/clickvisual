@@ -46,13 +46,8 @@ const LinkItem = (props: LinkItemProps) => {
       </div>
       <div className={styles.linkContent}>
         <div className={styles.linkTree}>
-          <LinkTree
-            log={log}
-            // endTime={endTime}
-            // startTime={parseInt(log?.data?.rawLogJson?.duration.substring(-1))}
-          />
+          <LinkTree log={log} />
         </div>
-        {/* <div className={styles.linkRight}>2</div> */}
       </div>
     </div>
   );

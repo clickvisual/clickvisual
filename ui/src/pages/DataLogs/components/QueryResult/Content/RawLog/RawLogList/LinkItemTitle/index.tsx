@@ -1,7 +1,10 @@
 import classNames from "classnames";
 import { useMemo, useState } from "react";
 import styles from "./index.less";
-import { microsecondTimeStamp } from "@/utils/time";
+import {
+  microsecondTimeStamp,
+  nanosecondTimeUnitConversion,
+} from "@/utils/time";
 import {
   DownOutlined,
   ExclamationCircleFilled,
@@ -87,8 +90,6 @@ const LinkItemTitle = (props: {
           className={styles.titleContent}
           style={{
             width: titleContentWidth,
-            // backgroundColor:
-            //   themeColor.substring(0, themeColor.length - 2) + "30",
             backgroundColor: "#FFF",
           }}
           onClick={(e) => {
@@ -109,14 +110,17 @@ const LinkItemTitle = (props: {
                 &nbsp;|&nbsp;Duration: &nbsp;
               </span>
               <span>
-                {(log.rawLogJson?.duration.slice(0, -1) * 1000000).toFixed(2)}us
+                {nanosecondTimeUnitConversion(
+                  log.rawLogJson?.duration.slice(0, -1) * 1000000
+                )}
               </span>
               <span className={styles.color_gray}>
                 &nbsp;|&nbsp;Start Time: &nbsp;
               </span>
               <span>
-                {microsecondTimeStamp(log.rawLogJson?.startTime) - initial}
-                us
+                {nanosecondTimeUnitConversion(
+                  microsecondTimeStamp(log.rawLogJson?.startTime) - initial
+                )}
               </span>
             </div>
           </div>
@@ -160,7 +164,9 @@ const LinkItemTitle = (props: {
                         key={key}
                         title={
                           <>
-                            {microsecondTimeStamp(item.timestamp) - initial}um
+                            {nanosecondTimeUnitConversion(
+                              microsecondTimeStamp(item.timestamp) - initial
+                            )}
                           </>
                         }
                         list={log.rawLogJson?.process.tags}

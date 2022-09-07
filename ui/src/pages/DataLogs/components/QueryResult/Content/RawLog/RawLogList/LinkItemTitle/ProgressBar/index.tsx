@@ -1,3 +1,5 @@
+import { nanosecondTimeUnitConversion } from "@/utils/time";
+import { Tooltip } from "antd";
 import { useMemo } from "react";
 import styles from "./index.less";
 
@@ -20,18 +22,22 @@ const ProgressBar = (props: {
 
   return (
     <div style={{ width: "100%" }}>
-      <div
-        className={styles.duration}
-        data-left-time={percentageStart > 0.5 ? duration.toFixed(2) + "us" : ""}
-        data-right-time={
-          percentageStart < 0.5 ? duration.toFixed(2) + "us" : ""
-        }
-        style={{
-          marginLeft: percentageStart * 100 + "%",
-          width: percentageLength * 100 + "%",
-          background: themeColor,
-        }}
-      ></div>
+      <Tooltip title={nanosecondTimeUnitConversion(duration)} placement="top">
+        <div
+          className={styles.duration}
+          data-left-time={
+            percentageStart > 0.5 ? nanosecondTimeUnitConversion(duration) : ""
+          }
+          data-right-time={
+            percentageStart < 0.5 ? nanosecondTimeUnitConversion(duration) : ""
+          }
+          style={{
+            marginLeft: percentageStart * 100 + "%",
+            width: percentageLength * 100 + "%",
+            background: themeColor,
+          }}
+        />
+      </Tooltip>
     </div>
   );
 };

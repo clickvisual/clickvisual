@@ -82,8 +82,6 @@ const FoldingExpansionSwitch = ({
     }
   }, [oldPane?.foldingChecked, oldPane?.logs?.isTrace]);
 
-  console.log(oldPane, "oldPane", logState);
-
   const text = useMemo(() => {
     switch (logState) {
       case 0:
