@@ -11,22 +11,27 @@ import (
 )
 
 type Operator interface {
+	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
+
+	GET(view.ReqQuery, int) (view.RespQuery, error)
 	Count(view.ReqQuery) (uint64, error)
-	DropDatabase(string, string) error
-	AlertViewDrop(string, string) error
-	DatabaseCreate(string, string) error
 	GroupBy(view.ReqQuery) map[string]uint64
 	Complete(string) (view.RespComplete, error)
+
 	TableDrop(string, string, string, int) error
-	AlertViewCreate(string, string, string) error
-	GET(view.ReqQuery, int) (view.RespQuery, error)
-	Databases() ([]*view.RespDatabaseSelfBuilt, error)
-	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
-	Columns(string, string, bool) ([]*view.RespColumn, error)
-	AlertViewGen(*db.Alarm, string) (string, string, error)
-	ViewSync(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
-	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
+	DropDatabase(string, string) error
+	AlertViewDrop(string, string) error
+
 	StorageCreate(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
+	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
+	DatabaseCreate(string, string) error
+	AlertViewCreate(string, string, string) error
+	AlertViewGen(*db.Alarm, string) (string, string, error)
+
+	Columns(string, string, bool) ([]*view.RespColumn, error)
+	Databases() ([]*view.RespDatabaseSelfBuilt, error)
+
+	ViewSync(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
 	SystemTablesInfo() []*view.SystemTable
 	AlterMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
 	ReCreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)

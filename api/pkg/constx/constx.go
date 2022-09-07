@@ -1,10 +1,10 @@
 package constx
 
 const (
-	TableCreateTypeCV      = 0
-	TableCreateTypeExist   = 1
-	TableCreateTypeAnyJSON = 2
-	TableCreateTypeUBW     = 3
+	TableCreateTypeCV          = 0
+	TableCreateTypeExist       = 1
+	TableCreateTypeJSONEachRow = 2
+	TableCreateTypeUBW         = 3
 )
 
 const (

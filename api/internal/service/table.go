@@ -73,7 +73,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		SqlStream:               s,
 		SqlView:                 v,
 		SqlDistributed:          a,
-		CreateType:              constx.TableCreateTypeAnyJSON,
+		CreateType:              constx.TableCreateTypeJSONEachRow,
 		Uid:                     uid,
 		RawLogField:             param.RawLogField,
 		TimeField:               db.TimeFieldSecond,
