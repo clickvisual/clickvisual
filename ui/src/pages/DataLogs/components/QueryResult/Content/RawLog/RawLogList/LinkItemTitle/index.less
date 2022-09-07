@@ -1,0 +1,146 @@
+.linkItemTitle {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+
+  &::before {
+    position: absolute;
+    top: 4px;
+    left: -4px;
+    width: 4px;
+    height: calc(100% - 4px);
+    // background-color: rgba(40, 154, 233, 0.4);
+    background-color: inherit;
+    border-radius: 6px;
+    content: "";
+  }
+
+  .header {
+    position: relative;
+    display: flex;
+    width: 100%;
+    padding-left: 4px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+
+    &:hover {
+      .title {
+        background: linear-gradient(to right, #f3f3f3, #e6e6e6);
+      }
+
+      .progress {
+        background: #e6e6e6;
+        // background: rgba(40, 154, 233, 0.08);
+      }
+    }
+
+    .title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .progress {
+      // border-left: 1px solid rgba(0, 0, 0, 0.1);
+      position: relative;
+      flex: 1;
+
+      .ticks {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        width: 100%;
+        height: 100%;
+
+        .ticksTick {
+          display: inline-block;
+          flex: 1;
+          line-height: 25px;
+          border-left: 1px solid hsla(0, 0%, 0%, 0.1);
+        }
+      }
+    }
+
+    .topBorder {
+      position: relative;
+      &::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background-color: hsla(0, 0%, 0%, 0.1);
+        content: "";
+      }
+    }
+  }
+
+  .content {
+    display: flex;
+    width: 100%;
+
+    .titleContent {
+      opacity: 0.6;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.4;
+      }
+    }
+
+    .progressContent {
+      flex: 1;
+      padding: 4px 8px 8px;
+      background-color: #f3f3f3;
+      border-bottom: 1px solid #ccc;
+      border-left: 1px solid #ccc;
+
+      .progressContentTitle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      .progressContentList {
+        .progressLogs {
+          margin-top: 8px;
+          font-size: 14px;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+
+        }
+      }
+
+      .bottomInfo {
+        text-align: right;
+        &::before {
+          color: #999;
+          content: attr(data-text);
+        }
+      }
+    }
+  }
+}
+
+.none {
+  display: none !important;
+}
+
+.color_gray {
+  color: #999;
+}
+
+.rotating {
+  animation: 1s rotate;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(90deg);
+  }
+}

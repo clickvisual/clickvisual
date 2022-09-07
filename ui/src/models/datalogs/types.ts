@@ -1,9 +1,9 @@
 import {
-    HighChartsResponse,
-    IndexInfoType,
-    LogsResponse,
-    StatisticalTableResponse,
-    TablesResponse,
+  HighChartsResponse,
+  IndexInfoType,
+  LogsResponse,
+  StatisticalTableResponse,
+  TablesResponse,
 } from "@/services/dataLogs";
 
 export interface QueryParams {
@@ -36,6 +36,8 @@ export type PaneType = {
   foldingChecked: boolean;
   mode?: number;
   rawLogsIndexeList?: IndexInfoType[];
+  isTrace: number;
+  linkLogs: any;
 };
 
 export enum hashType {

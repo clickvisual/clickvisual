@@ -1,4 +1,4 @@
-import { Space, Switch } from "antd";
+import { Switch } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import switchStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft/index.less";
@@ -24,7 +24,7 @@ const HistogramSwitch = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   const i18n = useIntl();
   return (
-    <Space>
+    <>
       <Switch
         checked={oldPane?.histogramChecked ?? true}
         onChange={handleChangeHistogramChecked}
@@ -36,7 +36,7 @@ const HistogramSwitch = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       >
         {i18n.formatMessage({ id: "log.switch.histogram" })}
       </span>
-    </Space>
+    </>
   );
 };
 export default HistogramSwitch;

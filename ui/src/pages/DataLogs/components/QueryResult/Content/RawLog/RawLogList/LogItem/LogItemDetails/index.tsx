@@ -123,7 +123,6 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       "`" +
       "=" +
       (isFloat ? newLog[keyItem] : `'${newLog[keyItem]}'`);
-    console.log(isFloat, keyItem, currentSelected);
     doUpdatedQuery(currentSelected);
   };
 

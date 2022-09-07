@@ -1,15 +1,15 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import {
-    ACTIVE_TIME_INDEX,
-    FIFTEEN_TIME,
-    FIRST_PAGE,
-    MINUTES_UNIT_TIME,
-    PAGE_SIZE,
-    TimeRangeType,
+  ACTIVE_TIME_INDEX,
+  FIFTEEN_TIME,
+  FIRST_PAGE,
+  MINUTES_UNIT_TIME,
+  PAGE_SIZE,
+  TimeRangeType,
 } from "@/config/config";
-import {currentTimeStamp} from "@/utils/momentUtils";
+import { currentTimeStamp } from "@/utils/momentUtils";
 import moment from "moment";
-import {PaneType} from "@/models/datalogs/types";
+import { PaneType } from "@/models/datalogs/types";
 import useLocalStorages from "@/hooks/useLocalStorages";
 
 export const DefaultPane = {
@@ -25,6 +25,7 @@ export const DefaultPane = {
   histogramChecked: true,
   foldingChecked: false,
   rawLogsIndexeList: undefined,
+  isTrace: 0,
 };
 
 const useLogPanes = () => {
