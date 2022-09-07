@@ -36,8 +36,8 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       const srartTime = highChartList[0].from;
       const endTIme = highChartList[highChartList.length - 1].to;
       if (
-        moment(srartTime * 1000).format("DD") !=
-        moment(endTIme * 1000).format("DD")
+        moment(srartTime * 1000).format("YYYY/MM/DD") !=
+        moment(endTIme * 1000).format("YYYY/MM/DD")
       ) {
         return true;
       }

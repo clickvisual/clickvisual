@@ -24,7 +24,8 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
     onChangeAddLogToDatabase,
     logLibraryCreatedModalVisible,
     onChangeLogLibraryCreatedModalVisible,
-    doCreatedLogLibrary,
+    doCreatedLogLibraryAsString,
+    doCreatedLogLibraryEachRow,
     doCreatedLocalLogLibraryBatch,
     isAccessLogLibrary,
     onChangeIsAccessLogLibrary,
@@ -38,7 +39,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
 
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
-      delete field.source;
+      // delete field.source;
       const response =
         field.mode === 1
           ? doCreatedLocalLogLibraryBatch.run(field.instance, {
@@ -47,7 +48,12 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               instance: field.instance,
               tableList: field.tableList,
             })
-          : doCreatedLogLibrary.run({
+          : field.mode === 2
+          ? doCreatedLogLibraryAsString.run({
+              databaseId: addLogToDatabase?.id as number,
+              ...field,
+            })
+          : doCreatedLogLibraryEachRow.run({
               databaseId: addLogToDatabase?.id as number,
               ...field,
             });
@@ -76,15 +82,16 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
     });
   };
 
-  const handleConfirm = (data: { timeField: string }) => {
+  const handleConfirm = (data: { rawLogField: string; timeField: string }) => {
     mappingJson.map((item: { key: string; value: string }) => {
       if (item.key == data.timeField) {
         logFormRef.current?.setFieldsValue({
-          timeFieldType: item.value == "String" ? 1 : 2,
+          typ: item.value == "String" ? 1 : 2,
         });
       }
     });
     logFormRef.current?.setFieldsValue({
+      rawLogField: data.rawLogField,
       timeField: data.timeField,
     });
   };
@@ -125,7 +132,8 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
       visible={logLibraryCreatedModalVisible}
       onCancel={() => onChangeLogLibraryCreatedModalVisible(false)}
       confirmLoading={
-        doCreatedLogLibrary.loading || doCreatedLocalLogLibraryBatch.loading
+        doCreatedLogLibraryAsString.loading ||
+        doCreatedLocalLogLibraryBatch.loading
       }
       onOk={() => logFormRef.current?.submit()}
     >
@@ -151,11 +159,23 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               </Option>
             </Select>
           ) : (
-            <Select>
+            <Select
+              onChange={(value) => {
+                logFormRef.current?.resetFields();
+                logFormRef.current?.setFieldsValue({ mode: value });
+              }}
+            >
               <Option value={0}>
                 {i18n.formatMessage({
                   id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
                 })}
+                - JSONEachRow
+              </Option>
+              <Option value={2}>
+                {i18n.formatMessage({
+                  id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
+                })}
+                - JSONAsString
               </Option>
               <Option value={1}>
                 {i18n.formatMessage({
@@ -181,6 +201,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                   <NewTable
                     formRef={logFormRef}
                     onConversionMappingJson={handleConversionMappingJson}
+                    mode={mode}
                   />
                 );
             }
