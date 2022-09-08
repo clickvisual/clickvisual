@@ -5,13 +5,15 @@ import JsonValue from "@/components/JsonView/JsonValue";
 import { useState } from "react";
 type JsonArrayProps = {
   data: Array<any>;
+  hierarchy: number;
 };
-const JsonArray = ({ data, ...restProps }: JsonArrayProps) => {
+const JsonArray = ({ data, hierarchy, ...restProps }: JsonArrayProps) => {
   const [isShowJson, setIsShowJson] = useState<boolean>(false);
 
   const indentStyle = {
     paddingLeft: "20px",
   };
+
   return (
     <div className={classNames(jsonViewStyles.jsonView)}>
       {data.length > 0 &&
@@ -39,7 +41,12 @@ const JsonArray = ({ data, ...restProps }: JsonArrayProps) => {
               className={classNames(jsonViewStyles.jsonViewArrayItem)}
               key={idx}
             >
-              <JsonValue jsonKey={item} val={item} {...restProps} />
+              <JsonValue
+                jsonKey={item}
+                val={item}
+                hierarchy={hierarchy + 1}
+                {...restProps}
+              />
               {isLast ? "" : ","}
             </div>
           );

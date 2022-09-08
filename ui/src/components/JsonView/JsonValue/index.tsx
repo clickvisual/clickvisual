@@ -17,9 +17,15 @@ type JsonValueProps = {
   val: any;
   isIndex?: boolean;
   indexField?: string;
+  hierarchy: number;
 } & _CommonProps;
 
-const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
+const JsonValue = ({
+  jsonKey,
+  val,
+  hierarchy,
+  ...restProps
+}: JsonValueProps) => {
   const {
     onClickValue,
     highLightValue,
@@ -91,6 +97,7 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
                       {...restProps}
                       isIndex={false}
                       indexField={undefined}
+                      hierarchy={hierarchy + 1}
                     />
                     {isLast ? "" : ","}
                   </div>
@@ -106,7 +113,7 @@ const JsonValue = ({ jsonKey, val, ...restProps }: JsonValueProps) => {
       } else {
         dom = (
           <span className={classNames(jsonViewStyles.jsonViewValue)}>
-            <JsonData data={val} {...restProps} />
+            <JsonData data={val} {...restProps} hierarchy={hierarchy + 1} />
           </span>
         );
       }

@@ -12,8 +12,9 @@ import JsonArray from "@/components/JsonView/JsonArray";
  */
 type JsonDataProps = {
   data: object;
+  hierarchy: number;
 } & _CommonProps;
-const JsonData = ({ data, ...restProps }: JsonDataProps) => {
+const JsonData = ({ data, hierarchy, ...restProps }: JsonDataProps) => {
   const [isShowJson, setIsShowJson] = useState<boolean>(false);
   const { secondaryIndexKeys, onClickValue, foldingChecked } = restProps;
 
@@ -29,7 +30,9 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
   }, []);
 
   useEffect(() => {
-    setIsShowJson(!foldingChecked);
+    if (hierarchy == 1) {
+      setIsShowJson(!foldingChecked);
+    }
   }, [foldingChecked]);
 
   /**
@@ -69,6 +72,7 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
           val={val}
           isIndex={isIndex()}
           indexField={indexKey}
+          hierarchy={hierarchy + 1}
           {...restProps}
           onClickValue={onClickValue}
         />
@@ -78,14 +82,8 @@ const JsonData = ({ data, ...restProps }: JsonDataProps) => {
 
   if (!data) return <div style={indentStyle} />;
 
-  if (data instanceof Array) return <JsonArray data={data} />;
-  // todo: 此处应该仅渲染 object
-  // let newData: object;
-  // if (typeof data == "string") {
-  //   newData = JSON.parse(data);
-  // } else {
-  //   newData = data;
-  // }
+  if (data instanceof Array)
+    return <JsonArray data={data} hierarchy={hierarchy + 1} />;
   let keys = Object.keys(data);
   let kvList: JSX.Element[] = [];
   keys.forEach((k, idx) => {
