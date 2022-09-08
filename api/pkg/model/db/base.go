@@ -141,6 +141,8 @@ type BaseTable struct {
 	KafkaSkipBrokenMessages int    `gorm:"column:kafka_skip_broken_messages;type:int(11)" json:"kafkaSkipBrokenMessages"`
 	IsKafkaTimestamp        int    `gorm:"column:is_kafka_timestamp;type:tinyint(1)" json:"isKafkaTimestamp"`
 
+	TraceTableId int `gorm:"column:trace_table_id;type:int(11)" json:"traceTableId"`
+
 	Database *BaseDatabase `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
 }
 

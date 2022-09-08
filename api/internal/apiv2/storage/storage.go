@@ -218,6 +218,56 @@ func Update(c *core.Context) {
 		c.JSONE(1, "update failed 04: "+err.Error(), nil)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	c.JSONOK()
+}
+
+// UpdateTraceInfo  godoc
+// @Summary	     Storage related trace info update
+// @Description  Storage related trace info update
+// @Tags         storage
+// @Accept       json
+// @Produce      json
+// @Param        storage-id path int true "table id"
+// @Param        req query view.ReqStorageUpdateTraceInfo true "params"
+// @Success      200 {object} core.Res{}
+// @Router       /api/v2/storage/{storage-id}/trace [patch]
+func UpdateTraceInfo(c *core.Context) {
+	id := cast.ToInt(c.Param("storage-id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var (
+		req view.ReqStorageUpdateTraceInfo
+		err error
+	)
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(id),
+	}); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	invoker.Logger.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))
+	// just mysql record update
+	ups := make(map[string]interface{}, 0)
+	ups["uid"] = c.Uid()
+	ups["trace_table_id"] = req.TraceTableId
+	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
+		c.JSONE(1, "update failed 04: "+err.Error(), nil)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }

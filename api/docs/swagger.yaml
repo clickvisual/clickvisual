@@ -816,6 +816,30 @@ paths:
       summary: Storage analysis field list
       tags:
       - storage
+  /api/v2/storage/{storage-id}/trace:
+    patch:
+      consumes:
+      - application/json
+      description: Storage related trace info update
+      parameters:
+      - description: table id
+        in: path
+        name: storage-id
+        required: true
+        type: integer
+      - in: query
+        name: traceTableId
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Storage related trace info update
+      tags:
+      - storage
   /api/v2/storage/mapping-json:
     post:
       consumes:

@@ -742,6 +742,43 @@
                 }
             }
         },
+        "/api/v2/storage/{storage-id}/trace": {
+            "patch": {
+                "description": "Storage related trace info update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Storage related trace info update",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "table id",
+                        "name": "storage-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "traceTableId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v3/storage": {
             "post": {
                 "description": "Creating a no format restrictions log library",

@@ -108,7 +108,6 @@ func TableInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, "this table does not exist, please verify"+err.Error(), nil)
 		return
 	}
-
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -121,7 +120,6 @@ func TableInfo(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	instance, err := db.InstanceInfo(invoker.Db, tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
@@ -151,6 +149,7 @@ func TableInfo(c *core.Context) {
 			InstanceName:   instance.Name,
 			InstanceDesc:   instance.Desc,
 		},
+		TraceTableId: tableInfo.TraceTableId,
 	}
 	if res.TimeField == "" {
 		res.TimeField = db.TimeFieldSecond

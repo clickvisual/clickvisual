@@ -143,6 +143,10 @@ type ReqStorageUpdate struct {
 	Desc                    string `form:"desc"`
 }
 
+type ReqStorageUpdateTraceInfo struct {
+	TraceTableId int `form:"traceTableId"`
+}
+
 type OperatorViewParams struct {
 	Typ              int
 	Tid              int

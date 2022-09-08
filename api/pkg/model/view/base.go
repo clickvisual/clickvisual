@@ -203,6 +203,8 @@ type RespTableDetail struct {
 	TimeField  string           `json:"timeField"`
 	Ctime      int64            `json:"ctime"`
 	Utime      int64            `json:"utime"`
+
+	TraceTableId int `json:"traceTableId"`
 }
 
 type RespColumn struct {
