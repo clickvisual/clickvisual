@@ -2,9 +2,50 @@ import jsonViewStyles from "@/components/JsonView/index.less";
 import JsonData from "@/components/JsonView/JsonData";
 import classNames from "classnames";
 import JsonStringValue from "@/components/JsonView/JsonStringValue";
-import { useMemo, useState } from "react";
+import { Key, useMemo, useState } from "react";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
 import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
+
+const indentStyle = {
+  paddingLeft: "20px",
+};
+
+const JsonArr = (props: {
+  jsonKey: any;
+  restProps: any;
+  hierarchy: number;
+  val: any;
+  isShowArr: boolean;
+}) => {
+  const { jsonKey, restProps, hierarchy, val, isShowArr } = props;
+
+  return (
+    <>
+      {val.length > 0 &&
+        isShowArr &&
+        val.map((item: any, idx: Key | null | undefined) => {
+          let isLast = idx === val.length - 1;
+          return (
+            <div
+              style={indentStyle}
+              className={classNames(jsonViewStyles.jsonViewArrayItem)}
+              key={idx}
+            >
+              <JsonValue
+                jsonKey={jsonKey}
+                val={item}
+                {...restProps}
+                isIndex={false}
+                indexField={undefined}
+                hierarchy={hierarchy + 1}
+              />
+              {isLast ? "" : ","}
+            </div>
+          );
+        })}
+    </>
+  );
+};
 
 /**
  * 渲染字段
@@ -33,11 +74,8 @@ const JsonValue = ({
     indexField,
     onInsertExclusion,
   } = restProps;
-  const [isShowArr, setIsShowArr] = useState<boolean>(true);
+  const [isShowArr, setIsShowArr] = useState<boolean>(false);
 
-  const indentStyle = {
-    paddingLeft: "20px",
-  };
   let dom: JSX.Element = <></>;
   const highLightFlag = useMemo(() => {
     if (!highLightValue || ["object", "string"].includes(typeof val))
@@ -81,7 +119,16 @@ const JsonValue = ({
                 </div>
               ))}
             <span>[</span>
-            {val.length > 0 &&
+            {
+              <JsonArr
+                val={val}
+                jsonKey={jsonKey}
+                restProps={restProps}
+                hierarchy={hierarchy + 1}
+                isShowArr={isShowArr}
+              />
+            }
+            {/* {val.length > 0 &&
               isShowArr &&
               val.map((item, idx) => {
                 let isLast = idx === val.length - 1;
@@ -102,7 +149,7 @@ const JsonValue = ({
                     {isLast ? "" : ","}
                   </div>
                 );
-              })}
+              })} */}
             <span>]</span>
           </span>
         );
