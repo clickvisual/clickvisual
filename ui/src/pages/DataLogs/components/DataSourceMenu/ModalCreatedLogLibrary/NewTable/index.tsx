@@ -41,7 +41,7 @@ const NewTable = (props: {
         />
       </Form.Item>
 
-      {/* ? V3 : V2 */}
+      {/* flag ? V3 : V2 */}
       {mode == 2 ? (
         <JsonAsString />
       ) : (

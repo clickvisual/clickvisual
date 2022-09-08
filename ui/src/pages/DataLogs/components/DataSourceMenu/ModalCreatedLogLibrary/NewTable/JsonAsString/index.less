@@ -1,0 +1,53 @@
+.flexBox {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid #ccc;
+
+  .lableBox {
+    display: flex;
+    width: 100%;
+    div {
+      flex: 1;
+      padding-left: 10px;
+      line-height: 40px;
+      text-align: left;
+      background-color: #eee;
+      border-bottom: 1px solid #ccc;
+    }
+    :nth-child(1) {
+      border-right: 1px solid #ccc;
+    }
+  }
+
+  .itemBox {
+    display: flex;
+    width: 100%;
+
+    .timeField {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      line-height: 50px;
+
+      :global .ant-form-item {
+        width: 90%;
+        margin: 0;
+        padding: 10px 0;
+      }
+    }
+    .timeFieldType {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      line-height: 50px;
+
+      :global .ant-form-item {
+        width: 90%;
+        margin: 0;
+        padding: 10px 0;
+      }
+    }
+  }
+}

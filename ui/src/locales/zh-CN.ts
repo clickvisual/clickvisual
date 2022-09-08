@@ -283,8 +283,8 @@ export default {
   "datasource.logLibrary.from.tableName": "数据表名称",
   "datasource.logLibrary.from.rule.tableName":
     "请输入小写字母、大写字母，或下划线",
-  "datasource.logLibrary.from.type": "采集时间类型",
-  "datasource.logLibrary.from.timeField": "采集时间",
+  "datasource.logLibrary.from.type": "时间字段类型",
+  "datasource.logLibrary.from.timeField": "指定时间字段Key名称",
   "datasource.logLibrary.from.rawLogField": "业务日志内容",
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
@@ -314,6 +314,7 @@ export default {
 
   "datasource.logLibrary.placeholder.tableName":
     "请输入数据表名称，支持小写字母、大写字母，或下划线",
+  "datasource.logLibrary.usingSystemTime": "使用系统时间",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
   "datasource.logLibrary.placeholder.brokers": "kafka:9092",
@@ -415,8 +416,7 @@ export default {
   "log.index.empty": "暂未创建字段",
   "log.index.item.empty": "暂无数据",
   "log.index.manage": "字段管理",
-  "log.index.manage.desc":
-    "字段管理",
+  "log.index.manage.desc": "字段管理",
   "log.index.help":
     "橙色背景色的字段是系统字段或用户字段，灰色背景色的字段是未设置字段，统计只对配置的字段生效",
   "log.index.manage.table.header.indexName": "字段名称",

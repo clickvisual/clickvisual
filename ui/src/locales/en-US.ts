@@ -291,7 +291,7 @@ export default {
   "datasource.logLibrary.from.rule.tableName":
     "Please enter lowercase letters, uppercase letters, or underscores",
   "datasource.logLibrary.from.type": "_time_ Field Type",
-  "datasource.logLibrary.from.timeField": "timestamp field",
+  "datasource.logLibrary.from.timeField": "Specify the time field Key name",
   "datasource.logLibrary.from.rawLogField": "rawLog field",
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
@@ -327,6 +327,7 @@ export default {
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
+  "datasource.logLibrary.usingSystemTime": "Using system time",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
   "datasource.logLibrary.placeholder.brokers": "kafka:9092",
