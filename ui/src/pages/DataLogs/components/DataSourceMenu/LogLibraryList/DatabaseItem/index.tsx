@@ -12,6 +12,7 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
     onChangeLogLibraryCreatedModalVisible,
     onChangeAddLogToDatabase,
     onChangeIsEditDatabase,
+    resizeMenuWidth,
     onChangeCurrentEditDatabase,
   } = useModel("dataLogs");
   const { deletedDatabase } = useModel("database");
@@ -138,7 +139,14 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
         overlayClassName={logLibraryListStyles.logLibraryToolTip}
         overlayInnerStyle={{ width: 300 }}
       >
-        <div style={{ width: "100%" }}>
+        <div
+          style={{
+            width: resizeMenuWidth - 62 + "px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           <IconFont type="icon-database" style={{ marginRight: "4px" }} />
           {databasesItem.databaseName}
         </div>

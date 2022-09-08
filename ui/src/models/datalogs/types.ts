@@ -37,7 +37,6 @@ export type PaneType = {
   mode?: number;
   rawLogsIndexeList?: IndexInfoType[];
   isTrace: number;
-  linkLogs: any;
 };
 
 export enum hashType {
