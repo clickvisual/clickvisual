@@ -31,7 +31,6 @@ const LogItem = ({ log, foldingChecked }: LogItemProps) => {
             style={{ height: "19px" }}
             icon={isFold ? <CaretRightOutlined /> : <CaretDownOutlined />}
           />
-          {/* <span onClick={handleFoldClick}>{isFold ? <CaretRightOutlined /> : <CaretDownOutlined />}</span> */}
         </div>
         <div className={logItemStyles.dateTime}>
           <div>

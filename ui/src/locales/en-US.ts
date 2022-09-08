@@ -342,8 +342,9 @@ export default {
   "datasource.logLibrary.documentBtn": "Help document",
   "datasource.logLibrary.conversion.warning":
     "Please fill in the content and then convert",
-  "datasource.logLibrary.selectField.title": "Select the time collection field",
-  "datasource.logLibrary.selectField.okTips": "Select the timeField to confirm",
+  "datasource.logLibrary.selectField.title": "Field selection",
+  "datasource.logLibrary.selectField.okTips":
+    "Select the timeField and rawLogField fields to confirm",
 
   "datasource.logLibrary.empty":
     "Not query to the relevant logging library list",
@@ -441,8 +442,7 @@ export default {
   "log.index.empty": "Temporarily not create fields",
   "log.index.item.empty": "No Data",
   "log.index.manage": "Index Management",
-  "log.index.manage.desc":
-    "Index Management",
+  "log.index.manage.desc": "Index Management",
   "log.index.help":
     "Fields with an orange background color are system fields or index fields, and fields with a gray background color are fields that are not indexed. Index statistics take effect only for data that has been indexed",
   "log.index.manage.table.header.indexName": "Field Name",

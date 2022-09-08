@@ -31,7 +31,11 @@ export default function useLogLibrary() {
     setIsEditDatabase(visible);
   };
 
-  const createdLogLibrary = useRequest(api.createdTable, {
+  const createdLogLibraryEachRow = useRequest(api.createdTableEachRow, {
+    loadingText: false,
+  });
+
+  const createdLogLibraryAsString = useRequest(api.createdTableAsString, {
     loadingText: false,
   });
 
@@ -79,7 +83,8 @@ export default function useLogLibrary() {
     onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
 
-    doCreatedLogLibrary: createdLogLibrary,
+    doCreatedLogLibraryAsString: createdLogLibraryAsString,
+    doCreatedLogLibraryEachRow: createdLogLibraryEachRow,
     doGetMappingJson,
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
