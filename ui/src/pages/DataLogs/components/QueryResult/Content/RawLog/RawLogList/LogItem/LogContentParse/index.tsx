@@ -31,7 +31,6 @@ const LogContentParse = ({
   const isNullList = ["\n", "\r\n", "", " "];
 
   let content;
-  // todo: 这里不应该判断是否可以转json，此时应该是已经有了确定的数据结构
   if (typeof logContent !== "object") {
     if (isNullList.includes(logContent)) {
       content = "";
@@ -58,6 +57,7 @@ const LogContentParse = ({
           quickInsertLikeExclusion={quickInsertLikeExclusion}
           highLightValue={highlightKeywords}
           foldingChecked={foldingChecked}
+          hierarchy={1}
         />
       </>
     );

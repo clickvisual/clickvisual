@@ -3,6 +3,7 @@ import JsonData from "@/components/JsonView/JsonData";
 
 type JsonViewProps = {
   data: any;
+  hierarchy: number;
 } & _CommonProps;
 
 const JsonView = (props: JsonViewProps) => {

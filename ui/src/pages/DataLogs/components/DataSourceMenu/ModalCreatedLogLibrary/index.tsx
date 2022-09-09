@@ -40,6 +40,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
       // delete field.source;
+      field.isKafkaTimestamp = Number(field.isKafkaTimestamp);
       const response =
         field.mode === 1
           ? doCreatedLocalLogLibraryBatch.run(field.instance, {

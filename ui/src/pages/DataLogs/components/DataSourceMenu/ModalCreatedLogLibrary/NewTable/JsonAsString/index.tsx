@@ -1,4 +1,5 @@
-import { Form, Input, Select } from "antd";
+import { Form, Input, Select, Switch } from "antd";
+import styles from "./index.less";
 import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import { useIntl } from "umi";
 
@@ -10,19 +11,13 @@ const JsonAsString = () => {
   return (
     <>
       <Form.Item
-        label="使用kafka采集时间作为时间轴"
+        label={i18n.formatMessage({
+          id: "datasource.logLibrary.usingSystemTime",
+        })}
         name="isKafkaTimestamp"
-        required
-        initialValue={1}
+        initialValue={true}
       >
-        <Select
-          placeholder={`${i18n.formatMessage({
-            id: "datasource.logLibrary.placeholder.type",
-          })}`}
-        >
-          <Option value={1}>yes</Option>
-          <Option value={0}>no</Option>
-        </Select>
+        <Switch defaultChecked />
       </Form.Item>
       <Form.Item
         noStyle
@@ -32,36 +27,46 @@ const JsonAsString = () => {
       >
         {({ getFieldValue }) => {
           const isKafkaTimestamp = getFieldValue("isKafkaTimestamp");
-          if (isKafkaTimestamp == 1) return <></>;
+          if (Number(isKafkaTimestamp) == 1) return <></>;
           return (
-            <>
-              <Form.Item
-                label={i18n.formatMessage({
-                  id: "datasource.logLibrary.from.timeField",
-                })}
-                name={"timeField"}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                label={i18n.formatMessage({
-                  id: "datasource.logLibrary.from.type",
-                })}
-                name={"timeFieldType"}
-              >
-                <Select
-                  placeholder={`${i18n.formatMessage({
-                    id: "datasource.logLibrary.placeholder.type",
-                  })}`}
-                >
-                  {logLibraryTypes.map((item) => (
-                    <Option key={item.value} value={item.value}>
-                      {item.type}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </>
+            <Form.Item label=" " colon={false}>
+              <div className={styles.flexBox}>
+                <div className={styles.lableBox}>
+                  <div>
+                    {i18n.formatMessage({
+                      id: "datasource.logLibrary.from.timeField",
+                    })}
+                  </div>
+                  <div>
+                    {i18n.formatMessage({
+                      id: "datasource.logLibrary.from.type",
+                    })}
+                  </div>
+                </div>
+                <div className={styles.itemBox}>
+                  <div className={styles.timeField}>
+                    <Form.Item name={"timeField"}>
+                      <Input placeholder="timestamp" />
+                    </Form.Item>
+                  </div>
+                  <div className={styles.timeFieldType}>
+                    <Form.Item name={"timeFieldType"}>
+                      <Select
+                        placeholder={`${i18n.formatMessage({
+                          id: "datasource.logLibrary.placeholder.type",
+                        })}`}
+                      >
+                        {logLibraryTypes.map((item) => (
+                          <Option key={item.value} value={item.value}>
+                            {item.type}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                </div>
+              </div>
+            </Form.Item>
           );
         }}
       </Form.Item>

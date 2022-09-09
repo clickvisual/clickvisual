@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import {Dropdown, Menu, message, Tooltip} from "antd";
+import { Dropdown, Menu, message, Tooltip } from "antd";
 import {
   ApartmentOutlined,
   CalendarOutlined,
@@ -17,19 +17,19 @@ import {
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
 } from "@/config/config";
-import {useModel} from "@@/plugin-model/useModel";
-import {useIntl} from "umi";
+import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
 import lodash from "lodash";
 import moment from "moment";
-import {currentTimeStamp} from "@/utils/momentUtils";
+import { currentTimeStamp } from "@/utils/momentUtils";
 import deletedModal from "@/components/DeletedModal";
-import {IndexInfoType, TablesResponse} from "@/services/dataLogs";
+import { IndexInfoType, TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
-import {DefaultPane} from "@/models/datalogs/useLogPanes";
-import {RestUrlStates} from "@/pages/DataLogs/hooks/useLogUrlParams";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
-import {PaneType} from "@/models/datalogs/types";
-import {useEffect, useMemo, useRef} from "react";
+import { PaneType } from "@/models/datalogs/types";
+import { useEffect, useMemo, useRef } from "react";
 
 type LogLibraryItemProps = {
   logLibrary: TablesResponse;

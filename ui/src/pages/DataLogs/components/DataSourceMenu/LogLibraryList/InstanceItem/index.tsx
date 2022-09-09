@@ -13,6 +13,7 @@ const InstanceItem = (props: { instanceItem: any }) => {
     onChangeIsAccessLogLibrary,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsLogLibraryAllDatabase,
+    resizeMenuWidth,
   } = useModel("dataLogs");
   const { instanceItem } = props;
   const i18n = useIntl();
@@ -68,7 +69,14 @@ const InstanceItem = (props: { instanceItem: any }) => {
         overlayClassName={logLibraryListStyles.logLibraryToolTip}
         overlayInnerStyle={{ width: 300 }}
       >
-        <div style={{ width: "100%" }}>
+        <div
+          style={{
+            width: resizeMenuWidth - 45 + "px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           <IconFont type="icon-instance" style={{ marginRight: "4px" }} />
           {instanceItem.instanceName}
         </div>
