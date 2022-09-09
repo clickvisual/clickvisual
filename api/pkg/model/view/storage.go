@@ -41,6 +41,7 @@ type ReqStorageCreateV3 struct {
 	TimeField               string `form:"timeField"`
 	TimeFieldType           int    `form:"timeFieldType"`    // 1 string 2 float
 	IsKafkaTimestamp        int    `form:"isKafkaTimestamp"` // 1 yes
+	V3TableType             int    `form:"v3TableType"`      // 0 default 1 jaegerJson
 }
 
 func (r *ReqStorageCreate) GetRawLogField() string {

@@ -906,6 +906,10 @@ paths:
         name: topics
         required: true
         type: string
+      - description: 0 default 1 jaegerJson
+        in: query
+        name: v3TableType
+        type: integer
       produces:
       - application/json
       responses:

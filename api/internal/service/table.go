@@ -115,6 +115,7 @@ func StorageCreateV3(uid int, databaseInfo db.BaseDatabase, param view.ReqStorag
 		Uid:                     uid,
 		TimeField:               param.TimeField,
 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
+		V3TableType:             param.V3TableType,
 	}
 	err = db.TableCreate(invoker.Db, &tableInfo)
 	if err != nil {

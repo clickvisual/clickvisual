@@ -864,6 +864,12 @@ const docTemplate = `{
                         "name": "topics",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0 default 1 jaegerJson",
+                        "name": "v3TableType",
+                        "in": "query"
                     }
                 ],
                 "responses": {

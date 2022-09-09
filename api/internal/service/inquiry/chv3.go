@@ -12,6 +12,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/cluster"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/standalone"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -104,6 +105,38 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
 			invoker.Logger.Error("TableCreate", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			return
+		}
+	}
+	if ct.V3TableType == 1 {
+		// jaegerJson dependencies table
+		sc, errGetTableCreator := builderv2.GetTableCreator(builderv2.StorageTypeTraceCal)
+		if errGetTableCreator != nil {
+			invoker.Logger.Error("TableCreate", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
+			return
+		}
+		params := builderv2.Params{
+			IsShard:   false,
+			IsReplica: false,
+			Cluster:   database.Cluster,
+			Database:  database.Name,
+			Table:     ct.TableName + "_jaeger_dependencies",
+			TTL:       ct.Days,
+			DB:        c.db,
+		}
+		if c.mode == ModeCluster {
+			params.IsShard = true
+			if c.rs == 0 {
+				params.IsReplica = true
+			}
+		}
+		sc.SetParams(params)
+		if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
+			invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
+			return
+		}
+		if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
+			invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 			return
 		}
 	}

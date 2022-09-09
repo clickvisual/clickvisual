@@ -1512,10 +1512,9 @@ func (c *ClickHouse) ReCreateKafkaTable(tableInfo *db.BaseTable, params view.Req
 	streamParams := bumo.Params{
 		TableCreateType: tableInfo.CreateType,
 		Stream: bumo.ParamsStream{
-			TableName: genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
-			TableTyp:  TableTypStr(tableInfo.Typ),
-			Group:     tableInfo.Database.Name + "_" + tableInfo.Name,
-
+			TableName:               genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+			TableTyp:                TableTypStr(tableInfo.Typ),
+			Group:                   tableInfo.Database.Name + "_" + tableInfo.Name,
 			Brokers:                 params.KafkaBrokers,
 			Topic:                   params.KafkaTopic,
 			ConsumerNum:             params.KafkaConsumerNum,

@@ -142,6 +142,7 @@ type BaseTable struct {
 	IsKafkaTimestamp        int    `gorm:"column:is_kafka_timestamp;type:tinyint(1)" json:"isKafkaTimestamp"`
 
 	TraceTableId int `gorm:"column:trace_table_id;type:int(11)" json:"traceTableId"`
+	V3TableType  int `gorm:"column:v3_table_type;type:int(11)" json:"v3TableType"` // 0 default 1 jaegerJson
 
 	Database *BaseDatabase `json:"database,omitempty" gorm:"foreignKey:Did;references:ID"`
 }
