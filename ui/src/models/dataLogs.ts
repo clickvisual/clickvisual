@@ -109,7 +109,9 @@ const DataLogsModel = () => {
     isEditDatabase,
     isLogLibraryAllDatabase,
     currentEditDatabase,
+    linkLinkLogLibraryTId,
     onChangeLogLibraryInfoDrawVisible,
+    onChangeLinkLinkLogLibraryTId,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsAccessLogLibrary,
     onChangeIsLogLibraryAllDatabase,
@@ -134,6 +136,8 @@ const DataLogsModel = () => {
     onChangeViewsVisibleDraw,
     isModifyLog,
     onChangeIsModifyLog,
+    isAssociatedLinkLogLibrary,
+    onChangeIsAssociatedLinkLogLibrary,
     currentEditLogLibrary,
     onChangeCurrentEditLogLibrary,
     getViewList,
@@ -327,6 +331,10 @@ const DataLogsModel = () => {
   });
 
   const doGetAnalysisField = useRequest(api.getAnalysisField, {
+    loadingText: false,
+  });
+
+  const doUpdateLinkLinkLogLibrary = useRequest(api.updateLinkLinkLogLibrary, {
     loadingText: false,
   });
 
@@ -662,6 +670,8 @@ const DataLogsModel = () => {
     logLibraryInfoDrawVisible,
     onChangeLogLibraryCreatedModalVisible,
     onChangeLogLibraryInfoDrawVisible,
+    linkLinkLogLibraryTId,
+    onChangeLinkLinkLogLibraryTId,
     doCreatedLogLibraryAsString,
     doCreatedLogLibraryEachRow,
     doDeletedLogLibrary,
@@ -675,6 +685,7 @@ const DataLogsModel = () => {
     doCreatedLocalLogLibraryBatch,
     doGetMappingJson,
     doGetAnalysisField,
+    doUpdateLinkLinkLogLibrary,
 
     viewsVisibleDraw,
     getViewList,
@@ -689,6 +700,8 @@ const DataLogsModel = () => {
     doGetViewInfo,
     lastLoadingTid,
     rawLogsIndexeList,
+    isAssociatedLinkLogLibrary,
+    onChangeIsAssociatedLinkLogLibrary,
     onChangeViewIsEdit,
     onChangeViewVisibleModal,
     onChangeViewsVisibleDraw,

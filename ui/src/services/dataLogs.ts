@@ -134,6 +134,7 @@ export interface TableInfoResponse {
   uid: number;
   desc: string;
   database: DatabaseResponse;
+  traceTableId: number;
 }
 
 export interface TableSqlContent {
@@ -525,5 +526,21 @@ export default {
       method: "POST",
       data,
     });
+  },
+
+  // 链接链路日志库
+  async updateLinkLinkLogLibrary(data: {
+    storageId: number;
+    traceTableId: number;
+  }) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/storage/${data.storageId}/trace`,
+      {
+        method: "PATCH",
+        data: {
+          traceTableId: data.traceTableId,
+        },
+      }
+    );
   },
 };

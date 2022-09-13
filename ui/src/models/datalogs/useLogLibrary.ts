@@ -10,6 +10,12 @@ export default function useLogLibrary() {
     useState<boolean>(false);
   const [isEditDatabase, setIsEditDatabase] = useState<boolean>(false);
   const [currentEditDatabase, setEditCurrentDatabase] = useState<any>();
+  // 单击链接链路日志库的表id
+  const [linkLinkLogLibraryTId, setLinkLinkLogLibraryTId] = useState<number>(0);
+
+  const onChangeLinkLinkLogLibraryTId = (num: number) => {
+    setLinkLinkLogLibraryTId(num);
+  };
 
   const onChangeCurrentEditDatabase = (data: any) => {
     setEditCurrentDatabase(data);
@@ -76,12 +82,14 @@ export default function useLogLibrary() {
     isEditDatabase,
     isLogLibraryAllDatabase,
     currentEditDatabase,
+    linkLinkLogLibraryTId,
     onChangeLogLibraryCreatedModalVisible: onChangeCreatedVisible,
     onChangeLogLibraryInfoDrawVisible: onChangeInfoVisible,
     onChangeIsAccessLogLibrary,
     onChangeIsLogLibraryAllDatabase,
     onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
+    onChangeLinkLinkLogLibraryTId,
 
     doCreatedLogLibraryAsString: createdLogLibraryAsString,
     doCreatedLogLibraryEachRow: createdLogLibraryEachRow,

@@ -292,6 +292,7 @@ export default {
     "Please enter lowercase letters, uppercase letters, or underscores",
   "datasource.logLibrary.from.type": "_time_ Field Type",
   "datasource.logLibrary.from.timeField": "Specify the time field Key name",
+  "datasource.logLibrary.from.label.timeField": "time field",
   "datasource.logLibrary.from.rawLogField": "rawLog field",
   "datasource.logLibrary.from.days": "Log Retention Days",
   "datasource.logLibrary.from.brokers": "Brokers",
@@ -355,6 +356,7 @@ export default {
   "datasource.tooltip.icon.alarmRuleList": "Viewing Related Alarms",
   "datasource.tooltip.icon.topology": "View the corresponding topology",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
+  "datasource.tooltip.icon.link": "Associate the link log library",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
   "datasource.view.button": "Creating a Configuration Rule",
@@ -486,6 +488,9 @@ export default {
   "log.editLogLibraryModal.label.desc.placeholder": "Please enter an alias",
   "log.editLogLibraryModal.label.isCreateCV.name":
     "Whether created by ClickVisual",
+
+  // dataLogs -> DataSourceMenu -> LogLibraryList-> AssociatLogLibraries
+  "log.associatLogLibraries.traceTableId": "Id of the link table of the link",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "Edit the database",

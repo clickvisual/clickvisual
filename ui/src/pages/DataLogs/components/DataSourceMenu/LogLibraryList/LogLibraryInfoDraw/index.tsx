@@ -83,12 +83,18 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
       title: i18n.formatMessage({ id: "DescAsAlias" }),
       content: libraryInfo?.desc,
       tooltip: false,
-      Desc: (
-        <div className={infoStyles.descContent}>{libraryInfo?.desc || "-"}</div>
-      ),
+      // Desc: (
+      //   <div className={infoStyles.descContent}>{libraryInfo?.desc || "-"}</div>
+      // ),
     },
     {
       id: 108,
+      title: "traceTableId",
+      content: libraryInfo?.traceTableId?.toString(),
+      tooltip: false,
+    },
+    {
+      id: 109,
       title: i18n.formatMessage({ id: "datasource.logLibrary.info.sql" }),
       content: "",
       tooltip: false,
