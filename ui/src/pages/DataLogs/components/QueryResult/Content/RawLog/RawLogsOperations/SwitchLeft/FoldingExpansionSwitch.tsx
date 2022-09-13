@@ -6,6 +6,7 @@ import classNames from "classnames";
 import { useEffect, useMemo } from "react";
 import { Switch } from "antd";
 import { FIRST_PAGE } from "@/config/config";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const FoldingExpansionSwitch = ({
   oldPane,
@@ -24,6 +25,7 @@ const FoldingExpansionSwitch = ({
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
   const { updateLogPane, logPanes } = logPanesHelper;
+  const [urlState] = useUrlState();
 
   const handleChangeFoldingExpansionChecked = (
     flag: boolean,
@@ -81,6 +83,12 @@ const FoldingExpansionSwitch = ({
       onChangeLogState(2);
     }
   }, [oldPane?.foldingChecked, oldPane?.logs?.isTrace]);
+
+  useEffect(() => {
+    if (urlState?.isTrace == 1 && oldPane?.logs?.isTrace == 1) {
+      onChangeLogState(1);
+    }
+  }, [oldPane?.logs?.isTrace, urlState?.isTrace]);
 
   const text = useMemo(() => {
     switch (logState) {

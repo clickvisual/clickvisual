@@ -155,7 +155,7 @@ export default function useLogUrlParams() {
       querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
       desc: res.data.desc,
       mode: urlState?.mode, // 为1时：聚合报警详情页面过来的
-      isTrace: urlState?.isTrace,
+      isTrace: parseInt(urlState?.isTrace || lastDataLogsState.isTrace),
     };
 
     addLogPane(pane.paneId, pane);
@@ -259,7 +259,7 @@ export default function useLogUrlParams() {
       start: undefined,
       tab: TimeRangeType.Relative,
       tid: undefined,
-      isTrace: 0,
+      isTrace: undefined,
     };
     // 初始化的时候时不时会执行一次，无法稳定复现，于是排除初始化的情况
     !isEqual(data, defaultData) && setUrlQuery.run();
@@ -274,7 +274,6 @@ export default function useLogUrlParams() {
     activeTimeOptionIndex,
     activeTabKey,
     activeQueryType,
-    chartSql,
     isTrace,
   ]);
 

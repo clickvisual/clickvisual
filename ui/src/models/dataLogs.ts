@@ -97,7 +97,7 @@ const DataLogsModel = () => {
   const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
 
   // 是否链路模式
-  const [isTrace, setIsTrace] = useState<number>(0);
+  const [isTrace, setIsTrace] = useState<number>();
 
   // 链路模式下日志的三种状态
   const [logState, setLogState] = useState<number>(0);
@@ -262,6 +262,7 @@ const DataLogsModel = () => {
     );
     statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
     doParseQuery(tabPane.logs?.where || keywordInput);
+    setIsTrace(tabPane?.isTrace || isTrace);
   };
 
   const onCopyRawLogDetails = (log: any) => {
