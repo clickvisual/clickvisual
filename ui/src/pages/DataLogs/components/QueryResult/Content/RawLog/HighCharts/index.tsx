@@ -33,7 +33,7 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   // 判断此时间戳是否跨天
   const isTimeCrossedDay = useMemo(() => {
-    if (highChartList && highChartList.length > 1) {
+    if (highChartList && highChartList.length >= 1) {
       const srartTime = highChartList[0].from;
       const endTIme = highChartList[highChartList.length - 1].to;
       return timeIntervalIsConvertedIntoUnits(srartTime, endTIme);
