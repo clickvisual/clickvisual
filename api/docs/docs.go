@@ -656,9 +656,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v2/storage/{storage-id}": {
-            "patch": {
-                "description": "Storage update",
+        "/api/v2/storage/traces": {
+            "get": {
+                "description": "trace storage list",
                 "consumes": [
                     "application/json"
                 ],
@@ -668,7 +668,45 @@ const docTemplate = `{
                 "tags": [
                     "storage"
                 ],
-                "summary": "Storage update",
+                "summary": "trace storage list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/view.RespTableSimple"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/storage/{storage-id}": {
+            "patch": {
+                "description": "iStorage update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "iStorage update",
                 "parameters": [
                     {
                         "type": "integer",
@@ -721,7 +759,7 @@ const docTemplate = `{
         },
         "/api/v2/storage/{storage-id}/analysis-fields": {
             "get": {
-                "description": "Storage analysis field list",
+                "description": "iStorage analysis field list",
                 "consumes": [
                     "application/json"
                 ],
@@ -731,7 +769,7 @@ const docTemplate = `{
                 "tags": [
                     "storage"
                 ],
-                "summary": "Storage analysis field list",
+                "summary": "iStorage analysis field list",
                 "parameters": [
                     {
                         "type": "integer",
@@ -753,7 +791,7 @@ const docTemplate = `{
         },
         "/api/v2/storage/{storage-id}/trace": {
             "patch": {
-                "description": "Storage related trace info update",
+                "description": "iStorage related trace info update",
                 "consumes": [
                     "application/json"
                 ],
@@ -763,7 +801,7 @@ const docTemplate = `{
                 "tags": [
                     "storage"
                 ],
-                "summary": "Storage related trace info update",
+                "summary": "iStorage related trace info update",
                 "parameters": [
                     {
                         "type": "integer",
@@ -775,6 +813,48 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "name": "traceTableId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/storage/{storage-id}/trace-graph": {
+            "get": {
+                "description": "Get trace graph",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Get trace graph",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "table id",
+                        "name": "storage-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "endTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "startTime",
                         "in": "query"
                     }
                 ],

@@ -25,6 +25,7 @@ func (s *iStorage) tickerTraceWorker() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
+		elog.Info("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("tickStart"))
 		s.syncTraceWorker()
 	}
 	return
@@ -39,6 +40,7 @@ func (s *iStorage) syncTraceWorker() {
 		elog.Error("workerTrace", elog.FieldComponent("syncTraceWorker"), elog.FieldName("tableList"), elog.FieldErr(err))
 		return
 	}
+	elog.Debug("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("tableList"), elog.Any("list", list))
 	for _, row := range list {
 		flag, ok := s.worker[row.ID]
 		if ok && flag {
@@ -61,10 +63,10 @@ func (s *iStorage) syncTraceWorker() {
 			return
 		}
 		_ = storage.NewWorkerTrace(storage.WorkerParams{
-			Interval: time.Hour, // only support hour
-			Source:   source,
-			Target:   target,
-			DB:       op.Conn(),
+			Spec:   "0 * * * *", // only support hour
+			Source: source,
+			Target: target,
+			DB:     op.Conn(),
 		})
 	}
 }

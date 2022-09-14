@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"time"
 )
 
 type iWorker interface {
@@ -12,7 +11,7 @@ type iWorker interface {
 }
 
 type WorkerParams struct {
-	Interval time.Duration
+	Spec string
 
 	// for trace worker
 	Source Datasource // source database.table
@@ -25,8 +24,8 @@ var _ iWorker = (*worker)(nil)
 
 // worker Used to otel jaeger json data analysis
 type worker struct {
-	interval time.Duration
-	db       *sql.DB // clickhouse instance
+	spec string
+	db   *sql.DB // clickhouse instance
 
 	// for trace worker
 	source Datasource // source database.table
@@ -34,7 +33,7 @@ type worker struct {
 }
 
 func (w *worker) SetParams(params WorkerParams) {
-	w.interval = params.Interval
+	w.spec = params.Spec
 	w.db = params.DB
 
 	// for trace worker

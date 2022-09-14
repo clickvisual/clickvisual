@@ -51,32 +51,32 @@ from
 		p.success as client_success
 	from
 		(SELECT
-        traceID AS trace_id,
-        timestamp AS time,
-        JSONExtractString(model, 'span_id') AS span_id,
-        JSONExtractUInt(model, 'duration') AS duration,
-        JSONExtractString(JSONExtractRaw(model, 'process'), 'service_name') AS service_name,
+        _key AS trace_id,
+        _time_second_ AS time,
+        JSONExtractString(_raw_log_, 'span_id') AS span_id,
+        JSONExtractUInt(_raw_log_, 'duration') AS duration,
+        JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'service_name') AS service_name,
 		 		JSONExtractString(references[1], 'span_id') as parent_span_id, 
 				tag_values[indexOf(tag_keys,'span.kind')] AS span_kind,
 				if(tag_values[indexOf(tag_keys,'otel.status_code')]=='ERROR', 0, 1) AS success,
 				arrayMap(x -> (x[1]),event_tag) AS tag_keys,
 				arrayMap(x -> (x[2]),event_tag) AS tag_values,
-				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'v_str'), JSONExtractString(x,'v_int64'),'')],JSONExtractArrayRaw(model,'tags')) AS event_tag,
-		 		JSONExtract(model, 'references', 'Array(String)') as references
-    FROM %s where span_kind in ('server','server.unary','server.stream') and timestamp >= toStartOfHour(end_time) and timestamp < (toStartOfHour(end_time) + interval 1 hour)) c
+				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'v_str'), JSONExtractString(x,'v_int64'),'')],JSONExtractArrayRaw(_raw_log_,'tags')) AS event_tag,
+		 		JSONExtract(_raw_log_, 'references', 'Array(String)') as references
+    FROM %s where span_kind in ('server','server.unary','server.stream') and _time_second_ >= toStartOfHour(end_time) and _time_second_ < (toStartOfHour(end_time) + interval 1 hour)) c
 	global join 
 		(SELECT
-        traceID AS trace_id,
-        timestamp AS time,
-        JSONExtractUInt(model, 'duration') AS duration,
-        JSONExtractString(model, 'span_id') AS span_id,
-        JSONExtractString(JSONExtractRaw(model, 'process'), 'service_name') AS service_name,
+        _key AS trace_id,
+        _time_second_ AS time,
+        JSONExtractUInt(_raw_log_, 'duration') AS duration,
+        JSONExtractString(_raw_log_, 'span_id') AS span_id,
+        JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'service_name') AS service_name,
 				tag_values[indexOf(tag_keys,'span.kind')] AS span_kind,
 				if(tag_values[indexOf(tag_keys,'otel.status_code')]=='ERROR', 0, 1) AS success,
 				arrayMap(x -> (x[1]),event_tag) AS tag_keys,
 				arrayMap(x -> (x[2]),event_tag) AS tag_values,
-				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'v_str'), JSONExtractString(x,'v_int64'),'')],JSONExtractArrayRaw(model,'tags')) AS event_tag
-		FROM %s where span_kind in ('client') and timestamp >= (toStartOfHour(end_time) - interval 1 hour) and timestamp < (toStartOfHour(end_time) + interval 1 hour)) p on
+				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'v_str'), JSONExtractString(x,'v_int64'),'')],JSONExtractArrayRaw(_raw_log_,'tags')) AS event_tag
+		FROM %s where span_kind in ('client') and _time_second_ >= (toStartOfHour(end_time) - interval 1 hour) and _time_second_ < (toStartOfHour(end_time) + interval 1 hour)) p on
 		c.trace_id = p.trace_id
 		and c.parent_span_id = p.span_id) f
 	where service_name <>'' and parent_service_name <>''

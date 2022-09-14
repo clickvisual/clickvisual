@@ -759,7 +759,7 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Storage update
+      description: iStorage update
       parameters:
       - description: table id
         in: path
@@ -792,14 +792,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/core.Res'
-      summary: Storage update
+      summary: iStorage update
       tags:
       - storage
   /api/v2/storage/{storage-id}/analysis-fields:
     get:
       consumes:
       - application/json
-      description: Storage analysis field list
+      description: iStorage analysis field list
       parameters:
       - description: table id
         in: path
@@ -813,14 +813,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/view.RespStorageAnalysisFields'
-      summary: Storage analysis field list
+      summary: iStorage analysis field list
       tags:
       - storage
   /api/v2/storage/{storage-id}/trace:
     patch:
       consumes:
       - application/json
-      description: Storage related trace info update
+      description: iStorage related trace info update
       parameters:
       - description: table id
         in: path
@@ -837,7 +837,34 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/core.Res'
-      summary: Storage related trace info update
+      summary: iStorage related trace info update
+      tags:
+      - storage
+  /api/v2/storage/{storage-id}/trace-graph:
+    get:
+      consumes:
+      - application/json
+      description: Get trace graph
+      parameters:
+      - description: table id
+        in: path
+        name: storage-id
+        required: true
+        type: integer
+      - in: query
+        name: endTime
+        type: integer
+      - in: query
+        name: startTime
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Get trace graph
       tags:
       - storage
   /api/v2/storage/mapping-json:
@@ -857,6 +884,28 @@ paths:
           schema:
             $ref: '#/definitions/view.MappingStruct'
       summary: Kafka JSON field mapping
+      tags:
+      - storage
+  /api/v2/storage/traces:
+    get:
+      consumes:
+      - application/json
+      description: trace storage list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/view.RespTableSimple'
+                  type: array
+              type: object
+      summary: trace storage list
       tags:
       - storage
   /api/v3/storage:

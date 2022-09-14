@@ -44,7 +44,10 @@ func Init() error {
 
 	Node = NewNode()
 
+	// Storage service start
 	Storage = NewStorage()
-	// xgo.Go(func() {})
+	xgo.Go(func() { Storage.tickerTraceWorker() })
+	// Storage service end
+
 	return nil
 }

@@ -1,6 +1,7 @@
 package inquiry
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -16,6 +17,8 @@ type Operator interface {
 	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
 
 	GET(view.ReqQuery, int) (view.RespQuery, error)
+	GetTraceGraph(ctx context.Context) ([]view.RespJaegerDependencyDataModel, error)
+
 	Count(view.ReqQuery) (uint64, error)
 	GroupBy(view.ReqQuery) map[string]uint64
 	Complete(string) (view.RespComplete, error)
