@@ -82,6 +82,9 @@ type (
 	RespComplete struct {
 		Logs []map[string]interface{} `json:"logs"`
 	}
+
+	RespTraceGraph struct {
+	}
 )
 
 type HighCharts struct {

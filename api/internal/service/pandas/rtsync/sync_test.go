@@ -1,4 +1,4 @@
-package ofsync
+package rtsync
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	invoker.Init()
+	_ = invoker.Init()
 }
 
 func TestCreator(t *testing.T) {

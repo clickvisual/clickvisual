@@ -3,6 +3,7 @@ package view
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -144,9 +145,15 @@ type ReqStorageUpdate struct {
 	Desc                    string `form:"desc"`
 }
 
-type ReqStorageUpdateTraceInfo struct {
-	TraceTableId int `form:"traceTableId"`
-}
+type (
+	ReqStorageUpdateTraceInfo struct {
+		TraceTableId int `form:"traceTableId"`
+	}
+	ReqStorageGetTraceGraph struct {
+		StartTime int `form:"startTime"`
+		EndTime   int `form:"endTime"`
+	}
+)
 
 type OperatorViewParams struct {
 	Typ              int
@@ -160,4 +167,34 @@ type OperatorViewParams struct {
 	IsCreate         bool
 	TimeField        string
 	IsKafkaTimestamp int
+}
+
+type JaegerDependencyDataModel struct {
+	Timestamp         time.Time
+	Parent            string
+	Child             string
+	CallCount         int64
+	ServerDurationP50 float64
+	ServerDurationP90 float64
+	ServerDurationP99 float64
+	ClientDurationP50 float64
+	ClientDurationP90 float64
+	ClientDurationP99 float64
+	ServerSuccessRate float64
+	ClientSuccessRate float64
+	Time              time.Time
+}
+
+type RespJaegerDependencyDataModel struct {
+	Parent            string  `json:"parent"`
+	Child             string  `json:"child"`
+	CallCount         int64   `json:"callCount"`
+	ServerDurationP50 float64 `json:"serverDurationP50"`
+	ServerDurationP90 float64 `json:"serverDurationP90"`
+	ServerDurationP99 float64 `json:"serverDurationP99"`
+	ClientDurationP50 float64 `json:"clientDurationP50"`
+	ClientDurationP90 float64 `json:"clientDurationP90"`
+	ClientDurationP99 float64 `json:"clientDurationP99"`
+	ServerSuccessRate float64 `json:"serverSuccessRate"`
+	ClientSuccessRate float64 `json:"clientSuccessRate"`
 }

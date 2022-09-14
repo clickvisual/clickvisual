@@ -85,7 +85,6 @@ ENGINE = Kafka SETTINGS kafka_broker_list = 'kafka:9092', kafka_topic_list = 'to
 					View: bumo.ParamsView{
 						ViewTable:    "local.test_view",
 						TargetTable:  "local.test",
-						TimeField:    "parseDateTimeBestEffort(_time_) AS _time_second_,parseDateTimeBestEffort(_time_) AS _time_nanosecond_",
 						CommonFields: "",
 						SourceTable:  "local.test_stream",
 						Where:        "1=1",
@@ -113,7 +112,6 @@ WHERE 1=1;`},
 				params: bumo.Params{
 					View: bumo.ParamsView{
 						ViewType:     bumo.ViewTypePrometheusMetric,
-						TimeField:    "_time_second_",
 						ViewTable:    "dev.f1d937cf_ed7d_4de8_bcba_ce9c8829e5ef",
 						CommonFields: "'uuid=f1d937cf-ed7d-4de8-bcba-ce9c8829e5ef'",
 						SourceTable:  "dev.ingress_stderr",

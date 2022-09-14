@@ -1,9 +1,9 @@
 package inquiry
 
 import (
-	"errors"
+	"context"
 	"fmt"
-	"strings"
+	"time"
 
 	"github.com/gotomicro/ego/core/elog"
 
@@ -120,7 +120,7 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 			IsReplica: false,
 			Cluster:   database.Cluster,
 			Database:  database.Name,
-			Table:     ct.TableName + "_jaeger_dependencies",
+			Table:     ct.TableName + db.SuffixJaegerJSON,
 			TTL:       ct.Days,
 			DB:        c.db,
 		}
@@ -143,156 +143,56 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 	return
 }
 
-func (c *ClickHouse) storageViewOperatorV3(param view.OperatorViewParams) (res string, err error) {
-	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.Did)
+func (c *ClickHouse) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerDependencyDataModel, err error) {
+	dependencies := make([]view.JaegerDependencyDataModel, 0)
+	resp = make([]view.RespJaegerDependencyDataModel, 0)
+	st := ctx.Value("st")
+	et := ctx.Value("et")
+	database := ctx.Value("database")
+	table := ctx.Value("table")
+
+	sql := fmt.Sprintf("select * from `%s`.`%s` where timestamp>%d and timestamp<%d", database.(string), table.(string)+db.SuffixJaegerJSON, st.(int), et.(int))
+
+	elog.Debug("clickHouse", elog.FieldComponent("GetTraceGraph"), elog.FieldName("sql"), elog.String("sql", sql))
+
+	res, err := c.db.Query(sql)
 	if err != nil {
-		return
+		elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
+		return nil, err
 	}
-	if c.mode == ModeCluster {
-		param.Table += "_local"
-	}
-	viewName := genViewName(databaseInfo.Name, param.Table, param.CustomTimeField)
-	defer func() {
-		if err != nil {
-			c.viewRollback(param.Tid, param.CustomTimeField)
-		}
-	}()
-	var (
-		viewSQL string
-	)
-	jsonExtractSQL := ""
-	if param.Tid != 0 {
-		jsonExtractSQL = c.genJsonExtractSQLV3(param.Indexes)
-	}
-	dName := genName(databaseInfo.Name, param.Table)
-	streamName := genStreamName(databaseInfo.Name, param.Table)
-	// drop
-	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
-	if c.mode == ModeCluster {
-		if databaseInfo.Cluster == "" {
-			err = constx.ErrClusterNameEmpty
+	for res.Next() {
+		var timestamp time.Time
+		var parent string
+		var child string
+		var callCount int64
+		var serverDurationP50 float64
+		var serverDurationP90 float64
+		var serverDurationP99 float64
+		var clientDurationP50 float64
+		var clientDurationP90 float64
+		var clientDurationP99 float64
+		var serverSuccessRate float64
+		var clientSuccessRate float64
+		var t time.Time
+		if err = res.Scan(&timestamp, &parent, &child, &callCount, &serverDurationP50, &serverDurationP90, &serverDurationP99, &clientDurationP50, &clientDurationP90, &clientDurationP99, &serverSuccessRate, &clientSuccessRate, &t); err != nil {
+			elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("scan"), elog.FieldErr(err))
 			return
 		}
-		viewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER `%s` ;", viewName, databaseInfo.Cluster)
+		dependencies = append(dependencies, view.JaegerDependencyDataModel{
+			Timestamp:         timestamp,
+			Parent:            parent,
+			Child:             child,
+			CallCount:         callCount,
+			ServerDurationP50: serverDurationP50,
+			ServerDurationP90: serverDurationP90,
+			ServerDurationP99: serverDurationP99,
+			ClientDurationP50: clientDurationP50,
+			ClientDurationP90: clientDurationP90,
+			ClientDurationP99: clientDurationP99,
+			ServerSuccessRate: serverSuccessRate,
+			ClientSuccessRate: clientSuccessRate,
+			Time:              t,
+		})
 	}
-	_, err = c.db.Exec(viewDropSQL)
-	if err != nil {
-		elog.Error("viewOperator", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
-		return "", err
-	}
-	// create
-	var timeConv string
-	var whereCond string
-	if param.CustomTimeField == "" {
-		timeConv = c.timeParseSQLV3(param.Typ, nil, param.TimeField)
-		whereCond = c.whereConditionSQLDefaultV3(param.List)
-	} else {
-		if param.Current == nil {
-			return "", errors.New("the process processes abnormal data errors, current view cannot be nil")
-		}
-		timeConv = c.timeParseSQLV3(param.Typ, param.Current, param.TimeField)
-		whereCond = c.whereConditionSQLCurrentV3(param.Current)
-	}
-	viewSQL = c.ViewDo(bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       param.TimeField,
-		Cluster:         databaseInfo.Cluster,
-		ReplicaStatus:   c.rs,
-		View: bumo.ParamsView{
-			ViewTable:        viewName,
-			TargetTable:      dName,
-			TimeConvert:      timeConv,
-			CommonFields:     jsonExtractSQL,
-			SourceTable:      streamName,
-			Where:            whereCond,
-			IsKafkaTimestamp: param.IsKafkaTimestamp,
-		},
-	})
-	if param.IsCreate {
-		_, err = c.db.Exec(viewSQL)
-		if err != nil {
-			return viewSQL, err
-		}
-	}
-	return viewSQL, nil
-}
-
-func (c *ClickHouse) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex) string {
-	rawLogField := constx.UBWKafkaStreamField
-	jsonExtractSQL := ",\n"
-	for _, obj := range indexes {
-		if obj.RootName == "" {
-			if hashFieldName, ok := obj.GetHashFieldName(); ok {
-				switch obj.HashTyp {
-				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
-				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
-				}
-			}
-			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, obj.GetFieldName())
-				continue
-			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(%s, '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.Field, obj.GetFieldName())
-		} else {
-			if hashFieldName, ok := obj.GetHashFieldName(); ok {
-				switch obj.HashTyp {
-				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractString(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
-				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractString(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
-				}
-			}
-			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractString(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
-				continue
-			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(JSONExtractString(%s, '%s'), '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
-		}
-	}
-	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",\n")
-	return jsonExtractSQL
-}
-
-func (c *ClickHouse) whereConditionSQLCurrentV3(current *db.BaseView) string {
-	rawLogField := constx.UBWKafkaStreamField
-	if current == nil {
-		return "1=1"
-	}
-	return fmt.Sprintf("JSONHas(%s, '%s') = 1", rawLogField, current.Key)
-}
-
-func (c *ClickHouse) whereConditionSQLDefaultV3(list []*db.BaseView) string {
-	rawLogField := constx.UBWKafkaStreamField
-	if list == nil {
-		return "1=1"
-	}
-	var defaultSQL string
-	// It is required to obtain all the view parameters under the current table and construct the default and current view query conditions
-	for k, viewRow := range list {
-		if k == 0 {
-			defaultSQL = fmt.Sprintf("JSONHas(%s, '%s') = 0", rawLogField, viewRow.Key)
-		} else {
-			defaultSQL = fmt.Sprintf("%s AND JSONHas(%s, '%s') = 0", defaultSQL, rawLogField, viewRow.Key)
-		}
-	}
-	if defaultSQL == "" {
-		return "1=1"
-	}
-	return defaultSQL
-}
-
-func (c *ClickHouse) timeParseSQLV3(typ int, v *db.BaseView, timeField string) string {
-	rawLogField := constx.UBWKafkaStreamField
-	if timeField == "" {
-		timeField = "_time_"
-	}
-	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
-		return fmt.Sprintf(nanosecondTimeParse, rawLogField, v.Key, rawLogField, v.Key)
-	}
-	if typ == TableTypeString {
-		return fmt.Sprintf(defaultStringTimeParseV3, rawLogField, timeField, rawLogField, timeField)
-	}
-	return fmt.Sprintf(defaultFloatTimeParseV3, rawLogField, timeField, rawLogField, timeField)
+	return transformJaegerDependencies(dependencies), nil
 }

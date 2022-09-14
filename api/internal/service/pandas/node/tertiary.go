@@ -27,7 +27,6 @@ func (r *tertiary) execute(n *node) (res view.RunNodeResult, err error) {
 	default:
 		return res, constx.ErrBigdataNotSupportNodeType
 	}
-	return
 }
 
 func (r *tertiary) setNext(next department) {

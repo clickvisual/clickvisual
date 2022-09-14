@@ -52,6 +52,9 @@ func v2(r *gin.RouterGroup) {
 		r.POST("/storage/mapping-json", core.Handle(storage.KafkaJsonMapping))
 		r.GET("/storage/:storage-id/analysis-fields", core.Handle(storage.AnalysisFields))
 		r.PATCH("/storage/:storage-id", core.Handle(storage.Update))
+		// trace apis
+		r.GET("/storage/traces", core.Handle(storage.GetTraceList))
 		r.PATCH("/storage/:storage-id/trace", core.Handle(storage.UpdateTraceInfo))
+		r.GET("/storage/:storage-id/trace-graph", core.Handle(storage.GetTraceGraph))
 	}
 }
