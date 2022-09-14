@@ -99,8 +99,8 @@ func Create(c *core.Context) {
 }
 
 // AnalysisFields  godoc
-// @Summary	     Storage analysis field list
-// @Description  Storage analysis field list
+// @Summary	     iStorage analysis field list
+// @Description  iStorage analysis field list
 // @Tags         storage
 // @Accept       json
 // @Produce      json
@@ -140,8 +140,8 @@ func AnalysisFields(c *core.Context) {
 }
 
 // Update  godoc
-// @Summary	     Storage update
-// @Description  Storage update
+// @Summary	     iStorage update
+// @Description  iStorage update
 // @Tags         storage
 // @Accept       json
 // @Produce      json
@@ -223,8 +223,8 @@ func Update(c *core.Context) {
 }
 
 // UpdateTraceInfo  godoc
-// @Summary	     Storage related trace info update
-// @Description  Storage related trace info update
+// @Summary	     iStorage related trace info update
+// @Description  iStorage related trace info update
 // @Tags         storage
 // @Accept       json
 // @Produce      json

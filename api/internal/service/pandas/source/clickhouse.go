@@ -62,6 +62,7 @@ func (c *ClickHouse) Exec(s string) (err error) {
 }
 
 func (c *ClickHouse) Query(s string) (res []map[string]interface{}, err error) {
+	invoker.Logger.Info("ClickHouse", elog.FieldComponent("Query"), elog.String("s", s))
 	return
 }
 

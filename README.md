@@ -91,12 +91,9 @@ If you want to report a bug or request for a feature, create a issue [here](http
 
 Join us, please add the "cv" keyword in the verification information. 
 
- <img src="https://helpcenter.shimonote.com/uploads/0MJIFKVK02HHU.png" width="150" />
-
  <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />
 
 Wechat id is "MEXES_"
-
 
 ## Contributors
 

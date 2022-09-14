@@ -1,6 +1,7 @@
 package inquiry
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 )
 
 type Operator interface {
+	Conn() *sql.DB
 	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
 
 	GET(view.ReqQuery, int) (view.RespQuery, error)

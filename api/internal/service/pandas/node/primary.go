@@ -12,7 +12,7 @@ type primary struct {
 
 func (r *primary) execute(n *node) (res view.RunNodeResult, err error) {
 	if n.primaryDone {
-		r.next.execute(n)
+		_, _ = r.next.execute(n)
 		return
 	}
 	n.primaryDone = true

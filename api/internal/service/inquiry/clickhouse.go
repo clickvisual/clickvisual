@@ -110,6 +110,10 @@ func (c *ClickHouse) ID() int {
 	return c.id
 }
 
+func (c *ClickHouse) Conn() *sql.DB {
+	return c.db
+}
+
 func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogField string) string {
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
@@ -703,7 +707,6 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 				}
 			} else {
 				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
-				res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField]
 			}
 		} else {
 			// If Kafka's key is empty, it will not be displayed on the interface

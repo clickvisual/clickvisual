@@ -120,7 +120,7 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 			IsReplica: false,
 			Cluster:   database.Cluster,
 			Database:  database.Name,
-			Table:     ct.TableName + "_jaeger_dependencies",
+			Table:     ct.TableName + db.SuffixJaegerJSON,
 			TTL:       ct.Days,
 			DB:        c.db,
 		}

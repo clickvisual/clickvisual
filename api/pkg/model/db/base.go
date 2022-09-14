@@ -19,6 +19,11 @@ const (
 )
 
 const (
+	_ = iota
+	V3TableTypeJaegerJSON
+)
+
+const (
 	DatasourceMySQL      = "mysql"
 	DatasourceClickHouse = "ch"
 )
@@ -30,10 +35,15 @@ const (
 
 const TimeFieldSecond = "_time_second_"
 const TimeFieldNanoseconds = "_time_nanosecond_"
+
 const (
 	TimeFieldTypeDT   = 0 // DateTime
 	TimeFieldTypeTsMs = 2 // unix ms
 	TimeFieldTypeDT3  = 3 // DataTime64(3)
+)
+
+const (
+	SuffixJaegerJSON = "_jaeger_dependencies"
 )
 
 func (b *BaseView) TableName() string {

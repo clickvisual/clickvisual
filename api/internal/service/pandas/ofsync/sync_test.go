@@ -1,4 +1,4 @@
-package rtsync
+package ofsync
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	invoker.Init()
+	_ = invoker.Init()
 }
 
 func TestCreator(t *testing.T) {
@@ -40,7 +40,7 @@ func TestCreator(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    RTSync
+		want    string
 		wantErr bool
 	}{
 		// TODO: Add test cases.
@@ -72,7 +72,7 @@ func TestCreator(t *testing.T) {
     ]
 }`,
 			},
-			want:    nil,
+			want:    "",
 			wantErr: false,
 		},
 		{
@@ -100,7 +100,7 @@ func TestCreator(t *testing.T) {
     ]
 }`,
 			},
-			want:    nil,
+			want:    "",
 			wantErr: false,
 		},
 	}

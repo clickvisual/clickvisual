@@ -17,6 +17,7 @@ var (
 	Index           *index
 	Alarm           *alarm
 	Node            *node
+	Storage         *iStorage
 )
 
 func Init() error {
@@ -42,5 +43,8 @@ func Init() error {
 	})
 
 	Node = NewNode()
+
+	Storage = NewStorage()
+	// xgo.Go(func() {})
 	return nil
 }
