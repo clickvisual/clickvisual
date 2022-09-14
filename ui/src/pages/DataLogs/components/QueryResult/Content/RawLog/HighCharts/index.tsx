@@ -31,8 +31,8 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   const i18n = useIntl();
 
-  // 判断此时间戳是否跨天
-  const isTimeCrossedDay = useMemo(() => {
+  // 决定时间的单位
+  const generationTimeUnit = useMemo(() => {
     if (highChartList && highChartList.length >= 1) {
       const srartTime = highChartList[0].from;
       const endTIme = highChartList[highChartList.length - 1].to;
@@ -42,7 +42,7 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   }, [highChartList]);
 
   const format = (timeStr: string | number) => {
-    return moment(timeStr, "X").format(isTimeCrossedDay);
+    return moment(timeStr, "X").format(generationTimeUnit);
   };
 
   // const formatTimes = {

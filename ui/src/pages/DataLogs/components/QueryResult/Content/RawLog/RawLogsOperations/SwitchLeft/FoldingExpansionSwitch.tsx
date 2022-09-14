@@ -5,8 +5,7 @@ import { PaneType } from "@/models/datalogs/types";
 import classNames from "classnames";
 import { useEffect, useMemo } from "react";
 import { Switch } from "antd";
-import { FIRST_PAGE } from "@/config/config";
-import useUrlState from "@ahooksjs/use-url-state";
+import { FIRST_PAGE, LINKLOGS_PAGESIZE } from "@/config/config";
 
 const FoldingExpansionSwitch = ({
   oldPane,
@@ -16,35 +15,37 @@ const FoldingExpansionSwitch = ({
   const i18n = useIntl();
   const {
     logPanesHelper,
-    onChangeIsTrace,
     logState,
     onChangeLogState,
     currentLogLibrary,
     doGetLogsAndHighCharts,
     onChangeLogPane,
     resetLogPaneLogsAndHighCharts,
+    linkLogs,
   } = useModel("dataLogs");
   const { updateLogPane, logPanes } = logPanesHelper;
-  const [urlState] = useUrlState();
 
   const handleChangeFoldingExpansionChecked = (
     flag: boolean,
     state: number
   ) => {
     if (!oldPane) return;
-    if (state != 1 && flag != oldPane.foldingChecked) {
-      updateLogPane(
-        oldPane.paneId,
-        { ...oldPane, foldingChecked: flag, isTrace: 0 },
-        logPanes
-      );
-    }
+    updateLogPane(
+      oldPane.paneId,
+      {
+        ...oldPane,
+        foldingChecked: flag,
+        logState: state,
+        linkLogs: undefined,
+      },
+      logPanes
+    );
   };
 
   const getList = () => {
     const params = {
       page: FIRST_PAGE,
-      pageSize: 100,
+      pageSize: LINKLOGS_PAGESIZE,
     };
     doGetLogsAndHighCharts(currentLogLibrary?.id as number, {
       isPaging: true,
@@ -54,17 +55,14 @@ const FoldingExpansionSwitch = ({
         if (!res) {
           resetLogPaneLogsAndHighCharts({
             ...(oldPane as PaneType),
-            page: FIRST_PAGE,
-            pageSize: 100,
           });
         } else {
           const pane: PaneType = {
             ...(oldPane as PaneType),
-            page: FIRST_PAGE,
-            pageSize: 100,
-            logs: res.logs,
+            linkLogs: res.logs,
             highCharts: res.highCharts,
             logChart: { logs: [] },
+            logState: 1,
           };
           onChangeLogPane(pane);
         }
@@ -72,43 +70,47 @@ const FoldingExpansionSwitch = ({
       .catch(() =>
         resetLogPaneLogsAndHighCharts({
           ...(oldPane as PaneType),
-          page: FIRST_PAGE,
-          pageSize: 100,
         })
       );
   };
 
   useEffect(() => {
-    if (oldPane?.logs?.isTrace == 1 && oldPane?.foldingChecked) {
-      onChangeLogState(2);
+    if (oldPane?.logs?.isTrace == 1) {
+      onChangeLogState(oldPane?.logState);
+      if (
+        oldPane?.logState == 1 &&
+        (!linkLogs?.logs || (linkLogs?.logs && linkLogs?.logs.length == 0))
+      ) {
+        getList();
+      }
     }
-  }, [oldPane?.foldingChecked, oldPane?.logs?.isTrace]);
-
-  useEffect(() => {
-    if (urlState?.isTrace == 1 && oldPane?.logs?.isTrace == 1) {
-      onChangeLogState(1);
-    }
-  }, [oldPane?.logs?.isTrace, urlState?.isTrace]);
+  }, [oldPane?.logs?.isTrace]);
 
   const text = useMemo(() => {
     switch (logState) {
       case 0:
         return (
           <span className={styles.textSpan} style={{ textAlign: "left" }}>
-            展开
+            {i18n.formatMessage({ id: "systemSetting.role.collapseX.unfold" })}
           </span>
         );
       case 1:
         return (
           <span className={styles.textSpan} style={{ textAlign: "left" }}>
-            链路
+            {i18n.formatMessage({ id: "log.switch.link" })}
+          </span>
+        );
+      case 2:
+        return (
+          <span className={styles.textSpan} style={{ textAlign: "left" }}>
+            {i18n.formatMessage({ id: "log.switch.folding" })}
           </span>
         );
 
       default:
         return (
           <span className={styles.textSpan} style={{ textAlign: "left" }}>
-            折叠
+            {i18n.formatMessage({ id: "log.switch.unknown" })}
           </span>
         );
     }
@@ -129,7 +131,6 @@ const FoldingExpansionSwitch = ({
               className={styles.jtogglerBtnWrapper}
               onClick={() => {
                 onChangeLogState(0);
-                onChangeIsTrace(0);
                 handleChangeFoldingExpansionChecked(false, 0);
               }}
             ></div>
@@ -137,23 +138,19 @@ const FoldingExpansionSwitch = ({
               className={styles.jtogglerBtnWrapper}
               onClick={() => {
                 onChangeLogState(1);
-                onChangeIsTrace(1);
                 if (!oldPane) return;
                 updateLogPane(
                   oldPane.paneId,
-                  { ...oldPane, isTrace: 1 },
+                  { ...oldPane, logState: 1 },
                   logPanes
                 );
-                if (oldPane?.pageSize && oldPane.pageSize < 100) {
-                  getList();
-                }
+                getList();
               }}
             ></div>
             <div
               className={styles.jtogglerBtnWrapper}
               onClick={() => {
                 onChangeLogState(2);
-                onChangeIsTrace(0);
                 handleChangeFoldingExpansionChecked(true, 2);
               }}
             ></div>

@@ -40,7 +40,7 @@ export interface UrlStateType {
   index: string | number;
   queryType?: string;
   mode?: number;
-  isTrace?: number;
+  logState?: number;
 }
 
 export const RestUrlStates = {
@@ -97,7 +97,8 @@ export default function useLogUrlParams() {
     doGetAnalysisField,
     onChangeRawLogsIndexeList,
     onChangeCurrentLogPane,
-    isTrace,
+    logState,
+    linkLogs,
   } = useModel("dataLogs");
   const {
     onChangeCurrentlyTableToIid,
@@ -155,7 +156,7 @@ export default function useLogUrlParams() {
       querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
       desc: res.data.desc,
       mode: urlState?.mode, // 为1时：聚合报警详情页面过来的
-      isTrace: parseInt(urlState?.isTrace || lastDataLogsState.isTrace),
+      logState: parseInt(urlState?.logState || lastDataLogsState.logState),
     };
 
     addLogPane(pane.paneId, pane);
@@ -217,7 +218,6 @@ export default function useLogUrlParams() {
     () => {
       const data = {
         tid: currentLogLibrary?.id,
-        // did: currentDatabase?.id,
         start: startDateTime,
         end: endDateTime,
         page: currentPage,
@@ -226,8 +226,7 @@ export default function useLogUrlParams() {
         index: activeTimeOptionIndex,
         tab: activeTabKey,
         queryType: activeQueryType,
-        isTrace: isTrace,
-        // querySql: chartSql,
+        logState: logState,
       };
 
       setUrlState(data);
@@ -247,7 +246,8 @@ export default function useLogUrlParams() {
       index: activeTimeOptionIndex,
       tab: activeTabKey,
       queryType: activeQueryType,
-      isTrace: isTrace,
+      logState: logState,
+      linkLogs: linkLogs,
     };
     const defaultData = {
       end: undefined,
@@ -259,13 +259,13 @@ export default function useLogUrlParams() {
       start: undefined,
       tab: TimeRangeType.Relative,
       tid: undefined,
-      isTrace: undefined,
+      logState: 0,
+      linkLogs: undefined,
     };
     // 初始化的时候时不时会执行一次，无法稳定复现，于是排除初始化的情况
     !isEqual(data, defaultData) && setUrlQuery.run();
   }, [
     currentLogLibrary,
-    // currentDatabase,
     startDateTime,
     endDateTime,
     currentPage,
@@ -274,7 +274,8 @@ export default function useLogUrlParams() {
     activeTimeOptionIndex,
     activeTabKey,
     activeQueryType,
-    isTrace,
+    logState,
+    linkLogs,
   ]);
 
   useEffect(() => {

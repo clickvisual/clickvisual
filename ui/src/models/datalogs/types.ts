@@ -36,7 +36,8 @@ export type PaneType = {
   foldingChecked: boolean;
   mode?: number;
   rawLogsIndexeList?: IndexInfoType[];
-  isTrace: number;
+  logState: number;
+  linkLogs?: LogsResponse;
 };
 
 export enum hashType {

@@ -29,6 +29,7 @@ export default {
   "input.placeholder": "请输入{name}",
   "select.placeholder": "请选择{name}",
   required: "必填",
+  tips: "提示",
 
   type: "类型",
   capacity: "容量",
@@ -396,6 +397,12 @@ export default {
   // log nva
   "log.switch.histogram": "直方图",
   "log.switch.unfold": "折叠日志",
+  "log.switch.folding": "折叠",
+  "log.switch.link": "链路",
+  "log.switch.unknown": "未知",
+
+  // log link
+  "log.link.tips.description": "需要具体的链路id，_key='链路ID'",
 
   // Data Logs-Statistical Table
   "log.table.note": "搜索(注：谨慎操作)",

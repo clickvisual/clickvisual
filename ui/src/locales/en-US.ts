@@ -29,6 +29,7 @@ export default {
   "input.placeholder": "Please enter the{name}",
   "select.placeholder": "Please select a{name}",
   required: "Required",
+  tips: "Tips",
 
   type: "Type",
   capacity: "Capacity",
@@ -423,6 +424,12 @@ export default {
   // log nva
   "log.switch.histogram": "Histogram",
   "log.switch.unfold": "Collapse Log",
+  "log.switch.folding": "Folding",
+  "log.switch.link": "Link",
+  "log.switch.unknown": "The unknown",
+
+  // log link
+  "log.link.tips.description": "Specific link ID is required, _key=' link ID'",
 
   // Data Logs-Statistical Table
   "log.table.note": "Search(Note: Careful operation)",

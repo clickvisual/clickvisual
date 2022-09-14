@@ -5,10 +5,11 @@ import classNames from "classnames";
 import { PaneType } from "@/models/datalogs/types";
 import LinkItem from "./LinkItem";
 import LinkItemTitle from "./LinkItemTitle";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { notification } from "antd";
 import { parseJsonObject } from "@/utils/string";
 import { microsecondTimeStamp } from "@/utils/time";
+import { useIntl } from "umi";
 
 // 链路主题色，循环使用，可直接在末尾新增
 const themeColor = [
@@ -20,9 +21,21 @@ const themeColor = [
 ];
 
 const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
-  const { logs, logState } = useModel("dataLogs");
+  const i18n = useIntl();
+  const { logs, linkLogs, logState } = useModel("dataLogs");
+  const [isNotification, setIsNotification] = useState<boolean>(false);
 
-  const list = logs?.logs || [];
+  const list = useMemo(() => {
+    if (
+      logs?.isTrace == 1 &&
+      oldPane?.logState == 1 &&
+      linkLogs?.logs &&
+      linkLogs?.logs?.length > 0
+    ) {
+      return linkLogs?.logs || [];
+    }
+    return logs?.logs || [];
+  }, [logs?.isTrace, oldPane, linkLogs?.logs]);
 
   const handleFindChild = (
     oneselfId: string,
@@ -179,8 +192,6 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       });
     });
 
-    // console.log(treeDataList, "treeDataList");
-
     return treeDataList;
   }, [list, logs?.isTrace]);
 
@@ -189,13 +200,20 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     if (
       logs?.isTrace == 1 &&
       logState == 1 &&
-      Object.keys(linkDataList).length > 1
+      linkLogs?.limited == 100 &&
+      linkDataList.length > 1 &&
+      oldPane?.linkLogs &&
+      !isNotification
     ) {
+      setIsNotification(true);
       notification.info({
-        message: "提示",
-        description: "需要具体的链路id，_key='链路ID'",
+        message: i18n.formatMessage({ id: "tips" }),
+        description: i18n.formatMessage({ id: "log.link.tips.description" }),
         duration: null,
         placement: "top",
+        onClose: () => {
+          setIsNotification(false);
+        },
       });
     }
   }, [linkDataList]);

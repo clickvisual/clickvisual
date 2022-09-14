@@ -32,7 +32,6 @@ export interface LogsResponse extends StatisticalTableResponse {
   query: string;
   where: string;
   isTrace: number; // 0 非链路模式 1 jaeger_json格式
-  linkLogs: any[];
 }
 
 export interface ViewResponse {
