@@ -32,7 +32,6 @@ export interface LogsResponse extends StatisticalTableResponse {
   query: string;
   where: string;
   isTrace: number; // 0 非链路模式 1 jaeger_json格式
-  linkLogs: any[];
 }
 
 export interface ViewResponse {
@@ -134,6 +133,7 @@ export interface TableInfoResponse {
   uid: number;
   desc: string;
   database: DatabaseResponse;
+  traceTableId: number;
 }
 
 export interface TableSqlContent {
@@ -525,5 +525,21 @@ export default {
       method: "POST",
       data,
     });
+  },
+
+  // 链接链路日志库
+  async updateLinkLinkLogLibrary(data: {
+    storageId: number;
+    traceTableId: number;
+  }) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/storage/${data.storageId}/trace`,
+      {
+        method: "PATCH",
+        data: {
+          traceTableId: data.traceTableId,
+        },
+      }
+    );
   },
 };

@@ -8,6 +8,8 @@ export default function useLogLibraryViews() {
   const [visibleDraw, setVisibleDraw] = useState<boolean>(false);
   const [visibleFormModal, setVisibleFormModal] = useState<boolean>(false);
   const [isModifyLog, setIsModifyLog] = useState<boolean>(false);
+  const [isAssociatedLinkLogLibrary, setIsAssociatedLinkLogLibrary] =
+    useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [editView, setEditView] = useState<CreatedViewRequest | undefined>();
   const [viewList, setViewList] = useState<ViewResponse[]>([]);
@@ -21,6 +23,10 @@ export default function useLogLibraryViews() {
   };
   const onChangeIsModifyLog = (visible: boolean) => {
     setIsModifyLog(visible);
+  };
+
+  const onChangeIsAssociatedLinkLogLibrary = (flag: boolean) => {
+    setIsAssociatedLinkLogLibrary(flag);
   };
 
   const onChangeCurrentEditLogLibrary = (val: any) => {
@@ -87,12 +93,14 @@ export default function useLogLibraryViews() {
     viewVisibleModal: visibleFormModal,
     viewIsEdit: isEdit,
     isModifyLog,
+    isAssociatedLinkLogLibrary,
     currentEditLogLibrary,
     onChangeViewVisibleModal: onChangeVisibleFormModal,
     onChangeViewsVisibleDraw: onChangeVisibleDraw,
     onChangeViewIsEdit: onChangeIsEdit,
     onChangeIsModifyLog,
     onChangeCurrentEditLogLibrary,
+    onChangeIsAssociatedLinkLogLibrary,
     getViewList,
     createdView,
     updatedView,

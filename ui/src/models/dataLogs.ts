@@ -96,11 +96,11 @@ const DataLogsModel = () => {
   // 最近一次正在加载的tid
   const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
 
-  // 是否链路模式
-  const [isTrace, setIsTrace] = useState<number>(0);
-
   // 链路模式下日志的三种状态
   const [logState, setLogState] = useState<number>(0);
+
+  // 链路的100条日志信息
+  const [linkLogs, setLinkLogs] = useState<LogsResponse>();
 
   const {
     logLibraryCreatedModalVisible,
@@ -109,7 +109,9 @@ const DataLogsModel = () => {
     isEditDatabase,
     isLogLibraryAllDatabase,
     currentEditDatabase,
+    linkLinkLogLibraryTId,
     onChangeLogLibraryInfoDrawVisible,
+    onChangeLinkLinkLogLibraryTId,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsAccessLogLibrary,
     onChangeIsLogLibraryAllDatabase,
@@ -134,6 +136,8 @@ const DataLogsModel = () => {
     onChangeViewsVisibleDraw,
     isModifyLog,
     onChangeIsModifyLog,
+    isAssociatedLinkLogLibrary,
+    onChangeIsAssociatedLinkLogLibrary,
     currentEditLogLibrary,
     onChangeCurrentEditLogLibrary,
     getViewList,
@@ -213,10 +217,6 @@ const DataLogsModel = () => {
     setLastLoadingTid(tid);
   };
 
-  const onChangeIsTrace = (num: number) => {
-    setIsTrace(num);
-  };
-
   const onChangeLogState = (num: number) => {
     setLogState(num);
   };
@@ -258,6 +258,8 @@ const DataLogsModel = () => {
     );
     statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
     doParseQuery(tabPane.logs?.where || keywordInput);
+    setLinkLogs(tabPane?.linkLogs);
+    setLogState(tabPane?.logState);
   };
 
   const onCopyRawLogDetails = (log: any) => {
@@ -330,6 +332,10 @@ const DataLogsModel = () => {
     loadingText: false,
   });
 
+  const doUpdateLinkLinkLogLibrary = useRequest(api.updateLinkLinkLogLibrary, {
+    loadingText: false,
+  });
+
   const settingIndexes = useRequest(api.setIndexes, {
     loadingText: false,
     onSuccess() {
@@ -353,18 +359,18 @@ const DataLogsModel = () => {
     };
   };
 
-  const doGetLogs = (params?: QueryParams) => {
-    if (currentLogLibrary) {
-      cancelTokenLogsRef.current?.();
-      getLogs.run(
-        currentLogLibrary.id,
-        logsAndHighChartsPayload(params),
-        new CancelToken(function executor(c) {
-          cancelTokenLogsRef.current = c;
-        })
-      );
-    }
-  };
+  // const doGetLogs = (params?: QueryParams) => {
+  //   if (currentLogLibrary) {
+  //     cancelTokenLogsRef.current?.();
+  //     getLogs.run(
+  //       currentLogLibrary.id,
+  //       logsAndHighChartsPayload(params),
+  //       new CancelToken(function executor(c) {
+  //         cancelTokenLogsRef.current = c;
+  //       })
+  //     );
+  //   }
+  // };
   const doGetHighCharts = async (params?: QueryParams) => {
     if (currentLogLibrary) {
       cancelTokenHighChartsRef.current?.();
@@ -542,6 +548,7 @@ const DataLogsModel = () => {
 
   const resetCurrentHighChart = () => {
     setLogs(undefined);
+    setLinkLogs(undefined);
     setHighChartList([]);
     setIsHiddenHighChart(false);
   };
@@ -592,6 +599,7 @@ const DataLogsModel = () => {
     isHasDatabase,
     addLogToDatabase,
     logs,
+    linkLogs,
     logCount,
     startDateTime,
     endDateTime,
@@ -610,10 +618,9 @@ const DataLogsModel = () => {
     currentEditDatabase,
     currentEditLogLibrary,
     isLogLibraryAllDatabase,
-    isTrace,
     logState,
 
-    doGetLogs,
+    // doGetLogs,
     doGetHighCharts,
     doGetLogsAndHighCharts,
     // doGetLogLibraryList,
@@ -640,7 +647,6 @@ const DataLogsModel = () => {
     onChangeIsEditDatabase,
     onChangeCurrentEditDatabase,
     onChangeCurrentEditLogLibrary,
-    onChangeIsTrace,
     onChangeLogState,
 
     doParseQuery,
@@ -662,6 +668,8 @@ const DataLogsModel = () => {
     logLibraryInfoDrawVisible,
     onChangeLogLibraryCreatedModalVisible,
     onChangeLogLibraryInfoDrawVisible,
+    linkLinkLogLibraryTId,
+    onChangeLinkLinkLogLibraryTId,
     doCreatedLogLibraryAsString,
     doCreatedLogLibraryEachRow,
     doDeletedLogLibrary,
@@ -675,6 +683,7 @@ const DataLogsModel = () => {
     doCreatedLocalLogLibraryBatch,
     doGetMappingJson,
     doGetAnalysisField,
+    doUpdateLinkLinkLogLibrary,
 
     viewsVisibleDraw,
     getViewList,
@@ -689,6 +698,8 @@ const DataLogsModel = () => {
     doGetViewInfo,
     lastLoadingTid,
     rawLogsIndexeList,
+    isAssociatedLinkLogLibrary,
+    onChangeIsAssociatedLinkLogLibrary,
     onChangeViewIsEdit,
     onChangeViewVisibleModal,
     onChangeViewsVisibleDraw,

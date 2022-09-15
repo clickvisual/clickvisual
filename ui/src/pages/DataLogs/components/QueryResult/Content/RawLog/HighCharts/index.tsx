@@ -9,6 +9,7 @@ import moment from "moment";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
 import { PaneType } from "@/models/datalogs/types";
+import { timeIntervalIsConvertedIntoUnits } from "@/utils/time";
 
 const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {
@@ -18,7 +19,7 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     highChartList,
     onChangeLogPane,
     onChangeCurrentLogPane,
-    currentRelativeUnit,
+    // currentRelativeUnit,
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
 
@@ -30,46 +31,33 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   const i18n = useIntl();
 
-  // 判断此时间戳是否跨天
-  const isTimeCrossedDay = useMemo(() => {
-    if (highChartList && highChartList.length > 1) {
+  // 决定时间的单位
+  const generationTimeUnit = useMemo(() => {
+    if (highChartList && highChartList.length >= 1) {
       const srartTime = highChartList[0].from;
       const endTIme = highChartList[highChartList.length - 1].to;
-      if (
-        moment(srartTime * 1000).format("YYYY/MM/DD") !=
-        moment(endTIme * 1000).format("YYYY/MM/DD")
-      ) {
-        return true;
-      }
-      return false;
+      return timeIntervalIsConvertedIntoUnits(srartTime, endTIme);
     }
-    return false;
+    return "";
   }, [highChartList]);
 
-  const format = (timeStr: string | number, formatType: string) => {
-    if (
-      (formatType == formatTimes.minutes || formatType == formatTimes.hours) &&
-      isTimeCrossedDay
-    ) {
-      return moment(timeStr, "X").format("MM/DD HH:mm:ss");
-    }
-    return moment(timeStr, "X").format(formatType);
+  const format = (timeStr: string | number) => {
+    return moment(timeStr, "X").format(generationTimeUnit);
   };
 
-  const formatTimes = {
-    minutes: "LTS",
-    hours: "LT",
-    days: "L",
-    months: "L",
-    years: "YYYY/MM",
-  };
+  // const formatTimes = {
+  //   minutes: "LTS",
+  //   hours: "LT",
+  //   days: "L",
+  //   months: "L",
+  //   years: "YYYY/MM",
+  // };
 
   const scale = {
     from: {
       type: "timeCat",
       tickCount: 8,
-      formatter: (text: string) =>
-        format(text, formatTimes[currentRelativeUnit]),
+      formatter: (text: string) => format(text),
     },
     count: {
       type: "pow",

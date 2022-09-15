@@ -2,9 +2,9 @@ import logsIndexStyles from "@/pages/DataLogs/components/QueryResult/Content/Raw
 import classNames from "classnames";
 import IndexHeader from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader";
 import IndexList from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexList";
-import {useModel} from "@@/plugin-model/useModel";
-import {useEffect} from "react";
-import {PaneType} from "@/models/datalogs/types";
+import { useModel } from "@@/plugin-model/useModel";
+import { useEffect } from "react";
+import { PaneType } from "@/models/datalogs/types";
 
 const RawLogsIndexes = (props: { oldPane?: PaneType }) => {
   const { oldPane } = props;

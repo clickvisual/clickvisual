@@ -62,3 +62,5 @@ export const LANG_CN = "zh-CN";
 
 // 不展开日志最大长度
 export const LOGMAXTEXTLENGTH = 500;
+
+export const LINKLOGS_PAGESIZE = 100;

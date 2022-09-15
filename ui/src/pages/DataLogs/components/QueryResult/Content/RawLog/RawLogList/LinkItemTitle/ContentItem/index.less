@@ -3,7 +3,7 @@
   overflow: hidden; //超出的文本隐藏
   font-weight: 600;
   font-size: 14px;
-  // white-space: nowrap; //溢出不换行
+  white-space: nowrap; //溢出不换行
   text-overflow: ellipsis; //溢出用省略号显示
   cursor: pointer;
 
@@ -12,11 +12,17 @@
   }
 
   .titleSpan {
+    display: inline;
+    padding: 0;
     color: #aaa;
+    list-style: none;
 
     .titleSpanItem {
-      display: inline-block;
+      display: inline;
+      margin-left: 0.7em;
+      padding-right: 0.5rem;
       font-weight: 500;
+      border-right: 1px solid #aaa;
     }
   }
 }
@@ -46,17 +52,17 @@
     }
 
     .copyBtn {
-      opacity: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       width: 30px;
+      opacity: 0;
     }
   }
 }
 
 .none {
-  display: none;
+  display: none !important;
 }
 
 .bg_gray {

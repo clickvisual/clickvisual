@@ -7,12 +7,18 @@ import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useDebounce, useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
+import {
+  DEBOUNCE_WAIT,
+  FIRST_PAGE,
+  LINKLOGS_PAGESIZE,
+  TimeRangeType,
+} from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
+import { cloneDeep } from "lodash";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -79,11 +85,22 @@ const RawLogQuery = () => {
         page: params.page,
         activeIndex: activeTimeOptionIndex,
       };
+      if (oldPane?.logState == 1 && oldPane?.linkLogs) {
+        params.pageSize = 100;
+      }
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params }).then(
         (res) => {
           if (res) {
-            pane.logs = res.logs;
+            if (oldPane?.logState == 1 && oldPane?.linkLogs) {
+              let cloneLogs = cloneDeep(res.logs);
+              cloneLogs.logs = cloneLogs.logs.slice(0, 9);
+              pane.linkLogs = res.logs;
+              pane.logs = cloneLogs;
+            } else {
+              pane.logs = res.logs;
+            }
+
             pane.highCharts = res.highCharts;
             if (res.logs.query !== pane.querySql) {
               pane.logChart = { logs: [] };

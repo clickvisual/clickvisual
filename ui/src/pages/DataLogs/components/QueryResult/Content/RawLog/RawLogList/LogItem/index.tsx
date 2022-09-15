@@ -2,7 +2,7 @@ import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLo
 import LogItemOperation from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemOperation";
 import LogItemDetails from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemDetails";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import LogItemFold from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemFold";
 import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
 import { Button } from "antd";
@@ -20,6 +20,17 @@ const LogItem = ({ log, foldingChecked }: LogItemProps) => {
     setIsFold(foldingChecked ?? true);
   }, [foldingChecked]);
 
+  const time = useMemo(() => {
+    if (log._time_nanosecond_ || log._time_second_) {
+      if (log._time_nanosecond_) {
+        return moment(log._time_nanosecond_).format("MM-DD HH:mm:ss.SSS");
+      }
+      return moment(log._time_second_).format("MM-DD HH:mm:ss");
+    }
+
+    return "";
+  }, [log._time_nanosecond_, log._time_second_]);
+
   return (
     <div className={logItemStyles.logItemMain}>
       <div className={logItemStyles.left}>
@@ -33,12 +44,7 @@ const LogItem = ({ log, foldingChecked }: LogItemProps) => {
           />
         </div>
         <div className={logItemStyles.dateTime}>
-          <div>
-            {(log?._time_nanosecond_ || log?._time_second_) &&
-              moment(log._time_nanosecond_ || log._time_second_).format(
-                "MM-DD HH:mm:ss.SSS"
-              )}
-          </div>
+          <div>{time}</div>
           <LogItemOperation log={log} />
         </div>
       </div>

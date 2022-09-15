@@ -29,6 +29,7 @@ export default {
   "input.placeholder": "请输入{name}",
   "select.placeholder": "请选择{name}",
   required: "必填",
+  tips: "提示",
 
   type: "类型",
   capacity: "容量",
@@ -285,7 +286,8 @@ export default {
     "请输入小写字母、大写字母，或下划线",
   "datasource.logLibrary.from.type": "时间字段类型",
   "datasource.logLibrary.from.timeField": "指定时间字段Key名称",
-  "datasource.logLibrary.from.rawLogField": "业务日志内容",
+  "datasource.logLibrary.from.label.timeField": "时间字段",
+  "datasource.logLibrary.from.rawLogField": "项目日志字段",
   "datasource.logLibrary.from.days": "日志保存天数",
   "datasource.logLibrary.from.brokers": "Brokers",
   "datasource.logLibrary.from.topics": "Topics",
@@ -341,6 +343,7 @@ export default {
   "datasource.tooltip.icon.alarmRuleList": "查看相关告警",
   "datasource.tooltip.icon.topology": "查看对应拓扑结构",
   "datasource.tooltip.icon.view": "配置数据采集规则",
+  "datasource.tooltip.icon.link": "关联链路日志库",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
   "datasource.view.button": "新增配置规则",
@@ -394,6 +397,12 @@ export default {
   // log nva
   "log.switch.histogram": "直方图",
   "log.switch.unfold": "折叠日志",
+  "log.switch.folding": "折叠",
+  "log.switch.link": "链路",
+  "log.switch.unknown": "未知",
+
+  // log link
+  "log.link.tips.description": "需要具体的链路id，_key='链路ID'",
 
   // Data Logs-Statistical Table
   "log.table.note": "搜索(注：谨慎操作)",
@@ -457,6 +466,9 @@ export default {
   "log.editLogLibraryModal.label.createType": "创建类型",
   "log.editLogLibraryModal.label.desc.placeholder": "请输入备注",
   "log.editLogLibraryModal.label.isCreateCV.name": "是否由ClickVisual创建",
+
+  // dataLogs -> DataSourceMenu -> LogLibraryList-> AssociatLogLibraries
+  "log.associatLogLibraries.traceTableId": "链接的链路表id",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "编辑数据库",

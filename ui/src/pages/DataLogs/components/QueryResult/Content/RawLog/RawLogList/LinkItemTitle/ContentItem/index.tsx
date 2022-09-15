@@ -4,9 +4,11 @@ import classNames from "classnames";
 import { useState } from "react";
 import copy from "copy-to-clipboard";
 import styles from "./index.less";
+import { useModel } from "umi";
 
 const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
   const [isTagsHidden, setIsTagsHidden] = useState<boolean>(true);
+  const { resizeMenuWidth } = useModel("dataLogs");
 
   const handleValueDisplayLogic = (obj: any) => {
     if (obj?.vType) {
@@ -46,6 +48,7 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
     <>
       <div
         className={styles.progressContentItemTitle}
+        style={{ width: `calc(85vw - ${resizeMenuWidth}px - 300px)` }}
         onClick={(e) => {
           e.stopPropagation();
           setIsTagsHidden(!isTagsHidden);
@@ -54,27 +57,27 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
         {isTagsHidden ? <RightOutlined /> : <DownOutlined />}
         {title}
         {isTagsHidden ? ": " : ""}
-        <span
+        <ul
           className={classNames([
             styles.titleSpan,
             !isTagsHidden && styles.none,
           ])}
         >
           {list.map((item: any, index: number) => {
-            if (index <= 2) {
-              return (
-                <div key={item.key} className={styles.titleSpanItem}>
-                  <span>{item.key}</span> = &nbsp;
-                  <span style={{ color: "#666" }}>
-                    {handleValueDisplayLogic(item)}
-                  </span>
-                  {index != 2 && <span>&nbsp;|&nbsp;</span>}
-                </div>
-              );
-            }
-            return;
+            return (
+              <li
+                key={item.key}
+                className={styles.titleSpanItem}
+                style={{ borderRight: index == list.length - 1 ? "none" : "" }}
+              >
+                <span>{item.key}</span> = &nbsp;
+                <span style={{ color: "#666" }}>
+                  {handleValueDisplayLogic(item)}
+                </span>
+              </li>
+            );
           })}
-        </span>
+        </ul>
       </div>
       <div
         className={classNames([

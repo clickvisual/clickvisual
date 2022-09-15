@@ -7,6 +7,7 @@ import {
   FileTextOutlined,
   FundProjectionScreenOutlined,
   FundViewOutlined,
+  LinkOutlined,
 } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import {
@@ -59,6 +60,8 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeLastLoadingTid,
     doGetAnalysisField,
     onChangeRawLogsIndexeList,
+    onChangeIsAssociatedLinkLogLibrary,
+    onChangeLinkLinkLogLibraryTId,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
   const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
@@ -242,6 +245,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       },
       icon: <FundViewOutlined />,
       disabled: logLibrary.createType === 1,
+    },
+    {
+      label: i18n.formatMessage({ id: "datasource.tooltip.icon.link" }),
+      key: "log-link",
+      onClick: () => {
+        onChangeIsAssociatedLinkLogLibrary(true);
+        onChangeLinkLinkLogLibraryTId(logLibrary.id);
+      },
+      icon: <LinkOutlined />,
     },
     {
       label: (
