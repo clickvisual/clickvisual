@@ -411,15 +411,6 @@ func NodeRun(c *core.Context) {
 		return
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
-	// if n.Tertiary == db.TertiaryOfflineSync {
-	// 	xgo.Go(func() {
-	// 		_, _ = node.Run(id, c.Uid())
-	// 	})
-	// 	c.JSONE(core.CodeOK, "Task execution, to view the results later", view.RespRunNode{
-	// 		Status: 4,
-	// 	})
-	// 	return
-	// }
 	res, err := node.Run(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), res)
