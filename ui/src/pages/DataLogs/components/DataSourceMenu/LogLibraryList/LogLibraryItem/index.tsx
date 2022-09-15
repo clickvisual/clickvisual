@@ -61,7 +61,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     doGetAnalysisField,
     onChangeRawLogsIndexeList,
     onChangeIsAssociatedLinkLogLibrary,
-    onChangeLinkLinkLogLibraryTId,
+    onChangeLinkLinkLogLibrary,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
   const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
@@ -251,7 +251,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       key: "log-link",
       onClick: () => {
         onChangeIsAssociatedLinkLogLibrary(true);
-        onChangeLinkLinkLogLibraryTId(logLibrary.id);
+        onChangeLinkLinkLogLibrary(logLibrary);
       },
       icon: <LinkOutlined />,
     },

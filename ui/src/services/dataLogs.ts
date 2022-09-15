@@ -542,4 +542,25 @@ export default {
       }
     );
   },
+
+  // 链路日志库列表
+  async getLinkLogLibraryList() {
+    return request(process.env.PUBLIC_PATH + `api/v2/storage/traces`, {
+      method: "GET",
+    });
+  },
+
+  // 链路日志库依赖图
+  async getLinkLogLibraryDependency(
+    storageId: number,
+    params?: { endTime?: number; startTime?: number }
+  ) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/storage/${storageId}/trace-graph`,
+      {
+        method: "GET",
+        params,
+      }
+    );
+  },
 };

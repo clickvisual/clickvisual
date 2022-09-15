@@ -497,7 +497,8 @@ export default {
     "Whether created by ClickVisual",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> AssociatLogLibraries
-  "log.associatLogLibraries.traceTableId": "Id of the link table of the link",
+  "log.associatLogLibraries.storageId": "Current Log library",
+  "log.associatLogLibraries.traceTableId": "Link log library",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "Edit the database",

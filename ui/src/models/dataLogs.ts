@@ -109,9 +109,9 @@ const DataLogsModel = () => {
     isEditDatabase,
     isLogLibraryAllDatabase,
     currentEditDatabase,
-    linkLinkLogLibraryTId,
+    linkLinkLogLibrary,
     onChangeLogLibraryInfoDrawVisible,
-    onChangeLinkLinkLogLibraryTId,
+    onChangeLinkLinkLogLibrary,
     onChangeLogLibraryCreatedModalVisible,
     onChangeIsAccessLogLibrary,
     onChangeIsLogLibraryAllDatabase,
@@ -335,6 +335,17 @@ const DataLogsModel = () => {
   const doUpdateLinkLinkLogLibrary = useRequest(api.updateLinkLinkLogLibrary, {
     loadingText: false,
   });
+
+  const doGetLinkLogLibraryList = useRequest(api.getLinkLogLibraryList, {
+    loadingText: false,
+  });
+
+  const doGetLinkLogLibraryDependency = useRequest(
+    api.getLinkLogLibraryDependency,
+    {
+      loadingText: false,
+    }
+  );
 
   const settingIndexes = useRequest(api.setIndexes, {
     loadingText: false,
@@ -668,8 +679,8 @@ const DataLogsModel = () => {
     logLibraryInfoDrawVisible,
     onChangeLogLibraryCreatedModalVisible,
     onChangeLogLibraryInfoDrawVisible,
-    linkLinkLogLibraryTId,
-    onChangeLinkLinkLogLibraryTId,
+    linkLinkLogLibrary,
+    onChangeLinkLinkLogLibrary,
     doCreatedLogLibraryAsString,
     doCreatedLogLibraryEachRow,
     doDeletedLogLibrary,
@@ -684,6 +695,8 @@ const DataLogsModel = () => {
     doGetMappingJson,
     doGetAnalysisField,
     doUpdateLinkLinkLogLibrary,
+    doGetLinkLogLibraryList,
+    doGetLinkLogLibraryDependency,
 
     viewsVisibleDraw,
     getViewList,

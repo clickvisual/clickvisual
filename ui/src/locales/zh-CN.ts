@@ -468,7 +468,8 @@ export default {
   "log.editLogLibraryModal.label.isCreateCV.name": "是否由ClickVisual创建",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> AssociatLogLibraries
-  "log.associatLogLibraries.traceTableId": "链接的链路表id",
+  "log.associatLogLibraries.storageId": "当前日志库",
+  "log.associatLogLibraries.traceTableId": "链路日志库",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "编辑数据库",
