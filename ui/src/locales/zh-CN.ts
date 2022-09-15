@@ -344,6 +344,7 @@ export default {
   "datasource.tooltip.icon.topology": "查看对应拓扑结构",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.link": "关联链路日志库",
+  "datasource.tooltip.icon.linkDependency": "查看链路依赖图",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
   "datasource.view.button": "新增配置规则",

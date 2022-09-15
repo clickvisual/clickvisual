@@ -1,0 +1,27 @@
+.graphics {
+  width: 100%;
+  height: calc(100vh - 105px);
+  .tabTitle {
+    display: flex;
+    height: 30px;
+    .tabItem {
+      width: 100px;
+      line-height: 30px;
+      text-align: center;
+      border-left: 1px solid #ccc;
+      cursor: pointer;
+    }
+    :nth-child(1) {
+      border-left: none;
+    }
+    .tabChecked {
+      border-bottom: 1px solid #f66;
+    }
+  }
+
+  .tabContent {
+    width: 100%;
+    height: calc(100vh - 135px);
+    background-color: #fff;
+  }
+}

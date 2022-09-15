@@ -1,4 +1,4 @@
-import { Form, FormInstance, Input, Modal, Select, Spin } from "antd";
+import { Form, FormInstance, Input, message, Modal, Select, Spin } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useIntl, useModel } from "umi";
 
@@ -29,6 +29,7 @@ const AssociatLogLibraries = (props: { onGetList: any }) => {
     doUpdateLinkLinkLogLibrary.run(file).then((res: any) => {
       if (res.code != 0) return;
       onChangeIsAssociatedLinkLogLibrary(false);
+      message.success("success");
       onGetList();
     });
   };

@@ -99,6 +99,10 @@ export default [
     ],
   },
   {
+    path: "graphics",
+    component: "./Graphics",
+  },
+  {
     component: "./404",
   },
 ];
