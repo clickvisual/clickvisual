@@ -102,7 +102,7 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 }
 
 // isEmpty filter empty index value
-func transformVal(input interface{}) any {
+func transformVal(input interface{}) interface{} {
 	switch input.(type) {
 	case []uint8:
 		return string(input.([]uint8))
