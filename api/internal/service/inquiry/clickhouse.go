@@ -1092,21 +1092,6 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origina
 	return
 }
 
-// func alarmAggregationSQLSelect(param view.ReqQuery) (sql string) {
-// 	out := fmt.Sprintf(`SELECT
-//   toDate(now()) as date,
-//   '%s' as name,
-//   toFloat64(val) as val,
-//   now() as ts,
-//   toDateTime(now()) as updated
-// FROM (%s)
-// `,
-// 		bumo.PrometheusMetricName,
-// 		adaSelectPart(param.Query))
-// 	invoker.Logger.Debug("alarmAggregationSQLSelect", elog.Any("out", out), elog.Any("param", param))
-// 	return out
-// }
-
 func alarmAggregationSQLWith(param view.ReqQuery) (sql string) {
 	out := fmt.Sprintf(`with(
 select val from (%s) limit 1
