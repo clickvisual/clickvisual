@@ -14,6 +14,7 @@ func BuilderFieldsData(tableCreateType int, mapping string) string {
   _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
   _key String CODEC(ZSTD(1)),
   _raw_log_ String CODEC(ZSTD(1)),
+	_headers.name Array(String),
   INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
 )
 `)
@@ -77,6 +78,8 @@ func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView
 	toDateTime(toInt64(_timestamp)) AS _time_second_,
 	toDateTime64(toInt64(_timestamp_ms), 9, 'Asia/Shanghai') AS _time_nanosecond_,
 	_key AS _key,
+	_headers_name Array(String),
+    _headers_value Array(String),
 	body AS _raw_log_%s
 FROM %s
 `, paramsView.CommonFields, paramsView.SourceTable)
