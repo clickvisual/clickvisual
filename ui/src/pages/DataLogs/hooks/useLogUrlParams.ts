@@ -107,7 +107,7 @@ export default function useLogUrlParams() {
     onChangeIsTidInitialize,
   } = useModel("instances");
   const { addLogPane } = logPanesHelper;
-  const { activeQueryType, chartSql } = statisticalChartsHelper;
+  const { activeQueryType } = statisticalChartsHelper;
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
     useLocalStorages();
   const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(

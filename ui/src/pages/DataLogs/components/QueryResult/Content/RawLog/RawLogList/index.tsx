@@ -35,7 +35,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       return linkLogs?.logs || [];
     }
     return logs?.logs || [];
-  }, [logs?.isTrace, oldPane, linkLogs?.logs]);
+  }, [logs?.logs, logs?.isTrace, oldPane, linkLogs?.logs]);
 
   const handleFindChild = (
     oneselfId: string,

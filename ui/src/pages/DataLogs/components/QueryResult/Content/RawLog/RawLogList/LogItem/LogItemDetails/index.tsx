@@ -177,8 +177,6 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
           (item) => item.key === keyItem
         );
       }
-      console.log(highlightFlag, "???", highlightKeywords);
-
       const isIndexAndRawLogKey =
         indexRawLogKeys.includes(keyItem) &&
         (!newLog[keyItem] || newLog[keyItem] === "") &&
