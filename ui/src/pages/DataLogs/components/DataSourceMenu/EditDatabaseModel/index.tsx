@@ -1,6 +1,8 @@
-import { Form, FormInstance, Input, message, Modal } from "antd";
-import { useEffect, useRef } from "react";
+import { Form, FormInstance, Input, message, Modal, Select } from "antd";
+import { useEffect, useRef, useState } from "react";
 import { useModel, useIntl } from "umi";
+
+const { Option } = Select;
 
 const EditDatabaseModel = (props: { onGetList: () => void }) => {
   const { onGetList } = props;
@@ -8,22 +10,31 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
   const { isEditDatabase, onChangeIsEditDatabase, currentEditDatabase } =
     useModel("dataLogs");
   const { doUpdatedDatabase } = useModel("database");
+  const { instanceList, getInstanceList } = useModel("instances");
   const editDatabaseFormRef = useRef<FormInstance>(null);
+  const [clustersList, steClustersList] = useState<any>([]);
 
   useEffect(() => {
     if (isEditDatabase) {
       editDatabaseFormRef.current?.setFieldsValue({
-        name: currentEditDatabase.databaseName,
+        name: currentEditDatabase?.databaseName,
         ...currentEditDatabase,
       });
+      if (instanceList?.length == 0) {
+        getInstanceList.run();
+      }
     } else {
       editDatabaseFormRef.current?.resetFields();
     }
   }, [isEditDatabase]);
 
+  useEffect(() => {
+    currentEditDatabase?.iid && fillCluster(currentEditDatabase?.iid);
+  }, [isEditDatabase, instanceList]);
+
   const handleSubmit = (val: any) => {
-    if (!val.id) return;
-    doUpdatedDatabase.run(val.id, val).then((res: any) => {
+    if (!currentEditDatabase?.id) return;
+    doUpdatedDatabase.run(currentEditDatabase.id, val).then((res: any) => {
       if (res.code != 0) {
         message.error(res.msg);
         return;
@@ -34,6 +45,18 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
       onChangeIsEditDatabase(false);
       onGetList();
     });
+  };
+
+  const fillCluster = (iid: number) => {
+    const dataList = instanceList.filter((item) => item.id == iid);
+    if (dataList[0]?.mode == 1) {
+      steClustersList(dataList[0].clusters);
+      editDatabaseFormRef.current?.setFieldsValue({
+        cluster: currentEditDatabase?.cluster,
+      });
+    } else {
+      steClustersList([]);
+    }
   };
 
   return (
@@ -70,6 +93,36 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
               id: "log.editLogLibraryModal.label.desc.placeholder",
             })}
           />
+        </Form.Item>
+        <Form.Item
+          label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
+          name={"cluster"}
+          hidden={!clustersList.length}
+          rules={
+            !clustersList.length
+              ? []
+              : [
+                  {
+                    required: true,
+                    message: i18n.formatMessage({
+                      id: "config.selectedBar.cluster",
+                    }),
+                  },
+                ]
+          }
+        >
+          <Select
+            style={{ width: "100%" }}
+            placeholder={`${i18n.formatMessage({
+              id: "config.selectedBar.cluster",
+            })}`}
+          >
+            {clustersList.map((item: string, index: number) => (
+              <Option key={index} value={item}>
+                {item}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
       </Form>
     </Modal>

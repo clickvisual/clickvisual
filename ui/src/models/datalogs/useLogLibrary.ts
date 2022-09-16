@@ -10,7 +10,7 @@ export default function useLogLibrary() {
     useState<boolean>(false);
   const [isEditDatabase, setIsEditDatabase] = useState<boolean>(false);
   const [currentEditDatabase, setEditCurrentDatabase] = useState<any>();
-  // 单击链接链路日志库的表id
+  // 单击链接链路日志库的表
   const [linkLinkLogLibrary, setLinkLinkLogLibrary] = useState<{
     createType: number;
     desc: string;

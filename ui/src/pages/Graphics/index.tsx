@@ -36,12 +36,11 @@ const Graphics = () => {
   const [graphicsState, setGraphicsState] = useState<graphicsStateEnum>(0);
 
   useEffect(() => {
-    console.log(urlState?.tid, "urlState");
     if (!urlState?.tid) return;
     const tid = parseInt(urlState?.tid);
     doGetLinkLogLibraryDependency
       .run(tid, {
-        startTime: parseInt(moment().subtract(1, "h").format("X")),
+        startTime: parseInt(moment().subtract(3, "h").format("X")),
         endTime: parseInt(moment().format("X")),
       })
       .then((res: any) => {
@@ -61,7 +60,7 @@ const Graphics = () => {
       default:
         return <></>;
     }
-  }, [graphicsState]);
+  }, [graphicsState, dataList]);
 
   return (
     <div className={styles.graphics}>
