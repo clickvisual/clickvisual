@@ -66,6 +66,7 @@ export interface CreatedLogLibraryRequestAsString {
   desc?: string;
   timeField?: string;
   isKafkaTimestamp: number; // 1 yes 0 no
+  v3TableType: number; // 0 default 1 jaegerJson
 }
 
 export interface CreatedViewRequest {

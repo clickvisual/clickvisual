@@ -12,13 +12,25 @@ const JsonAsString = () => {
     <>
       <Form.Item
         label={i18n.formatMessage({
+          id: "datasource.logLibrary.isLinkLogLibrary",
+        })}
+        name="v3TableType"
+        initialValue={false}
+        valuePropName="checked"
+      >
+        <Switch />
+      </Form.Item>
+      <Form.Item
+        label={i18n.formatMessage({
           id: "datasource.logLibrary.usingSystemTime",
         })}
         name="isKafkaTimestamp"
         initialValue={true}
+        valuePropName="checked"
       >
         <Switch defaultChecked />
       </Form.Item>
+
       <Form.Item
         noStyle
         shouldUpdate={(pre, next) =>

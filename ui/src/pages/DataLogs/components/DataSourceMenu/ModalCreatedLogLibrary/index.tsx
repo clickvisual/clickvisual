@@ -41,6 +41,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
     (field: any) => {
       // delete field.source;
       field.isKafkaTimestamp = Number(field.isKafkaTimestamp);
+      field.v3TableType = Number(field.v3TableType);
       const response =
         field.mode === 1
           ? doCreatedLocalLogLibraryBatch.run(field.instance, {

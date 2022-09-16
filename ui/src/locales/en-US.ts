@@ -329,6 +329,7 @@ export default {
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
+  "datasource.logLibrary.isLinkLogLibrary": "Whether the link log library",
   "datasource.logLibrary.usingSystemTime": "Using system time",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",

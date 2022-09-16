@@ -316,6 +316,7 @@ export default {
 
   "datasource.logLibrary.placeholder.tableName":
     "请输入数据表名称，支持小写字母、大写字母，或下划线",
+  "datasource.logLibrary.isLinkLogLibrary": "是否链路日志库",
   "datasource.logLibrary.usingSystemTime": "使用系统时间",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
