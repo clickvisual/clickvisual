@@ -66,9 +66,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
               }
               log={item}
               initial={startTime}
-              totalLength={
-                endTime - microsecondTimeStamp(first.rawLogJson?.startTime)
-              }
+              totalLength={endTime - startTime}
               hierarchy={hierarchy}
               themeColor={
                 themeColor[
@@ -171,9 +169,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
                 }
                 log={item}
                 initial={startTime}
-                totalLength={
-                  endTime - microsecondTimeStamp(item.rawLogJson?.startTime)
-                }
+                totalLength={endTime - startTime}
                 hierarchy={1}
                 themeColor={
                   themeColor[
