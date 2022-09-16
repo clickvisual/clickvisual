@@ -29,23 +29,21 @@ const LogsItem = ({ log, initial }: { log: any; initial: any }) => {
           isLogsHidden && styles.none,
         ])}
       >
-        {log?.rawLogJson?.logs &&
-          Object.keys(log?.rawLogJson?.logs).map((key: any) => {
-            const item = log?.rawLogJson?.logs[key];
-            return (
-              <ContentItem
-                key={key}
-                title={
-                  <>
-                    {microsecondsTimeUnitConversion(
-                      microsecondTimeStamp(item.timestamp) - initial
-                    )}
-                  </>
-                }
-                list={log.rawLogJson?.process.tags}
-              />
-            );
-          })}
+        {log?.rawLogJson?.logs?.map((item: any, index: number) => {
+          return (
+            <ContentItem
+              key={index}
+              title={
+                <>
+                  {microsecondsTimeUnitConversion(
+                    microsecondTimeStamp(item.timestamp) - initial
+                  )}
+                </>
+              }
+              list={item?.fields}
+            />
+          );
+        })}
       </div>
     </>
   );
