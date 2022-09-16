@@ -257,7 +257,12 @@ const DataLogsModel = () => {
       tabPane?.logs?.query ?? tabPane?.querySql
     );
     statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
-    doParseQuery(tabPane.logs?.where || keywordInput);
+
+    doParseQuery(
+      (tabPane.logs?.where && tabPane.logs?.where != "1='1'"
+        ? tabPane.logs?.where
+        : false) || keywordInput
+    );
     setLinkLogs(tabPane?.linkLogs);
     setLogState(tabPane?.logState);
   };
@@ -454,9 +459,15 @@ const DataLogsModel = () => {
   };
 
   const doParseQuery = (keyword?: string) => {
-    const defaultInput = lodash
-      .cloneDeep(keyword ? keyword : keywordInput)
-      ?.split(" and ") || [""];
+    const isInterface = (keyword || keywordInput || "")?.indexOf(" and ") > 0;
+
+    const defaultInput = isInterface
+      ? lodash.cloneDeep(keyword ? keyword : keywordInput)?.split(" and ") || [
+          "",
+        ]
+      : lodash.cloneDeep(keyword ? keyword : keywordInput)?.split(" AND ") || [
+          "",
+        ];
     const strReg = /(`?\w|.+`?)(=|!=| like | not like )'?([^']+)'?/g;
     const allQuery: any[] = [];
     defaultInput.map((inputStr) =>
