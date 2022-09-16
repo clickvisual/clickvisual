@@ -11,23 +11,32 @@ interface LinkItemProps {
 const LinkItem = (props: LinkItemProps) => {
   const { log } = props;
   const [endTime, setEndTime] = useState<number>(0);
+  const [startTime, setStartTime] = useState<number>(0);
 
   useEffect(() => {
     let endTime: number = 0;
-    handleGetTotalLength([log], []).map((item: any) => {
-      if (item > endTime) {
-        endTime = item;
+    let startTime: number = 0;
+    handleGetTotalLength([log], []).map((item: any, index: number) => {
+      if (item.et > endTime) {
+        endTime = item.et;
+      }
+
+      if (index == 0 || item.st < startTime) {
+        startTime = item.st;
       }
     });
     setEndTime(endTime);
+    setStartTime(startTime);
   }, [log]);
 
   const handleGetTotalLength = (list: any[], arr: any[]) => {
     list.map((item: any) => {
-      arr.push(
-        item?.data?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6) +
-          microsecondTimeStamp(item?.data?.rawLogJson?.startTime)
-      );
+      arr.push({
+        et:
+          item?.data?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6) +
+          microsecondTimeStamp(item?.data?.rawLogJson?.startTime),
+        st: microsecondTimeStamp(item?.data?.rawLogJson?.startTime),
+      });
       if (item.children.length > 0) {
         handleGetTotalLength(item.children, arr);
       }
@@ -39,10 +48,7 @@ const LinkItem = (props: LinkItemProps) => {
     <div className={styles.linkItem}>
       <div className={styles.calibration}>
         <div className={styles.calibrationLeft}>{"Service & Operation"}</div>
-        <CalibrationRight
-          endTime={endTime}
-          startTime={microsecondTimeStamp(log?.data?.rawLogJson?.startTime)}
-        />
+        <CalibrationRight endTime={endTime} startTime={startTime} />
       </div>
       <div className={styles.linkContent}>
         <div className={styles.linkTree}>

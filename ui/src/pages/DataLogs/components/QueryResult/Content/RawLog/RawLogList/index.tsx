@@ -43,7 +43,8 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     first: any,
     hierarchy: number,
     endTime: number,
-    themeColorList: string[]
+    themeColorList: string[],
+    startTime: number
   ) => {
     let dataList: any[] = [];
     data.map((item: any) => {
@@ -64,7 +65,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
                 </>
               }
               log={item}
-              initial={microsecondTimeStamp(first.rawLogJson?.startTime)}
+              initial={startTime}
               totalLength={
                 endTime - microsecondTimeStamp(first.rawLogJson?.startTime)
               }
@@ -85,7 +86,8 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
             first,
             hierarchy + 1,
             endTime,
-            themeColorList
+            themeColorList,
+            startTime
           ),
           data: item,
         });
@@ -106,10 +108,12 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       serviceNameList: string[]
     ) => {
       list.map((item: any) => {
-        arr.push(
-          item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6) +
-            microsecondTimeStamp(item?.rawLogJson?.startTime)
-        );
+        arr.push({
+          et:
+            item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6) +
+            microsecondTimeStamp(item?.rawLogJson?.startTime),
+          st: microsecondTimeStamp(item?.rawLogJson?.startTime),
+        });
         // name对应主题色
         if (
           item?.rawLogJson?.process?.serviceName &&
@@ -139,11 +143,15 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     let treeDataList: any[] = [];
     Object.keys(dataList).map((key: string) => {
       let endTime: number = 0;
+      let startTime: number = 0;
       let themeColorList: any[] = [];
       handleGetTotalLength(dataList[key], [], themeColorList).map(
-        (item: any) => {
-          if (item > endTime) {
-            endTime = item;
+        (item: any, index: number) => {
+          if (item.et > endTime) {
+            endTime = item.et;
+          }
+          if (index == 0 || item.st < startTime) {
+            startTime = item.st;
           }
         }
       );
@@ -162,7 +170,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
                   </>
                 }
                 log={item}
-                initial={microsecondTimeStamp(item.rawLogJson?.startTime)}
+                initial={startTime}
                 totalLength={
                   endTime - microsecondTimeStamp(item.rawLogJson?.startTime)
                 }
@@ -182,7 +190,8 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
               item,
               2,
               endTime,
-              themeColorList
+              themeColorList,
+              startTime
             ),
             key: key,
             data: item,

@@ -4,7 +4,7 @@ import {
 } from "@/utils/time";
 import { Tooltip } from "antd";
 import { useMemo } from "react";
-import LogsItem from "../LogsItem";
+// import LogsItem from "../LogsItem";
 import styles from "./index.less";
 
 const ProgressBar = (props: {
