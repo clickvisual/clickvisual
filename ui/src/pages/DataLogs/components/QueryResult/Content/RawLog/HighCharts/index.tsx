@@ -10,6 +10,7 @@ import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
 import { PaneType } from "@/models/datalogs/types";
 import { timeIntervalIsConvertedIntoUnits } from "@/utils/time";
+import { cloneDeep } from "lodash";
 
 const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {
@@ -112,15 +113,27 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         activeIndex: ACTIVE_TIME_NOT_INDEX,
         activeTabKey: TimeRangeType.Custom,
       };
+      const reqParams: any = { st: start, et: end };
+
+      if (oldPane?.logState == 1 && oldPane?.linkLogs) {
+        reqParams.pageSize = 100;
+      }
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary.id, {
-        reqParams: { st: start, et: end },
+        reqParams: reqParams,
       })
         .then((res) => {
           if (!res) {
             resetLogPaneLogsAndHighCharts(pane);
           } else {
-            pane.logs = res.logs;
+            if (oldPane?.logState == 1 && oldPane?.linkLogs) {
+              let cloneLogs = cloneDeep(res.logs);
+              cloneLogs.logs = cloneLogs.logs.slice(0, 9);
+              pane.linkLogs = res.logs;
+              pane.logs = cloneLogs;
+            } else {
+              pane.logs = res.logs;
+            }
             pane.highCharts = res.highCharts;
             pane.logChart = { logs: [] };
             onChangeLogPane(pane);
