@@ -31,6 +31,7 @@ func main() {
 	app := ego.New(
 		ego.WithBeforeStopClean(
 			worker.Close,
+			service.Close,
 		)).
 		Invoker(
 			invoker.Init,

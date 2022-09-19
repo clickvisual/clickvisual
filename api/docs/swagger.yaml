@@ -785,6 +785,9 @@ paths:
       - in: query
         name: mergeTreeTTL
         type: integer
+      - in: query
+        name: v3TableType
+        type: integer
       produces:
       - application/json
       responses:

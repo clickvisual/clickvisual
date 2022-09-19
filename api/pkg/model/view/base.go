@@ -208,6 +208,7 @@ type RespTableDetail struct {
 	Utime      int64            `json:"utime"`
 
 	TraceTableId int `json:"traceTableId"`
+	V3TableType  int `json:"v3TableType"`
 }
 
 type RespColumn struct {

@@ -211,11 +211,28 @@ func Update(c *core.Context) {
 	ups["consumer_num"] = req.KafkaConsumerNum
 	ups["desc"] = req.Desc
 	ups["kafka_skip_broken_messages"] = req.KafkaSkipBrokenMessages
+	ups["v3_table_type"] = req.V3TableType
 	if streamSQL != "" {
 		ups["sql_stream"] = streamSQL
 	}
+	if tableInfo.V3TableType != req.V3TableType {
+		if req.V3TableType == db.V3TableTypeJaegerJSON {
+			err = op.CreateTraceJaegerDependencies(tableInfo.Database.Name, tableInfo.Database.Cluster, tableInfo.Name, tableInfo.Days)
+			if err != nil {
+				c.JSONE(1, "update failed 04: "+err.Error(), nil)
+				return
+			}
+		} else {
+			err = op.DropTraceJaegerDependencies(tableInfo.Database.Name, tableInfo.Database.Cluster, tableInfo.Name)
+			if err != nil {
+				c.JSONE(1, "update failed 05: "+err.Error(), nil)
+				return
+			}
+		}
+	}
+	// 判断是否增加依赖解析
 	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
-		c.JSONE(1, "update failed 04: "+err.Error(), nil)
+		c.JSONE(1, "update failed 06: "+err.Error(), nil)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})

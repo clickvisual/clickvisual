@@ -11,10 +11,10 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-var _ iWorker = (*workerTrace)(nil)
+var _ iWorker = (*WorkerTrace)(nil)
 
-// workerTrace Used to otel jaeger json data analysis
-type workerTrace struct {
+// WorkerTrace Used to otel jaeger json data analysis
+type WorkerTrace struct {
 	// default
 	worker
 
@@ -22,42 +22,41 @@ type workerTrace struct {
 	c *cron.Cron
 }
 
-func NewWorkerTrace(params WorkerParams) *workerTrace {
-	w := &workerTrace{}
+func NewWorkerTrace(params WorkerParams) *WorkerTrace {
+	w := &WorkerTrace{}
 	w.SetParams(params)
 	xgo.Go(func() { w.Start() })
 	return w
 }
 
-func (w *workerTrace) Start() {
+func (w *WorkerTrace) Start() {
 	w.run()
 	c := cron.New()
 	if _, err := c.AddFunc(w.spec, func() { w.run() }); err != nil {
-		elog.Error("workerTrace", elog.FieldComponent("Start"), elog.FieldName("addFunc"), elog.FieldErr(err))
+		elog.Error("WorkerTrace", elog.FieldComponent("Start"), elog.FieldName("addFunc"), elog.FieldErr(err))
 		return
 	}
 	c.Start()
 	w.c = c
 }
 
-func (w *workerTrace) Stop() {
+func (w *WorkerTrace) Stop() {
 	if w.c != nil {
 		w.c.Stop()
 	}
 	return
 }
 
-func (w *workerTrace) run() {
-	elog.Info("workerTrace", elog.FieldComponent("run"), elog.FieldName("gogogo"))
+func (w *WorkerTrace) run() {
+	elog.Info("WorkerTrace", elog.FieldComponent("run"), elog.FieldName("gogogo"))
 	var dependencies []view.JaegerDependencyDataModel
 	query := fmt.Sprintf(queryJaegerCallCountSql, time.Now().Format("2006-01-02 15:04:05"), w.source.String(), w.source.String())
 	res, err := w.db.Query(query)
 	if err != nil {
-		elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
+		elog.Error("WorkerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
 		return
 	}
-	elog.Debug("workerTrace", elog.FieldComponent("sql"), elog.String("query", query))
-
+	elog.Debug("WorkerTrace", elog.FieldComponent("sql"), elog.String("query", query))
 	for res.Next() {
 		var timestamp time.Time
 		var parent string
@@ -73,7 +72,7 @@ func (w *workerTrace) run() {
 		var clientSuccessRate float64
 		var t time.Time
 		if err = res.Scan(&timestamp, &parent, &child, &callCount, &serverDurationP50, &serverDurationP90, &serverDurationP99, &clientDurationP50, &clientDurationP90, &clientDurationP99, &serverSuccessRate, &clientSuccessRate, &t); err != nil {
-			elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("scan"), elog.FieldErr(err))
+			elog.Error("WorkerTrace", elog.FieldComponent("run"), elog.FieldName("scan"), elog.FieldErr(err))
 			return
 		}
 		dependencies = append(dependencies, view.JaegerDependencyDataModel{
@@ -94,11 +93,10 @@ func (w *workerTrace) run() {
 	}
 	reflectLen := len(dependencies)
 	if reflectLen == 0 {
-		elog.Warn("workerTrace", elog.FieldComponent("run"), elog.FieldName("dependencies"), elog.String("dependencies", "empty"))
+		elog.Warn("WorkerTrace", elog.FieldComponent("run"), elog.FieldName("dependencies"), elog.String("dependencies", "empty"))
 		return
 	}
-	elog.Debug("workerTrace", elog.FieldComponent("data"), elog.Any("dependencies", dependencies))
-
+	elog.Debug("WorkerTrace", elog.FieldComponent("data"), elog.Any("dependencies", dependencies))
 	for i := 0; i < reflectLen; i += batchInsertSize {
 		ends := i + batchInsertSize
 		if ends > reflectLen {
@@ -106,22 +104,22 @@ func (w *workerTrace) run() {
 		}
 		err = w.batchInsert(dependencies[i:ends])
 		if err != nil {
-			elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("batchInsert"), elog.FieldErr(err))
+			elog.Error("WorkerTrace", elog.FieldComponent("run"), elog.FieldName("batchInsert"), elog.FieldErr(err))
 			return
 		}
 	}
 	return
 }
 
-func (w *workerTrace) batchInsert(req []view.JaegerDependencyDataModel) error {
+func (w *WorkerTrace) batchInsert(req []view.JaegerDependencyDataModel) error {
 	scope, err := w.db.Begin()
 	if err != nil {
-		elog.Error("workerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("begin"), elog.FieldErr(err))
+		elog.Error("WorkerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("begin"), elog.FieldErr(err))
 		return err
 	}
 	batch, err := scope.Prepare("INSERT INTO " + w.target.String())
 	if err != nil {
-		elog.Error("workerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("prepare"), elog.FieldErr(err))
+		elog.Error("WorkerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("prepare"), elog.FieldErr(err))
 		return err
 	}
 	for _, dependency := range req {
@@ -141,7 +139,7 @@ func (w *workerTrace) batchInsert(req []view.JaegerDependencyDataModel) error {
 			dependency.Time,
 		)
 		if err != nil {
-			elog.Error("workerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("batchExec"), elog.FieldErr(err))
+			elog.Error("WorkerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("batchExec"), elog.FieldErr(err))
 			return err
 		}
 	}

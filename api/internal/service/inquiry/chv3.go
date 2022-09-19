@@ -108,38 +108,60 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 			return
 		}
 	}
-	if ct.V3TableType == 1 {
-		// jaegerJson dependencies table
-		sc, errGetTableCreator := builderv2.GetTableCreator(builderv2.StorageTypeTraceCal)
-		if errGetTableCreator != nil {
-			invoker.Logger.Error("TableCreate", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
-			return
-		}
-		params := builderv2.Params{
-			IsShard:   false,
-			IsReplica: false,
-			Cluster:   database.Cluster,
-			Database:  database.Name,
-			Table:     ct.TableName + db.SuffixJaegerJSON,
-			TTL:       ct.Days,
-			DB:        c.db,
-		}
-		if c.mode == ModeCluster {
-			params.IsShard = true
-			if c.rs == 0 {
-				params.IsReplica = true
-			}
-		}
-		sc.SetParams(params)
-		if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
-			invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
-			return
-		}
-		if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
-			invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
-			return
+	if ct.V3TableType == db.V3TableTypeJaegerJSON {
+		err = c.CreateTraceJaegerDependencies(database.Name, database.Cluster, ct.TableName, ct.Days)
+	}
+	return
+}
+
+func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error) {
+	// jaegerJson dependencies table
+	sc, errGetTableCreator := builderv2.GetTableCreator(builderv2.StorageTypeTraceCal)
+	if errGetTableCreator != nil {
+		invoker.Logger.Error("TableCreate", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
+		return
+	}
+	params := builderv2.Params{
+		IsShard:   false,
+		IsReplica: false,
+		Cluster:   cluster,
+		Database:  database,
+		Table:     table + db.SuffixJaegerJSON,
+		TTL:       ttl,
+		DB:        c.db,
+	}
+	if c.mode == ModeCluster {
+		params.IsShard = true
+		if c.rs == 0 {
+			params.IsReplica = true
 		}
 	}
+	sc.SetParams(params)
+	if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
+		invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
+		return
+	}
+	if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
+		invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
+		return
+	}
+	return nil
+}
+
+func (c *ClickHouse) DropTraceJaegerDependencies(database, cluster, table string) (err error) {
+	table = table + db.SuffixJaegerJSON
+	if c.mode == ModeCluster {
+		if cluster == "" {
+			err = constx.ErrClusterNameEmpty
+			return
+		}
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s ON CLUSTER '%s';", database, table, cluster))
+		if err != nil {
+			return err
+		}
+		table = table + "_local"
+	}
+	_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table))
 	return
 }
 
