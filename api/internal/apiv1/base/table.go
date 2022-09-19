@@ -150,6 +150,7 @@ func TableInfo(c *core.Context) {
 			InstanceDesc:   instance.Desc,
 		},
 		TraceTableId: tableInfo.TraceTableId,
+		V3TableType:  tableInfo.V3TableType,
 	}
 	if res.TimeField == "" {
 		res.TimeField = db.TimeFieldSecond

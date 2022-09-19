@@ -43,6 +43,8 @@ type Operator interface {
 	IndexUpdate(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error // Data table index operation
 
 	StorageCreateV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
+	CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error)
+	DropTraceJaegerDependencies(database, cluster, table string) (err error)
 }
 
 const (

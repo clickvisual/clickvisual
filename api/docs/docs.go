@@ -745,6 +745,11 @@ const docTemplate = `{
                         "type": "integer",
                         "name": "mergeTreeTTL",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "v3TableType",
+                        "in": "query"
                     }
                 ],
                 "responses": {

@@ -143,6 +143,7 @@ type ReqStorageUpdate struct {
 	KafkaConsumerNum        int    `form:"kafkaConsumerNum"` // min 1 max 8
 	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
 	Desc                    string `form:"desc"`
+	V3TableType             int    `form:"v3TableType"`
 }
 
 type (

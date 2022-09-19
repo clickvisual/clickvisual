@@ -1,14 +1,19 @@
 package service
 
 import (
+	"context"
+
 	"github.com/gotomicro/cetus/pkg/xgo"
 	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/configure"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/user"
+	"github.com/clickvisual/clickvisual/api/pkg/preempt"
 )
 
 var (
@@ -18,6 +23,7 @@ var (
 	Alarm           *alarm
 	Node            *node
 	Storage         *iStorage
+	ppt             *preempt.Preempt
 )
 
 func Init() error {
@@ -46,8 +52,26 @@ func Init() error {
 
 	// Storage service start
 	Storage = NewStorage()
+	// Support for multiple copies mode
+	if econf.GetBool("app.isMultiCopy") {
+		sf := func() { Storage.tickerTraceWorker() }
+		ef := func() { Storage.Stop() }
+		invoker.Logger.Debug("crontabRules", elog.String("step", "isMultiCopy"))
+		_ = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:worker", sf, ef)
+		return nil
+	}
 	xgo.Go(func() { Storage.tickerTraceWorker() })
-	// Storage service end
+	// Storage service start end
+	return nil
+}
 
+func Close() error {
+	// Storage service stop
+	if econf.GetBool("app.isMultiCopy") {
+		ppt.Close()
+	} else {
+		Storage.Stop()
+	}
+	// Storage service stop end
 	return nil
 }

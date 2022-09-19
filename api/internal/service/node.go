@@ -26,11 +26,10 @@ func NewNode() *node {
 		Stats: sync.Map{},
 	}
 	xgo.Go(func() {
-		n.SetStats(true)
-		// for {
-		// time.Sleep(time.Minute)
-		// n.SetStats(false)
-		// }
+		for {
+			time.Sleep(time.Minute)
+			n.SetStats(false)
+		}
 	})
 	return n
 }
