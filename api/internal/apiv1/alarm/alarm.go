@@ -133,9 +133,17 @@ func Update(c *core.Context) {
 			c.JSONE(core.CodeErr, errInstanceManager.Error(), nil)
 			return
 		}
-		if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
-			c.JSONE(1, "alarm update failed when delete metrics view: "+err.Error(), nil)
-			return
+		if len(alarmInfo.ViewDDLs) > 0 {
+			for table := range alarmInfo.ViewDDLs {
+				if err = op.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
+					return
+				}
+			}
+		} else {
+			if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
+				c.JSONE(1, "alarm update failed when delete metrics view: "+err.Error(), nil)
+				return
+			}
 		}
 		if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
 			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed:"+err.Error(), nil)
@@ -343,10 +351,18 @@ func Delete(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 06: "+err.Error(), nil)
-		return
+	if len(alarmInfo.ViewDDLs) > 0 {
+		for table := range alarmInfo.ViewDDLs {
+			if err = op.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
+				return
+			}
+		}
+	} else {
+		if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
+			tx.Rollback()
+			c.JSONE(1, "alarm failed to delete 06: "+err.Error(), nil)
+			return
+		}
 	}
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()

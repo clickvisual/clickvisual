@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
@@ -184,7 +183,7 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, obj *db.A
 	case db.RuleStoreTypeFile:
 		content := []byte(rule)
 		path := strings.TrimSuffix(instance.FilePath, "/")
-		err = ioutil.WriteFile(path+"/"+obj.AlertRuleName(), content, 0644)
+		err = os.WriteFile(path+"/"+obj.AlertRuleName(), content, 0644)
 		if err != nil {
 			return
 		}
@@ -262,26 +261,38 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 04"), elog.String("err", err.Error()))
 		return
 	}
-	if alarmObj.ViewTableName != "" {
-		err = op.AlertViewDrop(alarmObj.ViewTableName, tableInfo.Database.Cluster)
-		if err != nil {
-			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
-			return
+	if len(alarmObj.ViewDDLs) > 0 {
+		for table := range alarmObj.ViewDDLs {
+			if err = op.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
+				return
+			}
+		}
+	} else {
+		if alarmObj.ViewTableName != "" {
+			err = op.AlertViewDrop(alarmObj.ViewTableName, tableInfo.Database.Cluster)
+			if err != nil {
+				invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
+				return
+			}
 		}
 	}
-	// gen view table name & sql
-	viewTableName, viewSQL, err := op.AlertViewGen(alarmObj, db.WhereConditionFromFilter(alarmObj, filtersDB))
-	if err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 06"), elog.String("err", err.Error()))
-		return
-	}
-	// exec view sql
-	if err = op.AlertViewCreate(viewTableName, viewSQL, tableInfo.Database.Cluster); err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 07"),
-			elog.String("viewTableName", viewTableName),
-			elog.String("viewSQL", viewSQL),
-			elog.String("err", err.Error()))
-		return
+	viewDDLs := db.String2String{}
+	for seq, filter := range filtersDB {
+		// gen view table name & sql
+		table, ddl, errAlertViewGen := op.AlertViewGen(alarmObj, seq, filter.When)
+		if err != nil {
+			elog.Error("alarm", elog.FieldComponent("CreateOrUpdate"), elog.FieldName("AlertViewGen"), elog.FieldErr(errAlertViewGen))
+			return
+		}
+		// exec view sql
+		if err = op.AlertViewCreate(table, ddl, tableInfo.Database.Cluster); err != nil {
+			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 07"),
+				elog.String("viewTableName", table),
+				elog.String("viewSQL", ddl),
+				elog.String("err", err.Error()))
+			return
+		}
+		viewDDLs[table] = ddl
 	}
 	// rule store
 	rule, err := i.PrometheusRuleGen(alarmObj, exp)
@@ -294,10 +305,9 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		return
 	}
 	ups := make(map[string]interface{}, 0)
-	ups["view"] = viewSQL
 	ups["alert_rule"] = rule
-	ups["view_table_name"] = viewTableName
 	ups["rule_store_type"] = instance.RuleStoreType
+	ups["view_ddl_s"] = viewDDLs
 	ups["status"] = db.AlarmStatusOpen
 	return db.AlarmUpdate(tx, alarmObj.ID, ups)
 }
@@ -311,9 +321,18 @@ func (i *alarm) OpenOperator(id int) (err error) {
 	if errInstanceManager != nil {
 		return
 	}
-	if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View, tableInfo.Database.Cluster); err != nil {
-		return
+	if len(alarmInfo.ViewDDLs) > 0 {
+		for table, ddl := range alarmInfo.ViewDDLs {
+			if err = op.AlertViewCreate(table, ddl, tableInfo.Database.Cluster); err != nil {
+				return
+			}
+		}
+	} else {
+		if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View, tableInfo.Database.Cluster); err != nil {
+			return
+		}
 	}
+
 	if err = i.PrometheusRuleCreateOrUpdate(instanceInfo, &alarmInfo, alarmInfo.AlertRule); err != nil {
 		invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 		return
@@ -345,6 +364,11 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	if len(req.Filters) > 0 {
 		ups["tid"] = req.Filters[0].Tid
 	}
+	tableIds := db.Ints{}
+	for _, f := range req.Filters {
+		tableIds = append(tableIds, f.Tid)
+	}
+	ups["table_ids"] = tableIds
 	if err = db.AlarmUpdate(tx, alarmId, ups); err != nil {
 		tx.Rollback()
 		return

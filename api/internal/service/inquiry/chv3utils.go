@@ -170,7 +170,7 @@ func (c *ClickHouse) timeParseSQLV3(typ int, v *db.BaseView, timeField string) s
 	return fmt.Sprintf(defaultFloatTimeParseV3, rawLogField, timeField, rawLogField, timeField)
 }
 
-// Deprecated: isTrace  yes 1 no 0 dric
+// Deprecated: isTrace  yes 1 no 0
 func isTrace(res map[string]interface{}) int {
 	if key, keyOk := res["_key"]; !keyOk || key == "" {
 		return 0

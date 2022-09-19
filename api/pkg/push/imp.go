@@ -48,16 +48,14 @@ func Instance(typ int) (Operator, error) {
 	return nil, err
 }
 
-//
-//  transformToMarkdown
-//  Description: 提供一个通用的md模式的获取内容的方法
-//  param notification  通知的部分方法
-//  param alarm 警告的数据库连接
-//  param oneTheLogs 日志内容
-//  return title 标题
-//  return text 内容
-//  return err 错误
-//
+// transformToMarkdown
+// Description: 提供一个通用的md模式的获取内容的方法
+// param notification  通知的部分方法
+// param alarm 警告的数据库连接
+// param oneTheLogs 日志内容
+// return title 标题
+// return text 内容
+// return err 错误
 func transformToMarkdown(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (title, text string, err error) {
 	groupKey := notification.GroupKey
 	status := notification.Status
@@ -80,15 +78,19 @@ func transformToMarkdown(notification view.Notification, alarm *db.Alarm, channe
 	if err != nil {
 		return
 	}
-	exp := db.WhereConditionFromFilter(alarm, filters)
+	var exp string
+	if len(filters) == 1 {
+		exp = filters[0].When
+	}
 	user, _ := db.UserInfo(alarm.Uid)
 	ins, table, _, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
 		annotations = alert.Annotations
-		buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", exp))
-
+		if exp != "" {
+			buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", exp))
+		}
 		buffer.WriteString(fmt.Sprintf("##### 首次触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", ins.Name, ins.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 相关日志库：%s %s\n", table.Name, table.Desc))

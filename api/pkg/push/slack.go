@@ -2,11 +2,13 @@ package push
 
 import (
 	"encoding/json"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/slack-go/slack"
 	"strconv"
 	"time"
+
+	"github.com/slack-go/slack"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 const (
@@ -32,14 +34,14 @@ func (s *Slack) Send(notification view.Notification, alarm *db.Alarm,
 	return nil
 }
 
-//sendMessage
-//  Description: 发送slack信息
-//  receiver s
-//   param url webhook 信息
-//   param title 标题
-//   param text 内容
-//  return err
+// sendMessage
 //
+//	Description: 发送slack信息
+//	receiver s
+//	 param url webhook 信息
+//	 param title 标题
+//	 param text 内容
+//	return err
 func (s *Slack) sendMessage(url string, title, text string) (err error) {
 	attachment := slack.Attachment{
 		Color:         COLOR,

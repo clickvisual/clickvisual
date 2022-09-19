@@ -269,7 +269,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
 		return
 	}
-	if tableInfo.CreateType == constx.TableCreateTypeCV {
+	if tableInfo.CreateType != constx.TableCreateTypeExist {
 		table := tableInfo.Name
 		iid := tableInfo.Database.Iid
 		database := tableInfo.Database.Name

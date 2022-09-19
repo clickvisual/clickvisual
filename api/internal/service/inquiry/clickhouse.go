@@ -541,7 +541,10 @@ func (c *ClickHouse) ViewDo(params bumo.Params) string {
 //	    _timestamp_ as ts,
 //	    toDateTime(_timestamp_) as updated
 //	FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (string, string, error) {
+func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, seq int, whereCondition string) (string, string, error) {
+	if whereCondition == "" {
+		whereCondition = "1=1"
+	}
 	var (
 		viewSQL         string
 		viewTableName   string
@@ -553,7 +556,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 		return "", "", err
 	}
 
-	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
+	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name, seq)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
 	if c.mode == ModeCluster {
 		sourceTableName += "_local"
