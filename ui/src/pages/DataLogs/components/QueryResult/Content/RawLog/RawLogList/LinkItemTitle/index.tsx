@@ -80,9 +80,7 @@ const LinkItemTitle = (props: {
           </div>
         </div>
       </div>
-      <div
-        className={classNames([styles.content, isHidden ? styles.none : ""])}
-      >
+      <div className={classNames([styles.content, isHidden && styles.none])}>
         <div
           className={styles.titleContent}
           style={{

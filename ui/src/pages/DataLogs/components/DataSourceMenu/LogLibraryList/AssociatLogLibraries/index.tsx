@@ -1,6 +1,8 @@
-import { Form, FormInstance, Input, InputNumber, Modal, Spin } from "antd";
-import { useEffect, useRef } from "react";
+import { Form, FormInstance, Input, message, Modal, Select, Spin } from "antd";
+import { useEffect, useRef, useState } from "react";
 import { useIntl, useModel } from "umi";
+
+const { Option } = Select;
 
 const AssociatLogLibraries = (props: { onGetList: any }) => {
   const { onGetList } = props;
@@ -9,14 +11,25 @@ const AssociatLogLibraries = (props: { onGetList: any }) => {
     isAssociatedLinkLogLibrary,
     onChangeIsAssociatedLinkLogLibrary,
     doUpdateLinkLinkLogLibrary,
-    linkLinkLogLibraryTId,
+    linkLinkLogLibrary,
+    doGetLinkLogLibraryList,
   } = useModel("dataLogs");
   const editLinkFormRef = useRef<FormInstance>(null);
+  const [linkLogLibraryList, setLinkLogLibraryList] = useState<
+    {
+      id: number;
+      did: number;
+      desc: string;
+      createType: number;
+      tableName: string;
+    }[]
+  >([]);
 
   const handleSubmit = (file: { storageId: number; traceTableId: number }) => {
     doUpdateLinkLinkLogLibrary.run(file).then((res: any) => {
       if (res.code != 0) return;
       onChangeIsAssociatedLinkLogLibrary(false);
+      message.success("success");
       onGetList();
     });
   };
@@ -24,12 +37,19 @@ const AssociatLogLibraries = (props: { onGetList: any }) => {
   useEffect(() => {
     if (isAssociatedLinkLogLibrary) {
       editLinkFormRef.current?.setFieldsValue({
-        storageId: linkLinkLogLibraryTId,
+        storageId: linkLinkLogLibrary?.id,
       });
     } else {
       editLinkFormRef.current?.resetFields();
     }
   }, [isAssociatedLinkLogLibrary]);
+
+  useEffect(() => {
+    doGetLinkLogLibraryList.run().then((res: any) => {
+      if (res.code != 0) return;
+      setLinkLogLibraryList(res?.data);
+    });
+  }, []);
 
   return (
     <Modal
@@ -44,22 +64,44 @@ const AssociatLogLibraries = (props: { onGetList: any }) => {
     >
       <Form
         ref={editLinkFormRef}
-        labelCol={{ span: 5 }}
-        wrapperCol={{ span: 14 }}
+        labelCol={{ span: 6 }}
+        wrapperCol={{ span: 12 }}
         onFinish={handleSubmit}
       >
         <Spin spinning={doUpdateLinkLinkLogLibrary.loading}>
-          <Form.Item label={"Table id"} name={"storageId"} required>
-            <Input disabled />
+          <Form.Item name={"storageId"} hidden>
+            <Input />
           </Form.Item>
           <Form.Item
-            label="链接的链路表id"
+            label={i18n.formatMessage({
+              id: "log.associatLogLibraries.storageId",
+            })}
+            required
+          >
+            <Input
+              disabled
+              value={linkLinkLogLibrary?.tableName}
+              bordered={false}
+            />
+          </Form.Item>
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "log.associatLogLibraries.traceTableId",
+            })}
             name={"traceTableId"}
             rules={[
-              { required: true, message: "Please input your storageId!" },
+              { required: true, message: "Please select your traceTableId!" },
             ]}
           >
-            <InputNumber style={{ width: "100%" }} />
+            <Select allowClear placeholder={"Please select your traceTableId!"}>
+              {linkLogLibraryList.map((item: any) => {
+                return (
+                  <Option key={item.id} value={item.id}>
+                    {item.tableName}
+                  </Option>
+                );
+              })}
+            </Select>
           </Form.Item>
         </Spin>
       </Form>

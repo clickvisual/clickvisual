@@ -46,6 +46,9 @@ export const ALARMRULES_PATH = process.env.PUBLIC_PATH + "alarm/rules";
 // 日志拓扑路由
 export const LOGTOPOLOGY_PATH = process.env.PUBLIC_PATH + "bigdata";
 
+// 链路关系图路由 DAG FDG
+export const GRAPHICS_PATH = process.env.PUBLIC_PATH + "graphics";
+
 // 免登录路由
 export const AVOID_CLOSE_ROUTING = [
   "/user/login",

@@ -5,6 +5,7 @@ import {
   ApartmentOutlined,
   CalendarOutlined,
   FileTextOutlined,
+  FundOutlined,
   FundProjectionScreenOutlined,
   FundViewOutlined,
   LinkOutlined,
@@ -14,6 +15,7 @@ import {
   ALARMRULES_PATH,
   FIFTEEN_TIME,
   FIRST_PAGE,
+  GRAPHICS_PATH,
   LOGTOPOLOGY_PATH,
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
@@ -61,7 +63,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     doGetAnalysisField,
     onChangeRawLogsIndexeList,
     onChangeIsAssociatedLinkLogLibrary,
-    onChangeLinkLinkLogLibraryTId,
+    onChangeLinkLinkLogLibrary,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
   const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
@@ -251,9 +253,20 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       key: "log-link",
       onClick: () => {
         onChangeIsAssociatedLinkLogLibrary(true);
-        onChangeLinkLinkLogLibraryTId(logLibrary.id);
+        onChangeLinkLinkLogLibrary(logLibrary);
       },
       icon: <LinkOutlined />,
+    },
+    {
+      label: i18n.formatMessage({
+        id: "datasource.tooltip.icon.linkDependency",
+      }),
+      key: "log-link-DAG",
+      onClick: async () => {
+        logLibrary?.id &&
+          window.open(`${GRAPHICS_PATH}?tid=${logLibrary?.id}`, "_blank");
+      },
+      icon: <FundOutlined />,
     },
     {
       label: (

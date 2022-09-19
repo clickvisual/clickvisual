@@ -7,12 +7,7 @@ import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useDebounce, useDebounceFn } from "ahooks";
-import {
-  DEBOUNCE_WAIT,
-  FIRST_PAGE,
-  LINKLOGS_PAGESIZE,
-  TimeRangeType,
-} from "@/config/config";
+import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";

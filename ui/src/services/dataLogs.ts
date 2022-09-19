@@ -66,6 +66,7 @@ export interface CreatedLogLibraryRequestAsString {
   desc?: string;
   timeField?: string;
   isKafkaTimestamp: number; // 1 yes 0 no
+  v3TableType: number; // 0 default 1 jaegerJson
 }
 
 export interface CreatedViewRequest {
@@ -539,6 +540,27 @@ export default {
         data: {
           traceTableId: data.traceTableId,
         },
+      }
+    );
+  },
+
+  // 链路日志库列表
+  async getLinkLogLibraryList() {
+    return request(process.env.PUBLIC_PATH + `api/v2/storage/traces`, {
+      method: "GET",
+    });
+  },
+
+  // 链路日志库依赖图
+  async getLinkLogLibraryDependency(
+    storageId: number,
+    params?: { endTime?: number; startTime?: number }
+  ) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/storage/${storageId}/trace-graph`,
+      {
+        method: "GET",
+        params,
       }
     );
   },

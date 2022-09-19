@@ -177,7 +177,6 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
           (item) => item.key === keyItem
         );
       }
-
       const isIndexAndRawLogKey =
         indexRawLogKeys.includes(keyItem) &&
         (!newLog[keyItem] || newLog[keyItem] === "") &&
@@ -246,6 +245,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     rawLogJson,
     rawLogKeys,
     indexRawLogKeys,
+    highlightKeywords,
     logs,
     logs?.keys,
     log,

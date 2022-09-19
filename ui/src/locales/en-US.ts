@@ -329,6 +329,7 @@ export default {
 
   "datasource.logLibrary.placeholder.tableName":
     "Please enter the name of the data table in upper or lower case English or underscore",
+  "datasource.logLibrary.isLinkLogLibrary": "Whether the link log library",
   "datasource.logLibrary.usingSystemTime": "Using system time",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
@@ -358,6 +359,7 @@ export default {
   "datasource.tooltip.icon.topology": "View the corresponding topology",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.link": "Associate the link log library",
+  "datasource.tooltip.icon.linkDependency": "View the link dependency diagram",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
   "datasource.view.button": "Creating a Configuration Rule",
@@ -497,7 +499,8 @@ export default {
     "Whether created by ClickVisual",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> AssociatLogLibraries
-  "log.associatLogLibraries.traceTableId": "Id of the link table of the link",
+  "log.associatLogLibraries.storageId": "Current Log library",
+  "log.associatLogLibraries.traceTableId": "Link log library",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "Edit the database",

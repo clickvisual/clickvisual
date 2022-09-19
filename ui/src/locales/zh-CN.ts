@@ -316,6 +316,7 @@ export default {
 
   "datasource.logLibrary.placeholder.tableName":
     "请输入数据表名称，支持小写字母、大写字母，或下划线",
+  "datasource.logLibrary.isLinkLogLibrary": "是否链路日志库",
   "datasource.logLibrary.usingSystemTime": "使用系统时间",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
@@ -344,6 +345,7 @@ export default {
   "datasource.tooltip.icon.topology": "查看对应拓扑结构",
   "datasource.tooltip.icon.view": "配置数据采集规则",
   "datasource.tooltip.icon.link": "关联链路日志库",
+  "datasource.tooltip.icon.linkDependency": "查看链路依赖图",
   "datasource.tooltip.icon.deleted": "删除日志库",
   "datasource.view.draw": "日志采集规则管理",
   "datasource.view.button": "新增配置规则",
@@ -468,7 +470,8 @@ export default {
   "log.editLogLibraryModal.label.isCreateCV.name": "是否由ClickVisual创建",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> AssociatLogLibraries
-  "log.associatLogLibraries.traceTableId": "链接的链路表id",
+  "log.associatLogLibraries.storageId": "当前日志库",
+  "log.associatLogLibraries.traceTableId": "链路日志库",
 
   // dataLogs -> SelectedDatabaseDraw -> EditDatabaseModel
   "log.editDatabaseModel.title": "编辑数据库",
