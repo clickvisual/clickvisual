@@ -61,6 +61,9 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 		}
 		param, _ = op.Prepare(param, false)
 		resp, _ := op.GET(param, table.ID)
+		if table.V3TableType == db.V3TableTypeJaegerJSON {
+			resp.IsTrace = 1
+		}
 		if len(resp.Logs) > 0 {
 			logField := "_raw_log_"
 			if table.RawLogField != "" {

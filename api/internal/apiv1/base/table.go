@@ -351,6 +351,9 @@ func TableLogs(c *core.Context) {
 	}
 	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "Prepare"), elog.Any("cost", time.Since(t)))
 	res, err := op.GET(param, tableInfo.ID)
+	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
+		res.IsTrace = 1
+	}
 	if err != nil {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return
