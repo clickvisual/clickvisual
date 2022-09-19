@@ -541,7 +541,10 @@ func (c *ClickHouse) ViewDo(params bumo.Params) string {
 //	    _timestamp_ as ts,
 //	    toDateTime(_timestamp_) as updated
 //	FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (string, string, error) {
+func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, seq int, whereCondition string) (string, string, error) {
+	if whereCondition == "" {
+		whereCondition = "1=1"
+	}
 	var (
 		viewSQL         string
 		viewTableName   string
@@ -553,7 +556,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, whereCondition string) (strin
 		return "", "", err
 	}
 
-	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name)
+	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name, seq)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
 	if c.mode == ModeCluster {
 		sourceTableName += "_local"
@@ -696,9 +699,6 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	res.Where = strings.TrimSuffix(strings.TrimPrefix(originalWhere, "AND ("), ")")
 	res.IsTrace = 1
 	for k := range res.Logs {
-		if res.IsTrace == 1 {
-			res.IsTrace = isTrace(res.Logs[k])
-		}
 		if param.TimeField != db.TimeFieldSecond {
 			if param.TimeFieldType == db.TimeFieldTypeTsMs {
 				if _, ok := res.Logs[k][db.TimeFieldSecond]; !ok {
@@ -1091,21 +1091,6 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origina
 	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql), elog.Any("optSQL", optSQL))
 	return
 }
-
-// func alarmAggregationSQLSelect(param view.ReqQuery) (sql string) {
-// 	out := fmt.Sprintf(`SELECT
-//   toDate(now()) as date,
-//   '%s' as name,
-//   toFloat64(val) as val,
-//   now() as ts,
-//   toDateTime(now()) as updated
-// FROM (%s)
-// `,
-// 		bumo.PrometheusMetricName,
-// 		adaSelectPart(param.Query))
-// 	invoker.Logger.Debug("alarmAggregationSQLSelect", elog.Any("out", out), elog.Any("param", param))
-// 	return out
-// }
 
 func alarmAggregationSQLWith(param view.ReqQuery) (sql string) {
 	out := fmt.Sprintf(`with(

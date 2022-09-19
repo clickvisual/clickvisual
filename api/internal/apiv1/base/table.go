@@ -269,7 +269,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
 		return
 	}
-	if tableInfo.CreateType == constx.TableCreateTypeCV {
+	if tableInfo.CreateType != constx.TableCreateTypeExist {
 		table := tableInfo.Name
 		iid := tableInfo.Database.Iid
 		database := tableInfo.Database.Name
@@ -351,6 +351,9 @@ func TableLogs(c *core.Context) {
 	}
 	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "Prepare"), elog.Any("cost", time.Since(t)))
 	res, err := op.GET(param, tableInfo.ID)
+	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
+		res.IsTrace = 1
+	}
 	if err != nil {
 		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
 		return

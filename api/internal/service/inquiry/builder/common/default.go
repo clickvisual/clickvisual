@@ -14,9 +14,11 @@ func BuilderFieldsData(tableCreateType int, mapping string) string {
   _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
   _key String CODEC(ZSTD(1)),
   _raw_log_ String CODEC(ZSTD(1)),
+  %s Array(String),
+  %s Array(String),
   INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
 )
-`)
+`, "`_headers.name`", "`_headers.value`")
 	}
 	if mapping == "" {
 		mapping = `_source_ String,
@@ -71,24 +73,28 @@ func BuilderFieldsStream(tableCreateType int, mapping, timeField, timeTyp, logFi
 
 func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView bumo.ParamsView) string {
 	if tableCreateType == constx.TableCreateTypeUBW {
+		headersAs := "`_headers.name` AS `_headers.name`,`_headers.value` AS `_headers.value`"
 		if paramsView.IsKafkaTimestamp == 1 {
 			// use kafka timestamp
 			return fmt.Sprintf(`SELECT
 	toDateTime(toInt64(_timestamp)) AS _time_second_,
 	toDateTime64(toInt64(_timestamp_ms), 9, 'Asia/Shanghai') AS _time_nanosecond_,
 	_key AS _key,
+	%s,
 	body AS _raw_log_%s
 FROM %s
-`, paramsView.CommonFields, paramsView.SourceTable)
+`, headersAs, paramsView.CommonFields, paramsView.SourceTable)
 		}
 		// log time field
 		return fmt.Sprintf(`SELECT
   %s,
   _key AS _key,
-  body AS _raw_log_%s
+  %s,
+  body AS _raw_log_%s 
 FROM %s
-`, paramsView.TimeConvert, paramsView.CommonFields, paramsView.SourceTable)
+`, paramsView.TimeConvert, headersAs, paramsView.CommonFields, paramsView.SourceTable)
 	}
+
 	// v1 or v2
 	if logField == "" {
 		logField = "_log_"

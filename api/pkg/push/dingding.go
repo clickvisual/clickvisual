@@ -68,14 +68,19 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	if err != nil {
 		return
 	}
-	exp := db.WhereConditionFromFilter(alarm, filters)
+	var exp string
+	if len(filters) == 1 {
+		exp = filters[0].When
+	}
 	user, _ := db.UserInfo(alarm.Uid)
 	ins, table, _, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
 		annotations = alert.Annotations
-		buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", exp))
+		if exp != "" {
+			buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", exp))
+		}
 
 		buffer.WriteString(fmt.Sprintf("##### 触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", ins.Name, ins.Desc))

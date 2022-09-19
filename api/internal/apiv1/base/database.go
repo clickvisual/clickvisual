@@ -192,6 +192,7 @@ func DatabaseUpdate(c *core.Context) {
 	}
 	ups := make(map[string]interface{}, 0)
 	ups["desc"] = req.Desc
+	ups["cluster"] = req.Cluster
 	if err = db.DatabaseUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed 01"+err.Error(), nil)
 		return

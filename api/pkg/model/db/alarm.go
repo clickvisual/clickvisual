@@ -14,15 +14,9 @@ import (
 )
 
 const (
-	AlarmModeDefault int = iota
+	_ int = iota
 	AlarmModeAggregation
 	AlarmModeAggregationCheck
-)
-
-const (
-	AlarmLevelDefault int = iota
-	AlarmLevelKnow
-	AlarmLevelFatal
 )
 
 const (
@@ -74,7 +68,9 @@ type (
 		Mode          int           `gorm:"column:mode;type:int(11)" json:"mode"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
 		Level         int           `gorm:"column:level;type:int(11)" json:"level"`                                        // 0 m 1 s 2 h 3 d 4 w 5 y
 
-		User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
+		ViewDDLs String2String `gorm:"column:view_ddl_s;type:text" json:"view_ddl_s"` // Users to store data generates the alarm condition
+		TableIds Ints          `gorm:"column:table_ids;type:varchar(255);NOT NULL" json:"table_ids"`
+		User     *User         `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 	}
 
 	// AlarmFilter 告警过滤条件
@@ -124,8 +120,8 @@ func (m *Alarm) AlertRuleName() string {
 	return fmt.Sprintf("cv-%s.yaml", m.Uuid)
 }
 
-func (m *Alarm) AlertViewName(database, table string) string {
-	return fmt.Sprintf("%s.%s_%s", database, table, m.AlertUniqueName())
+func (m *Alarm) AlertViewName(database, table string, seq int) string {
+	return fmt.Sprintf("%s.%s_%s_%d", database, table, m.AlertUniqueName(), seq)
 }
 
 func (m *Alarm) AlertUniqueName() string {
@@ -162,29 +158,6 @@ var UnitMap = map[int]UnitItem{
 
 func (m *Alarm) AlertInterval() string {
 	return fmt.Sprintf("%d%s", m.Interval, UnitMap[m.Unit].Alias)
-}
-
-func WhereConditionFromFilter(alarm *Alarm, filters []*AlarmFilter) (filter string) {
-	if alarm.Mode == AlarmModeAggregationCheck {
-		return getWithSQL(filters)
-	}
-	for i, f := range filters {
-		if i == 0 {
-			filter = f.When
-		} else {
-			filter = fmt.Sprintf("%s AND %s", filter, f.When)
-		}
-	}
-	return filter
-}
-
-func getWithSQL(filters []*AlarmFilter) string {
-	for _, f := range filters {
-		if f.When != "" {
-			return f.When
-		}
-	}
-	return ""
 }
 
 func GetAlarmTableInstanceInfo(id int) (instanceInfo BaseInstance, tableInfo BaseTable, alarmInfo Alarm, err error) {
@@ -298,27 +271,9 @@ func AlarmUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	return
 }
 
-func AlarmDeleteBatch(db *gorm.DB, tid int) (err error) {
-	if err = db.Model(Alarm{}).Where("`tid`=?", tid).Unscoped().Delete(&Alarm{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
 func AlarmDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Alarm{}).Unscoped().Delete(&Alarm{}, id).Error; err != nil {
 		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func AlarmFilterInfo(db *gorm.DB, id int) (resp AlarmFilter, err error) {
-	var sql = "`id`= ?"
-	var binds = []interface{}{id}
-	if err = db.Model(AlarmFilter{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -341,37 +296,9 @@ func AlarmFilterCreate(db *gorm.DB, data *AlarmFilter) (err error) {
 	return
 }
 
-func AlarmFilterUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{id}
-	if err = db.Model(AlarmFilter{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("release update error", zap.Error(err))
-		return
-	}
-	return
-}
-
 func AlarmFilterDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 	if err = db.Model(AlarmFilter{}).Where("`alarm_id`=?", alarmId).Unscoped().Delete(&AlarmFilter{}).Error; err != nil {
 		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func AlarmFilterDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(AlarmFilter{}).Unscoped().Delete(&AlarmFilter{}, id).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func AlarmConditionInfo(db *gorm.DB, id int) (resp AlarmCondition, err error) {
-	var sql = "`id`= ?"
-	var binds = []interface{}{id}
-	if err = db.Model(AlarmCondition{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
 		return
 	}
 	return
@@ -394,26 +321,8 @@ func AlarmConditionCreate(db *gorm.DB, data *AlarmCondition) (err error) {
 	return
 }
 
-func AlarmConditionUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{id}
-	if err = db.Model(AlarmCondition{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("release update error", zap.Error(err))
-		return
-	}
-	return
-}
-
 func AlarmConditionDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 	if err = db.Model(AlarmCondition{}).Where("`alarm_id`=?", alarmId).Unscoped().Delete(&AlarmCondition{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func AlarmConditionDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(AlarmCondition{}).Unscoped().Delete(&AlarmCondition{}, id).Error; err != nil {
 		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
@@ -457,14 +366,6 @@ func AlarmChannelUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 	return
 }
 
-func AlarmChannelDeleteBatch(db *gorm.DB, tid int) (err error) {
-	if err = db.Model(AlarmChannel{}).Where("`tid`=?", tid).Unscoped().Delete(&AlarmChannel{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
 func AlarmChannelDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(AlarmChannel{}).Unscoped().Delete(&AlarmChannel{}, id).Error; err != nil {
 		invoker.Logger.Error("release delete error", zap.Error(err))
@@ -478,15 +379,6 @@ func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmHistory{}).Where(sql, binds...).First(&resp).Error; err != nil {
 		invoker.Logger.Error("release info error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func AlarmHistoryList(conds egorm.Conds) (resp []*AlarmHistory, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(AlarmHistory{}).Where(sql, binds...).Order("id desc").Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Deployment list error", zap.Error(err))
 		return
 	}
 	return
@@ -520,22 +412,6 @@ func AlarmHistoryUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmHistory{}).Where(sql, binds...).Updates(ups).Error; err != nil {
 		invoker.Logger.Error("release update error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func AlarmHistoryDeleteBatch(db *gorm.DB, tid int) (err error) {
-	if err = db.Model(AlarmHistory{}).Where("`tid`=?", tid).Unscoped().Delete(&AlarmHistory{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func AlarmHistoryDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(AlarmHistory{}).Unscoped().Delete(&AlarmHistory{}, id).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
 		return
 	}
 	return

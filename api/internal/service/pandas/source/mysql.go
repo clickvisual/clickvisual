@@ -35,31 +35,15 @@ func (c *MySQL) Columns(database, table string) (res []view.Column, err error) {
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
-	rows, err := obj.Debug().Raw(fmt.Sprintf("SHOW FULL COLUMNS FROM %s FROM %s", table, database)).Rows()
+	rows, err := c.Query(fmt.Sprintf("SHOW FULL COLUMNS FROM %s FROM %s", table, database))
 	if err != nil {
 		return
 	}
-	var (
-		Field      string
-		Type       string
-		Collation  string
-		Null       string
-		Key        string
-		Default    interface{}
-		Extra      string
-		Privileges string
-		Comment    string
-	)
-	for rows.Next() {
-		errScan := rows.Scan(&Field, &Type, &Collation, &Null, &Key, &Default, &Extra, &Privileges, &Comment)
-		if errScan != nil {
-			invoker.Logger.Error("source", elog.String("err", errScan.Error()))
-			continue
-		}
+	for _, row := range rows {
 		res = append(res, view.Column{
-			Field:   Field,
-			Type:    Type,
-			Comment: Comment,
+			Field:   row["Field"].(string),
+			Type:    row["Type"].(string),
+			Comment: row["Comment"].(string),
 		})
 	}
 	return
@@ -82,7 +66,7 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
-	rows, err := obj.Debug().Raw(s).Rows()
+	rows, err := obj.Raw(s).Rows()
 	if err != nil {
 		return
 	}
@@ -97,16 +81,16 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 	for rows.Next() {
 		line := make(map[string]interface{}, 0)
 		for idx := range values {
-			fieldValue := reflect.ValueOf(&values[idx]).Elem()
-			values[idx] = fieldValue.Addr().Interface()
+			values[idx] = reflect.ValueOf(&values[idx]).Elem().Addr().Interface()
 		}
 		if err = rows.Scan(values...); err != nil {
 			invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
 			return
 		}
 		for k := range fields {
-			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
-			line[fields[k]] = values[k]
+			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]),
+				elog.Any("type", cts[k].ScanType().Elem()))
+			line[fields[k]] = transformVal(values[k])
 		}
 		res = append(res, line)
 	}
@@ -115,6 +99,33 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 		return
 	}
 	return
+}
+
+// isEmpty filter empty index value
+func transformVal(input interface{}) interface{} {
+	switch input.(type) {
+	case []uint8:
+		return string(input.([]uint8))
+	case string:
+		return input.(string)
+	case uint16:
+		return fmt.Sprintf("%d", input.(uint16))
+	case uint64:
+		return fmt.Sprintf("%d", input.(uint64))
+	case int32:
+		return fmt.Sprintf("%d", input.(int32))
+	case int64:
+		return fmt.Sprintf("%d", input.(int64))
+	case float64:
+		return fmt.Sprintf("%f", input.(float64))
+	default:
+		invoker.Logger.Debug("ClickHouse", elog.FieldComponent("transformVal"),
+			elog.Any("type", reflect.TypeOf(input)))
+		if reflect.TypeOf(input) == nil {
+			return ""
+		}
+		return ""
+	}
 }
 
 func (c *MySQL) queryStringArr(sq string) (res []string, err error) {

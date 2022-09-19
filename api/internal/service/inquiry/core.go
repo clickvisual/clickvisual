@@ -31,7 +31,7 @@ type Operator interface {
 	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
 	DatabaseCreate(string, string) error
 	AlertViewCreate(string, string, string) error
-	AlertViewGen(*db.Alarm, string) (string, string, error)
+	AlertViewGen(*db.Alarm, int, string) (string, string, error)
 
 	Columns(string, string, bool) ([]*view.RespColumn, error)
 	Databases() ([]*view.RespDatabaseSelfBuilt, error)

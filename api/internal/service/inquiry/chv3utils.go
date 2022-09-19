@@ -1,7 +1,6 @@
 package inquiry
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -170,23 +169,10 @@ func (c *ClickHouse) timeParseSQLV3(typ int, v *db.BaseView, timeField string) s
 	return fmt.Sprintf(defaultFloatTimeParseV3, rawLogField, timeField, rawLogField, timeField)
 }
 
-// isTrace yes 1 no 0
-func isTrace(res map[string]interface{}) int {
-	if key, keyOk := res["_key"]; !keyOk || key == "" {
-		return 0
-	}
-	rawLog, rawLogOk := res["_raw_log_"]
-	if !rawLogOk {
-		return 0
-	}
-	jj := JaegerJson{}
-	_ = json.Unmarshal([]byte(strings.ReplaceAll(rawLog.(string), "\\\"", "\"")), &jj)
-	if jj.TraceId != "" &&
-		jj.SpanId != "" &&
-		jj.Duration != "" {
-		return 1
-	}
-	return 0
+type JaegerJsonOriginal struct {
+	TraceId  string `json:"trace_id"`
+	SpanId   string `json:"span_id"`
+	Duration string `json:"duration"`
 }
 
 type JaegerJson struct {

@@ -46,34 +46,40 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 	if table.TimeField == "" {
 		table.TimeField = db.TimeFieldSecond
 	}
-	param := view.ReqQuery{
-		Tid:           table.ID,
-		Database:      table.Database.Name,
-		Table:         table.Name,
-		Query:         db.WhereConditionFromFilter(&alarmObj, filters),
-		TimeField:     table.TimeField,
-		TimeFieldType: table.TimeFieldType,
-		ST:            time.Now().Add(-db.UnitMap[alarmObj.Unit].Duration - time.Minute).Unix(),
-		ET:            time.Now().Add(time.Minute).Unix(),
-		Page:          1,
-		PageSize:      1,
-	}
-	param, _ = op.Prepare(param, false)
-	resp, err := op.GET(param, table.ID)
-	if len(resp.Logs) > 0 {
-		logField := "_raw_log_"
-		if table.RawLogField != "" {
-			logField = table.RawLogField
+	if len(filters) == 1 {
+		param := view.ReqQuery{
+			Tid:           table.ID,
+			Database:      table.Database.Name,
+			Table:         table.Name,
+			Query:         filters[0].When,
+			TimeField:     table.TimeField,
+			TimeFieldType: table.TimeFieldType,
+			ST:            time.Now().Add(-db.UnitMap[alarmObj.Unit].Duration - time.Minute).Unix(),
+			ET:            time.Now().Add(time.Minute).Unix(),
+			Page:          1,
+			PageSize:      1,
 		}
-		if val, ok := resp.Logs[0][logField]; ok {
-			switch val.(type) {
-			case string:
-				oneTheLogs = val.(string)
-			case *string:
-				oneTheLogs = *(val.(*string))
+		param, _ = op.Prepare(param, false)
+		resp, _ := op.GET(param, table.ID)
+		if table.V3TableType == db.V3TableTypeJaegerJSON {
+			resp.IsTrace = 1
+		}
+		if len(resp.Logs) > 0 {
+			logField := "_raw_log_"
+			if table.RawLogField != "" {
+				logField = table.RawLogField
+			}
+			if val, ok := resp.Logs[0][logField]; ok {
+				switch val.(type) {
+				case string:
+					oneTheLogs = val.(string)
+				case *string:
+					oneTheLogs = *(val.(*string))
+				}
 			}
 		}
 	}
+
 	for _, channelId := range alarmObj.ChannelIds {
 		channelInfo, errAlarmChannelInfo := db.AlarmChannelInfo(invoker.Db, channelId)
 		if errAlarmChannelInfo != nil {
