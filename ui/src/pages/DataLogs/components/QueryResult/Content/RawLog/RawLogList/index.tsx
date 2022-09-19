@@ -143,16 +143,19 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       let endTime: number = 0;
       let startTime: number = 0;
       let themeColorList: any[] = [];
-      handleGetTotalLength(dataList[key], [], themeColorList).map(
-        (item: any, index: number) => {
-          if (item.et > endTime) {
-            endTime = item.et;
-          }
-          if (index == 0 || item.st < startTime) {
-            startTime = item.st;
-          }
-        }
+      const totalLength = handleGetTotalLength(
+        dataList[key],
+        [],
+        themeColorList
       );
+      totalLength.map((item: any, index: number) => {
+        if (item.et > endTime) {
+          endTime = item.et;
+        }
+        if (index == 0 || item.st < startTime) {
+          startTime = item.st;
+        }
+      });
 
       dataList[key].map((item: any) => {
         if (!item.rawLogJson.references) {
@@ -191,6 +194,9 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
             ),
             key: key,
             data: item,
+            duration: endTime - startTime,
+            services: themeColorList.length,
+            totalSpans: dataList[key].length,
           });
           return;
         }

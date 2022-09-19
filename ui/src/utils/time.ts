@@ -8,7 +8,6 @@ import moment from "moment";
 export const microsecondTimeStamp: (time: string) => number = (
   time: string
 ) => {
-  console.log(moment("2022-09-16T03:42:00.124Z").format("x"), "9090");
   if (time?.length == 30) {
     return parseInt(
       moment(time.split(".")[0] + "Z").valueOf() / 1000 +
