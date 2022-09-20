@@ -24,6 +24,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const i18n = useIntl();
   const { logs, linkLogs, logState } = useModel("dataLogs");
   const [isNotification, setIsNotification] = useState<boolean>(false);
+  const [isLinkLogs, setIsLinkLogs] = useState<boolean>(true);
 
   const list = useMemo(() => {
     if (
@@ -125,7 +126,11 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
     let keyList: string[] = [];
     let dataList: any = {};
+    let isLink = true;
     list.map((item: any) => {
+      if (!item["_key"] || !item["duration"]) {
+        isLink = false;
+      }
       item.rawLogJson = parseJsonObject(item["_raw_log_"]);
       if (!keyList.includes(item._key)) {
         keyList.push(item._key);
@@ -138,21 +143,29 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       }
     });
 
+    if (!isLink) {
+      setIsLinkLogs(false);
+      return [];
+    }
+
     let treeDataList: any[] = [];
     Object.keys(dataList).map((key: string) => {
       let endTime: number = 0;
       let startTime: number = 0;
       let themeColorList: any[] = [];
-      handleGetTotalLength(dataList[key], [], themeColorList).map(
-        (item: any, index: number) => {
-          if (item.et > endTime) {
-            endTime = item.et;
-          }
-          if (index == 0 || item.st < startTime) {
-            startTime = item.st;
-          }
-        }
+      const totalLength = handleGetTotalLength(
+        dataList[key],
+        [],
+        themeColorList
       );
+      totalLength.map((item: any, index: number) => {
+        if (item.et > endTime) {
+          endTime = item.et;
+        }
+        if (index == 0 || item.st < startTime) {
+          startTime = item.st;
+        }
+      });
 
       dataList[key].map((item: any) => {
         if (!item.rawLogJson.references) {
@@ -191,6 +204,9 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
             ),
             key: key,
             data: item,
+            duration: endTime - startTime,
+            services: themeColorList.length,
+            totalSpans: dataList[key].length,
           });
           return;
         }
@@ -199,6 +215,19 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
     return treeDataList;
   }, [list, logs?.isTrace]);
+
+  useEffect(() => {
+    if (!isLinkLogs) {
+      notification.info({
+        message: i18n.formatMessage({ id: "tips" }),
+        description: i18n.formatMessage({
+          id: "log.link.tips.formatNotCompliant",
+        }),
+        duration: null,
+        placement: "top",
+      });
+    }
+  }, [isLinkLogs]);
 
   // 出现第二个_key的时候就需要提示输入赛选条件
   useEffect(() => {

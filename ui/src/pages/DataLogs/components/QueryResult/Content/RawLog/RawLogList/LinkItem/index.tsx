@@ -3,6 +3,7 @@ import CalibrationRight from "./CalibrationRight";
 import LinkTree from "./LinkTree";
 import { useEffect, useState } from "react";
 import { microsecondTimeStamp } from "@/utils/time";
+import LinkLogInfo from "./LinkLogInfo";
 
 interface LinkItemProps {
   log: any;
@@ -46,6 +47,7 @@ const LinkItem = (props: LinkItemProps) => {
 
   return (
     <div className={styles.linkItem}>
+      <LinkLogInfo log={log} />
       <div className={styles.calibration}>
         <div className={styles.calibrationLeft}>{"Service & Operation"}</div>
         <CalibrationRight endTime={endTime} startTime={startTime} />

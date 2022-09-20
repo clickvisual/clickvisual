@@ -405,6 +405,7 @@ export default {
 
   // log link
   "log.link.tips.description": "需要具体的链路id，_key='链路ID'",
+  "log.link.tips.formatNotCompliant": "链路日志格式不合规",
 
   // Data Logs-Statistical Table
   "log.table.note": "搜索(注：谨慎操作)",

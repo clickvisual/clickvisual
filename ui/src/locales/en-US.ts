@@ -432,6 +432,7 @@ export default {
 
   // log link
   "log.link.tips.description": "Specific link ID is required, _key=' link ID'",
+  "log.link.tips.formatNotCompliant": "The link log format is not compliant",
 
   // Data Logs-Statistical Table
   "log.table.note": "Search(Note: Careful operation)",

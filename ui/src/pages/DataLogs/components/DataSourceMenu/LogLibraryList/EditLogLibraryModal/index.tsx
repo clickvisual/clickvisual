@@ -6,8 +6,9 @@ import {
   message,
   Modal,
   Spin,
+  Switch,
 } from "antd";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useIntl, useModel } from "umi";
 import style from "./index.less";
 
@@ -42,6 +43,7 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
             kafkaSkipBrokenMessages: res.data.kafkaSkipBrokenMessages,
             kafkaTopic: res.data.topic,
             mergeTreeTTL: res.data.days,
+            v3TableType: Boolean(res.data?.v3TableType),
           });
         })
         .catch((res) => {
@@ -58,6 +60,8 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
 
   const handleSubmit = (val: any) => {
     if (!currentEditLogLibrary?.id) return;
+    currentEditLogLibrary?.createType == 3 &&
+      (val.v3TableType = val.v3TableType ? 1 : 0);
     doUpdateLogLibrary
       .run(currentEditLogLibrary?.id, val)
       .then((res: any) => {
@@ -93,6 +97,9 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
         className={style.form}
       >
         <Spin spinning={getLogLibraryLoading || updateLogLibraryLoading}>
+          <Form.Item hidden name={"createType"}>
+            <Input />
+          </Form.Item>
           <Form.Item
             label={i18n.formatMessage({
               id: "log.editLogLibraryModal.label.tabName",
@@ -101,6 +108,17 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
           >
             <Input disabled />
           </Form.Item>
+          {currentEditLogLibrary?.createType == 3 && (
+            <Form.Item
+              valuePropName="checked"
+              name={"v3TableType"}
+              label={i18n.formatMessage({
+                id: "datasource.logLibrary.isLinkLogLibrary",
+              })}
+            >
+              <Switch />
+            </Form.Item>
+          )}
           <Form.Item label="Topics" name={"kafkaTopic"}>
             <Input
               disabled={!isCVCreate}
