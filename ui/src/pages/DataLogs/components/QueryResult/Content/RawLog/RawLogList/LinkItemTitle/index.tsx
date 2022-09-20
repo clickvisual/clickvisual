@@ -9,6 +9,7 @@ import {
   microsecondTimeStamp,
   microsecondsTimeUnitConversion,
 } from "@/utils/time";
+import { useModel } from "umi";
 
 const LinkItemTitle = (props: {
   title: any;
@@ -20,6 +21,10 @@ const LinkItemTitle = (props: {
 }) => {
   const { title, log, initial, totalLength, hierarchy, themeColor } = props;
   const [isHidden, setIsHidden] = useState<boolean>(true);
+  const { foldingState, resizeMenuWidth } = useModel("dataLogs", (model) => ({
+    foldingState: model.foldingState,
+    resizeMenuWidth: model.resizeMenuWidth,
+  }));
 
   const titleWidth = useMemo(() => {
     return `calc(15vw - ${24 * hierarchy + 4}px)`;
@@ -59,6 +64,11 @@ const LinkItemTitle = (props: {
             styles.progress,
             !isHidden && styles.topBorder,
           ])}
+          style={{
+            width: `calc(85vw - ${
+              !foldingState ? resizeMenuWidth : -10
+            }px -  293px)`,
+          }}
           onClick={(e) => {
             e.stopPropagation();
             setIsHidden(!isHidden);
