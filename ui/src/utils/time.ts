@@ -1,19 +1,19 @@
 import moment from "moment";
 
 /**
- * 微秒级别时间格式转时间戳
- * @param time string "2022-09-02T02:31:49.006385319Z" or "2022-09-16T03:42:00.124Z"
+ * 微秒级别时间格式转us时间戳
+ * @param time string "2022-09-02T02:31:49.006385319Z" or "2022-09-16T03:42:00.124Z" or "2022-09-02T02:31:49.006385Z"
  * @returns  number 1662085909006385
  */
 export const microsecondTimeStamp: (time: string) => number = (
   time: string
 ) => {
-  const decimal = (time.split(".").length = 2
-    ? parseInt(time.split(".")[1].split("Z")[0])
-    : 0);
+  const decimal: string = (time.split(".").length = 2)
+    ? time.split(".")[1].split("Z")[0]
+    : "0";
   return parseInt(
     moment(time.split(".")[0] + "Z").valueOf() / 1000 +
-      (decimal / Math.pow(10, decimal.toString().length))
+      (parseInt(decimal) / Math.pow(10, decimal.length))
         .toFixed(6)
         .split(".")[1]
   );
