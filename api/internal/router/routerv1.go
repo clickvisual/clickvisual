@@ -3,17 +3,17 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/alarm"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/base"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/bigdata/mining"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/configure"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/event"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/initialize"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/kube"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/permission"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/setting"
-	"github.com/clickvisual/clickvisual/api/internal/apiv1/user"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/alarm"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/base"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/bigdata"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/bigdata/mining"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/configure"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/event"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/initialize"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/kube"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/permission"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/setting"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 )
 

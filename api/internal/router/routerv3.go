@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/clickvisual/clickvisual/api/internal/apiv3/storage"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv3/storage"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 )
 

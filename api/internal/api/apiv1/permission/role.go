@@ -14,28 +14,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func PmsDefaultRoleList(c *core.Context) {
-	// if current user is not root user, just return no permission
-	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
-		return
-	}
-
-	query := db.Conds{}
-	if v := c.Query("belong_type"); v != "" {
-		query["belong_type"] = v
-	}
-	if v := c.Query("role_name"); v != "" {
-		query["role_name"] = v
-	}
-	res, err := permission.Manager.GetPmsDefaultRoles(query)
-	if err != nil {
-		c.JSONE(1, "获取权限默认角色列表失败", err.Error())
-		return
-	}
-	c.JSONOK(res)
-}
-
 func PmsRoleList(c *core.Context) {
 	reqParam := view.ReqPmsRoles{}
 	err := c.Bind(&reqParam)

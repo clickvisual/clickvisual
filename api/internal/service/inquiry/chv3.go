@@ -137,11 +137,11 @@ func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table stri
 		}
 	}
 	sc.SetParams(params)
-	if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
+	if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
 		invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
-	if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
+	if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
 		invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
