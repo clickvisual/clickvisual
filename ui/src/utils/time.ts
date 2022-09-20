@@ -8,15 +8,15 @@ import moment from "moment";
 export const microsecondTimeStamp: (time: string) => number = (
   time: string
 ) => {
-  if (time?.length == 30) {
-    return parseInt(
-      moment(time.split(".")[0] + "Z").valueOf() / 1000 +
-        time.split(".")[1].substring(0, 6)
-    );
-  } else if (time?.length == 24) {
-    return parseInt(moment("2022-09-16T03:42:00.124Z").format("x")) * 1000;
-  }
-  return 0;
+  const decimal = (time.split(".").length = 2
+    ? parseInt(time.split(".")[1].split("Z")[0])
+    : 0);
+  return parseInt(
+    moment(time.split(".")[0] + "Z").valueOf() / 1000 +
+      (decimal / Math.pow(10, decimal.toString().length))
+        .toFixed(6)
+        .split(".")[1]
+  );
 };
 
 /**
@@ -26,6 +26,18 @@ export const microsecondTimeStamp: (time: string) => number = (
  * @returns string  0.000001ms
  */
 export const microsecondsTimeUnitConversion = (time: number) => {
+  if (time > Math.pow(10, 6) * 3600) {
+    const list = ((time / Math.pow(10, 6)) * 3600).toString().split(".");
+    const num =
+      list.length > 1 ? (list[1].length <= 2 ? list[1].length : 2) : 0;
+    return ((time / Math.pow(10, 6)) * 3600).toFixed(num) + "h";
+  }
+  if (time > Math.pow(10, 6) * 60) {
+    const list = ((time / Math.pow(10, 6)) * 60).toString().split(".");
+    const num =
+      list.length > 1 ? (list[1].length <= 2 ? list[1].length : 2) : 0;
+    return ((time / Math.pow(10, 6)) * 60).toFixed(num) + "min";
+  }
   if (time > Math.pow(10, 6)) {
     const list = (time / Math.pow(10, 6)).toString().split(".");
     const num =
