@@ -697,7 +697,6 @@ func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err 
 	// try again
 	res.Query = defaultSQL
 	res.Where = strings.TrimSuffix(strings.TrimPrefix(originalWhere, "AND ("), ")")
-	res.IsTrace = 1
 	for k := range res.Logs {
 		if param.TimeField != db.TimeFieldSecond {
 			if param.TimeFieldType == db.TimeFieldTypeTsMs {
