@@ -57,10 +57,6 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	if alarm.Desc != "" {
 		buffer.WriteString(fmt.Sprintf("##### 告警描述: %s\n", alarm.Desc))
 	}
-	status = "告警中"
-	if status == "resolved" {
-		status = "已恢复"
-	}
 
 	condsFilter := egorm.Conds{}
 	condsFilter["alarm_id"] = alarm.ID
@@ -81,11 +77,14 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		if exp != "" {
 			buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", exp))
 		}
-
 		buffer.WriteString(fmt.Sprintf("##### 触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", ins.Name, ins.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 日志库：%s %s\n", table.Name, table.Desc))
-		buffer.WriteString(fmt.Sprintf("##### 状态：%s\n", status))
+		if status == "resolved" {
+			buffer.WriteString("##### 状态：<font color=#008000>已恢复</font>\n")
+		} else {
+			buffer.WriteString("##### 状态：：<font color=red>告警中</font>\n")
+		}
 		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
 
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
@@ -94,7 +93,11 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, start, end,
 		))
 		if oneTheLogs != "" {
-			buffer.WriteString(fmt.Sprintf("##### 详情: %s", oneTheLogs))
+			if len(oneTheLogs) > 200 {
+				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", oneTheLogs[0:199]))
+			} else {
+				buffer.WriteString(fmt.Sprintf("##### 详情: %s", oneTheLogs))
+			}
 		}
 	}
 

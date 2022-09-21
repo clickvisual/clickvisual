@@ -32,10 +32,6 @@ var models = []interface{}{
 	db.BaseInstance{},
 	db.BaseHiddenField{},
 
-	db.Configuration{},
-	db.ConfigurationHistory{},
-	db.ConfigurationPublish{},
-
 	db.Alarm{},
 	db.AlarmFilter{},
 	db.AlarmCondition{},
@@ -46,6 +42,10 @@ var models = []interface{}{
 	db.Event{},
 	db.Cluster{},
 	db.K8SConfigMap{},
+
+	db.Configuration{},
+	db.ConfigurationHistory{},
+	db.ConfigurationPublish{},
 
 	db.PmsRole{},
 	db.PmsCustomRole{},
@@ -67,7 +67,7 @@ func Install() (err error) {
 
 	// v2 -> v3 upgrade
 	var ot string
-	d.Raw("SHOW TABLES LIKE 'mogo_user';").Row().Scan(&ot)
+	_ = d.Raw("SHOW TABLES LIKE 'mogo_user';").Row().Scan(&ot)
 	if ot == "mogo_user" {
 		// rename
 		d.Exec("rename table mogo_alarm to cv_alarm;")

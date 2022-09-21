@@ -161,7 +161,7 @@ type BaseTable struct {
 type BaseView struct {
 	BaseModel
 
-	Tid              int    `gorm:"column:tid;type:bigint(11);index:uix_tid_name,unique" json:"tid"`             // table id
+	Tid              int    `gorm:"column:tid;type:int(11);index:uix_tid_name,unique" json:"tid"`                // table id
 	Name             string `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_tid_name,unique" json:"name"` // view name
 	IsUseDefaultTime int    `gorm:"column:is_use_default_time;type:int(11)" json:"isUseDefaultTime"`             // use system time or not
 	Key              string `gorm:"column:key;type:varchar(64);NOT NULL" json:"key"`                             // field name of time in raw log
