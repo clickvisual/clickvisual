@@ -132,7 +132,8 @@ export default {
   "instance.form.title.ruleStoreType": "告警模块",
   "instance.form.title.ruleStoreType.tip": "报警中心的报警规则存储方式",
   "instance.form.title.ruleStoreType.radio.file": "文件",
-  "instance.form.title.ruleStoreType.radio.enable": "关闭",
+  "instance.form.title.ruleStoreType.radio.off": "关闭",
+  "instance.form.title.ruleStoreType.radio.on": "开启",
   "instance.form.title.filePath": "文件路径",
   "instance.form.placeholder.instanceName": "请输入实例名称",
   "instance.form.placeholder.datasource": "请选择数据源",
@@ -209,7 +210,7 @@ export default {
   "config.files.select.empty.tip": "请选择一个 ConfigMap",
   "config.files.empty.tip": "暂无配置文件",
   "config.files.tooltip.created": "新增配置",
-  "config.files.sync": "从 K8S 中 同步",
+  "config.files.sync": "从 K8S 中同步",
   "config.files.tooltip.onlineDiff": "线上版本比较",
   "config.files.confirm.deleted":
     "确定删除: {name}.{format} 吗？该操作也将删除集群 ConfigMap 中的相关配置文件,请谨慎操作",
@@ -283,7 +284,7 @@ export default {
 
   "datasource.logLibrary.from.tableName": "数据表名称",
   "datasource.logLibrary.from.rule.tableName":
-    "请输入小写字母、大写字母，或下划线",
+    "请输入小写字母、大写字母或下划线",
   "datasource.logLibrary.from.type": "时间字段类型",
   "datasource.logLibrary.from.timeField": "指定时间字段Key名称",
   "datasource.logLibrary.from.label.timeField": "时间字段",
@@ -295,7 +296,7 @@ export default {
   "datasource.logLibrary.from.rule.topics":
     "请输入数字、英文字母，中划线、下划线或 . ",
   "datasource.logLibrary.from.creationMode": "创建方式",
-  "datasource.logLibrary.from.souceTips": "souce内容不符合要求，点击跳转文档",
+  "datasource.logLibrary.from.souceTips": "source内容不符合要求，点击跳转文档",
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary": "新建日志库",
   "datasource.logLibrary.from.creationMode.option.logLibrary": "接入日志库",
@@ -315,14 +316,14 @@ export default {
   "datasource.logLibrary.from.newLogLibrary.desc.placeholder": "请输入描述",
 
   "datasource.logLibrary.placeholder.tableName":
-    "请输入数据表名称，支持小写字母、大写字母，或下划线",
+    "请输入数据表名称，支持小写字母、大写字母或下划线",
   "datasource.logLibrary.isLinkLogLibrary": "是否链路日志库",
   "datasource.logLibrary.usingSystemTime": "使用系统时间",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
   "datasource.logLibrary.placeholder.brokers": "kafka:9092",
   "datasource.logLibrary.placeholder.topics":
-    "请输入 Topics，支持数字、英文字母，或中划线",
+    "请输入 Topics，支持数字、英文字母或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
   "datasource.logLibrary.placeholder.source": "请输入 Source",
   "datasource.logLibrary.placeholder.rawLogField":
@@ -394,7 +395,7 @@ export default {
 
   "log.share": "分享",
   "log.share.success": "短链接生成成功，有效期30天",
-  "log.share.error": "分享 URL 出错啦，请尝试重新分享，或者刷新页面后操作",
+  "log.share.error": "分享 URL 出错啦，请尝试重新分享或者刷新页面后操作",
 
   // log nva
   "log.switch.histogram": "直方图",
@@ -508,7 +509,7 @@ export default {
   "alarm.rules.form.placeholder.level": "请选择报警级别",
   "alarm.rules.form.placeholder.description": "请输入报警描述",
   "alarm.rules.form.placeholder.channelIds": "请选择通知方式",
-  "alarm.rules.form.rule.alarmName": "请输入小写字母、大写字母，或下划线",
+  "alarm.rules.form.rule.alarmName": "请输入小写字母、大写字母或下划线",
   "alarm.rules.inspectionFrequency": "检查频率",
   "alarm.rules.form.inspectionStatistics": "检查统计",
   "alarm.rules.form.inspectionStatistics.error": "最少需要添加一条检查统计",

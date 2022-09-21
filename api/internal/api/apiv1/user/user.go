@@ -73,7 +73,7 @@ func List(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	for k, _ := range dbUsers {
+	for k := range dbUsers {
 		dbUsers[k].Password = "*"
 		dbUsers[k].Uid = dbUsers[k].ID
 	}

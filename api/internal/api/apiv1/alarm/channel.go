@@ -2,14 +2,16 @@ package alarm
 
 import (
 	"errors"
+	"strings"
+
+	"github.com/ego-component/egorm"
+	"github.com/spf13/cast"
+
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/push"
-	"github.com/ego-component/egorm"
-	"github.com/spf13/cast"
-	"strings"
 )
 
 const (
@@ -41,7 +43,7 @@ func ChannelCreate(c *core.Context) {
 // temporary support slack feishu
 func JudgmentType(req db.AlarmChannel) (err error) {
 	switch req.Typ {
-	//TODO finish all channels support
+	// TODO finish all channels support
 	case push.ChannelDingDing:
 	case push.ChannelWeChat:
 	case push.ChannelTelegram:
@@ -51,7 +53,7 @@ func JudgmentType(req db.AlarmChannel) (err error) {
 			err = errors.New("invalid FeiShu webhook url")
 			return
 		}
-		//TODO Regularity constraints
+		// TODO Regularity constraints
 	case push.ChannelSlack:
 		if !strings.Contains(req.Key, SLACKURL) {
 			err = errors.New("invalid Slack webhook url")

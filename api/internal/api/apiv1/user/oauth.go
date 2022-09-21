@@ -5,9 +5,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gotomicro/cetus/pkg/kauth"
@@ -133,7 +133,7 @@ func Oauth(c *core.Context) {
 	}
 
 	if kauth.OAuthService.OAuthInfos[name].TlsClientCa != "" {
-		caCert, err := ioutil.ReadFile(kauth.OAuthService.OAuthInfos[name].TlsClientCa)
+		caCert, err := os.ReadFile(kauth.OAuthService.OAuthInfos[name].TlsClientCa)
 		if err != nil {
 			invoker.Logger.Error("Failed to setup TlsClientCa", zap.String("oauth", name), zap.Error(err))
 			c.JSONE(8, "login.OAuthLogin(Failed to setup TlsClientCa)", nil)

@@ -5,9 +5,9 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/clickvisual/clickvisual/api/internal/apiv2/base"
-	"github.com/clickvisual/clickvisual/api/internal/apiv2/pandas"
-	"github.com/clickvisual/clickvisual/api/internal/apiv2/storage"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/pandas"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 )
 

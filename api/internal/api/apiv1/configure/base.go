@@ -190,11 +190,6 @@ func HistoryList(c *core.Context) {
 		return
 	}
 	total, list := db.ConfigurationHistoryListPage(egorm.Conds{"configuration_id": id}, &param)
-	for k, _ := range list {
-		if list[k].Uid != 0 {
-
-		}
-	}
 	resp := make([]view.RespHistoryConfigItem, 0)
 	for _, item := range list {
 		configItem := view.RespHistoryConfigItem{
