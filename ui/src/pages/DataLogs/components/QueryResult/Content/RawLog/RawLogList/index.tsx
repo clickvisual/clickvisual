@@ -128,10 +128,10 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     let dataList: any = {};
     let isLink = true;
     list.map((item: any) => {
-      if (!item["_key"] || !item["duration"]) {
+      item.rawLogJson = parseJsonObject(item["_raw_log_"]);
+      if (!item["_key"] || !item.rawLogJson["duration"]) {
         isLink = false;
       }
-      item.rawLogJson = parseJsonObject(item["_raw_log_"]);
       if (!keyList.includes(item._key)) {
         keyList.push(item._key);
         dataList = {
