@@ -52,7 +52,7 @@ func (w *WorkerTrace) run() {
 	query := fmt.Sprintf(queryJaegerCallCountSql, time.Now().Format("2006-01-02 15:04:05"), w.source.String(), w.source.String())
 	res, err := w.db.Query(query)
 	if err != nil {
-		elog.Error("WorkerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
+		elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
 		return
 	}
 	elog.Debug("workerTrace", elog.FieldComponent("sql"), elog.String("query", query))

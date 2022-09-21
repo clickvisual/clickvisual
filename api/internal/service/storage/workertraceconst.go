@@ -60,7 +60,6 @@ from
 			else toInt64(toFloat64(ex[1]) * 1000000000)
 			end duration,
         JSONExtractString(_raw_log_, 'spanId') AS span_id,
-		toFloat64(reverse(extractAllGroupsVertical(JSONExtractString(_raw_log_, 'duration'),'(?:([0-9]*\.?[0-9]*)h)?(?:([0-9]*\.?[0-9]*)m)?(?:([0-9]*\.?[0-9]*)s)')[1])[1])*1000000000 as duration,
         JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'serviceName') AS service_name,
 		 		JSONExtractString(references[1], 'spanId') as parent_span_id, 
 				tag_values[indexOf(tag_keys,'span.kind')] AS span_kind,
