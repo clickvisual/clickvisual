@@ -53,6 +53,12 @@ from
 		(SELECT
         _key AS trace_id,
         _time_second_ AS time,
+		reverse(extractAllGroupsVertical(JSONExtractString(_raw_log_, 'duration'),'(?:([0-9]*\.?[0-9]*)h)?(?:([0-9]*\.?[0-9]*)m)?(?:([0-9]*\.?[0-9]*)s)')[1]) ex,
+		case
+			when length(ex) = 3 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000 + toInt64OrZero(ex[3]) * 3600 * 1000000000
+			when length(ex) = 2 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000
+			else toInt64(toFloat64(ex[1]) * 1000000000)
+			end duration,
         JSONExtractString(_raw_log_, 'spanId') AS span_id,
 		toFloat64(reverse(extractAllGroupsVertical(JSONExtractString(_raw_log_, 'duration'),'(?:([0-9]*\.?[0-9]*)h)?(?:([0-9]*\.?[0-9]*)m)?(?:([0-9]*\.?[0-9]*)s)')[1])[1])*1000000000 as duration,
         JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'serviceName') AS service_name,
@@ -68,8 +74,13 @@ from
 		(SELECT
         _key AS trace_id,
         _time_second_ AS time,
-		toFloat64(reverse(extractAllGroupsVertical(JSONExtractString(_raw_log_, 'duration'),'(?:([0-9]*\.?[0-9]*)h)?(?:([0-9]*\.?[0-9]*)m)?(?:([0-9]*\.?[0-9]*)s)')[1])[1])*1000000000 as duration,
-        JSONExtractString(_raw_log_, 'spanId') AS span_id,
+		reverse(extractAllGroupsVertical(JSONExtractString(_raw_log_, 'duration'),'(?:([0-9]*\.?[0-9]*)h)?(?:([0-9]*\.?[0-9]*)m)?(?:([0-9]*\.?[0-9]*)s)')[1]) ex,
+		case
+			when length(ex) = 3 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000 + toInt64OrZero(ex[3]) * 3600 * 1000000000
+			when length(ex) = 2 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000
+			else toInt64(toFloat64(ex[1]) * 1000000000)
+			end duration,
+		JSONExtractString(_raw_log_, 'spanId') AS span_id,
         JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'serviceName') AS service_name,
 				tag_values[indexOf(tag_keys,'span.kind')] AS span_kind,
 				if(tag_values[indexOf(tag_keys,'otel.status_code')]=='ERROR', 0, 1) AS success,
