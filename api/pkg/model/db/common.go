@@ -86,7 +86,7 @@ func (r *ReqPage) Valid() error {
 
 type String2String map[string]string
 
-func (t *String2String) Value() (driver.Value, error) {
+func (t String2String) Value() (driver.Value, error) {
 	b, err := json.Marshal(t)
 	return string(b), err
 }

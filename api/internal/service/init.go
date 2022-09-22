@@ -57,7 +57,7 @@ func Init() error {
 		sf := func() { Storage.tickerTraceWorker() }
 		ef := func() { Storage.Stop() }
 		invoker.Logger.Debug("crontabRules", elog.String("step", "isMultiCopy"))
-		_ = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:storage", sf, ef)
+		ppt = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:trace", sf, ef)
 		return nil
 	}
 	xgo.Go(func() { Storage.tickerTraceWorker() })

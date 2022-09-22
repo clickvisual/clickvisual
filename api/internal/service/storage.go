@@ -25,10 +25,10 @@ func NewStorage() *iStorage {
 }
 
 func (s *iStorage) tickerTraceWorker() {
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
 	for range ticker.C {
-		elog.Info("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("tickStart"))
+		elog.Info("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("tickStart"), elog.Any("workersF", s.workersF))
 		s.syncTraceWorker()
 	}
 	return
@@ -43,7 +43,6 @@ func (s *iStorage) syncTraceWorker() {
 		elog.Error("workerTrace", elog.FieldComponent("syncTraceWorker"), elog.FieldName("tableList"), elog.FieldErr(err))
 		return
 	}
-	elog.Debug("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("tableList"), elog.Any("list", list))
 	for _, row := range list {
 		if row.V3TableType == db.V3TableTypeJaegerJSON {
 			s.on(row)
@@ -75,12 +74,14 @@ func (s *iStorage) on(row *db.BaseTable) {
 		return
 	}
 	worker := storage.NewWorkerTrace(storage.WorkerParams{
-		Spec:   "0 * * * *", // only support hour
+		Spec:   "*/10 * * * *",
 		Source: source,
 		Target: target,
 		DB:     op.Conn(),
 	})
 	s.workers[row.ID] = worker
+	elog.Info("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("on"),
+		elog.String("table", row.Name), elog.Any("tid", row.ID))
 }
 
 func (s *iStorage) off(row *db.BaseTable) {
@@ -91,6 +92,8 @@ func (s *iStorage) off(row *db.BaseTable) {
 	w := s.workers[row.ID]
 	if w != nil {
 		w.Stop()
+		elog.Debug("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("off"),
+			elog.String("table", row.Name), elog.Any("tid", row.ID))
 	}
 	return
 }

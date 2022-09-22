@@ -21,7 +21,7 @@ select
 	time
 from
 (select
-	toStartOfHour(end_time) as timestamp,
+	toStartOfMinute(end_time) as timestamp,
 	parent_service_name as parent,
 	service_name as child,
 	count(*) as call_count,
@@ -53,30 +53,40 @@ from
 		(SELECT
         _key AS trace_id,
         _time_second_ AS time,
-        JSONExtractString(_raw_log_, 'span_id') AS span_id,
-        JSONExtractUInt(_raw_log_, 'duration') AS duration,
-        JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'service_name') AS service_name,
-		 		JSONExtractString(references[1], 'span_id') as parent_span_id, 
+		reverse(extractAllGroupsVertical(JSONExtractString(_raw_log_, 'duration'),'(?:([0-9]*\.?[0-9]*)h)?(?:([0-9]*\.?[0-9]*)m)?(?:([0-9]*\.?[0-9]*)s)')[1]) ex,
+		case
+			when length(ex) = 3 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000 + toInt64OrZero(ex[3]) * 3600 * 1000000000
+			when length(ex) = 2 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000
+			else toInt64(toFloat64(ex[1]) * 1000000000)
+			end duration,
+        JSONExtractString(_raw_log_, 'spanId') AS span_id,
+        JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'serviceName') AS service_name,
+		 		JSONExtractString(references[1], 'spanId') as parent_span_id, 
 				tag_values[indexOf(tag_keys,'span.kind')] AS span_kind,
 				if(tag_values[indexOf(tag_keys,'otel.status_code')]=='ERROR', 0, 1) AS success,
 				arrayMap(x -> (x[1]),event_tag) AS tag_keys,
 				arrayMap(x -> (x[2]),event_tag) AS tag_values,
-				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'v_str'), JSONExtractString(x,'v_int64'),'')],JSONExtractArrayRaw(_raw_log_,'tags')) AS event_tag,
+				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'vStr'), JSONExtractString(x,'vInt64'),'')],JSONExtractArrayRaw(_raw_log_,'tags')) AS event_tag,
 		 		JSONExtract(_raw_log_, 'references', 'Array(String)') as references
-    FROM %s where span_kind in ('server','server.unary','server.stream') and _time_second_ >= toStartOfHour(end_time) and _time_second_ < (toStartOfHour(end_time) + interval 1 hour)) c
+    FROM %s where span_kind in ('server','server.unary','server.stream') and _time_second_ >= toStartOfMinute(end_time) - interval 10 minute and _time_second_ < (toStartOfMinute(end_time))) c
 	global join 
 		(SELECT
         _key AS trace_id,
         _time_second_ AS time,
-        JSONExtractUInt(_raw_log_, 'duration') AS duration,
-        JSONExtractString(_raw_log_, 'span_id') AS span_id,
-        JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'service_name') AS service_name,
+		reverse(extractAllGroupsVertical(JSONExtractString(_raw_log_, 'duration'),'(?:([0-9]*\.?[0-9]*)h)?(?:([0-9]*\.?[0-9]*)m)?(?:([0-9]*\.?[0-9]*)s)')[1]) ex,
+		case
+			when length(ex) = 3 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000 + toInt64OrZero(ex[3]) * 3600 * 1000000000
+			when length(ex) = 2 then toInt64(toFloat64(ex[1]) * 1000000000) + toInt64OrZero(ex[2]) * 60 * 1000000000
+			else toInt64(toFloat64(ex[1]) * 1000000000)
+			end duration,
+		JSONExtractString(_raw_log_, 'spanId') AS span_id,
+        JSONExtractString(JSONExtractRaw(_raw_log_, 'process'), 'serviceName') AS service_name,
 				tag_values[indexOf(tag_keys,'span.kind')] AS span_kind,
 				if(tag_values[indexOf(tag_keys,'otel.status_code')]=='ERROR', 0, 1) AS success,
 				arrayMap(x -> (x[1]),event_tag) AS tag_keys,
 				arrayMap(x -> (x[2]),event_tag) AS tag_values,
-				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'v_str'), JSONExtractString(x,'v_int64'),'')],JSONExtractArrayRaw(_raw_log_,'tags')) AS event_tag
-		FROM %s where span_kind in ('client') and _time_second_ >= (toStartOfHour(end_time) - interval 1 hour) and _time_second_ < (toStartOfHour(end_time) + interval 1 hour)) p on
+				arrayMap(x -> [JSONExtractString(x, 'key'), coalesce(JSONExtractString(x,'vStr'), JSONExtractString(x,'vInt64'),'')],JSONExtractArrayRaw(_raw_log_,'tags')) AS event_tag
+		FROM %s where span_kind in ('client') and _time_second_ >= (toStartOfMinute(end_time) - interval 10 minute) and _time_second_ < (toStartOfMinute(end_time))) p on
 		c.trace_id = p.trace_id
 		and c.parent_span_id = p.span_id) f
 	where service_name <>'' and parent_service_name <>''
