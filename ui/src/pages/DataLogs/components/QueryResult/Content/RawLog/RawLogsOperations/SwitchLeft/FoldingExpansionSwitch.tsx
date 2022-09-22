@@ -76,7 +76,7 @@ const FoldingExpansionSwitch = ({
 
   useEffect(() => {
     if (oldPane?.logs?.isTrace == 1) {
-      onChangeLogState(oldPane?.logState);
+      onChangeLogState(oldPane?.logState || oldPane?.foldingChecked ? 2 : 0);
       if (
         oldPane?.logState == 1 &&
         (!linkLogs?.logs || (linkLogs?.logs && linkLogs?.logs.length == 0))

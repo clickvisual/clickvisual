@@ -120,7 +120,8 @@ const LinkFDG = (props: { dataList: any }) => {
       .append("text")
       .text(function (d: { value: any }) {
         // return d.value == 0 ? "" : d.value;
-        return d?.value || "";
+        // return d?.value || "";
+        return d?.value;
       })
       .attr("fill", "#000");
 

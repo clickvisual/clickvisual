@@ -131,6 +131,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       item.rawLogJson = parseJsonObject(item["_raw_log_"]);
       if (!item["_key"] || !item.rawLogJson["duration"]) {
         isLink = false;
+        console.log("不合规链路日志", item);
       }
       if (!keyList.includes(item._key)) {
         keyList.push(item._key);
@@ -225,6 +226,9 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         }),
         duration: null,
         placement: "top",
+        onClose: () => {
+          setIsLinkLogs(true);
+        },
       });
     }
   }, [isLinkLogs]);
