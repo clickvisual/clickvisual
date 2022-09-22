@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import {Dropdown, Menu, message, Tooltip} from "antd";
+import { Dropdown, Menu, message, Tooltip } from "antd";
 import {
   ApartmentOutlined,
   CalendarOutlined,
@@ -20,22 +20,28 @@ import {
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
 } from "@/config/config";
-import {useModel} from "@@/plugin-model/useModel";
-import {useIntl} from "umi";
+import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
 import lodash from "lodash";
 import moment from "moment";
-import {currentTimeStamp} from "@/utils/momentUtils";
+import { currentTimeStamp } from "@/utils/momentUtils";
 import deletedModal from "@/components/DeletedModal";
-import {IndexInfoType, TablesResponse} from "@/services/dataLogs";
+import { IndexInfoType, TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
-import {DefaultPane} from "@/models/datalogs/useLogPanes";
-import {RestUrlStates} from "@/pages/DataLogs/hooks/useLogUrlParams";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
-import {PaneType} from "@/models/datalogs/types";
-import {useEffect, useMemo, useRef} from "react";
+import { PaneType } from "@/models/datalogs/types";
+import { useEffect, useMemo, useRef } from "react";
+
+interface logLibraryType extends TablesResponse {
+  did: number;
+  v3TableType: number;
+  relTraceTableId: number;
+}
 
 type LogLibraryItemProps = {
-  logLibrary: TablesResponse;
+  logLibrary: logLibraryType;
   onGetList: any;
 };
 
@@ -199,76 +205,83 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       .catch(() => hideMessage());
   };
 
-  const items = [
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.info",
-      }),
-      key: "log-details",
-      onClick: () => {
-        onChangeLogLibraryInfoDrawVisible(true);
+  const items = useMemo(() => {
+    let item: any = [
+      {
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.info",
+        }),
+        key: "log-details",
+        onClick: () => {
+          onChangeLogLibraryInfoDrawVisible(true);
+        },
+        icon: <FileTextOutlined />,
       },
-      icon: <FileTextOutlined />,
-    },
-    {
-      label: i18n.formatMessage({ id: "datasource.tooltip.icon.edit" }),
-      key: "log-edit",
-      onClick: () => {
-        onChangeCurrentEditLogLibrary(logLibrary);
-        onChangeIsModifyLog(true);
+      {
+        label: i18n.formatMessage({ id: "datasource.tooltip.icon.edit" }),
+        key: "log-edit",
+        onClick: () => {
+          onChangeCurrentEditLogLibrary(logLibrary);
+          onChangeIsModifyLog(true);
+        },
+        icon: <FundProjectionScreenOutlined />,
       },
-      icon: <FundProjectionScreenOutlined />,
-    },
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.alarmRuleList",
-      }),
-      key: "log-alarm",
-      onClick: async () => {
-        window.open(await getGoToAlarmRulesPagePathByid(), "_blank");
+      {
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.alarmRuleList",
+        }),
+        key: "log-alarm",
+        onClick: async () => {
+          window.open(await getGoToAlarmRulesPagePathByid(), "_blank");
+        },
+        icon: <CalendarOutlined />,
       },
-      icon: <CalendarOutlined />,
-    },
-    {
-      label: i18n.formatMessage({ id: "datasource.tooltip.icon.topology" }),
-      key: "log-topology",
-      onClick: async () => {
-        window.open(await getGoToTheLogTopology(), "_blank");
+      {
+        label: i18n.formatMessage({ id: "datasource.tooltip.icon.topology" }),
+        key: "log-topology",
+        onClick: async () => {
+          window.open(await getGoToTheLogTopology(), "_blank");
+        },
+        icon: <ApartmentOutlined />,
       },
-      icon: <ApartmentOutlined />,
-    },
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.linkDependency",
-      }),
-      key: "log-link-DAG",
-      onClick: async () => {
-        logLibrary?.id &&
-        window.open(`${GRAPHICS_PATH}?tid=${logLibrary?.id}`, "_blank");
+
+      {
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.view",
+        }),
+        key: "log-rules",
+        onClick: async () => {
+          onChangeViewsVisibleDraw(true);
+        },
+        icon: <FundViewOutlined />,
+        disabled: logLibrary.createType === 1,
       },
-      icon: <FundOutlined />,
-    },
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.view",
-      }),
-      key: "log-rules",
-      onClick: async () => {
-        onChangeViewsVisibleDraw(true);
-      },
-      icon: <FundViewOutlined />,
-      disabled: logLibrary.createType === 1,
-    },
-    {
-      label: i18n.formatMessage({ id: "datasource.tooltip.icon.link" }),
-      key: "log-link",
-      onClick: () => {
-        onChangeIsAssociatedLinkLogLibrary(true);
-        onChangeLinkLinkLogLibrary(logLibrary);
-      },
-      icon: <LinkOutlined />,
-    },
-    {
+    ];
+    if (logLibrary.v3TableType !== 1) {
+      item.push({
+        label: i18n.formatMessage({ id: "datasource.tooltip.icon.link" }),
+        key: "log-link",
+        onClick: () => {
+          onChangeIsAssociatedLinkLogLibrary(true);
+          onChangeLinkLinkLogLibrary(logLibrary);
+        },
+        icon: <LinkOutlined />,
+      });
+    }
+    if (logLibrary.v3TableType === 1) {
+      item.push({
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.linkDependency",
+        }),
+        key: "log-link-DAG",
+        onClick: async () => {
+          logLibrary?.id &&
+            window.open(`${GRAPHICS_PATH}?tid=${logLibrary?.id}`, "_blank");
+        },
+        icon: <FundOutlined />,
+      });
+    }
+    item.push({
       label: (
         <span className={logLibraryListStyles.deletedSpan}>
           {i18n.formatMessage({
@@ -291,8 +304,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         });
       },
       icon: <IconFont type={"icon-delete"} />,
-    },
-  ];
+    });
+    return item;
+  }, [
+    logLibrary,
+    logLibrary.v3TableType,
+    logLibrary?.id,
+    logLibrary.tableName,
+    logLibrary.createType,
+  ]);
 
   const menu = useMemo(() => <Menu items={items} />, [items]);
 
@@ -327,6 +347,23 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     [logLibrary]
   );
 
+  const logIcon = useMemo(() => {
+    if (logLibrary.v3TableType == 1) {
+      // link log
+      return (
+        <IconFont
+          type="icon-link-table"
+          style={{ marginRight: "4px", color: "#2fabee" }}
+        />
+      );
+    }
+    if (logLibrary.createType == 1) {
+      return <IconFont type="icon-table" style={{ marginRight: "4px" }} />;
+    }
+    // cv log
+    return <IconFont type="icon-active-table" style={{ marginRight: "4px" }} />;
+  }, [logLibrary.createType, logLibrary.v3TableType]);
+
   return (
     <li
       className={classNames(logLibraryListStyles.tableTitle)}
@@ -349,14 +386,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             }}
             className={classNames(logLibraryListStyles.title)}
           >
-            {logLibrary.createType == 1 ? (
-              <IconFont type="icon-table" style={{ marginRight: "4px" }} />
-            ) : (
-              <IconFont
-                type="icon-active-table"
-                style={{ marginRight: "4px" }}
-              />
-            )}
+            {logIcon}
 
             {logLibrary.tableName}
           </span>

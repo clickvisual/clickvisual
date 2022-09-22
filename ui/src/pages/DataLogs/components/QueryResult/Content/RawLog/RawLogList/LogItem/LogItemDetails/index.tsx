@@ -55,6 +55,9 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
         return item.field;
       }) || [];
 
+    // 删除链路中新增的rawLogJson属性
+    delete log?.rawLogJson;
+
     // 原日志字段
     let keys: string[] = Object.keys(log).sort();
 
