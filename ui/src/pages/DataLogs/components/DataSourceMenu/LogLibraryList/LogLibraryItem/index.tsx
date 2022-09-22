@@ -205,76 +205,83 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       .catch(() => hideMessage());
   };
 
-  const items = [
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.info",
-      }),
-      key: "log-details",
-      onClick: () => {
-        onChangeLogLibraryInfoDrawVisible(true);
+  const items = useMemo(() => {
+    let item = [
+      {
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.info",
+        }),
+        key: "log-details",
+        onClick: () => {
+          onChangeLogLibraryInfoDrawVisible(true);
+        },
+        icon: <FileTextOutlined />,
       },
-      icon: <FileTextOutlined />,
-    },
-    {
-      label: i18n.formatMessage({ id: "datasource.tooltip.icon.edit" }),
-      key: "log-edit",
-      onClick: () => {
-        onChangeCurrentEditLogLibrary(logLibrary);
-        onChangeIsModifyLog(true);
+      {
+        label: i18n.formatMessage({ id: "datasource.tooltip.icon.edit" }),
+        key: "log-edit",
+        onClick: () => {
+          onChangeCurrentEditLogLibrary(logLibrary);
+          onChangeIsModifyLog(true);
+        },
+        icon: <FundProjectionScreenOutlined />,
       },
-      icon: <FundProjectionScreenOutlined />,
-    },
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.alarmRuleList",
-      }),
-      key: "log-alarm",
-      onClick: async () => {
-        window.open(await getGoToAlarmRulesPagePathByid(), "_blank");
+      {
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.alarmRuleList",
+        }),
+        key: "log-alarm",
+        onClick: async () => {
+          window.open(await getGoToAlarmRulesPagePathByid(), "_blank");
+        },
+        icon: <CalendarOutlined />,
       },
-      icon: <CalendarOutlined />,
-    },
-    {
-      label: i18n.formatMessage({ id: "datasource.tooltip.icon.topology" }),
-      key: "log-topology",
-      onClick: async () => {
-        window.open(await getGoToTheLogTopology(), "_blank");
+      {
+        label: i18n.formatMessage({ id: "datasource.tooltip.icon.topology" }),
+        key: "log-topology",
+        onClick: async () => {
+          window.open(await getGoToTheLogTopology(), "_blank");
+        },
+        icon: <ApartmentOutlined />,
       },
-      icon: <ApartmentOutlined />,
-    },
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.linkDependency",
-      }),
-      key: "log-link-DAG",
-      onClick: async () => {
-        logLibrary?.id &&
-          window.open(`${GRAPHICS_PATH}?tid=${logLibrary?.id}`, "_blank");
+
+      {
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.view",
+        }),
+        key: "log-rules",
+        onClick: async () => {
+          onChangeViewsVisibleDraw(true);
+        },
+        icon: <FundViewOutlined />,
+        disabled: logLibrary.createType === 1,
       },
-      icon: <FundOutlined />,
-    },
-    {
-      label: i18n.formatMessage({
-        id: "datasource.tooltip.icon.view",
-      }),
-      key: "log-rules",
-      onClick: async () => {
-        onChangeViewsVisibleDraw(true);
-      },
-      icon: <FundViewOutlined />,
-      disabled: logLibrary.createType === 1,
-    },
-    {
-      label: i18n.formatMessage({ id: "datasource.tooltip.icon.link" }),
-      key: "log-link",
-      onClick: () => {
-        onChangeIsAssociatedLinkLogLibrary(true);
-        onChangeLinkLinkLogLibrary(logLibrary);
-      },
-      icon: <LinkOutlined />,
-    },
-    {
+    ];
+    if (logLibrary.v3TableType !== 1) {
+      item.push({
+        label: i18n.formatMessage({ id: "datasource.tooltip.icon.link" }),
+        key: "log-link",
+        onClick: () => {
+          onChangeIsAssociatedLinkLogLibrary(true);
+          onChangeLinkLinkLogLibrary(logLibrary);
+        },
+        icon: <LinkOutlined />,
+      });
+    }
+    if (logLibrary.v3TableType === 1) {
+      item.push({
+        label: i18n.formatMessage({
+          id: "datasource.tooltip.icon.linkDependency",
+        }),
+        key: "log-link-DAG",
+        onClick: async () => {
+          logLibrary?.id &&
+            window.open(`${GRAPHICS_PATH}?tid=${logLibrary?.id}`, "_blank");
+        },
+        icon: <FundOutlined />,
+      });
+    }
+    item.push({
       label: (
         <span className={logLibraryListStyles.deletedSpan}>
           {i18n.formatMessage({
@@ -297,8 +304,15 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         });
       },
       icon: <IconFont type={"icon-delete"} />,
-    },
-  ];
+    });
+    return item;
+  }, [
+    logLibrary,
+    logLibrary.v3TableType,
+    logLibrary?.id,
+    logLibrary.tableName,
+    logLibrary.createType,
+  ]);
 
   const menu = useMemo(() => <Menu items={items} />, [items]);
 
