@@ -130,6 +130,7 @@ export default function useLogUrlParams() {
       tableName: res.data.name,
       createType: res.data.createType,
       desc: res.data.desc,
+      relTraceTableId: res.data.traceTableId,
     });
 
     const dataLogsQuerySql = onSetLocalData(
@@ -157,6 +158,7 @@ export default function useLogUrlParams() {
       desc: res.data.desc,
       mode: urlState?.mode, // 为1时：聚合报警详情页面过来的
       logState: parseInt(urlState?.logState || lastDataLogsState.logState),
+      relTraceTableId: res.data.traceTableId,
     };
 
     addLogPane(pane.paneId, pane);

@@ -491,6 +491,7 @@ export default {
   // ClickMenu
   "log.ClickMenu.addCondition": "Adding a query condition",
   "log.ClickMenu.excludeCondition": "Exclude query criteria",
+  "log.ClickMenu.viewLink": "See the link",
   "log.ClickMenu.copyValues": "Copy values",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal

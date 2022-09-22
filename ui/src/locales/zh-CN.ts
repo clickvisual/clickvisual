@@ -463,6 +463,7 @@ export default {
   // ClickMenu
   "log.ClickMenu.addCondition": "添加查询条件",
   "log.ClickMenu.excludeCondition": "排除查询条件",
+  "log.ClickMenu.viewLink": "查看链路",
   "log.ClickMenu.copyValues": "复制值",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal

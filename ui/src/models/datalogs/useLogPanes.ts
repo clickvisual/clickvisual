@@ -27,6 +27,7 @@ export const DefaultPane = {
   rawLogsIndexeList: undefined,
   logState: 0,
   linkLogs: undefined,
+  relTraceTableId: 0,
 };
 
 const useLogPanes = () => {

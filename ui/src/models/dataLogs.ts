@@ -231,6 +231,7 @@ const DataLogsModel = () => {
       tableName: tabPane.pane,
       createType: tabPane.paneType,
       desc: tabPane.desc,
+      relTraceTableId: tabPane.relTraceTableId,
     });
     onChangeCurrentLogPane(tabPane);
   };
