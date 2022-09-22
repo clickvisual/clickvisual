@@ -121,6 +121,7 @@ const JsonStringValue = ({
       </span>
     );
   });
+
   return (
     <>
       {isExceed && (

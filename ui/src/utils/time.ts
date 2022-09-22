@@ -97,14 +97,16 @@ export const timeIntervalIsConvertedIntoUnits = (
     return "MM/DD";
   }
   // 4、（月日时分秒）： 时间区间跨月了且小于1天
-  // 5、（月日，时分秒）：时间区间大于等于1天小于7天 ||  时间区间跨天了
+  // 5、（月日，时分秒）：时间区间大于等于1天小于7天 ||  时间区间跨天了 || 时间不是今天
   if (
     (moment(startTIme * 1000).format("YYYY/MM") !=
       moment(endTime * 1000).format("YYYY/MM") &&
       endTime - startTIme < 86400) ||
     (endTime - startTIme >= 86400 && endTime - startTIme < 86400 * 7) ||
     moment(startTIme * 1000).format("YYYY/MM/DD") !=
-      moment(endTime * 1000).format("YYYY/MM/DD")
+      moment(endTime * 1000).format("YYYY/MM/DD") ||
+    moment(startTIme * 1000).format("YYYY/MM/DD") !=
+      moment().format("YYYY/MM/DD")
   ) {
     return "MM/DD HH:mm:ss";
   }
