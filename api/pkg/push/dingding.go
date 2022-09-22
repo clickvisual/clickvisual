@@ -90,15 +90,13 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 			buffer.WriteString("##### 状态：：<font color=#FF0000>告警中</font>\n")
 		}
 		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(@%s)\n", user.Username, user.Nickname))
-
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
-
 		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/alarm/rules/history?id=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, start, end,
 		))
 		if oneTheLogs != "" {
-			if len(oneTheLogs) > 200 {
-				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", oneTheLogs[0:199]))
+			if len(oneTheLogs) > 400 {
+				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", oneTheLogs[0:399]))
 			} else {
 				buffer.WriteString(fmt.Sprintf("##### 详情: %s", oneTheLogs))
 			}

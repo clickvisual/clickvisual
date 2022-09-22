@@ -49,11 +49,13 @@ func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 			continue
 		}
 		respTableSimple := view.RespTableSimple{
-			Id:         row.ID,
-			Did:        row.Database.ID,
-			TableName:  row.Name,
-			CreateType: row.CreateType,
-			Desc:       row.Desc,
+			Id:              row.ID,
+			Did:             row.Database.ID,
+			TableName:       row.Name,
+			CreateType:      row.CreateType,
+			Desc:            row.Desc,
+			V3TableType:     row.V3TableType,
+			RelTraceTableId: row.TraceTableId,
 		}
 		item.Tables = append(item.Tables, respTableSimple)
 		dMap[row.Database.ID] = item

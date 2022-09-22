@@ -178,11 +178,13 @@ type (
 		Tables       []RespTableSimple `json:"tables"`
 	}
 	RespTableSimple struct {
-		Id         int    `json:"id"`
-		Did        int    `json:"did"`
-		TableName  string `json:"tableName"`
-		CreateType int    `json:"createType"`
-		Desc       string `json:"desc"`
+		Id              int    `json:"id"`
+		Did             int    `json:"did"`
+		TableName       string `json:"tableName"`
+		CreateType      int    `json:"createType"`
+		Desc            string `json:"desc"`
+		V3TableType     int    `json:"v3TableType"`
+		RelTraceTableId int    `json:"relTraceTableId"`
 	}
 )
 
