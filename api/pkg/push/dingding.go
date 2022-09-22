@@ -53,9 +53,9 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 
 	var buffer bytes.Buffer
 	if status == "resolved" {
-		buffer.WriteString("### <table><tr><td bgcolor=#008000>您有待处理的告警</td></tr></table>\n")
+		buffer.WriteString("###  <font color=#008000>您的告警已恢复</font>\n")
 	} else {
-		buffer.WriteString("###  <table><tr><td bgcolor=#FF0000>您的告警已恢复</td></tr></table>\n")
+		buffer.WriteString("###  <font color=#FF0000>您有待处理的告警</font>\n")
 	}
 	buffer.WriteString(fmt.Sprintf("##### 告警名称: %s\n", alarm.Name))
 	if alarm.Desc != "" {
