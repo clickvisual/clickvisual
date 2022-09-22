@@ -206,7 +206,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
   };
 
   const items = useMemo(() => {
-    let item = [
+    let item: any = [
       {
         label: i18n.formatMessage({
           id: "datasource.tooltip.icon.info",
