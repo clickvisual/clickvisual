@@ -6,6 +6,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 5px;
+  white-space: nowrap;
   border-bottom: 1px solid @border-color;
 
   .operationsBtn {
@@ -14,6 +15,15 @@
       cursor: pointer;
     }
   }
+  .duration {
+    flex: 1;
+    margin-right: 13px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: right;
+    text-overflow: ellipsis;
+  }
+
   .pagination {
     user-select: text;
   }

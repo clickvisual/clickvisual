@@ -33,7 +33,7 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         <HistogramSwitch oldPane={oldPane} />
       </div>
       {performTime ? (
-        <div style={{ flex: 1, textAlign: "right", marginRight: "13px" }}>
+        <div className={rawLogsOperationsStyles.duration}>
           {i18n.formatMessage({ id: "log.perform.time" })}:&nbsp;
           {performTime}ms
         </div>
