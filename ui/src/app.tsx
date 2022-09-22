@@ -38,6 +38,7 @@ const fetchMenu = async () => {
       return item;
     });
   };
+  console.log("fetchMenu", menuDataRender(res.data));
   routeList = menuDataRender(res.data);
   return menuDataRender(res.data);
 };
@@ -78,6 +79,7 @@ export async function getInitialState(): Promise<InitialStateType | undefined> {
   };
   const currentUser = await fetchUserInfo();
   let menus: IRoute[] = [];
+  console.log(Boolean(currentUser), "routeList", routeList);
   if (currentUser) menus = routeList || [];
   return {
     menus,
