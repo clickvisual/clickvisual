@@ -360,7 +360,7 @@ export default {
   "datasource.tooltip.icon.topology": "View the corresponding topology",
   "datasource.tooltip.icon.view": "Configure data acquisition rules",
   "datasource.tooltip.icon.link": "Associate the link log library",
-  "datasource.tooltip.icon.linkDependency": "View the link dependency diagram",
+  "datasource.tooltip.icon.linkDependency": "View the FDG",
   "datasource.tooltip.icon.deleted": "Deleting a Log Library",
   "datasource.view.draw": "Manage Log Collection Rules",
   "datasource.view.button": "Creating a Configuration Rule",
