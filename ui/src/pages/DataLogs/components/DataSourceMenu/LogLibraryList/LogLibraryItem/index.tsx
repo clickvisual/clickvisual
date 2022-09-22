@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import {Dropdown, Menu, message, Tooltip} from "antd";
+import { Dropdown, Menu, message, Tooltip } from "antd";
 import {
   ApartmentOutlined,
   CalendarOutlined,
@@ -20,22 +20,28 @@ import {
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
 } from "@/config/config";
-import {useModel} from "@@/plugin-model/useModel";
-import {useIntl} from "umi";
+import { useModel } from "@@/plugin-model/useModel";
+import { useIntl } from "umi";
 import lodash from "lodash";
 import moment from "moment";
-import {currentTimeStamp} from "@/utils/momentUtils";
+import { currentTimeStamp } from "@/utils/momentUtils";
 import deletedModal from "@/components/DeletedModal";
-import {IndexInfoType, TablesResponse} from "@/services/dataLogs";
+import { IndexInfoType, TablesResponse } from "@/services/dataLogs";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
-import {DefaultPane} from "@/models/datalogs/useLogPanes";
-import {RestUrlStates} from "@/pages/DataLogs/hooks/useLogUrlParams";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useUrlState from "@ahooksjs/use-url-state";
-import {PaneType} from "@/models/datalogs/types";
-import {useEffect, useMemo, useRef} from "react";
+import { PaneType } from "@/models/datalogs/types";
+import { useEffect, useMemo, useRef } from "react";
+
+interface logLibraryType extends TablesResponse {
+  did: number;
+  v3TableType: number;
+  relTraceTableId: number;
+}
 
 type LogLibraryItemProps = {
-  logLibrary: TablesResponse;
+  logLibrary: logLibraryType;
   onGetList: any;
 };
 
@@ -244,7 +250,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       key: "log-link-DAG",
       onClick: async () => {
         logLibrary?.id &&
-        window.open(`${GRAPHICS_PATH}?tid=${logLibrary?.id}`, "_blank");
+          window.open(`${GRAPHICS_PATH}?tid=${logLibrary?.id}`, "_blank");
       },
       icon: <FundOutlined />,
     },
@@ -327,6 +333,23 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     [logLibrary]
   );
 
+  const logIcon = useMemo(() => {
+    if (logLibrary.v3TableType == 1) {
+      // link log
+      return (
+        <IconFont
+          type="icon-link-table"
+          style={{ marginRight: "4px", color: "#2fabee" }}
+        />
+      );
+    }
+    if (logLibrary.createType == 1) {
+      return <IconFont type="icon-table" style={{ marginRight: "4px" }} />;
+    }
+    // cv log
+    return <IconFont type="icon-active-table" style={{ marginRight: "4px" }} />;
+  }, [logLibrary.createType, logLibrary.v3TableType]);
+
   return (
     <li
       className={classNames(logLibraryListStyles.tableTitle)}
@@ -349,14 +372,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             }}
             className={classNames(logLibraryListStyles.title)}
           >
-            {logLibrary.createType == 1 ? (
-              <IconFont type="icon-table" style={{ marginRight: "4px" }} />
-            ) : (
-              <IconFont
-                type="icon-active-table"
-                style={{ marginRight: "4px" }}
-              />
-            )}
+            {logIcon}
 
             {logLibrary.tableName}
           </span>
