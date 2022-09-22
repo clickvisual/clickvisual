@@ -52,7 +52,11 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	annotations := notification.CommonAnnotations
 
 	var buffer bytes.Buffer
-	buffer.WriteString("### ClickVisual 告警\n")
+	if status == "resolved" {
+		buffer.WriteString("### <table><tr><td bgcolor=#008000>您有待处理的告警</td></tr></table>\n")
+	} else {
+		buffer.WriteString("###  <table><tr><td bgcolor=#FF0000>您的告警已恢复</td></tr></table>\n")
+	}
 	buffer.WriteString(fmt.Sprintf("##### 告警名称: %s\n", alarm.Name))
 	if alarm.Desc != "" {
 		buffer.WriteString(fmt.Sprintf("##### 告警描述: %s\n", alarm.Desc))
@@ -83,9 +87,9 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		if status == "resolved" {
 			buffer.WriteString("##### 状态：<font color=#008000>已恢复</font>\n")
 		} else {
-			buffer.WriteString("##### 状态：：<font color=red>告警中</font>\n")
+			buffer.WriteString("##### 状态：：<font color=#FF0000>告警中</font>\n")
 		}
-		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
+		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(@%s)\n", user.Username, user.Nickname))
 
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
 
