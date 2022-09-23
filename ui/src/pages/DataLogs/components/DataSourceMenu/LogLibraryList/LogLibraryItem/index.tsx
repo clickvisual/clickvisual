@@ -365,7 +365,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     // cv log
     return <IconFont type="icon-active-table" style={{ marginRight: "4px" }} />;
   }, [logLibrary.createType, logLibrary.v3TableType]);
-  console.log(currentLogLibrary, "logLibrary", logLibrary);
 
   return (
     <li
