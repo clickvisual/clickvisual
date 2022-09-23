@@ -38,6 +38,7 @@ export type PaneType = {
   rawLogsIndexeList?: IndexInfoType[];
   logState: number;
   linkLogs?: LogsResponse;
+  relTraceTableId: number;
 };
 
 export enum hashType {

@@ -51,6 +51,7 @@ const RawLogTabs = () => {
         tableName: currentPane.pane,
         createType: currentPane.paneType,
         desc: currentPane.desc,
+        relTraceTableId: currentPane.relTraceTableId,
       });
     }
   };

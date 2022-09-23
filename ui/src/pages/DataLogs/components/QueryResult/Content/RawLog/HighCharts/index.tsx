@@ -20,7 +20,6 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     highChartList,
     onChangeLogPane,
     onChangeCurrentLogPane,
-    // currentRelativeUnit,
     resetLogPaneLogsAndHighCharts,
   } = useModel("dataLogs");
 
@@ -42,17 +41,9 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     return "";
   }, [highChartList]);
 
-  const format = (timeStr: string | number) => {
-    return moment(timeStr, "X").format(generationTimeUnit);
+  const format = (timeStr: string | number, dateFormat?: string) => {
+    return moment(timeStr, "X").format(dateFormat ?? generationTimeUnit);
   };
-
-  // const formatTimes = {
-  //   minutes: "LTS",
-  //   hours: "LT",
-  //   days: "L",
-  //   months: "L",
-  //   years: "YYYY/MM",
-  // };
 
   const scale = {
     from: {

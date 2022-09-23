@@ -119,6 +119,7 @@ export interface TablesResponse {
   tableName: string;
   createType: number;
   desc: string;
+  relTraceTableId: number;
 }
 
 export interface TableInfoResponse {
