@@ -32,10 +32,11 @@ const LinkItem = (props: LinkItemProps) => {
 
   const handleGetTotalLength = (list: any[], arr: any[]) => {
     list.map((item: any) => {
+      const duration = item?.data?.rawLogJson?.duration
+        ? item?.data?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6)
+        : 0;
       arr.push({
-        et:
-          item?.data?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6) +
-          microsecondTimeStamp(item?.data?.rawLogJson?.startTime),
+        et: duration + microsecondTimeStamp(item?.data?.rawLogJson?.startTime),
         st: microsecondTimeStamp(item?.data?.rawLogJson?.startTime),
       });
       if (item.children.length > 0) {
