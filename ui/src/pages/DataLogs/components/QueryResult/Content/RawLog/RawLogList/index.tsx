@@ -204,7 +204,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
               themeColorList,
               startTime
             ),
-            key: key,
+            key: item?.rawLogJson?.spanId,
             data: item,
             duration: endTime - startTime,
             services: themeColorList.length,
