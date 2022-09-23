@@ -107,10 +107,11 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       serviceNameList: string[]
     ) => {
       list.map((item: any) => {
+        const duration = item?.rawLogJson?.duration
+          ? item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6)
+          : 0;
         arr.push({
-          et:
-            item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6) +
-            microsecondTimeStamp(item?.rawLogJson?.startTime),
+          et: duration + microsecondTimeStamp(item?.rawLogJson?.startTime),
           st: microsecondTimeStamp(item?.rawLogJson?.startTime),
         });
         // name对应主题色
@@ -129,7 +130,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     let isLink = true;
     list.map((item: any) => {
       item.rawLogJson = parseJsonObject(item["_raw_log_"]);
-      if (!item["_key"] || !item.rawLogJson["duration"]) {
+      if (!item.rawLogJson["traceId"]) {
         isLink = false;
         console.log("不合规链路日志", item);
       }

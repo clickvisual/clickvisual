@@ -79,7 +79,11 @@ const LinkItemTitle = (props: {
             initial={initial}
             start={microsecondTimeStamp(log.rawLogJson?.startTime)}
             totalLength={totalLength}
-            duration={log.rawLogJson?.duration.slice(0, -1) * 1000000}
+            duration={
+              log.rawLogJson?.duration
+                ? log.rawLogJson?.duration.slice(0, -1) * 1000000
+                : 0
+            }
             themeColor={themeColor}
           />
           <div className={styles.ticks}>
@@ -115,9 +119,11 @@ const LinkItemTitle = (props: {
                 &nbsp;|&nbsp;Duration: &nbsp;
               </span>
               <span>
-                {microsecondsTimeUnitConversion(
-                  log.rawLogJson?.duration.slice(0, -1) * 1000000
-                )}
+                {log.rawLogJson?.duration
+                  ? microsecondsTimeUnitConversion(
+                      log.rawLogJson?.duration.slice(0, -1) * 1000000
+                    )
+                  : 0}
               </span>
               <span className={styles.color_gray}>
                 &nbsp;|&nbsp;Start Time: &nbsp;
