@@ -94,7 +94,11 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
                 index % 2 == 1 ? styles.bg_gray : styles.bg_white,
               ])}
             >
-              <span className={styles.detailsItemKeys}>{item.key}</span>
+              <span className={styles.detailsItemKeys}>
+                <Tooltip title={item.key} placement="left">
+                  {item.key}
+                </Tooltip>
+              </span>
               :&nbsp;
               <span className={styles.detailsItemValues}>
                 {handleValueDisplayLogic(item)}
