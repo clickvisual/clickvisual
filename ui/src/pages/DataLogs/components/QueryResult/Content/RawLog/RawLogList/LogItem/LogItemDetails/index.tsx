@@ -120,6 +120,11 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
 
   const quickInsertQuery = (keyItem: string) => {
     const isFloat = Boolean(newLog[keyItem] % 1);
+    if (keyItem == "_headers.value" || keyItem == "_headers.name") {
+      const currentSelected = `indexOf(${keyItem},'${newLog[keyItem]}')!=0`;
+      doUpdatedQuery(currentSelected);
+      return;
+    }
     const currentSelected =
       "`" +
       keyItem +
