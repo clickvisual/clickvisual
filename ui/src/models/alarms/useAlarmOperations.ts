@@ -6,6 +6,7 @@ import useAlarm from "@/models/alarms/useAlarm";
 
 const useAlarmOperations = () => {
   const [inputName, setInputName] = useState<string>();
+  const [alarmId, setAlarmId] = useState<number | string>();
   const [selectIid, setSelectIid] = useState<number>();
   const [selectDid, setSelectDid] = useState<number>();
   const [selectTid, setSelectTid] = useState<number>();
@@ -19,6 +20,7 @@ const useAlarmOperations = () => {
   const searchQuery = useMemo(
     () => ({
       name: inputName,
+      alarmId: alarmId,
       did: selectDid,
       tid: selectTid,
       iid: selectIid,
@@ -27,6 +29,7 @@ const useAlarmOperations = () => {
     }),
     [
       inputName,
+      alarmId,
       selectTid,
       selectDid,
       selectIid,
@@ -54,6 +57,9 @@ const useAlarmOperations = () => {
   const onChangeInputName = (name: string | undefined) => {
     setInputName(name);
   };
+  const onChangeAlarmId = (alarmId: number | string | undefined) => {
+    setAlarmId(alarmId);
+  };
 
   const onChangeSelectIid = (id: number | undefined) => {
     setSelectIid(id);
@@ -72,6 +78,7 @@ const useAlarmOperations = () => {
   };
   return {
     inputName,
+    alarmId,
     selectIid,
     selectDid,
     selectTid,
@@ -84,6 +91,7 @@ const useAlarmOperations = () => {
     getInstanceList,
     searchQuery,
     onChangeInputName,
+    onChangeAlarmId,
     onChangeSelectIid,
     onChangeSelectDid,
     onChangeSelectTid,

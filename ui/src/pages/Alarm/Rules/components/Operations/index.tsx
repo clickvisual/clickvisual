@@ -18,6 +18,7 @@ export interface urlStateType {
   tid?: string | number;
   status?: string | number;
   name?: string;
+  alarmId?: string;
 }
 
 const Operations = () => {
@@ -51,8 +52,12 @@ const Operations = () => {
           operations.searchQuery.tid || operations.searchQuery.did
             ? undefined
             : operations.searchQuery.iid,
+        alarmId: operations.searchQuery.alarmId || undefined,
       });
-      urlChange("name", operations.inputName || undefined);
+      setUrlState({
+        name: operations.inputName || undefined,
+        alarmId: operations.alarmId || undefined,
+      });
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
@@ -63,7 +68,10 @@ const Operations = () => {
       did: params.tid ? undefined : params.did,
       iid: params.tid || params.did ? undefined : params.iid,
     });
-    urlChange("name", operations.inputName || undefined);
+    setUrlState({
+      name: operations.inputName || undefined,
+      alarmId: operations.alarmId || undefined,
+    });
   };
 
   /**
@@ -84,6 +92,7 @@ const Operations = () => {
       urlState.tid && operations.onChangeSelectTid(parseInt(urlState.tid));
       urlState.status && operations.onChangeStatusId(parseInt(urlState.status));
       urlState.name && operations.onChangeInputName(urlState.name);
+      urlState.alarmId && operations.onChangeAlarmId(urlState.alarmId);
     });
   }, []);
 
@@ -223,6 +232,20 @@ const Operations = () => {
             id: "alarm.rules.form.placeholder.alarmName",
           })}`}
           onChange={(env) => operations.onChangeInputName(env.target.value)}
+          onPressEnter={handleSearch}
+        />
+        <Input
+          allowClear
+          className={alarmStyles.selectedBar}
+          value={operations.alarmId}
+          placeholder={`${i18n.formatMessage({
+            id: "alarm.rules.form.placeholder.alarmId",
+          })}`}
+          onChange={(env) =>
+            operations.onChangeAlarmId(
+              env.target.value && parseInt(env.target.value)
+            )
+          }
           onPressEnter={handleSearch}
         />
         <Button

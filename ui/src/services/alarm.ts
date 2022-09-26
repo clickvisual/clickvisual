@@ -7,6 +7,7 @@ export interface AlarmsResponse {
   did?: number;
   tid?: number;
   name?: string;
+  alarmId?: number | string;
   status?: number;
   current: number;
   pageSize: number;

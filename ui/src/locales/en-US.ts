@@ -537,6 +537,7 @@ export default {
   "alarm.rules.form.description": "Alarm Description",
   "alarm.rules.form.channelIds": "Notification channels",
   "alarm.rules.form.placeholder.alarmName": "Please enter a alarm name",
+  "alarm.rules.form.placeholder.alarmId": "Please enter the alarm Id",
   "alarm.rules.form.placeholder.level": "Please select alarm level",
   "alarm.rules.form.placeholder.description":
     "Please enter an alarm description",

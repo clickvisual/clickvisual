@@ -136,6 +136,7 @@ const AlarmTable = () => {
         ...params,
         did: params.tid ? undefined : params.did,
         iid: params.tid || params.did ? undefined : params.iid,
+        alarmId: params.alarmId || undefined,
       });
     },
     { wait: DEBOUNCE_WAIT }
@@ -152,6 +153,7 @@ const AlarmTable = () => {
     if (urlState.did) query.did = parseInt(urlState.did);
     if (urlState.tid) query.tid = parseInt(urlState.tid);
     if (urlState.status) query.status = parseInt(urlState.status);
+    if (urlState.alarmId) query.alarmId = parseInt(urlState.alarmId);
     handleGetAlarms(query);
   }, []);
 

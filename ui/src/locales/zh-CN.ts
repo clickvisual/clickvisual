@@ -508,6 +508,7 @@ export default {
   "alarm.rules.form.description": "报警描述",
   "alarm.rules.form.channelIds": "通知方式",
   "alarm.rules.form.placeholder.alarmName": "请输入报警名称",
+  "alarm.rules.form.placeholder.alarmId": "请输入报警Id",
   "alarm.rules.form.placeholder.level": "请选择报警级别",
   "alarm.rules.form.placeholder.description": "请输入报警描述",
   "alarm.rules.form.placeholder.channelIds": "请选择通知方式",
