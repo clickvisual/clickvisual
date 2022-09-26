@@ -30,13 +30,13 @@ export const microsecondsTimeUnitConversion = (time: number) => {
     const list = ((time / Math.pow(10, 6)) * 3600).toString().split(".");
     const num =
       list.length > 1 ? (list[1].length <= 2 ? list[1].length : 2) : 0;
-    return ((time / Math.pow(10, 6)) * 3600).toFixed(num) + "h";
+    return (time / Math.pow(10, 6) / 3600).toFixed(num) + "h";
   }
   if (time > Math.pow(10, 6) * 60) {
     const list = ((time / Math.pow(10, 6)) * 60).toString().split(".");
     const num =
       list.length > 1 ? (list[1].length <= 2 ? list[1].length : 2) : 0;
-    return ((time / Math.pow(10, 6)) * 60).toFixed(num) + "min";
+    return (time / Math.pow(10, 6) / 60).toFixed(num) + "min";
   }
   if (time > Math.pow(10, 6)) {
     const list = (time / Math.pow(10, 6)).toString().split(".");

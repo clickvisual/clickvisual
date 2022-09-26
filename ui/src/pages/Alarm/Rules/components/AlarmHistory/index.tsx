@@ -128,8 +128,8 @@ const AlarmHistory = () => {
             <a
               href={
                 process.env.PUBLIC_PATH +
-                "alarm/rules?name=" +
-                currentAlarm?.alarmName
+                "alarm/rules?alarmId=" +
+                currentAlarm?.id
               }
             >
               {currentAlarm?.alarmName}

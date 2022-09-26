@@ -119,6 +119,11 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
   }, [logs, logs?.keys, log]);
 
   const quickInsertQuery = (keyItem: string) => {
+    if (keyItem == "_headers.value" || keyItem == "_headers.name") {
+      const currentSelected = `indexOf(${keyItem},'${newLog[keyItem]}')!=0`;
+      doUpdatedQuery(currentSelected);
+      return;
+    }
     const isFloat = Boolean(newLog[keyItem] % 1);
     const currentSelected =
       "`" +
@@ -130,6 +135,11 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
   };
 
   const quickInsertExclusion = (keyItem: string) => {
+    if (keyItem == "_headers.value" || keyItem == "_headers.name") {
+      const currentSelected = `indexOf(${keyItem},'${newLog[keyItem]}')=0`;
+      doUpdatedQuery(currentSelected);
+      return;
+    }
     const isFloat = Boolean(newLog[keyItem] % 1);
     const currentSelected =
       "`" +
