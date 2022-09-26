@@ -1,16 +1,13 @@
 package constx
 
 import (
-	"errors"
-
 	"github.com/gotomicro/cetus/pkg/kerror"
 )
 
 var (
-	// ErrAuthNeedLogin 00 middlewares errors
-	ErrPmsCheck           = &kerror.KError{Code: 10002, Message: "Authentication failed"}
-	ErrAuthNeedLogin      = &kerror.KError{Code: 10003, Message: "Need login"}
-	ErrAuthUserLoginError = &kerror.KError{Code: 10004, Message: "User login error"}
+	ErrPmsCheck                     = &kerror.KError{Code: 10002, Message: "Authentication failed"}
+	ErrorUserOauthTypeIsNotPassword = &kerror.KError{Code: 10005, Message: "user oauth type is not user/password"}
+	ErrorRepeatUserName             = &kerror.KError{Code: 10006, Message: "repeat username"}
 
 	ErrSkipConfigureName           = &kerror.KError{Code: 10101, Message: "Skipped synchronization file name"}
 	ErrQueryFormatIllegal          = &kerror.KError{Code: 10102, Message: "Query format is illegal"}
@@ -25,7 +22,3 @@ var (
 	ErrBigdataNotSupportNodeType             = &kerror.KError{Code: 10203, Message: "Node type is not supported"}
 	ErrDagExecFailed                         = &kerror.KError{Code: 10204, Message: "DAG execution failed"}
 )
-
-func New(msg string, err string) error {
-	return errors.New(msg + err)
-}

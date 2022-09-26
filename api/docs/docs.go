@@ -99,6 +99,131 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/base/users": {
+            "get": {
+                "description": "Get user list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "Get user list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "username",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/view.RespUserSimpleList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "username 登陆账号\nnickname 显示用户名",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "Create new user",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/view.ReqUserCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/view.RespUserCreate"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/base/users/{user-id}/password-reset": {
+            "patch": {
+                "description": "Reset user password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "Reset user password",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "user id",
+                        "name": "user-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/view.RespUserCreate"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/pandas/instances/{instance-id}/table-dependencies": {
             "get": {
                 "description": "Result of table dependency resolution",
@@ -1161,6 +1286,19 @@ const docTemplate = `{
                 }
             }
         },
+        "view.ReqUserCreate": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "description": "显示用户名",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "登陆账号",
+                    "type": "string"
+                }
+            }
+        },
         "view.RespDatabaseSimple": {
             "type": "object",
             "properties": {
@@ -1334,7 +1472,24 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "relTraceTableId": {
+                    "type": "integer"
+                },
                 "tableName": {
+                    "type": "string"
+                },
+                "v3TableType": {
+                    "type": "integer"
+                }
+            }
+        },
+        "view.RespUserCreate": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -1356,6 +1511,20 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "view.RespUserSimpleList": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/view.RespUserSimpleInfo"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
