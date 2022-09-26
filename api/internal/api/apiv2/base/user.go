@@ -158,10 +158,37 @@ func UserPasswordReset(c *core.Context) {
 		c.JSONE(1, "password reset failed 01: "+err.Error(), nil)
 		return
 	}
-
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": u.Username})
+	event.Event.InquiryCMDB(c.User(), db.OpnUserPasswordReset, map[string]interface{}{"req": u.Username})
 	c.JSONOK(view.RespUserCreate{
 		Username: u.Username,
 		Password: pwd,
 	})
+}
+
+// UserDelete  godoc
+// @Summary	     User delete
+// @Description  User delete
+// @Tags         base
+// @Accept       json
+// @Produce      json
+// @Param        user-id path int true "user id"
+// @Success      200 {object} core.Res{}
+// @Router       /api/v2/base/users/{user-id} [delete]
+func UserDelete(c *core.Context) {
+	uid := cast.ToInt(c.Param("user-id"))
+	if uid == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	err := db.UserDelete(invoker.Db, uid)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnUserDelete, map[string]interface{}{"req": uid})
+	c.JSONOK()
 }

@@ -29,6 +29,7 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/base/users", core.Handle(base.UserList))
 		r.POST("/base/users", core.Handle(base.UserCreate))
 		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.UserPasswordReset))
+		r.DELETE("/base/users/:user-id", core.Handle(base.UserDelete))
 		// other apis
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))

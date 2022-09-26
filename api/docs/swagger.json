@@ -171,6 +171,38 @@
                 }
             }
         },
+        "/api/v2/base/users/{user-id}": {
+            "delete": {
+                "description": "User delete",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "User delete",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "user id",
+                        "name": "user-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/base/users/{user-id}/password-reset": {
             "patch": {
                 "description": "Reset user password",

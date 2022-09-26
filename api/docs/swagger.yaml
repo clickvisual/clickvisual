@@ -495,6 +495,27 @@ paths:
       summary: Create new user
       tags:
       - base
+  /api/v2/base/users/{user-id}:
+    delete:
+      consumes:
+      - application/json
+      description: User delete
+      parameters:
+      - description: user id
+        in: path
+        name: user-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: User delete
+      tags:
+      - base
   /api/v2/base/users/{user-id}/password-reset:
     patch:
       consumes:

@@ -90,8 +90,10 @@ const (
 	OpnBigDataNodeRun           = "opn_big_data_node_run"
 	OpnBigDataNodeStop          = "opn_big_data_node_strop"
 
-	OpnUserCreate    = "opn_base_user_create"
-	OpnUserPwdChange = "user_pwd_change"
+	OpnUserCreate        = "opn_base_user_create"
+	OpnUserDelete        = "opn_base_user_delete"
+	OpnUserPasswordReset = "opn_base_user_password_reset"
+	OpnUserPwdChange     = "user_pwd_change"
 )
 
 var OperationMap = map[string]string{
@@ -155,8 +157,10 @@ var OperationMap = map[string]string{
 	OpnBigDataNodeRun:           "node run",
 	OpnBigDataNodeStop:          "node stop",
 
-	OpnUserCreate:    "user create",
-	OpnUserPwdChange: "change the password",
+	OpnUserCreate:        "user create",
+	OpnUserDelete:        "user delete",
+	OpnUserPasswordReset: "user password reset",
+	OpnUserPwdChange:     "change the password",
 }
 
 const (
@@ -215,7 +219,7 @@ var (
 			OpnConfigsUpdate,
 			OpnConfigsPublish,
 		},
-		SourceUserMgtCenter: {OpnUserPwdChange, OpnUserCreate},
+		SourceUserMgtCenter: {OpnUserPwdChange, OpnUserCreate, OpnUserDelete, OpnUserPasswordReset},
 		SourceSystemSetting: {OpnMigration},
 		SourceBigDataMgtCenter: {
 			OpnBigDataNodeCreate,

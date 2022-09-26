@@ -289,7 +289,7 @@ func UserInfoX(conds map[string]interface{}) (resp User, err error) {
 
 // UserDelete soft delete item by id
 func UserDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(User{}).Delete(&User{}, id).Error; err != nil {
+	if err = db.Model(User{}).Unscoped().Delete(&User{}, id).Error; err != nil {
 		invoker.Logger.Error("cluster delete error", zap.Error(err))
 		return
 	}
