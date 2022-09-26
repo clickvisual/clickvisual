@@ -63,20 +63,24 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
             !isTagsHidden && styles.none,
           ])}
         >
-          {list.map((item: any, index: number) => {
-            return (
-              <li
-                key={item.key}
-                className={styles.titleSpanItem}
-                style={{ borderRight: index == list.length - 1 ? "none" : "" }}
-              >
-                <span>{item.key}</span> = &nbsp;
-                <span style={{ color: "#666" }}>
-                  {handleValueDisplayLogic(item)}
-                </span>
-              </li>
-            );
-          })}
+          {list &&
+            list.length > 0 &&
+            list.map((item: any, index: number) => {
+              return (
+                <li
+                  key={item.key}
+                  className={styles.titleSpanItem}
+                  style={{
+                    borderRight: index == list.length - 1 ? "none" : "",
+                  }}
+                >
+                  <span>{item.key}</span> = &nbsp;
+                  <span style={{ color: "#666" }}>
+                    {handleValueDisplayLogic(item)}
+                  </span>
+                </li>
+              );
+            })}
         </ul>
       </div>
       <div
@@ -85,36 +89,42 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
           isTagsHidden ? styles.none : "",
         ])}
       >
-        {list.map((item: any, index: number) => {
-          return (
-            <div
-              key={item.key}
-              className={classNames([
-                styles.detailsItem,
-                index % 2 == 1 ? styles.bg_gray : styles.bg_white,
-              ])}
-            >
-              <span className={styles.detailsItemKeys}>{item.key}</span>
-              :&nbsp;
-              <span className={styles.detailsItemValues}>
-                {handleValueDisplayLogic(item)}
-              </span>
-              <span className={styles.copyBtn}>
-                <Tooltip title="Copy JSON" placement="left">
-                  <Button
-                    icon={<CopyOutlined />}
-                    type="text"
-                    size="small"
-                    onClick={() => {
-                      copy(JSON.stringify(item)) &&
-                        message.success("Copy success");
-                    }}
-                  ></Button>
-                </Tooltip>
-              </span>
-            </div>
-          );
-        })}
+        {list &&
+          list.length > 0 &&
+          list.map((item: any, index: number) => {
+            return (
+              <div
+                key={item.key}
+                className={classNames([
+                  styles.detailsItem,
+                  index % 2 == 1 ? styles.bg_gray : styles.bg_white,
+                ])}
+              >
+                <span className={styles.detailsItemKeys}>
+                  <Tooltip title={item.key} placement="left">
+                    {item.key}
+                  </Tooltip>
+                </span>
+                :&nbsp;
+                <span className={styles.detailsItemValues}>
+                  {handleValueDisplayLogic(item)}
+                </span>
+                <span className={styles.copyBtn}>
+                  <Tooltip title="Copy JSON" placement="left">
+                    <Button
+                      icon={<CopyOutlined />}
+                      type="text"
+                      size="small"
+                      onClick={() => {
+                        copy(JSON.stringify(item)) &&
+                          message.success("Copy success");
+                      }}
+                    ></Button>
+                  </Tooltip>
+                </span>
+              </div>
+            );
+          })}
       </div>
     </>
   );

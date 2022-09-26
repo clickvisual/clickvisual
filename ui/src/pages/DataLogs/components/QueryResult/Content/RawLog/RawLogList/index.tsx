@@ -25,6 +25,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const { logs, linkLogs, logState } = useModel("dataLogs");
   const [isNotification, setIsNotification] = useState<boolean>(false);
   const [isLinkLogs, setIsLinkLogs] = useState<boolean>(true);
+  const [dataListLength, setDataListLength] = useState<number>(0);
 
   const list = useMemo(() => {
     if (
@@ -106,7 +107,13 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       arr: any[],
       serviceNameList: string[]
     ) => {
+      let spanIdList: any[] = [];
+      let referencesSpanIdList: any[] = [];
       list.map((item: any) => {
+        if (item?.rawLogJson?.spanId && item?.rawLogJson?.references) {
+          spanIdList.push(item?.rawLogJson?.spanId);
+          referencesSpanIdList.push(item?.rawLogJson?.references[0].spanId);
+        }
         const duration = item?.rawLogJson?.duration
           ? item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6)
           : 0;
@@ -122,7 +129,17 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
           serviceNameList.push(item?.rawLogJson?.process?.serviceName);
         }
       });
-      return arr;
+      // 计算假的根节点
+      const newList: any[] = [];
+      referencesSpanIdList.map((item: string, index: number) => {
+        if (!spanIdList.includes(item)) {
+          newList.push(item);
+        }
+      });
+      return {
+        arr,
+        referencesSpanIdList: Array.from(new Set(newList)),
+      };
     };
 
     let keyList: string[] = [];
@@ -149,13 +166,13 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       setIsLinkLogs(false);
       return [];
     }
-
+    setDataListLength(Object.keys(dataList).length || 0);
     let treeDataList: any[] = [];
     Object.keys(dataList).map((key: string) => {
       let endTime: number = 0;
       let startTime: number = 0;
       let themeColorList: any[] = [];
-      const totalLength = handleGetTotalLength(
+      const { arr: totalLength, referencesSpanIdList } = handleGetTotalLength(
         dataList[key],
         [],
         themeColorList
@@ -167,6 +184,23 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         if (index == 0 || item.st < startTime) {
           startTime = item.st;
         }
+      });
+
+      // 新增假的根节点
+      referencesSpanIdList.map((item: string) => {
+        dataList[key] &&
+          dataList[key].push({
+            ...dataList[key][0],
+            rawLogJson: {
+              traceId: dataList[key][0].rawLogJson.traceId,
+              spanId: item,
+              operationName:
+                "Virtual Root Span （由于找不到根结点而产生的虚拟节点）",
+              startTime: dataList[key][0].rawLogJson.startTime,
+              tags: [],
+              process: {},
+            },
+          });
       });
 
       dataList[key].map((item: any) => {
@@ -240,7 +274,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       logs?.isTrace == 1 &&
       logState == 1 &&
       linkLogs?.limited == 100 &&
-      linkDataList.length > 1 &&
+      dataListLength > 1 &&
       oldPane?.linkLogs &&
       !isNotification
     ) {
