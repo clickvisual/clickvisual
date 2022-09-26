@@ -97,11 +97,6 @@ func Login(c *core.Context) {
 	conds := egorm.Conds{}
 	conds["username"] = param.Username
 	user, _ := db.UserInfoX(conds)
-	// hash, err := bcrypt.GenerateFromPassword([]byte(param.Password), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// fmt.Println(string(hash))
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
 		c.JSONE(1, "account or password error", "")
@@ -182,7 +177,7 @@ func UpdatePassword(c *core.Context) {
 		c.JSONE(1, "password update error", err.Error())
 		return
 	}
-	event.Event.UsersPwdChange(c.User(), "")
+	event.Event.UserCMDB(c.User(), db.OpnUserPwdChange, nil)
 	c.JSONOK("")
 	return
 }

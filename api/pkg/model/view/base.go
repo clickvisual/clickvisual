@@ -276,3 +276,28 @@ type (
 		OriginUrl string `json:"originUrl" form:"originUrl"`
 	}
 )
+
+type (
+	ReqUserCreate struct {
+		Username string `json:"username" form:"username"`
+	}
+	RespUserCreate struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	ReqUserList struct {
+		Username string `json:"username" form:"username"`
+		db.ReqPage
+	}
+	RespUserList struct {
+		ID           int    `json:"id"`
+		Ctime        int64  `json:"ctime"`
+		NodeId       int    `json:"nodeId"`
+		Content      string `json:"content,omitempty"`
+		Result       string `json:"result,omitempty"`
+		Cost         int64  `json:"cost,omitempty"`
+		ExcelProcess string `json:"excelProcess,omitempty"`
+		Status       int    `json:"status"`
+		RespUserSimpleInfo
+	}
+)

@@ -109,7 +109,7 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 		return
 	}
 	// Calculate the current version number
-	if utils.MD5(configuration.Content) == utils.MD5(param.Content) {
+	if utils.MD5Encode32(configuration.Content) == utils.MD5Encode32(param.Content) {
 		return constx.ErrConfigurationIsNoDifference
 	}
 	version := uuid.New().String()
@@ -214,7 +214,7 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 			tx.Rollback()
 			return errors.Wrap(err, "read configmap data failed")
 		}
-		if utils.MD5(upstreamValue) != utils.MD5(config.Content) {
+		if utils.MD5Encode32(upstreamValue) != utils.MD5Encode32(config.Content) {
 			invoker.Logger.Debug("delete", elog.Any("upstreamValue", upstreamValue), elog.Any("config.Content", config.Content))
 			tx.Rollback()
 			return errors.New("The deleted configuration is inconsistent with the effective configuration. The effective configuration cannot be deleted.")
