@@ -126,6 +126,15 @@ definitions:
       typ:
         type: integer
     type: object
+  view.ReqUserCreate:
+    properties:
+      nickname:
+        description: 显示用户名
+        type: string
+      username:
+        description: 登陆账号
+        type: string
+    type: object
   view.RespDatabaseSimple:
     properties:
       cluster:
@@ -239,7 +248,18 @@ definitions:
         type: integer
       id:
         type: integer
+      relTraceTableId:
+        type: integer
       tableName:
+        type: string
+      v3TableType:
+        type: integer
+    type: object
+  view.RespUserCreate:
+    properties:
+      password:
+        type: string
+      username:
         type: string
     type: object
   view.RespUserSimpleInfo:
@@ -254,6 +274,15 @@ definitions:
         type: integer
       username:
         type: string
+    type: object
+  view.RespUserSimpleList:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/view.RespUserSimpleInfo'
+        type: array
+      total:
+        type: integer
     type: object
   view.RespWorkerDashboard:
     properties:
@@ -413,6 +442,104 @@ paths:
           schema:
             type: string
       summary: Get short links
+      tags:
+      - base
+  /api/v2/base/users:
+    get:
+      consumes:
+      - application/json
+      description: Get user list
+      parameters:
+      - in: query
+        name: current
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: username
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/view.RespUserSimpleList'
+      summary: Get user list
+      tags:
+      - base
+    post:
+      description: |-
+        username 登陆账号
+        nickname 显示用户名
+      parameters:
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/view.ReqUserCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  $ref: '#/definitions/view.RespUserCreate'
+              type: object
+      summary: Create new user
+      tags:
+      - base
+  /api/v2/base/users/{user-id}:
+    delete:
+      consumes:
+      - application/json
+      description: User delete
+      parameters:
+      - description: user id
+        in: path
+        name: user-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: User delete
+      tags:
+      - base
+  /api/v2/base/users/{user-id}/password-reset:
+    patch:
+      consumes:
+      - application/json
+      description: Reset user password
+      parameters:
+      - description: user id
+        in: path
+        name: user-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  $ref: '#/definitions/view.RespUserCreate'
+              type: object
+      summary: Reset user password
       tags:
       - base
   /api/v2/pandas/instances/{instance-id}/table-dependencies:

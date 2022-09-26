@@ -279,7 +279,8 @@ type (
 
 type (
 	ReqUserCreate struct {
-		Username string `json:"username" form:"username"`
+		Username string `json:"username" form:"username"` // 登陆账号
+		Nickname string `json:"nickname" form:"nickname"` // 显示用户名
 	}
 	RespUserCreate struct {
 		Username string `json:"username"`
@@ -289,15 +290,8 @@ type (
 		Username string `json:"username" form:"username"`
 		db.ReqPage
 	}
-	RespUserList struct {
-		ID           int    `json:"id"`
-		Ctime        int64  `json:"ctime"`
-		NodeId       int    `json:"nodeId"`
-		Content      string `json:"content,omitempty"`
-		Result       string `json:"result,omitempty"`
-		Cost         int64  `json:"cost,omitempty"`
-		ExcelProcess string `json:"excelProcess,omitempty"`
-		Status       int    `json:"status"`
-		RespUserSimpleInfo
+	RespUserSimpleList struct {
+		Total int64                `json:"total"`
+		List  []RespUserSimpleInfo `json:"list"`
 	}
 )
