@@ -111,9 +111,9 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       let referencesSpanIdList: any[] = [];
       list.map((item: any) => {
         if (item?.rawLogJson?.spanId && item?.rawLogJson?.references) {
-          spanIdList.push(item?.rawLogJson?.spanId);
           referencesSpanIdList.push(item?.rawLogJson?.references[0].spanId);
         }
+        spanIdList.push(item?.rawLogJson?.spanId);
         const duration = item?.rawLogJson?.duration
           ? item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6)
           : 0;
