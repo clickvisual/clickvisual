@@ -109,7 +109,7 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 		}
 	}
 	if ct.V3TableType == db.V3TableTypeJaegerJSON {
-		err = c.CreateTraceJaegerDependencies(database.Name, database.Cluster, ct.TableName, ct.Days)
+		_ = c.CreateTraceJaegerDependencies(database.Name, database.Cluster, ct.TableName, ct.Days)
 	}
 	return
 }

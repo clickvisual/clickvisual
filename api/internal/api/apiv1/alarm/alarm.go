@@ -171,6 +171,7 @@ func List(c *core.Context) {
 	iid, _ := strconv.Atoi(c.Query("iid"))
 	tid, _ := strconv.Atoi(c.Query("tid"))
 	did, _ := strconv.Atoi(c.Query("did"))
+	alarmId, _ := strconv.Atoi(c.Query("alarmId"))
 	status, _ := strconv.Atoi(c.Query("status"))
 	query := egorm.Conds{}
 	if name != "" {
@@ -181,6 +182,9 @@ func List(c *core.Context) {
 	}
 	if status != 0 {
 		query["status"] = status
+	}
+	if name == "" && iid == 0 && tid == 0 && did == 0 && status == 0 && alarmId != 0 {
+		query["id"] = alarmId
 	}
 	var (
 		total int64

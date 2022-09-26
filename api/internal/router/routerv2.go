@@ -25,6 +25,8 @@ func v2(r *gin.RouterGroup) {
 	}
 	// The global basic readable information module - base
 	{
+		r.POST("/base/users", core.Handle(base.UserCreate))
+		r.GET("/base/users", core.Handle(base.UserList))
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))

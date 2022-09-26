@@ -280,7 +280,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	for seq, filter := range filtersDB {
 		// gen view table name & sql
 		table, ddl, errAlertViewGen := op.AlertViewGen(alarmObj, seq, filter.When)
-		if err != nil {
+		if errAlertViewGen != nil {
 			elog.Error("alarm", elog.FieldComponent("CreateOrUpdate"), elog.FieldName("AlertViewGen"), elog.FieldErr(errAlertViewGen))
 			return
 		}

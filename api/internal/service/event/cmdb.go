@@ -90,13 +90,14 @@ func (a *event) SystemMigration(u *core.User, metaData string) {
 	a.PutEvent(userEvent)
 }
 
-func (a *event) UsersPwdChange(opUser *core.User, metaData string) {
+func (a *event) UserCMDB(opUser *core.User, operation string, metaData map[string]interface{}) {
+	res, _ := json.Marshal(metaData)
 	obj := db.Event{
 		Source:     db.SourceUserMgtCenter,
-		Operation:  db.OpnLocalUsersPwdChange,
+		Operation:  operation,
 		ObjectType: db.TableNameUser,
 		ObjectId:   0,
-		Metadata:   metaData,
+		Metadata:   string(res),
 		UserName:   opUser.Username,
 		UID:        opUser.Uid,
 	}

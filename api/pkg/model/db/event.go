@@ -30,8 +30,6 @@ func (a *Event) HandleSourceName() {
 // "Opn"  ->  "Operation"
 // "mgt"  ->  "management"
 const (
-	OpnLocalUsersPwdChange = "local_user_pwd_change"
-
 	OpnMigration = "system_setting_migration"
 
 	OpnTablesDelete         = "opn_tables_delete"
@@ -91,11 +89,12 @@ const (
 	OpnBigDataNodeUnlock        = "opn_big_data_node_unlock"
 	OpnBigDataNodeRun           = "opn_big_data_node_run"
 	OpnBigDataNodeStop          = "opn_big_data_node_strop"
+
+	OpnUserCreate    = "opn_base_user_create"
+	OpnUserPwdChange = "user_pwd_change"
 )
 
 var OperationMap = map[string]string{
-	OpnLocalUsersPwdChange: "change the password",
-
 	OpnTablesDelete:         "table delete",
 	OpnTablesCreate:         "table create",
 	OpnTablesUpdate:         "table update",
@@ -155,6 +154,9 @@ var OperationMap = map[string]string{
 	OpnBigDataNodeUnlock:        "node unlock",
 	OpnBigDataNodeRun:           "node run",
 	OpnBigDataNodeStop:          "node stop",
+
+	OpnUserCreate:    "user create",
+	OpnUserPwdChange: "change the password",
 }
 
 const (
@@ -213,7 +215,7 @@ var (
 			OpnConfigsUpdate,
 			OpnConfigsPublish,
 		},
-		SourceUserMgtCenter: {OpnLocalUsersPwdChange},
+		SourceUserMgtCenter: {OpnUserPwdChange, OpnUserCreate},
 		SourceSystemSetting: {OpnMigration},
 		SourceBigDataMgtCenter: {
 			OpnBigDataNodeCreate,
