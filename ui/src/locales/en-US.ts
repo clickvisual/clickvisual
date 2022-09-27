@@ -768,6 +768,9 @@ export default {
   "sys.user.createUser": "Create a user",
   "sys.user.username": "Login account",
   "sys.user.nickname": "Display User name",
+  "sys.user.deleteName": "Delete user",
+  "sys.user.deleteNameTips": "Are you sure to delete user '{user}'?",
+  "sys.user.deleteName.success": "Deleting a User Succeeded",
 
   // hooks->role
   "hooks.role.create.ing": "Being added",

@@ -728,6 +728,9 @@ export default {
   "sys.user.createUser": "创建用户",
   "sys.user.username": "登录账号",
   "sys.user.nickname": "显示用户名",
+  "sys.user.deleteName": "删除用户",
+  "sys.user.deleteNameTips": "确定删除用户「{user}」吗？",
+  "sys.user.deleteName.success": "删除用户成功",
 
   // models -> pms
   "models.pms.creating": "创建中...",

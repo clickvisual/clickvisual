@@ -1,5 +1,5 @@
-import { RedoOutlined } from "@ant-design/icons";
-import { Button, Popconfirm, Space, Table, Tooltip } from "antd";
+import { DeleteOutlined, RedoOutlined } from "@ant-design/icons";
+import { Button, message, Popconfirm, Space, Table, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
 import { userListType } from "..";
 
@@ -20,12 +20,22 @@ const UserTable = (props: {
   } = props;
 
   const { sysUser } = useModel("system");
-  const { doResetUserPassword } = sysUser;
+  const { doResetUserPassword, doDeleteUser } = sysUser;
 
   const confirm = (id: number) => {
     doResetUserPassword.run(id).then((res: any) => {
       if (res.code != 0) return;
       copyInformation(res, i18n.formatMessage({ id: "sys.user.resetSuccess" }));
+    });
+  };
+
+  const deleteUser = (id: number) => {
+    doDeleteUser.run(id).then((res: any) => {
+      if (res.code != 0) return;
+      loadList({});
+      message.success(
+        i18n.formatMessage({ id: "sys.user.deleteName.success" })
+      );
     });
   };
 
@@ -52,12 +62,23 @@ const UserTable = (props: {
               okText="Yes"
               cancelText="No"
             >
-              <Button
-                size={"small"}
-                type={"link"}
-                icon={<RedoOutlined />}
-                onClick={() => {}}
-              />
+              <Button size={"small"} type={"link"} icon={<RedoOutlined />} />
+            </Popconfirm>
+          </Tooltip>
+          <Tooltip
+            title={i18n.formatMessage({ id: "sys.user.deleteName" })}
+            placement="bottom"
+          >
+            <Popconfirm
+              title={i18n.formatMessage(
+                { id: "sys.user.deleteNameTips" },
+                { user: record.nickname }
+              )}
+              onConfirm={() => deleteUser(record.uid)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button size={"small"} type={"link"} icon={<DeleteOutlined />} />
             </Popconfirm>
           </Tooltip>
         </Space>
