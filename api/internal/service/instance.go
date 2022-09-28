@@ -163,9 +163,7 @@ func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 }
 
 func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
-
 	invoker.Logger.Debug("clickhouseDsnConvert", elog.String("dsn", utils.ClickhouseDsnConvert(dsn)))
-
 	conn, err = sql.Open("clickhouse", utils.ClickhouseDsnConvert(dsn))
 	if err != nil {
 		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
