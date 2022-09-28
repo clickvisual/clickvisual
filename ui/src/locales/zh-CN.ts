@@ -551,6 +551,7 @@ export default {
   "alarm.rules.info.title": "报警详情",
   "alarm.rules.info.view": "视图",
   "alarm.rules.info.rule": "规则",
+  "alarm.rules.materializedViews": "物化视图: ",
 
   "alarm.rules.created": "新增报警成功",
   "alarm.rules.updated": "更新报警成功",

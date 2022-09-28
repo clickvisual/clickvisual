@@ -2,25 +2,25 @@
   display: flex;
   flex: 0 0 60px;
   flex-wrap: wrap;
+  box-sizing: border-box;
+  padding: 20px 20px 0;
   font-size: 14px;
   line-height: 28px;
-  padding: 20px 20px 0;
-  box-sizing: border-box;
   cursor: default;
   .item {
-    width: 50%;
     display: flex;
+    width: 50%;
     margin-bottom: 20px;
     .title {
+      width: 160px;
       padding-right: 5px;
       font-weight: bold;
-      width: 160px;
     }
     .content {
       flex: 1;
       overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
+      text-overflow: ellipsis;
     }
   }
 }
@@ -36,6 +36,20 @@
         display: flex;
         flex: 1;
       }
+    }
+
+    .select {
+      width: 600px;
+      height: 32px;
+      margin-bottom: 12px;
+    }
+
+    .editor {
+      height: calc(100% - 44px);
+    }
+
+    .editorHeight {
+      height: 100%;
     }
   }
 }

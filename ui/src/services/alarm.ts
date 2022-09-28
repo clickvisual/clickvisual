@@ -26,7 +26,9 @@ export interface AlarmType extends TimeBaseType {
   interval: number;
   unit: number;
   alertRule: string;
+  alertRules: string;
   view: string;
+  viewDDLs: string;
   id: number;
   tag: any;
   uid: number;
