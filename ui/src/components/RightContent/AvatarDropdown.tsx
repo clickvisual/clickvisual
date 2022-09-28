@@ -46,6 +46,62 @@ const AvatarDropdown = () => {
     [currentUser]
   );
 
+  // const items: any[] = useMemo(() => {
+  //   let list: any[] = [];
+  //   hiddenPassword &&
+  //     list.push({
+  //       icon: <IconFont type={"icon-reset-password"} />,
+  //       key: "resetPassword",
+  //       onClick: handleResetPassword,
+  //       label: i18n.formatMessage({
+  //         id: "navbar.changePassword",
+  //       }),
+  //     });
+  //   list.push(
+  //     ...[
+  //       {
+  //         icon: <UpCircleOutlined />,
+  //         key: "upgrade",
+  //         onClick: handleUpgrade,
+  //         label: i18n.formatMessage({
+  //           id: "navbar.upgrade",
+  //         }),
+  //       },
+  //       {
+  //         icon: <FileTextOutlined />,
+  //         key: "interfaceDoc",
+  //         label: (
+  //           <a
+  //             href={process.env.PUBLIC_PATH + `api/v2/swagger/index.html`}
+  //             target="_blank"
+  //           >
+  //             {i18n.formatMessage({
+  //               id: "navbar.interfaceDoc",
+  //             })}
+  //           </a>
+  //         ),
+  //       },
+  //     ]
+  //   );
+
+  //   hiddenLogOut &&
+  //     list.push({
+  //       icon: <LogoutOutlined />,
+  //       key: "logout",
+  //       onClick: handleLogout,
+  //       label: i18n.formatMessage({
+  //         id: "navbar.logOut",
+  //       }),
+  //     });
+
+  //   return list;
+  // }, [hiddenPassword, hiddenLogOut]);
+
+  // const menuHeaderDropdown = (
+  //   <Menu className={styles.menu} selectedKeys={[]} items={items}>
+  //     {/* <ChangePasswordModal /> */}
+  //   </Menu>
+  // );
   const menuHeaderDropdown = (
     <Menu className={styles.menu} selectedKeys={[]}>
       {hiddenPassword && (
@@ -106,6 +162,7 @@ const AvatarDropdown = () => {
           {currentUser?.nickname}
         </Avatar>
         <span className={`${styles.name} anticon`}>{currentUser.nickname}</span>
+        {/* <ChangePasswordModal /> */}
       </span>
     </HeaderDropdown>
   ) : (

@@ -83,6 +83,7 @@ export default {
   "menu.systemSettings.events": "事件中心",
   "menu.systemSettings.pms": "权限管理",
   "menu.systemSettings.role": "角色管理",
+  "menu.systemSettings.user": "用户管理",
   "menu.bigdata": "分析",
   "menu.bigdata.realtime": "实时业务",
   "menu.bigdata.temporaryQuery": "临时查询",
@@ -718,6 +719,18 @@ export default {
   "hooks.role.authorization.failure": "授权失败",
   "hooks.role.authorization.success": "授权成功",
   "hooks.role.authorization.failure.tips": "授权失败请重试！",
+
+  // sys -> user
+  "sys.user.allCopy": "一键复制",
+  "sys.user.resetSuccess": "重置成功",
+  "sys.user.resetPassword": "重置密码",
+  "sys.user.resetTip": "确定重置用户「{user}」的密码吗？",
+  "sys.user.createUser": "创建用户",
+  "sys.user.username": "登录账号",
+  "sys.user.nickname": "显示用户名",
+  "sys.user.deleteName": "删除用户",
+  "sys.user.deleteNameTips": "确定删除用户「{user}」吗？",
+  "sys.user.deleteName.success": "删除用户成功",
 
   // models -> pms
   "models.pms.creating": "创建中...",

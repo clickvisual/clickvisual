@@ -83,6 +83,7 @@ export default {
   "menu.systemSettings.events": "Event Center",
   "menu.systemSettings.pms": "Authority Management",
   "menu.systemSettings.role": "Role Management",
+  "menu.systemSettings.user": "User management",
   "menu.bigdata": "Data Analysis",
   "menu.bigdata.realtime": "Real-time Industry",
   "menu.bigdata.temporaryQuery": "Temporary Query",
@@ -758,6 +759,18 @@ export default {
   "systemSetting.role.rootUserForm.superAdministrator": "Super administrator",
   "systemSetting.role.rootUserForm.superAdministrator.rules":
     "Please select at least one user!",
+
+  // sys -> user
+  "sys.user.allCopy": "Copy all",
+  "sys.user.resetSuccess": "Reset the success",
+  "sys.user.resetPassword": "To reset your password",
+  "sys.user.resetTip": "Are you sure to reset the password for user {user}?",
+  "sys.user.createUser": "Create a user",
+  "sys.user.username": "Login account",
+  "sys.user.nickname": "Display User name",
+  "sys.user.deleteName": "Delete user",
+  "sys.user.deleteNameTips": "Are you sure to delete user '{user}'?",
+  "sys.user.deleteName.success": "Deleting a User Succeeded",
 
   // hooks->role
   "hooks.role.create.ing": "Being added",

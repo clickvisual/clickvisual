@@ -64,6 +64,11 @@ export default [
         component: "./SystemSetting/Role",
       },
       {
+        path: "/sys/user",
+        name: "user",
+        component: "./SystemSetting/User",
+      },
+      {
         redirect: "/",
       },
     ],
