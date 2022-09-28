@@ -96,4 +96,5 @@ permission:
           - path: /api/v1/pms/check
             name: 查询权限
             method: POST
-
+      - name: user
+        path: /sys/user

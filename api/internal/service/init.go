@@ -37,8 +37,8 @@ func Init() error {
 	configure.InitConfigure()
 	kube.InitClusterManager()
 
-	event.InitService()
 	user.Init()
+	event.InitService()
 	permission.InitManager()
 
 	xgo.Go(func() {

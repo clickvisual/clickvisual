@@ -13,7 +13,7 @@ var (
 	ErrQueryFormatIllegal          = &kerror.KError{Code: 10102, Message: "Query format is illegal"}
 	ErrInstanceObj                 = &kerror.KError{Code: 10103, Message: "The current database is unavailable"}
 	ErrConfigurationIsNoDifference = &kerror.KError{Code: 10104, Message: "Save failed, no update at this time"}
-	ErrAlarmRuleStoreIsClosed      = &kerror.KError{Code: 10105, Message: "Alarm rule store is closed"}
+	ErrAlarmRuleStoreIsClosed      = &kerror.KError{Code: 10105, Message: "The alarm storage is not configured"}
 	ErrClusterNameEmpty            = &kerror.KError{Code: 10106, Message: "Error: cluster name is empty"}
 	ErrQueryIntervalLimit          = &kerror.KError{Code: 10107, Message: "The current query time exceeds the configured limit"}
 

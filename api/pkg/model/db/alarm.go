@@ -57,9 +57,6 @@ type (
 		Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                            // description
 		Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                  // interval second between alarm
 		Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
-		AlertRule     string        `gorm:"column:alert_rule;type:text" json:"alertRule"`                                  // prometheus alert rule
-		View          string        `gorm:"column:view;type:text" json:"view"`                                             // view table ddl
-		ViewTableName string        `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"`                 // name of view table
 		Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                               // tags
 		Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                      // status
 		RuleStoreType int           `gorm:"column:rule_store_type;type:int(11)" db:"rule_store_type" json:"ruleStoreType"` // ruleStoreType
@@ -68,12 +65,22 @@ type (
 		Mode          int           `gorm:"column:mode;type:int(11)" json:"mode"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
 		Level         int           `gorm:"column:level;type:int(11)" json:"level"`                                        // 0 m 1 s 2 h 3 d 4 w 5 y
 
-		ViewDDLs String2String `gorm:"column:view_ddl_s;type:text" json:"view_ddl_s"` // Users to store data generates the alarm condition
-		TableIds Ints          `gorm:"column:table_ids;type:varchar(255);NOT NULL" json:"table_ids"`
-		User     *User         `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
+		User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
+
+		// v2 field to support multiple alarm conditions
+		ViewDDLs   String2String `gorm:"column:view_ddl_s;type:text" json:"viewDDLs"` // Users to store data generates the alarm condition
+		TableIds   Ints          `gorm:"column:table_ids;type:varchar(255);NOT NULL" json:"tableIds"`
+		AlertRules String2String `gorm:"column:alert_rules;type:text" json:"alertRules"` // prometheus alert rule
+
+		// Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version
+		AlertRule string `gorm:"column:alert_rule;type:text" json:"alertRule"` // prometheus alert rule
+		// Deprecated: View
+		View string `gorm:"column:view;type:text" json:"view"` // view table ddl
+		// Deprecated: ViewTableName
+		ViewTableName string `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"` // name of view table
 	}
 
-	// AlarmFilter 告警过滤条件
+	// AlarmFilter alarm statement
 	AlarmFilter struct {
 		BaseModel
 
@@ -85,11 +92,12 @@ type (
 		Mode           int    `gorm:"column:mode;type:int(11)" json:"mode"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
 	}
 
-	// AlarmCondition 告警触发条件
+	// AlarmCondition alarm statement，the trigger condition
 	AlarmCondition struct {
 		BaseModel
 
 		AlarmId        int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`              // alarm id
+		FilterId       int `gorm:"column:filter_id;type:int(11)" json:"filterId"`            // filter id
 		SetOperatorTyp int `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"` // 0 WHEN 1 AND 2 OR
 		SetOperatorExp int `gorm:"column:set_operator_exp;type:int(11);NOT NULL" json:"exp"` // 0 avg 1 min 2 max 3 sum 4 count
 		Cond           int `gorm:"column:cond;type:int(11)" json:"cond"`                     // 0 above 1 below 2 outside range 3 within range
@@ -116,8 +124,11 @@ type (
 	}
 )
 
-func (m *Alarm) AlertRuleName() string {
-	return fmt.Sprintf("cv-%s.yaml", m.Uuid)
+func (m *Alarm) AlertRuleName(filterId int) string {
+	if filterId == 0 {
+		return fmt.Sprintf("cv-%s.yaml", m.Uuid)
+	}
+	return fmt.Sprintf("cv-%s-%d.yaml", m.Uuid, filterId)
 }
 
 func (m *Alarm) AlertViewName(database, table string, seq int) string {

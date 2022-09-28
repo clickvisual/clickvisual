@@ -23,12 +23,27 @@ type ReqAlarmCreate struct {
 	Level      int                       `json:"level" form:"level"`
 }
 
+func (r *ReqAlarmCreate) ConvertV2() {
+	if len(r.Conditions) == 0 {
+		return
+	}
+	if len(r.Filters) == 1 {
+		r.Filters[0].Conditions = r.Conditions
+	}
+}
+
+type AlarmFilterItem struct {
+	*db.AlarmFilter
+	Exp string
+}
+
 type ReqAlarmFilterCreate struct {
 	Tid            int    `json:"tid" form:"tid" binding:"required"`
 	When           string `json:"when" form:"when" binding:"required"` // 执行条件
 	SetOperatorTyp int    `json:"typ" form:"typ"`                      // 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS
 	SetOperatorExp string `json:"exp" form:"exp"`                      // 操作
 	Mode           int    `json:"mode" form:"mode"`
+	Conditions     []ReqAlarmConditionCreate
 }
 
 type ReqAlarmConditionCreate struct {

@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -541,7 +542,7 @@ func (c *ClickHouse) ViewDo(params bumo.Params) string {
 //	    _timestamp_ as ts,
 //	    toDateTime(_timestamp_) as updated
 //	FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, seq int, whereCondition string) (string, string, error) {
+func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition string) (string, string, error) {
 	if whereCondition == "" {
 		whereCondition = "1=1"
 	}
@@ -556,7 +557,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, seq int, whereCondition strin
 		return "", "", err
 	}
 
-	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name, seq)
+	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name, filterId)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
 	if c.mode == ModeCluster {
 		sourceTableName += "_local"
@@ -565,7 +566,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, seq int, whereCondition strin
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
 		ViewTable:    viewTableName,
-		CommonFields: TagsToString(alarm, true),
+		CommonFields: TagsToString(alarm, true, filterId),
 		SourceTable:  sourceTableName,
 		Where:        whereCondition}
 
@@ -637,7 +638,7 @@ func (c *ClickHouse) DropDatabase(name string, cluster string) (err error) {
 	return err
 }
 
-func TagsToString(alarm *db.Alarm, withQuote bool) string {
+func TagsToString(alarm *db.Alarm, withQuote bool, filterId int) string {
 	tags := alarm.Tags
 	if alarm.Tags == nil || len(alarm.Tags) == 0 {
 		tags = make(map[string]string, 0)
@@ -645,13 +646,21 @@ func TagsToString(alarm *db.Alarm, withQuote bool) string {
 	tags["uuid"] = alarm.Uuid
 	result := make([]string, 0)
 	for k, v := range tags {
-		if withQuote {
-			result = append(result, fmt.Sprintf("'%s=%s'", k, v))
-		} else {
-			result = append(result, fmt.Sprintf(`%s="%s"`, k, v))
-		}
+		result = resultAppend(result, k, v, withQuote)
+	}
+	if filterId != 0 {
+		result = resultAppend(result, "filterId", strconv.Itoa(filterId), withQuote)
 	}
 	return strings.Join(result, ",")
+}
+
+func resultAppend(input []string, k, v string, withQuote bool) []string {
+	if withQuote {
+		input = append(input, fmt.Sprintf("'%s=%s'", k, v))
+	} else {
+		input = append(input, fmt.Sprintf(`%s="%s"`, k, v))
+	}
+	return input
 }
 
 func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
@@ -799,6 +808,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	res = make(map[string]uint64, 0)
 	sqlCountData, err := c.doQuery(c.groupBySQL(param))
 	if err != nil {
+		invoker.Logger.Error("ClickHouse", elog.Any("sql", c.groupBySQL(param)), elog.FieldErr(err))
 		return
 	}
 	invoker.Logger.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
@@ -1249,7 +1259,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as f FROM %s WHERE "+genTimeCondition(param)+" %s group by %s  order by count desc limit 10",
+	sql = fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM %s WHERE "+genTimeCondition(param)+" %s group by `%s`  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
 		param.ST, param.ET,
