@@ -56,6 +56,10 @@ func Create(c *core.Context) {
 		req.Mode = req.Filters[0].Mode
 	}
 	tx := invoker.Db.Begin()
+	tableIds := db.Ints{}
+	for _, f := range req.Filters {
+		tableIds = append(tableIds, f.Tid)
+	}
 	obj := &db.Alarm{
 		Tid:        tid,
 		Uuid:       uuid.NewString(),
@@ -69,6 +73,7 @@ func Create(c *core.Context) {
 		Uid:        c.Uid(),
 		Mode:       req.Mode,
 		Level:      req.Level,
+		TableIds:   tableIds,
 	}
 	if err = db.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()

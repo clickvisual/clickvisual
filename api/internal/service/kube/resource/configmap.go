@@ -21,7 +21,7 @@ func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string,
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
 	if NotFound(err) {
 		if err = configmapCreate(client, namespace, name, data); err != nil {
-			invoker.Logger.Error("ConfigmapCreateOrUpdate", elog.String("namespace", namespace), elog.String("name", name), elog.Any("data", data), elog.String("err", err.Error()))
+			invoker.Logger.Error("ConfigmapCreateOrUpdate", elog.String("namespace", namespace), elog.String("name", name), elog.Any("data", data), elog.FieldErr(err))
 			return err
 		}
 		return nil
@@ -34,8 +34,6 @@ func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string,
 	for k, v := range data {
 		configMap.Data[k] = v
 	}
-	invoker.Logger.Debug("ConfigmapCreateOrUpdate", elog.Any("configMap", configMap))
-
 	if err = configmapUpdate(client, namespace, name, configMap); err != nil {
 		return err
 	}
