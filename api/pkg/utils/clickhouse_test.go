@@ -1,10 +1,17 @@
 package utils
 
 import (
+	"fmt"
+	"net/url"
 	"testing"
 )
 
 func TestClickhouseDsnConvert(t *testing.T) {
+	// The username may contain Latin letters, numbers, hyphens, and underscores, but must begin with a letter or an underscore.
+	user := "root-_123"
+	// The password must be between 8 and 128 characters.
+	passwd := url.QueryEscape("shimo*!@#")
+
 	type args struct {
 		req string
 	}
@@ -16,37 +23,51 @@ func TestClickhouseDsnConvert(t *testing.T) {
 		{
 			"tcp to clickhouse",
 			args{
-				"tcp://127.0.0.1:9000?username=clickvisual&password=clickvisual&read_timeout=10&debug=true",
+				fmt.Sprintf("tcp://127.0.0.1:9000?username=%s&password=%s&read_timeout=10&debug=true", user, passwd),
 			},
-			"clickhouse://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
+			fmt.Sprintf("clickhouse://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms", user, passwd),
 		},
 		{
 			"remove unknown write_timeout on tcp",
 			args{
-				"tcp://127.0.0.1:9000?username=clickvisual&password=clickvisual&debug=true&read_timeout=10&write_timeout=20ms",
+				fmt.Sprintf("tcp://127.0.0.1:9000?username=%s&password=%s&debug=true&read_timeout=10&write_timeout=20ms", user, passwd),
 			},
-			"clickhouse://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
+			fmt.Sprintf("clickhouse://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms", user, passwd),
 		},
 		{
 			"remove unknown write_timeout on clickhouse",
 			args{
-				"clickhouse://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms",
+				fmt.Sprintf("clickhouse://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms", user, passwd),
 			},
-			"clickhouse://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
+			fmt.Sprintf("clickhouse://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms", user, passwd),
 		},
 		{
 			"remove unknown write_timeout on http",
 			args{
-				"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms",
+				fmt.Sprintf("http://127.0.0.1:9000/default?debug=true&password=%s&read_timeout=10ms&write_timeout=20ms&username=%s", user, passwd),
 			},
-			"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
+			fmt.Sprintf("http://127.0.0.1:9000/default?debug=true&password=%s&read_timeout=10ms&username=%s", user, passwd),
 		},
 		{
 			"remove unknown write_timeout on https",
 			args{
-				"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms",
+				fmt.Sprintf("https://127.0.0.1:9000/default?debug=true&password=%s&read_timeout=10ms&write_timeout=20ms&secure=true&username=%s", user, passwd),
 			},
-			"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
+			fmt.Sprintf("https://127.0.0.1:9000/default?debug=true&password=%s&read_timeout=10ms&secure=true&username=%s", user, passwd),
+		},
+		{
+			"remove unknown write_timeout on http basic auth",
+			args{
+				fmt.Sprintf("http://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms", user, passwd),
+			},
+			fmt.Sprintf("http://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms", user, passwd),
+		},
+		{
+			"remove unknown write_timeout on https basic auth",
+			args{
+				fmt.Sprintf("https://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms&secure=true", user, passwd),
+			},
+			fmt.Sprintf("https://%s:%s@127.0.0.1:9000/default?debug=true&read_timeout=10ms&secure=true", user, passwd),
 		},
 	}
 	for _, tt := range tests {
