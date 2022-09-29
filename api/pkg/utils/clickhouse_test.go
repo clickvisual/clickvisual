@@ -34,6 +34,20 @@ func TestClickhouseDsnConvert(t *testing.T) {
 			},
 			"clickhouse://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
 		},
+		{
+			"remove unknown write_timeout on http",
+			args{
+				"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms",
+			},
+			"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
+		},
+		{
+			"remove unknown write_timeout on https",
+			args{
+				"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms&write_timeout=20ms",
+			},
+			"http://clickvisual:clickvisual@127.0.0.1:9000/default?debug=true&read_timeout=10ms",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

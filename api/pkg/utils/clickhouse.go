@@ -19,7 +19,9 @@ func ClickhouseDsnConvert(req string) (res string) {
 	}
 	query := u.Query()
 	query.Del("write_timeout")
-	if strings.HasPrefix(req, "clickhouse://") {
+	if strings.HasPrefix(req, "clickhouse://") ||
+		strings.HasPrefix(req, "http://") ||
+		strings.HasPrefix(req, "https://") {
 		u.RawQuery = query.Encode()
 		return u.String()
 	}
