@@ -12,15 +12,18 @@ import (
 
 // ClickhouseDsnConvert convert clickhouse-go v1.5 to v2.0
 func ClickhouseDsnConvert(req string) (res string) {
-	if strings.HasPrefix(req, "clickhouse://") {
-		return req
-	}
 	u, err := url.Parse(req)
 	if err != nil {
 		invoker.Logger.Error("clickhouseDsnConvert", elog.Any("error", err))
 		return req
 	}
 	query := u.Query()
+	query.Del("write_timeout")
+	if strings.HasPrefix(req, "clickhouse://") {
+		u.RawQuery = query.Encode()
+		return u.String()
+	}
+
 	database := query.Get("database")
 	if database == "" {
 		database = "default"
@@ -31,7 +34,6 @@ func ClickhouseDsnConvert(req string) (res string) {
 	query.Del("database")
 
 	queryValAssembly(query, "read_timeout", "ms")
-	queryValAssembly(query, "write_timeout", "ms")
 
 	if len(query) != 0 {
 		res = fmt.Sprintf("%s?%s", res, query.Encode())
