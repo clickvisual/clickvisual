@@ -581,7 +581,6 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition 
 		ReplicaStatus: c.rs,
 		TimeField:     tableInfo.GetTimeField(),
 		View:          vp})
-	invoker.Logger.Debug("AlertViewGen", elog.String("viewSQL", viewSQL), elog.String("viewTableName", viewTableName))
 	// create
 	err = c.alertPrepare()
 	if err != nil {
@@ -591,9 +590,12 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition 
 }
 
 func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL, cluster string) (err error) {
-	err = c.AlertViewDrop(viewTableName, cluster)
-	if err != nil {
-		return
+	if viewTableName != "" {
+		err = c.AlertViewDrop(viewTableName, cluster)
+		if err != nil {
+			invoker.Logger.Error("AlertViewCreate", elog.FieldName("alertViewDrop"), elog.FieldErr(err))
+			return
+		}
 	}
 	_, err = c.db.Exec(viewSQL)
 	return err
