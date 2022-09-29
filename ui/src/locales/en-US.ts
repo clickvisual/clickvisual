@@ -584,6 +584,7 @@ export default {
   "alarm.rules.info.title": "Alarm Details",
   "alarm.rules.info.view": "View",
   "alarm.rules.info.rule": "Rule",
+  "alarm.rules.materializedViews": "Materialized views: ",
 
   "alarm.rules.created": "Create alarm success",
   "alarm.rules.updated": "Update alarm success",

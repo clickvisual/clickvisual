@@ -90,6 +90,7 @@ const UserTable = (props: {
     <Table
       dataSource={dataObj?.list || []}
       columns={column}
+      size="small"
       rowKey={(item: any) => item.uid}
       pagination={{
         responsive: true,
