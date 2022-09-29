@@ -1,25 +1,32 @@
-import { useState } from "react";
-import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/config";
+import {useState} from "react";
+import {CustomCollapseEnums} from "@/pages/DataAnalysis/OfflineManager/config";
 import style from "./index.less";
-import { RightOutlined } from "@ant-design/icons";
+import {RightOutlined} from "@ant-design/icons";
+import {useIntl} from "umi";
 
 const CustomCollapse = (props: { children: any; type: number }) => {
   const { children, type } = props;
   const [visibleCustomCollapse, setVisibleCustomCollapse] =
     useState<boolean>(true);
+  const i18n = useIntl();
 
   let title = "";
   switch (type) {
     case CustomCollapseEnums.dataSource:
-      title = "选择数据源";
+      title = i18n.formatMessage({
+          id: "instance.form.placeholder.datasource",
+      });
       break;
     case CustomCollapseEnums.fieldMapping:
-      title = "字段映射";
+        title = i18n.formatMessage({
+            id: "instance.form.placeholder.orm",
+        });
       break;
     case CustomCollapseEnums.schedulingConfig:
-      title = "调度配置";
+        title = i18n.formatMessage({
+            id: "instance.form.placeholder.schedule",
+        });
       break;
-
     default:
       break;
   }

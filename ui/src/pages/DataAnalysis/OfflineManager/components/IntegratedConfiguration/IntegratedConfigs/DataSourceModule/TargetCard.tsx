@@ -1,7 +1,11 @@
-import { Card, Form, Input } from "antd";
-import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
-import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
-import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
+import {Card, Form, Input} from "antd";
+import {
+  SourceCardProps
+} from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
+import DatasourceSelect
+  from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
+import {DataSourceTypeEnums} from "@/pages/DataAnalysis/OfflineManager/config";
+import {useIntl} from "umi";
 
 export interface TargetCardProps extends SourceCardProps {
   sourceType?: DataSourceTypeEnums;
@@ -12,6 +16,7 @@ export interface TargetCardProps extends SourceCardProps {
 
 const TargetCard = (props: TargetCardProps) => {
   const { isLock, setMapping, setTarget, node } = props;
+  const i18n = useIntl();
 
   const handleChangeColumns = (columns: any[], isChange?: boolean) => {
     setTarget(columns);
@@ -22,7 +27,9 @@ const TargetCard = (props: TargetCardProps) => {
     <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
       <Card
         size={"small"}
-        title="数据去向"
+        title={ i18n.formatMessage({
+          id: "pandas.analysis.data.target",
+        })}
         style={{ width: "90%" }}
         headStyle={{ textAlign: "center" }}
       >
@@ -32,22 +39,30 @@ const TargetCard = (props: TargetCardProps) => {
           onChangeColumns={handleChangeColumns}
           node={node}
         />
-        <Form.Item name={["target", "targetBefore"]} label={"导入前语句"}>
+        <Form.Item name={["target", "targetBefore"]} label={i18n.formatMessage({
+          id: "pandas.analysis.data.target.before",
+        })}>
           <Input.TextArea
             disabled={isLock}
             allowClear
             autoSize={{ minRows: 3, maxRows: 3 }}
             placeholder={
-              "请参考相应的 SQL 语法填写导入数据去啊边执行的 SQL 脚本"
+              i18n.formatMessage({
+                id: "pandas.analysis.data.target.before.placeholder",
+              })
             }
           />
         </Form.Item>
-        <Form.Item name={["target", "targetAfter"]} label={"导入后语句"}>
+        <Form.Item name={["target", "targetAfter"]} label={i18n.formatMessage({
+          id: "pandas.analysis.data.target.after",
+        })}>
           <Input.TextArea
             disabled={isLock}
             allowClear
             autoSize={{ minRows: 3, maxRows: 3 }}
-            placeholder={"请参考相应的 SQL 语法填写导入数据后执行的 SQL 脚本"}
+            placeholder={i18n.formatMessage({
+              id: "pandas.analysis.data.target.after.placeholder",
+            })}
           />
         </Form.Item>
       </Card>

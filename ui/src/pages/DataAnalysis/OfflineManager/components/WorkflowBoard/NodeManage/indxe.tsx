@@ -1,13 +1,11 @@
-import { RightOutlined } from "@ant-design/icons";
+import {RightOutlined} from "@ant-design/icons";
 import classNames from "classnames";
 import styles from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/styles/index.less";
-import {
-  SecondaryEnums,
-  TertiaryEnums,
-} from "@/pages/DataAnalysis/service/enums";
-import { useMemo, useState } from "react";
-import { Empty } from "antd";
-import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
+import {SecondaryEnums, TertiaryEnums,} from "@/pages/DataAnalysis/service/enums";
+import {useMemo, useState} from "react";
+import {Empty} from "antd";
+import SVGIcon, {SVGTypeEnums} from "@/components/SVGIcon";
+import {useIntl} from "umi";
 
 export interface NodeManageProps {
   isLock: boolean;
@@ -40,7 +38,7 @@ const NodeModule = ({
   isLock: boolean;
 }) => {
   const [isFold, setIsFold] = useState<boolean>(false);
-
+  const i18n = useIntl();
   const onDragStart = (
     event: any,
     nodeType: any,
@@ -135,7 +133,9 @@ const NodeModule = ({
               >
                 <SVGIcon type={SVGTypeEnums.realtime} />
                 <div className={styles.nodeTitle}>
-                  <span>实时同步</span>
+                  <span>{i18n.formatMessage({
+                    id: "bigdata.components.FileTitle.fileType.realtime",
+                  })}</span>
                 </div>
               </div>
             </div>
@@ -157,7 +157,9 @@ const NodeModule = ({
               >
                 <SVGIcon type={SVGTypeEnums.offline} />
                 <div className={styles.nodeTitle}>
-                  <span>离线同步</span>
+                  <span>{i18n.formatMessage({
+                    id: "bigdata.components.FileTitle.fileType.offline",
+                  })}</span>
                 </div>
               </div>
             </div>

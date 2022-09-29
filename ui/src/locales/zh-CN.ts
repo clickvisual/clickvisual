@@ -137,7 +137,9 @@ export default {
   "instance.form.title.ruleStoreType.radio.on": "开启",
   "instance.form.title.filePath": "文件路径",
   "instance.form.placeholder.instanceName": "请输入实例名称",
-  "instance.form.placeholder.datasource": "请选择数据源",
+  "instance.form.placeholder.datasource": "选择数据源",
+  "instance.form.placeholder.orm": "字段映射",
+  "instance.form.placeholder.schedule": "调度配置",
   "instance.form.placeholder.mode": "请选择类型",
   "instance.form.placeholder.clusterName": "请输入集群名称",
   "instance.form.placeholder.dsn": "请输入数据源连接串，例如：{example}",
@@ -841,16 +843,16 @@ export default {
   "bigdata.components.FolderTree.FolderTitle.folder": "文件夹",
   "bigdata.components.FolderTree.FolderTitle.deleteTips": "确认删除吗?类型：",
 
-  "bigdata.components.FolderTree.crateNode.createTitle": "新建节点",
-  "bigdata.components.FolderTree.crateNode.updateTitle": "修改节点",
+  "bigdata.components.FolderTree.crateNode.createTitle": "新建临时查询",
+  "bigdata.components.FolderTree.crateNode.updateTitle": "修改临时查询",
   "bigdata.components.FolderTree.crateNode.tertiarySelect.placeholder":
     "请选择数据源类型",
   "bigdata.components.FolderTree.crateNode.sourceSelect.placeholder":
     "请选择数据源",
   "bigdata.components.FolderTree.crateNode.nodeName.placeholder":
-    "请输入节点名称",
+    "请输入临时查询脚本名称",
   "bigdata.components.FolderTree.crateNode.nodeDesc.placeholder":
-    "请输入节点描述",
+    "请输入临时查询脚本描述",
 
   "bigdata.components.FolderTree.crateFolder.createTitle": "新建文件夹",
   "bigdata.components.FolderTree.crateFolder.updateTitle": "修改文件夹",
@@ -924,4 +926,14 @@ export default {
   "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType": "节点类型",
   "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder":
     "请选择节点类型",
+
+  "pandas.analysis.data.source":"数据来源",
+  "pandas.analysis.data.filter":"数据过滤",
+  "pandas.analysis.data.filter.placeholder":"请参考相应的 SQL 语法填写过滤条件",
+  "pandas.analysis.data.target":"数据去向",
+  "pandas.analysis.data.target.before":"导入前语句",
+  "pandas.analysis.data.target.before.placeholder":"请参考相应的 SQL 语法填写导入数据去啊边执行的 SQL 脚本",
+  "pandas.analysis.data.target.after":"导入后语句",
+  "pandas.analysis.data.target.after.placeholder":"请参考相应的 SQL 语法填写导入数据后执行的 SQL 脚本",
+
 };

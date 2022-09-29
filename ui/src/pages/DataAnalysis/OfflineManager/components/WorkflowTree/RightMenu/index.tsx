@@ -1,20 +1,20 @@
-import { Menu, message } from "antd";
+import {Menu, message} from "antd";
 import {
   OfflineRightMenuClickSourceEnums,
   PrimaryEnums,
   SecondaryEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { ItemType } from "antd/es/menu/hooks/useItems";
-import { AppstoreAddOutlined, EditOutlined } from "@ant-design/icons";
+import {useCallback, useEffect, useMemo, useRef} from "react";
+import {ItemType} from "antd/es/menu/hooks/useItems";
+import {AppstoreAddOutlined, EditOutlined} from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
+import {useModel} from "@@/plugin-model/useModel";
+import {useIntl} from "umi";
 import deletedModal from "@/components/DeletedModal";
 import lodash from "lodash";
 // import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useLocalStorages, {LocalModuleType} from "@/hooks/useLocalStorages";
 import useUrlState from "@ahooksjs/use-url-state";
 
 export interface RightMenuProps {
@@ -298,11 +298,15 @@ const RightMenu = (props: RightMenuProps) => {
   ];
   const addNodeFromDataIntegration: ItemType[] = [
     {
-      label: "新建节点",
+      label: i18n.formatMessage({
+        id: "bigdata.components.FolderTree.iconList.createNode",
+      }),
       key: "add-node",
       children: [
         {
-          label: "实时同步",
+          label: i18n.formatMessage({
+            id: "bigdata.components.FileTitle.fileType.realtime",
+          }),
           key: "realTime-sync",
           onClick: () =>
             handleClickAddNode(
@@ -312,7 +316,9 @@ const RightMenu = (props: RightMenuProps) => {
             ),
         },
         {
-          label: "离线同步",
+          label: i18n.formatMessage({
+            id: "bigdata.components.FileTitle.fileType.offline",
+          }),
           key: "offline-sync",
           onClick: () =>
             handleClickAddNode(
@@ -328,7 +334,9 @@ const RightMenu = (props: RightMenuProps) => {
   const addFolder: ItemType[] = useMemo(() => {
     return [
       {
-        label: "新建文件夹",
+        label: i18n.formatMessage({
+          id: "bigdata.components.FolderTree.iconList.createFolder",
+        }),
         key: "add-folder",
         onClick: () =>
           handleClickAddFolder(currentNode.primary, currentNode.secondary),
@@ -343,7 +351,9 @@ const RightMenu = (props: RightMenuProps) => {
 
   const addNodeFromDevelopment: ItemType[] = [
     {
-      label: "新建节点",
+      label: i18n.formatMessage({
+        id: "bigdata.components.FolderTree.iconList.createNode",
+      }),
       key: "add-node",
       children: [
         {
@@ -376,18 +386,26 @@ const RightMenu = (props: RightMenuProps) => {
   ];
 
   const nodeMenu: ItemType[] = [
-    { label: "修改节点", key: "update-node", onClick: handleClickUpdateNode },
-    { label: "删除节点", key: "delete-node", onClick: handleClickDeleteNode },
+    { label:  i18n.formatMessage({
+        id: "edit",
+      }), key: "update-node", onClick: handleClickUpdateNode },
+    { label:  i18n.formatMessage({
+        id: "delete",
+      }), key: "delete-node", onClick: handleClickDeleteNode },
   ];
 
   const folderMenu: ItemType[] = [
     {
-      label: "修改文件夹",
+      label:  i18n.formatMessage({
+        id: "edit",
+      }),
       key: "update-folder",
       onClick: () => handleClickUpdateFolder(),
     },
     {
-      label: "删除文件夹",
+      label:  i18n.formatMessage({
+        id: "delete",
+      }),
       key: "delete-folder",
       onClick: () => handleClickDeleteFolder(),
     },

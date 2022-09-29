@@ -1,7 +1,11 @@
-import { Card, Form, Input } from "antd";
-import DatasourceSelect from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
-import { DataSourceModuleProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/index";
-import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
+import {Card, Form, Input} from "antd";
+import DatasourceSelect
+  from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/DatasourceSelect";
+import {
+  DataSourceModuleProps
+} from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/index";
+import {DataSourceTypeEnums} from "@/pages/DataAnalysis/OfflineManager/config";
+import {useIntl} from "umi";
 
 export interface SourceCardProps extends DataSourceModuleProps {
   file: any;
@@ -19,6 +23,7 @@ export interface SourceCardProps extends DataSourceModuleProps {
 
 const SourceCard = (props: SourceCardProps) => {
   const { isLock, setMapping, setSource, openModal, node } = props;
+  const i18n = useIntl();
 
   const handleChangeColumns = (columns: any[], isChange?: boolean) => {
     setSource(columns);
@@ -29,7 +34,10 @@ const SourceCard = (props: SourceCardProps) => {
     <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
       <Card
         size={"small"}
-        title="数据来源"
+        title={      i18n.formatMessage({
+          id: "pandas.analysis.data.source",
+        })
+      }
         style={{ width: "90%" }}
         headStyle={{ textAlign: "center" }}
       >
@@ -40,12 +48,16 @@ const SourceCard = (props: SourceCardProps) => {
           openModal={openModal}
           node={node}
         />
-        <Form.Item name={["source", "sourceFilter"]} label={"数据过滤"}>
+        <Form.Item name={["source", "sourceFilter"]} label={ i18n.formatMessage({
+          id: "pandas.analysis.data.filter",
+        })}>
           <Input.TextArea
             disabled={isLock}
             allowClear
             autoSize={{ minRows: 3, maxRows: 3 }}
-            placeholder={"请参考相应的 SQL 语法填写过滤条件"}
+            placeholder={i18n.formatMessage({
+              id: "pandas.analysis.data.filter.placeholder",
+            })}
           />
         </Form.Item>
       </Card>
