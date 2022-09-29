@@ -2,8 +2,22 @@ package service
 
 import (
 	"database/sql"
+	"errors"
+	"net/url"
+	"os"
+	"reflect"
 	"testing"
+
+	_ "github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
+
+func TestMain(m *testing.M) {
+	invoker.Logger = elog.DefaultLogger
+	os.Exit(m.Run())
+}
 
 func Test_clickHouseLink(t *testing.T) {
 	type args struct {
@@ -13,63 +27,40 @@ func Test_clickHouseLink(t *testing.T) {
 		name    string
 		args    args
 		wantDb  *sql.DB
-		wantErr bool
+		wantErr error
 	}{
 		// TODO: Add test cases.
 		{
-			name: "test-http",
+			name: "use http scheme",
 			args: args{
-				dsn: "http://127.0.0.1:8123",
+				dsn: "http://127.0.0.1:8123?username=root&password=shimo",
 			},
-			wantDb:  nil,
-			wantErr: false,
 		},
 		{
-			name: "test-tcp",
+			name: "use https scheme", // localhost server no tls
 			args: args{
-				dsn: "tcp://127.0.0.1:9000",
+				dsn: "https://127.0.0.1:8123?username=root&password=shimo&secure=true",
 			},
-			wantDb:  nil,
-			wantErr: false,
+			wantErr: &url.Error{
+				Op:  "Post",
+				URL: "https://root:***@127.0.0.1:8123?database=default&default_format=Native",
+				Err: errors.New("http: server gave HTTP response to HTTPS client"),
+			},
+		},
+		{
+			name: "use tcp scheme",
+			args: args{
+				dsn: "tcp://127.0.0.1:9000?username=root&password=shimo",
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := ClickHouseLink(tt.args.dsn)
-			if (err != nil) != tt.wantErr {
+			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("ClickHouseLink() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
 	}
 }
-
-//
-// func Test_clickhouseDsnConvert(t *testing.T) {
-// 	invoker.Logger = elog.DefaultLogger
-//
-// 	type args struct {
-// 		req string
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantRes string
-// 	}{
-// 		// TODO: Add test cases.
-// 		{
-// 			name: "test-1",
-// 			args: args{
-// 				req: "tcp://host1:9000?username=username&password=password&read_timeout=10&write_timeout=20&debug=true&max_execution_time=30",
-// 			},
-// 			wantRes: "clickhouse://username:password@host1:9000/default?debug=true&max_execution_time=30&read_timeout=10ms&write_timeout=20ms",
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if gotRes := clickhouseDsnConvert(tt.args.req); gotRes != tt.wantRes {
-// 				t.Errorf("clickhouseDsnConvert() = %v, want %v", gotRes, tt.wantRes)
-// 			}
-// 		})
-// 	}
-// }
