@@ -137,7 +137,9 @@ export default {
   "instance.form.title.ruleStoreType.radio.on": "Open",
   "instance.form.title.filePath": "File Path",
   "instance.form.placeholder.instanceName": "Please enter an instance name",
-  "instance.form.placeholder.datasource": "Please select datasource",
+  "instance.form.placeholder.datasource": "Select datasource",
+  "instance.form.placeholder.orm": "Field mapping",
+  "instance.form.placeholder.schedule": "Scheduling",
   "instance.form.placeholder.mode": "Please select a type",
   "instance.form.placeholder.clusterName": "Please enter a cluster name",
   "instance.form.placeholder.dsn": "Please enter DSN, for example: {example}",
@@ -814,7 +816,7 @@ export default {
 
   "bigdata.workflow.dataIntegration": "Data integration",
   "bigdata.workflow.dataDevelopment": "Data Analytics",
-  "bigdata.workflow.board": "Board",
+  "bigdata.workflow.board": "Kanban Board",
 
   // bigdata DataSourceManage
   "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder":
@@ -1005,4 +1007,14 @@ export default {
     "The node type",
   "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder":
     "Select a node type",
+
+  "pandas.analysis.data.source": "Source",
+  "pandas.analysis.data.filter": "Data filter",
+  "pandas.analysis.data.filter.placeholder":"Fill in the filtering criteria according to the corresponding SQL syntax",
+  "pandas.analysis.data.target": "Target",
+  "pandas.analysis.data.target.before":"Before import",
+  "pandas.analysis.data.target.before.placeholder":"Please refer to the corresponding SQL syntax to fill out the import data to execute SQL script",
+  "pandas.analysis.data.target.after":"After import",
+  "pandas.analysis.data.target.after.placeholder":"Please refer to the corresponding SQL syntax import data after the execution of the SQL script;",
+
 };

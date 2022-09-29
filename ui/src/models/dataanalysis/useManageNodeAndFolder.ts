@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  PrimaryEnums,
-  SecondaryEnums,
-  TertiaryEnums,
-} from "@/pages/DataAnalysis/service/enums";
+import {useCallback, useEffect, useRef, useState} from "react";
+import {PrimaryEnums, SecondaryEnums, TertiaryEnums,} from "@/pages/DataAnalysis/service/enums";
 import useRequest from "@/hooks/useRequest/useRequest";
-import dataAnalysisApi, { NodeInfo } from "@/services/dataAnalysis";
-import { formatMessage } from "@@/plugin-locale/localeExports";
+import dataAnalysisApi, {NodeInfo} from "@/services/dataAnalysis";
+import {formatMessage} from "@@/plugin-locale/localeExports";
 
 export const PrimaryList = [
   {
@@ -54,6 +50,7 @@ export const TertiaryList = [
   {
     id: TertiaryEnums.clickhouse,
     title: "ClickHouse",
+    isTranslate: false,
     enum: TertiaryEnums.clickhouse,
     types: [
       SecondaryEnums.database,
@@ -65,6 +62,7 @@ export const TertiaryList = [
   {
     id: TertiaryEnums.mysql,
     title: "MySQL",
+    isTranslate: false,
     enum: TertiaryEnums.mysql,
     types: [
       SecondaryEnums.dataMining,
@@ -74,19 +72,22 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.start,
-    title: "输入节点",
+    title: "bigdata.models.dataAnalysis.useManageNodeAndFolder.start",
+    isTranslate: true,
     enum: TertiaryEnums.start,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
     id: TertiaryEnums.end,
-    title: "输出节点",
+    title: "bigdata.models.dataAnalysis.useManageNodeAndFolder.end",
+    isTranslate: true,
     enum: TertiaryEnums.end,
     types: [SecondaryEnums.universal, SecondaryEnums.all, SecondaryEnums.board],
   },
   {
     id: TertiaryEnums.realtime,
-    title: "实时同步",
+    title: "bigdata.components.FileTitle.fileType.realtime",
+    isTranslate: true,
     enum: TertiaryEnums.realtime,
     types: [
       SecondaryEnums.dataIntegration,
@@ -96,7 +97,8 @@ export const TertiaryList = [
   },
   {
     id: TertiaryEnums.offline,
-    title: "离线同步",
+    title: "bigdata.components.FileTitle.fileType.offline",
+    isTranslate: true,
     enum: TertiaryEnums.offline,
     types: [
       SecondaryEnums.dataIntegration,

@@ -1,10 +1,11 @@
-import { Dropdown, Menu, Tooltip } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo, useState } from "react";
-import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
-import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
-import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
-import { cloneDeep } from "lodash";
+import {Dropdown, Menu, Tooltip} from "antd";
+import {useModel} from "@@/plugin-model/useModel";
+import {useEffect, useMemo, useState} from "react";
+import {TertiaryEnums} from "@/pages/DataAnalysis/service/enums";
+import SVGIcon, {SVGTypeEnums} from "@/components/SVGIcon";
+import {NodeBoardIdEnums} from "@/models/dataanalysis/useManageNodeAndFolder";
+import {cloneDeep} from "lodash";
+import {useIntl} from "umi";
 
 const BoardNode = ({
   node,
@@ -125,12 +126,16 @@ const BoardNode = ({
   useEffect(() => {
     return clearTimeout(timeNum);
   }, []);
+  const i18n = useIntl();
 
   const menu = () => {
+
     let menuItems = [
       {
         onClick: handleDelete,
-        label: "删除节点",
+        label: i18n.formatMessage({
+          id: "delete",
+        }),
         key: "delete-node",
       },
     ];
@@ -141,7 +146,9 @@ const BoardNode = ({
       menuItems = [
         {
           onClick: handleUpdateNode,
-          label: "修改节点",
+          label: i18n.formatMessage({
+            id: "edit",
+          }),
           key: "updateNode",
         },
         ...menuItems,
