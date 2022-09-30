@@ -26,6 +26,32 @@ export const REG_SEPARATORS = [
   "\u001b",
 ];
 
+// 不渲染点击菜单的包含项
+export const NOT_CLICKVISUAL_MENU = [
+  '"',
+  ":",
+  "\\",
+  ":\\",
+  '",',
+  '"},{',
+  " ",
+  ",",
+  "[{",
+  "}]",
+  "},",
+  "{",
+  '"}]},{',
+  "  ",
+  '{"',
+  '","',
+  ',"',
+  '["',
+  '"],"',
+  '""},"',
+  '"]},"',
+  '"[{',
+];
+
 export const PRE_SYMBOL = ["\n", "\t"];
 
 const JsonStringValue = ({
@@ -93,22 +119,7 @@ const JsonStringValue = ({
           isValue(value) && jsonViewStyles.jsonViewValueHover
         )}
       >
-        <ClickMenu
-          field={keyItem}
-          content={value}
-          handleAddCondition={() => {
-            isValue(value) &&
-              onClickValue?.(value, { key: keyItem, indexKey, isIndex });
-          }}
-          handleOutCondition={() => {
-            isValue(value) &&
-              quickInsertLikeExclusion?.(value, {
-                key: keyItem,
-                indexKey,
-                isIndex,
-              });
-          }}
-        >
+        {NOT_CLICKVISUAL_MENU.includes(value) ? (
           <span
             className={classNames(
               isValue(value) && jsonViewStyles.jsonViewValueHover,
@@ -117,7 +128,33 @@ const JsonStringValue = ({
           >
             {value}
           </span>
-        </ClickMenu>
+        ) : (
+          <ClickMenu
+            field={keyItem}
+            content={value}
+            handleAddCondition={() => {
+              isValue(value) &&
+                onClickValue?.(value, { key: keyItem, indexKey, isIndex });
+            }}
+            handleOutCondition={() => {
+              isValue(value) &&
+                quickInsertLikeExclusion?.(value, {
+                  key: keyItem,
+                  indexKey,
+                  isIndex,
+                });
+            }}
+          >
+            <span
+              className={classNames(
+                isValue(value) && jsonViewStyles.jsonViewValueHover,
+                highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+              )}
+            >
+              {value}
+            </span>
+          </ClickMenu>
+        )}
       </span>
     );
   });
