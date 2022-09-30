@@ -70,25 +70,24 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	instance, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		invoker.Logger.Error("instanceManager", elog.Any("id", id), elog.Any("error", err.Error()))
 		return nil, err
 	}
 	obj, ok := i.dss.Load(db.InstanceKey(id))
 	if !ok {
 		// try again
 		if err = i.Add(&instance); err != nil {
-			return nil, constx.ErrInstanceObj
+			return nil, err
 		}
 		obj, _ = i.dss.Load(db.InstanceKey(id))
 	}
 	if obj == nil {
-		return nil, constx.ErrInstanceObj
+		return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 	}
 	switch instance.Datasource {
 	case db.DatasourceClickHouse:
 		return obj.(*inquiry.ClickHouse), nil
 	}
-	return nil, constx.ErrInstanceObj
+	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 }
 
 func (i *instanceManager) All() []inquiry.Operator {

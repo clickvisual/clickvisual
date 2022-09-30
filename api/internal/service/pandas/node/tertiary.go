@@ -1,6 +1,8 @@
 package node
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -25,7 +27,7 @@ func (r *tertiary) execute(n *node) (res view.RunNodeResult, err error) {
 	case db.TertiaryRealTimeSync:
 		return doTyRealTimeSync(n)
 	default:
-		return res, constx.ErrBigdataNotSupportNodeType
+		return res, errors.Wrap(constx.ErrBigdataNotSupportNodeType, "tertiary execute")
 	}
 }
 

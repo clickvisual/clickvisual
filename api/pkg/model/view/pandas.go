@@ -169,8 +169,13 @@ type (
 
 		SourceFilter string `json:"sourceFilter"`
 
+		// Deprecated
 		TargetBefore string `json:"targetBefore"`
-		TargetAfter  string `json:"targetAfter"`
+		// Deprecated
+		TargetAfter string `json:"targetAfter"`
+
+		TargetBeforeList []string `json:"targetBeforeList"`
+		TargetAfterList  []string `json:"targetAfterList"`
 	}
 	// IntegrationMapping integration offline sync step 2
 	IntegrationMapping struct {

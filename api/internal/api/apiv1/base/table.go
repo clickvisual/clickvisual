@@ -1,7 +1,6 @@
 package base
 
 import (
-	"errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/cetus/pkg/kutl"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -378,7 +378,7 @@ func QueryComplete(c *core.Context) {
 	var param view.ReqComplete
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter", err)
 		return
 	}
 	iid := cast.ToInt(c.Param("iid"))
@@ -393,18 +393,18 @@ func QueryComplete(c *core.Context) {
 		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "", err)
 		return
 	}
 	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, "", err)
 		return
 	}
 	invoker.Logger.Debug("Complete", elog.Any("param", param))
 	res, err := op.Complete(param.Query)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, "", err)
 		return
 	}
 	c.JSONOK(res)
@@ -412,11 +412,10 @@ func QueryComplete(c *core.Context) {
 }
 
 func TableCharts(c *core.Context) {
-	t := time.Now()
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter: ", err)
 		return
 	}
 	id := cast.ToInt(c.Param("id"))
@@ -447,15 +446,14 @@ func TableCharts(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "checkNormalPermission", err)
 		return
 	}
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, "instanceManagerLoad", err)
 		return
 	}
-	invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "load"), elog.Any("cost", time.Since(t)))
 	res := view.HighCharts{
 		Histograms: make([]view.HighChart, 0),
 	}
@@ -466,7 +464,6 @@ func TableCharts(c *core.Context) {
 	}
 	interval := utils.CalculateInterval(param.ET - param.ST)
 	isZero := true
-	invoker.Logger.Debug("Charts", elog.Any("interval", interval), elog.Any("st", param.ST), elog.Any("et", param.ET))
 	if interval == 0 {
 		count, errCount := op.Count(param)
 		if errCount != nil {
@@ -485,13 +482,10 @@ func TableCharts(c *core.Context) {
 		res.Count = row.Count
 		res.Histograms = append(res.Histograms, row)
 	} else {
-		invoker.Logger.Debug("optimize", elog.String("func", "TableCharts"), elog.String("step", "start"), elog.Any("cost", time.Since(t)))
-
 		limiter := make(chan view.HighChart, 100)
 		errorChan := make(chan error, 100)
 		wg := &sync.WaitGroup{}
 		sum := 0
-
 		for i := param.ST; i < param.ET; i += interval {
 			wg.Add(1)
 			sum++
@@ -529,11 +523,10 @@ func TableCharts(c *core.Context) {
 			}(i, i+interval, wg)
 		}
 		wg.Wait()
-		invoker.Logger.Debug("optimize", elog.Int("sum", sum), elog.String("func", "TableCharts"), elog.String("step", "finish"), elog.Any("cost", time.Since(t)))
 		close(errorChan)
 		for e := range errorChan {
 			if e != nil {
-				c.JSONE(core.CodeErr, "query error: "+e.Error(), nil)
+				c.JSONE(core.CodeErr, "query error", e)
 				return
 			}
 		}

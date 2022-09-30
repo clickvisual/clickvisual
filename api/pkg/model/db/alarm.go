@@ -7,6 +7,7 @@ import (
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -209,7 +210,7 @@ func AlarmInfo(db *gorm.DB, id int) (resp Alarm, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(Alarm{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
+		err = errors.Wrapf(err, "alarm id: %d", id)
 		return
 	}
 	return
@@ -344,7 +345,7 @@ func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmChannel{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
+		err = errors.Wrapf(err, "alarm channel id: %d", id)
 		return
 	}
 	return
@@ -389,7 +390,7 @@ func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmHistory{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
+		err = errors.Wrapf(err, "alarm history id: %d", id)
 		return
 	}
 	return

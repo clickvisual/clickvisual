@@ -1,12 +1,12 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -181,7 +181,7 @@ type BaseShortURL struct {
 // DatabaseCreate ...
 func DatabaseCreate(db *gorm.DB, data *BaseDatabase) (err error) {
 	if err = db.Model(BaseDatabase{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("release error", zap.Error(err))
+		err = errors.Wrapf(err, "database id: %v", data)
 		return
 	}
 	return
@@ -210,7 +210,7 @@ func DatabaseInfo(db *gorm.DB, paramId int) (resp BaseDatabase, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameBaseDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("info error", zap.Error(err))
+		err = errors.Wrapf(err, "database id: %d", paramId)
 		return
 	}
 	return
@@ -234,7 +234,6 @@ func DatabaseGetOrCreate(db *gorm.DB, uid, iid int, name string) (resp BaseDatab
 		Uid:  uid,
 	}
 	if err = DatabaseCreate(db, &resp); err != nil {
-		invoker.Logger.Error("info error", zap.Error(err))
 		return
 	}
 	return
@@ -315,7 +314,7 @@ func IndexInfo(db *gorm.DB, id int) (resp BaseIndex, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(BaseIndex{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
+		err = errors.Wrapf(err, "index id: %d", id)
 		return
 	}
 	return
@@ -383,8 +382,7 @@ func InstanceInfo(db *gorm.DB, id int) (resp BaseInstance, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{id}
 	if err = db.Model(BaseInstance{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("release info error", zap.Error(err))
-		return
+		return resp, errors.Wrapf(err, "instance id: %d", id)
 	}
 	return
 }
@@ -456,7 +454,7 @@ func TableInfo(db *gorm.DB, paramId int) (resp BaseTable, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameBaseTable).Preload("Database").Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("info error", zap.Error(err))
+		err = errors.Wrapf(err, "table id: %d", paramId)
 		return
 	}
 	return
@@ -478,8 +476,7 @@ func TableList(db *gorm.DB, conds egorm.Conds) (resp []*BaseTable, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = db.Table(TableNameBaseTable).Preload("Database").Where(sql, binds...).Order("id asc").Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("list error", elog.String("err", err.Error()))
-		return
+		return nil, errors.Wrapf(err, "conds %v:", conds)
 	}
 	return
 }
@@ -499,7 +496,7 @@ func ViewInfo(db *gorm.DB, paramId int) (resp BaseView, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameBaseView).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("info error", zap.Error(err))
+		err = errors.Wrapf(err, "table view id: %d", paramId)
 		return
 	}
 	return
@@ -556,7 +553,7 @@ func ShortURLInfoBySCode(db *gorm.DB, sCode string) (resp BaseShortURL, err erro
 	var sql = "`s_code`=?"
 	var binds = []interface{}{sCode}
 	if err = db.Model(BaseShortURL{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		invoker.Logger.Error("get info error", zap.Error(err))
+		err = errors.Wrapf(err, "short url code: %s", sCode)
 		return
 	}
 	return

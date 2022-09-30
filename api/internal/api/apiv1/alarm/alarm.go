@@ -22,7 +22,7 @@ import (
 func Create(c *core.Context) {
 	var req view.ReqAlarmCreate
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter", err)
 		return
 	}
 	var tid int

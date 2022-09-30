@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -47,7 +46,6 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 	p := &primary{next: s}
 	res := view.RespRunNode{}
 
-	invoker.Logger.Debug("doSyDashboard", elog.Any("node", n))
 	now := time.Now()
 	// record update
 	tx := invoker.Db.Begin()
@@ -59,7 +57,7 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 	}
 	if errNodeCreate := db.NodeResultCreate(tx, &nodeResult); errNodeCreate != nil {
 		tx.Rollback()
-		return res, errNodeCreate
+		return res, errors.WithMessage(errNodeCreate, "operator db node result create")
 	}
 	execResult, err := p.execute(&node{
 		n:             n,
@@ -97,12 +95,12 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 		conds["status"] = execStatus
 		if errNodeUpdate := db.NodeResultUpdate(tx, nodeResult.ID, conds); errNodeUpdate != nil {
 			tx.Rollback()
-			return res, errors.Wrap(errNodeUpdate, execResult.Message)
+			return res, errors.WithMessage(errNodeUpdate, "operator db node result update: "+execResult.Message)
 		}
 	}
 	if errContentUpdate := db.NodeContentUpdate(invoker.Db, n.ID, ups); errContentUpdate != nil {
 		tx.Rollback()
-		return res, errors.Wrap(errContentUpdate, execResult.Message)
+		return res, errors.WithMessage(errContentUpdate, "operator db node content update: "+execResult.Message)
 	}
 	tx.Commit()
 	return res, err

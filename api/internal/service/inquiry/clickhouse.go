@@ -2,7 +2,6 @@ package inquiry
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -14,6 +13,7 @@ import (
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
@@ -666,14 +666,12 @@ func resultAppend(input []string, k, v string, withQuote bool) []string {
 }
 
 func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
-	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)
 	tmp, err := c.doQuery(sql)
 	if err != nil {
 		return
 	}
 	res.Logs = tmp
-	invoker.Logger.Debug("Complete", elog.String("sql", sql), elog.Any("logs", res.Logs))
 	return
 }
 
@@ -1268,7 +1266,6 @@ func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
 		param.ST, param.ET,
 		c.queryTransform(param, true),
 		param.Field)
-	invoker.Logger.Debug("ClickHouse", elog.Any("step", "groupBySQL"), elog.Any("sql", sql))
 	return
 }
 
@@ -1276,8 +1273,7 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 	res = make([]map[string]interface{}, 0)
 	rows, err := c.db.Query(sql)
 	if err != nil {
-		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("sql", sql), elog.Any("error", err.Error()))
-		return
+		return res, errors.Wrap(err, sql)
 	}
 	defer func() { _ = rows.Close() }()
 	cts, _ := rows.ColumnTypes()
@@ -1295,11 +1291,9 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 			values[idx] = fieldValue.Addr().Interface()
 		}
 		if err = rows.Scan(values...); err != nil {
-			invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
-			return
+			return res, errors.Wrap(err, sql)
 		}
 		for k := range fields {
-			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
 			if isEmpty(values[k]) {
 				line[fields[k]] = ""
 			} else {
@@ -1309,8 +1303,7 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		res = append(res, line)
 	}
 	if err = rows.Err(); err != nil {
-		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
-		return
+		return res, errors.Wrap(err, sql)
 	}
 	return
 }
