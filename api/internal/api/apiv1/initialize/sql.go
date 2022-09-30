@@ -20,6 +20,8 @@ func IsInstall(c *core.Context) {
 		c.JSONOK(0)
 		return
 	}
+	c.JSONE(1, "ttttt", nil)
+
 	c.JSONOK(1)
 }
 

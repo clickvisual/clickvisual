@@ -5,6 +5,7 @@ import (
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -71,7 +72,7 @@ func ConfigurationInfo(paramId int) (resp Configuration, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameConfiguration).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("cluster info error", zap.Error(err))
+		err = errors.Wrapf(err, "configuration id: %d", paramId)
 		return
 	}
 	return
@@ -97,22 +98,6 @@ func ConfigurationList(conds egorm.Conds) (resp []*Configuration, err error) {
 	return
 }
 
-// ConfigurationListPage return item list by pagination
-func ConfigurationListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*Configuration) {
-	respList = make([]*Configuration, 0)
-	if reqList.PageSize == 0 {
-		reqList.PageSize = 10
-	}
-	if reqList.Current == 0 {
-		reqList.Current = 1
-	}
-	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Table(TableNameConfiguration).Where(sql, binds...)
-	db.Count(&total)
-	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
-	return
-}
-
 type ConfigurationHistory struct {
 	BaseModel
 	Uid             int    `gorm:"column:uid;type:int(11) unsigned" json:"uid"`
@@ -128,61 +113,11 @@ func (m *ConfigurationHistory) TableName() string {
 	return TableNameConfigurationHistory
 }
 
-// ConfigurationHistoryCreate CRUD
-func ConfigurationHistoryCreate(db *gorm.DB, data *ConfigurationHistory) (err error) {
-	if err = db.Create(data).Error; err != nil {
-		invoker.Logger.Error("ConfigurationHistoryCreate cluster error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// ConfigurationHistoryUpdate ...
-func ConfigurationHistoryUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{paramId}
-	if err = db.Table(TableNameConfigurationHistory).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("ConfigurationHistoryUpdate cluster error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func ConfigurationHistoryInfo(paramId int) (resp ConfigurationHistory, err error) {
-	var sql = "`id`= ?"
-	var binds = []interface{}{paramId}
-	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("ConfigurationHistoryInfo info error", zap.Error(err))
-		return
-	}
-	return
-}
-
 // ConfigurationHistoryInfoX get single item by condition
 func ConfigurationHistoryInfoX(conds map[string]interface{}) (resp ConfigurationHistory, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		invoker.Logger.Error("ConfigurationHistoryInfoX infoX error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// ConfigurationHistoryDelete soft delete item by id
-func ConfigurationHistoryDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(ConfigurationHistory{}).Delete(&ConfigurationHistory{}, id).Error; err != nil {
-		invoker.Logger.Error("ConfigurationHistoryDelete delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// ConfigurationHistoryList return item list by condition
-func ConfigurationHistoryList(conds egorm.Conds) (resp []*ConfigurationHistory, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	// Fetch record with Rancher Info....
-	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("ConfigurationHistoryList clusters error", elog.String("err", err.Error()))
 		return
 	}
 	return
@@ -214,70 +149,4 @@ type ConfigurationPublish struct {
 
 func (m *ConfigurationPublish) TableName() string {
 	return TableNameConfigurationPublish
-}
-
-// ConfigurationPublishCreate CRUD
-func ConfigurationPublishCreate(db *gorm.DB, data *ConfigurationPublish) (err error) {
-	if err = db.Create(data).Error; err != nil {
-		invoker.Logger.Error("ConfigurationPublishCreate cluster error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// ConfigurationPublishUpdate ...
-func ConfigurationPublishUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{paramId}
-	if err = db.Table(TableNameConfigurationPublish).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("ConfigurationPublishUpdate cluster error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func ConfigurationPublishInfo(paramId int) (resp ConfigurationPublish, err error) {
-	var sql = "`id`= ?"
-	var binds = []interface{}{paramId}
-	if err = invoker.Db.Table(TableNameConfigurationPublish).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("ConfigurationPublishInfo info error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// ConfigurationPublishDelete soft delete item by id
-func ConfigurationPublishDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(ConfigurationPublish{}).Delete(&ConfigurationPublish{}, id).Error; err != nil {
-		invoker.Logger.Error("ConfigurationPublishDelete delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// ConfigurationPublishList return item list by condition
-func ConfigurationPublishList(conds egorm.Conds) (resp []*ConfigurationPublish, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	// Fetch record with Rancher Info....
-	if err = invoker.Db.Table(TableNameConfigurationPublish).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("ConfigurationPublishList clusters error", elog.String("err", err.Error()))
-		return
-	}
-	return
-}
-
-// ConfigurationPublishListPage return item list by pagination
-func ConfigurationPublishListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*ConfigurationPublish) {
-	respList = make([]*ConfigurationPublish, 0)
-	if reqList.PageSize == 0 {
-		reqList.PageSize = 10
-	}
-	if reqList.Current == 0 {
-		reqList.Current = 1
-	}
-	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Table(TableNameConfigurationPublish).Where(sql, binds...)
-	db.Count(&total)
-	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
-	return
 }

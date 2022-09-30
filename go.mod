@@ -13,6 +13,7 @@ require (
 	github.com/ego-component/eredis v1.0.3
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.8.1
+	github.com/go-faster/errors v0.6.1
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.11.0
@@ -32,6 +33,7 @@ require (
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe
 	github.com/swaggo/gin-swagger v1.5.1
 	github.com/swaggo/swag v1.8.4
+	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.22.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	golang.org/x/oauth2 v0.0.0-20220722155238-128564f6959c
@@ -81,7 +83,6 @@ require (
 	github.com/glebarez/sqlite v1.4.3 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
-	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -178,7 +179,6 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1 // indirect
 	go.uber.org/goleak v1.1.12 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect

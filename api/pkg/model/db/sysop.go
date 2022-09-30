@@ -3,11 +3,11 @@ package db
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -126,7 +126,7 @@ func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("cluster info error", zap.Error(err))
+		err = errors.Wrapf(err, "k8s config map id: %d", paramId)
 		return
 	}
 	return
@@ -160,7 +160,7 @@ func ClusterInfo(paramId int) (resp Cluster, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("cluster info error", zap.Error(err))
+		err = errors.Wrapf(err, "cluster id: %d", paramId)
 		return
 	}
 	resp.KubeConfig = json2yaml(resp.KubeConfig)
@@ -171,7 +171,7 @@ func ClusterNormalInfo(paramId int) (resp Cluster, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("cluster info error", zap.Error(err))
+		err = errors.Wrapf(err, "cluster id: %d", paramId)
 		return
 	}
 	return
@@ -271,7 +271,7 @@ func UserInfo(paramId int) (resp User, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("cluster info error", zap.Error(err))
+		err = errors.Wrapf(err, "user id: %d", paramId)
 		return
 	}
 	return

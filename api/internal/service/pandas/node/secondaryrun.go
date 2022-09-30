@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -16,21 +15,17 @@ func doSyDashboard(n *node) (res view.RunNodeResult, err error) {
 	if err = json.Unmarshal([]byte(n.nc.Content), &dag); err != nil {
 		return
 	}
-	invoker.Logger.Debug("doSyDashboard", elog.Any("dag", dag))
 	dagFilter := dagEdgeFilter(dag)
-	invoker.Logger.Debug("doSyDashboard", elog.Any("dagFilter", dagFilter))
 	dagExecFlow := dagEdgeExecFlow(dagStart, dagFilter)
-	invoker.Logger.Debug("doSyDashboard", elog.Any("dagExecFlow", dagExecFlow))
 	res.DagFailedNodes = make(map[int]string, 0)
 	_ = dagExec(dagExecFlow[0], n.uid, res.DagFailedNodes)
 	if len(res.DagFailedNodes) > 0 {
 		return res, constx.ErrDagExecFailed
 	}
-	invoker.Logger.Debug("doSyDashboard", elog.Any("res", res))
 	return
 }
 
-// 通过 node 数据过滤掉不合理的连线操作
+// dagEdgeFilter: Through the node data to filter out the connection to the unreasonable operation
 func dagEdgeFilter(req view.ReqDAG) (res []view.ReqDagEdge) {
 	res = make([]view.ReqDagEdge, 0)
 	nm := make(map[int]interface{})
@@ -51,12 +46,10 @@ func dagEdgeFilter(req view.ReqDAG) (res []view.ReqDagEdge) {
 	return
 }
 
-// 通过连线操作生成执行流
+// DagEdgeExecFlow: by cords generate execution flow operation
 func dagEdgeExecFlow(nodeId int, req []view.ReqDagEdge) (res []view.DagExecFlow) {
 	// 找到开始节点
 	children := make([]view.DagExecFlow, 0)
-	invoker.Logger.Debug("doSyDashboard", elog.Any("step", "start"), elog.Any("startNode", nodeId),
-		elog.Any("req", req))
 	for _, e := range req {
 		s, _ := strconv.Atoi(e.Source)
 		t, _ := strconv.Atoi(e.Target)
@@ -69,8 +62,6 @@ func dagEdgeExecFlow(nodeId int, req []view.ReqDagEdge) (res []view.DagExecFlow)
 			}
 		}
 	}
-	invoker.Logger.Debug("doSyDashboard", elog.Any("step", "doing"),
-		elog.Any("endNode", nodeId), elog.Any("children", children))
 	res = append(res, view.DagExecFlow{
 		NodeId:   nodeId,
 		Children: children,
@@ -79,20 +70,15 @@ func dagEdgeExecFlow(nodeId int, req []view.ReqDagEdge) (res []view.DagExecFlow)
 }
 
 func dagExec(req view.DagExecFlow, uid int, fns map[int]string) (err error) {
-	// 执行当前节点
+	// 进行日志记录
 	if req.NodeId == dagStart {
-		// 不执行相关操作，进行日志记录
-		invoker.Logger.Info("dagExec", elog.String("step", "start"), elog.Any("req", req),
-			elog.Int("uid", uid))
+		// 不执行相关操作
 	} else {
 		// 非开始节点
-		_, err = Run(req.NodeId, uid)
-	}
-	if err != nil {
-		fns[req.NodeId] = err.Error()
-		invoker.Logger.Error("dagExec", elog.String("step", "run"), elog.Any("NodeId", req.NodeId),
-			elog.Any("err", err))
-		return
+		if _, err = Run(req.NodeId, uid); err != nil {
+			fns[req.NodeId] = err.Error()
+			return errors.WithMessagef(err, "node id: %d", req.NodeId)
+		}
 	}
 	// 执行子节点
 	for _, child := range req.Children {
@@ -102,9 +88,7 @@ func dagExec(req view.DagExecFlow, uid int, fns map[int]string) (err error) {
 		}
 		if err = dagExec(child, uid, fns); err != nil {
 			fns[child.NodeId] = err.Error()
-			invoker.Logger.Error("dagExec", elog.String("step", "child"), elog.Any("child", child),
-				elog.Any("err", err))
-			return
+			return errors.WithMessagef(err, "child: %v", child)
 		}
 	}
 	return

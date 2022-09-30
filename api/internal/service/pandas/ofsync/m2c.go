@@ -44,29 +44,35 @@ func (c *MySQL2ClickHouse) Run() (map[string]string, error) {
 	)
 	c.involvedSQLs = make(map[string]string)
 	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
-		invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
 	if err = c.mysqlEngineDatabase(ins, c.sc); err != nil {
-		invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "mysqlEngineTable"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
-	if err = c.execTargetSQL(ins, c.sc.Target.TargetBefore); err != nil {
-		invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "TargetBefore"), elog.String("error", err.Error()))
-		return c.involvedSQLs, err
+	if len(c.sc.Target.TargetBeforeList) > 0 {
+		for _, sql := range c.sc.Target.TargetBeforeList {
+			if err = c.execTargetSQL(ins, sql); err != nil {
+				return c.involvedSQLs, err
+			}
+		}
+	} else {
+		if err = c.execTargetSQL(ins, c.sc.Target.TargetBefore); err != nil {
+			return c.involvedSQLs, err
+		}
 	}
-	// var viewTableName string
-	// if viewTableName, err = c.materializedView(ins); err != nil {
-	// 	invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "c2mMaterialView"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
-	// 	return c.involvedSQLs, err
-	// }
 	if err = c.insert(ins); err != nil {
-		invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "insert"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
-	if err = c.execTargetSQL(ins, c.sc.Target.TargetAfter); err != nil {
-		invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "TargetAfter"), elog.String("error", err.Error()))
-		return c.involvedSQLs, err
+	if len(c.sc.Target.TargetAfterList) > 0 {
+		for _, sql := range c.sc.Target.TargetAfterList {
+			if err = c.execTargetSQL(ins, sql); err != nil {
+				return c.involvedSQLs, err
+			}
+		}
+	} else {
+		if err = c.execTargetSQL(ins, c.sc.Target.TargetAfter); err != nil {
+			return c.involvedSQLs, err
+		}
 	}
 	_ = db.NodeUpdate(invoker.Db, c.nodeId, map[string]interface{}{"status": db.NodeStatusFinish})
 	return c.involvedSQLs, nil

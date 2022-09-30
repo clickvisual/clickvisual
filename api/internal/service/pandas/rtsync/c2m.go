@@ -47,24 +47,35 @@ func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 	)
 	c.involvedSQLs = make(map[string]string)
 	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
 	if err = c.mysqlEngineDatabase(ins, c.sc); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
-	if err = c.execTargetSQL(c.sc.Target.TargetBefore); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "TargetBefore"), elog.String("error", err.Error()))
-		return c.involvedSQLs, err
+	if len(c.sc.Target.TargetBeforeList) > 0 {
+		for _, sql := range c.sc.Target.TargetBeforeList {
+			if err = c.execTargetSQL(sql); err != nil {
+				return c.involvedSQLs, err
+			}
+		}
+	} else {
+		if err = c.execTargetSQL(c.sc.Target.TargetBefore); err != nil {
+			return c.involvedSQLs, err
+		}
 	}
 	if err = c.materializedView(ins); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "c2mMaterialView"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 		return c.involvedSQLs, err
 	}
-	if err = c.execTargetSQL(c.sc.Target.TargetAfter); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "TargetAfter"), elog.String("error", err.Error()))
-		return c.involvedSQLs, err
+	if len(c.sc.Target.TargetAfterList) > 0 {
+		for _, sql := range c.sc.Target.TargetAfterList {
+			if err = c.execTargetSQL(sql); err != nil {
+				return c.involvedSQLs, err
+			}
+		}
+	} else {
+		if err = c.execTargetSQL(c.sc.Target.TargetAfter); err != nil {
+			return c.involvedSQLs, err
+		}
 	}
 	return c.involvedSQLs, err
 }

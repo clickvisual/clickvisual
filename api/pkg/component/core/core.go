@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/core/etrace"
 	"gorm.io/gorm"
@@ -120,6 +119,14 @@ func (c *Context) JSONOK(data ...interface{}) {
 	return
 }
 
+func LoggerError(comp, typ string, data interface{}) {
+	switch data.(type) {
+	case error:
+		elog.Error("innerError", elog.FieldComponent(comp), elog.FieldType(typ), elog.FieldErr(data.(error)))
+	}
+	return
+}
+
 // JSONE returns JSON response with failure business code ,msg and data
 // e.x. {"code":<code>, "msg":<msg>, "data":<data>}
 func (c *Context) JSONE(code int, msg string, data interface{}) {
@@ -129,10 +136,11 @@ func (c *Context) JSONE(code int, msg string, data interface{}) {
 	switch d := data.(type) {
 	case error:
 		j.Data = d.Error()
+		elog.Error("bizError", elog.FieldValue(msg), elog.FieldErr(data.(error)), elog.FieldTid(etrace.ExtractTraceID(c.Request.Context())))
 	default:
 		j.Data = data
+		elog.Warn("bizWarning", elog.FieldValue(msg), elog.FieldExtMessage(data), elog.FieldTid(etrace.ExtractTraceID(c.Request.Context())))
 	}
-	invoker.Logger.Warn("biz warning", elog.FieldValue(msg), elog.FieldValueAny(data), elog.FieldTid(etrace.ExtractTraceID(c.Request.Context())))
 	c.Context.JSON(http.StatusOK, j)
 	return
 }

@@ -4,10 +4,11 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
+	"go.uber.org/multierr"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/storage"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -28,34 +29,36 @@ func (s *iStorage) tickerTraceWorker() {
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
 	for range ticker.C {
-		elog.Info("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("tickStart"), elog.Any("workersF", s.workersF))
-		s.syncTraceWorker()
+		core.LoggerError("iStorage", "tickerTraceWorker", s.syncTraceWorker())
 	}
 	return
 }
 
-func (s *iStorage) syncTraceWorker() {
+func (s *iStorage) syncTraceWorker() error {
 	// 获取链路表的数据
 	conds := egorm.Conds{}
 	conds["create_type"] = constx.TableCreateTypeUBW
 	list, err := db.TableList(invoker.Db, conds)
 	if err != nil {
-		elog.Error("workerTrace", elog.FieldComponent("syncTraceWorker"), elog.FieldName("tableList"), elog.FieldErr(err))
-		return
+		return err
 	}
 	for _, row := range list {
 		if row.V3TableType == db.V3TableTypeJaegerJSON {
-			s.on(row)
+			errRow := s.on(row)
+			if errRow != nil {
+				err = multierr.Append(err, err)
+			}
 		} else {
 			s.off(row)
 		}
 	}
+	return err
 }
 
-func (s *iStorage) on(row *db.BaseTable) {
+func (s *iStorage) on(row *db.BaseTable) error {
 	flag, ok := s.workersF[row.ID]
 	if ok && flag {
-		return
+		return nil
 	}
 	s.workersF[row.ID] = true
 	// source table
@@ -67,11 +70,10 @@ func (s *iStorage) on(row *db.BaseTable) {
 	target.SetDatabase(row.Database.Name)
 	target.SetTable(row.Name + db.SuffixJaegerJSON)
 	// params
-	op, errInstanceManager := InstanceManager.Load(row.Database.Iid)
-	if errInstanceManager != nil {
+	op, err := InstanceManager.Load(row.Database.Iid)
+	if err != nil {
 		s.workersF[row.ID] = false
-		elog.Error("workerTrace", elog.FieldComponent("syncTraceWorker"), elog.FieldName("errInstanceManager"), elog.FieldErr(errInstanceManager))
-		return
+		return err
 	}
 	worker := storage.NewWorkerTrace(storage.WorkerParams{
 		Spec:   "*/10 * * * *",
@@ -80,8 +82,7 @@ func (s *iStorage) on(row *db.BaseTable) {
 		DB:     op.Conn(),
 	})
 	s.workers[row.ID] = worker
-	elog.Info("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("on"),
-		elog.String("table", row.Name), elog.Any("tid", row.ID))
+	return nil
 }
 
 func (s *iStorage) off(row *db.BaseTable) {
@@ -92,8 +93,6 @@ func (s *iStorage) off(row *db.BaseTable) {
 	w := s.workers[row.ID]
 	if w != nil {
 		w.Stop()
-		elog.Debug("workerTrace", elog.FieldComponent("tickerTraceWorker"), elog.FieldName("off"),
-			elog.String("table", row.Name), elog.Any("tid", row.ID))
 	}
 	return
 }

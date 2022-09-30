@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gotomicro/ego/core/elog"
-
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/ofsync"
@@ -22,13 +20,10 @@ func doTyClickHouse(n *node) (res view.RunNodeResult, err error) {
 	if err != nil {
 		return
 	}
-	invoker.Logger.Debug("node", elog.String("content", n.nc.Content))
 	tmp, err := op.Complete(argsReplace(n.n.ID, n.nc.Content))
 	if err != nil {
-		invoker.Logger.Error("node", elog.String("step", "doTyClickHouse"), elog.Any("err", err))
 		return
 	}
-	invoker.Logger.Debug("node", elog.Any("tmp", tmp), elog.Any("err", err))
 	res.Logs = tmp.Logs
 	return
 }
