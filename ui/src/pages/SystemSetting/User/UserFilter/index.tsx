@@ -21,11 +21,20 @@ const UserFilter = (props: UserFilterType) => {
             {i18n.formatMessage({
               id: "bigdata.dataSourceManage.create.userName",
             })}
+            :
           </div>
           <Input
             onChange={(e) => {
               setUsername(e.target.value);
             }}
+            placeholder={i18n.formatMessage(
+              { id: "input.placeholder" },
+              {
+                name: i18n.formatMessage({
+                  id: "bigdata.dataSourceManage.create.userName",
+                }),
+              }
+            )}
           />
           <Button
             type="primary"
