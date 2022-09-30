@@ -12,7 +12,7 @@ RUN yarn build
 
 
 # API build stage
-FROM golang:1.17.3-alpine3.14 as go-builder
+FROM golang:1.18.6-alpine3.14 as go-builder
 ARG GOPROXY=goproxy.cn
 
 ENV GOPROXY=https://${GOPROXY},direct
