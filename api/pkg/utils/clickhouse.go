@@ -17,6 +17,7 @@ func ClickhouseDsnConvert(req string) (res string) {
 		invoker.Logger.Error("clickhouseDsnConvert", elog.Any("error", err))
 		return req
 	}
+
 	query := u.Query()
 	query.Del("write_timeout")
 	if strings.HasPrefix(req, "clickhouse://") ||
@@ -30,9 +31,15 @@ func ClickhouseDsnConvert(req string) (res string) {
 	if database == "" {
 		database = "default"
 	}
-	res = fmt.Sprintf("clickhouse://%s:%s@%s/%s", query.Get("username"), query.Get("password"), u.Host, database)
-	query.Del("username")
+
+	password := query.Get("password")
+	if password != "" {
+		password = url.QueryEscape(query.Get("password")) // 处理特殊字符
+	}
+
+	res = fmt.Sprintf("clickhouse://%s:%s@%s/%s", query.Get("username"), password, u.Host, database)
 	query.Del("password")
+	query.Del("username")
 	query.Del("database")
 
 	queryValAssembly(query, "read_timeout", "ms")
