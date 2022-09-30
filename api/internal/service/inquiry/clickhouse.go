@@ -79,7 +79,7 @@ func genTimeCondition(param view.ReqQuery) string {
 func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
 	switch param.TimeFieldType {
 	case db.TimeFieldTypeDT:
-		return fmt.Sprintf("%s = toDateTime(%d)", param.TimeField, t.Unix())
+		return fmt.Sprintf("toUnixTimestamp(%s) = %d", param.TimeField, t.Unix())
 	case db.TimeFieldTypeDT3:
 		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
 	case db.TimeFieldTypeTsMs:
