@@ -25,10 +25,10 @@ jobs:
           yarn install --frozen-lockfile
           yarn run build
           cp -rf dist ../api/internal/ui
-      - name: Set up Go 1.17
+      - name: Set up Go 1.18
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17
+          go-version: 1.18
       - uses: actions/cache@v2
         with:
           path: |
