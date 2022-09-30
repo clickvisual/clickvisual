@@ -382,6 +382,6 @@ func ViewList(c *core.Context) {
 			Name: v.Name,
 		})
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

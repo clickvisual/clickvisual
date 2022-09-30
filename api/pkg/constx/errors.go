@@ -5,6 +5,7 @@ import (
 )
 
 var (
+	ErrEmptyData                    = &kerror.KError{Code: 10001, Message: "empty data"}
 	ErrPmsCheck                     = &kerror.KError{Code: 10002, Message: "Authentication failed"}
 	ErrorUserOauthTypeIsNotPassword = &kerror.KError{Code: 10005, Message: "user oauth type is not user/password"}
 	ErrorRepeatUserName             = &kerror.KError{Code: 10006, Message: "repeat username"}

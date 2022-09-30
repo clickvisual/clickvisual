@@ -49,7 +49,7 @@ func Create(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "CheckNormalPermission", err)
 		return
 	}
 	if len(req.Filters) > 0 {
@@ -77,18 +77,18 @@ func Create(c *core.Context) {
 	}
 	if err = db.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 01: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 01", err)
 		return
 	}
 	err = service.Alarm.CreateOrUpdate(tx, obj, req)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 02: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 02: "+err.Error(), err)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 03: "+err.Error(), nil)
+		c.JSONE(1, "alarm create failed 03: "+err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsCreate, map[string]interface{}{"obj": obj})
@@ -107,7 +107,7 @@ func Update(c *core.Context) {
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
 
@@ -121,7 +121,7 @@ func Update(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 
@@ -130,28 +130,29 @@ func Update(c *core.Context) {
 		err = service.Alarm.OpenOperator(id)
 	case db.AlarmStatusClose:
 		if errAlarmInfo != nil {
-			c.JSONE(1, "alarm update failed 02"+errAlarmInfo.Error(), nil)
+			c.JSONE(1, "alarm update failed 02"+errAlarmInfo.Error(), errAlarmInfo)
 			return
 		}
 		op, errInstanceManager := service.InstanceManager.Load(instanceInfo.ID)
 		if errInstanceManager != nil {
-			c.JSONE(core.CodeErr, errInstanceManager.Error(), nil)
+			c.JSONE(core.CodeErr, errInstanceManager.Error(), errInstanceManager)
 			return
 		}
 		if len(alarmInfo.ViewDDLs) > 0 {
 			for table := range alarmInfo.ViewDDLs {
 				if err = op.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
+					c.JSONE(core.CodeErr, "AlertViewDrop", err)
 					return
 				}
 			}
 		} else {
 			if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
-				c.JSONE(1, "alarm update failed when delete metrics view: "+err.Error(), nil)
+				c.JSONE(1, "alarm update failed when delete metrics view: "+err.Error(), err)
 				return
 			}
 		}
 		if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
-			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed:"+err.Error(), nil)
+			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed:"+err.Error(), err)
 			return
 		}
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
@@ -159,7 +160,7 @@ func Update(c *core.Context) {
 		err = service.Alarm.Update(c.Uid(), id, req)
 	}
 	if err != nil {
-		c.JSONE(1, "alarm update failed 04: "+err.Error(), nil)
+		c.JSONE(1, "alarm update failed 04: "+err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsUpdate, map[string]interface{}{"req": req})
@@ -220,7 +221,7 @@ func List(c *core.Context) {
 			SubResource: pmsplugin.Alarm,
 			Acts:        []string{pmsplugin.ActView},
 		}); err != nil {
-			c.JSONE(1, err.Error(), nil)
+			c.JSONE(1, err.Error(), err)
 			return
 		}
 		conds := egorm.Conds{}
@@ -264,7 +265,7 @@ func Info(c *core.Context) {
 	}
 	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -276,19 +277,19 @@ func Info(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	conds := egorm.Conds{}
 	conds["alarm_id"] = alarmInfo.ID
 	filters, err := db.AlarmFilterList(conds)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	conditions, err := db.AlarmConditionList(conds)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	user, _ := db.UserInfo(alarmInfo.Uid)
@@ -306,7 +307,7 @@ func Info(c *core.Context) {
 		Instance:   instanceInfo,
 		Table:      tableInfo,
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -318,7 +319,7 @@ func Delete(c *core.Context) {
 	}
 	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
-		c.JSONE(1, "alarm failed to delete 01: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 01: "+err.Error(), err)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -330,34 +331,34 @@ func Delete(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	tx := invoker.Db.Begin()
 	if err = db.AlarmDelete(tx, id); err != nil {
-		c.JSONE(1, "alarm failed to delete 02: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 02: "+err.Error(), err)
 		return
 	}
 	// filter
 	if err = db.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 03: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 03: "+err.Error(), err)
 		return
 	}
 	// condition
 	if err = db.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 04: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 04: "+err.Error(), err)
 		return
 	}
 	if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 05: "+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 05: "+err.Error(), err)
 		return
 	}
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	if len(alarmInfo.ViewDDLs) > 0 {
@@ -369,13 +370,13 @@ func Delete(c *core.Context) {
 	} else {
 		if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
 			tx.Rollback()
-			c.JSONE(1, "alarm failed to delete 06: "+err.Error(), nil)
+			c.JSONE(1, "alarm failed to delete 06: "+err.Error(), err)
 			return
 		}
 	}
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 07"+err.Error(), nil)
+		c.JSONE(1, "alarm failed to delete 07"+err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
@@ -385,7 +386,7 @@ func Delete(c *core.Context) {
 func HistoryList(c *core.Context) {
 	var req view.ReqAlarmHistoryList
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
 	invoker.Logger.Debug("history", elog.Any("req", req))
@@ -428,9 +429,9 @@ func HistoryInfo(c *core.Context) {
 	}
 	res, err := db.AlarmHistoryInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

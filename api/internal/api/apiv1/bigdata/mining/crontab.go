@@ -66,9 +66,9 @@ func CrontabInfo(c *core.Context) {
 	}
 	res, _ := db.CrontabInfo(invoker.Db, id)
 	if res.NodeId == 0 {
-		c.JSONE(core.CodeOK, "new crontab", nil)
+		c.JSONOK()
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

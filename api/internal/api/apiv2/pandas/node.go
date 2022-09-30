@@ -233,7 +233,7 @@ func NodeResultUpdate(c *core.Context) {
 		return
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeResultUpdate, map[string]interface{}{"obj": req})
-	c.JSONE(core.CodeOK, "succ", service.Node.NodeResultRespAssemble(&nr))
+	c.JSONOK(service.Node.NodeResultRespAssemble(&nr))
 	return
 }
 
@@ -323,7 +323,7 @@ func WorkerDashboard(c *core.Context) {
 		return
 	}
 	res := service.Node.WorkerDashboard(req, c.Uid())
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 

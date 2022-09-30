@@ -80,6 +80,6 @@ func ShortURLCreate(c *core.Context) {
 		return
 	}
 	rootUrl := strings.TrimSuffix(econf.GetString("app.rootURL"), "/")
-	c.JSONE(core.CodeOK, "succ", fmt.Sprintf("%s/api/v2/base/su/%s", rootUrl, sCode))
+	c.JSONOK(fmt.Sprintf("%s/api/v2/base/su/%s", rootUrl, sCode))
 	return
 }

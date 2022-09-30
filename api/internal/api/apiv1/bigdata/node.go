@@ -243,7 +243,7 @@ func NodeInfo(c *core.Context) {
 		res.Username = u.Username
 		res.Nickname = u.Nickname
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -385,7 +385,7 @@ func NodeList(c *core.Context) {
 			res.Children[index].Children = append(res.Children[index].Children, l1c...)
 		}
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -416,7 +416,7 @@ func NodeRun(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), res)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -463,7 +463,7 @@ func NodeStop(c *core.Context) {
 	}
 	res.Status = afterNodeInfo.Status
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeStop, map[string]interface{}{"obj": n})
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -494,7 +494,7 @@ func NodeHistoryInfo(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", nh)
+	c.JSONOK(nh)
 	return
 }
 
@@ -574,6 +574,6 @@ func NodeResultInfo(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", service.Node.NodeResultRespAssemble(&nr))
+	c.JSONOK(service.Node.NodeResultRespAssemble(&nr))
 	return
 }

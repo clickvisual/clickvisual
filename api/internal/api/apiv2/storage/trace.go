@@ -150,5 +150,5 @@ func GetTraceGraph(c *core.Context) {
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"req": req})
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 }

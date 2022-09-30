@@ -127,7 +127,7 @@ func SourceList(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -182,7 +182,7 @@ func SourceInfo(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -194,7 +194,7 @@ func SourceDatabaseList(c *core.Context) {
 	}
 	s, err := db.SourceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "SourceInfo", err)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -204,7 +204,7 @@ func SourceDatabaseList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -214,10 +214,10 @@ func SourceDatabaseList(c *core.Context) {
 		Typ:      s.Typ,
 	}).Databases()
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "Instantiate", err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -229,12 +229,12 @@ func SourceTableList(c *core.Context) {
 	}
 	var req view.ReqListSourceTable
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "Bind", err)
 		return
 	}
 	s, err := db.SourceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "SourceInfo", err)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -254,10 +254,10 @@ func SourceTableList(c *core.Context) {
 		Typ:      s.Typ,
 	}).Tables(req.Database)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "Instantiate", err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -274,7 +274,7 @@ func SourceColumnList(c *core.Context) {
 	}
 	s, err := db.SourceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "SourceInfo", err)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -294,9 +294,9 @@ func SourceColumnList(c *core.Context) {
 		Typ:      s.Typ,
 	}).Columns(req.Database, req.Table)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "Instantiate", err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

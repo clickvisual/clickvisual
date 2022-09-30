@@ -254,7 +254,7 @@ func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err e
 func DatabaseList(db *gorm.DB, conds egorm.Conds) (resp []*BaseDatabase, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameBaseDatabase).Preload("Instance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("list error", elog.String("err", err.Error()))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -285,7 +285,7 @@ func HiddenFieldDeleteByFields(db *gorm.DB, fields []string) (err error) {
 func HiddenFieldList(conds egorm.Conds) (resp []*BaseHiddenField, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BaseHiddenField{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("BaseHiddenField list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -323,7 +323,7 @@ func IndexInfo(db *gorm.DB, id int) (resp BaseIndex, err error) {
 func IndexList(conds egorm.Conds) (resp []*BaseIndex, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BaseIndex{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Deployment list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -364,7 +364,7 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*BaseInstance, err
 		sorts = "id desc"
 	}
 	if err = invoker.Db.Model(BaseInstance{}).Where(sql, binds...).Order(sorts).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("ConfigMap list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -543,7 +543,7 @@ func ViewList(db *gorm.DB, conds egorm.Conds) (resp []*BaseView, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = db.Table(TableNameBaseView).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("list error", elog.String("err", err.Error()))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return

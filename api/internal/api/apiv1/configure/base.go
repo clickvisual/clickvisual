@@ -325,14 +325,14 @@ func Sync(c *core.Context) {
 	var client *kube.ClusterClient
 	client, err = kube.ClusterManager.GetClusterManager(param.ClusterId)
 	if err != nil {
-		c.JSONE(core.CodeErr, "cluster data acquisition failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "cluster data acquisition failed", err)
 		return
 	}
 	var obj runtime.Object
 	obj, err = client.KubeClient.Get(api.ResourceNameConfigMap, param.K8SConfigMapNamespace, param.K8SConfigMapName)
 	if err != nil {
 		invoker.Logger.Error("configmaps", elog.String("err", err.Error()), elog.String("namespace", param.K8SConfigMapNamespace), elog.String("configmap", param.K8SConfigMapName))
-		c.JSONE(core.CodeErr, "client.KubeClient.List error: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "client.KubeClient.List", err)
 		return
 	}
 	tx := invoker.Db.Begin()
@@ -347,7 +347,7 @@ func Sync(c *core.Context) {
 	k8sCM, err := db.K8SConfigMapLoadOrSave(tx, &k8sCMObject)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "cluster data acquisition failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "cluster data acquisition failed", err)
 		return
 	}
 	if k8sCM.ID == 0 {

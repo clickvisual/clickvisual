@@ -108,7 +108,7 @@ func WorkflowList(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -162,6 +162,6 @@ func WorkflowInfo(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

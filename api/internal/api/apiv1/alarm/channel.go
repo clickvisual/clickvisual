@@ -22,17 +22,17 @@ const (
 func ChannelCreate(c *core.Context) {
 	var req db.AlarmChannel
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
 	req.Uid = c.Uid()
 	if err := JudgmentType(req); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	err := db.AlarmChannelCreate(invoker.Db, &req)
 	if err != nil {
-		c.JSONE(1, "create failed: "+err.Error(), nil)
+		c.JSONE(1, "create failed: "+err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsChannelsCreate, map[string]interface{}{"req": req})
@@ -70,11 +70,11 @@ func ChannelUpdate(c *core.Context) {
 	}
 	var req db.AlarmChannel
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
 	if err := JudgmentType(req); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	ups := make(map[string]interface{}, 0)
@@ -83,7 +83,7 @@ func ChannelUpdate(c *core.Context) {
 	ups["key"] = req.Key
 	ups["uid"] = c.Uid()
 	if err := db.AlarmChannelUpdate(invoker.Db, id, ups); err != nil {
-		c.JSONE(1, "update failed: "+err.Error(), nil)
+		c.JSONE(1, "update failed: "+err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsChannelsUpdate, map[string]interface{}{"req": req})
@@ -93,10 +93,10 @@ func ChannelUpdate(c *core.Context) {
 func ChannelList(c *core.Context) {
 	res, err := db.AlarmChannelList(egorm.Conds{})
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -108,7 +108,7 @@ func ChannelDelete(c *core.Context) {
 	}
 	alarmInfo, _ := db.AlarmChannelInfo(invoker.Db, id)
 	if err := db.AlarmChannelDelete(invoker.Db, id); err != nil {
-		c.JSONE(1, "failed to delete: "+err.Error(), nil)
+		c.JSONE(1, "failed to delete: "+err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsChannelsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
@@ -123,9 +123,9 @@ func ChannelInfo(c *core.Context) {
 	}
 	res, err := db.AlarmChannelInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

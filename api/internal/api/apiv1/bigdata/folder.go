@@ -158,6 +158,6 @@ func FolderInfo(c *core.Context) {
 		res.UserName = u.Username
 		res.NickName = u.Nickname
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

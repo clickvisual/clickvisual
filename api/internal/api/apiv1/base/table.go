@@ -467,7 +467,7 @@ func TableCharts(c *core.Context) {
 	if interval == 0 {
 		count, errCount := op.Count(param)
 		if errCount != nil {
-			c.JSONE(core.CodeErr, "query error: "+errCount.Error(), nil)
+			c.JSONE(core.CodeErr, "query error", errCount)
 			return
 		}
 		row := view.HighChart{
@@ -537,7 +537,7 @@ func TableCharts(c *core.Context) {
 		}
 	}
 	if isZero {
-		c.JSONE(core.CodeOK, "the query data is empty", nil)
+		c.JSONOK("the query data is empty")
 		return
 	}
 	sort.Slice(res.Histograms, func(i int, j int) bool {
@@ -605,7 +605,7 @@ func TableIndexes(c *core.Context) {
 	res := make([]view.RespIndexItem, 0)
 	sum, err := op.Count(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "query error: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "query error", err)
 		return
 	}
 	var count uint64

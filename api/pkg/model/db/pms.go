@@ -1,12 +1,12 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	PmsRoleTypeUnknown = iota
+	_ = iota
 	PmsRoleTypeDefault
 	PmsRoleTypeCustom
 	// other types may added in future
@@ -145,7 +145,8 @@ func (pr *PmsRole) IsDetailsValid() (err error) {
 
 // GenerateOnePRuleTplByDetail : Generate a pType casbin policy string based on inputParam(PmsRoleDetail)
 // returned resp(if not empty) like,
-//    role__{{PmsRole:Id}}__{{PmsRole:BelongResource}}__{{ID}},{{PmsRole:BelongResource}}__{{ID}}__subResource__(SubResourceRegex),ActsRegex,*
+//
+//	role__{{PmsRole:Id}}__{{PmsRole:BelongResource}}__{{ID}},{{PmsRole:BelongResource}}__{{ID}}__subResource__(SubResourceRegex),ActsRegex,*
 func (pr *PmsRole) GenerateOnePRuleTplByDetail(roleDetail *PmsRoleDetail) (resp string, err error) {
 	if roleDetail == nil {
 		return "", fmt.Errorf("roleDetail cannot be null. ")
@@ -207,7 +208,7 @@ func PmsRoleInfoWithTgtRef(roleId int, belongResource string, resourceId int) (r
 func GetPmsRoleList(conds egorm.Conds) (resp []*PmsRole, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNamePmsRole).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Get pms_role list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	for _, pmsRole := range resp {
@@ -223,16 +224,7 @@ func GetPmsRoleList(conds egorm.Conds) (resp []*PmsRole, err error) {
 	return
 }
 
-func GetPmsRoleDetailList(conds egorm.Conds) (resp []*PmsRoleDetail, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Table(TableNamePmsRoleDetail).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Get pms_role_detail list error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// for resp, default do not contain grants info
+// GetPmsRoleRefList for resp, default do not contain grants info
 func GetPmsRoleRefList(conds egorm.Conds, withGrants ...bool) (resp []*PmsRoleRef, err error) {
 	var searchGrants = false
 	if len(withGrants) >= 1 {
@@ -303,26 +295,6 @@ func CreatePmsRoleDetail(db *gorm.DB, data *PmsRoleDetail) (err error) {
 	return
 }
 
-func CreatePmsRoleRef(db *gorm.DB, data *PmsRoleRef) (err error) {
-	if err = db.Model(data).Create(data).Error; err != nil {
-		invoker.Logger.Error("create pms_role_ref error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// not allow update pms_role_id column of PmsRoleDetail
-func UpdatePmsRoleDetail(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
-	if _, exist := ups["pms_role_id"]; exist {
-		return fmt.Errorf("column pms_role_id of PmsRoleDetail cannot be changed in updating. ")
-	}
-	if err = db.Table(TableNamePmsRoleDetail).Where("id = ?", id).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update pms_role error", zap.Error(err))
-		return
-	}
-	return
-}
-
 // please make sure the associated casbinRules have removed after deleted pmsRole. do not only invoke this func to delete pmsRole.
 func DeletePmsRoleById(tx *gorm.DB, pmsRoleId int) (err error) {
 	// delete detail(s) first
@@ -354,14 +326,6 @@ func DeletePmsRoleById(tx *gorm.DB, pmsRoleId int) (err error) {
 	if err = tx.Table(TableNamePmsRole).Where("id=?", pmsRoleId).Delete(&PmsRole{}).Error; err != nil {
 		invoker.Logger.Error("delete PmsRole error", zap.Error(err))
 		return fmt.Errorf("delete PmsRole record failed. ")
-	}
-	return
-}
-
-func DeletePmsRoleDetailById(db *gorm.DB, id int) (err error) {
-	if err = db.Table(TableNamePmsRoleDetail).Delete(&PmsRoleDetail{}, id).Error; err != nil {
-		invoker.Logger.Error("pms_role_detail delete error", zap.Error(err))
-		return
 	}
 	return
 }
@@ -398,10 +362,10 @@ id,			"obj" or "sub",
 */
 
 /*
-	TableDefaultRolePms: 记录belongType资源的默认角色; i.e. 当belongType资源创建时, 会根据该表中的记录去创建对应的casbinRules
-	note: 需要保证 belong_type, role_name, resources, act 这4个字段建立联合唯一索引.
-		  但由于resources字段是json类型, 不能用于uniqueIndex, TODO: 代码中保证4个字段的uniqueIndex
- 		  不能只对belong_type和role_name两个字段设置uniqueIndex, 应为存在belong_type和role_name相同的情况(它们sub_resources不同)
+		TableDefaultRolePms: 记录belongType资源的默认角色; i.e. 当belongType资源创建时, 会根据该表中的记录去创建对应的casbinRules
+		note: 需要保证 belong_type, role_name, resources, act 这4个字段建立联合唯一索引.
+			  但由于resources字段是json类型, 不能用于uniqueIndex, TODO: 代码中保证4个字段的uniqueIndex
+	 		  不能只对belong_type和role_name两个字段设置uniqueIndex, 应为存在belong_type和role_name相同的情况(它们sub_resources不同)
 */
 type PmsDefaultRole struct {
 	BaseModel
@@ -418,30 +382,14 @@ func (t *PmsDefaultRole) TableName() string {
 	return TableNamePmsDefaultRole
 }
 
-// use it carefully.
-func CasbinRuleDelete(tx *gorm.DB, conds egorm.Conds) (err error) {
-	if _, exist := conds["v4"]; exist {
-		return fmt.Errorf("v4 cannot exist in deletion conditions. ")
-	}
-	if _, exist := conds["v5"]; exist {
-		return fmt.Errorf("v5 cannot exist in deletion conditions. ")
-	}
-	if len(conds) == 1 {
-		if _, exist := conds["ptype"]; exist {
-			return fmt.Errorf("deletiton conditions cannot only contain ptype! ")
-		}
-	}
-	sql, binds := egorm.BuildQuery(conds)
-	return tx.Table(TableNamePmsCasbinRule).Where(sql, binds).Delete(&PmsCasbinRule{}).Error
-}
-
 /*
 	PmsCustomRole: 对资源的自定义角色表; 该表记录的增删会实时反映到 casbin_rule表中 (那么为什么不直接用casbin_rule表去维护?
+
 因为, casbin_rule表中没有description描述, 该表的作用是供app负责人自定义一些在default_role_pms之外的一些角色.)
+
 	note: 1. 需要保证 belong_type, refer_id, role_name, resources, act 这5个字段建立联合唯一索引.
 		     但由于resources字段是json类型, 不能用于uniqueIndex, 所以需要代码去保证这5个字段的uniqueIndex
 		  2. 是否支持custom_role_pms的自定义, 需要看当前代码实现, 目前支持的belong_type 为 ["app"]
-
 */
 type PmsCustomRole struct {
 	BaseModel
@@ -461,7 +409,7 @@ func (t *PmsCustomRole) TableName() string {
 func GetDefaultRolePmsList(conds Conds) (resp []*PmsDefaultRole, err error) {
 	sql, binds := BuildQuery(conds)
 	if err = invoker.Db.Table(TableNamePmsDefaultRole).Where(sql, binds...).Find(&resp).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		invoker.Logger.Error("get default_role_pms list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -470,7 +418,7 @@ func GetDefaultRolePmsList(conds Conds) (resp []*PmsDefaultRole, err error) {
 func GetCustomRolePmsList(conds Conds) (resp []*PmsCustomRole, err error) {
 	sql, binds := BuildQuery(conds)
 	if err = invoker.Db.Table(TableNamePmsCustomRole).Where(sql, binds...).Find(&resp).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		invoker.Logger.Error("get custom_role_pms list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return

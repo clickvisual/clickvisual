@@ -233,7 +233,7 @@ func DependsInfoX(conds map[string]interface{}) (resp BigdataDepend, err error) 
 func DependsList(conds egorm.Conds) (resp []*BigdataDepend, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BigdataDepend{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -241,7 +241,7 @@ func DependsList(conds egorm.Conds) (resp []*BigdataDepend, err error) {
 
 func EarliestDependRow() (resp BigdataDepend, err error) {
 	if err = invoker.Db.Model(BigdataDepend{}).Order("utime asc").Limit(1).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrap(err, "")
 		return
 	}
 	return
@@ -284,7 +284,7 @@ func CrontabInfo(db *gorm.DB, nodeId int) (resp BigdataCrontab, err error) {
 func CrontabList(conds egorm.Conds) (resp []*BigdataCrontab, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BigdataCrontab{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -329,7 +329,7 @@ func WorkflowInfo(db *gorm.DB, id int) (resp BigdataWorkflow, err error) {
 func WorkflowList(conds egorm.Conds) (resp []*BigdataWorkflow, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BigdataWorkflow{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -374,7 +374,7 @@ func SourceInfo(db *gorm.DB, id int) (resp BigdataSource, err error) {
 func SourceList(conds egorm.Conds) (resp []*BigdataSource, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BigdataSource{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -419,7 +419,7 @@ func NodeInfo(db *gorm.DB, id int) (resp BigdataNode, err error) {
 func NodeList(conds egorm.Conds) (resp []*BigdataNode, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BigdataNode{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -432,7 +432,7 @@ func NodeList(conds egorm.Conds) (resp []*BigdataNode, err error) {
 func NodeListWithWorker() (resp []*BigdataNode, err error) {
 	if err = invoker.Db.Model(BigdataNode{}).
 		Where("tertiary=? or tertiary=? or tertiary=?", 10, 11, 20).Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrap(err, "")
 		return
 	}
 	return
@@ -570,7 +570,7 @@ func NodeResultDelete30Days() {
 func NodeResultList(conds egorm.Conds) (resp []*BigdataNodeResult, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Select("id, ctime, status").Where(sql, binds...).Order("id desc").Find(&resp).Error; err != nil {
-		elog.Error("list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -604,7 +604,7 @@ func FolderInfo(db *gorm.DB, id int) (resp BigdataFolder, err error) {
 func FolderList(conds egorm.Conds) (resp []*BigdataFolder, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(BigdataFolder{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		elog.Error("Deployment list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return

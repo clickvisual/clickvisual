@@ -32,7 +32,7 @@ func InstanceDatabaseList(c *core.Context) {
 	}
 	s, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "InstanceInfo", err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -40,10 +40,10 @@ func InstanceDatabaseList(c *core.Context) {
 		Typ: db.SourceTypClickHouse,
 	}).Databases()
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "Instantiate", err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -65,12 +65,12 @@ func InstanceTableList(c *core.Context) {
 	}
 	var req view.ReqListSourceTable
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "Bind", err)
 		return
 	}
 	s, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "InstanceInfo", err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -78,10 +78,10 @@ func InstanceTableList(c *core.Context) {
 		Typ: db.SourceTypClickHouse,
 	}).Tables(req.Database)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "Instantiate", err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -98,7 +98,7 @@ func InstanceColumnList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "CheckNormalPermission", err)
 		return
 	}
 	var req view.ReqListSourceColumn
@@ -108,7 +108,7 @@ func InstanceColumnList(c *core.Context) {
 	}
 	s, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "InstanceInfo", err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -116,9 +116,9 @@ func InstanceColumnList(c *core.Context) {
 		Typ: db.SourceTypClickHouse,
 	}).Columns(req.Database, req.Table)
 	if err != nil {
-		c.JSONE(1, "query error: "+err.Error(), nil)
+		c.JSONE(1, "Instantiate", err)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }

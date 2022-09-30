@@ -40,7 +40,7 @@ func KafkaJsonMapping(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 
@@ -135,7 +135,7 @@ func AnalysisFields(c *core.Context) {
 	sort.Slice(res.Keys, func(i, j int) bool {
 		return res.Keys[i].Field < res.Keys[j].Field
 	})
-	c.JSONE(core.CodeOK, "succ", res)
+	c.JSONOK(res)
 	return
 }
 

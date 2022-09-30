@@ -15,13 +15,13 @@ func Webhook(c *core.Context) {
 	err := c.Bind(&notification)
 	if err != nil {
 		invoker.Logger.Error("webhook", elog.Any("notification", notification))
-		c.JSONE(1, "invalid parameter", err.Error())
+		c.JSONE(1, "invalid parameter", err)
 		return
 	}
 	invoker.Logger.Debug("alarm", elog.Any("notification", notification))
 	err = service.Send(notification.CommonLabels["uuid"], notification)
 	if err != nil {
-		c.JSONE(1, "message send failed", err.Error())
+		c.JSONE(1, "message send failed", err)
 		return
 	}
 	c.JSONOK()
@@ -31,11 +31,11 @@ func Webhook(c *core.Context) {
 func ChannelSendTest(c *core.Context) {
 	var req db.AlarmChannel
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
 	if err := service.SendTestToChannel(&req); err != nil {
-		c.JSONE(1, "send test error: "+err.Error(), nil)
+		c.JSONE(1, "send test error: "+err.Error(), err)
 		return
 	}
 	c.JSONOK()

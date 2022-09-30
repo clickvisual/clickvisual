@@ -228,7 +228,7 @@ func AlarmInfoX(db *gorm.DB, conds map[string]interface{}) (resp Alarm, err erro
 func AlarmList(conds egorm.Conds) (resp []*Alarm, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(Alarm{}).Preload("User").Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Deployment list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -294,7 +294,7 @@ func AlarmDelete(db *gorm.DB, id int) (err error) {
 func AlarmFilterList(conds egorm.Conds) (resp []*AlarmFilter, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(AlarmFilter{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Deployment list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -319,7 +319,7 @@ func AlarmFilterDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 func AlarmConditionList(conds egorm.Conds) (resp []*AlarmCondition, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(AlarmCondition{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Deployment list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -354,7 +354,7 @@ func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
 func AlarmChannelList(conds egorm.Conds) (resp []*AlarmChannel, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Model(AlarmChannel{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		invoker.Logger.Error("Deployment list error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
