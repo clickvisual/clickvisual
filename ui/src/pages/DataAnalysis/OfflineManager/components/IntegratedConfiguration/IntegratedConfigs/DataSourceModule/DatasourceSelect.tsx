@@ -344,7 +344,10 @@ const DatasourceSelect = ({
                 }
               })
             )
-            .then((res: any) => onChangeColumns(res?.data || [], changeFlag));
+            .then((res: any) => {
+              if (res?.code != 0) return;
+              onChangeColumns(res?.data || [], changeFlag);
+            });
           break;
         case DataSourceTypeEnums.MySQL:
           doGetColumns
