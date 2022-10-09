@@ -8,8 +8,16 @@ import { useState } from "react";
 import ContentItem from "../ContentItem";
 import styles from "./index.less";
 
-const LogsItem = ({ log, initial }: { log: any; initial: any }) => {
-  const [isLogsHidden, setIsLogsHidden] = useState<boolean>(true);
+const LogsItem = ({
+  log,
+  initial,
+  isTips = false,
+}: {
+  log: any;
+  initial: any;
+  isTips?: boolean;
+}) => {
+  const [isLogsHidden, setIsLogsHidden] = useState<boolean>(!isTips);
 
   return (
     <>
@@ -33,6 +41,7 @@ const LogsItem = ({ log, initial }: { log: any; initial: any }) => {
           return (
             <ContentItem
               key={index}
+              isTips={isTips}
               title={
                 <>
                   {microsecondsTimeUnitConversion(

@@ -1,14 +1,22 @@
 import { CopyOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
 import { Button, message, Tooltip } from "antd";
 import classNames from "classnames";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import copy from "copy-to-clipboard";
 import styles from "./index.less";
 import { useModel } from "umi";
 
-const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
+const ContentItem = ({
+  title,
+  list,
+  isTips = false,
+}: {
+  title: any;
+  list: any[];
+  isTips?: boolean;
+}) => {
   const [isTagsHidden, setIsTagsHidden] = useState<boolean>(true);
-  const { resizeMenuWidth } = useModel("dataLogs");
+  const { foldingState, resizeMenuWidth } = useModel("dataLogs");
 
   const handleValueDisplayLogic = (obj: any) => {
     if (obj?.vType) {
@@ -44,11 +52,19 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
     }
   };
 
+  const titleWidth = useMemo(() => {
+    return isTips
+      ? "972px"
+      : `calc(85vw - ${!foldingState ? resizeMenuWidth : 0}px - 300px)`;
+  }, [resizeMenuWidth, foldingState, isTips]);
+
   return (
     <>
       <div
         className={styles.progressContentItemTitle}
-        style={{ width: `calc(85vw - ${resizeMenuWidth}px - 300px)` }}
+        style={{
+          width: titleWidth,
+        }}
         onClick={(e) => {
           e.stopPropagation();
           setIsTagsHidden(!isTagsHidden);
@@ -88,6 +104,9 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
           styles.progressContentItemContent,
           isTagsHidden ? styles.none : "",
         ])}
+        style={{
+          width: titleWidth,
+        }}
       >
         {list &&
           list.length > 0 &&
@@ -99,6 +118,7 @@ const ContentItem = ({ title, list }: { title: any; list: any[] }) => {
                   styles.detailsItem,
                   index % 2 == 1 ? styles.bg_gray : styles.bg_white,
                 ])}
+                onClick={(e) => e.stopPropagation()}
               >
                 <span className={styles.detailsItemKeys}>
                   <Tooltip title={item.key} placement="left">

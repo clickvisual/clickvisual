@@ -26,11 +26,18 @@ const ProgressBar = (props: {
   }, [start, initial, totalLength]);
 
   const errLocation = useMemo(() => {
-    return (
-      log?.rawLogJson?.logs &&
-      (microsecondTimeStamp(log?.rawLogJson?.logs[0]?.timestamp) - initial) /
-        totalLength
-    );
+    let errList: any[] = [];
+    if (log?.rawLogJson?.logs && log?.rawLogJson?.logs.length > 0) {
+      log?.rawLogJson?.logs.map((item: any) => {
+        errList.push({
+          relativeTime: item.timestamp
+            ? (microsecondTimeStamp(item.timestamp) - initial) / totalLength
+            : false,
+          absoluteTime: item.timestamp,
+        });
+      });
+    }
+    return errList;
   }, [log?.rawLogJson?.logs]);
 
   return (
@@ -55,23 +62,36 @@ const ProgressBar = (props: {
           }}
         />
       </Tooltip>
-      {/* <Tooltip
-        title={<LogsItem log={log} initial={initial} />}
-        color="#FFF"
-        overlayStyle={{ width: "800px" }}
-      > */}
-      <span
-        className={styles.errorLine}
-        style={{
-          left:
-            log?.rawLogJson?.logs && log?.rawLogJson?.logs.length
-              ? errLocation * 100 + "%"
-              : "-100%",
-        }}
-      >
-        |
-      </span>
-      {/* </Tooltip> */}
+      {errLocation &&
+        errLocation.length > 0 &&
+        errLocation.map((item: any) => {
+          return (
+            <>
+              <Tooltip
+                // title={<LogsItem isTips log={log} initial={initial} />}
+                title={microsecondsTimeUnitConversion(
+                  microsecondTimeStamp(item.absoluteTime) - initial
+                )}
+                color="#fff"
+                // overlayInnerStyle={{ width: "1000px", color: "#000" }}
+                overlayInnerStyle={{ color: "#000" }}
+                // autoAdjustOverflow={false}
+              >
+                <span
+                  className={styles.errorLine}
+                  style={{
+                    left:
+                      log?.rawLogJson?.logs && log?.rawLogJson?.logs.length
+                        ? item.relativeTime * 100 + "%"
+                        : "-100%",
+                  }}
+                >
+                  |
+                </span>
+              </Tooltip>
+            </>
+          );
+        })}
     </div>
   );
 };
