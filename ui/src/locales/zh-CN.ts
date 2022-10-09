@@ -927,13 +927,15 @@ export default {
   "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType.placeholder":
     "请选择节点类型",
 
-  "pandas.analysis.data.source":"数据来源",
-  "pandas.analysis.data.filter":"数据过滤",
-  "pandas.analysis.data.filter.placeholder":"请参考相应的 SQL 语法填写过滤条件",
-  "pandas.analysis.data.target":"数据去向",
-  "pandas.analysis.data.target.before":"导入前语句",
-  "pandas.analysis.data.target.before.placeholder":"请参考相应的 SQL 语法填写导入数据去啊边执行的 SQL 脚本",
-  "pandas.analysis.data.target.after":"导入后语句",
-  "pandas.analysis.data.target.after.placeholder":"请参考相应的 SQL 语法填写导入数据后执行的 SQL 脚本",
-
+  "pandas.analysis.data.source": "数据来源",
+  "pandas.analysis.data.filter": "数据过滤",
+  "pandas.analysis.data.filter.placeholder":
+    "请参考相应的 SQL 语法填写过滤条件",
+  "pandas.analysis.data.target": "数据去向",
+  "pandas.analysis.data.target.before": "导入前语句",
+  "pandas.analysis.data.target.before.placeholder":
+    "请参考相应的 SQL 语法填写导入数据前执行的 SQL 脚本",
+  "pandas.analysis.data.target.after": "导入后语句",
+  "pandas.analysis.data.target.after.placeholder":
+    "请参考相应的 SQL 语法填写导入数据后执行的 SQL 脚本",
 };

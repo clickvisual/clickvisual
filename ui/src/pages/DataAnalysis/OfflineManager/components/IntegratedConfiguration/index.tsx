@@ -76,6 +76,8 @@ const IntegratedConfiguration = ({
         table: targetForm.table,
         targetBefore: targetForm.targetBefore,
         targetAfter: targetForm.targetAfter,
+        targetAfterList: targetForm.targetAfterList,
+        targetBeforeList: targetForm.targetBeforeList,
       },
       mapping,
     };
@@ -107,6 +109,12 @@ const IntegratedConfiguration = ({
         DataSourceTypeEnums[DataSourceTypeEnums.ClickHouse].toLowerCase()
           ? DataSourceTypeEnums.ClickHouse
           : DataSourceTypeEnums.MySQL;
+      const targetBeforeList: string[] = formData.target?.targetBeforeList || [
+        formData.target?.targetBefore || "",
+      ];
+      const targetAfterList: string[] = formData.target?.targetAfterList || [
+        formData.target?.targetAfter || "",
+      ];
       form.setFieldsValue({
         source: {
           ...formData.source,
@@ -117,6 +125,8 @@ const IntegratedConfiguration = ({
           ...formData.target,
           type: targetType,
           datasource: formData.target.sourceId,
+          targetBeforeList: targetBeforeList,
+          targetAfterList: targetAfterList,
         },
       });
       setMapping(formData.mapping);
