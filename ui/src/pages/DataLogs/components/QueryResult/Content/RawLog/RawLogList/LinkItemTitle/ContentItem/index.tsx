@@ -36,7 +36,7 @@ const ContentItem = ({
         case "FLOAT64":
           return (
             <span style={{ color: "#00f" }}>
-              {obj?.VFloat64 || "「not FLOAT64」"}
+              {obj?.vFloat64 || "「not FLOAT64」"}
             </span>
           );
 
