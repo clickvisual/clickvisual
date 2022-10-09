@@ -2,25 +2,29 @@ import moment from "moment";
 
 /**
  * 微秒级别时间格式转us时间戳
- * @param time string "2022-09-02T02:31:49.006385319Z" or "2022-09-16T03:42:00.124Z" or "2022-09-02T02:31:49.006385Z"
+ * @param time string "2022-09-02T02:31:49.006385319Z" or "2022-09-16T03:42:00.124Z" or "2022-09-02T02:31:49.006385Z" or "2022-09-02T02:31:49Z"
  * @returns  number 1662085909006385
  */
 export const microsecondTimeStamp: (time: string) => number = (
   time: string
 ) => {
-  const decimal: string = (time.split(".").length = 2)
-    ? time.split(".")[1].split("Z")[0]
-    : "0";
-  return parseInt(
-    moment(time.split(".")[0] + "Z").valueOf() / 1000 +
-      (parseInt(decimal) / Math.pow(10, decimal.length))
-        .toFixed(6)
-        .split(".")[1]
-  );
+  if (time.indexOf(".") != -1) {
+    let decimal: string = (time.split(".").length = 2)
+      ? time.split(".")[1].split("Z")[0]
+      : "0";
+    return parseInt(
+      moment(time.split(".")[0] + "Z").valueOf() / 1000 +
+        (parseInt(decimal) / Math.pow(10, decimal.length))
+          .toFixed(6)
+          .split(".")[1]
+    );
+  } else {
+    return moment(time).valueOf() * 1000;
+  }
 };
 
 /**
- * 微秒级别的时间单位转换  范围us~s
+ * 微秒级别的时间单位转换  范围us~h
  * 小数点小于等于2位
  * @param time  number 1000
  * @returns string  0.000001ms

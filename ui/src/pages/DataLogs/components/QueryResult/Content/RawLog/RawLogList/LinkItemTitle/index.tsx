@@ -68,7 +68,6 @@ const LinkItemTitle = (props: {
             width: `calc(85vw - ${
               !foldingState ? resizeMenuWidth : -10
             }px -  278px)`,
-            // }px -  293px)`,
           }}
           onClick={(e) => {
             e.stopPropagation();
