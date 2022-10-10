@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
 import { cloneDeep } from "lodash";
+import CodeMirrorSearch from "./CodeMirrorSearch";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -135,7 +136,22 @@ const RawLogQuery = () => {
 
   return (
     <>
-      <Input
+      <div className={searchBarStyles.inputBox}>
+        <CodeMirrorSearch
+          title="logInput"
+          value={queryKeyword || ""}
+          placeholder={i18n.formatMessage({
+            id: "log.search.placeholder",
+          })}
+          onPressEnter={() => {
+            doSearchLog.run();
+          }}
+          onChange={(value: string) => setQueryKeyword(value)}
+        />
+      </div>
+      <SearchBarSuffixIcon />
+
+      {/* <Input
         allowClear
         placeholder={`${i18n.formatMessage({
           id: "log.search.placeholder",
@@ -148,7 +164,7 @@ const RawLogQuery = () => {
         onPressEnter={() => {
           doSearchLog.run();
         }}
-      />
+      /> */}
       <DarkTimeSelect />
       <UrlShareButton style={{ marginRight: "8px" }} />
       <Tooltip title={i18n.formatMessage({ id: "search" })}>
