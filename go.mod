@@ -13,7 +13,6 @@ require (
 	github.com/ego-component/eredis v1.0.3
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.8.1
-	github.com/go-faster/errors v0.6.1
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.11.0
@@ -83,6 +82,7 @@ require (
 	github.com/glebarez/sqlite v1.4.3 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
+	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
