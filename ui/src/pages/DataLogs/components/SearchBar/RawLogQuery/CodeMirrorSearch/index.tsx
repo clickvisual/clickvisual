@@ -32,13 +32,15 @@ const Editors = (props: {
   value: string;
   onPressEnter: () => void;
   onChange: (value: string) => void;
+  tables: any;
+  onChangeTables: (obj: any) => void;
 }) => {
-  const { title, value, placeholder, onPressEnter, onChange } = props;
+  const { title, value, placeholder, onPressEnter, onChange, tables } = props;
   const formRefs: any = useRef(null);
   const [sqlValue, setSqlValue] = useState<string>("");
 
   const onEditorDidMount = (editor: any) => {
-    let editors = formRefs?.current?.editor;
+    // let editors = formRefs?.current?.editor;
   };
 
   // 回车事件
@@ -49,13 +51,6 @@ const Editors = (props: {
   useEffect(() => {
     setSqlValue(value);
   }, [value]);
-
-  // const changeCode = (CodeMirror, changeObj, value) => {
-  //   if (!value) return;
-  //   // 获取 CodeMirror.doc.getValue()
-  //   // 赋值 CodeMirror.doc.setValue(value) // 会触发 onChange 事件，小心进入无线递归。
-  //   this.setState({ text: value });
-  // };
 
   return (
     <div className={styles.editors} key={title + "editors"}>
@@ -75,6 +70,7 @@ const Editors = (props: {
         options={{
           // 显示行号
           lineNumbers: true,
+          // 改变行号文案
           lineNumberFormatter: () => "WHERE",
           mode: {
             name: "text/x-mysql",
@@ -85,11 +81,7 @@ const Editors = (props: {
             // 自定义提示选项
             completeSingle: false, // 当匹配只有一项的时候是否自动补全
             // 自定义的提示库
-            tables: {
-              users: ["name", "score", "birthDate"],
-              countries: ["name", "population", "size"],
-              score: ["zooao"],
-            },
+            tables: tables,
           },
           autofocus: false,
           styleActiveLine: true,
@@ -100,8 +92,10 @@ const Editors = (props: {
           gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
           lint: false,
           indentUnit: 2,
-          cursorHeight: 0.85,
+          // 光标高度
+          cursorHeight: 1,
           placeholder: placeholder || "",
+          // tab缩进
           tabSize: 2,
         }}
       />
