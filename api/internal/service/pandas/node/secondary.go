@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/go-faster/errors"
+	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
