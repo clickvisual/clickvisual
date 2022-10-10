@@ -29,10 +29,15 @@ func HiddenUpsert(c *core.Context) {
 		c.JSONE(core.CodeErr, "param error:"+err.Error(), nil)
 		return
 	}
+	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(tid),
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
 		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 		DomainType:  pmsplugin.PrefixTable,
