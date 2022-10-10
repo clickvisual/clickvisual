@@ -1,3 +1,4 @@
+import styles from "./index.less";
 import { Space, Tooltip } from "antd";
 import SearchBarToolTip from "@/pages/DataLogs/components/SearchBar/SearchBarToolTip";
 import { ProfileFilled, QuestionCircleFilled } from "@ant-design/icons";
@@ -9,7 +10,7 @@ const SearchBarSuffixIcon = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const i18n = useIntl();
   return (
-    <Space>
+    <Space className={styles.space}>
       <Tooltip
         title={<SearchBarToolTip />}
         color={"#fff"}

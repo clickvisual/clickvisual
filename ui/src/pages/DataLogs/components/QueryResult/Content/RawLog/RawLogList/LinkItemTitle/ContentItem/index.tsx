@@ -29,7 +29,7 @@ const ContentItem = ({
         case "BOOL":
           return (
             <span style={{ color: "#f22222" }}>
-              {obj?.vBool?.toString() || "「no BOOL」"}
+              {obj?.vBool?.toString() || "「not BOOL」"}
             </span>
           );
 
