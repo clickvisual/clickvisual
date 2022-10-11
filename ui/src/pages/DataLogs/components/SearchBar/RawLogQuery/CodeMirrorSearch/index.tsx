@@ -25,6 +25,8 @@ import "codemirror/mode/javascript/javascript.js";
 import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
 import "codemirror/addon/hint/show-hint";
+import { useDebounce } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 const Editors = (props: {
   title: string;
@@ -48,9 +50,13 @@ const Editors = (props: {
     onPressEnter();
   };
 
+  const debouncedValue = useDebounce(value, {
+    wait: DEBOUNCE_WAIT,
+  });
+
   useEffect(() => {
-    setSqlValue(value);
-  }, [value]);
+    setSqlValue(debouncedValue);
+  }, [debouncedValue]);
 
   return (
     <div className={styles.editors} key={title + "editors"}>
@@ -87,7 +93,8 @@ const Editors = (props: {
           styleActiveLine: true,
           // 主题
           theme: "neo",
-          lineWrapping: true,
+          // 溢出滚动而非换行
+          lineWrapping: false,
           foldGutter: true,
           gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
           lint: false,
