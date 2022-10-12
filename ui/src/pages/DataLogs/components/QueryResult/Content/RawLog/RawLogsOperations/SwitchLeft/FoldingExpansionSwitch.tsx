@@ -75,8 +75,13 @@ const FoldingExpansionSwitch = ({
   };
 
   useEffect(() => {
+    console.log(
+      oldPane?.logState,
+      oldPane?.foldingChecked,
+      oldPane?.foldingChecked ? 2 : 0
+    );
     if (oldPane?.logs?.isTrace == 1) {
-      onChangeLogState(oldPane?.logState || oldPane?.foldingChecked ? 2 : 0);
+      onChangeLogState(oldPane?.logState || (oldPane?.foldingChecked ? 2 : 0));
       if (
         oldPane?.logState == 1 &&
         (!linkLogs?.logs || (linkLogs?.logs && linkLogs?.logs.length == 0))

@@ -25,6 +25,8 @@ import "codemirror/mode/javascript/javascript.js";
 import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
 import "codemirror/addon/hint/show-hint";
+import { useDebounce } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 const Editors = (props: {
   title: string;
@@ -32,13 +34,15 @@ const Editors = (props: {
   value: string;
   onPressEnter: () => void;
   onChange: (value: string) => void;
+  tables: any;
+  onChangeTables: (obj: any) => void;
 }) => {
-  const { title, value, placeholder, onPressEnter, onChange } = props;
+  const { title, value, placeholder, onPressEnter, onChange, tables } = props;
   const formRefs: any = useRef(null);
   const [sqlValue, setSqlValue] = useState<string>("");
 
   const onEditorDidMount = (editor: any) => {
-    let editors = formRefs?.current?.editor;
+    // let editors = formRefs?.current?.editor;
   };
 
   // 回车事件
@@ -46,65 +50,69 @@ const Editors = (props: {
     onPressEnter();
   };
 
-  useEffect(() => {
-    setSqlValue(value);
-  }, [value]);
+  const debouncedValue = useDebounce(value, {
+    wait: DEBOUNCE_WAIT,
+  });
 
-  // const changeCode = (CodeMirror, changeObj, value) => {
-  //   if (!value) return;
-  //   // 获取 CodeMirror.doc.getValue()
-  //   // 赋值 CodeMirror.doc.setValue(value) // 会触发 onChange 事件，小心进入无线递归。
-  //   this.setState({ text: value });
-  // };
+  useEffect(() => {
+    setSqlValue(debouncedValue);
+  }, [debouncedValue]);
 
   return (
     <div className={styles.editors} key={title + "editors"}>
-      <CodeMirror
-        className={styles.editorsDom}
-        ref={formRefs}
-        key={title}
-        editorDidMount={onEditorDidMount}
-        onKeyPress={() => {
-          // 按键的时候触发代码提示
-          formRefs.current.editor.showHint();
-        }}
-        onChange={(CodeMirror: string, changeObj: any, value: string) =>
-          onChange(value)
-        }
-        value={sqlValue}
-        options={{
-          // 显示行号
-          lineNumbers: true,
-          lineNumberFormatter: () => "WHERE",
-          mode: {
-            name: "text/x-mysql",
-          },
-          // 自定义快捷键
-          extraKeys: { Enter: handleEnter },
-          hintOptions: {
-            // 自定义提示选项
-            completeSingle: false, // 当匹配只有一项的时候是否自动补全
-            // 自定义的提示库
-            tables: {
-              users: ["name", "score", "birthDate"],
-              countries: ["name", "population", "size"],
-              score: ["zooao"],
+      <span className={styles.where}>WHERE</span>
+      <div className={styles.codemirrorInput}>
+        <CodeMirror
+          className={styles.editorsDom}
+          ref={formRefs}
+          key={title}
+          editorDidMount={onEditorDidMount}
+          onKeyPress={() => {
+            // 按键的时候触发代码提示
+            formRefs.current.editor.showHint();
+          }}
+          onChange={(CodeMirror: string, changeObj: any, value: string) =>
+            onChange(value)
+          }
+          value={sqlValue}
+          options={{
+            // 显示行号
+            lineNumbers: false,
+            // 改变行号文案
+            lineNumberFormatter: () => "WHERE",
+            mode: {
+              name: "text/x-mysql",
             },
-          },
-          autofocus: false,
-          styleActiveLine: true,
-          // 主题
-          theme: "neo",
-          lineWrapping: true,
-          foldGutter: true,
-          gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-          lint: false,
-          indentUnit: 2,
-          cursorHeight: 0.85,
-          placeholder: placeholder || "",
-          tabSize: 2,
-        }}
-      />
+            // 自定义快捷键
+            extraKeys: { Enter: handleEnter },
+            hintOptions: {
+              // 自定义提示选项
+              completeSingle: false, // 当匹配只有一项的时候是否自动补全
+              // 自定义的提示库
+              tables: tables,
+            },
+            autofocus: false,
+            styleActiveLine: true,
+            // 主题
+            theme: "neo",
+            // 溢出滚动而非换行
+            lineWrapping: false,
+            foldGutter: true,
+            // gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+            gutters: false,
+            lint: false,
+            indentUnit: 2,
+            // 光标高度
+            cursorHeight: 1,
+            placeholder: placeholder || "",
+            // tab缩进
+            tabSize: 2,
+            // 滚动条样式
+            scrollbarStyle: null,
+          }}
+        />
+        <span className={styles.afterBox}></span>
+      </div>
     </div>
   );
 };

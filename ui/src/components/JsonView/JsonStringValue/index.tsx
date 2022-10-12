@@ -50,6 +50,9 @@ export const NOT_CLICKVISUAL_MENU = [
   '""},"',
   '"]},"',
   '"[{',
+  '"}',
+  '"{',
+  '}","',
 ];
 
 export const PRE_SYMBOL = ["\n", "\t"];

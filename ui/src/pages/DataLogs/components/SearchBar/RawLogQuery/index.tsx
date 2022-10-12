@@ -34,6 +34,7 @@ const RawLogQuery = () => {
     currentRelativeAmount,
     currentRelativeUnit,
     doGetAnalysisField,
+    logs,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -42,6 +43,8 @@ const RawLogQuery = () => {
   const [queryKeyword, setQueryKeyword] = useState<string | undefined>(
     keywordInput
   );
+  // 输入框自动填充关键词
+  const [tables, setTables] = useState<any>({});
 
   const debouncedQueryKeyword = useDebounce(queryKeyword, {
     wait: DEBOUNCE_WAIT,
@@ -134,6 +137,16 @@ const RawLogQuery = () => {
     }
   }, [urlState?.mode]);
 
+  useEffect(() => {
+    if (logs?.defaultFields && logs?.defaultFields.length > 0) {
+      let arr: any = {};
+      logs?.defaultFields.map((item: any) => {
+        arr[item] = [];
+      });
+      setTables(arr);
+    }
+  }, [logs, logs?.defaultFields]);
+
   return (
     <>
       <div className={searchBarStyles.inputBox}>
@@ -147,6 +160,8 @@ const RawLogQuery = () => {
             doSearchLog.run();
           }}
           onChange={(value: string) => setQueryKeyword(value)}
+          tables={tables}
+          onChangeTables={setTables}
         />
       </div>
       <SearchBarSuffixIcon />
