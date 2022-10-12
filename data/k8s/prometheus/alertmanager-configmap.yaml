@@ -17,4 +17,4 @@ data:
     receivers:
     - name: 'webhook'
       webhook_configs:
-      - url: 'http://clickvisual:19001/public/prometheus/alerts'
+      - url: 'http://clickvisual:19001/api/v1/prometheus/alerts'

@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -82,10 +81,9 @@ func UpdateTraceInfo(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(id),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	invoker.Logger.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))
 	// just mysql record update
 	ups := make(map[string]interface{}, 0)
 	ups["uid"] = c.Uid()
@@ -132,7 +130,7 @@ func GetTraceGraph(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(id),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)

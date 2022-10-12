@@ -33,7 +33,7 @@ func NodeCreate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	tx := invoker.Db.Begin()
@@ -91,7 +91,7 @@ func NodeUpdate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	var req view.ReqUpdateNode
@@ -169,7 +169,7 @@ func NodeDelete(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActDelete},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	if n.Status == db.NodeStatusHandler {
@@ -220,7 +220,7 @@ func NodeInfo(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
@@ -266,7 +266,7 @@ func NodeLock(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	err = service.Node.NodeTryLock(c.Uid(), id, false)
@@ -275,7 +275,6 @@ func NodeLock(c *core.Context) {
 		return
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
-
 	c.JSONOK()
 	return
 }
@@ -299,7 +298,7 @@ func NodeUnlock(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	err = service.Node.NodeUnlock(c.Uid(), id)
@@ -326,7 +325,7 @@ func NodeList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	conds := egorm.Conds{}
@@ -407,7 +406,7 @@ func NodeRun(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
@@ -438,7 +437,7 @@ func NodeStop(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	if n.LockUid != c.Uid() {
@@ -491,7 +490,7 @@ func NodeHistoryInfo(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	c.JSONOK(nh)
@@ -517,7 +516,7 @@ func NodeHistoryListPage(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	var req view.ReqNodeHistoryList
@@ -571,7 +570,7 @@ func NodeResultInfo(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	c.JSONOK(service.Node.NodeResultRespAssemble(&nr))

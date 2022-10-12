@@ -74,7 +74,7 @@ func Create(c *core.Context) {
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(databaseInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	param.SourceMapping, err = mapping.Handle(param.Source)
@@ -173,7 +173,7 @@ func Update(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(id),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	invoker.Logger.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))

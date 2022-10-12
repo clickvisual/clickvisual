@@ -48,7 +48,7 @@ func ViewDelete(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	tx := invoker.Db.Begin()
@@ -131,7 +131,7 @@ func ViewCreate(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	current := db.BaseView{
@@ -246,7 +246,7 @@ func ViewUpdate(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	var viewList []*db.BaseView
@@ -327,7 +327,7 @@ func ViewInfo(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	c.JSONOK(viewInfo)
@@ -357,7 +357,7 @@ func ViewList(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	condsView := egorm.Conds{}

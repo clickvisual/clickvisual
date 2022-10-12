@@ -28,7 +28,7 @@ func WorkflowCreate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	obj := &db.BigdataWorkflow{
@@ -64,7 +64,7 @@ func WorkflowUpdate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	var req view.ReqUpdateWorkflow
@@ -98,7 +98,7 @@ func WorkflowList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	conds := egorm.Conds{}
@@ -130,7 +130,7 @@ func WorkflowDelete(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	if err = db.WorkflowDelete(invoker.Db, id); err != nil {
@@ -159,7 +159,7 @@ func WorkflowInfo(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	c.JSONOK(res)

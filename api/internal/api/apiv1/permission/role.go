@@ -21,7 +21,6 @@ func PmsRoleList(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-
 	roles, err := permission.Manager.GetPmsRoles(&reqParam)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
@@ -101,8 +100,8 @@ func UpdatePmsRole(c *core.Context) {
 		return
 	}
 	if reqModel.RoleType == db.PmsRoleTypeDefault {
-		if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-			c.JSONE(1, err.Error(), nil)
+		if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+			c.JSONE(1, "permission verification failed", err)
 			return
 		}
 	} else if reqModel.RoleType == db.PmsRoleTypeCustom {
@@ -115,7 +114,7 @@ func UpdatePmsRole(c *core.Context) {
 			DomainType:  pmsplugin.SystemDom,
 		})
 		if err != nil {
-			c.JSONE(1, err.Error(), nil)
+			c.JSONE(1, "permission verification failed", err)
 			return
 		}
 	} else {
@@ -150,8 +149,8 @@ func DeletePmsRole(c *core.Context) {
 		return
 	}
 	if targetPmsRole.RoleType == db.PmsRoleTypeDefault {
-		if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-			c.JSONE(1, err.Error(), nil)
+		if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+			c.JSONE(1, "permission verification failed", err)
 			return
 		}
 	} else if targetPmsRole.RoleType == db.PmsRoleTypeCustom {
@@ -164,7 +163,7 @@ func DeletePmsRole(c *core.Context) {
 			DomainType:  pmsplugin.SystemDom,
 		})
 		if err != nil {
-			c.JSONE(1, err.Error(), nil)
+			c.JSONE(1, "permission verification failed", err)
 			return
 		}
 	} else {
@@ -182,7 +181,7 @@ func DeletePmsRole(c *core.Context) {
 
 func GetRootUids(c *core.Context) {
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	rootUids := permission.Manager.GetRootUsersId()
@@ -193,7 +192,7 @@ func GetRootUids(c *core.Context) {
 
 func GrantRootUids(c *core.Context) {
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	var err error

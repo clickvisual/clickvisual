@@ -47,7 +47,7 @@ func Migration(c *core.Context) {
 	}
 	permission.Manager.GrantRootUsers(roots)
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	err := install.Migration()

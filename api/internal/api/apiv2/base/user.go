@@ -33,7 +33,7 @@ func UserCreate(c *core.Context) {
 		return
 	}
 	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	conds := egorm.Conds{}
@@ -132,7 +132,7 @@ func UserPasswordReset(c *core.Context) {
 		return
 	}
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	u, err := db.UserInfo(uid)
@@ -181,7 +181,7 @@ func UserDelete(c *core.Context) {
 		return
 	}
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	err := db.UserDelete(invoker.Db, uid)

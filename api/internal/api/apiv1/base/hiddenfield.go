@@ -43,7 +43,7 @@ func HiddenUpsert(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tid),
 	}); err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 

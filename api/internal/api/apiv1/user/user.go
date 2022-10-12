@@ -5,7 +5,6 @@ import (
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/econf"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 	"golang.org/x/crypto/bcrypt"
 
@@ -140,14 +139,10 @@ func UpdatePassword(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
 	if econf.GetString("app.mode") == "demo" {
 		c.JSONE(1, "The password cannot be changed in demo mode", "")
 		return
 	}
-
-	invoker.Logger.Debug("UpdatePassword", elog.Any("uid", uid), elog.Any("param", param))
-
 	if param.ConfirmNew != param.NewPassword {
 		c.JSONE(1, "password not match", "")
 		return
@@ -157,9 +152,6 @@ func UpdatePassword(c *core.Context) {
 		return
 	}
 	user, _ := db.UserInfo(uid)
-
-	invoker.Logger.Debug("UpdatePassword", elog.Any("user", user))
-
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
 		c.JSONE(1, "account or password error", "")
@@ -178,6 +170,6 @@ func UpdatePassword(c *core.Context) {
 		return
 	}
 	event.Event.UserCMDB(c.User(), db.OpnUserPwdChange, nil)
-	c.JSONOK("")
+	c.JSONOK()
 	return
 }

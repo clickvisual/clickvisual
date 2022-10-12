@@ -32,7 +32,7 @@ func CrontabDelete(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActDelete},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	if err = db.CrontabDelete(invoker.Db, id); err != nil {
@@ -61,7 +61,7 @@ func CrontabInfo(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	res, _ := db.CrontabInfo(invoker.Db, id)

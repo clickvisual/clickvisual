@@ -53,7 +53,7 @@ func InstanceUpdate(c *core.Context) {
 		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	req.PrometheusTarget = strings.TrimSpace(req.PrometheusTarget)
@@ -169,7 +169,7 @@ func InstanceDelete(c *core.Context) {
 		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActDelete},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	obj, err := db.InstanceInfo(invoker.Db, id)

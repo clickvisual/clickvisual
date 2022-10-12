@@ -121,7 +121,7 @@ func Update(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), err)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 
@@ -160,7 +160,7 @@ func Update(c *core.Context) {
 		err = service.Alarm.Update(c.Uid(), id, req)
 	}
 	if err != nil {
-		c.JSONE(1, "alarm update failed 04: "+err.Error(), err)
+		c.JSONE(1, "alarm update failed 04", err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsUpdate, map[string]interface{}{"req": req})
@@ -221,7 +221,7 @@ func List(c *core.Context) {
 			SubResource: pmsplugin.Alarm,
 			Acts:        []string{pmsplugin.ActView},
 		}); err != nil {
-			c.JSONE(1, err.Error(), err)
+			c.JSONE(1, "permission verification failed", err)
 			return
 		}
 		conds := egorm.Conds{}
@@ -277,7 +277,7 @@ func Info(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), err)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	conds := egorm.Conds{}
@@ -331,7 +331,7 @@ func Delete(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), err)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	tx := invoker.Db.Begin()

@@ -85,7 +85,7 @@ func TableCreate(c *core.Context) {
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(databaseInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	_, err = service.TableCreate(c.Uid(), databaseInfo, param)
@@ -117,7 +117,7 @@ func TableInfo(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	instance, err := db.InstanceInfo(invoker.Db, tableInfo.Database.Iid)
@@ -234,7 +234,7 @@ func TableDelete(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 
@@ -332,7 +332,7 @@ func TableLogs(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "TableInfo"), elog.Any("cost", time.Since(t)))
@@ -582,7 +582,7 @@ func TableIndexes(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 
@@ -644,7 +644,7 @@ func TableCreateSelfBuilt(c *core.Context) {
 		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	err = tableCreateSelfBuilt(c.Uid(), iid, param)
@@ -675,7 +675,7 @@ func TableCreateSelfBuiltBatch(c *core.Context) {
 		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	for _, param := range params.TableList {
@@ -825,7 +825,7 @@ func TableUpdate(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(id),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	ups := make(map[string]interface{}, 0)
@@ -853,7 +853,7 @@ func TableDeps(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	res, err := service.TableDeps(iid, dn, tn)
