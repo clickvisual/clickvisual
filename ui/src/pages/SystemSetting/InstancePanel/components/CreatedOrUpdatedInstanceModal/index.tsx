@@ -288,8 +288,22 @@ const CreatedOrUpdatedInstanceModal = (
           label={i18n.formatMessage({ id: "instance.form.title.mode" })}
         >
           <Space>
-            <Form.Item name={"mode"} noStyle valuePropName="checked">
-              <Switch />
+            <Form.Item
+              name={"mode"}
+              noStyle
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch
+                onChange={(flag: boolean) => {
+                  if (flag) {
+                    instanceFormRef.current?.setFieldsValue({
+                      clusters: [""],
+                      replicaStatus: false,
+                    });
+                  }
+                }}
+              />
             </Form.Item>
             <Form.Item
               shouldUpdate={(prevValues, nextValues) =>
