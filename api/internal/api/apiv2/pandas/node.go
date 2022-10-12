@@ -92,7 +92,7 @@ func NodeCrontabCreate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	argsBytes, _ := json.Marshal(req.Args)
@@ -151,7 +151,7 @@ func NodeCrontabUpdate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	nodeCrontabInfo, _ := db.CrontabInfo(invoker.Db, nodeId)
@@ -222,7 +222,7 @@ func NodeResultUpdate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	ups := make(map[string]interface{}, 0)
@@ -319,7 +319,7 @@ func WorkerDashboard(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	res := service.Node.WorkerDashboard(req, c.Uid())
@@ -349,7 +349,7 @@ func WorkerList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	// Read node data according to user instance permissions
@@ -437,7 +437,7 @@ func TableDependencies(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	data, err := service.TableDeps(iid, req.DatabaseName, req.TableName)

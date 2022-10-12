@@ -29,7 +29,7 @@ func GetInstancePmsRolesGrant(c *core.Context) {
 		DomainId:    strconv.Itoa(reqParam.DomainId),
 	}
 	if err := permission.Manager.CheckNormalPermission(reqPerm); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	reqParam.GrantObjectType = pmsplugin.PrefixUser
@@ -67,8 +67,8 @@ func UpdateInstancePmsRolesGrant(c *core.Context) {
 		Acts:        []string{pmsplugin.ActGrant},
 		DomainType:  pmsplugin.SystemDom,
 	}
-	if err := permission.Manager.CheckNormalPermission(reqPerm); err != nil {
-		c.JSONE(1, err.Error(), nil)
+	if err = permission.Manager.CheckNormalPermission(reqPerm); err != nil {
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	err = permission.Manager.UpdateInstanceRolesGrantInfo(&reqParam)

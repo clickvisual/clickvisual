@@ -559,9 +559,9 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition 
 
 	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name, filterId)
 	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
-	if c.mode == ModeCluster {
-		sourceTableName += "_local"
-	}
+	// if c.mode == ModeCluster {
+	// 	sourceTableName += "_local"
+	// }
 
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
@@ -615,6 +615,9 @@ func (c *ClickHouse) AlertViewDrop(viewTableName, cluster string) (err error) {
 }
 
 func (c *ClickHouse) alertPrepare() (err error) {
+	if c.mode == ModeCluster {
+		return
+	}
 	_, err = c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
 	if err != nil {
 		return

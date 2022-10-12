@@ -51,7 +51,7 @@ func List(c *core.Context) {
 	conds["k8s_cm_id"] = param.K8SConfigMapId
 	list, err := db.ConfigurationList(conds)
 	if err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	for _, item := range list {

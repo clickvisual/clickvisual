@@ -29,7 +29,7 @@ func SourceCreate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	obj := &db.BigdataSource{
@@ -70,7 +70,7 @@ func SourceUpdate(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	var req view.ReqUpdateSource
@@ -108,7 +108,7 @@ func SourceList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	conds := egorm.Conds{}
@@ -149,7 +149,7 @@ func SourceDelete(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActDelete},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	if err = db.SourceDelete(invoker.Db, id); err != nil {
@@ -179,7 +179,7 @@ func SourceInfo(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	c.JSONOK(res)
@@ -204,7 +204,7 @@ func SourceDatabaseList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), err)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -214,7 +214,7 @@ func SourceDatabaseList(c *core.Context) {
 		Typ:      s.Typ,
 	}).Databases()
 	if err != nil {
-		c.JSONE(1, "Instantiate", err)
+		c.JSONE(1, "database list query failed", err)
 		return
 	}
 	c.JSONOK(res)
@@ -244,7 +244,7 @@ func SourceTableList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -254,7 +254,7 @@ func SourceTableList(c *core.Context) {
 		Typ:      s.Typ,
 	}).Tables(req.Database)
 	if err != nil {
-		c.JSONE(1, "Instantiate", err)
+		c.JSONE(1, "table list query failed", err)
 		return
 	}
 	c.JSONOK(res)
@@ -284,7 +284,7 @@ func SourceColumnList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -294,7 +294,7 @@ func SourceColumnList(c *core.Context) {
 		Typ:      s.Typ,
 	}).Columns(req.Database, req.Table)
 	if err != nil {
-		c.JSONE(1, "Instantiate", err)
+		c.JSONE(1, "column list query failed", err)
 		return
 	}
 	c.JSONOK(res)

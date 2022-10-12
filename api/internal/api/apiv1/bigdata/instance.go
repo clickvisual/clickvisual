@@ -27,12 +27,12 @@ func InstanceDatabaseList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission error", err)
 		return
 	}
 	s, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
-		c.JSONE(1, "InstanceInfo", err)
+		c.JSONE(1, "instance info error", err)
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
@@ -40,7 +40,7 @@ func InstanceDatabaseList(c *core.Context) {
 		Typ: db.SourceTypClickHouse,
 	}).Databases()
 	if err != nil {
-		c.JSONE(1, "Instantiate", err)
+		c.JSONE(1, "database list query failed", err)
 		return
 	}
 	c.JSONOK(res)
@@ -60,7 +60,7 @@ func InstanceTableList(c *core.Context) {
 		SubResource: pmsplugin.Pandas,
 		Acts:        []string{pmsplugin.ActView},
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	var req view.ReqListSourceTable
@@ -78,7 +78,7 @@ func InstanceTableList(c *core.Context) {
 		Typ: db.SourceTypClickHouse,
 	}).Tables(req.Database)
 	if err != nil {
-		c.JSONE(1, "Instantiate", err)
+		c.JSONE(1, "table list query failed", err)
 		return
 	}
 	c.JSONOK(res)
@@ -116,7 +116,7 @@ func InstanceColumnList(c *core.Context) {
 		Typ: db.SourceTypClickHouse,
 	}).Columns(req.Database, req.Table)
 	if err != nil {
-		c.JSONE(1, "Instantiate", err)
+		c.JSONE(1, "columns list query failed", err)
 		return
 	}
 	c.JSONOK(res)

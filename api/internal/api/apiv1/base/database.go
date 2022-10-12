@@ -29,7 +29,6 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-
 	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -37,7 +36,7 @@ func DatabaseCreate(c *core.Context) {
 		SubResource: pmsplugin.Log,
 		Acts:        []string{pmsplugin.ActEdit},
 	}); err != nil {
-		c.JSONE(1, err.Error(), err)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	obj := db.BaseDatabase{
@@ -134,7 +133,7 @@ func DatabaseDelete(c *core.Context) {
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(database.ID),
 	}); err != nil {
-		c.JSONE(1, err.Error(), err)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	conds := egorm.Conds{}
@@ -189,7 +188,7 @@ func DatabaseUpdate(c *core.Context) {
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(id),
 	}); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, "permission verification failed", err)
 		return
 	}
 	ups := make(map[string]interface{}, 0)
