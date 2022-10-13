@@ -8,7 +8,7 @@ import {
   Spin,
   Switch,
 } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useIntl, useModel } from "umi";
 import style from "./index.less";
 
