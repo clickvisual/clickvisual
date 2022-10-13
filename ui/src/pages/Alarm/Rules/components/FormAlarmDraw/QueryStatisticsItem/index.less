@@ -1,9 +1,22 @@
 .formLine {
   display: flex;
-  height: 32px;
-  .whenItem {
-    flex: 0 0 85%;
-    margin-right: 8px;
+  flex-wrap: wrap;
+  background: linear-gradient(white, white) padding-box,
+    repeating-linear-gradient(-45deg, #ccc 0, #ccc 0.5em, white 0, white 1em);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  .item {
+    width: 100%;
+    margin-bottom: 24px;
+    .title {
+      display: flex;
+      justify-content: space-around;
+      padding: 6px;
+    }
+    .whenItem {
+      width: 80%;
+      margin-right: 8px;
+    }
   }
   &:not(:last-child) {
     margin-bottom: 24px;
@@ -18,5 +31,4 @@
   position: absolute;
   top: 0;
   right: 5%;
-  
 }

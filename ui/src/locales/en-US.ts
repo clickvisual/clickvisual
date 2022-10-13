@@ -550,8 +550,10 @@ export default {
     "Please enter lowercase letters, uppercase letters, or underscores",
   "alarm.rules.inspectionFrequency": "Inspection Frequency",
   "alarm.rules.form.inspectionStatistics": "Inspection Statistics",
+  "alarm.rules.form.associatedTable": "The associated table",
+  "alarm.rules.form.addTable": "Add the associated table",
   "alarm.rules.form.inspectionStatistics.error":
-    "At least you need to add a inspection statistics",
+    "At least one table needs to be associated",
   "alarm.rules.form.triggerCondition": "Trigger condition",
   "alarm.rules.form.triggerCondition.error":
     "At least you need to add a trigger condition",
@@ -1010,11 +1012,13 @@ export default {
 
   "pandas.analysis.data.source": "Source",
   "pandas.analysis.data.filter": "Data filter",
-  "pandas.analysis.data.filter.placeholder":"Fill in the filtering criteria according to the corresponding SQL syntax",
+  "pandas.analysis.data.filter.placeholder":
+    "Fill in the filtering criteria according to the corresponding SQL syntax",
   "pandas.analysis.data.target": "Target",
-  "pandas.analysis.data.target.before":"Before import",
-  "pandas.analysis.data.target.before.placeholder":"Please refer to the corresponding SQL syntax to fill out the import data to execute SQL script",
-  "pandas.analysis.data.target.after":"After import",
-  "pandas.analysis.data.target.after.placeholder":"Please refer to the corresponding SQL syntax import data after the execution of the SQL script;",
-
+  "pandas.analysis.data.target.before": "Before import",
+  "pandas.analysis.data.target.before.placeholder":
+    "Please refer to the corresponding SQL syntax to fill out the import data to execute SQL script",
+  "pandas.analysis.data.target.after": "After import",
+  "pandas.analysis.data.target.after.placeholder":
+    "Please refer to the corresponding SQL syntax import data after the execution of the SQL script;",
 };
