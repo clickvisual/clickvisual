@@ -149,7 +149,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       item.rawLogJson = parseJsonObject(item["_raw_log_"]);
       if (!item.rawLogJson["traceId"]) {
         isLink = false;
-        console.log("不合规链路日志", item);
+        console.log("不合规链路日志", "没有traceId", item);
       }
       if (!keyList.includes(item._key)) {
         keyList.push(item._key);
