@@ -287,10 +287,24 @@ func Info(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	conditions, err := db.AlarmConditionList(conds)
+	conditionsWaitDelete, err := db.AlarmConditionList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
+	}
+
+	respAlarmFilters := make([]view.RespAlarmInfoFilter, 0)
+	for _, filter := range filters {
+		conditionConds := egorm.Conds{}
+		conditionConds["alarm_id"] = alarmInfo.ID
+		conditionConds["filter_id"] = filter.ID
+		conditions, _ := db.AlarmConditionList(conditionConds)
+		filterTableInfo, _ := db.TableInfo(invoker.Db, filter.Tid)
+		respAlarmFilters = append(respAlarmFilters, view.RespAlarmInfoFilter{
+			AlarmFilter: filter,
+			TableName:   filterTableInfo.Name,
+			Conditions:  conditions,
+		})
 	}
 	user, _ := db.UserInfo(alarmInfo.Uid)
 
@@ -299,8 +313,8 @@ func Info(c *core.Context) {
 
 	res := view.RespAlarmInfo{
 		Alarm:      alarmInfo,
-		Filters:    filters,
-		Conditions: conditions,
+		Filters:    respAlarmFilters,
+		Conditions: conditionsWaitDelete,
 		User:       user,
 		Ctime:      alarmInfo.Ctime,
 		Utime:      alarmInfo.Utime,
