@@ -54,16 +54,25 @@ type ReqAlarmConditionCreate struct {
 	Val2           int `json:"val2" form:"val2"`                    // 最大值
 }
 
-type RespAlarmInfo struct {
-	Filters    []*db.AlarmFilter    `json:"filters" form:"filters"`
-	Conditions []*db.AlarmCondition `json:"conditions" form:"conditions"`
-	Ctime      int64                `json:"ctime"`
-	Utime      int64                `json:"utime"`
-	db.Alarm
-	db.User
-	Table    db.BaseTable    `json:"table"`
-	Instance db.BaseInstance `json:"instance"`
-}
+type (
+	RespAlarmInfo struct {
+		Filters []RespAlarmInfoFilter `json:"filters"`
+		// Deprecated: Conditions
+		Conditions []*db.AlarmCondition `json:"conditions"`
+		Ctime      int64                `json:"ctime"`
+		Utime      int64                `json:"utime"`
+		db.Alarm
+		db.User
+		Table    db.BaseTable    `json:"table"`
+		Instance db.BaseInstance `json:"instance"`
+	}
+
+	RespAlarmInfoFilter struct {
+		*db.AlarmFilter
+		TableName  string               `json:"tableName"`
+		Conditions []*db.AlarmCondition `json:"conditions"`
+	}
+)
 
 type (
 	ReqAlarmHistoryList struct {
