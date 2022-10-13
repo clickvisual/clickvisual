@@ -30,9 +30,10 @@ const ScreeningRow = (props: { style?: any }) => {
         setInstances(res?.data ?? []);
         const iid = (urlState && urlState?.iid) || dataAnalysisIid;
         if (iid) {
-          doGetDatabase
-            .run(iid as number)
-            .then((res) => setDatabases(res?.data ?? []));
+          doGetDatabase.run(iid as number).then((res: any) => {
+            if (res.code != 0) return;
+            setDatabases(res?.data ?? []);
+          });
           onChangeCurrentInstances(parseInt(iid));
           selectForm.setFieldsValue({ instances: parseInt(iid) });
         }
@@ -80,9 +81,10 @@ const ScreeningRow = (props: { style?: any }) => {
                   "clickvisual-data-analysis-iid",
                   iid.toString()
                 );
-                doGetDatabase
-                  .run(iid as number)
-                  .then((res) => setDatabases(res?.data ?? []));
+                doGetDatabase.run(iid as number).then((res: any) => {
+                  if (res.code != 0) return;
+                  setDatabases(res?.data ?? []);
+                });
                 return;
               }
               localStorage.removeItem("clickvisual-data-analysis-iid");
