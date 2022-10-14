@@ -30,6 +30,14 @@ import useLogPanes from "@/models/datalogs/useLogPanes";
 import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 import useLogOptions from "@/models/datalogs/useLogOptions";
+import useLocalStorages from "@/hooks/useLocalStorages";
+
+export enum dataLogLocalaStorageType {
+  /**
+   * 日志历史查询记录
+   */
+  logQueryHistoricalList = "log-query-historical-list",
+}
 
 const DataLogsModel = () => {
   // 查询关键字
@@ -101,6 +109,15 @@ const DataLogsModel = () => {
 
   // 链路的100条日志信息
   const [linkLogs, setLinkLogs] = useState<LogsResponse>();
+
+  const { onSetLocalData } = useLocalStorages();
+  // 历史记录
+  const [logQueryHistoricalList, setLogQueryHistoricalList] = useState<
+    string[]
+  >(
+    onSetLocalData(undefined, dataLogLocalaStorageType.logQueryHistoricalList)
+      ?.logQueryHistoricalList || []
+  );
 
   const {
     logLibraryCreatedModalVisible,
@@ -367,6 +384,15 @@ const DataLogsModel = () => {
   });
 
   const logsAndHighChartsPayload = (params?: QueryParams) => {
+    const query = params?.kw ?? keywordInput;
+    if (query && !logQueryHistoricalList.includes(query)) {
+      setLogQueryHistoricalList([query, ...logQueryHistoricalList]);
+      onSetLocalData(
+        { logQueryHistoricalList: [query, ...logQueryHistoricalList] },
+        dataLogLocalaStorageType.logQueryHistoricalList
+      );
+    }
+
     return {
       st: params?.st || (startDateTime as number),
       et: params?.et || (endDateTime as number),

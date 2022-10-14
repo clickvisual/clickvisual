@@ -56,19 +56,27 @@ const useLocalStorages = () => {
       JSON.stringify(value)
     );
   };
-
+  /**
+   * 查取localStorage的值
+   * moduleName 不存在则写入
+   * moduleName 存在则更新
+   * moduleName 存在且value为undefined则为读取
+   * @param value
+   * @param moduleName
+   * @returns
+   */
   const onSetLocalData = (value: any, moduleName: string) => {
     try {
-      let AllClickHouse = JSON.parse(
+      let allClickHouse = JSON.parse(
         localStorage.getItem("clickvisual") || JSON.stringify({})
       );
-      let oldClickHouse = AllClickHouse[moduleName] || {};
+      let oldClickHouse = allClickHouse[moduleName] || {};
       if (value === undefined) {
         return oldClickHouse;
       }
       if (value === null) {
-        AllClickHouse[moduleName] = undefined;
-        localStorage.setItem("clickvisual", JSON.stringify(AllClickHouse));
+        allClickHouse[moduleName] = undefined;
+        localStorage.setItem("clickvisual", JSON.stringify(allClickHouse));
         return true;
       }
       const newClickHouse = value;
@@ -99,9 +107,9 @@ const useLocalStorages = () => {
         // 当且仅当key的value为undefined时才会取local里的值当做返回值
         returnObj[item] = oldClickHouse[item];
       });
-      AllClickHouse[moduleName] = oldClickHouse;
+      allClickHouse[moduleName] = oldClickHouse;
       isChange &&
-        localStorage.setItem("clickvisual", JSON.stringify(AllClickHouse));
+        localStorage.setItem("clickvisual", JSON.stringify(allClickHouse));
       return returnObj;
     } catch (e) {
       console.error("localaStorage存取的onSetLocalData函数内部执行出错");
