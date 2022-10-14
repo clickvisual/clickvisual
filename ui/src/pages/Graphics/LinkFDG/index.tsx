@@ -70,30 +70,30 @@ const LinkFDG = (props: { dataList: any }) => {
       newNodes[newNodesIndex].radius++;
     });
 
-    const linkGroup = {};
-    // 两点之间的线根据两点的 name 属性设置为同一个 key，加入到 linkGroup 中，给两点之间的所有边分成一个组
-    newedges.forEach((link: any) => {
-      const key =
-        link.source.name < link.target.name
-          ? link.source.name + ":" + link.target.name
-          : link.target.name + ":" + link.source.name;
-      if (!linkGroup.hasOwnProperty(key)) {
-        linkGroup[key] = [];
-      }
-      linkGroup[key].push(link);
-    });
-    // 遍历给每组去调用 setLinkNumbers 来分配 linkum
-    newedges.forEach((link: any) => {
-      const key = setLinkName(link);
-      link.size = linkGroup[key].length;
-      const group = linkGroup[key];
-      const keyPair = key.split(":");
-      let type = "noself";
-      if (keyPair[0] === keyPair[1]) {
-        type = "self";
-      }
-      setLinkNumbers(group, type);
-    });
+    // const linkGroup = {};
+    // // 两点之间的线根据两点的 name 属性设置为同一个 key，加入到 linkGroup 中，给两点之间的所有边分成一个组
+    // newedges.forEach((link: any) => {
+    //   const key =
+    //     link.source.name < link.target.name
+    //       ? link.source.name + ":" + link.target.name
+    //       : link.target.name + ":" + link.source.name;
+    //   if (!linkGroup.hasOwnProperty(key)) {
+    //     linkGroup[key] = [];
+    //   }
+    //   linkGroup[key].push(link);
+    // });
+    // // 遍历给每组去调用 setLinkNumbers 来分配 linkum
+    // newedges.forEach((link: any) => {
+    //   const key = setLinkName(link);
+    //   link.size = linkGroup[key].length;
+    //   const group = linkGroup[key];
+    //   const keyPair = key.split(":");
+    //   let type = "noself";
+    //   if (keyPair[0] === keyPair[1]) {
+    //     type = "self";
+    //   }
+    //   setLinkNumbers(group, type);
+    // });
     draw(newedges, newNodes);
   };
 
