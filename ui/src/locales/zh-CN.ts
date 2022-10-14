@@ -30,6 +30,7 @@ export default {
   "select.placeholder": "请选择{name}",
   required: "必填",
   tips: "提示",
+  unit: "单位",
 
   type: "类型",
   capacity: "容量",
