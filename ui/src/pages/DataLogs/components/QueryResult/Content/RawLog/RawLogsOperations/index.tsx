@@ -40,7 +40,8 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       ) : null}
       <div className={rawLogsOperationsStyles.pagination}>
         {currentLogLibrary?.id &&
-        logPanes[currentLogLibrary.id.toString()].logState == 1 ? (
+        logPanes[currentLogLibrary.id.toString()].logState == 1 &&
+        logPanes[currentLogLibrary.id.toString()].linkLogs ? (
           i18n.formatMessage(
             { id: "log.pagination.total" },
             { total: logCount }

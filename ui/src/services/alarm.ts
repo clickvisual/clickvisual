@@ -37,6 +37,7 @@ export interface AlarmType extends TimeBaseType {
 }
 
 export interface AlarmFilterType extends TimeBaseType {
+  conditions: AlarmConditionType[];
   mode: number;
   tid: number;
   alarmId: number;

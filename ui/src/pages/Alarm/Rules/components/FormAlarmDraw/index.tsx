@@ -14,12 +14,14 @@ import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/Qu
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useEffect, useRef, useState } from "react";
-import TriggerConditionItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem";
+import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 import TextArea from "antd/es/input/TextArea";
-import { SaveOutlined } from "@ant-design/icons";
+import { DownOutlined, RightOutlined, SaveOutlined } from "@ant-design/icons";
 import { AlarmRequest, ChannelType } from "@/services/alarm";
 import { NoDataConfigs } from "@/pages/Alarm/service/type";
 import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
+import classNames from "classnames";
+import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/index.less";
 
 export enum AlarmLvelType {
   Alarm = 0,
@@ -144,6 +146,17 @@ const FormAlarmDraw = () => {
       ) {
         setShowMoreOptions(true);
       }
+      const isCompatibleOldData =
+        res.data &&
+        res.data.conditions &&
+        res.data.filters &&
+        res.data.conditions.length > 0 &&
+        res.data.filters.length === 1 &&
+        !res.data.filters[0].conditions;
+
+      if (isCompatibleOldData) {
+        res.data.filters[0].conditions = res.data.conditions;
+      }
       alarmFormRef.current.setFieldsValue({
         ...res.data,
         channelIds: res.data.channelIds ? res.data.channelIds : undefined,
@@ -242,11 +255,23 @@ const FormAlarmDraw = () => {
             </Select>
           </Form.Item>
           <InspectionFrequencyItem />
-          <QueryStatisticsItem formRef={alarmFormRef} />
-          <TriggerConditionItem
-            handleClickMoreOptions={handleClickMoreOptions}
-            showMoreOptions={showMoreOptions}
-          />
+          <QueryStatisticsItem formRef={alarmFormRef.current} />
+          <Form.Item noStyle>
+            <div
+              className={classNames(
+                conditionStyles.moreOptionsBtn,
+                !showMoreOptions && conditionStyles.hideMoreOptions
+              )}
+              onClick={handleClickMoreOptions}
+            >
+              {showMoreOptions ? <DownOutlined /> : <RightOutlined />}
+              <span>
+                {i18n.formatMessage({ id: "instance.form.moreOptions" })}
+              </span>
+            </div>
+            {showMoreOptions && <MoreOptions />}
+          </Form.Item>
+
           <Form.Item
             label={
               <Space>

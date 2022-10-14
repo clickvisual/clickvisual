@@ -1,14 +1,15 @@
 import queryStatisticsStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem/index.less";
-import { Button, Form, Input, Space } from "antd";
+import { Button, Form, FormInstance, Input, Space } from "antd";
 import CreatedAndUpdatedModal from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem/CreatedAndUpdatedModal";
 import { useRef, useState } from "react";
 import { FormListOperation } from "antd/es/form/FormList";
 import { useIntl } from "umi";
 import { PlusOutlined } from "@ant-design/icons";
+import TriggerConditionItem from "../TriggerConditionItem";
 
 const { TextArea } = Input;
 
-const QueryStatisticsItem = (props: { formRef: any }) => {
+const QueryStatisticsItem = (props: { formRef: FormInstance | null }) => {
   const i18n = useIntl();
   const statisticOptionRef = useRef<FormListOperation>();
   const insertIndex = useRef<number>();
@@ -24,10 +25,7 @@ const QueryStatisticsItem = (props: { formRef: any }) => {
 
   return (
     <Form.Item
-      required
-      label={i18n.formatMessage({
-        id: "alarm.rules.form.inspectionStatistics",
-      })}
+      label={i18n.formatMessage({ id: "alarm.rules.form.associatedTable" })}
     >
       <Form.List
         name={"filters"}
@@ -53,63 +51,88 @@ const QueryStatisticsItem = (props: { formRef: any }) => {
           return (
             <>
               {fields.map((field) => {
+                const item =
+                  formRef?.getFieldValue("filters") &&
+                  formRef?.getFieldValue("filters").length > field.key &&
+                  formRef?.getFieldValue("filters")[field.key];
                 return (
                   <div
                     key={field.key}
                     className={queryStatisticsStyles.formLine}
                     style={{ height: "auto" }}
                   >
-                    <Form.Item noStyle name={[field.name, "when"]}>
-                      <TextArea
-                        autoSize={{ minRows: 1, maxRows: 15 }}
-                        className={queryStatisticsStyles.whenItem}
-                        disabled
-                      />
-                    </Form.Item>
-                    {/* 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS */}
-                    <Form.Item
-                      noStyle
-                      hidden
-                      name={[field.name, "typ"]}
-                      initialValue={0}
-                    >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item noStyle hidden name={[field.name, "exp"]}>
-                      <Input />
-                    </Form.Item>
-                    <Form.Item noStyle>
-                      <Space>
-                        {fields.length < 1 && (
-                          <a
-                            onClick={() => {
-                              insertIndex.current = field.name + 1;
-                              onChangeVisible(true);
-                            }}
-                          >
-                            {i18n.formatMessage({ id: "add" })}
-                          </a>
-                        )}
+                    <div className={queryStatisticsStyles.item}>
+                      <div className={queryStatisticsStyles.title}>
+                        <span>
+                          {i18n.formatMessage({
+                            id: "datasource.logLibrary.from.tableName",
+                          })}
+                          : {item?.tableName || ""}
+                        </span>
                         <a
                           onClick={() => {
-                            const filtersList = {
-                              ...formRef.current.getFieldValue("filters")[
-                                field.name
-                              ],
-                              fieldName: field.name,
-                            };
-                            setDefaultData(filtersList);
-                            setIsEdit(true);
+                            insertIndex.current = field.name + 1;
                             onChangeVisible(true);
                           }}
                         >
-                          {i18n.formatMessage({ id: "edit" })}
+                          <PlusOutlined />
+                          {i18n.formatMessage({
+                            id: "alarm.rules.form.addTable",
+                          })}
                         </a>
-                        <a onClick={() => options.remove(field.name)}>
-                          {i18n.formatMessage({ id: "delete" })}
-                        </a>
-                      </Space>
-                    </Form.Item>
+                      </div>
+                      <div style={{ display: "flex" }}>
+                        <Form.Item
+                          name={[field.name, "when"]}
+                          required
+                          label={i18n.formatMessage({
+                            id: "alarm.rules.form.inspectionStatistics",
+                          })}
+                        >
+                          <TextArea
+                            autoSize={{ minRows: 1, maxRows: 15 }}
+                            className={queryStatisticsStyles.whenItem}
+                            style={{ width: "45vw" }}
+                            disabled
+                          />
+                        </Form.Item>
+                        {/* 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS */}
+                        <Form.Item
+                          noStyle
+                          hidden
+                          name={[field.name, "typ"]}
+                          initialValue={0}
+                        >
+                          <Input />
+                        </Form.Item>
+                        <Form.Item noStyle hidden name={[field.name, "exp"]}>
+                          <Input />
+                        </Form.Item>
+                        <Form.Item noStyle>
+                          <Space>
+                            <a
+                              onClick={() => {
+                                const filtersList = {
+                                  ...formRef?.getFieldValue("filters")[
+                                    field.name
+                                  ],
+                                  fieldName: field.name,
+                                };
+                                setDefaultData(filtersList);
+                                setIsEdit(true);
+                                onChangeVisible(true);
+                              }}
+                            >
+                              {i18n.formatMessage({ id: "edit" })}
+                            </a>
+                            <a onClick={() => options.remove(field.name)}>
+                              {i18n.formatMessage({ id: "delete" })}
+                            </a>
+                          </Space>
+                        </Form.Item>
+                      </div>
+                      <TriggerConditionItem field={field} />
+                    </div>
                   </div>
                 );
               })}
@@ -136,12 +159,11 @@ const QueryStatisticsItem = (props: { formRef: any }) => {
                 onOk={(fields: any) => {
                   if (!statisticOptionRef.current) return;
                   if (isEdit) {
-                    let currentFiltersList =
-                      formRef.current.getFieldValue("filters");
+                    let currentFiltersList = formRef?.getFieldValue("filters");
                     currentFiltersList.map((item: any, index: number) => {
                       if (index === fields?.fieldName) {
                         currentFiltersList[index] = fields;
-                        formRef.current.setFieldsValue({
+                        formRef?.setFieldsValue({
                           filters: currentFiltersList,
                         });
                         return;

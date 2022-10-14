@@ -2,31 +2,27 @@ import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/Trigge
 import { Button, Form, InputNumber, Select, Space } from "antd";
 import { useIntl } from "umi";
 import classNames from "classnames";
-import { DownOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { condList, expList, typList } from "@/pages/Alarm/service/type";
-import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 
 const { Option } = Select;
 
 interface TriggerConditionItemProps {
-  showMoreOptions: boolean;
-  handleClickMoreOptions: () => void;
+  field: any;
 }
 
-const TriggerConditionItem = ({
-  showMoreOptions,
-  handleClickMoreOptions,
-}: TriggerConditionItemProps) => {
+const TriggerConditionItem = ({ field }: TriggerConditionItemProps) => {
   const i18n = useIntl();
 
   return (
     <>
       <Form.Item
         required
+        style={{ marginBottom: 0 }}
         label={i18n.formatMessage({ id: "alarm.rules.form.triggerCondition" })}
       >
         <Form.List
-          name={"conditions"}
+          name={[field.name, "conditions"]}
           rules={[
             {
               validator: async (_: any, conditions) => {
@@ -208,19 +204,6 @@ const TriggerConditionItem = ({
             );
           }}
         </Form.List>
-      </Form.Item>
-      <Form.Item noStyle>
-        <div
-          className={classNames(
-            conditionStyles.moreOptionsBtn,
-            !showMoreOptions && conditionStyles.hideMoreOptions
-          )}
-          onClick={handleClickMoreOptions}
-        >
-          {showMoreOptions ? <DownOutlined /> : <RightOutlined />}
-          <span>{i18n.formatMessage({ id: "instance.form.moreOptions" })}</span>
-        </div>
-        {showMoreOptions && <MoreOptions />}
       </Form.Item>
     </>
   );

@@ -86,6 +86,7 @@ const CreatedAndUpdatedModal = ({
   const [isPreviewData, setIsPreviewData] = useState<number>(
     alarmModePreviewType.AggregateData
   );
+  const [currentTableName, setCurrentTableName] = useState<string>("");
 
   const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
     current: FIRST_PAGE,
@@ -270,7 +271,12 @@ const CreatedAndUpdatedModal = ({
         tid: fields.tableId,
         typ: defaultData.typ,
         fieldName: defaultData.fieldName,
+        tableName: defaultData.tableName,
+        conditions: defaultData.conditions,
       };
+    } else {
+      params.tableName = currentTableName;
+      params.conditions = [{ typ: 0, exp: 0, cond: 0 }];
     }
     onOk(params);
   };
@@ -338,24 +344,18 @@ const CreatedAndUpdatedModal = ({
         return i18n.formatMessage({
           id: "alarm.rules.form.preview.aggregatedData",
         });
-        break;
-
       case alarmModePreviewType.AlarmIndicator:
         return i18n.formatMessage({
           id: "alarm.rules.form.preview.aggregatedIndicators",
         });
-        break;
       case alarmModePreviewType.AfterPreview:
         return i18n.formatMessage({
           id: "alarm.rules.form.preview.canConfirm",
         });
-        break;
-
       default:
         return i18n.formatMessage({
           id: "alarm.rules.form.preview.unknownState",
         });
-        break;
     }
   }, [isPreviewData]);
 
@@ -465,7 +465,18 @@ const CreatedAndUpdatedModal = ({
                       id: "alarm.rules.inspectionFrequency.placeholder.logLibrary",
                     })}`}
                     showSearch
-                    onChange={() => handleChangeLogLibrary()}
+                    onChange={(id: number) => {
+                      handleChangeLogLibrary();
+                      const currentTable = logLibraryList.filter(
+                        (item: any) => item.id == id
+                      );
+                      setCurrentTableName(
+                        (currentTable &&
+                          currentTable.length == 1 &&
+                          currentTable[0].tableName) ||
+                          ""
+                      );
+                    }}
                   >
                     {logLibraryList.map((logTable) => (
                       <Option key={logTable.id} value={logTable.id}>

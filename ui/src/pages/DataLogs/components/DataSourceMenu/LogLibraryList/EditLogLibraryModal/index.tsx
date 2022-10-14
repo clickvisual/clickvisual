@@ -8,7 +8,7 @@ import {
   Spin,
   Switch,
 } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useIntl, useModel } from "umi";
 import style from "./index.less";
 
@@ -60,8 +60,7 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
 
   const handleSubmit = (val: any) => {
     if (!currentEditLogLibrary?.id) return;
-    currentEditLogLibrary?.createType == 3 &&
-      (val.v3TableType = val.v3TableType ? 1 : 0);
+    val.v3TableType = val.v3TableType ? 1 : 0;
     doUpdateLogLibrary
       .run(currentEditLogLibrary?.id, val)
       .then((res: any) => {
@@ -108,17 +107,15 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
           >
             <Input disabled />
           </Form.Item>
-          {currentEditLogLibrary?.createType == 3 && (
-            <Form.Item
-              valuePropName="checked"
-              name={"v3TableType"}
-              label={i18n.formatMessage({
-                id: "datasource.logLibrary.isLinkLogLibrary",
-              })}
-            >
-              <Switch />
-            </Form.Item>
-          )}
+          <Form.Item
+            valuePropName="checked"
+            name={"v3TableType"}
+            label={i18n.formatMessage({
+              id: "datasource.logLibrary.isLinkLogLibrary",
+            })}
+          >
+            <Switch />
+          </Form.Item>
           <Form.Item label="Topics" name={"kafkaTopic"}>
             <Input
               disabled={!isCVCreate}
