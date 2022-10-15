@@ -30,6 +30,7 @@ export default {
   "select.placeholder": "Please select a{name}",
   required: "Required",
   tips: "Tips",
+  unit: "Unit",
 
   type: "Type",
   capacity: "Capacity",

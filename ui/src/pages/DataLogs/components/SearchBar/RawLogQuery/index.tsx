@@ -15,6 +15,8 @@ import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
 import { cloneDeep } from "lodash";
 import CodeMirrorSearch from "./CodeMirrorSearch";
+import { dataLogLocalaStorageType } from "@/models/dataLogs";
+import useLocalStorages from "@/hooks/useLocalStorages";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -43,6 +45,11 @@ const RawLogQuery = () => {
   const [queryKeyword, setQueryKeyword] = useState<string | undefined>(
     keywordInput
   );
+
+  const { onSetLocalData } = useLocalStorages();
+  const logQueryHistoricalList =
+    onSetLocalData(undefined, dataLogLocalaStorageType.logQueryHistoricalList)
+      ?.logQueryHistoricalList || [];
   // 输入框自动填充关键词
   const [tables, setTables] = useState<any>({});
 
@@ -138,13 +145,18 @@ const RawLogQuery = () => {
   }, [urlState?.mode]);
 
   useEffect(() => {
+    let arr: any = {};
     if (logs?.defaultFields && logs?.defaultFields.length > 0) {
-      let arr: any = {};
       logs?.defaultFields.map((item: any) => {
         arr[item] = [];
       });
-      setTables(arr);
     }
+    if (logQueryHistoricalList.length > 0) {
+      logQueryHistoricalList.map((item: any) => {
+        arr[item] = [];
+      });
+    }
+    setTables(arr);
   }, [logs, logs?.defaultFields]);
 
   return (

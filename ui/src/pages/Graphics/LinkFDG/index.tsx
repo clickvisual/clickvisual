@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import styles from "./index.less";
 import * as d3 from "d3";
 import { Segmented } from "antd";
+import { useIntl } from "umi";
+import classNames from "classnames";
 
 interface edgesType {
   source: string;
@@ -9,6 +12,10 @@ interface edgesType {
   clientDurationP50: number;
   clientDurationP90: number;
   clientDurationP99: number;
+  serverDurationP50: number;
+  serverDurationP90: number;
+  serverDurationP99: number;
+  clientSuccessRate: number;
 }
 interface nodesType {
   name: string;
@@ -17,12 +24,14 @@ interface nodesType {
 
 enum valueTypes {
   callCount = "callCount",
-  clientDurationP50 = "clientDurationP50",
-  clientDurationP90 = "clientDurationP90",
-  clientDurationP99 = "clientDurationP99",
+  P50 = "P50",
+  P90 = "P90",
+  P99 = "P99",
+  successRate = "successRate",
 }
 
 const LinkFDG = (props: { dataList: any }) => {
+  const i18n = useIntl();
   const { dataList } = props;
   const [valueType, setValueType] = useState<valueTypes>(valueTypes.callCount);
 
@@ -41,6 +50,10 @@ const LinkFDG = (props: { dataList: any }) => {
         clientDurationP50: item.clientDurationP50,
         clientDurationP90: item.clientDurationP90,
         clientDurationP99: item.clientDurationP99,
+        serverDurationP50: item.serverDurationP50,
+        serverDurationP90: item.serverDurationP90,
+        serverDurationP99: item.serverDurationP99,
+        clientSuccessRate: item.clientSuccessRate,
       });
     });
     [...childs, ...parents].map((item: any, index) => {
@@ -56,15 +69,38 @@ const LinkFDG = (props: { dataList: any }) => {
       }
       newNodes[newNodesIndex].radius++;
     });
+
+    // const linkGroup = {};
+    // // 两点之间的线根据两点的 name 属性设置为同一个 key，加入到 linkGroup 中，给两点之间的所有边分成一个组
+    // newedges.forEach((link: any) => {
+    //   const key =
+    //     link.source.name < link.target.name
+    //       ? link.source.name + ":" + link.target.name
+    //       : link.target.name + ":" + link.source.name;
+    //   if (!linkGroup.hasOwnProperty(key)) {
+    //     linkGroup[key] = [];
+    //   }
+    //   linkGroup[key].push(link);
+    // });
+    // // 遍历给每组去调用 setLinkNumbers 来分配 linkum
+    // newedges.forEach((link: any) => {
+    //   const key = setLinkName(link);
+    //   link.size = linkGroup[key].length;
+    //   const group = linkGroup[key];
+    //   const keyPair = key.split(":");
+    //   let type = "noself";
+    //   if (keyPair[0] === keyPair[1]) {
+    //     type = "self";
+    //   }
+    //   setLinkNumbers(group, type);
+    // });
     draw(newedges, newNodes);
   };
 
   const draw = (edges: edgesType[], nodes: nodesType[]) => {
     if (edges.length == 0 || nodes.length == 0) return;
-    // return;
     var d3Chart = document.getElementById("d3Chart");
     var oldSvg = document.getElementById("svg");
-    console.log(d3Chart, "d3Chart", oldSvg);
     oldSvg?.parentNode?.removeChild(oldSvg);
     // 画布
     const width = d3Chart?.offsetWidth || 100;
@@ -125,7 +161,7 @@ const LinkFDG = (props: { dataList: any }) => {
       .attr("markerWidth", "6")
       .attr("markerHeight", "6")
       .attr("viewBox", "1 1 12 12")
-      .attr("refX", "25")
+      .attr("refX", "35")
       .attr("refY", "6")
       .attr("orient", "auto");
 
@@ -133,6 +169,7 @@ const LinkFDG = (props: { dataList: any }) => {
 
     arrowMarker.append("path").attr("d", arrow_path).attr("fill", "#aaa");
 
+    // 线
     const links = line
       .append("line")
       .attr("stroke", "#ccc")
@@ -141,7 +178,11 @@ const LinkFDG = (props: { dataList: any }) => {
     //信息文案
     const linksText = line
       .append("text")
+      .attr("id", function (item: any) {
+        return `${item.source.name}_${item.target.name}`;
+      })
       .text(function (d: {
+        clientSuccessRate: number;
         clientDurationP99: any;
         clientDurationP90: any;
         clientDurationP50: any;
@@ -149,15 +190,21 @@ const LinkFDG = (props: { dataList: any }) => {
       }) {
         switch (valueType) {
           case valueTypes.callCount:
-            return Math.floor(d?.value) + "ns";
-          case valueTypes.clientDurationP50:
-            return Math.floor(d?.clientDurationP50) + "ns";
-          case valueTypes.clientDurationP90:
-            return Math.floor(d?.clientDurationP90) + "ns";
-          case valueTypes.clientDurationP99:
-            return Math.floor(d?.clientDurationP99) + "ns";
-          default:
-            return Math.floor(d?.value) + "ns";
+            return d.value;
+          case valueTypes.P50:
+            return (Math.floor(d.clientDurationP50) / Math.pow(10, 6)).toFixed(
+              3
+            );
+          case valueTypes.P90:
+            return (Math.floor(d.clientDurationP90) / Math.pow(10, 6)).toFixed(
+              3
+            );
+          case valueTypes.P99:
+            return (Math.floor(d.clientDurationP99) / Math.pow(10, 6)).toFixed(
+              3
+            );
+          case valueTypes.successRate:
+            return (d?.clientSuccessRate * 100).toFixed(2) + "%";
         }
       })
       .attr("fill", "#000");
@@ -247,6 +294,44 @@ const LinkFDG = (props: { dataList: any }) => {
           }
         }
       );
+      linksText.text(
+        (item: {
+          value: any;
+          serverDurationP50: any;
+          serverDurationP90: any;
+          serverDurationP99: any;
+          clientDurationP50: any;
+          clientDurationP90: any;
+          clientDurationP99: any;
+          clientSuccessRate: number;
+          source: { name: any };
+          target: { name: any };
+        }) => {
+          if (item.source.name == name || item.target.name == name) {
+            switch (valueType) {
+              case valueTypes.callCount:
+                return item.value;
+              case valueTypes.P50:
+                return (
+                  Math.floor(item.clientDurationP50) / Math.pow(10, 6)
+                ).toFixed(3);
+              case valueTypes.P90:
+                return (
+                  Math.floor(item.clientDurationP90) / Math.pow(10, 6)
+                ).toFixed(3);
+              case valueTypes.P99:
+                return (
+                  Math.floor(item.clientDurationP99) / Math.pow(10, 6)
+                ).toFixed(3);
+              case valueTypes.successRate:
+                return (item?.clientSuccessRate * 100).toFixed(2) + "%";
+              // return (d?.clientSuccessRate * 100).toFixed(2) + "%";
+            }
+          } else {
+            return "";
+          }
+        }
+      );
       nodesChart.style("fill", function (item: { name: string }) {
         if (itemArr.indexOf(item.name) > -1) {
           return "#f66";
@@ -305,6 +390,28 @@ const LinkFDG = (props: { dataList: any }) => {
     );
   };
 
+  const setLinkNumbers = (group: string | any[]) => {
+    const len = group.length;
+    const linksA: any = [];
+    const linksB: any = [];
+    for (let i = 0; i < len; i++) {
+      const link = group[i];
+      if (link.source.name < link.target.name) {
+        linksA.push(link);
+      } else {
+        linksB.push(link);
+      }
+    }
+    let startLinkANumber = 1;
+    linksA.forEach((linkA: { linknum: number }) => {
+      linkA.linknum = startLinkANumber++;
+    });
+    let startLinkBNumber = -1;
+    linksB.forEach((linkB: { linknum: number }) => {
+      linkB.linknum = startLinkBNumber--;
+    });
+  };
+
   useEffect(() => {
     dataList && dataList.length > 0 && init();
   }, [dataList, valueType]);
@@ -316,24 +423,28 @@ const LinkFDG = (props: { dataList: any }) => {
         style={{ width: "100%", height: "100%" }}
         className="d3Chart"
       />
-      <div
-        style={{
-          zIndex: "10000000",
-          position: "fixed",
-          top: "90px",
-          left: "50px",
-        }}
-      >
+      <div className={styles.segmented}>
         <Segmented
           options={[
             valueTypes.callCount,
-            valueTypes.clientDurationP50,
-            valueTypes.clientDurationP90,
-            valueTypes.clientDurationP99,
+            valueTypes.P50,
+            valueTypes.P90,
+            valueTypes.P99,
+            valueTypes.successRate,
           ]}
           defaultValue={valueType}
           onChange={(value: any) => setValueType(value)}
         />
+      </div>
+      <div
+        className={classNames([
+          styles.unit,
+          (valueType == valueTypes.callCount ||
+            valueType == valueTypes.successRate) &&
+            styles.none,
+        ])}
+      >
+        {i18n.formatMessage({ id: "unit" })}: ms
       </div>
     </>
   );
