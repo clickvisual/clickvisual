@@ -207,6 +207,7 @@ func transformJaegerDependencies(req []view.JaegerDependencyDataModel) (resp []v
 		for _, j := range row {
 			respRow.Child = j.Child
 			respRow.Parent = j.Parent
+			respRow.CallCount += j.CallCount
 			respRow.ServerDurationP50 += j.ServerDurationP50
 			respRow.ServerDurationP90 += j.ServerDurationP90
 			respRow.ServerDurationP99 += j.ServerDurationP99

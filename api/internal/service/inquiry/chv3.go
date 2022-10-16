@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
@@ -217,4 +218,18 @@ func (c *ClickHouse) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerD
 		})
 	}
 	return transformJaegerDependencies(dependencies), nil
+}
+
+func (c *ClickHouse) GetCreateSQL(database, table string) (resp string, err error) {
+	sql := fmt.Sprintf("SHOW CREATE table `%s`.`%s`;", database, table)
+	res, err := c.db.Query(sql)
+	if err != nil {
+		return "", errors.Wrap(err, "db query")
+	}
+	for res.Next() {
+		if err = res.Scan(&resp); err != nil {
+			return "", errors.Wrap(err, "row scan")
+		}
+	}
+	return
 }

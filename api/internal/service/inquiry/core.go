@@ -45,6 +45,7 @@ type Operator interface {
 	StorageCreateV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
 	CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error)
 	DropTraceJaegerDependencies(database, cluster, table string) (err error)
+	GetCreateSQL(database, table string) (string, error)
 }
 
 const (
