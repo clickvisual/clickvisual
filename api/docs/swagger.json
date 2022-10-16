@@ -247,6 +247,64 @@
                 }
             }
         },
+        "/api/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql": {
+            "get": {
+                "description": "table create sql",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pandas"
+                ],
+                "summary": "table create sql",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "instance id",
+                        "name": "instance-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "database name",
+                        "name": "database",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "table name",
+                        "name": "table",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/pandas/instances/{instance-id}/table-dependencies": {
             "get": {
                 "description": "Result of table dependency resolution",

@@ -117,7 +117,7 @@ func GetTraceGraph(c *core.Context) {
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter", err)
 		return
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, id)
@@ -144,7 +144,7 @@ func GetTraceGraph(c *core.Context) {
 	c.Set("database", tableInfo.Database.Name)
 	res, err := op.GetTraceGraph(c)
 	if err != nil {
-		c.JSONE(1, "update failed 04: "+err.Error(), nil)
+		c.JSONE(1, "update failed 04", err)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"req": req})

@@ -542,6 +542,42 @@ paths:
       summary: Reset user password
       tags:
       - base
+  /api/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql:
+    get:
+      consumes:
+      - application/json
+      description: table create sql
+      parameters:
+      - description: instance id
+        in: path
+        name: instance-id
+        required: true
+        type: integer
+      - description: database name
+        in: path
+        name: database
+        required: true
+        type: string
+      - description: table name
+        in: path
+        name: table
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: table create sql
+      tags:
+      - pandas
   /api/v2/pandas/instances/{instance-id}/table-dependencies:
     get:
       consumes:
