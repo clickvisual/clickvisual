@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/cetus/pkg/kutl"
@@ -296,11 +295,10 @@ func TableDelete(c *core.Context) {
 }
 
 func TableLogs(c *core.Context) {
-	t := time.Now()
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "invalid parameter", err)
 		return
 	}
 	id := cast.ToInt(c.Param("id"))
@@ -308,7 +306,6 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "params"), elog.Any("cost", time.Since(t)))
 	tableInfo, _ := db.TableInfo(invoker.Db, id)
 	// default time field
 	param.TimeField = db.TimeFieldSecond
@@ -335,28 +332,26 @@ func TableLogs(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "TableInfo"), elog.Any("cost", time.Since(t)))
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, "instance load failed", err)
 		return
 	}
 	param, err = op.Prepare(param, false)
 	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "param prepare failed", err)
 		return
 	}
 	if param.Query == "" {
 		c.JSONE(core.CodeErr, "Query parameter error. Refer to the ClickHouse WHERE syntax. https://clickhouse.com/docs/zh/sql-reference/statements/select/where/", nil)
 		return
 	}
-	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "Prepare"), elog.Any("cost", time.Since(t)))
 	res, err := op.GET(param, tableInfo.ID)
 	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
 		res.IsTrace = 1
 	}
 	if err != nil {
-		c.JSONE(core.CodeErr, "query failed: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "query failed", err)
 		return
 	}
 	list, err := db.HiddenFieldList(egorm.Conds{"tid": egorm.Cond{
@@ -368,7 +363,6 @@ func TableLogs(c *core.Context) {
 			res.HiddenFields = append(res.HiddenFields, list[i].Field)
 		}
 	}
-	invoker.Logger.Debug("optimize", elog.String("func", "TableLogs"), elog.String("step", "GET"), elog.Any("cost", time.Since(t)))
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return

@@ -679,7 +679,6 @@ func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
 }
 
 func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
-	// Initialization
 	res.Logs = make([]map[string]interface{}, 0)
 	res.Keys = make([]*db.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
@@ -1091,7 +1090,6 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origina
 				timeFieldEqual,
 				c.queryTransform(param, true),
 				param.PageSize, (param.Page-1)*param.PageSize)
-			invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("timeFieldEqual", timeFieldEqual), elog.Any("sql", sql))
 		}
 	}
 	originalWhere = c.queryTransform(param, false)
@@ -1101,7 +1099,6 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origina
 		param.ST, param.ET,
 		originalWhere,
 		param.PageSize, (param.Page-1)*param.PageSize)
-	invoker.Logger.Debug("ClickHouse", elog.Any("step", "logsSQL"), elog.Any("sql", sql), elog.Any("optSQL", optSQL))
 	return
 }
 
@@ -1114,7 +1111,6 @@ SELECT
    %s as timestamp
 FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
 `, adaSelectPart(param.Query), param.TimeField, param.DatabaseTable, param.TimeField, param.TimeField)
-	invoker.Logger.Debug("alarmAggregationSQL", elog.Any("out", out), elog.Any("param", param))
 	return out
 }
 
@@ -1177,11 +1173,10 @@ func queryTransformLike(createType int, rawLogField, query string) string {
 }
 
 func likeTransformField(createType int, rawLogField, query string) string {
-	if strings.Contains(query, "=") ||
-		strings.Contains(query, "like") ||
-		strings.Contains(query, ">") ||
-		strings.Contains(query, "<") {
-		return query
+	for _, skipWord := range SkipLikeAddStepWords {
+		if strings.Contains(query, skipWord) {
+			return query
+		}
 	}
 	return likeTransform(createType, rawLogField, query)
 }
