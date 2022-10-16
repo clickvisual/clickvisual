@@ -12,6 +12,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+var SkipLikeAddStepWords = []string{
+	"=",
+	"like",
+	">",
+	"<",
+	"has(",
+	")",
+}
+
 type Operator interface {
 	Conn() *sql.DB
 	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
