@@ -8,10 +8,10 @@ import { condList, expList, typList } from "@/pages/Alarm/service/type";
 const { Option } = Select;
 
 interface TriggerConditionItemProps {
-  field: any;
+  firstField: any;
 }
 
-const TriggerConditionItem = ({ field }: TriggerConditionItemProps) => {
+const TriggerConditionItem = ({ firstField }: TriggerConditionItemProps) => {
   const i18n = useIntl();
 
   return (
@@ -22,7 +22,7 @@ const TriggerConditionItem = ({ field }: TriggerConditionItemProps) => {
         label={i18n.formatMessage({ id: "alarm.rules.form.triggerCondition" })}
       >
         <Form.List
-          name={[field.name, "conditions"]}
+          name={[firstField.name, "conditions"]}
           rules={[
             {
               validator: async (_: any, conditions) => {
@@ -104,15 +104,21 @@ const TriggerConditionItem = ({ field }: TriggerConditionItemProps) => {
                       <Form.Item
                         noStyle
                         shouldUpdate={(prevValues, nextValues) =>
-                          prevValues.conditions[field.name]?.cond !==
-                          nextValues.conditions[field.name]?.cond
+                          prevValues.filters[field.name]?.conditions[field.name]
+                            ?.cond !==
+                          nextValues.filters[field.name]?.conditions[field.name]
+                            ?.cond
                         }
                       >
                         {({ getFieldValue }) => {
                           const condFlag =
-                            getFieldValue(["conditions", field.name, "cond"]) >
-                            1;
-
+                            getFieldValue([
+                              "filters",
+                              firstField.name,
+                              "conditions",
+                              field.name,
+                              "cond",
+                            ]) > 1;
                           return (
                             <Space>
                               <Form.Item
