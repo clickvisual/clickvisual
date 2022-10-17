@@ -25,8 +25,6 @@ import "codemirror/mode/javascript/javascript.js";
 import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
 import "codemirror/addon/hint/show-hint";
-import { useDebounce } from "ahooks";
-import { DEBOUNCE_WAIT } from "@/config/config";
 
 const Editors = (props: {
   title: string;
@@ -39,7 +37,8 @@ const Editors = (props: {
 }) => {
   const { title, value, placeholder, onPressEnter, onChange, tables } = props;
   const formRefs: any = useRef(null);
-  const [sqlValue, setSqlValue] = useState<string>("");
+  const [defaultSqlValue, setDefaultSqlValue] = useState<string>("");
+  const [isDefault, setIsDefault] = useState<boolean>(true);
 
   const onEditorDidMount = (editor: any) => {
     // let editors = formRefs?.current?.editor;
@@ -50,13 +49,12 @@ const Editors = (props: {
     onPressEnter();
   };
 
-  const debouncedValue = useDebounce(value, {
-    wait: DEBOUNCE_WAIT,
-  });
-
   useEffect(() => {
-    setSqlValue(debouncedValue);
-  }, [debouncedValue]);
+    if (value && isDefault) {
+      setDefaultSqlValue(value);
+      setIsDefault(false);
+    }
+  }, [value]);
 
   return (
     <div className={styles.editors} key={title + "editors"}>
@@ -74,7 +72,7 @@ const Editors = (props: {
           onChange={(CodeMirror: string, changeObj: any, value: string) =>
             onChange(value)
           }
-          value={sqlValue}
+          value={defaultSqlValue}
           options={{
             // 显示行号
             lineNumbers: false,

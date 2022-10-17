@@ -1,4 +1,4 @@
-import { Button, Input, Tooltip } from "antd";
+import { Button, Tooltip } from "antd";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
 import { PaneType, QueryParams } from "@/models/datalogs/types";
