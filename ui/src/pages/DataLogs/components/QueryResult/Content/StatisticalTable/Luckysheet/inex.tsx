@@ -43,7 +43,7 @@ const Luckysheet = (props: { data: any }) => {
           luckysheet_alternateformat_save: [], //交替颜色
           luckysheet_alternateformat_save_modelCustom: [], //自定义交替颜色
           luckysheet_conditionformat_save: {}, //条件格式
-          frozen: {}, //冻结行列配置
+          frozen: { type: "row" }, //冻结行列配置
           chart: [], //图表配置
           zoomRatio: 1, // 缩放比例
           image: [], //图片

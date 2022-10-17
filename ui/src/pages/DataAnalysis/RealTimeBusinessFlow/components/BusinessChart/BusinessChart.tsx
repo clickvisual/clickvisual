@@ -232,7 +232,20 @@ const BusinessChart = (props: { utime: number }) => {
               onDragOver={onDragOver}
               fitView
             >
-              <MiniMap />
+              <MiniMap
+                nodeColor={(e: any) => {
+                  switch (e?.data?.business?.engine) {
+                    case BusinessEngineEnum.Kafka:
+                      return "#fec89a";
+                    case BusinessEngineEnum.MergeTree:
+                      return "#ffbf69";
+                    case BusinessEngineEnum.Distributed:
+                      return "#f9dcc4";
+                    default:
+                      return "#fff";
+                  }
+                }}
+              />
             </ReactFlow>
           </div>
         </ReactFlowProvider>
