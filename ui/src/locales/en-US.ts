@@ -800,6 +800,7 @@ export default {
   // bigdata realtime
   "bigdata.realtime.table": "Table",
   "bigdata.realtime.database": "Database",
+  "bigdata.realtime.buildTableSQL": "Build table SQL",
 
   // bigdata workflow
   "bigdata.workflow.header.title": "Business Process",

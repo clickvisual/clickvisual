@@ -748,6 +748,7 @@ export default {
   // bigdata realtime
   "bigdata.realtime.table": "表",
   "bigdata.realtime.database": "库",
+  "bigdata.realtime.buildTableSQL": "建表SQL",
 
   // bigdata workflow
   "bigdata.workflow.header.title": "业务流程",

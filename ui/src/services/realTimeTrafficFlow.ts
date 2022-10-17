@@ -46,4 +46,15 @@ export default {
       }
     );
   },
+
+  // table create sql
+  async creatSql(iid: number, dName: string, tName: string) {
+    return request<any>(
+      process.env.PUBLIC_PATH +
+        `api/v2/pandas/instances/${iid}/databases/${dName}/tables/${tName}/create-sql`,
+      {
+        method: "GET",
+      }
+    );
+  },
 };
