@@ -46,10 +46,8 @@ func ConfigmapDelete(clusterId int, namespace, name string, keys ...string) erro
 		return errors.Wrap(err, fmt.Sprintf("cluster data acquisition failed: %s, cluster id: %d", err.Error(), clusterId))
 	}
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
-	invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "Get"))
 	if err != nil {
 		if NotFound(err) {
-			invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "NotFound"))
 			return nil
 		}
 		return errors.Wrap(err, "Get ConfigMap failed, in cluster")
@@ -58,7 +56,6 @@ func ConfigmapDelete(clusterId int, namespace, name string, keys ...string) erro
 	for _, k := range keys {
 		delete(configMap.Data, k)
 	}
-	invoker.Logger.Debug("ConfigmapDelete", elog.String("step", "delete"), elog.Any("configMap", configMap))
 	return configmapUpdate(client, namespace, name, configMap)
 }
 
@@ -112,7 +109,7 @@ func configmapUpdate(client *kube.ClusterClient, namespace, name string, configM
 		Raw: acmBytes,
 	})
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "namespace is %s, name is %s", namespace, name)
 	}
 	return nil
 }

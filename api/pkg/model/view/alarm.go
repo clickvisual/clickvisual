@@ -56,15 +56,20 @@ type ReqAlarmConditionCreate struct {
 
 type (
 	RespAlarmInfo struct {
-		Filters []RespAlarmInfoFilter `json:"filters"`
-		// Deprecated: Conditions
-		Conditions []*db.AlarmCondition `json:"conditions"`
-		Ctime      int64                `json:"ctime"`
-		Utime      int64                `json:"utime"`
+		Filters     []RespAlarmInfoFilter          `json:"filters"`
+		RelatedList []*db.RespAlarmListRelatedInfo `json:"relatedList"`
+
+		Ctime int64 `json:"ctime"`
+		Utime int64 `json:"utime"`
 		db.Alarm
 		db.User
-		Table    db.BaseTable    `json:"table"`
+
+		// Deprecated:
+		Table db.BaseTable `json:"table"`
+		// Deprecated:
 		Instance db.BaseInstance `json:"instance"`
+		// Deprecated: Conditions
+		Conditions []*db.AlarmCondition `json:"conditions"`
 	}
 
 	RespAlarmInfoFilter struct {
@@ -92,15 +97,26 @@ type (
 type (
 	RespAlarmList struct {
 		*db.Alarm
-		TableName    string `json:"tableName"`
-		TableDesc    string `json:"tableDesc"`
-		Tid          int    `json:"tid"`
+		RelatedList []*db.RespAlarmListRelatedInfo `json:"relatedList"`
+
+		// Deprecated:
+		TableName string `json:"tableName"`
+		// Deprecated:
+		TableDesc string `json:"tableDesc"`
+		// Deprecated:
+		Tid int `json:"tid"`
+		// Deprecated:
 		DatabaseName string `json:"databaseName"`
+		// Deprecated:
 		DatabaseDesc string `json:"databaseDesc"`
-		Did          int    `json:"did"`
+		// Deprecated:
+		Did int `json:"did"`
+		// Deprecated:
 		InstanceName string `json:"instanceName"`
+		// Deprecated:
 		InstanceDesc string `json:"instanceDesc"`
-		Iid          int    `json:"iid"`
+		// Deprecated:
+		Iid int `json:"iid"`
 	}
 
 	Alert struct {

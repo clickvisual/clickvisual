@@ -1,16 +1,17 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -18,6 +19,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube/resource"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -84,7 +86,6 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.Req
 		// create condition
 		row.Exp, err = i.ConditionCreate(tx, alarmObj, filter.Conditions, filterObj.ID)
 		if err != nil {
-			invoker.Logger.Error("alarm", elog.FieldName("conditionCreate"), elog.String("err", err.Error()))
 			return
 		}
 		res[filterObj.ID] = row
@@ -184,9 +185,8 @@ func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
 	return
 }
 
-func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) (rule string, err error) {
-	rule = fmt.Sprintf(prometheusRuleTemplate, obj.AlertUniqueName(), exp, obj.AlertInterval())
-	return
+func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) string {
+	return fmt.Sprintf(prometheusRuleTemplate, obj.AlertUniqueName(), exp, obj.AlertInterval())
 }
 
 func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName, rule string) (err error) {
@@ -196,7 +196,7 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName,
 		path := strings.TrimSuffix(instance.FilePath, "/")
 		err = os.WriteFile(path+"/"+ruleName, content, 0644)
 		if err != nil {
-			return
+			return errors.Wrapf(err, "rule name %s, rule %s", ruleName, rule)
 		}
 	case db.RuleStoreTypeK8s:
 		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
@@ -210,7 +210,7 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName,
 			return
 		}
 	default:
-		return constx.ErrAlarmRuleStoreIsClosed
+		return errors.Wrapf(constx.ErrAlarmRuleStoreIsClosed, "")
 	}
 	i.AddPrometheusReloadChan()
 	return nil
@@ -219,45 +219,46 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName,
 func (i *alarm) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error) {
 	if obj.AlertRules == nil || len(obj.AlertRules) == 0 {
 		// v1 version
-		alarmRuleDelete(instance, obj.AlertRuleName(0))
+		return alarmRuleDelete(instance, obj.AlertRuleName(0))
 	} else {
 		// v2 version
-		for ruleName := range obj.AlertRules {
-			alarmRuleDelete(instance, ruleName)
+		for iidRuleName := range obj.AlertRules {
+			ruleName := iidRuleName
+			ins := *instance
+			iidTableArr := strings.Split(iidRuleName, "|")
+			if len(iidTableArr) == 2 {
+				ruleName = iidTableArr[1]
+				iid, _ := strconv.Atoi(iidTableArr[0])
+				ins, _ = db.InstanceInfo(invoker.Db, iid)
+			}
+			if err = alarmRuleDelete(&ins, ruleName); err != nil {
+				return
+			}
 		}
 	}
 	i.AddPrometheusReloadChan()
 	return nil
 }
 
-func alarmRuleDelete(instance *db.BaseInstance, ruleName string) {
+func alarmRuleDelete(instance *db.BaseInstance, ruleName string) (err error) {
 	switch instance.RuleStoreType {
 	case db.RuleStoreTypeK8s:
 		invoker.Logger.Debug("alert", elog.Any("instance", instance))
-		err := resource.ConfigmapDelete(instance.ClusterId, instance.Namespace, instance.Configmap, ruleName)
+		err = resource.ConfigmapDelete(instance.ClusterId, instance.Namespace, instance.Configmap, ruleName)
 		if err != nil {
-			invoker.Logger.Error("reload", elog.FieldName("configmapDelete"), elog.Any("ruleName", ruleName), elog.FieldErr(err))
 			return
 		}
 	case db.RuleStoreTypeFile:
 		path := strings.TrimSuffix(instance.FilePath, "/")
-		err := os.Remove(path + "/" + ruleName)
+		err = os.Remove(path + "/" + ruleName)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			invoker.Logger.Error("reload", elog.FieldName("osRemove"), elog.Any("ruleName", ruleName), elog.FieldErr(err))
-			return
+			return errors.Wrapf(err, "file path is %s", instance.FilePath)
 		}
 	}
-	return
+	return nil
 }
 
 func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error) {
-	// table info
-	tableInfo, err := db.TableInfo(tx, alarmObj.Tid)
-	if err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
-		return
-	}
-
 	// v1 -> v2 disable root conditions field
 	req.ConvertV2()
 	filtersDB, err := i.FilterCreate(tx, alarmObj, req.Filters)
@@ -265,102 +266,134 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 02"), elog.String("err", err.Error()))
 		return
 	}
-
-	// prometheus set
-	instance, err := db.InstanceInfo(tx, tableInfo.Database.Iid)
-	if err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
-		return
-	}
-	op, err := InstanceManager.Load(tableInfo.Database.Iid)
-	if err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 04"), elog.String("err", err.Error()))
-		return
-	}
-	// drop alarm views
-	if len(alarmObj.ViewDDLs) > 0 {
-		for table := range alarmObj.ViewDDLs {
-			if err = op.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
-				return
-			}
-		}
-	} else {
-		if alarmObj.ViewTableName != "" {
-			err = op.AlertViewDrop(alarmObj.ViewTableName, tableInfo.Database.Cluster)
-			if err != nil {
-				invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
-				return
-			}
-		}
-	}
 	// create new views
 	viewDDLs := db.String2String{}
 	alertRules := db.String2String{}
 	for filterId, filterItem := range filtersDB {
-		// gen view table name & sql
-		table, ddl, errAlertViewGen := op.AlertViewGen(alarmObj, filterId, filterItem.When)
-		if errAlertViewGen != nil {
-			elog.Error("alarm", elog.FieldComponent("CreateOrUpdate"), elog.FieldName("AlertViewGen"), elog.FieldErr(errAlertViewGen))
+		var tableInfo db.BaseTable
+		// table info
+		tableInfo, err = db.TableInfo(tx, filterItem.Tid)
+		if err != nil {
 			return
+		}
+		// prometheus set
+		var instance db.BaseInstance
+		instance, err = db.InstanceInfo(tx, tableInfo.Database.Iid)
+		if err != nil {
+			return
+		}
+		var op inquiry.Operator
+		op, err = InstanceManager.Load(tableInfo.Database.Iid)
+		if err != nil {
+			return
+		}
+		// drop alarm views
+		if len(alarmObj.ViewDDLs) > 0 {
+			for iidTable := range alarmObj.ViewDDLs {
+				ddlOp := op
+				table := iidTable
+				iidTableArr := strings.Split(iidTable, "|")
+				if len(iidTableArr) == 2 {
+					table = iidTableArr[1]
+					iid, _ := strconv.Atoi(iidTableArr[0])
+					ddlOp, err = InstanceManager.Load(iid)
+					if err != nil {
+						return
+					}
+					if iid != instance.ID {
+						continue
+					}
+				}
+				if err = ddlOp.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
+					return
+				}
+			}
+		} else {
+			if alarmObj.ViewTableName != "" {
+				err = op.AlertViewDrop(alarmObj.ViewTableName, tableInfo.Database.Cluster)
+				if err != nil {
+					invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
+					return
+				}
+			}
+		}
+		// gen view table name & sql
+		table, ddl, errAlertViewGen := op.AlertViewGen(alarmObj, tableInfo, filterId, filterItem.When)
+		if errAlertViewGen != nil {
+			return errAlertViewGen
 		}
 		// exec view sql
 		if err = op.AlertViewCreate(table, ddl, tableInfo.Database.Cluster); err != nil {
-			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 07"),
-				elog.String("viewTableName", table),
-				elog.String("viewSQL", ddl),
-				elog.String("err", err.Error()))
 			return
 		}
-		viewDDLs[table] = ddl
+		viewDDLs[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, table)] = ddl
 		// rule store
-		rule, errPrometheusRuleGen := i.PrometheusRuleGen(alarmObj, filterItem.Exp)
-		if errPrometheusRuleGen != nil {
-			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 08"), elog.FieldErr(errPrometheusRuleGen))
+		rule := i.PrometheusRuleGen(alarmObj, filterItem.Exp)
+		ruleName := alarmObj.AlertRuleName(filterId)
+		alertRules[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, ruleName)] = rule
+		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, rule); err != nil {
 			return
 		}
-		ruleName := alarmObj.AlertRuleName(filterId)
-		alertRules[ruleName] = rule
-		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, rule); err != nil {
-			invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 09"), elog.FieldErr(err))
+		if err = Alarm.PrometheusRuleDelete(&instance, alarmObj); err != nil {
 			return
 		}
 	}
-
 	ups := make(map[string]interface{}, 0)
 	ups["alert_rules"] = alertRules
-	ups["rule_store_type"] = instance.RuleStoreType
 	ups["view_ddl_s"] = viewDDLs
 	ups["status"] = db.AlarmStatusOpen
 	return db.AlarmUpdate(tx, alarmObj.ID, ups)
 }
 
 func (i *alarm) OpenOperator(id int) (err error) {
-	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
+	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
 		return
 	}
-	op, errInstanceManager := InstanceManager.Load(instanceInfo.ID)
-	if errInstanceManager != nil {
-		return
-	}
-	if len(alarmInfo.ViewDDLs) > 0 {
-		for table, ddl := range alarmInfo.ViewDDLs {
-			if err = op.AlertViewCreate(table, ddl, tableInfo.Database.Cluster); err != nil {
+	for _, ri := range relatedList {
+		op, errInstanceManager := InstanceManager.Load(ri.Instance.ID)
+		if errInstanceManager != nil {
+			return
+		}
+		if len(alarmInfo.ViewDDLs) > 0 {
+			for iidTable, ddl := range alarmInfo.ViewDDLs {
+				table := iidTable
+				iidTableArr := strings.Split(iidTable, "|")
+				if len(iidTableArr) == 2 {
+					table = iidTableArr[1]
+					iid, _ := strconv.Atoi(iidTableArr[0])
+					op, err = InstanceManager.Load(iid)
+					if err != nil {
+						return
+					}
+					if iid != ri.Table.Database.Iid {
+						continue
+					}
+				}
+				if err = op.AlertViewCreate(table, ddl, ri.Table.Database.Cluster); err != nil {
+					return
+				}
+			}
+		} else {
+			if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View, ri.Table.Database.Cluster); err != nil {
 				return
 			}
 		}
-	} else {
-		if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View, tableInfo.Database.Cluster); err != nil {
-			return
+		for iidRuleName, alertRule := range alarmInfo.AlertRules {
+			ruleName := iidRuleName
+			iidTableArr := strings.Split(iidRuleName, "|")
+			var ins db.BaseInstance
+			if len(iidTableArr) == 2 {
+				ruleName = iidTableArr[1]
+				iid, _ := strconv.Atoi(iidTableArr[0])
+				ins, _ = db.InstanceInfo(invoker.Db, iid)
+			}
+			if err = i.PrometheusRuleCreateOrUpdate(ins, ruleName, alertRule); err != nil {
+				invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+				return
+			}
 		}
 	}
-	for ruleName, alertRule := range alarmInfo.AlertRules {
-		if err = i.PrometheusRuleCreateOrUpdate(instanceInfo, ruleName, alertRule); err != nil {
-			invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
-			return
-		}
-	}
-
 	if err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusOpen}); err != nil {
 		return
 	}
@@ -369,7 +402,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 
 func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	if req.Name == "" || req.Interval == 0 || len(req.ChannelIds) == 0 {
-		return errors.New("parameter error")
+		return errors.Wrap(errors.New("error params"), "")
 	}
 	if len(req.Filters) > 0 {
 		req.Mode = req.Filters[0].Mode
@@ -385,9 +418,6 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	ups["mode"] = req.Mode
 	ups["level"] = req.Level
 	ups["channel_ids"] = db.Ints(req.ChannelIds)
-	if len(req.Filters) > 0 {
-		ups["tid"] = req.Filters[0].Tid
-	}
 	tableIds := db.Ints{}
 	for _, f := range req.Filters {
 		tableIds = append(tableIds, f.Tid)
@@ -417,7 +447,6 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
 		return
 	}
 	return
@@ -457,9 +486,9 @@ func AllPrometheusReload() {
 func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
 	res := make([]view.RespAlarmList, 0)
 	for _, a := range respList {
-		instanceInfo, tableInfo, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(a.ID)
+		alarmInfo, relatedList, errAlarmInfo := db.GetAlarmTableInstanceInfo(a.ID)
 		if errAlarmInfo != nil {
-			invoker.Logger.Error("attachInfo", elog.String("error", errAlarmInfo.Error()))
+			core.LoggerError("alarm", "attach", errAlarmInfo)
 			continue
 		}
 		if alarmInfo.User == nil || alarmInfo.User.ID == 0 {
@@ -467,8 +496,18 @@ func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
 			alarmInfo.User = &u
 		}
 		alarmInfo.User.Password = "*"
+		var (
+			tableInfo    db.BaseTable
+			instanceInfo db.BaseInstance
+		)
+		if len(relatedList) > 0 {
+			tableInfo = relatedList[0].Table
+			instanceInfo = relatedList[0].Instance
+		}
 		res = append(res, view.RespAlarmList{
-			Alarm:        &alarmInfo,
+			Alarm:       &alarmInfo,
+			RelatedList: relatedList,
+
 			TableName:    tableInfo.Name,
 			TableDesc:    tableInfo.Desc,
 			Tid:          tableInfo.ID,

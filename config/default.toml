@@ -101,3 +101,13 @@ apiUrl = "https://gitlab.com/api/v4"
 allowedDomains = []
 teamIds = []
 allowedOrganizations = []
+
+[prom2click]
+enable = true
+
+[prom2click.dev]
+host = "127.0.0.1"
+port = 9222
+clickhouseDSN = "tcp://127.0.0.1:9000"
+clickhouseDB = "metrics"
+clickhouseTable = "samples"

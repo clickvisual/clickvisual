@@ -95,16 +95,16 @@ type ClickHouse struct {
 	db   *sql.DB
 }
 
-func NewClickHouse(db *sql.DB, ins *db.BaseInstance) *ClickHouse {
+func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouse, error) {
 	if ins.ID == 0 {
-		panic("clickhouse add err, id is 0")
+		return nil, errors.New("clickhouse add err, id is 0")
 	}
 	return &ClickHouse{
 		db:   db,
 		id:   ins.ID,
 		mode: ins.Mode,
 		rs:   ins.ReplicaStatus,
-	}
+	}, nil
 }
 
 func (c *ClickHouse) ID() int {
@@ -542,7 +542,7 @@ func (c *ClickHouse) ViewDo(params bumo.Params) string {
 //	    _timestamp_ as ts,
 //	    toDateTime(_timestamp_) as updated
 //	FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition string) (string, string, error) {
+func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, tableInfo db.BaseTable, filterId int, whereCondition string) (string, string, error) {
 	if whereCondition == "" {
 		whereCondition = "1=1"
 	}
@@ -552,16 +552,8 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition 
 		sourceTableName string
 	)
 
-	tableInfo, err := db.TableInfo(invoker.Db, alarm.Tid)
-	if err != nil {
-		return "", "", err
-	}
-
 	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name, filterId)
-	sourceTableName = fmt.Sprintf("%s.%s", tableInfo.Database.Name, tableInfo.Name)
-	// if c.mode == ModeCluster {
-	// 	sourceTableName += "_local"
-	// }
+	sourceTableName = fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name)
 
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
@@ -573,7 +565,6 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition 
 	if alarm.Mode == db.AlarmModeAggregation || alarm.Mode == db.AlarmModeAggregationCheck {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
 		vp.WithSQL = adaSelectPart(whereCondition)
-		invoker.Logger.Debug("AlertViewGen", elog.String("whereCondition", whereCondition), elog.String("ada", adaSelectPart(whereCondition)))
 	}
 
 	viewSQL = c.ViewDo(bumo.Params{
@@ -582,7 +573,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, filterId int, whereCondition 
 		TimeField:     tableInfo.GetTimeField(),
 		View:          vp})
 	// create
-	err = c.alertPrepare()
+	err := c.alertPrepare()
 	if err != nil {
 		return "", "", err
 	}
@@ -593,25 +584,32 @@ func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL, cluster string) (er
 	if viewTableName != "" {
 		err = c.AlertViewDrop(viewTableName, cluster)
 		if err != nil {
-			invoker.Logger.Error("AlertViewCreate", elog.FieldName("alertViewDrop"), elog.FieldErr(err))
 			return
 		}
 	}
 	_, err = c.db.Exec(viewSQL)
+	if err != nil {
+		return errors.Wrapf(err, "sql: %s", viewSQL)
+	}
 	return err
 }
 
 func (c *ClickHouse) AlertViewDrop(viewTableName, cluster string) (err error) {
 	if c.mode == ModeCluster {
 		if cluster == "" {
-			err = constx.ErrClusterNameEmpty
-			return
+			return errors.Wrapf(constx.ErrClusterNameEmpty, "table %s, cluster %s", viewTableName, cluster)
 		}
 		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", viewTableName, cluster))
-	} else {
-		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewTableName))
+		if err != nil {
+			return errors.Wrapf(err, "table %s, cluster %s", viewTableName, cluster)
+		}
+		return nil
 	}
-	return err
+	_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewTableName))
+	if err != nil {
+		return errors.Wrapf(err, "table %s", viewTableName)
+	}
+	return nil
 }
 
 func (c *ClickHouse) alertPrepare() (err error) {
@@ -620,7 +618,7 @@ func (c *ClickHouse) alertPrepare() (err error) {
 	}
 	_, err = c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
 	if err != nil {
-		return
+		return errors.Wrap(err, "alarm sql prepare create database")
 	}
 	_, err = c.db.Exec(`CREATE TABLE IF NOT EXISTS metrics.samples
 (
@@ -631,6 +629,9 @@ func (c *ClickHouse) alertPrepare() (err error) {
     ts DateTime,
     updated DateTime DEFAULT now()
 )ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup');`)
+	if err != nil {
+		return errors.Wrap(err, "alarm sql prepare create table")
+	}
 	return
 }
 

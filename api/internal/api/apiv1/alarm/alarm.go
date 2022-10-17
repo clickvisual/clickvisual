@@ -2,6 +2,7 @@ package alarm
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/ego-component/egorm"
 	"github.com/google/uuid"
@@ -11,6 +12,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -25,33 +27,22 @@ func Create(c *core.Context) {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-	var tid int
 	for _, f := range req.Filters {
-		if f.SetOperatorTyp == 0 {
-			if tid != 0 {
-				c.JSONE(1, "invalid parameter: only one default table allowed", nil)
-				return
-			}
-			tid = f.Tid
+		tableInfo, err := db.TableInfo(invoker.Db, f.Tid)
+		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+			UserId:      c.Uid(),
+			ObjectType:  pmsplugin.PrefixInstance,
+			ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+			SubResource: pmsplugin.Alarm,
+			Acts:        []string{pmsplugin.ActEdit},
+			DomainType:  pmsplugin.PrefixTable,
+			DomainId:    strconv.Itoa(tableInfo.ID),
+		}); err != nil {
+			c.JSONE(1, "CheckNormalPermission", err)
+			return
 		}
 	}
-	if tid == 0 {
-		c.JSONE(1, "invalid parameter: tid should above zero", nil)
-		return
-	}
-	tableInfo, err := db.TableInfo(invoker.Db, tid)
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.Alarm,
-		Acts:        []string{pmsplugin.ActEdit},
-		DomainType:  pmsplugin.PrefixTable,
-		DomainId:    strconv.Itoa(tableInfo.ID),
-	}); err != nil {
-		c.JSONE(1, "CheckNormalPermission", err)
-		return
-	}
+
 	if len(req.Filters) > 0 {
 		req.Mode = req.Filters[0].Mode
 	}
@@ -61,7 +52,6 @@ func Create(c *core.Context) {
 		tableIds = append(tableIds, f.Tid)
 	}
 	obj := &db.Alarm{
-		Tid:        tid,
 		Uuid:       uuid.NewString(),
 		Name:       req.Name,
 		Desc:       req.Desc,
@@ -75,20 +65,21 @@ func Create(c *core.Context) {
 		Level:      req.Level,
 		TableIds:   tableIds,
 	}
-	if err = db.AlarmCreate(tx, obj); err != nil {
+	if err := db.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 01", err)
 		return
 	}
-	err = service.Alarm.CreateOrUpdate(tx, obj, req)
+
+	err := service.Alarm.CreateOrUpdate(tx, obj, req)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 02: "+err.Error(), err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm create failed 03: "+err.Error(), err)
+		c.JSONE(1, "alarm create failed 03", err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsCreate, map[string]interface{}{"obj": obj})
@@ -102,58 +93,74 @@ func Update(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var (
-		req view.ReqAlarmCreate
-		err error
-	)
-	if err = c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), err)
+	var req view.ReqAlarmCreate
+	err := c.Bind(&req)
+	if err != nil {
+		c.JSONE(1, "invalid parameter", err)
 		return
 	}
 
-	instanceInfo, tableInfo, alarmInfo, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.Alarm,
-		Acts:        []string{pmsplugin.ActEdit},
-		DomainType:  pmsplugin.PrefixTable,
-		DomainId:    strconv.Itoa(tableInfo.ID),
-	}); err != nil {
-		c.JSONE(1, "permission verification failed", err)
+	alarmInfo, relatedList, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
+	if errAlarmInfo != nil {
+		c.JSONE(1, "alarm info not found", errAlarmInfo)
 		return
+	}
+	for _, ri := range relatedList {
+		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+			UserId:      c.Uid(),
+			ObjectType:  pmsplugin.PrefixInstance,
+			ObjectIdx:   strconv.Itoa(ri.Table.Database.Iid),
+			SubResource: pmsplugin.Alarm,
+			Acts:        []string{pmsplugin.ActEdit},
+			DomainType:  pmsplugin.PrefixTable,
+			DomainId:    strconv.Itoa(ri.Table.ID),
+		}); err != nil {
+			c.JSONE(1, "permission verification failed", err)
+			return
+		}
 	}
 
 	switch req.Status {
 	case db.AlarmStatusOpen:
 		err = service.Alarm.OpenOperator(id)
 	case db.AlarmStatusClose:
-		if errAlarmInfo != nil {
-			c.JSONE(1, "alarm update failed 02"+errAlarmInfo.Error(), errAlarmInfo)
-			return
-		}
-		op, errInstanceManager := service.InstanceManager.Load(instanceInfo.ID)
-		if errInstanceManager != nil {
-			c.JSONE(core.CodeErr, errInstanceManager.Error(), errInstanceManager)
-			return
-		}
-		if len(alarmInfo.ViewDDLs) > 0 {
-			for table := range alarmInfo.ViewDDLs {
-				if err = op.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
-					c.JSONE(core.CodeErr, "AlertViewDrop", err)
+		for _, ri := range relatedList {
+			op, errInstanceManager := service.InstanceManager.Load(ri.Instance.ID)
+			if errInstanceManager != nil {
+				c.JSONE(core.CodeErr, "instance load failed", errInstanceManager)
+				return
+			}
+			if len(alarmInfo.ViewDDLs) > 0 {
+				for iidTable := range alarmInfo.ViewDDLs {
+					table := iidTable
+					iidTableArr := strings.Split(iidTable, "|")
+					if len(iidTableArr) == 2 {
+						table = iidTableArr[1]
+						iid, _ := strconv.Atoi(iidTableArr[0])
+						if iid != ri.Table.Database.Iid {
+							continue
+						}
+						op, err = service.InstanceManager.Load(iid)
+						if err != nil {
+							c.JSONE(core.CodeErr, "clickhouse load failed", err)
+							return
+						}
+					}
+					if err = op.AlertViewDrop(table, ri.Table.Database.Cluster); err != nil {
+						c.JSONE(core.CodeErr, "alert view drop", err)
+						return
+					}
+				}
+			} else {
+				if err = op.AlertViewDrop(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
+					c.JSONE(core.CodeErr, "alarm update failed when delete metrics view", err)
 					return
 				}
 			}
-		} else {
-			if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
-				c.JSONE(1, "alarm update failed when delete metrics view: "+err.Error(), err)
+			if err = service.Alarm.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
+				c.JSONE(core.CodeErr, "prometheus rule delete failed", err)
 				return
 			}
-		}
-		if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
-			c.JSONE(1, "alarm update failed 03: prometheus rule delete failed:"+err.Error(), err)
-			return
 		}
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
 	default:
@@ -263,22 +270,24 @@ func Info(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
+	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), err)
+		c.JSONE(core.CodeErr, "alarm info load failed", err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.Alarm,
-		Acts:        []string{pmsplugin.ActView},
-		DomainType:  pmsplugin.PrefixTable,
-		DomainId:    strconv.Itoa(tableInfo.ID),
-	}); err != nil {
-		c.JSONE(1, "permission verification failed", err)
-		return
+	for _, ri := range relatedList {
+		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+			UserId:      c.Uid(),
+			ObjectType:  pmsplugin.PrefixInstance,
+			ObjectIdx:   strconv.Itoa(ri.Table.Database.Iid),
+			SubResource: pmsplugin.Alarm,
+			Acts:        []string{pmsplugin.ActView},
+			DomainType:  pmsplugin.PrefixTable,
+			DomainId:    strconv.Itoa(ri.Table.ID),
+		}); err != nil {
+			c.JSONE(1, "permission verification failed", err)
+			return
+		}
 	}
 	conds := egorm.Conds{}
 	conds["alarm_id"] = alarmInfo.ID
@@ -308,18 +317,28 @@ func Info(c *core.Context) {
 	}
 	user, _ := db.UserInfo(alarmInfo.Uid)
 
+	var (
+		tableInfo    db.BaseTable
+		instanceInfo db.BaseInstance
+	)
+	if len(relatedList) > 0 {
+		tableInfo = relatedList[0].Table
+		instanceInfo = relatedList[0].Instance
+	}
 	instanceInfo.Dsn = "*"
 	user.Password = "*"
 
 	res := view.RespAlarmInfo{
-		Alarm:      alarmInfo,
-		Filters:    respAlarmFilters,
-		Conditions: conditionsWaitDelete,
-		User:       user,
-		Ctime:      alarmInfo.Ctime,
-		Utime:      alarmInfo.Utime,
+		Alarm:       alarmInfo,
+		Filters:     respAlarmFilters,
+		User:        user,
+		Ctime:       alarmInfo.Ctime,
+		Utime:       alarmInfo.Utime,
+		RelatedList: relatedList,
+
 		Instance:   instanceInfo,
 		Table:      tableInfo,
+		Conditions: conditionsWaitDelete,
 	}
 	c.JSONOK(res)
 	return
@@ -331,66 +350,88 @@ func Delete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	instanceInfo, tableInfo, alarmInfo, err := db.GetAlarmTableInstanceInfo(id)
+	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
-		c.JSONE(1, "alarm failed to delete 01: "+err.Error(), err)
+		c.JSONE(1, "alarm failed to delete 01", err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
-		SubResource: pmsplugin.Alarm,
-		Acts:        []string{pmsplugin.ActDelete},
-		DomainType:  pmsplugin.PrefixTable,
-		DomainId:    strconv.Itoa(tableInfo.ID),
-	}); err != nil {
-		c.JSONE(1, "permission verification failed", err)
-		return
+	for _, ri := range relatedList {
+		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+			UserId:      c.Uid(),
+			ObjectType:  pmsplugin.PrefixInstance,
+			ObjectIdx:   strconv.Itoa(ri.Table.Database.Iid),
+			SubResource: pmsplugin.Alarm,
+			Acts:        []string{pmsplugin.ActDelete},
+			DomainType:  pmsplugin.PrefixTable,
+			DomainId:    strconv.Itoa(ri.Table.ID),
+		}); err != nil {
+			c.JSONE(1, "permission verification failed", err)
+			return
+		}
 	}
 	tx := invoker.Db.Begin()
 	if err = db.AlarmDelete(tx, id); err != nil {
-		c.JSONE(1, "alarm failed to delete 02: "+err.Error(), err)
+		c.JSONE(1, "alarm failed to delete 02", err)
 		return
 	}
 	// filter
 	if err = db.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 03: "+err.Error(), err)
+		c.JSONE(1, "alarm failed to delete 03", err)
 		return
 	}
 	// condition
 	if err = db.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 04: "+err.Error(), err)
+		c.JSONE(1, "alarm failed to delete 04", err)
 		return
 	}
-	if err = service.Alarm.PrometheusRuleDelete(&instanceInfo, &alarmInfo); err != nil {
-		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 05: "+err.Error(), err)
-		return
-	}
-	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), err)
-		return
-	}
-	if len(alarmInfo.ViewDDLs) > 0 {
-		for table := range alarmInfo.ViewDDLs {
-			if err = op.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
+	for _, ri := range relatedList {
+		if err = service.Alarm.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
+			tx.Rollback()
+			c.JSONE(1, "alarm failed to delete 05", err)
+			return
+		}
+		var op inquiry.Operator
+		op, err = service.InstanceManager.Load(ri.Table.Database.Iid)
+		if err != nil {
+			tx.Rollback()
+			c.JSONE(core.CodeErr, "clickhouse load failed", err)
+			return
+		}
+		if len(alarmInfo.ViewDDLs) > 0 {
+			for iidTable := range alarmInfo.ViewDDLs {
+				table := iidTable
+				iidTableArr := strings.Split(iidTable, "|")
+				if len(iidTableArr) == 2 {
+					table = iidTableArr[1]
+					iid, _ := strconv.Atoi(iidTableArr[0])
+					op, err = service.InstanceManager.Load(iid)
+					if err != nil {
+						tx.Rollback()
+						c.JSONE(core.CodeErr, "clickhouse load failed", err)
+						return
+					}
+					if iid != ri.Table.Database.Iid {
+						continue
+					}
+				}
+				if err = op.AlertViewDrop(table, ri.Table.Database.Cluster); err != nil {
+					tx.Rollback()
+					c.JSONE(core.CodeErr, "alarm view drop failed", err)
+					return
+				}
+			}
+		} else {
+			if err = op.AlertViewDrop(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
+				tx.Rollback()
+				c.JSONE(core.CodeErr, "alarm failed to delete 06", err)
 				return
 			}
 		}
-	} else {
-		if err = op.AlertViewDrop(alarmInfo.ViewTableName, tableInfo.Database.Cluster); err != nil {
-			tx.Rollback()
-			c.JSONE(1, "alarm failed to delete 06: "+err.Error(), err)
-			return
-		}
 	}
 	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 07"+err.Error(), err)
+		c.JSONE(core.CodeErr, "alarm failed to delete 07", err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
