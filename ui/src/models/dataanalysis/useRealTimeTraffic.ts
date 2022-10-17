@@ -18,6 +18,10 @@ const useRealTimeTraffic = () => {
     loadingText: false,
   });
 
+  const doTableCreatSql = useRequest(realTimeBusinessApi.creatSql, {
+    loadingText: false,
+  });
+
   return {
     databases,
     tables,
@@ -35,6 +39,7 @@ const useRealTimeTraffic = () => {
     onEdgesChange,
 
     doGetBusinessChart,
+    doTableCreatSql,
   };
 };
 export default useRealTimeTraffic;
