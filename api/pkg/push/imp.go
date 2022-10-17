@@ -78,7 +78,15 @@ func transformToMarkdown(notification view.Notification, alarm *db.Alarm, channe
 		exp = filters[0].When
 	}
 	user, _ := db.UserInfo(alarm.Uid)
-	ins, table, _, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
+	_, relatedList, _ := db.GetAlarmTableInstanceInfo(alarm.ID)
+	var (
+		table db.BaseTable
+		ins   db.BaseInstance
+	)
+	if len(relatedList) > 0 {
+		table = relatedList[0].Table
+		ins = relatedList[0].Instance
+	}
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()

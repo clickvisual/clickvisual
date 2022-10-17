@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -51,20 +50,18 @@ type (
 	Alarm struct {
 		BaseModel
 
-		Uid           int           `gorm:"column:uid;type:int(11)" json:"uid"`                                            // uid of alarm operator
-		Tid           int           `gorm:"column:tid;type:int(11)" json:"tid"`                                            // table id
-		Uuid          string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                            // foreign key
-		Name          string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`                       // name of an alarm
-		Desc          string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                            // description
-		Interval      int           `gorm:"column:interval;type:int(11)" json:"interval"`                                  // interval second between alarm
-		Unit          int           `gorm:"column:unit;type:int(11)" json:"unit"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
-		Tags          String2String `gorm:"column:tag;type:text" json:"tag"`                                               // tags
-		Status        int           `gorm:"column:status;type:int(11)" json:"status"`                                      // status
-		RuleStoreType int           `gorm:"column:rule_store_type;type:int(11)" db:"rule_store_type" json:"ruleStoreType"` // ruleStoreType
-		ChannelIds    Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`               // channel of an alarm
-		NoDataOp      int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`                // noDataOp 0 nodata 1 ok 2 alert
-		Mode          int           `gorm:"column:mode;type:int(11)" json:"mode"`                                          // 0 m 1 s 2 h 3 d 4 w 5 y
-		Level         int           `gorm:"column:level;type:int(11)" json:"level"`                                        // 0 m 1 s 2 h 3 d 4 w 5 y
+		Uid        int           `gorm:"column:uid;type:int(11)" json:"uid"`                              // uid of alarm operator
+		Uuid       string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`              // foreign key
+		Name       string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`         // name of an alarm
+		Desc       string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`              // description
+		Interval   int           `gorm:"column:interval;type:int(11)" json:"interval"`                    // interval second between alarm
+		Unit       int           `gorm:"column:unit;type:int(11)" json:"unit"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
+		Tags       String2String `gorm:"column:tag;type:text" json:"tag"`                                 // tags
+		Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // status
+		ChannelIds Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // channel of an alarm
+		NoDataOp   int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`  // noDataOp 0 nodata 1 ok 2 alert
+		Mode       int           `gorm:"column:mode;type:int(11)" json:"mode"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
+		Level      int           `gorm:"column:level;type:int(11)" json:"level"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
 
 		User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 
@@ -73,6 +70,8 @@ type (
 		TableIds   Ints          `gorm:"column:table_ids;type:varchar(255);NOT NULL" json:"tableIds"`
 		AlertRules String2String `gorm:"column:alert_rules;type:text" json:"alertRules"` // prometheus alert rule
 
+		// Deprecated: Tid
+		Tid int `gorm:"column:tid;type:int(11)" json:"tid"` // table id
 		// Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version
 		AlertRule string `gorm:"column:alert_rule;type:text" json:"alertRule"` // prometheus alert rule
 		// Deprecated: View
@@ -172,22 +171,56 @@ func (m *Alarm) AlertInterval() string {
 	return fmt.Sprintf("%d%s", m.Interval, UnitMap[m.Unit].Alias)
 }
 
-func GetAlarmTableInstanceInfo(id int) (instanceInfo BaseInstance, tableInfo BaseTable, alarmInfo Alarm, err error) {
+type RespAlarmListRelatedInfo struct {
+	Table    BaseTable    `json:"table"`
+	Instance BaseInstance `json:"instance"`
+}
+
+func GetAlarmTableInstanceInfo(id int) (alarmInfo Alarm, relatedList []*RespAlarmListRelatedInfo, err error) {
 	alarmInfo, err = AlarmInfo(invoker.Db, id)
 	if err != nil {
 		return
 	}
-	// table info
-	tableInfo, err = TableInfo(invoker.Db, alarmInfo.Tid)
+	relatedList = make([]*RespAlarmListRelatedInfo, 0)
+	if len(alarmInfo.TableIds) != 0 {
+		for _, tid := range alarmInfo.TableIds {
+			var ri *RespAlarmListRelatedInfo
+			ri, err = alarmRelatedInfo(tid)
+			if err != nil {
+				return
+			}
+			relatedList = append(relatedList, ri)
+		}
+		return
+	}
+	// TODO: wait delete
+	var ri *RespAlarmListRelatedInfo
+	ri, err = alarmRelatedInfo(alarmInfo.Tid)
 	if err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "alarm table info"), elog.String("err", err.Error()))
+		return
+	}
+	relatedList = append(relatedList, ri)
+	return
+}
+
+func alarmRelatedInfo(tid int) (resp *RespAlarmListRelatedInfo, err error) {
+	var (
+		tableInfo    BaseTable
+		instanceInfo BaseInstance
+	)
+	// table info
+	tableInfo, err = TableInfo(invoker.Db, tid)
+	if err != nil {
 		return
 	}
 	// prometheus set
 	instanceInfo, err = InstanceInfo(invoker.Db, tableInfo.Database.Iid)
 	if err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "you need to configure alarms related to the instance first:"), elog.String("err", err.Error()))
 		return
+	}
+	resp = &RespAlarmListRelatedInfo{
+		Table:    tableInfo,
+		Instance: instanceInfo,
 	}
 	return
 }
@@ -277,8 +310,7 @@ func AlarmUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(Alarm{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("release update error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "ups: %v", ups)
 	}
 	return
 }
@@ -302,16 +334,14 @@ func AlarmFilterList(conds egorm.Conds) (resp []*AlarmFilter, err error) {
 
 func AlarmFilterCreate(db *gorm.DB, data *AlarmFilter) (err error) {
 	if err = db.Model(AlarmFilter{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create releaseZone error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "alarm filter: %v", data)
 	}
 	return
 }
 
 func AlarmFilterDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 	if err = db.Model(AlarmFilter{}).Where("`alarm_id`=?", alarmId).Unscoped().Delete(&AlarmFilter{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "alarm id: %d", alarmId)
 	}
 	return
 }
@@ -327,16 +357,14 @@ func AlarmConditionList(conds egorm.Conds) (resp []*AlarmCondition, err error) {
 
 func AlarmConditionCreate(db *gorm.DB, data *AlarmCondition) (err error) {
 	if err = db.Model(AlarmCondition{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create releaseZone error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "alarm condition: %v", data)
 	}
 	return
 }
 
 func AlarmConditionDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 	if err = db.Model(AlarmCondition{}).Where("`alarm_id`=?", alarmId).Unscoped().Delete(&AlarmCondition{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "alarm id: %d", alarmId)
 	}
 	return
 }

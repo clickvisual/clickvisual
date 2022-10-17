@@ -28,10 +28,19 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 		return err
 	}
 	// one of the logs
-	ins, table, _, err := db.GetAlarmTableInstanceInfo(alarmObj.ID)
+	_, relatedList, err := db.GetAlarmTableInstanceInfo(alarmObj.ID)
 	if err != nil {
 		return err
 	}
+	var (
+		table db.BaseTable
+		ins   db.BaseInstance
+	)
+	if len(relatedList) > 0 {
+		table = relatedList[0].Table
+		ins = relatedList[0].Instance
+	}
+
 	var oneTheLogs string
 	op, err := InstanceManager.Load(ins.ID)
 	if err != nil {

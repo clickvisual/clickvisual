@@ -16,6 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
+	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -39,10 +40,15 @@ func NewInstanceManager() *instanceManager {
 			// Test connection, storage
 			chDb, err := ClickHouseLink(ds.Dsn)
 			if err != nil {
-				invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
+				core.LoggerError("ClickHouse", "link", err)
 				continue
 			}
-			m.dss.Store(ds.DsKey(), inquiry.NewClickHouse(chDb, ds))
+			ch, err := inquiry.NewClickHouse(chDb, ds)
+			if err != nil {
+				core.LoggerError("ClickHouse", "new", err)
+				continue
+			}
+			m.dss.Store(ds.DsKey(), ch)
 		}
 	}
 	return m
@@ -59,10 +65,13 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 		// Test connection, storage
 		chDb, err := ClickHouseLink(obj.Dsn)
 		if err != nil {
-			invoker.Logger.Error("ClickHouse", elog.Any("step", "ClickHouseLink"), elog.Any("error", err.Error()))
 			return err
 		}
-		i.dss.Store(obj.DsKey(), inquiry.NewClickHouse(chDb, obj))
+		ch, err := inquiry.NewClickHouse(chDb, obj)
+		if err != nil {
+			return err
+		}
+		i.dss.Store(obj.DsKey(), ch)
 	}
 	return nil
 }
@@ -162,18 +171,15 @@ func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 }
 
 func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
-	invoker.Logger.Debug("clickhouseDsnConvert", elog.String("dsn", utils.ClickhouseDsnConvert(dsn)))
 	conn, err = sql.Open("clickhouse", utils.ClickhouseDsnConvert(dsn))
 	if err != nil {
-		invoker.Logger.Error("ClickHouse", elog.Any("step", "sql.error"), elog.String("error", err.Error()))
-		return
+		return nil, errors.Wrapf(err, "dsn: %s", dsn)
 	}
 	conn.SetMaxIdleConns(5)
 	conn.SetMaxOpenConns(10)
 	conn.SetConnMaxLifetime(time.Minute * 3)
 	if err = conn.Ping(); err != nil {
-		invoker.Logger.Error("ClickHouse", elog.String("step", "notException"), elog.Any("error", err.Error()))
-		return
+		return nil, errors.Wrapf(err, "ping: %s", dsn)
 	}
 	return
 }

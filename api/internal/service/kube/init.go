@@ -1,7 +1,6 @@
 package kube
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/gotomicro/cetus/pkg/kutl"
 	"github.com/gotomicro/cetus/pkg/xgo"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"k8s.io/client-go/rest"
@@ -133,15 +133,14 @@ func (s *clusterManager) GetClusterManager(clusterId int) (*ClusterClient, error
 	if err != nil {
 		return nil, err
 	}
-	invoker.Logger.Debug("GetClusterManager", elog.String("key", obj.Key()))
 	managerInterface, exist := s.clients.Load(obj.Key())
 	// 如果不存在，则重新获取一次集群信息
 	if !exist {
-		return nil, ErrNotExist
+		return nil, errors.Wrapf(ErrNotExist, "key: %s", obj.Key())
 	}
 	manager := managerInterface.(*ClusterClient)
 	if manager.Cluster.Status == db.ClusterStatusMaintaining {
-		return nil, ErrMaintaining
+		return nil, errors.Wrapf(ErrMaintaining, "key: %s", obj.Key())
 	}
 	return manager, nil
 }
