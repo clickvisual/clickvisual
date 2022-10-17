@@ -131,7 +131,7 @@ const QueryStatisticsItem = (props: { formRef: FormInstance | null }) => {
                           </Space>
                         </Form.Item>
                       </div>
-                      <TriggerConditionItem field={field} />
+                      <TriggerConditionItem firstField={field} />
                     </div>
                   </div>
                 );
