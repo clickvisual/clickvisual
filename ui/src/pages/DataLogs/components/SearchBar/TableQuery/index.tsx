@@ -40,7 +40,6 @@ import "codemirror/mode/javascript/javascript.js";
 import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
 import "codemirror/addon/hint/show-hint";
-import { dataLogLocalaStorageType } from "@/models/dataLogs";
 
 const TableQuery = () => {
   const i18n = useIntl();
@@ -70,9 +69,6 @@ const TableQuery = () => {
   const [sql, setSql] = useState<string | undefined>(chartSql);
   const [defaultSql, setDefaultSql] = useState<string | undefined>(chartSql);
   const formRefs: any = useRef(null);
-  const logQueryHistoricalList =
-    onSetLocalData(undefined, dataLogLocalaStorageType.logQueryHistoricalList)
-      ?.logQueryHistoricalList || [];
   // 输入框自动填充关键词
   const [tables, setTables] = useState<any>({});
 
@@ -163,11 +159,6 @@ const TableQuery = () => {
         arr[item] = [];
       });
     }
-    if (logQueryHistoricalList.length > 0) {
-      logQueryHistoricalList.map((item: any) => {
-        arr[item] = [];
-      });
-    }
     setTables(arr);
   }, [logs, logs?.defaultFields]);
 
@@ -214,9 +205,7 @@ const TableQuery = () => {
             // 溢出滚动而非换行
             lineWrapping: true,
             foldGutter: true,
-            // gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-            gutters: false,
-            lint: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
             indentUnit: 2,
             // 光标高度
             cursorHeight: 1,
