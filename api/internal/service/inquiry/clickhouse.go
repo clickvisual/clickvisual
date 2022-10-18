@@ -552,7 +552,7 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, tableInfo db.BaseTable, filte
 		sourceTableName string
 	)
 
-	viewTableName = alarm.AlertViewName(tableInfo.Database.Name, tableInfo.Name, filterId)
+	viewTableName = alarm.ViewName(tableInfo.Database.Name, tableInfo.Name, filterId)
 	sourceTableName = fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name)
 
 	vp := bumo.ParamsView{
