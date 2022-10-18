@@ -271,7 +271,7 @@ const CreatedAndUpdatedModal = ({
         tid: fields.tableId,
         typ: defaultData.typ,
         fieldName: defaultData.fieldName,
-        tableName: defaultData.tableName,
+        tableName: currentTableName || defaultData.tableName,
         conditions: defaultData.conditions,
       };
     } else {
@@ -331,6 +331,7 @@ const CreatedAndUpdatedModal = ({
 
   useEffect(() => {
     if (!visible && modalForm.current) {
+      setCurrentTableName("");
       modalForm.current.resetFields();
       onClickPreview.current = false;
       setIsPreviewData(alarmModePreviewType.AggregateData);

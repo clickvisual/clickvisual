@@ -74,7 +74,6 @@ export interface AlarmConditionType extends TimeBaseType {
 export interface AlarmInfoType extends AlarmType, TimeBaseType {
   id: number;
   filters: AlarmFilterType[];
-  conditions: AlarmConditionType[];
   channelIds: number[];
   access: string;
   avatar: string;
@@ -99,7 +98,6 @@ export interface AlarmRequest {
   alarmName: string;
   type: number;
   filters: AlarmFilterType[];
-  conditions: AlarmConditionType[];
   channelIds: number[];
   desc: string;
   interval: number;
