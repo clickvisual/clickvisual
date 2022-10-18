@@ -125,7 +125,7 @@ func Update(c *core.Context) {
 		for _, ri := range relatedList {
 			op, errInstanceManager := service.InstanceManager.Load(ri.Instance.ID)
 			if errInstanceManager != nil {
-				c.JSONE(core.CodeErr, "instance load failed", errInstanceManager)
+				c.JSONE(core.CodeErr, errInstanceManager.Error(), errInstanceManager)
 				return
 			}
 			if len(alarmInfo.ViewDDLs) > 0 {
@@ -165,7 +165,7 @@ func Update(c *core.Context) {
 		err = service.Alarm.Update(c.Uid(), id, req)
 	}
 	if err != nil {
-		c.JSONE(1, "alarm update failed 04", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsUpdate, map[string]interface{}{"req": req})
@@ -290,17 +290,13 @@ func Info(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	conditionsWaitDelete, err := db.AlarmConditionList(conds)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), err)
-		return
-	}
-
 	respAlarmFilters := make([]view.RespAlarmInfoFilter, 0)
 	for _, filter := range filters {
 		conditionConds := egorm.Conds{}
 		conditionConds["alarm_id"] = alarmInfo.ID
-		conditionConds["filter_id"] = filter.ID
+		if len(filters) != 1 {
+			conditionConds["filter_id"] = filter.ID
+		}
 		conditions, _ := db.AlarmConditionList(conditionConds)
 		filterTableInfo, _ := db.TableInfo(invoker.Db, filter.Tid)
 		respAlarmFilters = append(respAlarmFilters, view.RespAlarmInfoFilter{
@@ -330,9 +326,8 @@ func Info(c *core.Context) {
 		Utime:       alarmInfo.Utime,
 		RelatedList: relatedList,
 
-		Instance:   instanceInfo,
-		Table:      tableInfo,
-		Conditions: conditionsWaitDelete,
+		Instance: instanceInfo,
+		Table:    tableInfo,
 	}
 	c.JSONOK(res)
 	return

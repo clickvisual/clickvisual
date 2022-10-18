@@ -334,7 +334,7 @@ func TableLogs(c *core.Context) {
 	}
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
-		c.JSONE(core.CodeErr, "instance load failed", err)
+		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
 	param, err = op.Prepare(param, false)
@@ -351,7 +351,7 @@ func TableLogs(c *core.Context) {
 		res.IsTrace = 1
 	}
 	if err != nil {
-		c.JSONE(core.CodeErr, "query failed", err)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	list, err := db.HiddenFieldList(egorm.Conds{"tid": egorm.Cond{
