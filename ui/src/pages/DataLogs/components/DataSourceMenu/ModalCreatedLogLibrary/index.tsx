@@ -34,6 +34,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
   } = useModel("dataLogs");
   const [visibleSelectField, setVisibleSelectField] = useState<boolean>(false);
   const [mappingJson, setMappingJson] = useState<any>({});
+  const [isCluster, setIsCluster] = useState<boolean>(false);
 
   const { doGetInstanceList, instanceList } = useModel("instances");
 
@@ -49,6 +50,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               timeField: field.timeField,
               instance: field.instance,
               tableList: field.tableList,
+              cluster: field.cluster,
             })
           : field.mode === 2
           ? doCreatedLogLibraryAsString.run({
@@ -117,7 +119,10 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
   }, [logLibraryCreatedModalVisible]);
 
   useEffect(() => {
-    if (!logLibraryCreatedModalVisible) onChangeAddLogToDatabase(undefined);
+    if (!logLibraryCreatedModalVisible) {
+      setIsCluster(false);
+      onChangeAddLogToDatabase(undefined);
+    }
   }, [logLibraryCreatedModalVisible]);
 
   useEffect(() => {
@@ -197,7 +202,13 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
             const mode = getFieldValue("mode");
             switch (mode) {
               case 1:
-                return <LocalTable formRef={logFormRef.current} />;
+                return (
+                  <LocalTable
+                    formRef={logFormRef.current}
+                    isCluster={isCluster}
+                    onChangeIsCluster={setIsCluster}
+                  />
+                );
               default:
                 return (
                   <NewTable
