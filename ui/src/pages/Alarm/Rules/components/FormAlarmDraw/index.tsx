@@ -146,17 +146,6 @@ const FormAlarmDraw = () => {
       ) {
         setShowMoreOptions(true);
       }
-      const isCompatibleOldData =
-        res.data &&
-        res.data.conditions &&
-        res.data.filters &&
-        res.data.conditions.length > 0 &&
-        res.data.filters.length === 1 &&
-        !res.data.filters[0].conditions;
-
-      if (isCompatibleOldData) {
-        res.data.filters[0].conditions = res.data.conditions;
-      }
       alarmFormRef.current.setFieldsValue({
         ...res.data,
         channelIds: res.data.channelIds ? res.data.channelIds : undefined,
