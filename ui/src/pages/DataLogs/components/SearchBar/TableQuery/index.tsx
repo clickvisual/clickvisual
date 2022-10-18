@@ -168,8 +168,6 @@ const TableQuery = () => {
         <CodeMirror
           className={searchBarStyles.editorsDom}
           ref={formRefs}
-          // key={title}
-          // editorDidMount={onEditorDidMount}
           onKeyPress={() => {
             // 按键的时候触发代码提示
             formRefs.current.editor.showHint();
