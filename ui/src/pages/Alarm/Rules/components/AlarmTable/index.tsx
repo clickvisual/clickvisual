@@ -195,7 +195,6 @@ const AlarmTable = () => {
     {
       title: i18n.formatMessage({ id: "alarm.rules.table.logLibrary" }),
       key: "alarmSource",
-      ellipsis: { showTitle: true },
       render: (_: any, record: AlarmType) => {
         return <BreadCrumbs logLibraryInfo={record} />;
       },

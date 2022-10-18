@@ -4,6 +4,7 @@ import { QUERY_PATH } from "@/config/config";
 import { logLibraryInfoType } from "@/components/BreadCrumbs/type";
 import { CSSProperties, useEffect, useState } from "react";
 import { getTextWith } from "@/utils/textWith";
+import { relatedListType } from "@/services/alarm";
 interface BreadCrumbsProps {
   logLibraryInfo: logLibraryInfoType;
   style?: CSSProperties;
@@ -34,71 +35,71 @@ const BreadCrumbs = (props: BreadCrumbsProps) => {
   }, [logLibraryInfo]);
 
   return (
-    <div style={style}>
-      <Tooltip
-        title={
-          <>
-            <p>
-              instance:&nbsp;
-              {logLibraryInfo.instanceDesc ||
-                logLibraryInfo.instanceName ||
-                "unknown"}
-            </p>
-            <p>
-              database:&nbsp;
-              {logLibraryInfo?.databaseDesc ||
-                logLibraryInfo.databaseName ||
-                "unknown"}
-            </p>
-            <p>
-              table:&nbsp;
-              <a
-                href={getGoToQueryPagePathByTid(logLibraryInfo.tid)}
-                target="_blank"
-              >
-                {logLibraryInfo.tableDesc ||
-                  logLibraryInfo.tableName ||
-                  "unknown"}
-              </a>
-            </p>
-          </>
-        }
-      >
-        {logLibraryInfo.instanceName && (
-          <span className={styles.nameSpan}>{logLibraryInfo.instanceName}</span>
-        )}
-        {logLibraryInfo.databaseName && (
-          // <Tooltip title={logLibraryInfo.databaseDesc}>
-          <>
-            <span className={styles.nameSpan}>
-              &nbsp;{separator || "/"}&nbsp;
-            </span>
-            <span className={styles.nameSpan}>
-              {logLibraryInfo.databaseName}
-            </span>
-          </>
-        )}
-        {logLibraryInfo.tableName && (
-          // <Tooltip title={logLibraryInfo.tableDesc}>
-          <>
-            <span className={styles.nameSpan}>
-              &nbsp;{separator || "/"}&nbsp;
-            </span>
-            <span
-              className={styles.nameSpan}
-              style={{ maxWidth: tableWidth + "px" }}
+    <>
+      {logLibraryInfo?.relatedList?.map((item: relatedListType) => {
+        return (
+          <div style={style || { whiteSpace: "nowrap" }} key={item.table.id}>
+            <Tooltip
+              title={
+                <>
+                  <p>
+                    instance:&nbsp;
+                    {item?.instance?.desc || item?.instance?.name || "unknown"}
+                  </p>
+                  <p>
+                    database:&nbsp;
+                    {item?.table?.database?.desc ||
+                      item?.table?.database?.name ||
+                      "unknown"}
+                  </p>
+                  <p>
+                    table:&nbsp;
+                    <a
+                      href={getGoToQueryPagePathByTid(item?.table?.id)}
+                      target="_blank"
+                    >
+                      {item?.table?.desc || item?.table?.name || "unknown"}
+                    </a>
+                  </p>
+                </>
+              }
             >
-              <a
-                href={getGoToQueryPagePathByTid(logLibraryInfo.tid)}
-                target="_blank"
-              >
-                {logLibraryInfo.tableName}
-              </a>
-            </span>
-          </>
-        )}
-      </Tooltip>
-    </div>
+              {logLibraryInfo.instanceName && (
+                <span className={styles.nameSpan}>{item?.instance?.name}</span>
+              )}
+              {logLibraryInfo.databaseName && (
+                <>
+                  <span className={styles.nameSpan}>
+                    &nbsp;{separator || "/"}&nbsp;
+                  </span>
+                  <span className={styles.nameSpan}>
+                    {item?.table?.database?.name}
+                  </span>
+                </>
+              )}
+              {logLibraryInfo.tableName && (
+                <>
+                  <span className={styles.nameSpan}>
+                    &nbsp;{separator || "/"}&nbsp;
+                  </span>
+                  <span
+                    className={styles.nameSpan}
+                    style={{ maxWidth: tableWidth + "px" }}
+                  >
+                    <a
+                      href={getGoToQueryPagePathByTid(item?.table?.id)}
+                      target="_blank"
+                    >
+                      {item?.table?.name}
+                    </a>
+                  </span>
+                </>
+              )}
+            </Tooltip>
+          </div>
+        );
+      })}
+    </>
   );
 };
 export default BreadCrumbs;

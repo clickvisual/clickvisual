@@ -2,6 +2,19 @@ import { request } from "umi";
 import { TimeBaseType } from "@/services/systemSetting";
 import { ChannelFormType } from "@/pages/Alarm/Notifications/components/ChannelFormItems";
 
+export interface relatedListType {
+  instance: {
+    desc: string;
+    name: string;
+  };
+  table: {
+    id: number;
+    database: { name: string; desc: string };
+    name: string;
+    desc: string;
+  };
+}
+
 export interface AlarmsResponse {
   iid?: number;
   did?: number;
@@ -34,6 +47,7 @@ export interface AlarmType extends TimeBaseType {
   uid: number;
   channelIds: number[];
   status: number;
+  relatedList: relatedListType[];
 }
 
 export interface AlarmFilterType extends TimeBaseType {
