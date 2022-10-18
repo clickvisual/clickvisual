@@ -23,7 +23,7 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 	if err = db.AlarmHistoryCreate(invoker.Db, &alarmHistory); err != nil {
 		return err
 	}
-	err = db.AlarmStatusUpdate(alarmObj.ID, notification.Status)
+	err = alarmObj.StatusUpdate(notification.Status)
 	if err != nil {
 		return err
 	}

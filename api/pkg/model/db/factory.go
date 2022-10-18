@@ -56,6 +56,10 @@ const (
 	TableNameBigDataCrontab     = "cv_bd_crontab"
 )
 
+type IModelCreator interface {
+	TableName() string
+}
+
 type BaseModel struct {
 	ID    int               `gorm:"not null;primary_key;AUTO_INCREMENT;comment:自增id" json:"id"`
 	Ctime int64             `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`

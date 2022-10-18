@@ -131,6 +131,7 @@ type ReqTableCreateExist struct {
 	TableName     string `form:"tableName" json:"tableName" binding:"required"`
 	TimeField     string `form:"timeField" json:"timeField"`
 	TimeFieldType int    `form:"timeFieldType" json:"timeFieldType"`
+	Cluster       string `form:"cluster" json:"cluster"`
 	Desc          string `form:"desc" json:"desc"`
 }
 

@@ -186,7 +186,7 @@ func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
 }
 
 func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) string {
-	return fmt.Sprintf(prometheusRuleTemplate, obj.AlertUniqueName(), exp, obj.AlertInterval())
+	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(), exp, obj.AlertInterval())
 }
 
 func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName, rule string) (err error) {
@@ -219,7 +219,7 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName,
 func (i *alarm) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error) {
 	if obj.AlertRules == nil || len(obj.AlertRules) == 0 {
 		// v1 version
-		return alarmRuleDelete(instance, obj.AlertRuleName(0))
+		return alarmRuleDelete(instance, obj.RuleName(0))
 	} else {
 		// v2 version
 		for iidRuleName := range obj.AlertRules {
@@ -329,7 +329,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		viewDDLs[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, table)] = ddl
 		// rule store
 		rule := i.PrometheusRuleGen(alarmObj, filterItem.Exp)
-		ruleName := alarmObj.AlertRuleName(filterId)
+		ruleName := alarmObj.RuleName(filterId)
 		alertRules[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, ruleName)] = rule
 		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, rule); err != nil {
 			return

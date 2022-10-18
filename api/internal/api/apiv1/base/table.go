@@ -690,26 +690,26 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 	conds["name"] = param.DatabaseName
 	existDatabases, err := db.DatabaseList(invoker.Db, conds)
 	if err != nil {
-		return errors.New("database create failed 01: " + err.Error())
+		return err
 	}
 	for _, existDatabase := range existDatabases {
 		condsT := egorm.Conds{}
 		condsT["did"] = existDatabase.ID
 		existTables, errExistTables := db.TableList(invoker.Db, condsT)
 		if errExistTables != nil {
-			return errors.New("database create failed 02: " + errExistTables.Error())
+			return errExistTables
 		}
 		for _, existTable := range existTables {
 			if existTable.Name == param.TableName {
-				return errors.New("database create failed 03: this table is already exist in clickvisual")
+				return errors.New("this table is already exist in clickvisual")
 			}
 		}
 	}
 	tx := invoker.Db.Begin()
-	databaseInfo, err := db.DatabaseGetOrCreate(tx, uid, iid, param.DatabaseName)
+	databaseInfo, err := db.DatabaseGetOrCreate(tx, uid, iid, param.DatabaseName, param.Cluster)
 	if err != nil {
 		tx.Rollback()
-		return errors.New("database create failed: " + err.Error())
+		return err
 	}
 	// no need to operator the database
 	tableInfo := db.BaseTable{
@@ -735,9 +735,8 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 	columns, err := op.Columns(param.DatabaseName, param.TableName, false)
 	if err != nil {
 		tx.Rollback()
-		return errors.New("create failed: " + err.Error())
+		return err
 	}
-	invoker.Logger.Debug("TableCreateSelfBuilt", elog.Any("columns", columns))
 	for _, col := range columns {
 		if col.Type == -1 {
 			continue
@@ -751,11 +750,11 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		})
 		if err != nil {
 			tx.Rollback()
-			return errors.New("create failed: " + err.Error())
+			return err
 		}
 	}
 	if err = tx.Commit().Error; err != nil {
-		return errors.New("create failed: " + err.Error())
+		return errors.Wrapf(err, "tx commit failed")
 	}
 	return nil
 }

@@ -112,16 +112,11 @@ func (i *instanceManager) All() []inquiry.Operator {
 	return res
 }
 
-func ReadAllPermissionTable(uid int, subResource string) []int {
+func ReadAllPermissionTable(uid int) []int {
 	tables, _ := db.TableList(invoker.Db, egorm.Conds{})
 	resArr := make([]int, 0)
 	for _, table := range tables {
 		if !TableViewIsPermission(uid, table.Database.Iid, table.ID) {
-			invoker.Logger.Error("ReadAllPermissionTable",
-				elog.Any("uid", uid),
-				elog.Any("iid", table.Database.Iid),
-				elog.Any("tid", table.ID),
-				elog.Any("subResource", subResource))
 			continue
 		}
 		resArr = append(resArr, table.ID)

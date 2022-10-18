@@ -70,7 +70,6 @@ func Create(c *core.Context) {
 		c.JSONE(1, "alarm create failed 01", err)
 		return
 	}
-
 	err := service.Alarm.CreateOrUpdate(tx, obj, req)
 	if err != nil {
 		tx.Rollback()
@@ -99,7 +98,6 @@ func Update(c *core.Context) {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-
 	alarmInfo, relatedList, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
 	if errAlarmInfo != nil {
 		c.JSONE(1, "alarm info not found", errAlarmInfo)
@@ -209,15 +207,14 @@ func List(c *core.Context) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}
-		query["tid"] = tid
-		total, list = db.AlarmListPage(query, req)
+		total, list = db.AlarmListPageInTidArr(query, req, []int{tid})
 	} else if did != 0 {
 		database, _ := db.DatabaseInfo(invoker.Db, did)
 		if !service.DatabaseViewIsPermission(c.Uid(), database.Iid, did) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}
-		// query by database id
+		// (replace(replace(JSON_EXTRACT(`cv_alarm`.`table_ids`, '$[*]'),'[',''),']',''))
 		query[db.TableNameBaseTable+".did"] = did
 		total, list = db.AlarmListByDidPage(query, req)
 	} else if iid != 0 {
@@ -243,18 +240,15 @@ func List(c *core.Context) {
 			total += totalTmp
 		}
 	} else {
+		var tidArr = make([]int, 0)
 		// Check whether you are an administrator.
 		err := permission.Manager.IsRootUser(c.Uid())
 		if err != nil {
 			// If you are not an administrator, get a list of instances that have permission
-			ts := service.ReadAllPermissionTable(c.Uid(), pmsplugin.Alarm)
-			query["tid"] = egorm.Cond{
-				Op:  "in",
-				Val: ts,
-			}
-			invoker.Logger.Debug("ReadAllPermissionInstance", elog.Any("tidList", ts))
+			tidArr = service.ReadAllPermissionTable(c.Uid())
 		}
-		total, list = db.AlarmListPage(query, req)
+		// SELECT *  FROM `cv_alarm` WHERE JSON_CONTAINS(`table_ids`, '[1]') OR JSON_CONTAINS(`table_ids`, '[7]')
+		total, list = db.AlarmListPageInTidArr(query, req, tidArr)
 	}
 	c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
 		Current:  req.Current,

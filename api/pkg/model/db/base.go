@@ -200,7 +200,7 @@ func DatabaseDelete(db *gorm.DB, id int) (err error) {
 func DatabaseInfoX(db *gorm.DB, conds map[string]interface{}) (resp BaseDatabase, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameBaseDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("infoX error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return
@@ -216,7 +216,7 @@ func DatabaseInfo(db *gorm.DB, paramId int) (resp BaseDatabase, err error) {
 	return
 }
 
-func DatabaseGetOrCreate(db *gorm.DB, uid, iid int, name string) (resp BaseDatabase, err error) {
+func DatabaseGetOrCreate(db *gorm.DB, uid, iid int, name, cluster string) (resp BaseDatabase, err error) {
 	conds := egorm.Conds{}
 	conds["iid"] = iid
 	conds["name"] = name
@@ -229,9 +229,10 @@ func DatabaseGetOrCreate(db *gorm.DB, uid, iid int, name string) (resp BaseDatab
 	}
 	// create
 	resp = BaseDatabase{
-		Iid:  iid,
-		Name: name,
-		Uid:  uid,
+		Iid:     iid,
+		Name:    name,
+		Uid:     uid,
+		Cluster: cluster,
 	}
 	if err = DatabaseCreate(db, &resp); err != nil {
 		return
@@ -254,8 +255,7 @@ func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err e
 func DatabaseList(db *gorm.DB, conds egorm.Conds) (resp []*BaseDatabase, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameBaseDatabase).Preload("Instance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		err = errors.Wrapf(err, "conds: %v", conds)
-		return
+		return nil, errors.Wrapf(err, "conds: %v", conds)
 	}
 	return
 }
@@ -331,8 +331,7 @@ func IndexList(conds egorm.Conds) (resp []*BaseIndex, err error) {
 
 func IndexCreate(db *gorm.DB, data *BaseIndex) (err error) {
 	if err = db.Model(BaseIndex{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create releaseZone error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "data: %v", data)
 	}
 	return
 }
@@ -425,8 +424,7 @@ func (m *BaseTable) GetTimeField() string {
 // TableCreate ...
 func TableCreate(db *gorm.DB, data *BaseTable) (err error) {
 	if err = db.Model(BaseTable{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("release error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "data is %v", data)
 	}
 	return
 }
