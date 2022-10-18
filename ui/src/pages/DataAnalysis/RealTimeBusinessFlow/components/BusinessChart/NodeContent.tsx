@@ -1,10 +1,14 @@
 import nodeStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart/styles/nodeContent.less";
 import { BusinessChartResponse } from "@/services/realTimeTrafficFlow";
-import { Statistic, Tooltip } from "antd";
-import { useIntl } from "umi";
+import { Statistic, Tooltip, notification, Button, message } from "antd";
+import { useIntl, useModel } from "umi";
 import { byteConvert } from "@/utils/byteConvertUtil";
 import classNames from "classnames";
 import { useMemo } from "react";
+import useUrlState from "@ahooksjs/use-url-state";
+import copy from "copy-to-clipboard";
+import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
 
 interface NodeContentProps {
   node: BusinessChartResponse;
@@ -12,6 +16,9 @@ interface NodeContentProps {
 
 const NodeContent = ({ node }: NodeContentProps) => {
   const i18n = useIntl();
+  const { realTimeTraffic } = useModel("dataAnalysis");
+  const { doTableCreatSql } = realTimeTraffic;
+  const [urlState] = useUrlState();
 
   const language = useMemo(
     () => localStorage.getItem("umi_locale"),
@@ -55,8 +62,58 @@ const NodeContent = ({ node }: NodeContentProps) => {
     }
   };
 
+  const handleBuildTableSQL = useDebounceFn(
+    () => {
+      urlState?.iid &&
+        urlState?.dName &&
+        urlState?.tName &&
+        doTableCreatSql
+          .run(parseInt(urlState.iid), urlState.dName, urlState.tName)
+          .then((res: any) => {
+            if (res.code != 0) return;
+            notification.open({
+              duration: null,
+              message: i18n.formatMessage({
+                id: "bigdata.realtime.buildTableSQL",
+              }),
+              description: (
+                <>
+                  <pre>{res.data}</pre>
+                  <Button
+                    type="primary"
+                    style={{ float: "right" }}
+                    onClick={() => {
+                      try {
+                        copy(res.data);
+                        message.success(
+                          i18n.formatMessage({
+                            id: "log.item.copy.success",
+                          })
+                        );
+                      } catch (error) {
+                        message.error(
+                          i18n.formatMessage({ id: "log.item.copy.failed" })
+                        );
+                      }
+                    }}
+                  >
+                    {i18n.formatMessage({ id: "log.item.copy" })}
+                  </Button>
+                </>
+              ),
+              placement: "top",
+              style: { width: "800px" },
+            });
+          });
+    },
+    { wait: DEBOUNCE_WAIT }
+  ).run;
+
   return (
-    <div className={classNames(nodeStyles.nodeContentMain)}>
+    <div
+      className={classNames(nodeStyles.nodeContentMain)}
+      onClick={() => handleBuildTableSQL()}
+    >
       <div className={nodeStyles.tableAndDatabase}>
         <span>
           {i18n.formatMessage({
@@ -101,6 +158,7 @@ const NodeContent = ({ node }: NodeContentProps) => {
           </div>
         </Tooltip>
       </div>
+      <></>
     </div>
   );
 };

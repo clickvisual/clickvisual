@@ -22,9 +22,6 @@
       height: 250px;
 
       :global(.CodeMirror) {
-        // height: auto !important;
-        // min-height: 250px !important;
-        // max-height: 250px !important;
         height: 250px !important;
       }
     }
@@ -78,4 +75,8 @@
 
 :global .luckysheet-scrollbar-ltr {
   z-index: 999;
+}
+
+:global(.CodeMirror-hints) {
+  z-index: 1000 !important;
 }
