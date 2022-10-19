@@ -118,6 +118,8 @@ const DataLogsModel = () => {
     onSetLocalData(undefined, dataLogLocalaStorageType.logQueryHistoricalList)
       ?.logQueryHistoricalList || []
   );
+  // 日志查询的初始值
+  const [initValue, setInitValue] = useState<string>("");
 
   const {
     logLibraryCreatedModalVisible,
@@ -242,7 +244,12 @@ const DataLogsModel = () => {
     setRawLogsIndexeList(list);
   };
 
+  const onChangeInitValue = (str: string) => {
+    setInitValue(str);
+  };
+
   const onChangeLogPane = (tabPane: PaneType) => {
+    onChangeInitValue(tabPane?.keyword || "");
     onChangeLogLibrary({
       id: parseInt(tabPane.paneId),
       tableName: tabPane.pane,
@@ -567,6 +574,7 @@ const DataLogsModel = () => {
       .catch(() => {
         resetLogPaneLogsAndHighCharts(newPane);
       });
+    setInitValue(kw);
     doParseQuery(kw);
   };
 
@@ -668,6 +676,7 @@ const DataLogsModel = () => {
     currentEditLogLibrary,
     isLogLibraryAllDatabase,
     logState,
+    initValue,
 
     // doGetLogs,
     doGetHighCharts,
@@ -697,6 +706,7 @@ const DataLogsModel = () => {
     onChangeCurrentEditDatabase,
     onChangeCurrentEditLogLibrary,
     onChangeLogState,
+    onChangeInitValue,
 
     doParseQuery,
     doUpdatedQuery,

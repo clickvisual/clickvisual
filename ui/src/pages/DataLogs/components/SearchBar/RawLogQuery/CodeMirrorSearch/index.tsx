@@ -37,24 +37,13 @@ const Editors = (props: {
 }) => {
   const { title, value, placeholder, onPressEnter, onChange, tables } = props;
   const formRefs: any = useRef(null);
-  const [defaultSqlValue, setDefaultSqlValue] = useState<string>("");
-  const [isDefault, setIsDefault] = useState<boolean>(true);
 
-  const onEditorDidMount = (editor: any) => {
-    // let editors = formRefs?.current?.editor;
-  };
+  // const onEditorDidMount = (editor: any) => {};
 
   // 回车事件
   const handleEnter = () => {
     onPressEnter();
   };
-
-  useEffect(() => {
-    if (value && isDefault) {
-      setDefaultSqlValue(value);
-      setIsDefault(false);
-    }
-  }, [value]);
 
   return (
     <div className={styles.editors} key={title + "editors"}>
@@ -64,7 +53,7 @@ const Editors = (props: {
           className={styles.editorsDom}
           ref={formRefs}
           key={title}
-          editorDidMount={onEditorDidMount}
+          // editorDidMount={onEditorDidMount}
           onKeyPress={() => {
             // 按键的时候触发代码提示
             formRefs.current.editor.showHint();
@@ -72,7 +61,7 @@ const Editors = (props: {
           onChange={(CodeMirror: string, changeObj: any, value: string) =>
             onChange(value)
           }
-          value={defaultSqlValue}
+          value={value}
           options={{
             // 显示行号
             lineNumbers: false,

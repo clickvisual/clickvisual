@@ -37,6 +37,8 @@ const RawLogQuery = () => {
     currentRelativeUnit,
     doGetAnalysisField,
     logs,
+    initValue,
+    onChangeInitValue,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
 
@@ -45,6 +47,7 @@ const RawLogQuery = () => {
   const [queryKeyword, setQueryKeyword] = useState<string | undefined>(
     keywordInput
   );
+  const [isDefault, setIsDefault] = useState<boolean>(true);
 
   const { onSetLocalData } = useLocalStorages();
   const logQueryHistoricalList =
@@ -65,6 +68,7 @@ const RawLogQuery = () => {
   const doSearchLog = useDebounceFn(
     () => {
       if (!currentLogLibrary) return;
+      queryKeyword && onChangeInitValue(queryKeyword);
       const params: QueryParams = {
         page: FIRST_PAGE,
       };
@@ -157,14 +161,24 @@ const RawLogQuery = () => {
       });
     }
     setTables(arr);
+    if (logs?.where && logs.where != "1='1'" && queryKeyword != logs.where) {
+      onChangeInitValue(logs?.where);
+    }
   }, [logs, logs?.defaultFields]);
+
+  useEffect(() => {
+    if (queryKeyword && isDefault) {
+      onChangeInitValue(queryKeyword);
+      setIsDefault(false);
+    }
+  }, [queryKeyword]);
 
   return (
     <>
       <div className={searchBarStyles.inputBox}>
         <CodeMirrorSearch
           title="logInput"
-          value={queryKeyword || ""}
+          value={initValue || ""}
           placeholder={i18n.formatMessage({
             id: "log.search.placeholder",
           })}
