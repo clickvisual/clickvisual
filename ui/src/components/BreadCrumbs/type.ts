@@ -1,4 +1,7 @@
+import { relatedListType } from "@/services/alarm";
+
 export interface logLibraryInfoType {
+  relatedList: relatedListType[];
   instanceName: string;
   instanceDesc?: string;
   databaseName: string;

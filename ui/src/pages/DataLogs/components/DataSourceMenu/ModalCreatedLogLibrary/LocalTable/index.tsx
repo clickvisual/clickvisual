@@ -20,14 +20,14 @@ const { TextArea } = Input;
 
 type LocalTableProps = {
   formRef: FormInstance | null;
-  // instanceName: string | undefined;
-  // databaseName: string | undefined;
+  onChangeIsCluster: (flag: boolean) => void;
+  isCluster: boolean;
 };
 const LocalTable = ({
   formRef,
-}: // instanceName,
-// databaseName,
-LocalTableProps) => {
+  onChangeIsCluster,
+  isCluster,
+}: LocalTableProps) => {
   const i18n = useIntl();
   const {
     getLocalTables,
@@ -38,6 +38,7 @@ LocalTableProps) => {
   const { instanceList } = useModel("instances");
   const [options, setOptions] = useState<any[]>([]);
   const [columnsItemList, setColumnsItemList] = useState<any[]>([]);
+  const [currentInstance, setCurrentInstance] = useState<any>();
 
   const { Panel } = Collapse;
 
@@ -163,6 +164,14 @@ LocalTableProps) => {
           })}`}
           onChange={(val) => {
             if (!val) return;
+            onChangeIsCluster(false);
+            instanceList.map((item: any) => {
+              if (item.id == val && item.mode == 1) {
+                setCurrentInstance(item);
+                onChangeIsCluster(true);
+                return;
+              }
+            });
             formRef?.resetFields(["localTables"]);
             getLocalTables.run(val as number).then((res) => {
               if (res?.code !== 0) return;
@@ -170,8 +179,8 @@ LocalTableProps) => {
             });
           }}
         >
-          {instanceList.map((item: InstanceType, index: number) => (
-            <Option key={index} value={item.id as number}>
+          {instanceList.map((item: InstanceType) => (
+            <Option key={item.id} value={item.id as number}>
               {item.name}
             </Option>
           ))}
@@ -236,6 +245,43 @@ LocalTableProps) => {
                 />
               </Form.Item>
             </>
+          );
+        }}
+      </Form.Item>
+      <Form.Item
+        noStyle
+        shouldUpdate={(pre, next) => pre.instance != next.instance}
+      >
+        {() => {
+          return (
+            isCluster && (
+              <Form.Item
+                label={i18n.formatMessage({
+                  id: "instance.form.title.cluster",
+                })}
+                name="cluster"
+                rules={[
+                  {
+                    required: true,
+                    message: i18n.formatMessage({
+                      id: "config.selectedBar.cluster",
+                    }),
+                  },
+                ]}
+              >
+                <Select
+                  placeholder={`${i18n.formatMessage({
+                    id: "config.selectedBar.cluster",
+                  })}`}
+                >
+                  {currentInstance?.clusters.map((item: string) => (
+                    <Option key={item} value={item}>
+                      {item}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )
           );
         }}
       </Form.Item>

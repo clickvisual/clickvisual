@@ -50,13 +50,7 @@ const TriggerConditionItem = ({ firstField }: TriggerConditionItemProps) => {
                       key={`${field.key}-conditions`}
                       className={conditionStyles.fieldLine}
                     >
-                      <Form.Item
-                        noStyle
-                        shouldUpdate={(prevValues, nextValues) =>
-                          prevValues.conditions.length !==
-                          nextValues.conditions.length
-                        }
-                      >
+                      <Form.Item noStyle>
                         <Form.Item noStyle name={[field.name, "typ"]}>
                           <Select
                             className={classNames(conditionStyles.selectItem)}

@@ -177,6 +177,7 @@ export interface CreateLocalTableRequestBatch {
   mode: number;
   instance: number;
   tableList: tableListType;
+  cluster: string;
 }
 
 export interface tableListType {
