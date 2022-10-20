@@ -13,6 +13,10 @@ import (
 	sdelete "gorm.io/plugin/soft_delete"
 )
 
+type IModel interface {
+	TableName() string
+}
+
 const (
 	TableNameUser         = "cv_user"
 	TableEvent            = "cv_event"
@@ -55,10 +59,6 @@ const (
 	TableNameBigDataDepend      = "cv_bd_depend"
 	TableNameBigDataCrontab     = "cv_bd_crontab"
 )
-
-type IModelCreator interface {
-	TableName() string
-}
 
 type BaseModel struct {
 	ID    int               `gorm:"not null;primary_key;AUTO_INCREMENT;comment:自增id" json:"id"`

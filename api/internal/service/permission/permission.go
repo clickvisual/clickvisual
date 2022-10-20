@@ -29,7 +29,7 @@ func loadMenuTree(filePath string) Resource {
 	menu := Resource{}
 	resourceContent, err := os.ReadFile(filePath)
 	if err != nil {
-		invoker.Logger.Panic("Read Resource File Failed", elog.String("err", err.Error()))
+		invoker.Logger.Panic("Read Resource File Failed", elog.String("filePath", filePath), elog.String("err", err.Error()))
 	}
 	err = yaml.Unmarshal(resourceContent, &menu)
 	if err != nil {
