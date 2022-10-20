@@ -104,8 +104,13 @@ const CreatedOrUpdatedInstanceModal = (
       }
       doTestInstance.run({ dsn }).then((res) => {
         if (res?.code === 0) {
+          message.success(
+            i18n.formatMessage({ id: "instance.form.test.success" })
+          );
           setDisabledSubmit(false);
+          return;
         }
+        message.error(i18n.formatMessage({ id: "instance.form.test.fail" }));
       });
     },
     { wait: DEBOUNCE_WAIT }
