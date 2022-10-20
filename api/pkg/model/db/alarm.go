@@ -13,6 +13,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
+type IAlarm interface {
+	TableName() string
+	RuleName(filterId int) string
+	ViewName(database, table string, seq int) string
+	UniqueName() string
+	StatusUpdate(status string) (err error)
+	AlertInterval() string
+}
+
 const (
 	_ int = iota
 	AlarmModeAggregation

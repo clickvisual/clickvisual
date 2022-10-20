@@ -8,7 +8,7 @@ require (
 	github.com/casbin/casbin/v2 v2.51.0
 	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/clickvisual/casbin-redis-watcher v0.0.1
-	github.com/clickvisual/prom2click v0.0.2
+	github.com/clickvisual/prom2click v0.0.3
 	github.com/ego-component/egorm v1.0.4
 	github.com/ego-component/eredis v1.0.3
 	github.com/gin-contrib/sessions v0.0.5
@@ -28,6 +28,7 @@ require (
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/speps/go-hashids/v2 v2.0.1
 	github.com/spf13/cast v1.5.0
+	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe
 	github.com/swaggo/gin-swagger v1.5.1
@@ -117,6 +118,7 @@ require (
 	github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
