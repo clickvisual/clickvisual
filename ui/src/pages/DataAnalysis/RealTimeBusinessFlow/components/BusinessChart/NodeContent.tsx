@@ -63,12 +63,12 @@ const NodeContent = ({ node }: NodeContentProps) => {
   };
 
   const handleBuildTableSQL = useDebounceFn(
-    () => {
+    (dName: string, tName: string) => {
       urlState?.iid &&
-        urlState?.dName &&
-        urlState?.tName &&
+        dName &&
+        tName &&
         doTableCreatSql
-          .run(parseInt(urlState.iid), urlState.dName, urlState.tName)
+          .run(parseInt(urlState.iid), dName, tName)
           .then((res: any) => {
             if (res.code != 0) return;
             notification.open({
@@ -102,7 +102,7 @@ const NodeContent = ({ node }: NodeContentProps) => {
                 </>
               ),
               placement: "top",
-              style: { width: "800px" },
+              style: { width: "1000px" },
             });
           });
     },
@@ -112,7 +112,7 @@ const NodeContent = ({ node }: NodeContentProps) => {
   return (
     <div
       className={classNames(nodeStyles.nodeContentMain)}
-      onClick={() => handleBuildTableSQL()}
+      onClick={() => handleBuildTableSQL(node.database, node.table)}
     >
       <div className={nodeStyles.tableAndDatabase}>
         <span>
