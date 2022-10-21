@@ -284,7 +284,7 @@ func TableDelete(c *core.Context) {
 		}
 		err = op.TableDrop(database, table, tableInfo.Database.Cluster, tableInfo.ID)
 		if err != nil {
-			c.JSONE(core.CodeErr, "delete failed 07", err)
+			c.JSONE(core.CodeErr, err.Error(), err)
 			return
 		}
 	}
@@ -459,7 +459,7 @@ func TableCharts(c *core.Context) {
 	if interval == 0 {
 		count, errCount := op.Count(param)
 		if errCount != nil {
-			c.JSONE(core.CodeErr, "query error", errCount)
+			c.JSONE(core.CodeErr, errCount.Error(), errCount)
 			return
 		}
 		row := view.HighChart{
@@ -518,7 +518,7 @@ func TableCharts(c *core.Context) {
 		close(errorChan)
 		for e := range errorChan {
 			if e != nil {
-				c.JSONE(core.CodeErr, "query error", e)
+				c.JSONE(core.CodeErr, e.Error(), e)
 				return
 			}
 		}
@@ -597,7 +597,7 @@ func TableIndexes(c *core.Context) {
 	res := make([]view.RespIndexItem, 0)
 	sum, err := op.Count(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "query error", err)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	var count uint64
