@@ -242,7 +242,7 @@ func TableDelete(c *core.Context) {
 	conds["tid"] = tableInfo.ID
 	alarms, err := db.AlarmList(conds)
 	if err != nil {
-		c.JSONE(core.CodeErr, "delete failed 02: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 02", err)
 		return
 	}
 	if len(alarms) > 0 {
@@ -254,19 +254,23 @@ func TableDelete(c *core.Context) {
 	err = db.TableDelete(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed 03: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 03", err)
 		return
 	}
 	err = db.ViewDeleteByTableID(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed 04: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 04", err)
 		return
 	}
 	err = db.IndexDeleteBatch(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
-		c.JSONE(core.CodeErr, "delete failed 05: "+err.Error(), nil)
+		c.JSONE(core.CodeErr, "delete failed 05", err)
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		c.JSONE(core.CodeErr, "delete failed 06", err)
 		return
 	}
 	if tableInfo.CreateType != constx.TableCreateTypeExist {
@@ -275,20 +279,14 @@ func TableDelete(c *core.Context) {
 		database := tableInfo.Database.Name
 		op, errLoad := service.InstanceManager.Load(iid)
 		if errLoad != nil {
-			tx.Rollback()
-			c.JSONE(core.CodeErr, errLoad.Error(), nil)
+			c.JSONE(core.CodeErr, errLoad.Error(), errLoad)
 			return
 		}
 		err = op.TableDrop(database, table, tableInfo.Database.Cluster, tableInfo.ID)
 		if err != nil {
-			tx.Rollback()
-			c.JSONE(core.CodeErr, "delete failed 01: "+err.Error(), nil)
+			c.JSONE(core.CodeErr, "delete failed 07", err)
 			return
 		}
-	}
-	if err = tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, "delete failed 06: "+err.Error(), nil)
-		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesDelete, map[string]interface{}{"tableInfo": tableInfo})
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")
