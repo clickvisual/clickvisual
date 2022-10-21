@@ -1,8 +1,13 @@
 .rawLogListMain {
   flex: 1;
   margin-top: 5px;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  overflow: hidden;
+  .hiddenScrollBox {
+    width: calc(100% + 15px);
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
   & > div:not(:last-child) {
     border-bottom: 1px solid hsla(0, 0%, 0%, 0.1);
   }
