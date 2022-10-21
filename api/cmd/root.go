@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/clickvisual/prom2click"
 	"github.com/gotomicro/ego"
@@ -21,10 +21,11 @@ import (
 var RootCommand = &cobra.Command{
 	Use: "clickvisual",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		log.Println("PreRun args: ", args)
 		config.PreRun(cmd, args)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("args: ", args)
+		log.Println("Run args: ", args)
 		if len(args) == 0 {
 			CmdFunc(cmd, args)
 		}

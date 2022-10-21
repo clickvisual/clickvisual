@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"github.com/gotomicro/ego/core/econf"
 	_ "github.com/gotomicro/ego/core/econf/file"
@@ -14,11 +15,13 @@ var File string
 
 func PreRun(cmd *cobra.Command, args []string) {
 	log.Println("ConfigFile", File)
+	log.Println("EGO_CONFIG_PATH:", os.Getenv("EGO_CONFIG_PATH"))
+
 	provider, parser, tag, err := manager.NewDataSource(File, eflag.Bool("watch"))
 	if err != nil {
-		log.Fatal("load config fail", err)
+		log.Fatal("load config fail: ", err)
 	}
 	if err = econf.LoadFromDataSource(provider, parser, econf.WithTagName(tag)); err != nil {
-		log.Fatal("data source: load config, unmarshal config err", err)
+		log.Fatal("data source: load config, unmarshal config err: ", err)
 	}
 }
