@@ -17,6 +17,9 @@ func PreRun(cmd *cobra.Command, args []string) {
 	log.Println("ConfigFile", File)
 	log.Println("EGO_CONFIG_PATH:", os.Getenv("EGO_CONFIG_PATH"))
 
+	if os.Getenv("EGO_CONFIG_PATH") != "" {
+		File = os.Getenv("EGO_CONFIG_PATH")
+	}
 	provider, parser, tag, err := manager.NewDataSource(File, eflag.Bool("watch"))
 	if err != nil {
 		log.Fatal("load config fail: ", err)
