@@ -149,6 +149,8 @@ export default {
   "instance.form.rule.dsn": "Please enter DSN",
   "instance.form.rule.configmap": "Please select ConfigMap",
   "instance.form.test.warning": "Please enter DNS and test again",
+  "instance.form.test.success": "Test success",
+  "instance.form.test.fail": "Test to fail",
   "instance.form.test.tip":
     "Please test the connection before submitting the form",
   "instance.operation.addDatabase": "Adding a database",
