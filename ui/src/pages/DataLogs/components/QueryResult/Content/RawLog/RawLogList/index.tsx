@@ -97,6 +97,20 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     return dataList;
   };
 
+  /**
+   * 计算有多少个子元素
+   */
+  const handleGetChildElementsNumber = (list: any, number: number = 1) => {
+    let num = number;
+    list.map((item: any) => {
+      num++;
+      if (item.children && item.children.length > 0) {
+        num = handleGetChildElementsNumber(item.children);
+      }
+    });
+    return num;
+  };
+
   const linkDataList = useMemo(() => {
     if (logs?.isTrace !== 1) {
       return [];
@@ -205,7 +219,16 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
       dataList[key].map((item: any) => {
         if (!item.rawLogJson.references) {
-          treeDataList.push({
+          const children = handleFindChild(
+            item?.rawLogJson.spanId,
+            dataList[key],
+            item,
+            2,
+            endTime,
+            themeColorList,
+            startTime
+          );
+          treeDataList.unshift({
             title: (
               <LinkItemTitle
                 title={
@@ -229,20 +252,13 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
                 }
               />
             ),
-            children: handleFindChild(
-              item?.rawLogJson.spanId,
-              dataList[key],
-              item,
-              2,
-              endTime,
-              themeColorList,
-              startTime
-            ),
+            children: children,
             key: item?.rawLogJson?.spanId,
             data: item,
             duration: endTime - startTime,
             services: themeColorList.length,
-            totalSpans: dataList[key].length,
+            totalSpans:
+              children.length > 0 ? handleGetChildElementsNumber(children) : 1,
           });
           return;
         }
@@ -293,20 +309,22 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   return (
     <div className={classNames(rawLogListStyles.rawLogListMain)}>
-      {logs?.isTrace == 0 || logState != 1
-        ? list.map((logItem: any, index: number) => {
-            return (
-              <LogItem
-                foldingChecked={oldPane?.foldingChecked}
-                log={logItem}
-                key={index}
-              />
-            );
-          })
-        : // 链路日志
-          linkDataList.map((item: any) => {
-            return <LinkItem key={item.key} log={item} />;
-          })}
+      <div className={rawLogListStyles.hiddenScrollBox}>
+        {logs?.isTrace == 0 || logState != 1
+          ? list.map((logItem: any, index: number) => {
+              return (
+                <LogItem
+                  foldingChecked={oldPane?.foldingChecked}
+                  log={logItem}
+                  key={index}
+                />
+              );
+            })
+          : // 链路日志
+            linkDataList.map((item: any) => {
+              return <LinkItem key={item.key} log={item} />;
+            })}
+      </div>
     </div>
   );
 };

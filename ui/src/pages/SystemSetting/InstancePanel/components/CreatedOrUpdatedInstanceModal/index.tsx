@@ -213,30 +213,39 @@ const CreatedOrUpdatedInstanceModal = (
         </Button>,
         <Button
           key="test"
+          type={disabledSubmit ? "primary" : "default"}
           icon={<IconFont type={"icon-database-test"} />}
           loading={doTestInstance.loading}
           onClick={handleTest}
         >
           {i18n.formatMessage({ id: "button.test" })}
         </Button>,
-
-        <Button
-          key="submit"
-          type={"primary"}
-          disabled={disabledSubmit}
-          icon={<SaveOutlined />}
-          loading={doCreatedInstance.loading || doUpdatedInstance.loading}
-          onClick={() => instanceFormRef.current?.submit()}
-        >
-          {i18n.formatMessage({ id: "button.ok" })}
-        </Button>,
-        disabledSubmit && (
-          <Button type={"link"}>
+        disabledSubmit ? (
+          <span style={{ marginLeft: "8px" }}>
             <Tooltip
               title={i18n.formatMessage({ id: "instance.form.test.tip" })}
             >
-              <QuestionCircleOutlined />
+              <Button
+                key="submit"
+                disabled={disabledSubmit}
+                icon={<SaveOutlined />}
+                loading={doCreatedInstance.loading || doUpdatedInstance.loading}
+                onClick={() => instanceFormRef.current?.submit()}
+              >
+                {i18n.formatMessage({ id: "button.ok" })}
+              </Button>
             </Tooltip>
+          </span>
+        ) : (
+          <Button
+            key="submit"
+            type={"primary"}
+            disabled={disabledSubmit}
+            icon={<SaveOutlined />}
+            loading={doCreatedInstance.loading || doUpdatedInstance.loading}
+            onClick={() => instanceFormRef.current?.submit()}
+          >
+            {i18n.formatMessage({ id: "button.ok" })}
           </Button>
         ),
       ]}
