@@ -78,7 +78,7 @@ const NodeContent = ({ node }: NodeContentProps) => {
               }),
               description: (
                 <>
-                  <pre>{res.data}</pre>
+                  <pre style={{ maxHeight: "80vh" }}>{res.data}</pre>
                   <Button
                     type="primary"
                     style={{ float: "right" }}
