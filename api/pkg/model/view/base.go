@@ -80,7 +80,9 @@ type (
 	}
 
 	RespComplete struct {
-		Logs []map[string]interface{} `json:"logs"`
+		Logs       []map[string]interface{} `json:"logs"`
+		IsNeedSort bool                     `json:"isNeedSort"`
+		SortRule   []string                 `json:"sortRule"`
 	}
 
 	RespTraceGraph struct {

@@ -393,12 +393,12 @@ func QueryComplete(c *core.Context) {
 		c.JSONE(core.CodeErr, "", err)
 		return
 	}
-	invoker.Logger.Debug("Complete", elog.Any("param", param))
 	res, err := op.Complete(param.Query)
 	if err != nil {
-		c.JSONE(core.CodeErr, "", err)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
+	res.SortRule, res.IsNeedSort = utils.GenerateFieldOrderRules(param.Query)
 	c.JSONOK(res)
 	return
 }
