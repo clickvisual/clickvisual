@@ -57,8 +57,10 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 		if econf.GetString("prom2click.dev.host") != "" {
 			app.Serve(prom2click.Load("prom2click.dev").Build())
 		}
-		for _, container := range prom2click.LoadBatch("prom2click.cfgs") {
-			app.Serve(container.Build())
+		if len(econf.GetSlice("prom2click.cfgs")) > 0 {
+			for _, container := range prom2click.LoadBatch("prom2click.cfgs") {
+				app.Serve(container.Build())
+			}
 		}
 	}
 	err := app.Run()
