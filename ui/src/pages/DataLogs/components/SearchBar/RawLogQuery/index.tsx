@@ -6,17 +6,17 @@ import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
 import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
-import { useDebounce, useDebounceFn } from "ahooks";
+import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
 import { cloneDeep } from "lodash";
 import CodeMirrorSearch from "./CodeMirrorSearch";
-import { dataLogLocalaStorageType } from "@/models/dataLogs";
-import useLocalStorages from "@/hooks/useLocalStorages";
+// import { dataLogLocalaStorageType } from "@/models/dataLogs";
+// import useLocalStorages from "@/hooks/useLocalStorages";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -39,9 +39,12 @@ const RawLogQuery = () => {
     logs,
     initValue,
     onChangeInitValue,
+    analysisFieldTips,
+    logQueryHistoricalList,
+    onChangeLogQueryHistoricalList,
+    onChangeAnalysisFieldTips,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
-
   const i18n = useIntl();
 
   const [queryKeyword, setQueryKeyword] = useState<string | undefined>(
@@ -49,16 +52,8 @@ const RawLogQuery = () => {
   );
   const [isDefault, setIsDefault] = useState<boolean>(true);
 
-  const { onSetLocalData } = useLocalStorages();
-  const logQueryHistoricalList =
-    onSetLocalData(undefined, dataLogLocalaStorageType.logQueryHistoricalList)
-      ?.logQueryHistoricalList || [];
-  // 输入框自动填充关键词
-  const [tables, setTables] = useState<any>({});
-
-  const debouncedQueryKeyword = useDebounce(queryKeyword, {
-    wait: DEBOUNCE_WAIT,
-  });
+  // 输入框自动填充历史记录
+  const [historicalRecord, setHistoricalRecord] = useState<string[]>([]);
 
   const oldPane = useMemo(() => {
     if (!currentLogLibrary?.id) return;
@@ -68,7 +63,6 @@ const RawLogQuery = () => {
   const doSearchLog = useDebounceFn(
     () => {
       if (!currentLogLibrary) return;
-      queryKeyword && onChangeInitValue(queryKeyword);
       const params: QueryParams = {
         page: FIRST_PAGE,
       };
@@ -124,16 +118,16 @@ const RawLogQuery = () => {
         }
       );
     },
-    { wait: DEBOUNCE_WAIT }
+    { wait: 100 }
   );
 
   useEffect(() => {
-    onChangeKeywordInput(debouncedQueryKeyword);
+    onChangeKeywordInput(queryKeyword);
     onChangeCurrentLogPane({
       ...(oldPane as PaneType),
-      keyword: debouncedQueryKeyword,
+      keyword: queryKeyword,
     });
-  }, [debouncedQueryKeyword]);
+  }, [queryKeyword]);
 
   useEffect(() => {
     if (urlState?.mode != 1) {
@@ -149,22 +143,13 @@ const RawLogQuery = () => {
   }, [urlState?.mode]);
 
   useEffect(() => {
-    let arr: any = {};
-    if (logs?.defaultFields && logs?.defaultFields.length > 0) {
-      logs?.defaultFields.map((item: any) => {
-        arr[item] = [];
-      });
-    }
-    if (logQueryHistoricalList.length > 0) {
-      logQueryHistoricalList.map((item: any) => {
-        arr[item] = [];
-      });
-    }
-    setTables(arr);
-    if (logs?.where && logs.where != "1='1'" && queryKeyword != logs.where) {
-      onChangeInitValue(logs?.where);
-    }
-  }, [logs, logs?.defaultFields]);
+    currentLogLibrary &&
+      setHistoricalRecord(logQueryHistoricalList[currentLogLibrary?.id] || []);
+  }, [
+    logQueryHistoricalList,
+    currentLogLibrary && logQueryHistoricalList[currentLogLibrary?.id],
+    currentLogLibrary?.id,
+  ]);
 
   useEffect(() => {
     if (queryKeyword && isDefault) {
@@ -172,6 +157,10 @@ const RawLogQuery = () => {
       setIsDefault(false);
     }
   }, [queryKeyword]);
+
+  useEffect(() => {
+    logs?.defaultFields && onChangeAnalysisFieldTips(logs.defaultFields);
+  }, [logs?.defaultFields]);
 
   return (
     <>
@@ -186,8 +175,12 @@ const RawLogQuery = () => {
             doSearchLog.run();
           }}
           onChange={(value: string) => setQueryKeyword(value)}
-          tables={tables}
-          onChangeTables={setTables}
+          tables={analysisFieldTips}
+          historicalRecord={historicalRecord}
+          onChangeHistoricalRecord={onChangeLogQueryHistoricalList}
+          currentTid={currentLogLibrary?.id as number}
+          logQueryHistoricalList={logQueryHistoricalList}
+          // onChangeTables={setTables}
         />
       </div>
       <SearchBarSuffixIcon />

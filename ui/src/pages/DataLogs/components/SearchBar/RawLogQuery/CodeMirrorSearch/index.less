@@ -102,3 +102,56 @@
     }
   }
 }
+
+:global(.CodeMirror-hints) {
+  width: 800px !important;
+  // padding-bottom: 20px !important;
+  overflow-x: scroll;
+}
+
+:global(.autocomplete-div) {
+  position: relative;
+  display: flex;
+}
+
+:global(.autocomplete-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+:global(.autocomplete-text) {
+  flex: 1;
+  // width: calc(100% - 100px);
+  padding: 0 15px 0 10px;
+  overflow: hidden;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+:global(.autocomplete-info) {
+  width: 50px;
+  margin-right: 40px;
+  color: #aaa;
+  font-weight: 600;
+}
+
+:global(.autocomplete-delete) {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 16px;
+  font-size: 18px;
+}
+
+:global(.CodeMirror-hint-active) {
+  :global(.autocomplete-info) {
+    color: #fff;
+  }
+}
