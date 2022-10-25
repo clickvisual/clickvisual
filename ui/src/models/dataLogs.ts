@@ -112,12 +112,14 @@ const DataLogsModel = () => {
 
   const { onSetLocalData } = useLocalStorages();
   // 历史记录
-  const [logQueryHistoricalList, setLogQueryHistoricalList] = useState<
-    string[]
-  >(
-    onSetLocalData(undefined, dataLogLocalaStorageType.logQueryHistoricalList)
-      ?.logQueryHistoricalList || []
+  const [logQueryHistoricalList, setLogQueryHistoricalList] = useState<any>(
+    onSetLocalData(
+      undefined,
+      dataLogLocalaStorageType.logQueryHistoricalList
+    ) || {}
   );
+  // 分析字段的代码提示
+  const [analysisFieldTips, setAnalysisFieldTips] = useState<string[]>([]);
   // 日志查询的初始值
   const [initValue, setInitValue] = useState<string>("");
 
@@ -248,6 +250,14 @@ const DataLogsModel = () => {
     setInitValue(str);
   };
 
+  const onChangeAnalysisFieldTips = (arr: string[]) => {
+    setAnalysisFieldTips(arr);
+  };
+
+  const onChangeLogQueryHistoricalList = (arr: any) => {
+    setLogQueryHistoricalList(arr);
+  };
+
   const onChangeLogPane = (tabPane: PaneType) => {
     onChangeInitValue(tabPane?.keyword || "");
     onChangeLogLibrary({
@@ -360,6 +370,16 @@ const DataLogsModel = () => {
 
   const doGetAnalysisField = useRequest(api.getAnalysisField, {
     loadingText: false,
+    onSuccess: (res) => {
+      const keys = res?.data?.keys;
+      let arr: string[] = [];
+      if (keys && keys.length > 0) {
+        keys.map((item: any) => {
+          arr.push(item.field);
+        });
+        setAnalysisFieldTips(arr);
+      }
+    },
   });
 
   const doUpdateLinkLinkLogLibrary = useRequest(api.updateLinkLinkLogLibrary, {
@@ -391,15 +411,6 @@ const DataLogsModel = () => {
   });
 
   const logsAndHighChartsPayload = (params?: QueryParams) => {
-    const query = params?.kw ?? keywordInput;
-    if (query && !logQueryHistoricalList.includes(query)) {
-      setLogQueryHistoricalList([query, ...logQueryHistoricalList]);
-      onSetLocalData(
-        { logQueryHistoricalList: [query, ...logQueryHistoricalList] },
-        dataLogLocalaStorageType.logQueryHistoricalList
-      );
-    }
-
     return {
       st: params?.st || (startDateTime as number),
       et: params?.et || (endDateTime as number),
@@ -447,6 +458,7 @@ const DataLogsModel = () => {
     const currentPane = logPanesHelper.logPanes[id.toString()];
     const histogramChecked = currentPane?.histogramChecked ?? true;
     onChangeLastLoadingTid(id);
+    handleHistoricalRecord(id, extra?.reqParams);
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
@@ -486,6 +498,21 @@ const DataLogsModel = () => {
       }
     }
     return;
+  };
+
+  const handleHistoricalRecord = (currentTid: number, params?: QueryParams) => {
+    const query = params?.kw ?? keywordInput;
+    const currentLogHis = logQueryHistoricalList[currentTid] || [];
+    if (query && !currentLogHis.includes(query) && query.trim()) {
+      setLogQueryHistoricalList({
+        ...logQueryHistoricalList,
+        ...{ [currentTid]: [query, ...currentLogHis] },
+      });
+      onSetLocalData(
+        { [currentTid]: [query, ...currentLogHis] },
+        dataLogLocalaStorageType.logQueryHistoricalList
+      );
+    }
   };
 
   const doGetDatabaseList = (selectedInstance?: number) => {
@@ -677,6 +704,8 @@ const DataLogsModel = () => {
     isLogLibraryAllDatabase,
     logState,
     initValue,
+    analysisFieldTips,
+    logQueryHistoricalList,
 
     // doGetLogs,
     doGetHighCharts,
@@ -707,6 +736,8 @@ const DataLogsModel = () => {
     onChangeCurrentEditLogLibrary,
     onChangeLogState,
     onChangeInitValue,
+    onChangeAnalysisFieldTips,
+    onChangeLogQueryHistoricalList,
 
     doParseQuery,
     doUpdatedQuery,
