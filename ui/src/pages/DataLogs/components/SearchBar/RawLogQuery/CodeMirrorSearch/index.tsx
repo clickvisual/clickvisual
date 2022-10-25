@@ -50,6 +50,8 @@ import { dataLogLocalaStorageType } from "@/models/dataLogs";
 // // 引入代码自动提示插件
 // import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
+import { useIntl } from "umi";
+import { MYSQL_KEYWORD } from "./MySQLKeyWord";
 // import "codemirror/addon/hint/show-hint";
 
 // import "codemirror/lib/codemirror.css";
@@ -95,6 +97,7 @@ const Editors = (props: {
     logQueryHistoricalList,
   } = props;
   const formRefs: any = useRef(null);
+  const i18n = useIntl();
   const { onSetLocalData } = useLocalStorages();
 
   // 回车事件
@@ -111,11 +114,14 @@ const Editors = (props: {
   const handleCodePromptRecord = (
     list: string[],
     str: string,
-    codeHintsType: number,
+    codeHintsType: CodeHintsType,
     location: number
   ) => {
-    // 先将输入的字符转小写
-    const lowerCase: string = str.toLowerCase();
+    // 先将输入的字符转小写 关键词转大写
+    const lowerCase: string =
+      codeHintsType != CodeHintsType.keyword
+        ? str.toLowerCase()
+        : str.toUpperCase();
     // 用空格分割然后取最后一个单词
     const strArr = lowerCase.split(" ");
     let totalLenght = 0;
@@ -142,15 +148,19 @@ const Editors = (props: {
     switch (codeHintsType) {
       case CodeHintsType.history:
         icon = <HistoryOutlined />;
-        infoText = "历史查询";
+        infoText = i18n.formatMessage({
+          id: "log.search.codeHinting.historyQuery",
+        });
         break;
       case CodeHintsType.analysisField:
         icon = <FontSizeOutlined />;
-        infoText = "分析字段";
+        infoText = i18n.formatMessage({
+          id: "log.search.codeHinting.analysisField",
+        });
         break;
-      case CodeHintsType.analysisField:
+      case CodeHintsType.keyword:
         icon = <KeyOutlined />;
-        infoText = "关键字";
+        infoText = i18n.formatMessage({ id: "log.search.codeHinting.keyword" });
         break;
       default:
     }
@@ -218,8 +228,15 @@ const Editors = (props: {
         end
       );
 
+      const keyWordList = handleCodePromptRecord(
+        MYSQL_KEYWORD,
+        cursorLine,
+        CodeHintsType.keyword,
+        end
+      );
+
       return {
-        list: [...historyList, ...list] || [],
+        list: [...historyList, ...list, ...keyWordList] || [],
         from: { ch: token.start, line: cursor.line },
         to: { ch: token.end, line: cursor.line },
       };
