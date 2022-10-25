@@ -420,6 +420,9 @@ export default {
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "请选择需要查询的日志库",
   "log.search.placeholder": "请输入查询语句",
+  "log.search.codeHinting.historyQuery": "历史查询",
+  "log.search.codeHinting.analysisField": "分析字段",
+  "log.search.codeHinting.keyword": "关键字",
   "log.search.icon.quickSearch": "增加查询条件",
   "log.search.help.content.specifyField":
     "指定字段查询：Method='Get' and _raw_log_ like '%error%'",
