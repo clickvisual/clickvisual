@@ -10,7 +10,9 @@ const useStatisticalCharts = () => {
 
   const [chartSql, setChartSql] = useState<string>();
   const [logChart, setLogChart] = useState<StatisticalTableResponse>({
+    isNeedSort: false,
     logs: [],
+    sortRule: ["*"],
   });
   const [aggregationChartSql, setAggregationChartSql] = useState<string>("");
 

@@ -18,7 +18,9 @@ export interface GetTableIdRequest {
 }
 
 export interface StatisticalTableResponse {
+  isNeedSort: boolean;
   logs: any[];
+  sortRule: string[];
 }
 
 export interface LogsResponse extends StatisticalTableResponse {
