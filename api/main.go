@@ -17,7 +17,7 @@ import (
 // @description    	Defines interface prefixes in terms of module overrides：
 // @description  	- base : the global basic readable information module
 // @description  	- storage : the log module
-// @description  	- alarm : the alarm module
+// @description  	- alert : the alert module
 // @description  	- pandas : the data analysis module
 // @description  	- cmdb : the configuration module
 // @description  	- sysop : the system management module

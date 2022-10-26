@@ -278,3 +278,15 @@ func AlarmDelete(db *gorm.DB, id int) (err error) {
 	}
 	return
 }
+
+type ReqAlertSettingUpdate struct {
+	RuleStoreType    int    `json:"ruleStoreType"`
+	PrometheusTarget string `json:"prometheusTarget"`
+
+	// file
+	FilePath string `json:"filePath"`
+
+	// k8s
+	Namespace string `json:"namespace"`
+	Configmap string `json:"configmap"`
+}
