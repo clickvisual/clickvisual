@@ -28,11 +28,6 @@ const (
 	DatasourceClickHouse = "ch"
 )
 
-const (
-	RuleStoreTypeFile = 1
-	RuleStoreTypeK8s  = 2
-)
-
 const TimeFieldSecond = "_time_second_"
 const TimeFieldNanoseconds = "_time_nanosecond_"
 

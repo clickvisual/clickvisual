@@ -34,6 +34,11 @@ const (
 	AlarmStatusFiring
 )
 
+const (
+	RuleStoreTypeK8s  = 1
+	RuleStoreTypeFile = 2
+)
+
 var UnitMap = map[int]UnitItem{
 	0: {
 		Alias:    "m",
@@ -280,13 +285,30 @@ func AlarmDelete(db *gorm.DB, id int) (err error) {
 }
 
 type ReqAlertSettingUpdate struct {
-	RuleStoreType    int    `json:"ruleStoreType"`
-	PrometheusTarget string `json:"prometheusTarget"`
+	RuleStoreType    int    `json:"ruleStoreType" form:"ruleStoreType"` // rule_store_type 1 集群 2 文件
+	PrometheusTarget string `json:"prometheusTarget" form:"prometheusTarget"`
 
 	// file
-	FilePath string `json:"filePath"`
+	FilePath string `json:"filePath" form:"filePath"`
 
 	// k8s
-	Namespace string `json:"namespace"`
-	Configmap string `json:"configmap"`
+	Namespace string `json:"namespace" form:"namespace"`
+	Configmap string `json:"configmap" form:"configmap"`
+	ClusterId int    `json:"clusterId" form:"clusterId"`
+}
+
+type RespAlertSettingInfo struct {
+	InstanceId int `json:"instanceId"`
+	ReqAlertSettingUpdate
+}
+
+type RespAlertSettingListItem struct {
+	InstanceId       int    `json:"instanceId"`
+	InstanceName     string `json:"instanceName"`
+	RuleStoreType    int    `json:"ruleStoreType"` // rule_store_type 1 集群 2 文件
+	PrometheusTarget string `json:"prometheusTarget"`
+
+	// check
+	IsPrometheusOK   int `json:"isPrometheusOK"`   // 0 no 1 yes
+	IsAlertManagerOK int `json:"isAlertManagerOK"` // 0 no 1 yes
 }

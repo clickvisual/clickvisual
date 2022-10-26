@@ -1,12 +1,133 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- storage : the log module\n- alarm : the alarm module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",
+        "description": "Defines interface prefixes in terms of module overrides：\n- base : the global basic readable information module\n- storage : the log module\n- alert : the alert module\n- pandas : the data analysis module\n- cmdb : the configuration module\n- sysop : the system management module",
         "title": "ClickVisual API",
         "contact": {},
         "version": "0.4.0"
     },
     "paths": {
+        "/api/v2/alert/settings": {
+            "get": {
+                "description": "Instance alarm configuration list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alert"
+                ],
+                "summary": "Instance alarm configuration list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/db.RespAlertSettingListItem"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/alert/settings/{instance-id}": {
+            "get": {
+                "description": "Advanced configuration information in the instance",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alert"
+                ],
+                "summary": "Advanced configuration information in the instance",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "instance id",
+                        "name": "instance-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/db.RespAlertSettingInfo"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Alert Basic Configuration Modification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alert"
+                ],
+                "summary": "Alert Basic Configuration Modification",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "instance id",
+                        "name": "instance-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "clusterId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "configmap",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "file",
+                        "name": "filePath",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "k8s",
+                        "name": "namespace",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "prometheusTarget",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "rule_store_type 1 集群 2 文件",
+                        "name": "ruleStoreType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/base/instances": {
             "get": {
                 "description": "gets all instances, databases, and table nested data",
@@ -1228,6 +1349,61 @@
                 },
                 "pagination": {
                     "$ref": "#/definitions/core.Pagination"
+                }
+            }
+        },
+        "db.RespAlertSettingInfo": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "integer"
+                },
+                "configmap": {
+                    "type": "string"
+                },
+                "filePath": {
+                    "description": "file",
+                    "type": "string"
+                },
+                "instanceId": {
+                    "type": "integer"
+                },
+                "namespace": {
+                    "description": "k8s",
+                    "type": "string"
+                },
+                "prometheusTarget": {
+                    "type": "string"
+                },
+                "ruleStoreType": {
+                    "description": "rule_store_type 1 集群 2 文件",
+                    "type": "integer"
+                }
+            }
+        },
+        "db.RespAlertSettingListItem": {
+            "type": "object",
+            "properties": {
+                "instanceId": {
+                    "type": "integer"
+                },
+                "instanceName": {
+                    "type": "string"
+                },
+                "isAlertManagerOK": {
+                    "description": "0 no 1 yes",
+                    "type": "integer"
+                },
+                "isPrometheusOK": {
+                    "description": "check",
+                    "type": "integer"
+                },
+                "prometheusTarget": {
+                    "type": "string"
+                },
+                "ruleStoreType": {
+                    "description": "rule_store_type 1 集群 2 文件",
+                    "type": "integer"
                 }
             }
         },
