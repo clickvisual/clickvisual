@@ -447,6 +447,9 @@ export default {
   // Data Logs-Raw Logs
   "log.empty.logLibrary": "Please select need to query log library",
   "log.search.placeholder": "Please enter a query",
+  "log.search.codeHinting.historyQuery": "History",
+  "log.search.codeHinting.analysisField": "Field",
+  "log.search.codeHinting.keyword": "Keyword",
   "log.search.icon.quickSearch": "Created Query Criteria",
   "log.search.help.content.specifyField":
     "Specify the field query: Method='Get' and _raw_log_ like '%error%'",

@@ -66,7 +66,12 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     // 存储 rawLog 字段中的索引字段
     let indexRawLogKeys: any[] = [];
     // 取出 rawLog 日志字段并转成 Json ，parseJsonObject 回参数 Json || false
-    const rawLogJson = parseJsonObject(log["_raw_log_"]);
+    /**
+     * 加.replace(/\\*\\/g, "\\")是为了去除多次编码后产生的多个\造成pre标签识别不了的问题
+     */
+    const rawLogJson = parseJsonObject(
+      log["_raw_log_"].replace(/\\*\\/g, "\\")
+    );
     // 初始化新日志数组，初始化为 log
     let newLog: any = log;
 

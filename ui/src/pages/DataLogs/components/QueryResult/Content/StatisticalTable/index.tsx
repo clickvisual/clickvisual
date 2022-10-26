@@ -26,8 +26,18 @@ const StatisticalTableContent = (props: { isShare: boolean }) => {
         });
       }
       setLogExcelData(list);
+      let fields: string[] = [];
 
-      const fields = Object.keys(logChart.logs[0]) || [];
+      if (
+        logChart?.isNeedSort &&
+        logChart?.sortRule.length > 1 &&
+        logChart?.sortRule[0] != "*"
+      ) {
+        fields = logChart?.sortRule || [];
+      } else {
+        fields = Object.keys(logChart.logs[0]) || [];
+      }
+
       for (const fieldIndex in fields) {
         columnArr.push({
           r: 0,
@@ -36,6 +46,7 @@ const StatisticalTableContent = (props: { isShare: boolean }) => {
             ct: { fa: "General", t: "g" },
             m: fields[fieldIndex],
             v: fields[fieldIndex],
+            fc: "#EE2F6C",
           },
         });
       }
@@ -58,7 +69,7 @@ const StatisticalTableContent = (props: { isShare: boolean }) => {
     }
 
     return columnArr;
-  }, [logChart, logChart?.logs]);
+  }, [logChart, logChart?.logs, logChart?.sortRule, logChart?.isNeedSort]);
 
   return (
     <div
