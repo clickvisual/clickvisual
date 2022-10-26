@@ -38,6 +38,44 @@ definitions:
       pagination:
         $ref: '#/definitions/core.Pagination'
     type: object
+  db.RespAlertSettingInfo:
+    properties:
+      clusterId:
+        type: integer
+      configmap:
+        type: string
+      filePath:
+        description: file
+        type: string
+      instanceId:
+        type: integer
+      namespace:
+        description: k8s
+        type: string
+      prometheusTarget:
+        type: string
+      ruleStoreType:
+        description: rule_store_type 1 集群 2 文件
+        type: integer
+    type: object
+  db.RespAlertSettingListItem:
+    properties:
+      instanceId:
+        type: integer
+      instanceName:
+        type: string
+      isAlertManagerOK:
+        description: 0 no 1 yes
+        type: integer
+      isPrometheusOK:
+        description: check
+        type: integer
+      prometheusTarget:
+        type: string
+      ruleStoreType:
+        description: rule_store_type 1 集群 2 文件
+        type: integer
+    type: object
   view.Column:
     properties:
       comment:
@@ -383,13 +421,92 @@ info:
     Defines interface prefixes in terms of module overrides：
     - base : the global basic readable information module
     - storage : the log module
-    - alarm : the alarm module
+    - alert : the alert module
     - pandas : the data analysis module
     - cmdb : the configuration module
     - sysop : the system management module
   title: ClickVisual API
   version: 0.4.0
 paths:
+  /api/v2/alert/settings:
+    get:
+      consumes:
+      - application/json
+      description: Instance alarm configuration list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/db.RespAlertSettingListItem'
+            type: array
+      summary: Instance alarm configuration list
+      tags:
+      - alert
+  /api/v2/alert/settings/{instance-id}:
+    get:
+      consumes:
+      - application/json
+      description: Advanced configuration information in the instance
+      parameters:
+      - description: instance id
+        in: path
+        name: instance-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.RespAlertSettingInfo'
+      summary: Advanced configuration information in the instance
+      tags:
+      - alert
+    patch:
+      consumes:
+      - application/json
+      description: Alert Basic Configuration Modification
+      parameters:
+      - description: instance id
+        in: path
+        name: instance-id
+        required: true
+        type: integer
+      - in: query
+        name: clusterId
+        type: integer
+      - in: query
+        name: configmap
+        type: string
+      - description: file
+        in: query
+        name: filePath
+        type: string
+      - description: k8s
+        in: query
+        name: namespace
+        type: string
+      - in: query
+        name: prometheusTarget
+        type: string
+      - description: rule_store_type 1 集群 2 文件
+        in: query
+        name: ruleStoreType
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Alert Basic Configuration Modification
+      tags:
+      - alert
   /api/v2/base/instances:
     get:
       description: gets all instances, databases, and table nested data

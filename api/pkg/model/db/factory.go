@@ -290,3 +290,14 @@ func BuildPreloadArgs(conds Conds) (args []interface{}) {
 	args = append(args, binds...)
 	return
 }
+
+type Pagination struct {
+	// Current 总记录数
+	Current int `json:"current" form:"current"`
+	// PageSize 每页记录数
+	PageSize int `json:"pageSize" form:"pageSize"`
+	// Total 总页数
+	Total int64 `json:"total" form:"total"`
+	// Sort 顺序
+	Sort string `json:"sort"  form:"sort"`
+}

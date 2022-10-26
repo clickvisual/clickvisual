@@ -5,6 +5,7 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/pandas"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
@@ -14,7 +15,7 @@ import (
 // Defines interface prefixes in terms of module overrides：
 // The global basic readable information module - base
 // The log module - storage
-// The alarm module - alarm
+// The alert module - alert
 // The data analysis module - pandas
 // The configuration module - cmdb
 // The system management module - sysop
@@ -64,5 +65,11 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/storage/traces", core.Handle(storage.GetTraceList))
 		r.PATCH("/storage/:storage-id/trace", core.Handle(storage.UpdateTraceInfo))
 		r.GET("/storage/:storage-id/trace-graph", core.Handle(storage.GetTraceGraph))
+	}
+	// The log module - alert
+	{
+		r.GET("/alert/settings", core.Handle(alert.SettingList))
+		r.GET("/alert/settings/:instance-id", core.Handle(alert.SettingInfo))
+		r.PATCH("/alert/settings/:instance-id", core.Handle(alert.SettingUpdate))
 	}
 }
