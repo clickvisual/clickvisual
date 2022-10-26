@@ -211,7 +211,6 @@ const Editors = (props: {
     let cursor = cmInstance.getCursor();
     let cursorLine = cmInstance.getLine(cursor.line);
     let end = cursor.ch;
-    let start = end;
 
     let token = cmInstance.getTokenAt(cursor);
     if (cursorLine && cursorLine.length > 0 && cursorLine != "`") {
