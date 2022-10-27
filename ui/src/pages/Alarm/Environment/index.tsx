@@ -74,7 +74,7 @@ const Environment = () => {
       },
     },
     {
-      title: "RuleStoreType",
+      title: i18n.formatMessage({ id: "alarm.environment.form.ruleStoreType" }),
       dataIndex: "ruleStoreType",
       align: "left",
       render: (state: number) => {

@@ -1,69 +1,19 @@
-import { useRef } from "react";
 import styles from "./index.less";
-import { UnControlled as CodeMirror } from "react-codemirror2";
 import ReactDom from "react-dom";
-
-// // 白色主题
+import { useIntl } from "umi";
+import { useRef } from "react";
+import { UnControlled as CodeMirror } from "react-codemirror2";
+// 白色主题
 import "codemirror/theme/neo.css";
 import {
   FontSizeOutlined,
   HistoryOutlined,
   KeyOutlined,
 } from "@ant-design/icons";
-// import { Tooltip } from "antd";
-import useLocalStorages from "@/hooks/useLocalStorages";
-import { dataLogLocalaStorageType } from "@/models/dataLogs";
-
-// require("codemirror/lib/codemirror.css"); //关键信息引入
-// require("codemirror/theme/seti.css"); //引入主题颜色
-// require("codemirror/addon/display/fullscreen.css");
-// require("codemirror/addon/display/panel");
-// require("codemirror/mode/sql/sql.js");
-// require("codemirror/mode/xml/xml"); //引入编辑语言  xml
-// require("codemirror/mode/javascript/javascript"); //引入编辑语言  JavaScript
-// require("codemirror/mode/yaml/yaml"); //引入编辑语言 yaml
-// require("codemirror/addon/display/fullscreen");
-// require("codemirror/addon/edit/matchbrackets");
-// require("codemirror/addon/selection/active-line"); //代码高亮
-// require("codemirror/addon/fold/foldgutter.css"); // 代码折叠
-// require("codemirror/addon/fold/foldcode.js"); // 代码折叠
-// require("codemirror/addon/fold/foldgutter.js"); // 代码折叠
-// require("codemirror/addon/fold/brace-fold.js"); // 代码折叠
-// require("codemirror/addon/fold/comment-fold.js"); // 代码折叠
-
-// hint/anyword-hint.js  上下文代码补全
-
-// import "codemirror/addon/fold/foldgutter.css";
-
-// import "codemirror/addon/lint/lint.css";
-// import "codemirror/addon/fold/foldcode.js";
-// import "codemirror/addon/fold/foldgutter.js";
-// import "codemirror/addon/fold/brace-fold.js";
-// import "codemirror/addon/hint/anyword-hint.js";
-// import "codemirror/addon/lint/lint.js";
-// import "codemirror/addon/lint/json-lint.js";
-// import "codemirror/addon/lint/javascript-lint.js";
-// import "codemirror/addon/display/placeholder.js";
-// import "codemirror/mode/sql/sql.js";
-// import "codemirror/mode/javascript/javascript.js";
-
-// // 引入代码自动提示插件
-// import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
-import { useIntl } from "umi";
+import { dataLogLocalaStorageType } from "@/models/dataLogs";
+import useLocalStorages from "@/hooks/useLocalStorages";
 import { MYSQL_KEYWORD } from "./MySQLKeyWord";
-// import "codemirror/addon/hint/show-hint";
-
-// import "codemirror/lib/codemirror.css";
-// import "codemirror/addon/hint/show-hint.css";
-
-// require("codemirror/lib/codemirror");
-// require("codemirror/mode/sql/sql");
-// require("codemirror/addon/hint/show-hint");
-// require("codemirror/addon/hint/sql-hint");
-
-// import "codemirror/keymap/sublime";
-// import "codemirror/theme/monokai.css";
 
 export enum CodeHintsType {
   history = 1,
@@ -79,7 +29,6 @@ const Editors = (props: {
   onChange: (value: string) => void;
   tables: any;
   historicalRecord: any;
-  // onChangeTables: (obj: any) => void;
   onChangeHistoricalRecord: (data: { [tid: number]: string[] }) => void;
   currentTid: number;
   logQueryHistoricalList: { [tid: number]: string[] };
@@ -138,11 +87,6 @@ const Editors = (props: {
       }
       totalLenght += wordItem.length + 1;
     }
-    // // TODO: 再将字符拆分为一个一个的
-    // for (let i = 0; i < lowerCase.length; i++) {
-    //   const characterItem = lowerCase[i];
-    //   console.log(characterItem, "characterItem");
-    // }
     let icon: any = <></>;
     let infoText: any = "";
     switch (codeHintsType) {
@@ -168,10 +112,36 @@ const Editors = (props: {
     let arr: any[] = [];
     let priorityArr: any[] = [];
     list.map((item: string) => {
+      let text: any = document.createElement("span");
+      let virtualDom: any;
       // 从头开始匹配的优先级大于从中间开始匹配的
       if (item.indexOf(currentWord) === 0) {
+        const stringList: string[] = item.split(currentWord);
+        stringList.map((item: string, index: number) => {
+          if (index != stringList.length - 1) {
+            virtualDom = (
+              <span>
+                {virtualDom}
+                <span>{item}</span>
+                <span style={{ color: "hsl(21, 85%, 56%)" }}>
+                  {currentWord}
+                </span>
+              </span>
+            );
+          } else {
+            virtualDom = (
+              <span>
+                {virtualDom}
+                {item}
+              </span>
+            );
+          }
+        });
+
+        ReactDom.render(virtualDom, text);
         priorityArr.push({
           text: item,
+          domText: text,
           displayIcon: icon,
           displayText: infoText,
           isHistory: codeHintsType == CodeHintsType.history,
@@ -179,8 +149,32 @@ const Editors = (props: {
         });
       }
       if (item.indexOf(currentWord) > 0) {
+        const stringList: string[] = item.split(currentWord);
+        stringList.map((item: string, index: number) => {
+          if (index != stringList.length - 1) {
+            virtualDom = (
+              <span>
+                {virtualDom}
+                <span>{item}</span>
+                <span style={{ color: "hsl(21, 85%, 56%)" }}>
+                  {currentWord}
+                </span>
+              </span>
+            );
+          } else {
+            virtualDom = (
+              <span>
+                {virtualDom}
+                {item}
+              </span>
+            );
+          }
+        });
+
+        ReactDom.render(virtualDom, text);
         arr.push({
           text: item,
+          domText: text,
           displayIcon: icon,
           displayText: infoText,
           isHistory: codeHintsType == CodeHintsType.history,
@@ -188,6 +182,7 @@ const Editors = (props: {
         });
       }
     });
+
     return [...priorityArr, ...arr];
   };
 
@@ -213,6 +208,7 @@ const Editors = (props: {
     let end = cursor.ch;
 
     let token = cmInstance.getTokenAt(cursor);
+    // 按键触发的显示三种提示
     if (cursorLine && cursorLine.length > 0 && cursorLine != "`") {
       const historyList = handleCodePromptRecord(
         historicalRecord,
@@ -240,7 +236,7 @@ const Editors = (props: {
         to: { ch: token.end, line: cursor.line },
       };
     }
-
+    // 否则显示一种提示
     const allHistoryList = handleCodePromptRecord(
       historicalRecord,
       "",
@@ -259,10 +255,11 @@ const Editors = (props: {
     element: { appendChild: (arg0: HTMLDivElement) => void },
     self: any,
     data: {
-      isHistory: boolean;
-      displayText: string;
-      displayIcon: any;
-      text: string;
+      isHistory: boolean; // 是否是历史记录
+      displayText: string; // 注释文本
+      displayIcon: any; // 注释icon
+      domText: any; // 用于显示文本样式的dom
+      text: string; // 用于替换的文本 string
     }
   ) => {
     let div = document.createElement("div");
@@ -273,7 +270,7 @@ const Editors = (props: {
 
     let divText = document.createElement("div");
     divText.setAttribute("class", "autocomplete-text");
-    divText.innerText = data.text;
+    divText.appendChild(data.domText);
 
     let divInfo = document.createElement("div");
     divInfo.setAttribute("class", "autocomplete-info");
@@ -292,7 +289,6 @@ const Editors = (props: {
         <span
           onClick={(e) => {
             e.stopPropagation();
-            // e.preventDefault();
             const newLogQueryHistoricalList = historicalRecord.filter(
               (item: string) => {
                 return item != data.text;
@@ -340,23 +336,6 @@ const Editors = (props: {
               formRefs.current.editor.showHint();
             }
           }}
-          // onInputRead={() => {
-          //   // 按键的时候触发代码提示
-          //   formRefs.current.editor.showHint();
-          // }}
-          // onKeyHandled={(e, r, t) => console.log(e, r, t)}
-          // onFocus={() => {
-          //   // const CodeMirror = formRefs.current?.editor;
-          //   if (formRefs.current.editor.getValue() === "") {
-          //     // formRefs.current.editor.setOption({
-          //     //   hintOptions: {
-          //     //     tables: historicalRecord,
-          //     //   },
-          //     // });
-          //     // 值为空的时候聚焦会主动吊起历史记录提示框
-          //     formRefs.current.editor.showHint();
-          //   }
-          // }}
           onChange={(CodeMirror: string, changeObj: any, value: string) =>
             onChange(value)
           }
@@ -371,7 +350,6 @@ const Editors = (props: {
             },
             // 自定义快捷键
             extraKeys: { Enter: handleEnter },
-            // extraKeys: { Enter: handleEnter, "Ctrl+1": autoComplete },
             hintOptions: {
               // 自定义提示选项
               completeSingle: false, // 当匹配只有一项的时候是否自动补全
@@ -386,7 +364,6 @@ const Editors = (props: {
             // 溢出滚动而非换行
             lineWrapping: false,
             foldGutter: true,
-            // gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
             gutters: false,
             lint: false,
             indentUnit: 2,
