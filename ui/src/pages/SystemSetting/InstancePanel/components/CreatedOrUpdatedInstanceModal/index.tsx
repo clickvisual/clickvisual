@@ -1,16 +1,11 @@
-import instanceModalStyle from "@/pages/SystemSetting/InstancePanel/components/CreatedOrUpdatedInstanceModal/index.less";
 import {
   Button,
-  Cascader,
   Checkbox,
-  Col,
   Form,
   FormInstance,
   Input,
   message,
   Modal,
-  Radio,
-  Row,
   Select,
   Space,
   Switch,
@@ -23,16 +18,11 @@ import { useEffect, useRef, useState } from "react";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
 import {
-  CaretDownOutlined,
-  CaretRightOutlined,
   MinusCircleOutlined,
   PlusOutlined,
-  QuestionCircleOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
 import { cloneDeep } from "lodash";
-import classNames from "classnames";
-import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
 import IconFont from "@/components/IconFont";
 
 type CreatedOrUpdatedInstanceModalProps = {
@@ -55,18 +45,10 @@ const CreatedOrUpdatedInstanceModal = (
     doTestInstance,
   } = useModel("instances");
 
-  const { options, clusters, doGetClusters, doGetConfigMaps } =
-    useModel("configure");
+  const { doGetClusters, doGetConfigMaps } = useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
-  const { AlarmStorages } = useAlarmStorages();
-
-  const [moreOptionFlag, setMoreOptionFlag] = useState<boolean>(false);
   const [disabledSubmit, setDisabledSubmit] = useState<boolean>(false);
-
-  const onChangeMoreOptionFlag = (flag: boolean) => {
-    setMoreOptionFlag(flag);
-  };
 
   const onSubmit = (field: any) => {
     const params = {
@@ -118,13 +100,6 @@ const CreatedOrUpdatedInstanceModal = (
 
   const { run } = useDebounceFn(onSubmit, { wait: DEBOUNCE_WAIT });
 
-  const filter = (inputValue: string, path: any) => {
-    return path.some(
-      (option: any) =>
-        option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1
-    );
-  };
-
   useEffect(() => {
     if (visible && isEditor && current && current?.id) {
       doGetInstanceInfo.run(current.id).then((res: any) => {
@@ -145,7 +120,6 @@ const CreatedOrUpdatedInstanceModal = (
               cloneCurrent.configmap,
             ];
           }
-          if (cloneCurrent.ruleStoreType > 0) onChangeMoreOptionFlag(true);
           cloneCurrent.replicaStatus === 0
             ? (cloneCurrent.replicaStatus = true)
             : (cloneCurrent.replicaStatus = false);
@@ -182,7 +156,6 @@ const CreatedOrUpdatedInstanceModal = (
 
   useEffect(() => {
     if (!visible) {
-      onChangeMoreOptionFlag(false);
       setDisabledSubmit(false);
       instanceFormRef.current?.resetFields();
     }
@@ -465,159 +438,6 @@ const CreatedOrUpdatedInstanceModal = (
             })}
           />
         </Form.Item>
-        <Row>
-          <Col
-            span={4}
-            className={classNames(
-              instanceModalStyle.moreOptions,
-              moreOptionFlag && instanceModalStyle.moreOptionsShow
-            )}
-          >
-            <a
-              onClick={() => {
-                onChangeMoreOptionFlag(!moreOptionFlag);
-              }}
-            >
-              {i18n.formatMessage({ id: "instance.form.moreOptions" })}
-              {moreOptionFlag ? <CaretDownOutlined /> : <CaretRightOutlined />}
-            </a>
-          </Col>
-        </Row>
-        {moreOptionFlag && (
-          <Form.Item noStyle>
-            <Form.Item
-              label={i18n.formatMessage({
-                id: "instance.form.title.ruleStoreType",
-              })}
-            >
-              <Space>
-                <Tooltip
-                  title={i18n.formatMessage({
-                    id: "instance.form.title.ruleStoreType.tip",
-                  })}
-                >
-                  <a>
-                    <QuestionCircleOutlined />
-                  </a>
-                </Tooltip>
-                <Form.Item noStyle name={"ruleStoreType"} initialValue={0}>
-                  <Radio.Group>
-                    {AlarmStorages.map((item) => (
-                      <Radio value={item.value}>{item.label}</Radio>
-                    ))}
-                  </Radio.Group>
-                </Form.Item>
-              </Space>
-            </Form.Item>
-
-            <Form.Item
-              noStyle
-              shouldUpdate={(prevValues, nextValues) =>
-                prevValues.ruleStoreType !== nextValues.ruleStoreType
-              }
-            >
-              {({ getFieldValue }) => {
-                const type = getFieldValue("ruleStoreType");
-                const content = (
-                  <Form.Item
-                    label={"Prometheus"}
-                    name={"prometheusTarget"}
-                    rules={[{ required: true }]}
-                  >
-                    <Input placeholder={"http://prometheus:9090"} />
-                  </Form.Item>
-                );
-                switch (type) {
-                  case 1:
-                    return (
-                      <>
-                        {content}
-                        <Form.Item
-                          label={i18n.formatMessage({
-                            id: "instance.form.title.filePath",
-                          })}
-                          name={"filePath"}
-                          rules={[
-                            {
-                              required: true,
-                              message: i18n.formatMessage({
-                                id: "instance.form.placeholder.filePath",
-                              }),
-                            },
-                          ]}
-                        >
-                          <Input
-                            placeholder={`${i18n.formatMessage({
-                              id: "instance.form.placeholder.filePath",
-                            })}`}
-                          />
-                        </Form.Item>
-                      </>
-                    );
-                  case 2:
-                    return (
-                      <>
-                        {content}
-                        <Form.Item
-                          label={i18n.formatMessage({
-                            id: "instance.form.title.cluster",
-                          })}
-                          name={"clusterId"}
-                          rules={[
-                            {
-                              required: true,
-                              message: i18n.formatMessage({
-                                id: "config.selectedBar.cluster",
-                              }),
-                            },
-                          ]}
-                        >
-                          <Select
-                            placeholder={`${i18n.formatMessage({
-                              id: "config.selectedBar.cluster",
-                            })}`}
-                            onChange={(val: number) => {
-                              if (val) doGetConfigMaps(val);
-                            }}
-                            showSearch
-                          >
-                            {clusters.map((item) => (
-                              <Option key={item.id} value={item.id as number}>
-                                {item.clusterName}
-                              </Option>
-                            ))}
-                          </Select>
-                        </Form.Item>
-                        <Form.Item
-                          label={"ConfigMap"}
-                          name="k8sConfig"
-                          rules={[
-                            {
-                              required: true,
-                              message: i18n.formatMessage({
-                                id: "instance.form.rule.configmap",
-                              }),
-                            },
-                          ]}
-                        >
-                          <Cascader
-                            options={options}
-                            expandTrigger="hover"
-                            placeholder={`${i18n.formatMessage({
-                              id: "config.selectedBar.configmap",
-                            })}`}
-                            showSearch={{ filter }}
-                          />
-                        </Form.Item>
-                      </>
-                    );
-                  default:
-                    return <></>;
-                }
-              }}
-            </Form.Item>
-          </Form.Item>
-        )}
       </Form>
     </Modal>
   );

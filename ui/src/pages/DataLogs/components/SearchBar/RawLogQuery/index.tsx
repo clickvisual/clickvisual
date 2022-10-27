@@ -7,16 +7,14 @@ import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT, FIRST_PAGE, TimeRangeType } from "@/config/config";
+import { FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
 import { cloneDeep } from "lodash";
 import CodeMirrorSearch from "./CodeMirrorSearch";
-// import { dataLogLocalaStorageType } from "@/models/dataLogs";
-// import useLocalStorages from "@/hooks/useLocalStorages";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -107,7 +105,7 @@ const RawLogQuery = () => {
 
             pane.highCharts = res.highCharts;
             if (res.logs.query !== pane.querySql) {
-              pane.logChart = { logs: [] };
+              pane.logChart = { isNeedSort: false, logs: [], sortRule: ["*"] };
             }
             doGetAnalysisField.run(currentLogLibrary?.id).then((res: any) => {
               if (res.code != 0) return;
@@ -137,7 +135,6 @@ const RawLogQuery = () => {
 
   useEffect(() => {
     if (urlState?.mode == 1) {
-      // onChangeKeywordInput("");
       setQueryKeyword("");
     }
   }, [urlState?.mode]);

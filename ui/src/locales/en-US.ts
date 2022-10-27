@@ -78,6 +78,7 @@ export default {
   "menu.alarm": "Alarm",
   "menu.alarm.rules": "Alarm Rules",
   "menu.alarm.notifications": "Notification Channel",
+  "menu.alarm.environment": "Environmental management",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
@@ -648,6 +649,13 @@ export default {
   "alarm.notify.name.placeholder": "Please enter notification name",
   "alarm.notify.type.placeholder": "Please select a type",
   "alarm.notify.url.placeholder": "Please enter the url",
+
+  // alarm -> environment
+  "alarm.environment.RuleStoreType.notOpen": "Did not open",
+  "alarm.environment.form.notOpen": "Did not open",
+  "alarm.environment.RuleStoreType.file": "File",
+  "alarm.environment.form.title": "Editing the Alarm Environment",
+  "alarm.environment.form.ruleStoreType": "Rule storage Type",
 
   // install
   "install.init.text.databaseInit":
