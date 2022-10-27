@@ -1393,6 +1393,12 @@ const docTemplate = `{
         "db.RespAlertSettingListItem": {
             "type": "object",
             "properties": {
+                "checkAlertManagerResult": {
+                    "type": "string"
+                },
+                "checkPrometheusResult": {
+                    "type": "string"
+                },
                 "instanceId": {
                     "type": "integer"
                 },

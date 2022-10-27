@@ -9,6 +9,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/component"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
@@ -64,8 +65,13 @@ func SettingUpdate(c *core.Context) {
 		if !strings.HasPrefix(prometheus, "http") {
 			prometheus = "http://" + prometheus
 		}
-		if err := service.Alarm.PrometheusReload(prometheus); err != nil {
-			c.JSONE(1, "prometheus reload failed: "+err.Error(), err)
+		p, err := component.NewPrometheus(prometheus)
+		if err != nil {
+			c.JSONE(1, "prometheus check failed: "+err.Error(), err)
+			return
+		}
+		if err = p.Health(); err != nil {
+			c.JSONE(1, "prometheus check failed: "+err.Error(), err)
 			return
 		}
 		ups["prometheus_target"] = prometheus
@@ -90,14 +96,34 @@ func SettingList(c *core.Context) {
 	res := make([]*db.RespAlertSettingListItem, 0)
 	instanceList, err := db.InstanceList(egorm.Conds{})
 	for _, instance := range instanceList {
-		if service.InstanceViewIsPermission(c.Uid(), instance.ID) {
-			res = append(res, &db.RespAlertSettingListItem{
-				InstanceId:       instance.ID,
-				InstanceName:     instance.Name,
-				RuleStoreType:    instance.RuleStoreType,
-				PrometheusTarget: instance.PrometheusTarget,
-			})
+		if !service.InstanceViewIsPermission(c.Uid(), instance.ID) {
+			continue
 		}
+		row := db.RespAlertSettingListItem{
+			InstanceId:       instance.ID,
+			InstanceName:     instance.Name,
+			RuleStoreType:    instance.RuleStoreType,
+			PrometheusTarget: instance.PrometheusTarget,
+			IsAlertManagerOK: 1,
+			IsPrometheusOK:   1,
+		}
+		// prometheus
+		errProm, errAlertManager := func() (error, error) {
+			p, errProm := component.NewPrometheus(instance.PrometheusTarget)
+			if errProm != nil {
+				return errProm, errProm
+			}
+			return p.Health(), p.CheckDependents()
+		}()
+		if errProm != nil {
+			row.IsPrometheusOK = 0
+			row.CheckPrometheusResult = errProm.Error()
+		}
+		if errAlertManager != nil {
+			row.IsAlertManagerOK = 0
+			row.CheckAlertManagerResult = errAlertManager.Error()
+		}
+		res = append(res, &row)
 	}
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
