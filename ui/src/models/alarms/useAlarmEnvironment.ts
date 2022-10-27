@@ -5,6 +5,7 @@ import {
 } from "@/services/environment";
 import api from "@/services/systemSetting";
 import useRequest from "@/hooks/useRequest/useRequest";
+import apiConfigure from "@/services/configure";
 
 const useAlarmEnvironment = () => {
   const doGetAlarmConfigList = useRequest(getAlarmConfigList, {
@@ -21,11 +22,16 @@ const useAlarmEnvironment = () => {
     loadingText: false,
   });
 
+  const doGetConfigMaps = useRequest(apiConfigure.getSelectedConfigMaps, {
+    loadingText: false,
+  });
+
   return {
     doGetAlarmConfigList,
     doGetAlarmConfigDetails,
     doPatchAlarmConfigDetails,
     getClusterList,
+    doGetConfigMaps,
   };
 };
 export default useAlarmEnvironment;
