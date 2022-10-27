@@ -104,6 +104,16 @@ const Environment = () => {
       align: "left",
     },
     {
+      title: "CheckPrometheusResult",
+      dataIndex: "checkPrometheusResult",
+      align: "left",
+    },
+    {
+      title: "CheckAlertManagerResult",
+      dataIndex: "checkAlertManagerResult",
+      align: "left",
+    },
+    {
       title: "Options",
       key: "options",
       width: 100,
