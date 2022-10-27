@@ -78,6 +78,7 @@ export default {
   "menu.alarm": "报警",
   "menu.alarm.rules": "报警规则",
   "menu.alarm.notifications": "通知方式",
+  "menu.alarm.environment": "环境管理",
   "menu.systemSettings": "系统管理",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
@@ -609,6 +610,13 @@ export default {
   "alarm.notify.name.placeholder": "请输入通知名称",
   "alarm.notify.type.placeholder": "请选择通知方式",
   "alarm.notify.url.placeholder": "请输入通知url",
+
+  // alarm -> environment
+  "alarm.environment.RuleStoreType.notOpen": "未开启",
+  "alarm.environment.form.notOpen": "不开启",
+  "alarm.environment.RuleStoreType.file": "文件",
+  "alarm.environment.form.title": "编辑告警环境",
+  "alarm.environment.form.ruleStoreType": "规则存储类型",
 
   // install
   "install.init.text.databaseInit":

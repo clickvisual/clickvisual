@@ -36,6 +36,11 @@ export default [
         name: "notifications",
         component: "./Alarm/Notifications",
       },
+      {
+        path: "/alarm/environment",
+        name: "environment",
+        component: "./Alarm/Environment",
+      },
     ],
   },
   {
