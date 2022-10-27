@@ -309,6 +309,8 @@ type RespAlertSettingListItem struct {
 	PrometheusTarget string `json:"prometheusTarget"`
 
 	// check
-	IsPrometheusOK   int `json:"isPrometheusOK"`   // 0 no 1 yes
-	IsAlertManagerOK int `json:"isAlertManagerOK"` // 0 no 1 yes
+	IsPrometheusOK          int    `json:"isPrometheusOK"` // 0 no 1 yes
+	CheckPrometheusResult   string `json:"checkPrometheusResult"`
+	IsAlertManagerOK        int    `json:"isAlertManagerOK"` // 0 no 1 yes
+	CheckAlertManagerResult string `json:"checkAlertManagerResult"`
 }

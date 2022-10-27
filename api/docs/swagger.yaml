@@ -60,6 +60,10 @@ definitions:
     type: object
   db.RespAlertSettingListItem:
     properties:
+      checkAlertManagerResult:
+        type: string
+      checkPrometheusResult:
+        type: string
       instanceId:
         type: integer
       instanceName:
