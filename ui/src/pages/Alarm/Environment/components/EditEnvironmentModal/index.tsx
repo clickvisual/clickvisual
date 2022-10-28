@@ -103,6 +103,23 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
     );
   };
 
+  const handleFinish = (file: any) => {
+    if (!editEnvironmentId) return;
+    const data = {
+      ...file,
+      clusterId: file.clusterId ? parseInt(file.clusterId) : 0,
+      ruleStoreType: file.ruleStoreType ? parseInt(file.ruleStoreType) : 0,
+      namespace: selectedNameSpace,
+      configmap: selectedConfigMap,
+    };
+    delete data.namespaceConfigmap;
+    doPatchAlarmConfigDetails.run(editEnvironmentId, data).then((res: any) => {
+      if (res.code != 0) return;
+      message.success("success");
+      onChangeVisible(false);
+    });
+  };
+
   return (
     <Modal
       title={i18n.formatMessage({ id: "alarm.environment.form.title" })}
@@ -116,26 +133,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
         labelCol={{ span: 5 }}
         wrapperCol={{ span: 16 }}
         ref={formRef}
-        onFinish={(file: any) => {
-          if (!editEnvironmentId) return;
-          const data = {
-            ...file,
-            clusterId: file.clusterId ? parseInt(file.clusterId) : 0,
-            ruleStoreType: file.ruleStoreType
-              ? parseInt(file.ruleStoreType)
-              : 0,
-            namespace: selectedNameSpace,
-            configmap: selectedConfigMap,
-          };
-          delete data.namespaceConfigmap;
-          doPatchAlarmConfigDetails
-            .run(editEnvironmentId, data)
-            .then((res: any) => {
-              if (res.code != 0) return;
-              message.success("success");
-              onChangeVisible(false);
-            });
-        }}
+        onFinish={handleFinish}
       >
         <Form.Item
           label={i18n.formatMessage({
@@ -152,14 +150,14 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
                 value: RuleStoreType.notOpen,
               },
               {
-                label: "k8s",
-                value: RuleStoreType.k8s,
-              },
-              {
                 label: i18n.formatMessage({
                   id: "alarm.environment.RuleStoreType.file",
                 }),
                 value: RuleStoreType.file,
+              },
+              {
+                label: "k8s",
+                value: RuleStoreType.k8s,
               },
             ]}
           />
