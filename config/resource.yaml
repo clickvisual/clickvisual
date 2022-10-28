@@ -14,10 +14,10 @@ permission:
   - name: alarm
     path: /alarm
     children:
-      - name: environment
-        path: /alarm/environment
       - name: rules
         path: /alarm/rules
+      - name: environment
+        path: /alarm/environment
       - name: notifications
         path: /alarm/notifications
   - name: configure

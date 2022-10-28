@@ -32,7 +32,3 @@ func sim2telnet(url string) error {
 	}
 	return nil
 }
-
-func sim2ping(url string) error {
-	return nil
-}

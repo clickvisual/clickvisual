@@ -440,15 +440,22 @@ func TableDependencies(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	data, err := service.TableDeps(iid, req.DatabaseName, req.TableName)
+	data, err := service.Dependence.Table(iid, req.DatabaseName, req.TableName)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	row, _ := db.EarliestDependRow()
+	res := make([]view.RespTableDeps, 0)
+	for _, t := range data {
+		res = append(res, t)
+		if t.Engine == "ReplicatedMergeTree" {
+			res = append(res, t)
+		}
+	}
+	row, _ := db.EarliestDependRow(iid)
 	c.JSONOK(view.RespTableDependencies{
 		Utime: row.Utime,
-		Data:  data,
+		Data:  res,
 	})
 	return
 }

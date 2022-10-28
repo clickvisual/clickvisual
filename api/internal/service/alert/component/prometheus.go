@@ -47,6 +47,10 @@ func (p *Prometheus) Health() error {
 	}
 	// remote read check
 	if err := p.checkRemoteReadUrls(); err != nil {
+		// 跳过 dns 无法解析的报错
+		if strings.Contains(err.Error(), "dial tcp: lookup") {
+			return nil
+		}
 		return err
 	}
 	return nil
@@ -75,6 +79,9 @@ func (p *Prometheus) CheckDependents() error {
 			return errNewAM
 		}
 		if err = am.Health(); err != nil {
+			if strings.Contains(err.Error(), "dial tcp: lookup") {
+				return nil
+			}
 			return errors.WithMessage(err, "alertmanager")
 		}
 		components = append(components, am)
