@@ -847,7 +847,7 @@ func TableDeps(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	res, err := service.TableDeps(iid, dn, tn)
+	res, err := service.Dependence.Table(iid, dn, tn)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return

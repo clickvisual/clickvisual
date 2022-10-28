@@ -41,8 +41,9 @@ func Init() error {
 	event.InitService()
 	permission.InitManager()
 
+	Dependence = NewDependence()
 	xgo.Go(func() {
-		DoDepsSync()
+		Dependence.Sync()
 	})
 	xgo.Go(func() {
 		ShortURLClean()

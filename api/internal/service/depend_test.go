@@ -59,14 +59,15 @@ func Test_customParsing(t *testing.T) {
 			ups:   []string{"clickvisual_default.app_stdout_local"},
 		},
 	}
+	d := NewDependence()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			downs, ups := customDepsParsing(tt.args.row)
+			downs, ups := d.parsing(tt.args.row)
 			if !reflect.DeepEqual(downs, tt.downs) {
-				t.Errorf("customDepsParsing() = %v, want %v", downs, tt.downs)
+				t.Errorf("parsing() = %v, want %v", downs, tt.downs)
 			}
 			if !reflect.DeepEqual(ups, tt.ups) {
-				t.Errorf("customDepsParsing() = %v, want %v", ups, tt.ups)
+				t.Errorf("parsing() = %v, want %v", ups, tt.ups)
 			}
 		})
 	}
