@@ -18,8 +18,8 @@ export interface ResGetAlarmConfigList {
 
 export enum RuleStoreType {
   notOpen = 0,
-  k8s = 1,
-  file = 2,
+  file = 1,
+  k8s = 2,
 }
 
 const Environment = () => {
@@ -168,6 +168,7 @@ const Environment = () => {
         dataSource={alarmConfigList || []}
         columns={column}
         size="small"
+        pagination={{ hideOnSinglePage: true }}
         rowKey={(item: any) => item.instanceId}
       />
       <EditEnvironmentModal

@@ -3,7 +3,7 @@ import { Button, Input, Select, Space, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import { useIntl } from "umi";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined, RedoOutlined, SearchOutlined } from "@ant-design/icons";
 import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
@@ -221,6 +221,13 @@ const Operations = () => {
         </Select>
         <Button icon={<PlusOutlined />} type="primary" onClick={handleOpenDraw}>
           {i18n.formatMessage({ id: "alarm.rules.button.created" })}
+        </Button>
+        <Button
+          loading={doGetAlarms.loading}
+          icon={<RedoOutlined />}
+          onClick={handleSearch}
+        >
+          {i18n.formatMessage({ id: "table.column.filter.refresh" })}
         </Button>
       </Space>
       <Space>
