@@ -76,9 +76,9 @@ export default {
   "menu.configure": "配置",
   "menu.log": "日志",
   "menu.alarm": "报警",
-  "menu.alarm.rules": "报警规则",
+  "menu.alarm.rules": "报警列表",
   "menu.alarm.notifications": "通知方式",
-  "menu.alarm.environment": "环境管理",
+  "menu.alarm.environment": "配置管理",
   "menu.systemSettings": "系统管理",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
@@ -580,6 +580,7 @@ export default {
   "alarm.rules.state.alerting": "正在报警",
   "alarm.rules.state.ok": "正常",
   "alarm.rules.state.paused": "暂停",
+  "alarm.rules.state.config": "配置中",
 
   "alarm.rules.historyBorad.theLog": "日志",
   "alarm.rules.historyBorad.toView": "查看日志详情",
@@ -616,7 +617,9 @@ export default {
   "alarm.environment.form.notOpen": "不开启",
   "alarm.environment.RuleStoreType.file": "文件",
   "alarm.environment.form.title": "编辑告警环境",
-  "alarm.environment.form.ruleStoreType": "规则存储类型",
+  "alarm.environment.form.ruleStoreType": "告警类型",
+  "alarm.environment.form.isPrometheusOK": "Prometheus状态",
+  "alarm.environment.form.isAlertManagerOK": "AlertManager状态",
 
   // install
   "install.init.text.databaseInit":

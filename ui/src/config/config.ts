@@ -43,6 +43,10 @@ export const QUERY_PATH = process.env.PUBLIC_PATH + "query";
 // 报警规则路由
 export const ALARMRULES_PATH = process.env.PUBLIC_PATH + "alarm/rules";
 
+// 实例管理路由
+export const INSTANCEMANAGEMENT_PATH =
+  process.env.PUBLIC_PATH + "sys/instances";
+
 // 日志拓扑路由
 export const LOGTOPOLOGY_PATH = process.env.PUBLIC_PATH + "bigdata";
 

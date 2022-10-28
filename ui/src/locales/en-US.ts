@@ -76,9 +76,9 @@ export default {
   "menu.configure": "Config",
   "menu.log": "Logs",
   "menu.alarm": "Alarm",
-  "menu.alarm.rules": "Alarm Rules",
+  "menu.alarm.rules": "Alarm list",
   "menu.alarm.notifications": "Notification Channel",
-  "menu.alarm.environment": "Environmental management",
+  "menu.alarm.environment": "Configuration anagement",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
@@ -614,6 +614,7 @@ export default {
   "alarm.rules.state.alerting": "alerting",
   "alarm.rules.state.ok": "ok",
   "alarm.rules.state.paused": "paused",
+  "alarm.rules.state.config": "config",
 
   "alarm.rules.historyBorad.theLog": "The log",
   "alarm.rules.historyBorad.toView": "Viewing Log Details",
@@ -655,7 +656,9 @@ export default {
   "alarm.environment.form.notOpen": "Did not open",
   "alarm.environment.RuleStoreType.file": "File",
   "alarm.environment.form.title": "Editing the Alarm Environment",
-  "alarm.environment.form.ruleStoreType": "Rule storage Type",
+  "alarm.environment.form.ruleStoreType": "The alarm types",
+  "alarm.environment.form.isPrometheusOK": "Prometheus state",
+  "alarm.environment.form.isAlertManagerOK": "AlertManager state",
 
   // install
   "install.init.text.databaseInit":

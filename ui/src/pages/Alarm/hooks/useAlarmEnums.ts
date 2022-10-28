@@ -26,6 +26,12 @@ const useAlarmEnums = () => {
       color: "#b22e33",
       icon: "icon-love-failure",
     },
+    {
+      status: 4,
+      label: i18n.formatMessage({ id: "alarm.rules.state.config" }),
+      color: "#b22e33",
+      icon: "icon-setting",
+    },
   ];
   return { ChannelTypes, AlarmStatus };
 };

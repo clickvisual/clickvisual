@@ -1,19 +1,18 @@
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import {Divider, message, Space, Table, Tooltip} from "antd";
-import type {AlignType, FixedType} from "rc-table/lib/interface";
-import {EditOutlined, UsergroupAddOutlined} from "@ant-design/icons";
+import { Divider, message, Space, Table, Tooltip } from "antd";
+import type { AlignType, FixedType } from "rc-table/lib/interface";
+import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
-import {InstancePanelContext} from "@/pages/SystemSetting/InstancePanel";
-import {useContext, useState} from "react";
+import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
+import { useContext, useState } from "react";
 import deletedModal from "@/components/DeletedModal";
-import {useModel} from "@@/plugin-model/useModel";
-import type {InstanceType} from "@/services/systemSetting";
+import { useModel } from "@@/plugin-model/useModel";
+import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
-import {useIntl} from "umi";
-import useAlarmStorages from "@/pages/SystemSetting/InstancePanel/hooks/useAlarmStorages";
-import {ColumnsType} from "antd/es/table";
-import {CheckPermission} from "@/services/pms";
+import { useIntl } from "umi";
+import { ColumnsType } from "antd/es/table";
+import { CheckPermission } from "@/services/pms";
 import AppRoleAssignListForm from "../RoleAssign";
 
 type InstanceTableProps = {
@@ -32,8 +31,6 @@ const InstanceTable = (props: InstanceTableProps) => {
   const [roleAssignVisible, setRoleAssignVisible] = useState<true | false>(
     false
   );
-
-  const { AlarmStorages } = useAlarmStorages();
 
   const TooltipUtil = (content: any) => (
     <Tooltip
@@ -116,28 +113,6 @@ const InstanceTable = (props: InstanceTableProps) => {
       ellipsis: { showTitle: false },
       width: 200,
       render: (_: any) => TooltipUtil(_),
-    },
-    {
-      width: 120,
-      title: i18n.formatMessage({ id: "instance.form.title.ruleStoreType" }),
-      align: "center" as AlignType,
-      dataIndex: "ruleStoreType",
-      render: (type: number) => (
-        <span>
-          {AlarmStorages.find((item) => item.value === type)?.label || "-"}
-        </span>
-      ),
-    },
-    {
-      title: "Prometheus",
-      align: "center" as AlignType,
-      dataIndex: "prometheusTarget",
-      ellipsis: { showTitle: false },
-      width: 200,
-      render: (_: any, record: any) => {
-        if (record.ruleStoreType === 0) return <>-</>;
-        return TooltipUtil(_);
-      },
     },
     {
       title: `${i18n.formatMessage({

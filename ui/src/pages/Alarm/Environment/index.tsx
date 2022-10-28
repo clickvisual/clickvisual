@@ -1,3 +1,4 @@
+import { INSTANCEMANAGEMENT_PATH } from "@/config/config";
 import { EditOutlined } from "@ant-design/icons";
 import { Button, Table, Tag, Tooltip } from "antd";
 import { useEffect, useState } from "react";
@@ -11,6 +12,8 @@ export interface ResGetAlarmConfigList {
   ruleStoreType: number;
   instanceName: string;
   prometheusTarget: string;
+  checkPrometheusResult: string;
+  checkAlertManagerResult: string;
 }
 
 export enum RuleStoreType {
@@ -32,12 +35,21 @@ const Environment = () => {
       title: i18n.formatMessage({ id: "instance.instanceName" }),
       dataIndex: "instanceName",
       align: "left",
+      render: (instanceName: string) => {
+        return (
+          <Button type="link" href={INSTANCEMANAGEMENT_PATH} target="_blank">
+            {instanceName}
+          </Button>
+        );
+      },
     },
     {
-      title: "IsAlertManagerOK",
+      title: i18n.formatMessage({
+        id: "alarm.environment.form.isAlertManagerOK",
+      }),
       dataIndex: "isAlertManagerOK",
       align: "left",
-      render: (state: number) => {
+      render: (state: number, record: ResGetAlarmConfigList) => {
         return (
           <>
             {state == 0 ? (
@@ -45,19 +57,24 @@ const Environment = () => {
                 {i18n.formatMessage({ id: "cluster.form.status.normality" })}
               </Tag>
             ) : (
-              <Tag color="error">
-                {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
-              </Tag>
+              <>
+                <Tag color="error">
+                  {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
+                </Tag>
+                {record.checkAlertManagerResult}
+              </>
             )}
           </>
         );
       },
     },
     {
-      title: "IsPrometheusOK",
+      title: i18n.formatMessage({
+        id: "alarm.environment.form.isPrometheusOK",
+      }),
       dataIndex: "isPrometheusOK",
       align: "left",
-      render: (state: number) => {
+      render: (state: number, record: ResGetAlarmConfigList) => {
         return (
           <>
             {state == 0 ? (
@@ -65,16 +82,19 @@ const Environment = () => {
                 {i18n.formatMessage({ id: "cluster.form.status.normality" })}
               </Tag>
             ) : (
-              <Tag color="error">
-                {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
-              </Tag>
+              <>
+                <Tag color="error">
+                  {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
+                </Tag>
+                {record.checkPrometheusResult}
+              </>
             )}
           </>
         );
       },
     },
     {
-      title: "RuleStoreType",
+      title: i18n.formatMessage({ id: "alarm.environment.form.ruleStoreType" }),
       dataIndex: "ruleStoreType",
       align: "left",
       render: (state: number) => {
@@ -88,7 +108,7 @@ const Environment = () => {
           ),
           [RuleStoreType.k8s]: <Tag color="cyan">k8s</Tag>,
           [RuleStoreType.file]: (
-            <Tag color="geekblue">
+            <Tag color="purple">
               {i18n.formatMessage({
                 id: "alarm.environment.RuleStoreType.file",
               })}
@@ -99,9 +119,16 @@ const Environment = () => {
       },
     },
     {
-      title: "PrometheusTarget",
+      title: "Prometheus",
       dataIndex: "prometheusTarget",
       align: "left",
+      render: (prometheusTarget: string) => {
+        return (
+          <Button type="link" href={prometheusTarget} target="_blank">
+            {prometheusTarget}
+          </Button>
+        );
+      },
     },
     {
       title: "Options",
