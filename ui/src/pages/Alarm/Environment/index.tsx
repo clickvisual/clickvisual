@@ -44,56 +44,6 @@ const Environment = () => {
       },
     },
     {
-      title: i18n.formatMessage({
-        id: "alarm.environment.form.isAlertManagerOK",
-      }),
-      dataIndex: "isAlertManagerOK",
-      align: "left",
-      render: (state: number, record: ResGetAlarmConfigList) => {
-        return (
-          <>
-            {state == 0 ? (
-              <Tag color="success">
-                {i18n.formatMessage({ id: "cluster.form.status.normality" })}
-              </Tag>
-            ) : (
-              <>
-                <Tag color="error">
-                  {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
-                </Tag>
-                {record.checkAlertManagerResult}
-              </>
-            )}
-          </>
-        );
-      },
-    },
-    {
-      title: i18n.formatMessage({
-        id: "alarm.environment.form.isPrometheusOK",
-      }),
-      dataIndex: "isPrometheusOK",
-      align: "left",
-      render: (state: number, record: ResGetAlarmConfigList) => {
-        return (
-          <>
-            {state == 0 ? (
-              <Tag color="success">
-                {i18n.formatMessage({ id: "cluster.form.status.normality" })}
-              </Tag>
-            ) : (
-              <>
-                <Tag color="error">
-                  {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
-                </Tag>
-                {record.checkPrometheusResult}
-              </>
-            )}
-          </>
-        );
-      },
-    },
-    {
       title: i18n.formatMessage({ id: "alarm.environment.form.ruleStoreType" }),
       dataIndex: "ruleStoreType",
       align: "left",
@@ -131,6 +81,56 @@ const Environment = () => {
       },
     },
     {
+      title: i18n.formatMessage({
+        id: "alarm.environment.form.isPrometheusOK",
+      }),
+      dataIndex: "isPrometheusOK",
+      align: "left",
+      render: (state: number, record: ResGetAlarmConfigList) => {
+        return (
+          <>
+            {state == 1 ? (
+              <Tag color="success">
+                {i18n.formatMessage({ id: "cluster.form.status.normality" })}
+              </Tag>
+            ) : (
+              <>
+                <Tag color="error">
+                  {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
+                </Tag>
+                {record.checkPrometheusResult}
+              </>
+            )}
+          </>
+        );
+      },
+    },
+    {
+      title: i18n.formatMessage({
+        id: "alarm.environment.form.isAlertManagerOK",
+      }),
+      dataIndex: "isAlertManagerOK",
+      align: "left",
+      render: (state: number, record: ResGetAlarmConfigList) => {
+        return (
+          <>
+            {state == 1 ? (
+              <Tag color="success">
+                {i18n.formatMessage({ id: "cluster.form.status.normality" })}
+              </Tag>
+            ) : (
+              <>
+                <Tag color="error">
+                  {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
+                </Tag>
+                {record.checkAlertManagerResult}
+              </>
+            )}
+          </>
+        );
+      },
+    },
+    {
       title: "Options",
       key: "options",
       width: 100,
@@ -155,11 +155,15 @@ const Environment = () => {
     },
   ];
 
-  useEffect(() => {
+  const gitList = () => {
     doGetAlarmConfigList.run().then((res: any) => {
       if (res?.code != 0) return;
       setAlarmConfigList(res.data || []);
     });
+  };
+
+  useEffect(() => {
+    gitList();
   }, []);
 
   return (
@@ -175,6 +179,7 @@ const Environment = () => {
         editEnvironmentId={editEnvironmentId}
         visible={visibleEnvironment}
         onChangeVisible={setVisibleEnvironment}
+        onGetList={gitList}
       />
     </div>
   );
