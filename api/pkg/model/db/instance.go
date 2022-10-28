@@ -18,7 +18,7 @@ type BaseInstance struct {
 	Datasource       string  `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // datasource type
 	Name             string  `gorm:"column:name;type:varchar(128);NOT NULL;index:idx_datasource_name,unique" json:"name"`            // datasource instance name
 	Dsn              string  `gorm:"column:dsn;type:text" json:"dsn"`                                                                // dsn
-	RuleStoreType    int     `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                                       // rule_store_type 1 集群 2 文件
+	RuleStoreType    int     `gorm:"column:rule_store_type;type:int(11)" json:"ruleStoreType"`                                       // rule_store_type 1 文件 2 集群
 	FilePath         string  `gorm:"column:file_path;type:varchar(255)" json:"filePath"`                                             // file_path
 	Desc             string  `gorm:"column:desc;type:varchar(255)" json:"desc"`                                                      // file_path
 	ClusterId        int     `gorm:"column:cluster_id;type:int(11)" json:"clusterId"`                                                // cluster_id

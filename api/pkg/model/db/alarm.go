@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ type IAlarm interface {
 	TableName() string
 	RuleName(filterId int) string
 	ViewName(database, table string, seq int) string
-	UniqueName() string
+	UniqueName(filterId int) string
 	StatusUpdate(status string) (err error)
 	AlertInterval() string
 }
@@ -32,11 +33,12 @@ const (
 	AlarmStatusClose = iota + 1
 	AlarmStatusOpen
 	AlarmStatusFiring
+	AlarmStatusRuleCheck
 )
 
 const (
-	RuleStoreTypeK8s  = 1
-	RuleStoreTypeFile = 2
+	RuleStoreTypeFile = 1
+	RuleStoreTypeK8s  = 2
 )
 
 var UnitMap = map[int]UnitItem{
@@ -117,11 +119,11 @@ func (m *Alarm) RuleName(filterId int) string {
 }
 
 func (m *Alarm) ViewName(database, table string, seq int) string {
-	return fmt.Sprintf("%s.%s_%s_%d", database, table, m.UniqueName(), seq)
+	return fmt.Sprintf("%s.%s_%s", database, table, m.UniqueName(seq))
 }
 
-func (m *Alarm) UniqueName() string {
-	return strings.ReplaceAll(m.Uuid, "-", "_")
+func (m *Alarm) UniqueName(filterId int) string {
+	return strings.ReplaceAll(fmt.Sprintf("%s_%d", m.Uuid, filterId), "-", "_")
 }
 
 func (m *Alarm) AlertInterval() string {
@@ -140,6 +142,20 @@ func (m *Alarm) StatusUpdate(status string) (err error) {
 		return
 	}
 	return
+}
+
+// RuleNameMap 提供 rule 兼容
+func (m *Alarm) RuleNameMap() map[int][]string {
+	res := make(map[int][]string, 0)
+	for iidRuleName := range m.AlertRules {
+		iidTableArr := strings.Split(iidRuleName, "|")
+		if len(iidTableArr) == 2 {
+			iid, _ := strconv.Atoi(iidTableArr[0])
+			res[iid] = append(res[iid], iidTableArr[1])
+		}
+	}
+
+	return res
 }
 
 func GetAlarmTableInstanceInfo(id int) (alarmInfo Alarm, relatedList []*RespAlarmListRelatedInfo, err error) {
@@ -285,7 +301,7 @@ func AlarmDelete(db *gorm.DB, id int) (err error) {
 }
 
 type ReqAlertSettingUpdate struct {
-	RuleStoreType    int    `json:"ruleStoreType" form:"ruleStoreType"` // rule_store_type 1 集群 2 文件
+	RuleStoreType    int    `json:"ruleStoreType" form:"ruleStoreType"` // rule_store_type 1 文件 2 集群
 	PrometheusTarget string `json:"prometheusTarget" form:"prometheusTarget"`
 
 	// file
@@ -305,7 +321,7 @@ type RespAlertSettingInfo struct {
 type RespAlertSettingListItem struct {
 	InstanceId       int    `json:"instanceId"`
 	InstanceName     string `json:"instanceName"`
-	RuleStoreType    int    `json:"ruleStoreType"` // rule_store_type 1 集群 2 文件
+	RuleStoreType    int    `json:"ruleStoreType"` // rule_store_type 1 文件 2 集群
 	PrometheusTarget string `json:"prometheusTarget"`
 
 	// check

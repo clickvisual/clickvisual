@@ -168,13 +168,13 @@ func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
 	conn, err = sql.Open("clickhouse", utils.ClickhouseDsnConvert(dsn))
 	if err != nil {
-		return nil, errors.Wrapf(err, "dsn: %s", dsn)
+		return nil, errors.Wrap(err, "sql.Open")
 	}
 	conn.SetMaxIdleConns(5)
 	conn.SetMaxOpenConns(10)
 	conn.SetConnMaxLifetime(time.Minute * 3)
 	if err = conn.Ping(); err != nil {
-		return nil, errors.Wrapf(err, "ping: %s", dsn)
+		return nil, errors.Wrap(err, "clickhouse link")
 	}
 	return
 }

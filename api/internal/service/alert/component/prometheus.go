@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
@@ -123,6 +124,30 @@ func (p *Prometheus) checkRemoteReadUrls() error {
 	return nil
 }
 
+type prometheusApiV1StatusConfigResp struct {
+	Status string `json:"status"`
+	Data   struct {
+		Yaml string `json:"yaml"`
+	} `json:"data"`
+}
+
+type prometheusConfiguration struct {
+	Alerting struct {
+		AlertManagers []struct {
+			StaticConfigs []struct {
+				Targets []string `yaml:"targets"`
+			} `yaml:"static_configs"`
+		} `yaml:"alertmanagers"`
+	} `yaml:"alerting"`
+	RemoteRead []struct {
+		Url                  string `yaml:"url"`
+		RemoteTimeout        string `yaml:"remote_timeout"`
+		ReadRecent           bool   `yaml:"read_recent"`
+		FollowRedirects      bool   `yaml:"follow_redirects"`
+		FilterExternalLabels bool   `yaml:"filter_external_labels"`
+	} `yaml:"remote_read"`
+}
+
 func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 	var res prometheusConfiguration
 	// AlertManager
@@ -148,26 +173,74 @@ func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 	return res, nil
 }
 
-type prometheusApiV1StatusConfigResp struct {
+type prometheusApiV1RulesResp struct {
 	Status string `json:"status"`
 	Data   struct {
-		Yaml string `json:"yaml"`
+		Groups []struct {
+			Name  string `json:"name"`
+			File  string `json:"file"`
+			Rules []struct {
+				State    string `json:"state"`
+				Name     string `json:"name"`
+				Query    string `json:"query"`
+				Duration int    `json:"duration"`
+				Labels   struct {
+					Severity string `json:"severity"`
+				} `json:"labels"`
+				Annotations struct {
+					Description string `json:"description"`
+					Summary     string `json:"summary"`
+				} `json:"annotations"`
+				Alerts         []interface{} `json:"alerts"`
+				Health         string        `json:"health"`
+				EvaluationTime float64       `json:"evaluationTime"`
+				LastEvaluation time.Time     `json:"lastEvaluation"`
+				Type           string        `json:"type"`
+			} `json:"rules"`
+			Interval       int       `json:"interval"`
+			Limit          int       `json:"limit"`
+			EvaluationTime float64   `json:"evaluationTime"`
+			LastEvaluation time.Time `json:"lastEvaluation"`
+		} `json:"groups"`
 	} `json:"data"`
 }
 
-type prometheusConfiguration struct {
-	Alerting struct {
-		AlertManagers []struct {
-			StaticConfigs []struct {
-				Targets []string `yaml:"targets"`
-			} `yaml:"static_configs"`
-		} `yaml:"alertmanagers"`
-	} `yaml:"alerting"`
-	RemoteRead []struct {
-		Url                  string `yaml:"url"`
-		RemoteTimeout        string `yaml:"remote_timeout"`
-		ReadRecent           bool   `yaml:"read_recent"`
-		FollowRedirects      bool   `yaml:"follow_redirects"`
-		FilterExternalLabels bool   `yaml:"filter_external_labels"`
-	} `yaml:"remote_read"`
+func (p *Prometheus) IsRuleTakeEffect(rules []string) (bool, error) {
+	// AlertManager
+	resp, err := http.Get(p.url + "/api/v1/rules")
+	if err != nil {
+		return false, errors.Wrap(err, "http.Get")
+	}
+	defer func() { _ = resp.Body.Close() }()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, errors.Wrap(err, "io.ReadAll")
+	}
+	var result prometheusApiV1RulesResp
+	if err = json.Unmarshal(body, &result); err != nil {
+		return false, errors.Wrap(err, "json.Unmarshal")
+	}
+	if result.Status != "success" {
+		return false, errors.Wrap(ErrPrometheusApiResponse, result.Status)
+	}
+	ruleMap := make(map[string]interface{})
+	for _, group := range result.Data.Groups {
+		for _, rule := range group.Rules {
+			ruleMap[rule.Name] = struct{}{}
+		}
+	}
+	flag := true
+	for _, rule := range rules {
+		rule = strings.TrimPrefix(rule, "cv-")
+		rule = strings.TrimSuffix(rule, ".yaml")
+		rule = strings.ReplaceAll(rule, "-", "_")
+		if _, ok := ruleMap[rule]; !ok {
+			flag = false
+			break
+		}
+	}
+	if flag {
+		return true, nil
+	}
+	return false, nil
 }

@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/component"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube"
@@ -39,7 +40,7 @@ const prometheusRuleTemplate = `groups:
 
 const (
 	reloadTimes    = 30
-	reloadInterval = time.Second * 10
+	reloadInterval = time.Second * 5
 )
 
 type alarm struct {
@@ -55,9 +56,11 @@ func NewAlarm() *alarm {
 		for r := range a.reloadChan {
 			invoker.Logger.Info("AllPrometheusReload", elog.Int("times", len(a.reloadChan)), elog.Int64("r", r), elog.Int64("now", time.Now().Unix()))
 			AllPrometheusReload()
+			core.LoggerError("alarm", "ruleReload", AlertRuleCheck())
 			time.Sleep(reloadInterval)
 		}
 	}()
+	a.reloadChan <- time.Now().Unix()
 	return a
 }
 
@@ -185,8 +188,8 @@ func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
 	return
 }
 
-func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string) string {
-	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(), exp, obj.AlertInterval())
+func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string {
+	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
 }
 
 func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName, rule string) (err error) {
@@ -328,7 +331,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		}
 		viewDDLs[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, table)] = ddl
 		// rule store
-		rule := i.PrometheusRuleGen(alarmObj, filterItem.Exp)
+		rule := i.PrometheusRuleGen(alarmObj, filterItem.Exp, filterId)
 		ruleName := alarmObj.RuleName(filterId)
 		alertRules[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, ruleName)] = rule
 		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, rule); err != nil {
@@ -341,7 +344,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	ups := make(map[string]interface{}, 0)
 	ups["alert_rules"] = alertRules
 	ups["view_ddl_s"] = viewDDLs
-	ups["status"] = db.AlarmStatusOpen
+	ups["status"] = db.AlarmStatusRuleCheck
 	return db.AlarmUpdate(tx, alarmObj.ID, ups)
 }
 
@@ -353,7 +356,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 	for _, ri := range relatedList {
 		op, errInstanceManager := InstanceManager.Load(ri.Instance.ID)
 		if errInstanceManager != nil {
-			return
+			return errInstanceManager
 		}
 		if len(alarmInfo.ViewDDLs) > 0 {
 			for iidTable, ddl := range alarmInfo.ViewDDLs {
@@ -379,22 +382,32 @@ func (i *alarm) OpenOperator(id int) (err error) {
 				return
 			}
 		}
-		for iidRuleName, alertRule := range alarmInfo.AlertRules {
-			ruleName := iidRuleName
-			iidTableArr := strings.Split(iidRuleName, "|")
-			var ins db.BaseInstance
-			if len(iidTableArr) == 2 {
-				ruleName = iidTableArr[1]
-				iid, _ := strconv.Atoi(iidTableArr[0])
-				ins, _ = db.InstanceInfo(invoker.Db, iid)
+		if len(alarmInfo.AlertRules) > 0 {
+			for iidRuleName, alertRule := range alarmInfo.AlertRules {
+				ruleName := iidRuleName
+				iidTableArr := strings.Split(iidRuleName, "|")
+				var ins db.BaseInstance
+				if len(iidTableArr) == 2 {
+					ruleName = iidTableArr[1]
+					iid, _ := strconv.Atoi(iidTableArr[0])
+					ins, _ = db.InstanceInfo(invoker.Db, iid)
+				}
+				if err = i.PrometheusRuleCreateOrUpdate(ins, ruleName, alertRule); err != nil {
+					invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+					return
+				}
 			}
-			if err = i.PrometheusRuleCreateOrUpdate(ins, ruleName, alertRule); err != nil {
+		} else if alarmInfo.Tid > 0 {
+			table, _ := db.TableInfo(invoker.Db, alarmInfo.Tid)
+			ins, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
+			if err = i.PrometheusRuleCreateOrUpdate(ins, alarmInfo.RuleName(0), alarmInfo.AlertRule); err != nil {
 				invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 				return
 			}
 		}
+
 	}
-	if err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusOpen}); err != nil {
+	if err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusRuleCheck}); err != nil {
 		return
 	}
 	return
@@ -481,6 +494,57 @@ func AllPrometheusReload() {
 		}
 	}
 	return
+}
+
+// AlertRuleCheck Detect alarm rules in progress
+func AlertRuleCheck() error {
+	conds := egorm.Conds{}
+	conds["status"] = db.AlarmStatusRuleCheck
+	alarms, err := db.AlarmList(conds)
+	if err != nil {
+		return err
+	}
+	// Find all instances
+	promPool := make(map[int]*component.Prometheus)
+	for _, alert := range alarms {
+		isRuleOk := true
+		if len(alert.RuleNameMap()) == 0 && alert.AlertRule == "" {
+			isRuleOk = false
+		}
+		for iid, ruleList := range alert.RuleNameMap() {
+			prom, ok := promPool[iid]
+			if !ok {
+				// Cache once
+				ins, _ := db.InstanceInfo(invoker.Db, iid)
+				if ins.RuleStoreType == 0 {
+					isRuleOk = false
+					break
+				}
+				prom, err = component.NewPrometheus(ins.PrometheusTarget)
+				if err != nil {
+					core.LoggerError("ruleCheck", "prometheus", err)
+					isRuleOk = false
+					break
+				}
+				promPool[iid] = prom
+			}
+			if okIsEffect, errIsEffect := prom.IsRuleTakeEffect(ruleList); errIsEffect != nil {
+				core.LoggerError("ruleCheck", "isRuleTakeEffect", errIsEffect)
+				isRuleOk = false
+				break
+			} else if !okIsEffect {
+				isRuleOk = false
+				break
+			}
+		}
+		if isRuleOk {
+			if err = db.AlarmUpdate(invoker.Db, alert.ID, map[string]interface{}{"status": db.AlarmStatusOpen}); err != nil {
+				core.LoggerError("ruleCheck", "isRuleTakeEffect", err)
+				continue
+			}
+		}
+	}
+	return nil
 }
 
 func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
