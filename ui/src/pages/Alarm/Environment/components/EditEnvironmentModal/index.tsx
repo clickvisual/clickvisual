@@ -19,11 +19,12 @@ interface EditEnvironmentModalProps {
   visible: boolean;
   onChangeVisible: (flag: boolean) => void;
   editEnvironmentId: number;
+  onGetList: () => void;
 }
 
 const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
   const i18n = useIntl();
-  const { visible, onChangeVisible, editEnvironmentId } = props;
+  const { visible, onChangeVisible, editEnvironmentId, onGetList } = props;
   const formRef = useRef<FormInstance>(null);
   const [clusterList, setClusterList] = useState<any[]>([]);
 
@@ -116,6 +117,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
     doPatchAlarmConfigDetails.run(editEnvironmentId, data).then((res: any) => {
       if (res.code != 0) return;
       message.success("success");
+      onGetList();
       onChangeVisible(false);
     });
   };

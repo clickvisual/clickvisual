@@ -33,7 +33,17 @@ const StatisticalTableContent = (props: { isShare: boolean }) => {
         logChart?.sortRule.length > 1 &&
         logChart?.sortRule[0] != "*"
       ) {
-        fields = logChart?.sortRule || [];
+        let flag = false;
+        logChart?.sortRule.map((item: any) => {
+          if (logChart.logs[0][item]) {
+            flag = true;
+          }
+        });
+        if (flag) {
+          fields = logChart?.sortRule || Object.keys(logChart.logs[0]) || [];
+        } else {
+          fields = Object.keys(logChart.logs[0]) || [];
+        }
       } else {
         fields = Object.keys(logChart.logs[0]) || [];
       }
@@ -67,6 +77,7 @@ const StatisticalTableContent = (props: { isShare: boolean }) => {
     } else {
       setLogExcelData([]);
     }
+    console.log(columnArr, "columnArr");
 
     return columnArr;
   }, [logChart, logChart?.logs, logChart?.sortRule, logChart?.isNeedSort]);
