@@ -59,6 +59,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
         formRef.current?.setFieldsValue({
           ...res.data,
           clusterId: res.data?.clusterId || undefined,
+          namespaceConfigmap: [res.data?.namespace, res.data?.configmap],
         });
         if (res.data?.clusterId && res.data.clusterId != 0) {
           doGetConfigMaps.run(res.data?.clusterId).then((res: any) => {
