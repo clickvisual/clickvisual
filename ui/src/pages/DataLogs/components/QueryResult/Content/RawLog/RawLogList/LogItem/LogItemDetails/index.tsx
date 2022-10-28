@@ -69,9 +69,9 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     /**
      * 加.replace(/\\*\\/g, "\\")是为了去除多次编码后产生的多个\造成pre标签识别不了的问题
      */
-    const rawLogJson = parseJsonObject(
-      log["_raw_log_"].replace(/\\*\\/g, "\\")
-    );
+    const rawLogJson =
+      log["_raw_log_"] &&
+      parseJsonObject(log["_raw_log_"].replace(/\\*\\/g, "\\"));
     // 初始化新日志数组，初始化为 log
     let newLog: any = log;
 
