@@ -77,7 +77,6 @@ const StatisticalTableContent = (props: { isShare: boolean }) => {
     } else {
       setLogExcelData([]);
     }
-    console.log(columnArr, "columnArr");
 
     return columnArr;
   }, [logChart, logChart?.logs, logChart?.sortRule, logChart?.isNeedSort]);
