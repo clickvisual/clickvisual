@@ -96,7 +96,7 @@ const BusinessChart = (props: { utime: number }) => {
           break;
       }
       // / <NodeContent node={business} />
-      const isShortStyle = business.shardNum == 0 && business.replicaNum == 0;
+      const isShortStyle = !(business?.shardNum || business?.replicaNum);
       NodeList.push({
         id: business.table,
         type,

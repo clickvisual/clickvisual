@@ -63,7 +63,7 @@ const NodeContent = ({ node }: NodeContentProps) => {
   };
 
   const isShortStyle = useMemo(() => {
-    return node?.replicaNum == 0 && node?.shardNum == 0;
+    return !(node?.replicaNum || node?.shardNum);
   }, [node, node?.replicaNum, node?.shardNum]);
 
   const handleBuildTableSQL = useDebounceFn(
