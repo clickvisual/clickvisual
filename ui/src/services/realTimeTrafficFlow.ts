@@ -12,6 +12,8 @@ export interface BusinessChartResponse {
   table: string;
   totalBytes: number;
   totalRows: number;
+  shardNum: number;
+  replicaNum: number;
 }
 
 export default {

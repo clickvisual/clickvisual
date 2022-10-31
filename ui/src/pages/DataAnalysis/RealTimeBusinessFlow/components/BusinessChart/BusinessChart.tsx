@@ -14,9 +14,9 @@ import { graphlib, layout } from "dagre";
 import "./styles/index.less";
 import { useModel } from "@@/plugin-model/useModel";
 import NodeContent from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart/NodeContent";
-import { BusinessEngineEnum } from "@/pages/DataAnalysis/service/enums";
 import moment from "moment";
 import { useIntl } from "umi";
+import useUrlState from "@ahooksjs/use-url-state";
 
 const DefaultWidth = 240;
 const DefaultHeight = 100;
@@ -27,6 +27,7 @@ const getId = () => `dndNode_${id++}`;
 const BusinessChart = (props: { utime: number }) => {
   const i18n = useIntl();
   const { utime } = props;
+  const [urlState] = useUrlState();
   const { realTimeTraffic } = useModel("dataAnalysis");
   const {
     businessChart,
@@ -86,28 +87,23 @@ const BusinessChart = (props: { utime: number }) => {
       const headerType = !isNotHeader ? "input" : "default";
       const type = isLast ? "output" : headerType;
       let background = "#fff";
-      switch (business.engine) {
-        case BusinessEngineEnum.Kafka:
-          background = "#fec89a";
-          break;
-        case BusinessEngineEnum.MergeTree:
+
+      switch (business.table) {
+        case urlState?.tName:
           background = "#ffbf69";
-          break;
-        case BusinessEngineEnum.Distributed:
-          background = "#f9dcc4";
           break;
         default:
           break;
       }
       // / <NodeContent node={business} />
-
+      const isShortStyle = business.shardNum == 0 && business.replicaNum == 0;
       NodeList.push({
         id: business.table,
         type,
         data: { business },
         style: {
           width: DefaultWidth,
-          height: DefaultHeight,
+          height: isShortStyle ? DefaultHeight : DefaultHeight + 14,
           background: background,
         },
       });
@@ -234,13 +230,9 @@ const BusinessChart = (props: { utime: number }) => {
             >
               <MiniMap
                 nodeColor={(e: any) => {
-                  switch (e?.data?.business?.engine) {
-                    case BusinessEngineEnum.Kafka:
-                      return "#fec89a";
-                    case BusinessEngineEnum.MergeTree:
+                  switch (e?.data?.business?.table) {
+                    case urlState?.tName:
                       return "#ffbf69";
-                    case BusinessEngineEnum.Distributed:
-                      return "#f9dcc4";
                     default:
                       return "#fff";
                   }
