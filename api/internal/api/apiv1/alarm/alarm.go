@@ -144,13 +144,13 @@ func Update(c *core.Context) {
 							return
 						}
 					}
-					if err = op.AlertViewDrop(table, ri.Table.Database.Cluster); err != nil {
+					if err = op.DeleteAlertView(table, ri.Table.Database.Cluster); err != nil {
 						c.JSONE(core.CodeErr, "alert view drop", err)
 						return
 					}
 				}
 			} else {
-				if err = op.AlertViewDrop(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
+				if err = op.DeleteAlertView(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
 					c.JSONE(core.CodeErr, "alarm update failed when delete metrics view", err)
 					return
 				}
@@ -405,14 +405,14 @@ func Delete(c *core.Context) {
 						continue
 					}
 				}
-				if err = op.AlertViewDrop(table, ri.Table.Database.Cluster); err != nil {
+				if err = op.DeleteAlertView(table, ri.Table.Database.Cluster); err != nil {
 					tx.Rollback()
 					c.JSONE(core.CodeErr, "alarm view drop failed", err)
 					return
 				}
 			}
 		} else {
-			if err = op.AlertViewDrop(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
+			if err = op.DeleteAlertView(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
 				tx.Rollback()
 				c.JSONE(core.CodeErr, "alarm failed to delete 06", err)
 				return

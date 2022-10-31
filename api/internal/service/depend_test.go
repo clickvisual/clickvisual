@@ -9,7 +9,7 @@ import (
 
 func Test_customParsing(t *testing.T) {
 	type args struct {
-		row *view.SystemTable
+		row *view.SystemTables
 	}
 	tests := []struct {
 		name  string
@@ -19,11 +19,11 @@ func Test_customParsing(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		// CREATE MATERIALIZED VIEW dev_nocnoc.app_stdout_view TO dev_nocnoc.app_stdout (`_time_second_` DateTime,
-		// GET dev_nocnoc.app_stdout
+		// GetLogs dev_nocnoc.app_stdout
 		{
 			name: "test-1",
 			args: args{
-				row: &view.SystemTable{
+				row: &view.SystemTables{
 					Database:          "t1",
 					DownDatabaseTable: make([]string, 0),
 					CreateTableQuery:  "CREATE MATERIALIZED VIEW dev_nocnoc.app_stdout_view TO dev_nocnoc.app_stdout (`_time_second_` DateTime,",
@@ -33,11 +33,11 @@ func Test_customParsing(t *testing.T) {
 			ups:   make([]string, 0),
 		},
 		//  '创建文件数') ENGINE = Distributed('shard2-repl1', 'shard', 'dws_collaboration_7d_statistic_by_department_daily', rand())
-		// GET dws_collaboration_7d_statistic_by_department_daily
+		// GetLogs dws_collaboration_7d_statistic_by_department_daily
 		{
 			name: "test-2",
 			args: args{
-				row: &view.SystemTable{
+				row: &view.SystemTables{
 					Database:          "t1",
 					DownDatabaseTable: make([]string, 0),
 					CreateTableQuery:  "'创建文件数') ENGINE = Distributed('shard2-repl1', 'shard', 'dws_collaboration_7d_statistic_by_department_daily', rand())",
@@ -49,7 +49,7 @@ func Test_customParsing(t *testing.T) {
 		{
 			name: "test-3",
 			args: args{
-				row: &view.SystemTable{
+				row: &view.SystemTables{
 					Database:          "t1",
 					DownDatabaseTable: make([]string, 0),
 					CreateTableQuery:  "CREATE TABLE clickvisual_default.app_stdout (`_time_second_` DateTime, `_time_nanosecond_` DateTime64(9, 'Asia/Shanghai'), `_source_` String, `_cluster_` String, `_log_agent_` String, `_namespace_` String, `_node_name_` String, `_node_ip_` String, `_container_name_` String, `_pod_name_` String, `_raw_log_` String, `method` Nullable(String), `msg` Nullable(String), `category` Nullable(String), `env` Nullable(String), `application` Nullable(String), `step` Nullable(String), `level` Nullable(Int64), `lv` Nullable(String), `status` Nullable(Int64)) ENGINE = Distributed('shard2-repl1', 'clickvisual_default', 'app_stdout_local', rand())",

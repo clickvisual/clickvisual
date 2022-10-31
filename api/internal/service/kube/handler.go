@@ -1,6 +1,8 @@
 /*
 	ResourceHandler responsible for doing common operations on kubernetes resources. like
-UPDATE DELETE CREATE GET deployment(or other resources) and so on. 具体可以handle哪些k8s资源,请查看本包内的api/types.go文件, 后续可追加.
+
+UPDATE DELETE CREATE GetLogs deployment(or other resources) and so on. 具体可以handle哪些k8s资源,请查看本包内的api/types.go文件, 后续可追加.
+
 	It's using cache, can reduce the request stress of k8s apiServer.
 */
 package kube

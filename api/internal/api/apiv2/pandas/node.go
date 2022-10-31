@@ -446,11 +446,30 @@ func TableDependencies(c *core.Context) {
 		return
 	}
 	res := make([]view.RespTableDeps, 0)
-	for _, t := range data {
-		res = append(res, t)
-		if t.Engine == "ReplicatedMergeTree" {
-			res = append(res, t)
+	databaseCache := make(map[string]*view.SystemClusters, 0)
+	op, err := service.InstanceManager.Load(iid)
+	if err != nil {
+		return
+	}
+	_, clusterCache, _ := op.ListSystemCluster()
+
+	for _, row := range data {
+		if sc, ok := databaseCache[row.Database]; ok {
+			row.ShardNum = sc.ShardNum
+			row.ReplicaNum = sc.ReplicaNum
+		} else {
+			conds := egorm.Conds{}
+			conds["iid"] = iid
+			conds["name"] = req.DatabaseName
+			database, _ := db.DatabaseInfoX(invoker.Db, conds)
+			if database.Cluster != "" {
+				if cluster, okCluster := clusterCache[database.Cluster]; okCluster {
+					row.ShardNum = cluster.ShardNum
+					row.ReplicaNum = cluster.ReplicaNum
+				}
+			}
 		}
+		res = append(res, row)
 	}
 	row, _ := db.EarliestDependRow(iid)
 	c.JSONOK(view.RespTableDependencies{

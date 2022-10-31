@@ -282,7 +282,7 @@ func TableDelete(c *core.Context) {
 			c.JSONE(core.CodeErr, errLoad.Error(), errLoad)
 			return
 		}
-		err = op.TableDrop(database, table, tableInfo.Database.Cluster, tableInfo.ID)
+		err = op.DeleteTable(database, table, tableInfo.Database.Cluster, tableInfo.ID)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
 			return
@@ -344,7 +344,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "Query parameter error. Refer to the ClickHouse WHERE syntax. https://clickhouse.com/docs/zh/sql-reference/statements/select/where/", nil)
 		return
 	}
-	res, err := op.GET(param, tableInfo.ID)
+	res, err := op.GetLogs(param, tableInfo.ID)
 	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
 		res.IsTrace = 1
 	}
@@ -393,7 +393,7 @@ func QueryComplete(c *core.Context) {
 		c.JSONE(core.CodeErr, "", err)
 		return
 	}
-	res, err := op.Complete(param.Query)
+	res, err := op.DoSQL(param.Query)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
@@ -730,7 +730,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		tx.Rollback()
 		return err
 	}
-	columns, err := op.Columns(param.DatabaseName, param.TableName, false)
+	columns, err := op.ListColumn(param.DatabaseName, param.TableName, false)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -779,12 +779,12 @@ func TableColumnsSelfBuilt(c *core.Context) {
 		All               []*view.RespColumn `json:"all"`
 		ConformToStandard []*view.RespColumn `json:"conformToStandard"`
 	}
-	columnsInfo.ConformToStandard, err = op.Columns(param.DatabaseName, param.TableName, true)
+	columnsInfo.ConformToStandard, err = op.ListColumn(param.DatabaseName, param.TableName, true)
 	if err != nil {
 		c.JSONE(core.CodeErr, "database create failed: "+err.Error(), nil)
 		return
 	}
-	columnsInfo.All, err = op.Columns(param.DatabaseName, param.TableName, false)
+	columnsInfo.All, err = op.ListColumn(param.DatabaseName, param.TableName, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "database create failed: "+err.Error(), nil)
 		return

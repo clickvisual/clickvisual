@@ -56,7 +56,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.StorageCreate(databaseInfo.ID, databaseInfo, param)
+	s, d, v, a, err := op.CreateStorage(databaseInfo.ID, databaseInfo, param)
 	if err != nil {
 		err = errors.Wrap(err, "create failed 01:")
 		return
@@ -94,7 +94,7 @@ func StorageCreateV3(uid int, databaseInfo db.BaseDatabase, param view.ReqStorag
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.StorageCreateV3(databaseInfo.ID, databaseInfo, param)
+	s, d, v, a, err := op.CreateStorageV3(databaseInfo.ID, databaseInfo, param)
 	if err != nil {
 		err = errors.Wrap(err, "create failed 01:")
 		return

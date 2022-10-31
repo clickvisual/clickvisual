@@ -82,7 +82,7 @@ func (t *template) CreateDatabase(iid int) (database db.BaseDatabase, err error)
 	}
 
 	if err != nil {
-		elog.Error("templateOne", elog.String("step", "DatabaseCreate"), elog.Any("err", err.Error()))
+		elog.Error("templateOne", elog.String("step", "CreateDatabase"), elog.Any("err", err.Error()))
 		return
 	}
 	return

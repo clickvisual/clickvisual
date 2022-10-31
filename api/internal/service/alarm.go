@@ -307,13 +307,13 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 						continue
 					}
 				}
-				if err = ddlOp.AlertViewDrop(table, tableInfo.Database.Cluster); err != nil {
+				if err = ddlOp.DeleteAlertView(table, tableInfo.Database.Cluster); err != nil {
 					return
 				}
 			}
 		} else {
 			if alarmObj.ViewTableName != "" {
-				err = op.AlertViewDrop(alarmObj.ViewTableName, tableInfo.Database.Cluster)
+				err = op.DeleteAlertView(alarmObj.ViewTableName, tableInfo.Database.Cluster)
 				if err != nil {
 					invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
 					return
@@ -321,12 +321,12 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 			}
 		}
 		// gen view table name & sql
-		table, ddl, errAlertViewGen := op.AlertViewGen(alarmObj, tableInfo, filterId, filterItem.When)
+		table, ddl, errAlertViewGen := op.GetAlertViewSQL(alarmObj, tableInfo, filterId, filterItem.When)
 		if errAlertViewGen != nil {
 			return errAlertViewGen
 		}
 		// exec view sql
-		if err = op.AlertViewCreate(table, ddl, tableInfo.Database.Cluster); err != nil {
+		if err = op.CreateAlertView(table, ddl, tableInfo.Database.Cluster); err != nil {
 			return
 		}
 		viewDDLs[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, table)] = ddl
@@ -373,12 +373,12 @@ func (i *alarm) OpenOperator(id int) (err error) {
 						continue
 					}
 				}
-				if err = op.AlertViewCreate(table, ddl, ri.Table.Database.Cluster); err != nil {
+				if err = op.CreateAlertView(table, ddl, ri.Table.Database.Cluster); err != nil {
 					return
 				}
 			}
 		} else {
-			if err = op.AlertViewCreate(alarmInfo.ViewTableName, alarmInfo.View, ri.Table.Database.Cluster); err != nil {
+			if err = op.CreateAlertView(alarmInfo.ViewTableName, alarmInfo.View, ri.Table.Database.Cluster); err != nil {
 				return
 			}
 		}

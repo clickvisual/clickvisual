@@ -69,7 +69,7 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 			PageSize:      1,
 		}
 		param, _ = op.Prepare(param, false)
-		resp, _ := op.GET(param, table.ID)
+		resp, _ := op.GetLogs(param, table.ID)
 		if table.V3TableType == db.V3TableTypeJaegerJSON {
 			resp.IsTrace = 1
 		}
