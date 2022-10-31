@@ -181,13 +181,18 @@ const SQLResult = (props: {
         </div>
         <div className={styles.resultTabs}>
           {resultsList.length > 0 ? (
-            <Tabs onChange={handleTabsChange} activeKey={activeKey}>
-              {resultsList.map((item: any, index: number) => {
-                return (
-                  <TabPane tab={`result ${index + 1}`} key={item.id}></TabPane>
-                );
-              })}
-            </Tabs>
+            <div style={{ width: "calc(100vw - 433px)" }}>
+              <Tabs onChange={handleTabsChange} activeKey={activeKey}>
+                {resultsList.map((item: any, index: number) => {
+                  return (
+                    <TabPane
+                      tab={`result ${index + 1}`}
+                      key={item.id}
+                    ></TabPane>
+                  );
+                })}
+              </Tabs>
+            </div>
           ) : null}
         </div>
       </Spin>
