@@ -247,7 +247,7 @@ func DatabaseCreate(req db.BaseDatabase) (out db.BaseDatabase, err error) {
 		err = errors.Wrap(err, "create failed 01:")
 		return
 	}
-	err = op.DatabaseCreate(req.Name, req.Cluster)
+	err = op.CreateDatabase(req.Name, req.Cluster)
 	if err != nil {
 		tx.Rollback()
 		err = errors.Wrap(err, "create failed 02: ")
@@ -266,7 +266,7 @@ func TableCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqTableCreat
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.TableCreate(databaseInfo.ID, databaseInfo, param)
+	s, d, v, a, err := op.CreateTable(databaseInfo.ID, databaseInfo, param)
 	if err != nil {
 		err = errors.Wrap(err, "create failed 01:")
 		return
@@ -329,7 +329,7 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 	if err != nil {
 		return
 	}
-	invoker.Logger.Debug("IndexUpdate", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
+	invoker.Logger.Debug("UpdateIndex", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
 	err = Index.Sync(req, addMap, delMap, newMap)
 	if err != nil {
 		return

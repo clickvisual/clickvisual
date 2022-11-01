@@ -115,9 +115,9 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 		tx.Rollback()
 		return errors.New("corresponding configuration instance does not exist")
 	}
-	invoker.Logger.Debug("IndexUpdate", elog.Any("newList", newList))
-	// err = op.IndexUpdate(databaseInfo, tableInfo, adds, dels, newList)
-	err = op.IndexUpdate(databaseInfo, tableInfo,
+	invoker.Logger.Debug("UpdateIndex", elog.Any("newList", newList))
+	// err = op.UpdateIndex(databaseInfo, tableInfo, adds, dels, newList)
+	err = op.UpdateIndex(databaseInfo, tableInfo,
 		filterSystemField(tableInfo.CreateType, adds, req.Tid),
 		filterSystemField(tableInfo.CreateType, dels, req.Tid),
 		filterSystemField(tableInfo.CreateType, newList, req.Tid))

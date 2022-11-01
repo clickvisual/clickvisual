@@ -69,12 +69,12 @@ func (d *dependence) analysis() {
 			continue
 		}
 		// Try again once
-		rows := op.SystemTablesInfo()
+		rows := op.ListSystemTable()
 		if len(rows) == 0 {
 			// Retry ten times
 			for i := 0; i < 10; i++ {
 				time.Sleep(time.Second)
-				rows = op.SystemTablesInfo()
+				rows = op.ListSystemTable()
 				if len(rows) > 0 {
 					break
 				}
@@ -84,9 +84,10 @@ func (d *dependence) analysis() {
 	}
 }
 
-func (d *dependence) analysisInstance(iid int, rows []*view.SystemTable) {
+func (d *dependence) analysisInstance(iid int, rows []*view.SystemTables) {
 	filter := make(map[string]*db.BigdataDepend)
 	deriveUps := make(map[string][]string)
+	deriveDowns := make(map[string][]string)
 	for _, row := range rows {
 		if strings.ToLower(row.Database) == "system" || strings.ToLower(row.Database) == "information_schema" {
 			continue
@@ -96,6 +97,10 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTable) {
 		// update derive ups
 		for _, down := range downs {
 			deriveUps[down] = append(deriveUps[down], row.Name())
+		}
+		// update derive downs
+		for _, up := range ups {
+			deriveDowns[up] = append(deriveDowns[up], row.Name())
 		}
 		item := &db.BigdataDepend{
 			Iid:                  iid,
@@ -122,6 +127,14 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTable) {
 		item.UpDepDatabaseTable = arrFilter(item.UpDepDatabaseTable, deriveUp)
 	}
 
+	for databaseTable, deriveDown := range deriveDowns {
+		item, ok := filter[databaseTable]
+		if !ok {
+			continue
+		}
+		item.DownDepDatabaseTable = arrFilter(item.DownDepDatabaseTable, deriveDown)
+	}
+
 	// Bulk insert
 	depends := make([]*db.BigdataDepend, 0)
 	for _, depend := range filter {
@@ -133,7 +146,7 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTable) {
 		invoker.Logger.Error("analysisInstance", elog.String("step", "DependsDeleteAll"), elog.FieldErr(err))
 		return
 	}
-	if err := db.DependsBatchInsert(invoker.Db, depends); err != nil {
+	if err := db.DependsBatchInsert(tx, depends); err != nil {
 		tx.Rollback()
 		invoker.Logger.Error("analysisInstance", elog.String("step", "DependsBatchInsert"), elog.FieldErr(err))
 		return
@@ -191,7 +204,7 @@ func (d *dependence) loopDepsV2(iid int, database, table string, checked map[str
 	return res
 }
 
-func (d *dependence) parsing(row *view.SystemTable) ([]string, []string) {
+func (d *dependence) parsing(row *view.SystemTables) ([]string, []string) {
 	downDeps := row.DownDatabaseTable
 	upDeps := make([]string, 0)
 	createSQL := row.CreateTableQuery

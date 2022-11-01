@@ -238,6 +238,8 @@ type RespTableDeps struct {
 	TotalRows  uint64   `json:"totalRows"`
 	TotalBytes uint64   `json:"totalBytes"`
 	Deps       []string `json:"deps"`
+	ShardNum   uint32   `json:"shardNum"`
+	ReplicaNum uint32   `json:"replicaNum"`
 }
 
 func (r *RespTableDeps) Name() string {
@@ -256,7 +258,7 @@ type ReqViewList struct {
 	Name string `json:"viewName"`
 }
 
-type SystemTable struct {
+type SystemTables struct {
 	Table             string   `json:"table"`
 	Engine            string   `json:"engine"`
 	Database          string   `json:"database"`
@@ -266,8 +268,15 @@ type SystemTable struct {
 	TotalBytes        uint64   `json:"totalBytes"`
 }
 
-func (r *SystemTable) Name() string {
+func (r *SystemTables) Name() string {
 	return fmt.Sprintf("%s.%s", r.Database, r.Table)
+}
+
+type SystemClusters struct {
+	Cluster     string `json:"cluster"`
+	ShardNum    uint32 `json:"shardNum"`
+	ShardWeight uint32 `json:"ShardWeight"`
+	ReplicaNum  uint32 `json:"replicaNum"`
 }
 
 type (

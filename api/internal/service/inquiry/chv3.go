@@ -19,8 +19,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// StorageCreateV3 create default stream data table and view
-func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.ReqStorageCreateV3) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+// CreateStorageV3 create default stream data table and view
+func (c *ClickHouse) CreateStorageV3(did int, database db.BaseDatabase, ct view.ReqStorageCreateV3) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
@@ -67,12 +67,12 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		invoker.Logger.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		invoker.Logger.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.storageViewOperatorV3(view.OperatorViewParams{
@@ -89,7 +89,7 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 		IsKafkaTimestamp: ct.IsKafkaTimestamp,
 	})
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
+		invoker.Logger.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
 	if c.mode == ModeCluster {
@@ -102,10 +102,10 @@ func (c *ClickHouse) StorageCreateV3(did int, database db.BaseDatabase, ct view.
 				SourceTable: dName,
 			},
 		})
-		invoker.Logger.Debug("TableCreate", elog.Any("distributeSQL", dDistributedSQL))
+		invoker.Logger.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
-			invoker.Logger.Error("TableCreate", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			invoker.Logger.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
 			return
 		}
 	}
@@ -119,7 +119,7 @@ func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table stri
 	// jaegerJson dependencies table
 	sc, errGetTableCreator := builderv2.GetTableCreator(builderv2.StorageTypeTraceCal)
 	if errGetTableCreator != nil {
-		invoker.Logger.Error("TableCreate", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
+		invoker.Logger.Error("CreateTable", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
 		return
 	}
 	params := builderv2.Params{
@@ -139,17 +139,17 @@ func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table stri
 	}
 	sc.SetParams(params)
 	if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
-		invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
+		invoker.Logger.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
 	if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
-		invoker.Logger.Error("TableCreate", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
+		invoker.Logger.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
 	return nil
 }
 
-func (c *ClickHouse) DropTraceJaegerDependencies(database, cluster, table string) (err error) {
+func (c *ClickHouse) DeleteTraceJaegerDependencies(database, cluster, table string) (err error) {
 	table = table + db.SuffixJaegerJSON
 	if c.mode == ModeCluster {
 		if cluster == "" {
@@ -230,6 +230,27 @@ func (c *ClickHouse) GetCreateSQL(database, table string) (resp string, err erro
 		if err = res.Scan(&resp); err != nil {
 			return "", errors.Wrap(err, "row scan")
 		}
+	}
+	return
+}
+
+func (c *ClickHouse) ListSystemCluster() (l []*view.SystemClusters, m map[string]*view.SystemClusters, err error) {
+	l = make([]*view.SystemClusters, 0)
+	m = make(map[string]*view.SystemClusters, 0)
+	s := "select * from system.clusters"
+	clusters, err := c.doQuery(s)
+	if err != nil {
+		return nil, nil, errors.WithMessage(err, "doQuery")
+	}
+	for _, cl := range clusters {
+		row := view.SystemClusters{
+			Cluster:     cl["cluster"].(string),
+			ShardNum:    cl["shard_num"].(uint32),
+			ShardWeight: cl["shard_weight"].(uint32),
+			ReplicaNum:  cl["replica_num"].(uint32),
+		}
+		l = append(l, &row)
+		m[cl["cluster"].(string)] = &row
 	}
 	return
 }

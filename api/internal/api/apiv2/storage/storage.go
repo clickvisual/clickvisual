@@ -185,7 +185,7 @@ func Update(c *core.Context) {
 	// check merge tree
 	if req.MergeTreeTTL != tableInfo.Days {
 		// alert merge tree engine table
-		if err = op.AlterMergeTreeTable(&tableInfo, req); err != nil {
+		if err = op.UpdateMergeTreeTable(&tableInfo, req); err != nil {
 			c.JSONE(1, "update failed 02: "+err.Error(), nil)
 			return
 		}
@@ -197,7 +197,7 @@ func Update(c *core.Context) {
 		req.KafkaConsumerNum != tableInfo.ConsumerNum ||
 		req.KafkaTopic != tableInfo.Topic {
 		// drop & create kafka engine table
-		if streamSQL, err = op.ReCreateKafkaTable(&tableInfo, req); err != nil {
+		if streamSQL, err = op.CreateKafkaTable(&tableInfo, req); err != nil {
 			c.JSONE(1, "update failed 03: "+err.Error(), nil)
 			return
 		}
@@ -223,7 +223,7 @@ func Update(c *core.Context) {
 				return
 			}
 		} else {
-			err = op.DropTraceJaegerDependencies(tableInfo.Database.Name, tableInfo.Database.Cluster, tableInfo.Name)
+			err = op.DeleteTraceJaegerDependencies(tableInfo.Database.Name, tableInfo.Database.Cluster, tableInfo.Name)
 			if err != nil {
 				c.JSONE(1, "update failed 05: "+err.Error(), nil)
 				return

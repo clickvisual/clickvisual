@@ -75,7 +75,7 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	dSQL, cQSL, err := op.ViewSync(tableInfo, &viewInfo, viewList, false)
+	dSQL, cQSL, err := op.SyncView(tableInfo, &viewInfo, viewList, false)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -164,7 +164,7 @@ func ViewCreate(c *core.Context) {
 		return
 	}
 
-	dSQL, cQSL, err := op.ViewSync(tableInfo, &current, viewList, true)
+	dSQL, cQSL, err := op.SyncView(tableInfo, &current, viewList, true)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -265,7 +265,7 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	dSQL, cQSL, err := op.ViewSync(tableInfo, &viewInfo, viewList, true)
+	dSQL, cQSL, err := op.SyncView(tableInfo, &viewInfo, viewList, true)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)

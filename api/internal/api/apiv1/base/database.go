@@ -68,7 +68,7 @@ func DatabaseExistList(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res, err := op.Databases()
+	res, err := op.ListDatabase()
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -149,7 +149,7 @@ func DatabaseDelete(c *core.Context) {
 			c.JSONE(core.CodeErr, errLoad.Error(), err)
 			return
 		}
-		err = op.DropDatabase(database.Name, database.Cluster)
+		err = op.DeleteDatabase(database.Name, database.Cluster)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
 			return

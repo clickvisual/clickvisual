@@ -20,7 +20,7 @@ func doTyClickHouse(n *node) (res view.RunNodeResult, err error) {
 	if err != nil {
 		return
 	}
-	tmp, err := op.Complete(argsReplace(n.n.ID, n.nc.Content))
+	tmp, err := op.DoSQL(argsReplace(n.n.ID, n.nc.Content))
 	if err != nil {
 		return
 	}

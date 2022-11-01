@@ -12,55 +12,50 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-var SkipLikeAddStepWords = []string{
-	"=",
-	"like",
-	">",
-	"<",
-	"has(",
-	")",
-}
-
-type Operator interface {
-	Conn() *sql.DB
-	Prepare(view.ReqQuery, bool) (view.ReqQuery, error) // Request Parameter Preprocessing
-
-	GET(view.ReqQuery, int) (view.RespQuery, error)
-	GetTraceGraph(ctx context.Context) ([]view.RespJaegerDependencyDataModel, error)
-
-	Count(view.ReqQuery) (uint64, error)
-	GroupBy(view.ReqQuery) map[string]uint64
-	Complete(string) (view.RespComplete, error)
-
-	TableDrop(string, string, string, int) error
-	DropDatabase(string, string) error
-	AlertViewDrop(string, string) error
-
-	StorageCreate(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
-	TableCreate(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
-	DatabaseCreate(string, string) error
-	AlertViewCreate(string, string, string) error
-	AlertViewGen(*db.Alarm, db.BaseTable, int, string) (string, string, error)
-
-	Columns(string, string, bool) ([]*view.RespColumn, error)
-	Databases() ([]*view.RespDatabaseSelfBuilt, error)
-
-	ViewSync(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
-	SystemTablesInfo() []*view.SystemTable
-	AlterMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
-	ReCreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)
-	IndexUpdate(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error // Data table index operation
-
-	StorageCreateV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
-	CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error)
-	DropTraceJaegerDependencies(database, cluster, table string) (err error)
-	GetCreateSQL(database, table string) (string, error)
-}
-
 const (
 	TableTypeString = 1
 	TableTypeFloat  = 2
 )
+
+var (
+	skipLikeAddStepWords = []string{"=", "like", ">", "<", "has(", ")"}
+	queryOperatorArr     = []string{"=", "!=", "<", "<=", ">", ">=", "like"}
+)
+
+type Operator interface {
+	Conn() *sql.DB
+	Count(view.ReqQuery) (uint64, error)
+	GroupBy(view.ReqQuery) map[string]uint64
+	DoSQL(string) (view.RespComplete, error)
+	Prepare(view.ReqQuery, bool) (view.ReqQuery, error)
+	SyncView(db.BaseTable, *db.BaseView, []*db.BaseView, bool) (string, string, error)
+
+	CreateDatabase(string, string) error
+	CreateAlertView(string, string, string) error
+	CreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)
+	CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error)
+	CreateTable(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
+	CreateStorage(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
+	CreateStorageV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
+
+	UpdateIndex(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error
+	UpdateMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
+
+	GetLogs(view.ReqQuery, int) (view.RespQuery, error)
+	GetCreateSQL(database, table string) (string, error)
+	GetAlertViewSQL(*db.Alarm, db.BaseTable, int, string) (string, string, error)
+	GetTraceGraph(ctx context.Context) ([]view.RespJaegerDependencyDataModel, error)
+
+	ListSystemTable() []*view.SystemTables
+	ListSystemCluster() ([]*view.SystemClusters, map[string]*view.SystemClusters, error)
+	ListDatabase() ([]*view.RespDatabaseSelfBuilt, error)
+	ListColumn(string, string, bool) ([]*view.RespColumn, error)
+
+	DeleteDatabase(string, string) error
+	DeleteAlertView(string, string) error
+	DeleteTable(string, string, string, int) error
+	DeleteTraceJaegerDependencies(database, cluster, table string) (err error)
+}
 
 func genName(database, tableName string) string {
 	return fmt.Sprintf("`%s`.`%s`", database, tableName)
@@ -97,8 +92,6 @@ func genViewName(database, tableName string, timeKey string) string {
 	}
 	return fmt.Sprintf("`%s`.`%s_%s_view`", database, tableName, timeKey)
 }
-
-var queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "like"}
 
 type queryItem struct {
 	Key      string

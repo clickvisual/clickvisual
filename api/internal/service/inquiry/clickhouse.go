@@ -195,7 +195,7 @@ func (c *ClickHouse) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogFiel
 // delete: list need remove current
 // update: list need update current
 // create: list need add current
-func (c *ClickHouse) ViewSync(table db.BaseTable, current *db.BaseView, list []*db.BaseView, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
+func (c *ClickHouse) SyncView(table db.BaseTable, current *db.BaseView, list []*db.BaseView, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
 	// build view statement
 	conds := egorm.Conds{}
 	conds["tid"] = table.ID
@@ -248,7 +248,7 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 }
 
 // TableDrop data view stream
-func (c *ClickHouse) TableDrop(database, table, cluster string, tid int) (err error) {
+func (c *ClickHouse) DeleteTable(database, table, cluster string, tid int) (err error) {
 	var (
 		views []*db.BaseView
 	)
@@ -303,7 +303,7 @@ func (c *ClickHouse) TableDrop(database, table, cluster string, tid int) (err er
 }
 
 // TableCreate create default stream data table and view
-func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *ClickHouse) CreateTable(did int, database db.BaseDatabase, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	dataParams := bumo.Params{
@@ -337,17 +337,17 @@ func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqT
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		invoker.Logger.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		invoker.Logger.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.viewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
+		invoker.Logger.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
 	if c.mode == ModeCluster {
@@ -360,10 +360,10 @@ func (c *ClickHouse) TableCreate(did int, database db.BaseDatabase, ct view.ReqT
 				SourceTable: dName,
 			},
 		})
-		invoker.Logger.Debug("TableCreate", elog.Any("distributeSQL", dDistributedSQL))
+		invoker.Logger.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
-			invoker.Logger.Error("TableCreate", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			invoker.Logger.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
 			return
 		}
 	}
@@ -473,7 +473,7 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 	return c.storageViewOperator(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, rsc)
 }
 
-func (c *ClickHouse) DatabaseCreate(name, cluster string) error {
+func (c *ClickHouse) CreateDatabase(name, cluster string) error {
 
 	query := fmt.Sprintf("create database `%s`;", name)
 	if c.mode == ModeCluster {
@@ -482,7 +482,7 @@ func (c *ClickHouse) DatabaseCreate(name, cluster string) error {
 		}
 		query = fmt.Sprintf("create database `%s` on cluster `%s`;", name, cluster)
 	}
-	invoker.Logger.Error("TableCreate", elog.String("query", query))
+	invoker.Logger.Error("CreateTable", elog.String("query", query))
 
 	_, err := c.db.Exec(query)
 	if err != nil {
@@ -542,7 +542,7 @@ func (c *ClickHouse) ViewDo(params bumo.Params) string {
 //	    _timestamp_ as ts,
 //	    toDateTime(_timestamp_) as updated
 //	FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, tableInfo db.BaseTable, filterId int, whereCondition string) (string, string, error) {
+func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, filterId int, whereCondition string) (string, string, error) {
 	if whereCondition == "" {
 		whereCondition = "1=1"
 	}
@@ -580,9 +580,9 @@ func (c *ClickHouse) AlertViewGen(alarm *db.Alarm, tableInfo db.BaseTable, filte
 	return viewTableName, viewSQL, err
 }
 
-func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL, cluster string) (err error) {
+func (c *ClickHouse) CreateAlertView(viewTableName, viewSQL, cluster string) (err error) {
 	if viewTableName != "" {
-		err = c.AlertViewDrop(viewTableName, cluster)
+		err = c.DeleteAlertView(viewTableName, cluster)
 		if err != nil {
 			return
 		}
@@ -594,7 +594,7 @@ func (c *ClickHouse) AlertViewCreate(viewTableName, viewSQL, cluster string) (er
 	return err
 }
 
-func (c *ClickHouse) AlertViewDrop(viewTableName, cluster string) (err error) {
+func (c *ClickHouse) DeleteAlertView(viewTableName, cluster string) (err error) {
 	if c.mode == ModeCluster {
 		if cluster == "" {
 			return errors.Wrapf(constx.ErrClusterNameEmpty, "table %s, cluster %s", viewTableName, cluster)
@@ -635,7 +635,7 @@ func (c *ClickHouse) alertPrepare() (err error) {
 	return
 }
 
-func (c *ClickHouse) DropDatabase(name string, cluster string) (err error) {
+func (c *ClickHouse) DeleteDatabase(name string, cluster string) (err error) {
 	if cluster == "" {
 		_, err = c.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s;", name))
 	} else {
@@ -669,7 +669,7 @@ func resultAppend(input []string, k, v string, withQuote bool) []string {
 	return input
 }
 
-func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
+func (c *ClickHouse) DoSQL(sql string) (res view.RespComplete, err error) {
 	res.Logs = make([]map[string]interface{}, 0)
 	tmp, err := c.doQuery(sql)
 	if err != nil {
@@ -679,7 +679,7 @@ func (c *ClickHouse) Complete(sql string) (res view.RespComplete, err error) {
 	return
 }
 
-func (c *ClickHouse) GET(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
+func (c *ClickHouse) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
 	res.Logs = make([]map[string]interface{}, 0)
 	res.Keys = make([]*db.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
@@ -845,7 +845,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	return
 }
 
-func (c *ClickHouse) Databases() ([]*view.RespDatabaseSelfBuilt, error) {
+func (c *ClickHouse) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
 	dm := make(map[string][]*view.RespTablesSelfBuilt)
 	query := fmt.Sprintf("select database, name from system.tables")
@@ -872,7 +872,7 @@ func (c *ClickHouse) Databases() ([]*view.RespDatabaseSelfBuilt, error) {
 	return databases, nil
 }
 
-func (c *ClickHouse) Columns(database, table string, isTimeField bool) (res []*view.RespColumn, err error) {
+func (c *ClickHouse) ListColumn(database, table string, isTimeField bool) (res []*view.RespColumn, err error) {
 	res = make([]*view.RespColumn, 0)
 	var query string
 	if isTimeField {
@@ -906,7 +906,7 @@ func fieldTypeJudgment(typ string) int {
 }
 
 // IndexUpdate Data table index operation
-func (c *ClickHouse) IndexUpdate(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
+func (c *ClickHouse) UpdateIndex(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""
 	for _, del := range dels {
@@ -1032,7 +1032,7 @@ func (c *ClickHouse) IndexUpdate(database db.BaseDatabase, table db.BaseTable, a
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
-	invoker.Logger.Debug("IndexUpdate", elog.Any("viewList", viewList))
+	invoker.Logger.Debug("UpdateIndex", elog.Any("viewList", viewList))
 	for _, current := range viewList {
 		innerViewSQL, errViewOperator := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
@@ -1174,7 +1174,7 @@ func queryTransformLike(createType int, rawLogField, query string) string {
 }
 
 func likeTransformField(createType int, rawLogField, query string) string {
-	for _, skipWord := range SkipLikeAddStepWords {
+	for _, skipWord := range skipLikeAddStepWords {
 		if strings.Contains(query, skipWord) {
 			return query
 		}
@@ -1307,18 +1307,18 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 	return
 }
 
-func (c *ClickHouse) SystemTablesInfo() (res []*view.SystemTable) {
-	res = make([]*view.SystemTable, 0)
+func (c *ClickHouse) ListSystemTable() (res []*view.SystemTables) {
+	res = make([]*view.SystemTables, 0)
 	// s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
 	// Get full data if it is reset mode
 	s := "select * from system.tables"
 	deps, err := c.doQuery(s)
 	if err != nil {
-		invoker.Logger.Error("SystemTablesInfo", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
+		invoker.Logger.Error("ListSystemTable", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
 		return
 	}
 	for _, table := range deps {
-		row := view.SystemTable{
+		row := view.SystemTables{
 			Database:         table["database"].(string),
 			Table:            table["name"].(string),
 			Engine:           table["engine"].(string),
@@ -1350,18 +1350,6 @@ func (c *ClickHouse) SystemTablesInfo() (res []*view.SystemTable) {
 	return
 }
 
-// func getUnixTime(val map[string]interface{}) (int64, bool) {
-// 	v, ok := val[db.TimeFieldNanoseconds]
-// 	if !ok {
-// 		return 0, false
-// 	}
-// 	switch v.(type) {
-// 	case time.Time:
-// 		return v.(time.Time).UnixNano(), true
-// 	}
-// 	return 0, false
-// }
-
 // isEmpty filter empty index value
 func isEmpty(input interface{}) bool {
 	var val string
@@ -1392,7 +1380,7 @@ func isEmpty(input interface{}) bool {
 }
 
 // StorageCreate create default stream data table and view
-func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *ClickHouse) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
@@ -1441,17 +1429,17 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		invoker.Logger.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		invoker.Logger.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.storageViewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true, ct)
 	if err != nil {
-		invoker.Logger.Error("TableCreate", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
+		invoker.Logger.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
 	if c.mode == ModeCluster {
@@ -1464,10 +1452,10 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 				SourceTable: dName,
 			},
 		})
-		invoker.Logger.Debug("TableCreate", elog.Any("distributeSQL", dDistributedSQL))
+		invoker.Logger.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
-			invoker.Logger.Error("TableCreate", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			invoker.Logger.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
 			return
 		}
 	}
@@ -1476,28 +1464,28 @@ func (c *ClickHouse) StorageCreate(did int, database db.BaseDatabase, ct view.Re
 
 // AlterMergeTreeTable ...
 // ALTER TABLE dev.test MODIFY TTL toDateTime(time_second) + toIntervalDay(7)
-func (c *ClickHouse) AlterMergeTreeTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (err error) {
+func (c *ClickHouse) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (err error) {
 	s := fmt.Sprintf("ALTER TABLE %s%s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)",
 		genNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
 		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster),
 		params.MergeTreeTTL)
 	_, err = c.db.Exec(s)
 	if err != nil {
-		invoker.Logger.Error("AlterMergeTreeTable", elog.Any("sql", s), elog.Any("err", err.Error()))
+		invoker.Logger.Error("UpdateMergeTreeTable", elog.Any("sql", s), elog.Any("err", err.Error()))
 		return
 	}
 	return
 }
 
 // ReCreateKafkaTable Drop and Create
-func (c *ClickHouse) ReCreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
+func (c *ClickHouse) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
 	currentKafkaSQL := tableInfo.SqlStream
 	// Drop Table
 	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s",
 		genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
 		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
 	if _, err = c.db.Exec(dropSQL); err != nil {
-		invoker.Logger.Error("ReCreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
+		invoker.Logger.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
 		return
 	}
 	// Create Table
@@ -1521,10 +1509,10 @@ func (c *ClickHouse) ReCreateKafkaTable(tableInfo *db.BaseTable, params view.Req
 		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
 	}
 
-	invoker.Logger.Error("ReCreateKafkaTable", elog.Any("params", params))
+	invoker.Logger.Error("CreateKafkaTable", elog.Any("params", params))
 
 	if _, err = c.db.Exec(streamSQL); err != nil {
-		invoker.Logger.Error("ReCreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
+		invoker.Logger.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
 		_, _ = c.db.Exec(currentKafkaSQL)
 		return
 	}
