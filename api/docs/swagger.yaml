@@ -692,27 +692,6 @@ paths:
       summary: Reset user password
       tags:
       - base
-  /api/v2/base/users/{xx-id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete Collect
-      parameters:
-      - description: xx id
-        in: path
-        name: xx-id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/core.Res'
-      summary: Delete Collect
-      tags:
-      - base
   /api/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql:
     get:
       consumes:
@@ -1314,75 +1293,6 @@ paths:
       summary: trace storage list
       tags:
       - storage
-  /api/v2/xx/xx:
-    get:
-      consumes:
-      - application/json
-      description: List Collect
-      parameters:
-      - in: query
-        name: alias
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/db.RespListCollect'
-      summary: List Collect
-      tags:
-      - base
-    post:
-      description: Create Collect
-      parameters:
-      - description: params
-        in: body
-        name: req
-        required: true
-        schema:
-          $ref: '#/definitions/db.ReqCreateCollect'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/core.Res'
-            - properties:
-                data:
-                  $ref: '#/definitions/db.ReqCreateCollect'
-              type: object
-      summary: Create Collect
-      tags:
-      - base
-  /api/v2/xx/xx/{xx-id}:
-    patch:
-      consumes:
-      - application/json
-      description: Update Collect
-      parameters:
-      - description: xx id
-        in: path
-        name: xx-id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/core.Res'
-            - properties:
-                data:
-                  $ref: '#/definitions/view.RespUserCreate'
-              type: object
-      summary: Update Collect
-      tags:
-      - base
   /api/v3/storage:
     post:
       consumes:
