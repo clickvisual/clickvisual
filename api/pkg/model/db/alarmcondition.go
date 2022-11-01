@@ -22,7 +22,7 @@ type AlarmCondition struct {
 }
 
 func (m *AlarmCondition) TableName() string {
-	return TableAlarmCondition
+	return TableNameAlarmCondition
 }
 
 func AlarmConditionList(conds egorm.Conds) (resp []*AlarmCondition, err error) {

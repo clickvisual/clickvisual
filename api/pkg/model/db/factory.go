@@ -19,23 +19,24 @@ type IModel interface {
 
 const (
 	TableNameUser         = "cv_user"
-	TableEvent            = "cv_event"
+	TableNameEvent        = "cv_event"
 	TableNameK8SConfigMap = "cv_k8s_cm"
 	TableNameCluster      = "cv_cluster"
+	TableNameCollect      = "cv_collect"
 
 	TableNameBaseView        = "cv_base_view"
 	TableNameBaseTable       = "cv_base_table"
 	TableNameBaseIndex       = "cv_base_index"
 	TableNameBaseDatabase    = "cv_base_database"
 	TableNameBaseInstance    = "cv_base_instance"
-	TableBaseShortURL        = "cv_base_short_url"
+	TableNameBaseShortURL    = "cv_base_short_url"
 	TableNameBaseHiddenField = "cv_base_hidden_field"
 
-	TableAlarm          = "cv_alarm"
-	TableAlarmFilter    = "cv_alarm_filter"
-	TableAlarmHistory   = "cv_alarm_history"
-	TableAlarmChannel   = "cv_alarm_channel"
-	TableAlarmCondition = "cv_alarm_condition"
+	TableNameAlarm          = "cv_alarm"
+	TableNameAlarmFilter    = "cv_alarm_filter"
+	TableNameAlarmHistory   = "cv_alarm_history"
+	TableNameAlarmChannel   = "cv_alarm_channel"
+	TableNameAlarmCondition = "cv_alarm_condition"
 
 	TableNameConfiguration        = "cv_configuration"
 	TableNameConfigurationHistory = "cv_configuration_history"

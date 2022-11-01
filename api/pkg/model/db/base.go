@@ -62,7 +62,7 @@ func (b *BaseDatabase) TableName() string {
 }
 
 func (b *BaseShortURL) TableName() string {
-	return TableBaseShortURL
+	return TableNameBaseShortURL
 }
 
 // BaseDatabase 数据库管理

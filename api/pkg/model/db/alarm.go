@@ -108,7 +108,7 @@ type Alarm struct {
 }
 
 func (m *Alarm) TableName() string {
-	return TableAlarm
+	return TableNameAlarm
 }
 
 func (m *Alarm) RuleName(filterId int) string {

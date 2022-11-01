@@ -15,7 +15,7 @@ type Event struct {
 }
 
 func (Event) TableName() string {
-	return TableEvent
+	return TableNameEvent
 }
 
 func (a *Event) HandleOperationName() {
