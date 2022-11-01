@@ -20,7 +20,7 @@ type AlarmFilter struct {
 }
 
 func (m *AlarmFilter) TableName() string {
-	return TableAlarmFilter
+	return TableNameAlarmFilter
 }
 
 func AlarmFilterList(conds egorm.Conds) (resp []*AlarmFilter, err error) {

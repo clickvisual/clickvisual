@@ -122,7 +122,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "rule_store_type 1 集群 2 文件",
+                        "description": "rule_store_type 1 文件 2 集群",
                         "name": "ruleStoreType",
                         "in": "query"
                     }
@@ -962,6 +962,121 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/storage/collects": {
+            "get": {
+                "description": "List Collect",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "List Collect",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "alias",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/db.RespListCollect"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create Collect",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Create Collect",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/db.ReqCreateCollect"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/db.ReqCreateCollect"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/storage/collects/{collect-id}": {
+            "delete": {
+                "description": "Delete Collect",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Delete Collect",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "collect id",
+                        "name": "collect-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/storage/mapping-json": {
             "post": {
                 "description": "Kafka JSON field mapping",
@@ -1361,6 +1476,17 @@ const docTemplate = `{
                 }
             }
         },
+        "db.ReqCreateCollect": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "statement": {
+                    "type": "string"
+                }
+            }
+        },
         "db.RespAlertSettingInfo": {
             "type": "object",
             "properties": {
@@ -1385,7 +1511,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ruleStoreType": {
-                    "description": "rule_store_type 1 集群 2 文件",
+                    "description": "rule_store_type 1 文件 2 集群",
                     "type": "integer"
                 }
             }
@@ -1417,8 +1543,36 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ruleStoreType": {
-                    "description": "rule_store_type 1 集群 2 文件",
+                    "description": "rule_store_type 1 文件 2 集群",
                     "type": "integer"
+                }
+            }
+        },
+        "db.RespListCollect": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.RespListCollectItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "db.RespListCollectItem": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "statement": {
+                    "type": "string"
                 }
             }
         },
@@ -1717,6 +1871,12 @@ const docTemplate = `{
                 },
                 "engine": {
                     "type": "string"
+                },
+                "replicaNum": {
+                    "type": "integer"
+                },
+                "shardNum": {
+                    "type": "integer"
                 },
                 "table": {
                     "type": "string"

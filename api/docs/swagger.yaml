@@ -38,6 +38,13 @@ definitions:
       pagination:
         $ref: '#/definitions/core.Pagination'
     type: object
+  db.ReqCreateCollect:
+    properties:
+      alias:
+        type: string
+      statement:
+        type: string
+    type: object
   db.RespAlertSettingInfo:
     properties:
       clusterId:
@@ -55,7 +62,7 @@ definitions:
       prometheusTarget:
         type: string
       ruleStoreType:
-        description: rule_store_type 1 集群 2 文件
+        description: rule_store_type 1 文件 2 集群
         type: integer
     type: object
   db.RespAlertSettingListItem:
@@ -77,8 +84,26 @@ definitions:
       prometheusTarget:
         type: string
       ruleStoreType:
-        description: rule_store_type 1 集群 2 文件
+        description: rule_store_type 1 文件 2 集群
         type: integer
+    type: object
+  db.RespListCollect:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/db.RespListCollectItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  db.RespListCollectItem:
+    properties:
+      alias:
+        type: string
+      id:
+        type: integer
+      statement:
+        type: string
     type: object
   view.Column:
     properties:
@@ -273,6 +298,10 @@ definitions:
         type: array
       engine:
         type: string
+      replicaNum:
+        type: integer
+      shardNum:
+        type: integer
       table:
         type: string
       totalBytes:
@@ -497,7 +526,7 @@ paths:
       - in: query
         name: prometheusTarget
         type: string
-      - description: rule_store_type 1 集群 2 文件
+      - description: rule_store_type 1 文件 2 集群
         in: query
         name: ruleStoreType
         type: integer
@@ -1152,6 +1181,75 @@ paths:
           schema:
             $ref: '#/definitions/core.Res'
       summary: Get trace graph
+      tags:
+      - storage
+  /api/v2/storage/collects:
+    get:
+      consumes:
+      - application/json
+      description: List Collect
+      parameters:
+      - in: query
+        name: alias
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  $ref: '#/definitions/db.RespListCollect'
+              type: object
+      summary: List Collect
+      tags:
+      - storage
+    post:
+      description: Create Collect
+      parameters:
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/db.ReqCreateCollect'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  $ref: '#/definitions/db.ReqCreateCollect'
+              type: object
+      summary: Create Collect
+      tags:
+      - storage
+  /api/v2/storage/collects/{collect-id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Collect
+      parameters:
+      - description: collect id
+        in: path
+        name: collect-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Delete Collect
       tags:
       - storage
   /api/v2/storage/mapping-json:

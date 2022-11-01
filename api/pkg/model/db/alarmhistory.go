@@ -18,7 +18,7 @@ type AlarmHistory struct {
 }
 
 func (m *AlarmHistory) TableName() string {
-	return TableAlarmHistory
+	return TableNameAlarmHistory
 }
 
 func AlarmHistoryInfo(db *gorm.DB, id int) (resp AlarmHistory, err error) {

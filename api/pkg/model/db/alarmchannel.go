@@ -20,7 +20,7 @@ type AlarmChannel struct {
 }
 
 func (m *AlarmChannel) TableName() string {
-	return TableAlarmChannel
+	return TableNameAlarmChannel
 }
 
 func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {
