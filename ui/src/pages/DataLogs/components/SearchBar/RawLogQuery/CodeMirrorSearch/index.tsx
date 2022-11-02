@@ -55,7 +55,7 @@ const Editors = (props: {
   };
 
   /**
-   * 处理历史数据和分析字段的提示优先级
+   * 处理历史数据和分析字段的提示优先级、匹配提示
    * list
    * str 输入的字符串
    * codeHintsType 提示种类 CodeHintsType
@@ -71,7 +71,7 @@ const Editors = (props: {
       codeHintsType != CodeHintsType.keyword
         ? str.toLowerCase()
         : str.toUpperCase();
-    // 用空格分割然后取最后一个单词
+    // 用空格分割然后找到所编辑的单词
     const strArr = lowerCase.split(" ");
     let totalLenght = 0;
     let currentWord = "";
@@ -87,6 +87,7 @@ const Editors = (props: {
       }
       totalLenght += wordItem.length + 1;
     }
+    // 分配不同类型的icon和文本
     let icon: any = <></>;
     let infoText: any = "";
     switch (codeHintsType) {
@@ -108,82 +109,121 @@ const Editors = (props: {
         break;
       default:
     }
-
     let arr: any[] = [];
     let priorityArr: any[] = [];
+    let allArr: any[] = [];
     list.map((item: string) => {
-      let text: any = document.createElement("span");
-      let virtualDom: any;
-      // 从头开始匹配的优先级大于从中间开始匹配的
+      // 从头开始匹配的优先级大于从中间开始匹配的大于模糊搜索
       if (item.indexOf(currentWord) === 0) {
-        const stringList: string[] = item.split(currentWord);
-        stringList.map((item: string, index: number) => {
-          if (index != stringList.length - 1) {
-            virtualDom = (
-              <span>
-                {virtualDom}
-                <span>{item}</span>
-                <span style={{ color: "hsl(21, 85%, 56%)" }}>
-                  {currentWord}
-                </span>
-              </span>
-            );
-          } else {
-            virtualDom = (
-              <span>
-                {virtualDom}
-                {item}
-              </span>
-            );
-          }
-        });
-
-        ReactDom.render(virtualDom, text);
-        priorityArr.push({
-          text: item,
-          domText: text,
-          displayIcon: icon,
-          displayText: infoText,
-          isHistory: codeHintsType == CodeHintsType.history,
-          render: hintRender,
-        });
+        priorityArr.push(item);
       }
       if (item.indexOf(currentWord) > 0) {
-        const stringList: string[] = item.split(currentWord);
-        stringList.map((item: string, index: number) => {
-          if (index != stringList.length - 1) {
-            virtualDom = (
-              <span>
-                {virtualDom}
-                <span>{item}</span>
-                <span style={{ color: "hsl(21, 85%, 56%)" }}>
-                  {currentWord}
-                </span>
-              </span>
-            );
-          } else {
-            virtualDom = (
-              <span>
-                {virtualDom}
-                {item}
-              </span>
-            );
-          }
-        });
-
-        ReactDom.render(virtualDom, text);
-        arr.push({
-          text: item,
-          domText: text,
-          displayIcon: icon,
-          displayText: infoText,
-          isHistory: codeHintsType == CodeHintsType.history,
-          render: hintRender,
-        });
+        arr.push(item);
       }
     });
 
-    return [...priorityArr, ...arr];
+    allArr = [...priorityArr, ...arr];
+
+    // 处理模拟数据
+    let fuzzyList = fuzzyQuery(list, currentWord);
+    fuzzyList.map((item: any) => {
+      // 模糊搜索结果先过滤
+      if (!allArr.includes(item)) {
+        allArr.push(item);
+      }
+    });
+
+    // 将字符串数组变更为对象数组
+    let resultArr: any[] = [];
+    allArr.map((item: any) => {
+      let text: any = document.createElement("span");
+      let virtualDom: any;
+      handleHighlightAndPrompt(
+        item,
+        currentWord,
+        virtualDom,
+        resultArr,
+        text,
+        icon,
+        infoText,
+        codeHintsType
+      );
+    });
+
+    return resultArr;
+  };
+
+  /**
+   * 使用test方法实现模糊查询
+   * @param  {Array}  list     原数组
+   * @param  {String} keyWord  查询的关键词
+   * @return {Array}           查询的结果
+   */
+  const fuzzyQuery = (list: string[], keyWord: string): Array<any> => {
+    let arr: any[] = [];
+    const selectList = keyWord.split("");
+    var reg = new RegExp(".*" + selectList.join(".*") + ".*", "i");
+    list.map((listItem: string) => {
+      if (reg.test(listItem)) {
+        arr.push(listItem);
+      }
+    });
+
+    return arr;
+  };
+
+  /**
+   * 对匹配的提示项作高亮输入词的处理
+   * @promptText 匹配的提示项
+   * @currentWord 输入的词
+   * @virtualDom 只定义未赋值的虚拟dom*
+   * @arr 要填充的数组
+   * @——————下面只做赋值不做处理无需关心————————
+   * @text 空dom元素span
+   * @icon icon
+   * @infoText 种类文本
+   * @codeHintsType 种类枚举
+   */
+  const handleHighlightAndPrompt = (
+    promptText: string,
+    currentWord: string,
+    virtualDom: any,
+    arr: any[],
+    text: any,
+    icon: any,
+    infoText: any,
+    codeHintsType: any
+  ) => {
+    let c = promptText;
+    let TemporaryArr: string[] = [];
+    // 将提示语句中的关键字母替换成高亮字母，替换后拿后面的字符串进行下一次替换 可以解决高亮的字母顺序与输入字母顺序不一致的问题
+    currentWord.split("").map((item: any, index: number) => {
+      const locationIndex = c.indexOf(item);
+      if (locationIndex > -1) {
+        TemporaryArr.push(c.substring(0, locationIndex));
+        TemporaryArr.push(
+          `<span style="color:hsl(21, 85%, 56%)">${item}</span>`
+        );
+        c = c.substring(locationIndex + 1, c.length);
+      }
+      if (index == currentWord.split("").length - 1) {
+        if (c.length > 0) {
+          TemporaryArr.push(c);
+        }
+        c = TemporaryArr.join("");
+      }
+    });
+    virtualDom = <div dangerouslySetInnerHTML={{ __html: c }} />;
+
+    ReactDom.render(virtualDom, text);
+    arr.push({
+      text: promptText,
+      domText: text,
+      displayIcon: icon,
+      displayText: infoText,
+      isHistory: codeHintsType == CodeHintsType.history,
+      render: hintRender,
+    });
   };
 
   /**
@@ -251,6 +291,12 @@ const Editors = (props: {
     };
   };
 
+  /**
+   * 丰富提示框内每一行的功能
+   * @param element 一行最外侧的dom元素
+   * @param self
+   * @param data 传递的一些特异化数据
+   */
   const hintRender = (
     element: { appendChild: (arg0: HTMLDivElement) => void },
     self: any,
@@ -326,6 +372,11 @@ const Editors = (props: {
           ref={formRefs}
           key={title}
           onKeyPress={(a, b) => {
+            // 阻止回车换行事件
+            if (b.charCode == 13) {
+              b.preventDefault();
+              return;
+            }
             // 按字母键的时候触发代码提示
             if (
               (b.charCode <= 90 && b.charCode >= 65) ||

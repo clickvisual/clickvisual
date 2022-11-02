@@ -62,6 +62,10 @@ const NodeContent = ({ node }: NodeContentProps) => {
     }
   };
 
+  const isShortStyle = useMemo(() => {
+    return !(node?.replicaNum || node?.shardNum);
+  }, [node, node?.replicaNum, node?.shardNum]);
+
   const handleBuildTableSQL = useDebounceFn(
     (dName: string, tName: string) => {
       urlState?.iid &&
@@ -144,20 +148,49 @@ const NodeContent = ({ node }: NodeContentProps) => {
         <span>{i18n.formatMessage({ id: "type" })}:&nbsp;</span>
         {node.engine}
       </div>
-      <div className={nodeStyles.capacity}>
-        <div>
-          <span>{i18n.formatMessage({ id: "capacity" })}:&nbsp;</span>
-          <span>{byteConvert(node.totalBytes)}</span>
-        </div>
-        <Tooltip title={node.totalRows} placement={"right"}>
+      {isShortStyle ? (
+        <div className={nodeStyles.capacity}>
           <div>
-            <span>{i18n.formatMessage({ id: "count" })}:&nbsp;</span>
-            <span style={{ display: "inline-block" }}>
-              {handleBigNumbers(node.totalRows)}
-            </span>
+            <span>{i18n.formatMessage({ id: "capacity" })}:&nbsp;</span>
+            <span>{byteConvert(node.totalBytes)}</span>
           </div>
-        </Tooltip>
-      </div>
+          <Tooltip title={node.totalRows} placement={"right"}>
+            <div>
+              <span>{i18n.formatMessage({ id: "count" })}:&nbsp;</span>
+              <span style={{ display: "inline-block" }}>
+                {handleBigNumbers(node.totalRows)}
+              </span>
+            </div>
+          </Tooltip>
+        </div>
+      ) : (
+        <div className={nodeStyles.capacity}>
+          <div>
+            <span>{i18n.formatMessage({ id: "capacity" })}:&nbsp;</span>
+            <span>{byteConvert(node.totalBytes)}</span>
+            <Tooltip title={node.totalRows} placement={"right"}>
+              <div style={{ textAlign: "left" }}>
+                <span>{i18n.formatMessage({ id: "count" })}:&nbsp;</span>
+                <span style={{ display: "inline-block" }}>
+                  {handleBigNumbers(node.totalRows)}
+                </span>
+              </div>
+            </Tooltip>
+          </div>
+          <div>
+            <span>{i18n.formatMessage({ id: "shardNum" })}:&nbsp;</span>
+            <span>{node.shardNum}</span>
+            <Tooltip title={node.replicaNum} placement={"right"}>
+              <div style={{ textAlign: "left" }}>
+                <span>{i18n.formatMessage({ id: "replicaNum" })}:&nbsp;</span>
+                <span style={{ display: "inline-block" }}>
+                  {node.replicaNum}
+                </span>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+      )}
       <></>
     </div>
   );

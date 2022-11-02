@@ -34,6 +34,8 @@ export default {
 
   type: "类型",
   capacity: "容量",
+  shardNum: "分片数",
+  replicaNum: "副本数",
   count: "总量",
   status: "状态",
   dingTalk: "钉钉",
