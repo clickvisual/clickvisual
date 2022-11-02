@@ -49,10 +49,23 @@ func SettingUpdate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-
+	// Obtain the current alarm basic configuration
+	current, err := db.InstanceInfo(invoker.Db, iid)
+	if err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	if current.RuleStoreType != 0 && current.RuleStoreType != req.RuleStoreType {
+		// Detect whether there is an alarm under the current condition
+		errCheck := service.Alarm.IsAllClosed(iid)
+		if errCheck != nil {
+			c.JSONE(core.CodeErr, errCheck.Error(), errCheck)
+			return
+		}
+	}
 	ups := make(map[string]interface{}, 0)
 	ups["rule_store_type"] = req.RuleStoreType
-	if req.RuleStoreType == db.RuleStoreTypeK8s {
+	if req.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
 		ups["cluster_id"] = req.ClusterId
 		ups["namespace"] = req.Namespace
 		ups["configmap"] = req.Configmap

@@ -156,7 +156,7 @@ func Update(c *core.Context) {
 				}
 			}
 			if err = service.Alarm.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
-				c.JSONE(core.CodeErr, "prometheus rule delete failed", err)
+				c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
 				return
 			}
 		}
@@ -207,7 +207,7 @@ func List(c *core.Context) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}
-		total, list = db.AlarmListPageInTidArr(query, req, []int{tid})
+		total, list = db.AlarmListPageByTidArr(query, req, []int{tid})
 	} else if did != 0 {
 		database, _ := db.DatabaseInfo(invoker.Db, did)
 		if !service.DatabaseViewIsPermission(c.Uid(), database.Iid, did) {
@@ -248,7 +248,7 @@ func List(c *core.Context) {
 			tidArr = service.ReadAllPermissionTable(c.Uid())
 		}
 		// SELECT *  FROM `cv_alarm` WHERE JSON_CONTAINS(`table_ids`, '[1]') OR JSON_CONTAINS(`table_ids`, '[7]')
-		total, list = db.AlarmListPageInTidArr(query, req, tidArr)
+		total, list = db.AlarmListPageByTidArr(query, req, tidArr)
 	}
 	c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
 		Current:  req.Current,

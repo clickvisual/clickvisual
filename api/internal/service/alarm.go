@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,12 +15,10 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/alert/component"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/rule"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/resource"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -42,6 +39,28 @@ const (
 	reloadTimes    = 30
 	reloadInterval = time.Second * 5
 )
+
+const (
+	NoDataOpDefault = 0
+	NoDataOpOK      = 1
+	NoDataOpAlert   = 2
+)
+
+var _ iAlarm = (*alarm)(nil)
+
+type iAlarm interface {
+	FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.ReqAlarmFilterCreate) (res map[int]view.AlarmFilterItem, err error)
+	ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filterId int) (exp string, err error)
+	PrometheusReload(prometheusTarget string) (err error)
+	PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string
+	PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error)
+	PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error)
+	CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error)
+	OpenOperator(id int) (err error)
+	Update(uid, alarmId int, req view.ReqAlarmCreate) (err error)
+	AddPrometheusReloadChan()
+	IsAllClosed(instanceId int) (err error)
+}
 
 type alarm struct {
 	reloadChan chan int64
@@ -150,34 +169,6 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	return
 }
 
-const (
-	NoDataOpDefault = 0
-	NoDataOpOK      = 1
-	NoDataOpAlert   = 2
-)
-
-func aggregationOp(mode int, exp string, expVal string) string {
-	switch mode {
-	case db.AlarmModeAggregation:
-		return fmt.Sprintf("%s and %s!=-1", exp, expVal)
-	default:
-		return exp
-	}
-}
-
-func noDataOp(op int, exp, expVal string) string {
-	switch op {
-	case NoDataOpDefault:
-		return exp
-	case NoDataOpOK:
-		return fmt.Sprintf("(%s) or absent(%s)!=1", exp, expVal)
-	case NoDataOpAlert:
-		return fmt.Sprintf("(%s) or absent(%s)==1", exp, expVal)
-	default:
-		return exp
-	}
-}
-
 func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
 	resp, err := http.Post(strings.TrimSuffix(prometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
 	if err != nil {
@@ -192,28 +183,19 @@ func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) strin
 	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
 }
 
-func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, ruleName, rule string) (err error) {
-	switch instance.RuleStoreType {
-	case db.RuleStoreTypeFile:
-		content := []byte(rule)
-		path := strings.TrimSuffix(instance.FilePath, "/")
-		err = os.WriteFile(path+"/"+ruleName, content, 0644)
-		if err != nil {
-			return errors.Wrapf(err, "rule name %s, rule %s", ruleName, rule)
-		}
-	case db.RuleStoreTypeK8s:
-		client, errCluster := kube.ClusterManager.GetClusterManager(instance.ClusterId)
-		if errCluster != nil {
-			return errCluster
-		}
-		rules := make(map[string]string)
-		rules[ruleName] = rule
-		err = resource.ConfigmapCreateOrUpdate(client, instance.Namespace, instance.Configmap, rules)
-		if err != nil {
-			return
-		}
-	default:
-		return errors.Wrapf(constx.ErrAlarmRuleStoreIsClosed, "")
+func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error) {
+	rc, err := rule.GetComponent(instance.RuleStoreType, &rule.Params{
+		InstanceID: instance.ID,
+		RulePath:   instance.FilePath,
+		ClusterId:  instance.ClusterId,
+		Namespace:  instance.Namespace,
+		Configmap:  instance.Configmap,
+	})
+	if err != nil {
+		return err
+	}
+	if err = rc.CreateOrUpdate(name, content); err != nil {
+		return
 	}
 	i.AddPrometheusReloadChan()
 	return nil
@@ -240,24 +222,6 @@ func (i *alarm) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (
 		}
 	}
 	i.AddPrometheusReloadChan()
-	return nil
-}
-
-func alarmRuleDelete(instance *db.BaseInstance, ruleName string) (err error) {
-	switch instance.RuleStoreType {
-	case db.RuleStoreTypeK8s:
-		invoker.Logger.Debug("alert", elog.Any("instance", instance))
-		err = resource.ConfigmapDelete(instance.ClusterId, instance.Namespace, instance.Configmap, ruleName)
-		if err != nil {
-			return
-		}
-	case db.RuleStoreTypeFile:
-		path := strings.TrimSuffix(instance.FilePath, "/")
-		err = os.Remove(path + "/" + ruleName)
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return errors.Wrapf(err, "file path is %s", instance.FilePath)
-		}
-	}
 	return nil
 }
 
@@ -475,6 +439,32 @@ func (i *alarm) AddPrometheusReloadChan() {
 	}
 }
 
+func (i *alarm) IsAllClosed(iid int) (err error) {
+	tables, err := db.TableListByInstanceId(invoker.Db, iid)
+	tidArr := make([]int, 0)
+	for _, table := range tables {
+		tidArr = append(tidArr, table.ID)
+	}
+	// Detect whether there is an alarm in effect.
+	conds := egorm.Conds{}
+	conds["status"] = egorm.Cond{
+		Op:  ">",
+		Val: 1,
+	}
+	alarms, err := db.AlarmListByTidArr(conds, tidArr)
+	if err != nil {
+		return err
+	}
+	if len(alarms) == 0 {
+		return nil
+	}
+	errReason := ""
+	for _, a := range alarms {
+		errReason = fmt.Sprintf("%sid: %d, name: %s ;", errReason, a.ID, a.Name)
+	}
+	return errors.New("Contains non-closed alarm:" + errReason)
+}
+
 func AllPrometheusReload() {
 	instances, err := db.InstanceList(egorm.Conds{})
 	if err != nil {
@@ -584,4 +574,40 @@ func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
 		})
 	}
 	return res
+}
+
+func aggregationOp(mode int, exp string, expVal string) string {
+	switch mode {
+	case db.AlarmModeAggregation:
+		return fmt.Sprintf("%s and %s!=-1", exp, expVal)
+	default:
+		return exp
+	}
+}
+
+func noDataOp(op int, exp, expVal string) string {
+	switch op {
+	case NoDataOpDefault:
+		return exp
+	case NoDataOpOK:
+		return fmt.Sprintf("(%s) or absent(%s)!=1", exp, expVal)
+	case NoDataOpAlert:
+		return fmt.Sprintf("(%s) or absent(%s)==1", exp, expVal)
+	default:
+		return exp
+	}
+}
+
+func alarmRuleDelete(instance *db.BaseInstance, ruleName string) (err error) {
+	rc, err := rule.GetComponent(instance.RuleStoreType, &rule.Params{
+		InstanceID: instance.ID,
+		RulePath:   instance.FilePath,
+		ClusterId:  instance.ClusterId,
+		Namespace:  instance.Namespace,
+		Configmap:  instance.Configmap,
+	})
+	if err != nil {
+		return err
+	}
+	return rc.Delete(ruleName)
 }

@@ -240,6 +240,9 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 		res.ST = time.Now().Add(-time.Minute * 15).Unix()
 		res.ET = time.Now().Unix()
 	}
+	for _, filter := range res.Filters {
+		res.Query = fmt.Sprintf("%s and %s", res.Query, filter)
+	}
 	var err error
 	if isFilter {
 		res.Query, err = queryTransformer(res.Query)

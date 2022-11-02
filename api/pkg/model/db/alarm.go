@@ -37,8 +37,9 @@ const (
 )
 
 const (
-	RuleStoreTypeFile = 1
-	RuleStoreTypeK8s  = 2
+	RuleStoreTypeFile         = 1
+	RuleStoreTypeK8sConfigMap = 2
+	RuleStoreTypeK8sOperator  = 3
 )
 
 var UnitMap = map[int]UnitItem{
@@ -235,9 +236,26 @@ func AlarmList(conds egorm.Conds) (resp []*Alarm, err error) {
 	return
 }
 
-// AlarmListPageInTidArr return item list by pagination
+func AlarmListByTidArr(conds egorm.Conds, tidArr []int) (resp []*Alarm, err error) {
+	jcs := ""
+	for _, tid := range tidArr {
+		if jcs == "" {
+			jcs = fmt.Sprintf("JSON_CONTAINS(`table_ids`, '[%d]')", tid)
+			continue
+		}
+		jcs = fmt.Sprintf("%s OR JSON_CONTAINS(`table_ids`, '[%d]')", jcs, tid)
+	}
+	sql, binds := egorm.BuildQuery(conds)
+	if err = invoker.Db.Model(Alarm{}).Preload("User").Where(sql, binds...).Where(jcs).Find(&resp).Error; err != nil {
+		err = errors.Wrapf(err, "conds: %v", conds)
+		return
+	}
+	return
+}
+
+// AlarmListPageByTidArr return item list by pagination
 // SELECT *  FROM `cv_alarm` WHERE JSON_CONTAINS(`table_ids`, '[1]') OR JSON_CONTAINS(`table_ids`, '[7]')
-func AlarmListPageInTidArr(conds egorm.Conds, reqList *ReqPage, tidArr []int) (total int64, respList []*Alarm) {
+func AlarmListPageByTidArr(conds egorm.Conds, reqList *ReqPage, tidArr []int) (total int64, respList []*Alarm) {
 	respList = make([]*Alarm, 0)
 	if reqList.PageSize == 0 {
 		reqList.PageSize = 10
