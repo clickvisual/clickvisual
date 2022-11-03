@@ -39,6 +39,7 @@ export default {
   count: "Count",
   status: "Status",
   dingTalk: "DingTalk",
+  WeCom: "WeCom",
   Feishu: "Lark",
   Slack: "Slack",
 

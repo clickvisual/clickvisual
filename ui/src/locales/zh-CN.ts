@@ -39,6 +39,7 @@ export default {
   count: "总量",
   status: "状态",
   dingTalk: "钉钉",
+  WeCom: "企业微信",
   Feishu: "飞书",
   Slack: "Slack",
 

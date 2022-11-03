@@ -4,6 +4,7 @@ const useAlarmEnums = () => {
   const i18n = useIntl();
   const ChannelTypes = [
     { name: i18n.formatMessage({ id: "dingTalk" }), value: 1 },
+    { name: i18n.formatMessage({ id: "WeCom" }), value: 2 },
     { name: i18n.formatMessage({ id: "Feishu" }), value: 3 },
     { name: i18n.formatMessage({ id: "Slack" }), value: 4 },
   ];
