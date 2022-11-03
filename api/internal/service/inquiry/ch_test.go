@@ -198,16 +198,16 @@ func Test_queryTransformLike(t *testing.T) {
 				rawLogField: "_raw_log_",
 				query:       "tt",
 			},
-			want: "_raw_log_ like '%tt%'",
+			want: "_raw_log_ LIKE '%tt%'",
 		},
 		{
 			name: "test-2",
 			args: args{
 				createType:  1,
 				rawLogField: "_raw_log_",
-				query:       "_raw_log_ like '%handleCreated%' AND _container_name_='svc-task'",
+				query:       "_raw_log_ LIKE '%handleCreated%' AND _container_name_='svc-task'",
 			},
-			want: "_raw_log_ like '%handleCreated%' AND _container_name_='svc-task'",
+			want: "_raw_log_ LIKE '%handleCreated%' AND _container_name_='svc-task'",
 		},
 		{
 			name: "test-3",
@@ -234,7 +234,7 @@ func Test_queryTransformLike(t *testing.T) {
 				rawLogField: "_raw_log_",
 				query:       "handleCreated and _container_name_='svc-task'",
 			},
-			want: "_raw_log_ like '%handleCreated%' AND _container_name_='svc-task'",
+			want: "_raw_log_ LIKE '%handleCreated%' AND _container_name_='svc-task'",
 		},
 	}
 	for _, tt := range tests {
