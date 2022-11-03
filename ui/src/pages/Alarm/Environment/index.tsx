@@ -192,7 +192,7 @@ const Environment = () => {
               }}
             />
           </Tooltip>
-          {record.isMetricsSamplesOk != 0 && (
+          {record.isMetricsSamplesOk == 0 && (
             <Tooltip
               title={i18n.formatMessage(
                 {
