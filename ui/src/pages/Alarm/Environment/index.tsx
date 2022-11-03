@@ -1,19 +1,23 @@
 import { INSTANCEMANAGEMENT_PATH } from "@/config/config";
-import { EditOutlined } from "@ant-design/icons";
-import { Button, Table, Tag, Tooltip } from "antd";
+import { EditOutlined, PlusSquareOutlined } from "@ant-design/icons";
+import { Button, message, Table, Tag, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { useIntl, useModel } from "umi";
 import EditEnvironmentModal from "./components/EditEnvironmentModal";
+import type { InstanceType } from "@/services/systemSetting";
+import CreateMetricsAamples from "./components/CreateMetricsAamples";
 
 export interface ResGetAlarmConfigList {
   instanceId: number;
   isAlertManagerOK: number;
   isPrometheusOK: number;
+  isMetricsSamplesOk: number;
   ruleStoreType: number;
   instanceName: string;
   prometheusTarget: string;
   checkPrometheusResult: string;
   checkAlertManagerResult: string;
+  checkMetricsSamplesResult: any;
 }
 
 export enum RuleStoreType {
@@ -23,12 +27,23 @@ export enum RuleStoreType {
 }
 
 const Environment = () => {
-  const { doGetAlarmConfigList } = useModel("alarms.useAlarmEnvironment");
+  const {
+    doGetAlarmConfigList,
+    doGetInstanceList,
+    doCreateMetricsSamplesTable,
+  } = useModel("alarms.useAlarmEnvironment");
   const i18n = useIntl();
-
   const [visibleEnvironment, setVisibleEnvironment] = useState<boolean>(false);
+  const [visibleMetricsAamples, setVisibleMetricsAamples] =
+    useState<boolean>(false);
+  const [currentIidAndIName, setCurrentIidAndIName] = useState<{
+    iid: number;
+    instanceName: string;
+  }>({ iid: 0, instanceName: "" });
   const [editEnvironmentId, setEditEnvironmentId] = useState<number>(0);
+  const [currentClusters, setCurrentClusters] = useState<string[]>([]);
   const [alarmConfigList, setAlarmConfigList] = useState<any[]>([]);
+  const [instanceList, setInstanceList] = useState<InstanceType[]>([]);
 
   const column: any[] = [
     {
@@ -131,26 +146,97 @@ const Environment = () => {
       },
     },
     {
+      title: i18n.formatMessage({
+        id: "alarm.environment.form.isMetricsSamplesOk",
+      }),
+      dataIndex: "isMetricsSamplesOk",
+      align: "left",
+      render: (state: number, record: ResGetAlarmConfigList) => {
+        return (
+          <>
+            {state == 1 ? (
+              <Tag color="success">
+                {i18n.formatMessage({ id: "cluster.form.status.normality" })}
+              </Tag>
+            ) : (
+              <>
+                <Tag color="error">
+                  {i18n.formatMessage({ id: "cluster.form.status.anomaly" })}
+                </Tag>
+                {record.checkMetricsSamplesResult}
+              </>
+            )}
+          </>
+        );
+      },
+    },
+    {
       title: "Options",
       key: "options",
       width: 100,
       align: "left",
       render: (_: any, record: ResGetAlarmConfigList) => (
-        <Tooltip
-          title={i18n.formatMessage({
-            id: "edit",
-          })}
-        >
-          <Button
-            size={"small"}
-            type={"link"}
-            icon={<EditOutlined />}
-            onClick={() => {
-              setEditEnvironmentId(record.instanceId);
-              setVisibleEnvironment(true);
-            }}
-          />
-        </Tooltip>
+        <>
+          <Tooltip
+            title={i18n.formatMessage({
+              id: "edit",
+            })}
+          >
+            <Button
+              size={"small"}
+              type={"link"}
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditEnvironmentId(record.instanceId);
+                setVisibleEnvironment(true);
+              }}
+            />
+          </Tooltip>
+          {record.isMetricsSamplesOk != 0 && (
+            <Tooltip
+              title={i18n.formatMessage(
+                {
+                  id: "create.name",
+                },
+                {
+                  name: "metrics-samples",
+                }
+              )}
+            >
+              <Button
+                size={"small"}
+                type={"link"}
+                icon={<PlusSquareOutlined />}
+                onClick={() => {
+                  const currentIid: InstanceType[] = instanceList.filter(
+                    (item: InstanceType) => item.id == record.instanceId
+                  );
+                  const data = {
+                    iid: record.instanceId,
+                  };
+
+                  const isHaveClusters =
+                    currentIid.length > 0 &&
+                    currentIid[0].clusters &&
+                    currentIid[0].clusters.length > 0;
+                  if (isHaveClusters) {
+                    setCurrentIidAndIName({
+                      iid: record.instanceId,
+                      instanceName: record.instanceName,
+                    });
+                    setVisibleMetricsAamples(true);
+                    setCurrentClusters(currentIid[0].clusters || []);
+                  } else {
+                    doCreateMetricsSamplesTable.run(data).then((res: any) => {
+                      if (res.code != 0) return;
+                      message.success("success");
+                    });
+                  }
+                }}
+              />
+            </Tooltip>
+          )}
+        </>
       ),
     },
   ];
@@ -162,8 +248,16 @@ const Environment = () => {
     });
   };
 
+  const getInstanceList = () => {
+    doGetInstanceList.run().then((res: any) => {
+      if (res.code != 0) return;
+      setInstanceList(res.data || []);
+    });
+  };
+
   useEffect(() => {
     gitList();
+    getInstanceList();
   }, []);
 
   return (
@@ -179,6 +273,13 @@ const Environment = () => {
         editEnvironmentId={editEnvironmentId}
         visible={visibleEnvironment}
         onChangeVisible={setVisibleEnvironment}
+        onGetList={gitList}
+      />
+      <CreateMetricsAamples
+        visible={visibleMetricsAamples}
+        onChangeVisible={setVisibleMetricsAamples}
+        currentIidAndIName={currentIidAndIName}
+        currentClusters={currentClusters}
         onGetList={gitList}
       />
     </div>

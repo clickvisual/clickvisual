@@ -9,6 +9,11 @@ export interface PatchAlarmConfigType {
   prometheusTarget?: string;
 }
 
+export interface CreateMetricsSamplesTableType {
+  iid: number;
+  cluster?: string;
+}
+
 export async function getAlarmConfigList() {
   return request(process.env.PUBLIC_PATH + `api/v2/alert/settings`, {
     method: "GET",
@@ -27,6 +32,15 @@ export async function patchAlarmConfigDetails(
 ) {
   return request(process.env.PUBLIC_PATH + `api/v2/alert/settings/${iid}`, {
     method: "PATCH",
+    data,
+  });
+}
+
+export async function createMetricsSamplesTable(
+  data: CreateMetricsSamplesTableType
+) {
+  return request(process.env.PUBLIC_PATH + `api/v2/alert/metrics-samples`, {
+    method: "POST",
     data,
   });
 }

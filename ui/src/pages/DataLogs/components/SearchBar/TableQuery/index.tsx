@@ -184,7 +184,6 @@ const TableQuery = () => {
             // 显示行号
             lineNumbers: true,
             // 改变行号文案
-            // lineNumberFormatter: () => "WHERE",
             mode: {
               name: "text/x-mysql",
             },

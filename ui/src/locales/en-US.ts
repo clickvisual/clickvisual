@@ -28,6 +28,7 @@ export default {
   "table.column.filter.refresh": "Refresh",
   "input.placeholder": "Please enter the{name}",
   "select.placeholder": "Please select a{name}",
+  "create.name": "Create {name}",
   required: "Required",
   tips: "Tips",
   unit: "Unit",
@@ -662,6 +663,7 @@ export default {
   "alarm.environment.form.ruleStoreType": "The alarm types",
   "alarm.environment.form.isPrometheusOK": "Prometheus state",
   "alarm.environment.form.isAlertManagerOK": "AlertManager state",
+  "alarm.environment.form.isMetricsSamplesOk": "The metrics. Samples status",
 
   // install
   "install.init.text.databaseInit":
