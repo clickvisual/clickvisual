@@ -9,7 +9,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/component"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/alertcomponent"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
@@ -78,7 +78,7 @@ func SettingUpdate(c *core.Context) {
 		if !strings.HasPrefix(prometheus, "http") {
 			prometheus = "http://" + prometheus
 		}
-		p, err := component.NewPrometheus(prometheus)
+		p, err := alertcomponent.NewPrometheus(prometheus)
 		if err != nil {
 			c.JSONE(1, "prometheus check failed: "+err.Error(), err)
 			return
@@ -113,16 +113,17 @@ func SettingList(c *core.Context) {
 			continue
 		}
 		row := db.RespAlertSettingListItem{
-			InstanceId:       instance.ID,
-			InstanceName:     instance.Name,
-			RuleStoreType:    instance.RuleStoreType,
-			PrometheusTarget: instance.PrometheusTarget,
-			IsAlertManagerOK: 1,
-			IsPrometheusOK:   1,
+			InstanceId:         instance.ID,
+			InstanceName:       instance.Name,
+			RuleStoreType:      instance.RuleStoreType,
+			PrometheusTarget:   instance.PrometheusTarget,
+			IsAlertManagerOK:   1,
+			IsPrometheusOK:     1,
+			IsMetricsSamplesOk: 1,
 		}
 		// prometheus
 		errProm, errAlertManager := func() (error, error) {
-			p, errProm := component.NewPrometheus(instance.PrometheusTarget)
+			p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget)
 			if errProm != nil {
 				return errProm, errProm
 			}
@@ -136,6 +137,17 @@ func SettingList(c *core.Context) {
 			row.IsAlertManagerOK = 0
 			row.CheckAlertManagerResult = errAlertManager.Error()
 		}
+		if err = func() error {
+			op, errCh := service.InstanceManager.Load(instance.ID)
+			if errCh != nil {
+				return err
+			}
+			return op.GetMetricsSamples()
+		}(); err != nil {
+			row.IsMetricsSamplesOk = 0
+			row.CheckMetricsSamplesResult = err.Error()
+		}
+		// check metrics samples
 		res = append(res, &row)
 	}
 	if err != nil {
@@ -181,5 +193,45 @@ func SettingInfo(c *core.Context) {
 			ClusterId:        res.ClusterId,
 		},
 	})
+	return
+}
+
+// CreateMetricsSamples  godoc
+// @Summary      Create metrics samples table
+// @Description  Store advanced metric data
+// @Tags         base
+// @Produce      json
+// @Param        req body db.ReqCreateMetricsSamples true "params"
+// @Success      200 {object} core.Res{}
+// @Router       /api/v2/alert/metrics-samples [post]
+func CreateMetricsSamples(c *core.Context) {
+	var err error
+	params := db.ReqCreateMetricsSamples{}
+	err = c.Bind(&params)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(params.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActEdit},
+	}); err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	op, err := service.InstanceManager.Load(params.Iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
+	if err = op.CreateMetricsSamples(params.Cluster); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
+	event.Event.UserCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"params": params})
+	c.JSONOK()
 	return
 }

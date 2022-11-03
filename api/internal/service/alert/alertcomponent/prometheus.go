@@ -1,4 +1,4 @@
-package component
+package alertcomponent
 
 import (
 	"encoding/json"
@@ -87,16 +87,6 @@ func (p *Prometheus) CheckDependents() error {
 		components = append(components, am)
 	}
 	return nil
-}
-
-type prometheusApiV1AlertmanagersResp struct {
-	Status string `json:"status"`
-	Data   struct {
-		ActiveAlertmanagers []struct {
-			Url string `json:"url"`
-		} `json:"activeAlertmanagers"`
-		DroppedAlertmanagers []interface{} `json:"droppedAlertmanagers"`
-	} `json:"data"`
 }
 
 func (p *Prometheus) checkLifecycleAPI() error {

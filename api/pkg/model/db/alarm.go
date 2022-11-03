@@ -343,8 +343,15 @@ type RespAlertSettingListItem struct {
 	PrometheusTarget string `json:"prometheusTarget"`
 
 	// check
-	IsPrometheusOK          int    `json:"isPrometheusOK"` // 0 no 1 yes
-	CheckPrometheusResult   string `json:"checkPrometheusResult"`
-	IsAlertManagerOK        int    `json:"isAlertManagerOK"` // 0 no 1 yes
-	CheckAlertManagerResult string `json:"checkAlertManagerResult"`
+	IsPrometheusOK            int    `json:"isPrometheusOK"` // 0 no 1 yes
+	CheckPrometheusResult     string `json:"checkPrometheusResult"`
+	IsAlertManagerOK          int    `json:"isAlertManagerOK"` // 0 no 1 yes
+	CheckAlertManagerResult   string `json:"checkAlertManagerResult"`
+	IsMetricsSamplesOk        int    `json:"isMetricsSamplesOk"` // 0 no 1 yes
+	CheckMetricsSamplesResult string `json:"checkMetricsSamplesResult"`
+}
+
+type ReqCreateMetricsSamples struct {
+	Iid     int    `json:"iid" form:"iid"`
+	Cluster string `json:"cluster" form:"cluster"`
 }

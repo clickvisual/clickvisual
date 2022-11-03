@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/component"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/alertcomponent"
 	"github.com/clickvisual/clickvisual/api/internal/service/alert/rule"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
@@ -295,10 +295,10 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		}
 		viewDDLs[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, table)] = ddl
 		// rule store
-		rule := i.PrometheusRuleGen(alarmObj, filterItem.Exp, filterId)
+		r := i.PrometheusRuleGen(alarmObj, filterItem.Exp, filterId)
 		ruleName := alarmObj.RuleName(filterId)
-		alertRules[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, ruleName)] = rule
-		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, rule); err != nil {
+		alertRules[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, ruleName)] = r
+		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, r); err != nil {
 			return
 		}
 		if err = Alarm.PrometheusRuleDelete(&instance, alarmObj); err != nil {
@@ -495,7 +495,7 @@ func AlertRuleCheck() error {
 		return err
 	}
 	// Find all instances
-	promPool := make(map[int]*component.Prometheus)
+	promPool := make(map[int]*alertcomponent.Prometheus)
 	for _, alert := range alarms {
 		isRuleOk := true
 		if len(alert.RuleNameMap()) == 0 && alert.AlertRule == "" {
@@ -510,7 +510,7 @@ func AlertRuleCheck() error {
 					isRuleOk = false
 					break
 				}
-				prom, err = component.NewPrometheus(ins.PrometheusTarget)
+				prom, err = alertcomponent.NewPrometheus(ins.PrometheusTarget)
 				if err != nil {
 					core.LoggerError("ruleCheck", "prometheus", err)
 					isRuleOk = false

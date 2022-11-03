@@ -16,6 +16,37 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v2/alert/metrics-samples": {
+            "post": {
+                "description": "Store advanced metric data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "Create metrics samples table",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/db.ReqCreateMetricsSamples"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/alert/settings": {
             "get": {
                 "description": "Instance alarm configuration list",
@@ -1487,6 +1518,17 @@ const docTemplate = `{
                 }
             }
         },
+        "db.ReqCreateMetricsSamples": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "string"
+                },
+                "iid": {
+                    "type": "integer"
+                }
+            }
+        },
         "db.RespAlertSettingInfo": {
             "type": "object",
             "properties": {
@@ -1522,6 +1564,9 @@ const docTemplate = `{
                 "checkAlertManagerResult": {
                     "type": "string"
                 },
+                "checkMetricsSamplesResult": {
+                    "type": "string"
+                },
                 "checkPrometheusResult": {
                     "type": "string"
                 },
@@ -1532,6 +1577,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "isAlertManagerOK": {
+                    "description": "0 no 1 yes",
+                    "type": "integer"
+                },
+                "isMetricsSamplesOk": {
                     "description": "0 no 1 yes",
                     "type": "integer"
                 },

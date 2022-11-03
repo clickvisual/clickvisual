@@ -37,6 +37,7 @@ type Operator interface {
 	CreateTable(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
 	CreateStorage(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
 	CreateStorageV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
+	CreateMetricsSamples(cluster string) error
 
 	UpdateIndex(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error
 	UpdateMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
@@ -45,6 +46,7 @@ type Operator interface {
 	GetCreateSQL(database, table string) (string, error)
 	GetAlertViewSQL(*db.Alarm, db.BaseTable, int, string) (string, string, error)
 	GetTraceGraph(ctx context.Context) ([]view.RespJaegerDependencyDataModel, error)
+	GetMetricsSamples() error
 
 	ListSystemTable() []*view.SystemTables
 	ListSystemCluster() ([]*view.SystemClusters, map[string]*view.SystemClusters, error)
