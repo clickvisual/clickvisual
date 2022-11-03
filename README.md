@@ -132,6 +132,7 @@ Thanks for these wonderful people:
 ## Thank You
  
 - [Jetbrains](https://www.jetbrains.com)
+- [腾源会/WeOpen](https://cloud.tencent.com/act/pro/weopen-home)
 
 ## Friends
 

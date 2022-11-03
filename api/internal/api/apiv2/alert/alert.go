@@ -199,7 +199,7 @@ func SettingInfo(c *core.Context) {
 // CreateMetricsSamples  godoc
 // @Summary      Create metrics samples table
 // @Description  Store advanced metric data
-// @Tags         base
+// @Tags         alert
 // @Produce      json
 // @Param        req body db.ReqCreateMetricsSamples true "params"
 // @Success      200 {object} core.Res{}

@@ -91,6 +91,11 @@ cd ./clickvisual-${latest} && ./clickvisual -config config/default.toml
 
  <img src="https://helpcenter.shimonote.com/uploads/0LNQ550801CF2.png" width="150" />
 
-## Contributors
+## 感谢
 
-Thanks for these wonderful people:
+- [Jetbrains](https://www.jetbrains.com)
+- [腾源会/WeOpen](https://cloud.tencent.com/act/pro/weopen-home)
+
+## 伙伴
+
+- [DBM - An awesome database management tool specified for ClickHouse](https://github.com/EdurtIO/dbm)
