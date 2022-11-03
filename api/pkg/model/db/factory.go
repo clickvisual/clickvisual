@@ -13,7 +13,13 @@ import (
 	sdelete "gorm.io/plugin/soft_delete"
 )
 
-type IModel interface {
+const (
+	// ReplicaStatusYes This definition is really outrageous
+	ReplicaStatusYes = 0
+	ReplicaStatusNo  = 1
+)
+
+type iModel interface {
 	TableName() string
 }
 

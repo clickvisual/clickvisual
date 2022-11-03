@@ -73,6 +73,7 @@ func v2(r *gin.RouterGroup) {
 	}
 	// The log module - alert
 	{
+		r.POST("/alert/metrics-samples", core.Handle(alert.CreateMetricsSamples))
 		r.GET("/alert/settings", core.Handle(alert.SettingList))
 		r.GET("/alert/settings/:instance-id", core.Handle(alert.SettingInfo))
 		r.PATCH("/alert/settings/:instance-id", core.Handle(alert.SettingUpdate))

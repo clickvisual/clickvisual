@@ -45,6 +45,13 @@ definitions:
       statement:
         type: string
     type: object
+  db.ReqCreateMetricsSamples:
+    properties:
+      cluster:
+        type: string
+      iid:
+        type: integer
+    type: object
   db.RespAlertSettingInfo:
     properties:
       clusterId:
@@ -69,6 +76,8 @@ definitions:
     properties:
       checkAlertManagerResult:
         type: string
+      checkMetricsSamplesResult:
+        type: string
       checkPrometheusResult:
         type: string
       instanceId:
@@ -76,6 +85,9 @@ definitions:
       instanceName:
         type: string
       isAlertManagerOK:
+        description: 0 no 1 yes
+        type: integer
+      isMetricsSamplesOk:
         description: 0 no 1 yes
         type: integer
       isPrometheusOK:
@@ -461,6 +473,26 @@ info:
   title: ClickVisual API
   version: 0.4.0
 paths:
+  /api/v2/alert/metrics-samples:
+    post:
+      description: Store advanced metric data
+      parameters:
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/db.ReqCreateMetricsSamples'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Create metrics samples table
+      tags:
+      - base
   /api/v2/alert/settings:
     get:
       consumes:

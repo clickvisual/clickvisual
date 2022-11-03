@@ -26,6 +26,11 @@ import (
 )
 
 const (
+	ModeStandalone int = 0
+	ModeCluster    int = 1
+)
+
+const (
 	defaultStringTimeParse = `parseDateTimeBestEffort(%s) AS _time_second_,
   toDateTime64(parseDateTimeBestEffort(%s), 9, 'Asia/Shanghai') AS _time_nanosecond_`
 	defaultFloatTimeParse = `toDateTime(toInt64(%s)) AS _time_second_,
@@ -60,10 +65,6 @@ var jsonExtractORM = map[int]string{
 	2: "toFloat64OrNull",
 }
 
-const (
-	ModeCluster int = 1
-)
-
 func genTimeCondition(param view.ReqQuery) string {
 	switch param.TimeFieldType {
 	case db.TimeFieldTypeDT:
@@ -88,6 +89,8 @@ func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
 	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
 }
 
+var _ Operator = (*ClickHouse)(nil)
+
 type ClickHouse struct {
 	id   int
 	mode int
@@ -107,12 +110,75 @@ func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouse, error) {
 	}, nil
 }
 
-func (c *ClickHouse) ID() int {
-	return c.id
-}
-
 func (c *ClickHouse) Conn() *sql.DB {
 	return c.db
+}
+
+func (c *ClickHouse) GetMetricsSamples() error {
+	_, err := c.GetCreateSQL("metrics", "samples")
+	return err
+}
+
+func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
+	switch c.mode {
+	case ModeStandalone:
+		_, err := c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
+		if err != nil {
+			return errors.Wrap(err, "create database")
+		}
+		_, err = c.db.Exec(`CREATE TABLE IF NOT EXISTS metrics.samples
+(
+    date Date DEFAULT toDate(0),
+    name String,
+    tags Array(String),
+    val Float64,
+    ts DateTime,
+    updated DateTime DEFAULT now()
+)ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup');`)
+		if err != nil {
+			return errors.Wrap(err, "create table")
+		}
+	case ModeCluster:
+		_, err := c.db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS metrics ON CLUSTER '%s';", cluster))
+		if err != nil {
+			return errors.Wrap(err, "create database")
+		}
+		var mergeTreeSQL string
+		switch c.rs {
+		case db.ReplicaStatusYes:
+			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
+(
+  date Date DEFAULT toDate(0),
+  name String,
+  tags Array(String),
+  val Float64,
+  ts DateTime,
+  updated DateTime DEFAULT now()
+)       
+ENGINE = ReplicatedMergeTree('/clickhouse/tables/metrics.samples_local/{shard}', '{replica}'  date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
+		case db.ReplicaStatusNo:
+			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
+(
+  date Date DEFAULT toDate(0),
+  name String,
+  tags Array(String),
+  val Float64,
+  ts DateTime,
+  updated DateTime DEFAULT now()
+)       
+ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
+		}
+		_, err = c.db.Exec(mergeTreeSQL)
+		if err != nil {
+			return errors.Wrap(err, "create mergeTree")
+		}
+		_, err = c.db.Exec(fmt.Sprintf(`CREATE TABLE if NOT EXISTS metrics.samples ON CLUSTER '%s' AS metrics.samples_local
+		ENGINE = Distributed('%s', 'metrics', 'samples_local', sipHash64(name));`, cluster, cluster))
+		if err != nil {
+			return errors.Wrap(err, "create distributed")
+		}
+	}
+	return nil
 }
 
 func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogField string) string {
@@ -239,6 +305,9 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 	if interval <= 0 {
 		res.ST = time.Now().Add(-time.Minute * 15).Unix()
 		res.ET = time.Now().Unix()
+	}
+	for _, filter := range res.Filters {
+		res.Query = fmt.Sprintf("%s and %s", res.Query, filter)
 	}
 	var err error
 	if isFilter {
@@ -572,12 +641,7 @@ func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, fi
 		ReplicaStatus: c.rs,
 		TimeField:     tableInfo.GetTimeField(),
 		View:          vp})
-	// create
-	err := c.alertPrepare()
-	if err != nil {
-		return "", "", err
-	}
-	return viewTableName, viewSQL, err
+	return viewTableName, viewSQL, nil
 }
 
 func (c *ClickHouse) CreateAlertView(viewTableName, viewSQL, cluster string) (err error) {
@@ -610,29 +674,6 @@ func (c *ClickHouse) DeleteAlertView(viewTableName, cluster string) (err error) 
 		return errors.Wrapf(err, "table %s", viewTableName)
 	}
 	return nil
-}
-
-func (c *ClickHouse) alertPrepare() (err error) {
-	if c.mode == ModeCluster {
-		return
-	}
-	_, err = c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
-	if err != nil {
-		return errors.Wrap(err, "alarm sql prepare create database")
-	}
-	_, err = c.db.Exec(`CREATE TABLE IF NOT EXISTS metrics.samples
-(
-    date Date DEFAULT toDate(0),
-    name String,
-    tags Array(String),
-    val Float64,
-    ts DateTime,
-    updated DateTime DEFAULT now()
-)ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup');`)
-	if err != nil {
-		return errors.Wrap(err, "alarm sql prepare create table")
-	}
-	return
 }
 
 func (c *ClickHouse) DeleteDatabase(name string, cluster string) (err error) {

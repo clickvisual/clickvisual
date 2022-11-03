@@ -7,6 +7,37 @@
         "version": "0.4.0"
     },
     "paths": {
+        "/api/v2/alert/metrics-samples": {
+            "post": {
+                "description": "Store advanced metric data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "base"
+                ],
+                "summary": "Create metrics samples table",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/db.ReqCreateMetricsSamples"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/alert/settings": {
             "get": {
                 "description": "Instance alarm configuration list",
@@ -1478,6 +1509,17 @@
                 }
             }
         },
+        "db.ReqCreateMetricsSamples": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "string"
+                },
+                "iid": {
+                    "type": "integer"
+                }
+            }
+        },
         "db.RespAlertSettingInfo": {
             "type": "object",
             "properties": {
@@ -1513,6 +1555,9 @@
                 "checkAlertManagerResult": {
                     "type": "string"
                 },
+                "checkMetricsSamplesResult": {
+                    "type": "string"
+                },
                 "checkPrometheusResult": {
                     "type": "string"
                 },
@@ -1523,6 +1568,10 @@
                     "type": "string"
                 },
                 "isAlertManagerOK": {
+                    "description": "0 no 1 yes",
+                    "type": "integer"
+                },
+                "isMetricsSamplesOk": {
                     "description": "0 no 1 yes",
                     "type": "integer"
                 },
