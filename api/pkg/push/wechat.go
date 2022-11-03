@@ -126,7 +126,7 @@ func (d *WeChat) Send(notification view.Notification, alarm *db.Alarm, channel *
 	//默认markdown 可以制作格式
 	dataStr, err := BuildMarkdownMsg(notification, alarm, oneTheLogs)
 	resp, err := http.Post(
-		fmt.Sprintf(`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=%s`, channel.Key),
+		fmt.Sprintf(`%s`, channel.Key),
 		"application/json",
 		bytes.NewBuffer([]byte(dataStr)))
 	defer resp.Body.Close()
