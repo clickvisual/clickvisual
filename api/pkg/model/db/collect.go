@@ -13,7 +13,8 @@ const (
 )
 
 var (
-	ErrCollectCreator = errors.New("Only the creator can modify")
+	ErrCollectCreator      = errors.New("only the creator can modify")
+	ErrCollectUpdateParams = errors.New("collect update params error")
 )
 
 type ICollect interface {
