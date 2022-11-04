@@ -6,6 +6,16 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	CollectTypeQuery        = 1 << 0
+	CollectTypeTableFilter  = 1 << 1
+	CollectTypeGlobalFilter = 1 << 2
+)
+
+var (
+	ErrCollectCreator = errors.New("Only the creator can modify")
+)
+
 type ICollect interface {
 	TableName() string
 	Create(db *gorm.DB) (err error)
@@ -20,18 +30,27 @@ type ICollect interface {
 type Collect struct {
 	BaseModel
 
-	Uid       int    `gorm:"column:uid;type:int(11)" json:"uid"`
-	Alias     string `gorm:"column:alias;type:varchar(255);NOT NULL" json:"alias"`
-	Statement string `gorm:"column:statement;type:text" json:"statement"`
+	Uid         int    `gorm:"column:uid;type:int(11)" json:"uid"`
+	TableId     int    `gorm:"column:table_id;type:int(11)" json:"tableId"`
+	Alias       string `gorm:"column:alias;type:varchar(255);NOT NULL" json:"alias"`
+	Statement   string `gorm:"column:statement;type:text" json:"statement"`
+	CollectType int    `gorm:"column:collect_type;type:int" json:"collectType"`
 }
 
 type ReqCreateCollect struct {
-	Alias     string `json:"alias" form:"alias"`
-	Statement string `json:"statement" form:"statement"`
+	TableId int `json:"tableId" json:"tableId"`
+	ReqUpdateCollect
+}
+
+type ReqUpdateCollect struct {
+	Alias       string `json:"alias" form:"alias"`
+	Statement   string `json:"statement" form:"statement"`
+	CollectType int    `json:"collectType" form:"collectType"` // 1 query 2 table filter 4 global filter
 }
 
 type ReqListCollect struct {
-	Alias string `json:"alias" form:"alias"`
+	CollectType int `json:"collectType" form:"collectType" required:"true"` // 1 query 2 table filter 4 global filter, if query table filter and global filter, use collectType 6
+	TableId     int `json:"tableId" form:"tableId"`
 }
 
 type RespListCollectItem struct {
@@ -47,6 +66,22 @@ type RespListCollect struct {
 
 func (model *Collect) TableName() string {
 	return TableNameCollect
+}
+
+func (model *Collect) Create(db *gorm.DB) (err error) {
+	if err = db.Model(Collect{}).Create(model).Error; err != nil {
+		return errors.Wrapf(err, "data: %v", model)
+	}
+	return
+}
+
+func (model *Collect) Update(db *gorm.DB, ups map[string]interface{}) (err error) {
+	var sql = "`id`=?"
+	var binds = []interface{}{model.ID}
+	if err = db.Model(Collect{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+		return errors.Wrapf(err, "ups: %v", ups)
+	}
+	return
 }
 
 func (model *Collect) Info(db *gorm.DB) (err error) {
@@ -87,22 +122,6 @@ func (model *Collect) ListPage(db *gorm.DB, conds egorm.Conds, reqList *ReqPage)
 	query := db.Model(Collect{}).Where(sql, binds...)
 	query.Count(&total)
 	query.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
-	return
-}
-
-func (model *Collect) Create(db *gorm.DB) (err error) {
-	if err = db.Model(Collect{}).Create(model).Error; err != nil {
-		return errors.Wrapf(err, "data: %v", model)
-	}
-	return
-}
-
-func (model *Collect) Update(db *gorm.DB, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{model.ID}
-	if err = db.Model(Collect{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		return errors.Wrapf(err, "ups: %v", ups)
-	}
 	return
 }
 

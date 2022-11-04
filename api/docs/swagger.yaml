@@ -42,8 +42,13 @@ definitions:
     properties:
       alias:
         type: string
+      collectType:
+        description: 1 query 2 table filter 4 global filter
+        type: integer
       statement:
         type: string
+      tableId:
+        type: integer
     type: object
   db.ReqCreateMetricsSamples:
     properties:
@@ -492,7 +497,7 @@ paths:
             $ref: '#/definitions/core.Res'
       summary: Create metrics samples table
       tags:
-      - base
+      - alert
   /api/v2/alert/settings:
     get:
       consumes:
@@ -1221,9 +1226,14 @@ paths:
       - application/json
       description: List Collect
       parameters:
+      - description: 1 query 2 table filter 4 global filter, if query table filter
+          and global filter, use collectType 6
+        in: query
+        name: collectType
+        type: integer
       - in: query
-        name: alias
-        type: string
+        name: tableId
+        type: integer
       produces:
       - application/json
       responses:
@@ -1240,7 +1250,7 @@ paths:
       tags:
       - storage
     post:
-      description: Create Collect
+      description: CollectType
       parameters:
       - description: params
         in: body
@@ -1282,6 +1292,39 @@ paths:
           schema:
             $ref: '#/definitions/core.Res'
       summary: Delete Collect
+      tags:
+      - storage
+    patch:
+      consumes:
+      - application/json
+      description: Update collect
+      parameters:
+      - description: collect id
+        in: path
+        name: collect-id
+        required: true
+        type: integer
+      - in: query
+        name: alias
+        type: string
+      - description: 1 query 2 table filter 4 global filter
+        in: query
+        name: collectType
+        type: integer
+      - in: query
+        name: statement
+        type: string
+      - in: query
+        name: tableId
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Update collect
       tags:
       - storage
   /api/v2/storage/mapping-json:

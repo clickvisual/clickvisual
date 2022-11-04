@@ -66,8 +66,9 @@ func v2(r *gin.RouterGroup) {
 		r.PATCH("/storage/:storage-id/trace", core.Handle(storage.UpdateTraceInfo))
 		r.GET("/storage/:storage-id/trace-graph", core.Handle(storage.GetTraceGraph))
 		// collect
-		r.POST("/storage/collects", core.Handle(storage.CreateCollect))
 		r.GET("/storage/collects", core.Handle(storage.ListCollect))
+		r.POST("/storage/collects", core.Handle(storage.CreateCollect))
+		r.PATCH("/storage/collects/:collect-id", core.Handle(storage.UpdateCollect))
 		r.DELETE("/storage/collects/:collect-id", core.Handle(storage.DeleteCollect))
 	}
 	// The log module - alert
