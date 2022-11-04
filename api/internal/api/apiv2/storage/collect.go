@@ -72,9 +72,17 @@ func UpdateCollect(c *core.Context) {
 	}
 	// just mysql record update
 	ups := make(map[string]interface{}, 0)
-	ups["alias"] = req.Alias
-	ups["statement"] = req.Statement
-	ups["collect_type"] = req.CollectType
+
+	if req.CollectType != 0 && req.Alias == "" && req.Statement == "" {
+		ups["collect_type"] = req.CollectType
+	} else if req.CollectType == 0 && (req.Alias != "" || req.Statement != "") {
+		ups["alias"] = req.Alias
+		ups["statement"] = req.Statement
+	} else {
+		c.JSONE(1, db.ErrCollectUpdateParams.Error(), db.ErrCollectUpdateParams)
+		return
+	}
+
 	m := db.Collect{}
 	m.ID = id
 	if err := m.Update(invoker.Db, ups); err != nil {
