@@ -273,9 +273,9 @@ func (c *ClickHouse) CreateDatabase(name, cluster string) error {
 //	    _timestamp_ as ts,
 //	    toDateTime(_timestamp_) as updated
 //	FROM %s WHERE %s GROUP by _timestamp_;`,
-func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, filterId int, whereCondition string) (string, string, error) {
-	if whereCondition == "" {
-		whereCondition = "1=1"
+func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, filterId int, filter *view.AlarmFilterItem) (string, string, error) {
+	if filter.When == "" {
+		filter.When = "1=1"
 	}
 	var (
 		viewSQL         string
@@ -287,7 +287,6 @@ func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, fi
 	tableName := tableInfo.Name
 	if c.mode == ModeCluster {
 		if tableInfo.CreateType == constx.TableCreateTypeExist {
-			// 解析 create sql 获取分片数据表名称
 			createSQL, err := c.GetCreateSQL(tableInfo.Database.Name, tableInfo.Name)
 			if err != nil {
 				return "", "", err
@@ -307,11 +306,11 @@ func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, fi
 		ViewTable:    viewTableName,
 		CommonFields: TagsToString(alarm, true, filterId),
 		SourceTable:  sourceTableName,
-		Where:        whereCondition,
+		Where:        filter.When,
 	}
-	if alarm.Mode == db.AlarmModeAggregation || alarm.Mode == db.AlarmModeAggregationCheck {
+	if filter.Mode == db.AlarmModeAggregation || filter.Mode == db.AlarmModeAggregationCheck {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
-		vp.WithSQL = adaSelectPart(whereCondition)
+		vp.WithSQL = adaSelectPart(filter.When)
 	}
 	viewSQL = c.execView(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,

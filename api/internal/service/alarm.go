@@ -50,7 +50,7 @@ var _ iAlarm = (*alarm)(nil)
 
 type iAlarm interface {
 	FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.ReqAlarmFilterCreate) (res map[int]view.AlarmFilterItem, err error)
-	ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filterId int) (exp string, err error)
+	ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filter *db.AlarmFilter) (exp string, err error)
 	PrometheusReload(prometheusTarget string) (err error)
 	PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string
 	PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error)
@@ -106,7 +106,7 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.Req
 			AlarmFilter: filterObj,
 		}
 		// create condition
-		row.Exp, err = i.ConditionCreate(tx, alarmObj, filter.Conditions, filterObj.ID)
+		row.Exp, err = i.ConditionCreate(tx, alarmObj, filter.Conditions, filterObj)
 		if err != nil {
 			return
 		}
@@ -115,8 +115,8 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.Req
 	return
 }
 
-func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filterId int) (exp string, err error) {
-	expVal := fmt.Sprintf("%s{%s} offset 10s", bumo.PrometheusMetricName, inquiry.TagsToString(obj, false, filterId))
+func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filter *db.AlarmFilter) (exp string, err error) {
+	expVal := fmt.Sprintf("%s{%s} offset 10s", bumo.PrometheusMetricName, inquiry.TagsToString(obj, false, filter.ID))
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].SetOperatorTyp < conditions[j].SetOperatorTyp
 	})
@@ -150,7 +150,7 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 		}
 		conditionObj := &db.AlarmCondition{
 			AlarmId:        obj.ID,
-			FilterId:       filterId,
+			FilterId:       filter.ID,
 			SetOperatorTyp: condition.SetOperatorTyp,
 			SetOperatorExp: condition.SetOperatorExp,
 			Cond:           condition.Cond,
@@ -164,7 +164,7 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	}
 
 	// empty data alert
-	exp = aggregationOp(obj.Mode, exp, expVal)
+	exp = aggregationOp(filter.Mode, exp, expVal)
 	exp = noDataOp(obj.NoDataOp, exp, expVal)
 	return
 }
@@ -284,7 +284,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 			}
 		}
 		// gen view table name & sql
-		table, ddl, errAlertViewGen := op.GetAlertViewSQL(alarmObj, tableInfo, filterId, filterItem.When)
+		table, ddl, errAlertViewGen := op.GetAlertViewSQL(alarmObj, tableInfo, filterId, &filterItem)
 		if errAlertViewGen != nil {
 			return errAlertViewGen
 		}
@@ -378,10 +378,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 
 func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	if req.Name == "" || req.Interval == 0 || len(req.ChannelIds) == 0 {
-		return errors.Wrap(errors.New("error params"), "")
-	}
-	if len(req.Filters) > 0 {
-		req.Mode = req.Filters[0].Mode
+		return errors.New("error params")
 	}
 	tx := invoker.Db.Begin()
 	ups := make(map[string]interface{}, 0)
@@ -391,7 +388,6 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	ups["unit"] = req.Unit
 	ups["uid"] = uid
 	ups["no_data_op"] = req.NoDataOp
-	ups["mode"] = req.Mode
 	ups["level"] = req.Level
 	ups["channel_ids"] = db.Ints(req.ChannelIds)
 	tableIds := db.Ints{}
