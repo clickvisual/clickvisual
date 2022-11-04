@@ -282,22 +282,37 @@ func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, fi
 		viewTableName   string
 		sourceTableName string
 	)
-
 	viewTableName = alarm.ViewName(tableInfo.Database.Name, tableInfo.Name, filterId)
-	sourceTableName = fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name)
 
+	tableName := tableInfo.Name
+	if c.mode == ModeCluster {
+		if tableInfo.CreateType == constx.TableCreateTypeExist {
+			// 解析 create sql 获取分片数据表名称
+			createSQL, err := c.GetCreateSQL(tableInfo.Database.Name, tableInfo.Name)
+			if err != nil {
+				return "", "", err
+			}
+			tableName, err = getDistributedSubTableName(createSQL)
+			if err != nil {
+				return "", "", err
+			}
+		} else {
+			tableName = tableInfo.Name + "_local"
+		}
+	}
+
+	sourceTableName = fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableName)
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
 		ViewTable:    viewTableName,
 		CommonFields: TagsToString(alarm, true, filterId),
 		SourceTable:  sourceTableName,
-		Where:        whereCondition}
-
+		Where:        whereCondition,
+	}
 	if alarm.Mode == db.AlarmModeAggregation || alarm.Mode == db.AlarmModeAggregationCheck {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
 		vp.WithSQL = adaSelectPart(whereCondition)
 	}
-
 	viewSQL = c.execView(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,
 		ReplicaStatus: c.rs,
@@ -1083,11 +1098,11 @@ func (c *ClickHouse) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerD
 	database := ctx.Value("database")
 	table := ctx.Value("table")
 
-	sql := fmt.Sprintf("select * from `%s`.`%s` where timestamp>%d and timestamp<%d", database.(string), table.(string)+db.SuffixJaegerJSON, st.(int), et.(int))
+	querySQL := fmt.Sprintf("select * from `%s`.`%s` where timestamp>%d and timestamp<%d", database.(string), table.(string)+db.SuffixJaegerJSON, st.(int), et.(int))
 
-	elog.Debug("clickHouse", elog.FieldComponent("GetTraceGraph"), elog.FieldName("sql"), elog.String("sql", sql))
+	elog.Debug("clickHouse", elog.FieldComponent("GetTraceGraph"), elog.FieldName("sql"), elog.String("sql", querySQL))
 
-	res, err := c.db.Query(sql)
+	res, err := c.db.Query(querySQL)
 	if err != nil {
 		elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
 		return nil, err
@@ -1130,8 +1145,8 @@ func (c *ClickHouse) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerD
 }
 
 func (c *ClickHouse) GetCreateSQL(database, table string) (resp string, err error) {
-	sql := fmt.Sprintf("SHOW CREATE table `%s`.`%s`;", database, table)
-	res, err := c.db.Query(sql)
+	querySQL := fmt.Sprintf("SHOW CREATE table `%s`.`%s`;", database, table)
+	res, err := c.db.Query(querySQL)
 	if err != nil {
 		return "", errors.Wrap(err, "db query")
 	}
