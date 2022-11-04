@@ -28,6 +28,7 @@ export default {
   "table.column.filter.refresh": "刷新",
   "input.placeholder": "请输入{name}",
   "select.placeholder": "请选择{name}",
+  "create.name": "新建 {name}",
   required: "必填",
   tips: "提示",
   unit: "单位",
@@ -623,6 +624,7 @@ export default {
   "alarm.environment.form.ruleStoreType": "告警类型",
   "alarm.environment.form.isPrometheusOK": "Prometheus状态",
   "alarm.environment.form.isAlertManagerOK": "AlertManager状态",
+  "alarm.environment.form.isMetricsSamplesOk": "metrics.samples状态",
 
   // install
   "install.init.text.databaseInit":

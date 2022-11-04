@@ -2,6 +2,7 @@ import {
   getAlarmConfigList,
   getAlarmConfigDetails,
   patchAlarmConfigDetails,
+  createMetricsSamplesTable,
 } from "@/services/environment";
 import api from "@/services/systemSetting";
 import useRequest from "@/hooks/useRequest/useRequest";
@@ -26,12 +27,22 @@ const useAlarmEnvironment = () => {
     loadingText: false,
   });
 
+  const doGetInstanceList = useRequest(api.getInstances, {
+    loadingText: false,
+  });
+
+  const doCreateMetricsSamplesTable = useRequest(createMetricsSamplesTable, {
+    loadingText: false,
+  });
+
   return {
     doGetAlarmConfigList,
     doGetAlarmConfigDetails,
     doPatchAlarmConfigDetails,
+    doCreateMetricsSamplesTable,
     getClusterList,
     doGetConfigMaps,
+    doGetInstanceList,
   };
 };
 export default useAlarmEnvironment;
