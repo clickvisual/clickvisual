@@ -42,7 +42,7 @@ type Operator interface {
 
 	GetLogs(view.ReqQuery, int) (view.RespQuery, error)
 	GetCreateSQL(database, table string) (string, error)
-	GetAlertViewSQL(*db.Alarm, db.BaseTable, int, string) (string, string, error)
+	GetAlertViewSQL(*db.Alarm, db.BaseTable, int, *view.AlarmFilterItem) (string, string, error)
 	GetTraceGraph(ctx context.Context) ([]view.RespJaegerDependencyDataModel, error)
 	GetMetricsSamples() error
 

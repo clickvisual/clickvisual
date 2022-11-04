@@ -42,10 +42,6 @@ func Create(c *core.Context) {
 			return
 		}
 	}
-
-	if len(req.Filters) > 0 {
-		req.Mode = req.Filters[0].Mode
-	}
 	tx := invoker.Db.Begin()
 	tableIds := db.Ints{}
 	for _, f := range req.Filters {
@@ -61,7 +57,6 @@ func Create(c *core.Context) {
 		NoDataOp:   req.NoDataOp,
 		ChannelIds: db.Ints(req.ChannelIds),
 		Uid:        c.Uid(),
-		Mode:       req.Mode,
 		Level:      req.Level,
 		TableIds:   tableIds,
 	}

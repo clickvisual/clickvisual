@@ -19,7 +19,6 @@ type ReqAlarmCreate struct {
 	ChannelIds []int                     `json:"channelIds" form:"channelIds"`
 	Filters    []ReqAlarmFilterCreate    `json:"filters" form:"filters"`
 	Conditions []ReqAlarmConditionCreate `json:"conditions" form:"conditions"`
-	Mode       int                       `json:"mode" form:"mode"`
 	Level      int                       `json:"level" form:"level"`
 }
 
