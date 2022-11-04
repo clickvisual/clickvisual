@@ -1,6 +1,7 @@
 package inquiry
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -15,6 +16,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
+
+var regSingleWord = regexp.MustCompile(`([a-z]|[A-Z]|[0-9]|_|-|')+`)
+var regDistributedSubTable = regexp.MustCompile(`ENGINE = Distributed\([^,]+,[^,]+,([\S\s]+),`)
 
 type JaegerJsonOriginal struct {
 	TraceId  string `json:"trace_id"`
@@ -41,6 +45,12 @@ type JaegerJson struct {
 			VStr string `json:"vStr"`
 		} `json:"tags"`
 	} `json:"process"`
+}
+
+type queryItem struct {
+	Key      string
+	Operator string
+	Value    string
 }
 
 func transformJaegerDependencies(req []view.JaegerDependencyDataModel) (resp []view.RespJaegerDependencyDataModel) {
@@ -208,8 +218,6 @@ func queryTransformHash(params view.ReqQuery) string {
 	return query
 }
 
-var regSingleWord = regexp.MustCompile(`([a-z]|[A-Z]|[0-9]|_|-|')+`)
-
 func likeTransform(createType int, rawLogField, query string) string {
 	// 判断是否可以进行转换
 	matches := regSingleWord.FindAllString(strings.TrimSpace(query), -1)
@@ -322,12 +330,6 @@ func genViewName(database, tableName string, timeKey string) string {
 	return fmt.Sprintf("`%s`.`%s_%s_view`", database, tableName, timeKey)
 }
 
-type queryItem struct {
-	Key      string
-	Operator string
-	Value    string
-}
-
 func queryTransformer(in string) (out string, err error) {
 	items := make([]queryItem, 0)
 	items, err = queryEncode(in)
@@ -391,4 +393,14 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 		Value:    val,
 	})
 	return nil
+}
+
+func getDistributedSubTableName(sql string) (string, error) {
+	matches := regDistributedSubTable.FindStringSubmatch(strings.TrimSpace(sql))
+	if len(matches) == 2 {
+		res := strings.TrimSpace(matches[1])
+		res = strings.ReplaceAll(res, "'", "")
+		return res, nil
+	}
+	return "", errors.New("cannot find mergeTree table")
 }

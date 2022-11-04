@@ -230,7 +230,6 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	req.ConvertV2()
 	filtersDB, err := i.FilterCreate(tx, alarmObj, req.Filters)
 	if err != nil {
-		invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 02"), elog.String("err", err.Error()))
 		return
 	}
 	// create new views

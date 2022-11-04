@@ -69,7 +69,6 @@ func v2(r *gin.RouterGroup) {
 		r.POST("/storage/collects", core.Handle(storage.CreateCollect))
 		r.GET("/storage/collects", core.Handle(storage.ListCollect))
 		r.DELETE("/storage/collects/:collect-id", core.Handle(storage.DeleteCollect))
-
 	}
 	// The log module - alert
 	{
