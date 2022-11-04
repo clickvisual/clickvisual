@@ -148,6 +148,16 @@ type (
 		At       *At       `json:"at"`
 		Markdown *Markdown `json:"markdown"`
 	}
+	WeComMarkdown struct {
+		MsgType       string         `json:"msgtype"`
+		MentionedList *MentionedList `json:"mentionedList"`
+		Markdown      *Markdown      `json:"markdown"`
+	}
+
+	MentionedList struct {
+		UserIdList []string `json:"userIdList"`
+		MobileList []string `json:"mobileList"`
+	}
 
 	Markdown struct {
 		Title string `json:"title"`
