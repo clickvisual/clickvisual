@@ -23,7 +23,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "base"
+                    "alert"
                 ],
                 "summary": "Create metrics samples table",
                 "parameters": [
@@ -1008,8 +1008,14 @@ const docTemplate = `{
                 "summary": "List Collect",
                 "parameters": [
                     {
-                        "type": "string",
-                        "name": "alias",
+                        "type": "integer",
+                        "description": "1 query 2 table filter 4 global filter, if query table filter and global filter, use collectType 6",
+                        "name": "collectType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "tableId",
                         "in": "query"
                     }
                 ],
@@ -1035,7 +1041,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create Collect",
+                "description": "CollectType",
                 "produces": [
                     "application/json"
                 ],
@@ -1096,6 +1102,57 @@ const docTemplate = `{
                         "name": "collect-id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update collect",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Update collect",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "collect id",
+                        "name": "collect-id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "alias",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1 query 2 table filter 4 global filter",
+                        "name": "collectType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "statement",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "tableId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1513,8 +1570,15 @@ const docTemplate = `{
                 "alias": {
                     "type": "string"
                 },
+                "collectType": {
+                    "description": "1 query 2 table filter 4 global filter",
+                    "type": "integer"
+                },
                 "statement": {
                     "type": "string"
+                },
+                "tableId": {
+                    "type": "integer"
                 }
             }
         },
