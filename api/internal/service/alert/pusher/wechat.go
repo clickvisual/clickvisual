@@ -12,8 +12,9 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
+
+var _ IPusher = (*WeChat)(nil)
 
 type WeChat struct{}
 
@@ -34,17 +35,17 @@ func NewMentionMobileOption(mobileList ...string) *MentionedOption {
 	return &MentionedOption{[]string{}, mobileList}
 }
 
-func BuildSendTextMsg(notification view.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
+func BuildSendTextMsg(notification db.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
 	dataStr, err := BuildMsg("text", notification, alarm, oneTheLogs)
 	return dataStr, err
 }
 
-func BuildMarkdownMsg(notification view.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
+func BuildMarkdownMsg(notification db.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
 	dataStr, err := BuildMsg("markdown", notification, alarm, oneTheLogs)
 	return dataStr, err
 }
 
-func BuildMsg(typeStr string, notification view.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
+func BuildMsg(typeStr string, notification db.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
 	// groupKey := notification.GroupKey
 	status := notification.Status
 	annotations := notification.CommonAnnotations
@@ -123,7 +124,7 @@ func BuildMsg(typeStr string, notification view.Notification, alarm *db.Alarm, o
 
 // Send ...
 // oneTheLogs one of the logs, detail info
-func (d *WeChat) Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (err error) {
+func (d *WeChat) Send(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, channel *db.AlarmChannel, oneTheLogs string) (err error) {
 	// 默认markdown 可以制作格式
 	dataStr, err := BuildMarkdownMsg(notification, alarm, oneTheLogs)
 	resp, err := http.Post(

@@ -16,6 +16,37 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/prometheus/alerts": {
+            "post": {
+                "description": "{\"version\":\"4\",\"groupKey\":\"{}:{alertname=\\\\\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\\\\\"}\",\"status\":\"firing\",\"receiver\":\"webhook\",\"groupLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\"},\"commonLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"commonAnnotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"externalURL\":\"http://duminxiangdeMacBook-Pro.local:9093\",\"alerts\":[{\"labels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"annotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"startsAt\":\"2022-11-07T09:23:17.6Z\",\"endsAt\":\"0001-01-01T00:00:00Z\"}]}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alert"
+                ],
+                "summary": "Alert push channel",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/db.Notification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.Res"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/alert/metrics-samples": {
             "post": {
                 "description": "Store advanced metric data",
@@ -1561,6 +1592,73 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/core.Pagination"
+                }
+            }
+        },
+        "db.Alert": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "endsAt": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "startsAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "db.Notification": {
+            "type": "object",
+            "properties": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.Alert"
+                    }
+                },
+                "commonAnnotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "commonLabels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "externalURL": {
+                    "type": "string"
+                },
+                "groupKey": {
+                    "type": "string"
+                },
+                "groupLabels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "receiver": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
                 }
             }
         },

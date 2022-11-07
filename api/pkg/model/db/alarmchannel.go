@@ -35,6 +35,13 @@ type AlarmChannel struct {
 	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
 }
 
+type ReqAlarmWebhook struct {
+	Name string `json:"name" form:"name"`
+	Key  string `json:"key" form:"key"`
+	Typ  int    `json:"typ" form:"typ"`
+	Uid  int    `json:"uid" form:"uid"`
+}
+
 func (m *AlarmChannel) TableName() string {
 	return TableNameAlarmChannel
 }

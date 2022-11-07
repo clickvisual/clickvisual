@@ -262,6 +262,8 @@ func isEmpty(input interface{}) bool {
 	switch input.(type) {
 	case string:
 		val = input.(string)
+	case uint8:
+		val = fmt.Sprintf("%d", input.(uint8))
 	case uint16:
 		val = fmt.Sprintf("%d", input.(uint16))
 	case uint64:
@@ -270,8 +272,14 @@ func isEmpty(input interface{}) bool {
 		val = fmt.Sprintf("%d", input.(int32))
 	case int64:
 		val = fmt.Sprintf("%d", input.(int64))
+	case *uint64:
+		val = fmt.Sprintf("%d", input.(*uint64))
 	case float64:
 		val = fmt.Sprintf("%f", input.(float64))
+	case []string:
+		return false
+	case time.Time:
+		return false
 	default:
 		if reflect.TypeOf(input) == nil {
 			return true

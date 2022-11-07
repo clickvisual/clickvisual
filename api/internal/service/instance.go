@@ -214,7 +214,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 	}
 	invoker.Logger.Debug("instanceCreate", elog.Any("obj", obj))
 	if req.PrometheusTarget != "" {
-		if err = Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
+		if err = Alert.PrometheusReload(req.PrometheusTarget); err != nil {
 			err = errors.Wrap(err, "create DB failed 02:")
 			return
 		}

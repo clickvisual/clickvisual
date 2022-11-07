@@ -75,6 +75,25 @@ type RespAlarmListRelatedInfo struct {
 	Instance BaseInstance `json:"instance"`
 }
 
+type Alert struct {
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	StartsAt    time.Time         `json:"startsAt"`
+	EndsAt      time.Time         `json:"endsAt"`
+}
+
+type Notification struct {
+	Version           string            `json:"version"`
+	GroupKey          string            `json:"groupKey"`
+	Status            string            `json:"status"`
+	Receiver          string            `json:"receiver"`
+	GroupLabels       map[string]string `json:"groupLabels"`
+	CommonLabels      map[string]string `json:"commonLabels"`
+	CommonAnnotations map[string]string `json:"commonAnnotations"`
+	ExternalURL       string            `json:"externalURL"`
+	Alerts            []Alert           `json:"alerts"`
+}
+
 type Alarm struct {
 	BaseModel
 
@@ -220,7 +239,7 @@ func AlarmInfo(db *gorm.DB, id int) (resp Alarm, err error) {
 func AlarmInfoX(db *gorm.DB, conds map[string]interface{}) (resp Alarm, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Model(Alarm{}).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("infoX error", zap.Error(err))
+		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
 	return

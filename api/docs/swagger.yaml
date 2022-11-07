@@ -38,6 +38,50 @@ definitions:
       pagination:
         $ref: '#/definitions/core.Pagination'
     type: object
+  db.Alert:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      endsAt:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      startsAt:
+        type: string
+    type: object
+  db.Notification:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/db.Alert'
+        type: array
+      commonAnnotations:
+        additionalProperties:
+          type: string
+        type: object
+      commonLabels:
+        additionalProperties:
+          type: string
+        type: object
+      externalURL:
+        type: string
+      groupKey:
+        type: string
+      groupLabels:
+        additionalProperties:
+          type: string
+        type: object
+      receiver:
+        type: string
+      status:
+        type: string
+      version:
+        type: string
+    type: object
   db.ReqCreateCollect:
     properties:
       alias:
@@ -478,6 +522,28 @@ info:
   title: ClickVisual API
   version: 0.4.0
 paths:
+  /api/v1/prometheus/alerts:
+    post:
+      description: '{"version":"4","groupKey":"{}:{alertname=\\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\\"}","status":"firing","receiver":"webhook","groupLabels":{"alertname":"e6e85281_6e22_4159_90e8_38943e75fb3f_194"},"commonLabels":{"alertname":"e6e85281_6e22_4159_90e8_38943e75fb3f_194","filterId":"194","severity":"warning","uuid":"e6e85281-6e22-4159-90e8-38943e75fb3f"},"commonAnnotations":{"description":"
+        (当前值: 1)","summary":"告警 "},"externalURL":"http://duminxiangdeMacBook-Pro.local:9093","alerts":[{"labels":{"alertname":"e6e85281_6e22_4159_90e8_38943e75fb3f_194","filterId":"194","severity":"warning","uuid":"e6e85281-6e22-4159-90e8-38943e75fb3f"},"annotations":{"description":"
+        (当前值: 1)","summary":"告警 "},"startsAt":"2022-11-07T09:23:17.6Z","endsAt":"0001-01-01T00:00:00Z"}]}'
+      parameters:
+      - description: params
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/db.Notification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Alert push channel
+      tags:
+      - alert
   /api/v2/alert/metrics-samples:
     post:
       description: Store advanced metric data

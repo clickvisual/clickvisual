@@ -12,21 +12,21 @@ import (
 type BaseTable struct {
 	BaseModel
 
-	Did                     int    `gorm:"column:did;type:int(11);index:uix_did_name,unique" json:"did"`                // database id
-	Name                    string `gorm:"column:name;type:varchar(64);NOT NULL;index:uix_did_name,unique" json:"name"` // table
-	Typ                     int    `gorm:"column:typ;type:int(11)" json:"typ"`                                          // table type, 1 string 2 float
-	Days                    int    `gorm:"column:days;type:int(11)" json:"days"`                                        // data expire days
-	Brokers                 string `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`                    // kafka broker
-	Topic                   string `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`                        // kafka topic
-	ConsumerNum             int    `gorm:"column:consumer_num;type:int(11)" json:"consumerNum"`                         // kafka consumer number
-	SqlData                 string `gorm:"column:sql_data;type:text" json:"sqlData"`                                    // sql_data
-	SqlStream               string `gorm:"column:sql_stream;type:text" json:"sqlStream"`                                // sql_stream
-	SqlView                 string `gorm:"column:sql_view;type:text" json:"sqlView"`                                    // sql_view
-	SqlDistributed          string `gorm:"column:sql_distributed;type:text" json:"sqlDistributed"`                      // sql_distributed
-	Uid                     int    `gorm:"column:uid;type:int(11)" json:"uid"`                                          // operator uid
-	CreateType              int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                        // operation type, 0 means create clickvisual fresh table, 1 means use exists table
-	TimeField               string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`               // custom time filed name of _time_
-	TimeFieldType           int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"` // custom time filed type name of _time_
+	Did                     int    `gorm:"column:did;type:int(11);index:uix_did_name,unique" json:"did"`                 // database id
+	Name                    string `gorm:"column:name;type:varchar(128);NOT NULL;index:uix_did_name,unique" json:"name"` // table
+	Typ                     int    `gorm:"column:typ;type:int(11)" json:"typ"`                                           // table type, 1 string 2 float
+	Days                    int    `gorm:"column:days;type:int(11)" json:"days"`                                         // data expire days
+	Brokers                 string `gorm:"column:brokers;type:varchar(255);NOT NULL" json:"brokers"`                     // kafka broker
+	Topic                   string `gorm:"column:topic;type:varchar(128);NOT NULL" json:"topic"`                         // kafka topic
+	ConsumerNum             int    `gorm:"column:consumer_num;type:int(11)" json:"consumerNum"`                          // kafka consumer number
+	SqlData                 string `gorm:"column:sql_data;type:text" json:"sqlData"`                                     // sql_data
+	SqlStream               string `gorm:"column:sql_stream;type:text" json:"sqlStream"`                                 // sql_stream
+	SqlView                 string `gorm:"column:sql_view;type:text" json:"sqlView"`                                     // sql_view
+	SqlDistributed          string `gorm:"column:sql_distributed;type:text" json:"sqlDistributed"`                       // sql_distributed
+	Uid                     int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // operator uid
+	CreateType              int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                         // operation type, 0 means create clickvisual fresh table, 1 means use exists table
+	TimeField               string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`                // custom time filed name of _time_
+	TimeFieldType           int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"`  // custom time filed type name of _time_
 	Desc                    string `gorm:"column:desc;type:varchar(255)" json:"desc"`
 	RawLogField             string `gorm:"column:raw_log_field;type:varchar(255)" json:"rawLogField"`
 	SelectFields            string `gorm:"column:select_fields;type:text" json:"selectFields"` // sql_distributed

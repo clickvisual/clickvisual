@@ -39,6 +39,16 @@ func AlarmFilterCreate(db *gorm.DB, data *AlarmFilter) (err error) {
 	return
 }
 
+func AlarmFilterInfo(db *gorm.DB, id int) (resp AlarmFilter, err error) {
+	var sql = "`id`= ?"
+	var binds = []interface{}{id}
+	if err = db.Model(AlarmFilter{}).Where(sql, binds...).First(&resp).Error; err != nil {
+		err = errors.Wrapf(err, "alarm filter id: %d", id)
+		return
+	}
+	return
+}
+
 func AlarmFilterDeleteBatch(db *gorm.DB, alarmId int) (err error) {
 	if err = db.Model(AlarmFilter{}).Where("`alarm_id`=?", alarmId).Unscoped().Delete(&AlarmFilter{}).Error; err != nil {
 		return errors.Wrapf(err, "alarm id: %d", alarmId)

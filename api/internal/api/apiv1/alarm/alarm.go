@@ -65,7 +65,7 @@ func Create(c *core.Context) {
 		c.JSONE(1, "alarm create failed 01", err)
 		return
 	}
-	err := service.Alarm.CreateOrUpdate(tx, obj, req)
+	err := service.Alert.CreateOrUpdate(tx, obj, req)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), err)
@@ -115,7 +115,7 @@ func Update(c *core.Context) {
 
 	switch req.Status {
 	case db.AlarmStatusOpen:
-		err = service.Alarm.OpenOperator(id)
+		err = service.Alert.OpenOperator(id)
 	case db.AlarmStatusClose:
 		for _, ri := range relatedList {
 			op, errInstanceManager := service.InstanceManager.Load(ri.Instance.ID)
@@ -150,14 +150,14 @@ func Update(c *core.Context) {
 					return
 				}
 			}
-			if err = service.Alarm.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
+			if err = service.Alert.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
 				c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
 				return
 			}
 		}
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
 	default:
-		err = service.Alarm.Update(c.Uid(), id, req)
+		err = service.Alert.Update(c.Uid(), id, req)
 	}
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
@@ -371,7 +371,7 @@ func Delete(c *core.Context) {
 		return
 	}
 	for _, ri := range relatedList {
-		if err = service.Alarm.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
+		if err = service.Alert.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
 			tx.Rollback()
 			c.JSONE(1, "alarm failed to delete 05", err)
 			return
