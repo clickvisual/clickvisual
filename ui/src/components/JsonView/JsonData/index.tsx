@@ -83,7 +83,7 @@ const JsonData = ({ data, hierarchy, ...restProps }: JsonDataProps) => {
   if (!data) return <div style={indentStyle} />;
 
   if (data instanceof Array)
-    return <JsonArray data={data} hierarchy={hierarchy + 1} />;
+    return <JsonArray data={data} hierarchy={hierarchy + 1} {...restProps} />;
   let keys = Object.keys(data);
   let kvList: JSX.Element[] = [];
   keys.forEach((k, idx) => {
