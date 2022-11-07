@@ -8,15 +8,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
 // GenSign 生成消息摘要
 // generates message digest
 func GenSign(secret, timestamp string) string {
-	//timestamp + key 做sha256, 再进行base64 encode
-	//sha256, then base64 encode
+	// timestamp + key 做sha256, 再进行base64 encode
+	// sha256, then base64 encode
 	stringToSign := timestamp + "\n" + secret
 	h := hmac.New(sha256.New, []byte(stringToSign))
 	signature := base64.StdEncoding.EncodeToString(h.Sum(nil))
@@ -39,7 +39,7 @@ func SendMsg(webhook string, v interface{}) (response interface{}, isErrResponse
 	}
 	defer resp.Body.Close()
 
-	d, err := ioutil.ReadAll(resp.Body)
+	d, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, false, err
 	}
