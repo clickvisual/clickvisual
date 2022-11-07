@@ -1,12 +1,28 @@
 package db
 
 import (
+	"strings"
+
 	"github.com/ego-component/egorm"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+)
+
+const (
+	ChannelDingDing = iota + 1
+	ChannelWeChat
+	ChannelFeiShu
+	ChannelSlack
+	ChannelEmail
+	ChannelTelegram
+)
+
+const (
+	FEISHUURL = "https://open.feishu.cn/open-apis/bot/v2/hook/"
+	SLACKURL  = "https://hooks.slack.com/services/"
 )
 
 // AlarmChannel 告警渠道
@@ -21,6 +37,30 @@ type AlarmChannel struct {
 
 func (m *AlarmChannel) TableName() string {
 	return TableNameAlarmChannel
+}
+
+// JudgmentType judgment channel key legality
+// temporary support slack feishu
+func (m *AlarmChannel) JudgmentType() (err error) {
+	switch m.Typ {
+	// TODO finish all channels support
+	case ChannelDingDing:
+	case ChannelWeChat:
+	case ChannelTelegram:
+	case ChannelEmail:
+	case ChannelFeiShu:
+		if !strings.Contains(m.Key, FEISHUURL) {
+			err = errors.New("invalid FeiShu webhook url")
+			return
+		}
+		// TODO Regularity constraints
+	case ChannelSlack:
+		if !strings.Contains(m.Key, SLACKURL) {
+			err = errors.New("invalid Slack webhook url")
+			return
+		}
+	}
+	return nil
 }
 
 func AlarmChannelInfo(db *gorm.DB, id int) (resp AlarmChannel, err error) {

@@ -136,6 +136,17 @@ from mogo_shimo_dev.shimodev_svc_front_tracker
 WHERE ("_time_second_" >= toDateTime(NOW() - 3600)) AND ("_time_second_" < toDateTime(NOW()))   
 limit 1`,
 		},
+		{
+			name: "test-3",
+			args: args{
+				in: `SELECT sum(val) as val from (select count(*) as val from mogo_shimo_dev.shimodev_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() - 3300)) AND ("_time_second_" < toDateTime(NOW()))   
+limit 1)`,
+			},
+			wantOut: `SELECT sum(val) as val from (select count(*) as val from mogo_shimo_dev.shimodev_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() - 3300)) AND ("_time_second_" < toDateTime(NOW()))   
+limit 1)`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -6,9 +6,9 @@ import (
 	"github.com/ego-component/egorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/push"
 )
 
 func Send(alarmUUID string, notification view.Notification) (err error) {
@@ -94,7 +94,7 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 		if errAlarmChannelInfo != nil {
 			return errAlarmChannelInfo
 		}
-		channelInstance, errChannelType := push.Instance(channelInfo.Typ)
+		channelInstance, errChannelType := pusher.Instance(channelInfo.Typ)
 		if errChannelType != nil {
 			return errChannelType
 		}
@@ -110,7 +110,7 @@ func Send(alarmUUID string, notification view.Notification) (err error) {
 }
 
 func SendTestToChannel(c *db.AlarmChannel) (err error) {
-	ci, err := push.Instance(c.Typ)
+	ci, err := pusher.Instance(c.Typ)
 	if err != nil {
 		return
 	}

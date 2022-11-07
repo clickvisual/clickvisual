@@ -1,4 +1,4 @@
-package push
+package pusher
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ type Slack struct{}
 
 func (s *Slack) Send(notification view.Notification, alarm *db.Alarm,
 	channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	title, text, err := transformToMarkdown(notification, alarm, channel, oneTheLogs)
+	title, text, err := transformToMarkdown(notification, alarm, oneTheLogs)
 	if err != nil {
 		return err
 	}
