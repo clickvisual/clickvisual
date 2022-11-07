@@ -1,4 +1,4 @@
-//Package feishu @Author arthur  09:51:00
+// Package feishu @Author arthur  09:51:00
 package feishu
 
 const (
@@ -105,7 +105,7 @@ func (c *CardMsg) AddElement(content string) {
 }
 
 // AddUrl 增加一个url的内容
-//Add the content of  url
+// Add the content of  url
 func (c *CardMsg) AddUrl(url string) {
 
 	element := Element{
@@ -131,7 +131,7 @@ func (c *CardMsg) AddUrl(url string) {
 }
 
 // AddAtAll 增加一个@全体的功能
-//Add an @All function
+// Add an @All function
 func (c *CardMsg) AddAtAll() {
 	element := Element{
 		Tag: "div",

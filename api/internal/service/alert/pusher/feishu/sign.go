@@ -13,7 +13,7 @@ type Sign struct {
 }
 
 // NewSign 创建一个新的签名
-//Create a new signature
+// Create a new signature
 func NewSign(secret string) *Sign {
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	sign := GenSign(secret, timestamp)

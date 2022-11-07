@@ -14,8 +14,8 @@ import (
 
 type BigdataDepend struct {
 	Iid                  int     `gorm:"column:iid;type:int(11);index:uix_iid_database_table,unique" json:"iid"`
-	Database             string  `gorm:"column:database;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
-	Table                string  `gorm:"column:table;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
+	Database             string  `gorm:"column:database;type:varchar(64);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
+	Table                string  `gorm:"column:table;type:varchar(64);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
 	Engine               string  `gorm:"column:engine;type:varchar(128);NOT NULL" json:"engine"`
 	DownDepDatabaseTable Strings `gorm:"column:down_dep_database_table;type:text;NOT NULL" json:"downDepDatabaseTable"`
 	UpDepDatabaseTable   Strings `gorm:"column:up_dep_database_table;type:text;NOT NULL" json:"upDepDatabaseTable"`
@@ -35,16 +35,6 @@ func (m *BigdataDepend) Name() string {
 
 func (m *BigdataDepend) Key() string {
 	return fmt.Sprintf("%d.%s.%s", m.Iid, m.Database, m.Table)
-}
-
-func DependsInfoX(conds map[string]interface{}) (resp BigdataDepend, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	err = invoker.Db.Table(TableNameBigDataDepend).Where(sql, binds...).First(&resp).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("infoX error", zap.Error(err))
-		return
-	}
-	return resp, nil
 }
 
 func DependsList(conds egorm.Conds) (resp []*BigdataDepend, err error) {

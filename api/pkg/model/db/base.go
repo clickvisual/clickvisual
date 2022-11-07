@@ -53,26 +53,8 @@ func (b *BaseHiddenField) TableName() string {
 	return TableNameBaseHiddenField
 }
 
-func (b *BaseDatabase) TableName() string {
-	return TableNameBaseDatabase
-}
-
 func (b *BaseShortURL) TableName() string {
 	return TableNameBaseShortURL
-}
-
-// BaseDatabase 数据库管理
-type BaseDatabase struct {
-	BaseModel
-
-	Iid          int    `gorm:"column:iid;type:int(11);index:uix_iid_name,unique" json:"iid"`                 // datasource instance id
-	Name         string `gorm:"column:name;type:varchar(128);index:uix_iid_name,unique;NOT NULL" json:"name"` // datasource database name
-	Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // datasource operator uid
-	Cluster      string `gorm:"column:cluster;type:varchar(128);NOT NULL" json:"cluster"`                     // cluster
-	IsCreateByCV int    `gorm:"column:is_create_by_cv;type:tinyint(1)" json:"isCreateByCV"`
-	Desc         string `gorm:"column:desc;type:varchar(255)" json:"desc"`
-
-	Instance *BaseInstance `json:"instance,omitempty" gorm:"foreignKey:Iid;references:ID"`
 }
 
 type BaseHiddenField struct {
@@ -86,12 +68,12 @@ type BaseHiddenField struct {
 type BaseIndex struct {
 	BaseModel
 
-	Tid      int    `gorm:"column:tid;type:int(11);index:uix_tid_field_root,unique" json:"tid"`                          // table id
-	Field    string `gorm:"column:field;type:varchar(128);NOT NULL;index:uix_tid_field_root,unique" json:"field"`        // index field name
-	RootName string `gorm:"column:root_name;type:varchar(128);NOT NULL;index:uix_tid_field_root,unique" json:"rootName"` // root_name
-	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                                 // 0 string 1 int 2 float
-	HashTyp  int    `gorm:"column:hash_typ;type:tinyint(1)" json:"hashTyp"`                                              // hash type, 0 no hash 1 sipHash64 2 URLHash
-	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                                        // index filed alias name
+	Tid      int    `gorm:"column:tid;type:int(11);index:uix_tid_field_root,unique" json:"tid"`                         // table id
+	Field    string `gorm:"column:field;type:varchar(64);NOT NULL;index:uix_tid_field_root,unique" json:"field"`        // index field name
+	RootName string `gorm:"column:root_name;type:varchar(64);NOT NULL;index:uix_tid_field_root,unique" json:"rootName"` // root_name
+	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                                // 0 string 1 int 2 float
+	HashTyp  int    `gorm:"column:hash_typ;type:tinyint(1)" json:"hashTyp"`                                             // hash type, 0 no hash 1 sipHash64 2 URLHash
+	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                                       // index filed alias name
 }
 
 // BaseView Materialized view management
@@ -113,88 +95,6 @@ type BaseShortURL struct {
 	OriginUrl string `gorm:"column:origin_url;type:text" json:"origin_url"`
 	SCode     string `gorm:"column:s_code;type:varchar(64);NOT NULL" json:"s_code"`
 	CallCnt   int    `gorm:"column:call_cnt;type:int(11)" json:"call_cnt"`
-}
-
-// DatabaseCreate ...
-func DatabaseCreate(db *gorm.DB, data *BaseDatabase) (err error) {
-	if err = db.Model(BaseDatabase{}).Create(data).Error; err != nil {
-		err = errors.Wrapf(err, "database id: %v", data)
-		return
-	}
-	return
-}
-
-// DatabaseDelete Soft delete
-func DatabaseDelete(db *gorm.DB, id int) (err error) {
-	if err = db.Model(BaseDatabase{}).Unscoped().Delete(&BaseDatabase{}, id).Error; err != nil {
-		invoker.Logger.Error("delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// DatabaseInfoX Info extension method to query a single record according to Cond
-func DatabaseInfoX(db *gorm.DB, conds map[string]interface{}) (resp BaseDatabase, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = db.Table(TableNameBaseDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		err = errors.Wrapf(err, "conds: %v", conds)
-		return
-	}
-	return
-}
-
-func DatabaseInfo(db *gorm.DB, paramId int) (resp BaseDatabase, err error) {
-	var sql = "`id`= ?"
-	var binds = []interface{}{paramId}
-	if err = db.Table(TableNameBaseDatabase).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		err = errors.Wrapf(err, "database id: %d", paramId)
-		return
-	}
-	return
-}
-
-func DatabaseGetOrCreate(db *gorm.DB, uid, iid int, name, cluster string) (resp BaseDatabase, err error) {
-	conds := egorm.Conds{}
-	conds["iid"] = iid
-	conds["name"] = name
-	d, err := DatabaseInfoX(db, conds)
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return
-	}
-	if d.ID != 0 {
-		return d, nil
-	}
-	// create
-	resp = BaseDatabase{
-		Iid:     iid,
-		Name:    name,
-		Uid:     uid,
-		Cluster: cluster,
-	}
-	if err = DatabaseCreate(db, &resp); err != nil {
-		return
-	}
-	return
-}
-
-// DatabaseUpdate ...
-func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{paramId}
-	if err = db.Table(TableNameBaseDatabase).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update error", zap.Error(err))
-		return
-	}
-	return
-}
-
-// DatabaseList Get all currently undeleted clusters. Mainly used for front end
-func DatabaseList(db *gorm.DB, conds egorm.Conds) (resp []*BaseDatabase, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = db.Table(TableNameBaseDatabase).Preload("Instance").Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		return nil, errors.Wrapf(err, "conds: %v", conds)
-	}
-	return
 }
 
 func HiddenFieldCreateBatch(db *gorm.DB, data []*BaseHiddenField) (err error) {

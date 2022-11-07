@@ -1,9 +1,10 @@
-//Package push @Author arthur  16:05:00
-package push
+// Package pusher @Author arthur  16:05:00
+package pusher
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestTelegramBot_SendMessage(t *testing.T) {

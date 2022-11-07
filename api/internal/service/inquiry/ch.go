@@ -310,7 +310,8 @@ func (c *ClickHouse) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, fi
 	}
 	if filter.Mode == db.AlarmModeAggregation || filter.Mode == db.AlarmModeAggregationCheck {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
-		vp.WithSQL = adaSelectPart(filter.When)
+		// vp.WithSQL = adaSelectPart(filter.When)
+		vp.WithSQL = filter.When
 	}
 	viewSQL = c.execView(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,

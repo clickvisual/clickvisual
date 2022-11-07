@@ -1,9 +1,10 @@
-//Package push @Author arthur  11:02:00
-package push
+// Package pusher @Author arthur  11:02:00
+package pusher
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestFeiShu_sendMessage(t *testing.T) {

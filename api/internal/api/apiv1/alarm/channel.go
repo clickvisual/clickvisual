@@ -1,9 +1,6 @@
 package alarm
 
 import (
-	"errors"
-	"strings"
-
 	"github.com/ego-component/egorm"
 	"github.com/spf13/cast"
 
@@ -11,12 +8,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/push"
-)
-
-const (
-	FEISHUURL = "https://open.feishu.cn/open-apis/bot/v2/hook/"
-	SLACKURL  = "https://hooks.slack.com/services/"
 )
 
 func ChannelCreate(c *core.Context) {
@@ -26,7 +17,7 @@ func ChannelCreate(c *core.Context) {
 		return
 	}
 	req.Uid = c.Uid()
-	if err := JudgmentType(req); err != nil {
+	if err := req.JudgmentType(); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
@@ -39,29 +30,6 @@ func ChannelCreate(c *core.Context) {
 	c.JSONOK()
 }
 
-// JudgmentType judgment channel key legality
-// temporary support slack feishu
-func JudgmentType(req db.AlarmChannel) (err error) {
-	switch req.Typ {
-	// TODO finish all channels support
-	case push.ChannelDingDing:
-	case push.ChannelWeChat:
-	case push.ChannelTelegram:
-	case push.ChannelEmail:
-	case push.ChannelFeiShu:
-		if !strings.Contains(req.Key, FEISHUURL) {
-			err = errors.New("invalid FeiShu webhook url")
-			return
-		}
-		// TODO Regularity constraints
-	case push.ChannelSlack:
-		if !strings.Contains(req.Key, SLACKURL) {
-			err = errors.New("invalid Slack webhook url")
-			return
-		}
-	}
-	return nil
-}
 func ChannelUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -73,7 +41,7 @@ func ChannelUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	if err := JudgmentType(req); err != nil {
+	if err := req.JudgmentType(); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}

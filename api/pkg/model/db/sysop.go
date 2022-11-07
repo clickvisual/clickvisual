@@ -38,7 +38,7 @@ func (User) TableName() string {
 type Cluster struct {
 	BaseModel
 
-	Name        string `gorm:"column:name;type:varchar(255);NOT NULL;index:uix_cluster_name,unique" json:"clusterName"` // unique name of cluster
+	Name        string `gorm:"column:name;type:varchar(128);NOT NULL;index:uix_cluster_name,unique" json:"clusterName"` // unique name of cluster
 	Description string `gorm:"column:description;type:varchar(128)" json:"description"`                                 // brief description of cluster
 	Status      int    `gorm:"column:status;type:tinyint(1)" json:"status"`                                             // 0 means Well-Running, others mean not running
 	ApiServer   string `gorm:"column:api_server;type:varchar(255);NOT NULL" json:"apiServer"`                           // address of cluster API server

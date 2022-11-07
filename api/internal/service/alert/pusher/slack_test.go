@@ -1,9 +1,10 @@
-//Package push @Author arthur  13:56:00
-package push
+// Package pusher @Author arthur  13:56:00
+package pusher
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSlack_sendMessage(t *testing.T) {

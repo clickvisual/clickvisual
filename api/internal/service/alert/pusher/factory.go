@@ -1,10 +1,9 @@
-package push
+package pusher
 
 import (
 	"bytes"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -15,39 +14,41 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-type DingDing struct{}
-
-func (d *DingDing) Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	markdown, err := d.transformToMarkdown(notification, alarm, oneTheLogs)
-	if err != nil {
-		return
-	}
-
-	data, err := json.Marshal(markdown)
-	if err != nil {
-		return
-	}
-
-	req, err := http.NewRequest("POST", channel.Key, bytes.NewBuffer(data))
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-
-	defer func() { _ = resp.Body.Close() }()
-	return
+type Operator interface {
+	Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (err error)
 }
 
-// TransformToMarkdown transform alertmanager notification to dingtalk markdow message
-func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db.Alarm, oneTheLogs string) (markdown *view.DingTalkMarkdown, err error) {
+func Instance(typ int) (Operator, error) {
+	var err error
+	switch typ {
+	case db.ChannelDingDing:
+		return &DingDing{}, nil
+	case db.ChannelWeChat:
+		return &WeChat{}, nil
+	case db.ChannelFeiShu:
+		return &FeiShu{}, nil
+	case db.ChannelSlack:
+		return &Slack{}, nil
+	case db.ChannelEmail:
+		return &Email{}, nil
+	case db.ChannelTelegram:
+		return &Telegram{}, nil
+	default:
+		err = errors.New("undefined channels")
+	}
+	return nil, err
+}
 
-	// groupKey := notification.GroupKey
+// transformToMarkdown
+// Description: 提供一个通用的md模式的获取内容的方法
+// param notification  通知的部分方法
+// param alarm 警告的数据库连接
+// param oneTheLogs 日志内容
+// return title 标题
+// return text 内容
+// return err 错误
+func transformToMarkdown(notification view.Notification, alarm *db.Alarm, partialLog string) (title, text string, err error) {
+	groupKey := notification.GroupKey
 	status := notification.Status
 	annotations := notification.CommonAnnotations
 
@@ -61,7 +62,6 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 	if alarm.Desc != "" {
 		buffer.WriteString(fmt.Sprintf("##### 告警描述: %s\n", alarm.Desc))
 	}
-
 	condsFilter := egorm.Conds{}
 	condsFilter["alarm_id"] = alarm.ID
 	filters, err := db.AlarmFilterList(condsFilter)
@@ -95,31 +95,22 @@ func (d *DingDing) transformToMarkdown(notification view.Notification, alarm *db
 		if status == "resolved" {
 			buffer.WriteString("##### 状态：<font color=#008000>已恢复</font>\n")
 		} else {
-			buffer.WriteString("##### 状态：：<font color=#FF0000>告警中</font>\n")
+			buffer.WriteString("##### 状态：：<font color=red>告警中</font>\n")
 		}
-		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(@%s)\n", user.Username, user.Nickname))
+		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
+
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
+
 		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/alarm/rules/history?id=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, start, end,
 		))
-		if oneTheLogs != "" {
-			if len(oneTheLogs) > 400 {
-				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", oneTheLogs[0:399]))
+		if partialLog != "" {
+			if len(partialLog) > 400 {
+				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", partialLog[0:399]))
 			} else {
-				buffer.WriteString(fmt.Sprintf("##### 详情: %s", oneTheLogs))
+				buffer.WriteString(fmt.Sprintf("##### 详情: %s", partialLog))
 			}
 		}
 	}
-
-	markdown = &view.DingTalkMarkdown{
-		MsgType: "markdown",
-		Markdown: &view.Markdown{
-			Title: fmt.Sprintf("【%s】%s", status, alarm.Name),
-			Text:  buffer.String(),
-		},
-		At: &view.At{
-			IsAtAll: false,
-		},
-	}
-	return
+	return fmt.Sprintf("通知组：%s(当前状态:%s)", groupKey, status), buffer.String(), nil
 }

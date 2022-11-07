@@ -1,25 +1,27 @@
-//Package push @Author arthur  15:52:00
-package push
+// Package pusher @Author arthur  15:52:00
+package pusher
 
 import (
 	"errors"
 	"fmt"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	tb "gopkg.in/telebot.v3"
 	"strconv"
 	"strings"
 	"time"
+
+	tb "gopkg.in/telebot.v3"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type Telegram struct {
 }
 
-//TODO 偶现超时机器人的情况，暂时不使用
-//Occasionally there is a situation where the robot times out, and it will not be used for the time being
+// TODO 偶现超时机器人的情况，暂时不使用
+// Occasionally there is a situation where the robot times out, and it will not be used for the time being
 
 func (t *Telegram) Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	title, text, err := transformToMarkdown(notification, alarm, channel, oneTheLogs)
+	title, text, err := transformToMarkdown(notification, alarm, oneTheLogs)
 	if err != nil {
 		return err
 	}

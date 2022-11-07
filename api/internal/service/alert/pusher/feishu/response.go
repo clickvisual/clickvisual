@@ -10,7 +10,7 @@ type ErrResponse struct {
 }
 
 // Response 成功发送之后的消息
-//Message after successfully sent
+// Message after successfully sent
 type Response struct {
 	Extra         json.RawMessage
 	StatusCode    int
