@@ -100,14 +100,14 @@ func BuildMsg(typeStr string, notification view.Notification, alarm *db.Alarm, o
 		buffer.WriteString(fmt.Sprintf("跳转: [查看详情](%s/alarm/rules/history?id=%d&start=%d&end=%d)\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, start, end,
 		))
-		// 目前企微有长度限制  目前只支持跳转查看了
-		// if oneTheLogs != "" {
-		//	if len(oneTheLogs) > 400 {
-		//		buffer.WriteString(fmt.Sprintf("详情: %s ...\n", oneTheLogs[0:399]))
-		//	} else {
-		//		buffer.WriteString(fmt.Sprintf("详情: %s  \n", oneTheLogs))
-		//	}
-		// }
+		if oneTheLogs != "" {
+			oneTheLogs = strings.Replace(oneTheLogs, "\"", "", -1)
+			if len(oneTheLogs) > 400 {
+				buffer.WriteString(fmt.Sprintf("详情: %s ...\n", oneTheLogs[0:399]))
+			} else {
+				buffer.WriteString(fmt.Sprintf("详情: %s  \n", oneTheLogs))
+			}
+		}
 	}
 
 	b1, _ := json.Marshal(nil)
