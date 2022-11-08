@@ -245,7 +245,7 @@ const FormAlarmDraw = () => {
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef.current} />
-          <Form.Item noStyle>
+          {/* <Form.Item noStyle>
             <div
               className={classNames(
                 conditionStyles.moreOptionsBtn,
@@ -259,7 +259,8 @@ const FormAlarmDraw = () => {
               </span>
             </div>
             {showMoreOptions && <MoreOptions />}
-          </Form.Item>
+          </Form.Item> */}
+          <MoreOptions />
 
           <Form.Item
             label={

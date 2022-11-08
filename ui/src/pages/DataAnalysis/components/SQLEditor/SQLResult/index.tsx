@@ -1,3 +1,4 @@
+import ExportExcelButton from "@/components/ExportExcelButton";
 import { SaveOutlined } from "@ant-design/icons";
 import { Button, message, Spin, Tabs, Tooltip } from "antd";
 import { useEffect, useState } from "react";
@@ -173,6 +174,20 @@ const SQLResult = (props: {
               ></Button>
             </Tooltip>
           ) : null}
+          {defaultResultsData?.logs && (
+            <Tooltip
+              title={i18n.formatMessage({
+                id: "bigdata.components.sqlSaveTips",
+              })}
+            >
+              <ExportExcelButton
+                data={defaultResultsData.logs}
+                style={{ position: "absolute", left: "35px" }}
+                type={"link"}
+              />
+            </Tooltip>
+          )}
+
           <span>
             {i18n.formatMessage({
               id: "bigdata.components.RightMenu.results.tips",
@@ -181,7 +196,12 @@ const SQLResult = (props: {
         </div>
         <div className={styles.resultTabs}>
           {resultsList.length > 0 ? (
-            <div style={{ width: "calc(100vw - 433px)" }}>
+            <div
+              style={{
+                width: "calc(100vw - 433px)",
+                borderBottom: "1px solid #f0f0f0",
+              }}
+            >
               <Tabs onChange={handleTabsChange} activeKey={activeKey}>
                 {resultsList.map((item: any, index: number) => {
                   return (

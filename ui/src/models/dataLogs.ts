@@ -2,9 +2,11 @@ import { useRef, useState } from "react";
 import copy from "copy-to-clipboard";
 import { message } from "antd";
 import api, {
+  CollectType,
   DatabaseResponse,
   HighCharts,
   IndexInfoType,
+  LogFilterType,
   LogsResponse,
   TablesResponse,
 } from "@/services/dataLogs";
@@ -122,6 +124,16 @@ const DataLogsModel = () => {
   const [analysisFieldTips, setAnalysisFieldTips] = useState<string[]>([]);
   // 日志查询的初始值
   const [initValue, setInitValue] = useState<string>("");
+  // fliter数据
+  const [logFilterList, setLogFilterList] = useState<LogFilterType[]>([]);
+  // 收藏历史的数据
+  const [collectingHistorical, setCollectingHistorical] = useState<
+    LogFilterType[]
+  >([]);
+  // filter弹窗
+  const [visibleLogFilter, setVisibleLogFilter] = useState<boolean>(false);
+  // 修改filter时暂存的info
+  const [editLogFilterInfo, setEditLogFilterInfo] = useState<any>();
 
   const {
     logLibraryCreatedModalVisible,
@@ -250,6 +262,22 @@ const DataLogsModel = () => {
     setInitValue(str);
   };
 
+  const onChangeLogFilterList = (arr: any[]) => {
+    setLogFilterList(arr);
+  };
+
+  const onChangeCollectingHistorical = (arr: any[]) => {
+    setCollectingHistorical(arr);
+  };
+
+  const onChangeVisibleLogFilter = (flag: boolean) => {
+    setVisibleLogFilter(flag);
+  };
+
+  const onChangeEditLogFilterInfo = (data: any) => {
+    setEditLogFilterInfo(data);
+  };
+
   const onChangeAnalysisFieldTips = (arr: string[]) => {
     setAnalysisFieldTips(arr);
   };
@@ -291,7 +319,9 @@ const DataLogsModel = () => {
     statisticalChartsHelper.onChangeChartSql(
       tabPane?.logs?.query ?? tabPane?.querySql
     );
-    statisticalChartsHelper.setLogChart(tabPane?.logChart || { logs: [] });
+    statisticalChartsHelper.setLogChart(
+      tabPane?.logChart || { logs: [], sortRule: [], isNeedSort: false }
+    );
 
     doParseQuery(
       (tabPane.logs?.where && tabPane.logs?.where != "1='1'"
@@ -397,6 +427,22 @@ const DataLogsModel = () => {
     }
   );
 
+  const doGetLogFilterList = useRequest(api.getLogFilterList, {
+    loadingText: false,
+  });
+
+  const doCreateLogFilter = useRequest(api.createLogFilter, {
+    loadingText: false,
+  });
+
+  const doDeleteLogFilter = useRequest(api.deleteLogFilter, {
+    loadingText: false,
+  });
+
+  const doEditLogFilter = useRequest(api.editLogFilter, {
+    loadingText: false,
+  });
+
   const settingIndexes = useRequest(api.setIndexes, {
     loadingText: false,
     onSuccess() {
@@ -410,13 +456,17 @@ const DataLogsModel = () => {
     loadingText: false,
   });
 
-  const logsAndHighChartsPayload = (params?: QueryParams) => {
+  const logsAndHighChartsPayload = (
+    params?: QueryParams,
+    filters?: string[]
+  ) => {
     return {
       st: params?.st || (startDateTime as number),
       et: params?.et || (endDateTime as number),
       query: params?.kw ?? keywordInput,
       pageSize: params?.pageSize || pageSize,
       page: params?.page || currentPage,
+      filters: filters || [],
     };
   };
 
@@ -459,10 +509,23 @@ const DataLogsModel = () => {
     const histogramChecked = currentPane?.histogramChecked ?? true;
     onChangeLastLoadingTid(id);
     handleHistoricalRecord(id, extra?.reqParams);
+    const data = {
+      tableId: id,
+      collectType: CollectType.allFilter,
+    };
+
+    const res: any = await doGetLogFilterList.run(data);
+    let filters: string[] = [];
+    if (res.code == 0) {
+      res.data.map((item: LogFilterType) => {
+        filters.push(item.statement);
+      });
+    }
+
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
-        logsAndHighChartsPayload(extra?.reqParams),
+        logsAndHighChartsPayload(extra?.reqParams, filters),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
         })
@@ -477,14 +540,14 @@ const DataLogsModel = () => {
       const [logsRes, highChartsRes] = await Promise.all([
         getLogs.run(
           id,
-          logsAndHighChartsPayload(extra?.reqParams),
+          logsAndHighChartsPayload(extra?.reqParams, filters),
           new CancelToken(function executor(c) {
             cancelTokenLogsRef.current = c;
           })
         ),
         getHighCharts.run(
           id,
-          logsAndHighChartsPayload(extra?.reqParams),
+          logsAndHighChartsPayload(extra?.reqParams, filters),
           new CancelToken(function executor(c) {
             cancelTokenHighChartsRef.current = c;
           })
@@ -593,7 +656,7 @@ const DataLogsModel = () => {
           newPane.highCharts = res.highCharts;
           newPane.rawLogsIndexeList = rawLogsIndexeList;
           if (res.logs.query !== pane.querySql) {
-            newPane.logChart = { logs: [] };
+            newPane.logChart = { logs: [], sortRule: [], isNeedSort: false };
           }
           onChangeCurrentLogPane(newPane);
         }
@@ -704,6 +767,10 @@ const DataLogsModel = () => {
     isLogLibraryAllDatabase,
     logState,
     initValue,
+    logFilterList,
+    collectingHistorical,
+    visibleLogFilter,
+    editLogFilterInfo,
     analysisFieldTips,
     logQueryHistoricalList,
 
@@ -736,6 +803,10 @@ const DataLogsModel = () => {
     onChangeCurrentEditLogLibrary,
     onChangeLogState,
     onChangeInitValue,
+    onChangeLogFilterList,
+    onChangeCollectingHistorical,
+    onChangeVisibleLogFilter,
+    onChangeEditLogFilterInfo,
     onChangeAnalysisFieldTips,
     onChangeLogQueryHistoricalList,
 
@@ -776,6 +847,10 @@ const DataLogsModel = () => {
     doUpdateLinkLinkLogLibrary,
     doGetLinkLogLibraryList,
     doGetLinkLogLibraryDependency,
+    doGetLogFilterList,
+    doCreateLogFilter,
+    doDeleteLogFilter,
+    doEditLogFilter,
 
     viewsVisibleDraw,
     getViewList,

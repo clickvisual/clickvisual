@@ -1,15 +1,18 @@
 import { Button, Input, message, Modal, Tooltip } from "antd";
 import { ExportExcel } from "@/utils/excel";
 import { useIntl } from "umi";
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import { useRef } from "react";
 import IconFont from "../IconFont";
+import { ButtonType } from "antd/es/button";
 
 interface ExportExcelButtonProps {
   data: any;
+  type?: ButtonType;
+  style?: CSSProperties;
 }
 
-const ExportExcelButton = ({ data }: ExportExcelButtonProps) => {
+const ExportExcelButton = ({ data, type, style }: ExportExcelButtonProps) => {
   const i18n = useIntl();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const fileNameRef = useRef("日志");
@@ -49,7 +52,8 @@ const ExportExcelButton = ({ data }: ExportExcelButtonProps) => {
       <Tooltip title={i18n.formatMessage({ id: "export" })}>
         <Button
           onClick={handleExportExcel}
-          style={{ marginLeft: "8px" }}
+          style={{ marginLeft: "8px", ...style }}
+          type={type}
           icon={<IconFont type="icon-export-excel" />}
         />
       </Tooltip>

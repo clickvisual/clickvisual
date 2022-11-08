@@ -8,6 +8,7 @@ export interface QueryLogsProps {
   pageSize?: number;
   page?: number;
   alarmMode?: number;
+  filters?: string[];
 }
 
 export interface GetTableIdRequest {
@@ -178,11 +179,11 @@ export interface CreateLocalTableRequestBatch {
   timeField: string;
   mode: number;
   instance: number;
-  tableList: tableListType;
+  tableList: TableListType;
   cluster: string;
 }
 
-export interface tableListType {
+export interface TableListType {
   timeField: number;
   desc: string;
   timeFieldType?: number;
@@ -219,13 +220,32 @@ export interface IndexDetail {
   percent: number;
 }
 
-export interface updateTableInfoType {
+export interface UpdateTableInfoType {
   desc?: string;
   kafkaBrokers?: string;
   kafkaConsumerNum?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   kafkaSkipBrokenMessages?: string;
   kafkaTopic?: string;
   mergeTreeTTL?: number;
+}
+
+export interface LogFilterType {
+  tableId: any;
+  alias: string;
+  ctime: number;
+  dtime: number;
+  id: number;
+  statement: string;
+  uid: number;
+  utime: number;
+  collectType: CollectType;
+}
+
+export enum CollectType {
+  query = 1,
+  tableFilter = 2,
+  globalFilter = 4,
+  allFilter = 6,
 }
 
 export default {
@@ -377,7 +397,7 @@ export default {
   },
 
   // Get log library details
-  async updateTableInfo(id: number, data: updateTableInfoType) {
+  async updateTableInfo(id: number, data: UpdateTableInfoType) {
     return request<any>(process.env.PUBLIC_PATH + `api/v2/storage/${id}`, {
       method: "PATCH",
       data,
@@ -565,6 +585,62 @@ export default {
       {
         method: "GET",
         params,
+      }
+    );
+  },
+
+  // 获取日志filter列表
+  async getLogFilterList(params: {
+    collectType: CollectType;
+    tableId?: number;
+  }) {
+    return request<API.Res<LogFilterType[]>>(
+      process.env.PUBLIC_PATH + `api/v2/storage/collects`,
+      {
+        method: "GET",
+        params,
+      }
+    );
+  },
+
+  // 创建日志filter
+  async createLogFilter(data: {
+    alias?: string;
+    collectType: CollectType;
+    statement: string;
+    tableId?: number;
+  }) {
+    return request(process.env.PUBLIC_PATH + `api/v2/storage/collects`, {
+      method: "POST",
+      data,
+    });
+  },
+
+  // 删除日志filter
+  async deleteLogFilter(collectId: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/storage/collects/${collectId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+
+  // 编辑日志filter
+  async editLogFilter(
+    collectId: number,
+    data: {
+      alias?: string;
+      collectType: CollectType;
+      statement: string;
+      tableId?: number;
+    }
+  ) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/storage/collects/${collectId}`,
+      {
+        method: "PATCH",
+        data,
       }
     );
   },
