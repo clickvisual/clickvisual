@@ -181,7 +181,12 @@ const SQLResult = (props: {
         </div>
         <div className={styles.resultTabs}>
           {resultsList.length > 0 ? (
-            <div style={{ width: "calc(100vw - 433px)" }}>
+            <div
+              style={{
+                width: "calc(100vw - 433px)",
+                borderBottom: "1px solid #f0f0f0",
+              }}
+            >
               <Tabs onChange={handleTabsChange} activeKey={activeKey}>
                 {resultsList.map((item: any, index: number) => {
                   return (
