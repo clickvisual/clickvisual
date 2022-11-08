@@ -20,7 +20,7 @@ func Test_getDistributedSubTableName(t *testing.T) {
 				sql: `CREATE TABLE mogo_shimo_dev.shimodev_svc_front_tracker
 (
     '_time_second_' DateTime,
-    '_time_nanosecond_' DateTime64(9, 'Asia/Shanghai'),
+    '_time_nanosecond_' DateTime64(9),
     '_source_' String,
     '_cluster_' String,
     '_log_agent_' String,

@@ -32,7 +32,7 @@ func TestStandaloneData(t *testing.T) {
 			want: `CREATE TABLE dev.app_stdout
 (
   _time_second_ DateTime,
-  _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
+  _time_nanosecond_ DateTime64(9),
   _source_ String,
   _cluster_ String,
   _log_agent_ String,

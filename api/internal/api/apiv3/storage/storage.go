@@ -26,12 +26,12 @@ func Create(c *core.Context) {
 	var param view.ReqStorageCreateV3
 	err := c.Bind(&param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter", err)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
 		return
 	}
 	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
 	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter", err)
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -48,7 +48,7 @@ func Create(c *core.Context) {
 	}
 	_, err = service.StorageCreateV3(c.Uid(), databaseInfo, param)
 	if err != nil {
-		c.JSONE(core.CodeErr, "CreateStorageV3", err)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})

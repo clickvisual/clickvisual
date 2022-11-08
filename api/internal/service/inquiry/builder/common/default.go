@@ -11,7 +11,7 @@ func BuilderFieldsData(tableCreateType int, mapping string) string {
 	if tableCreateType == constx.TableCreateTypeUBW {
 		return fmt.Sprintf(`(
   _time_second_ DateTime,
-  _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
+  _time_nanosecond_ DateTime64(9),
   _key String CODEC(ZSTD(1)),
   _raw_log_ String CODEC(ZSTD(1)),
   %s Array(String),
@@ -33,7 +33,7 @@ func BuilderFieldsData(tableCreateType int, mapping string) string {
 	return fmt.Sprintf(`(
   %s
   _time_second_ DateTime,
-  _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'),
+  _time_nanosecond_ DateTime64(9),
   _raw_log_ String CODEC(ZSTD(1)),
   INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
 )
@@ -78,7 +78,7 @@ func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView
 			// use kafka timestamp
 			return fmt.Sprintf(`SELECT
 	toDateTime(toInt64(_timestamp)) AS _time_second_,
-	toDateTime64(toInt64(_timestamp_ms), 9, 'Asia/Shanghai') AS _time_nanosecond_,
+	toDateTime64(toInt64(_timestamp_ms), 9) AS _time_nanosecond_,
 	_key AS _key,
 	%s,
 	body AS _raw_log_%s

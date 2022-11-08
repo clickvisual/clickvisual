@@ -7,22 +7,22 @@ const (
 
 const (
 	defaultStringTimeParse = `parseDateTimeBestEffort(%s) AS _time_second_,
-  toDateTime64(parseDateTimeBestEffort(%s), 9, 'Asia/Shanghai') AS _time_nanosecond_`
+  toDateTime64(parseDateTimeBestEffort(%s), 9) AS _time_nanosecond_`
 	defaultFloatTimeParse = `toDateTime(toInt64(%s)) AS _time_second_,
-  fromUnixTimestamp64Nano(toInt64(%s*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
+  fromUnixTimestamp64Nano(toInt64(%s*1000000000)) AS _time_nanosecond_`
 	defaultCondition = "1='1'"
 )
 
 const (
 	defaultStringTimeParseV3 = `parseDateTimeBestEffort(JSONExtractString(%s, '%s')) AS _time_second_,
-  toDateTime64(parseDateTimeBestEffort(JSONExtractString(%s, '%s')), 9, 'Asia/Shanghai') AS _time_nanosecond_`
+  toDateTime64(parseDateTimeBestEffort(JSONExtractString(%s, '%s')), 9) AS _time_nanosecond_`
 	defaultFloatTimeParseV3 = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_,
-  fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
+  fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000)) AS _time_nanosecond_`
 )
 
 // time_field 高精度数据解析选择
 var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_, 
-  fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000),'Asia/Shanghai') AS _time_nanosecond_`
+  fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000)) AS _time_nanosecond_`
 
 var typORM = map[int]string{
 	-2: "DateTime64(3)",
