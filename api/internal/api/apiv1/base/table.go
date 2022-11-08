@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
+	"time"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/cetus/pkg/kutl"
@@ -293,6 +293,7 @@ func TableDelete(c *core.Context) {
 }
 
 func TableLogs(c *core.Context) {
+	st := time.Now()
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
@@ -361,6 +362,7 @@ func TableLogs(c *core.Context) {
 			res.HiddenFields = append(res.HiddenFields, list[i].Field)
 		}
 	}
+	res.Cost = time.Since(st).Milliseconds()
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
@@ -428,7 +430,6 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -446,95 +447,110 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "instanceManagerLoad", err)
 		return
 	}
-	res := view.HighCharts{
-		Histograms: make([]view.HighChart, 0),
-	}
 	param, err = op.Prepare(param, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	interval := utils.CalculateInterval(param.ET - param.ST)
-	isZero := true
-	if interval == 0 {
-		count, errCount := op.Count(param)
-		if errCount != nil {
-			c.JSONE(core.CodeErr, errCount.Error(), errCount)
-			return
-		}
-		row := view.HighChart{
-			Count:    count,
-			Progress: "",
-			From:     param.ST,
-			To:       param.ET,
-		}
-		if row.Count > 0 {
-			isZero = false
-		}
-		res.Count = row.Count
-		res.Histograms = append(res.Histograms, row)
-	} else {
-		limiter := make(chan view.HighChart, 100)
-		errorChan := make(chan error, 100)
-		wg := &sync.WaitGroup{}
-		sum := 0
-		for i := param.ST; i < param.ET; i += interval {
-			wg.Add(1)
-			sum++
-			go func(st, et int64, wg *sync.WaitGroup) {
-				if et > param.ET {
-					et = param.ET
-				}
-				count, countErr := op.Count(view.ReqQuery{
-					Tid:           tableInfo.ID,
-					Table:         param.Table,
-					DatabaseTable: param.DatabaseTable,
-					Query:         param.Query,
-					ST:            st,
-					ET:            et,
-					Page:          param.Page,
-					PageSize:      param.PageSize,
-					TimeField:     param.TimeField,
-					TimeFieldType: param.TimeFieldType,
-				})
-				if countErr != nil {
-					errorChan <- countErr
-				}
-				row := view.HighChart{
-					Count:    count,
-					Progress: "",
-					From:     st,
-					To:       et,
-				}
-				if isZero && row.Count > 0 {
-					isZero = false
-				}
-				limiter <- row
-				wg.Done()
-				return
-			}(i, i+interval, wg)
-		}
-		wg.Wait()
-		close(errorChan)
-		for e := range errorChan {
-			if e != nil {
-				c.JSONE(core.CodeErr, e.Error(), e)
-				return
-			}
-		}
-		close(limiter)
-		for d := range limiter {
-			res.Histograms = append(res.Histograms, d)
-			res.Count += d.Count
-		}
-	}
-	if isZero {
-		c.JSONOK("the query data is empty")
+	var interval int64
+	param.GroupByCond, interval = utils.CalculateInterval(param.ET-param.ST, param.TimeField)
+	charts, err := op.Chart(param)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	sort.Slice(res.Histograms, func(i int, j int) bool {
-		return res.Histograms[i].From < res.Histograms[j].From
+	res := view.HighCharts{
+		Histograms: make([]*view.HighChart, 0),
+	}
+	if len(charts) == 0 {
+		c.JSONOK(res)
+		return
+	}
+	chartMap := make(map[int64]*view.HighChart)
+	// get key info
+	var firstFrom int64
+	var latestFrom int64
+	for i, chart := range charts {
+		chartMap[chart.From] = chart
+		res.Count += chart.Count
+		if i == 0 {
+			firstFrom = chart.From
+		}
+		latestFrom = chart.From
+	}
+	// fill charts
+	st, et := param.ST, param.ET
+	// fill head
+	if st+interval < firstFrom {
+		// 说明有很多数据需要填充
+		fillNum := (firstFrom - st) / interval
+		for i := int64(0); i < (fillNum); i++ {
+			from := firstFrom - interval*(i+1)
+			if from < st {
+				from = st
+			}
+			if _, ok := chartMap[from]; !ok {
+				chartMap[from] = &view.HighChart{
+					Count: 0,
+					From:  from,
+					To:    firstFrom - interval*i,
+				}
+			}
+		}
+	}
+	// fill tail
+	if et-interval > latestFrom {
+		// 说明有很多数据需要填充
+		fillNum := (et - latestFrom) / interval
+		for i := int64(0); i < (fillNum); i++ {
+			to := latestFrom + interval*(i+2)
+			from := latestFrom + interval*(i+1)
+			if to > st {
+				to = st
+			}
+			if _, ok := chartMap[from]; !ok {
+				chartMap[from] = &view.HighChart{
+					Count: 0,
+					From:  from,
+					To:    firstFrom - interval*i,
+				}
+			}
+		}
+	}
+	for i := firstFrom; i < latestFrom; i += interval {
+		if _, ok := chartMap[i]; !ok {
+			chartMap[i] = &view.HighChart{
+				Count: 0,
+				From:  i,
+				To:    i + interval,
+			}
+		}
+	}
+	fillCharts := make([]*view.HighChart, 0)
+	for _, chart := range chartMap {
+		fillCharts = append(fillCharts, chart)
+	}
+	sort.Slice(fillCharts, func(i int, j int) bool {
+		return fillCharts[i].From < fillCharts[j].From
 	})
+	l := len(fillCharts)
+	if l == 1 {
+		fillCharts[0].From = st
+		fillCharts[0].To = et
+	}
+	for i := range fillCharts {
+		if i == 0 {
+			fillCharts[0].From = st
+			fillCharts[0].To = fillCharts[1].From
+		} else if i == l-1 {
+			fillCharts[i].To = et
+		} else {
+			fillCharts[i].To = fillCharts[i+1].From
+		}
+	}
+
+	res.Histograms = fillCharts
+
 	c.JSONOK(res)
 	return
 }

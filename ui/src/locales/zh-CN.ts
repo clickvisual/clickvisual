@@ -622,9 +622,9 @@ export default {
   "alarm.environment.RuleStoreType.file": "文件",
   "alarm.environment.form.title": "编辑告警环境",
   "alarm.environment.form.ruleStoreType": "告警类型",
-  "alarm.environment.form.isPrometheusOK": "Prometheus状态",
-  "alarm.environment.form.isAlertManagerOK": "AlertManager状态",
-  "alarm.environment.form.isMetricsSamplesOk": "metrics.samples状态",
+  "alarm.environment.form.isPrometheusOK": "Prometheus 检测",
+  "alarm.environment.form.isAlertManagerOK": "AlertManager 检测",
+  "alarm.environment.form.isMetricsSamplesOk": "metrics.samples 检测",
 
   // install
   "install.init.text.databaseInit":
