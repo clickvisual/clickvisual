@@ -11,17 +11,17 @@ import (
 	tb "gopkg.in/telebot.v3"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-type Telegram struct {
-}
+var _ IPusher = (*Telegram)(nil)
+
+type Telegram struct{}
 
 // TODO 偶现超时机器人的情况，暂时不使用
 // Occasionally there is a situation where the robot times out, and it will not be used for the time being
 
-func (t *Telegram) Send(notification view.Notification, alarm *db.Alarm, channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	title, text, err := transformToMarkdown(notification, alarm, oneTheLogs)
+func (t *Telegram) Send(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, channel *db.AlarmChannel, oneTheLogs string) (err error) {
+	title, text, err := constructMessage(notification, table, alarm, filter, oneTheLogs)
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (t *Telegram) Send(notification view.Notification, alarm *db.Alarm, channel
 	}
 	return nil
 }
-func (t Telegram) sendMessage(url string, title, text string) (err error) {
+func (t *Telegram) sendMessage(url string, title, text string) (err error) {
 	tbot, err := NewTelegram(url)
 	if err != nil {
 		return err

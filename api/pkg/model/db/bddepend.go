@@ -15,7 +15,7 @@ import (
 type BigdataDepend struct {
 	Iid                  int     `gorm:"column:iid;type:int(11);index:uix_iid_database_table,unique" json:"iid"`
 	Database             string  `gorm:"column:database;type:varchar(64);index:uix_iid_database_table,unique;NOT NULL" json:"database"`
-	Table                string  `gorm:"column:table;type:varchar(64);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
+	Table                string  `gorm:"column:table;type:varchar(128);index:uix_iid_database_table,unique;NOT NULL" json:"table"`
 	Engine               string  `gorm:"column:engine;type:varchar(128);NOT NULL" json:"engine"`
 	DownDepDatabaseTable Strings `gorm:"column:down_dep_database_table;type:text;NOT NULL" json:"downDepDatabaseTable"`
 	UpDepDatabaseTable   Strings `gorm:"column:up_dep_database_table;type:text;NOT NULL" json:"upDepDatabaseTable"`

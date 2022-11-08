@@ -58,7 +58,7 @@ func InstanceUpdate(c *core.Context) {
 	}
 	req.PrometheusTarget = strings.TrimSpace(req.PrometheusTarget)
 	if req.PrometheusTarget != "" {
-		if err := service.Alarm.PrometheusReload(req.PrometheusTarget); err != nil {
+		if err := service.Alert.PrometheusReload(req.PrometheusTarget); err != nil {
 			c.JSONE(1, "create DB failed: "+err.Error(), nil)
 			return
 		}

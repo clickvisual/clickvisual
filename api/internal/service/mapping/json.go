@@ -56,7 +56,6 @@ func fieldTypeJudgment(req interface{}) string {
 			invoker.Logger.Warn("fieldTypeJudgment", elog.Any("type", reflect.TypeOf(req)))
 			return "unknown"
 		}
-		invoker.Logger.Info("fieldTypeJudgment", elog.Any("type", reflect.TypeOf(req)))
 		return "unknown"
 	}
 	return val

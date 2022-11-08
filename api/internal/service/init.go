@@ -20,7 +20,7 @@ var (
 	Permission      *permission.Service
 	InstanceManager *instanceManager
 	Index           *index
-	Alarm           *alarm
+	Alert           *alert
 	Node            *node
 	Storage         *iStorage
 	ppt             *preempt.Preempt
@@ -31,7 +31,7 @@ func Init() error {
 	InstanceManager = NewInstanceManager()
 
 	Index = NewIndex()
-	Alarm = NewAlarm()
+	Alert = NewAlarm()
 
 	initGob()
 	configure.InitConfigure()

@@ -5,14 +5,15 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher/feishu"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
+
+var _ IPusher = (*FeiShu)(nil)
 
 type FeiShu struct{}
 
-func (s *FeiShu) Send(notification view.Notification, alarm *db.Alarm,
+func (s *FeiShu) Send(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter,
 	channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	title, text, err := transformToMarkdown(notification, alarm, oneTheLogs)
+	title, text, err := constructMessage(notification, table, alarm, filter, oneTheLogs)
 	if err != nil {
 		return err
 	}

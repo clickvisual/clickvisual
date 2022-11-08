@@ -8,7 +8,6 @@ import (
 	"github.com/slack-go/slack"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 const (
@@ -19,11 +18,13 @@ const (
 	FOOTER     = "clickvisual"
 )
 
+var _ IPusher = (*Slack)(nil)
+
 type Slack struct{}
 
-func (s *Slack) Send(notification view.Notification, alarm *db.Alarm,
+func (s *Slack) Send(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter,
 	channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	title, text, err := transformToMarkdown(notification, alarm, oneTheLogs)
+	title, text, err := constructMessage(notification, table, alarm, filter, oneTheLogs)
 	if err != nil {
 		return err
 	}

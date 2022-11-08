@@ -57,7 +57,7 @@ func SettingUpdate(c *core.Context) {
 	}
 	if current.RuleStoreType != 0 && current.RuleStoreType != req.RuleStoreType {
 		// Detect whether there is an alarm under the current condition
-		errCheck := service.Alarm.IsAllClosed(iid)
+		errCheck := service.Alert.IsAllClosed(iid)
 		if errCheck != nil {
 			c.JSONE(core.CodeErr, errCheck.Error(), errCheck)
 			return

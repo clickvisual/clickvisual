@@ -46,9 +46,9 @@ const (
 	NoDataOpAlert   = 2
 )
 
-var _ iAlarm = (*alarm)(nil)
+var _ iAlert = (*alert)(nil)
 
-type iAlarm interface {
+type iAlert interface {
 	FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.ReqAlarmFilterCreate) (res map[int]view.AlarmFilterItem, err error)
 	ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filter *db.AlarmFilter) (exp string, err error)
 	PrometheusReload(prometheusTarget string) (err error)
@@ -60,22 +60,23 @@ type iAlarm interface {
 	Update(uid, alarmId int, req view.ReqAlarmCreate) (err error)
 	AddPrometheusReloadChan()
 	IsAllClosed(instanceId int) (err error)
+	PushAlertManager(alarmUUID string, filterId string, notification db.Notification) (err error)
 }
 
-type alarm struct {
+type alert struct {
 	reloadChan chan int64
 }
 
 // NewAlarm ...
-func NewAlarm() *alarm {
-	a := &alarm{
+func NewAlarm() *alert {
+	a := &alert{
 		reloadChan: make(chan int64, reloadTimes),
 	}
 	go func() {
 		for r := range a.reloadChan {
 			invoker.Logger.Info("AllPrometheusReload", elog.Int("times", len(a.reloadChan)), elog.Int64("r", r), elog.Int64("now", time.Now().Unix()))
 			AllPrometheusReload()
-			core.LoggerError("alarm", "ruleReload", AlertRuleCheck())
+			core.LoggerError("alert", "ruleReload", AlertRuleCheck())
 			time.Sleep(reloadInterval)
 		}
 	}()
@@ -83,7 +84,7 @@ func NewAlarm() *alarm {
 	return a
 }
 
-func (i *alarm) FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.ReqAlarmFilterCreate) (res map[int]view.AlarmFilterItem, err error) {
+func (i *alert) FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.ReqAlarmFilterCreate) (res map[int]view.AlarmFilterItem, err error) {
 	res = make(map[int]view.AlarmFilterItem, 0)
 	for _, filter := range filters {
 		// create filter
@@ -115,7 +116,7 @@ func (i *alarm) FilterCreate(tx *gorm.DB, alarmObj *db.Alarm, filters []view.Req
 	return
 }
 
-func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filter *db.AlarmFilter) (exp string, err error) {
+func (i *alert) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filter *db.AlarmFilter) (exp string, err error) {
 	expVal := fmt.Sprintf("%s{%s} offset 10s", bumo.PrometheusMetricName, inquiry.TagsToString(obj, false, filter.ID))
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].SetOperatorTyp < conditions[j].SetOperatorTyp
@@ -169,7 +170,7 @@ func (i *alarm) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	return
 }
 
-func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
+func (i *alert) PrometheusReload(prometheusTarget string) (err error) {
 	resp, err := http.Post(strings.TrimSuffix(prometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
 	if err != nil {
 		invoker.Logger.Error("reload", elog.Any("reload", prometheusTarget+"/-/reload"), elog.Any("err", err.Error()))
@@ -179,11 +180,11 @@ func (i *alarm) PrometheusReload(prometheusTarget string) (err error) {
 	return
 }
 
-func (i *alarm) PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string {
+func (i *alert) PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string {
 	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
 }
 
-func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error) {
+func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error) {
 	rc, err := rule.GetComponent(instance.RuleStoreType, &rule.Params{
 		InstanceID: instance.ID,
 		RulePath:   instance.FilePath,
@@ -201,7 +202,7 @@ func (i *alarm) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, con
 	return nil
 }
 
-func (i *alarm) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error) {
+func (i *alert) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error) {
 	if obj.AlertRules == nil || len(obj.AlertRules) == 0 {
 		// v1 version
 		return alarmRuleDelete(instance, obj.RuleName(0))
@@ -225,7 +226,7 @@ func (i *alarm) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (
 	return nil
 }
 
-func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error) {
+func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error) {
 	// v1 -> v2 disable root conditions field
 	req.ConvertV2()
 	filtersDB, err := i.FilterCreate(tx, alarmObj, req.Filters)
@@ -253,7 +254,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		if err != nil {
 			return
 		}
-		// drop alarm views
+		// drop alert views
 		if len(alarmObj.ViewDDLs) > 0 {
 			for iidTable := range alarmObj.ViewDDLs {
 				ddlOp := op
@@ -278,7 +279,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 			if alarmObj.ViewTableName != "" {
 				err = op.DeleteAlertView(alarmObj.ViewTableName, tableInfo.Database.Cluster)
 				if err != nil {
-					invoker.Logger.Error("alarm", elog.String("step", "alarm create failed 05"), elog.String("err", err.Error()))
+					invoker.Logger.Error("alert", elog.String("step", "alert create failed 05"), elog.String("err", err.Error()))
 					return
 				}
 			}
@@ -300,7 +301,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, r); err != nil {
 			return
 		}
-		if err = Alarm.PrometheusRuleDelete(&instance, alarmObj); err != nil {
+		if err = Alert.PrometheusRuleDelete(&instance, alarmObj); err != nil {
 			return
 		}
 	}
@@ -311,7 +312,7 @@ func (i *alarm) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	return db.AlarmUpdate(tx, alarmObj.ID, ups)
 }
 
-func (i *alarm) OpenOperator(id int) (err error) {
+func (i *alert) OpenOperator(id int) (err error) {
 	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
 		return
@@ -356,7 +357,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 					ins, _ = db.InstanceInfo(invoker.Db, iid)
 				}
 				if err = i.PrometheusRuleCreateOrUpdate(ins, ruleName, alertRule); err != nil {
-					invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+					invoker.Logger.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 					return
 				}
 			}
@@ -364,7 +365,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 			table, _ := db.TableInfo(invoker.Db, alarmInfo.Tid)
 			ins, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
 			if err = i.PrometheusRuleCreateOrUpdate(ins, alarmInfo.RuleName(0), alarmInfo.AlertRule); err != nil {
-				invoker.Logger.Error("alarm", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+				invoker.Logger.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 				return
 			}
 		}
@@ -376,7 +377,7 @@ func (i *alarm) OpenOperator(id int) (err error) {
 	return
 }
 
-func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
+func (i *alert) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	if req.Name == "" || req.Interval == 0 || len(req.ChannelIds) == 0 {
 		return errors.New("error params")
 	}
@@ -424,7 +425,7 @@ func (i *alarm) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	return
 }
 
-func (i *alarm) AddPrometheusReloadChan() {
+func (i *alert) AddPrometheusReloadChan() {
 	// 10 times
 	for k := 0; k < reloadTimes; k++ {
 		if len(i.reloadChan) < reloadTimes {
@@ -434,13 +435,13 @@ func (i *alarm) AddPrometheusReloadChan() {
 	}
 }
 
-func (i *alarm) IsAllClosed(iid int) (err error) {
+func (i *alert) IsAllClosed(iid int) (err error) {
 	tables, err := db.TableListByInstanceId(invoker.Db, iid)
 	tidArr := make([]int, 0)
 	for _, table := range tables {
 		tidArr = append(tidArr, table.ID)
 	}
-	// Detect whether there is an alarm in effect.
+	// Detect whether there is an alert in effect.
 	conds := egorm.Conds{}
 	conds["status"] = egorm.Cond{
 		Op:  ">",
@@ -457,7 +458,7 @@ func (i *alarm) IsAllClosed(iid int) (err error) {
 	for _, a := range alarms {
 		errReason = fmt.Sprintf("%sid: %d, name: %s ;", errReason, a.ID, a.Name)
 	}
-	return errors.New("Contains non-closed alarm:" + errReason)
+	return errors.New("Contains non-closed alert:" + errReason)
 }
 
 func AllPrometheusReload() {
@@ -473,7 +474,7 @@ func AllPrometheusReload() {
 		}
 	}
 	for target := range pm {
-		errReload := Alarm.PrometheusReload(target)
+		errReload := Alert.PrometheusReload(target)
 		if errReload != nil {
 			invoker.Logger.Error("AllPrometheusReload", elog.String("step", "PrometheusReload"), elog.String("error", errReload.Error()))
 		}
@@ -481,7 +482,7 @@ func AllPrometheusReload() {
 	return
 }
 
-// AlertRuleCheck Detect alarm rules in progress
+// AlertRuleCheck Detect alert rules in progress
 func AlertRuleCheck() error {
 	conds := egorm.Conds{}
 	conds["status"] = db.AlarmStatusRuleCheck
@@ -537,7 +538,7 @@ func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
 	for _, a := range respList {
 		alarmInfo, relatedList, errAlarmInfo := db.GetAlarmTableInstanceInfo(a.ID)
 		if errAlarmInfo != nil {
-			core.LoggerError("alarm", "attach", errAlarmInfo)
+			core.LoggerError("alert", "attach", errAlarmInfo)
 			continue
 		}
 		if alarmInfo.User == nil || alarmInfo.User.ID == 0 {
