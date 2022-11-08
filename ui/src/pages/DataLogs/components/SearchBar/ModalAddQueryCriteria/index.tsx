@@ -101,7 +101,7 @@ const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
                   placeholder={`${i18n.formatMessage({
                     id: "log.search.quickSearch.value.placeholder",
                   })}`}
-                  filterOption={(inputValue, option) =>
+                  filterOption={(inputValue: any, option: any) =>
                     option!.value
                       .toUpperCase()
                       .indexOf(inputValue.toUpperCase()) !== -1

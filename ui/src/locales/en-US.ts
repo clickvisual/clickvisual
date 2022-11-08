@@ -435,6 +435,26 @@ export default {
   "log.share.error":
     "Share URL error, please try to share again, or refresh the page after operation",
 
+  "log.filter.menu.global": "Pin across all apps",
+  "log.filter.menu.unpin": "Unpin",
+
+  "log.filter.edit.title": "Edit filter",
+  "log.filter.add.title": "Add filter",
+  "log.filter.form.field": "Field",
+  "log.filter.form.field.placeholder": "Select a field first",
+  "log.filter.form.operator": "Operator",
+  "log.filter.form.operator.placeholder": "Please select operator",
+  "log.filter.form.value": "Value",
+  "log.filter.form.value.placeholder": "Enter a value",
+  "log.filter.form.isCustom": "Create custom label?",
+  "log.filter.form.custom": "Custom label",
+
+  "log.collectHistory.tooltip": "Collection of records",
+  "log.collectHistory.placeholder": "Please enter the content to favorites~",
+  "log.collectHistory.modal.title": "Collecting Historical Records",
+  "log.collectHistory.modal.alias": "The alias",
+  "log.collectHistory.modal.alias.placeholder": "Please enter an alias",
+
   // log nva
   "log.switch.histogram": "Histogram",
   "log.switch.unfold": "Collapse Log",
@@ -455,6 +475,7 @@ export default {
   "log.search.codeHinting.historyQuery": "History",
   "log.search.codeHinting.analysisField": "Field",
   "log.search.codeHinting.keyword": "Keyword",
+  "log.search.codeHinting.collectHistory": "Collect",
   "log.search.icon.quickSearch": "Created Query Criteria",
   "log.search.help.content.specifyField":
     "Specify the field query: Method='Get' and _raw_log_ like '%error%'",

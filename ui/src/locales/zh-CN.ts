@@ -408,6 +408,26 @@ export default {
   "log.share.success": "短链接生成成功，有效期30天",
   "log.share.error": "分享 URL 出错啦，请尝试重新分享或者刷新页面后操作",
 
+  "log.filter.edit.title": "编辑 filter",
+  "log.filter.add.title": "新增 filter",
+  "log.filter.form.field": "字段",
+  "log.filter.form.field.placeholder": "首先选择一个字段",
+  "log.filter.form.operator": "操作符",
+  "log.filter.form.operator.placeholder": "请选择操作符",
+  "log.filter.form.value": "值",
+  "log.filter.form.value.placeholder": "输入值",
+  "log.filter.form.isCustom": "创建自定义标签?",
+  "log.filter.form.custom": "自定义标签",
+
+  "log.filter.menu.global": "设置为全局filter",
+  "log.filter.menu.unpin": "取消全局filter",
+
+  "log.collectHistory.tooltip": "收藏记录",
+  "log.collectHistory.placeholder": "请输入内容再收藏~",
+  "log.collectHistory.modal.title": "收藏历史记录",
+  "log.collectHistory.modal.alias": "别名",
+  "log.collectHistory.modal.alias.placeholder": "请输入别名",
+
   // log nva
   "log.switch.histogram": "直方图",
   "log.switch.unfold": "折叠日志",
@@ -428,6 +448,7 @@ export default {
   "log.search.codeHinting.historyQuery": "历史查询",
   "log.search.codeHinting.analysisField": "分析字段",
   "log.search.codeHinting.keyword": "关键字",
+  "log.search.codeHinting.collectHistory": "收藏历史",
   "log.search.icon.quickSearch": "增加查询条件",
   "log.search.help.content.specifyField":
     "指定字段查询：Method='Get' and _raw_log_ like '%error%'",

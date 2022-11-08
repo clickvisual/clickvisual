@@ -9,6 +9,7 @@ import RawLogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLo
 import StatisticalTableContent from "@/pages/DataLogs/components/QueryResult/Content/StatisticalTable";
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import FilterList from "@/pages/DataLogs/components/QueryResult/FilterList";
 
 const SharePath = [
   process.env.PUBLIC_PATH + "share",
@@ -64,6 +65,9 @@ const QueryResult = (props: { tid: string }) => {
           isShowSwitch={!(usrState?.mode && usrState?.mode == 0)}
         />
       </div>
+      {activeQueryType == QueryTypeEnum.LOG && (
+        <FilterList tid={parseInt(tid)} />
+      )}
       {content}
     </div>
   );
