@@ -7,9 +7,9 @@ const WhereBox = () => {
 
   return (
     <span className={styles.whereBox}>
-      <span>
+      {/* <span>
         <BarsOutlined />
-      </span>
+      </span> */}
       <span onClick={() => onChangeVisibleLogFilter(true)}>
         <PlusCircleFilled />
       </span>
