@@ -211,7 +211,7 @@ func queryTransformHash(params view.ReqQuery) string {
 		}
 		query = hashTransform(query, index)
 	}
-	invoker.Logger.Debug("countSQL", elog.Any("step", "queryTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
+	invoker.Logger.Debug("chartSQL", elog.Any("step", "queryTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
 	if query == defaultCondition {
 		return ""
 	}

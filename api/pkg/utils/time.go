@@ -1,22 +1,23 @@
 package utils
 
-func CalculateInterval(interval int64) int64 {
-	if interval <= 60 {
-		return 1
-	} else if interval <= 60*5 {
-		return 10
-	} else if interval <= 60*15 {
-		return 30
-	} else if interval <= 60*60 {
-		return 60
-	} else if interval <= 60*60*4 {
-		return 60 * 5
-	} else if interval <= 60*60*24 {
-		return 60 * 30
-	} else if interval <= 60*60*24*7 {
-		return 60 * 60 * 4
-	} else if interval <= 60*60*24*30 {
-		return 60 * 60 * 12
+import (
+	"fmt"
+)
+
+func CalculateInterval(interval int64, timeField string) (string, int64) {
+	if interval == 0 {
+		return "", 0
 	}
-	return interval / 50
+	if interval <= 60*5 {
+		return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 1 second)", timeField), 1
+	} else if interval <= 60*30 {
+		return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 1 minute)", timeField), 60
+	} else if interval <= 60*60*4 {
+		return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 10 minute)", timeField), 600
+	} else if interval <= 60*60*24 {
+		return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 1 hour)", timeField), 3600
+	} else if interval <= 60*60*24*7 {
+		return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 6 hour)", timeField), 21600
+	}
+	return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 1 day)", timeField), 86400
 }

@@ -448,12 +448,10 @@ func (c *ClickHouse) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, 
 	if optimizeSQL != "" {
 		execSQL = optimizeSQL
 	}
-	st := time.Now()
 	res.Logs, err = c.doQuery(execSQL)
 	if err != nil {
 		return
 	}
-	res.Cost = time.Since(st).Milliseconds()
 	// try again
 	res.Query = defaultSQL
 	res.Where = strings.TrimSuffix(strings.TrimPrefix(originalWhere, "AND ("), ")")
@@ -503,6 +501,33 @@ func (c *ClickHouse) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, 
 		res.DefaultFields = append(res.DefaultFields, k.GetFieldName())
 	}
 	return
+}
+
+func (c *ClickHouse) Chart(param view.ReqQuery) (res []*view.HighChart, err error) {
+	q := c.chartSQL(param)
+	charts, err := c.doQuery(q)
+	if err != nil {
+		invoker.Logger.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
+		return nil, err
+	}
+	res = make([]*view.HighChart, 0)
+	for _, chart := range charts {
+		row := view.HighChart{}
+		if chart["count"] != nil {
+			switch chart["count"].(type) {
+			case uint64:
+				row.Count = chart["count"].(uint64)
+			}
+		}
+		if chart["timeline"] != nil {
+			switch chart["timeline"].(type) {
+			case time.Time:
+				row.From = chart["timeline"].(time.Time).Unix()
+			}
+		}
+		res = append(res, &row)
+	}
+	return res, nil
 }
 
 func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {
@@ -1560,14 +1585,17 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 }
 
 func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, originalWhere string) {
+	st := time.Now()
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, _ := db.ViewList(invoker.Db, conds)
+	c1 := time.Since(st).Milliseconds()
 	orderByField := param.TimeField
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
 	selectFields := genSelectFields(tid)
+	c2 := time.Since(st).Milliseconds()
 	// Request for the first 100 pages of data
 	// optimizing, the idea is to reduce the number of fields involved in operation;
 	if param.Page*param.PageSize <= 100 {
@@ -1581,6 +1609,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origina
 				param.PageSize, (param.Page-1)*param.PageSize)
 		}
 	}
+	c3 := time.Since(st).Milliseconds()
 	originalWhere = c.queryTransform(param, false)
 	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
@@ -1588,6 +1617,13 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origina
 		param.ST, param.ET,
 		originalWhere,
 		param.PageSize, (param.Page-1)*param.PageSize)
+	c4 := time.Since(st).Milliseconds()
+	invoker.Logger.Debug("logsTimelineSQL",
+		elog.Any("c1", c1),
+		elog.Any("c2", c2),
+		elog.Any("c3", c3),
+		elog.Any("c4", c4),
+	)
 	return
 }
 
@@ -1609,6 +1645,29 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 		param.ST, param.ET,
 		c.queryTransform(param, true))
 	invoker.Logger.Debug("countSQL", elog.Any("step", "countSQL"), elog.Any("param", param), elog.Any("sql", sql))
+	return
+}
+
+// SELECT
+// count(*),toStartOfFifteenMinutes(_time_second_)
+// FROM
+// `mogo_shimo_dev`.`otel_dev`
+// WHERE
+// _time_second_ >= toDateTime(1667273108)
+// AND _time_second_ < toDateTime(1667877908)
+// GROUP BY
+// toStartOfFifteenMinutes(_time_second_)
+// ORDER BY
+// toStartOfFifteenMinutes(_time_second_)
+// DESC
+func (c *ClickHouse) chartSQL(param view.ReqQuery) (sql string) {
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as timeline  FROM %s WHERE "+genTimeCondition(param)+" %s GROUP BY %s ORDER BY %s ASC",
+		param.GroupByCond,
+		param.DatabaseTable,
+		param.ST, param.ET,
+		c.queryTransform(param, true),
+		param.GroupByCond,
+		param.GroupByCond)
 	return
 }
 
@@ -1686,7 +1745,6 @@ func (c *ClickHouse) timeFieldEqual(param view.ReqQuery, tid int) string {
 			}
 		}
 	}
-	invoker.Logger.Debug("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("res", "("+res+")"))
 	if res == "" {
 		return res
 	}

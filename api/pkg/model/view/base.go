@@ -59,6 +59,7 @@ type (
 		PageSize      uint32   `form:"pageSize"`
 		AlarmMode     int      `form:"alarmMode"`
 		Filters       []string `form:"filters"`
+		GroupByCond   string   `form:"groupByCond"`
 	}
 
 	RespQuery struct {
@@ -86,14 +87,14 @@ type (
 		SortRule   []string                 `json:"sortRule"`
 	}
 
-	RespTraceGraph struct {
+	RespChart struct {
 	}
 )
 
 type HighCharts struct {
-	Histograms []HighChart `json:"histograms"`
-	Count      uint64      `json:"count"`
-	Progress   string      `json:"progress"`
+	Histograms []*HighChart `json:"histograms"`
+	Count      uint64       `json:"count"`
+	Progress   string       `json:"progress"`
 }
 
 type HighChart struct {
