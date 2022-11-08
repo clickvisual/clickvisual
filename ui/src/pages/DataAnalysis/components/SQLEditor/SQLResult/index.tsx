@@ -14,8 +14,12 @@ const SQLResult = (props: {
 }) => {
   const i18n = useIntl();
   const { resultsList, nodeId, lockUid, currentPaneActiveKey } = props;
-  const { doResultsInfo, doModifyResults, onChangeLuckysheetData } =
-    useModel("dataAnalysis");
+  const {
+    doResultsInfo,
+    doModifyResults,
+    luckysheetData,
+    onChangeLuckysheetData,
+  } = useModel("dataAnalysis");
   const { currentUser } = useModel("@@initialState").initialState || {};
   const [defaultResultsData, setDefaultResultsData] = useState<any>({});
   const [resultsId, setResultsId] = useState<number>(0);
@@ -48,6 +52,13 @@ const SQLResult = (props: {
       );
       return;
     }
+    if (
+      !luckysheetData ||
+      !luckysheetData[0] ||
+      !luckysheetData[0]?.celldata ||
+      luckysheetData[0].celldata?.length == 0
+    )
+      return;
     const luckysheet = window.luckysheet;
     let boardData: any = [];
     luckysheet.getcellvalue().map((lineItem: any, lineIndex: number) => {
@@ -156,7 +167,6 @@ const SQLResult = (props: {
 
   return (
     <div className={styles.sqlResult}>
-      {/* <Spin spinning={false}> */}
       <Spin spinning={doResultsInfo.loading || doModifyResults.loading}>
         <div className={styles.title}>
           {resultsId ? (
@@ -164,6 +174,7 @@ const SQLResult = (props: {
               title={i18n.formatMessage({
                 id: "bigdata.components.sqlSaveTips",
               })}
+              placement="left"
             >
               <Button
                 type="text"
@@ -175,33 +186,17 @@ const SQLResult = (props: {
             </Tooltip>
           ) : null}
           {defaultResultsData?.logs && (
-            <Tooltip
-              title={i18n.formatMessage({
-                id: "bigdata.components.sqlSaveTips",
-              })}
-            >
-              <ExportExcelButton
-                data={defaultResultsData.logs}
-                style={{ position: "absolute", left: "35px" }}
-                type={"link"}
-              />
-            </Tooltip>
+            <ExportExcelButton
+              data={defaultResultsData.logs}
+              style={{ position: "absolute", left: "-7px" }}
+              type="link"
+              placement="left"
+            />
           )}
-
-          <span>
-            {i18n.formatMessage({
-              id: "bigdata.components.RightMenu.results.tips",
-            })}
-          </span>
         </div>
         <div className={styles.resultTabs}>
-          {resultsList.length > 0 ? (
-            <div
-              style={{
-                width: "calc(100vw - 433px)",
-                borderBottom: "1px solid #f0f0f0",
-              }}
-            >
+          <div className={styles.tabList}>
+            {resultsList.length > 0 ? (
               <Tabs onChange={handleTabsChange} activeKey={activeKey}>
                 {resultsList.map((item: any, index: number) => {
                   return (
@@ -212,8 +207,8 @@ const SQLResult = (props: {
                   );
                 })}
               </Tabs>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </Spin>
     </div>
