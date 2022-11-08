@@ -15,6 +15,7 @@ import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
 import { cloneDeep } from "lodash";
 import CodeMirrorSearch from "./CodeMirrorSearch";
+import { CollectType } from "@/services/dataLogs";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();
@@ -41,6 +42,9 @@ const RawLogQuery = () => {
     logQueryHistoricalList,
     onChangeLogQueryHistoricalList,
     onChangeAnalysisFieldTips,
+    collectingHistorical,
+    doGetLogFilterList,
+    onChangeCollectingHistorical,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
   const i18n = useIntl();
@@ -120,6 +124,16 @@ const RawLogQuery = () => {
   );
 
   useEffect(() => {
+    const data = {
+      collectType: CollectType.query,
+    };
+    doGetLogFilterList.run(data).then((res: any) => {
+      if (res.code != 0) return;
+      onChangeCollectingHistorical(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
     onChangeKeywordInput(queryKeyword);
     onChangeCurrentLogPane({
       ...(oldPane as PaneType),
@@ -168,34 +182,17 @@ const RawLogQuery = () => {
           placeholder={i18n.formatMessage({
             id: "log.search.placeholder",
           })}
-          onPressEnter={() => {
-            doSearchLog.run();
-          }}
+          onPressEnter={() => doSearchLog.run()}
           onChange={(value: string) => setQueryKeyword(value)}
           tables={analysisFieldTips}
           historicalRecord={historicalRecord}
           onChangeHistoricalRecord={onChangeLogQueryHistoricalList}
           currentTid={currentLogLibrary?.id as number}
           logQueryHistoricalList={logQueryHistoricalList}
-          // onChangeTables={setTables}
+          collectingHistorical={collectingHistorical}
         />
       </div>
       <SearchBarSuffixIcon />
-
-      {/* <Input
-        allowClear
-        placeholder={`${i18n.formatMessage({
-          id: "log.search.placeholder",
-        })}`}
-        className={searchBarStyles.inputBox}
-        addonBefore={<span style={{ color: "#bbb" }}>WHERE</span>}
-        value={queryKeyword}
-        suffix={<SearchBarSuffixIcon />}
-        onChange={(e) => setQueryKeyword(e.target.value)}
-        onPressEnter={() => {
-          doSearchLog.run();
-        }}
-      /> */}
       <DarkTimeSelect />
       <UrlShareButton style={{ marginRight: "8px" }} />
       <Tooltip title={i18n.formatMessage({ id: "search" })}>

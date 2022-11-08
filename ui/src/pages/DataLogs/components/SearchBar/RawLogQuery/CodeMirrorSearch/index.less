@@ -5,16 +5,6 @@
   height: 100%;
   overflow: hidden;
 
-  .where {
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-    color: #bbb;
-    border: 1px solid #e8e8e8;
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-  }
-
   .codemirrorInput {
     display: flex;
     width: 100%;
@@ -105,12 +95,11 @@
 
 :global(.CodeMirror-hints) {
   width: 800px !important;
-  // padding-bottom: 20px !important;
+  padding-bottom: 20px !important;
   overflow-x: scroll;
 }
 
 :global(.autocomplete-div) {
-  position: relative;
   display: flex;
 }
 
@@ -132,6 +121,17 @@
   text-overflow: ellipsis;
 }
 
+:global(.autocomplete-collectionText) {
+  flex: 1;
+  // width: calc(100% - 100px);
+  padding: 0 15px 0 10px;
+  overflow: hidden;
+  color: #2fabee;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 :global(.autocomplete-info) {
   width: 50px;
   margin-right: 40px;
@@ -146,7 +146,7 @@
   align-items: center;
   justify-content: center;
   width: 20px;
-  height: 22px;
+  height: 20px;
   font-size: 18px;
 }
 
@@ -154,4 +154,8 @@
   :global(.autocomplete-info) {
     color: #fff;
   }
+}
+
+:global(li.CodeMirror-hint-active) {
+  background-color: #bbb;
 }

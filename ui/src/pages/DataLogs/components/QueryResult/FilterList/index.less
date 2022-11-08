@@ -1,0 +1,34 @@
+.FilterList {
+  width: 100%;
+  height: 30px;
+
+  padding-bottom: 10px;
+  padding-left: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+
+  .overflowBox {
+    padding-bottom: 10px;
+    overflow-y: auto;
+    .name {
+      cursor: pointer;
+    }
+    .global {
+      position: relative;
+      &::before {
+        position: absolute;
+        top: -2px;
+        left: -7px;
+        width: 4px;
+        height: 20px;
+        background-color: #ccc;
+        border-radius: 100% 0 0 100%;
+        content: "";
+      }
+    }
+  }
+}
+
+.none {
+  display: none;
+}

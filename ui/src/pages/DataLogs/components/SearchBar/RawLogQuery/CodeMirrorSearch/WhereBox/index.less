@@ -1,0 +1,25 @@
+.whereBox {
+  display: flex;
+  align-items: center;
+  color: #f16935;
+  background-color: #f9f9f9;
+  border: 1px solid #e8e8e8;
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    overflow: hidden;
+    cursor: pointer;
+    &:hover {
+      background-color: #f1693533;
+    }
+    &:nth-child(1) {
+      border-right: 1px solid #e5e4e5;
+      border-radius: 8px 0 0 8px;
+    }
+  }
+}

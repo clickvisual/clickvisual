@@ -13,6 +13,7 @@ export interface QueryParams {
   st?: number;
   et?: number;
   kw?: string;
+  filters?: string[];
 }
 
 export type PaneType = {

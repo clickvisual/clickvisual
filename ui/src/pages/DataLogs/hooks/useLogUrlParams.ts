@@ -194,7 +194,7 @@ export default function useLogUrlParams() {
             query: res.logs.query,
           };
           pane.highCharts = res.highCharts;
-          pane.logChart = { logs: [] };
+          pane.logChart = { logs: [], isNeedSort: false, sortRule: [] };
           pane.rawLogsIndexeList = rawLogsIndexeListRef.current;
           onChangeLogPane(pane);
         })
