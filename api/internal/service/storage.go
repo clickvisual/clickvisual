@@ -118,9 +118,9 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, 
 		Brokers:                 param.Brokers,
 		Consumers:               1,
 		KafkaSkipBrokenMessages: 1000,
-		Source:                  `{"_time_":"2022-11-08T10:35:58.837927Z","_log_":"","_source_":"stdout","_pod_name_":"xx-x-xx","_namespace_":"default","_node_name_":"xx-f.192.x.119.x","_container_name_":"xx","_cluster_":"xx","_log_agent_":"xx-b","_node_ip_":"192.1"}`,
+		Source:                  `{"_time_":"2022-11-08T10:35:58.837927Z","_log_":"","_source_":"stdout","_pod_name_":"xx-x-xx","time":"xx-x-xx","_namespace_":"default","_node_name_":"xx-f.192.x.119.x","_container_name_":"xx","_cluster_":"xx","_log_agent_":"xx-b","_node_ip_":"192.1"}`,
 		DatabaseId:              databaseInfo.ID,
-		TimeField:               "_time_",
+		TimeField:               "time",
 		RawLogField:             "_log_",
 	}
 	cp.Topics = param.TopicsApp

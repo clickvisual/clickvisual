@@ -37,7 +37,7 @@ type ReqCreateStorageByTemplate struct {
 	TopicsApp           string `form:"topicsApp" binding:"required"`
 	TopicsEgo           string `form:"topicsEgo" binding:"required"`
 	TopicsIngressStdout string `form:"topicsIngressStdout" binding:"required"`
-	TopicsIngressStderr string `form:"topicsIngressStdout" binding:"required"`
+	TopicsIngressStderr string `form:"topicsIngressStderr" binding:"required"`
 }
 
 type ReqStorageCreateV3 struct {

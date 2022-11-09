@@ -100,6 +100,18 @@ func genTimeCondition(param view.ReqQuery) string {
 	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
 }
 
+func TransferGroupTimeField(timeField string, timeFieldTyp int) string {
+	switch timeFieldTyp {
+	case db.TimeFieldTypeDT:
+		return timeField
+	case db.TimeFieldTypeDT3:
+		return timeField
+	case db.TimeFieldTypeTsMs:
+		return fmt.Sprintf("toDateTime(%s)", timeField)
+	}
+	return timeField
+}
+
 func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
 	switch param.TimeFieldType {
 	case db.TimeFieldTypeDT:
