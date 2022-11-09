@@ -32,7 +32,7 @@ import useLogPanes from "@/models/datalogs/useLogPanes";
 import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 import useLogOptions from "@/models/datalogs/useLogOptions";
-import useLocalStorages from "@/hooks/useLocalStorages";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 export enum dataLogLocalaStorageType {
   /**
@@ -507,6 +507,14 @@ const DataLogsModel = () => {
     cancelTokenHighChartsRef.current?.();
     const currentPane = logPanesHelper.logPanes[id.toString()];
     const histogramChecked = currentPane?.histogramChecked ?? true;
+
+    const filterDisableIds =
+      JSON.parse(
+        localStorage.getItem(LocalModuleType.datalogsFilterDisableIds) || "{}"
+      ) || {};
+    const oldIds: any[] =
+      filterDisableIds && filterDisableIds[id] ? filterDisableIds[id] : [];
+
     onChangeLastLoadingTid(id);
     handleHistoricalRecord(id, extra?.reqParams);
     let filters: string[] = [];
@@ -519,7 +527,9 @@ const DataLogsModel = () => {
     const res: any = await doGetLogFilterList.run(data);
     if (res.code == 0) {
       res.data.map((item: LogFilterType) => {
-        filters.push(item.statement);
+        if (oldIds.indexOf(item.id) == -1) {
+          filters.push(item.statement);
+        }
       });
       onChangeLogFilterList(res.data);
     }
