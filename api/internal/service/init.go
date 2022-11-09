@@ -22,7 +22,7 @@ var (
 	Index           *index
 	Alert           *alert
 	Node            *node
-	Storage         *iStorage
+	Storage         *srvStorage
 	ppt             *preempt.Preempt
 )
 
@@ -52,11 +52,11 @@ func Init() error {
 	Node = NewNode()
 
 	// Storage service start
-	Storage = NewStorage()
+	Storage = NewSrvStorage()
 	// Support for multiple copies mode
 	if econf.GetBool("app.isMultiCopy") {
 		sf := func() { Storage.tickerTraceWorker() }
-		ef := func() { Storage.Stop() }
+		ef := func() { Storage.stop() }
 		invoker.Logger.Debug("crontabRules", elog.String("step", "isMultiCopy"))
 		ppt = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:trace", sf, ef)
 		return nil
@@ -71,7 +71,7 @@ func Close() error {
 	if econf.GetBool("app.isMultiCopy") {
 		ppt.Close()
 	} else {
-		Storage.Stop()
+		Storage.stop()
 	}
 	// Storage service stop end
 	return nil

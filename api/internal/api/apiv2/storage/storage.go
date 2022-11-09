@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"encoding/json"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -76,18 +76,6 @@ func Create(c *core.Context) {
 	}); err != nil {
 		c.JSONE(1, "permission verification failed", err)
 		return
-	}
-	param.SourceMapping, err = mapping.Handle(param.Source)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-
-	if err = json.Unmarshal([]byte(param.Source), &param.SourceMapping); err != nil {
-		if err != nil {
-			c.JSONE(core.CodeErr, err.Error(), nil)
-			return
-		}
 	}
 	_, err = service.StorageCreate(c.Uid(), databaseInfo, param)
 	if err != nil {
@@ -236,5 +224,52 @@ func Update(c *core.Context) {
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	c.JSONOK()
+}
+
+// CreateStorageByTemplate  godoc
+// @Summary	     Create storage by template
+// @Description  Create storage by template
+// @Tags         storage
+// @Accept       json
+// @Produce      json
+// @Param        template path string true "template"
+// @Param        req query view.ReqCreateStorageByTemplate true "params"
+// @Success      200 {object} core.Res{}
+// @Router       /api/v2/storage/{template} [post]
+func CreateStorageByTemplate(c *core.Context) {
+	tpl := strings.TrimSpace(c.Param("template"))
+	if tpl != "ego" {
+		c.JSONE(core.CodeErr, "template error", nil)
+		return
+	}
+	var param view.ReqCreateStorageByTemplate
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(databaseInfo.ID),
+	}); err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	if err = service.Storage.CreateByEgoTemplate(c.Uid(), databaseInfo, param); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
 	c.JSONOK()
 }

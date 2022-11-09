@@ -9,7 +9,6 @@ import (
 	"github.com/gotomicro/ego/server/egin"
 
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/initialize"
-	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/template"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -50,10 +49,9 @@ func GetRouter() *egin.Component {
 	}
 	v1Open := r.Group(apiPrefix + "/v1")
 	{
-		v1Open.POST("/prometheus/alerts", core.Handle(alert.Webhook))
-		v1Open.POST("/template/:id", core.Handle(template.Gen))
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
+		v1Open.POST("/prometheus/alerts", core.Handle(alert.Webhook))
 	}
 	admin := r.Group(apiPrefix + "/admin")
 	{

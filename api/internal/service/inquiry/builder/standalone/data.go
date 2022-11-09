@@ -19,7 +19,7 @@ func (b *DataBuilder) NewProject(params bumo.Params) {
 }
 
 func (b *DataBuilder) BuilderCreate() {
-	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE %s\n", b.QueryAssembly.Params.Data.TableName)
+	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s\n", b.QueryAssembly.Params.Data.TableName)
 }
 
 func (b *DataBuilder) BuilderFields() {
