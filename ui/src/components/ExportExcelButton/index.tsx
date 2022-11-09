@@ -5,14 +5,21 @@ import { CSSProperties, useEffect, useState } from "react";
 import { useRef } from "react";
 import IconFont from "../IconFont";
 import { ButtonType } from "antd/es/button";
+import { TooltipPlacement } from "antd/es/tooltip";
 
 interface ExportExcelButtonProps {
   data: any;
   type?: ButtonType;
   style?: CSSProperties;
+  placement?: TooltipPlacement;
 }
 
-const ExportExcelButton = ({ data, type, style }: ExportExcelButtonProps) => {
+const ExportExcelButton = ({
+  data,
+  type,
+  style,
+  placement,
+}: ExportExcelButtonProps) => {
   const i18n = useIntl();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const fileNameRef = useRef("日志");
@@ -49,7 +56,10 @@ const ExportExcelButton = ({ data, type, style }: ExportExcelButtonProps) => {
   };
   return (
     <>
-      <Tooltip title={i18n.formatMessage({ id: "export" })}>
+      <Tooltip
+        title={i18n.formatMessage({ id: "export" })}
+        placement={placement}
+      >
         <Button
           onClick={handleExportExcel}
           style={{ marginLeft: "8px", ...style }}

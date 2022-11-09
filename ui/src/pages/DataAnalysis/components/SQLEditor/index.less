@@ -8,7 +8,7 @@
   border-left: 1px solid @border-color;
 
   .context {
-    height: 200px;
+    height: 30vh;
     background-color: #ccc;
   }
 
@@ -17,32 +17,35 @@
     flex: 1;
 
     .title {
-      position: relative;
-      line-height: 32px;
-      text-align: center;
-      border-top: 1px solid #ccc;
-      border-bottom: 1px solid #ccc;
+      position: absolute;
+      top: 32px;
+      width: 32px;
+      height: 100%;
+      padding-top: 8px;
+      border-right: 1px solid #ccc;
 
       .saveIcon {
-        position: absolute;
-        top: 50%;
-        left: 8px;
         color: @primary-color;
-        transform: translateY(-50%);
       }
     }
 
     .resultTabs {
-      :global .ant-tabs {
-        &:nth-child(1) {
-          margin-left: 20px;
+      .tabList {
+        width: calc(100vw - 433px);
+        height: 32px;
+        border-bottom: 1px solid #ccc;
+
+        :global .ant-tabs {
+          &:nth-child(1) {
+            margin-left: 20px;
+          }
+          .ant-tabs-tab {
+            padding: 5px 0;
+          }
         }
-        .ant-tabs-tab {
-          padding: 5px 0;
+        :global .ant-tabs-top > .ant-tabs-nav {
+          margin-bottom: 0px;
         }
-      }
-      :global .ant-tabs-top > .ant-tabs-nav {
-        margin-bottom: 0px;
       }
     }
 
