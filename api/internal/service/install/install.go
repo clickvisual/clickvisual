@@ -14,6 +14,8 @@ import (
 )
 
 var models = []interface{}{
+	db.Collect{},
+
 	db.BigdataWorkflow{},
 	db.BigdataSource{},
 	db.BigdataFolder{},
@@ -42,7 +44,6 @@ var models = []interface{}{
 	db.Event{},
 	db.Cluster{},
 	db.K8SConfigMap{},
-	db.Collect{},
 
 	db.Configuration{},
 	db.ConfigurationHistory{},

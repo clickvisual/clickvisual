@@ -21,7 +21,8 @@ const (
 )
 
 const (
-	FEISHUURL = "https://open.feishu.cn/open-apis/bot/v2/hook/"
+	FEISHUURL = "https://open.feishu.cn"
+	LARKSUITE = "https://open.larksuite.com"
 	SLACKURL  = "https://hooks.slack.com/services/"
 )
 
@@ -56,7 +57,7 @@ func (m *AlarmChannel) JudgmentType() (err error) {
 	case ChannelTelegram:
 	case ChannelEmail:
 	case ChannelFeiShu:
-		if !strings.Contains(m.Key, FEISHUURL) {
+		if !(strings.HasPrefix(m.Key, LARKSUITE) || strings.HasPrefix(m.Key, FEISHUURL)) {
 			err = errors.New("invalid FeiShu webhook url")
 			return
 		}
