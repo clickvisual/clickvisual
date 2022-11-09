@@ -118,7 +118,7 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, 
 		Brokers:                 param.Brokers,
 		Consumers:               1,
 		KafkaSkipBrokenMessages: 1000,
-		Source:                  `{"_time_":"2022-11-08T10:35:58.837927Z","_log_":"","_source_":"stdout","time":"2022-11-08T10:35:58.837927331Z","_pod_name_":"xx-x-xx","_namespace_":"default","_node_name_":"xx-f.192.x.119.x","_container_name_":"xx","_cluster_":"xx","_log_agent_":"xx-b","_node_ip_":"192.1"}`,
+		Source:                  `{"_time_":"2022-11-08T10:35:58.837927Z","_log_":"","_source_":"stdout","_pod_name_":"xx-x-xx","time":"xx-x-xx","_namespace_":"default","_node_name_":"xx-f.192.x.119.x","_container_name_":"xx","_cluster_":"xx","_log_agent_":"xx-b","_node_ip_":"192.1"}`,
 		DatabaseId:              databaseInfo.ID,
 		TimeField:               "_time_",
 		RawLogField:             "_log_",
@@ -135,11 +135,13 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, 
 	}
 	cp.Topics = param.TopicsIngressStdout
 	cp.TableName = "ingress_stdout"
+	cp.TimeField = "time"
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
 	cp.Topics = param.TopicsIngressStderr
 	cp.TableName = "ingress_stderr"
+	cp.TimeField = "time"
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
