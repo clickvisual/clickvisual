@@ -421,6 +421,8 @@ export default {
 
   "log.filter.menu.global": "设置为全局filter",
   "log.filter.menu.unpin": "取消全局filter",
+  "log.filter.menu.enable": "重新启用",
+  "log.filter.menu.disable": "暂时禁用",
 
   "log.collectHistory.tooltip": "收藏记录",
   "log.collectHistory.placeholder": "请输入内容再收藏~",

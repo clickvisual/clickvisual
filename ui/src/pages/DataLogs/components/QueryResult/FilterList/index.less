@@ -17,13 +17,20 @@
       position: relative;
       &::before {
         position: absolute;
-        top: -2px;
+        top: -3px;
         left: -7px;
         width: 4px;
-        height: 20px;
-        background-color: #ccc;
-        border-radius: 100% 0 0 100%;
+        height: 21px;
+        background-color: #f5af88;
+        border-radius: 2px 0 0 2px;
         content: "";
+      }
+    }
+
+    .ignore {
+      text-decoration: line-through;
+      &::before {
+        background-color: #ccc;
       }
     }
   }
@@ -31,4 +38,8 @@
 
 .none {
   display: none;
+}
+
+:global(.ant-tag) {
+  border-radius: 2px !important;
 }

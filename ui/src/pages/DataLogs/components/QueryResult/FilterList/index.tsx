@@ -4,12 +4,14 @@ import { Dropdown, Menu, message, Tag } from "antd";
 import { useEffect } from "react";
 import { useIntl, useModel } from "umi";
 import classNames from "classnames";
-import { cloneDeep } from "lodash";
 import {
   DeleteOutlined,
   EditOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
+import { LocalModuleType } from "@/hooks/useLocalStorages";
 
 const FilterList = ({ tid }: { tid: number }) => {
   const i18n = useIntl();
@@ -21,6 +23,7 @@ const FilterList = ({ tid }: { tid: number }) => {
     onChangeVisibleLogFilter,
     onChangeEditLogFilterInfo,
     doEditLogFilter,
+    doGetLogsAndHighCharts,
   } = useModel("dataLogs");
 
   const getList = () => {
@@ -42,7 +45,8 @@ const FilterList = ({ tid }: { tid: number }) => {
         return;
       }
       message.success("success");
-      getList();
+      // 以下函数会刷新filterList
+      doGetLogsAndHighCharts(tid);
     });
   };
 
@@ -50,7 +54,12 @@ const FilterList = ({ tid }: { tid: number }) => {
     getList();
   }, []);
 
-  const menu = (item: LogFilterType) => {
+  const menu = (
+    item: LogFilterType,
+    filterDisableIds: any,
+    oldIds: any[],
+    filterIndex: number
+  ) => {
     return (
       <Menu style={{ width: "200px" }}>
         <Menu.Item
@@ -58,7 +67,9 @@ const FilterList = ({ tid }: { tid: number }) => {
           icon={<VerticalAlignTopOutlined />}
           onClick={() => {
             const isGlobal = item.collectType == 4;
-            const data = cloneDeep(item);
+            const data: any = {
+              id: item.id,
+            };
             if (isGlobal) {
               data.collectType = 2;
               data.tableId = tid;
@@ -68,7 +79,8 @@ const FilterList = ({ tid }: { tid: number }) => {
             }
             doEditLogFilter.run(data.id, data).then((res: any) => {
               if (res.code != 0) return;
-              getList();
+              // 以下函数会刷新filterList
+              doGetLogsAndHighCharts(tid);
             });
           }}
         >
@@ -86,6 +98,33 @@ const FilterList = ({ tid }: { tid: number }) => {
         >
           {i18n.formatMessage({ id: "log.filter.edit.title" })}
         </Menu.Item>
+
+        <Menu.Item
+          key="isEnable"
+          icon={filterIndex != -1 ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+          onClick={() => {
+            if (filterIndex != -1) {
+              oldIds.splice(filterIndex, 1);
+            } else {
+              oldIds.push(item.id);
+            }
+            const data = {
+              ...filterDisableIds,
+              [`${tid}`]: oldIds,
+            };
+            localStorage.setItem(
+              LocalModuleType.datalogsFilterDisableIds,
+              JSON.stringify(data)
+            );
+            console.log(filterDisableIds, tid, "item");
+            doGetLogsAndHighCharts(tid);
+          }}
+        >
+          {filterIndex != -1
+            ? i18n.formatMessage({ id: "log.filter.menu.enable" })
+            : i18n.formatMessage({ id: "log.filter.menu.disable" })}
+        </Menu.Item>
+
         <Menu.Item
           key="delete"
           icon={<DeleteOutlined />}
@@ -108,18 +147,33 @@ const FilterList = ({ tid }: { tid: number }) => {
     >
       <div className={styles.overflowBox}>
         {logFilterList.map((item: LogFilterType) => {
+          const filterDisableIds =
+            JSON.parse(
+              localStorage.getItem(LocalModuleType.datalogsFilterDisableIds) ||
+                "{}"
+            ) || {};
+          const oldIds: any[] =
+            filterDisableIds && filterDisableIds[tid]
+              ? filterDisableIds[tid]
+              : [];
+          const filterIndex = oldIds.indexOf(item.id);
           return (
             <Dropdown
-              overlay={() => menu(item)}
+              overlay={() => menu(item, filterDisableIds, oldIds, filterIndex)}
               placement="bottomLeft"
               trigger={["click"]}
               key={item.id}
             >
-              <Tag closable onClose={(e) => handleDeleteLogFilter(item.id, e)}>
+              <Tag
+                color={filterIndex == -1 ? "processing" : "default"}
+                closable
+                onClose={(e) => handleDeleteLogFilter(item.id, e)}
+              >
                 <span
                   className={classNames([
                     styles.name,
                     item.collectType == 4 ? styles.global : "",
+                    filterIndex != -1 ? styles.ignore : "",
                   ])}
                 >
                   {item.alias || item.statement.replace(/'/g, "")}

@@ -32,7 +32,7 @@ import useLogPanes from "@/models/datalogs/useLogPanes";
 import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
 import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 import useLogOptions from "@/models/datalogs/useLogOptions";
-import useLocalStorages from "@/hooks/useLocalStorages";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 
 export enum dataLogLocalaStorageType {
   /**
@@ -507,20 +507,37 @@ const DataLogsModel = () => {
     cancelTokenHighChartsRef.current?.();
     const currentPane = logPanesHelper.logPanes[id.toString()];
     const histogramChecked = currentPane?.histogramChecked ?? true;
+
+    const filterDisableIds =
+      JSON.parse(
+        localStorage.getItem(LocalModuleType.datalogsFilterDisableIds) || "{}"
+      ) || {};
+    const oldIds: any[] =
+      filterDisableIds && filterDisableIds[id] ? filterDisableIds[id] : [];
+
     onChangeLastLoadingTid(id);
     handleHistoricalRecord(id, extra?.reqParams);
+    let filters: string[] = [];
+    // if (!extra?.isDisableRefresh) {
     const data = {
       tableId: id,
       collectType: CollectType.allFilter,
     };
 
     const res: any = await doGetLogFilterList.run(data);
-    let filters: string[] = [];
     if (res.code == 0) {
       res.data.map((item: LogFilterType) => {
-        filters.push(item.statement);
+        if (oldIds.indexOf(item.id) == -1) {
+          filters.push(item.statement);
+        }
       });
+      onChangeLogFilterList(res.data);
     }
+    // } else {
+    //   logFilterList.map((item: any) => {
+    //     filters.push(item.statement);
+    //   });
+    // }
 
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
