@@ -120,8 +120,9 @@ const FilterList = ({ tid }: { tid: number }) => {
             doGetLogsAndHighCharts(tid);
           }}
         >
-          {/* {item.collectType == 2 ? "temporarily disable" : "re - enable"} */}
-          {filterIndex != -1 ? "重新启用" : "暂时禁用"}
+          {filterIndex != -1
+            ? i18n.formatMessage({ id: "log.filter.menu.enable" })
+            : i18n.formatMessage({ id: "log.filter.menu.disable" })}
         </Menu.Item>
 
         <Menu.Item

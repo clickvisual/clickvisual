@@ -437,6 +437,8 @@ export default {
 
   "log.filter.menu.global": "Pin across all apps",
   "log.filter.menu.unpin": "Unpin",
+  "log.filter.menu.enable": "re - enable",
+  "log.filter.menu.disable": "temporarily disable",
 
   "log.filter.edit.title": "Edit filter",
   "log.filter.add.title": "Add filter",
