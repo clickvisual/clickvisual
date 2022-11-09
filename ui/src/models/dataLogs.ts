@@ -509,18 +509,25 @@ const DataLogsModel = () => {
     const histogramChecked = currentPane?.histogramChecked ?? true;
     onChangeLastLoadingTid(id);
     handleHistoricalRecord(id, extra?.reqParams);
+    let filters: string[] = [];
+    // if (!extra?.isDisableRefresh) {
     const data = {
       tableId: id,
       collectType: CollectType.allFilter,
     };
 
     const res: any = await doGetLogFilterList.run(data);
-    let filters: string[] = [];
     if (res.code == 0) {
       res.data.map((item: LogFilterType) => {
         filters.push(item.statement);
       });
+      onChangeLogFilterList(res.data);
     }
+    // } else {
+    //   logFilterList.map((item: any) => {
+    //     filters.push(item.statement);
+    //   });
+    // }
 
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(

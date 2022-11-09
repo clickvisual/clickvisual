@@ -4,7 +4,6 @@ import { Dropdown, Menu, message, Tag } from "antd";
 import { useEffect } from "react";
 import { useIntl, useModel } from "umi";
 import classNames from "classnames";
-import { cloneDeep } from "lodash";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -21,6 +20,7 @@ const FilterList = ({ tid }: { tid: number }) => {
     onChangeVisibleLogFilter,
     onChangeEditLogFilterInfo,
     doEditLogFilter,
+    doGetLogsAndHighCharts,
   } = useModel("dataLogs");
 
   const getList = () => {
@@ -42,7 +42,8 @@ const FilterList = ({ tid }: { tid: number }) => {
         return;
       }
       message.success("success");
-      getList();
+      // 以下函数会刷新filterList
+      doGetLogsAndHighCharts(tid);
     });
   };
 
@@ -58,7 +59,9 @@ const FilterList = ({ tid }: { tid: number }) => {
           icon={<VerticalAlignTopOutlined />}
           onClick={() => {
             const isGlobal = item.collectType == 4;
-            const data = cloneDeep(item);
+            const data: any = {
+              id: item.id,
+            };
             if (isGlobal) {
               data.collectType = 2;
               data.tableId = tid;
@@ -68,7 +71,8 @@ const FilterList = ({ tid }: { tid: number }) => {
             }
             doEditLogFilter.run(data.id, data).then((res: any) => {
               if (res.code != 0) return;
-              getList();
+              // 以下函数会刷新filterList
+              doGetLogsAndHighCharts(tid);
             });
           }}
         >

@@ -121,7 +121,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
             } else {
               newPane.logs = res.logs;
               newPane.highCharts = res?.highCharts;
-              newPane.logChart = { logs: [] };
+              newPane.logChart = { logs: [], isNeedSort: false, sortRule: [] };
               onChangeLogPane(newPane);
             }
           })

@@ -17,12 +17,12 @@
       position: relative;
       &::before {
         position: absolute;
-        top: -2px;
+        top: -3px;
         left: -7px;
         width: 4px;
-        height: 20px;
+        height: 21px;
         background-color: #ccc;
-        border-radius: 100% 0 0 100%;
+        border-radius: 2px 0 0 2px;
         content: "";
       }
     }
@@ -31,4 +31,8 @@
 
 .none {
   display: none;
+}
+
+:global(.ant-tag) {
+  border-radius: 2px !important;
 }

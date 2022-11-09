@@ -28,9 +28,7 @@ const CreateLogFilter = ({ tables }: { tables: any[] }) => {
   const { visibleLogFilter, onChangeVisibleLogFilter } = useModel("dataLogs");
   const formFilterRef = useRef<FormInstance>(null);
 
-  const handleFinish = (file: any) => {
-    // console.log(file);
-  };
+  const handleFinish = (file: any) => {};
 
   const handleFindType = (
     text: string,

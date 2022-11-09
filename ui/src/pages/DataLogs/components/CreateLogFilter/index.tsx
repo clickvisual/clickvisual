@@ -23,11 +23,10 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
     visibleLogFilter,
     onChangeVisibleLogFilter,
     doCreateLogFilter,
-    doGetLogFilterList,
-    onChangeLogFilterList,
     editLogFilterInfo,
     onChangeEditLogFilterInfo,
     doEditLogFilter,
+    doGetLogsAndHighCharts,
   } = useModel("dataLogs");
   const formFilterRef = useRef<FormInstance>(null);
 
@@ -38,39 +37,30 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
     operator: string;
     value: string;
   }) => {
-    const data = {
+    const data: any = {
       alias: file?.isCustom ? file?.alias : undefined,
       collectType: CollectType.tableFilter,
       statement: `${file.field} ${file.operator} '${file.value}'`,
       tableId: tid,
     };
     if (editLogFilterInfo) {
+      // edit
+      delete data.collectType;
       doEditLogFilter.run(editLogFilterInfo.id, data).then((res: any) => {
         if (res.code != 0) return;
         message.success("success");
         onChangeVisibleLogFilter(false);
-        const data = {
-          collectType: CollectType.allFilter,
-          tableId: tid,
-        };
-        doGetLogFilterList.run(data).then((res: any) => {
-          if (res.code != 0) return;
-          onChangeLogFilterList(res.data);
-        });
+        // 以下函数会刷新filterList
+        doGetLogsAndHighCharts(tid);
       });
     } else {
+      // add
       doCreateLogFilter.run(data).then((res: any) => {
         if (res.code != 0) return;
         message.success("success");
         onChangeVisibleLogFilter(false);
-        const data = {
-          collectType: CollectType.allFilter,
-          tableId: tid,
-        };
-        doGetLogFilterList.run(data).then((res: any) => {
-          if (res.code != 0) return;
-          onChangeLogFilterList(res.data);
-        });
+        // 以下函数会刷新filterList
+        doGetLogsAndHighCharts(tid);
       });
     }
   };
@@ -83,7 +73,7 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
       formFilterRef.current?.setFieldsValue({
         field: arr[0],
         operator: arr[1],
-        value: newArr.join(" ").match(/[^'].*[^']/g)[0],
+        value: newArr.join(" ").replace(/'/g, ""),
         isCustom: editLogFilterInfo.alias ? true : false,
         alias: editLogFilterInfo.alias,
       });
@@ -108,10 +98,11 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
       <Form ref={formFilterRef} layout={"vertical"} onFinish={handleFinish}>
         <div className={classNames([styles.statementBox, styles.title])}>
           <div className={styles.field}>
-            <div style={{ width: "100%" }}>
-              {i18n.formatMessage({ id: "log.filter.form.field" })}
-            </div>
-            <Form.Item noStyle name={"field"}>
+            <Form.Item
+              name={"field"}
+              label={i18n.formatMessage({ id: "log.filter.form.field" })}
+              rules={[{ required: true }]}
+            >
               <Select
                 style={{ width: "100%" }}
                 placeholder={i18n.formatMessage({
@@ -129,10 +120,11 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
             </Form.Item>
           </div>
           <div className={styles.operator}>
-            <div style={{ width: "100%" }}>
-              {i18n.formatMessage({ id: "log.filter.form.operator" })}
-            </div>
-            <Form.Item noStyle name={"operator"}>
+            <Form.Item
+              name={"operator"}
+              label={i18n.formatMessage({ id: "log.filter.form.operator" })}
+              rules={[{ required: true }]}
+            >
               <Select
                 style={{ width: "200px" }}
                 placeholder={i18n.formatMessage({
@@ -154,6 +146,7 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
           <Form.Item
             label={i18n.formatMessage({ id: "log.filter.form.value" })}
             name={"value"}
+            rules={[{ required: true }]}
           >
             <Input
               placeholder={i18n.formatMessage({
