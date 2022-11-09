@@ -1,12 +1,14 @@
 package service
 
 import (
+	"encoding/json"
 	"strconv"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/mapping"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
@@ -52,6 +54,13 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 }
 
 func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (tableInfo db.BaseTable, err error) {
+	param.SourceMapping, err = mapping.Handle(param.Source)
+	if err != nil {
+		return
+	}
+	if err = json.Unmarshal([]byte(param.Source), &param.SourceMapping); err != nil {
+		return
+	}
 	op, err := InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		return

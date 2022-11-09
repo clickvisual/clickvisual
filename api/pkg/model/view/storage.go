@@ -30,6 +30,16 @@ type ReqStorageCreate struct {
 	SourceMapping MappingStruct `form:"-"`
 }
 
+type ReqCreateStorageByTemplate struct {
+	Brokers    string `form:"brokers" binding:"required"`
+	DatabaseId int    `form:"databaseId" binding:"required"`
+
+	TopicsApp           string `form:"topicsApp" binding:"required"`
+	TopicsEgo           string `form:"topicsEgo" binding:"required"`
+	TopicsIngressStdout string `form:"topicsIngressStdout" binding:"required"`
+	TopicsIngressStderr string `form:"topicsIngressStdout" binding:"required"`
+}
+
 type ReqStorageCreateV3 struct {
 	TableName               string `form:"tableName" binding:"required"`
 	Days                    int    `form:"days" binding:"required"`

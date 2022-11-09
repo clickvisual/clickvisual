@@ -329,7 +329,6 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 	if err != nil {
 		return
 	}
-	invoker.Logger.Debug("UpdateIndex", elog.Any("addMap", addMap), elog.Any("delMap", delMap))
 	err = Index.Sync(req, addMap, delMap, newMap)
 	if err != nil {
 		return

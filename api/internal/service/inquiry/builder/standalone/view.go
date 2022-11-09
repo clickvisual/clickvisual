@@ -20,9 +20,9 @@ func (b *ViewBuilder) NewProject(params bumo.Params) {
 func (b *ViewBuilder) BuilderCreate() {
 	switch b.QueryAssembly.Params.View.ViewType {
 	case bumo.ViewTypePrometheusMetric, bumo.ViewTypePrometheusMetricAggregation:
-		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO metrics.samples AS\n", b.QueryAssembly.Params.View.ViewTable)
+		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO metrics.samples AS\n", b.QueryAssembly.Params.View.ViewTable)
 	default:
-		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW %s TO %s AS\n", b.QueryAssembly.Params.View.ViewTable, b.QueryAssembly.Params.View.TargetTable)
+		b.QueryAssembly.Result += fmt.Sprintf("CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS\n", b.QueryAssembly.Params.View.ViewTable, b.QueryAssembly.Params.View.TargetTable)
 	}
 }
 

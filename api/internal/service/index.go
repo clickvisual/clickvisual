@@ -57,10 +57,8 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[str
 		}
 		newIndexArr = append(newIndexArr, key)
 	}
-	invoker.Logger.Debug("Diff", elog.Any("newIndexArr", newIndexArr), elog.Any("nowIndexArr", nowIndexArr))
 	addArr := kutl.Difference(newIndexArr, nowIndexArr)
 	delArr := kutl.Difference(nowIndexArr, newIndexArr)
-	invoker.Logger.Debug("Diff", elog.Any("addArr", addArr), elog.Any("delArr", delArr))
 
 	var (
 		addMap = make(map[string]*db.BaseIndex)
@@ -76,8 +74,6 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[str
 			delMap[del] = obj
 		}
 	}
-	invoker.Logger.Debug("Diff", elog.Any("addMap", addMap), elog.Any("delMap", delMap), elog.Any("newIndexMap", newIndexMap))
-
 	return addMap, delMap, newIndexMap, nil
 }
 

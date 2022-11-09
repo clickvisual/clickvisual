@@ -11,30 +11,35 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-type iStorage struct {
+type iSrvStorage interface {
+	stop()
+}
+
+type srvStorage struct {
 	workersF map[int]bool
 	workers  map[int]*storage.WorkerTrace
 }
 
-func NewStorage() *iStorage {
-	return &iStorage{
+func NewSrvStorage() *srvStorage {
+	return &srvStorage{
 		workersF: make(map[int]bool, 0),
 		workers:  make(map[int]*storage.WorkerTrace, 0),
 	}
 }
 
-func (s *iStorage) tickerTraceWorker() {
+func (s *srvStorage) tickerTraceWorker() {
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
 	for range ticker.C {
-		core.LoggerError("iStorage", "tickerTraceWorker", s.syncTraceWorker())
+		core.LoggerError("srvStorage", "tickerTraceWorker", s.syncTraceWorker())
 	}
 	return
 }
 
-func (s *iStorage) syncTraceWorker() error {
+func (s *srvStorage) syncTraceWorker() error {
 	// 获取链路表的数据
 	conds := egorm.Conds{}
 	conds["create_type"] = constx.TableCreateTypeUBW
@@ -55,7 +60,7 @@ func (s *iStorage) syncTraceWorker() error {
 	return err
 }
 
-func (s *iStorage) on(row *db.BaseTable) error {
+func (s *srvStorage) on(row *db.BaseTable) error {
 	flag, ok := s.workersF[row.ID]
 	if ok && flag {
 		return nil
@@ -85,7 +90,7 @@ func (s *iStorage) on(row *db.BaseTable) error {
 	return nil
 }
 
-func (s *iStorage) off(row *db.BaseTable) {
+func (s *srvStorage) off(row *db.BaseTable) {
 	flag, ok := s.workersF[row.ID]
 	if !ok || !flag {
 		return
@@ -97,11 +102,66 @@ func (s *iStorage) off(row *db.BaseTable) {
 	return
 }
 
-func (s *iStorage) Stop() {
+func (s *srvStorage) stop() {
 	for _, w := range s.workers {
 		if w != nil {
 			w.Stop()
 		}
 	}
 	return
+}
+
+func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, param view.ReqCreateStorageByTemplate) (err error) {
+	cp := view.ReqStorageCreate{
+		Typ:                     1,
+		Days:                    14,
+		Brokers:                 param.Brokers,
+		Consumers:               1,
+		KafkaSkipBrokenMessages: 1000,
+		Source:                  `{"_time_":"2022-11-08T10:35:58.837927Z","_log_":"","_source_":"stdout","time":"2022-11-08T10:35:58.837927331Z","_pod_name_":"xx-x-xx","_namespace_":"default","_node_name_":"xx-f.192.x.119.x","_container_name_":"xx","_cluster_":"xx","_log_agent_":"xx-b","_node_ip_":"192.1"}`,
+		DatabaseId:              databaseInfo.ID,
+		TimeField:               "_time_",
+		RawLogField:             "_log_",
+	}
+	cp.Topics = param.TopicsApp
+	cp.TableName = "app_stdout"
+	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
+		return err
+	}
+	cp.Topics = param.TopicsEgo
+	cp.TableName = "ego_stdout"
+	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
+		return err
+	}
+	cp.Topics = param.TopicsIngressStdout
+	cp.TableName = "ingress_stdout"
+	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
+		return err
+	}
+	cp.Topics = param.TopicsIngressStderr
+	cp.TableName = "ingress_stderr"
+	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
+		return err
+	}
+	return
+}
+
+func (s *srvStorage) createByEgoTemplateItem(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (err error) {
+	// Detection is whether it has been created
+	conds := egorm.Conds{}
+	conds["did"] = databaseInfo.ID
+	conds["name"] = param.TableName
+	tableInfo, _ := db.TableInfoX(invoker.Db, conds)
+	if tableInfo.ID != 0 {
+		return nil
+	}
+	table, err := StorageCreate(uid, databaseInfo, param)
+	if err != nil {
+		return
+	}
+	err = AnalysisFieldsUpdate(table.ID, templateTableAnalysisField[table.Name])
+	if err != nil {
+		return err
+	}
+	return nil
 }

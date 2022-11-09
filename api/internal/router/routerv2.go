@@ -58,6 +58,7 @@ func v2(r *gin.RouterGroup) {
 	// The log module - storage
 	{
 		r.POST("/storage", core.Handle(storage.Create))
+		r.POST("/storage/:template", core.Handle(storage.CreateStorageByTemplate))
 		r.POST("/storage/mapping-json", core.Handle(storage.KafkaJsonMapping))
 		r.GET("/storage/:storage-id/analysis-fields", core.Handle(storage.AnalysisFields))
 		r.PATCH("/storage/:storage-id", core.Handle(storage.Update))

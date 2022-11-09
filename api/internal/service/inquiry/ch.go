@@ -764,7 +764,6 @@ func (c *ClickHouse) UpdateIndex(database db.BaseDatabase, table db.BaseTable, a
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
-	invoker.Logger.Debug("UpdateIndex", elog.Any("viewList", viewList))
 	for _, current := range viewList {
 		innerViewSQL, errViewOperator := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
@@ -1447,14 +1446,10 @@ func (c *ClickHouse) storageViewOperator(typ, tid int, did int, table, customTim
 
 	defer func() {
 		if err != nil {
-			invoker.Logger.Info("viewOperator", elog.Any("tid", tid), elog.Any("customTimeField", customTimeField), elog.Any("database", databaseInfo.Name), elog.Any("table", table), elog.String("step", "doViewRollback"))
 			c.viewRollback(tid, customTimeField)
 		}
 	}()
 
-	var (
-		viewSQL string
-	)
 	jsonExtractSQL := ""
 	if tid != 0 {
 		jsonExtractSQL = c.genJsonExtractSQL(indexes, ct.GetRawLogField())
@@ -1488,7 +1483,7 @@ func (c *ClickHouse) storageViewOperator(typ, tid int, did int, table, customTim
 		timeConv = c.timeParseSQL(typ, current, ct.TimeField, ct.GetRawLogField())
 		whereCond = c.whereConditionSQLCurrent(current, ct.GetRawLogField())
 	}
-	viewSQL = c.execView(bumo.Params{
+	viewSQL := c.execView(bumo.Params{
 		KafkaJsonMapping: ct.Mapping2String(false),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,

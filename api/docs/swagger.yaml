@@ -1286,6 +1286,51 @@ paths:
       summary: Get trace graph
       tags:
       - storage
+  /api/v2/storage/{template}:
+    post:
+      consumes:
+      - application/json
+      description: Create storage by template
+      parameters:
+      - description: template
+        in: path
+        name: template
+        required: true
+        type: string
+      - in: query
+        name: brokers
+        required: true
+        type: string
+      - in: query
+        name: databaseId
+        required: true
+        type: integer
+      - in: query
+        name: topicsApp
+        required: true
+        type: string
+      - in: query
+        name: topicsEgo
+        required: true
+        type: string
+      - in: query
+        name: topicsIngressStderr
+        required: true
+        type: string
+      - in: query
+        name: topicsIngressStdout
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.Res'
+      summary: Create storage by template
+      tags:
+      - storage
   /api/v2/storage/collects:
     get:
       consumes:

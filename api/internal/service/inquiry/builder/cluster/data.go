@@ -22,10 +22,10 @@ func (b *DataBuilder) NewProject(params bumo.Params) {
 func (b *DataBuilder) BuilderCreate() {
 	switch b.QueryAssembly.Params.Data.DataType {
 	case bumo.DataTypeDistributed:
-		b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE %s on cluster '%s' AS %s\n",
+		b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s on cluster '%s' AS %s\n",
 			b.QueryAssembly.Params.Data.TableName, b.QueryAssembly.Params.Cluster, b.QueryAssembly.Params.Data.SourceTable)
 	default:
-		b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE %s on cluster '%s'\n",
+		b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s on cluster '%s'\n",
 			b.QueryAssembly.Params.Data.TableName, b.QueryAssembly.Params.Cluster)
 	}
 }

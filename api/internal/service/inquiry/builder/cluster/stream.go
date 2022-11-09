@@ -18,7 +18,7 @@ func (b *StreamBuilder) NewProject(params bumo.Params) {
 }
 
 func (b *StreamBuilder) BuilderCreate() {
-	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE %s on cluster '%s' \n",
+	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s on cluster '%s' \n",
 		b.QueryAssembly.Params.Stream.TableName, b.QueryAssembly.Params.Cluster)
 }
 
