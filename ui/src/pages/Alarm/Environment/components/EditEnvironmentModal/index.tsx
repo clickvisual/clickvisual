@@ -1,17 +1,8 @@
-import { NameSpaceType } from "@/services/configure";
-import {
-  Cascader,
-  Form,
-  FormInstance,
-  Input,
-  message,
-  Modal,
-  Radio,
-  Select,
-} from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useIntl, useModel } from "umi";
-import { RuleStoreType } from "../..";
+import {NameSpaceType} from "@/services/configure";
+import {Cascader, Form, FormInstance, Input, message, Modal, Radio, Select,} from "antd";
+import {useEffect, useMemo, useRef, useState} from "react";
+import {useIntl, useModel} from "umi";
+import {RuleStoreType} from "../..";
 
 const { Option } = Select;
 
@@ -170,7 +161,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
             placeholder={i18n.formatMessage(
               { id: "input.placeholder" },
               {
-                name: "Prometheus",
+                name: "eg: http://prometheus:9090",
               }
             )}
           />

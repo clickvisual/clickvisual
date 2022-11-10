@@ -107,7 +107,7 @@ func TransferGroupTimeField(timeField string, timeFieldTyp int) string {
 	case db.TimeFieldTypeDT3:
 		return timeField
 	case db.TimeFieldTypeTsMs:
-		return fmt.Sprintf("toDateTime(%s)", timeField)
+		return fmt.Sprintf("toDateTime(intDiv(%s,1000))", timeField)
 	}
 	return timeField
 }
