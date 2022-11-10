@@ -27,7 +27,7 @@ export default {
   "table.column.filter.reset": "Reset",
   "table.column.filter.refresh": "Refresh",
   "input.placeholder": "Please enter the {name}",
-  "select.placeholder": "Please select a{name}",
+  "select.placeholder": "Please select a {name}",
   "create.name": "Create {name}",
   required: "Required",
   tips: "Tips",
