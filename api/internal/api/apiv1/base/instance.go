@@ -177,6 +177,13 @@ func InstanceDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
+	conds := egorm.Conds{}
+	conds["iid"] = id
+	databases, _ := db.DatabaseList(invoker.Db, conds)
+	if len(databases) != 0 {
+		c.JSONE(1, "please delete the database first", nil)
+		return
+	}
 	if err = db.InstanceDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
