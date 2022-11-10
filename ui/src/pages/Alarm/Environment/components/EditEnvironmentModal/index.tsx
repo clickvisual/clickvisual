@@ -161,7 +161,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
             placeholder={i18n.formatMessage(
               { id: "input.placeholder" },
               {
-                name: "eg: http://prometheus:9090",
+                name: "e.g.: http://prometheus:9090",
               }
             )}
           />

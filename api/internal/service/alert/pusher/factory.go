@@ -64,7 +64,12 @@ func constructMessage(notification db.Notification, table *db.BaseTable, alarm *
 	}
 
 	user, _ := db.UserInfo(alarm.Uid)
-	instance, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
+	instance := db.BaseInstance{}
+	if table.ID == 0 {
+		instance = db.BaseInstance{Name: "test", Desc: "test"}
+	} else {
+		instance, _ = db.InstanceInfo(invoker.Db, table.Database.Iid)
+	}
 	statusText := "告警中"
 
 	for _, alert := range notification.Alerts {
