@@ -105,45 +105,6 @@ const LocalTable = ({
     });
   };
 
-  // useEffect(() => {
-  //   if (instanceList.length <= 0) return;
-  //   const instanceObj = instanceList.find(
-  //     (item: any) =>
-  //       item.name == (addLogToDatabase?.instanceName || instanceName)
-  //   );
-  //   if (!instanceObj || !instanceObj.id) return;
-  //   formRef?.setFieldsValue({
-  //     instance: instanceObj.id,
-  //   });
-  //   getLocalTables.run(instanceObj.id as number).then((res) => {
-  //     if (res?.code !== 0) return;
-  //     formatOptions(res.data);
-  //   });
-  // }, [instanceList]);
-
-  // useEffect(() => {
-  //   if (!options || !(addLogToDatabase?.name || databaseName) || !instanceList)
-  //     return;
-  //   const currentDatabaseName = addLogToDatabase?.name || databaseName;
-  //   const instanceObj = instanceList.find(
-  //     (item: any) =>
-  //       item.name == (addLogToDatabase?.instanceName || instanceName)
-  //   );
-  //   const arr: any = options.filter((items: any) => {
-  //     return items.value == currentDatabaseName;
-  //   })[0];
-  //   const values: any[] = [[currentDatabaseName]];
-  //   // 填充子项
-  //   arr?.children.map((items: any) => {
-  //     values.push([currentDatabaseName, items.value]);
-  //   });
-  //   if (values.length == 0) return;
-  //   setValueArr(values, instanceObj?.id);
-  //   formRef?.setFieldsValue({
-  //     localTables: values,
-  //   });
-  // }, [addLogToDatabase, options]);
-
   return (
     <>
       <Form.Item

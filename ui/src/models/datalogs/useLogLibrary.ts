@@ -55,6 +55,10 @@ export default function useLogLibrary() {
     loadingText: false,
   });
 
+  const doCreatedTableTemplate = useRequest(api.createdTableTemplate, {
+    loadingText: false,
+  });
+
   const doGetMappingJson = useRequest(api.getMappingJson, {
     loadingText: false,
   });
@@ -103,6 +107,7 @@ export default function useLogLibrary() {
 
     doCreatedLogLibraryAsString: createdLogLibraryAsString,
     doCreatedLogLibraryEachRow: createdLogLibraryEachRow,
+    doCreatedTableTemplate,
     doGetMappingJson,
     doDeletedLogLibrary: deletedLogLibrary,
     doGetLogLibrary: getLogLibrary,
