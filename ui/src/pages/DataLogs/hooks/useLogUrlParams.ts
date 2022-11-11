@@ -99,6 +99,7 @@ export default function useLogUrlParams() {
     onChangeCurrentLogPane,
     logState,
     linkLogs,
+    onChangeTableInfo,
   } = useModel("dataLogs");
   const {
     onChangeCurrentlyTableToIid,
@@ -210,6 +211,7 @@ export default function useLogUrlParams() {
         }
         onChangeCurrentlyTableToIid(res?.data?.database?.iid);
         handleResponse(res, tid, getLastDataLogsState());
+        onChangeTableInfo(res.data);
       });
     } catch (e) {
       console.log("【Error】: ", e);
