@@ -324,6 +324,7 @@ func Info(c *core.Context) {
 		Instance: instanceInfo,
 		Table:    tableInfo,
 	}
+	res.Tid = res.Table.ID
 	c.JSONOK(res)
 	return
 }
