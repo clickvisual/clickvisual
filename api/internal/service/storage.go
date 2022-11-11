@@ -15,7 +15,7 @@ import (
 )
 
 type iSrvStorage interface {
-	stop()
+	CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, param view.ReqCreateStorageByTemplate) (err error)
 }
 
 type srvStorage struct {

@@ -337,22 +337,22 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
-	param, err = op.Prepare(param, false)
+	firstTry, err := op.Prepare(param, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "param prepare failed", err)
 		return
 	}
-	if param.Query == "" {
+	if firstTry.Query == "" {
 		c.JSONE(core.CodeErr, "Query parameter error. Refer to the ClickHouse WHERE syntax. https://clickhouse.com/docs/zh/sql-reference/statements/select/where/", nil)
 		return
 	}
-	res, err := op.GetLogs(param, tableInfo.ID)
-	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
-		res.IsTrace = 1
-	}
+	res, err := op.GetLogs(firstTry, tableInfo.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
+	}
+	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
+		res.IsTrace = 1
 	}
 	list, err := db.HiddenFieldList(egorm.Conds{"tid": egorm.Cond{
 		Op:  "=",
@@ -481,6 +481,10 @@ func TableCharts(c *core.Context) {
 	}
 	// fill charts
 	st, et := param.ST, param.ET
+	if (firstFrom < st-interval || firstFrom > et+interval) || (latestFrom < st-interval || latestFrom > et+interval) {
+		c.JSONE(core.CodeErr, "time resolution exception", nil)
+		return
+	}
 	// fill head
 	if st+interval < firstFrom {
 		// 说明有很多数据需要填充

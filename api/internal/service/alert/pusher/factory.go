@@ -64,16 +64,18 @@ func constructMessage(notification db.Notification, table *db.BaseTable, alarm *
 	}
 
 	user, _ := db.UserInfo(alarm.Uid)
-	instance, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
+	instance := db.BaseInstance{}
+	if table.ID == 0 {
+		instance = db.BaseInstance{Name: "test", Desc: "test"}
+	} else {
+		instance, _ = db.InstanceInfo(invoker.Db, table.Database.Iid)
+	}
 	statusText := "告警中"
 
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
 		annotations = alert.Annotations
-		if filter.When != "" {
-			buffer.WriteString(fmt.Sprintf("##### 表达式: %s\n\n", filter.When))
-		}
 		buffer.WriteString(fmt.Sprintf("##### 触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", instance.Name, instance.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 日志库：%s %s\n", table.Name, table.Desc))

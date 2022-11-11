@@ -15,6 +15,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/alert/alertcomponent"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher"
 	"github.com/clickvisual/clickvisual/api/internal/service/alert/rule"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
@@ -531,6 +532,22 @@ func AlertRuleCheck() error {
 		}
 	}
 	return nil
+}
+
+func SendTestToChannel(c *db.AlarmChannel) (err error) {
+	ci, err := pusher.GetPusher(c.Typ)
+	if err != nil {
+		return
+	}
+	n := db.Notification{}
+	t := &db.BaseTable{}
+	t.ID = 0
+	a := &db.Alarm{Name: c.Name, Desc: "Test the availability of the alarm channel"}
+	f := &db.AlarmFilter{
+		When: "when",
+	}
+	err = ci.Send(n, t, a, f, c, "")
+	return
 }
 
 func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {

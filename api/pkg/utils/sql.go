@@ -17,9 +17,9 @@ func GenerateFieldOrderRules(sql string) ([]string, bool) {
 				if len(asArr) != 2 {
 					return nil, false
 				}
-				res = append(res, asArr[1])
+				res = append(res, strings.TrimSpace(asArr[1]))
 			} else {
-				res = append(res, tmp)
+				res = append(res, strings.TrimSpace(tmp))
 			}
 		}
 		return res, true

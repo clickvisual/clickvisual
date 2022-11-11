@@ -150,3 +150,57 @@ func GetTraceGraph(c *core.Context) {
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"req": req})
 	c.JSONOK(res)
 }
+
+// GetStorageColumns  godoc
+// @Summary	     Get storage columns
+// @Description  Get storage columns
+// @Tags         storage
+// @Accept       json
+// @Produce      json
+// @Param        storage-id path int true "table id"
+// @Success      200 {object} core.Res{data=[]view.RespColumn}
+// @Router       /api/v2/storage/{storage-id}/columns [get]
+func GetStorageColumns(c *core.Context) {
+	id := cast.ToInt(c.Param("storage-id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	var (
+		req view.ReqStorageGetTraceGraph
+		err error
+	)
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter", err)
+		return
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(id),
+	}); err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	columns, err := op.ListColumn(tableInfo.Database.Name, tableInfo.Name, false)
+	if err != nil {
+		c.JSONE(1, err.Error(), err)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"req": req})
+	c.JSONOK(columns)
+}

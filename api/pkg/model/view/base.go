@@ -282,16 +282,6 @@ type SystemClusters struct {
 }
 
 type (
-	ReqShortURLInfo struct {
-		SCode string `json:"sCode" form:"sCode"`
-	}
-
-	ReqShortURLCreate struct {
-		OriginUrl string `json:"originUrl" form:"originUrl"`
-	}
-)
-
-type (
 	ReqUserCreate struct {
 		Username string `json:"username" form:"username"` // 登陆账号
 		Nickname string `json:"nickname" form:"nickname"` // 显示用户名

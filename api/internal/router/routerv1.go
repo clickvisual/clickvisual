@@ -90,6 +90,7 @@ func v1(r *gin.RouterGroup) {
 	r.POST("/tables/:id/views", core.Handle(base.ViewCreate))
 	// alarm
 	r.GET("/alarms", core.Handle(alarm.List))
+	r.POST("/alarms-channels/send-test", core.Handle(alarm.ChannelSendTest)) // alarms send test
 	r.POST("/alarms", core.Handle(alarm.Create))
 	r.GET("/alarms/:id", core.Handle(alarm.Info))
 	r.PATCH("/alarms/:id", core.Handle(alarm.Update))

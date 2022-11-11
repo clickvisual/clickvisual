@@ -13,7 +13,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // ShortURLRedirect  godoc
@@ -49,11 +48,11 @@ func ShortURLRedirect(c *core.Context) {
 // @Description  Create short links
 // @Tags         base
 // @Produce      json
-// @Param        req body view.ReqShortURLCreate true "params"
+// @Param        req body db.ReqShortURLCreate true "params"
 // @Success      200 {object} core.Res{}
 // @Router       /api/v2/base/shorturls [post]
 func ShortURLCreate(c *core.Context) {
-	var req view.ReqShortURLCreate
+	var req db.ReqShortURLCreate
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return

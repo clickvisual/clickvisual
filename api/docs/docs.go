@@ -239,7 +239,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/view.ReqShortURLCreate"
+                            "$ref": "#/definitions/db.ReqShortURLCreate"
                         }
                     }
                 ],
@@ -1364,6 +1364,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/storage/{storage-id}/columns": {
+            "get": {
+                "description": "Get storage columns",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "storage"
+                ],
+                "summary": "Get storage columns",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "table id",
+                        "name": "storage-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.Res"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/view.RespColumn"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/storage/{storage-id}/trace": {
             "patch": {
                 "description": "iStorage related trace info update",
@@ -1759,6 +1806,14 @@ const docTemplate = `{
                 }
             }
         },
+        "db.ReqShortURLCreate": {
+            "type": "object",
+            "properties": {
+                "originUrl": {
+                    "type": "string"
+                }
+            }
+        },
         "db.RespAlertSettingInfo": {
             "type": "object",
             "properties": {
@@ -1934,14 +1989,6 @@ const docTemplate = `{
                 }
             }
         },
-        "view.ReqShortURLCreate": {
-            "type": "object",
-            "properties": {
-                "originUrl": {
-                    "type": "string"
-                }
-            }
-        },
         "view.ReqStructuralTransfer": {
             "type": "object",
             "properties": {
@@ -2000,6 +2047,20 @@ const docTemplate = `{
                 },
                 "username": {
                     "description": "登陆账号",
+                    "type": "string"
+                }
+            }
+        },
+        "view.RespColumn": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "typeDesc": {
                     "type": "string"
                 }
             }
