@@ -45,21 +45,21 @@ type IndexItem struct {
 
 type (
 	ReqQuery struct {
-		Tid           int      `json:"tid" form:"tid"`
-		Database      string   `form:"database"`
-		Table         string   `form:"table"`
-		DatabaseTable string   `form:"databaseTable"`
-		Field         string   `form:"field"`
-		Query         string   `form:"query"`
-		TimeField     string   `form:"timeField"`
-		TimeFieldType int      `form:"timeFieldType"`
-		ST            int64    `form:"st"`
-		ET            int64    `form:"et"`
-		Page          uint32   `form:"page"`
-		PageSize      uint32   `form:"pageSize"`
-		AlarmMode     int      `form:"alarmMode"`
-		Filters       []string `form:"filters"`
-		GroupByCond   string   `form:"groupByCond"`
+		Tid           int                   `json:"tid" form:"tid"`
+		Database      string                `form:"database"`
+		Table         string                `form:"table"`
+		DatabaseTable string                `form:"databaseTable"`
+		Field         string                `form:"field"`
+		Query         string                `form:"query"`
+		TimeField     string                `form:"timeField"`
+		TimeFieldType int                   `form:"timeFieldType"`
+		ST            int64                 `form:"st"`
+		ET            int64                 `form:"et"`
+		Page          uint32                `form:"page"`
+		PageSize      uint32                `form:"pageSize"`
+		AlarmMode     int                   `form:"alarmMode"`
+		Filters       []db.ReqUpdateCollect `form:"filters"`
+		GroupByCond   string                `form:"groupByCond"`
 	}
 
 	RespQuery struct {
@@ -280,16 +280,6 @@ type SystemClusters struct {
 	ShardWeight uint32 `json:"ShardWeight"`
 	ReplicaNum  uint32 `json:"replicaNum"`
 }
-
-type (
-	ReqShortURLInfo struct {
-		SCode string `json:"sCode" form:"sCode"`
-	}
-
-	ReqShortURLCreate struct {
-		OriginUrl string `json:"originUrl" form:"originUrl"`
-	}
-)
 
 type (
 	ReqUserCreate struct {

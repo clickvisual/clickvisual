@@ -348,13 +348,6 @@ func TableLogs(c *core.Context) {
 	}
 	res, err := op.GetLogs(firstTry, tableInfo.ID)
 	if err != nil {
-		// if strings.Contains(err.Error(), "required columns") && strings.Contains(err.Error(), "maybe you meant") {
-		// 	second, err := op.Prepare(param, false)
-		// 	if err != nil {
-		// 		c.JSONE(core.CodeErr, "param prepare failed", err)
-		// 		return
-		// 	}
-		// }
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}

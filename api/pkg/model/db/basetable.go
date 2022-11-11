@@ -9,6 +9,13 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
+const (
+	TimeFieldTypeDT     = 0 // DateTime
+	TimeFieldTypeSecond = 1
+	TimeFieldTypeTsMs   = 2 // unix ms
+	TimeFieldTypeDT3    = 3 // DataTime64(3)
+)
+
 type BaseTable struct {
 	BaseModel
 

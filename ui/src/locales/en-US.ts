@@ -528,13 +528,13 @@ export default {
   "log.JsonView.unfoldTip": "Please expand and then click",
 
   // ClickMenu
-  "log.ClickMenu.addCondition": "Adding a query condition",
-  "log.ClickMenu.excludeCondition": "Exclude query criteria",
+  "log.ClickMenu.addCondition": "Adding query condition",
+  "log.ClickMenu.excludeCondition": "Exclude query condition",
   "log.ClickMenu.viewLink": "See the link",
   "log.ClickMenu.copyValues": "Copy values",
 
   // dataLogs -> DataSourceMenu -> LogLibraryList-> EditLogLibraryModal
-  "log.editLogLibraryModal.modifySuc": "Modify the success",
+  "log.editLogLibraryModal.modifySuc": "Modified successfully",
   "log.editLogLibraryModal.label.tabName": "Log library Name",
   "log.editLogLibraryModal.label.createType": "Create a type",
   "log.editLogLibraryModal.label.desc.placeholder": "Please enter an alias",

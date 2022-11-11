@@ -127,7 +127,7 @@ func (model *Collect) ListPage(db *gorm.DB, conds egorm.Conds, reqList *ReqPage)
 }
 
 func (model *Collect) Delete(db *gorm.DB) (err error) {
-	if err = db.Model(Collect{}).Delete(&Collect{}, model.ID).Error; err != nil {
+	if err = db.Model(Collect{}).Unscoped().Delete(&Collect{}, model.ID).Error; err != nil {
 		return errors.Wrapf(err, "id: %v", model.ID)
 	}
 	return
