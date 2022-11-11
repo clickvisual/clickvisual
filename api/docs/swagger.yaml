@@ -101,6 +101,11 @@ definitions:
       iid:
         type: integer
     type: object
+  db.ReqShortURLCreate:
+    properties:
+      originUrl:
+        type: string
+    type: object
   db.RespAlertSettingInfo:
     properties:
       clusterId:
@@ -217,11 +222,6 @@ definitions:
       val:
         type: string
     type: object
-  view.ReqShortURLCreate:
-    properties:
-      originUrl:
-        type: string
-    type: object
   view.ReqStructuralTransfer:
     properties:
       columns:
@@ -261,6 +261,15 @@ definitions:
         type: string
       username:
         description: 登陆账号
+        type: string
+    type: object
+  view.RespColumn:
+    properties:
+      name:
+        type: string
+      type:
+        type: integer
+      typeDesc:
         type: string
     type: object
   view.RespDatabaseSimple:
@@ -667,7 +676,7 @@ paths:
         name: req
         required: true
         schema:
-          $ref: '#/definitions/view.ReqShortURLCreate'
+          $ref: '#/definitions/db.ReqShortURLCreate'
       produces:
       - application/json
       responses:
@@ -1233,6 +1242,34 @@ paths:
           schema:
             $ref: '#/definitions/view.RespStorageAnalysisFields'
       summary: iStorage analysis field list
+      tags:
+      - storage
+  /api/v2/storage/{storage-id}/columns:
+    get:
+      consumes:
+      - application/json
+      description: Get storage columns
+      parameters:
+      - description: table id
+        in: path
+        name: storage-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.Res'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/view.RespColumn'
+                  type: array
+              type: object
+      summary: Get storage columns
       tags:
       - storage
   /api/v2/storage/{storage-id}/trace:
