@@ -21,11 +21,11 @@ const LogItem = ({ log, foldingChecked }: LogItemProps) => {
   }, [foldingChecked]);
 
   const time = useMemo(() => {
-    if (log._time_nanosecond_ || log._time_second_) {
-      if (log._time_nanosecond_) {
-        return moment(log._time_nanosecond_).format("MM-DD HH:mm:ss.SSS");
-      }
-      return moment(log._time_second_).format("MM-DD HH:mm:ss");
+    if (log._time_nanosecond_) {
+      return moment(log._time_nanosecond_).format("MM-DD HH:mm:ss.SSS");
+    }
+    if (log._time_second_) {
+      return moment.unix(log._time_second_).format("MM-DD HH:mm:ss");
     }
 
     return "";
