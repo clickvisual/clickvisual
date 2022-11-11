@@ -10,6 +10,7 @@ import StatisticalTableContent from "@/pages/DataLogs/components/QueryResult/Con
 import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import FilterList from "@/pages/DataLogs/components/QueryResult/FilterList";
+import { Breadcrumb } from "antd";
 
 const SharePath = [
   process.env.PUBLIC_PATH + "share",
@@ -19,7 +20,7 @@ const SharePath = [
 const QueryResult = (props: { tid: string }) => {
   const { tid } = props;
   const [usrState] = useUrlState<any>();
-  const { statisticalChartsHelper } = useModel("dataLogs");
+  const { statisticalChartsHelper, tableInfo } = useModel("dataLogs");
   const { onSetLocalData } = useLocalStorages();
 
   const { activeQueryType } = statisticalChartsHelper;
@@ -52,6 +53,8 @@ const QueryResult = (props: { tid: string }) => {
     }
   }, [activeQueryType, usrState, usrState?.mode]);
 
+  const url = `${window.location.href.split("share")[0]}query?tid=${tid}`;
+
   return (
     <div
       className={classNames(
@@ -59,13 +62,22 @@ const QueryResult = (props: { tid: string }) => {
         isShare && queryResultStyles.shareMain
       )}
     >
+      {isShare && tableInfo && (
+        <Breadcrumb style={{ paddingBottom: "10px" }}>
+          <Breadcrumb.Item>{tableInfo?.database?.instanceName}</Breadcrumb.Item>
+          <Breadcrumb.Item>{tableInfo?.database?.name}</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <a href={url}>{tableInfo?.name}</a>
+          </Breadcrumb.Item>
+        </Breadcrumb>
+      )}
       <div className={queryResultStyles.header}>
         <SearchBar />
         <OtherSearchBar
           isShowSwitch={!(usrState?.mode && usrState?.mode == 0)}
         />
       </div>
-      {activeQueryType == QueryTypeEnum.LOG && (
+      {activeQueryType == QueryTypeEnum.LOG && !isShare && (
         <FilterList tid={parseInt(tid)} />
       )}
       {content}

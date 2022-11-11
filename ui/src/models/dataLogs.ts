@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import copy from "copy-to-clipboard";
 import { message } from "antd";
 import api, {
@@ -40,6 +40,10 @@ export enum dataLogLocalaStorageType {
    */
   logQueryHistoricalList = "log-query-historical-list",
 }
+const SharePath = [
+  process.env.PUBLIC_PATH + "share",
+  process.env.PUBLIC_PATH + "share/",
+];
 
 const DataLogsModel = () => {
   // 查询关键字
@@ -134,6 +138,15 @@ const DataLogsModel = () => {
   const [visibleLogFilter, setVisibleLogFilter] = useState<boolean>(false);
   // 修改filter时暂存的info
   const [editLogFilterInfo, setEditLogFilterInfo] = useState<any>();
+
+  const [columsList, setColumsList] = useState<string[]>([]);
+
+  const [tableInfo, setTableInfo] = useState<any>();
+
+  const isShare = useMemo(
+    () => SharePath.includes(document.location.pathname),
+    [document.location.pathname]
+  );
 
   const {
     logLibraryCreatedModalVisible,
@@ -277,6 +290,14 @@ const DataLogsModel = () => {
 
   const onChangeEditLogFilterInfo = (data: any) => {
     setEditLogFilterInfo(data);
+  };
+
+  const onChangeColumsList = (data: any) => {
+    setColumsList(data);
+  };
+
+  const onChangeTableInfo = (data: any) => {
+    setTableInfo(data);
   };
 
   const onChangeAnalysisFieldTips = (arr: string[]) => {
@@ -444,6 +465,10 @@ const DataLogsModel = () => {
     loadingText: false,
   });
 
+  const doGetColumns = useRequest(api.getColumns, {
+    loadingText: false,
+  });
+
   const settingIndexes = useRequest(api.setIndexes, {
     loadingText: false,
     onSuccess() {
@@ -519,26 +544,25 @@ const DataLogsModel = () => {
     onChangeLastLoadingTid(id);
     handleHistoricalRecord(id, extra?.reqParams);
     let filters: string[] = [];
-    // if (!extra?.isDisableRefresh) {
-    const data = {
-      tableId: id,
-      collectType: CollectType.allFilter,
-    };
+    if (!isShare) {
+      const data = {
+        tableId: id,
+        collectType: CollectType.allFilter,
+      };
 
-    const res: any = await doGetLogFilterList.run(data);
-    if (res.code == 0) {
-      res.data.map((item: LogFilterType) => {
-        if (oldIds.indexOf(item.id) == -1) {
-          filters.push(item.statement);
-        }
-      });
-      onChangeLogFilterList(res.data);
+      const res: any = await doGetLogFilterList.run(data);
+      if (res.code == 0) {
+        res.data.map((item: LogFilterType) => {
+          if (
+            oldIds.indexOf(item.id) == -1 &&
+            columsList.includes(item.statement)
+          ) {
+            filters.push(item.statement);
+          }
+        });
+        onChangeLogFilterList(res.data);
+      }
     }
-    // } else {
-    //   logFilterList.map((item: any) => {
-    //     filters.push(item.statement);
-    //   });
-    // }
 
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
@@ -755,6 +779,7 @@ const DataLogsModel = () => {
   };
 
   return {
+    isShare,
     keywordInput,
     isHiddenHighChart,
     highChartList,
@@ -789,6 +814,8 @@ const DataLogsModel = () => {
     collectingHistorical,
     visibleLogFilter,
     editLogFilterInfo,
+    columsList,
+    tableInfo,
     analysisFieldTips,
     logQueryHistoricalList,
 
@@ -825,6 +852,8 @@ const DataLogsModel = () => {
     onChangeCollectingHistorical,
     onChangeVisibleLogFilter,
     onChangeEditLogFilterInfo,
+    onChangeColumsList,
+    onChangeTableInfo,
     onChangeAnalysisFieldTips,
     onChangeLogQueryHistoricalList,
 
@@ -870,6 +899,7 @@ const DataLogsModel = () => {
     doCreateLogFilter,
     doDeleteLogFilter,
     doEditLogFilter,
+    doGetColumns,
 
     viewsVisibleDraw,
     getViewList,

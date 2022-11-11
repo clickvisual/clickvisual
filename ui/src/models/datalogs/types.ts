@@ -50,7 +50,7 @@ export enum hashType {
 
 export interface Extra {
   isPaging?: boolean; // 是否是切换页面
-  isDisableRefresh?: boolean; // 是否禁用获取最新filter字段(暂时废弃)
+  isDisableFilter?: boolean; // 是否启用filter功能 分享页面禁用
   isOnlyLog?: boolean;
   reqParams?: QueryParams; // 请求参数
 }

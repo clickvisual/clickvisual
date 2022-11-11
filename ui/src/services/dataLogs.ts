@@ -629,6 +629,7 @@ export default {
     collectType: CollectType;
     statement: string;
     tableId?: number;
+    column?: string; // 分析字段名称
   }) {
     return request(process.env.PUBLIC_PATH + `api/v2/storage/collects`, {
       method: "POST",
@@ -654,6 +655,7 @@ export default {
       collectType: CollectType;
       statement: string;
       tableId?: number;
+      column?: string; // 分析字段名称
     }
   ) {
     return request(
@@ -661,6 +663,16 @@ export default {
       {
         method: "PATCH",
         data,
+      }
+    );
+  },
+
+  // 获取当前表的字段
+  async getColumns(storageId: number) {
+    return request(
+      process.env.PUBLIC_PATH + `api/v2/storage/${storageId}/columns`,
+      {
+        method: "GET",
       }
     );
   },

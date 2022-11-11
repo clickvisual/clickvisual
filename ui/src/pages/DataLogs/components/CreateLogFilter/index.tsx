@@ -42,6 +42,7 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
       collectType: CollectType.tableFilter,
       statement: `${file.field} ${file.operator} '${file.value}'`,
       tableId: tid,
+      column: file.field, // 分析字段名称
     };
     if (editLogFilterInfo) {
       // edit

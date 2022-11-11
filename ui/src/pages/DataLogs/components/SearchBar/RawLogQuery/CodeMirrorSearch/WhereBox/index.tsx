@@ -1,18 +1,24 @@
 import styles from "./index.less";
 import { BarsOutlined, PlusCircleFilled } from "@ant-design/icons";
 import { useModel } from "umi";
+import { Button } from "antd";
 
 const WhereBox = () => {
-  const { onChangeVisibleLogFilter } = useModel("dataLogs");
+  const { onChangeVisibleLogFilter, isShare } = useModel("dataLogs");
 
   return (
     <span className={styles.whereBox}>
       {/* <span>
         <BarsOutlined />
       </span> */}
-      <span onClick={() => onChangeVisibleLogFilter(true)}>
-        <PlusCircleFilled />
-      </span>
+      <Button
+        type="link"
+        disabled={isShare}
+        onClick={() => {
+          onChangeVisibleLogFilter(true);
+        }}
+        icon={<PlusCircleFilled />}
+      ></Button>
     </span>
   );
 };
