@@ -311,6 +311,8 @@ export default {
 
   "datasource.logLibrary.from.creationMode.option.newLogLibrary": "新建日志库",
   "datasource.logLibrary.from.creationMode.option.logLibrary": "接入日志库",
+  "datasource.logLibrary.from.creationMode.option.template":
+    "模板库创建- {name}",
   "datasource.logLibrary.from.newLogLibrary.instance": "实例",
   "datasource.logLibrary.from.newLogLibrary.instance.defaultOption":
     "请选择实例",

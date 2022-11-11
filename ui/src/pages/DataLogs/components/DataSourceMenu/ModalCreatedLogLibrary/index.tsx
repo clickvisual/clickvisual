@@ -6,7 +6,8 @@ import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
 import LocalTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/LocalTable";
-import SelectField from "./SelectField";
+import SelectField from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/SelectField";
+import TemplateTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTable";
 
 const { Option } = Select;
 
@@ -25,6 +26,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
     logLibraryCreatedModalVisible,
     onChangeLogLibraryCreatedModalVisible,
     doCreatedLogLibraryAsString,
+    doCreatedTableTemplate,
     doCreatedLogLibraryEachRow,
     doCreatedLocalLogLibraryBatch,
     isAccessLogLibrary,
@@ -57,23 +59,35 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               databaseId: addLogToDatabase?.id as number,
               ...field,
             })
-          : doCreatedLogLibraryEachRow.run({
+          : field.mode === 0
+          ? doCreatedLogLibraryEachRow.run({
               databaseId: addLogToDatabase?.id as number,
               ...field,
-            });
-      response
-        .then((res) => {
-          if (res?.code === 0) {
-            message.success(
-              i18n.formatMessage({
-                id: "datasource.logLibrary.created.success",
-              })
-            );
-            onGetList();
-            onChangeLogLibraryCreatedModalVisible(false);
-          }
-        })
-        .catch(() => onChangeLogLibraryCreatedModalVisible(false));
+            })
+          : field.mode === 3
+          ? doCreatedTableTemplate.run("ego", {
+              brokers: field.brokers,
+              databaseId: addLogToDatabase?.id as number,
+              topicsApp: field.topicsApp,
+              topicsEgo: field.topicsEgo,
+              topicsIngressStderr: field.topicsIngressStderr,
+              topicsIngressStdout: field.topicsIngressStdout,
+            })
+          : null;
+      response &&
+        response
+          .then((res) => {
+            if (res?.code === 0) {
+              message.success(
+                i18n.formatMessage({
+                  id: "datasource.logLibrary.created.success",
+                })
+              );
+              onGetList();
+              onChangeLogLibraryCreatedModalVisible(false);
+            }
+          })
+          .catch(() => onChangeLogLibraryCreatedModalVisible(false));
     },
     { wait: DEBOUNCE_WAIT }
   ).run;
@@ -189,6 +203,14 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                   id: "datasource.logLibrary.from.creationMode.option.logLibrary",
                 })}
               </Option>
+              <Option value={3}>
+                {i18n.formatMessage(
+                  {
+                    id: "datasource.logLibrary.from.creationMode.option.template",
+                  },
+                  { name: "EGO" }
+                )}
+              </Option>
             </Select>
           )}
         </Form.Item>
@@ -209,6 +231,8 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                     onChangeIsCluster={setIsCluster}
                   />
                 );
+              case 3:
+                return <TemplateTable />;
               default:
                 return (
                   <NewTable

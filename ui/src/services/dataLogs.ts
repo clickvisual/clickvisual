@@ -72,6 +72,15 @@ export interface CreatedLogLibraryRequestAsString {
   v3TableType: number; // 0 default 1 jaegerJson
 }
 
+export interface CreatedTableTemplateType {
+  brokers: string;
+  databaseId: number;
+  topicsApp: string;
+  topicsEgo: string;
+  topicsIngressStderr: string;
+  topicsIngressStdout: string;
+}
+
 export interface CreatedViewRequest {
   id?: number;
   viewName: string;
@@ -336,6 +345,17 @@ export default {
   async createdTableAsString(data: CreatedLogLibraryRequestAsString) {
     return request<API.Res<string>>(
       process.env.PUBLIC_PATH + `api/v3/storage`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
+  // Create a log library Template
+  async createdTableTemplate(template: string, data: CreatedTableTemplateType) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v2/storage/${template}`,
       {
         method: "POST",
         data,

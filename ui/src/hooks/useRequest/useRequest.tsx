@@ -209,6 +209,10 @@ function useRequest<R = any, P extends any[] = any>(
       },
     });
 
+    notification.config({
+      maxCount: 1,
+    });
+
     notification.error({
       message: formatMessage({ id: "error.title" }),
       duration: 0,

@@ -26,8 +26,8 @@ export default {
   "table.column.filter.placeholder": "Please input conditions",
   "table.column.filter.reset": "Reset",
   "table.column.filter.refresh": "Refresh",
-  "input.placeholder": "Please enter the{name}",
-  "select.placeholder": "Please select a{name}",
+  "input.placeholder": "Please enter the {name}",
+  "select.placeholder": "Please select a {name}",
   "create.name": "Create {name}",
   required: "Required",
   tips: "Tips",
@@ -321,6 +321,8 @@ export default {
     "Create a log library",
   "datasource.logLibrary.from.creationMode.option.logLibrary":
     "Select an existing log library",
+  "datasource.logLibrary.from.creationMode.option.template":
+    "Template library Creation- {name}",
   "datasource.logLibrary.from.newLogLibrary.instance": "instance",
   "datasource.logLibrary.from.newLogLibrary.instance.defaultOption":
     "Please select an instance",
