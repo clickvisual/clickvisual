@@ -26,7 +26,12 @@
                         "name": "code",
                         "in": "query"
                     }
-                ]
+                ],
+                "responses": {
+                    "302": {
+                        "description": ""
+                    }
+                }
             }
         },
         "/admin/users/login": {
@@ -2330,7 +2335,7 @@
         },
         "/v1/prometheus/alerts": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\n{\"version\":\"4\",\"groupKey\":\"{}:{alertname=\\\\\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\\\\\"}\",\"status\":\"firing\",\"receiver\":\"webhook\",\"groupLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\"},\"commonLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"commonAnnotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"externalURL\":\"http://duminxiangdeMacBook-Pro.local:9093\",\"alerts\":[{\"labels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"annotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"startsAt\":\"2022-11-07T09:23:17.6Z\",\"endsAt\":\"0001-01-01T00:00:00Z\"}]}",
                 "produces": [
                     "json",
                     "application/json"
@@ -2338,6 +2343,7 @@
                 "tags": [
                     "alert"
                 ],
+                "summary": "Alert push channel",
                 "operationId": "POST./v1/prometheus/alerts",
                 "parameters": [
                     {
@@ -3236,7 +3242,7 @@
         },
         "/v2/alert/metrics-samples": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nStore advanced metric data",
                 "produces": [
                     "json",
                     "application/json"
@@ -3244,6 +3250,7 @@
                 "tags": [
                     "alert"
                 ],
+                "summary": "Create metrics samples table",
                 "operationId": "POST./v2/alert/metrics-samples",
                 "parameters": [
                     {
@@ -3263,7 +3270,7 @@
         },
         "/v2/alert/settings": {
             "get": {
-                "description": "   godoc",
+                "description": "   godoc\nInstance alarm configuration list",
                 "produces": [
                     "json",
                     "application/json"
@@ -3271,6 +3278,7 @@
                 "tags": [
                     "alert"
                 ],
+                "summary": "Instance alarm configuration list",
                 "operationId": "GET./v2/alert/settings",
                 "responses": {
                     "200": {
@@ -3287,7 +3295,7 @@
         },
         "/v2/alert/settings/{instance-id}": {
             "get": {
-                "description": "   godoc",
+                "description": "   godoc\nAdvanced configuration information in the instance",
                 "produces": [
                     "json",
                     "application/json"
@@ -3295,6 +3303,7 @@
                 "tags": [
                     "alert"
                 ],
+                "summary": "Advanced configuration information in the instance",
                 "operationId": "GET./v2/alert/settings/{instance-id}",
                 "parameters": [
                     {
@@ -3312,7 +3321,7 @@
                 }
             },
             "patch": {
-                "description": "  godoc",
+                "description": "  godoc\nAlert Basic Configuration Modification",
                 "produces": [
                     "json",
                     "application/json"
@@ -3320,6 +3329,7 @@
                 "tags": [
                     "alert"
                 ],
+                "summary": "Alert Basic Configuration Modification",
                 "operationId": "PATCH./v2/alert/settings/{instance-id}",
                 "parameters": [
                     {
@@ -3343,7 +3353,7 @@
         },
         "/v2/base/instances": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\ngets all instances, databases, and table nested data",
                 "produces": [
                     "json",
                     "application/json"
@@ -3351,6 +3361,7 @@
                 "tags": [
                     "base"
                 ],
+                "summary": "Gets all instance database and table data filtered by permissions test",
                 "operationId": "GET./v2/base/instances",
                 "responses": {
                     "200": {
@@ -3367,7 +3378,7 @@
         },
         "/v2/base/shorturls": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nCreate short links",
                 "produces": [
                     "json",
                     "application/json"
@@ -3375,6 +3386,7 @@
                 "tags": [
                     "base"
                 ],
+                "summary": "Create short links",
                 "operationId": "POST./v2/base/shorturls",
                 "parameters": [
                     {
@@ -3394,20 +3406,26 @@
         },
         "/v2/base/su/{s-code}": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nGet short links",
                 "produces": [
                     "json"
                 ],
                 "tags": [
                     "base"
                 ],
+                "summary": "Get short links",
                 "operationId": "GET./v2/base/su/{s-code}",
                 "parameters": [
                     {
                         "name": "s-code",
                         "in": "path"
                     }
-                ]
+                ],
+                "responses": {
+                    "301": {
+                        "description": ""
+                    }
+                }
             }
         },
         "/v2/base/users": {
@@ -3419,6 +3437,7 @@
                 "tags": [
                     "base"
                 ],
+                "summary": "Get user list",
                 "operationId": "GET./v2/base/users",
                 "parameters": [
                     {
@@ -3429,7 +3448,7 @@
                 ]
             },
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nusername 登陆账号2\nnickname 显示用户名",
                 "produces": [
                     "json",
                     "application/json"
@@ -3437,6 +3456,7 @@
                 "tags": [
                     "base"
                 ],
+                "summary": "Create new user",
                 "operationId": "POST./v2/base/users",
                 "parameters": [
                     {
@@ -3459,7 +3479,7 @@
         },
         "/v2/base/users/{user-id}": {
             "delete": {
-                "description": "  godoc",
+                "description": "  godoc\nUser delete",
                 "produces": [
                     "json",
                     "application/json"
@@ -3467,6 +3487,7 @@
                 "tags": [
                     "base"
                 ],
+                "summary": "User delete",
                 "operationId": "DELETE./v2/base/users/{user-id}",
                 "parameters": [
                     {
@@ -3483,7 +3504,7 @@
         },
         "/v2/base/users/{user-id}/password-reset": {
             "patch": {
-                "description": "  godoc",
+                "description": "  godoc\nReset user password",
                 "produces": [
                     "json",
                     "application/json"
@@ -3491,6 +3512,7 @@
                 "tags": [
                     "base"
                 ],
+                "summary": "Reset user password test",
                 "operationId": "PATCH./v2/base/users/{user-id}/password-reset",
                 "parameters": [
                     {
@@ -3510,7 +3532,7 @@
         },
         "/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\ntable create sql",
                 "produces": [
                     "json",
                     "application/json"
@@ -3518,6 +3540,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "table create sql",
                 "operationId": "GET./v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql",
                 "parameters": [
                     {
@@ -3545,7 +3568,7 @@
         },
         "/v2/pandas/instances/{instance-id}/table-dependencies": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nResult of table dependency resolution",
                 "produces": [
                     "json",
                     "application/json"
@@ -3553,6 +3576,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Result of table dependency resolution",
                 "operationId": "GET./v2/pandas/instances/{instance-id}/table-dependencies",
                 "parameters": [
                     {
@@ -3582,7 +3606,7 @@
         },
         "/v2/pandas/nodes-results/{result-id}": {
             "patch": {
-                "description": "  godoc",
+                "description": "  godoc\nonly support excelProcess update",
                 "produces": [
                     "json",
                     "application/json"
@@ -3590,6 +3614,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Updates the action on the execution result",
                 "operationId": "PATCH./v2/pandas/nodes-results/{result-id}",
                 "parameters": [
                     {
@@ -3613,7 +3638,7 @@
         },
         "/v2/pandas/nodes/{node-id}/crontab": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nisRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
                 "produces": [
                     "json",
                     "application/json"
@@ -3621,6 +3646,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Creating a scheduled node scheduling task",
                 "operationId": "POST./v2/pandas/nodes/{node-id}/crontab",
                 "parameters": [
                     {
@@ -3642,7 +3668,7 @@
                 }
             },
             "patch": {
-                "description": "  godoc",
+                "description": "  godoc\nisRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
                 "produces": [
                     "json",
                     "application/json"
@@ -3650,6 +3676,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Updating a scheduled node scheduling task",
                 "operationId": "PATCH./v2/pandas/nodes/{node-id}/crontab",
                 "parameters": [
                     {
@@ -3673,7 +3700,7 @@
         },
         "/v2/pandas/nodes/{node-id}/lock-acquire": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nForce the file edit lock to be acquired",
                 "produces": [
                     "json",
                     "application/json"
@@ -3681,6 +3708,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Force the file edit lock to be acquired",
                 "operationId": "POST./v2/pandas/nodes/{node-id}/lock-acquire",
                 "parameters": [
                     {
@@ -3697,13 +3725,14 @@
         },
         "/v2/pandas/nodes/{node-id}/results": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nObtain the node execution result record",
                 "produces": [
                     "json"
                 ],
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Obtain the node execution result record",
                 "operationId": "GET./v2/pandas/nodes/{node-id}/results",
                 "parameters": [
                     {
@@ -3720,7 +3749,7 @@
         },
         "/v2/pandas/utils/structural-transfer": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nsource: mysql\ntarget: clickhouse",
                 "produces": [
                     "json",
                     "application/json"
@@ -3728,6 +3757,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Data field mapping transformation",
                 "operationId": "POST./v2/pandas/utils/structural-transfer",
                 "parameters": [
                     {
@@ -3747,13 +3777,14 @@
         },
         "/v2/pandas/workers": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nThe scheduled task list",
                 "produces": [
                     "json"
                 ],
                 "tags": [
                     "pandas"
                 ],
+                "summary": "The scheduled task list",
                 "operationId": "GET./v2/pandas/workers",
                 "parameters": [
                     {
@@ -3786,7 +3817,7 @@
         },
         "/v2/pandas/workers/dashboard": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nKanban on the execution status of a scheduled task",
                 "produces": [
                     "json",
                     "application/json"
@@ -3794,6 +3825,7 @@
                 "tags": [
                     "pandas"
                 ],
+                "summary": "Kanban on the execution status of a scheduled task",
                 "operationId": "GET./v2/pandas/workers/dashboard",
                 "parameters": [
                     {
@@ -3829,7 +3861,7 @@
         },
         "/v2/storage": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nCreating a log library",
                 "produces": [
                     "json",
                     "application/json"
@@ -3837,6 +3869,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Creating a log library",
                 "operationId": "POST./v2/storage",
                 "parameters": [
                     {
@@ -3856,7 +3889,7 @@
         },
         "/v2/storage/collects": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nList Collect",
                 "produces": [
                     "json",
                     "application/json"
@@ -3864,6 +3897,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "List Collect",
                 "operationId": "GET./v2/storage/collects",
                 "parameters": [
                     {
@@ -3890,7 +3924,7 @@
                 }
             },
             "post": {
-                "description": " godoc",
+                "description": " godoc\nCollectType",
                 "produces": [
                     "json",
                     "application/json"
@@ -3898,6 +3932,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Create Collect",
                 "operationId": "POST./v2/storage/collects",
                 "parameters": [
                     {
@@ -3920,7 +3955,7 @@
         },
         "/v2/storage/collects/{collect-id}": {
             "delete": {
-                "description": " godoc",
+                "description": " godoc\nDelete Collect",
                 "produces": [
                     "json",
                     "application/json"
@@ -3928,6 +3963,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Delete Collect",
                 "operationId": "DELETE./v2/storage/collects/{collect-id}",
                 "parameters": [
                     {
@@ -3942,7 +3978,7 @@
                 }
             },
             "patch": {
-                "description": "  godoc",
+                "description": "  godoc\nUpdate collect",
                 "produces": [
                     "json",
                     "application/json"
@@ -3950,6 +3986,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Update collect",
                 "operationId": "PATCH./v2/storage/collects/{collect-id}",
                 "parameters": [
                     {
@@ -3973,7 +4010,7 @@
         },
         "/v2/storage/mapping-json": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nKafka JSON field mapping",
                 "produces": [
                     "json",
                     "application/json"
@@ -3981,6 +4018,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Kafka JSON field mapping",
                 "operationId": "POST./v2/storage/mapping-json",
                 "parameters": [
                     {
@@ -4003,7 +4041,7 @@
         },
         "/v2/storage/traces": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\ntrace storage list",
                 "produces": [
                     "json",
                     "application/json"
@@ -4011,6 +4049,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "trace storage list",
                 "operationId": "GET./v2/storage/traces",
                 "responses": {
                     "200": {
@@ -4027,7 +4066,7 @@
         },
         "/v2/storage/{storage-id}": {
             "patch": {
-                "description": "  godoc",
+                "description": "  godoc\niStorage update",
                 "produces": [
                     "json",
                     "application/json"
@@ -4035,6 +4074,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "iStorage update",
                 "operationId": "PATCH./v2/storage/{storage-id}",
                 "parameters": [
                     {
@@ -4058,7 +4098,7 @@
         },
         "/v2/storage/{storage-id}/analysis-fields": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\niStorage analysis field list",
                 "produces": [
                     "json",
                     "application/json"
@@ -4066,6 +4106,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "iStorage analysis field list",
                 "operationId": "GET./v2/storage/{storage-id}/analysis-fields",
                 "parameters": [
                     {
@@ -4085,7 +4126,7 @@
         },
         "/v2/storage/{storage-id}/columns": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nGet storage columns",
                 "produces": [
                     "json",
                     "application/json"
@@ -4093,6 +4134,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Get storage columns",
                 "operationId": "GET./v2/storage/{storage-id}/columns",
                 "parameters": [
                     {
@@ -4125,7 +4167,7 @@
         },
         "/v2/storage/{storage-id}/trace": {
             "patch": {
-                "description": "  godoc",
+                "description": "  godoc\niStorage related trace info update",
                 "produces": [
                     "json",
                     "application/json"
@@ -4133,6 +4175,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "iStorage related trace info update",
                 "operationId": "PATCH./v2/storage/{storage-id}/trace",
                 "parameters": [
                     {
@@ -4156,7 +4199,7 @@
         },
         "/v2/storage/{storage-id}/trace-graph": {
             "get": {
-                "description": "  godoc",
+                "description": "  godoc\nGet trace graph",
                 "produces": [
                     "json",
                     "application/json"
@@ -4164,6 +4207,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Get trace graph",
                 "operationId": "GET./v2/storage/{storage-id}/trace-graph",
                 "parameters": [
                     {
@@ -4196,7 +4240,7 @@
         },
         "/v2/storage/{template}": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nCreate storage by template",
                 "produces": [
                     "json",
                     "application/json"
@@ -4204,6 +4248,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Create storage by template",
                 "operationId": "POST./v2/storage/{template}",
                 "parameters": [
                     {
@@ -4227,7 +4272,7 @@
         },
         "/v3/storage": {
             "post": {
-                "description": "  godoc",
+                "description": "  godoc\nCreating a no format restrictions log library",
                 "produces": [
                     "json",
                     "application/json"
@@ -4235,6 +4280,7 @@
                 "tags": [
                     "storage"
                 ],
+                "summary": "Creating a no format restrictions log library",
                 "operationId": "POST./v3/storage",
                 "parameters": [
                     {
@@ -4396,6 +4442,7 @@
             "title": "Alarm",
             "properties": {
                 "alarmName": {
+                    "description": "name of an alarm",
                     "type": "string"
                 },
                 "alertRule": {
@@ -4403,15 +4450,18 @@
                     "type": "string"
                 },
                 "alertRules": {
+                    "description": "prometheus alert rule",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                 },
                 "channelIds": {
+                    "description": "channel of an alarm",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
                 },
                 "ctime": {
                     "type": "integer"
                 },
                 "desc": {
+                    "description": "description",
                     "type": "string"
                 },
                 "dtime": {
@@ -4421,21 +4471,26 @@
                     "type": "integer"
                 },
                 "interval": {
+                    "description": "interval second between alarm",
                     "type": "integer"
                 },
                 "level": {
+                    "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
                 "noDataOp": {
+                    "description": "noDataOp 0 nodata 1 ok 2 alert",
                     "type": "integer"
                 },
                 "status": {
+                    "description": "status",
                     "type": "integer"
                 },
                 "tableIds": {
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
                 },
                 "tag": {
+                    "description": "tags",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                 },
                 "tid": {
@@ -4443,9 +4498,11 @@
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "uid of alarm operator",
                     "type": "integer"
                 },
                 "unit": {
+                    "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
                 "user": {
@@ -4455,6 +4512,7 @@
                     "type": "integer"
                 },
                 "uuid": {
+                    "description": "foreign key",
                     "type": "string"
                 },
                 "view": {
@@ -4485,15 +4543,19 @@
                     "type": "integer"
                 },
                 "key": {
+                    "description": "关键信息",
                     "type": "string"
                 },
                 "name": {
+                    "description": "告警渠道名称",
                     "type": "string"
                 },
                 "typ": {
+                    "description": "告警类型：0 dd",
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "操作人",
                     "type": "integer"
                 },
                 "utime": {
@@ -4506,9 +4568,11 @@
             "title": "AlarmCondition",
             "properties": {
                 "alarmId": {
+                    "description": "alarm id",
                     "type": "integer"
                 },
                 "cond": {
+                    "description": "0 above 1 below 2 outside range 3 within range",
                     "type": "integer"
                 },
                 "ctime": {
@@ -4518,24 +4582,29 @@
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "exp": {
+                    "description": "0 avg 1 min 2 max 3 sum 4 count",
                     "type": "integer"
                 },
                 "filterId": {
+                    "description": "filter id",
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "0 WHEN 1 AND 2 OR",
                     "type": "integer"
                 },
                 "utime": {
                     "type": "integer"
                 },
                 "val1": {
+                    "description": "基准值/最小值",
                     "type": "integer"
                 },
                 "val2": {
+                    "description": "最大值",
                     "type": "integer"
                 }
             }
@@ -4545,6 +4614,7 @@
             "title": "AlarmFilter",
             "properties": {
                 "alarmId": {
+                    "description": "alarm id",
                     "type": "integer"
                 },
                 "ctime": {
@@ -4554,24 +4624,29 @@
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "exp": {
+                    "description": "操作",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "mode": {
+                    "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
                 "tid": {
+                    "description": "table id",
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS",
                     "type": "integer"
                 },
                 "utime": {
                     "type": "integer"
                 },
                 "when": {
+                    "description": "执行条件",
                     "type": "string"
                 }
             }
@@ -4581,6 +4656,7 @@
             "title": "AlarmHistory",
             "properties": {
                 "alarmId": {
+                    "description": "alarm id",
                     "type": "integer"
                 },
                 "ctime": {
@@ -4593,6 +4669,7 @@
                     "type": "integer"
                 },
                 "isPushed": {
+                    "description": "alarm id",
                     "type": "integer"
                 },
                 "utime": {
@@ -4631,6 +4708,7 @@
             "title": "BaseDatabase",
             "properties": {
                 "cluster": {
+                    "description": "cluster",
                     "type": "string"
                 },
                 "ctime": {
@@ -4646,6 +4724,7 @@
                     "type": "integer"
                 },
                 "iid": {
+                    "description": "datasource instance id",
                     "type": "integer"
                 },
                 "instance": {
@@ -4655,9 +4734,11 @@
                     "type": "integer"
                 },
                 "name": {
+                    "description": "datasource database name",
                     "type": "string"
                 },
                 "uid": {
+                    "description": "datasource operator uid",
                     "type": "integer"
                 },
                 "utime": {
@@ -4670,6 +4751,7 @@
             "title": "BaseIndex",
             "properties": {
                 "alias": {
+                    "description": "index filed alias name",
                     "type": "string"
                 },
                 "ctime": {
@@ -4679,21 +4761,26 @@
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "field": {
+                    "description": "index field name",
                     "type": "string"
                 },
                 "hashTyp": {
+                    "description": "hash type, 0 no hash 1 sipHash64 2 URLHash",
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "rootName": {
+                    "description": "root_name",
                     "type": "string"
                 },
                 "tid": {
+                    "description": "table id",
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "0 string 1 int 2 float",
                     "type": "integer"
                 },
                 "utime": {
@@ -4706,51 +4793,63 @@
             "title": "BaseInstance",
             "properties": {
                 "clusterId": {
+                    "description": "cluster_id",
                     "type": "integer"
                 },
                 "clusters": {
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Strings"
                 },
                 "configmap": {
+                    "description": "configmap",
                     "type": "string"
                 },
                 "ctime": {
                     "type": "integer"
                 },
                 "datasource": {
+                    "description": "datasource type",
                     "type": "string"
                 },
                 "desc": {
+                    "description": "file_path",
                     "type": "string"
                 },
                 "dsn": {
+                    "description": "dsn",
                     "type": "string"
                 },
                 "dtime": {
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "filePath": {
+                    "description": "file_path",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "mode": {
+                    "description": "0 standalone 1 cluster",
                     "type": "integer"
                 },
                 "name": {
+                    "description": "datasource instance name",
                     "type": "string"
                 },
                 "namespace": {
+                    "description": "namespace",
                     "type": "string"
                 },
                 "prometheusTarget": {
+                    "description": "prometheus ip or domain, eg: https://prometheus:9090",
                     "type": "string"
                 },
                 "replicaStatus": {
+                    "description": "status 0 has replica 1 no replica",
                     "type": "integer"
                 },
                 "ruleStoreType": {
+                    "description": "rule_store_type 1 文件 2 集群",
                     "type": "integer"
                 },
                 "utime": {
@@ -4784,12 +4883,15 @@
                     "type": "string"
                 },
                 "brokers": {
+                    "description": "kafka broker",
                     "type": "string"
                 },
                 "consumerNum": {
+                    "description": "kafka consumer number",
                     "type": "integer"
                 },
                 "createType": {
+                    "description": "operation type, 0 means create clickvisual fresh table, 1 means use exists table",
                     "type": "integer"
                 },
                 "ctime": {
@@ -4799,12 +4901,14 @@
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseDatabase"
                 },
                 "days": {
+                    "description": "data expire days",
                     "type": "integer"
                 },
                 "desc": {
                     "type": "string"
                 },
                 "did": {
+                    "description": "database id",
                     "type": "integer"
                 },
                 "dtime": {
@@ -4820,48 +4924,60 @@
                     "type": "integer"
                 },
                 "name": {
+                    "description": "table",
                     "type": "string"
                 },
                 "rawLogField": {
                     "type": "string"
                 },
                 "selectFields": {
+                    "description": "sql_distributed",
                     "type": "string"
                 },
                 "sqlData": {
+                    "description": "sql_data",
                     "type": "string"
                 },
                 "sqlDistributed": {
+                    "description": "sql_distributed",
                     "type": "string"
                 },
                 "sqlStream": {
+                    "description": "sql_stream",
                     "type": "string"
                 },
                 "sqlView": {
+                    "description": "sql_view",
                     "type": "string"
                 },
                 "timeField": {
+                    "description": "custom time filed name of _time_",
                     "type": "string"
                 },
                 "timeFieldType": {
+                    "description": "custom time filed type name of _time_",
                     "type": "integer"
                 },
                 "topic": {
+                    "description": "kafka topic",
                     "type": "string"
                 },
                 "traceTableId": {
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "table type, 1 string 2 float",
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "operator uid",
                     "type": "integer"
                 },
                 "utime": {
                     "type": "integer"
                 },
                 "v3TableType": {
+                    "description": "0 default 1 jaegerJson",
                     "type": "integer"
                 }
             }
@@ -4877,27 +4993,34 @@
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "format": {
+                    "description": "timestamp parse to extract time from raw log and parse it to datetime",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "isUseDefaultTime": {
+                    "description": "use system time or not",
                     "type": "integer"
                 },
                 "key": {
+                    "description": "field name of time in raw log",
                     "type": "string"
                 },
                 "name": {
+                    "description": "view name",
                     "type": "string"
                 },
                 "sqlView": {
+                    "description": "sql_view",
                     "type": "string"
                 },
                 "tid": {
+                    "description": "table id",
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "operator uid",
                     "type": "integer"
                 },
                 "utime": {
@@ -4910,18 +5033,22 @@
             "title": "BigdataCrontab",
             "properties": {
                 "args": {
+                    "description": "sql_view",
                     "type": "string"
                 },
                 "cron": {
+                    "description": "cron expression",
                     "type": "string"
                 },
                 "ctime": {
                     "type": "integer"
                 },
                 "desc": {
+                    "description": "description",
                     "type": "string"
                 },
                 "dutyUid": {
+                    "description": "person in charge",
                     "type": "integer"
                 },
                 "isRetry": {
@@ -4937,12 +5064,15 @@
                     "type": "integer"
                 },
                 "status": {
+                    "description": "status 0 default 1 preempt 2 doing",
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "typ 0 Normal scheduling 1 Suspended scheduling",
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "user id",
                     "type": "integer"
                 },
                 "utime": {
@@ -4958,6 +5088,7 @@
                     "type": "integer"
                 },
                 "desc": {
+                    "description": "description",
                     "type": "string"
                 },
                 "dtime": {
@@ -4970,6 +5101,7 @@
                     "type": "integer"
                 },
                 "name": {
+                    "description": "name of an alarm",
                     "type": "string"
                 },
                 "parentId": {
@@ -4982,6 +5114,7 @@
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "uid of alarm operator",
                     "type": "integer"
                 },
                 "utime": {
@@ -5033,6 +5166,7 @@
                     "type": "integer"
                 },
                 "status": {
+                    "description": "0 无状态 1 待执行 2 执行中 3 执行异常 4 执行完成",
                     "type": "integer"
                 },
                 "tertiary": {
@@ -5081,6 +5215,7 @@
                     "type": "integer"
                 },
                 "desc": {
+                    "description": "description",
                     "type": "string"
                 },
                 "dtime": {
@@ -5093,6 +5228,7 @@
                     "type": "integer"
                 },
                 "name": {
+                    "description": "name of an alarm",
                     "type": "string"
                 },
                 "password": {
@@ -5123,6 +5259,7 @@
                     "type": "integer"
                 },
                 "desc": {
+                    "description": "description",
                     "type": "string"
                 },
                 "dtime": {
@@ -5135,6 +5272,7 @@
                     "type": "integer"
                 },
                 "name": {
+                    "description": "name of an alarm",
                     "type": "string"
                 },
                 "uid": {
@@ -5150,15 +5288,18 @@
             "title": "Cluster",
             "properties": {
                 "apiServer": {
+                    "description": "address of cluster API server",
                     "type": "string"
                 },
                 "clusterName": {
+                    "description": "unique name of cluster",
                     "type": "string"
                 },
                 "ctime": {
                     "type": "integer"
                 },
                 "description": {
+                    "description": "brief description of cluster",
                     "type": "string"
                 },
                 "dtime": {
@@ -5168,9 +5309,11 @@
                     "type": "integer"
                 },
                 "kubeConfig": {
+                    "description": "raw content of kube config",
                     "type": "string"
                 },
                 "status": {
+                    "description": "0 means Well-Running, others mean not running",
                     "type": "integer"
                 },
                 "utime": {
@@ -5231,6 +5374,7 @@
                     "type": "integer"
                 },
                 "k8sConfigmapId": {
+                    "description": "config map id",
                     "type": "integer"
                 },
                 "lockAt": {
@@ -5305,6 +5449,7 @@
             "title": "K8SConfigMap",
             "properties": {
                 "clusterId": {
+                    "description": "集群ID",
                     "type": "integer"
                 },
                 "ctime": {
@@ -5512,6 +5657,7 @@
                     "type": "string"
                 },
                 "ruleStoreType": {
+                    "description": "rule_store_type 1 文件 2 集群",
                     "type": "integer"
                 }
             }
@@ -5524,6 +5670,7 @@
                     "type": "string"
                 },
                 "collectType": {
+                    "description": "1 query 2 table filter 4 global filter",
                     "type": "integer"
                 },
                 "statement": {
@@ -5563,6 +5710,7 @@
                     "type": "string"
                 },
                 "collectType": {
+                    "description": "1 query 2 table filter 4 global filter",
                     "type": "integer"
                 },
                 "statement": {
@@ -5607,6 +5755,7 @@
                     "type": "string"
                 },
                 "ruleStoreType": {
+                    "description": "rule_store_type 1 文件 2 集群",
                     "type": "integer"
                 }
             }
@@ -5631,9 +5780,11 @@
                     "type": "string"
                 },
                 "isAlertManagerOK": {
+                    "description": "0 no 1 yes",
                     "type": "integer"
                 },
                 "isMetricsSamplesOk": {
+                    "description": "0 no 1 yes",
                     "type": "integer"
                 },
                 "isPrometheusOK": {
@@ -5644,6 +5795,7 @@
                     "type": "string"
                 },
                 "ruleStoreType": {
+                    "description": "rule_store_type 1 文件 2 集群",
                     "type": "integer"
                 }
             }
@@ -5684,60 +5836,74 @@
             "title": "User",
             "properties": {
                 "access": {
+                    "description": "access",
                     "type": "string"
                 },
                 "avatar": {
+                    "description": "avatar",
                     "type": "string"
                 },
                 "ctime": {
                     "type": "integer"
                 },
                 "currentAuthority": {
+                    "description": "currentAuthority",
                     "type": "string"
                 },
                 "dtime": {
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "email": {
+                    "description": "email",
                     "type": "string"
                 },
                 "hash": {
+                    "description": "hash",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "nickname": {
+                    "description": "昵称",
                     "type": "string"
                 },
                 "oaId": {
+                    "description": "oa_id",
                     "type": "integer"
                 },
                 "oauth": {
+                    "description": "oauth",
                     "type": "string"
                 },
                 "oauthId": {
+                    "description": "oauthId",
                     "type": "string"
                 },
                 "password": {
+                    "description": "password",
                     "type": "string"
                 },
                 "secret": {
+                    "description": "实例名称",
                     "type": "string"
                 },
                 "state": {
+                    "description": "state",
                     "type": "string"
                 },
                 "uid": {
                     "type": "integer"
                 },
                 "username": {
+                    "description": "用户名",
                     "type": "string"
                 },
                 "utime": {
                     "type": "integer"
                 },
                 "webUrl": {
+                    "description": "webUrl",
                     "type": "string"
                 }
             }
@@ -5860,18 +6026,23 @@
             "title": "ReqAlarmConditionCreate",
             "properties": {
                 "cond": {
+                    "description": "0 above 1 below 2 outside range 3 within range",
                     "type": "integer"
                 },
                 "exp": {
+                    "description": "0 avg 1 min 2 max 3 sum 4 count",
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "0 when 1 and  2 or",
                     "type": "integer"
                 },
                 "val1": {
+                    "description": "基准值/最小值",
                     "type": "integer"
                 },
                 "val2": {
+                    "description": "最大值",
                     "type": "integer"
                 }
             }
@@ -5881,9 +6052,11 @@
             "title": "ReqAlarmCreate",
             "properties": {
                 "alarmName": {
+                    "description": "告警名称",
                     "type": "string"
                 },
                 "alertRule": {
+                    "description": "prometheus alert rule",
                     "type": "string"
                 },
                 "channelIds": {
@@ -5899,6 +6072,7 @@
                     }
                 },
                 "desc": {
+                    "description": "描述说明",
                     "type": "string"
                 },
                 "filters": {
@@ -5908,6 +6082,7 @@
                     }
                 },
                 "interval": {
+                    "description": "告警频率",
                     "type": "integer"
                 },
                 "level": {
@@ -5926,9 +6101,11 @@
                     }
                 },
                 "unit": {
+                    "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
                 "view": {
+                    "description": "数据转换视图",
                     "type": "string"
                 }
             }
@@ -5944,6 +6121,7 @@
                     }
                 },
                 "exp": {
+                    "description": "操作",
                     "type": "string"
                 },
                 "mode": {
@@ -5953,9 +6131,11 @@
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS",
                     "type": "integer"
                 },
                 "when": {
+                    "description": "执行条件",
                     "type": "string"
                 }
             }
@@ -6001,6 +6181,7 @@
                     "type": "string"
                 },
                 "format": {
+                    "description": "格式后缀名(比如: toml, yaml)",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.ConfigFormat"
                 }
             }
@@ -6391,27 +6572,34 @@
             "title": "ReqPermission",
             "properties": {
                 "acts": {
+                    "description": "require(or want) actions. i.e. the key of PermittedActMap",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "domainId": {
+                    "description": "envId or entId based on DomainType respectively",
                     "type": "string"
                 },
                 "domainType": {
+                    "description": "env or ent. i.e. the keys of PermittedDomPrefixMap",
                     "type": "string"
                 },
                 "objectIdx": {
+                    "description": "referId(e.g. aid) or other NameStr(e.g. configResourceName, url etc.)",
                     "type": "string"
                 },
                 "objectType": {
+                    "description": "the type of ObjectIdx. its value must be a valid PermittedPrefix",
                     "type": "string"
                 },
                 "subResource": {
+                    "description": "the subResource of target Object(Type+Idx). If target Obj has no subResource, please set it to \"*\"",
                     "type": "string"
                 },
                 "userId": {
+                    "description": "request userId",
                     "type": "integer"
                 }
             }
@@ -6421,9 +6609,11 @@
             "title": "ReqPublishConfig",
             "properties": {
                 "id": {
+                    "description": "配置ID",
                     "type": "integer"
                 },
                 "version": {
+                    "description": "版本号",
                     "type": "string"
                 }
             }
@@ -6454,6 +6644,7 @@
                     "type": "string"
                 },
                 "Source": {
+                    "description": "Raw JSON data",
                     "type": "string"
                 },
                 "SourceMapping": {
@@ -6469,6 +6660,7 @@
                     "type": "string"
                 },
                 "Typ": {
+                    "description": "1 string 2 float",
                     "type": "integer"
                 }
             }
@@ -6493,6 +6685,7 @@
                     "type": "string"
                 },
                 "IsKafkaTimestamp": {
+                    "description": "1 yes",
                     "type": "integer"
                 },
                 "KafkaSkipBrokenMessages": {
@@ -6505,12 +6698,14 @@
                     "type": "string"
                 },
                 "TimeFieldType": {
+                    "description": "1 string 2 float",
                     "type": "integer"
                 },
                 "Topics": {
                     "type": "string"
                 },
                 "V3TableType": {
+                    "description": "0 default 1 jaegerJson",
                     "type": "integer"
                 }
             }
@@ -6526,6 +6721,7 @@
                     "type": "string"
                 },
                 "KafkaConsumerNum": {
+                    "description": "min 1 max 8",
                     "type": "integer"
                 },
                 "KafkaSkipBrokenMessages": {
@@ -6679,6 +6875,7 @@
                     "type": "string"
                 },
                 "id": {
+                    "description": "the id of configuration",
                     "type": "integer"
                 },
                 "message": {
@@ -6847,9 +7044,11 @@
             "title": "ReqUserCreate",
             "properties": {
                 "nickname": {
+                    "description": "显示用户名",
                     "type": "string"
                 },
                 "username": {
+                    "description": "登陆账号",
                     "type": "string"
                 }
             }
@@ -6889,9 +7088,11 @@
             "title": "RespAlarmInfo",
             "properties": {
                 "access": {
+                    "description": "access",
                     "type": "string"
                 },
                 "alarmName": {
+                    "description": "name of an alarm",
                     "type": "string"
                 },
                 "alertRule": {
@@ -6899,12 +7100,15 @@
                     "type": "string"
                 },
                 "alertRules": {
+                    "description": "prometheus alert rule",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                 },
                 "avatar": {
+                    "description": "avatar",
                     "type": "string"
                 },
                 "channelIds": {
+                    "description": "channel of an alarm",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
                 },
                 "conditions": {
@@ -6918,15 +7122,18 @@
                     "type": "integer"
                 },
                 "currentAuthority": {
+                    "description": "currentAuthority",
                     "type": "string"
                 },
                 "desc": {
+                    "description": "description",
                     "type": "string"
                 },
                 "dtime": {
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "email": {
+                    "description": "email",
                     "type": "string"
                 },
                 "filters": {
@@ -6936,6 +7143,7 @@
                     }
                 },
                 "hash": {
+                    "description": "hash",
                     "type": "string"
                 },
                 "id": {
@@ -6946,27 +7154,35 @@
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance"
                 },
                 "interval": {
+                    "description": "interval second between alarm",
                     "type": "integer"
                 },
                 "level": {
+                    "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
                 "nickname": {
+                    "description": "昵称",
                     "type": "string"
                 },
                 "noDataOp": {
+                    "description": "noDataOp 0 nodata 1 ok 2 alert",
                     "type": "integer"
                 },
                 "oaId": {
+                    "description": "oa_id",
                     "type": "integer"
                 },
                 "oauth": {
+                    "description": "oauth",
                     "type": "string"
                 },
                 "oauthId": {
+                    "description": "oauthId",
                     "type": "string"
                 },
                 "password": {
+                    "description": "password",
                     "type": "string"
                 },
                 "relatedList": {
@@ -6976,12 +7192,15 @@
                     }
                 },
                 "secret": {
+                    "description": "实例名称",
                     "type": "string"
                 },
                 "state": {
+                    "description": "state",
                     "type": "string"
                 },
                 "status": {
+                    "description": "status",
                     "type": "integer"
                 },
                 "table": {
@@ -6992,6 +7211,7 @@
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
                 },
                 "tag": {
+                    "description": "tags",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                 },
                 "tid": {
@@ -7002,18 +7222,21 @@
                     "type": "integer"
                 },
                 "unit": {
+                    "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
                 "user": {
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.User"
                 },
                 "username": {
+                    "description": "用户名",
                     "type": "string"
                 },
                 "utime": {
                     "type": "integer"
                 },
                 "uuid": {
+                    "description": "foreign key",
                     "type": "string"
                 },
                 "view": {
@@ -7029,6 +7252,7 @@
                     "type": "string"
                 },
                 "webUrl": {
+                    "description": "webUrl",
                     "type": "string"
                 }
             }
@@ -7038,6 +7262,7 @@
             "title": "RespAlarmInfoFilter",
             "properties": {
                 "alarmId": {
+                    "description": "alarm id",
                     "type": "integer"
                 },
                 "conditions": {
@@ -7053,27 +7278,32 @@
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "exp": {
+                    "description": "操作",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "mode": {
+                    "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
                 "tableName": {
                     "type": "string"
                 },
                 "tid": {
+                    "description": "table id",
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS",
                     "type": "integer"
                 },
                 "utime": {
                     "type": "integer"
                 },
                 "when": {
+                    "description": "执行条件",
                     "type": "string"
                 }
             }
@@ -7144,9 +7374,11 @@
                     "type": "string"
                 },
                 "id": {
+                    "description": "id",
                     "type": "integer"
                 },
                 "iid": {
+                    "description": "实例 id",
                     "type": "integer"
                 },
                 "instanceDesc": {
@@ -7159,9 +7391,11 @@
                     "type": "integer"
                 },
                 "name": {
+                    "description": "数据库名称",
                     "type": "string"
                 },
                 "uid": {
+                    "description": "操作人",
                     "type": "integer"
                 }
             }
@@ -7222,15 +7456,19 @@
                     "type": "integer"
                 },
                 "currentEditUser": {
+                    "description": "当前正在编辑的用户名",
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.User"
                 },
                 "envId": {
+                    "description": "环境id",
                     "type": "integer"
                 },
                 "format": {
+                    "description": "Yaml/Toml",
                     "type": "string"
                 },
                 "id": {
+                    "description": "ConfigurationHistory.ID",
                     "type": "integer"
                 },
                 "k8sConfigmapId": {
@@ -7240,6 +7478,7 @@
                     "type": "string"
                 },
                 "ptime": {
+                    "description": "未发布/发布时间",
                     "type": "integer"
                 },
                 "utime": {
@@ -7285,6 +7524,7 @@
                     "type": "integer"
                 },
                 "desc": {
+                    "description": "description",
                     "type": "string"
                 },
                 "dtime": {
@@ -7297,6 +7537,7 @@
                     "type": "integer"
                 },
                 "name": {
+                    "description": "name of an alarm",
                     "type": "string"
                 },
                 "nickName": {
@@ -7312,6 +7553,7 @@
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "uid of alarm operator",
                     "type": "integer"
                 },
                 "userName": {
@@ -7440,12 +7682,14 @@
                     "type": "integer"
                 },
                 "format": {
+                    "description": "Yaml/Toml",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "k8sConfigmapId": {
+                    "description": "环境id",
                     "type": "integer"
                 },
                 "name": {
@@ -7651,6 +7895,7 @@
             "title": "RespTableDetail",
             "properties": {
                 "brokers": {
+                    "description": "kafka broker",
                     "type": "string"
                 },
                 "consumerNum": {
@@ -7666,18 +7911,21 @@
                     "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDatabaseItem"
                 },
                 "days": {
+                    "description": "数据过期时间",
                     "type": "integer"
                 },
                 "desc": {
                     "type": "string"
                 },
                 "did": {
+                    "description": "数据库 id",
                     "type": "integer"
                 },
                 "kafkaSkipBrokenMessages": {
                     "type": "integer"
                 },
                 "name": {
+                    "description": "table",
                     "type": "string"
                 },
                 "sqlContent": {
@@ -7700,15 +7948,18 @@
                     "type": "string"
                 },
                 "topic": {
+                    "description": "kafka topic",
                     "type": "string"
                 },
                 "traceTableId": {
                     "type": "integer"
                 },
                 "typ": {
+                    "description": "table 类型 1 app 2 ego 3 ingress",
                     "type": "integer"
                 },
                 "uid": {
+                    "description": "操作人",
                     "type": "integer"
                 },
                 "utime": {
@@ -7772,27 +8023,34 @@
             "title": "RespWorkerDashboard",
             "properties": {
                 "flows": {
+                    "description": "Execution trend chart",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.WorkerStatsRow"
                     }
                 },
                 "nodeFailed": {
+                    "description": "node status",
                     "type": "integer"
                 },
                 "nodeSuccess": {
+                    "description": "node status",
                     "type": "integer"
                 },
                 "nodeUnknown": {
+                    "description": "node status",
                     "type": "integer"
                 },
                 "workerFailed": {
+                    "description": "Execution status of each periodic schedule",
                     "type": "integer"
                 },
                 "workerSuccess": {
+                    "description": "Execution status of each periodic schedule",
                     "type": "integer"
                 },
                 "workerUnknown": {
+                    "description": "Execution status of each periodic schedule",
                     "type": "integer"
                 }
             }
