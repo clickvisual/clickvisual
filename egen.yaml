@@ -3,9 +3,7 @@ plugin: gin
 dir: 'api'
 
 depends:
- - github.com/gotomicro/gotoant
- - gorm.io/datatypes
- - git.shimo.im/gopkg/mo-ego-component
+  - gorm.io/plugin/soft_delete
 
 properties:
   request:
