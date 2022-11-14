@@ -25,6 +25,6 @@ jobs:
           body: |
             Updates [swagger-ui]
           labels: dependencies, automated pr
-          branch: master
+          branch: feature/docker-ci
         env:
-         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
