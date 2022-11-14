@@ -111,7 +111,7 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
                   id: "log.filter.form.field",
                 })}
               >
-                {columsList.map((item: string) => {
+                {columsList?.map((item: string) => {
                   return (
                     <Option key={item} value={item}>
                       {item}
