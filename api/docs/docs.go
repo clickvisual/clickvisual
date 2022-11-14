@@ -321,7 +321,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "username 登陆账号\nnickname 显示用户名",
+                "description": "username 登陆账号2\nnickname 显示用户名",
                 "produces": [
                     "application/json"
                 ],

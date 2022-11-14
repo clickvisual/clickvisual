@@ -732,7 +732,7 @@ paths:
       - base
     post:
       description: |-
-        username 登陆账号
+        username 登陆账号2
         nickname 显示用户名
       parameters:
       - description: params
