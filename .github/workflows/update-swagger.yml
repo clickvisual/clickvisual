@@ -13,7 +13,8 @@ jobs:
       - name: Install Swagger
         id: swagger-ui
         run: |
-          go install github.com/swaggo/swag/cmd/swag@latest
+          export PATH=$(go env GOPATH)/bin:$PATH
+          go install -u github.com/swaggo/swag/cmd/swag@latest
       - name: Update Swagger UI
         run: |
           swag init -g api/main.go -o api/docs
