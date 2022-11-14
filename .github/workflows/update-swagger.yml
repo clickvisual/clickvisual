@@ -26,3 +26,5 @@ jobs:
             Updates [swagger-ui]
           labels: dependencies, automated pr
           branch: swagger-ui-updates
+        env:
+         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
