@@ -6,7 +6,7 @@ import (
 )
 
 // InstanceList  godoc
-// @Summary      Gets all instance database and table data filtered by permissions
+// @Summary      Gets all instance database and table data filtered by permissions test
 // @Description  gets all instances, databases, and table nested data
 // @Tags         base
 // @Produce      json

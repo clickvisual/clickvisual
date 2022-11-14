@@ -1,4 +1,4 @@
-output: docs
+output: api/docs
 plugin: gin
 dir: 'api'
 

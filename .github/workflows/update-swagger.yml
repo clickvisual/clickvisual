@@ -14,13 +14,14 @@ jobs:
         id: swagger-ui
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
-          go get -u github.com/swaggo/swag/cmd/swag
+          go install github.com/gotomicro/ego-gen-api/cmd/egen@latest
           go env
-          swag init -g api/main.go -o api/docs
+          egen --config egen.yaml
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
+          delete-branch: true
           commit-message: 'docs: swagger update'
           title: Update Swagger
           body: |
