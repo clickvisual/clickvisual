@@ -800,7 +800,7 @@ paths:
                 data:
                   $ref: '#/definitions/view.RespUserCreate'
               type: object
-      summary: Reset user password
+      summary: Reset user password test
       tags:
       - base
   /api/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql:

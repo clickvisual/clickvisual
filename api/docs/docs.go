@@ -406,7 +406,7 @@ const docTemplate = `{
                 "tags": [
                     "base"
                 ],
-                "summary": "Reset user password",
+                "summary": "Reset user password test",
                 "parameters": [
                     {
                         "type": "integer",
