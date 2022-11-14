@@ -18,7 +18,7 @@ import (
 // ShortURLRedirect  godoc
 // @Summary      Get short links
 // @Description  Get short links
-// @Tags         base
+// @Tags         BASE
 // @Produce      json
 // @Param        s-code path int true "short code"
 // @Success      301 {string} ok
@@ -46,7 +46,7 @@ func ShortURLRedirect(c *core.Context) {
 // ShortURLCreate  godoc
 // @Summary      Create short links
 // @Description  Create short links
-// @Tags         base
+// @Tags         BASE
 // @Produce      json
 // @Param        req body db.ReqShortURLCreate true "params"
 // @Success      200 {object} core.Res{}

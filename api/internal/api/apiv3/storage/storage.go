@@ -16,7 +16,7 @@ import (
 // Create  godoc
 // @Summary	     Creating a no format restrictions log library
 // @Description  Creating a no format restrictions log library
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqStorageCreateV3 true "params"

@@ -23,6 +23,7 @@ import (
 )
 
 // List 配置文件列表
+// @Tags         CONFIGURE
 func List(c *core.Context) {
 	param := view.ReqListConfig{}
 	err := c.Bind(&param)
@@ -69,6 +70,7 @@ func List(c *core.Context) {
 }
 
 // Detail ..
+// @Tags         CONFIGURE
 func Detail(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -97,6 +99,7 @@ func Detail(c *core.Context) {
 }
 
 // Create ..
+// @Tags         CONFIGURE
 func Create(c *core.Context) {
 	param := view.ReqCreateConfig{}
 	err := c.Bind(&param)
@@ -114,6 +117,7 @@ func Create(c *core.Context) {
 }
 
 // Update ..
+// @Tags         CONFIGURE
 func Update(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -148,6 +152,7 @@ func Update(c *core.Context) {
 }
 
 // Publish ..
+// @Tags         CONFIGURE
 func Publish(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -177,6 +182,7 @@ func Publish(c *core.Context) {
 }
 
 // HistoryList ..
+// @Tags         CONFIGURE
 func HistoryList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -214,6 +220,7 @@ func HistoryList(c *core.Context) {
 }
 
 // HistoryInfo ..
+// @Tags         CONFIGURE
 func HistoryInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	version := strings.TrimSpace(c.Param("version"))
@@ -233,6 +240,7 @@ func HistoryInfo(c *core.Context) {
 }
 
 // Diff ..
+// @Tags         CONFIGURE
 func Diff(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -255,6 +263,7 @@ func Diff(c *core.Context) {
 }
 
 // Delete ..
+// @Tags         CONFIGURE
 func Delete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -271,6 +280,7 @@ func Delete(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         CONFIGURE
 func Lock(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -291,6 +301,7 @@ func Lock(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         CONFIGURE
 func Unlock(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -308,6 +319,7 @@ func Unlock(c *core.Context) {
 // Sync Synchronize the configmap configuration
 // if id is 0 means all configurations need to be synchronized
 // not support update operator
+// @Tags         CONFIGURE
 func Sync(c *core.Context) {
 	param := view.ReqSyncConfig{}
 	err := c.Bind(&param)

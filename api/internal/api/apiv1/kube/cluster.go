@@ -8,6 +8,7 @@ import (
 )
 
 // ClusterList 根据分页获取Cluster列表
+// @Tags         KUBE
 func ClusterList(c *core.Context) {
 	res, err := db.ClusterListHideSensitiveInfo(egorm.Conds{})
 	if err != nil {

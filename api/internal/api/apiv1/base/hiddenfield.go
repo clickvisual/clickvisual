@@ -15,6 +15,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
+// @Tags         BASE
 func HiddenUpsert(c *core.Context) {
 	tid := cast.ToInt(c.Param("tid"))
 	if tid == 0 {
@@ -94,6 +95,7 @@ func HiddenUpsert(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func HiddenList(c *core.Context) {
 	tid := cast.ToInt(c.Param("tid"))
 	if tid == 0 {

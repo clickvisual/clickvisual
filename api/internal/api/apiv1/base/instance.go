@@ -17,6 +17,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         BASE
 func InstanceCreate(c *core.Context) {
 	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
@@ -35,6 +36,7 @@ func InstanceCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func InstanceUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -120,6 +122,7 @@ func InstanceUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func InstanceList(c *core.Context) {
 	res := make([]*db.BaseInstance, 0)
 	tmp, err := db.InstanceList(egorm.Conds{})
@@ -137,6 +140,7 @@ func InstanceList(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func InstanceInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -156,6 +160,7 @@ func InstanceInfo(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func InstanceDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -193,6 +198,7 @@ func InstanceDelete(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func InstanceTest(c *core.Context) {
 	var req view.ReqTestInstance
 	if err := c.Bind(&req); err != nil {

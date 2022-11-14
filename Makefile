@@ -8,6 +8,11 @@ HUB_USER:=clickvisual
 
 build: build.ui build.dist build.api
 
+docs:
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ego gen api $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+	@egogen --config egogen.yaml
+	@echo -e "success \n"
+
 build.api:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	@chmod +x $(SCRIPT_PATH)/build/*.sh

@@ -23,7 +23,7 @@ import (
 // KafkaJsonMapping  godoc
 // @Summary	     Kafka JSON field mapping
 // @Description  Kafka JSON field mapping
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqKafkaJSONMapping true "params"
@@ -47,7 +47,7 @@ func KafkaJsonMapping(c *core.Context) {
 // Create  godoc
 // @Summary	     Creating a log library
 // @Description  Creating a log library
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqStorageCreate true "params"
@@ -89,7 +89,7 @@ func Create(c *core.Context) {
 // AnalysisFields  godoc
 // @Summary	     iStorage analysis field list
 // @Description  iStorage analysis field list
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        storage-id path int true "table id"
@@ -130,7 +130,7 @@ func AnalysisFields(c *core.Context) {
 // Update  godoc
 // @Summary	     iStorage update
 // @Description  iStorage update
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        storage-id path int true "table id"
@@ -230,7 +230,7 @@ func Update(c *core.Context) {
 // CreateStorageByTemplate  godoc
 // @Summary	     Create storage by template
 // @Description  Create storage by template
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        template path string true "template"

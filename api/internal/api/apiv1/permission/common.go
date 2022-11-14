@@ -11,6 +11,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         PREMISSION
 func GetPmsCommonInfo(c *core.Context) {
 	var err error
 	reqPerm := view.ReqPmsCommonInfo{}
@@ -22,6 +23,7 @@ func GetPmsCommonInfo(c *core.Context) {
 	c.JSONOK(pmsplugin.GetPmsCommonInfo(reqPerm.Iid))
 }
 
+// @Tags         PREMISSION
 func CheckPermission(c *core.Context) {
 	var err error
 	reqPerm := view.ReqPermission{}

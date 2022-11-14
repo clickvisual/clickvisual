@@ -21,6 +21,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
+// @Tags         USER
 func Oauth(c *core.Context) {
 	if kauth.OAuthService == nil {
 		c.JSONE(1, "oauth not enabled", nil)

@@ -15,6 +15,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         PANDAS
 func FolderCreate(c *core.Context) {
 	var req view.ReqCreateFolder
 	if err := c.Bind(&req); err != nil {
@@ -50,6 +51,7 @@ func FolderCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         PANDAS
 func FolderUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -89,6 +91,7 @@ func FolderUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         PANDAS
 func FolderDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -129,6 +132,7 @@ func FolderDelete(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         PANDAS
 func FolderInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
