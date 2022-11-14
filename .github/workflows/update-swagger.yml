@@ -17,9 +17,8 @@ jobs:
         id: swagger-ui
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
-          go env
           go version 
-          go install github.com/gotomicro/ego-gen-api/cmd/egogen@latest
+          go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.1-rc1
           egogen --config egogen.yaml
       - name: Create Commit
         uses: peter-evans/create-pull-request@v4
