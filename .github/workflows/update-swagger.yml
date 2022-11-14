@@ -14,9 +14,8 @@ jobs:
         id: swagger-ui
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
-          go install github.com/swaggo/swag/cmd/swag@latest
-      - name: Update Swagger UI
-        run: |
+          go install github.com/swaggo/swag/cmd/swag
+          go env
           swag init -g api/main.go -o api/docs
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
