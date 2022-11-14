@@ -12,7 +12,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
@@ -47,19 +46,22 @@ func GetRouter() *egin.Component {
 	if serveFromSubPath {
 		apiPrefix = appSubUrl + apiPrefix
 	}
-	v1Open := r.Group(apiPrefix + "/v1")
+	g := r.Group(apiPrefix)
+
+	v1Open := g.Group("/v1")
 	{
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
 		v1Open.POST("/prometheus/alerts", core.Handle(alert.Webhook))
 	}
-	admin := r.Group(apiPrefix + "/admin")
+	admin := g.Group("/admin")
 	{
 		admin.GET("/login/:oauth", core.Handle(user.Oauth)) // non-authentication api
 		admin.POST("/users/login", core.Handle(user.Login))
 	}
-	v1(r.Group(apiPrefix+"/v1", middlewares.AuthChecker()))
-	v2(r.Group(apiPrefix+"/v2", middlewares.AuthChecker()))
-	v3(r.Group(apiPrefix+"/v3", middlewares.AuthChecker()))
+
+	v1(g)
+	v2(g)
+	v3(g)
 	return r
 }
