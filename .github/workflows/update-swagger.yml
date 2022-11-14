@@ -9,8 +9,8 @@ jobs:
   updateSwagger:
     runs-on: ubuntu-latest
     steps:
-      - name: Get Latest Swagger
-      - uses: actions/checkout@v3
+      - name: Install Swagger
+        uses: actions/checkout@v3
         id: swagger-ui
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
