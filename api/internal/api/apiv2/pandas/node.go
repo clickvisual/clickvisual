@@ -22,7 +22,7 @@ import (
 // NodeLockAcquire  godoc
 // @Summary	     Force the file edit lock to be acquired
 // @Description  Force the file edit lock to be acquired
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        node-id path int true "node id"
@@ -62,7 +62,7 @@ func NodeLockAcquire(c *core.Context) {
 // @Summary	     Creating a scheduled node scheduling task
 // @Description  isRetry: 0 no 1 yes
 // @Description  retryInterval: the unit is in seconds, 100 means 100s
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        node-id path int true "node id"
@@ -121,7 +121,7 @@ func NodeCrontabCreate(c *core.Context) {
 // @Summary	     Updating a scheduled node scheduling task
 // @Description  isRetry: 0 no 1 yes
 // @Description  retryInterval: the unit is in seconds, 100 means 100s
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        node-id path int true "node id"
@@ -191,7 +191,7 @@ func NodeCrontabUpdate(c *core.Context) {
 // NodeResultUpdate  godoc
 // @Summary	     Updates the action on the execution result
 // @Description  only support excelProcess update
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        result-id path int true "result id"
@@ -240,7 +240,7 @@ func NodeResultUpdate(c *core.Context) {
 // NodeResultListPage  godoc
 // @Summary	     Obtain the node execution result record
 // @Description  Obtain the node execution result record
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        node-id path int true "node id"
@@ -300,7 +300,7 @@ func NodeResultListPage(c *core.Context) {
 // WorkerDashboard  godoc
 // @Summary	     Kanban on the execution status of a scheduled task
 // @Description  Kanban on the execution status of a scheduled task
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqWorkerDashboard true "params"
@@ -330,7 +330,7 @@ func WorkerDashboard(c *core.Context) {
 // WorkerList  godoc
 // @Summary	     The scheduled task list
 // @Description   The scheduled task list
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqWorkerList true "params"
@@ -412,7 +412,7 @@ func WorkerList(c *core.Context) {
 // TableDependencies  godoc
 // @Summary	     Result of table dependency resolution
 // @Description  Result of table dependency resolution
-// @Tags         pandas
+// @Tags         PANDAS
 // @Accept       json
 // @Produce      json
 // @Param        instance-id path int true "instance id"

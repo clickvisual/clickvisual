@@ -21,6 +21,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         ALERT
 func Create(c *core.Context) {
 	var req view.ReqAlarmCreate
 	if err := c.Bind(&req); err != nil {
@@ -81,6 +82,7 @@ func Create(c *core.Context) {
 	return
 }
 
+// @Tags         ALERT
 func Update(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -167,6 +169,7 @@ func Update(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         ALERT
 func List(c *core.Context) {
 	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
@@ -253,6 +256,7 @@ func List(c *core.Context) {
 	return
 }
 
+// @Tags         ALERT
 func Info(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -329,6 +333,7 @@ func Info(c *core.Context) {
 	return
 }
 
+// @Tags         ALERT
 func Delete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -423,6 +428,7 @@ func Delete(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         ALERT
 func HistoryList(c *core.Context) {
 	var req view.ReqAlarmHistoryList
 	if err := c.Bind(&req); err != nil {
@@ -461,6 +467,7 @@ func HistoryList(c *core.Context) {
 	return
 }
 
+// @Tags         ALERT
 func HistoryInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

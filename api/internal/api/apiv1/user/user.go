@@ -17,6 +17,7 @@ import (
 )
 
 // Info get userinfo
+// @Tags         USER
 func Info(c *core.Context) {
 	session := sessions.Default(c.Context)
 	user := session.Get("user")
@@ -41,6 +42,7 @@ func Info(c *core.Context) {
 }
 
 // List 根据分页获取Cluster列表
+// @Tags         USER
 func List(c *core.Context) {
 	res := make([]*db.User, 0)
 	res = append(res, &db.User{
@@ -86,6 +88,7 @@ type login struct {
 }
 
 // Login ...
+// @Tags         USER
 func Login(c *core.Context) {
 	var param login
 	err := c.Bind(&param)
@@ -109,6 +112,7 @@ func Login(c *core.Context) {
 }
 
 // Logout ..
+// @Tags         USER
 func Logout(c *core.Context) {
 	session := sessions.Default(c.Context)
 	session.Delete("user")
@@ -127,6 +131,7 @@ type password struct {
 	ConfirmNew  string `form:"confirmNew" binding:"required"`
 }
 
+// @Tags         USER
 func UpdatePassword(c *core.Context) {
 	uid := cast.ToInt(c.Param("uid"))
 	if uid == 0 {

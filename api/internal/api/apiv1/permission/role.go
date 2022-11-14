@@ -14,6 +14,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         PREMISSION
 func PmsRoleList(c *core.Context) {
 	reqParam := view.ReqPmsRoles{}
 	err := c.Bind(&reqParam)
@@ -29,6 +30,7 @@ func PmsRoleList(c *core.Context) {
 	c.JSONOK(roles)
 }
 
+// @Tags         PREMISSION
 func PmsRoleInfo(c *core.Context) {
 	roleId := cast.ToInt(c.Param("id"))
 	if roleId == 0 {
@@ -43,6 +45,7 @@ func PmsRoleInfo(c *core.Context) {
 	c.JSONOK(roleInfo)
 }
 
+// @Tags         PREMISSION
 func CreatePmsRole(c *core.Context) {
 	var err error
 	reqModel := view.ReqNewPmsRole{}
@@ -86,6 +89,7 @@ func CreatePmsRole(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         PREMISSION
 func UpdatePmsRole(c *core.Context) {
 	roleId := cast.ToInt(c.Param("id"))
 	if roleId == 0 {
@@ -130,6 +134,7 @@ func UpdatePmsRole(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         PREMISSION
 func DeletePmsRole(c *core.Context) {
 	roleId := cast.ToInt(c.Param("id"))
 	if roleId == 0 {
@@ -179,6 +184,7 @@ func DeletePmsRole(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         PREMISSION
 func GetRootUids(c *core.Context) {
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
 		c.JSONE(1, "permission verification failed", err)
@@ -190,6 +196,7 @@ func GetRootUids(c *core.Context) {
 
 }
 
+// @Tags         PREMISSION
 func GrantRootUids(c *core.Context) {
 	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
 		c.JSONE(1, "permission verification failed", err)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher"
@@ -27,7 +28,17 @@ func (i *alert) PushAlertManager(alarmUUID string, filterId string, notification
 	if err = db.AlarmHistoryCreate(invoker.Db, &alarmHistory); err != nil {
 		return err
 	}
-	if err = alarmObj.StatusUpdate(notification.Status); err != nil {
+	var currentStatus int
+	if notification.Status == "firing" {
+		currentStatus = db.AlarmStatusFiring
+	} else if notification.Status == "resolved" {
+		currentStatus = db.AlarmStatusOpen
+	}
+	if alarmObj.Status == currentStatus {
+		invoker.Logger.Info("PushAlertManagerRepeat", elog.Int("currentStatus", currentStatus), elog.String("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		return nil
+	}
+	if err = alarmObj.StatusUpdate(currentStatus); err != nil {
 		return err
 	}
 	// get alarm filter info

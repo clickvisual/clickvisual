@@ -1,15 +1,19 @@
 package router
 
 import (
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
-	"github.com/gin-gonic/gin"
-	swaggerfiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "embed"
+	"fmt"
 
+	"github.com/gin-gonic/gin"
+
+	goredoc "github.com/link-duan/go-redoc"
+
+	"github.com/clickvisual/clickvisual/api/docs"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/pandas"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
+	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 )
 
@@ -22,10 +26,18 @@ import (
 // The system management module - sysop
 func v2(r *gin.RouterGroup) {
 	r = r.Group("/v2", middlewares.AuthChecker())
-
+	fmt.Println(docs.EGOGenAPI)
 	// swagger docs
 	{
-		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+		r.GET("/swagger/*any", goredoc.GinHandler(&goredoc.Setting{
+			OpenAPIJson: docs.EGOGenAPI,
+			UriPrefix:   "/api/v2/swagger",
+			Title:       "Go Redoc",
+			RedocOptions: map[string]string{
+				"schema-expansion-level": "all",
+				"expand-responses":       "200,201",
+			},
+		}))
 	}
 	// The global basic readable information module - base
 	{

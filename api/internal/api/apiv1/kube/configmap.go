@@ -21,6 +21,7 @@ import (
 )
 
 // ConfigMapList Get configmap by name
+// @Tags         KUBE
 func ConfigMapList(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	if clusterId == 0 {
@@ -85,11 +86,13 @@ func ConfigMapList(c *core.Context) {
 			})
 		}
 	}
-	sort.Slice(resp, func(i, j int) bool { return len(resp[i].Configmaps) > len(resp[j].Configmaps) })
+	sort.Slice(resp,
+		func(i, j int) bool { return len(resp[i].Configmaps) > len(resp[j].Configmaps) })
 	c.JSONOK(resp)
 }
 
 // ConfigMapCreate Get configmap by name
+// @Tags         KUBE
 func ConfigMapCreate(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	if clusterId == 0 {
@@ -118,6 +121,7 @@ func ConfigMapCreate(c *core.Context) {
 }
 
 // ConfigMapInfo Get configmap by name
+// @Tags         KUBE
 func ConfigMapInfo(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	namespace := strings.TrimSpace(c.Param("namespace"))

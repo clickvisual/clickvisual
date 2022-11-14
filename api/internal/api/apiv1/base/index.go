@@ -17,6 +17,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         BASE
 func IndexUpdate(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	if tid == 0 {
@@ -56,6 +57,7 @@ func IndexUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func Indexes(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	if tid == 0 {

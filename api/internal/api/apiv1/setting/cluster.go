@@ -18,6 +18,7 @@ import (
 )
 
 // ClusterInfo 集群信息
+// @Tags         SYSTEM
 func ClusterInfo(c *core.Context) {
 	var (
 		err  error
@@ -37,6 +38,7 @@ func ClusterInfo(c *core.Context) {
 }
 
 // ClusterPageList 根据分页获取Cluster列表
+// @Tags         SYSTEM
 func ClusterPageList(c *core.Context) {
 	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
@@ -59,6 +61,7 @@ func ClusterPageList(c *core.Context) {
 }
 
 // ClusterCreate ...
+// @Tags         SYSTEM
 func ClusterCreate(c *core.Context) {
 	var err error
 	params := view.ReqCreateCluster{}
@@ -88,6 +91,7 @@ func ClusterCreate(c *core.Context) {
 }
 
 // ClusterUpdate 更新Cluster数据
+// @Tags         SYSTEM
 func ClusterUpdate(c *core.Context) {
 	var err error
 	clusterId := cast.ToInt(c.Param("id"))
@@ -123,6 +127,7 @@ func ClusterUpdate(c *core.Context) {
 }
 
 // ClusterDelete 删除数据
+// @Tags         SYSTEM
 func ClusterDelete(c *core.Context) {
 	var (
 		err error
@@ -142,7 +147,8 @@ func ClusterDelete(c *core.Context) {
 	c.JSONOK()
 }
 
-// private function. convert yaml to json if 'jsonOrYaml' is yaml format
+// private
+// function.convert yaml to json if 'jsonOrYaml' is yaml format
 func getJsonStr(jsonOrYaml string) (jsonStr string, err error) {
 	var js map[string]interface{}
 	if json.Unmarshal([]byte(jsonOrYaml), &js) == nil {

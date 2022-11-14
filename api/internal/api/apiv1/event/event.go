@@ -8,10 +8,12 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         EVENT
 func GetAllEnums(c *core.Context) {
 	c.JSONOK(event.Event.GetAllEnums())
 }
 
+// @Tags         EVENT
 func GetEnumsOfSource(c *core.Context) {
 	tgtSrc := strings.TrimSpace(c.Param("name"))
 	if tgtSrc == "" {
@@ -26,6 +28,7 @@ func GetEnumsOfSource(c *core.Context) {
 	c.JSONOK(resp)
 }
 
+// @Tags         EVENT
 func ListPage(c *core.Context) {
 	var req view.ReqEventList
 	if err := c.Bind(&req); err != nil {

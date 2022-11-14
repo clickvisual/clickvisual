@@ -25,6 +25,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
+// @Tags         BASE
 func TableId(c *core.Context) {
 	var param view.ReqTableId
 	err := c.Bind(&param)
@@ -59,6 +60,7 @@ func TableId(c *core.Context) {
 	c.JSONOK(tableInfo.ID)
 }
 
+// @Tags         BASE
 func TableCreate(c *core.Context) {
 	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
@@ -97,6 +99,7 @@ func TableCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func TableInfo(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	if tid == 0 {
@@ -185,6 +188,7 @@ func TableInfo(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func TableList(c *core.Context) {
 	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
@@ -214,6 +218,7 @@ func TableList(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func TableDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	tableInfo, err := db.TableInfo(invoker.Db, id)
@@ -293,6 +298,7 @@ func TableDelete(c *core.Context) {
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")
 }
 
+// @Tags         BASE
 func TableLogs(c *core.Context) {
 	st := time.Now()
 	var param view.ReqQuery
@@ -369,6 +375,7 @@ func TableLogs(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func QueryComplete(c *core.Context) {
 	var param view.ReqComplete
 	err := c.Bind(&param)
@@ -406,6 +413,7 @@ func QueryComplete(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func TableCharts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
@@ -560,6 +568,7 @@ func TableCharts(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func TableIndexes(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
@@ -638,6 +647,7 @@ func TableIndexes(c *core.Context) {
 	return
 }
 
+// @Tags         BASE
 func TableCreateSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -669,6 +679,7 @@ func TableCreateSelfBuilt(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func TableCreateSelfBuiltBatch(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -778,6 +789,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 	return nil
 }
 
+// @Tags         BASE
 func TableColumnsSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -813,6 +825,7 @@ func TableColumnsSelfBuilt(c *core.Context) {
 	c.JSONOK(columnsInfo)
 }
 
+// @Tags         BASE
 func TableUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -850,6 +863,7 @@ func TableUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         BASE
 func TableDeps(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	dn := strings.TrimSpace(c.Param("dn"))

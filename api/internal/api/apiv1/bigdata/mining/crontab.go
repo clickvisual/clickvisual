@@ -14,6 +14,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         STORAGE
 func CrontabDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -43,6 +44,7 @@ func CrontabDelete(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         PANDAS
 func CrontabInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

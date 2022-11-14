@@ -21,7 +21,7 @@ import (
 // SettingUpdate  godoc
 // @Summary	     Alert Basic Configuration Modification
 // @Description  Alert Basic Configuration Modification
-// @Tags         alert
+// @Tags         ALERT
 // @Accept       json
 // @Produce      json
 // @Param        instance-id path int true "instance id"
@@ -100,7 +100,7 @@ func SettingUpdate(c *core.Context) {
 // SettingList   godoc
 // @Summary	     Instance alarm configuration list
 // @Description  Instance alarm configuration list
-// @Tags         alert
+// @Tags         ALERT
 // @Accept       json
 // @Produce      json
 // @Success      200 {object} []db.RespAlertSettingListItem
@@ -161,7 +161,7 @@ func SettingList(c *core.Context) {
 // SettingInfo   godoc
 // @Summary	     Advanced configuration information in the instance
 // @Description  Advanced configuration information in the instance
-// @Tags         alert
+// @Tags         ALERT
 // @Accept       json
 // @Produce      json
 // @Param        instance-id path int true "instance id"
@@ -199,7 +199,7 @@ func SettingInfo(c *core.Context) {
 // CreateMetricsSamples  godoc
 // @Summary      Create metrics samples table
 // @Description  Store advanced metric data
-// @Tags         alert
+// @Tags         ALERT
 // @Produce      json
 // @Param        req body db.ReqCreateMetricsSamples true "params"
 // @Success      200 {object} core.Res{}

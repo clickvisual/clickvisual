@@ -11,6 +11,7 @@ import (
 	"strconv"
 )
 
+// @Tags         PREMISSION
 func GetInstancePmsRolesGrant(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -43,6 +44,7 @@ func GetInstancePmsRolesGrant(c *core.Context) {
 	c.JSONOK(instanceGrantInfo)
 }
 
+// @Tags         PREMISSION
 func UpdateInstancePmsRolesGrant(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {

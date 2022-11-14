@@ -12,7 +12,7 @@ import (
 // Webhook  godoc
 // @Summary      Alert push channel
 // @Description {"version":"4","groupKey":"{}:{alertname=\\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\\"}","status":"firing","receiver":"webhook","groupLabels":{"alertname":"e6e85281_6e22_4159_90e8_38943e75fb3f_194"},"commonLabels":{"alertname":"e6e85281_6e22_4159_90e8_38943e75fb3f_194","filterId":"194","severity":"warning","uuid":"e6e85281-6e22-4159-90e8-38943e75fb3f"},"commonAnnotations":{"description":" (当前值: 1)","summary":"告警 "},"externalURL":"http://duminxiangdeMacBook-Pro.local:9093","alerts":[{"labels":{"alertname":"e6e85281_6e22_4159_90e8_38943e75fb3f_194","filterId":"194","severity":"warning","uuid":"e6e85281-6e22-4159-90e8-38943e75fb3f"},"annotations":{"description":" (当前值: 1)","summary":"告警 "},"startsAt":"2022-11-07T09:23:17.6Z","endsAt":"0001-01-01T00:00:00Z"}]}
-// @Tags         alert
+// @Tags         ALERT
 // @Produce      json
 // @Param        req body db.Notification true "params"
 // @Success      200 {object} core.Res{}

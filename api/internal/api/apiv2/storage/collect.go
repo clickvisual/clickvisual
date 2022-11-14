@@ -13,7 +13,7 @@ import (
 // CreateCollect godoc
 // @Summary      Create Collect
 // @Description  CollectType
-// @Tags         storage
+// @Tags         STORAGE
 // @Produce      json
 // @Param        req body db.ReqCreateCollect true "params"
 // @Success      200 {object} core.Res{data=db.ReqCreateCollect}
@@ -42,7 +42,7 @@ func CreateCollect(c *core.Context) {
 // UpdateCollect  godoc
 // @Summary	     Update collect
 // @Description  Update collect
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        collect-id path int true "collect id"
@@ -96,7 +96,7 @@ func UpdateCollect(c *core.Context) {
 // ListCollect  godoc
 // @Summary      List Collect
 // @Description  List Collect
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        req query db.ReqListCollect true "params"
@@ -154,7 +154,7 @@ func ListCollect(c *core.Context) {
 // DeleteCollect godoc
 // @Summary      Delete Collect
 // @Description  Delete Collect
-// @Tags         storage
+// @Tags         STORAGE
 // @Accept       json
 // @Produce      json
 // @Param        collect-id path int true "collect id"

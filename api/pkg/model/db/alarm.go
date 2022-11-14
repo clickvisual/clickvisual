@@ -19,7 +19,7 @@ type IAlarm interface {
 	RuleName(filterId int) string
 	ViewName(database, table string, seq int) string
 	UniqueName(filterId int) string
-	StatusUpdate(status string) (err error)
+	StatusUpdate(status int) (err error)
 	AlertInterval() string
 }
 
@@ -149,13 +149,9 @@ func (m *Alarm) AlertInterval() string {
 	return fmt.Sprintf("%d%s", m.Interval, UnitMap[m.Unit].Alias)
 }
 
-func (m *Alarm) StatusUpdate(status string) (err error) {
+func (m *Alarm) StatusUpdate(status int) (err error) {
 	ups := make(map[string]interface{}, 0)
-	if status == "firing" {
-		ups["status"] = AlarmStatusFiring
-	} else if status == "resolved" {
-		ups["status"] = AlarmStatusOpen
-	}
+	ups["status"] = status
 	err = AlarmUpdate(invoker.Db, m.ID, ups)
 	if err != nil {
 		return
