@@ -14,8 +14,9 @@ jobs:
         id: swagger-ui
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
-          go get -u github.com/gotomicro/ego-gen-api/cmd/egen
           go env
+          go version 
+          go install github.com/gotomicro/ego-gen-api/cmd/egen@latest
           egen --config egen.yaml
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
