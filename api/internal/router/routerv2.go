@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -20,6 +21,8 @@ import (
 // The configuration module - cmdb
 // The system management module - sysop
 func v2(r *gin.RouterGroup) {
+	r = r.Group("/v2", middlewares.AuthChecker())
+
 	// swagger docs
 	{
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

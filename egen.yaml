@@ -1,0 +1,22 @@
+output: docs
+plugin: gin
+dir: 'api'
+
+depends:
+ - github.com/gotomicro/gotoant
+ - gorm.io/datatypes
+ - git.shimo.im/gopkg/mo-ego-component
+
+properties:
+  request:
+    - type: '*github.com/clickvisual/clickvisual/api/pkg/component/core.Context'
+      method: 'Bind'
+      return:
+        data: 'args[0]'
+  response:
+    - type: '*github.com/clickvisual/clickvisual/api/pkg/component/core.Context'
+      method: 'JSONOK'
+      return:
+        contentType: 'application/json'
+        data: 'args[0]'
+        status: 200
