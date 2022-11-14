@@ -1,0 +1,28 @@
+name: Update Swagger UI
+
+on:
+  push:
+    branches:
+      - 'feature/docker-ci'
+
+jobs:
+  updateSwagger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Latest Swagger
+      - uses: actions/checkout@v3
+        id: swagger-ui
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+      - name: Update Swagger UI
+        run: |
+          swag init -g api/main.go -o api/docs
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: Update swagger-ui
+          title: Update SwaggerUI
+          body: |
+            Updates [swagger-ui]
+          labels: dependencies, automated pr
+          branch: swagger-ui-updates
