@@ -17,7 +17,7 @@ import { cloneDeep } from "lodash";
 const operatorList = ["=", "!=", "<", "<=", ">", ">="];
 const { Option } = Select;
 
-const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
+const CreateLogFilter = ({ tid }: { tid: number }) => {
   const i18n = useIntl();
   const {
     visibleLogFilter,
@@ -27,6 +27,7 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
     onChangeEditLogFilterInfo,
     doEditLogFilter,
     doGetLogsAndHighCharts,
+    columsList,
   } = useModel("dataLogs");
   const formFilterRef = useRef<FormInstance>(null);
 
@@ -110,7 +111,7 @@ const CreateLogFilter = ({ tables, tid }: { tables: any[]; tid: number }) => {
                   id: "log.filter.form.field",
                 })}
               >
-                {tables.map((item: string) => {
+                {columsList.map((item: string) => {
                   return (
                     <Option key={item} value={item}>
                       {item}

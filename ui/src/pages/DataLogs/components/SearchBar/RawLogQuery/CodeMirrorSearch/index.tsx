@@ -563,7 +563,7 @@ const Editors = (props: {
         />
         <span className={styles.afterBox}></span>
       </div>
-      <CreateLogFilter tables={tables} tid={currentTid} />
+      <CreateLogFilter tid={currentTid} />
     </div>
   );
 };

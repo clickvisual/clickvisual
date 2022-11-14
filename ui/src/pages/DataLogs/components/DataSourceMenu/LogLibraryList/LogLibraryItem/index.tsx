@@ -70,6 +70,8 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeRawLogsIndexeList,
     onChangeIsAssociatedLinkLogLibrary,
     onChangeLinkLinkLogLibrary,
+    doGetColumns,
+    onChangeColumsList,
   } = useModel("dataLogs");
   const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
   const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
@@ -106,26 +108,42 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
           rawLogsIndexeList: res.data.keys,
         };
         onChangeCurrentLogPane(newPane);
-        doGetLogsAndHighCharts(logLibrary.id, {
-          reqParams: {
-            st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
-            et: currentTimeStamp(),
-            page: FIRST_PAGE,
-            pageSize: PAGE_SIZE,
-            kw: "",
-          },
-        })
-          .then((res) => {
-            if (!res) {
-              resetLogPaneLogsAndHighCharts(newPane);
-            } else {
-              newPane.logs = res.logs;
-              newPane.highCharts = res?.highCharts;
-              newPane.logChart = { logs: [], isNeedSort: false, sortRule: [] };
-              onChangeLogPane(newPane);
-            }
+
+        doGetColumns.run(logLibrary.id).then((res: any) => {
+          if (res.code != 0) return;
+          let arr: string[] = [];
+          res.data.map((item: any) => {
+            arr.push(item.name);
+          });
+          onChangeColumsList(arr);
+          doGetLogsAndHighCharts(logLibrary.id, {
+            reqParams: {
+              st: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+              et: currentTimeStamp(),
+              page: FIRST_PAGE,
+              pageSize: PAGE_SIZE,
+              kw: "",
+            },
+            analysisField: arr,
           })
-          .catch(() => resetLogPaneLogsAndHighCharts(newPane));
+            .then((res) => {
+              if (!res) {
+                resetLogPaneLogsAndHighCharts(newPane);
+              } else {
+                newPane.logs = res.logs;
+                newPane.highCharts = res?.highCharts;
+                newPane.logChart = {
+                  logs: [],
+                  isNeedSort: false,
+                  sortRule: [],
+                };
+                newPane.columsList = arr;
+
+                onChangeLogPane(newPane);
+              }
+            })
+            .catch(() => resetLogPaneLogsAndHighCharts(newPane));
+        });
       });
     } else {
       onChangeLogPane(tabPane);

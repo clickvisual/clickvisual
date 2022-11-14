@@ -100,6 +100,8 @@ export default function useLogUrlParams() {
     logState,
     linkLogs,
     onChangeTableInfo,
+    doGetColumns,
+    onChangeColumsList,
   } = useModel("dataLogs");
   const {
     onChangeCurrentlyTableToIid,
@@ -171,35 +173,46 @@ export default function useLogUrlParams() {
       return;
     }
 
-    doGetAnalysisField.run(tid).then((res: any) => {
+    doGetColumns.run(tid).then((res: any) => {
       if (res.code != 0) return;
-      onChangeRawLogsIndexeList(res.data?.keys);
-      onChangeCurrentLogPane({
-        ...(pane as PaneType),
-        rawLogsIndexeList: res.data?.keys,
+      let columsArr: string[] = [];
+      res.data.map((item: any) => {
+        columsArr.push(item.name);
       });
+      onChangeColumsList(columsArr);
 
-      doGetLogsAndHighCharts(tid, {
-        reqParams: {
-          st: pane.start,
-          et: pane.end,
-          kw: pane.keyword,
-          page: pane.page,
-          pageSize: pane.pageSize,
-        },
-      })
-        .then((res) => {
-          if (!res) return;
-          pane.logs = {
-            ...res.logs,
-            query: res.logs.query,
-          };
-          pane.highCharts = res.highCharts;
-          pane.logChart = { logs: [], isNeedSort: false, sortRule: [] };
-          pane.rawLogsIndexeList = rawLogsIndexeListRef.current;
-          onChangeLogPane(pane);
+      doGetAnalysisField.run(tid).then((res: any) => {
+        if (res.code != 0) return;
+        onChangeRawLogsIndexeList(res.data?.keys);
+        onChangeCurrentLogPane({
+          ...(pane as PaneType),
+          rawLogsIndexeList: res.data?.keys,
+        });
+
+        doGetLogsAndHighCharts(tid, {
+          reqParams: {
+            st: pane.start,
+            et: pane.end,
+            kw: pane.keyword,
+            page: pane.page,
+            pageSize: pane.pageSize,
+          },
+          analysisField: columsArr,
         })
-        .catch();
+          .then((res) => {
+            if (!res) return;
+            pane.logs = {
+              ...res.logs,
+              query: res.logs.query,
+            };
+            pane.highCharts = res.highCharts;
+            pane.logChart = { logs: [], isNeedSort: false, sortRule: [] };
+            pane.rawLogsIndexeList = rawLogsIndexeListRef.current;
+            pane.columsList = columsArr;
+            onChangeLogPane(pane);
+          })
+          .catch();
+      });
     });
   };
 
