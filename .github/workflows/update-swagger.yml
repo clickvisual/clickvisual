@@ -13,7 +13,7 @@ jobs:
       - name: Install Swagger
         id: swagger-ui
         run: |
-          go install github.com/swaggo/swag/cmd/swag@latest
+          go get -u github.com/swaggo/swag/cmd/swag
       - name: Update Swagger UI
         run: |
           swag init -g api/main.go -o api/docs
