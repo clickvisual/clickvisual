@@ -3,6 +3,7 @@ name: Update EGO Gen API
 on:
   push:
     branches:
+      - 'master'
       - 'feature/docker-ci'
 
 jobs:
