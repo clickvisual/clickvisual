@@ -69,9 +69,8 @@ func UserCreate(c *core.Context) {
 	})
 }
 
-// UserList  godoc
+// UserList   	 Get user list
 // @Summary	     Get user list
-// @Description  Get user list
 // @Tags         base
 // @Accept       json
 // @Produce      json
