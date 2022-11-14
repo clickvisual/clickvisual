@@ -28,6 +28,7 @@ export const DefaultPane = {
   logState: 0,
   linkLogs: undefined,
   relTraceTableId: 0,
+  columsList: [],
 };
 
 const useLogPanes = () => {

@@ -40,6 +40,7 @@ export type PaneType = {
   logState: number;
   linkLogs?: LogsResponse;
   relTraceTableId: number;
+  columsList: string[];
 };
 
 export enum hashType {
@@ -53,4 +54,5 @@ export interface Extra {
   isDisableFilter?: boolean; // 是否启用filter功能 分享页面禁用
   isOnlyLog?: boolean;
   reqParams?: QueryParams; // 请求参数
+  analysisField?: string[]; // 拥有的字段
 }

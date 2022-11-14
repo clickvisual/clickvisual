@@ -116,7 +116,6 @@ const FilterList = ({ tid }: { tid: number }) => {
               LocalModuleType.datalogsFilterDisableIds,
               JSON.stringify(data)
             );
-            console.log(filterDisableIds, tid, "item");
             doGetLogsAndHighCharts(tid);
           }}
         >

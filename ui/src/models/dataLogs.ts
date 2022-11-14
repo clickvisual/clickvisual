@@ -330,6 +330,7 @@ const DataLogsModel = () => {
     onChangeKeywordInput(tabPane?.keyword as string);
     onChangeActiveTabKey(tabPane?.activeTabKey || TimeRangeType.Relative);
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
+    onChangeColumsList(tabPane.columsList);
     setLogs(tabPane.logs);
     onChangeRawLogsIndexeList(tabPane?.rawLogsIndexeList);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
@@ -553,11 +554,13 @@ const DataLogsModel = () => {
       const res: any = await doGetLogFilterList.run(data);
       if (res.code == 0) {
         res.data.map((item: LogFilterType) => {
-          if (
-            oldIds.indexOf(item.id) == -1 &&
-            columsList.includes(item.statement)
-          ) {
-            filters.push(item.statement);
+          const key = item.statement.split(" ")[0];
+          if (oldIds.indexOf(item.id) == -1) {
+            if (extra?.analysisField?.includes(key)) {
+              filters.push(item.statement);
+            } else {
+              columsList?.includes(key) && filters.push(item.statement);
+            }
           }
         });
         onChangeLogFilterList(res.data);
