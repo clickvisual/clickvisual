@@ -113,6 +113,7 @@
                 "tags": [
                     "ALERT"
                 ],
+                "summary": "Alert Create",
                 "operationId": "POST./v1/alarms",
                 "parameters": [
                     {
