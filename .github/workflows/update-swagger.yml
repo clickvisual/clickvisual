@@ -22,7 +22,7 @@ jobs:
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           commit-message: Update swagger-ui
-          title: Update SwaggerUI
+          title: Update Swagger
           body: |
             Updates [swagger-ui]
           labels: dependencies, automated pr
