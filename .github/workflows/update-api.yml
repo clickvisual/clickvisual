@@ -1,4 +1,4 @@
-name: Update EGO Gen API
+name: swagger
 
 on:
   push:
