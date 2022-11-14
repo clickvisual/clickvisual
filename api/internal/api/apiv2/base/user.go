@@ -116,7 +116,7 @@ func UserList(c *core.Context) {
 }
 
 // UserPasswordReset  godoc
-// @Summary	     Reset user password
+// @Summary	     Reset user password test
 // @Description  Reset user password
 // @Tags         base
 // @Accept       json
