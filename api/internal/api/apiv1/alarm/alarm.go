@@ -22,6 +22,7 @@ import (
 )
 
 // @Tags         ALERT
+// @Summary	     Alert Create
 func Create(c *core.Context) {
 	var req view.ReqAlarmCreate
 	if err := c.Bind(&req); err != nil {
