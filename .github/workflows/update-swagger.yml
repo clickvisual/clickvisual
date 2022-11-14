@@ -25,5 +25,3 @@ jobs:
           title: Update Swagger
           body: |
             Updates [swagger-ui]
-          labels: dependencies, automated pr
-          branch: master

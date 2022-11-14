@@ -17,7 +17,7 @@ import (
 
 // UserCreate  godoc
 // @Summary      Create new user
-// @Description  username 登陆账号
+// @Description  username 登陆账号2
 // @Description  nickname 显示用户名
 // @Tags         base
 // @Produce      json
