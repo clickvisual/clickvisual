@@ -284,7 +284,6 @@ const docTemplate = `{
         },
         "/api/v2/base/users": {
             "get": {
-                "description": "Get user list",
                 "consumes": [
                     "application/json"
                 ],

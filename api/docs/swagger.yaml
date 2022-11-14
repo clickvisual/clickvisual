@@ -710,7 +710,6 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get user list
       parameters:
       - in: query
         name: current
