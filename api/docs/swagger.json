@@ -40,9 +40,11 @@
         },
         "/admin/users/login": {
             "post": {
-                "description": " ...",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "USER"
                 ],
                 "summary": "用户登陆",
                 "operationId": "POST./admin/users/login",
@@ -373,6 +375,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警更新",
                 "operationId": "PATCH./v1/alarms/{id}",
                 "parameters": [
                     {
@@ -2634,7 +2637,7 @@
                 "tags": [
                     "ALARM"
                 ],
-                "summary": "Alert push channel",
+                "summary": "告警推送 Webhook",
                 "operationId": "POST./v1/prometheus/alerts",
                 "parameters": [
                     {
@@ -3037,8 +3040,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "LOGS"
                 ],
+                "summary": "日志趋势图",
                 "operationId": "GET./v1/tables/{id}/charts",
                 "parameters": [
                     {
@@ -5013,6 +5017,9 @@
                     "description": "0 m 1 s 2 h 3 d 4 w 5 y",
                     "type": "integer"
                 },
+                "status": {
+                    "type": "integer"
+                },
                 "tid": {
                     "description": "table id",
                     "type": "integer"
@@ -5043,6 +5050,13 @@
                 },
                 "dtime": {
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
+                },
+                "filterId": {
+                    "description": "filter id",
+                    "type": "integer"
+                },
+                "filterStatus": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "integer"
@@ -7665,6 +7679,9 @@
                 },
                 "mode": {
                     "description": "0 m 1 s 2 h 3 d 4 w 5 y",
+                    "type": "integer"
+                },
+                "status": {
                     "type": "integer"
                 },
                 "tableName": {
