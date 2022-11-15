@@ -22,6 +22,7 @@ import (
 )
 
 // @Tags         USER
+// @Summary	     三方鉴权
 func Oauth(c *core.Context) {
 	if kauth.OAuthService == nil {
 		c.JSONE(1, "oauth not enabled", nil)

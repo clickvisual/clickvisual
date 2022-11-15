@@ -14,6 +14,9 @@ import (
 )
 
 var models = []interface{}{
+	db.AlarmFilter{},
+	db.AlarmHistory{},
+
 	db.Collect{},
 
 	db.BigdataWorkflow{},
@@ -35,9 +38,7 @@ var models = []interface{}{
 	db.BaseHiddenField{},
 
 	db.Alarm{},
-	db.AlarmFilter{},
 	db.AlarmCondition{},
-	db.AlarmHistory{},
 	db.AlarmChannel{},
 
 	db.User{},

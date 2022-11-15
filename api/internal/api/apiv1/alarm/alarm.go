@@ -21,8 +21,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         ALERT
-// @Summary	     Alert Create
+// @Tags         ALARM
+// @Summary	     告警创建
 func Create(c *core.Context) {
 	var req view.ReqAlarmCreate
 	if err := c.Bind(&req); err != nil {
@@ -83,7 +83,8 @@ func Create(c *core.Context) {
 	return
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
+// @Summary 	 告警更新
 func Update(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -158,6 +159,7 @@ func Update(c *core.Context) {
 				return
 			}
 		}
+		_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
 	default:
 		err = service.Alert.Update(c.Uid(), id, req)
@@ -170,7 +172,7 @@ func Update(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func List(c *core.Context) {
 	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
@@ -257,7 +259,7 @@ func List(c *core.Context) {
 	return
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func Info(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -285,7 +287,7 @@ func Info(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["alarm_id"] = alarmInfo.ID
-	filters, err := db.AlarmFilterList(conds)
+	filters, err := db.AlarmFilterList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
@@ -334,7 +336,7 @@ func Info(c *core.Context) {
 	return
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func Delete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -429,7 +431,7 @@ func Delete(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func HistoryList(c *core.Context) {
 	var req view.ReqAlarmHistoryList
 	if err := c.Bind(&req); err != nil {
@@ -468,7 +470,7 @@ func HistoryList(c *core.Context) {
 	return
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func HistoryInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

@@ -503,12 +503,12 @@ func (c *ClickHouse) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, 
 	return
 }
 
-func (c *ClickHouse) Chart(param view.ReqQuery) (res []*view.HighChart, err error) {
-	q := c.chartSQL(param)
+func (c *ClickHouse) Chart(param view.ReqQuery) (res []*view.HighChart, q string, err error) {
+	q = c.chartSQL(param)
 	charts, err := c.doQuery(q)
 	if err != nil {
 		invoker.Logger.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
-		return nil, err
+		return nil, q, err
 	}
 	res = make([]*view.HighChart, 0)
 	for _, chart := range charts {
@@ -527,7 +527,7 @@ func (c *ClickHouse) Chart(param view.ReqQuery) (res []*view.HighChart, err erro
 		}
 		res = append(res, &row)
 	}
-	return res, nil
+	return res, q, nil
 }
 
 func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {

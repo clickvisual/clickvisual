@@ -16,8 +16,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
-// Info get userinfo
 // @Tags         USER
+// @Summary	     用户详情
 func Info(c *core.Context) {
 	session := sessions.Default(c.Context)
 	user := session.Get("user")
@@ -41,8 +41,8 @@ func Info(c *core.Context) {
 	return
 }
 
-// List 根据分页获取Cluster列表
 // @Tags         USER
+// @Summary	     用户列表
 func List(c *core.Context) {
 	res := make([]*db.User, 0)
 	res = append(res, &db.User{
@@ -87,8 +87,8 @@ type login struct {
 	Password string `form:"password" binding:"required"`
 }
 
-// Login ...
 // @Tags         USER
+// @Summary	     用户登陆
 func Login(c *core.Context) {
 	var param login
 	err := c.Bind(&param)
@@ -111,8 +111,8 @@ func Login(c *core.Context) {
 	return
 }
 
-// Logout ..
 // @Tags         USER
+// @Summary	     用户退出
 func Logout(c *core.Context) {
 	session := sessions.Default(c.Context)
 	session.Delete("user")
@@ -132,6 +132,7 @@ type password struct {
 }
 
 // @Tags         USER
+// @Summary	     修改密码
 func UpdatePassword(c *core.Context) {
 	uid := cast.ToInt(c.Param("uid"))
 	if uid == 0 {

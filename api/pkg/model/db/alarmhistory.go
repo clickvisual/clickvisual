@@ -9,12 +9,20 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
+const (
+	PushedStatusRepeat = iota
+	PushedStatusSuccess
+	PushedStatusFail
+)
+
 // AlarmHistory 告警渠道
 type AlarmHistory struct {
 	BaseModel
 
-	AlarmId  int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`   // alarm id
-	IsPushed int `gorm:"column:is_pushed;type:int(11)" json:"isPushed"` // alarm id
+	AlarmId      int `gorm:"column:alarm_id;type:int(11)" json:"alarmId"`   // alarm id
+	FilterId     int `gorm:"column:filter_id;type:int(11)" json:"filterId"` // filter id
+	FilterStatus int `gorm:"column:filter_status;type:int(11)" json:"filterStatus"`
+	IsPushed     int `gorm:"column:is_pushed;type:int(11)" json:"isPushed"` // alarm id
 }
 
 func (m *AlarmHistory) TableName() string {

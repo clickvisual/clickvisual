@@ -4,9 +4,13 @@ import (
 	"github.com/ego-component/egorm"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
+
+type iAlarmFilter interface {
+	iModel
+
+	UpdateStatus(db *gorm.DB) error
+}
 
 type AlarmFilter struct {
 	BaseModel
@@ -17,15 +21,36 @@ type AlarmFilter struct {
 	SetOperatorTyp int    `gorm:"column:set_operator_typ;type:int(11);NOT NULL" json:"typ"`      // 0 default 1 INNER 2 LEFT OUTER 3 RIGHT OUTER 4 FULL OUTER 5 CROSS
 	SetOperatorExp string `gorm:"column:set_operator_exp;type:varchar(255);NOT NULL" json:"exp"` // 操作
 	Mode           int    `gorm:"column:mode;type:int(11)" json:"mode"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
+	Status         int    `gorm:"column:status;type:int(11)" json:"status"`
 }
 
 func (m *AlarmFilter) TableName() string {
 	return TableNameAlarmFilter
 }
 
-func AlarmFilterList(conds egorm.Conds) (resp []*AlarmFilter, err error) {
+func (m *AlarmFilter) UpdateStatus(db *gorm.DB) error {
+	ups := make(map[string]interface{}, 0)
+	ups["status"] = m.Status
+	var sql = "`id`=?"
+	var binds = []interface{}{m.ID}
+	if err := db.Model(AlarmFilter{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+		return errors.Wrapf(err, "ups: %v", ups)
+	}
+	return nil
+}
+
+func AlarmFilterUpdateStatus(db *gorm.DB, alarmId int, ups map[string]interface{}) (err error) {
+	var sql = "`alarm_id`=?"
+	var binds = []interface{}{alarmId}
+	if err = db.Model(AlarmFilter{}).Where(sql, binds...).Updates(ups).Error; err != nil {
+		return errors.Wrapf(err, "ups: %v", ups)
+	}
+	return
+}
+
+func AlarmFilterList(db *gorm.DB, conds egorm.Conds) (resp []*AlarmFilter, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(AlarmFilter{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+	if err = db.Model(AlarmFilter{}).Where(sql, binds...).Find(&resp).Error; err != nil {
 		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}
