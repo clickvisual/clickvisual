@@ -11,7 +11,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
-// @Tags         ALERT
+// @Tags         ALARM
 func ChannelCreate(c *core.Context) {
 	var req db.AlarmChannel
 	if err := c.Bind(&req); err != nil {
@@ -32,7 +32,7 @@ func ChannelCreate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func ChannelUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -61,7 +61,7 @@ func ChannelUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func ChannelList(c *core.Context) {
 	res, err := db.AlarmChannelList(egorm.Conds{})
 	if err != nil {
@@ -72,7 +72,7 @@ func ChannelList(c *core.Context) {
 	return
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func ChannelDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -88,7 +88,7 @@ func ChannelDelete(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func ChannelInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -104,7 +104,7 @@ func ChannelInfo(c *core.Context) {
 	return
 }
 
-// @Tags         ALERT
+// @Tags         ALARM
 func ChannelSendTest(c *core.Context) {
 	var req db.AlarmChannel
 	if err := c.Bind(&req); err != nil {

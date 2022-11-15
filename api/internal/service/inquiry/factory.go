@@ -21,7 +21,7 @@ var (
 
 type Operator interface {
 	Conn() *sql.DB
-	Chart(view.ReqQuery) ([]*view.HighChart, error)
+	Chart(view.ReqQuery) ([]*view.HighChart, string, error)
 	Count(view.ReqQuery) (uint64, error)
 	GroupBy(view.ReqQuery) map[string]uint64
 	DoSQL(string) (view.RespComplete, error)

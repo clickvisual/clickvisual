@@ -7,6 +7,7 @@
                 "tags": [
                     "USER"
                 ],
+                "summary": "三方鉴权",
                 "operationId": "GET./admin/login/{oauth}",
                 "parameters": [
                     {
@@ -43,9 +44,7 @@
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "USER"
-                ],
+                "summary": "用户登陆",
                 "operationId": "POST./admin/users/login",
                 "parameters": [
                     {
@@ -66,7 +65,7 @@
         "/v1/alarms": {
             "get": {
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "GET./v1/alarms",
                 "parameters": [
@@ -111,9 +110,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
-                "summary": "Alert Create",
+                "summary": "告警创建",
                 "operationId": "POST./v1/alarms",
                 "parameters": [
                     {
@@ -137,7 +136,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "GET./v1/alarms-channels",
                 "responses": {
@@ -157,7 +156,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "POST./v1/alarms-channels",
                 "parameters": [
@@ -182,7 +181,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "POST./v1/alarms-channels/send-test",
                 "parameters": [
@@ -207,7 +206,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "GET./v1/alarms-channels/{id}",
                 "parameters": [
@@ -230,7 +229,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "DELETE./v1/alarms-channels/{id}",
                 "parameters": [
@@ -250,7 +249,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "PATCH./v1/alarms-channels/{id}",
                 "parameters": [
@@ -276,7 +275,7 @@
         "/v1/alarms-histories": {
             "get": {
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "GET./v1/alarms-histories",
                 "parameters": [
@@ -304,7 +303,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "GET./v1/alarms-histories/{id}",
                 "parameters": [
@@ -329,7 +328,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "GET./v1/alarms/{id}",
                 "parameters": [
@@ -352,7 +351,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "DELETE./v1/alarms/{id}",
                 "parameters": [
@@ -372,7 +371,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "operationId": "PATCH./v1/alarms/{id}",
                 "parameters": [
@@ -2633,7 +2632,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "summary": "Alert push channel",
                 "operationId": "POST./v1/prometheus/alerts",
@@ -3460,13 +3459,13 @@
         },
         "/v1/users": {
             "get": {
-                "description": " 根据分页获取Cluster列表",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "USER"
                 ],
+                "summary": "用户列表",
                 "operationId": "GET./v1/users",
                 "responses": {
                     "200": {
@@ -3483,13 +3482,13 @@
         },
         "/v1/users/info": {
             "get": {
-                "description": " get userinfo",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "USER"
                 ],
+                "summary": "用户详情",
                 "operationId": "GET./v1/users/info",
                 "responses": {
                     "200": {
@@ -3503,13 +3502,13 @@
         },
         "/v1/users/logout": {
             "post": {
-                "description": " ..",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "USER"
                 ],
+                "summary": "用户退出",
                 "operationId": "POST./v1/users/logout",
                 "responses": {
                     "200": {
@@ -3526,6 +3525,7 @@
                 "tags": [
                     "USER"
                 ],
+                "summary": "修改密码",
                 "operationId": "PATCH./v1/users/{uid}/password",
                 "parameters": [
                     {
@@ -3627,7 +3627,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "summary": "Create metrics samples table",
                 "operationId": "POST./v2/alert/metrics-samples",
@@ -3655,7 +3655,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "summary": "Instance alarm configuration list",
                 "operationId": "GET./v2/alert/settings",
@@ -3680,7 +3680,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "summary": "Advanced configuration information in the instance",
                 "operationId": "GET./v2/alert/settings/{instance-id}",
@@ -3706,7 +3706,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ALERT"
+                    "ALARM"
                 ],
                 "summary": "Alert Basic Configuration Modification",
                 "operationId": "PATCH./v2/alert/settings/{instance-id}",

@@ -11,6 +11,7 @@ import (
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/econf"
 
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
@@ -63,7 +64,7 @@ func BuildMsg(typeStr string, notification db.Notification, alarm *db.Alarm, one
 
 	condsFilter := egorm.Conds{}
 	condsFilter["alarm_id"] = alarm.ID
-	filters, err := db.AlarmFilterList(condsFilter)
+	filters, err := db.AlarmFilterList(invoker.Db, condsFilter)
 	if err != nil {
 		return
 	}

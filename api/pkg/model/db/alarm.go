@@ -14,13 +14,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-type IAlarm interface {
-	TableName() string
-	RuleName(filterId int) string
-	ViewName(database, table string, seq int) string
-	UniqueName(filterId int) string
-	StatusUpdate(status int) (err error)
+type iAlarm interface {
+	iModel
+
+	GetStatus(db *gorm.DB) int
 	AlertInterval() string
+	RuleName(filterId int) string
+	UniqueName(filterId int) string
+	UpdateStatus(db *gorm.DB, status int) (err error)
+	ViewName(database, table string, seq int) string
 }
 
 const (
@@ -30,7 +32,8 @@ const (
 )
 
 const (
-	AlarmStatusClose = iota + 1
+	AlarmStatusUnknown = iota
+	AlarmStatusClose
 	AlarmStatusOpen
 	AlarmStatusFiring
 	AlarmStatusRuleCheck
@@ -94,6 +97,15 @@ type Notification struct {
 	Alerts            []Alert           `json:"alerts"`
 }
 
+func (n *Notification) GetStatus() int {
+	if n.Status == "firing" {
+		return AlarmStatusFiring
+	} else if n.Status == "resolved" {
+		return AlarmStatusOpen
+	}
+	return AlarmStatusUnknown
+}
+
 type Alarm struct {
 	BaseModel
 
@@ -104,10 +116,10 @@ type Alarm struct {
 	Interval   int           `gorm:"column:interval;type:int(11)" json:"interval"`                    // interval second between alarm
 	Unit       int           `gorm:"column:unit;type:int(11)" json:"unit"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
 	Tags       String2String `gorm:"column:tag;type:text" json:"tag"`                                 // tags
-	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // status
 	ChannelIds Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // channel of an alarm
 	NoDataOp   int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`  // noDataOp 0 nodata 1 ok 2 alert
 	Level      int           `gorm:"column:level;type:int(11)" json:"level"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
+	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // status
 
 	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 
@@ -149,14 +161,26 @@ func (m *Alarm) AlertInterval() string {
 	return fmt.Sprintf("%d%s", m.Interval, UnitMap[m.Unit].Alias)
 }
 
-func (m *Alarm) StatusUpdate(status int) (err error) {
+func (m *Alarm) UpdateStatus(db *gorm.DB, status int) (err error) {
 	ups := make(map[string]interface{}, 0)
 	ups["status"] = status
-	err = AlarmUpdate(invoker.Db, m.ID, ups)
+	err = AlarmUpdate(db, m.ID, ups)
 	if err != nil {
 		return
 	}
 	return
+}
+
+func (m *Alarm) GetStatus(db *gorm.DB) int {
+	conds := egorm.Conds{}
+	conds["alarm_id"] = m.ID
+	filters, _ := AlarmFilterList(db, conds)
+	for _, filter := range filters {
+		if filter.Status == AlarmStatusFiring {
+			return AlarmStatusFiring
+		}
+	}
+	return AlarmStatusOpen
 }
 
 // RuleNameMap 提供 rule 兼容
@@ -171,6 +195,43 @@ func (m *Alarm) RuleNameMap() map[int][]string {
 	}
 
 	return res
+}
+
+func GetAlarmTableInstanceInfoWithCache(id int, cache map[int]*RespAlarmListRelatedInfo) (alarmInfo Alarm, relatedList []*RespAlarmListRelatedInfo, err error) {
+	alarmInfo, err = AlarmInfo(invoker.Db, id)
+	if err != nil {
+		return
+	}
+	relatedList = make([]*RespAlarmListRelatedInfo, 0)
+	if len(alarmInfo.TableIds) != 0 {
+		for _, tid := range alarmInfo.TableIds {
+			var ri *RespAlarmListRelatedInfo
+			if val, ok := cache[tid]; ok {
+				ri = val
+			} else {
+				ri, err = alarmRelatedInfo(tid)
+				if err != nil {
+					return
+				}
+				cache[tid] = ri
+			}
+			relatedList = append(relatedList, ri)
+		}
+		return
+	}
+	// TODO: wait delete
+	var ri *RespAlarmListRelatedInfo
+	if val, ok := cache[alarmInfo.Tid]; ok {
+		ri = val
+	} else {
+		ri, err = alarmRelatedInfo(alarmInfo.Tid)
+		if err != nil {
+			return
+		}
+		cache[alarmInfo.Tid] = ri
+	}
+	relatedList = append(relatedList, ri)
+	return
 }
 
 func GetAlarmTableInstanceInfo(id int) (alarmInfo Alarm, relatedList []*RespAlarmListRelatedInfo, err error) {

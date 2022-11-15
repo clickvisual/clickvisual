@@ -372,6 +372,7 @@ func (i *alert) OpenOperator(id int) (err error) {
 		}
 
 	}
+	_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusOpen})
 	if err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusRuleCheck}); err != nil {
 		return
 	}
@@ -552,8 +553,9 @@ func SendTestToChannel(c *db.AlarmChannel) (err error) {
 
 func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
 	res := make([]view.RespAlarmList, 0)
+	cache := make(map[int]*db.RespAlarmListRelatedInfo, 0)
 	for _, a := range respList {
-		alarmInfo, relatedList, errAlarmInfo := db.GetAlarmTableInstanceInfo(a.ID)
+		alarmInfo, relatedList, errAlarmInfo := db.GetAlarmTableInstanceInfoWithCache(a.ID, cache)
 		if errAlarmInfo != nil {
 			core.LoggerError("alert", "attach", errAlarmInfo)
 			continue
@@ -572,9 +574,8 @@ func AlarmAttachInfo(respList []*db.Alarm) []view.RespAlarmList {
 			instanceInfo = relatedList[0].Instance
 		}
 		res = append(res, view.RespAlarmList{
-			Alarm:       &alarmInfo,
-			RelatedList: relatedList,
-
+			Alarm:        &alarmInfo,
+			RelatedList:  relatedList,
 			TableName:    tableInfo.Name,
 			TableDesc:    tableInfo.Desc,
 			Tid:          tableInfo.ID,

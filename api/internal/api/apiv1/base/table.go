@@ -413,7 +413,8 @@ func QueryComplete(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// @Tags         LOGS
+// @Summary	     日志趋势图
 func TableCharts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
@@ -463,16 +464,16 @@ func TableCharts(c *core.Context) {
 	}
 	var interval int64
 	param.GroupByCond, interval = utils.CalculateInterval(param.ET-param.ST, inquiry.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
-	charts, err := op.Chart(param)
+	charts, sql, err := op.Chart(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), err)
+		c.JSONE(core.CodeErr, err.Error(), sql)
 		return
 	}
 	res := view.HighCharts{
 		Histograms: make([]*view.HighChart, 0),
 	}
 	if len(charts) == 0 {
-		c.JSONOK(res)
+		c.JSONE(core.CodeOK, sql, res)
 		return
 	}
 	chartMap := make(map[int64]*view.HighChart)
@@ -561,9 +562,7 @@ func TableCharts(c *core.Context) {
 			fillCharts[i].To = fillCharts[i+1].From
 		}
 	}
-
 	res.Histograms = fillCharts
-
 	c.JSONOK(res)
 	return
 }
