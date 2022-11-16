@@ -1,9 +1,9 @@
-import {Button} from "antd";
+import { Button } from "antd";
 import IconFont from "@/components/IconFont";
-import {PaneType} from "@/models/datalogs/types";
-import {useModel} from "@@/plugin-model/useModel";
-import {useEffect, useMemo} from "react";
-import {QueryTypeEnum} from "@/config/config";
+import { PaneType } from "@/models/datalogs/types";
+import { useModel } from "@@/plugin-model/useModel";
+import { useEffect, useMemo } from "react";
+import { QueryTypeEnum } from "@/config/config";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import useUrlState from "@ahooksjs/use-url-state";
 
@@ -14,6 +14,8 @@ const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
     logPanesHelper,
     currentLogLibrary,
     onChangeCurrentLogPane,
+    logsLoading,
+    highChartLoading,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
   const { activeQueryType, setActiveQueryType } = statisticalChartsHelper;
@@ -43,6 +45,7 @@ const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
       {isShowSwitch && (
         <Button
           onClick={handleClick}
+          loading={logsLoading || highChartLoading}
           className={searchBarStyles.checkBtn}
           icon={<IconFont type={"icon-switch"} />}
         ></Button>

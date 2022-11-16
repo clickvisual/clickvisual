@@ -61,7 +61,7 @@ const FoldingExpansionSwitch = ({
             ...(oldPane as PaneType),
             linkLogs: res.logs,
             highCharts: res.highCharts,
-            logChart: { logs: [] },
+            logChart: { logs: [], isNeedSort: false, sortRule: ["*"] },
             logState: 1,
           };
           onChangeLogPane(pane);

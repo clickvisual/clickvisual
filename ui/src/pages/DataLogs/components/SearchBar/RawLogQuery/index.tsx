@@ -173,6 +173,10 @@ const RawLogQuery = () => {
     logs?.defaultFields && onChangeAnalysisFieldTips(logs.defaultFields);
   }, [logs?.defaultFields]);
 
+  useEffect(() => {
+    return () => onChangeInitValue(keywordInput || "");
+  }, []);
+
   return (
     <>
       <div className={searchBarStyles.inputBox}>
