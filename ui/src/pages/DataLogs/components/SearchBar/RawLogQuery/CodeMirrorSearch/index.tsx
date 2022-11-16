@@ -98,7 +98,7 @@ const Editors = (props: {
         ? str.toLowerCase()
         : str.toUpperCase();
     // 用空格分割然后找到所编辑的单词
-    const strArr = lowerCase.replace(/((?![A-Z]).)/gi, " ").split(" ");
+    const strArr = lowerCase.split(" ");
     let totalLenght = 0;
     let currentWord = "";
     // 为了查找光标所在的单词
@@ -311,7 +311,9 @@ const Editors = (props: {
     hintOptions: any
   ) => {
     let cursor = cmInstance.getCursor();
-    let cursorLine = cmInstance.getLine(cursor.line);
+    let cursorLine = cmInstance
+      .getLine(cursor.line)
+      .replace(/((?![A-Z]).)/gi, " ");
     let end = cursor.ch;
 
     let token = cmInstance.getTokenAt(cursor);
