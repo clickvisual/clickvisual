@@ -156,7 +156,7 @@ func Update(c *core.Context) {
 					return
 				}
 			}
-			if err = service.Alert.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
+			if err = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo); err != nil {
 				c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
 				return
 			}
@@ -174,7 +174,9 @@ func Update(c *core.Context) {
 	c.JSONOK()
 }
 
+// List
 // @Tags         ALARM
+// @Summary	     告警列表
 func List(c *core.Context) {
 	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
@@ -261,7 +263,9 @@ func List(c *core.Context) {
 	return
 }
 
+// Info
 // @Tags         ALARM
+// @Summary	     告警详情
 func Info(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -338,7 +342,9 @@ func Info(c *core.Context) {
 	return
 }
 
+// Delete
 // @Tags         ALARM
+// @Summary	     告警删除
 func Delete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -347,7 +353,7 @@ func Delete(c *core.Context) {
 	}
 	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
-		c.JSONE(1, "alarm failed to delete 01", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	for _, ri := range relatedList {
@@ -366,32 +372,28 @@ func Delete(c *core.Context) {
 	}
 	tx := invoker.Db.Begin()
 	if err = db.AlarmDelete(tx, id); err != nil {
-		c.JSONE(1, "alarm failed to delete 02", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// filter
 	if err = db.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 03", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// condition
 	if err = db.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 04", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	for _, ri := range relatedList {
-		if err = service.Alert.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
-			tx.Rollback()
-			c.JSONE(1, "alarm failed to delete 05", err)
-			return
-		}
+		_ = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo)
 		var op inquiry.Operator
 		op, err = service.InstanceManager.Load(ri.Table.Database.Iid)
 		if err != nil {
 			tx.Rollback()
-			c.JSONE(core.CodeErr, "clickhouse load failed", err)
+			c.JSONE(core.CodeErr, err.Error(), err)
 			return
 		}
 		if len(alarmInfo.ViewDDLs) > 0 {
@@ -404,7 +406,7 @@ func Delete(c *core.Context) {
 					op, err = service.InstanceManager.Load(iid)
 					if err != nil {
 						tx.Rollback()
-						c.JSONE(core.CodeErr, "clickhouse load failed", err)
+						c.JSONE(core.CodeErr, err.Error(), err)
 						return
 					}
 					if iid != ri.Table.Database.Iid {
@@ -413,27 +415,29 @@ func Delete(c *core.Context) {
 				}
 				if err = op.DeleteAlertView(table, ri.Table.Database.Cluster); err != nil {
 					tx.Rollback()
-					c.JSONE(core.CodeErr, "alarm view drop failed", err)
+					c.JSONE(core.CodeErr, err.Error(), err)
 					return
 				}
 			}
 		} else {
 			if err = op.DeleteAlertView(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
 				tx.Rollback()
-				c.JSONE(core.CodeErr, "alarm failed to delete 06", err)
+				c.JSONE(core.CodeErr, err.Error(), err)
 				return
 			}
 		}
 	}
 	if err = tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, "alarm failed to delete 07", err)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
 	c.JSONOK()
 }
 
+// HistoryList
 // @Tags         ALARM
+// @Summary	     告警推送记录
 func HistoryList(c *core.Context) {
 	var req view.ReqAlarmHistoryList
 	if err := c.Bind(&req); err != nil {
@@ -472,7 +476,9 @@ func HistoryList(c *core.Context) {
 	return
 }
 
+// HistoryInfo
 // @Tags         ALARM
+// @Summary	     告警推送详情
 func HistoryInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
