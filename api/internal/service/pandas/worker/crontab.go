@@ -40,7 +40,6 @@ func Init() error {
 	if econf.GetBool("app.isMultiCopy") {
 		sf := func() { looper() }
 		ef := func() { crontabFlag = false }
-		invoker.Logger.Debug("crontabRules", elog.String("step", "isMultiCopy"))
 		ppt = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:worker", sf, ef)
 		return nil
 	}
@@ -54,7 +53,6 @@ func Close() error {
 	}
 	CrontabRules.crones.Range(func(k, v interface{}) bool {
 		nodeId := k.(int)
-		invoker.Logger.Debug("crontabRules", elog.String("step", "close"), elog.Any("nodeId", nodeId))
 		_ = db.CrontabUpdate(invoker.Db, nodeId, map[string]interface{}{"status": db.CrontabStatusWait})
 		c := v.(*cron.Cron)
 		c.Stop()
@@ -68,7 +66,6 @@ func NodeCrontabStop(nodeId int) error {
 		if k.(int) != nodeId {
 			return true
 		}
-		invoker.Logger.Debug("crontabRules", elog.String("step", "stop"), elog.Any("nodeId", nodeId))
 		c := v.(*cron.Cron)
 		c.Stop()
 		return true
@@ -99,7 +96,6 @@ func looper() {
 			invoker.Logger.Error("sync", elog.String("step", "nodes"), elog.String("error", err.Error()))
 			continue
 		}
-		invoker.Logger.Debug("crontabRules", elog.String("step", "lopper"), elog.Any("crs", crs))
 		// Execute scheduling process: cron -> branch -> run
 		dispatch(crs)
 	}
@@ -118,7 +114,6 @@ func dispatch(crontabs []*db.BigdataCrontab) {
 	// no folder node
 	for _, n := range crontabs {
 		_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusPreempt})
-		invoker.Logger.Debug("crontabRules", elog.String("step", "node"), elog.Any("crontabRule", n))
 		if err := buildCronFn(n); err != nil {
 			_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusWait})
 			invoker.Logger.Error("crontabRules", elog.String("step", "buildCronFn"), elog.String("error", err.Error()))
@@ -145,14 +140,13 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 		}
 		if cr.IsRetry == 1 {
 			// return mode
-			invoker.Logger.Debug("crontabRules", elog.String("step", "IsRetry"), elog.Any("nodeId", cr.NodeId))
 			for i := 0; i < cr.RetryTimes; i++ {
 				if res, errOperator := node.Operator(&n, &nc, node.OperatorRun, crontabUid); errOperator != nil {
 					invoker.Logger.Error("crontabRules", elog.String("step", "IsRetry"),
 						elog.Any("nodeId", cr.NodeId), elog.Any("err", errOperator), elog.Any("res", res))
 					time.Sleep(time.Duration(cr.RetryInterval) * time.Second)
 				} else {
-					invoker.Logger.Debug("crontabRules", elog.String("step", "IsRetryFinish"), elog.Any("nodeId", cr.NodeId),
+					invoker.Logger.Info("crontabRules", elog.String("step", "IsRetryFinish"), elog.Any("nodeId", cr.NodeId),
 						elog.Any("res", res))
 					return
 				}
@@ -170,7 +164,7 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 		invoker.Logger.Error("crontabRules", elog.String("step", "buildCronFn"), elog.String("error", err.Error()))
 		return
 	}
-	invoker.Logger.Debug("crontabRules", elog.String("step", "buildCronFn"), elog.Any("id", id))
+	invoker.Logger.Info("crontabRules", elog.String("step", "buildCronFn"), elog.Any("id", id))
 	c.Start()
 	_ = db.CrontabUpdate(invoker.Db, cr.NodeId, map[string]interface{}{"status": db.CrontabStatusDoing})
 	CrontabRules.crones.Store(cr.NodeId, c)

@@ -96,7 +96,15 @@ func (i *alert) PushAlertManager(alarmUUID string, filterIdStr string, notificat
 			_ = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusFail})
 			return errChannelType
 		}
-		errSend := channelInstance.Send(notification, &tableInfo, &alarm, filter, &channelInfo, partialLog)
+		title, text, errConstructMessage := pusher.AssemblyAlarmMessage(notification, &tableInfo, &alarm, filter, partialLog)
+		if errConstructMessage != nil {
+			invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errConstructMessage), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+			return
+		}
+		if channelInfo.Typ == db.ChannelWeChat {
+			text, _ = pusher.BuildWechatMarkdownMsg(notification, &alarm, partialLog)
+		}
+		errSend := channelInstance.Send(&channelInfo, title, text)
 		if errSend != nil {
 			invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errSend), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 			_ = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusFail})

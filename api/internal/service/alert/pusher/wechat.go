@@ -41,11 +41,6 @@ func BuildSendTextMsg(notification db.Notification, alarm *db.Alarm, oneTheLogs 
 	return dataStr, err
 }
 
-func BuildMarkdownMsg(notification db.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
-	dataStr, err := BuildMsg("markdown", notification, alarm, oneTheLogs)
-	return dataStr, err
-}
-
 func BuildMsg(typeStr string, notification db.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
 	// groupKey := notification.GroupKey
 	status := notification.Status
@@ -125,13 +120,12 @@ func BuildMsg(typeStr string, notification db.Notification, alarm *db.Alarm, one
 
 // Send ...
 // oneTheLogs one of the logs, detail info
-func (d *WeChat) Send(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, channel *db.AlarmChannel, oneTheLogs string) (err error) {
+func (d *WeChat) Send(channel *db.AlarmChannel, title, content string) (err error) {
 	// 默认markdown 可以制作格式
-	dataStr, err := BuildMarkdownMsg(notification, alarm, oneTheLogs)
 	resp, err := http.Post(
 		fmt.Sprintf(`%s`, channel.Key),
 		"application/json",
-		bytes.NewBuffer([]byte(dataStr)))
+		bytes.NewBuffer([]byte(content)))
 	defer resp.Body.Close()
 	return
 }

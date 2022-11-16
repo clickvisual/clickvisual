@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -58,17 +57,9 @@ func NodeLockAcquire(c *core.Context) {
 	return
 }
 
-// NodeCrontabCreate  godoc
-// @Summary	     Creating a scheduled node scheduling task
-// @Description  isRetry: 0 no 1 yes
-// @Description  retryInterval: the unit is in seconds, 100 means 100s
+// NodeCrontabCreate
+// @Summary	     创建节点任务
 // @Tags         PANDAS
-// @Accept       json
-// @Produce      json
-// @Param        node-id path int true "node id"
-// @Param        req body view.ReqCreateCrontab true "params"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/pandas/nodes/{node-id}/crontab [post]
 func NodeCrontabCreate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
 	if nodeId == 0 {
@@ -107,6 +98,7 @@ func NodeCrontabCreate(c *core.Context) {
 		IsRetry:       req.IsRetry,
 		RetryTimes:    req.RetryTimes,
 		RetryInterval: req.RetryInterval,
+		ChannelIds:    db.Ints(req.ChannelIds),
 	}
 	err = db.CrontabCreate(invoker.Db, obj)
 	if err != nil {
@@ -117,17 +109,9 @@ func NodeCrontabCreate(c *core.Context) {
 	c.JSONOK()
 }
 
-// NodeCrontabUpdate  godoc
-// @Summary	     Updating a scheduled node scheduling task
-// @Description  isRetry: 0 no 1 yes
-// @Description  retryInterval: the unit is in seconds, 100 means 100s
+// NodeCrontabUpdate
+// @Summary	     节点任务更新
 // @Tags         PANDAS
-// @Accept       json
-// @Produce      json
-// @Param        node-id path int true "node id"
-// @Param        req body view.ReqUpdateCrontab true "params"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/pandas/nodes/{node-id}/crontab [patch]
 func NodeCrontabUpdate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
 	if nodeId == 0 {
@@ -173,6 +157,7 @@ func NodeCrontabUpdate(c *core.Context) {
 	ups["is_retry"] = req.IsRetry
 	ups["retry_times"] = req.RetryTimes
 	ups["retry_interval"] = req.RetryInterval
+	ups["channel_ids"] = db.Ints(req.ChannelIds)
 	if req.Typ == db.CrontabTypSuspended || isReload {
 		if err = worker.NodeCrontabStop(nodeId); err != nil {
 			c.JSONE(1, "update failed: "+err.Error(), nil)
@@ -188,16 +173,9 @@ func NodeCrontabUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// NodeResultUpdate  godoc
-// @Summary	     Updates the action on the execution result
-// @Description  only support excelProcess update
+// NodeResultUpdate
+// @Summary	     更新节点执行结果
 // @Tags         PANDAS
-// @Accept       json
-// @Produce      json
-// @Param        result-id path int true "result id"
-// @Param        req query view.ReqNodeRunResult true "params"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/pandas/nodes-results/{result-id} [patch]
 func NodeResultUpdate(c *core.Context) {
 	resultId := cast.ToInt(c.Param("result-id"))
 	if resultId == 0 {
@@ -237,16 +215,9 @@ func NodeResultUpdate(c *core.Context) {
 	return
 }
 
-// NodeResultListPage  godoc
-// @Summary	     Obtain the node execution result record
-// @Description  Obtain the node execution result record
+// NodeResultListPage
+// @Summary	     节点执行结果列表
 // @Tags         PANDAS
-// @Accept       json
-// @Produce      json
-// @Param        node-id path int true "node id"
-// @Param        req query view.ReqNodeHistoryList true "params"
-// @Success      200 {object} view.RespNodeResultList
-// @Router       /api/v2/pandas/nodes/{node-id}/results [get]
 func NodeResultListPage(c *core.Context) {
 	id := cast.ToInt(c.Param("node-id"))
 	if id == 0 {
@@ -269,7 +240,6 @@ func NodeResultListPage(c *core.Context) {
 		c.JSONE(1, "request parameter error: "+err.Error(), nil)
 		return
 	}
-	invoker.Logger.Debug("nodeResultList", elog.Any("req", req))
 	conds := egorm.Conds{}
 	conds["node_id"] = id
 	if req.IsExcludeCrontabResult == 1 {
@@ -297,15 +267,9 @@ func NodeResultListPage(c *core.Context) {
 	return
 }
 
-// WorkerDashboard  godoc
-// @Summary	     Kanban on the execution status of a scheduled task
-// @Description  Kanban on the execution status of a scheduled task
+// WorkerDashboard
+// @Summary	     Kanban Dashboard
 // @Tags         PANDAS
-// @Accept       json
-// @Produce      json
-// @Param        req query view.ReqWorkerDashboard true "params"
-// @Success      200 {object} view.RespWorkerDashboard
-// @Router       /api/v2/pandas/workers/dashboard [get]
 func WorkerDashboard(c *core.Context) {
 	var req view.ReqWorkerDashboard
 	if err := c.Bind(&req); err != nil {
@@ -327,15 +291,9 @@ func WorkerDashboard(c *core.Context) {
 	return
 }
 
-// WorkerList  godoc
-// @Summary	     The scheduled task list
-// @Description   The scheduled task list
+// WorkerList
+// @Summary	     定时任务执行结果列表
 // @Tags         PANDAS
-// @Accept       json
-// @Produce      json
-// @Param        req query view.ReqWorkerList true "params"
-// @Success      200 {object} core.ResPage{data=view.RespWorkerList}
-// @Router       /api/v2/pandas/workers [get]
 func WorkerList(c *core.Context) {
 	var req view.ReqWorkerList
 	if err := c.Bind(&req); err != nil {
@@ -388,13 +346,14 @@ func WorkerList(c *core.Context) {
 			Val: req.End,
 		}
 	}
+	if req.Status != 0 {
+		condsResult["status"] = req.Status
+	}
 	total, nodeResList := db.NodeResultListPage(condsResult, &db.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
-	invoker.Logger.Debug("WorkerList", elog.Any("nodeIdArr", nodeIdArr), elog.Any("nodeResList", nodeResList))
 	list := make([]view.RespWorkerRow, 0)
-	// data processing: increase relevant plural information;
 	for _, nodeRes := range nodeResList {
 		list = append(list, service.Node.RespWorkerAssemble(nodeRes))
 	}
@@ -409,16 +368,9 @@ func WorkerList(c *core.Context) {
 	return
 }
 
-// TableDependencies  godoc
-// @Summary	     Result of table dependency resolution
-// @Description  Result of table dependency resolution
+// TableDependencies
+// @Summary	     表依赖解析
 // @Tags         PANDAS
-// @Accept       json
-// @Produce      json
-// @Param        instance-id path int true "instance id"
-// @Param        req query view.ReqTableDependencies true "params"
-// @Success      200 {object} core.ResPage{data=view.RespTableDependencies}
-// @Router       /api/v2/pandas/instances/{instance-id}/table-dependencies [get]
 func TableDependencies(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {

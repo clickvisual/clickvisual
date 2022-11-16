@@ -21,6 +21,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// Create
 // @Tags         ALARM
 // @Summary	     告警创建
 func Create(c *core.Context) {
@@ -83,6 +84,7 @@ func Create(c *core.Context) {
 	return
 }
 
+// Update
 // @Tags         ALARM
 // @Summary 	 告警更新
 func Update(c *core.Context) {
