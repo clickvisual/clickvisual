@@ -69,6 +69,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警列表",
                 "operationId": "GET./v1/alarms",
                 "parameters": [
                     {
@@ -140,6 +141,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警渠道列表",
                 "operationId": "GET./v1/alarms-channels",
                 "responses": {
                     "200": {
@@ -160,6 +162,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警渠道创建",
                 "operationId": "POST./v1/alarms-channels",
                 "parameters": [
                     {
@@ -185,6 +188,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警渠道测试",
                 "operationId": "POST./v1/alarms-channels/send-test",
                 "parameters": [
                     {
@@ -210,6 +214,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警渠道详情",
                 "operationId": "GET./v1/alarms-channels/{id}",
                 "parameters": [
                     {
@@ -233,6 +238,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警渠道删除",
                 "operationId": "DELETE./v1/alarms-channels/{id}",
                 "parameters": [
                     {
@@ -253,6 +259,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警渠道更新",
                 "operationId": "PATCH./v1/alarms-channels/{id}",
                 "parameters": [
                     {
@@ -279,6 +286,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警推送记录",
                 "operationId": "GET./v1/alarms-histories",
                 "parameters": [
                     {
@@ -307,6 +315,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警推送详情",
                 "operationId": "GET./v1/alarms-histories/{id}",
                 "parameters": [
                     {
@@ -332,6 +341,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警详情",
                 "operationId": "GET./v1/alarms/{id}",
                 "parameters": [
                     {
@@ -355,6 +365,7 @@
                 "tags": [
                     "ALARM"
                 ],
+                "summary": "告警删除",
                 "operationId": "DELETE./v1/alarms/{id}",
                 "parameters": [
                     {
