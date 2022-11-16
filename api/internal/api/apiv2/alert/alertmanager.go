@@ -26,7 +26,7 @@ func Webhook(c *core.Context) {
 		return
 	}
 	invoker.Logger.Debug("alarm", elog.Any("notification", notification))
-	err = service.Alert.PushAlertManager(notification.CommonLabels["uuid"], notification.CommonLabels["filterId"], notification)
+	err = service.Alert.HandlerAlertManager(notification.CommonLabels["uuid"], notification.CommonLabels["filterId"], notification)
 	if err != nil {
 		c.JSONE(1, "message send failed: "+err.Error(), err)
 		return

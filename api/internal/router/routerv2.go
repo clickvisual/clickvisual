@@ -2,7 +2,6 @@ package router
 
 import (
 	_ "embed"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 
@@ -26,7 +25,6 @@ import (
 // The system management module - sysop
 func v2(r *gin.RouterGroup) {
 	r = r.Group("/v2", middlewares.AuthChecker())
-	fmt.Println(docs.EGOGenAPI)
 	// swagger docs
 	{
 		r.GET("/swagger/*any", goredoc.GinHandler(&goredoc.Setting{

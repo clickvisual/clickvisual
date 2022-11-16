@@ -43,6 +43,11 @@ type ReqAlarmWebhook struct {
 	Uid  int    `json:"uid" form:"uid"`
 }
 
+type PushMsg struct {
+	Title string `json:"title"`
+	Text  string `json:"text"`
+}
+
 func (m *AlarmChannel) TableName() string {
 	return TableNameAlarmChannel
 }
