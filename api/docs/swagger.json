@@ -3951,15 +3951,13 @@
         },
         "/v2/pandas/instances/{instance-id}/table-dependencies": {
             "get": {
-                "description": "  godoc\nResult of table dependency resolution",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "PANDAS"
                 ],
-                "summary": "Result of table dependency resolution",
+                "summary": "表依赖解析",
                 "operationId": "GET./v2/pandas/instances/{instance-id}/table-dependencies",
                 "parameters": [
                     {
@@ -3989,15 +3987,13 @@
         },
         "/v2/pandas/nodes-results/{result-id}": {
             "patch": {
-                "description": "  godoc\nonly support excelProcess update",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "PANDAS"
                 ],
-                "summary": "Updates the action on the execution result",
+                "summary": "更新节点执行结果",
                 "operationId": "PATCH./v2/pandas/nodes-results/{result-id}",
                 "parameters": [
                     {
@@ -4021,15 +4017,13 @@
         },
         "/v2/pandas/nodes/{node-id}/crontab": {
             "post": {
-                "description": "  godoc\nisRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "PANDAS"
                 ],
-                "summary": "Creating a scheduled node scheduling task",
+                "summary": "创建节点任务",
                 "operationId": "POST./v2/pandas/nodes/{node-id}/crontab",
                 "parameters": [
                     {
@@ -4051,15 +4045,13 @@
                 }
             },
             "patch": {
-                "description": "  godoc\nisRetry: 0 no 1 yes\nretryInterval: the unit is in seconds, 100 means 100s",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "PANDAS"
                 ],
-                "summary": "Updating a scheduled node scheduling task",
+                "summary": "节点任务更新",
                 "operationId": "PATCH./v2/pandas/nodes/{node-id}/crontab",
                 "parameters": [
                     {
@@ -4108,14 +4100,10 @@
         },
         "/v2/pandas/nodes/{node-id}/results": {
             "get": {
-                "description": "  godoc\nObtain the node execution result record",
-                "produces": [
-                    "json"
-                ],
                 "tags": [
                     "PANDAS"
                 ],
-                "summary": "Obtain the node execution result record",
+                "summary": "节点执行结果列表",
                 "operationId": "GET./v2/pandas/nodes/{node-id}/results",
                 "parameters": [
                     {
@@ -4160,14 +4148,10 @@
         },
         "/v2/pandas/workers": {
             "get": {
-                "description": "  godoc\nThe scheduled task list",
-                "produces": [
-                    "json"
-                ],
                 "tags": [
                     "PANDAS"
                 ],
-                "summary": "The scheduled task list",
+                "summary": "定时任务执行结果列表",
                 "operationId": "GET./v2/pandas/workers",
                 "parameters": [
                     {
@@ -4194,21 +4178,24 @@
                         "type": "integer",
                         "name": "iid",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
                     }
                 ]
             }
         },
         "/v2/pandas/workers/dashboard": {
             "get": {
-                "description": "  godoc\nKanban on the execution status of a scheduled task",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "PANDAS"
                 ],
-                "summary": "Kanban on the execution status of a scheduled task",
+                "summary": "Kanban Dashboard",
                 "operationId": "GET./v2/pandas/workers/dashboard",
                 "parameters": [
                     {
@@ -5429,6 +5416,10 @@
                     "description": "sql_view",
                     "type": "string"
                 },
+                "channelIds": {
+                    "description": "channel of an alarm",
+                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
+                },
                 "cron": {
                     "description": "cron expression",
                     "type": "string"
@@ -6601,6 +6592,12 @@
                         "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCrontabArg"
                     }
                 },
+                "channelIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "cron": {
                     "type": "string"
                 },
@@ -6611,9 +6608,11 @@
                     "type": "integer"
                 },
                 "isRetry": {
+                    "description": "isRetry: 0 no 1 yes",
                     "type": "integer"
                 },
                 "retryInterval": {
+                    "description": "retryInterval: the unit is in seconds, 100 means 100s",
                     "type": "integer"
                 },
                 "retryTimes": {
@@ -7286,6 +7285,12 @@
                         "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCrontabArg"
                     }
                 },
+                "channelIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "cron": {
                     "type": "string"
                 },
@@ -7296,9 +7301,11 @@
                     "type": "integer"
                 },
                 "isRetry": {
+                    "description": "isRetry: 0 no 1 yes",
                     "type": "integer"
                 },
                 "retryInterval": {
+                    "description": "retryInterval: the unit is in seconds, 100 means 100s",
                     "type": "integer"
                 },
                 "retryTimes": {
