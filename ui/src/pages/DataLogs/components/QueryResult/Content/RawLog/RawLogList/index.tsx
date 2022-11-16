@@ -10,6 +10,7 @@ import { notification } from "antd";
 import { parseJsonObject } from "@/utils/string";
 import { microsecondTimeStamp } from "@/utils/time";
 import { useIntl } from "umi";
+import { LINKLOGS_PAGESIZE } from "@/config/config";
 
 // 链路主题色，循环使用，可直接在末尾新增
 const themeColor = [
@@ -289,7 +290,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     if (
       logs?.isTrace == 1 &&
       logState == 1 &&
-      linkLogs?.limited == 100 &&
+      linkLogs?.limited == LINKLOGS_PAGESIZE &&
       dataListLength > 1 &&
       oldPane?.linkLogs &&
       !isNotification
