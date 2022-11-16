@@ -21,6 +21,12 @@ jobs:
           go version 
           go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.1-rc1
           egogen --config egogen.yaml
+      - name: Install ossutil
+        run: wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64
+      - name: Config ossutil
+        run: ./ossutil64 config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.OSS_ACCESS_KEY_ID }} -k ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      - name: Upload docs
+        run: ./ossutil64 cp -r -f ./api/docs/swagger.json oss://gocn-cdn/clickvisual/api/swagger/doc.json
       - name: Create Commit
         uses: peter-evans/create-pull-request@v4
         with:

@@ -540,14 +540,7 @@ func SendTestToChannel(c *db.AlarmChannel) (err error) {
 	if err != nil {
 		return
 	}
-	n := db.Notification{}
-	t := &db.BaseTable{}
-	t.ID = 0
-	a := &db.Alarm{Name: c.Name, Desc: "Test the availability of the alarm channel"}
-	f := &db.AlarmFilter{
-		When: "when",
-	}
-	err = ci.Send(n, t, a, f, c, "")
+	err = ci.Send(c, "Hello", "Test the availability of the alarm channel")
 	return
 }
 

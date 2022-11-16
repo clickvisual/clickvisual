@@ -14,6 +14,7 @@ import (
 )
 
 var models = []interface{}{
+	db.BigdataCrontab{},
 	db.AlarmFilter{},
 	db.AlarmHistory{},
 
@@ -27,7 +28,6 @@ var models = []interface{}{
 	db.BigdataNodeHistory{},
 	db.BigdataNodeResult{},
 	db.BigdataDepend{},
-	db.BigdataCrontab{},
 
 	db.BaseView{},
 	db.BaseTable{},

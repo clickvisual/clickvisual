@@ -270,6 +270,7 @@ type (
 		NodeName string `json:"nodeName" form:"nodeName"`
 		Tertiary int    `json:"tertiary" form:"tertiary"` // ClickHouse 10; MySQL 11; OfflineSync 20
 		Iid      int    `json:"iid" form:"iid"`
+		Status   int    `json:"status" form:"status"` // 0 未知；1 成功；2 失败
 		Pagination
 	}
 
@@ -321,9 +322,10 @@ type (
 		Cron          string          `json:"cron" form:"cron"`
 		Typ           int             `json:"typ" form:"typ"`
 		Args          []ReqCrontabArg `json:"args" form:"args"`
-		IsRetry       int             `json:"isRetry" form:"isRetry"`
+		IsRetry       int             `json:"isRetry" form:"isRetry"` // isRetry: 0 no 1 yes
 		RetryTimes    int             `json:"retryTimes" form:"retryTimes"`
-		RetryInterval int             `json:"retryInterval" form:"retryInterval"`
+		RetryInterval int             `json:"retryInterval" form:"retryInterval"` // retryInterval: the unit is in seconds, 100 means 100s
+		ChannelIds    []int           `json:"channelIds" form:"channelIds"`
 	}
 	ReqCrontabArg struct {
 		Key string `json:"key" form:"key"`

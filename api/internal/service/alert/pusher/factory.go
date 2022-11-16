@@ -14,7 +14,7 @@ import (
 )
 
 type IPusher interface {
-	Send(db.Notification, *db.BaseTable, *db.Alarm, *db.AlarmFilter, *db.AlarmChannel, string) error
+	Send(*db.AlarmChannel, string, string) error
 }
 
 func GetPusher(typ int) (IPusher, error) {
@@ -38,7 +38,7 @@ func GetPusher(typ int) (IPusher, error) {
 	return nil, err
 }
 
-// constructMessage
+// AssemblyAlarmMessage
 // Description: 提供一个通用的md模式的获取内容的方法
 // param notification  通知的部分方法
 // param alarm 警告的数据库连接
@@ -46,7 +46,7 @@ func GetPusher(typ int) (IPusher, error) {
 // return title 标题
 // return text 内容
 // return err 错误
-func constructMessage(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, partialLog string) (title, text string, err error) {
+func AssemblyAlarmMessage(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, partialLog string) (title, text string, err error) {
 	// groupKey := notification.GroupKey
 	status := notification.Status
 	annotations := notification.CommonAnnotations
@@ -93,12 +93,17 @@ func constructMessage(notification db.Notification, table *db.BaseTable, alarm *
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, filter.ID, start, end,
 		))
 		if partialLog != "" {
-			if len(partialLog) > 400 {
-				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", partialLog[0:399]))
+			if len(partialLog) > 600 {
+				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", partialLog[0:599]))
 			} else {
 				buffer.WriteString(fmt.Sprintf("##### 详情: %s", partialLog))
 			}
 		}
 	}
 	return fmt.Sprintf("【%s】%s", statusText, alarm.Name), buffer.String(), nil
+}
+
+func BuildWechatMarkdownMsg(notification db.Notification, alarm *db.Alarm, oneTheLogs string) (data string, err error) {
+	dataStr, err := BuildMsg("markdown", notification, alarm, oneTheLogs)
+	return dataStr, err
 }

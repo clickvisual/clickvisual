@@ -20,12 +20,8 @@ type Telegram struct{}
 // TODO 偶现超时机器人的情况，暂时不使用
 // Occasionally there is a situation where the robot times out, and it will not be used for the time being
 
-func (t *Telegram) Send(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	title, text, err := constructMessage(notification, table, alarm, filter, oneTheLogs)
-	if err != nil {
-		return err
-	}
-	err = t.sendMessage(channel.Key, title, text)
+func (t *Telegram) Send(channel *db.AlarmChannel, title, content string) (err error) {
+	err = t.sendMessage(channel.Key, title, content)
 	if err != nil {
 		return err
 	}
