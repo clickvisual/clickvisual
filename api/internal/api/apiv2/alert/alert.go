@@ -149,7 +149,7 @@ func SettingList(c *core.Context) {
 			return op.GetMetricsSamples()
 		}(); errMetrics != nil {
 			row.IsMetricsSamplesOk = 0
-			row.CheckMetricsSamplesResult = err.Error()
+			row.CheckMetricsSamplesResult = errMetrics.Error()
 		}
 		// check metrics samples
 		res = append(res, &row)
