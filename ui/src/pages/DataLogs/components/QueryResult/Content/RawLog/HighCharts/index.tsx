@@ -6,7 +6,11 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useMemo, useRef, useState } from "react";
 import HighChartsTooltip from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts/HighChartsTooltip";
 import moment from "moment";
-import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
+import {
+  ACTIVE_TIME_NOT_INDEX,
+  LINKLOGS_PAGESIZE,
+  TimeRangeType,
+} from "@/config/config";
 import { useIntl } from "umi";
 import { PaneType } from "@/models/datalogs/types";
 import { timeIntervalIsConvertedIntoUnits } from "@/utils/time";
@@ -107,7 +111,7 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       const reqParams: any = { st: start, et: end };
 
       if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-        reqParams.pageSize = 100;
+        reqParams.pageSize = LINKLOGS_PAGESIZE;
       }
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary.id, {
@@ -126,7 +130,7 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
               pane.logs = res.logs;
             }
             pane.highCharts = res.highCharts;
-            pane.logChart = { logs: [] };
+            pane.logChart = { logs: [], isNeedSort: false, sortRule: ["*"] };
             onChangeLogPane(pane);
           }
         })

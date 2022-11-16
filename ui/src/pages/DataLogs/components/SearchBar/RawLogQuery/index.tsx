@@ -7,7 +7,7 @@ import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useDebounceFn } from "ahooks";
-import { FIRST_PAGE, TimeRangeType } from "@/config/config";
+import { FIRST_PAGE, LINKLOGS_PAGESIZE, TimeRangeType } from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";
@@ -92,7 +92,7 @@ const RawLogQuery = () => {
         activeIndex: activeTimeOptionIndex,
       };
       if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-        params.pageSize = 100;
+        params.pageSize = LINKLOGS_PAGESIZE;
       }
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params }).then(
@@ -172,6 +172,10 @@ const RawLogQuery = () => {
   useEffect(() => {
     logs?.defaultFields && onChangeAnalysisFieldTips(logs.defaultFields);
   }, [logs?.defaultFields]);
+
+  useEffect(() => {
+    return () => onChangeInitValue(keywordInput || "");
+  }, []);
 
   return (
     <>

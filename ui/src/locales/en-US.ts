@@ -480,6 +480,7 @@ export default {
   "log.search.codeHinting.analysisField": "Field",
   "log.search.codeHinting.keyword": "Keyword",
   "log.search.codeHinting.collectHistory": "Collect",
+  "log.search.codeHinting.value": "Value",
   "log.search.icon.quickSearch": "Created Query Criteria",
   "log.search.help.content.specifyField":
     "Specify the field query: Method='Get' and _raw_log_ like '%error%'",

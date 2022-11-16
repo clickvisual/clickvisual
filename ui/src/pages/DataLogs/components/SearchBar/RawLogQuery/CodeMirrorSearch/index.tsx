@@ -1,7 +1,7 @@
 import styles from "./index.less";
 import ReactDom from "react-dom";
 import { useIntl, useModel } from "umi";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 // 白色主题
 import "codemirror/theme/neo.css";
@@ -9,6 +9,7 @@ import {
   FontSizeOutlined,
   HistoryOutlined,
   KeyOutlined,
+  PushpinOutlined,
 } from "@ant-design/icons";
 import "codemirror/addon/hint/sql-hint";
 import { dataLogLocalaStorageType } from "@/models/dataLogs";
@@ -19,6 +20,7 @@ import CreateLogFilter from "@/pages/DataLogs/components/CreateLogFilter";
 import { CollectType, LogFilterType } from "@/services/dataLogs";
 import IconFont from "@/components/IconFont";
 import { message } from "antd";
+import classNames from "classnames";
 
 export enum CodeHintsType {
   history = 1,
@@ -28,6 +30,10 @@ export enum CodeHintsType {
    * 收藏历史记录
    */
   collection = 4,
+  /**
+   * 当前输入值
+   */
+  value = 5,
 }
 
 const Editors = (props: {
@@ -56,15 +62,18 @@ const Editors = (props: {
     logQueryHistoricalList,
     collectingHistorical,
   } = props;
-  const formRefs: any = useRef(null);
-  const i18n = useIntl();
-  const { onSetLocalData } = useLocalStorages();
 
   const {
     doDeleteLogFilter,
     doGetLogFilterList,
     onChangeCollectingHistorical,
   } = useModel("dataLogs");
+
+  const formRefs: any = useRef(null);
+  const i18n = useIntl();
+  const [isMultipleLines, setIsMultipleLines] = useState<boolean>(false);
+  const [isFocus, setIsFocus] = useState<boolean>(false);
+  const { onSetLocalData } = useLocalStorages();
 
   // 回车事件
   const handleEnter = () => {
@@ -130,6 +139,10 @@ const Editors = (props: {
           id: "log.search.codeHinting.collectHistory",
         });
         break;
+      case CodeHintsType.value:
+        icon = <PushpinOutlined />;
+        infoText = i18n.formatMessage({ id: "log.search.codeHinting.value" });
+        break;
       default:
     }
     let arr: any[] = [];
@@ -151,13 +164,13 @@ const Editors = (props: {
       });
       allArr = [...priorityArr, ...arr];
 
-      // 处理模拟数据
-      let fuzzyList = fuzzyQuery(list, currentWord);
+      // 处理模糊数据
+      const fuzzyList = fuzzyQuery(list, currentWord);
       fuzzyList.map((item: any) => {
         // 模糊搜索结果先过滤
         if (
-          allArr.filter((allArrItem: any) => item != allArrItem.text).length ==
-          0
+          allArr.filter((allArrItem: any) => item.includes(allArrItem.text))
+            .length == 0
         ) {
           allArr.push({
             text: item,
@@ -298,16 +311,24 @@ const Editors = (props: {
     hintOptions: any
   ) => {
     let cursor = cmInstance.getCursor();
-    let cursorLine = cmInstance.getLine(cursor.line);
+    let cursorLine = cmInstance
+      .getLine(cursor.line)
+      .replace(/((?![A-Z]).)/gi, " ");
     let end = cursor.ch;
 
     let token = cmInstance.getTokenAt(cursor);
+    const collectionList = handleCodePromptRecord(
+      collectingHistorical,
+      cursorLine,
+      CodeHintsType.collection,
+      end
+    );
     // 按键触发的显示四种提示
     if (cursorLine && cursorLine.length > 0 && cursorLine != "`") {
-      const collectionList = handleCodePromptRecord(
-        collectingHistorical,
+      const cursorLineList = handleCodePromptRecord(
+        [cursorLine],
         cursorLine,
-        CodeHintsType.collection,
+        CodeHintsType.value,
         end
       );
       const historyList = handleCodePromptRecord(
@@ -332,19 +353,18 @@ const Editors = (props: {
 
       return {
         list:
-          // [...historyList, ...list, ...keyWordList] || [],
-          [...collectionList, ...historyList, ...list, ...keyWordList] || [],
+          [
+            ...cursorLineList,
+            ...collectionList,
+            ...historyList,
+            ...list,
+            ...keyWordList,
+          ] || [],
         from: { ch: token.start, line: cursor.line },
         to: { ch: token.end, line: cursor.line },
       };
     }
     // 否则显示一种提示
-    const collectionList = handleCodePromptRecord(
-      collectingHistorical,
-      cursorLine,
-      CodeHintsType.collection,
-      end
-    );
     const allHistoryList = handleCodePromptRecord(
       historicalRecord.slice(0, 10),
       "",
@@ -481,29 +501,105 @@ const Editors = (props: {
       });
   };
 
+  const options = {
+    // 显示行号
+    lineNumbers: false,
+    // 改变行号文案
+    lineNumberFormatter: (line: number) => line,
+    mode: {
+      name: "text/x-mysql",
+    },
+    // 自定义快捷键
+    extraKeys: { Enter: handleEnter },
+    hintOptions: {
+      // 自定义提示选项
+      completeSingle: false, // 当匹配只有一项的时候是否自动补全
+      // 自定义的提示库
+      hint: handleShowHint,
+      tables: [...tables, ...historicalRecord],
+    },
+    autofocus: false,
+    styleActiveLine: true,
+    // 主题
+    theme: "neo",
+    // 溢出滚动而非换行
+    lineWrapping: false,
+    foldGutter: true,
+    gutters: false,
+    lint: false,
+    indentUnit: 2,
+    // 光标高度
+    cursorHeight: 1,
+    placeholder: placeholder || "",
+    // tab缩进
+    tabSize: 2,
+    // 滚动条样式
+    scrollbarStyle: null,
+  };
+
+  const handleChange = (CodeMirror: string, changeObj: any, value: string) => {
+    if (value.indexOf("\n") > -1 && !isMultipleLines) {
+      setIsMultipleLines(true);
+    } else if (isMultipleLines && value.indexOf("\n") == -1) {
+      setIsMultipleLines(false);
+    }
+    onChange(value);
+  };
+
+  const handleKeyPress = (
+    a: any,
+    b: { charCode: number; preventDefault: () => void }
+  ) => {
+    // 阻止回车换行事件
+    if (b.charCode == 13) {
+      b.preventDefault();
+      return;
+    }
+    // 按字母键的时候触发代码提示
+    if (
+      (b.charCode <= 90 && b.charCode >= 65) ||
+      (b.charCode <= 122 && b.charCode >= 97) ||
+      b.charCode == 96 ||
+      b.charCode == 32
+    ) {
+      formRefs.current.editor.showHint();
+    }
+  };
+
   return (
-    <div className={styles.editors} key={title + "editors"}>
+    <div
+      className={classNames([
+        styles.editors,
+        !isMultipleLines && styles.oneLine,
+      ])}
+      key={title + "editors"}
+    >
       <WhereBox />
-      <div className={styles.codemirrorInput}>
+      <div
+        className={styles.codemirrorInput}
+        style={{ overflow: isMultipleLines && isFocus ? "" : "hidden" }}
+      >
         <CodeMirror
           className={styles.editorsDom}
           ref={formRefs}
           key={title}
-          onKeyPress={(a, b) => {
-            // 阻止回车换行事件
-            if (b.charCode == 13) {
-              b.preventDefault();
-              return;
-            }
-            // 按字母键的时候触发代码提示
-            if (
-              (b.charCode <= 90 && b.charCode >= 65) ||
-              (b.charCode <= 122 && b.charCode >= 97) ||
-              b.charCode == 96 ||
-              b.charCode == 32
-            ) {
-              formRefs.current.editor.showHint();
-            }
+          value={value}
+          options={options}
+          onKeyPress={handleKeyPress}
+          onBlur={() => setIsFocus(false)}
+          onChange={handleChange}
+          onFocus={() => {
+            setIsFocus(true);
+            // const CodeMirror = formRefs.current?.editor;
+            // if (formRefs.current.editor.getValue() === "") {
+            //   // formRefs.current.editor.setOption({
+            //   //   hintOptions: {
+            //   //     tables: historicalRecord,
+            //   //   },
+            //   // });
+            //   // 值为空的时候聚焦会主动吊起历史记录提示框
+            //   formRefs.current.editor.showHint();
+            // }
           }}
           // onCursorActivity={(codeMirror: any) => {
           //   const text = codeMirror?.display?.maxLine?.text;
@@ -511,55 +607,18 @@ const Editors = (props: {
           //     formRefs.current.editor.showHint();
           //   }
           // }}
-          // onFocus={() => {
-          //   // const CodeMirror = formRefs.current?.editor;
-          //   if (formRefs.current.editor.getValue() === "") {
-          //     // formRefs.current.editor.setOption({
-          //     //   hintOptions: {
-          //     //     tables: historicalRecord,
-          //     //   },
-          //     // });
-          //     // 值为空的时候聚焦会主动吊起历史记录提示框
-          //     formRefs.current.editor.showHint();
-          //   }
+          // onBeforeChange={(
+          //   instance: any,
+          //   changeObj: any,
+          //   str: string,
+          //   next: () => void
+          // ) => {
+          //   next();
+          //   console.log(instance.getValue(), changeObj, str);
+          //   // if (changeObj?.text?.length > 1) {
+          //   //   // onChangeIsDefault(true);
+          //   // }
           // }}
-          onChange={(CodeMirror: string, changeObj: any, value: string) =>
-            onChange(value)
-          }
-          value={value}
-          options={{
-            // 显示行号
-            lineNumbers: false,
-            mode: {
-              name: "text/x-mysql",
-            },
-            // 自定义快捷键
-            extraKeys: { Enter: handleEnter },
-            hintOptions: {
-              // 自定义提示选项
-              completeSingle: false, // 当匹配只有一项的时候是否自动补全
-              // 自定义的提示库
-              hint: handleShowHint,
-              tables: [...tables, ...historicalRecord],
-            },
-            autofocus: false,
-            styleActiveLine: true,
-            // 主题
-            theme: "neo",
-            // 溢出滚动而非换行
-            lineWrapping: false,
-            foldGutter: true,
-            gutters: false,
-            lint: false,
-            indentUnit: 2,
-            // 光标高度
-            cursorHeight: 1,
-            placeholder: placeholder || "",
-            // tab缩进
-            tabSize: 2,
-            // 滚动条样式
-            scrollbarStyle: null,
-          }}
         />
         <span className={styles.afterBox}></span>
       </div>

@@ -28,6 +28,8 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
     doEditLogFilter,
     doGetLogsAndHighCharts,
     columsList,
+    logPanesHelper,
+    onChangeCurrentLogPane,
   } = useModel("dataLogs");
   const formFilterRef = useRef<FormInstance>(null);
 
@@ -53,7 +55,15 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
         message.success("success");
         onChangeVisibleLogFilter(false);
         // 以下函数会刷新filterList
-        doGetLogsAndHighCharts(tid);
+
+        doGetLogsAndHighCharts(tid).then((data: any) => {
+          const { logs } = data;
+          const pane = logPanesHelper.logPanes[tid];
+          onChangeCurrentLogPane({
+            ...pane,
+            logs: logs,
+          });
+        });
       });
     } else {
       // add
@@ -62,7 +72,15 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
         message.success("success");
         onChangeVisibleLogFilter(false);
         // 以下函数会刷新filterList
-        doGetLogsAndHighCharts(tid);
+
+        doGetLogsAndHighCharts(tid).then((data: any) => {
+          const { logs } = data;
+          const pane = logPanesHelper.logPanes[tid];
+          onChangeCurrentLogPane({
+            ...pane,
+            logs: logs,
+          });
+        });
       });
     }
   };
@@ -111,7 +129,7 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
                   id: "log.filter.form.field",
                 })}
               >
-                {columsList.map((item: string) => {
+                {columsList?.map((item: string) => {
                   return (
                     <Option key={item} value={item}>
                       {item}

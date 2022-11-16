@@ -3,17 +3,39 @@
   display: flex;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  // overflow: hidden;
 
   .codemirrorInput {
     display: flex;
     width: 100%;
-    padding-left: 10px;
-    overflow: hidden;
+    // padding-left: 10px;
+    // overflow: hidden;
     background-color: #fff;
     border: 1px solid #e8e8e8;
     border-radius: 0 8px 8px 0;
 
+    .editorsDom {
+      width: 100%;
+      height: 100%;
+      font-size: 16px;
+      line-height: 26px;
+    }
+    :global(.CodeMirror) {
+      border: 1px solid #fa975a;
+      border-radius: 0 7px 7px 7px;
+    }
+    :global(.CodeMirror-cursor) {
+      width: 1px !important;
+      background-color: #000 !important;
+    }
+  }
+}
+
+.oneLine {
+  overflow: hidden;
+
+  .codemirrorInput {
+    padding-left: 10px;
     &:focus-within {
       border-color: #fa975a;
       outline: 0;
@@ -22,14 +44,6 @@
 
     &:hover {
       border-color: #fa975a;
-    }
-
-    .editorsDom {
-      width: 100%;
-      height: 100%;
-      overflow-y: hidden;
-      font-size: 16px;
-      line-height: 26px;
     }
     .editorsErrTxext {
       position: absolute;
@@ -46,7 +60,8 @@
     :global(.CodeMirror) {
       height: auto !important;
       min-height: 32px !important;
-      max-height: 32px !important;
+      max-height: 400px !important;
+      border: none !important;
     }
     :global(.CodeMirror-scroll) {
       height: auto !important;
@@ -77,13 +92,6 @@
 
     :global(.CodeMirror-line) {
       padding: 0;
-    }
-
-    :global(.CodeMirror-cursor) {
-      top: 2px !important;
-      width: 1px !important;
-      height: 18px !important;
-      background-color: #000 !important;
     }
 
     .afterBox {

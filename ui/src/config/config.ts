@@ -71,4 +71,4 @@ export const LANG_CN = "zh-CN";
 export const LOGMAXTEXTLENGTH = 500;
 
 // 链路日志查询条数
-export const LINKLOGS_PAGESIZE = 100;
+export const LINKLOGS_PAGESIZE = 200;
