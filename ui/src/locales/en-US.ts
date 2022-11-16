@@ -1014,11 +1014,11 @@ export default {
     "I am in charge of the",
 
   "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance":
-    "Instance of failure",
+    "Failed task",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
-    "Successful instances",
+    "Task of success",
   "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance":
-    "Unknown instance",
+    "Unknown task",
   "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "Node failure",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode":
     "Successful node",

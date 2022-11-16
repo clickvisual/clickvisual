@@ -947,10 +947,10 @@ export default {
   "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek": "近七天",
   "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge": "我负责的",
 
-  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败任务",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
-    "成功实例",
-  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知实例",
+    "成功任务",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知任务",
   "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "失败节点",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode": "成功节点",
   "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode": "未知节点",
