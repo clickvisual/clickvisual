@@ -151,10 +151,7 @@ export default function useLogUrlParams() {
       keyword: urlState.kw || lastDataLogsState.kw,
       page: parseInt(urlState.page || lastDataLogsState.page),
       pageSize: parseInt(urlState.size || lastDataLogsState.size),
-      activeTabKey:
-        (urlState.start && urlState.end && "custom") ||
-        urlState.tab ||
-        lastDataLogsState.tab,
+      activeTabKey: urlState.tab || lastDataLogsState.tab,
       activeIndex: parseInt(urlState.index || lastDataLogsState.index),
       queryType: urlState.queryType || lastDataLogsState.queryType,
       querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
