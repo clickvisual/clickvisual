@@ -55,7 +55,7 @@ type iAlert interface {
 	PrometheusReload(prometheusTarget string) (err error)
 	PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string
 	PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error)
-	PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error)
+	DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (err error)
 	CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error)
 	OpenOperator(id int) (err error)
 	Update(uid, alarmId int, req view.ReqAlarmCreate) (err error)
@@ -203,7 +203,7 @@ func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, con
 	return nil
 }
 
-func (i *alert) PrometheusRuleDelete(instance *db.BaseInstance, obj *db.Alarm) (err error) {
+func (i *alert) DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (err error) {
 	if obj.AlertRules == nil || len(obj.AlertRules) == 0 {
 		// v1 version
 		return alarmRuleDelete(instance, obj.RuleName(0))
@@ -302,7 +302,7 @@ func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, r); err != nil {
 			return
 		}
-		if err = Alert.PrometheusRuleDelete(&instance, alarmObj); err != nil {
+		if err = Alert.DeletePrometheusRule(&instance, alarmObj); err != nil {
 			return
 		}
 	}
