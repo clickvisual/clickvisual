@@ -108,6 +108,10 @@ func SettingUpdate(c *core.Context) {
 func SettingList(c *core.Context) {
 	res := make([]*db.RespAlertSettingListItem, 0)
 	instanceList, err := db.InstanceList(egorm.Conds{})
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
 	for _, instance := range instanceList {
 		if !service.InstanceViewIsPermission(c.Uid(), instance.ID) {
 			continue
@@ -137,22 +141,18 @@ func SettingList(c *core.Context) {
 			row.IsAlertManagerOK = 0
 			row.CheckAlertManagerResult = errAlertManager.Error()
 		}
-		if err = func() error {
+		if errMetrics := func() error {
 			op, errCh := service.InstanceManager.Load(instance.ID)
 			if errCh != nil {
 				return err
 			}
 			return op.GetMetricsSamples()
-		}(); err != nil {
+		}(); errMetrics != nil {
 			row.IsMetricsSamplesOk = 0
 			row.CheckMetricsSamplesResult = err.Error()
 		}
 		// check metrics samples
 		res = append(res, &row)
-	}
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
 	}
 	c.JSONOK(res)
 	return
