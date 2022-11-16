@@ -453,6 +453,7 @@ export default {
   "log.search.codeHinting.analysisField": "分析字段",
   "log.search.codeHinting.keyword": "关键字",
   "log.search.codeHinting.collectHistory": "收藏历史",
+  "log.search.codeHinting.value": "当前值",
   "log.search.icon.quickSearch": "增加查询条件",
   "log.search.help.content.specifyField":
     "指定字段查询：Method='Get' and _raw_log_ like '%error%'",
