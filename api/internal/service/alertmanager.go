@@ -16,7 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func (i *alert) PushAlertManager(alarmUUID string, filterIdStr string, notification db.Notification) (err error) {
+func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notification db.Notification) (err error) {
 	// 获取告警信息
 	tx := invoker.Db.Begin()
 	conds := egorm.Conds{}
@@ -83,33 +83,15 @@ func (i *alert) PushAlertManager(alarmUUID string, filterIdStr string, notificat
 	}
 	// get partial log
 	partialLog := i.getPartialLog(op, &tableInfo, &alarm, filter)
-	for _, channelId := range alarm.ChannelIds {
-		channelInfo, errAlarmChannelInfo := db.AlarmChannelInfo(invoker.Db, channelId)
-		if errAlarmChannelInfo != nil {
-			invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errAlarmChannelInfo), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
-			_ = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusFail})
-			return errAlarmChannelInfo
-		}
-		channelInstance, errChannelType := pusher.GetPusher(channelInfo.Typ)
-		if errChannelType != nil {
-			invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errChannelType), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
-			_ = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusFail})
-			return errChannelType
-		}
-		title, text, errConstructMessage := pusher.AssemblyAlarmMessage(notification, &tableInfo, &alarm, filter, partialLog)
-		if errConstructMessage != nil {
-			invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errConstructMessage), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
-			return
-		}
-		if channelInfo.Typ == db.ChannelWeChat {
-			text, _ = pusher.BuildWechatMarkdownMsg(notification, &alarm, partialLog)
-		}
-		errSend := channelInstance.Send(&channelInfo, title, text)
-		if errSend != nil {
-			invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errSend), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
-			_ = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusFail})
-			return errSend
-		}
+	pushMsg, errConstructMessage := pusher.BuildAlarmMsg(notification, &tableInfo, &alarm, filter, partialLog)
+	if errConstructMessage != nil {
+		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errConstructMessage), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		return
+	}
+	if err = pusher.Execute(alarm.ChannelIds, pushMsg); err != nil {
+		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		_ = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusFail})
+		return
 	}
 	if err = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusSuccess}); err != nil {
 		return err

@@ -61,7 +61,7 @@ type iAlert interface {
 	Update(uid, alarmId int, req view.ReqAlarmCreate) (err error)
 	AddPrometheusReloadChan()
 	IsAllClosed(instanceId int) (err error)
-	PushAlertManager(alarmUUID string, filterId string, notification db.Notification) (err error)
+	HandlerAlertManager(alarmUUID string, filterId string, notification db.Notification) (err error)
 }
 
 type alert struct {
@@ -540,7 +540,10 @@ func SendTestToChannel(c *db.AlarmChannel) (err error) {
 	if err != nil {
 		return
 	}
-	err = ci.Send(c, "Hello", "Test the availability of the alarm channel")
+	err = ci.Send(c, &db.PushMsg{
+		Title: "Hello",
+		Text:  "Test the availability of the alarm channel",
+	})
 	return
 }
 

@@ -46,3 +46,6 @@ rules/*
 /data/helm/clickvisual/resource.yaml
 
 /data/k8s/fluent-bit/
+
+ossutil64
+ossutil64.1

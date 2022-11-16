@@ -22,8 +22,8 @@ var _ IPusher = (*Slack)(nil)
 
 type Slack struct{}
 
-func (s *Slack) Send(channel *db.AlarmChannel, title, content string) (err error) {
-	err = s.sendMessage(channel.Key, title, content)
+func (s *Slack) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
+	err = s.sendMessage(channel.Key, msg.Title, msg.Text)
 	if err != nil {
 		return err
 	}

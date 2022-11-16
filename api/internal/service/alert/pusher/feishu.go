@@ -11,8 +11,8 @@ var _ IPusher = (*FeiShu)(nil)
 
 type FeiShu struct{}
 
-func (s *FeiShu) Send(channel *db.AlarmChannel, title, content string) (err error) {
-	err = s.sendMessage(channel.Key, title, content)
+func (s *FeiShu) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
+	err = s.sendMessage(channel.Key, msg.Title, msg.Text)
 	if err != nil {
 		return err
 	}

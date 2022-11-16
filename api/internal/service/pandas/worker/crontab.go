@@ -2,6 +2,8 @@ package worker
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/node"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/preempt"
@@ -141,15 +144,19 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 		if cr.IsRetry == 1 {
 			// return mode
 			for i := 0; i < cr.RetryTimes; i++ {
+				text := ""
 				if res, errOperator := node.Operator(&n, &nc, node.OperatorRun, crontabUid); errOperator != nil {
 					invoker.Logger.Error("crontabRules", elog.String("step", "IsRetry"),
 						elog.Any("nodeId", cr.NodeId), elog.Any("err", errOperator), elog.Any("res", res))
 					time.Sleep(time.Duration(cr.RetryInterval) * time.Second)
+					text = errOperator.Error()
 				} else {
 					invoker.Logger.Info("crontabRules", elog.String("step", "IsRetryFinish"), elog.Any("nodeId", cr.NodeId),
 						elog.Any("res", res))
 					return
 				}
+				// 执行失败
+				pushExec(cr.ChannelIds, text, n.Iid)
 			}
 			return
 		}
@@ -157,6 +164,8 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 		if res, errOperator := node.Operator(&n, &nc, node.OperatorRun, crontabUid); errOperator != nil {
 			invoker.Logger.Error("crontabRules", elog.String("step", "buildCronFn"),
 				elog.Any("nodeId", cr.NodeId), elog.Any("err", errOperator), elog.Any("res", res))
+			// 执行失败
+			pushExec(cr.ChannelIds, errOperator.Error(), n.Iid)
 			return
 		}
 	})
@@ -169,4 +178,13 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 	_ = db.CrontabUpdate(invoker.Db, cr.NodeId, map[string]interface{}{"status": db.CrontabStatusDoing})
 	CrontabRules.crones.Store(cr.NodeId, c)
 	return
+}
+
+func pushExec(channelIds []int, text string, iid int) {
+	_ = pusher.Execute(channelIds, &db.PushMsg{
+		Title: "###  <font color=#FF0000>您有待处理的告警</font>\n",
+		Text: fmt.Sprintf("Scheduled task execution failed: %s\n href: %s/bigdata?id=%d&navKey=TaskExecutionDetails\n",
+			text, strings.TrimRight(econf.GetString("app.rootURL"), "/"), iid,
+		),
+	})
 }

@@ -13,12 +13,12 @@ var _ IPusher = (*DingDing)(nil)
 
 type DingDing struct{}
 
-func (d *DingDing) Send(channel *db.AlarmChannel, title, content string) (err error) {
+func (d *DingDing) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	markdown := &view.DingTalkMarkdown{
 		MsgType: "markdown",
 		Markdown: &view.Markdown{
-			Title: title,
-			Text:  content,
+			Title: msg.Title,
+			Text:  msg.Text,
 		},
 		At: &view.At{
 			IsAtAll: false,
