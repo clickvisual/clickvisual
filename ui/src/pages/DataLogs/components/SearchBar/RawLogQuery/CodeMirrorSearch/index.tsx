@@ -1,7 +1,7 @@
 import styles from "./index.less";
 import ReactDom from "react-dom";
 import { useIntl, useModel } from "umi";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 // 白色主题
 import "codemirror/theme/neo.css";
@@ -19,6 +19,7 @@ import CreateLogFilter from "@/pages/DataLogs/components/CreateLogFilter";
 import { CollectType, LogFilterType } from "@/services/dataLogs";
 import IconFont from "@/components/IconFont";
 import { message } from "antd";
+import classNames from "classnames";
 
 export enum CodeHintsType {
   history = 1,
@@ -56,15 +57,18 @@ const Editors = (props: {
     logQueryHistoricalList,
     collectingHistorical,
   } = props;
-  const formRefs: any = useRef(null);
-  const i18n = useIntl();
-  const { onSetLocalData } = useLocalStorages();
 
   const {
     doDeleteLogFilter,
     doGetLogFilterList,
     onChangeCollectingHistorical,
   } = useModel("dataLogs");
+
+  const formRefs: any = useRef(null);
+  const i18n = useIntl();
+  const [isMultipleLines, setIsMultipleLines] = useState<boolean>(false);
+  const [isFocus, setIsFocus] = useState<boolean>(false);
+  const { onSetLocalData } = useLocalStorages();
 
   // 回车事件
   const handleEnter = () => {
@@ -89,7 +93,7 @@ const Editors = (props: {
         ? str.toLowerCase()
         : str.toUpperCase();
     // 用空格分割然后找到所编辑的单词
-    const strArr = lowerCase.split(" ");
+    const strArr = lowerCase.replace(/((?![A-Z]).)/gi, " ").split(" ");
     let totalLenght = 0;
     let currentWord = "";
     // 为了查找光标所在的单词
@@ -151,7 +155,7 @@ const Editors = (props: {
       });
       allArr = [...priorityArr, ...arr];
 
-      // 处理模拟数据
+      // 处理模糊数据
       let fuzzyList = fuzzyQuery(list, currentWord);
       fuzzyList.map((item: any) => {
         // 模糊搜索结果先过滤
@@ -482,9 +486,18 @@ const Editors = (props: {
   };
 
   return (
-    <div className={styles.editors} key={title + "editors"}>
+    <div
+      className={classNames([
+        styles.editors,
+        !isMultipleLines && styles.oneLine,
+      ])}
+      key={title + "editors"}
+    >
       <WhereBox />
-      <div className={styles.codemirrorInput}>
+      <div
+        className={styles.codemirrorInput}
+        style={{ overflow: isMultipleLines && isFocus ? "" : "hidden" }}
+      >
         <CodeMirror
           className={styles.editorsDom}
           ref={formRefs}
@@ -511,25 +524,48 @@ const Editors = (props: {
           //     formRefs.current.editor.showHint();
           //   }
           // }}
-          // onFocus={() => {
-          //   // const CodeMirror = formRefs.current?.editor;
-          //   if (formRefs.current.editor.getValue() === "") {
-          //     // formRefs.current.editor.setOption({
-          //     //   hintOptions: {
-          //     //     tables: historicalRecord,
-          //     //   },
-          //     // });
-          //     // 值为空的时候聚焦会主动吊起历史记录提示框
-          //     formRefs.current.editor.showHint();
-          //   }
+          onFocus={() => {
+            setIsFocus(true);
+            // const CodeMirror = formRefs.current?.editor;
+            // if (formRefs.current.editor.getValue() === "") {
+            //   // formRefs.current.editor.setOption({
+            //   //   hintOptions: {
+            //   //     tables: historicalRecord,
+            //   //   },
+            //   // });
+            //   // 值为空的时候聚焦会主动吊起历史记录提示框
+            //   formRefs.current.editor.showHint();
+            // }
+          }}
+          onBlur={() => {
+            setIsFocus(false);
+          }}
+          onChange={(CodeMirror: string, changeObj: any, value: string) => {
+            if (value.indexOf("\n") > -1 && !isMultipleLines) {
+              setIsMultipleLines(true);
+            } else if (isMultipleLines && value.indexOf("\n") == -1) {
+              setIsMultipleLines(false);
+            }
+            onChange(value);
+          }}
+          // onBeforeChange={(
+          //   instance: any,
+          //   changeObj: any,
+          //   str: string,
+          //   next: () => void
+          // ) => {
+          //   next();
+          //   console.log(instance.getValue(), changeObj, str);
+          //   // if (changeObj?.text?.length > 1) {
+          //   //   // onChangeIsDefault(true);
+          //   // }
           // }}
-          onChange={(CodeMirror: string, changeObj: any, value: string) =>
-            onChange(value)
-          }
           value={value}
           options={{
             // 显示行号
             lineNumbers: false,
+            // 改变行号文案
+            lineNumberFormatter: (line: number) => line,
             mode: {
               name: "text/x-mysql",
             },
