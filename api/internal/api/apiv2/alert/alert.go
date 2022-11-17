@@ -67,11 +67,17 @@ func SettingUpdate(c *core.Context) {
 	ups["rule_store_type"] = req.RuleStoreType
 	if req.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
 		ups["cluster_id"] = req.ClusterId
-		ups["namespace"] = req.Namespace
-		ups["configmap"] = req.Configmap
+		if req.Namespace != "" {
+			ups["namespace"] = req.Namespace
+		}
+		if req.Configmap != "" {
+			ups["configmap"] = req.Configmap
+		}
 	}
 	if req.RuleStoreType == db.RuleStoreTypeFile {
-		ups["file_path"] = req.FilePath
+		if req.FilePath != "" {
+			ups["file_path"] = req.FilePath
+		}
 	}
 	if req.RuleStoreType != 0 {
 		prometheus := strings.TrimSpace(req.PrometheusTarget)
@@ -89,7 +95,7 @@ func SettingUpdate(c *core.Context) {
 		}
 		ups["prometheus_target"] = prometheus
 	}
-	if err := db.InstanceUpdate(invoker.Db, iid, ups); err != nil {
+	if err = db.InstanceUpdate(invoker.Db, iid, ups); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
