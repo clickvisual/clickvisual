@@ -66,7 +66,9 @@ func SettingUpdate(c *core.Context) {
 	ups := make(map[string]interface{}, 0)
 	ups["rule_store_type"] = req.RuleStoreType
 	if req.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
-		ups["cluster_id"] = req.ClusterId
+		if req.ClusterId != 0 {
+			ups["cluster_id"] = req.ClusterId
+		}
 		if req.Namespace != "" {
 			ups["namespace"] = req.Namespace
 		}
