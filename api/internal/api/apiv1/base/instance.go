@@ -17,7 +17,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         BASE
+// InstanceCreate
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 创建
 func InstanceCreate(c *core.Context) {
 	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
@@ -36,7 +38,9 @@ func InstanceCreate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         BASE
+// InstanceUpdate
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 更新
 func InstanceUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -90,30 +94,12 @@ func InstanceUpdate(c *core.Context) {
 		}
 		ups["dsn"] = req.Dsn
 	}
-
 	ups["name"] = req.Name
 	ups["mode"] = req.Mode
 	ups["datasource"] = req.Datasource
-	ups["rule_store_type"] = req.RuleStoreType
 	ups["replica_status"] = req.ReplicaStatus
-
-	if req.FilePath != "" {
-		ups["file_path"] = req.FilePath
-	}
-	if req.ClusterId != 0 {
-		ups["cluster_id"] = req.ClusterId
-	}
-	if req.Namespace != "" {
-		ups["namespace"] = req.Namespace
-	}
-	if req.Configmap != "" {
-		ups["configmap"] = req.Configmap
-	}
-	if req.Desc != "" {
-		ups["desc"] = req.Desc
-	}
+	ups["desc"] = req.Desc
 	ups["clusters"] = req.Clusters
-	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
@@ -122,7 +108,9 @@ func InstanceUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         BASE
+// InstanceList
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 列表
 func InstanceList(c *core.Context) {
 	res := make([]*db.BaseInstance, 0)
 	tmp, err := db.InstanceList(egorm.Conds{})
@@ -140,7 +128,9 @@ func InstanceList(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// InstanceInfo
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 详情
 func InstanceInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -160,7 +150,9 @@ func InstanceInfo(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// InstanceDelete
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 删除
 func InstanceDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -198,7 +190,9 @@ func InstanceDelete(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         BASE
+// InstanceTest
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse DSN 测试
 func InstanceTest(c *core.Context) {
 	var req view.ReqTestInstance
 	if err := c.Bind(&req); err != nil {
