@@ -863,6 +863,7 @@ export default {
   "bigdata.components.RightMenu.Scheduling.nodeType": "节点类型",
   "bigdata.components.RightMenu.Scheduling.basicConfig": "基础配置",
   "bigdata.components.RightMenu.Scheduling.isPerform": "是否执行",
+  "bigdata.components.RightMenu.Scheduling.channelIds": "失败告警",
   "bigdata.components.RightMenu.Scheduling.thoseResponsible": "责任人",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "调度规则 cron 字段填写 帮助文档",

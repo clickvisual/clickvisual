@@ -1,18 +1,36 @@
 import styles from "../index.less";
-import { Form, Input, Select, Switch, Tooltip } from "antd";
+import { Button, Form, Input, Select, Switch, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { useIntl } from "umi";
+import { useIntl, useModel } from "umi";
+import { useEffect, useState } from "react";
+import { ChannelType } from "@/services/alarm";
+import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
 
 const { Option } = Select;
 const { TextArea } = Input;
 export interface BasisConfigType {
   infoList: any;
   userList: any[];
+  visible: boolean;
 }
 
 const BasisConfig = (props: BasisConfigType) => {
   const i18n = useIntl();
-  const { infoList, userList } = props;
+  const { infoList, userList, visible } = props;
+  const [channelList, setChannelList] = useState<ChannelType[]>([]);
+  const { alarmChannel, alarmChannelModal } = useModel("alarm");
+  const { doGetChannels } = alarmChannel;
+  const { setVisibleCreate } = alarmChannelModal;
+
+  const getChannelList = () => {
+    doGetChannels.run().then((res) => {
+      if (res?.code === 0) setChannelList(res.data);
+    });
+  };
+
+  useEffect(() => {
+    if (visible) getChannelList();
+  }, [visible]);
 
   return (
     <div className={styles.basicInfo}>
@@ -35,6 +53,36 @@ const BasisConfig = (props: BasisConfigType) => {
       </Form.Item>
       <Form.Item
         label={i18n.formatMessage({
+          id: "bigdata.components.RightMenu.Scheduling.channelIds",
+        })}
+      >
+        <Form.Item name={"channelIds"} noStyle>
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder={`${i18n.formatMessage({
+              id: "alarm.rules.form.placeholder.channelIds",
+            })}`}
+          >
+            {channelList.map((item) => (
+              <Option key={item.id} value={item.id}>
+                {item.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Button
+          size="small"
+          onClick={() => {
+            setVisibleCreate(true);
+          }}
+          style={{ marginLeft: "15px" }}
+        >
+          {i18n.formatMessage({ id: "alarm.notify.modal.created" })}
+        </Button>
+      </Form.Item>
+      <Form.Item
+        label={i18n.formatMessage({
           id: "bigdata.components.RightMenu.Scheduling.thoseResponsible",
         })}
         name="dutyUid"
@@ -42,6 +90,16 @@ const BasisConfig = (props: BasisConfigType) => {
       >
         <Select
           showSearch
+          placeholder={`${i18n.formatMessage(
+            {
+              id: "select.placeholder",
+            },
+            {
+              name: i18n.formatMessage({
+                id: "bigdata.components.RightMenu.Scheduling.thoseResponsible",
+              }),
+            }
+          )}`}
           filterOption={(input, option) =>
             (option!.children as unknown as string)
               .toLowerCase()
@@ -63,7 +121,16 @@ const BasisConfig = (props: BasisConfigType) => {
           noStyle
           rules={[{ required: true, message: "Please input your cron!" }]}
         >
-          <Input />
+          <Input
+            placeholder={`${i18n.formatMessage(
+              {
+                id: "input.placeholder",
+              },
+              {
+                name: "cron",
+              }
+            )}`}
+          />
         </Form.Item>
         <div className={styles.question}>
           <Tooltip
@@ -87,6 +154,7 @@ const BasisConfig = (props: BasisConfigType) => {
           })}
         />
       </Form.Item>
+      <CreateChannelModal loadList={getChannelList} />
     </div>
   );
 };

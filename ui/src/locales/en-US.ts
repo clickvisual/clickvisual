@@ -920,6 +920,7 @@ export default {
   "bigdata.components.RightMenu.Scheduling.nodeType": "Type",
   "bigdata.components.RightMenu.Scheduling.basicConfig": "General",
   "bigdata.components.RightMenu.Scheduling.isPerform": "Perform",
+  "bigdata.components.RightMenu.Scheduling.channelIds": "Failure alarm",
   "bigdata.components.RightMenu.Scheduling.thoseResponsible": "Owner",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "Scheduling rule cron field fill in the help document",
