@@ -2,6 +2,7 @@ import styles from "./index.less";
 import { DatePicker, Input, Select, Space } from "antd";
 import moment from "moment";
 import { useIntl } from "umi";
+import { StatusType } from "..";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -12,12 +13,15 @@ export interface TaskFilterType {
     start?: number;
     nodeName?: string;
     tertiary?: number;
+    state?: number;
   }) => void;
   setNodeName: (str: string) => void;
   setEndTime: (num: number) => void;
   setStartTime: (num: number) => void;
   setTertiary: (num: number) => void;
+  setState: (num: number) => void;
   nodeName?: string;
+  state?: number;
   endTime?: number;
   startTime?: number;
   tertiary?: number;
@@ -29,6 +33,8 @@ const TaskFilter = (props: TaskFilterType) => {
     endTime,
     startTime,
     nodeName,
+    state,
+    setState,
     setStartTime,
     setEndTime,
     setTertiary,
@@ -36,49 +42,64 @@ const TaskFilter = (props: TaskFilterType) => {
   } = props;
   const i18n = useIntl();
 
+  const statusList = [
+    {
+      statu: StatusType.unknown,
+      name: "unknown",
+    },
+    {
+      statu: StatusType.success,
+      name: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful",
+      }),
+    },
+    {
+      statu: StatusType.error,
+      name: i18n.formatMessage({
+        id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure",
+      }),
+    },
+  ];
+
   const handleSelectChange = (num: number) => {
     setTertiary(num);
     onGetList({ tertiary: num });
+  };
+
+  const handleSelectStatus = (state: number) => {
+    setState(state);
+    onGetList({ state: state });
   };
 
   return (
     <div className={styles.taskFilter}>
       <Space>
         <div className={styles.node}>
-          <Space>
-            <span>
-              {i18n.formatMessage({
-                id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeSearch",
-              })}
-              ：
-            </span>
-            <Input
-              allowClear
-              size="small"
-              style={{ width: "150px" }}
-              placeholder={i18n.formatMessage({
-                id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName",
-              })}
-              value={nodeName}
-              onChange={(e) => {
-                const nodeName = e.target.value;
-                setNodeName(nodeName);
-              }}
-              onPressEnter={(e: any) => {
-                const nodeName = e.target.value;
-                setNodeName(nodeName);
-                onGetList({ nodeName });
-              }}
-            />
-          </Space>
+          <Input
+            allowClear
+            size="small"
+            style={{ width: "150px" }}
+            placeholder={i18n.formatMessage(
+              { id: "input.placeholder" },
+              {
+                name: i18n.formatMessage({
+                  id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeName",
+                }),
+              }
+            )}
+            value={nodeName}
+            onChange={(e) => {
+              const nodeName = e.target.value;
+              setNodeName(nodeName);
+            }}
+            onPressEnter={(e: any) => {
+              const nodeName = e.target.value;
+              setNodeName(nodeName);
+              onGetList({ nodeName });
+            }}
+          />
         </div>
         <div className={styles.time}>
-          <span>
-            {i18n.formatMessage({
-              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.businessDate",
-            })}
-            ：
-          </span>
           <RangePicker
             size="small"
             showTime
@@ -111,12 +132,6 @@ const TaskFilter = (props: TaskFilterType) => {
           />
         </div>
         <div className={styles.type}>
-          <span>
-            {i18n.formatMessage({
-              id: "bigdata.dataAnalysis.taskExecutionDetails.TaskFilter.nodeType",
-            })}
-            ：
-          </span>
           <Select
             style={{ width: 150 }}
             onChange={handleSelectChange}
@@ -130,6 +145,31 @@ const TaskFilter = (props: TaskFilterType) => {
             <Option value={10}>ClickHouse</Option>
             <Option value={11}>MySQL</Option>
             <Option value={20}>OfflineSync</Option>
+          </Select>
+        </div>
+        <div className={styles.state}>
+          <Select
+            style={{ width: 150 }}
+            onChange={handleSelectStatus}
+            value={state}
+            placeholder={i18n.formatMessage(
+              { id: "select.placeholder" },
+              {
+                name: i18n.formatMessage({
+                  id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.name",
+                }),
+              }
+            )}
+            allowClear
+            size="small"
+          >
+            {statusList.map((item: any) => {
+              return (
+                <Option value={item.statu} key={item.statu}>
+                  {item.name}
+                </Option>
+              );
+            })}
           </Select>
         </div>
       </Space>

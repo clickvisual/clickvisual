@@ -32,6 +32,7 @@ export default {
   required: "必填",
   tips: "提示",
   unit: "单位",
+  time: "时间",
 
   type: "类型",
   capacity: "容量",

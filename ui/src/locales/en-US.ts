@@ -32,6 +32,7 @@ export default {
   required: "Required",
   tips: "Tips",
   unit: "Unit",
+  time: "Time",
 
   type: "Type",
   capacity: "Capacity",
