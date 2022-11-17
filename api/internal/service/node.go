@@ -78,7 +78,7 @@ func (n *node) SetStats(isInit bool) {
 			workerStatsRow[hour] = stats
 		}
 		crontab, _ := db.CrontabInfo(invoker.Db, nodeInfo.ID)
-		invoker.Logger.Debug("SetStats", elog.Int("nodeId", nodeInfo.ID), elog.Any("nodeResultMap", view.WorkerStats{
+		elog.Debug("SetStats", elog.Int("nodeId", nodeInfo.ID), elog.Any("nodeResultMap", view.WorkerStats{
 			Iid:  nodeInfo.Iid,
 			Uid:  crontab.DutyUid,
 			Data: workerStatsRow,

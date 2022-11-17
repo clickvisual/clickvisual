@@ -2,11 +2,10 @@ package db
 
 import (
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 const (
@@ -69,7 +68,7 @@ func TableCreate(db *gorm.DB, data *BaseTable) (err error) {
 // TableDelete Soft delete
 func TableDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(BaseTable{}).Unscoped().Delete(&BaseTable{}, id).Error; err != nil {
-		invoker.Logger.Error("delete error", zap.Error(err))
+		elog.Error("delete error", zap.Error(err))
 		return
 	}
 	return
@@ -79,7 +78,7 @@ func TableDelete(db *gorm.DB, id int) (err error) {
 func TableInfoX(db *gorm.DB, conds map[string]interface{}) (resp BaseTable, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameBaseTable).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("infoX error", zap.Error(err))
+		elog.Error("infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -100,7 +99,7 @@ func TableUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err erro
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameBaseTable).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update error", zap.Error(err))
+		elog.Error("update error", zap.Error(err))
 		return
 	}
 	return

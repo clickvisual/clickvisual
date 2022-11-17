@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 func ParseAppUrlAndSubUrl(appUrl string) (string, string, error) {
@@ -20,7 +18,7 @@ func ParseAppUrlAndSubUrl(appUrl string) (string, string, error) {
 	// Check whether contains subpaths;
 	urlParsed, err := url.Parse(appUrl)
 	if err != nil {
-		invoker.Logger.Error("Invalid root_url.", elog.String("url", appUrl), elog.String("error", err.Error()))
+		elog.Error("Invalid root_url.", elog.String("url", appUrl), elog.String("error", err.Error()))
 		os.Exit(1)
 	}
 	appSubUrl := strings.TrimSuffix(urlParsed.Path, "/")

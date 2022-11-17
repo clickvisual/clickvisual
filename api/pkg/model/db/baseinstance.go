@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -61,7 +62,7 @@ func InstanceList(conds egorm.Conds, extra ...string) (resp []*BaseInstance, err
 
 func InstanceCreate(db *gorm.DB, data *BaseInstance) (err error) {
 	if err = db.Model(BaseInstance{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create release error", zap.Error(err))
+		elog.Error("create release error", zap.Error(err))
 		return
 	}
 	return
@@ -78,7 +79,7 @@ func InstanceInfo(db *gorm.DB, id int) (resp BaseInstance, err error) {
 
 func InstanceDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(BaseInstance{}).Unscoped().Delete(&BaseInstance{}, id).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
+		elog.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -88,7 +89,7 @@ func InstanceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(BaseInstance{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("release update error", zap.Error(err))
+		elog.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -98,7 +99,7 @@ func InstanceUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 func InstanceInfoX(db *gorm.DB, conds map[string]interface{}) (resp BaseInstance, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = db.Table(TableNameBaseInstance).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("infoX error", zap.Error(err))
+		elog.Error("infoX error", zap.Error(err))
 		return
 	}
 	return

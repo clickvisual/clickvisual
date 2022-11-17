@@ -46,29 +46,29 @@ func (c *MySQL2ClickHouse) Run() (map[string]string, error) {
 	// )
 	// c.involvedSQLs = make(map[string]string)
 	// if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
-	// 	invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
+	// 	elog.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 	// 	return c.involvedSQLs, err
 	// }
 	// if err = c.mysqlEngineDatabase(ins, c.sc); err != nil {
-	// 	invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "mysqlEngineTable"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
+	// 	elog.Error("MySQL2ClickHouse", elog.String("step", "mysqlEngineTable"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 	// 	return c.involvedSQLs, err
 	// }
 	// if err = c.execTargetSQL(ins, c.sc.Target.TargetBefore); err != nil {
-	// 	invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "TargetBefore"), elog.String("error", err.Error()))
+	// 	elog.Error("MySQL2ClickHouse", elog.String("step", "TargetBefore"), elog.String("error", err.Error()))
 	// 	return c.involvedSQLs, err
 	// }
 	// var viewTableName string
 	// if viewTableName, err = c.materializedView(ins); err != nil {
-	// 	invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "c2mMaterialView"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
+	// 	elog.Error("MySQL2ClickHouse", elog.String("step", "c2mMaterialView"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 	// 	return c.involvedSQLs, err
 	// }
 	// if err = c.insert(ins, viewTableName); err != nil {
-	// 	invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "insert"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
+	// 	elog.Error("MySQL2ClickHouse", elog.String("step", "insert"), elog.Any("involvedSQLs", c.involvedSQLs), elog.String("error", err.Error()))
 	// 	_ = dropTable(viewTableName, ins)
 	// 	return c.involvedSQLs, err
 	// }
 	// if err = c.execTargetSQL(ins, c.sc.Target.TargetAfter); err != nil {
-	// 	invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "TargetAfter"), elog.String("error", err.Error()))
+	// 	elog.Error("MySQL2ClickHouse", elog.String("step", "TargetAfter"), elog.String("error", err.Error()))
 	// 	return c.involvedSQLs, err
 	// }
 	// _ = dropTable(viewTableName, ins)
@@ -92,7 +92,7 @@ func (c *MySQL2ClickHouse) mysqlEngineDatabase(ins db.BaseInstance, sc *view.Syn
 		sc.Source.Database,
 		s.UserName,
 		s.Password)
-	invoker.Logger.Debug("MySQL2ClickHouse", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
+	elog.Debug("MySQL2ClickHouse", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
@@ -106,7 +106,7 @@ func (c *MySQL2ClickHouse) Stop() error {
 		err error
 	)
 	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
-		invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
+		elog.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return err
 	}
 	if err = dropMaterialView(ins, c.nodeId, c.sc); err != nil {
@@ -129,7 +129,7 @@ func (c *MySQL2ClickHouse) materializedView(ins db.BaseInstance) (string, error)
 	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s Engine=Memory POPULATE AS SELECT %s FROM %s WHERE %s",
 		viewClusterInfo, mapping(c.sc.Mapping), sourceTableName, where(c.sc.Source.SourceFilter))
 
-	invoker.Logger.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
+	elog.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
 
 	c.involvedSQLs["m2cMaterialView"] = completeSQL
 
@@ -144,7 +144,7 @@ func (c *MySQL2ClickHouse) insert(ins db.BaseInstance, viewTableName string) err
 	targetTableName := fmt.Sprintf("`%s`.`%s`", c.sc.Target.Database, c.sc.Target.Table)
 	completeSQL := fmt.Sprintf("INSERT INTO %s SELECT * FROM %s", targetTableName, viewClusterInfo)
 
-	invoker.Logger.Debug("MySQL2ClickHouse", elog.String("viewTableName", viewTableName), elog.String("step", "m2cMaterialView"), elog.String("completeSQL", completeSQL))
+	elog.Debug("MySQL2ClickHouse", elog.String("viewTableName", viewTableName), elog.String("step", "m2cMaterialView"), elog.String("completeSQL", completeSQL))
 
 	c.involvedSQLs["m2cInsert"] = completeSQL
 

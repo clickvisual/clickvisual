@@ -12,26 +12,22 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/patcher"
-
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
-	// "k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/client-go/restmapper"
-	"k8s.io/kubectl/pkg/util"
-
+	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
-	cliReSrc "k8s.io/cli-runtime/pkg/resource"
-
 	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	cliReSrc "k8s.io/cli-runtime/pkg/resource"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/restmapper"
+	"k8s.io/kubectl/pkg/util"
+
+	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/service/kube/patcher"
 )
 
 type Metadata struct {
@@ -166,7 +162,7 @@ func (h *resourceHandler) List(kind string, namespace string, labelSelector stri
 	}
 	selectors, err := labels.Parse(labelSelector)
 	if err != nil {
-		invoker.Logger.Error("Build label selector error.", zap.Error(err))
+		elog.Error("Build label selector error.", zap.Error(err))
 		return nil, err
 	}
 

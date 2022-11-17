@@ -18,16 +18,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// SettingUpdate  godoc
-// @Summary	     Alert Basic Configuration Modification
-// @Description  Alert Basic Configuration Modification
+// SettingUpdate
+// @Summary	     告警配置更新
 // @Tags         ALARM
-// @Accept       json
-// @Produce      json
-// @Param        instance-id path int true "instance id"
-// @Param        req query db.ReqAlertSettingUpdate true "params"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/alert/settings/{instance-id} [patch]
 func SettingUpdate(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {
@@ -105,14 +98,9 @@ func SettingUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// SettingList   godoc
-// @Summary	     Instance alarm configuration list
-// @Description  Instance alarm configuration list
+// SettingList
+// @Summary	     告警配置列表
 // @Tags         ALARM
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} []db.RespAlertSettingListItem
-// @Router       /api/v2/alert/settings [get]
 func SettingList(c *core.Context) {
 	res := make([]*db.RespAlertSettingListItem, 0)
 	instanceList, err := db.InstanceList(egorm.Conds{})
@@ -166,15 +154,9 @@ func SettingList(c *core.Context) {
 	return
 }
 
-// SettingInfo   godoc
-// @Summary	     Advanced configuration information in the instance
-// @Description  Advanced configuration information in the instance
+// SettingInfo
+// @Summary	     告警配置详情
 // @Tags         ALARM
-// @Accept       json
-// @Produce      json
-// @Param        instance-id path int true "instance id"
-// @Success      200 {object} db.RespAlertSettingInfo
-// @Router       /api/v2/alert/settings/{instance-id} [get]
 func SettingInfo(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {
@@ -204,14 +186,9 @@ func SettingInfo(c *core.Context) {
 	return
 }
 
-// CreateMetricsSamples  godoc
-// @Summary      Create metrics samples table
-// @Description  Store advanced metric data
+// CreateMetricsSamples
+// @Summary      创建 Metrics.samples
 // @Tags         ALARM
-// @Produce      json
-// @Param        req body db.ReqCreateMetricsSamples true "params"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/alert/metrics-samples [post]
 func CreateMetricsSamples(c *core.Context) {
 	var err error
 	params := db.ReqCreateMetricsSamples{}

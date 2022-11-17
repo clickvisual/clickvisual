@@ -172,13 +172,13 @@ func removeEmptyItems(origStrSlice []string) (result []string) {
 }
 
 /*
-	Aim: join item strings by SEP "__" for casbin policy string
-	Note that:
-		the first parameter i.e. items[0] must be a PermittedPrefix \
-		&& the length of parameters must GT (great than) 1 \
-		&& parameters cannot contain empty string item(s)
-        --------
-		otherwise will return empty string "" and error
+		Aim: join item strings by SEP "__" for casbin policy string
+		Note that:
+			the first parameter i.e. items[0] must be a PermittedPrefix \
+			&& the length of parameters must GT (great than) 1 \
+			&& parameters cannot contain empty string item(s)
+	        --------
+			otherwise will return empty string "" and error
 */
 func Assemble2CasbinStr(items ...string) (string, error) {
 	if len(items) <= 1 {
@@ -438,7 +438,7 @@ func GetDomainCascaderOptions(iid int) (resp view.RespDomainCascader) {
 	}
 	entWithDatabase, err := db.DatabaseList(invoker.Db, condsDatabases)
 	if err != nil {
-		invoker.Logger.Error("Get all enterprise for domain cascade selector error.", zap.Error(err))
+		elog.Error("Get all enterprise for domain cascade selector error.", zap.Error(err))
 		return
 	}
 	if len(entWithDatabase) <= 0 {
@@ -455,7 +455,7 @@ func GetDomainCascaderOptions(iid int) (resp view.RespDomainCascader) {
 		Children: make([]view.CascaderItem, 0),
 	}
 	for _, ent := range entWithDatabase {
-		invoker.Logger.Debug("entWithDatabase", elog.Any("ent", ent))
+		elog.Debug("entWithDatabase", elog.Any("ent", ent))
 		if ent.Instance == nil {
 			continue
 		}

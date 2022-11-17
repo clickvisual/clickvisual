@@ -36,7 +36,7 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tid),
 	}); err == nil {
-		invoker.Logger.Debug("ReadAllPermissionInstance",
+		elog.Debug("ReadAllPermissionInstance",
 			elog.Any("uid", uid),
 			elog.Any("step", "DatabaseViewIsPermission"),
 			elog.Any("iid", iid),
@@ -44,7 +44,7 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 			elog.Any("subResource", subResource))
 		return true
 	}
-	invoker.Logger.Warn("ReadAllPermissionInstance",
+	elog.Warn("ReadAllPermissionInstance",
 		elog.Any("uid", uid),
 		elog.Any("step", "DatabaseViewIsPermission"),
 		elog.Any("iid", iid),

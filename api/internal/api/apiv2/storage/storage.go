@@ -164,7 +164,7 @@ func Update(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	invoker.Logger.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))
+	elog.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(1, "update failed 01: "+err.Error(), nil)

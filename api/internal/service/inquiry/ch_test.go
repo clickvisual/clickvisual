@@ -3,15 +3,10 @@ package inquiry
 import (
 	"testing"
 
-	"github.com/gotomicro/ego/core/elog"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func Test_hashTransform(t *testing.T) {
-	invoker.Logger = elog.DefaultLogger
-	invoker.Logger.SetLevel(elog.DebugLevel)
 	type args struct {
 		query string
 		index *db.BaseIndex

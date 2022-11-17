@@ -34,25 +34,25 @@ func Invoker() {
 	rulePath := econf.GetString("casbin.rule.path")
 	a, err := gormadapter.NewAdapterByDBUseTableName(invoker.Db, "", db.TableNamePmsCasbinRule)
 	if err != nil {
-		invoker.Logger.Panic("Casbin gorm-adapter panic", zap.Error(err))
+		elog.Panic("Casbin gorm-adapter panic", zap.Error(err))
 	}
 	enforcer, err = casbin.NewEnforcer(rulePath, a)
 	if err != nil {
-		invoker.Logger.Panic("Casbin NewEnforcer panic", zap.Error(err))
+		elog.Panic("Casbin NewEnforcer panic", zap.Error(err))
 	}
 	if econf.GetBool("app.isMultiCopy") {
-		invoker.Logger.Info("Casbin policies changed MultiCopy")
+		elog.Info("Casbin policies changed MultiCopy")
 		// Distributed watcher
 		w, err := rediswatcher.NewWatcher(context.Background(), econf.GetString("redis.addr"), rediswatcher.Password(econf.GetString("redis.password")))
 		if err != nil {
-			invoker.Logger.Panic("Casbin redis connect panic", zap.Error(err))
+			elog.Panic("Casbin redis connect panic", zap.Error(err))
 		}
 		watcher = &w
 		enforcer.SetWatcher(w)
 		// @Overwrite
 		// See if policy changed and do distributed notification
 		_ = w.SetUpdateCallback(func(s string) {
-			invoker.Logger.Info("Casbin policies changed")
+			elog.Info("Casbin policies changed")
 			enforcerLock.Lock()
 			_ = enforcer.LoadPolicy()
 			enforcerLock.Unlock()
@@ -68,6 +68,7 @@ func Invoker() {
 	return:
 		result: a list of EnhancedCasbinRulesItem
 		err: an error will return, if all specified ruleTypes(s) are invalid.
+
 TODO: after fetched the rules(p, g, g3), how to distinguish the meaning of sub, obj string of rule.
 */
 func GetRulesByUserId(userId int, ruleTypes ...string) (result []EnhancedCasbinRulesItem, err error) {
@@ -109,7 +110,7 @@ func GetRulesByUserId(userId int, ruleTypes ...string) (result []EnhancedCasbinR
 }
 
 /*
-	TransUserGxRule2RoleItemDetail: trans user's g or g3 rule(which the first item like 'user__x') to RoleItem struct
+TransUserGxRule2RoleItemDetail: trans user's g or g3 rule(which the first item like 'user__x') to RoleItem struct
 */
 func TransUserGxRule2RoleItemDetail(gType string, ruleParams ...string) (res view.RoleItem, err error) {
 	if gType != RuleTypeG && gType != RuleTypeG3 {
@@ -156,13 +157,16 @@ func TransUserGxRule2RoleItemDetail(gType string, ruleParams ...string) (res vie
 }
 
 /*
-	GetRulesByResourceObj: Search CasbinRules to get all rules(explicit and implicit) which related to "obj" string
-	Parameter:
-		targetObj: the target resource obj string which in policy_definition; like: app__{{AID}}__baseInfo, app__{{AID}}__* and etc.
-		reqAct: (Optional) the act of targetResource for filter out the rules. If empty string will not check act
-		reqDom: (Optional) the domain of targetResource for filter out the rules. If empty string will not check dom
-	Return:
-		a pointer which point to the casbin rule list which related to targetObj
+GetRulesByResourceObj: Search CasbinRules to get all rules(explicit and implicit) which related to "obj" string
+Parameter:
+
+	targetObj: the target resource obj string which in policy_definition; like: app__{{AID}}__baseInfo, app__{{AID}}__* and etc.
+	reqAct: (Optional) the act of targetResource for filter out the rules. If empty string will not check act
+	reqDom: (Optional) the domain of targetResource for filter out the rules. If empty string will not check dom
+
+Return:
+
+	a pointer which point to the casbin rule list which related to targetObj
 */
 func GetRulesByResourceObj(targetObj string, reqAct string, reqDom string) *[]EnhancedCasbinRulesItem {
 	if targetObj == "" {
@@ -222,19 +226,21 @@ func GetRulesByResourceObj(targetObj string, reqAct string, reqDom string) *[]En
 }
 
 /*
-	reverseSearchFurtherRules: a private recursive function for pegging rules based on the feature of 'g' operator of casbin and matchers of model file
-	parameters:
-		finalResults: a pointer which point to the final results list;
-		reqAct: used to filter rules throughout pegging. if it's empty string, then will not check act in rules
-		reqDom: used to filter rules(p, g) throughout pegging. if it's empty string, then will not check dom in rules
-		furtherSearchItems: intermediate items used for next recursion, if its length == 0, will break the recursion
-	Note:
-		1. the init stage is done by invoker. i.e. the invoker need to do the preliminary screening.
-		2. all matched rules are stored in the slice which the "finalResults" pointed.
-		3. the *finalResults may have duplicate items.
-		4. the *finalResults may contain many ruleTypes(p, g, g2, g3), filter out the target rule in upper func.
+reverseSearchFurtherRules: a private recursive function for pegging rules based on the feature of 'g' operator of casbin and matchers of model file
+parameters:
 
-	Caution: if the content of casbinModelFile is changed, this function may also need to be modified accordingly.
+	finalResults: a pointer which point to the final results list;
+	reqAct: used to filter rules throughout pegging. if it's empty string, then will not check act in rules
+	reqDom: used to filter rules(p, g) throughout pegging. if it's empty string, then will not check dom in rules
+	furtherSearchItems: intermediate items used for next recursion, if its length == 0, will break the recursion
+
+Note:
+ 1. the init stage is done by invoker. i.e. the invoker need to do the preliminary screening.
+ 2. all matched rules are stored in the slice which the "finalResults" pointed.
+ 3. the *finalResults may have duplicate items.
+ 4. the *finalResults may contain many ruleTypes(p, g, g2, g3), filter out the target rule in upper func.
+
+Caution: if the content of casbinModelFile is changed, this function may also need to be modified accordingly.
 */
 func reverseSearchFurtherRules(finalResults *[]EnhancedCasbinRulesItem, reqAct string, reqDom string, furtherSearchItems ...EnhancedCasbinRulesItem) {
 	if len(furtherSearchItems) < 1 || finalResults == nil {
@@ -409,7 +415,7 @@ func AddRule(ruleType string, params ...interface{}) (bool, error) {
 		if len(params) < 2 {
 			return false, errors.New("add rule failed, g3 rule must have 2 items")
 		}
-		invoker.Logger.Debug("pms", elog.Any("ruleType", ruleType), elog.Any("params[:2]", params[:2]))
+		elog.Debug("pms", elog.Any("ruleType", ruleType), elog.Any("params[:2]", params[:2]))
 
 		return enforcer.AddNamedGroupingPolicy(ruleType, params[:2]...)
 	default:
@@ -460,13 +466,13 @@ func EnforcerUnlock() {
 // 	if watcher != nil {
 // 		err := (*watcher).Update()
 // 		if err != nil {
-// 			invoker.Logger.Debugf("casbin watcher.Update failed. %v", err)
+// 			elog.Debugf("casbin watcher.Update failed. %v", err)
 // 		}
 // 	}
 // }
 
 func ReloadPolicy() {
-	invoker.Logger.Info("Casbin policies reloaded.")
+	elog.Info("Casbin policies reloaded.")
 	enforcerLock.Lock()
 	_ = enforcer.LoadPolicy()
 	enforcerLock.Unlock()
@@ -538,7 +544,7 @@ func addCasbinRuleDbRecord(tx *gorm.DB, ptype string, vxs []string) (err error) 
 	var existRecord db.PmsCasbinRule
 	err = tx.Table(db.TableNamePmsCasbinRule).Where(sql, binds...).First(&existRecord).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		invoker.Logger.Error("check existence of casbinRule error.", zap.Error(err))
+		elog.Error("check existence of casbinRule error.", zap.Error(err))
 		return fmt.Errorf("check existence of casbinRule failed. ")
 	}
 	if existRecord.Id != 0 {
@@ -576,7 +582,7 @@ func delCasbinRuleDbRecord(tx *gorm.DB, ptype string, vxs []string) (err error) 
 	var existRecord db.PmsCasbinRule
 	err = tx.Table(db.TableNamePmsCasbinRule).Where(sql, binds...).First(&existRecord).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		invoker.Logger.Error("check existence of casbinRule error.", zap.Error(err))
+		elog.Error("check existence of casbinRule error.", zap.Error(err))
 		return fmt.Errorf("check existence of casbinRule failed. ")
 
 	}
@@ -589,9 +595,11 @@ func delCasbinRuleDbRecord(tx *gorm.DB, ptype string, vxs []string) (err error) 
 
 /*
 	GetRulesByRoleStrDirectly: get rules by roleStr directly
+
 note that, the searching is directly, do not use recursion
 only g and g2 ruleType is permitted
 param:
+
 	roleStr: like "role__xxx"
 	reqDom: (Optional) the domainStr for filter out the rules. If empty string will not check dom
 */
@@ -740,10 +748,10 @@ func IsRootWithoutCheckingSysLock(uid int) bool {
 	if err != nil { // if userId is empty, then will return err
 		return false
 	}
-	invoker.Logger.Debug("pmsplugin", elog.Any("uid", uid), elog.Any("subjectFieldStr", subjectFieldStr))
+	elog.Debug("pmsplugin", elog.Any("uid", uid), elog.Any("subjectFieldStr", subjectFieldStr))
 
 	g3s := enforcer.GetFilteredNamedGroupingPolicy(RuleTypeG3, 0, subjectFieldStr, "role__root")
-	invoker.Logger.Debug("pmsplugin", elog.Any("g3s", g3s))
+	elog.Debug("pmsplugin", elog.Any("g3s", g3s))
 	return len(g3s) > 0
 }
 
@@ -797,12 +805,12 @@ func EnforceEX(params ...interface{}) (bool, []string, error) {
 
 func EnforcerLoadPolicy() {
 	_ = enforcer.LoadPolicy()
-	invoker.Logger.Debug("Casbin LoadPolicy")
+	elog.Debug("Casbin LoadPolicy")
 	if watcher != nil {
 		err := (*watcher).Update()
-		invoker.Logger.Debug("Casbin watcher.Update")
+		elog.Debug("Casbin watcher.Update")
 		if err != nil {
-			invoker.Logger.Debug("Casbin watcher.Update failed", elog.FieldErr(err))
+			elog.Debug("Casbin watcher.Update failed", elog.FieldErr(err))
 		}
 	}
 }

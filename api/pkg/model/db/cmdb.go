@@ -40,7 +40,7 @@ func (c Configuration) FileName() string {
 // ConfigurationCreate CRUD
 func ConfigurationCreate(db *gorm.DB, data *Configuration) (err error) {
 	if err = db.Create(data).Error; err != nil {
-		invoker.Logger.Error("create cluster error", zap.Error(err))
+		elog.Error("create cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -51,7 +51,7 @@ func ConfigurationUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameConfiguration).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update cluster error", zap.Error(err))
+		elog.Error("update cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -60,9 +60,9 @@ func ConfigurationUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (
 // ConfigurationInfoX Info extension method to query a single record according to Cond
 func ConfigurationInfoX(conds map[string]interface{}) (resp Configuration, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	invoker.Logger.Debug("ConfigurationInfoX", elog.Any("conds", sql))
+	elog.Debug("ConfigurationInfoX", elog.Any("conds", sql))
 	if err = invoker.Db.Table(TableNameConfiguration).Unscoped().Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
+		elog.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
 		return
 	}
 	return resp, nil
@@ -81,7 +81,7 @@ func ConfigurationInfo(paramId int) (resp Configuration, err error) {
 // ConfigurationDelete 硬删除
 func ConfigurationDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Configuration{}).Delete(&Configuration{}, id).Error; err != nil {
-		invoker.Logger.Error("cluster delete error", zap.Error(err))
+		elog.Error("cluster delete error", zap.Error(err))
 		return
 	}
 	return
@@ -92,7 +92,7 @@ func ConfigurationList(conds egorm.Conds) (resp []*Configuration, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameConfiguration).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("list clusters error", elog.String("err", err.Error()))
+		elog.Error("list clusters error", elog.String("err", err.Error()))
 		return
 	}
 	return
@@ -117,7 +117,7 @@ func (m *ConfigurationHistory) TableName() string {
 func ConfigurationHistoryInfoX(conds map[string]interface{}) (resp ConfigurationHistory, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameConfigurationHistory).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("ConfigurationHistoryInfoX infoX error", zap.Error(err))
+		elog.Error("ConfigurationHistoryInfoX infoX error", zap.Error(err))
 		return
 	}
 	return

@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -56,7 +57,7 @@ func AlarmHistoryPage(conds egorm.Conds, reqList *ReqPage) (total int64, respLis
 
 func AlarmHistoryCreate(db *gorm.DB, data *AlarmHistory) (err error) {
 	if err = db.Model(AlarmHistory{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create releaseZone error", zap.Error(err))
+		elog.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -66,7 +67,7 @@ func AlarmHistoryUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmHistory{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("release update error", zap.Error(err))
+		elog.Error("release update error", zap.Error(err))
 		return
 	}
 	return

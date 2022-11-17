@@ -14,7 +14,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func InstanceDatabaseList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -48,7 +48,7 @@ func InstanceDatabaseList(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func InstanceTableList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -87,7 +87,7 @@ func InstanceTableList(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func InstanceColumnList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

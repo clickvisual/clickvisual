@@ -21,7 +21,7 @@ import (
 // NodeLockAcquire  godoc
 // @Summary	     Force the file edit lock to be acquired
 // @Description  Force the file edit lock to be acquired
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 // @Accept       json
 // @Produce      json
 // @Param        node-id path int true "node id"
@@ -59,7 +59,7 @@ func NodeLockAcquire(c *core.Context) {
 
 // NodeCrontabCreate
 // @Summary	     创建节点任务
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeCrontabCreate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
 	if nodeId == 0 {
@@ -111,7 +111,7 @@ func NodeCrontabCreate(c *core.Context) {
 
 // NodeCrontabUpdate
 // @Summary	     节点任务更新
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeCrontabUpdate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
 	if nodeId == 0 {
@@ -175,7 +175,7 @@ func NodeCrontabUpdate(c *core.Context) {
 
 // NodeResultUpdate
 // @Summary	     更新节点执行结果
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeResultUpdate(c *core.Context) {
 	resultId := cast.ToInt(c.Param("result-id"))
 	if resultId == 0 {
@@ -217,7 +217,7 @@ func NodeResultUpdate(c *core.Context) {
 
 // NodeResultListPage
 // @Summary	     节点执行结果列表
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeResultListPage(c *core.Context) {
 	id := cast.ToInt(c.Param("node-id"))
 	if id == 0 {
@@ -269,7 +269,7 @@ func NodeResultListPage(c *core.Context) {
 
 // WorkerDashboard
 // @Summary	     Kanban Dashboard
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func WorkerDashboard(c *core.Context) {
 	var req view.ReqWorkerDashboard
 	if err := c.Bind(&req); err != nil {
@@ -293,7 +293,7 @@ func WorkerDashboard(c *core.Context) {
 
 // WorkerList
 // @Summary	     定时任务执行结果列表
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func WorkerList(c *core.Context) {
 	var req view.ReqWorkerList
 	if err := c.Bind(&req); err != nil {
@@ -370,7 +370,7 @@ func WorkerList(c *core.Context) {
 
 // TableDependencies
 // @Summary	     表依赖解析
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func TableDependencies(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {

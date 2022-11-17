@@ -93,7 +93,7 @@ func (c *MySQL2ClickHouse) mysqlEngineDatabase(ins db.BaseInstance, sc *view.Syn
 		sc.Source.Database,
 		s.UserName,
 		s.Password)
-	invoker.Logger.Debug("MySQL2ClickHouse", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
+	elog.Debug("MySQL2ClickHouse", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
@@ -107,7 +107,7 @@ func (c *MySQL2ClickHouse) Stop() error {
 		err error
 	)
 	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
-		invoker.Logger.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
+		elog.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return err
 	}
 	if err = dropMaterialView(ins, c.nodeId, c.sc); err != nil {
@@ -129,7 +129,7 @@ func (c *MySQL2ClickHouse) materializedView(ins db.BaseInstance) (string, error)
 	sourceTableName := fmt.Sprintf("`%s`.`%s`", mysqlEngineDatabaseName(c.sc), c.sc.Source.Table)
 	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s Engine=Memory POPULATE AS SELECT %s FROM %s WHERE %s",
 		viewClusterInfo, mapping(c.sc.Mapping), sourceTableName, where(c.sc.Source.SourceFilter))
-	invoker.Logger.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
+	elog.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["m2cMaterialView"] = completeSQL
 	return viewClusterInfo, source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
@@ -144,7 +144,7 @@ func (c *MySQL2ClickHouse) insert(ins db.BaseInstance) error {
 	sourceColumns, targetColumns := columns(c.sc.Mapping)
 	completeSQL := fmt.Sprintf("INSERT INTO %s (%s) SELECT %s FROM %s",
 		targetTableName, targetColumns, sourceColumns, sourceTableName)
-	invoker.Logger.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
+	elog.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["m2cInsert"] = completeSQL
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,

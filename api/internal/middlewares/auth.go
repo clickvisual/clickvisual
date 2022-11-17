@@ -74,7 +74,7 @@ func isNotAuthProxy(c *gin.Context) bool {
 	conds["username"] = username
 	u, err := db.UserInfoX(conds)
 	if err != nil && !errors.Is(err, egorm.ErrRecordNotFound) {
-		invoker.Logger.Error("isNotAuthProxy", elog.String("step", "UserInfoX"), elog.String("username", username), elog.String("error", err.Error()))
+		elog.Error("isNotAuthProxy", elog.String("step", "UserInfoX"), elog.String("username", username), elog.String("error", err.Error()))
 		return true
 	}
 	if u.ID == 0 {
@@ -85,22 +85,22 @@ func isNotAuthProxy(c *gin.Context) bool {
 		u = db.User{Username: username, Nickname: nickName, Access: "auth.proxy"}
 		err = db.UserCreate(invoker.Db, &u)
 		if err != nil {
-			invoker.Logger.Error("isNotAuthProxy", elog.String("step", "UserCreate"), elog.String("username", username), elog.String("error", err.Error()))
+			elog.Error("isNotAuthProxy", elog.String("step", "UserCreate"), elog.String("username", username), elog.String("error", err.Error()))
 			return true
 		}
 	}
 	// root？
 	if econf.GetString("auth.proxy.rootTokenValue") != "" && c.GetHeader(econf.GetString("auth.proxy.rootTokenKey")) == econf.GetString("auth.proxy.rootTokenValue") {
 		errRoot := permission.Manager.IsRootUser(u.ID)
-		invoker.Logger.Debug("isNotAuthProxy", elog.Any("errRoot", errRoot), elog.Any("u.ID", u.ID))
+		elog.Debug("isNotAuthProxy", elog.Any("errRoot", errRoot), elog.Any("u.ID", u.ID))
 		if errRoot != nil {
-			invoker.Logger.Debug("isNotAuthProxy", elog.String("step", "rootUpdate"), elog.Any("user", u))
+			elog.Debug("isNotAuthProxy", elog.String("step", "rootUpdate"), elog.Any("user", u))
 			roots := permission.Manager.GetRootUsersId()
 			roots = append(roots, u.ID)
 			permission.Manager.GrantRootUsers(roots)
 		}
 	}
-	invoker.Logger.Debug("isNotAuthProxy", elog.String("step", "finish"), elog.Any("user", u))
+	elog.Debug("isNotAuthProxy", elog.String("step", "finish"), elog.Any("user", u))
 	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
 	c.Set(core.UserContextKey, ctxUser)
 	c.Next()

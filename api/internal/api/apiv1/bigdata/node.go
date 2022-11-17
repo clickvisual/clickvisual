@@ -20,7 +20,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeCreate(c *core.Context) {
 	var req view.ReqCreateNode
 	if err := c.Bind(&req); err != nil {
@@ -74,7 +74,7 @@ func NodeCreate(c *core.Context) {
 	c.JSONOK(obj)
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -153,7 +153,7 @@ func NodeUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -205,7 +205,7 @@ func NodeDelete(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -251,7 +251,7 @@ func NodeInfo(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeLock(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -284,7 +284,7 @@ func NodeLock(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeUnlock(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -318,7 +318,7 @@ func NodeUnlock(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeList(c *core.Context) {
 	var req view.ReqListNode
 	if err := c.Bind(&req); err != nil {
@@ -395,7 +395,7 @@ func NodeList(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeRun(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -427,7 +427,7 @@ func NodeRun(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeStop(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -475,7 +475,7 @@ func NodeStop(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeHistoryInfo(c *core.Context) {
 	id := strings.TrimSpace(c.Param("uuid"))
 	if id == "" {
@@ -507,7 +507,7 @@ func NodeHistoryInfo(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeHistoryListPage(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -562,7 +562,7 @@ func NodeHistoryListPage(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func NodeResultInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("rid"))
 	if id == 0 {

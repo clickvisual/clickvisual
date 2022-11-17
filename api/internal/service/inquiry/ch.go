@@ -133,7 +133,7 @@ func (c *ClickHouse) SyncView(table db.BaseTable, current *db.BaseView, list []*
 	for _, i := range indexes {
 		indexMap[i.Field] = i
 	}
-	invoker.Logger.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
+	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
 	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
@@ -211,17 +211,17 @@ func (c *ClickHouse) CreateTable(did int, database db.BaseDatabase, ct view.ReqT
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.viewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
+		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
 	if c.mode == ModeCluster {
@@ -234,10 +234,10 @@ func (c *ClickHouse) CreateTable(did int, database db.BaseDatabase, ct view.ReqT
 				SourceTable: dName,
 			},
 		})
-		invoker.Logger.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
+		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
-			invoker.Logger.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			elog.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
 			return
 		}
 	}
@@ -253,11 +253,11 @@ func (c *ClickHouse) CreateDatabase(name, cluster string) error {
 		}
 		query = fmt.Sprintf("create database `%s` on cluster `%s`;", name, cluster)
 	}
-	invoker.Logger.Error("CreateTable", elog.String("query", query))
+	elog.Error("CreateTable", elog.String("query", query))
 
 	_, err := c.db.Exec(query)
 	if err != nil {
-		invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
+		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
 		return err
 	}
 	return nil
@@ -507,7 +507,7 @@ func (c *ClickHouse) Chart(param view.ReqQuery) (res []*view.HighChart, q string
 	q = c.chartSQL(param)
 	charts, err := c.doQuery(q)
 	if err != nil {
-		invoker.Logger.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
+		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return nil, q, err
 	}
 	res = make([]*view.HighChart, 0)
@@ -534,7 +534,7 @@ func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {
 	q := c.countSQL(param)
 	sqlCountData, err := c.doQuery(q)
 	if err != nil {
-		invoker.Logger.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
+		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return 0, err
 	}
 	if len(sqlCountData) > 0 {
@@ -552,10 +552,10 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	res = make(map[string]uint64, 0)
 	sqlCountData, err := c.doQuery(c.groupBySQL(param))
 	if err != nil {
-		invoker.Logger.Error("ClickHouse", elog.Any("sql", c.groupBySQL(param)), elog.FieldErr(err))
+		elog.Error("ClickHouse", elog.Any("sql", c.groupBySQL(param)), elog.FieldErr(err))
 		return
 	}
-	invoker.Logger.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
+	elog.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
 	for _, v := range sqlCountData {
 		if v["count"] != nil {
 			var key string
@@ -577,7 +577,7 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 			case float64:
 				key = fmt.Sprintf("%f", v["f"].(float64))
 			default:
-				invoker.Logger.Info("GroupBy", elog.Any("type", reflect.TypeOf(v["f"])))
+				elog.Info("GroupBy", elog.Any("type", reflect.TypeOf(v["f"])))
 				continue
 			}
 			res[key] = v["count"].(uint64)
@@ -791,7 +791,7 @@ func (c *ClickHouse) ListSystemTable() (res []*view.SystemTables) {
 	s := "select * from system.tables"
 	deps, err := c.doQuery(s)
 	if err != nil {
-		invoker.Logger.Error("ListSystemTable", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
+		elog.Error("ListSystemTable", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
 		return
 	}
 	for _, table := range deps {
@@ -877,17 +877,17 @@ func (c *ClickHouse) CreateStorage(did int, database db.BaseDatabase, ct view.Re
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.storageViewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true, ct)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
+		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
 	if c.mode == ModeCluster {
@@ -900,10 +900,10 @@ func (c *ClickHouse) CreateStorage(did int, database db.BaseDatabase, ct view.Re
 				SourceTable: dName,
 			},
 		})
-		invoker.Logger.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
+		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
-			invoker.Logger.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			elog.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
 			return
 		}
 	}
@@ -919,7 +919,7 @@ func (c *ClickHouse) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.R
 		params.MergeTreeTTL)
 	_, err = c.db.Exec(s)
 	if err != nil {
-		invoker.Logger.Error("UpdateMergeTreeTable", elog.Any("sql", s), elog.Any("err", err.Error()))
+		elog.Error("UpdateMergeTreeTable", elog.Any("sql", s), elog.Any("err", err.Error()))
 		return
 	}
 	return
@@ -933,7 +933,7 @@ func (c *ClickHouse) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqSt
 		genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
 		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
 	if _, err = c.db.Exec(dropSQL); err != nil {
-		invoker.Logger.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
+		elog.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
 		return
 	}
 	// Create Table
@@ -957,10 +957,10 @@ func (c *ClickHouse) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqSt
 		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
 	}
 
-	invoker.Logger.Error("CreateKafkaTable", elog.Any("params", params))
+	elog.Error("CreateKafkaTable", elog.Any("params", params))
 
 	if _, err = c.db.Exec(streamSQL); err != nil {
-		invoker.Logger.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
+		elog.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
 		_, _ = c.db.Exec(currentKafkaSQL)
 		return
 	}
@@ -1015,12 +1015,12 @@ func (c *ClickHouse) CreateStorageV3(did int, database db.BaseDatabase, ct view.
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.storageViewOperatorV3(view.OperatorViewParams{
@@ -1037,7 +1037,7 @@ func (c *ClickHouse) CreateStorageV3(did int, database db.BaseDatabase, ct view.
 		IsKafkaTimestamp: ct.IsKafkaTimestamp,
 	})
 	if err != nil {
-		invoker.Logger.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
+		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
 	if c.mode == ModeCluster {
@@ -1050,10 +1050,10 @@ func (c *ClickHouse) CreateStorageV3(did int, database db.BaseDatabase, ct view.
 				SourceTable: dName,
 			},
 		})
-		invoker.Logger.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
+		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
-			invoker.Logger.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
+			elog.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
 			return
 		}
 	}
@@ -1067,7 +1067,7 @@ func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table stri
 	// jaegerJson dependencies table
 	sc, errGetTableCreator := builderv2.GetTableCreator(builderv2.StorageTypeTraceCal)
 	if errGetTableCreator != nil {
-		invoker.Logger.Error("CreateTable", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
+		elog.Error("CreateTable", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
 		return
 	}
 	params := builderv2.Params{
@@ -1087,11 +1087,11 @@ func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table stri
 	}
 	sc.SetParams(params)
 	if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
-		invoker.Logger.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
+		elog.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
 	if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
-		invoker.Logger.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
+		elog.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
 	return nil
@@ -1535,7 +1535,7 @@ func (c *ClickHouse) viewOperator(typ, tid int, did int, table, customTimeField 
 func (c *ClickHouse) viewRollback(tid int, key string) {
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {
-		invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
+		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
 		return
 	}
 	var viewQuery string
@@ -1549,14 +1549,14 @@ func (c *ClickHouse) viewRollback(tid int, key string) {
 		condsView["key"] = key
 		viewInfo, err := db.ViewInfoX(condsView)
 		if err != nil {
-			invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
+			elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
 			return
 		}
 		viewQuery = viewInfo.SqlView
 	}
 	_, err = c.db.Exec(viewQuery)
 	if err != nil {
-		invoker.Logger.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
+		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
 		return
 	}
 }
@@ -1575,7 +1575,7 @@ func (c *ClickHouse) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) 
 		param.ST, param.ET,
 		c.queryTransform(param, true),
 		param.PageSize*param.Page)
-	invoker.Logger.Debug("logsTimelineSQL", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
+	elog.Debug("logsTimelineSQL", elog.Any("step", "logsSQL"), elog.Any("sql", sql))
 	return
 }
 
@@ -1613,7 +1613,7 @@ func (c *ClickHouse) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origina
 		originalWhere,
 		param.PageSize, (param.Page-1)*param.PageSize)
 	c4 := time.Since(st).Milliseconds()
-	invoker.Logger.Debug("logsTimelineSQL",
+	elog.Debug("logsTimelineSQL",
 		elog.Any("c1", c1),
 		elog.Any("c2", c2),
 		elog.Any("c3", c3),
@@ -1639,7 +1639,7 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 		param.DatabaseTable,
 		param.ST, param.ET,
 		c.queryTransform(param, true))
-	invoker.Logger.Debug("countSQL", elog.Any("step", "countSQL"), elog.Any("param", param), elog.Any("sql", sql))
+	elog.Debug("countSQL", elog.Any("step", "countSQL"), elog.Any("param", param), elog.Any("sql", sql))
 	return
 }
 
@@ -1720,7 +1720,7 @@ func (c *ClickHouse) timeFieldEqual(param view.ReqQuery, tid int) string {
 	s := c.logsTimelineSQL(param, tid)
 	out, err := c.doQuery(s)
 	if err != nil {
-		invoker.Logger.Error("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("sql", s), elog.String("error", err.Error()))
+		elog.Error("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("sql", s), elog.String("error", err.Error()))
 		return res
 	}
 	for _, v := range out {
@@ -1736,7 +1736,7 @@ func (c *ClickHouse) timeFieldEqual(param view.ReqQuery, tid int) string {
 					}
 				}
 			default:
-				invoker.Logger.Warn("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("type", reflect.TypeOf(v[param.TimeField])))
+				elog.Warn("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("type", reflect.TypeOf(v[param.TimeField])))
 			}
 		}
 	}

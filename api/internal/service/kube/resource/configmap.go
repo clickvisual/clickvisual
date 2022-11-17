@@ -12,16 +12,15 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
 )
 
-func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string, data map[string]string) error {
+func CreateOrUpdateConfigmap(client *kube.ClusterClient, namespace, name string, data map[string]string) error {
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
 	if NotFound(err) {
-		if err = configmapCreate(client, namespace, name, data); err != nil {
-			invoker.Logger.Error("ConfigmapCreateOrUpdate", elog.String("namespace", namespace), elog.String("name", name), elog.Any("data", data), elog.FieldErr(err))
+		if err = createConfigmap(client, namespace, name, data); err != nil {
+			elog.Error("CreateOrUpdateConfigmap", elog.String("namespace", namespace), elog.String("name", name), elog.Any("data", data), elog.FieldErr(err))
 			return err
 		}
 		return nil
@@ -34,13 +33,13 @@ func ConfigmapCreateOrUpdate(client *kube.ClusterClient, namespace, name string,
 	for k, v := range data {
 		configMap.Data[k] = v
 	}
-	if err = configmapUpdate(client, namespace, name, configMap); err != nil {
+	if err = updateConfigmap(client, namespace, name, configMap); err != nil {
 		return err
 	}
 	return nil
 }
 
-func ConfigmapDelete(clusterId int, namespace, name string, keys ...string) error {
+func DeleteConfigmap(clusterId int, namespace, name string, keys ...string) error {
 	client, err := kube.ClusterManager.GetClusterManager(clusterId)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("cluster data acquisition failed: %s, cluster id: %d", err.Error(), clusterId))
@@ -56,16 +55,16 @@ func ConfigmapDelete(clusterId int, namespace, name string, keys ...string) erro
 	for _, k := range keys {
 		delete(configMap.Data, k)
 	}
-	return configmapUpdate(client, namespace, name, configMap)
+	return updateConfigmap(client, namespace, name, configMap)
 }
 
-func ConfigmapInfo(clusterId int, namespace, name string, key string) (data string, err error) {
+func GetConfigmap(clusterId int, namespace, name string, key string) (data string, err error) {
 	client, err := kube.ClusterManager.GetClusterManager(clusterId)
 	if err != nil {
 		err = errors.Wrap(err, "cluster data acquisition failed")
 		return
 	}
-	invoker.Logger.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
+	elog.Debug("ConfigMapInfo", elog.Int("clusterId", clusterId), elog.String("namespace", namespace), elog.String("name", name))
 	obj, err := client.KubeClient.Get(api.ResourceNameConfigMap, namespace, name)
 	if err != nil {
 		if err.Error() == apierrors.NewNotFound(corev1.Resource("configmaps"), name).Error() {
@@ -84,7 +83,7 @@ func ConfigmapInfo(clusterId int, namespace, name string, key string) (data stri
 	return
 }
 
-func configmapCreate(client *kube.ClusterClient, namespace, name string, data map[string]string) error {
+func createConfigmap(client *kube.ClusterClient, namespace, name string, data map[string]string) error {
 	acm := kapi.ConfigMap{
 		TypeMeta: metaV1.TypeMeta{},
 		ObjectMeta: metaV1.ObjectMeta{
@@ -103,7 +102,7 @@ func configmapCreate(client *kube.ClusterClient, namespace, name string, data ma
 	return nil
 }
 
-func configmapUpdate(client *kube.ClusterClient, namespace, name string, configMap *kapi.ConfigMap) error {
+func updateConfigmap(client *kube.ClusterClient, namespace, name string, configMap *kapi.ConfigMap) error {
 	acmBytes, _ := json.Marshal(configMap)
 	_, err := client.KubeClient.Update(api.ResourceNameConfigMap, namespace, name, &runtime.Unknown{
 		Raw: acmBytes,

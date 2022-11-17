@@ -39,7 +39,7 @@ func ShortURLInfoBySCode(db *gorm.DB, sCode string) (resp BaseShortURL, err erro
 
 func ShortURLCreate(db *gorm.DB, data *BaseShortURL) (err error) {
 	if err = db.Model(BaseShortURL{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create error", zap.Error(err))
+		elog.Error("create error", zap.Error(err))
 		return
 	}
 	return
@@ -49,7 +49,7 @@ func ShortURLUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error)
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(BaseShortURL{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update error", zap.Error(err))
+		elog.Error("update error", zap.Error(err))
 		return
 	}
 	return

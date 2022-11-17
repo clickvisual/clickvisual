@@ -48,13 +48,13 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 		return
 	}
 	if err = alarm.UpdateStatus(tx, alarm.GetStatus(tx)); err != nil {
-		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		elog.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		tx.Rollback()
 		return err
 	}
 	if currentFiltersStatus == notifStatus {
 		// 此时有正在进行中的告警
-		invoker.Logger.Info("PushAlertManagerRepeat", elog.Int("notifStatus", notifStatus), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		elog.Info("PushAlertManagerRepeat", elog.Int("notifStatus", notifStatus), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		tx.Commit()
 		return nil
 	}
@@ -63,13 +63,13 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 	// get alarm filter info
 	filter, err := i.compatibleFilter(alarm.ID, filterId)
 	if err != nil {
-		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		elog.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		return
 	}
 	// get table info
 	tableInfo, err := db.TableInfo(invoker.Db, filter.Tid)
 	if err != nil {
-		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		elog.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		return
 	}
 	if tableInfo.TimeField == "" {
@@ -78,18 +78,18 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 	// get op
 	op, err := InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
-		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		elog.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		return
 	}
 	// get partial log
 	partialLog := i.getPartialLog(op, &tableInfo, &alarm, filter)
 	pushMsg, errConstructMessage := pusher.BuildAlarmMsg(notification, &tableInfo, &alarm, filter, partialLog)
 	if errConstructMessage != nil {
-		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(errConstructMessage), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		elog.Error("PushAlertManagerError", elog.FieldErr(errConstructMessage), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		return
 	}
 	if err = pusher.Execute(alarm.ChannelIds, pushMsg); err != nil {
-		invoker.Logger.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		elog.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		_ = db.AlarmHistoryUpdate(invoker.Db, alarmHistory.ID, map[string]interface{}{"is_pushed": db.PushedStatusFail})
 		return
 	}
