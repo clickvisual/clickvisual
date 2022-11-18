@@ -26,7 +26,6 @@ export const DefaultPane = {
   foldingChecked: false,
   rawLogsIndexeList: undefined,
   logState: 0,
-  linkLogs: undefined,
   relTraceTableId: 0,
   columsList: [],
 };

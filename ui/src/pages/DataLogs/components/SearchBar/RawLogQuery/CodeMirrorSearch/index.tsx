@@ -311,15 +311,6 @@ const Editors = (props: {
     }
     const cursorLine = token.string.replace(/((?![A-Z]).)/gi, " ").split(" ");
     const value = cursorLine[cursorLine.length - 1];
-    console.log(
-      // cmInstance.getLine(cursor.line),
-      // cursorLine,
-      value,
-      ",",
-      token.string.replace(/((?![A-Z]).)/gi, " ").split(" "),
-      token.end,
-      cursor.ch
-    );
     const collectionList = handleCodePromptRecord(
       collectingHistorical,
       value,

@@ -64,7 +64,7 @@ const DataLogsModel = () => {
   const [endDateTime, setEndDateTime] = useState<number>();
   // 分页参数
 
-  const [pageSize, setPageSize] = useState<number>();
+  const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>();
 
   // 日志库列表
@@ -112,9 +112,6 @@ const DataLogsModel = () => {
 
   // 链路模式下日志的三种状态
   const [logState, setLogState] = useState<number>(0);
-
-  // 链路的100条日志信息
-  const [linkLogs, setLinkLogs] = useState<LogsResponse>();
 
   const { onSetLocalData } = useLocalStorages();
   // 历史记录
@@ -351,7 +348,6 @@ const DataLogsModel = () => {
         ? tabPane.logs?.where
         : false) || keywordInput
     );
-    setLinkLogs(tabPane?.linkLogs);
     setLogState(tabPane?.logState);
   };
 
@@ -740,7 +736,6 @@ const DataLogsModel = () => {
 
   const resetCurrentHighChart = () => {
     setLogs(undefined);
-    setLinkLogs(undefined);
     setHighChartList([]);
     setIsHiddenHighChart(false);
   };
@@ -792,7 +787,6 @@ const DataLogsModel = () => {
     isHasDatabase,
     addLogToDatabase,
     logs,
-    linkLogs,
     logCount,
     startDateTime,
     endDateTime,

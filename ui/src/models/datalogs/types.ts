@@ -38,7 +38,6 @@ export type PaneType = {
   mode?: number;
   rawLogsIndexeList?: IndexInfoType[];
   logState: number;
-  linkLogs?: LogsResponse;
   relTraceTableId: number;
   columsList: string[];
 };
