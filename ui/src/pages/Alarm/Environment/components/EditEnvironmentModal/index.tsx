@@ -1,8 +1,17 @@
-import {NameSpaceType} from "@/services/configure";
-import {Cascader, Form, FormInstance, Input, message, Modal, Radio, Select,} from "antd";
-import {useEffect, useMemo, useRef, useState} from "react";
-import {useIntl, useModel} from "umi";
-import {RuleStoreType} from "../..";
+import { NameSpaceType } from "@/services/configure";
+import {
+  Cascader,
+  Form,
+  FormInstance,
+  Input,
+  message,
+  Modal,
+  Radio,
+  Select,
+} from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useIntl, useModel } from "umi";
+import { RuleStoreType } from "../..";
 
 const { Option } = Select;
 
@@ -52,6 +61,8 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
           clusterId: res.data?.clusterId || undefined,
           namespaceConfigmap: [res.data?.namespace, res.data?.configmap],
         });
+        setSelectedNameSpace(res.data?.namespace);
+        setSelectedConfigMap(res.data?.configmap);
         if (res.data?.clusterId && res.data.clusterId != 0) {
           doGetConfigMaps.run(res.data?.clusterId).then((res: any) => {
             if (res.code != 0) return;

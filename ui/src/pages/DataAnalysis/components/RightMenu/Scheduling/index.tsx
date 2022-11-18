@@ -97,6 +97,7 @@ const Scheduling = (props: {
     isRetry: number;
     retryInterval?: number;
     retryTimes?: number;
+    channelIds?: number;
   }) => {
     if (node?.id != currentPaneActiveKey) return;
     if (!isUpdate) {
@@ -110,6 +111,7 @@ const Scheduling = (props: {
         isRetry: file.isRetry ? 1 : 0,
         retryInterval: file.retryInterval,
         retryTimes: file.retryTimes,
+        channelIds: file.channelIds,
       };
       doCreatCrontab.run(node.id, data).then((res: any) => {
         if (res.code == 0) {
@@ -128,6 +130,7 @@ const Scheduling = (props: {
       isRetry: file.isRetry ? 1 : 0,
       retryInterval: file.retryInterval,
       retryTimes: file.retryTimes,
+      channelIds: file.channelIds,
     };
     doUpdateCrontab.run(node.id, data).then((res: any) => {
       if (res.code == 0) {
@@ -151,6 +154,7 @@ const Scheduling = (props: {
               typ: !Boolean(data.typ),
               uid: data.uid,
               isRetry: Boolean(data.isRetry),
+              channelIds: data.channelIds,
               args:
                 node?.secondary != SecondaryEnums.dataIntegration
                   ? JSON.parse(data.args?.length > 0 ? data.args : "[]") || [
@@ -221,7 +225,11 @@ const Scheduling = (props: {
             id: "bigdata.components.RightMenu.Scheduling.basicConfig",
           })}
         >
-          <BasisConfig infoList={infoList} userList={userList} />
+          <BasisConfig
+            infoList={infoList}
+            userList={userList}
+            visible={visible}
+          />
         </CustomCollapse>
         {/* 参数 */}
         {(node?.secondary == SecondaryEnums.database ||

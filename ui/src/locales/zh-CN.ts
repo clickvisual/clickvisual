@@ -32,6 +32,7 @@ export default {
   required: "必填",
   tips: "提示",
   unit: "单位",
+  time: "时间",
 
   type: "类型",
   capacity: "容量",
@@ -862,6 +863,7 @@ export default {
   "bigdata.components.RightMenu.Scheduling.nodeType": "节点类型",
   "bigdata.components.RightMenu.Scheduling.basicConfig": "基础配置",
   "bigdata.components.RightMenu.Scheduling.isPerform": "是否执行",
+  "bigdata.components.RightMenu.Scheduling.channelIds": "失败告警",
   "bigdata.components.RightMenu.Scheduling.thoseResponsible": "责任人",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "调度规则 cron 字段填写 帮助文档",
@@ -947,10 +949,10 @@ export default {
   "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek": "近七天",
   "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge": "我负责的",
 
-  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败任务",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
-    "成功实例",
-  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知实例",
+    "成功任务",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知任务",
   "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "失败节点",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode": "成功节点",
   "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode": "未知节点",

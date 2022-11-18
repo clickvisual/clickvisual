@@ -265,6 +265,7 @@ const Environment = () => {
       <Table
         dataSource={alarmConfigList || []}
         columns={column}
+        loading={doGetAlarmConfigList.loading}
         size="small"
         pagination={{ hideOnSinglePage: true }}
         rowKey={(item: any) => item.instanceId}
