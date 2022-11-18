@@ -48,6 +48,8 @@ const Editors = (props: {
   currentTid: number;
   logQueryHistoricalList: { [tid: number]: string[] };
   collectingHistorical: LogFilterType[];
+  isMultipleLines: boolean;
+  onChangeIsMultipleLines: (flag: boolean) => void;
 }) => {
   const {
     title,
@@ -61,6 +63,8 @@ const Editors = (props: {
     currentTid,
     logQueryHistoricalList,
     collectingHistorical,
+    isMultipleLines,
+    onChangeIsMultipleLines,
   } = props;
 
   const {
@@ -71,7 +75,6 @@ const Editors = (props: {
 
   const formRefs: any = useRef(null);
   const i18n = useIntl();
-  const [isMultipleLines, setIsMultipleLines] = useState<boolean>(false);
   const [isFocus, setIsFocus] = useState<boolean>(false);
   const { onSetLocalData } = useLocalStorages();
 
@@ -97,22 +100,6 @@ const Editors = (props: {
       codeHintsType != CodeHintsType.keyword
         ? str.toLowerCase()
         : str.toUpperCase();
-    // 用空格分割然后找到所编辑的单词
-    const strArr = lowerCase.split(" ");
-    let totalLenght = 0;
-    let currentWord = "";
-    // 为了查找光标所在的单词
-    for (let i = 0; i < strArr.length; i++) {
-      const wordItem = strArr[i];
-      if (
-        totalLenght < location &&
-        totalLenght + (wordItem.length + 1) > location
-      ) {
-        currentWord = wordItem;
-        break;
-      }
-      totalLenght += wordItem.length + 1;
-    }
     // 分配不同类型的icon和文本
     let icon: any = <></>;
     let infoText: any = "";
@@ -151,12 +138,12 @@ const Editors = (props: {
     if (codeHintsType != CodeHintsType.collection) {
       list.map((item: any) => {
         // 从头开始匹配的优先级大于从中间开始匹配的大于模糊搜索
-        if (item.indexOf(currentWord) === 0) {
+        if (item.indexOf(lowerCase) === 0) {
           priorityArr.push({
             text: item,
           });
         }
-        if (item.indexOf(currentWord) > 0) {
+        if (item.indexOf(lowerCase) > 0) {
           arr.push({
             text: item,
           });
@@ -165,7 +152,7 @@ const Editors = (props: {
       allArr = [...priorityArr, ...arr];
 
       // 处理模糊数据
-      const fuzzyList = fuzzyQuery(list, currentWord);
+      const fuzzyList = fuzzyQuery(list, lowerCase);
       fuzzyList.map((item: any) => {
         // 模糊搜索结果先过滤
         if (
@@ -194,7 +181,7 @@ const Editors = (props: {
       let virtualDom: any;
       handleHighlightAndPrompt(
         item,
-        currentWord,
+        lowerCase,
         virtualDom,
         resultArr,
         text,
@@ -310,43 +297,59 @@ const Editors = (props: {
     },
     hintOptions: any
   ) => {
-    let cursor = cmInstance.getCursor();
-    let cursorLine = cmInstance
-      .getLine(cursor.line)
-      .replace(/((?![A-Z]).)/gi, " ");
-    let end = cursor.ch;
+    const cursor = cmInstance.getCursor();
+    const end = cursor.ch;
 
-    let token = cmInstance.getTokenAt(cursor);
+    const token = cmInstance.getTokenAt(cursor);
+    // 如果不是从单词最后开始的一律不提示代码提示
+    if (token.end != cursor.ch) {
+      return {
+        list: [],
+        from: { ch: 0, line: 0 },
+        to: { ch: 0, line: 0 },
+      };
+    }
+    const cursorLine = token.string.replace(/((?![A-Z]).)/gi, " ").split(" ");
+    const value = cursorLine[cursorLine.length - 1];
+    console.log(
+      // cmInstance.getLine(cursor.line),
+      // cursorLine,
+      value,
+      ",",
+      token.string.replace(/((?![A-Z]).)/gi, " ").split(" "),
+      token.end,
+      cursor.ch
+    );
     const collectionList = handleCodePromptRecord(
       collectingHistorical,
-      cursorLine,
+      value,
       CodeHintsType.collection,
       end
     );
     // 按键触发的显示四种提示
-    if (cursorLine && cursorLine.length > 0 && cursorLine != "`") {
+    if (value && value.length > 0 && value != "`") {
       const cursorLineList = handleCodePromptRecord(
-        [cursorLine],
-        cursorLine,
+        [value],
+        value,
         CodeHintsType.value,
         end
       );
       const historyList = handleCodePromptRecord(
         historicalRecord.slice(0, 10),
-        cursorLine,
+        value,
         CodeHintsType.history,
         end
       );
       const list = handleCodePromptRecord(
         tables,
-        cursorLine,
+        value,
         CodeHintsType.analysisField,
         end
       );
 
       const keyWordList = handleCodePromptRecord(
         MYSQL_KEYWORD,
-        cursorLine,
+        value,
         CodeHintsType.keyword,
         end
       );
@@ -360,7 +363,7 @@ const Editors = (props: {
             ...list,
             ...keyWordList,
           ] || [],
-        from: { ch: token.start, line: cursor.line },
+        from: { ch: token.end - value.length, line: cursor.line },
         to: { ch: token.end, line: cursor.line },
       };
     }
@@ -374,7 +377,7 @@ const Editors = (props: {
 
     return {
       list: [...collectionList, ...allHistoryList] || [],
-      from: { ch: token.start, line: cursor.line },
+      from: { ch: token.end - value.length, line: cursor.line },
       to: { ch: token.end, line: cursor.line },
     };
   };
@@ -523,7 +526,7 @@ const Editors = (props: {
     // 主题
     theme: "neo",
     // 溢出滚动而非换行
-    lineWrapping: false,
+    lineWrapping: isMultipleLines,
     foldGutter: true,
     gutters: false,
     lint: false,
@@ -539,9 +542,9 @@ const Editors = (props: {
 
   const handleChange = (CodeMirror: string, changeObj: any, value: string) => {
     if (value.indexOf("\n") > -1 && !isMultipleLines) {
-      setIsMultipleLines(true);
+      onChangeIsMultipleLines(true);
     } else if (isMultipleLines && value.indexOf("\n") == -1) {
-      setIsMultipleLines(false);
+      onChangeIsMultipleLines(false);
     }
     onChange(value);
   };

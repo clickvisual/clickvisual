@@ -53,6 +53,7 @@ const RawLogQuery = () => {
     keywordInput
   );
   const [isDefault, setIsDefault] = useState<boolean>(true);
+  const [isMultipleLines, setIsMultipleLines] = useState<boolean>(false);
 
   // 输入框自动填充历史记录
   const [historicalRecord, setHistoricalRecord] = useState<string[]>([]);
@@ -179,7 +180,10 @@ const RawLogQuery = () => {
 
   return (
     <>
-      <div className={searchBarStyles.inputBox}>
+      <div
+        className={searchBarStyles.inputBox}
+        style={{ overflowX: isMultipleLines ? "visible" : "hidden" }}
+      >
         <CodeMirrorSearch
           title="logInput"
           value={initValue || ""}
@@ -194,6 +198,8 @@ const RawLogQuery = () => {
           currentTid={currentLogLibrary?.id as number}
           logQueryHistoricalList={logQueryHistoricalList}
           collectingHistorical={collectingHistorical}
+          isMultipleLines={isMultipleLines}
+          onChangeIsMultipleLines={setIsMultipleLines}
         />
       </div>
       <SearchBarSuffixIcon />
