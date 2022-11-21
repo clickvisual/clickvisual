@@ -10,7 +10,7 @@ import { notification } from "antd";
 import { parseJsonObject } from "@/utils/string";
 import { microsecondTimeStamp } from "@/utils/time";
 import { useIntl } from "umi";
-import { LINKLOGS_PAGESIZE } from "@/config/config";
+import { cloneDeep } from "lodash";
 
 // 链路主题色，循环使用，可直接在末尾新增
 const themeColor = [
@@ -23,22 +23,18 @@ const themeColor = [
 
 const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const i18n = useIntl();
-  const { logs, linkLogs, logState } = useModel("dataLogs");
+  const { logs, logState, pageSize } = useModel("dataLogs");
   const [isNotification, setIsNotification] = useState<boolean>(false);
   const [isLinkLogs, setIsLinkLogs] = useState<boolean>(true);
   const [dataListLength, setDataListLength] = useState<number>(0);
 
   const list = useMemo(() => {
-    if (
-      logs?.isTrace == 1 &&
-      oldPane?.logState == 1 &&
-      linkLogs?.logs &&
-      linkLogs?.logs?.length > 0
-    ) {
-      return linkLogs?.logs || [];
+    const newLogs = cloneDeep(logs?.logs);
+    if (oldPane?.logState != 1 && logs?.logs && logs?.logs.length > pageSize) {
+      return newLogs?.splice(0, pageSize - 1);
     }
-    return logs?.logs || [];
-  }, [logs?.logs, logs?.isTrace, oldPane, linkLogs?.logs]);
+    return logs?.logs;
+  }, [logs?.logs, pageSize, oldPane?.logState]);
 
   const handleFindChild = (
     oneselfId: string,
@@ -290,9 +286,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     if (
       logs?.isTrace == 1 &&
       logState == 1 &&
-      linkLogs?.limited == LINKLOGS_PAGESIZE &&
       dataListLength > 1 &&
-      oldPane?.linkLogs &&
       !isNotification
     ) {
       setIsNotification(true);

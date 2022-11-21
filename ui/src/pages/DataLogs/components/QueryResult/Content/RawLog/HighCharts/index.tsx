@@ -6,15 +6,10 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useMemo, useRef, useState } from "react";
 import HighChartsTooltip from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts/HighChartsTooltip";
 import moment from "moment";
-import {
-  ACTIVE_TIME_NOT_INDEX,
-  LINKLOGS_PAGESIZE,
-  TimeRangeType,
-} from "@/config/config";
+import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
 import { useIntl } from "umi";
 import { PaneType } from "@/models/datalogs/types";
 import { timeIntervalIsConvertedIntoUnits } from "@/utils/time";
-import { cloneDeep } from "lodash";
 
 const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {
@@ -109,10 +104,6 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         activeTabKey: TimeRangeType.Custom,
       };
       const reqParams: any = { st: start, et: end };
-
-      if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-        reqParams.pageSize = LINKLOGS_PAGESIZE;
-      }
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary.id, {
         reqParams: reqParams,
@@ -121,14 +112,7 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
           if (!res) {
             resetLogPaneLogsAndHighCharts(pane);
           } else {
-            if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-              let cloneLogs = cloneDeep(res.logs);
-              cloneLogs.logs = cloneLogs.logs.slice(0, 9);
-              pane.linkLogs = res.logs;
-              pane.logs = cloneLogs;
-            } else {
-              pane.logs = res.logs;
-            }
+            pane.logs = res.logs;
             pane.highCharts = res.highCharts;
             pane.logChart = { logs: [], isNeedSort: false, sortRule: ["*"] };
             onChangeLogPane(pane);

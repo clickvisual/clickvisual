@@ -7,13 +7,12 @@ import IconFont from "@/components/IconFont";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { useDebounceFn } from "ahooks";
-import { FIRST_PAGE, LINKLOGS_PAGESIZE, TimeRangeType } from "@/config/config";
+import { FIRST_PAGE, TimeRangeType } from "@/config/config";
 import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
-import { cloneDeep } from "lodash";
 import CodeMirrorSearch from "./CodeMirrorSearch";
 import { CollectType } from "@/services/dataLogs";
 
@@ -53,6 +52,7 @@ const RawLogQuery = () => {
     keywordInput
   );
   const [isDefault, setIsDefault] = useState<boolean>(true);
+  const [isMultipleLines, setIsMultipleLines] = useState<boolean>(false);
 
   // 输入框自动填充历史记录
   const [historicalRecord, setHistoricalRecord] = useState<string[]>([]);
@@ -91,22 +91,11 @@ const RawLogQuery = () => {
         page: params.page,
         activeIndex: activeTimeOptionIndex,
       };
-      if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-        params.pageSize = LINKLOGS_PAGESIZE;
-      }
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params }).then(
         (res) => {
           if (res) {
-            if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-              let cloneLogs = cloneDeep(res.logs);
-              cloneLogs.logs = cloneLogs.logs.slice(0, 9);
-              pane.linkLogs = res.logs;
-              pane.logs = cloneLogs;
-            } else {
-              pane.logs = res.logs;
-            }
-
+            pane.logs = res.logs;
             pane.highCharts = res.highCharts;
             if (res.logs.query !== pane.querySql) {
               pane.logChart = { isNeedSort: false, logs: [], sortRule: ["*"] };
@@ -179,7 +168,10 @@ const RawLogQuery = () => {
 
   return (
     <>
-      <div className={searchBarStyles.inputBox}>
+      <div
+        className={searchBarStyles.inputBox}
+        style={{ overflowX: isMultipleLines ? "visible" : "hidden" }}
+      >
         <CodeMirrorSearch
           title="logInput"
           value={initValue || ""}
@@ -194,6 +186,8 @@ const RawLogQuery = () => {
           currentTid={currentLogLibrary?.id as number}
           logQueryHistoricalList={logQueryHistoricalList}
           collectingHistorical={collectingHistorical}
+          isMultipleLines={isMultipleLines}
+          onChangeIsMultipleLines={setIsMultipleLines}
         />
       </div>
       <SearchBarSuffixIcon />

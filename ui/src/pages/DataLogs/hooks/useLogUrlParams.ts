@@ -98,7 +98,6 @@ export default function useLogUrlParams() {
     onChangeRawLogsIndexeList,
     onChangeCurrentLogPane,
     logState,
-    linkLogs,
     onChangeTableInfo,
     doGetColumns,
     onChangeColumsList,
@@ -261,7 +260,6 @@ export default function useLogUrlParams() {
       tab: activeTabKey,
       queryType: activeQueryType,
       logState: logState,
-      linkLogs: linkLogs,
     };
     const defaultData = {
       end: undefined,
@@ -274,7 +272,6 @@ export default function useLogUrlParams() {
       tab: TimeRangeType.Relative,
       tid: undefined,
       logState: 0,
-      linkLogs: undefined,
     };
     // 初始化的时候时不时会执行一次，无法稳定复现，于是排除初始化的情况
     !isEqual(data, defaultData) && setUrlQuery.run();
@@ -289,7 +286,6 @@ export default function useLogUrlParams() {
     activeTabKey,
     activeQueryType,
     logState,
-    linkLogs,
   ]);
 
   useEffect(() => {
