@@ -12,10 +12,10 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gotomicro/cetus/pkg/kauth"
 	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/user"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
@@ -39,7 +39,7 @@ func Oauth(c *core.Context) {
 	errorParam := c.Query("error")
 	if errorParam != "" {
 		errorDesc := c.Query("error_description")
-		invoker.Logger.Error("failed to login ", zap.Any("error", errorParam), zap.String("errorDesc", errorDesc))
+		elog.Error("failed to login ", zap.Any("error", errorParam), zap.String("errorDesc", errorDesc))
 		c.JSONE(2, fmt.Sprintf("failed to login, errorParam: %s", errorParam), nil)
 		return
 	}
@@ -49,14 +49,14 @@ func Oauth(c *core.Context) {
 		var err error
 		state, err = kauth.GenStateString()
 		if err != nil {
-			invoker.Logger.Error("Generating state string failed", zap.Error(err))
+			elog.Error("Generating state string failed", zap.Error(err))
 			c.JSONE(3, "internal error occurred", nil)
 			return
 		}
 
-		invoker.Logger.Info("Oauth", zap.String("state", state))
+		elog.Info("Oauth", zap.String("state", state))
 		hashedState := kauth.HashStateCode(state, econf.GetString("app.secretKey"), kauth.OAuthService.OAuthInfos[name].ClientSecret)
-		invoker.Logger.Info("Oauth", zap.String("hashedState", hashedState))
+		elog.Info("Oauth", zap.String("hashedState", hashedState))
 
 		c.SetCookie(
 			kauth.OauthStateCookieName,
@@ -69,7 +69,7 @@ func Oauth(c *core.Context) {
 		)
 
 		if kauth.OAuthService.OAuthInfos[name].HostedDomain == "" {
-			invoker.Logger.Info("Oauth", zap.Any("AuthCodeURL", connect.AuthCodeURL(state, oauth2.AccessTypeOnline)))
+			elog.Info("Oauth", zap.Any("AuthCodeURL", connect.AuthCodeURL(state, oauth2.AccessTypeOnline)))
 			c.Redirect(http.StatusFound, connect.AuthCodeURL(state, oauth2.AccessTypeOnline))
 			return
 		} else {
@@ -106,7 +106,7 @@ func Oauth(c *core.Context) {
 	}
 
 	queryState := kauth.HashStateCode(state, econf.GetString("app.secretKey"), kauth.OAuthService.OAuthInfos[name].ClientSecret)
-	invoker.Logger.Info("state check", zap.String("state", state), zap.String("secretKey", econf.GetString("app.secretKey")), zap.String("ClientSecret", kauth.OAuthService.OAuthInfos[name].ClientSecret), zap.Any("queryState", queryState), zap.Any("cookieState", cookieState))
+	elog.Info("state check", zap.String("state", state), zap.String("secretKey", econf.GetString("app.secretKey")), zap.String("ClientSecret", kauth.OAuthService.OAuthInfos[name].ClientSecret), zap.Any("queryState", queryState), zap.Any("cookieState", cookieState))
 	if cookieState != queryState {
 		c.JSONE(6, "login.OAuthLogin(state mismatch)", nil)
 		return
@@ -126,7 +126,7 @@ func Oauth(c *core.Context) {
 	if kauth.OAuthService.OAuthInfos[name].TlsClientCert != "" || kauth.OAuthService.OAuthInfos[name].TlsClientKey != "" {
 		cert, err := tls.LoadX509KeyPair(kauth.OAuthService.OAuthInfos[name].TlsClientCert, kauth.OAuthService.OAuthInfos[name].TlsClientKey)
 		if err != nil {
-			invoker.Logger.Error("Failed to setup TlsClientCert", zap.String("oauth", name), zap.Error(err))
+			elog.Error("Failed to setup TlsClientCert", zap.String("oauth", name), zap.Error(err))
 			c.JSONE(7, "login.OAuthLogin(Failed to setup TlsClientCert)", nil)
 			return
 		}
@@ -137,7 +137,7 @@ func Oauth(c *core.Context) {
 	if kauth.OAuthService.OAuthInfos[name].TlsClientCa != "" {
 		caCert, err := os.ReadFile(kauth.OAuthService.OAuthInfos[name].TlsClientCa)
 		if err != nil {
-			invoker.Logger.Error("Failed to setup TlsClientCa", zap.String("oauth", name), zap.Error(err))
+			elog.Error("Failed to setup TlsClientCa", zap.String("oauth", name), zap.Error(err))
 			c.JSONE(8, "login.OAuthLogin(Failed to setup TlsClientCa)", nil)
 			return
 		}
@@ -158,7 +158,7 @@ func Oauth(c *core.Context) {
 	// token.TokenType was defaulting to "bearer", which is out of spec, so we explicitly set to "Bearer"
 	token.TokenType = "Bearer"
 
-	invoker.Logger.Debug("OAuthLogin Got token", zap.Any("token", token))
+	elog.Debug("OAuthLogin Got token", zap.Any("token", token))
 
 	// set up oauth2 client
 	client := connect.Client(oauthCtx, token)
@@ -178,7 +178,7 @@ func Oauth(c *core.Context) {
 		}
 	}
 
-	invoker.Logger.Debug("OAuthLogin got user info", zap.Any("userInfo", userInfo))
+	elog.Debug("OAuthLogin got user info", zap.Any("userInfo", userInfo))
 
 	// validate that we got at least an email address
 	if userInfo.Email == "" {
@@ -207,7 +207,7 @@ func Oauth(c *core.Context) {
 		c.JSONE(11, "create or update oauth user error", err.Error())
 		return
 	}
-	invoker.Logger.Debug("OAuthLogin got user info", zap.Any("mysqlUserInfo", mysqlUser))
+	elog.Debug("OAuthLogin got user info", zap.Any("mysqlUserInfo", mysqlUser))
 
 	session := sessions.Default(c.Context)
 	session.Set("user", mysqlUser)

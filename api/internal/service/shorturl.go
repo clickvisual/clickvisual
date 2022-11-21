@@ -12,7 +12,7 @@ import (
 func HashIDGenCode(id int) string {
 	ret, err := invoker.HashId.EncodeInt64([]int64{int64(id)})
 	if err != nil {
-		invoker.Logger.Error("gen error", elog.FieldErr(err))
+		elog.Error("gen error", elog.FieldErr(err))
 	}
 	return ret
 }

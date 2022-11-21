@@ -75,7 +75,7 @@ func NewAlarm() *alert {
 	}
 	go func() {
 		for r := range a.reloadChan {
-			invoker.Logger.Info("AllPrometheusReload", elog.Int("times", len(a.reloadChan)), elog.Int64("r", r), elog.Int64("now", time.Now().Unix()))
+			elog.Info("AllPrometheusReload", elog.Int("times", len(a.reloadChan)), elog.Int64("r", r), elog.Int64("now", time.Now().Unix()))
 			AllPrometheusReload()
 			core.LoggerError("alert", "ruleReload", AlertRuleCheck())
 			time.Sleep(reloadInterval)
@@ -174,7 +174,7 @@ func (i *alert) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 func (i *alert) PrometheusReload(prometheusTarget string) (err error) {
 	resp, err := http.Post(strings.TrimSuffix(prometheusTarget, "/")+"/-/reload", "text/html;charset=utf-8", nil)
 	if err != nil {
-		invoker.Logger.Error("reload", elog.Any("reload", prometheusTarget+"/-/reload"), elog.Any("err", err.Error()))
+		elog.Error("reload", elog.Any("reload", prometheusTarget+"/-/reload"), elog.Any("err", err.Error()))
 		return
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -280,7 +280,7 @@ func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 			if alarmObj.ViewTableName != "" {
 				err = op.DeleteAlertView(alarmObj.ViewTableName, tableInfo.Database.Cluster)
 				if err != nil {
-					invoker.Logger.Error("alert", elog.String("step", "alert create failed 05"), elog.String("err", err.Error()))
+					elog.Error("alert", elog.String("step", "alert create failed 05"), elog.String("err", err.Error()))
 					return
 				}
 			}
@@ -358,7 +358,7 @@ func (i *alert) OpenOperator(id int) (err error) {
 					ins, _ = db.InstanceInfo(invoker.Db, iid)
 				}
 				if err = i.PrometheusRuleCreateOrUpdate(ins, ruleName, alertRule); err != nil {
-					invoker.Logger.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+					elog.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 					return
 				}
 			}
@@ -366,7 +366,7 @@ func (i *alert) OpenOperator(id int) (err error) {
 			table, _ := db.TableInfo(invoker.Db, alarmInfo.Tid)
 			ins, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
 			if err = i.PrometheusRuleCreateOrUpdate(ins, alarmInfo.RuleName(0), alarmInfo.AlertRule); err != nil {
-				invoker.Logger.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+				elog.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
 				return
 			}
 		}
@@ -431,7 +431,7 @@ func (i *alert) AddPrometheusReloadChan() {
 	// 10 times
 	for k := 0; k < reloadTimes; k++ {
 		if len(i.reloadChan) < reloadTimes {
-			invoker.Logger.Debug("AllPrometheusReload", elog.String("step", "AddPrometheusReloadChan"), elog.Any("k", k))
+			elog.Debug("AllPrometheusReload", elog.String("step", "AddPrometheusReloadChan"), elog.Any("k", k))
 			i.reloadChan <- time.Now().Unix()
 		}
 	}
@@ -466,7 +466,7 @@ func (i *alert) IsAllClosed(iid int) (err error) {
 func AllPrometheusReload() {
 	instances, err := db.InstanceList(egorm.Conds{})
 	if err != nil {
-		invoker.Logger.Error("AllPrometheusReload", elog.String("step", "InstanceList"), elog.String("error", err.Error()))
+		elog.Error("AllPrometheusReload", elog.String("step", "InstanceList"), elog.String("error", err.Error()))
 		return
 	}
 	pm := make(map[string]interface{})
@@ -478,7 +478,7 @@ func AllPrometheusReload() {
 	for target := range pm {
 		errReload := Alert.PrometheusReload(target)
 		if errReload != nil {
-			invoker.Logger.Error("AllPrometheusReload", elog.String("step", "PrometheusReload"), elog.String("error", errReload.Error()))
+			elog.Error("AllPrometheusReload", elog.String("step", "PrometheusReload"), elog.String("error", errReload.Error()))
 		}
 	}
 	return

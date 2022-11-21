@@ -89,7 +89,7 @@ func databaseViewIsPermission(uid, iid, did int, subResource string) bool {
 		DomainType:  pmsplugin.PrefixDatabase,
 		DomainId:    strconv.Itoa(did),
 	}); err == nil {
-		invoker.Logger.Debug("ReadAllPermissionInstance",
+		elog.Debug("ReadAllPermissionInstance",
 			elog.Any("uid", uid),
 			elog.Any("step", "DatabaseViewIsPermission"),
 			elog.Any("iid", iid),
@@ -102,7 +102,7 @@ func databaseViewIsPermission(uid, iid, did int, subResource string) bool {
 	conds["did"] = did
 	tables, err := db.TableList(invoker.Db, conds)
 	if err != nil {
-		invoker.Logger.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
+		elog.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
 		return false
 	}
 	for _, t := range tables {

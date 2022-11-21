@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -82,7 +83,7 @@ func HiddenFieldCreateBatch(db *gorm.DB, data []*BaseHiddenField) (err error) {
 		return errors.New("empty param")
 	}
 	if err = db.Model(BaseHiddenField{}).CreateInBatches(data, 100).Error; err != nil {
-		invoker.Logger.Error("create BaseHiddenField error", zap.Error(err))
+		elog.Error("create BaseHiddenField error", zap.Error(err))
 		return
 	}
 	return
@@ -93,7 +94,7 @@ func HiddenFieldDeleteByFields(db *gorm.DB, fields []string) (err error) {
 		return errors.New("empty param")
 	}
 	if err = db.Model(BaseHiddenField{}).Unscoped().Where("`field` in (?)", fields).Delete(&BaseHiddenField{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
+		elog.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -155,7 +156,7 @@ func IndexCreate(db *gorm.DB, data *BaseIndex) (err error) {
 
 func IndexDeleteBatch(db *gorm.DB, tid int) (err error) {
 	if err = db.Model(BaseIndex{}).Where("`tid`=?", tid).Unscoped().Delete(&BaseIndex{}).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
+		elog.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
@@ -166,7 +167,7 @@ func ViewUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameBaseView).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update error", zap.Error(err))
+		elog.Error("update error", zap.Error(err))
 		return
 	}
 	return
@@ -186,7 +187,7 @@ func ViewInfo(db *gorm.DB, paramId int) (resp BaseView, err error) {
 func ViewInfoX(conds map[string]interface{}) (resp BaseView, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameBaseView).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("infoX error", zap.Error(err))
+		elog.Error("infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -194,7 +195,7 @@ func ViewInfoX(conds map[string]interface{}) (resp BaseView, err error) {
 
 func ViewCreate(db *gorm.DB, data *BaseView) (err error) {
 	if err = db.Model(BaseView{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("release error", zap.Error(err))
+		elog.Error("release error", zap.Error(err))
 		return
 	}
 	return
@@ -203,7 +204,7 @@ func ViewCreate(db *gorm.DB, data *BaseView) (err error) {
 // ViewDelete Soft delete
 func ViewDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(BaseView{}).Unscoped().Delete(&BaseView{}, id).Error; err != nil {
-		invoker.Logger.Error("delete error", zap.Error(err))
+		elog.Error("delete error", zap.Error(err))
 		return
 	}
 	return
@@ -212,7 +213,7 @@ func ViewDelete(db *gorm.DB, id int) (err error) {
 // ViewDeleteByTableID  Soft delete
 func ViewDeleteByTableID(db *gorm.DB, tid int) (err error) {
 	if err = db.Model(BaseView{}).Where("tid = ?", tid).Unscoped().Delete(&BaseView{}).Error; err != nil {
-		invoker.Logger.Error("delete error", zap.Error(err))
+		elog.Error("delete error", zap.Error(err))
 		return
 	}
 	return

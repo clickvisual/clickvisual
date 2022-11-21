@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -63,7 +62,7 @@ func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 	reqRules = append(reqRules, checkAsterisk(reqPms)) // add * permission check
 	pmsPassed, err := pmsplugin.EnforceOneInMany(reqRules...)
 	if err != nil {
-		invoker.Logger.Warn("reqPerm not pass", zap.Error(err))
+		elog.Warn("reqPerm not pass", zap.Error(err))
 	}
 	if !pmsPassed {
 		return errors.New(MsgNoPermission)
@@ -79,7 +78,7 @@ func checkAsterisk(reqPms view.ReqPermission) []interface{} {
 	if err != nil {
 		return res
 	}
-	invoker.Logger.Debug("Permission", elog.Any("items", items))
+	elog.Debug("Permission", elog.Any("items", items))
 	return pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct, items.ReqDom)
 }
 
@@ -115,7 +114,7 @@ func getCasbinItemsFromReqPermission(reqPms *view.ReqPermission) (casbinItemsFro
 	}
 	reqDom, err := pmsplugin.Assemble2CasbinStr(reqPms.DomainType, reqPms.DomainId)
 	if err != nil {
-		invoker.Logger.Error("pms", elog.Any("step", "Assemble2CasbinStr"), elog.Any("error", err.Error()))
+		elog.Error("pms", elog.Any("step", "Assemble2CasbinStr"), elog.Any("error", err.Error()))
 		reqDom = "*"
 	}
 	resp.ReqSub = reqSub

@@ -57,7 +57,7 @@ func Init() error {
 	if econf.GetBool("app.isMultiCopy") {
 		sf := func() { Storage.tickerTraceWorker() }
 		ef := func() { Storage.stop() }
-		invoker.Logger.Debug("crontabRules", elog.String("step", "isMultiCopy"))
+		elog.Debug("crontabRules", elog.String("step", "isMultiCopy"))
 		ppt = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:trace", sf, ef)
 		return nil
 	}

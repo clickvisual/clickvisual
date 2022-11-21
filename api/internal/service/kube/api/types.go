@@ -14,8 +14,9 @@ const (
 )
 
 const (
-	KindNameConfigMap KindName = "ConfigMap"
-	KindNameNamespace KindName = "Namespace"
+	KindNameConfigMap      KindName     = "ConfigMap"
+	KindNameNamespace      KindName     = "Namespace"
+	KindNamePrometheusRule ResourceName = "PrometheusRule"
 )
 
 type ResourceMap struct {

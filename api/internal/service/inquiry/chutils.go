@@ -136,9 +136,9 @@ func resultAppend(input []string, k, v string, withQuote bool) []string {
 }
 
 func fieldTypeJudgment(typ string) int {
-	for key, val := range typORM {
+	for _, val := range typArr {
 		if strings.Contains(typ, val) {
-			return key
+			return typKey[val]
 		}
 	}
 	return -1
@@ -225,7 +225,7 @@ func queryTransformHash(params view.ReqQuery) string {
 		}
 		query = hashTransform(query, index)
 	}
-	invoker.Logger.Debug("chartSQL", elog.Any("step", "queryTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
+	elog.Debug("chartSQL", elog.Any("step", "queryTransform"), elog.Any("indexes", indexes), elog.Any("query", query))
 	if query == defaultCondition {
 		return ""
 	}
@@ -298,7 +298,7 @@ func isEmpty(input interface{}) bool {
 		if reflect.TypeOf(input) == nil {
 			return true
 		}
-		invoker.Logger.Warn("isEmpty", elog.String("val", val), elog.Any("type", reflect.TypeOf(input)))
+		elog.Warn("isEmpty", elog.String("val", val), elog.Any("type", reflect.TypeOf(input)))
 		return false
 	}
 	if val == "" || val == "NaN" {

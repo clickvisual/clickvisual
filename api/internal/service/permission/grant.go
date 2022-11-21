@@ -38,7 +38,7 @@ func (p *pms) transPmsRole2InstancePmsRole(pr *db.PmsRole, iid int) (resp *Insta
 	}
 	grant := make([]*InstancePmsRoleGrantItem, 0)
 
-	invoker.Logger.Debug("pms", elog.Any("pr.Refs", pr.Refs))
+	elog.Debug("pms", elog.Any("pr.Refs", pr.Refs))
 
 	for _, ref := range pr.Refs {
 		if ref.RefId != iid {
@@ -49,7 +49,7 @@ func (p *pms) transPmsRole2InstancePmsRole(pr *db.PmsRole, iid int) (resp *Insta
 		}
 		var tmpMap = make(map[string]*InstancePmsRoleGrantItem) // {{"domStr": InstancePmsRoleGrantItem }
 		for _, gt := range ref.Grants {
-			invoker.Logger.Debug("pms", elog.Any("gt", gt))
+			elog.Debug("pms", elog.Any("gt", gt))
 			if gt.ObjectType != pmsplugin.PrefixUser {
 				continue
 			}
@@ -158,12 +158,12 @@ func (p *pms) GetInstanceRolesGrantInfo(filter *view.RoleGrantInfoFilter) (resp 
 	for _, roleWithGrant := range rolesWithGrant {
 		role, err := p.transPmsRole2InstancePmsRole(roleWithGrant, filter.ResourceId)
 		if err != nil {
-			invoker.Logger.Error("trans pmsRole to frontStruct error.", zap.Error(err))
+			elog.Error("trans pmsRole to frontStruct error.", zap.Error(err))
 			continue
 		}
 		resp.Roles = append(resp.Roles, role)
 	}
-	invoker.Logger.Debug("pms", elog.Any("filter", filter), elog.Any("resp", resp))
+	elog.Debug("pms", elog.Any("filter", filter), elog.Any("resp", resp))
 	return resp, nil
 }
 
@@ -189,28 +189,28 @@ func (p *pms) UpdateInstanceRolesGrantInfo(reqUpdateParam *InstancePmsRolesWithG
 	defer pmsplugin.EnforcerUnlock()
 
 	for _, updateRole := range reqUpdateParam.Roles {
-		invoker.Logger.Debug("pms", elog.Any("updateRole", updateRole))
+		elog.Debug("pms", elog.Any("updateRole", updateRole))
 
 		oldAppRole, exist := existAppRoleMap[updateRole.Id]
 		if !exist {
 			// this condition should never happen, based on frontend logic
-			invoker.Logger.Errorf("a pmsRole(Name:%s) which in reqUpdateAppRolesGrant params, is not existed in db, "+
+			elog.Errorf("a pmsRole(Name:%s) which in reqUpdateAppRolesGrant params, is not existed in db, "+
 				"when updating roles' grant of app(aid:%d). ", updateRole.Name, reqUpdateParam.Iid)
 			continue
 		}
 		tgtPmsRole, err := db.PmsRoleInfoWithTgtRef(updateRole.Id, pmsplugin.PrefixInstance, reqUpdateParam.Iid)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			invoker.Logger.Errorf("get tgtPmsRole(id:%d) with Ref of app(id:%d) failed, skipped updating app grant info. %v",
+			elog.Errorf("get tgtPmsRole(id:%d) with Ref of app(id:%d) failed, skipped updating app grant info. %v",
 				updateRole.Id, reqUpdateParam.Iid, err)
 			continue
 		}
-		invoker.Logger.Debug("pms", elog.Any("oldAppRole", oldAppRole), elog.Any("tgtPmsRole", tgtPmsRole))
+		elog.Debug("pms", elog.Any("oldAppRole", oldAppRole), elog.Any("tgtPmsRole", tgtPmsRole))
 
 		// currentAppRole(wait2UpdateGrantInfo) existed in db, so just update grant from old to new
 		err = p.updateAppRoleGrantFrom2(tx, oldAppRole, updateRole, tgtPmsRole, reqUpdateParam.Iid)
 		if err != nil {
 			// if update failed, rollback and return error.
-			invoker.Logger.Errorf("Update appRole's grant error. %s", err.Error())
+			elog.Errorf("Update appRole's grant error. %s", err.Error())
 			tx.Rollback()
 			return fmt.Errorf(" Update grant info of appRole(%s) error. ", oldAppRole.Name)
 		}
@@ -240,7 +240,7 @@ func (p *pms) UpdateInstanceRolesGrantInfo(reqUpdateParam *InstancePmsRolesWithG
 			tgtPmsRoleRef, err := db.GetPmsRoleRefInfo(egorm.Conds{"pms_role_id": tgtPmsRole.ID, "ref_id": reqUpdateParam.Iid})
 			if err != nil {
 				tx.Rollback()
-				invoker.Logger.Errorf("get Ref of target pmsRole failed. %v", err)
+				elog.Errorf("get Ref of target pmsRole failed. %v", err)
 				return fmt.Errorf("get Ref of target pmsRole(id:%d) of app(id:%d) error", tgtPmsRole.ID, reqUpdateParam.Iid)
 			}
 			if err = p.pmsRoleDeleteRef(tx, tgtPmsRole, tgtPmsRoleRef); err != nil {
@@ -248,7 +248,7 @@ func (p *pms) UpdateInstanceRolesGrantInfo(reqUpdateParam *InstancePmsRolesWithG
 				return err
 			}
 		default:
-			invoker.Logger.Warnf("RoleType(%d) of appPmsRole(%s) is invalid, skipped update its grant info",
+			elog.Warnf("RoleType(%d) of appPmsRole(%s) is invalid, skipped update its grant info",
 				wait2Del.RoleType, wait2Del.Name)
 			continue
 
@@ -269,7 +269,7 @@ func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *In
 		return fmt.Errorf("cannot update grant info between different appPmsRole")
 	}
 	if len(from.Grant) == 0 && len(to.Grant) == 0 {
-		invoker.Logger.Debugf("the grant PmsRole(id:%d) of app(id:%d) from empty to empty, do nothing.", from.Id, aid)
+		elog.Debugf("the grant PmsRole(id:%d) of app(id:%d) from empty to empty, do nothing.", from.Id, aid)
 		return nil
 	}
 	if len(to.Grant) == 0 {
@@ -279,7 +279,7 @@ func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *In
 		}); err != nil {
 			return err
 		}
-		invoker.Logger.Debugf("the grant PmsRole(id:%d) of app(id:%d) to empty, removed Ref.", from.Id, aid)
+		elog.Debugf("the grant PmsRole(id:%d) of app(id:%d) to empty, removed Ref.", from.Id, aid)
 		return nil
 	}
 	var tgtPmsRoleRef db.PmsRoleRef
@@ -297,7 +297,7 @@ func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *In
 	if tgtPmsRoleRef.ID == 0 {
 		tgtPmsRoleRef, err = db.GetPmsRoleRefInfo(egorm.Conds{"pms_role_id": appPmsRole.ID, "ref_id": aid})
 		if err != nil {
-			invoker.Logger.Errorf("get Ref of target pmsRole(id:%d) of app(id:%d) failed. %v", appPmsRole.ID, aid, err)
+			elog.Errorf("get Ref of target pmsRole(id:%d) of app(id:%d) failed. %v", appPmsRole.ID, aid, err)
 			return fmt.Errorf("get Ref of target pmsRole(id:%d) of app(id:%d) error", appPmsRole.ID, aid)
 		}
 	}
@@ -322,7 +322,7 @@ func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *In
 			newGrantMap[newGrantDomStr].UserIds = append(newGrantMap[newGrantDomStr].UserIds, newGrant.UserIds...)
 		}
 	}
-	invoker.Logger.Debug("pms", elog.Any("newGrantMap", newGrantMap))
+	elog.Debug("pms", elog.Any("newGrantMap", newGrantMap))
 
 	// compare and find out diffs. i.e. assemble "addGrantLst" and "delGrantLst". Note, the benchmark is "newGrants"
 	for _, oldGrant := range from.Grant {
@@ -358,8 +358,8 @@ func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *In
 			UserIds: newGrant.UserIds,
 		})
 	}
-	invoker.Logger.Debug("pms", elog.Any("Deleting Grant", delAppGrantLst))
-	invoker.Logger.Debug("pms", elog.Any("Adding Grant", addAppGrantLst))
+	elog.Debug("pms", elog.Any("Deleting Grant", delAppGrantLst))
+	elog.Debug("pms", elog.Any("Adding Grant", addAppGrantLst))
 	// add and del corresponding casbin gType rules(g or g3), and corresponding grant db record:
 	// del:
 	var (
@@ -397,12 +397,12 @@ func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *In
 	)
 
 	for _, addAppGrant := range addAppGrantLst {
-		invoker.Logger.Debug("pms", elog.Any("addAppGrant", addAppGrant))
+		elog.Debug("pms", elog.Any("addAppGrant", addAppGrant))
 
 		pType := pmsplugin.RuleTypeG3
 		domType, domId, err := addAppGrant.Domain.GetDomainTypeAndId()
 		if err != nil {
-			invoker.Logger.Error("pms", elog.Any("err", err.Error()), elog.Any("addAppGrant.Domain", addAppGrant.Domain))
+			elog.Error("pms", elog.Any("err", err.Error()), elog.Any("addAppGrant.Domain", addAppGrant.Domain))
 			continue
 		}
 		if domType != "" {
@@ -419,7 +419,7 @@ func (p *pms) updateAppRoleGrantFrom2(tx *gorm.DB, from *InstancePmsRole, to *In
 			})
 		}
 	}
-	invoker.Logger.Debug("pms", elog.Any("addDbGrant", addDbGrant))
+	elog.Debug("pms", elog.Any("addDbGrant", addDbGrant))
 
 	err = p.pmsRoleProcessGrant("add", tx, appPmsRole, &tgtPmsRoleRef, addDbGrant...)
 	return
@@ -436,7 +436,7 @@ func (p *pms) pmsRoleProcessGrant(action string, tx *gorm.DB, tgtPmsRole *db.Pms
 		g3Rules [][]string
 		ehRules []pmsplugin.EnhancedCasbinRulesItem
 	)
-	invoker.Logger.Debug("pms", elog.Any("step", "pmsRoleProcessGrant"), elog.Any("tgtGrant", tgtGrant))
+	elog.Debug("pms", elog.Any("step", "pmsRoleProcessGrant"), elog.Any("tgtGrant", tgtGrant))
 
 	for _, grant := range tgtGrant {
 		objStr := fmt.Sprintf("%s%s%d", grant.ObjectType, pmsplugin.SEP, grant.ObjectId)
@@ -465,7 +465,7 @@ func (p *pms) pmsRoleProcessGrant(action string, tx *gorm.DB, tgtPmsRole *db.Pms
 	switch action {
 	case "add":
 		for _, grant := range tgtGrant {
-			invoker.Logger.Debug("pms", elog.Any("step", "add"), elog.Any("grant", grant))
+			elog.Debug("pms", elog.Any("step", "add"), elog.Any("grant", grant))
 
 			grant.ID = 0
 			if err = tx.Create(&grant).Error; err != nil {
@@ -512,20 +512,20 @@ func (p *pms) pmsRoleAddRef(tx *gorm.DB, tgtPmsRole *db.PmsRole, newRefs ...*db.
 	}
 	for _, ref := range newRefs {
 		if ref.PmsRoleId != tgtPmsRole.ID {
-			invoker.Logger.Debugf("the newRef.pmsRoleId(%d) != tgtPmsRole.Id(%d), skipp adding...",
+			elog.Debugf("the newRef.pmsRoleId(%d) != tgtPmsRole.Id(%d), skipp adding...",
 				ref.PmsRoleId, tgtPmsRole.ID)
 			continue
 		}
 		existRef, err := db.GetPmsRoleRefInfo(egorm.Conds{"pms_role_id": tgtPmsRole.ID, "ref_id": ref.RefId})
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			invoker.Logger.Errorf("check tgtRef(ref_id:%d, pmsRoleId:%d) existence error. %v",
+			elog.Errorf("check tgtRef(ref_id:%d, pmsRoleId:%d) existence error. %v",
 				ref.RefId, ref.PmsRoleId, err)
 			return err
 		}
 		// already exist, continue
 		if existRef.ID != 0 {
 			ref.ID = existRef.ID
-			invoker.Logger.Debugf("tgtRef(%+v) already exist, continue", existRef)
+			elog.Debugf("tgtRef(%+v) already exist, continue", existRef)
 			continue
 		}
 		// 1. add p rule(s) first
@@ -543,11 +543,11 @@ func (p *pms) pmsRoleAddRef(tx *gorm.DB, tgtPmsRole *db.PmsRole, newRefs ...*db.
 		}
 		// 2. add ref to db
 		ref.ID = 0
-		invoker.Logger.Debugf("==> before create pmsRoleRef: ->%v<-", *ref)
+		elog.Debugf("==> before create pmsRoleRef: ->%v<-", *ref)
 		if err := tx.Create(ref).Error; err != nil {
 			return fmt.Errorf("create new PmsRoleRef failed. %w", err)
 		}
-		invoker.Logger.Debugf("==> after create pmsRoleRef: ->%v<-", *ref)
+		elog.Debugf("==> after create pmsRoleRef: ->%v<-", *ref)
 	}
 	return nil
 
@@ -676,7 +676,7 @@ func (p *pms) getResourceRolesWithGrantInfo(filter *view.RoleGrantInfoFilter) (r
 		Preload("Details").
 		Where(roleSql, binds...).Find(&resp).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		invoker.Logger.Error("GetResourceRolesGrantInfo failed. ", zap.Error(err))
+		elog.Error("GetResourceRolesGrantInfo failed. ", zap.Error(err))
 		return nil, fmt.Errorf("GetResourceRolesGrantInfo failed. ")
 	}
 	return resp, nil

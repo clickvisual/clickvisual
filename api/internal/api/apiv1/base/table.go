@@ -621,7 +621,7 @@ func TableIndexes(c *core.Context) {
 	}
 	list := op.GroupBy(param)
 
-	invoker.Logger.Debug("Indexes", elog.Any("list", list))
+	elog.Debug("Indexes", elog.Any("list", list))
 
 	res := make([]view.RespIndexItem, 0)
 	sum, err := op.Count(param)
@@ -641,7 +641,7 @@ func TableIndexes(c *core.Context) {
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
-	invoker.Logger.Debug("Indexes", elog.Any("res", res))
+	elog.Debug("Indexes", elog.Any("res", res))
 	c.JSONOK(res)
 	return
 }
@@ -797,7 +797,7 @@ func TableColumnsSelfBuilt(c *core.Context) {
 	}
 	var param view.ReqTableCreateExist
 	err := c.Bind(&param)
-	invoker.Logger.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
+	elog.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return

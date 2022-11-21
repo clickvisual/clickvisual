@@ -8,7 +8,6 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -98,7 +97,7 @@ func Install() (err error) {
 		d.Exec("rename table mogo_pms_default_role to cv_pms_default_role;")
 		d.Exec("rename table mogo_pms_custom_role to cv_pms_custom_role;")
 	}
-	invoker.Logger.Debug("install", elog.Any("tables", ot))
+	elog.Debug("install", elog.Any("tables", ot))
 
 	fmt.Println(`e--------------->`, err)
 	d = d.Debug()

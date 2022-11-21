@@ -6,15 +6,13 @@ import (
 	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 // ClickhouseDsnConvert convert clickhouse-go v1.5 to v2.0
 func ClickhouseDsnConvert(req string) (res string) {
 	u, err := url.Parse(req)
 	if err != nil {
-		invoker.Logger.Error("clickhouseDsnConvert", elog.Any("error", err))
+		elog.Error("clickhouseDsnConvert", elog.Any("error", err))
 		return req
 	}
 

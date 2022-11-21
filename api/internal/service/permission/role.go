@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
@@ -78,7 +79,7 @@ func (p *pms) GetPmsRoles(reqParam *view.ReqPmsRoles) (respRoles []*db.PmsRole, 
 	query["role_type"] = db.PmsRoleTypeDefault
 	respRoles, err = db.GetPmsRoleList(query)
 	if err != nil && !errors.Is(err, egorm.ErrRecordNotFound) {
-		invoker.Logger.Errorf("get default pmsRole error. %s", err.Error())
+		elog.Errorf("get default pmsRole error. %s", err.Error())
 		return nil, fmt.Errorf("get default pmsRole failed. ")
 	}
 	// if reqParam.ResourceId is not zero, need to get corresponding customRole(s)
@@ -91,7 +92,7 @@ func (p *pms) GetPmsRoles(reqParam *view.ReqPmsRoles) (respRoles []*db.PmsRole, 
 		query["resource_id"] = reqParam.ResourceId
 		customRoles, err := db.GetPmsRoleList(query)
 		if err != nil && !errors.Is(err, egorm.ErrRecordNotFound) {
-			invoker.Logger.Errorf("get custom pmsRole error. %s", err.Error())
+			elog.Errorf("get custom pmsRole error. %s", err.Error())
 			return nil, fmt.Errorf("get custom pmsRole failed. ")
 		}
 		respRoles = append(respRoles, customRoles...)

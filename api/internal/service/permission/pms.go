@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -36,7 +35,7 @@ func (p *pms) AddUsers2AppRoles(rolesWithUsers *[]view.AppRoleInfoItem) {
 			// need dom, so using g rule
 			domStr, err := pmsplugin.Assemble2CasbinStr(roleItem.DomainType, strconv.Itoa(roleItem.DomainId))
 			if err != nil {
-				invoker.Logger.Warn("found invalid domStr, stop assigning users App role by g.",
+				elog.Warn("found invalid domStr, stop assigning users App role by g.",
 					zap.String("domType", roleItem.DomainType), zap.Int("domId", roleItem.DomainId),
 					zap.Int("appId", roleItem.ReferId), zap.String("roleName", roleItem.RoleName),
 					zap.Error(err))
@@ -67,7 +66,7 @@ func (p *pms) AssignRoles2User(userId string, reqRoles []view.RoleItem) (err err
 	for _, roleItem := range reqRoles {
 		roleStr, err := pmsplugin.GetValidRoleStrByRoleItem(roleItem)
 		if err != nil {
-			invoker.Logger.Warn("invalid roleString", zap.Error(err))
+			elog.Warn("invalid roleString", zap.Error(err))
 			continue
 		}
 		var gType = pmsplugin.RuleTypeG3
@@ -75,13 +74,13 @@ func (p *pms) AssignRoles2User(userId string, reqRoles []view.RoleItem) (err err
 		if roleItem.DomainType != "" {
 			targetDom, err = pmsplugin.Assemble2CasbinStr(roleItem.DomainType, strconv.Itoa(roleItem.DomainId))
 			if err != nil {
-				invoker.Logger.Warn("invalid dom format", zap.Error(err))
+				elog.Warn("invalid dom format", zap.Error(err))
 				continue
 			}
 			gType = pmsplugin.RuleTypeG
 		}
 		if _, err := pmsplugin.AddRule(gType, userStr, roleStr, targetDom); err != nil {
-			invoker.Logger.Warn("assign role to user error", zap.String("role", roleStr), zap.Error(err))
+			elog.Warn("assign role to user error", zap.String("role", roleStr), zap.Error(err))
 		}
 	}
 	return nil
@@ -367,7 +366,7 @@ func (p *pms) DeleteDefaultRolePms(delDefaultRole view.DefaultRolePms) (err erro
 	if rulesDeleted {
 		for _, dbDefaultRole := range currentDefaultRoles {
 			if err := db.PmsDefaultRoleDelete(int(dbDefaultRole.ID)); err != nil {
-				invoker.Logger.Error("delete defaultRole db record error", zap.Error(err))
+				elog.Error("delete defaultRole db record error", zap.Error(err))
 			}
 		}
 	}
@@ -437,7 +436,7 @@ func (p *pms) DeleteCustomRolePms(delCustomRole view.CustomRolePms) (err error) 
 	// 4. finally, delete custom role in db.
 	for _, dbCustomRole := range currentCustomRoles {
 		if err := db.PmsCustomRoleDelete(int(dbCustomRole.ID)); err != nil {
-			invoker.Logger.Error("delete customRole db record error", zap.Error(err))
+			elog.Error("delete customRole db record error", zap.Error(err))
 		}
 	}
 	return nil
@@ -455,7 +454,7 @@ func (p *pms) DelUsersFromAppRoles(rolesWithUsers *[]view.AppRoleInfoItem) {
 			// need dom, so using g rule
 			domStr, err := pmsplugin.Assemble2CasbinStr(roleItem.DomainType, strconv.Itoa(roleItem.DomainId))
 			if err != nil {
-				invoker.Logger.Warn("found invalid domStr, stop remove users App role by g.",
+				elog.Warn("found invalid domStr, stop remove users App role by g.",
 					zap.String("domType", roleItem.DomainType), zap.Int("domId", roleItem.DomainId),
 					zap.Int("appId", roleItem.ReferId), zap.String("roleName", roleItem.RoleName),
 					zap.Error(err))
@@ -480,6 +479,7 @@ func (p *pms) DelUsersFromAppRoles(rolesWithUsers *[]view.AppRoleInfoItem) {
 /*
 EnsureResourceHasDefaultRoles:
 Params:
+
 	resourceType: current only support "app" or "configResource"
 	resourceIdx: appId or configResourceName
 */
@@ -533,6 +533,7 @@ func (*pms) EnsureResourceHasDefaultRoles(resourceType string, resourceIdx strin
 /*
 EnsureUsersHaveResourceDefaultRole
 Params:
+
 	reqFuzzyDefaultRole: see the comments of the struct definition
 	uids: the id list of users which will be assign the defaultRole
 */
@@ -653,14 +654,14 @@ func (p *pms) GrantRootUsers(newRootUids []int) {
 	if isEqual {
 		return
 	}
-	invoker.Logger.Debug("pms", elog.Any("uidsNeed2Add", uidsNeed2Add), elog.Any("uidsNeed2Add", uidsNeed2Rm))
+	elog.Debug("pms", elog.Any("uidsNeed2Add", uidsNeed2Add), elog.Any("uidsNeed2Add", uidsNeed2Rm))
 	for _, newUid := range uidsNeed2Add {
 		userStr, _ := pmsplugin.Assemble2CasbinStr(pmsplugin.PrefixUser, strconv.Itoa(newUid))
 		res, err := pmsplugin.AddRule(pmsplugin.RuleTypeG3, userStr, "role__root")
 		if err != nil {
-			invoker.Logger.Error("pms", elog.Any("err", err.Error()), elog.Any("res", res))
+			elog.Error("pms", elog.Any("err", err.Error()), elog.Any("res", res))
 		}
-		invoker.Logger.Debug("pms", elog.Any("res", res))
+		elog.Debug("pms", elog.Any("res", res))
 	}
 	for _, rmUid := range uidsNeed2Rm {
 		userStr, _ := pmsplugin.Assemble2CasbinStr(pmsplugin.PrefixUser, strconv.Itoa(rmUid))
@@ -681,7 +682,7 @@ func (*pms) GetAllRolesOfUser(uid int) (res []view.RoleItem, err error) {
 		for _, rule := range eRule.Rules {
 			roleItem, err := pmsplugin.TransUserGxRule2RoleItemDetail(eRule.Ptype, rule...)
 			if err != nil {
-				invoker.Logger.Warn("trans gx rule to roleItem error", zap.Error(err))
+				elog.Warn("trans gx rule to roleItem error", zap.Error(err))
 				continue
 			}
 			res = append(res, roleItem)
@@ -1164,13 +1165,13 @@ func (p *pms) RemoveUserRoles(userId string, reqRoles []view.RoleItem) (err erro
 		if roleItem.DomainType != "" {
 			targetDom, err = pmsplugin.Assemble2CasbinStr(roleItem.DomainType, strconv.Itoa(roleItem.DomainId))
 			if err != nil {
-				invoker.Logger.Warn("invalid dom format", zap.Error(err))
+				elog.Warn("invalid dom format", zap.Error(err))
 				continue
 			}
 			gType = pmsplugin.RuleTypeG
 		}
 		if _, err := pmsplugin.DelRule(gType, userStr, roleStr, targetDom); err != nil {
-			invoker.Logger.Warn("remove user role error", zap.String("role", roleStr), zap.Error(err))
+			elog.Warn("remove user role error", zap.String("role", roleStr), zap.Error(err))
 		}
 	}
 	return nil

@@ -79,7 +79,7 @@ func (s *configure) clearLockPeriodically() {
 		{
 			err := tx.Set("gorm:query_option", "FOR UPDATE").Where("lock_at is not null and lock_at < ?", offsetTime).Find(&configs).Error
 			if err != nil {
-				invoker.Logger.Error("clearLockPeriodically", elog.String("err", err.Error()))
+				elog.Error("clearLockPeriodically", elog.String("err", err.Error()))
 				tx.Rollback()
 				continue
 			}

@@ -3,7 +3,6 @@ package alert
 import (
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
@@ -21,11 +20,11 @@ func Webhook(c *core.Context) {
 	var notification db.Notification
 	err := c.Bind(&notification)
 	if err != nil {
-		invoker.Logger.Error("webhook", elog.Any("notification", notification))
+		elog.Error("webhook", elog.Any("notification", notification))
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-	invoker.Logger.Debug("alarm", elog.Any("notification", notification))
+	elog.Debug("alarm", elog.Any("notification", notification))
 	err = service.Alert.HandlerAlertManager(notification.CommonLabels["uuid"], notification.CommonLabels["filterId"], notification)
 	if err != nil {
 		c.JSONE(1, "message send failed: "+err.Error(), err)

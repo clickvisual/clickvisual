@@ -16,7 +16,7 @@ import (
 // TableCreateSQL  godoc
 // @Summary	     table create sql
 // @Description  table create sql
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 // @Accept       json
 // @Produce      json
 // @Param        instance-id path int true "instance id"

@@ -76,7 +76,7 @@ type User struct {
 // K8SConfigMapCreate CRUD
 func K8SConfigMapCreate(db *gorm.DB, data *K8SConfigMap) (err error) {
 	if err = db.Create(data).Error; err != nil {
-		invoker.Logger.Error("create cluster error", zap.Error(err))
+		elog.Error("create cluster error", zap.Error(err))
 		return
 	}
 	return nil
@@ -86,7 +86,7 @@ func K8SConfigMapCreate(db *gorm.DB, data *K8SConfigMap) (err error) {
 func K8SConfigMapInfoX(conds map[string]interface{}) (resp K8SConfigMap, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
+		elog.Error("K8SConfigMapInfoX infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -96,7 +96,7 @@ func K8SConfigMapInfoX(conds map[string]interface{}) (resp K8SConfigMap, err err
 func K8SConfigMapListX(conds map[string]interface{}) (resp []K8SConfigMap, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("K8SConfigMapListX infoX error", zap.Error(err))
+		elog.Error("K8SConfigMapListX infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -139,7 +139,7 @@ func (m *Cluster) Key() string {
 // ClusterCreate CRUD
 func ClusterCreate(db *gorm.DB, data *Cluster) (err error) {
 	if err = db.Create(data).Error; err != nil {
-		invoker.Logger.Error("create cluster error", zap.Error(err))
+		elog.Error("create cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -150,7 +150,7 @@ func ClusterUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err er
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameCluster).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update cluster error", zap.Error(err))
+		elog.Error("update cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -181,7 +181,7 @@ func ClusterNormalList(conds egorm.Conds) (resp []*Cluster, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("list clusters error", zap.Error(err))
+		elog.Error("list clusters error", zap.Error(err))
 		return
 	}
 	return
@@ -191,7 +191,7 @@ func ClusterListHideSensitiveInfo(conds egorm.Conds) (resp []*Cluster, err error
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameCluster).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("list clusters error", zap.Error(err))
+		elog.Error("list clusters error", zap.Error(err))
 		return
 	}
 	for _, cluster := range resp {
@@ -223,7 +223,7 @@ func ClusterListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList
 // ClusterDelete soft delete item by id
 func ClusterDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Cluster{}).Unscoped().Delete(&Cluster{}, id).Error; err != nil {
-		invoker.Logger.Error("cluster delete error", zap.Error(err))
+		elog.Error("cluster delete error", zap.Error(err))
 		return
 	}
 	return
@@ -250,7 +250,7 @@ func (t *OAuthToken) Scan(input interface{}) error {
 // UserCreate CRUD
 func UserCreate(db *gorm.DB, data *User) (err error) {
 	if err = db.Create(data).Error; err != nil {
-		invoker.Logger.Error("create cluster error", zap.Error(err))
+		elog.Error("create cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -261,7 +261,7 @@ func UserUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameUser).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update cluster error", zap.Error(err))
+		elog.Error("update cluster error", zap.Error(err))
 		return
 	}
 	return
@@ -281,7 +281,7 @@ func UserInfo(paramId int) (resp User, err error) {
 func UserInfoX(conds map[string]interface{}) (resp User, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("UserInfoX infoX error", zap.Error(err))
+		elog.Error("UserInfoX infoX error", zap.Error(err))
 		return
 	}
 	return
@@ -290,7 +290,7 @@ func UserInfoX(conds map[string]interface{}) (resp User, err error) {
 // UserDelete soft delete item by id
 func UserDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(User{}).Unscoped().Delete(&User{}, id).Error; err != nil {
-		invoker.Logger.Error("cluster delete error", zap.Error(err))
+		elog.Error("cluster delete error", zap.Error(err))
 		return
 	}
 	return
@@ -301,7 +301,7 @@ func UserList(conds egorm.Conds) (resp []*User, err error) {
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
-		invoker.Logger.Error("list clusters error", elog.String("err", err.Error()))
+		elog.Error("list clusters error", elog.String("err", err.Error()))
 		return
 	}
 	return

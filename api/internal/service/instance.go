@@ -142,7 +142,7 @@ func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 		SubResource: subResource,
 		Acts:        []string{pmsplugin.ActView},
 	}); err == nil {
-		invoker.Logger.Debug("ReadAllPermissionInstance",
+		elog.Debug("ReadAllPermissionInstance",
 			elog.Any("uid", uid),
 			elog.Any("step", "InstanceViewIsPermission"),
 			elog.Any("iid", iid),
@@ -154,7 +154,7 @@ func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 	conds["iid"] = iid
 	databases, err := db.DatabaseList(invoker.Db, conds)
 	if err != nil {
-		invoker.Logger.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
+		elog.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
 		return false
 	}
 	for _, d := range databases {
@@ -188,7 +188,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		err = errors.Wrap(err, "create DB failed 01: ")
 		return
 	}
-	invoker.Logger.Debug("InstanceCreate", elog.Any("checks", checks))
+	elog.Debug("InstanceCreate", elog.Any("checks", checks))
 	if len(checks) > 0 {
 		err = errors.New("data source configuration with duplicate name")
 		return
@@ -212,7 +212,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		Mode:             req.Mode,
 		Clusters:         req.Clusters,
 	}
-	invoker.Logger.Debug("instanceCreate", elog.Any("obj", obj))
+	elog.Debug("instanceCreate", elog.Any("obj", obj))
 	if req.PrometheusTarget != "" {
 		if err = Alert.PrometheusReload(req.PrometheusTarget); err != nil {
 			err = errors.Wrap(err, "create DB failed 02:")

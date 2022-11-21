@@ -6,13 +6,10 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func Test_dagEdgeExecFlow(t *testing.T) {
-	invoker.Logger = elog.DefaultLogger
-	invoker.Logger.SetLevel(-1)
 	type args struct {
 		nodeId int
 		req    []view.ReqDagEdge
@@ -120,9 +117,9 @@ func Test_dagEdgeExecFlow(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if gotRes := dagEdgeExecFlow(tt.args.nodeId, tt.args.req); !reflect.DeepEqual(gotRes, tt.wantRes) {
 				t.Errorf("dagEdgeExecFlow() = %v, want %v", gotRes, tt.wantRes)
-				invoker.Logger.Debug("gotRes", elog.Any("gotRes", gotRes))
+				elog.Debug("gotRes", elog.Any("gotRes", gotRes))
 			} else {
-				invoker.Logger.Debug("gotRes", elog.Any("gotRes", gotRes))
+				elog.Debug("gotRes", elog.Any("gotRes", gotRes))
 			}
 		})
 	}

@@ -111,7 +111,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 		tx.Rollback()
 		return errors.New("corresponding configuration instance does not exist")
 	}
-	invoker.Logger.Debug("UpdateIndex", elog.Any("newList", newList))
+	elog.Debug("UpdateIndex", elog.Any("newList", newList))
 	// err = op.UpdateIndex(databaseInfo, tableInfo, adds, dels, newList)
 	err = op.UpdateIndex(databaseInfo, tableInfo,
 		filterSystemField(tableInfo.CreateType, adds, req.Tid),
@@ -123,7 +123,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 	}
 	// If the commit fails, the clickhouse operation is not rolled back
 	if err = tx.Commit().Error; err != nil {
-		invoker.Logger.Error("Fatal", elog.String("error", err.Error()), elog.Any("step", "clickhouse db struct can't rollback"))
+		elog.Error("Fatal", elog.String("error", err.Error()), elog.Any("step", "clickhouse db struct can't rollback"))
 		return
 	}
 	return

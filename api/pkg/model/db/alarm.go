@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -370,7 +371,7 @@ func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 
 func AlarmCreate(db *gorm.DB, data *Alarm) (err error) {
 	if err = db.Model(Alarm{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create releaseZone error", zap.Error(err))
+		elog.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -387,7 +388,7 @@ func AlarmUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 
 func AlarmDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Alarm{}).Unscoped().Delete(&Alarm{}, id).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
+		elog.Error("release delete error", zap.Error(err))
 		return
 	}
 	return

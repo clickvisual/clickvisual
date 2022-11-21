@@ -318,8 +318,8 @@ type (
 	}
 	ReqUpdateCrontab struct {
 		Desc          string          `json:"desc" form:"desc"`
-		DutyUid       int             `json:"dutyUid" form:"dutyUid"`
-		Cron          string          `json:"cron" form:"cron"`
+		DutyUid       int             `json:"dutyUid" form:"dutyUid" required:"true"`
+		Cron          string          `json:"cron" form:"cron" required:"true"`
 		Typ           int             `json:"typ" form:"typ"`
 		Args          []ReqCrontabArg `json:"args" form:"args"`
 		IsRetry       int             `json:"isRetry" form:"isRetry"` // isRetry: 0 no 1 yes

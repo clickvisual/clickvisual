@@ -64,7 +64,7 @@ func (r *k8sConfigMap) CreateOrUpdate(name, content string) error {
 	}
 	rules := make(map[string]string)
 	rules[name] = content
-	err = resource.ConfigmapCreateOrUpdate(client, r.namespace, r.configmap, rules)
+	err = resource.CreateOrUpdateConfigmap(client, r.namespace, r.configmap, rules)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (r *k8sConfigMap) Delete(name string) error {
 	if r.clusterId == 0 || r.namespace == "" || r.configmap == "" {
 		return errors.Wrapf(ErrParameter, "rule: %v", r)
 	}
-	if err := resource.ConfigmapDelete(r.clusterId, r.namespace, r.configmap, name); err != nil {
+	if err := resource.DeleteConfigmap(r.clusterId, r.namespace, r.configmap, name); err != nil {
 		return err
 	}
 	return nil

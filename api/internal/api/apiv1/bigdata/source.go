@@ -16,7 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceCreate(c *core.Context) {
 	var req view.ReqCreateSource
 	if err := c.Bind(&req); err != nil {
@@ -53,7 +53,7 @@ func SourceCreate(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -97,7 +97,7 @@ func SourceUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceList(c *core.Context) {
 	var req view.ReqListSource
 	if err := c.Bind(&req); err != nil {
@@ -134,7 +134,7 @@ func SourceList(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -165,7 +165,7 @@ func SourceDelete(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -191,7 +191,7 @@ func SourceInfo(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceDatabaseList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -227,7 +227,7 @@ func SourceDatabaseList(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceTableList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -268,7 +268,7 @@ func SourceTableList(c *core.Context) {
 	return
 }
 
-// @Tags         PANDAS
+// @Tags         ANALYSIS
 func SourceColumnList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

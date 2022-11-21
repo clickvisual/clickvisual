@@ -36,7 +36,7 @@ func ShortURLRedirect(c *core.Context) {
 	}
 	if err = invoker.Db.WithContext(context.Background()).
 		Exec("update cv_base_short_url set call_cnt = call_cnt+1, utime = ? where s_code = ?", time.Now().Unix(), sCode).Error; err != nil {
-		invoker.Logger.Error("update call cnt error", elog.FieldErr(err))
+		elog.Error("update call cnt error", elog.FieldErr(err))
 		return
 	}
 	c.Redirect(301, shortUrl.OriginUrl)

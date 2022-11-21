@@ -8,7 +8,6 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
@@ -84,18 +83,18 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 			values[idx] = reflect.ValueOf(&values[idx]).Elem().Addr().Interface()
 		}
 		if err = rows.Scan(values...); err != nil {
-			invoker.Logger.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
+			elog.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
 			return
 		}
 		for k := range fields {
-			invoker.Logger.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]),
+			elog.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]),
 				elog.Any("type", cts[k].ScanType().Elem()))
 			line[fields[k]] = transformVal(values[k])
 		}
 		res = append(res, line)
 	}
 	if err = rows.Err(); err != nil {
-		invoker.Logger.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
+		elog.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
 		return
 	}
 	return
@@ -119,7 +118,7 @@ func transformVal(input interface{}) interface{} {
 	case float64:
 		return fmt.Sprintf("%f", input.(float64))
 	default:
-		invoker.Logger.Debug("ClickHouse", elog.FieldComponent("transformVal"),
+		elog.Debug("ClickHouse", elog.FieldComponent("transformVal"),
 			elog.Any("type", reflect.TypeOf(input)))
 		if reflect.TypeOf(input) == nil {
 			return ""
@@ -143,7 +142,7 @@ func (c *MySQL) queryStringArr(sq string) (res []string, err error) {
 		var tmp string
 		errScan := rows.Scan(&tmp)
 		if errScan != nil {
-			invoker.Logger.Error("source", elog.String("err", errScan.Error()))
+			elog.Error("source", elog.String("err", errScan.Error()))
 			continue
 		}
 		res = append(res, tmp)

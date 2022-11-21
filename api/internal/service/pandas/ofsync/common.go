@@ -78,7 +78,7 @@ func dropMaterialView(ins db.BaseInstance, nodeId int, sc *view.SyncContent) err
 	if err != nil {
 		return err
 	}
-	invoker.Logger.Debug("dropMaterialView", elog.Int("nodeId", nodeId), elog.Any("nc", nc))
+	elog.Debug("dropMaterialView", elog.Int("nodeId", nodeId), elog.Any("nc", nc))
 	var viewClusterInfo string
 	if nc.PreviousContent != "" {
 		previousContent := view.SyncContent{}
@@ -98,7 +98,7 @@ func dropMaterialView(ins db.BaseInstance, nodeId int, sc *view.SyncContent) err
 	// _, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s ON CLUSTER '%s';", database, table, cluster))
 	dmv := fmt.Sprintf("DROP TABLE IF EXISTS %s", viewClusterInfo)
 
-	invoker.Logger.Debug("dropMaterialView", elog.Int("nodeId", nodeId), elog.Any("sql", dmv))
+	elog.Debug("dropMaterialView", elog.Int("nodeId", nodeId), elog.Any("sql", dmv))
 
 	if err = source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
