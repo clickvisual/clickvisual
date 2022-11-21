@@ -136,9 +136,9 @@ func resultAppend(input []string, k, v string, withQuote bool) []string {
 }
 
 func fieldTypeJudgment(typ string) int {
-	for key, val := range typORM {
+	for _, val := range typArr {
 		if strings.Contains(typ, val) {
-			return key
+			return typKey[val]
 		}
 	}
 	return -1
