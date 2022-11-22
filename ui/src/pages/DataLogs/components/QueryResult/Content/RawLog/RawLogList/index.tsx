@@ -36,6 +36,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   const list = useMemo(() => {
     const newLogs = cloneDeep(logs?.logs);
+    virtualRef.current && (virtualRef.current.scrollTop = 0);
     if (oldPane?.logState != 1 && logs?.logs && logs?.logs.length > pageSize) {
       return newLogs?.splice(0, pageSize - 1) || [];
     }
@@ -280,8 +281,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   const handleLogListScroll = useThrottleFn(
     () => {
-      const { scrollTop, clientHeight } = virtualRef.current;
-      console.log(scrollTop, clientHeight);
+      const { scrollTop } = virtualRef.current;
       const newStart = Math.floor(scrollTop / foldingHeight);
       setStart(newStart);
     },
