@@ -705,7 +705,7 @@ const DataLogsModel = () => {
       .catch(() => {
         resetLogPaneLogsAndHighCharts(newPane);
       });
-    setInitValue(kw);
+    onChangeInitValue(kw);
     doParseQuery(kw);
   };
 
