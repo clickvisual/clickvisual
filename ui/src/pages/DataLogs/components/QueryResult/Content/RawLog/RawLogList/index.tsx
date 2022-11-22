@@ -5,12 +5,13 @@ import classNames from "classnames";
 import { PaneType } from "@/models/datalogs/types";
 import LinkItem from "./LinkItem";
 import LinkItemTitle from "./LinkItemTitle";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { notification } from "antd";
 import { parseJsonObject } from "@/utils/string";
 import { microsecondTimeStamp } from "@/utils/time";
 import { useIntl } from "umi";
 import { cloneDeep } from "lodash";
+import { useThrottleFn } from "ahooks";
 
 // 链路主题色，循环使用，可直接在末尾新增
 const themeColor = [
@@ -20,21 +21,34 @@ const themeColor = [
   "#de5b9690",
   "#ecb9cc90",
 ];
+// 折叠item的高度（item的最小高度）
+const foldingHeight = 69;
 
 const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const i18n = useIntl();
+  const virtualRef: any = useRef<HTMLDivElement>(null);
   const { logs, logState, pageSize } = useModel("dataLogs");
   const [isNotification, setIsNotification] = useState<boolean>(false);
   const [isLinkLogs, setIsLinkLogs] = useState<boolean>(true);
   const [dataListLength, setDataListLength] = useState<number>(0);
+  const [start, setStart] = useState(0);
+  const [count, setCount] = useState(0);
 
   const list = useMemo(() => {
     const newLogs = cloneDeep(logs?.logs);
+    virtualRef.current && (virtualRef.current.scrollTop = 0);
     if (oldPane?.logState != 1 && logs?.logs && logs?.logs.length > pageSize) {
-      return newLogs?.splice(0, pageSize - 1);
+      return newLogs?.splice(0, pageSize - 1) || [];
     }
-    return logs?.logs;
+    return logs?.logs || [];
   }, [logs?.logs, pageSize, oldPane?.logState]);
+
+  const virtualList = useMemo(() => {
+    if (pageSize > start + count + 10) {
+      return list.slice(0, start + count + 10);
+    }
+    return list;
+  }, [start, count, pageSize, list]);
 
   const handleFindChild = (
     oneselfId: string,
@@ -265,6 +279,21 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     return treeDataList;
   }, [list, logs?.isTrace]);
 
+  const handleLogListScroll = useThrottleFn(
+    () => {
+      const { scrollTop } = virtualRef.current;
+      const newStart = Math.floor(scrollTop / foldingHeight);
+      setStart(newStart);
+    },
+    {
+      wait: 300,
+    }
+  );
+
+  useEffect(() => {
+    setCount(Math.ceil(virtualRef.current.clientHeight / foldingHeight));
+  }, []);
+
   useEffect(() => {
     if (!isLinkLogs) {
       notification.info({
@@ -304,9 +333,13 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   return (
     <div className={classNames(rawLogListStyles.rawLogListMain)}>
-      <div className={rawLogListStyles.hiddenScrollBox}>
+      <div
+        className={rawLogListStyles.hiddenScrollBox}
+        ref={virtualRef}
+        onScroll={() => handleLogListScroll.run()}
+      >
         {logs?.isTrace == 0 || logState != 1
-          ? list.map((logItem: any, index: number) => {
+          ? virtualList.map((logItem: any, index: number) => {
               return (
                 <LogItem
                   foldingChecked={oldPane?.foldingChecked}
