@@ -11,7 +11,7 @@ import {
 import { FIRST_PAGE } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
 
-const RelativeTime = () => {
+const RelativeTime = (props: { onChangeVisble: (flag: boolean) => void }) => {
   const {
     logPanesHelper,
     currentLogLibrary,
@@ -29,6 +29,7 @@ const RelativeTime = () => {
   const [endTime, setEndTime] = useState<number>(endDateTime as number);
   const { timeOptions } = useContext(DarkTimeContext);
   const { logPanes } = logPanesHelper;
+  const { onChangeVisble } = props;
 
   const oldPane = useMemo(() => {
     if (!currentLogLibrary?.id) return;
@@ -41,6 +42,7 @@ const RelativeTime = () => {
     index: number
   ) => {
     if (!currentLogLibrary?.id) return;
+    onChangeVisble(false);
     const start = moment().subtract(relativeAmount, relativeUnit).unix();
     const end = currentTimeStamp();
     const params = {
@@ -63,7 +65,7 @@ const RelativeTime = () => {
         } else {
           pane.logs = res.logs;
           pane.highCharts = res.highCharts;
-          pane.logChart = { logs: [] };
+          pane.logChart = { logs: [], isNeedSort: false, sortRule: ["*"] };
           onChangeCurrentLogPane(pane);
         }
       })

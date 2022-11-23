@@ -1,7 +1,7 @@
 import { Button, Popover } from "antd";
 import { CaretDownFilled } from "@ant-design/icons";
 import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DateTimeSelectedCard from "@/pages/DataLogs/components/DateTimeSelected/DateTimeSelectedCard";
 import { useModel } from "@@/plugin-model/useModel";
 import { timeStampFormat } from "@/utils/momentUtils";
@@ -46,6 +46,7 @@ const DarkTimeSelect = () => {
     onChangeCurrentRelativeUnit,
   } = useModel("dataLogs");
   const i18n = useIntl();
+  const [visibleTime, setVisibleTime] = useState<boolean>(false);
 
   const { timeOptions } = useTimeOptions();
 
@@ -77,8 +78,10 @@ const DarkTimeSelect = () => {
       <Popover
         overlayClassName={darkTimeStyles.darkTimeSelect}
         placement="bottomRight"
-        content={<DateTimeSelectedCard />}
+        content={<DateTimeSelectedCard onChangeVisble={setVisibleTime} />}
         trigger="click"
+        visible={visibleTime}
+        onVisibleChange={setVisibleTime}
       >
         <Button className={darkTimeStyles.darkTimeBtn}>
           <span>

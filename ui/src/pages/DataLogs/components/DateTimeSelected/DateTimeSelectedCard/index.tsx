@@ -9,7 +9,9 @@ import { useContext, useMemo } from "react";
 import { PaneType } from "@/models/datalogs/types";
 const { TabPane } = Tabs;
 
-const DateTimeSelectedCard = () => {
+const DateTimeSelectedCard = (props: {
+  onChangeVisble: (flag: boolean) => void;
+}) => {
   const {
     logPanesHelper,
     activeTabKey,
@@ -19,6 +21,7 @@ const DateTimeSelectedCard = () => {
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
   const { TabName } = useContext(DarkTimeContext);
+  const { onChangeVisble } = props;
 
   const oldPane = useMemo(() => {
     if (!currentLogLibrary?.id) return;
@@ -43,7 +46,7 @@ const DateTimeSelectedCard = () => {
           tab={TabName[TimeRangeType.Relative]}
           key={TimeRangeType.Relative}
         >
-          <RelativeTime />
+          <RelativeTime onChangeVisble={onChangeVisble} />
         </TabPane>
         <TabPane
           forceRender
