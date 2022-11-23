@@ -21,10 +21,14 @@ const LinkItemTitle = (props: {
 }) => {
   const { title, log, initial, totalLength, hierarchy, themeColor } = props;
   const [isHidden, setIsHidden] = useState<boolean>(true);
-  const { foldingState, resizeMenuWidth } = useModel("dataLogs", (model) => ({
-    foldingState: model.foldingState,
-    resizeMenuWidth: model.resizeMenuWidth,
-  }));
+  const { foldingState, resizeMenuWidth, isShare } = useModel(
+    "dataLogs",
+    (model) => ({
+      foldingState: model.foldingState,
+      resizeMenuWidth: model.resizeMenuWidth,
+      isShare: model.isShare,
+    })
+  );
 
   const titleWidth = useMemo(() => {
     return `calc(15vw - ${24 * hierarchy + 4}px)`;
@@ -33,6 +37,13 @@ const LinkItemTitle = (props: {
   const titleContentWidth = useMemo(() => {
     return `calc(15vw - ${24 * hierarchy}px)`;
   }, [hierarchy]);
+
+  const progressWidth = useMemo(() => {
+    if (isShare) {
+      return `calc(85vw -  220px)`;
+    }
+    return `calc(85vw - ${!foldingState ? resizeMenuWidth : -10}px -  278px)`;
+  }, [isShare, foldingState, resizeMenuWidth]);
 
   return (
     <div
@@ -65,9 +76,7 @@ const LinkItemTitle = (props: {
             !isHidden && styles.topBorder,
           ])}
           style={{
-            width: `calc(85vw - ${
-              !foldingState ? resizeMenuWidth : -10
-            }px -  278px)`,
+            width: progressWidth,
           }}
           onClick={(e) => {
             e.stopPropagation();

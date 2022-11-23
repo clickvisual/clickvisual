@@ -66,7 +66,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         (item?.rawLogJson?.references &&
           item?.rawLogJson?.references[0]?.spanId)
       ) {
-        dataList.push({
+        dataList.unshift({
           title: (
             <LinkItemTitle
               title={
@@ -310,7 +310,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     }
   }, [isLinkLogs]);
 
-  // 出现第二个_key的时候就需要提示输入赛选条件
+  // 出现第二个_key的时候就需要提示输入筛选条件
   useEffect(() => {
     if (
       logs?.isTrace == 1 &&
