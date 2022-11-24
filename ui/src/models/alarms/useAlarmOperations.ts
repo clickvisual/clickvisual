@@ -33,6 +33,7 @@ const useAlarmOperations = () => {
       selectTid,
       selectDid,
       selectIid,
+      statusId,
       currentPagination.current,
       currentPagination.pageSize,
       currentPagination.total,
