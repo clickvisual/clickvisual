@@ -24,6 +24,7 @@ export enum RuleStoreType {
   notOpen = 0,
   file = 1,
   k8s = 2,
+  operator = 3,
 }
 
 const Environment = () => {
@@ -79,6 +80,7 @@ const Environment = () => {
               })}
             </Tag>
           ),
+          [RuleStoreType.operator]: <Tag color="orange">operator</Tag>,
         };
         return stateList[state];
       },
