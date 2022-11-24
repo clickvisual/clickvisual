@@ -7,6 +7,12 @@ depends:
   - github.com/gotomicro/gotoant
   - gorm.io/datatypes
 
+#generators:
+#  - name: umi
+#    output: ./ui/src/requests
+#  - name: ts
+#    output: ./ui/src/types
+
 properties:
   request:
     - type: '*github.com/clickvisual/clickvisual/api/pkg/component/core.Context'

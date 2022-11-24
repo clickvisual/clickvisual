@@ -8,7 +8,7 @@
                     "USER"
                 ],
                 "summary": "三方鉴权",
-                "operationId": "GET./admin/login/{oauth}",
+                "operationId": "user.Oauth",
                 "parameters": [
                     {
                         "name": "oauth",
@@ -47,7 +47,7 @@
                     "USER"
                 ],
                 "summary": "用户登陆",
-                "operationId": "POST./admin/users/login",
+                "operationId": "user.Login",
                 "parameters": [
                     {
                         "name": "payload",
@@ -81,7 +81,7 @@
                     "ALARM"
                 ],
                 "summary": "告警列表",
-                "operationId": "GET./v1/alarms",
+                "operationId": "alarm.List",
                 "parameters": [
                     {
                         "type": "integer",
@@ -127,7 +127,7 @@
                     "ALARM"
                 ],
                 "summary": "告警创建",
-                "operationId": "POST./v1/alarms",
+                "operationId": "alarm.Create",
                 "parameters": [
                     {
                         "name": "payload",
@@ -164,7 +164,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道列表",
-                "operationId": "GET./v1/alarms-channels",
+                "operationId": "alarm.ChannelList",
                 "responses": {
                     "200": {
                         "description": "",
@@ -196,7 +196,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道创建",
-                "operationId": "POST./v1/alarms-channels",
+                "operationId": "alarm.ChannelCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -233,7 +233,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道测试",
-                "operationId": "POST./v1/alarms-channels/send-test",
+                "operationId": "alarm.ChannelSendTest",
                 "parameters": [
                     {
                         "name": "payload",
@@ -270,7 +270,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道详情",
-                "operationId": "GET./v1/alarms-channels/{id}",
+                "operationId": "alarm.ChannelInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -305,7 +305,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道删除",
-                "operationId": "DELETE./v1/alarms-channels/{id}",
+                "operationId": "alarm.ChannelDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -337,7 +337,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道更新",
-                "operationId": "PATCH./v1/alarms-channels/{id}",
+                "operationId": "alarm.ChannelUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -375,7 +375,7 @@
                     "ALARM"
                 ],
                 "summary": "告警推送记录",
-                "operationId": "GET./v1/alarms-histories",
+                "operationId": "alarm.HistoryList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -404,7 +404,7 @@
                     "ALARM"
                 ],
                 "summary": "告警推送详情",
-                "operationId": "GET./v1/alarms-histories/{id}",
+                "operationId": "alarm.HistoryInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -441,7 +441,7 @@
                     "ALARM"
                 ],
                 "summary": "告警详情",
-                "operationId": "GET./v1/alarms/{id}",
+                "operationId": "alarm.Info",
                 "parameters": [
                     {
                         "name": "id",
@@ -476,7 +476,7 @@
                     "ALARM"
                 ],
                 "summary": "告警删除",
-                "operationId": "DELETE./v1/alarms/{id}",
+                "operationId": "alarm.Delete",
                 "parameters": [
                     {
                         "name": "id",
@@ -508,7 +508,7 @@
                     "ALARM"
                 ],
                 "summary": "告警更新",
-                "operationId": "PATCH./v1/alarms/{id}",
+                "operationId": "alarm.Update",
                 "parameters": [
                     {
                         "name": "id",
@@ -548,7 +548,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/folders",
+                "operationId": "bigdata.FolderCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -584,7 +584,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/folders/{id}",
+                "operationId": "bigdata.FolderInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -618,7 +618,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/folders/{id}",
+                "operationId": "bigdata.FolderDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -649,7 +649,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/folders/{id}",
+                "operationId": "bigdata.FolderUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -689,7 +689,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/instances/{id}/columns",
+                "operationId": "bigdata.InstanceColumnList",
                 "parameters": [
                     {
                         "name": "id",
@@ -738,7 +738,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/instances/{id}/databases",
+                "operationId": "bigdata.InstanceDatabaseList",
                 "parameters": [
                     {
                         "name": "id",
@@ -774,7 +774,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/instances/{id}/tables",
+                "operationId": "bigdata.InstanceTableList",
                 "parameters": [
                     {
                         "name": "id",
@@ -815,7 +815,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/nodes/{id}/crontab",
+                "operationId": "mining.CrontabInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -849,7 +849,7 @@
                 "tags": [
                     "STORAGE"
                 ],
-                "operationId": "DELETE./v1/bigdata/mining/nodes/{id}/crontab",
+                "operationId": "mining.CrontabDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -882,7 +882,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/sources/{id}/columns",
+                "operationId": "bigdata.SourceColumnList",
                 "parameters": [
                     {
                         "name": "id",
@@ -931,7 +931,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/sources/{id}/databases",
+                "operationId": "bigdata.SourceDatabaseList",
                 "parameters": [
                     {
                         "name": "id",
@@ -967,7 +967,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/sources/{id}/tables",
+                "operationId": "bigdata.SourceTableList",
                 "parameters": [
                     {
                         "name": "id",
@@ -1008,7 +1008,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/workflows",
+                "operationId": "mining.WorkflowList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1046,7 +1046,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/mining/workflows",
+                "operationId": "mining.WorkflowCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -1082,7 +1082,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/workflows/{id}",
+                "operationId": "mining.WorkflowInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -1116,7 +1116,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/mining/workflows/{id}",
+                "operationId": "mining.WorkflowDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -1147,7 +1147,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/mining/workflows/{id}",
+                "operationId": "mining.WorkflowUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -1187,7 +1187,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes",
+                "operationId": "bigdata.NodeList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1242,7 +1242,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/nodes",
+                "operationId": "bigdata.NodeCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -1281,7 +1281,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes/{id}",
+                "operationId": "bigdata.NodeInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -1315,7 +1315,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/nodes/{id}",
+                "operationId": "bigdata.NodeDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -1346,7 +1346,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/nodes/{id}",
+                "operationId": "bigdata.NodeUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -1383,7 +1383,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes/{id}/histories",
+                "operationId": "bigdata.NodeHistoryListPage",
                 "parameters": [
                     {
                         "name": "id",
@@ -1405,7 +1405,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes/{id}/histories/{uuid}",
+                "operationId": "bigdata.NodeHistoryInfo",
                 "parameters": [
                     {
                         "name": "uuid",
@@ -1441,7 +1441,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/nodes/{id}/lock",
+                "operationId": "bigdata.NodeLock",
                 "parameters": [
                     {
                         "name": "id",
@@ -1474,7 +1474,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes/{id}/result/{rid}",
+                "operationId": "bigdata.NodeResultInfo",
                 "parameters": [
                     {
                         "name": "rid",
@@ -1507,7 +1507,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/nodes/{id}/run",
+                "operationId": "bigdata.NodeRun",
                 "parameters": [
                     {
                         "name": "id",
@@ -1543,7 +1543,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/nodes/{id}/stop",
+                "operationId": "bigdata.NodeStop",
                 "parameters": [
                     {
                         "name": "id",
@@ -1579,7 +1579,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/nodes/{id}/unlock",
+                "operationId": "bigdata.NodeUnlock",
                 "parameters": [
                     {
                         "name": "id",
@@ -1612,7 +1612,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/sources",
+                "operationId": "bigdata.SourceList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1660,7 +1660,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/sources",
+                "operationId": "bigdata.SourceCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -1696,7 +1696,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/sources/{id}",
+                "operationId": "bigdata.SourceInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -1730,7 +1730,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/sources/{id}",
+                "operationId": "bigdata.SourceDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -1761,7 +1761,7 @@
                 "tags": [
                     "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/sources/{id}",
+                "operationId": "bigdata.SourceUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -1802,7 +1802,7 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "GET./v1/clusters",
+                "operationId": "kube.ClusterList",
                 "responses": {
                     "200": {
                         "description": "",
@@ -1836,7 +1836,7 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "GET./v1/clusters/{clusterId}/configmaps",
+                "operationId": "kube.ConfigMapList",
                 "parameters": [
                     {
                         "name": "clusterId",
@@ -1874,7 +1874,7 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "POST./v1/clusters/{clusterId}/configmaps",
+                "operationId": "kube.ConfigMapCreate",
                 "parameters": [
                     {
                         "name": "clusterId",
@@ -1918,7 +1918,7 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "GET./v1/clusters/{clusterId}/namespace/{namespace}/configmaps/{name}",
+                "operationId": "kube.ConfigMapInfo",
                 "parameters": [
                     {
                         "name": "clusterId",
@@ -1968,7 +1968,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations",
+                "operationId": "configure.List",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2019,7 +2019,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations",
+                "operationId": "configure.Create",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2056,7 +2056,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}",
+                "operationId": "configure.Detail",
                 "parameters": [
                     {
                         "name": "id",
@@ -2091,7 +2091,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "DELETE./v1/configurations/{id}",
+                "operationId": "configure.Delete",
                 "parameters": [
                     {
                         "name": "id",
@@ -2123,7 +2123,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "PATCH./v1/configurations/{id}",
+                "operationId": "configure.Update",
                 "parameters": [
                     {
                         "name": "id",
@@ -2164,7 +2164,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/diff",
+                "operationId": "configure.Diff",
                 "parameters": [
                     {
                         "name": "id",
@@ -2208,7 +2208,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/histories",
+                "operationId": "configure.HistoryList",
                 "parameters": [
                     {
                         "name": "id",
@@ -2236,7 +2236,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/histories/{version}",
+                "operationId": "configure.HistoryInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -2276,7 +2276,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/lock",
+                "operationId": "configure.Lock",
                 "parameters": [
                     {
                         "name": "id",
@@ -2310,7 +2310,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations/{id}/publish",
+                "operationId": "configure.Publish",
                 "parameters": [
                     {
                         "name": "id",
@@ -2351,7 +2351,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations/{id}/sync",
+                "operationId": "configure.Sync",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2394,7 +2394,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations/{id}/unlock",
+                "operationId": "configure.Unlock",
                 "parameters": [
                     {
                         "name": "id",
@@ -2427,7 +2427,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/databases/{did}/tables",
+                "operationId": "base.TableList",
                 "parameters": [
                     {
                         "name": "did",
@@ -2464,7 +2464,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/databases/{did}/tables",
+                "operationId": "base.TableCreate",
                 "parameters": [
                     {
                         "name": "did",
@@ -2504,7 +2504,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "DELETE./v1/databases/{id}",
+                "operationId": "base.DatabaseDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -2535,7 +2535,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "PATCH./v1/databases/{id}",
+                "operationId": "base.DatabaseUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -2575,7 +2575,7 @@
                 "tags": [
                     "EVENT"
                 ],
-                "operationId": "GET./v1/event/enums",
+                "operationId": "event.GetAllEnums",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2602,7 +2602,7 @@
                 "tags": [
                     "EVENT"
                 ],
-                "operationId": "GET./v1/event/source/{name}/enums",
+                "operationId": "event.GetEnumsOfSource",
                 "parameters": [
                     {
                         "name": "name",
@@ -2638,7 +2638,7 @@
                 "tags": [
                     "EVENT"
                 ],
-                "operationId": "GET./v1/events",
+                "operationId": "event.ListPage",
                 "parameters": [
                     {
                         "type": "string",
@@ -2686,7 +2686,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/hidden/{tid}",
+                "operationId": "base.HiddenList",
                 "parameters": [
                     {
                         "name": "tid",
@@ -2720,7 +2720,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/hidden/{tid}",
+                "operationId": "base.HiddenUpsert",
                 "parameters": [
                     {
                         "name": "tid",
@@ -2761,7 +2761,7 @@
                 "tags": [
                     "INSTILL"
                 ],
-                "operationId": "GET./v1/install",
+                "operationId": "initialize.IsInstall",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2787,7 +2787,7 @@
                 "tags": [
                     "INSTILL"
                 ],
-                "operationId": "POST./v1/install",
+                "operationId": "initialize.Install",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2814,7 +2814,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/columns-self-built",
+                "operationId": "base.TableColumnsSelfBuilt",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2877,7 +2877,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/complete",
+                "operationId": "base.QueryComplete",
                 "parameters": [
                     {
                         "type": "string",
@@ -2918,7 +2918,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/databases",
+                "operationId": "base.DatabaseList",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2955,7 +2955,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/instances/{iid}/databases",
+                "operationId": "base.DatabaseCreate",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2995,7 +2995,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/databases-exist",
+                "operationId": "base.DatabaseExistList",
                 "parameters": [
                     {
                         "name": "iid",
@@ -3034,7 +3034,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/databases/{dn}/tables/{tn}/deps",
+                "operationId": "base.TableDeps",
                 "parameters": [
                     {
                         "name": "iid",
@@ -3082,7 +3082,7 @@
                     "BASE"
                 ],
                 "summary": "接入已有日志库",
-                "operationId": "POST./v1/instances/{iid}/tables-exist",
+                "operationId": "base.TableCreateSelfBuilt",
                 "parameters": [
                     {
                         "name": "iid",
@@ -3123,7 +3123,7 @@
                     "BASE"
                 ],
                 "summary": "批量接入已有日志库",
-                "operationId": "POST./v1/instances/{iid}/tables-exist-batch",
+                "operationId": "base.TableCreateSelfBuiltBatch",
                 "parameters": [
                     {
                         "name": "iid",
@@ -3163,7 +3163,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/menus/list",
+                "operationId": "permission.MenuList",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3196,7 +3196,7 @@
                 "tags": [
                     "INSTILL"
                 ],
-                "operationId": "GET./v1/migration",
+                "operationId": "initialize.Migration",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3223,7 +3223,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "POST./v1/pms/check",
+                "operationId": "permission.CheckPermission",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3259,7 +3259,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/commonInfo",
+                "operationId": "permission.GetPmsCommonInfo",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3293,7 +3293,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/instance/{iid}/role/grant",
+                "operationId": "permission.GetInstancePmsRolesGrant",
                 "parameters": [
                     {
                         "name": "iid",
@@ -3357,7 +3357,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "PUT./v1/pms/instance/{iid}/role/grant",
+                "operationId": "permission.UpdateInstancePmsRolesGrant",
                 "parameters": [
                     {
                         "name": "iid",
@@ -3397,7 +3397,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/role",
+                "operationId": "permission.PmsRoleList",
                 "parameters": [
                     {
                         "type": "string",
@@ -3446,7 +3446,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "POST./v1/pms/role",
+                "operationId": "permission.CreatePmsRole",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3482,7 +3482,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/role/{id}",
+                "operationId": "permission.PmsRoleInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -3516,7 +3516,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "PUT./v1/pms/role/{id}",
+                "operationId": "permission.UpdatePmsRole",
                 "parameters": [
                     {
                         "name": "id",
@@ -3554,7 +3554,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "DELETE./v1/pms/role/{id}",
+                "operationId": "permission.DeletePmsRole",
                 "parameters": [
                     {
                         "name": "id",
@@ -3594,7 +3594,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "POST./v1/pms/root/grant",
+                "operationId": "permission.GrantRootUids",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3630,7 +3630,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/root/uids",
+                "operationId": "permission.GetRootUids",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3663,7 +3663,7 @@
                     "ALARM"
                 ],
                 "summary": "告警推送 Webhook",
-                "operationId": "POST./v1/prometheus/alerts",
+                "operationId": "alert.Webhook",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3697,7 +3697,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "GET./v1/sys/clusters",
+                "operationId": "setting.ClusterPageList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3723,7 +3723,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "POST./v1/sys/clusters",
+                "operationId": "setting.ClusterCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3760,7 +3760,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "GET./v1/sys/clusters/{id}",
+                "operationId": "setting.ClusterInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -3795,7 +3795,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "DELETE./v1/sys/clusters/{id}",
+                "operationId": "setting.ClusterDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -3827,7 +3827,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "PATCH./v1/sys/clusters/{id}",
+                "operationId": "setting.ClusterUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -3868,7 +3868,7 @@
                     "SYSTEM"
                 ],
                 "summary": "ClickHouse 列表",
-                "operationId": "GET./v1/sys/instances",
+                "operationId": "base.InstanceList",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3900,7 +3900,7 @@
                     "SYSTEM"
                 ],
                 "summary": "ClickHouse 创建",
-                "operationId": "POST./v1/sys/instances",
+                "operationId": "base.InstanceCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3937,7 +3937,7 @@
                     "SYSTEM"
                 ],
                 "summary": "ClickHouse DSN 测试",
-                "operationId": "POST./v1/sys/instances/test",
+                "operationId": "base.InstanceTest",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3974,7 +3974,7 @@
                     "SYSTEM"
                 ],
                 "summary": "ClickHouse 详情",
-                "operationId": "GET./v1/sys/instances/{id}",
+                "operationId": "base.InstanceInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -4009,7 +4009,7 @@
                     "SYSTEM"
                 ],
                 "summary": "ClickHouse 删除",
-                "operationId": "DELETE./v1/sys/instances/{id}",
+                "operationId": "base.InstanceDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -4041,7 +4041,7 @@
                     "SYSTEM"
                 ],
                 "summary": "ClickHouse 更新",
-                "operationId": "PATCH./v1/sys/instances/{id}",
+                "operationId": "base.InstanceUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -4081,7 +4081,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/table/id",
+                "operationId": "base.TableId",
                 "parameters": [
                     {
                         "type": "string",
@@ -4133,7 +4133,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}",
+                "operationId": "base.TableInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -4167,7 +4167,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "DELETE./v1/tables/{id}",
+                "operationId": "base.TableDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -4198,7 +4198,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "PATCH./v1/tables/{id}",
+                "operationId": "base.TableUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -4239,7 +4239,7 @@
                     "LOGS"
                 ],
                 "summary": "日志趋势图",
-                "operationId": "GET./v1/tables/{id}/charts",
+                "operationId": "base.TableCharts",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4354,7 +4354,7 @@
                     "LOGS"
                 ],
                 "summary": "分析字段列表",
-                "operationId": "GET./v1/tables/{id}/indexes",
+                "operationId": "base.Indexes",
                 "parameters": [
                     {
                         "name": "id",
@@ -4392,7 +4392,7 @@
                     "LOGS"
                 ],
                 "summary": "分析字段更新",
-                "operationId": "PATCH./v1/tables/{id}/indexes",
+                "operationId": "base.IndexUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -4432,7 +4432,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}/indexes/{idx}",
+                "operationId": "base.TableIndexes",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4553,7 +4553,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}/logs",
+                "operationId": "base.TableLogs",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4667,7 +4667,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}/views",
+                "operationId": "base.ViewList",
                 "parameters": [
                     {
                         "name": "id",
@@ -4704,7 +4704,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/tables/{id}/views",
+                "operationId": "base.ViewCreate",
                 "parameters": [
                     {
                         "name": "id",
@@ -4745,7 +4745,7 @@
                     "USER"
                 ],
                 "summary": "用户列表",
-                "operationId": "GET./v1/users",
+                "operationId": "user.List",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4779,7 +4779,7 @@
                     "USER"
                 ],
                 "summary": "用户详情",
-                "operationId": "GET./v1/users/info",
+                "operationId": "user.Info",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4810,7 +4810,7 @@
                     "USER"
                 ],
                 "summary": "用户退出",
-                "operationId": "POST./v1/users/logout",
+                "operationId": "user.Logout",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4838,7 +4838,7 @@
                     "USER"
                 ],
                 "summary": "修改密码",
-                "operationId": "PATCH./v1/users/{uid}/password",
+                "operationId": "user.UpdatePassword",
                 "parameters": [
                     {
                         "name": "uid",
@@ -4878,7 +4878,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/views/{id}",
+                "operationId": "base.ViewInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -4912,7 +4912,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "DELETE./v1/views/{id}",
+                "operationId": "base.ViewDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -4943,7 +4943,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "PATCH./v1/views/{id}",
+                "operationId": "base.ViewUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -4984,7 +4984,7 @@
                     "ALARM"
                 ],
                 "summary": "创建 Metrics.samples",
-                "operationId": "POST./v2/alert/metrics-samples",
+                "operationId": "alert.CreateMetricsSamples",
                 "parameters": [
                     {
                         "name": "payload",
@@ -5021,7 +5021,7 @@
                     "ALARM"
                 ],
                 "summary": "告警配置列表",
-                "operationId": "GET./v2/alert/settings",
+                "operationId": "alert.SettingList",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5055,7 +5055,7 @@
                     "ALARM"
                 ],
                 "summary": "告警配置详情",
-                "operationId": "GET./v2/alert/settings/{instance-id}",
+                "operationId": "alert.SettingInfo",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -5090,7 +5090,7 @@
                     "ALARM"
                 ],
                 "summary": "告警配置更新",
-                "operationId": "PATCH./v2/alert/settings/{instance-id}",
+                "operationId": "alert.SettingUpdate",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -5133,7 +5133,7 @@
                     "BASE"
                 ],
                 "summary": "Gets all instance database and table data filtered by permissions",
-                "operationId": "GET./v2/base/instances",
+                "operationId": "base.InstanceList",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5169,7 +5169,7 @@
                     "BASE"
                 ],
                 "summary": "Create short links",
-                "operationId": "POST./v2/base/shorturls",
+                "operationId": "base.ShortURLCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -5207,7 +5207,7 @@
                     "BASE"
                 ],
                 "summary": "Get short links",
-                "operationId": "GET./v2/base/su/{s-code}",
+                "operationId": "base.ShortURLRedirect",
                 "parameters": [
                     {
                         "name": "s-code",
@@ -5231,7 +5231,7 @@
                     "BASE"
                 ],
                 "summary": "Get user list",
-                "operationId": "GET./v2/base/users",
+                "operationId": "base.UserList",
                 "parameters": [
                     {
                         "type": "string",
@@ -5250,7 +5250,7 @@
                     "BASE"
                 ],
                 "summary": "Create new user",
-                "operationId": "POST./v2/base/users",
+                "operationId": "base.UserCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -5292,7 +5292,7 @@
                     "BASE"
                 ],
                 "summary": "User delete",
-                "operationId": "DELETE./v2/base/users/{user-id}",
+                "operationId": "base.UserDelete",
                 "parameters": [
                     {
                         "name": "user-id",
@@ -5328,7 +5328,7 @@
                     "BASE"
                 ],
                 "summary": "Reset user password",
-                "operationId": "PATCH./v2/base/users/{user-id}/password-reset",
+                "operationId": "base.UserPasswordReset",
                 "parameters": [
                     {
                         "name": "user-id",
@@ -5367,7 +5367,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "table create sql",
-                "operationId": "GET./v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql",
+                "operationId": "pandas.TableCreateSQL",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -5412,7 +5412,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "表依赖解析",
-                "operationId": "GET./v2/pandas/instances/{instance-id}/table-dependencies",
+                "operationId": "pandas.TableDependencies",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -5459,7 +5459,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "更新节点执行结果",
-                "operationId": "PATCH./v2/pandas/nodes-results/{result-id}",
+                "operationId": "pandas.NodeResultUpdate",
                 "parameters": [
                     {
                         "name": "result-id",
@@ -5500,7 +5500,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "创建节点任务",
-                "operationId": "POST./v2/pandas/nodes/{node-id}/crontab",
+                "operationId": "pandas.NodeCrontabCreate",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -5539,7 +5539,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "节点任务更新",
-                "operationId": "PATCH./v2/pandas/nodes/{node-id}/crontab",
+                "operationId": "pandas.NodeCrontabUpdate",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -5582,7 +5582,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "Force the file edit lock to be acquired",
-                "operationId": "POST./v2/pandas/nodes/{node-id}/lock-acquire",
+                "operationId": "pandas.NodeLockAcquire",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -5613,7 +5613,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "节点执行结果列表",
-                "operationId": "GET./v2/pandas/nodes/{node-id}/results",
+                "operationId": "pandas.NodeResultListPage",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -5638,7 +5638,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "Data field mapping transformation",
-                "operationId": "POST./v2/pandas/utils/structural-transfer",
+                "operationId": "pandas.StructuralTransfer",
                 "parameters": [
                     {
                         "name": "payload",
@@ -5672,7 +5672,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "定时任务执行结果列表",
-                "operationId": "GET./v2/pandas/workers",
+                "operationId": "pandas.WorkerList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5716,7 +5716,7 @@
                     "ANALYSIS"
                 ],
                 "summary": "Kanban Dashboard",
-                "operationId": "GET./v2/pandas/workers/dashboard",
+                "operationId": "pandas.WorkerDashboard",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5771,7 +5771,7 @@
                     "STORAGE"
                 ],
                 "summary": "Creating a log library",
-                "operationId": "POST./v2/storage",
+                "operationId": "storage.Create",
                 "parameters": [
                     {
                         "name": "payload",
@@ -5810,7 +5810,7 @@
                     "STORAGE"
                 ],
                 "summary": "List Collect",
-                "operationId": "GET./v2/storage/collects",
+                "operationId": "storage.ListCollect",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5856,7 +5856,7 @@
                     "STORAGE"
                 ],
                 "summary": "Create Collect",
-                "operationId": "POST./v2/storage/collects",
+                "operationId": "storage.CreateCollect",
                 "parameters": [
                     {
                         "name": "payload",
@@ -5898,7 +5898,7 @@
                     "STORAGE"
                 ],
                 "summary": "Delete Collect",
-                "operationId": "DELETE./v2/storage/collects/{collect-id}",
+                "operationId": "storage.DeleteCollect",
                 "parameters": [
                     {
                         "name": "collect-id",
@@ -5932,7 +5932,7 @@
                     "STORAGE"
                 ],
                 "summary": "Update collect",
-                "operationId": "PATCH./v2/storage/collects/{collect-id}",
+                "operationId": "storage.UpdateCollect",
                 "parameters": [
                     {
                         "name": "collect-id",
@@ -5975,7 +5975,7 @@
                     "STORAGE"
                 ],
                 "summary": "Kafka JSON field mapping",
-                "operationId": "POST./v2/storage/mapping-json",
+                "operationId": "storage.KafkaJsonMapping",
                 "parameters": [
                     {
                         "name": "payload",
@@ -6017,7 +6017,7 @@
                     "STORAGE"
                 ],
                 "summary": "trace storage list",
-                "operationId": "GET./v2/storage/traces",
+                "operationId": "storage.GetTraceList",
                 "responses": {
                     "200": {
                         "description": "",
@@ -6053,7 +6053,7 @@
                     "STORAGE"
                 ],
                 "summary": "iStorage update",
-                "operationId": "PATCH./v2/storage/{storage-id}",
+                "operationId": "storage.Update",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -6096,7 +6096,7 @@
                     "STORAGE"
                 ],
                 "summary": "iStorage analysis field list",
-                "operationId": "GET./v2/storage/{storage-id}/analysis-fields",
+                "operationId": "storage.AnalysisFields",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -6135,7 +6135,7 @@
                     "STORAGE"
                 ],
                 "summary": "Get storage columns",
-                "operationId": "GET./v2/storage/{storage-id}/columns",
+                "operationId": "storage.GetStorageColumns",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -6187,7 +6187,7 @@
                     "STORAGE"
                 ],
                 "summary": "iStorage related trace info update",
-                "operationId": "PATCH./v2/storage/{storage-id}/trace",
+                "operationId": "storage.UpdateTraceInfo",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -6230,7 +6230,7 @@
                     "STORAGE"
                 ],
                 "summary": "Get trace graph",
-                "operationId": "GET./v2/storage/{storage-id}/trace-graph",
+                "operationId": "storage.GetTraceGraph",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -6282,7 +6282,7 @@
                     "STORAGE"
                 ],
                 "summary": "Create storage by template",
-                "operationId": "POST./v2/storage/{template}",
+                "operationId": "storage.CreateStorageByTemplate",
                 "parameters": [
                     {
                         "name": "template",
@@ -6325,7 +6325,7 @@
                     "STORAGE"
                 ],
                 "summary": "Creating a no format restrictions log library",
-                "operationId": "POST./v3/storage",
+                "operationId": "storage.Create",
                 "parameters": [
                     {
                         "name": "payload",
