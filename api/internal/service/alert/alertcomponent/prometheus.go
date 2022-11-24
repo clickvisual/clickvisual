@@ -2,6 +2,7 @@ package alertcomponent
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 var _ Component = (*Prometheus)(nil)
@@ -18,12 +21,14 @@ var _ Component = (*Prometheus)(nil)
 var prometheusResourcePool sync.Map
 
 type Prometheus struct {
-	url string
+	url           string
+	ruleStoreType int
 }
 
-func NewPrometheus(url string) (*Prometheus, error) {
+func NewPrometheus(url string, ruleStoreType int) (*Prometheus, error) {
 	url = strings.TrimSuffix(url, "/")
-	if v, ok := prometheusResourcePool.Load(url); ok {
+	key := fmt.Sprintf("%s_%d", url, ruleStoreType)
+	if v, ok := prometheusResourcePool.Load(key); ok {
 		if v == nil {
 			return nil, errors.Wrap(ErrNilObject, "new prometheus")
 		}
@@ -32,8 +37,8 @@ func NewPrometheus(url string) (*Prometheus, error) {
 		}
 		return nil, errors.Wrap(ErrNilObject, "v.(*Prometheus)")
 	}
-	p := &Prometheus{url: url}
-	prometheusResourcePool.Store(url, p)
+	p := &Prometheus{url: url, ruleStoreType: ruleStoreType}
+	prometheusResourcePool.Store(key, p)
 	return p, nil
 }
 
@@ -70,7 +75,10 @@ func (p *Prometheus) CheckDependents() error {
 		}
 	}
 	if len(urls) == 0 {
-		return errors.Wrap(ErrPrometheusDependsEmpty, "0")
+		if p.ruleStoreType == db.RuleStoreTypeK8sOperator {
+			return ErrCheckNotSupported
+		}
+		return errors.Wrap(ErrPrometheusDependsEmpty, "webhook configuration is empty")
 	}
 	components := make([]Component, 0)
 	for _, url := range urls {

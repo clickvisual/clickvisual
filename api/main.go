@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/ClickHouse/clickhouse-go/v2"
-
 	"github.com/clickvisual/clickvisual/api/cmd"
 	_ "github.com/clickvisual/clickvisual/api/cmd/sten"
 )

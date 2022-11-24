@@ -8,7 +8,6 @@ import (
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/cetus/pkg/xgo"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -26,6 +25,7 @@ func NewNode() *node {
 		Stats: sync.Map{},
 	}
 	xgo.Go(func() {
+
 		for {
 			time.Sleep(time.Minute)
 			n.SetStats(false)
@@ -78,11 +78,6 @@ func (n *node) SetStats(isInit bool) {
 			workerStatsRow[hour] = stats
 		}
 		crontab, _ := db.CrontabInfo(invoker.Db, nodeInfo.ID)
-		elog.Debug("SetStats", elog.Int("nodeId", nodeInfo.ID), elog.Any("nodeResultMap", view.WorkerStats{
-			Iid:  nodeInfo.Iid,
-			Uid:  crontab.DutyUid,
-			Data: workerStatsRow,
-		}))
 		n.Stats.Store(nodeInfo.ID, view.WorkerStats{
 			Iid:  nodeInfo.Iid,
 			Uid:  crontab.DutyUid,

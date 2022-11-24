@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -31,6 +32,8 @@ func (h *resourceHandler) getClientByGroupVersion(groupVersion schema.GroupVersi
 		return h.client.StorageV1().RESTClient()
 	case rbacv1.GroupName:
 		return h.client.RbacV1().RESTClient()
+	case monitoring.GroupName:
+		return h.clientVersioned.MonitoringV1().RESTClient()
 	default:
 		return h.client.CoreV1().RESTClient()
 	}

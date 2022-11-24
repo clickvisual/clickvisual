@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/pkg/errors"
 	"github.com/spf13/cast"
+	"gopkg.in/yaml.v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
@@ -19,8 +21,8 @@ import (
 )
 
 // SettingUpdate
-// @Summary	     告警配置更新
 // @Tags         ALARM
+// @Summary	     告警配置更新
 func SettingUpdate(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {
@@ -58,33 +60,39 @@ func SettingUpdate(c *core.Context) {
 	}
 	ups := make(map[string]interface{}, 0)
 	ups["rule_store_type"] = req.RuleStoreType
-	if req.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
-		if req.ClusterId != 0 {
-			ups["cluster_id"] = req.ClusterId
+	switch req.RuleStoreType {
+	case db.RuleStoreTypeFile:
+		ups["file_path"] = req.FilePath
+	case db.RuleStoreTypeK8sConfigMap:
+		ups["cluster_id"] = req.ClusterId
+		ups["namespace"] = req.Namespace
+		ups["configmap"] = req.Configmap
+	case db.RuleStoreTypeK8sOperator:
+		var check db.ConfigPrometheusOperator
+		err = yaml.Unmarshal([]byte(req.ConfigPrometheusOperator), &check)
+		if err != nil {
+			c.JSONE(1, err.Error(), err)
+			return
 		}
-		if req.Namespace != "" {
-			ups["namespace"] = req.Namespace
+		if !check.IsValid() {
+			c.JSONE(1, "prometheus operator rule is not valid", nil)
+			return
 		}
-		if req.Configmap != "" {
-			ups["configmap"] = req.Configmap
-		}
+		ups["cluster_id"] = req.ClusterId
+		ups["config_prometheus_operator"] = req.ConfigPrometheusOperator
 	}
-	if req.RuleStoreType == db.RuleStoreTypeFile {
-		if req.FilePath != "" {
-			ups["file_path"] = req.FilePath
-		}
-	}
+
 	if req.RuleStoreType != 0 {
 		prometheus := strings.TrimSpace(req.PrometheusTarget)
 		if !strings.HasPrefix(prometheus, "http") {
 			prometheus = "http://" + prometheus
 		}
-		p, err := alertcomponent.NewPrometheus(prometheus)
+		p, err := alertcomponent.NewPrometheus(prometheus, req.RuleStoreType)
 		if err != nil {
 			c.JSONE(1, "prometheus check failed: "+err.Error(), err)
 			return
 		}
-		if err = p.Health(); err != nil {
+		if err = p.Health(); err != nil && !errors.Is(err, alertcomponent.ErrCheckNotSupported) {
 			c.JSONE(1, "prometheus check failed: "+err.Error(), err)
 			return
 		}
@@ -99,8 +107,8 @@ func SettingUpdate(c *core.Context) {
 }
 
 // SettingList
-// @Summary	     告警配置列表
 // @Tags         ALARM
+// @Summary	     告警配置列表
 func SettingList(c *core.Context) {
 	res := make([]*db.RespAlertSettingListItem, 0)
 	instanceList, err := db.InstanceList(egorm.Conds{})
@@ -123,7 +131,7 @@ func SettingList(c *core.Context) {
 		}
 		// prometheus
 		errProm, errAlertManager := func() (error, error) {
-			p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget)
+			p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget, instance.RuleStoreType)
 			if errProm != nil {
 				return errProm, errProm
 			}
@@ -132,10 +140,16 @@ func SettingList(c *core.Context) {
 		if errProm != nil {
 			row.IsPrometheusOK = 0
 			row.CheckPrometheusResult = errProm.Error()
+			if errors.Is(errProm, alertcomponent.ErrCheckNotSupported) {
+				row.IsPrometheusOK = 3
+			}
 		}
 		if errAlertManager != nil {
 			row.IsAlertManagerOK = 0
 			row.CheckAlertManagerResult = errAlertManager.Error()
+			if errors.Is(errAlertManager, alertcomponent.ErrCheckNotSupported) {
+				row.IsAlertManagerOK = 3
+			}
 		}
 		if errMetrics := func() error {
 			op, errCh := service.InstanceManager.Load(instance.ID)
@@ -155,8 +169,8 @@ func SettingList(c *core.Context) {
 }
 
 // SettingInfo
-// @Summary	     告警配置详情
 // @Tags         ALARM
+// @Summary	     告警配置详情
 func SettingInfo(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {
@@ -187,8 +201,8 @@ func SettingInfo(c *core.Context) {
 }
 
 // CreateMetricsSamples
-// @Summary      创建 Metrics.samples
 // @Tags         ALARM
+// @Summary      创建 Metrics.samples
 func CreateMetricsSamples(c *core.Context) {
 	var err error
 	params := db.ReqCreateMetricsSamples{}

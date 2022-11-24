@@ -21,13 +21,14 @@ const (
 type BigdataNodeResult struct {
 	BaseModel
 
-	NodeId       int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
+	NodeId int   `gorm:"column:node_id;type:int(11)" json:"nodeId"`
+	Uid    int   `gorm:"column:uid;type:int(11)" json:"uid"`
+	Cost   int64 `gorm:"column:cost;type:bigint(20)" json:"cost"` // ms
+	Status int   `gorm:"column:status;type:int(11)" json:"status"`
+
 	Content      string `gorm:"column:content;type:longtext" json:"content"`
 	Result       string `gorm:"column:result;type:longtext" json:"result"`
 	ExcelProcess string `gorm:"column:excel_process;type:longtext" json:"excelProcess"`
-	Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`
-	Cost         int64  `gorm:"column:cost;type:bigint(20)" json:"cost"` // ms
-	Status       int    `gorm:"column:status;type:int(11)" json:"status"`
 }
 
 func (m *BigdataNodeResult) TableName() string {

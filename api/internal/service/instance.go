@@ -303,6 +303,10 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 		delMap map[string]*db.BaseIndex
 		newMap map[string]*db.BaseIndex
 	)
+	for i := range data {
+		data[i].Field = strings.TrimSpace(data[i].Field)
+		data[i].RootName = strings.TrimSpace(data[i].RootName)
+	}
 	// check repeat
 	repeatMap := make(map[string]interface{})
 	for _, r := range data {

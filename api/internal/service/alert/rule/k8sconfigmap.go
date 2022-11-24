@@ -7,6 +7,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/service/kube"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube/resource"
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 var _ Component = (*k8sConfigMap)(nil)
@@ -47,14 +48,7 @@ func NewK8sConfigMap(params *Params) (*k8sConfigMap, error) {
 	return p, nil
 }
 
-func (r *k8sConfigMap) UpdateParameters(params Params) Component {
-	r.clusterId = params.ClusterId
-	r.namespace = params.Namespace
-	r.configmap = params.Configmap
-	return r
-}
-
-func (r *k8sConfigMap) CreateOrUpdate(name, content string) error {
+func (r *k8sConfigMap) CreateOrUpdate(groupName, ruleName, content string) error {
 	if r.clusterId == 0 || r.namespace == "" || r.configmap == "" {
 		return errors.Wrapf(ErrParameter, "rule: %v", r)
 	}
@@ -63,7 +57,7 @@ func (r *k8sConfigMap) CreateOrUpdate(name, content string) error {
 		return err
 	}
 	rules := make(map[string]string)
-	rules[name] = content
+	rules[ruleName] = content
 	err = resource.CreateOrUpdateConfigmap(client, r.namespace, r.configmap, rules)
 	if err != nil {
 		return err
@@ -71,12 +65,20 @@ func (r *k8sConfigMap) CreateOrUpdate(name, content string) error {
 	return nil
 }
 
-func (r *k8sConfigMap) Delete(name string) error {
+func (r *k8sConfigMap) Delete(groupName, ruleName string) error {
 	if r.clusterId == 0 || r.namespace == "" || r.configmap == "" {
 		return errors.Wrapf(ErrParameter, "rule: %v", r)
 	}
-	if err := resource.DeleteConfigmap(r.clusterId, r.namespace, r.configmap, name); err != nil {
+	if err := resource.DeleteConfigmap(r.clusterId, r.namespace, r.configmap, ruleName); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (r *k8sConfigMap) BatchSet(groupName string, rules []db.ClusterRuleItem) error {
+	return ErrNotYetSupported
+}
+
+func (r *k8sConfigMap) BatchRemove(groupName string) error {
+	return ErrNotYetSupported
 }

@@ -646,7 +646,9 @@ func TableIndexes(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// TableCreateSelfBuilt
+// @Tags        BASE
+// @Summary 	接入已有日志库
 func TableCreateSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -678,7 +680,9 @@ func TableCreateSelfBuilt(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         BASE
+// TableCreateSelfBuiltBatch
+// @Tags    BASE
+// @Summary 批量接入已有日志库
 func TableCreateSelfBuiltBatch(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -767,7 +771,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		return err
 	}
 	for _, col := range columns {
-		if col.Type == -1 {
+		if col.Type < 0 || col.Type == 3 {
 			continue
 		}
 		err = db.IndexCreate(tx, &db.BaseIndex{
