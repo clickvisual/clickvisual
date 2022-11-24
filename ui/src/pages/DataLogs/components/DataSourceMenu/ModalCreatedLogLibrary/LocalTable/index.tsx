@@ -210,43 +210,6 @@ const LocalTable = ({
         }}
       </Form.Item>
       <Form.Item
-        noStyle
-        shouldUpdate={(pre, next) => pre.instance != next.instance}
-      >
-        {() => {
-          return (
-            isCluster && (
-              <Form.Item
-                label={i18n.formatMessage({
-                  id: "instance.form.title.cluster",
-                })}
-                name="cluster"
-                rules={[
-                  {
-                    required: true,
-                    message: i18n.formatMessage({
-                      id: "config.selectedBar.cluster",
-                    }),
-                  },
-                ]}
-              >
-                <Select
-                  placeholder={`${i18n.formatMessage({
-                    id: "config.selectedBar.cluster",
-                  })}`}
-                >
-                  {currentInstance?.clusters.map((item: string) => (
-                    <Option key={item} value={item}>
-                      {item}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            )
-          );
-        }}
-      </Form.Item>
-      <Form.Item
         label={i18n.formatMessage({
           id: "datasource.tooltip.icon.info",
         })}
@@ -415,6 +378,37 @@ const LocalTable = ({
                                 }
                               }}
                             </Form.Item>
+                            {isCluster && (
+                              <Form.Item
+                                label={i18n.formatMessage({
+                                  id: "instance.form.title.cluster",
+                                })}
+                                name={[field.name, "cluster"]}
+                                fieldKey={[field.key, "cluster"]}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: i18n.formatMessage({
+                                      id: "config.selectedBar.cluster",
+                                    }),
+                                  },
+                                ]}
+                              >
+                                <Select
+                                  placeholder={`${i18n.formatMessage({
+                                    id: "config.selectedBar.cluster",
+                                  })}`}
+                                >
+                                  {currentInstance?.clusters.map(
+                                    (item: string) => (
+                                      <Option key={item} value={item}>
+                                        {item}
+                                      </Option>
+                                    )
+                                  )}
+                                </Select>
+                              </Form.Item>
+                            )}
                             <Form.Item
                               label={i18n.formatMessage({
                                 id: "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable",
