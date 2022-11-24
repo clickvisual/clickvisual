@@ -4,13 +4,16 @@ dir: 'api'
 
 depends:
   - gorm.io/plugin/soft_delete
+  - github.com/gotomicro/gotoant
+  - gorm.io/datatypes
 
 properties:
   request:
     - type: '*github.com/clickvisual/clickvisual/api/pkg/component/core.Context'
       method: 'Bind'
       return:
-        data: 'args[0]'
+        data:
+          type: 'args[0]'
   response:
     - type: '*github.com/clickvisual/clickvisual/api/pkg/component/core.Context'
       method: 'JSONOK'

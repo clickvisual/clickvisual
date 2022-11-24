@@ -118,11 +118,11 @@ func Update(c *core.Context) {
 			return
 		}
 	}
-
 	switch req.Status {
 	case db.AlarmStatusOpen:
 		err = service.Alert.OpenOperator(id)
 	case db.AlarmStatusClose:
+		clusterRuleGroups := map[string]db.ClusterRuleGroup{}
 		for _, ri := range relatedList {
 			op, errInstanceManager := service.InstanceManager.Load(ri.Instance.ID)
 			if errInstanceManager != nil {
@@ -156,10 +156,26 @@ func Update(c *core.Context) {
 					return
 				}
 			}
-			if err = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo); err != nil {
-				c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
-				return
+			instance := ri.Instance
+			if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
+				clusterRuleGroup := db.ClusterRuleGroup{}
+				if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
+					clusterRuleGroup = tmp
+				} else {
+					clusterRuleGroup.ClusterId = instance.ClusterId
+					clusterRuleGroup.Instance = instance
+					clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
+				}
+				clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
+			} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+				if err = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo); err != nil {
+					c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
+					return
+				}
 			}
+		}
+		if len(clusterRuleGroups) > 0 {
+			_ = service.Alert.PrometheusRuleBatchRemove(clusterRuleGroups)
 		}
 		_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
@@ -387,8 +403,22 @@ func Delete(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
+	clusterRuleGroups := map[string]db.ClusterRuleGroup{}
 	for _, ri := range relatedList {
-		_ = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo)
+		instance := ri.Instance
+		if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
+			clusterRuleGroup := db.ClusterRuleGroup{}
+			if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
+				clusterRuleGroup = tmp
+			} else {
+				clusterRuleGroup.ClusterId = instance.ClusterId
+				clusterRuleGroup.Instance = instance
+				clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
+			}
+			clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
+		} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+			_ = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo)
+		}
 		var op inquiry.Operator
 		op, err = service.InstanceManager.Load(ri.Table.Database.Iid)
 		if err != nil {
@@ -426,6 +456,9 @@ func Delete(c *core.Context) {
 				return
 			}
 		}
+	}
+	if len(clusterRuleGroups) > 0 {
+		_ = service.Alert.PrometheusRuleBatchRemove(clusterRuleGroups)
 	}
 	if err = tx.Commit().Error; err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)

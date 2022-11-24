@@ -139,8 +139,24 @@ type Alarm struct {
 	ViewTableName string `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"` // name of view table
 }
 
+type ClusterRuleGroup struct {
+	ClusterId int
+	Instance  BaseInstance
+	GroupName string
+	Rules     []ClusterRuleItem
+}
+
+type ClusterRuleItem struct {
+	RuleName string
+	Content  string
+}
+
 func (m *Alarm) TableName() string {
 	return TableNameAlarm
+}
+
+func (m *Alarm) GetGroupName(instanceId int) string {
+	return fmt.Sprintf("cv-%d-%s", instanceId, m.Uuid)
 }
 
 func (m *Alarm) RuleName(filterId int) string {
@@ -148,6 +164,12 @@ func (m *Alarm) RuleName(filterId int) string {
 		return fmt.Sprintf("cv-%s.yaml", m.Uuid)
 	}
 	return fmt.Sprintf("cv-%s-%d.yaml", m.Uuid, filterId)
+}
+
+func TrimRuleName(name string) string {
+	name = strings.TrimPrefix(name, "cv-")
+	name = strings.TrimSuffix(name, ".yaml")
+	return name
 }
 
 func (m *Alarm) ViewName(database, table string, seq int) string {
@@ -395,7 +417,7 @@ func AlarmDelete(db *gorm.DB, id int) (err error) {
 }
 
 type ReqAlertSettingUpdate struct {
-	RuleStoreType    int    `json:"ruleStoreType" form:"ruleStoreType"` // rule_store_type 1 文件 2 集群
+	RuleStoreType    int    `json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType 1 文件 2 configmap 3 prometheus operator
 	PrometheusTarget string `json:"prometheusTarget" form:"prometheusTarget"`
 
 	// file
@@ -405,6 +427,34 @@ type ReqAlertSettingUpdate struct {
 	Namespace string `json:"namespace" form:"namespace"`
 	Configmap string `json:"configmap" form:"configmap"`
 	ClusterId int    `json:"clusterId" form:"clusterId"`
+
+	// ConfigPrometheusOperator Yaml 格式 e.g.
+	// metadata:
+	//  labels:
+	//    prometheus: example
+	//    role: alert-rules
+	//  name: prometheus-example-rules-2
+	//  namespace: default
+	ConfigPrometheusOperator string `json:"configPrometheusOperator" form:"configPrometheusOperator"`
+}
+
+type ConfigPrometheusOperator struct {
+	MetaData struct {
+		Labels    map[string]string `json:"labels" form:"labels" yaml:"labels"`
+		Name      string            `json:"name" form:"name" yaml:"name"`
+		Namespace string            `json:"namespace" form:"namespace" yaml:"namespace"`
+	} `json:"metadata" form:"metadata" yaml:"metadata"`
+}
+
+func (c *ConfigPrometheusOperator) IsValid() bool {
+	if c.MetaData.Name != "" &&
+		c.MetaData.Namespace != "" &&
+		len(c.MetaData.Labels) > 1 &&
+		c.MetaData.Labels["role"] != "" &&
+		c.MetaData.Labels["prometheus"] != "" {
+		return true
+	}
+	return false
 }
 
 type RespAlertSettingInfo struct {

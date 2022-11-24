@@ -10,6 +10,8 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/ui"
 	"github.com/clickvisual/clickvisual/api/pkg/session"
+
+	_ "github.com/ClickHouse/clickhouse-go/v2"
 )
 
 var (

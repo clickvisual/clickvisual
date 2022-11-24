@@ -47,7 +47,7 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 	if strings.Contains(param.Name, "__metadata") {
 		return configuration, constx.ErrSkipConfigureName
 	}
-	fileNameRegex := regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_-]{1,64}$")
+	fileNameRegex := regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_-]{1,255}$")
 	if !fileNameRegex.MatchString(param.Name) {
 		return configuration, errors.New("Invalid file name: " + param.Name)
 	}
