@@ -7716,7 +7716,7 @@
                     "type": "integer"
                 },
                 "configPrometheusOperator": {
-                    "description": "operator\nmetadata:\nlabels:\nprometheus: example\nrole: alert-rules\nname: prometheus-example-rules-2\nnamespace: default",
+                    "description": "ConfigPrometheusOperator Yaml 格式 e.g.\nmetadata:\nlabels:\nprometheus: example\nrole: alert-rules\nname: prometheus-example-rules-2\nnamespace: default",
                     "type": "string"
                 },
                 "configmap": {
@@ -7815,7 +7815,7 @@
                     "type": "integer"
                 },
                 "configPrometheusOperator": {
-                    "description": "operator\nmetadata:\nlabels:\nprometheus: example\nrole: alert-rules\nname: prometheus-example-rules-2\nnamespace: default",
+                    "description": "ConfigPrometheusOperator Yaml 格式 e.g.\nmetadata:\nlabels:\nprometheus: example\nrole: alert-rules\nname: prometheus-example-rules-2\nnamespace: default",
                     "type": "string"
                 },
                 "configmap": {
