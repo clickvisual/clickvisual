@@ -37,7 +37,12 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const list = useMemo(() => {
     const newLogs = cloneDeep(logs?.logs);
     virtualRef.current && (virtualRef.current.scrollTop = 0);
-    if (oldPane?.logState != 1 && logs?.logs && logs?.logs.length > pageSize) {
+    if (
+      oldPane?.logState != 1 &&
+      logs?.isTrace == 1 &&
+      logs?.logs &&
+      logs?.logs.length > pageSize
+    ) {
       return newLogs?.splice(0, pageSize - 1) || [];
     }
     return logs?.logs || [];
@@ -239,38 +244,43 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
             themeColorList,
             startTime
           );
-          treeDataList.unshift({
-            title: (
-              <LinkItemTitle
-                title={
-                  <>
-                    {item?.rawLogJson.process.serviceName} &nbsp;
-                    <span style={{ color: "#9c9c9c" }}>
-                      {item?.rawLogJson.operationName}
-                    </span>
-                  </>
-                }
-                log={item}
-                initial={startTime}
-                totalLength={endTime - startTime}
-                hierarchy={1}
-                themeColor={
-                  themeColor[
-                    themeColorList.indexOf(
-                      item?.rawLogJson?.process?.serviceName
-                    ) % themeColor.length
-                  ]
-                }
-              />
-            ),
-            children: children,
-            key: item?.rawLogJson?.spanId,
-            data: item,
-            duration: endTime - startTime,
-            services: themeColorList.length,
-            totalSpans:
-              children.length > 0 ? handleGetChildElementsNumber(children) : 1,
-          });
+          treeDataList.filter(
+            (newItem: any) => newItem.key == item?.rawLogJson?.spanId
+          ).length == 0 &&
+            treeDataList.unshift({
+              title: (
+                <LinkItemTitle
+                  title={
+                    <>
+                      {item?.rawLogJson.process.serviceName} &nbsp;
+                      <span style={{ color: "#9c9c9c" }}>
+                        {item?.rawLogJson.operationName}
+                      </span>
+                    </>
+                  }
+                  log={item}
+                  initial={startTime}
+                  totalLength={endTime - startTime}
+                  hierarchy={1}
+                  themeColor={
+                    themeColor[
+                      themeColorList.indexOf(
+                        item?.rawLogJson?.process?.serviceName
+                      ) % themeColor.length
+                    ]
+                  }
+                />
+              ),
+              children: children,
+              key: item?.rawLogJson?.spanId,
+              data: item,
+              duration: endTime - startTime,
+              services: themeColorList.length,
+              totalSpans:
+                children.length > 0
+                  ? handleGetChildElementsNumber(children)
+                  : 1,
+            });
           return;
         }
       });
