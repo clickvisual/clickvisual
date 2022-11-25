@@ -551,15 +551,16 @@ func TableCharts(c *core.Context) {
 	if l == 1 {
 		fillCharts[0].From = st
 		fillCharts[0].To = et
-	}
-	for i := range fillCharts {
-		if i == 0 {
-			fillCharts[0].From = st
-			fillCharts[0].To = fillCharts[1].From
-		} else if i == l-1 {
-			fillCharts[i].To = et
-		} else {
-			fillCharts[i].To = fillCharts[i+1].From
+	} else if l > 1 {
+		for i := range fillCharts {
+			if i == 0 {
+				fillCharts[0].From = st
+				fillCharts[0].To = fillCharts[1].From
+			} else if i == l-1 {
+				fillCharts[i].To = et
+			} else {
+				fillCharts[i].To = fillCharts[i+1].From
+			}
 		}
 	}
 	res.Histograms = fillCharts
