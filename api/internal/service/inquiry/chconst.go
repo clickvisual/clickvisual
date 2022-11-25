@@ -26,7 +26,7 @@ var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _t
 
 var typArr = []string{
 	"Array(String)",
-	"DateTime64(3)",
+	"DateTime64",
 	"DateTime",
 	"String",
 	"Int64",
@@ -48,7 +48,7 @@ var typArr = []string{
 
 var typKey = map[string]int{
 	"Array(String)": -3,
-	"DateTime64(3)": -2,
+	"DateTime64":    -2,
 	"DateTime":      -1,
 	"String":        0,
 	"Int64":         1,
@@ -70,7 +70,7 @@ var typKey = map[string]int{
 
 var typORM = map[int]string{
 	-3: "Array(String)",
-	-2: "DateTime64(3)",
+	-2: "DateTime64",
 	-1: "DateTime",
 	0:  "String",
 	1:  "Int64",

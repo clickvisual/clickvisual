@@ -910,7 +910,7 @@ func (c *ClickHouse) CreateStorage(did int, database db.BaseDatabase, ct view.Re
 	return
 }
 
-// AlterMergeTreeTable ...
+// UpdateMergeTreeTable ...
 // ALTER TABLE dev.test MODIFY TTL toDateTime(time_second) + toIntervalDay(7)
 func (c *ClickHouse) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (err error) {
 	s := fmt.Sprintf("ALTER TABLE %s%s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)",
@@ -956,9 +956,6 @@ func (c *ClickHouse) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqSt
 	} else {
 		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
 	}
-
-	elog.Error("CreateKafkaTable", elog.Any("params", params))
-
 	if _, err = c.db.Exec(streamSQL); err != nil {
 		elog.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
 		_, _ = c.db.Exec(currentKafkaSQL)

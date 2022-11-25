@@ -189,12 +189,13 @@ func SettingInfo(c *core.Context) {
 	c.JSONOK(&db.RespAlertSettingInfo{
 		InstanceId: iid,
 		ReqAlertSettingUpdate: db.ReqAlertSettingUpdate{
-			RuleStoreType:    res.RuleStoreType,
-			PrometheusTarget: res.PrometheusTarget,
-			FilePath:         res.FilePath,
-			Namespace:        res.Namespace,
-			Configmap:        res.Configmap,
-			ClusterId:        res.ClusterId,
+			RuleStoreType:            res.RuleStoreType,
+			PrometheusTarget:         res.PrometheusTarget,
+			FilePath:                 res.FilePath,
+			Namespace:                res.Namespace,
+			Configmap:                res.Configmap,
+			ClusterId:                res.ClusterId,
+			ConfigPrometheusOperator: res.ConfigPrometheusOperator,
 		},
 	})
 	return
