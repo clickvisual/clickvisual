@@ -112,15 +112,9 @@ const RawLogQuery = () => {
     { wait: 100 }
   );
 
-  const handleChange = useDebounceFn(
-    (value: string) => {
-      {
-        onChangeInitValue(value);
-        setQueryKeyword(value);
-      }
-    },
-    { wait: 500 }
-  ).run;
+  const handleChange = (value: string) => {
+    setQueryKeyword(value);
+  };
 
   useEffect(() => {
     const data = {

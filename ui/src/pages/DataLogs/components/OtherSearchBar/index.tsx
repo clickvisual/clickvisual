@@ -16,6 +16,8 @@ const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
     onChangeCurrentLogPane,
     logsLoading,
     highChartLoading,
+    onChangeInitValue,
+    keywordInput,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
   const { activeQueryType, setActiveQueryType } = statisticalChartsHelper;
@@ -31,6 +33,7 @@ const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
         ? QueryTypeEnum.TABLE
         : QueryTypeEnum.LOG;
     setActiveQueryType(queryType);
+    queryType == QueryTypeEnum.TABLE && onChangeInitValue(keywordInput || "");
     onChangeCurrentLogPane({ ...(oldPane as PaneType), queryType });
   };
 

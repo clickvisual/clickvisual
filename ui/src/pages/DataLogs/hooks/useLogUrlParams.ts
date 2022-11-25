@@ -23,6 +23,8 @@ import useLocalStorages, {
   LocalModuleType,
 } from "@/hooks/useLocalStorages";
 import { isEqual } from "lodash";
+import useTimeOptions from "./useTimeOptions";
+import { TimeOption } from "../components/DateTimeSelected";
 
 export interface UrlStateType {
   tid?: string | number;
@@ -74,6 +76,7 @@ export default function useLogUrlParams() {
     index: ACTIVE_TIME_INDEX,
     queryType: QueryTypeEnum.LOG,
   });
+  const { timeOptions } = useTimeOptions();
 
   const [tid, setTid] = useState<any>();
   const {
@@ -139,14 +142,28 @@ export default function useLogUrlParams() {
       undefined,
       LocalModuleType.datalogsQuerySql
     );
+    const itemObj: TimeOption =
+      timeOptions[parseInt(urlState.index || lastDataLogsState.index)];
+    const isRelative =
+      (urlState.tab || lastDataLogsState.tab) == TimeRangeType.Relative;
+
+    const startTime: any = isRelative
+      ? moment()
+          .subtract(itemObj.relativeAmount, itemObj.relativeUnit)
+          .format("X")
+      : parseInt(urlState.start || lastDataLogsState.start);
+
+    const endTime: any = isRelative
+      ? moment().format("X")
+      : parseInt(urlState.end || lastDataLogsState.end);
 
     const pane: PaneType = {
       ...DefaultPane,
       pane: res.data.name,
       paneId: tid.toString(),
       paneType: res.data.createType,
-      start: parseInt(urlState.start || lastDataLogsState.start),
-      end: parseInt(urlState.end || lastDataLogsState.end),
+      start: startTime || parseInt(urlState.start || lastDataLogsState.start),
+      end: endTime || parseInt(urlState.end || lastDataLogsState.end),
       keyword: urlState.kw || lastDataLogsState.kw,
       page: parseInt(urlState.page || lastDataLogsState.page),
       pageSize: parseInt(urlState.size || lastDataLogsState.size),
