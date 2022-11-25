@@ -164,6 +164,10 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
                 label: "k8s",
                 value: RuleStoreType.k8s,
               },
+              {
+                label: "operator",
+                value: RuleStoreType.operator,
+              },
             ]}
           />
         </Form.Item>
@@ -197,7 +201,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
                 />
               </Form.Item>
             );
-            const k8sType = (
+            const otherType = (type: number) => (
               <>
                 <Form.Item
                   label={i18n.formatMessage({
@@ -233,43 +237,65 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
                     })}
                   </Select>
                 </Form.Item>
-                <Form.Item
-                  label={"Namespace/Configmap"}
-                  name={"namespaceConfigmap"}
-                  shouldUpdate={(pre, next) => pre.clusterId != next.clusterId}
-                >
-                  <Cascader
-                    value={
-                      selectedNameSpace && selectedConfigMap
-                        ? [selectedNameSpace, selectedConfigMap]
-                        : undefined
+                {type == RuleStoreType.k8s ? (
+                  <Form.Item
+                    label={"Namespace/Configmap"}
+                    name={"namespaceConfigmap"}
+                    shouldUpdate={(pre, next) =>
+                      pre.clusterId != next.clusterId
                     }
-                    options={options}
-                    disabled={
-                      !Boolean(formRef.current?.getFieldValue("clusterId"))
-                    }
-                    expandTrigger="hover"
-                    onChange={(value: any, selectedOptions: any) => {
-                      if (value.length === 2) {
-                        setSelectedNameSpace(value[0]);
-                        setSelectedConfigMap(value[1]);
-                      } else {
-                        setSelectedNameSpace(undefined);
-                        setSelectedConfigMap(undefined);
+                  >
+                    <Cascader
+                      value={
+                        selectedNameSpace && selectedConfigMap
+                          ? [selectedNameSpace, selectedConfigMap]
+                          : undefined
                       }
-                    }}
-                    placeholder={`${i18n.formatMessage({
-                      id: "config.selectedBar.configmap",
-                    })}`}
-                    showSearch={{ filter }}
-                  />
-                </Form.Item>
+                      options={options}
+                      disabled={
+                        !Boolean(formRef.current?.getFieldValue("clusterId"))
+                      }
+                      expandTrigger="hover"
+                      onChange={(value: any, selectedOptions: any) => {
+                        if (value.length === 2) {
+                          setSelectedNameSpace(value[0]);
+                          setSelectedConfigMap(value[1]);
+                        } else {
+                          setSelectedNameSpace(undefined);
+                          setSelectedConfigMap(undefined);
+                        }
+                      }}
+                      placeholder={`${i18n.formatMessage({
+                        id: "config.selectedBar.configmap",
+                      })}`}
+                      showSearch={{ filter }}
+                    />
+                  </Form.Item>
+                ) : null}
+                {type == RuleStoreType.operator ? (
+                  <Form.Item
+                    label={"operator config"}
+                    name={"configPrometheusOperator"}
+                    shouldUpdate={(pre, next) =>
+                      pre.clusterId != next.clusterId
+                    }
+                  >
+                    <Input.TextArea
+                      rows={4}
+                      placeholder={i18n.formatMessage(
+                        { id: "input.placeholder" },
+                        { name: "configPrometheusOperator" }
+                      )}
+                    />
+                  </Form.Item>
+                ) : null}
               </>
             );
             const ruleStoreTypeDom = {
               [RuleStoreType.notOpen]: <></>,
-              [RuleStoreType.k8s]: k8sType,
+              [RuleStoreType.k8s]: otherType(RuleStoreType.k8s),
               [RuleStoreType.file]: FileType,
+              [RuleStoreType.operator]: otherType(RuleStoreType.operator),
             };
             return ruleStoreTypeDom[ruleStoreType] || <></>;
           }}
