@@ -551,15 +551,16 @@ func TableCharts(c *core.Context) {
 	if l == 1 {
 		fillCharts[0].From = st
 		fillCharts[0].To = et
-	}
-	for i := range fillCharts {
-		if i == 0 {
-			fillCharts[0].From = st
-			fillCharts[0].To = fillCharts[1].From
-		} else if i == l-1 {
-			fillCharts[i].To = et
-		} else {
-			fillCharts[i].To = fillCharts[i+1].From
+	} else if l > 1 {
+		for i := range fillCharts {
+			if i == 0 {
+				fillCharts[0].From = st
+				fillCharts[0].To = fillCharts[1].From
+			} else if i == l-1 {
+				fillCharts[i].To = et
+			} else {
+				fillCharts[i].To = fillCharts[i+1].From
+			}
 		}
 	}
 	res.Histograms = fillCharts
@@ -646,7 +647,9 @@ func TableIndexes(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// TableCreateSelfBuilt
+// @Tags        BASE
+// @Summary 	接入已有日志库
 func TableCreateSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -678,7 +681,9 @@ func TableCreateSelfBuilt(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         BASE
+// TableCreateSelfBuiltBatch
+// @Tags    BASE
+// @Summary 批量接入已有日志库
 func TableCreateSelfBuiltBatch(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -767,7 +772,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		return err
 	}
 	for _, col := range columns {
-		if col.Type == -1 {
+		if col.Type < 0 || col.Type == 3 {
 			continue
 		}
 		err = db.IndexCreate(tx, &db.BaseIndex{

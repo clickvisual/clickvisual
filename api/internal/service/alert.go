@@ -54,7 +54,7 @@ type iAlert interface {
 	ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.ReqAlarmConditionCreate, filter *db.AlarmFilter) (exp string, err error)
 	PrometheusReload(prometheusTarget string) (err error)
 	PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string
-	PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error)
+	PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName, ruleName, content string) (err error)
 	DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (err error)
 	CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error)
 	OpenOperator(id int) (err error)
@@ -185,19 +185,62 @@ func (i *alert) PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) strin
 	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
 }
 
-func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, content string) (err error) {
+func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName, ruleName, content string) (err error) {
 	rc, err := rule.GetComponent(instance.RuleStoreType, &rule.Params{
-		InstanceID: instance.ID,
-		RulePath:   instance.FilePath,
-		ClusterId:  instance.ClusterId,
-		Namespace:  instance.Namespace,
-		Configmap:  instance.Configmap,
+		InstanceID:         instance.ID,
+		RulePath:           instance.FilePath,
+		ClusterId:          instance.ClusterId,
+		Namespace:          instance.Namespace,
+		Configmap:          instance.Configmap,
+		PrometheusOperator: instance.ConfigPrometheusOperator,
 	})
 	if err != nil {
 		return err
 	}
-	if err = rc.CreateOrUpdate(name, content); err != nil {
+	if err = rc.CreateOrUpdate(groupName, ruleName, content); err != nil {
 		return
+	}
+	i.AddPrometheusReloadChan()
+	return nil
+}
+
+func (i *alert) PrometheusRuleBatchSet(clusterRuleGroups map[string]db.ClusterRuleGroup) (err error) {
+	for _, clusterRuleGroup := range clusterRuleGroups {
+		rc, err := rule.GetComponent(clusterRuleGroup.Instance.RuleStoreType, &rule.Params{
+			InstanceID:         clusterRuleGroup.Instance.ID,
+			RulePath:           clusterRuleGroup.Instance.FilePath,
+			ClusterId:          clusterRuleGroup.Instance.ClusterId,
+			Namespace:          clusterRuleGroup.Instance.Namespace,
+			Configmap:          clusterRuleGroup.Instance.Configmap,
+			PrometheusOperator: clusterRuleGroup.Instance.ConfigPrometheusOperator,
+		})
+		if err != nil {
+			return err
+		}
+		if err = rc.BatchSet(clusterRuleGroup.GroupName, clusterRuleGroup.Rules); err != nil {
+			return err
+		}
+	}
+	i.AddPrometheusReloadChan()
+	return nil
+}
+
+func (i *alert) PrometheusRuleBatchRemove(clusterRuleGroups map[string]db.ClusterRuleGroup) (err error) {
+	for _, clusterRuleGroup := range clusterRuleGroups {
+		rc, err := rule.GetComponent(clusterRuleGroup.Instance.RuleStoreType, &rule.Params{
+			InstanceID:         clusterRuleGroup.Instance.ID,
+			RulePath:           clusterRuleGroup.Instance.FilePath,
+			ClusterId:          clusterRuleGroup.Instance.ClusterId,
+			Namespace:          clusterRuleGroup.Instance.Namespace,
+			Configmap:          clusterRuleGroup.Instance.Configmap,
+			PrometheusOperator: clusterRuleGroup.Instance.ConfigPrometheusOperator,
+		})
+		if err != nil {
+			return err
+		}
+		if err = rc.BatchRemove(clusterRuleGroup.GroupName); err != nil {
+			return err
+		}
 	}
 	i.AddPrometheusReloadChan()
 	return nil
@@ -206,7 +249,7 @@ func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, name, con
 func (i *alert) DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (err error) {
 	if obj.AlertRules == nil || len(obj.AlertRules) == 0 {
 		// v1 version
-		return alarmRuleDelete(instance, obj.RuleName(0))
+		return alarmRuleDelete(instance, obj.GetGroupName(instance.ID), obj.RuleName(0))
 	} else {
 		// v2 version
 		for iidRuleName := range obj.AlertRules {
@@ -218,7 +261,10 @@ func (i *alert) DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (
 				iid, _ := strconv.Atoi(iidTableArr[0])
 				ins, _ = db.InstanceInfo(invoker.Db, iid)
 			}
-			if err = alarmRuleDelete(&ins, ruleName); err != nil {
+			if ins.RuleStoreType == db.RuleStoreTypeK8sOperator {
+				continue
+			}
+			if err = alarmRuleDelete(&ins, obj.GetGroupName(ins.ID), ruleName); err != nil {
 				return
 			}
 		}
@@ -237,6 +283,7 @@ func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	// create new views
 	viewDDLs := db.String2String{}
 	alertRules := db.String2String{}
+	clusterRuleGroups := map[string]db.ClusterRuleGroup{}
 	for filterId, filterItem := range filtersDB {
 		var tableInfo db.BaseTable
 		// table info
@@ -299,10 +346,32 @@ func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 		r := i.PrometheusRuleGen(alarmObj, filterItem.Exp, filterId)
 		ruleName := alarmObj.RuleName(filterId)
 		alertRules[fmt.Sprintf("%d|%s", tableInfo.Database.Iid, ruleName)] = r
-		if err = i.PrometheusRuleCreateOrUpdate(instance, ruleName, r); err != nil {
-			return
+		if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
+			clusterRuleGroup := db.ClusterRuleGroup{}
+			if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
+				clusterRuleGroup = tmp
+			} else {
+				clusterRuleGroup.ClusterId = instance.ClusterId
+				clusterRuleGroup.Instance = instance
+				clusterRuleGroup.GroupName = alarmObj.GetGroupName(instance.ID)
+				clusterRuleGroup.Rules = make([]db.ClusterRuleItem, 0)
+			}
+			clusterRuleGroup.Rules = append(clusterRuleGroup.Rules, db.ClusterRuleItem{
+				RuleName: ruleName,
+				Content:  r,
+			})
+			clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
+		} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+			if err = Alert.DeletePrometheusRule(&instance, alarmObj); err != nil {
+				return
+			}
+			if err = i.PrometheusRuleCreateOrUpdate(instance, alarmObj.GetGroupName(instance.ID), ruleName, r); err != nil {
+				return
+			}
 		}
-		if err = Alert.DeletePrometheusRule(&instance, alarmObj); err != nil {
+	}
+	if len(clusterRuleGroups) > 0 {
+		if err = i.PrometheusRuleBatchSet(clusterRuleGroups); err != nil {
 			return
 		}
 	}
@@ -318,6 +387,8 @@ func (i *alert) OpenOperator(id int) (err error) {
 	if err != nil {
 		return
 	}
+	clusterRuleGroups := map[string]db.ClusterRuleGroup{}
+
 	for _, ri := range relatedList {
 		op, errInstanceManager := InstanceManager.Load(ri.Instance.ID)
 		if errInstanceManager != nil {
@@ -351,26 +422,64 @@ func (i *alert) OpenOperator(id int) (err error) {
 			for iidRuleName, alertRule := range alarmInfo.AlertRules {
 				ruleName := iidRuleName
 				iidTableArr := strings.Split(iidRuleName, "|")
-				var ins db.BaseInstance
+				var instance db.BaseInstance
 				if len(iidTableArr) == 2 {
 					ruleName = iidTableArr[1]
 					iid, _ := strconv.Atoi(iidTableArr[0])
-					ins, _ = db.InstanceInfo(invoker.Db, iid)
+					instance, _ = db.InstanceInfo(invoker.Db, iid)
 				}
-				if err = i.PrometheusRuleCreateOrUpdate(ins, ruleName, alertRule); err != nil {
-					elog.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
-					return
+				if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
+					clusterRuleGroup := db.ClusterRuleGroup{}
+					if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
+						clusterRuleGroup = tmp
+					} else {
+						clusterRuleGroup.ClusterId = instance.ClusterId
+						clusterRuleGroup.Instance = instance
+						clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
+						clusterRuleGroup.Rules = make([]db.ClusterRuleItem, 0)
+					}
+					clusterRuleGroup.Rules = append(clusterRuleGroup.Rules, db.ClusterRuleItem{
+						RuleName: ruleName,
+						Content:  alertRule,
+					})
+					clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
+				} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+					if err = i.PrometheusRuleCreateOrUpdate(instance, alarmInfo.GetGroupName(instance.ID), ruleName, alertRule); err != nil {
+						elog.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+						return
+					}
 				}
 			}
 		} else if alarmInfo.Tid > 0 {
 			table, _ := db.TableInfo(invoker.Db, alarmInfo.Tid)
-			ins, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
-			if err = i.PrometheusRuleCreateOrUpdate(ins, alarmInfo.RuleName(0), alarmInfo.AlertRule); err != nil {
-				elog.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
-				return
+			instance, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
+			if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
+				clusterRuleGroup := db.ClusterRuleGroup{}
+				if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
+					clusterRuleGroup = tmp
+				} else {
+					clusterRuleGroup.ClusterId = instance.ClusterId
+					clusterRuleGroup.Instance = instance
+					clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
+					clusterRuleGroup.Rules = make([]db.ClusterRuleItem, 0)
+				}
+				clusterRuleGroup.Rules = append(clusterRuleGroup.Rules, db.ClusterRuleItem{
+					RuleName: alarmInfo.GetGroupName(instance.ID),
+					Content:  alarmInfo.RuleName(0),
+				})
+				clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
+			} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+				if err = i.PrometheusRuleCreateOrUpdate(instance, alarmInfo.GetGroupName(instance.ID), alarmInfo.RuleName(0), alarmInfo.AlertRule); err != nil {
+					elog.Error("alert", elog.String("step", "prometheus rule delete failed"), elog.String("err", err.Error()))
+					return
+				}
 			}
 		}
-
+	}
+	if len(clusterRuleGroups) > 0 {
+		if err = i.PrometheusRuleBatchSet(clusterRuleGroups); err != nil {
+			return
+		}
 	}
 	_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusOpen})
 	if err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusRuleCheck}); err != nil {
@@ -508,7 +617,7 @@ func AlertRuleCheck() error {
 					isRuleOk = false
 					break
 				}
-				prom, err = alertcomponent.NewPrometheus(ins.PrometheusTarget)
+				prom, err = alertcomponent.NewPrometheus(ins.PrometheusTarget, ins.RuleStoreType)
 				if err != nil {
 					core.LoggerError("ruleCheck", "prometheus", err)
 					isRuleOk = false
@@ -608,16 +717,17 @@ func noDataOp(op int, exp, expVal string) string {
 	}
 }
 
-func alarmRuleDelete(instance *db.BaseInstance, ruleName string) (err error) {
+func alarmRuleDelete(instance *db.BaseInstance, groupName, ruleName string) (err error) {
 	rc, err := rule.GetComponent(instance.RuleStoreType, &rule.Params{
-		InstanceID: instance.ID,
-		RulePath:   instance.FilePath,
-		ClusterId:  instance.ClusterId,
-		Namespace:  instance.Namespace,
-		Configmap:  instance.Configmap,
+		InstanceID:         instance.ID,
+		RulePath:           instance.FilePath,
+		ClusterId:          instance.ClusterId,
+		Namespace:          instance.Namespace,
+		Configmap:          instance.Configmap,
+		PrometheusOperator: instance.ConfigPrometheusOperator,
 	})
 	if err != nil {
 		return err
 	}
-	return rc.Delete(ruleName)
+	return rc.Delete(groupName, ruleName)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/gotomicro/cetus/pkg/xgo"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
+	"github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 	"go.uber.org/zap"
 
 	"k8s.io/client-go/rest"
@@ -55,8 +56,8 @@ func InitClusterManager() {
 
 func (s *clusterManager) sync() {
 	for {
+		time.Sleep(time.Minute)
 		s.load()
-		time.Sleep(time.Second * 5)
 	}
 }
 
@@ -113,10 +114,15 @@ func (s *clusterManager) addConn(key string, cluster *db.Cluster) {
 		elog.Warn(fmt.Sprintf("build cache controller for cluster (%s) error.", cluster.Name), zap.Error(err))
 		return
 	}
+	clientSetVersioned, err := versioned.NewForConfig(config)
+	if err != nil {
+		elog.Warn(fmt.Sprintf("build cluster (%s)'s versioned client error.", cluster.Name), zap.Error(err))
+		return
+	}
 	cm := &ClusterClient{
 		Config:     config,
 		Cluster:    cluster,
-		KubeClient: NewResourceHandler(clientSet, cacheFactory),
+		KubeClient: NewResourceHandler(clientSet, clientSetVersioned, cacheFactory),
 	}
 	s.clients.Store(key, cm)
 }

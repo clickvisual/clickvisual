@@ -63,6 +63,7 @@ func TagsToString(alarm *db.Alarm, withQuote bool, filterId int) string {
 		tags = make(map[string]string, 0)
 	}
 	tags["uuid"] = alarm.Uuid
+	tags["alarmId"] = strconv.Itoa(alarm.ID)
 	result := make([]string, 0)
 	for k, v := range tags {
 		result = resultAppend(result, k, v, withQuote)

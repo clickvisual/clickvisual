@@ -13,10 +13,12 @@ import (
 	"net/http"
 
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,20 +46,28 @@ type ResourceHandler interface {
 	Update(kind string, namespace string, name string, object *runtime.Unknown) (*runtime.Unknown, error)
 	Get(kind string, namespace string, name string) (runtime.Object, error)
 	List(kind string, namespace string, labelSelector string) ([]runtime.Object, error)
-	Delete(kind string, namespace string, name string, options *meta_v1.DeleteOptions) error
+	Delete(kind string, namespace string, name string, options *metav1.DeleteOptions) error
 	Apply(kind string, obj runtime.Object) error
+	GetClientVersioned() *versioned.Clientset
 }
 
 type resourceHandler struct {
-	client       *kubernetes.Clientset
-	cacheFactory *CacheFactory
+	client          *kubernetes.Clientset
+	clientVersioned *versioned.Clientset
+	cacheFactory    *CacheFactory
 }
 
-func NewResourceHandler(kubeClient *kubernetes.Clientset, cacheFactory *CacheFactory) ResourceHandler {
+func NewResourceHandler(kubeClient *kubernetes.Clientset, versionedClient *versioned.Clientset, cacheFactory *CacheFactory) ResourceHandler {
+	versionedClient.RESTClient().Get()
 	return &resourceHandler{
-		client:       kubeClient,
-		cacheFactory: cacheFactory,
+		client:          kubeClient,
+		clientVersioned: versionedClient,
+		cacheFactory:    cacheFactory,
 	}
+}
+
+func (h *resourceHandler) GetClientVersioned() *versioned.Clientset {
+	return h.clientVersioned
 }
 
 func (h *resourceHandler) Create(kind string, namespace string, object *runtime.Unknown) (*runtime.Unknown, error) {
@@ -90,7 +100,7 @@ func (h *resourceHandler) Update(kind string, namespace string, name string, obj
 		Resource(kind).
 		Name(name).
 		SetHeader("Content-Type", "application/json").
-		Body([]byte(object.Raw))
+		Body(object.Raw)
 	if resource.Namespaced {
 		req.Namespace(namespace)
 	}
@@ -101,7 +111,7 @@ func (h *resourceHandler) Update(kind string, namespace string, name string, obj
 	return &result, err
 }
 
-func (h *resourceHandler) Delete(kind string, namespace string, name string, options *meta_v1.DeleteOptions) error {
+func (h *resourceHandler) Delete(kind string, namespace string, name string, options *metav1.DeleteOptions) error {
 	resource, ok := api.KindToResourceMap[kind]
 	if !ok {
 		return fmt.Errorf("Resource kind (%s) not support yet . ", kind)
@@ -120,6 +130,9 @@ func (h *resourceHandler) Delete(kind string, namespace string, name string, opt
 
 // Get object from cache
 func (h *resourceHandler) Get(kind string, namespace string, name string) (runtime.Object, error) {
+	if kind == api.ResourceNamePrometheusRule {
+		return h.clientVersioned.MonitoringV1().PrometheusRules(namespace).Get(context.Background(), name, metav1.GetOptions{})
+	}
 	resource, ok := api.KindToResourceMap[kind]
 	if !ok {
 		return nil, fmt.Errorf("Resource kind (%s) not support yet . ", kind)

@@ -19,7 +19,7 @@ jobs:
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
           go version 
-          go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.1-rc3
+          go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.3
           egogen --config egogen.yaml
       - name: Install ossutil
         run: wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64

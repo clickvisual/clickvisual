@@ -20,7 +20,10 @@ func buildCacheController(client *kubernetes.Clientset) (*CacheFactory, error) {
 	sharedInformerFactory := informers.NewSharedInformerFactory(client, defaultResyncPeriod)
 
 	// Start all Resources defined in KindToResourceMap
-	for _, value := range api.KindToResourceMap {
+	for resource, value := range api.KindToResourceMap {
+		if resource == api.ResourceNamePrometheusRule {
+			continue
+		}
 		genericInformer, err := sharedInformerFactory.ForResource(value.GroupVersionResourceKind.GroupVersionResource)
 		if err != nil {
 			return nil, err

@@ -8,7 +8,7 @@
                     "USER"
                 ],
                 "summary": "三方鉴权",
-                "operationId": "GET./admin/login/{oauth}",
+                "operationId": "user.Oauth",
                 "parameters": [
                     {
                         "name": "oauth",
@@ -47,7 +47,7 @@
                     "USER"
                 ],
                 "summary": "用户登陆",
-                "operationId": "POST./admin/users/login",
+                "operationId": "user.Login",
                 "parameters": [
                     {
                         "name": "payload",
@@ -59,7 +59,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -70,7 +81,7 @@
                     "ALARM"
                 ],
                 "summary": "告警列表",
-                "operationId": "GET./v1/alarms",
+                "operationId": "alarm.List",
                 "parameters": [
                     {
                         "type": "integer",
@@ -116,7 +127,7 @@
                     "ALARM"
                 ],
                 "summary": "告警创建",
-                "operationId": "POST./v1/alarms",
+                "operationId": "alarm.Create",
                 "parameters": [
                     {
                         "name": "payload",
@@ -128,7 +139,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -142,14 +164,25 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道列表",
-                "operationId": "GET./v1/alarms-channels",
+                "operationId": "alarm.ChannelList",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.AlarmChannel"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.AlarmChannel"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -163,7 +196,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道创建",
-                "operationId": "POST./v1/alarms-channels",
+                "operationId": "alarm.ChannelCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -175,7 +208,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -189,7 +233,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道测试",
-                "operationId": "POST./v1/alarms-channels/send-test",
+                "operationId": "alarm.ChannelSendTest",
                 "parameters": [
                     {
                         "name": "payload",
@@ -201,7 +245,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -215,7 +270,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道详情",
-                "operationId": "GET./v1/alarms-channels/{id}",
+                "operationId": "alarm.ChannelInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -226,7 +281,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.AlarmChannel"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.AlarmChannel"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -239,7 +305,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道删除",
-                "operationId": "DELETE./v1/alarms-channels/{id}",
+                "operationId": "alarm.ChannelDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -248,7 +314,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -260,7 +337,7 @@
                     "ALARM"
                 ],
                 "summary": "告警渠道更新",
-                "operationId": "PATCH./v1/alarms-channels/{id}",
+                "operationId": "alarm.ChannelUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -276,7 +353,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -287,7 +375,7 @@
                     "ALARM"
                 ],
                 "summary": "告警推送记录",
-                "operationId": "GET./v1/alarms-histories",
+                "operationId": "alarm.HistoryList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -316,7 +404,7 @@
                     "ALARM"
                 ],
                 "summary": "告警推送详情",
-                "operationId": "GET./v1/alarms-histories/{id}",
+                "operationId": "alarm.HistoryInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -327,7 +415,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.AlarmHistory"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.AlarmHistory"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -342,7 +441,7 @@
                     "ALARM"
                 ],
                 "summary": "告警详情",
-                "operationId": "GET./v1/alarms/{id}",
+                "operationId": "alarm.Info",
                 "parameters": [
                     {
                         "name": "id",
@@ -353,7 +452,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespAlarmInfo"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespAlarmInfo"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -366,7 +476,7 @@
                     "ALARM"
                 ],
                 "summary": "告警删除",
-                "operationId": "DELETE./v1/alarms/{id}",
+                "operationId": "alarm.Delete",
                 "parameters": [
                     {
                         "name": "id",
@@ -375,7 +485,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -387,7 +508,7 @@
                     "ALARM"
                 ],
                 "summary": "告警更新",
-                "operationId": "PATCH./v1/alarms/{id}",
+                "operationId": "alarm.Update",
                 "parameters": [
                     {
                         "name": "id",
@@ -403,7 +524,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -414,9 +546,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/folders",
+                "operationId": "bigdata.FolderCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -428,7 +560,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -439,9 +582,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/folders/{id}",
+                "operationId": "bigdata.FolderInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -452,7 +595,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInfoFolder"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInfoFolder"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -462,9 +616,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/folders/{id}",
+                "operationId": "bigdata.FolderDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -473,7 +627,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -482,9 +647,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/folders/{id}",
+                "operationId": "bigdata.FolderUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -500,7 +665,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -511,9 +687,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/instances/{id}/columns",
+                "operationId": "bigdata.InstanceColumnList",
                 "parameters": [
                     {
                         "name": "id",
@@ -534,9 +710,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.Column"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.Column"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -549,9 +736,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/instances/{id}/databases",
+                "operationId": "bigdata.InstanceDatabaseList",
                 "parameters": [
                     {
                         "name": "id",
@@ -562,7 +749,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -574,9 +772,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/instances/{id}/tables",
+                "operationId": "bigdata.InstanceTableList",
                 "parameters": [
                     {
                         "name": "id",
@@ -592,7 +790,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -604,9 +813,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/nodes/{id}/crontab",
+                "operationId": "mining.CrontabInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -617,7 +826,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataCrontab"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataCrontab"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -629,7 +849,7 @@
                 "tags": [
                     "STORAGE"
                 ],
-                "operationId": "DELETE./v1/bigdata/mining/nodes/{id}/crontab",
+                "operationId": "mining.CrontabDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -638,7 +858,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -649,9 +880,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/sources/{id}/columns",
+                "operationId": "bigdata.SourceColumnList",
                 "parameters": [
                     {
                         "name": "id",
@@ -672,9 +903,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.Column"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.Column"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -687,9 +929,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/sources/{id}/databases",
+                "operationId": "bigdata.SourceDatabaseList",
                 "parameters": [
                     {
                         "name": "id",
@@ -700,7 +942,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -712,9 +965,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/sources/{id}/tables",
+                "operationId": "bigdata.SourceTableList",
                 "parameters": [
                     {
                         "name": "id",
@@ -730,7 +983,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -742,9 +1006,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/workflows",
+                "operationId": "mining.WorkflowList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -756,9 +1020,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataWorkflow"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataWorkflow"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -769,9 +1044,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/mining/workflows",
+                "operationId": "mining.WorkflowCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -783,7 +1058,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -794,9 +1080,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/mining/workflows/{id}",
+                "operationId": "mining.WorkflowInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -807,7 +1093,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataWorkflow"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataWorkflow"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -817,9 +1114,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/mining/workflows/{id}",
+                "operationId": "mining.WorkflowDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -828,7 +1125,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -837,9 +1145,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/mining/workflows/{id}",
+                "operationId": "mining.WorkflowUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -855,7 +1163,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -866,9 +1185,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes",
+                "operationId": "bigdata.NodeList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -900,7 +1219,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespListFolder"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespListFolder"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -910,9 +1240,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/nodes",
+                "operationId": "bigdata.NodeCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -926,7 +1256,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataNode"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataNode"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -938,9 +1279,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes/{id}",
+                "operationId": "bigdata.NodeInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -951,7 +1292,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInfoNode"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInfoNode"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -961,9 +1313,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/nodes/{id}",
+                "operationId": "bigdata.NodeDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -972,7 +1324,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -981,9 +1344,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/nodes/{id}",
+                "operationId": "bigdata.NodeUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -999,7 +1362,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1007,9 +1381,9 @@
         "/v1/bigdata/nodes/{id}/histories": {
             "get": {
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes/{id}/histories",
+                "operationId": "bigdata.NodeHistoryListPage",
                 "parameters": [
                     {
                         "name": "id",
@@ -1029,9 +1403,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/nodes/{id}/histories/{uuid}",
+                "operationId": "bigdata.NodeHistoryInfo",
                 "parameters": [
                     {
                         "name": "uuid",
@@ -1042,7 +1416,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataNodeHistory"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataNodeHistory"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1054,53 +1439,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/nodes/{id}/lock",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/v1/bigdata/nodes/{id}/result/{rid}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "PANDAS"
-                ],
-                "operationId": "GET./v1/bigdata/nodes/{id}/result/{rid}",
-                "parameters": [
-                    {
-                        "name": "rid",
-                        "in": "path"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/v1/bigdata/nodes/{id}/run": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "PANDAS"
-                ],
-                "operationId": "POST./v1/bigdata/nodes/{id}/run",
+                "operationId": "bigdata.NodeLock",
                 "parameters": [
                     {
                         "name": "id",
@@ -1111,7 +1452,84 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespRunNode"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/bigdata/nodes/{id}/result/{rid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ANALYSIS"
+                ],
+                "operationId": "bigdata.NodeResultInfo",
+                "parameters": [
+                    {
+                        "name": "rid",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/bigdata/nodes/{id}/run": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ANALYSIS"
+                ],
+                "operationId": "bigdata.NodeRun",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespRunNode"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1123,9 +1541,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/nodes/{id}/stop",
+                "operationId": "bigdata.NodeStop",
                 "parameters": [
                     {
                         "name": "id",
@@ -1136,7 +1554,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespRunNode"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespRunNode"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1148,9 +1577,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/nodes/{id}/unlock",
+                "operationId": "bigdata.NodeUnlock",
                 "parameters": [
                     {
                         "name": "id",
@@ -1159,7 +1588,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1170,9 +1610,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/sources",
+                "operationId": "bigdata.SourceList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1194,9 +1634,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataSource"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataSource"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -1207,9 +1658,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "POST./v1/bigdata/sources",
+                "operationId": "bigdata.SourceCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -1221,7 +1672,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1232,9 +1694,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "GET./v1/bigdata/sources/{id}",
+                "operationId": "bigdata.SourceInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -1245,7 +1707,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataSource"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BigdataSource"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1255,9 +1728,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "DELETE./v1/bigdata/sources/{id}",
+                "operationId": "bigdata.SourceDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -1266,7 +1739,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -1275,9 +1759,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
-                "operationId": "PATCH./v1/bigdata/sources/{id}",
+                "operationId": "bigdata.SourceUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -1293,7 +1777,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1307,14 +1802,25 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "GET./v1/clusters",
+                "operationId": "kube.ClusterList",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Cluster"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Cluster"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -1330,7 +1836,7 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "GET./v1/clusters/{clusterId}/configmaps",
+                "operationId": "kube.ConfigMapList",
                 "parameters": [
                     {
                         "name": "clusterId",
@@ -1341,9 +1847,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespNamespaceConfigmaps"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespNamespaceConfigmaps"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -1357,7 +1874,7 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "POST./v1/clusters/{clusterId}/configmaps",
+                "operationId": "kube.ConfigMapCreate",
                 "parameters": [
                     {
                         "name": "clusterId",
@@ -1375,7 +1892,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.K8SConfigMap"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.K8SConfigMap"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1390,7 +1918,7 @@
                 "tags": [
                     "KUBE"
                 ],
-                "operationId": "GET./v1/clusters/{clusterId}/namespace/{namespace}/configmaps/{name}",
+                "operationId": "kube.ConfigMapInfo",
                 "parameters": [
                     {
                         "name": "clusterId",
@@ -1414,7 +1942,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "string"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1429,7 +1968,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations",
+                "operationId": "configure.List",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1456,7 +1995,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespListConfig"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespListConfig"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1469,7 +2019,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations",
+                "operationId": "configure.Create",
                 "parameters": [
                     {
                         "name": "payload",
@@ -1481,7 +2031,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1495,7 +2056,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}",
+                "operationId": "configure.Detail",
                 "parameters": [
                     {
                         "name": "id",
@@ -1506,7 +2067,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDetailConfig"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDetailConfig"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1519,7 +2091,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "DELETE./v1/configurations/{id}",
+                "operationId": "configure.Delete",
                 "parameters": [
                     {
                         "name": "id",
@@ -1528,7 +2100,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -1540,7 +2123,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "PATCH./v1/configurations/{id}",
+                "operationId": "configure.Update",
                 "parameters": [
                     {
                         "name": "id",
@@ -1556,7 +2139,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1570,7 +2164,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/diff",
+                "operationId": "configure.Diff",
                 "parameters": [
                     {
                         "name": "id",
@@ -1591,7 +2185,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDiffConfig"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDiffConfig"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1603,7 +2208,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/histories",
+                "operationId": "configure.HistoryList",
                 "parameters": [
                     {
                         "name": "id",
@@ -1631,7 +2236,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/histories/{version}",
+                "operationId": "configure.HistoryInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -1646,7 +2251,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.ConfigurationHistory"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.ConfigurationHistory"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1660,7 +2276,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "GET./v1/configurations/{id}/lock",
+                "operationId": "configure.Lock",
                 "parameters": [
                     {
                         "name": "id",
@@ -1669,7 +2285,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1683,7 +2310,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations/{id}/publish",
+                "operationId": "configure.Publish",
                 "parameters": [
                     {
                         "name": "id",
@@ -1699,7 +2326,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1713,7 +2351,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations/{id}/sync",
+                "operationId": "configure.Sync",
                 "parameters": [
                     {
                         "name": "payload",
@@ -1731,7 +2369,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "string"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1745,7 +2394,7 @@
                 "tags": [
                     "CONFIGURE"
                 ],
-                "operationId": "POST./v1/configurations/{id}/unlock",
+                "operationId": "configure.Unlock",
                 "parameters": [
                     {
                         "name": "id",
@@ -1754,7 +2403,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1767,7 +2427,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/databases/{did}/tables",
+                "operationId": "base.TableList",
                 "parameters": [
                     {
                         "name": "did",
@@ -1778,9 +2438,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableSimple"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableSimple"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -1793,7 +2464,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/databases/{did}/tables",
+                "operationId": "base.TableCreate",
                 "parameters": [
                     {
                         "name": "did",
@@ -1809,7 +2480,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1822,7 +2504,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "DELETE./v1/databases/{id}",
+                "operationId": "base.DatabaseDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -1831,7 +2513,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -1842,7 +2535,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "PATCH./v1/databases/{id}",
+                "operationId": "base.DatabaseUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -1858,7 +2551,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1871,10 +2575,21 @@
                 "tags": [
                     "EVENT"
                 ],
-                "operationId": "GET./v1/event/enums",
+                "operationId": "event.GetAllEnums",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1887,7 +2602,7 @@
                 "tags": [
                     "EVENT"
                 ],
-                "operationId": "GET./v1/event/source/{name}/enums",
+                "operationId": "event.GetEnumsOfSource",
                 "parameters": [
                     {
                         "name": "name",
@@ -1898,7 +2613,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.RespEnumsOfSource"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.RespEnumsOfSource"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1912,7 +2638,7 @@
                 "tags": [
                     "EVENT"
                 ],
-                "operationId": "GET./v1/events",
+                "operationId": "event.ListPage",
                 "parameters": [
                     {
                         "type": "string",
@@ -1935,7 +2661,18 @@
                         "description": "",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1949,7 +2686,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/hidden/{tid}",
+                "operationId": "base.HiddenList",
                 "parameters": [
                     {
                         "name": "tid",
@@ -1960,7 +2697,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -1972,7 +2720,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/hidden/{tid}",
+                "operationId": "base.HiddenUpsert",
                 "parameters": [
                     {
                         "name": "tid",
@@ -1988,7 +2736,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2002,10 +2761,21 @@
                 "tags": [
                     "INSTILL"
                 ],
-                "operationId": "GET./v1/install",
+                "operationId": "initialize.IsInstall",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -2017,10 +2787,21 @@
                 "tags": [
                     "INSTILL"
                 ],
-                "operationId": "POST./v1/install",
+                "operationId": "initialize.Install",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2033,7 +2814,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/columns-self-built",
+                "operationId": "base.TableColumnsSelfBuilt",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2072,7 +2853,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2085,7 +2877,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/complete",
+                "operationId": "base.QueryComplete",
                 "parameters": [
                     {
                         "type": "string",
@@ -2101,7 +2893,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespComplete"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespComplete"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2115,7 +2918,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/databases",
+                "operationId": "base.DatabaseList",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2126,9 +2929,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDatabaseItem"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDatabaseItem"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -2141,7 +2955,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/instances/{iid}/databases",
+                "operationId": "base.DatabaseCreate",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2157,7 +2971,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2170,7 +2995,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/databases-exist",
+                "operationId": "base.DatabaseExistList",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2181,9 +3006,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDatabaseSelfBuilt"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDatabaseSelfBuilt"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -2198,7 +3034,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/instances/{iid}/databases/{dn}/tables/{tn}/deps",
+                "operationId": "base.TableDeps",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2217,9 +3053,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableDeps"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableDeps"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -2234,7 +3081,8 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/instances/{iid}/tables-exist",
+                "summary": "接入已有日志库",
+                "operationId": "base.TableCreateSelfBuilt",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2250,7 +3098,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2263,7 +3122,8 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/instances/{iid}/tables-exist-batch",
+                "summary": "批量接入已有日志库",
+                "operationId": "base.TableCreateSelfBuiltBatch",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2279,7 +3139,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2292,14 +3163,25 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/menus/list",
+                "operationId": "permission.MenuList",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_internal_service_permission.MenuTreeItem"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_internal_service_permission.MenuTreeItem"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -2314,10 +3196,21 @@
                 "tags": [
                     "INSTILL"
                 ],
-                "operationId": "GET./v1/migration",
+                "operationId": "initialize.Migration",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2330,7 +3223,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "POST./v1/pms/check",
+                "operationId": "permission.CheckPermission",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2342,7 +3235,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2355,7 +3259,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/commonInfo",
+                "operationId": "permission.GetPmsCommonInfo",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2365,7 +3269,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2378,7 +3293,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/instance/{iid}/role/grant",
+                "operationId": "permission.GetInstancePmsRolesGrant",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2419,7 +3334,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_internal_service_permission.InstancePmsRolesWithGrantInfo"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_internal_service_permission.InstancePmsRolesWithGrantInfo"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2431,7 +3357,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "PUT./v1/pms/instance/{iid}/role/grant",
+                "operationId": "permission.UpdateInstancePmsRolesGrant",
                 "parameters": [
                     {
                         "name": "iid",
@@ -2447,7 +3373,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2460,7 +3397,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/role",
+                "operationId": "permission.PmsRoleList",
                 "parameters": [
                     {
                         "type": "string",
@@ -2483,9 +3420,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.PmsRole"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.PmsRole"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -2498,7 +3446,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "POST./v1/pms/role",
+                "operationId": "permission.CreatePmsRole",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2510,7 +3458,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2523,7 +3482,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/role/{id}",
+                "operationId": "permission.PmsRoleInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -2534,7 +3493,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.PmsRole"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.PmsRole"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2546,7 +3516,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "PUT./v1/pms/role/{id}",
+                "operationId": "permission.UpdatePmsRole",
                 "parameters": [
                     {
                         "name": "id",
@@ -2562,7 +3532,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -2573,7 +3554,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "DELETE./v1/pms/role/{id}",
+                "operationId": "permission.DeletePmsRole",
                 "parameters": [
                     {
                         "name": "id",
@@ -2589,7 +3570,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2602,7 +3594,7 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "POST./v1/pms/root/grant",
+                "operationId": "permission.GrantRootUids",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2614,7 +3606,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2627,12 +3630,23 @@
                 "tags": [
                     "PREMISSION"
                 ],
-                "operationId": "GET./v1/pms/root/uids",
+                "operationId": "permission.GetRootUids",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RootUsers"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RootUsers"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2649,7 +3663,7 @@
                     "ALARM"
                 ],
                 "summary": "告警推送 Webhook",
-                "operationId": "POST./v1/prometheus/alerts",
+                "operationId": "alert.Webhook",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2661,7 +3675,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2672,7 +3697,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "GET./v1/sys/clusters",
+                "operationId": "setting.ClusterPageList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2698,7 +3723,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "POST./v1/sys/clusters",
+                "operationId": "setting.ClusterCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2710,7 +3735,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2724,7 +3760,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "GET./v1/sys/clusters/{id}",
+                "operationId": "setting.ClusterInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -2735,7 +3771,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Cluster"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Cluster"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2748,7 +3795,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "DELETE./v1/sys/clusters/{id}",
+                "operationId": "setting.ClusterDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -2757,7 +3804,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -2769,7 +3827,7 @@
                 "tags": [
                     "SYSTEM"
                 ],
-                "operationId": "PATCH./v1/sys/clusters/{id}",
+                "operationId": "setting.ClusterUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -2785,7 +3843,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2796,16 +3865,28 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "SYSTEM"
                 ],
-                "operationId": "GET./v1/sys/instances",
+                "summary": "ClickHouse 列表",
+                "operationId": "base.InstanceList",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -2816,9 +3897,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "SYSTEM"
                 ],
-                "operationId": "POST./v1/sys/instances",
+                "summary": "ClickHouse 创建",
+                "operationId": "base.InstanceCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2830,7 +3912,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2841,9 +3934,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "SYSTEM"
                 ],
-                "operationId": "POST./v1/sys/instances/test",
+                "summary": "ClickHouse DSN 测试",
+                "operationId": "base.InstanceTest",
                 "parameters": [
                     {
                         "name": "payload",
@@ -2855,7 +3949,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2866,9 +3971,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "SYSTEM"
                 ],
-                "operationId": "GET./v1/sys/instances/{id}",
+                "summary": "ClickHouse 详情",
+                "operationId": "base.InstanceInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -2879,7 +3985,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2889,9 +4006,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "SYSTEM"
                 ],
-                "operationId": "DELETE./v1/sys/instances/{id}",
+                "summary": "ClickHouse 删除",
+                "operationId": "base.InstanceDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -2900,7 +4018,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -2909,9 +4038,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "SYSTEM"
                 ],
-                "operationId": "PATCH./v1/sys/instances/{id}",
+                "summary": "ClickHouse 更新",
+                "operationId": "base.InstanceUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -2927,7 +4057,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2940,7 +4081,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/table/id",
+                "operationId": "base.TableId",
                 "parameters": [
                     {
                         "type": "string",
@@ -2967,7 +4108,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "integer"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "integer"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -2981,7 +4133,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}",
+                "operationId": "base.TableInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -2992,7 +4144,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableDetail"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableDetail"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3004,7 +4167,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "DELETE./v1/tables/{id}",
+                "operationId": "base.TableDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -3013,7 +4176,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -3024,7 +4198,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "PATCH./v1/tables/{id}",
+                "operationId": "base.TableUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -3040,7 +4214,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3054,7 +4239,7 @@
                     "LOGS"
                 ],
                 "summary": "日志趋势图",
-                "operationId": "GET./v1/tables/{id}/charts",
+                "operationId": "base.TableCharts",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3143,7 +4328,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.HighCharts"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.HighCharts"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3155,9 +4351,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "LOGS"
                 ],
-                "operationId": "GET./v1/tables/{id}/indexes",
+                "summary": "分析字段列表",
+                "operationId": "base.Indexes",
                 "parameters": [
                     {
                         "name": "id",
@@ -3168,9 +4365,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseIndex"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseIndex"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -3181,9 +4389,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "BASE"
+                    "LOGS"
                 ],
-                "operationId": "PATCH./v1/tables/{id}/indexes",
+                "summary": "分析字段更新",
+                "operationId": "base.IndexUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -3199,7 +4408,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3212,7 +4432,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}/indexes/{idx}",
+                "operationId": "base.TableIndexes",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3305,9 +4525,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespIndexItem"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespIndexItem"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -3322,7 +4553,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}/logs",
+                "operationId": "base.TableLogs",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3411,7 +4642,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespQuery"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespQuery"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3425,7 +4667,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/tables/{id}/views",
+                "operationId": "base.ViewList",
                 "parameters": [
                     {
                         "name": "id",
@@ -3436,9 +4678,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqViewList"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqViewList"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -3451,7 +4704,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "POST./v1/tables/{id}/views",
+                "operationId": "base.ViewCreate",
                 "parameters": [
                     {
                         "name": "id",
@@ -3467,7 +4720,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3481,14 +4745,25 @@
                     "USER"
                 ],
                 "summary": "用户列表",
-                "operationId": "GET./v1/users",
+                "operationId": "user.List",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.User"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.User"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -3504,12 +4779,23 @@
                     "USER"
                 ],
                 "summary": "用户详情",
-                "operationId": "GET./v1/users/info",
+                "operationId": "user.Info",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.User"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.User"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3524,10 +4810,21 @@
                     "USER"
                 ],
                 "summary": "用户退出",
-                "operationId": "POST./v1/users/logout",
+                "operationId": "user.Logout",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3541,7 +4838,7 @@
                     "USER"
                 ],
                 "summary": "修改密码",
-                "operationId": "PATCH./v1/users/{uid}/password",
+                "operationId": "user.UpdatePassword",
                 "parameters": [
                     {
                         "name": "uid",
@@ -3557,7 +4854,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3570,7 +4878,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "GET./v1/views/{id}",
+                "operationId": "base.ViewInfo",
                 "parameters": [
                     {
                         "name": "id",
@@ -3581,7 +4889,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseView"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseView"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3593,7 +4912,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "DELETE./v1/views/{id}",
+                "operationId": "base.ViewDelete",
                 "parameters": [
                     {
                         "name": "id",
@@ -3602,7 +4921,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -3613,7 +4943,7 @@
                 "tags": [
                     "BASE"
                 ],
-                "operationId": "PATCH./v1/views/{id}",
+                "operationId": "base.ViewUpdate",
                 "parameters": [
                     {
                         "name": "id",
@@ -3629,23 +4959,32 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         "/v2/alert/metrics-samples": {
             "post": {
-                "description": "  godoc\nStore advanced metric data",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "ALARM"
                 ],
-                "summary": "Create metrics samples table",
-                "operationId": "POST./v2/alert/metrics-samples",
+                "summary": "创建 Metrics.samples",
+                "operationId": "alert.CreateMetricsSamples",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3657,30 +4996,50 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         "/v2/alert/settings": {
             "get": {
-                "description": "   godoc\nInstance alarm configuration list",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "ALARM"
                 ],
-                "summary": "Instance alarm configuration list",
-                "operationId": "GET./v2/alert/settings",
+                "summary": "告警配置列表",
+                "operationId": "alert.SettingList",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.RespAlertSettingListItem"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.RespAlertSettingListItem"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -3689,16 +5048,14 @@
         },
         "/v2/alert/settings/{instance-id}": {
             "get": {
-                "description": "   godoc\nAdvanced configuration information in the instance",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "ALARM"
                 ],
-                "summary": "Advanced configuration information in the instance",
-                "operationId": "GET./v2/alert/settings/{instance-id}",
+                "summary": "告警配置详情",
+                "operationId": "alert.SettingInfo",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -3709,22 +5066,31 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.RespAlertSettingInfo"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.RespAlertSettingInfo"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
             },
             "patch": {
-                "description": "  godoc\nAlert Basic Configuration Modification",
                 "produces": [
-                    "json",
                     "application/json"
                 ],
                 "tags": [
                     "ALARM"
                 ],
-                "summary": "Alert Basic Configuration Modification",
-                "operationId": "PATCH./v2/alert/settings/{instance-id}",
+                "summary": "告警配置更新",
+                "operationId": "alert.SettingUpdate",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -3740,7 +5106,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3756,14 +5133,25 @@
                     "BASE"
                 ],
                 "summary": "Gets all instance database and table data filtered by permissions",
-                "operationId": "GET./v2/base/instances",
+                "operationId": "base.InstanceList",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstanceSimple"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstanceSimple"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -3781,7 +5169,7 @@
                     "BASE"
                 ],
                 "summary": "Create short links",
-                "operationId": "POST./v2/base/shorturls",
+                "operationId": "base.ShortURLCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3793,7 +5181,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3808,7 +5207,7 @@
                     "BASE"
                 ],
                 "summary": "Get short links",
-                "operationId": "GET./v2/base/su/{s-code}",
+                "operationId": "base.ShortURLRedirect",
                 "parameters": [
                     {
                         "name": "s-code",
@@ -3832,7 +5231,7 @@
                     "BASE"
                 ],
                 "summary": "Get user list",
-                "operationId": "GET./v2/base/users",
+                "operationId": "base.UserList",
                 "parameters": [
                     {
                         "type": "string",
@@ -3851,7 +5250,7 @@
                     "BASE"
                 ],
                 "summary": "Create new user",
-                "operationId": "POST./v2/base/users",
+                "operationId": "base.UserCreate",
                 "parameters": [
                     {
                         "name": "payload",
@@ -3865,7 +5264,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespUserCreate"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespUserCreate"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3882,7 +5292,7 @@
                     "BASE"
                 ],
                 "summary": "User delete",
-                "operationId": "DELETE./v2/base/users/{user-id}",
+                "operationId": "base.UserDelete",
                 "parameters": [
                     {
                         "name": "user-id",
@@ -3891,7 +5301,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -3907,7 +5328,7 @@
                     "BASE"
                 ],
                 "summary": "Reset user password",
-                "operationId": "PATCH./v2/base/users/{user-id}/password-reset",
+                "operationId": "base.UserPasswordReset",
                 "parameters": [
                     {
                         "name": "user-id",
@@ -3918,7 +5339,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespUserCreate"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespUserCreate"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3932,10 +5364,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "table create sql",
-                "operationId": "GET./v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql",
+                "operationId": "pandas.TableCreateSQL",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -3954,7 +5386,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "string"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -3966,10 +5409,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "表依赖解析",
-                "operationId": "GET./v2/pandas/instances/{instance-id}/table-dependencies",
+                "operationId": "pandas.TableDependencies",
                 "parameters": [
                     {
                         "name": "instance-id",
@@ -3990,7 +5433,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableDependencies"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableDependencies"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -4002,10 +5456,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "更新节点执行结果",
-                "operationId": "PATCH./v2/pandas/nodes-results/{result-id}",
+                "operationId": "pandas.NodeResultUpdate",
                 "parameters": [
                     {
                         "name": "result-id",
@@ -4021,7 +5475,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4032,10 +5497,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "创建节点任务",
-                "operationId": "POST./v2/pandas/nodes/{node-id}/crontab",
+                "operationId": "pandas.NodeCrontabCreate",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -4051,7 +5516,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -4060,10 +5536,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "节点任务更新",
-                "operationId": "PATCH./v2/pandas/nodes/{node-id}/crontab",
+                "operationId": "pandas.NodeCrontabUpdate",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -4079,7 +5555,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4092,10 +5579,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "Force the file edit lock to be acquired",
-                "operationId": "POST./v2/pandas/nodes/{node-id}/lock-acquire",
+                "operationId": "pandas.NodeLockAcquire",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -4104,7 +5591,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4112,10 +5610,10 @@
         "/v2/pandas/nodes/{node-id}/results": {
             "get": {
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "节点执行结果列表",
-                "operationId": "GET./v2/pandas/nodes/{node-id}/results",
+                "operationId": "pandas.NodeResultListPage",
                 "parameters": [
                     {
                         "name": "node-id",
@@ -4137,10 +5635,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "Data field mapping transformation",
-                "operationId": "POST./v2/pandas/utils/structural-transfer",
+                "operationId": "pandas.StructuralTransfer",
                 "parameters": [
                     {
                         "name": "payload",
@@ -4152,7 +5650,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4160,10 +5669,10 @@
         "/v2/pandas/workers": {
             "get": {
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "定时任务执行结果列表",
-                "operationId": "GET./v2/pandas/workers",
+                "operationId": "pandas.WorkerList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4204,10 +5713,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "PANDAS"
+                    "ANALYSIS"
                 ],
                 "summary": "Kanban Dashboard",
-                "operationId": "GET./v2/pandas/workers/dashboard",
+                "operationId": "pandas.WorkerDashboard",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4234,7 +5743,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespWorkerDashboard"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespWorkerDashboard"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -4251,7 +5771,7 @@
                     "STORAGE"
                 ],
                 "summary": "Creating a log library",
-                "operationId": "POST./v2/storage",
+                "operationId": "storage.Create",
                 "parameters": [
                     {
                         "name": "payload",
@@ -4263,7 +5783,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4279,7 +5810,7 @@
                     "STORAGE"
                 ],
                 "summary": "List Collect",
-                "operationId": "GET./v2/storage/collects",
+                "operationId": "storage.ListCollect",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4296,9 +5827,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Collect"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Collect"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -4314,7 +5856,7 @@
                     "STORAGE"
                 ],
                 "summary": "Create Collect",
-                "operationId": "POST./v2/storage/collects",
+                "operationId": "storage.CreateCollect",
                 "parameters": [
                     {
                         "name": "payload",
@@ -4328,7 +5870,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Collect"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_db.Collect"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -4345,7 +5898,7 @@
                     "STORAGE"
                 ],
                 "summary": "Delete Collect",
-                "operationId": "DELETE./v2/storage/collects/{collect-id}",
+                "operationId": "storage.DeleteCollect",
                 "parameters": [
                     {
                         "name": "collect-id",
@@ -4354,7 +5907,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -4368,7 +5932,7 @@
                     "STORAGE"
                 ],
                 "summary": "Update collect",
-                "operationId": "PATCH./v2/storage/collects/{collect-id}",
+                "operationId": "storage.UpdateCollect",
                 "parameters": [
                     {
                         "name": "collect-id",
@@ -4384,7 +5948,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4400,7 +5975,7 @@
                     "STORAGE"
                 ],
                 "summary": "Kafka JSON field mapping",
-                "operationId": "POST./v2/storage/mapping-json",
+                "operationId": "storage.KafkaJsonMapping",
                 "parameters": [
                     {
                         "name": "payload",
@@ -4414,7 +5989,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -4431,14 +6017,25 @@
                     "STORAGE"
                 ],
                 "summary": "trace storage list",
-                "operationId": "GET./v2/storage/traces",
+                "operationId": "storage.GetTraceList",
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableSimple"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespTableSimple"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -4456,7 +6053,7 @@
                     "STORAGE"
                 ],
                 "summary": "iStorage update",
-                "operationId": "PATCH./v2/storage/{storage-id}",
+                "operationId": "storage.Update",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -4472,7 +6069,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4488,7 +6096,7 @@
                     "STORAGE"
                 ],
                 "summary": "iStorage analysis field list",
-                "operationId": "GET./v2/storage/{storage-id}/analysis-fields",
+                "operationId": "storage.AnalysisFields",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -4499,7 +6107,18 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespStorageAnalysisFields"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespStorageAnalysisFields"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -4516,7 +6135,7 @@
                     "STORAGE"
                 ],
                 "summary": "Get storage columns",
-                "operationId": "GET./v2/storage/{storage-id}/columns",
+                "operationId": "storage.GetStorageColumns",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -4537,9 +6156,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespColumn"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespColumn"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -4557,7 +6187,7 @@
                     "STORAGE"
                 ],
                 "summary": "iStorage related trace info update",
-                "operationId": "PATCH./v2/storage/{storage-id}/trace",
+                "operationId": "storage.UpdateTraceInfo",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -4573,7 +6203,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4589,7 +6230,7 @@
                     "STORAGE"
                 ],
                 "summary": "Get trace graph",
-                "operationId": "GET./v2/storage/{storage-id}/trace-graph",
+                "operationId": "storage.GetTraceGraph",
                 "parameters": [
                     {
                         "name": "storage-id",
@@ -4610,9 +6251,20 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespJaegerDependencyDataModel"
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github.com_clickvisual_clickvisual_api_pkg_model_view.RespJaegerDependencyDataModel"
+                                    }
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -4630,7 +6282,7 @@
                     "STORAGE"
                 ],
                 "summary": "Create storage by template",
-                "operationId": "POST./v2/storage/{template}",
+                "operationId": "storage.CreateStorageByTemplate",
                 "parameters": [
                     {
                         "name": "template",
@@ -4646,7 +6298,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4662,7 +6325,7 @@
                     "STORAGE"
                 ],
                 "summary": "Creating a no format restrictions log library",
-                "operationId": "POST./v3/storage",
+                "operationId": "storage.Create",
                 "parameters": [
                     {
                         "name": "payload",
@@ -4674,7 +6337,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number"
+                                },
+                                "msg": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -5183,8 +6857,12 @@
             "id": "github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance",
             "title": "BaseInstance",
             "properties": {
+                "ConfigPrometheusOperator": {
+                    "description": "operator",
+                    "type": "string"
+                },
                 "clusterId": {
-                    "description": "cluster_id",
+                    "description": "configmap",
                     "type": "integer"
                 },
                 "clusters": {
@@ -5213,7 +6891,7 @@
                     "$ref": "#/definitions/gorm.io_plugin_soft_delete.DeletedAt"
                 },
                 "filePath": {
-                    "description": "file_path",
+                    "description": "file",
                     "type": "string"
                 },
                 "id": {
@@ -5232,7 +6910,7 @@
                     "type": "string"
                 },
                 "prometheusTarget": {
-                    "description": "prometheus ip or domain, eg: https://prometheus:9090",
+                    "description": "alarm",
                     "type": "string"
                 },
                 "replicaStatus": {
@@ -6037,6 +7715,10 @@
                 "clusterId": {
                     "type": "integer"
                 },
+                "configPrometheusOperator": {
+                    "description": "ConfigPrometheusOperator Yaml 格式 e.g.\nmetadata:\nlabels:\nprometheus: example\nrole: alert-rules\nname: prometheus-example-rules-2\nnamespace: default",
+                    "type": "string"
+                },
                 "configmap": {
                     "type": "string"
                 },
@@ -6052,7 +7734,7 @@
                     "type": "string"
                 },
                 "ruleStoreType": {
-                    "description": "rule_store_type 1 文件 2 集群",
+                    "description": "ruleStoreType 1 文件 2 configmap 3 prometheus operator",
                     "type": "integer"
                 }
             }
@@ -6132,6 +7814,10 @@
                 "clusterId": {
                     "type": "integer"
                 },
+                "configPrometheusOperator": {
+                    "description": "ConfigPrometheusOperator Yaml 格式 e.g.\nmetadata:\nlabels:\nprometheus: example\nrole: alert-rules\nname: prometheus-example-rules-2\nnamespace: default",
+                    "type": "string"
+                },
                 "configmap": {
                     "type": "string"
                 },
@@ -6150,7 +7836,7 @@
                     "type": "string"
                 },
                 "ruleStoreType": {
-                    "description": "rule_store_type 1 文件 2 集群",
+                    "description": "ruleStoreType 1 文件 2 configmap 3 prometheus operator",
                     "type": "integer"
                 }
             }

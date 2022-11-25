@@ -1,6 +1,7 @@
 package api
 
 import (
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -9,14 +10,15 @@ type ResourceName = string
 type KindName = string
 
 const (
-	ResourceNameConfigMap ResourceName = "configmaps"
-	ResourceNameNamespace ResourceName = "namespaces"
+	ResourceNameConfigMap      ResourceName = "configmaps"
+	ResourceNameNamespace      ResourceName = "namespaces"
+	ResourceNamePrometheusRule ResourceName = "prometheusrules"
 )
 
 const (
-	KindNameConfigMap      KindName     = "ConfigMap"
-	KindNameNamespace      KindName     = "Namespace"
-	KindNamePrometheusRule ResourceName = "PrometheusRule"
+	KindNameConfigMap      KindName = "ConfigMap"
+	KindNameNamespace      KindName = "Namespace"
+	KindNamePrometheusRule KindName = "PrometheusRule"
 )
 
 type ResourceMap struct {
@@ -50,6 +52,17 @@ var KindToResourceMap = map[string]ResourceMap{
 				Resource: ResourceNameNamespace,
 			},
 			Kind: KindNameNamespace,
+		},
+		Namespaced: false,
+	},
+	ResourceNamePrometheusRule: {
+		GroupVersionResourceKind: GroupVersionResourceKind{
+			GroupVersionResource: schema.GroupVersionResource{
+				Group:    monitoringv1.SchemeGroupVersion.Group,
+				Version:  monitoringv1.SchemeGroupVersion.Version,
+				Resource: ResourceNamePrometheusRule,
+			},
+			Kind: KindNamePrometheusRule,
 		},
 		Namespaced: false,
 	},

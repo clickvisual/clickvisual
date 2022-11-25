@@ -13,6 +13,7 @@ import (
 )
 
 var models = []interface{}{
+	db.BaseInstance{},
 	db.BigdataCrontab{},
 	db.AlarmFilter{},
 	db.AlarmHistory{},
@@ -33,7 +34,6 @@ var models = []interface{}{
 	db.BaseIndex{},
 	db.BaseShortURL{},
 	db.BaseDatabase{},
-	db.BaseInstance{},
 	db.BaseHiddenField{},
 
 	db.Alarm{},
