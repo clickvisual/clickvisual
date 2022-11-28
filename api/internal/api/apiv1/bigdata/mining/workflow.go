@@ -15,7 +15,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func WorkflowCreate(c *core.Context) {
 	var req view.ReqCreateWorkflow
 	if err := c.Bind(&req); err != nil {
@@ -47,7 +47,7 @@ func WorkflowCreate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func WorkflowUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -87,7 +87,7 @@ func WorkflowUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func WorkflowList(c *core.Context) {
 	var req view.ReqListWorkflow
 	if err := c.Bind(&req); err != nil {
@@ -115,7 +115,7 @@ func WorkflowList(c *core.Context) {
 	return
 }
 
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func WorkflowDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -145,7 +145,7 @@ func WorkflowDelete(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func WorkflowInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

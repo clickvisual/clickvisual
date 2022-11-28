@@ -44,7 +44,8 @@ func CrontabDelete(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         ANALYSIS
+// CrontabInfo
+// @Tags         BIGDATA
 func CrontabInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
