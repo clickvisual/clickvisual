@@ -413,11 +413,10 @@ func QueryComplete(c *core.Context) {
 	return
 }
 
+// TableCharts
 // @Tags         LOGS
 // @Summary	     日志趋势图
 func TableCharts(c *core.Context) {
-	c.Abort()
-	return
 	var param view.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
