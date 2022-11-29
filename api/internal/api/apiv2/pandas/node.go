@@ -21,7 +21,7 @@ import (
 // NodeLockAcquire  godoc
 // @Summary	     Force the file edit lock to be acquired
 // @Description  Force the file edit lock to be acquired
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 // @Accept       json
 // @Produce      json
 // @Param        node-id path int true "node id"
@@ -59,7 +59,7 @@ func NodeLockAcquire(c *core.Context) {
 
 // NodeCrontabCreate
 // @Summary	     创建节点任务
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func NodeCrontabCreate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
 	if nodeId == 0 {
@@ -111,7 +111,7 @@ func NodeCrontabCreate(c *core.Context) {
 
 // NodeCrontabUpdate
 // @Summary	     节点任务更新
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func NodeCrontabUpdate(c *core.Context) {
 	nodeId := cast.ToInt(c.Param("node-id"))
 	if nodeId == 0 {
@@ -140,12 +140,38 @@ func NodeCrontabUpdate(c *core.Context) {
 	}
 	nodeCrontabInfo, _ := db.CrontabInfo(invoker.Db, nodeId)
 	var isReload bool = false
-	if req.Cron != nodeCrontabInfo.Cron ||
-		req.IsRetry != nodeCrontabInfo.IsRetry ||
-		req.RetryTimes != nodeCrontabInfo.RetryTimes ||
-		req.RetryInterval != nodeCrontabInfo.RetryInterval {
-		isReload = true
+	if nodeCrontabInfo.NodeId != 0 {
+		if req.Cron != nodeCrontabInfo.Cron ||
+			req.IsRetry != nodeCrontabInfo.IsRetry ||
+			req.RetryTimes != nodeCrontabInfo.RetryTimes ||
+			req.RetryInterval != nodeCrontabInfo.RetryInterval {
+			isReload = true
+		}
+	} else {
+		// create
+		argsBytes, _ := json.Marshal(req.Args)
+		obj := &db.BigdataCrontab{
+			NodeId:        nodeId,
+			Desc:          req.Desc,
+			DutyUid:       req.DutyUid,
+			Cron:          req.Cron,
+			Typ:           req.Typ,
+			Args:          string(argsBytes),
+			Uid:           c.Uid(),
+			IsRetry:       req.IsRetry,
+			RetryTimes:    req.RetryTimes,
+			RetryInterval: req.RetryInterval,
+			ChannelIds:    db.Ints(req.ChannelIds),
+		}
+		err = db.CrontabCreate(invoker.Db, obj)
+		if err != nil {
+			c.JSONE(1, "create failed: "+err.Error(), nil)
+			return
+		}
+		c.JSONOK()
+		return
 	}
+
 	argsBytes, _ := json.Marshal(req.Args)
 	ups := make(map[string]interface{}, 0)
 	ups["uid"] = c.Uid()
@@ -175,7 +201,7 @@ func NodeCrontabUpdate(c *core.Context) {
 
 // NodeResultUpdate
 // @Summary	     更新节点执行结果
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func NodeResultUpdate(c *core.Context) {
 	resultId := cast.ToInt(c.Param("result-id"))
 	if resultId == 0 {
@@ -217,7 +243,7 @@ func NodeResultUpdate(c *core.Context) {
 
 // NodeResultListPage
 // @Summary	     节点执行结果列表
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func NodeResultListPage(c *core.Context) {
 	id := cast.ToInt(c.Param("node-id"))
 	if id == 0 {
@@ -269,7 +295,7 @@ func NodeResultListPage(c *core.Context) {
 
 // WorkerDashboard
 // @Summary	     Kanban Dashboard
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func WorkerDashboard(c *core.Context) {
 	var req view.ReqWorkerDashboard
 	if err := c.Bind(&req); err != nil {
@@ -293,7 +319,7 @@ func WorkerDashboard(c *core.Context) {
 
 // WorkerList
 // @Summary	     定时任务执行结果列表
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func WorkerList(c *core.Context) {
 	var req view.ReqWorkerList
 	if err := c.Bind(&req); err != nil {
@@ -370,7 +396,7 @@ func WorkerList(c *core.Context) {
 
 // TableDependencies
 // @Summary	     表依赖解析
-// @Tags         ANALYSIS
+// @Tags         BIGDATA
 func TableDependencies(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {

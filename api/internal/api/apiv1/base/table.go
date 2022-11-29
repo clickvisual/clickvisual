@@ -413,6 +413,7 @@ func QueryComplete(c *core.Context) {
 	return
 }
 
+// TableCharts
 // @Tags         LOGS
 // @Summary	     日志趋势图
 func TableCharts(c *core.Context) {
