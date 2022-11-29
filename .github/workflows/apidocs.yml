@@ -1,4 +1,4 @@
-name: swagger
+name: apidocs
 
 on:
   push:
@@ -15,11 +15,11 @@ jobs:
         with:
           go-version: '>=1.18.0'
       - name: Install Ego Gen API
-        id: swagger-ui
+        id: egogen
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
           go version 
-          go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.3
+          go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.6
           egogen --config egogen.yaml
       - name: Install ossutil
         run: wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64
@@ -32,5 +32,5 @@ jobs:
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           delete-branch: true
-          commit-message: 'docs: update swagger json'
-          title: update swagger json
+          commit-message: 'docs: update api docs'
+          title: update api docs
