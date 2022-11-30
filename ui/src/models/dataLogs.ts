@@ -633,7 +633,7 @@ const DataLogsModel = () => {
       : lodash.cloneDeep(keyword ? keyword : keywordInput)?.split(" AND ") || [
           "",
         ];
-    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'?([^']+)'?/g;
+    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'?([^']+)'?/gi;
     const allQuery: any[] = [];
     defaultInput.map((inputStr) =>
       Array.from(inputStr.replaceAll("`", "").matchAll(strReg))?.map((item) => {
