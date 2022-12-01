@@ -22,13 +22,27 @@ const LogItem = ({ log, foldingChecked }: LogItemProps) => {
 
   const time = useMemo(() => {
     if (log._time_nanosecond_) {
-      return moment(log._time_nanosecond_).format("MM-DD HH:mm:ss.SSS");
+      const time = moment(log._time_nanosecond_).format("MM-DD HH:mm:ss.SSS");
+      if (time != "Invalid date") {
+        return time;
+      }
+      if (moment(log._time_nanosecond_).isValid()) {
+        return moment(new Date(log._time_nanosecond_)).format(
+          "MM-DD HH:mm:ss.SSS"
+        );
+      }
     }
     if (log._time_second_) {
-      return moment.unix(log._time_second_).format("MM-DD HH:mm:ss");
+      const time = moment.unix(log._time_second_).format("MM-DD HH:mm:ss");
+      if (time != "Invalid date") {
+        return time;
+      }
+      if (moment(log._time_second_).isValid()) {
+        return moment(new Date(log._time_second_)).format("MM-DD HH:mm:ss");
+      }
     }
 
-    return "";
+    return "Invalid date";
   }, [log._time_nanosecond_, log._time_second_]);
 
   return (
