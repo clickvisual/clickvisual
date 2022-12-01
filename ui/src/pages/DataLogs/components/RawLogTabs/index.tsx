@@ -1,5 +1,5 @@
 import rawLogTabsStyles from "@/pages/DataLogs/components/RawLogTabs/index.less";
-import { Empty, Tabs } from "antd";
+import { Button, Empty, Tabs } from "antd";
 import QueryResult from "@/pages/DataLogs/components/QueryResult";
 import { useModel } from "@@/plugin-model/useModel";
 import lodash from "lodash";
@@ -9,6 +9,7 @@ import useUrlState from "@ahooksjs/use-url-state";
 import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import { useEffect } from "react";
+import { FullscreenOutlined } from "@ant-design/icons";
 
 const { TabPane } = Tabs;
 
@@ -22,6 +23,7 @@ const RawLogTabs = () => {
     resizeMenuWidth,
     logPanesHelper,
     onChangeCurrentLogPane,
+    onChangeFoldingState,
   } = useModel("dataLogs");
   const { onChangeSelectKeys } = useModel("instances");
   const { logPanes, paneKeys, removeLogPane } = logPanesHelper;
@@ -66,6 +68,43 @@ const RawLogTabs = () => {
     onChangeLogPane(tabPane);
   };
 
+  // 全屏/取消全屏 事件
+  const handleFullScreen = () => {
+    //全屏
+    var docElm: any = document.documentElement;
+    const isFull = isFullscreenForNoScroll();
+    onChangeFoldingState(!isFull);
+    if (isFull) {
+      //W3C
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    } else {
+      //W3C
+      if (docElm.requestFullscreen) {
+        docElm.requestFullscreen();
+      }
+    }
+  };
+
+  // 判断浏览器是否全屏
+  const isFullscreenForNoScroll: () => boolean = () => {
+    var explorer = window.navigator.userAgent.toLowerCase();
+    if (explorer.indexOf("chrome") > 0) {
+      //webkit
+      return (
+        document.body.scrollHeight === window.screen.height &&
+        document.body.scrollWidth === window.screen.width
+      );
+    } else {
+      //IE 9+  fireFox
+      return (
+        window.outerHeight === window.screen.height &&
+        window.outerWidth === window.screen.width
+      );
+    }
+  };
+
   // 窗口关闭或刷新清除所有的datalogsQuerySql缓存值
   useEffect(() => {
     const listener = () => {
@@ -91,6 +130,13 @@ const RawLogTabs = () => {
           destroyInactiveTabPane
           animated={false}
           style={{ width: `calc(100vw - ${83 + resizeMenuWidth}px)` }}
+          tabBarExtraContent={
+            <Button
+              type="link"
+              icon={<FullscreenOutlined />}
+              onClick={handleFullScreen}
+            />
+          }
         >
           {paneKeys.map((item) => {
             const pane = logPanes[item];

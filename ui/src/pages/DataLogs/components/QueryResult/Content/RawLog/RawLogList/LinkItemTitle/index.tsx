@@ -40,9 +40,9 @@ const LinkItemTitle = (props: {
 
   const progressWidth = useMemo(() => {
     if (isShare) {
-      return `calc(85vw -  220px)`;
+      return `calc(85vw -  240px)`;
     }
-    return `calc(85vw - ${!foldingState ? resizeMenuWidth : -10}px -  278px)`;
+    return `calc(85vw - ${!foldingState ? resizeMenuWidth : -10}px -  298px)`;
   }, [isShare, foldingState, resizeMenuWidth]);
 
   return (
