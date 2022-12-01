@@ -18,7 +18,7 @@ import (
 )
 
 // IndexUpdate
-// @Tags        LOGS
+// @Tags        LOGSTORE
 // @Summary 	分析字段更新
 func IndexUpdate(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
@@ -60,7 +60,7 @@ func IndexUpdate(c *core.Context) {
 }
 
 // Indexes
-// @Tags    LOGS
+// @Tags    LOGSTORE
 // @Summary 分析字段列表
 func Indexes(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))

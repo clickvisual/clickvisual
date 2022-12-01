@@ -213,7 +213,17 @@ func (m *Alarm) RuleNameMap() map[int][]string {
 		iidTableArr := strings.Split(iidRuleName, "|")
 		if len(iidTableArr) == 2 {
 			iid, _ := strconv.Atoi(iidTableArr[0])
-			res[iid] = append(res[iid], iidTableArr[1])
+			ruleName := iidTableArr[1]
+			// 	// alarm rule v1.5
+			// if len(strings.Split(ruleName, "-")) == 5 {
+			// 	conds := egorm.Conds{}
+			// 	conds["alarm_id"] = m.ID
+			// 	filters, _ := AlarmFilterList(invoker.Db, conds)
+			// 	if len(filters) == 1 {
+			// 		ruleName = strings.ReplaceAll(ruleName, ".yaml", fmt.Sprintf("-%d.yaml", filters[0].ID))
+			// 	}
+			// }
+			res[iid] = append(res[iid], ruleName)
 		}
 	}
 

@@ -603,12 +603,26 @@ func AlertRuleCheck() error {
 	}
 	// Find all instances
 	promPool := make(map[int]*alertcomponent.Prometheus)
-	for _, alert := range alarms {
+	for _, alarm := range alarms {
 		isRuleOk := true
-		if len(alert.RuleNameMap()) == 0 && alert.AlertRule == "" {
+		rulesCheckMap := make(map[int][]string, 0)
+		rulesV2 := alarm.RuleNameMap()
+		if alarm.AlertRule == "" && len(rulesV2) == 0 {
+			// v1版本规则已删除，v2版本规则未下发
+			// 理论上这是一种异常情况
 			isRuleOk = false
 		}
-		for iid, ruleList := range alert.RuleNameMap() {
+		if len(rulesV2) > 0 {
+			// v2 check
+			rulesCheckMap = rulesV2
+		} else if alarm.AlertRule != "" {
+			// v1 check
+			tableInfo, _ := db.TableInfo(invoker.Db, alarm.Tid)
+			if tableInfo.ID != 0 {
+				rulesCheckMap[tableInfo.Database.Iid] = append(rulesCheckMap[tableInfo.Database.Iid], alarm.AlertRule)
+			}
+		}
+		for iid, ruleList := range rulesCheckMap {
 			prom, ok := promPool[iid]
 			if !ok {
 				// Cache once
@@ -635,7 +649,7 @@ func AlertRuleCheck() error {
 			}
 		}
 		if isRuleOk {
-			if err = db.AlarmUpdate(invoker.Db, alert.ID, map[string]interface{}{"status": db.AlarmStatusOpen}); err != nil {
+			if err = db.AlarmUpdate(invoker.Db, alarm.ID, map[string]interface{}{"status": db.AlarmStatusOpen}); err != nil {
 				core.LoggerError("ruleCheck", "isRuleTakeEffect", err)
 				continue
 			}
