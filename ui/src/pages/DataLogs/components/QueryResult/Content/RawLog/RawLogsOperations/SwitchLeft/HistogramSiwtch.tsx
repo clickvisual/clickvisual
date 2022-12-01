@@ -14,6 +14,8 @@ const HistogramSwitch = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       doGetHighCharts().then((res) => {
         oldPane.highCharts = res?.highCharts;
       });
+    } else {
+      oldPane.highCharts = { count: 0, progress: "", histograms: [] };
     }
     updateLogPane(
       oldPane.paneId,

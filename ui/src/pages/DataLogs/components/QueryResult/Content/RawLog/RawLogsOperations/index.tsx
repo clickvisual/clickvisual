@@ -50,9 +50,6 @@ const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
           current={currentPage}
           pageSizeOptions={isLink ? [50, 100, 200] : undefined}
           showTotal={(total) => {
-            if (!oldPane?.histogramChecked) {
-              return false;
-            }
             return i18n.formatMessage(
               { id: "log.pagination.total" },
               { total }
