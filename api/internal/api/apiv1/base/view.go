@@ -17,7 +17,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         BASE
+// ViewDelete
+// @Summary		 删除视图
+// @Tags         LOGSTORE
 func ViewDelete(c *core.Context) {
 	var err error
 	id := cast.ToInt(c.Param("id"))
@@ -110,7 +112,8 @@ func ViewDelete(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// ViewCreate
+// @Tags         LOGSTORE
 func ViewCreate(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	params := view.ReqViewCreate{}
@@ -202,7 +205,7 @@ func ViewCreate(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// @Tags         LOGSTORE
 func ViewUpdate(c *core.Context) {
 	var err error
 	id := cast.ToInt(c.Param("id"))
@@ -301,7 +304,7 @@ func ViewUpdate(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// @Tags         LOGSTORE
 func ViewInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -338,7 +341,7 @@ func ViewInfo(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// @Tags         LOGSTORE
 func ViewList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

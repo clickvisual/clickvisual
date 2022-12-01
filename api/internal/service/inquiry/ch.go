@@ -534,7 +534,6 @@ func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {
 	q := c.countSQL(param)
 	sqlCountData, err := c.doQuery(q)
 	if err != nil {
-		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return 0, err
 	}
 	if len(sqlCountData) > 0 {
@@ -555,7 +554,6 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 		elog.Error("ClickHouse", elog.Any("sql", c.groupBySQL(param)), elog.FieldErr(err))
 		return
 	}
-	elog.Debug("ClickHouse", elog.Any("sqlCountData", sqlCountData))
 	for _, v := range sqlCountData {
 		if v["count"] != nil {
 			var key string
@@ -1636,7 +1634,6 @@ func (c *ClickHouse) countSQL(param view.ReqQuery) (sql string) {
 		param.DatabaseTable,
 		param.ST, param.ET,
 		c.queryTransform(param, true))
-	elog.Debug("countSQL", elog.Any("step", "countSQL"), elog.Any("param", param), elog.Any("sql", sql))
 	return
 }
 

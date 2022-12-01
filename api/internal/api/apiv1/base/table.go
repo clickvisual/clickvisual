@@ -25,7 +25,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
-// @Tags         BASE
+// TableId
+// @Tags         LOGSTORE
+// @Summary		 日志库ID获取
 func TableId(c *core.Context) {
 	var param view.ReqTableId
 	err := c.Bind(&param)
@@ -60,7 +62,9 @@ func TableId(c *core.Context) {
 	c.JSONOK(tableInfo.ID)
 }
 
-// @Tags         BASE
+// TableCreate
+// @Tags         LOGSTORE
+// @Summary		 日志库创建
 func TableCreate(c *core.Context) {
 	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
@@ -99,7 +103,9 @@ func TableCreate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         BASE
+// TableInfo
+// @Tags         LOGSTORE
+// @Summary		 日志库详情
 func TableInfo(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	if tid == 0 {
@@ -188,7 +194,9 @@ func TableInfo(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// TableList
+// @Tags         LOGSTORE
+// @Summary		 日志库列表
 func TableList(c *core.Context) {
 	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
@@ -218,7 +226,9 @@ func TableList(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// TableDelete
+// @Tags         LOGSTORE
+// @Summary 	 日志库删除
 func TableDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	tableInfo, err := db.TableInfo(invoker.Db, id)
@@ -298,7 +308,9 @@ func TableDelete(c *core.Context) {
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")
 }
 
-// @Tags         BASE
+// TableLogs
+// @Tags         LOGSTORE
+// @Summary	 	 日志搜索
 func TableLogs(c *core.Context) {
 	st := time.Now()
 	var param view.ReqQuery
@@ -369,13 +381,22 @@ func TableLogs(c *core.Context) {
 			res.HiddenFields = append(res.HiddenFields, list[i].Field)
 		}
 	}
+	if param.IsQueryCount == 1 {
+		res.Count, err = op.Count(firstTry)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+	}
 	res.Cost = time.Since(st).Milliseconds()
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
 }
 
-// @Tags         BASE
+// QueryComplete
+// @Tags         LOGSTORE
+// @Summary      执行SQL请求
 func QueryComplete(c *core.Context) {
 	var param view.ReqComplete
 	err := c.Bind(&param)
@@ -414,7 +435,7 @@ func QueryComplete(c *core.Context) {
 }
 
 // TableCharts
-// @Tags         LOGS
+// @Tags         LOGSTORE
 // @Summary	     日志趋势图
 func TableCharts(c *core.Context) {
 	var param view.ReqQuery
@@ -569,7 +590,9 @@ func TableCharts(c *core.Context) {
 	return
 }
 
-// @Tags         BASE
+// TableIndexes
+// @Tags         LOGSTORE
+// @Summary      分析字段列表
 func TableIndexes(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
@@ -649,7 +672,7 @@ func TableIndexes(c *core.Context) {
 }
 
 // TableCreateSelfBuilt
-// @Tags        BASE
+// @Tags        LOGSTORE
 // @Summary 	接入已有日志库
 func TableCreateSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
@@ -683,7 +706,7 @@ func TableCreateSelfBuilt(c *core.Context) {
 }
 
 // TableCreateSelfBuiltBatch
-// @Tags    BASE
+// @Tags    LOGSTORE
 // @Summary 批量接入已有日志库
 func TableCreateSelfBuiltBatch(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
@@ -794,7 +817,9 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 	return nil
 }
 
-// @Tags         BASE
+// TableColumnsSelfBuilt
+// @Tags         LOGSTORE
+// @Summary		 接入已有日志库
 func TableColumnsSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -830,7 +855,9 @@ func TableColumnsSelfBuilt(c *core.Context) {
 	c.JSONOK(columnsInfo)
 }
 
-// @Tags         BASE
+// TableUpdate
+// @Tags         LOGSTORE
+// @Summary 	 日志库配置更新
 func TableUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -868,7 +895,9 @@ func TableUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// @Tags         BASE
+// TableDeps
+// @Tags         LOGSTORE
+// @Summary 	 日志库依赖分析
 func TableDeps(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	dn := strings.TrimSpace(c.Param("dn"))

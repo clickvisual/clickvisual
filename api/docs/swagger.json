@@ -4958,7 +4958,7 @@
                     }
                 },
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             },
             "get": {
@@ -6811,8 +6811,9 @@
                         }
                     }
                 },
+                "summary": "日志库列表",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "post": {
@@ -6856,8 +6857,9 @@
                         }
                     }
                 },
+                "summary": "日志库创建",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -6894,7 +6896,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "patch": {
@@ -6939,7 +6941,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7103,7 +7105,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "post": {
@@ -7148,7 +7150,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7282,8 +7284,9 @@
                         }
                     }
                 },
+                "summary": "接入已有日志库",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7329,8 +7332,9 @@
                         }
                     }
                 },
+                "summary": "执行SQL请求",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7373,7 +7377,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "post": {
@@ -7418,7 +7422,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7461,7 +7465,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7519,8 +7523,9 @@
                         }
                     }
                 },
+                "summary": "日志库依赖分析",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7568,7 +7573,7 @@
                 },
                 "summary": "接入已有日志库",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -7616,7 +7621,7 @@
                 },
                 "summary": "批量接入已有日志库",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -8685,8 +8690,9 @@
                         }
                     }
                 },
+                "summary": "日志库ID获取",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -8722,8 +8728,9 @@
                         }
                     }
                 },
+                "summary": "日志库删除",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "get": {
@@ -8760,8 +8767,9 @@
                         }
                     }
                 },
+                "summary": "日志库详情",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "patch": {
@@ -8805,8 +8813,9 @@
                         }
                     }
                 },
+                "summary": "日志库配置更新",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -8923,6 +8932,13 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "isQueryCount",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "in": "path",
                         "name": "id",
                         "required": true,
@@ -8955,7 +8971,7 @@
                 },
                 "summary": "日志趋势图",
                 "tags": [
-                    "LOGS"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -8999,7 +9015,7 @@
                 },
                 "summary": "分析字段列表",
                 "tags": [
-                    "LOGS"
+                    "LOGSTORE"
                 ]
             },
             "patch": {
@@ -9045,7 +9061,7 @@
                 },
                 "summary": "分析字段更新",
                 "tags": [
-                    "LOGS"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -9162,6 +9178,13 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "isQueryCount",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "in": "path",
                         "name": "id",
                         "required": true,
@@ -9203,8 +9226,9 @@
                         }
                     }
                 },
+                "summary": "分析字段列表",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -9321,6 +9345,13 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "isQueryCount",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "in": "path",
                         "name": "id",
                         "required": true,
@@ -9351,8 +9382,9 @@
                         }
                     }
                 },
+                "summary": "日志搜索",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -9395,7 +9427,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "post": {
@@ -9440,7 +9472,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -9617,8 +9649,9 @@
                         }
                     }
                 },
+                "summary": "删除视图",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "get": {
@@ -9656,7 +9689,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "patch": {
@@ -9701,7 +9734,7 @@
                     }
                 },
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -9895,7 +9928,7 @@
                 },
                 "summary": "Gets all instance database and table data filtered by permissions",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -9937,13 +9970,12 @@
                 },
                 "summary": "Create short links",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
         "/v2/base/su/{s-code}": {
             "get": {
-                "description": "godoc\n\nGet short links",
                 "operationId": "base.ShortURLRedirect",
                 "parameters": [
                     {
@@ -9958,9 +9990,9 @@
                 "responses": {
                     "301": {}
                 },
-                "summary": "Get short links",
+                "summary": "获取短链接",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -9980,7 +10012,7 @@
                 "responses": {},
                 "summary": "Get user list",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             },
             "post": {
@@ -10020,7 +10052,7 @@
                 },
                 "summary": "Create new user",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10059,7 +10091,7 @@
                 },
                 "summary": "User delete",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10101,7 +10133,7 @@
                 },
                 "summary": "Reset user password",
                 "tags": [
-                    "BASE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10621,7 +10653,7 @@
                 },
                 "summary": "Creating a log library",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10672,7 +10704,7 @@
                 },
                 "summary": "List Collect",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             },
             "post": {
@@ -10712,7 +10744,7 @@
                 },
                 "summary": "Create Collect",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10751,7 +10783,7 @@
                 },
                 "summary": "Delete Collect",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             },
             "patch": {
@@ -10798,7 +10830,7 @@
                 },
                 "summary": "Update collect",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10840,7 +10872,7 @@
                 },
                 "summary": "Kafka JSON field mapping",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10875,7 +10907,7 @@
                 },
                 "summary": "trace storage list",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10924,7 +10956,7 @@
                 },
                 "summary": "iStorage update",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -10966,7 +10998,7 @@
                 },
                 "summary": "iStorage analysis field list",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -11025,7 +11057,7 @@
                 },
                 "summary": "Get storage columns",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -11074,7 +11106,7 @@
                 },
                 "summary": "iStorage related trace info update",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -11133,7 +11165,7 @@
                 },
                 "summary": "Get trace graph",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -11182,7 +11214,7 @@
                 },
                 "summary": "Create storage by template",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         },
@@ -11221,7 +11253,7 @@
                 },
                 "summary": "Creating a no format restrictions log library",
                 "tags": [
-                    "STORAGE"
+                    "LOGSTORE"
                 ]
             }
         }

@@ -8,7 +8,7 @@ import (
 // InstanceList  godoc
 // @Summary      Gets all instance database and table data filtered by permissions
 // @Description  gets all instances, databases, and table nested data
-// @Tags         BASE
+// @Tags         LOGSTORE
 // @Produce      json
 // @Success      200  {object}  []view.RespInstanceSimple{}
 // @Router       /api/v2/base/instances [get]

@@ -19,7 +19,7 @@ import (
 // @Summary      Create new user
 // @Description  username 登陆账号
 // @Description  nickname 显示用户名
-// @Tags         BASE
+// @Tags         LOGSTORE
 // @Produce      json
 // @Param        req body view.ReqUserCreate true "params"
 // @Success      200 {object} core.Res{data=view.RespUserCreate}
@@ -71,7 +71,7 @@ func UserCreate(c *core.Context) {
 
 // UserList   	 Get user list
 // @Summary	     Get user list
-// @Tags         BASE
+// @Tags         LOGSTORE
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqUserList true "params"
@@ -118,7 +118,7 @@ func UserList(c *core.Context) {
 // UserPasswordReset  godoc
 // @Summary	     Reset user password
 // @Description  Reset user password
-// @Tags         BASE
+// @Tags         LOGSTORE
 // @Accept       json
 // @Produce      json
 // @Param        user-id path int true "user id"
@@ -167,7 +167,7 @@ func UserPasswordReset(c *core.Context) {
 // UserDelete  godoc
 // @Summary	     User delete
 // @Description  User delete
-// @Tags         BASE
+// @Tags         LOGSTORE
 // @Accept       json
 // @Produce      json
 // @Param        user-id path int true "user id"

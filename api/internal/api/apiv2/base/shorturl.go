@@ -15,14 +15,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
-// ShortURLRedirect  godoc
-// @Summary      Get short links
-// @Description  Get short links
-// @Tags         BASE
-// @Produce      json
-// @Param        s-code path int true "short code"
-// @Success      301 {string} ok
-// @Router       /api/v2/base/su/{s-code} [get]
+// ShortURLRedirect
+// @Summary      获取短链接
+// @Tags         LOGSTORE
 func ShortURLRedirect(c *core.Context) {
 	sCode := strings.TrimSpace(c.Param("s-code"))
 	if sCode == "" {
@@ -46,7 +41,7 @@ func ShortURLRedirect(c *core.Context) {
 // ShortURLCreate  godoc
 // @Summary      Create short links
 // @Description  Create short links
-// @Tags         BASE
+// @Tags         LOGSTORE
 // @Produce      json
 // @Param        req body db.ReqShortURLCreate true "params"
 // @Success      200 {object} core.Res{}

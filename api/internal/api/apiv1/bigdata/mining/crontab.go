@@ -14,7 +14,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// @Tags         STORAGE
+// @Tags         LOGSTORE
 func CrontabDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
