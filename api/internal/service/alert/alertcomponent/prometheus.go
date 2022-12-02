@@ -200,7 +200,7 @@ func (p *Prometheus) alertmanagerURLs() ([]string, error) {
 
 	urls := make([]string, len(res.Data.ActiveAlertmanagers))
 	for i := range res.Data.ActiveAlertmanagers {
-		urls[i] = res.Data.ActiveAlertmanagers[i].URL
+		urls[i] = strings.TrimSuffix(res.Data.ActiveAlertmanagers[i].URL, "/api/v2/alerts")
 	}
 
 	return urls, nil
