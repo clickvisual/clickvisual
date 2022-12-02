@@ -64,16 +64,7 @@ func (p *Prometheus) Health() error {
 // CheckDependents prometheus dependent components
 // AlertManager
 func (p *Prometheus) CheckDependents() error {
-	configuration, err := p.configuration()
-	if err != nil {
-		return err
-	}
-	urls := make([]string, 0)
-	for _, alertmanager := range configuration.Alerting.AlertManagers {
-		for _, staticConfig := range alertmanager.StaticConfigs {
-			urls = append(urls, staticConfig.Targets...)
-		}
-	}
+	urls, err := p.alertmanagerURLs()
 	if len(urls) == 0 {
 		if p.ruleStoreType == db.RuleStoreTypeK8sOperator {
 			return ErrCheckNotSupported
@@ -153,12 +144,21 @@ type prometheusConfiguration struct {
 	} `yaml:"remote_read"`
 }
 
+type prometheusApiV1Alertmanagers struct {
+	Status string `json:"status"`
+	Data   struct {
+		ActiveAlertmanagers []struct {
+			URL string `json:"url"`
+		} `json:"activeAlertmanagers"`
+	} `json:"data"`
+}
+
 func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 	var res prometheusConfiguration
 	// AlertManager
 	resp, err := http.Get(p.url + "/api/v1/status/config")
 	if err != nil {
-		return res, errors.Wrap(err, "http.Get alertmanagers")
+		return res, errors.Wrap(err, "http.Get status config")
 	}
 	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
@@ -176,6 +176,34 @@ func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 		return res, errors.Wrap(err, "yaml.Unmarshal")
 	}
 	return res, nil
+}
+
+func (p *Prometheus) alertmanagerURLs() ([]string, error) {
+	var res prometheusApiV1Alertmanagers
+	resp, err := http.Get(p.url + "/api/v1/alertmanagers")
+	if err != nil {
+		return nil, errors.Wrap(err, "http.Get alertmanagers")
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "io.ReadAll")
+	}
+
+	if err = json.Unmarshal(body, &res); err != nil {
+		return nil, errors.Wrap(err, "json.Unmarshal")
+	}
+	if res.Status != "success" {
+		return nil, errors.Wrap(ErrPrometheusApiResponse, res.Status)
+	}
+
+	urls := make([]string, len(res.Data.ActiveAlertmanagers))
+	for i := range res.Data.ActiveAlertmanagers {
+		urls[i] = res.Data.ActiveAlertmanagers[i].URL
+	}
+
+	return urls, nil
 }
 
 type prometheusApiV1RulesResp struct {
