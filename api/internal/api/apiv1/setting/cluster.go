@@ -18,7 +18,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// ClusterInfo 集群信息
+// ClusterInfo   集群信息
 // @Tags         SYSTEM
 func ClusterInfo(c *core.Context) {
 	var (
@@ -63,6 +63,7 @@ func ClusterPageList(c *core.Context) {
 
 // ClusterCreate ...
 // @Tags         SYSTEM
+// @Summary		 创建集群
 func ClusterCreate(c *core.Context) {
 	var err error
 	params := view.ReqCreateCluster{}

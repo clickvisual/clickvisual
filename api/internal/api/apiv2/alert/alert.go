@@ -130,12 +130,12 @@ func SettingList(c *core.Context) {
 			IsMetricsSamplesOk: 1,
 		}
 		// prometheus
-		errProm, errAlertManager := func() (error, error) {
+		errAlertManager, errProm := func() (error, error) {
 			p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget, instance.RuleStoreType)
 			if errProm != nil {
 				return errProm, errProm
 			}
-			return p.Health(), p.CheckDependents()
+			return p.CheckDependents(), p.Health()
 		}()
 		if errProm != nil {
 			row.IsPrometheusOK = 0

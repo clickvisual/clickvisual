@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 
@@ -65,6 +66,12 @@ func (p *Prometheus) Health() error {
 // AlertManager
 func (p *Prometheus) CheckDependents() error {
 	urls, err := p.alertmanagerURLs()
+	if err != nil {
+		if p.ruleStoreType == db.RuleStoreTypeK8sOperator {
+			return ErrCheckNotSupported
+		}
+		return err
+	}
 	if len(urls) == 0 {
 		if p.ruleStoreType == db.RuleStoreTypeK8sOperator {
 			return ErrCheckNotSupported
@@ -155,18 +162,13 @@ type prometheusApiV1Alertmanagers struct {
 
 func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 	var res prometheusConfiguration
-	// AlertManager
-	resp, err := http.Get(p.url + "/api/v1/status/config")
+	client := resty.New()
+	resp, err := client.R().Get(p.url + "/api/v1/status/config")
 	if err != nil {
 		return res, errors.Wrap(err, "http.Get status config")
 	}
-	defer func() { _ = resp.Body.Close() }()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return res, errors.Wrap(err, "io.ReadAll")
-	}
 	var result prometheusApiV1StatusConfigResp
-	if err = json.Unmarshal(body, &result); err != nil {
+	if err = json.Unmarshal(resp.Body(), &result); err != nil {
 		return res, errors.Wrap(err, "json.Unmarshal")
 	}
 	if result.Status != "success" {
@@ -180,29 +182,21 @@ func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 
 func (p *Prometheus) alertmanagerURLs() ([]string, error) {
 	var res prometheusApiV1Alertmanagers
-	resp, err := http.Get(p.url + "/api/v1/alertmanagers")
+	client := resty.New()
+	resp, err := client.R().Get(p.url + "/api/v1/alertmanagers")
 	if err != nil {
 		return nil, errors.Wrap(err, "http.Get alertmanagers")
 	}
-
-	defer func() { _ = resp.Body.Close() }()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "io.ReadAll")
-	}
-
-	if err = json.Unmarshal(body, &res); err != nil {
+	if err = json.Unmarshal(resp.Body(), &res); err != nil {
 		return nil, errors.Wrap(err, "json.Unmarshal")
 	}
 	if res.Status != "success" {
 		return nil, errors.Wrap(ErrPrometheusApiResponse, res.Status)
 	}
-
 	urls := make([]string, len(res.Data.ActiveAlertmanagers))
 	for i := range res.Data.ActiveAlertmanagers {
 		urls[i] = strings.TrimSuffix(res.Data.ActiveAlertmanagers[i].URL, "/api/v2/alerts")
 	}
-
 	return urls, nil
 }
 
