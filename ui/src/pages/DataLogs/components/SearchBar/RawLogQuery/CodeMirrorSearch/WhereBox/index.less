@@ -6,21 +6,48 @@
   border: 1px solid #e8e8e8;
   border-right: none;
   border-radius: 8px 0 0 8px;
-  > span {
+  .btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    // width: 30px;
-    width: 40px;
+    width: 30px;
     height: 30px;
     overflow: hidden;
+    border-radius: 0;
     cursor: pointer;
-    // &:hover {
-    //   background-color: #f1693533;
-    // }
+    &:hover {
+      background-color: #f1693533;
+    }
     &:nth-child(1) {
       border-right: 1px solid #e5e4e5;
       border-radius: 8px 0 0 8px;
     }
+  }
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: start-between;
+  .spanText {
+    flex: 1;
+  }
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 600px;
+
+  .text {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .btnList {
+    width: 120px;
+    text-align: right;
   }
 }

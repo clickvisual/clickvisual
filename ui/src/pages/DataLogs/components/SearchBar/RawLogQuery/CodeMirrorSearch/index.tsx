@@ -1,6 +1,6 @@
 import styles from "./index.less";
 import ReactDom from "react-dom";
-import { useIntl, useModel } from "umi";
+import { useIntl } from "umi";
 import { useRef, useState } from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 // 白色主题
@@ -11,15 +11,12 @@ import {
   KeyOutlined,
   PushpinOutlined,
 } from "@ant-design/icons";
-import "codemirror/addon/hint/sql-hint";
 import { dataLogLocalaStorageType } from "@/models/dataLogs";
 import useLocalStorages from "@/hooks/useLocalStorages";
 import { MYSQL_KEYWORD } from "./MySQLKeyWord";
 import WhereBox from "./WhereBox";
 import CreateLogFilter from "@/pages/DataLogs/components/CreateLogFilter";
-import { CollectType, LogFilterType } from "@/services/dataLogs";
-import IconFont from "@/components/IconFont";
-import { message } from "antd";
+import { LogFilterType } from "@/services/dataLogs";
 import classNames from "classnames";
 
 export enum CodeHintsType {
@@ -29,7 +26,7 @@ export enum CodeHintsType {
   /**
    * 收藏历史记录
    */
-  collection = 4,
+  // collection = 4,
   /**
    * 当前输入值
    */
@@ -50,6 +47,7 @@ const Editors = (props: {
   collectingHistorical: LogFilterType[];
   isMultipleLines: boolean;
   onChangeIsMultipleLines: (flag: boolean) => void;
+  onChangeIsDefault: (flag: boolean) => void;
 }) => {
   const {
     title,
@@ -65,13 +63,8 @@ const Editors = (props: {
     collectingHistorical,
     isMultipleLines,
     onChangeIsMultipleLines,
+    onChangeIsDefault,
   } = props;
-
-  const {
-    doDeleteLogFilter,
-    doGetLogFilterList,
-    onChangeCollectingHistorical,
-  } = useModel("dataLogs");
 
   const formRefs: any = useRef(null);
   const i18n = useIntl();
@@ -120,12 +113,6 @@ const Editors = (props: {
         icon = <KeyOutlined />;
         infoText = i18n.formatMessage({ id: "log.search.codeHinting.keyword" });
         break;
-      case CodeHintsType.collection:
-        icon = <IconFont type="icon-shoucang1" />;
-        infoText = i18n.formatMessage({
-          id: "log.search.codeHinting.collectHistory",
-        });
-        break;
       case CodeHintsType.value:
         icon = <PushpinOutlined />;
         infoText = i18n.formatMessage({ id: "log.search.codeHinting.value" });
@@ -135,44 +122,35 @@ const Editors = (props: {
     let arr: any[] = [];
     let priorityArr: any[] = [];
     let allArr: any[] = [];
-    if (codeHintsType != CodeHintsType.collection) {
-      list.map((item: any) => {
-        // 从头开始匹配的优先级大于从中间开始匹配的大于模糊搜索
-        if (item.indexOf(lowerCase) === 0) {
-          priorityArr.push({
-            text: item,
-          });
-        }
-        if (item.indexOf(lowerCase) > 0) {
-          arr.push({
-            text: item,
-          });
-        }
-      });
+    list.map((item: any) => {
+      // 从头开始匹配的优先级大于从中间开始匹配的大于模糊搜索
+      if (item.indexOf(lowerCase) === 0) {
+        priorityArr.push({
+          text: item,
+        });
+      }
+      if (item.indexOf(lowerCase) > 0) {
+        arr.push({
+          text: item,
+        });
+      }
       allArr = [...priorityArr, ...arr];
 
+      // 暂时取消模糊查询 优化性能
       // 处理模糊数据
-      const fuzzyList = fuzzyQuery(list, lowerCase);
-      fuzzyList.map((item: any) => {
-        // 模糊搜索结果先过滤
-        if (
-          allArr.filter((allArrItem: any) => item.includes(allArrItem.text))
-            .length == 0
-        ) {
-          allArr.push({
-            text: item,
-          });
-        }
-      });
-    } else {
-      list.map((item: any) => {
-        allArr.push({
-          text: item.alias,
-          id: item.id,
-          statement: item.statement,
-        });
-      });
-    }
+      // const fuzzyList = fuzzyQuery(list, lowerCase);
+
+      // fuzzyList.map((item: any) => {
+      //   // 模糊搜索结果先过滤
+      //   if (
+      //     allArr.filter((allArrItem: any) => item.includes(allArrItem.text))
+      //       .length == 0
+      //   ) {
+      //     allArr.push({
+      //       text: item,
+      //     });
+      //   }
+    });
 
     // 将字符串数组变更为对象数组
     let resultArr: any[] = [];
@@ -200,18 +178,18 @@ const Editors = (props: {
    * @param  {String} keyWord  查询的关键词
    * @return {Array}           查询的结果
    */
-  const fuzzyQuery = (list: any[], keyWord: string): Array<any> => {
-    let arr: any[] = [];
-    const selectList = keyWord.split("");
-    var reg = new RegExp(".*" + selectList.join(".*") + ".*", "i");
-    list.map((listItem: string) => {
-      if (reg.test(listItem)) {
-        arr.push(listItem);
-      }
-    });
+  // const fuzzyQuery = (list: any[], keyWord: string): Array<any> => {
+  //   let arr: any[] = [];
+  //   const selectList = keyWord.split("");
+  //   let reg = new RegExp(".*" + selectList.join(".*") + ".*", "i");
+  //   list.map((listItem: string) => {
+  //     if (reg.test(listItem)) {
+  //       arr.push(listItem);
+  //     }
+  //   });
 
-    return arr;
-  };
+  //   return arr;
+  // };
 
   /**
    * 对匹配的提示项作高亮输入词的处理
@@ -235,44 +213,31 @@ const Editors = (props: {
     infoText: any,
     codeHintsType: CodeHintsType
   ) => {
-    if (codeHintsType != CodeHintsType.collection) {
-      let c = promptText.text;
-      let TemporaryArr: string[] = [];
-      // 将提示语句中的关键字母替换成高亮字母，替换后拿后面的字符串进行下一次替换 可以解决高亮的字母顺序与输入字母顺序不一致的问题
-      currentWord.split("").map((item: any, index: number) => {
-        const locationIndex = c.indexOf(item);
-        if (locationIndex > -1) {
-          TemporaryArr.push(c.substring(0, locationIndex));
-          TemporaryArr.push(
-            `<span style="color:hsl(21, 85%, 56%)">${item}</span>`
-          );
-          c = c.substring(locationIndex + 1, c.length);
+    let c = promptText.text;
+    let TemporaryArr: string[] = [];
+    // 将提示语句中的关键字母替换成高亮字母，替换后拿后面的字符串进行下一次替换 可以解决高亮的字母顺序与输入字母顺序不一致的问题
+    currentWord.split("").map((item: any, index: number) => {
+      const locationIndex = c.indexOf(item);
+      if (locationIndex > -1) {
+        TemporaryArr.push(c.substring(0, locationIndex));
+        TemporaryArr.push(
+          `<span style="color:hsl(21, 85%, 56%)">${item}</span>`
+        );
+        c = c.substring(locationIndex + 1, c.length);
+      }
+      if (index == currentWord.split("").length - 1) {
+        if (c.length > 0) {
+          TemporaryArr.push(c);
         }
-        if (index == currentWord.split("").length - 1) {
-          if (c.length > 0) {
-            TemporaryArr.push(c);
-          }
-          c = TemporaryArr.join("");
-        }
-      });
-      virtualDom = <div dangerouslySetInnerHTML={{ __html: c }} />;
+        c = TemporaryArr.join("");
+      }
+    });
+    virtualDom = <div dangerouslySetInnerHTML={{ __html: c }} />;
 
-      ReactDom.render(virtualDom, text);
-      arr.push({
-        text: promptText.text,
-        domText: text,
-        displayIcon: icon,
-        displayText: infoText,
-        codeHintsType: codeHintsType,
-        render: hintRender,
-      });
-      return;
-    }
-
+    ReactDom.render(virtualDom, text);
     arr.push({
-      text: promptText.statement,
-      domText: ReactDom.render(<>{promptText.text}</>, text),
-      id: promptText.id,
+      text: promptText.text,
+      domText: text,
       displayIcon: icon,
       displayText: infoText,
       codeHintsType: codeHintsType,
@@ -311,12 +276,6 @@ const Editors = (props: {
     }
     const cursorLine = token.string.replace(/((?![A-Z]).)/gi, " ").split(" ");
     const value = cursorLine[cursorLine.length - 1];
-    const collectionList = handleCodePromptRecord(
-      collectingHistorical,
-      value,
-      CodeHintsType.collection,
-      end
-    );
     // 按键触发的显示四种提示
     if (value && value.length > 0 && value != "`") {
       const cursorLineList = handleCodePromptRecord(
@@ -347,13 +306,7 @@ const Editors = (props: {
 
       return {
         list:
-          [
-            ...cursorLineList,
-            ...collectionList,
-            ...historyList,
-            ...list,
-            ...keyWordList,
-          ] || [],
+          [...cursorLineList, ...historyList, ...list, ...keyWordList] || [],
         from: { ch: token.end - value.length, line: cursor.line },
         to: { ch: token.end, line: cursor.line },
       };
@@ -367,7 +320,7 @@ const Editors = (props: {
     );
 
     return {
-      list: [...collectionList, ...allHistoryList] || [],
+      list: [...allHistoryList] || [],
       from: { ch: token.end - value.length, line: cursor.line },
       to: { ch: token.end, line: cursor.line },
     };
@@ -398,11 +351,7 @@ const Editors = (props: {
     divIcon.setAttribute("class", "autocomplete-icon");
 
     let divText = document.createElement("div");
-    if (data.codeHintsType !== CodeHintsType.collection) {
-      divText.setAttribute("class", "autocomplete-text");
-    } else {
-      divText.setAttribute("class", "autocomplete-collectionText");
-    }
+    divText.setAttribute("class", "autocomplete-text");
     divText.appendChild(data.domText);
 
     let divInfo = document.createElement("div");
@@ -413,11 +362,9 @@ const Editors = (props: {
     div.appendChild(divIcon);
     div.appendChild(divText);
     div.appendChild(divInfo);
-    const isNeedFork =
-      data.codeHintsType == CodeHintsType.history ||
-      data.codeHintsType == CodeHintsType.collection;
+    const isNeedFork = data.codeHintsType == CodeHintsType.history;
     if (isNeedFork) {
-      var delIcon = document.createElement("div");
+      let delIcon = document.createElement("div");
       delIcon.setAttribute("class", "autocomplete-delete");
 
       const delDom = (
@@ -426,8 +373,6 @@ const Editors = (props: {
             e.stopPropagation();
             if (data.codeHintsType == CodeHintsType.history) {
               handleHistoricalRecords(data);
-            } else {
-              data?.id && handleDeletingCollectionHistory(data?.id);
             }
           }}
         >
@@ -468,31 +413,6 @@ const Editors = (props: {
     setTimeout(() => {
       formRefs.current.editor.showHint();
     }, 100);
-  };
-
-  /**
-   * 删除收藏历史
-   */
-  const handleDeletingCollectionHistory = (id: number) => {
-    id &&
-      doDeleteLogFilter.run(id).then((res: any) => {
-        if (res.code != 0) {
-          message.error(res.msg);
-          return;
-        }
-        message.success(i18n.formatMessage({ id: "success" }));
-        const data = {
-          collectType: CollectType.query,
-        };
-        doGetLogFilterList.run(data).then((res: any) => {
-          if (res.code != 0) return;
-          onChangeCollectingHistorical(res.data);
-
-          setTimeout(() => {
-            formRefs.current.editor.showHint();
-          }, 100);
-        });
-      });
   };
 
   const options = {
@@ -568,7 +488,11 @@ const Editors = (props: {
       ])}
       key={title + "editors"}
     >
-      <WhereBox />
+      <WhereBox
+        onChange={onChange}
+        onChangeIsDefault={onChangeIsDefault}
+        collectingHistorical={collectingHistorical}
+      />
       <div
         className={styles.codemirrorInput}
         style={{ overflow: isMultipleLines && isFocus ? "" : "hidden" }}
@@ -584,35 +508,7 @@ const Editors = (props: {
           onChange={handleChange}
           onFocus={() => {
             setIsFocus(true);
-            // const CodeMirror = formRefs.current?.editor;
-            // if (formRefs.current.editor.getValue() === "") {
-            //   // formRefs.current.editor.setOption({
-            //   //   hintOptions: {
-            //   //     tables: historicalRecord,
-            //   //   },
-            //   // });
-            //   // 值为空的时候聚焦会主动吊起历史记录提示框
-            //   formRefs.current.editor.showHint();
-            // }
           }}
-          // onCursorActivity={(codeMirror: any) => {
-          //   const text = codeMirror?.display?.maxLine?.text;
-          //   if (text == "" || text[text.length - 1] == " ") {
-          //     formRefs.current.editor.showHint();
-          //   }
-          // }}
-          // onBeforeChange={(
-          //   instance: any,
-          //   changeObj: any,
-          //   str: string,
-          //   next: () => void
-          // ) => {
-          //   next();
-          //   console.log(instance.getValue(), changeObj, str);
-          //   // if (changeObj?.text?.length > 1) {
-          //   //   // onChangeIsDefault(true);
-          //   // }
-          // }}
         />
         <span className={styles.afterBox}></span>
       </div>

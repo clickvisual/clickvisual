@@ -464,6 +464,7 @@ export default {
   "log.search.quickSearch.column.placeholder": "请选择 column",
   "log.search.quickSearch.operator.placeholder": "请选择 operator",
   "log.search.quickSearch.value.placeholder": "请输入 value",
+  "log.search.quickSearch.fill": "填充",
 
   "log.index.header.title": "分析",
   "log.index.search.placeholder": "搜索字段",

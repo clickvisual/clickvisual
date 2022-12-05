@@ -491,6 +491,7 @@ export default {
   "log.search.quickSearch.column.placeholder": "Please select column",
   "log.search.quickSearch.operator.placeholder": "Please select operator",
   "log.search.quickSearch.value.placeholder": "Please enter a value",
+  "log.search.quickSearch.fill": "Fill",
 
   "log.index.header.title": "Analysis",
   "log.index.search.placeholder": "Search field",

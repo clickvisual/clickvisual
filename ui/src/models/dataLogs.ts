@@ -331,7 +331,7 @@ const DataLogsModel = () => {
     setLogs(tabPane.logs);
     onChangeRawLogsIndexeList(tabPane?.rawLogsIndexeList);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
-    setLogCount(tabPane?.highCharts?.count || 0);
+    setLogCount(tabPane?.highCharts?.count || tabPane?.logs?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
     statisticalChartsHelper.setActiveQueryType(
       tabPane?.queryType ?? QueryTypeEnum.LOG
@@ -481,7 +481,8 @@ const DataLogsModel = () => {
 
   const logsAndHighChartsPayload = (
     params?: QueryParams,
-    filters?: string[]
+    filters?: string[],
+    histogramChecked?: boolean
   ) => {
     return {
       st: params?.st || (startDateTime as number),
@@ -490,6 +491,7 @@ const DataLogsModel = () => {
       pageSize: params?.pageSize || pageSize,
       page: params?.page || currentPage,
       filters: filters || [],
+      isQueryCount: Number(!histogramChecked),
     };
   };
 
@@ -566,7 +568,7 @@ const DataLogsModel = () => {
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
-        logsAndHighChartsPayload(extra?.reqParams, filters),
+        logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
         })
@@ -581,14 +583,14 @@ const DataLogsModel = () => {
       const [logsRes, highChartsRes] = await Promise.all([
         getLogs.run(
           id,
-          logsAndHighChartsPayload(extra?.reqParams, filters),
+          logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
           new CancelToken(function executor(c) {
             cancelTokenLogsRef.current = c;
           })
         ),
         getHighCharts.run(
           id,
-          logsAndHighChartsPayload(extra?.reqParams, filters),
+          logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
           new CancelToken(function executor(c) {
             cancelTokenHighChartsRef.current = c;
           })
@@ -660,7 +662,7 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    var newValueArr: string[] = [];
+    let newValueArr: string[] = [];
     lodash.cloneDeep(defaultValueArr).map((item: string) => {
       newValueArr.push(item.replace(/(=|!=| like | not like )/gi, ""));
     });
@@ -712,7 +714,7 @@ const DataLogsModel = () => {
   const isJsonFun = (str: string | object) => {
     if (typeof str == "string") {
       try {
-        var obj = JSON.parse(str);
+        let obj = JSON.parse(str);
         return !!(typeof obj == "object" && obj);
       } catch (e) {
         return false;

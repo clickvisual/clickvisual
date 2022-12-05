@@ -7,7 +7,7 @@ import RawLogs from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawL
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 const RawLogContent = (props: { tid: string }) => {
   const { tid } = props;
