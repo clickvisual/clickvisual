@@ -284,7 +284,7 @@ export default function useLogUrlParams() {
       kw: undefined,
       page: undefined,
       queryType: QueryTypeEnum.LOG,
-      size: undefined,
+      size: 10,
       start: undefined,
       tab: TimeRangeType.Relative,
       tid: undefined,
