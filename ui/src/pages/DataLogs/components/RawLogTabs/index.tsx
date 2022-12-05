@@ -71,7 +71,7 @@ const RawLogTabs = () => {
   // 全屏/取消全屏 事件
   const handleFullScreen = () => {
     //全屏
-    var docElm: any = document.documentElement;
+    let docElm: any = document.documentElement;
     const isFull = isFullscreenForNoScroll();
     onChangeFoldingState(!isFull);
     if (isFull) {
@@ -89,7 +89,7 @@ const RawLogTabs = () => {
 
   // 判断浏览器是否全屏
   const isFullscreenForNoScroll: () => boolean = () => {
-    var explorer = window.navigator.userAgent.toLowerCase();
+    let explorer = window.navigator.userAgent.toLowerCase();
     if (explorer.indexOf("chrome") > 0) {
       //webkit
       return (

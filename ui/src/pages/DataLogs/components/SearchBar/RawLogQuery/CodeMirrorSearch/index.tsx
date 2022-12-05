@@ -11,7 +11,6 @@ import {
   KeyOutlined,
   PushpinOutlined,
 } from "@ant-design/icons";
-import "codemirror/addon/hint/sql-hint";
 import { dataLogLocalaStorageType } from "@/models/dataLogs";
 import useLocalStorages from "@/hooks/useLocalStorages";
 import { MYSQL_KEYWORD } from "./MySQLKeyWord";
@@ -151,19 +150,21 @@ const Editors = (props: {
       });
       allArr = [...priorityArr, ...arr];
 
+      // 暂时取消模糊查询 优化性能
       // 处理模糊数据
-      const fuzzyList = fuzzyQuery(list, lowerCase);
-      fuzzyList.map((item: any) => {
-        // 模糊搜索结果先过滤
-        if (
-          allArr.filter((allArrItem: any) => item.includes(allArrItem.text))
-            .length == 0
-        ) {
-          allArr.push({
-            text: item,
-          });
-        }
-      });
+      // const fuzzyList = fuzzyQuery(list, lowerCase);
+
+      // fuzzyList.map((item: any) => {
+      //   // 模糊搜索结果先过滤
+      //   if (
+      //     allArr.filter((allArrItem: any) => item.includes(allArrItem.text))
+      //       .length == 0
+      //   ) {
+      //     allArr.push({
+      //       text: item,
+      //     });
+      //   }
+      // });
     } else {
       list.map((item: any) => {
         allArr.push({
@@ -203,7 +204,7 @@ const Editors = (props: {
   const fuzzyQuery = (list: any[], keyWord: string): Array<any> => {
     let arr: any[] = [];
     const selectList = keyWord.split("");
-    var reg = new RegExp(".*" + selectList.join(".*") + ".*", "i");
+    let reg = new RegExp(".*" + selectList.join(".*") + ".*", "i");
     list.map((listItem: string) => {
       if (reg.test(listItem)) {
         arr.push(listItem);
@@ -417,7 +418,7 @@ const Editors = (props: {
       data.codeHintsType == CodeHintsType.history ||
       data.codeHintsType == CodeHintsType.collection;
     if (isNeedFork) {
-      var delIcon = document.createElement("div");
+      let delIcon = document.createElement("div");
       delIcon.setAttribute("class", "autocomplete-delete");
 
       const delDom = (

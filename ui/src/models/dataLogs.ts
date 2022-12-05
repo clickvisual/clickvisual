@@ -662,7 +662,7 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    var newValueArr: string[] = [];
+    let newValueArr: string[] = [];
     lodash.cloneDeep(defaultValueArr).map((item: string) => {
       newValueArr.push(item.replace(/(=|!=| like | not like )/gi, ""));
     });
@@ -714,7 +714,7 @@ const DataLogsModel = () => {
   const isJsonFun = (str: string | object) => {
     if (typeof str == "string") {
       try {
-        var obj = JSON.parse(str);
+        let obj = JSON.parse(str);
         return !!(typeof obj == "object" && obj);
       } catch (e) {
         return false;
