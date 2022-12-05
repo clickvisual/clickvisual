@@ -1,6 +1,6 @@
 import styles from "./index.less";
 import ReactDom from "react-dom";
-import { useIntl } from "umi";
+import { useIntl, useModel } from "umi";
 import { useRef, useState } from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 // 白色主题
@@ -65,6 +65,8 @@ const Editors = (props: {
     onChangeIsMultipleLines,
     onChangeIsDefault,
   } = props;
+
+  const { logsLoading } = useModel("dataLogs");
 
   const formRefs: any = useRef(null);
   const i18n = useIntl();
@@ -449,6 +451,7 @@ const Editors = (props: {
     tabSize: 2,
     // 滚动条样式
     scrollbarStyle: null,
+    readOnly: logsLoading ? "nocursor" : false,
   };
 
   const handleChange = (CodeMirror: string, changeObj: any, value: string) => {
@@ -465,7 +468,7 @@ const Editors = (props: {
     b: { charCode: number; preventDefault: () => void }
   ) => {
     // 阻止回车换行事件
-    if (b.charCode == 13) {
+    if (b.charCode == 13 || logsLoading) {
       b.preventDefault();
       return;
     }
