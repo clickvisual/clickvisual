@@ -188,6 +188,7 @@ const RawLogQuery = () => {
           collectingHistorical={collectingHistorical}
           isMultipleLines={isMultipleLines}
           onChangeIsMultipleLines={setIsMultipleLines}
+          onChangeIsDefault={setIsDefault}
         />
       </div>
       <SearchBarSuffixIcon />
