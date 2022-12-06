@@ -48,6 +48,9 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     return logs?.logs || [];
   }, [logs?.logs, pageSize, oldPane?.logState]);
 
+  /**
+   * 链路切换为普通日志时的数据截取
+   */
   const virtualList = useMemo(() => {
     if (pageSize > start + count + 10) {
       return list.slice(0, start + count + 10);
@@ -131,7 +134,9 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     if (logs?.isTrace !== 1) {
       return [];
     }
-    // 计算总长度
+    /**
+     * 计算总长度
+     */
     const handleGetTotalLength = (
       list: any[],
       arr: any[],
@@ -232,12 +237,20 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
             },
           });
       });
-
-      dataList[key].map((item: any) => {
+      // 按时间排序递增
+      const compare = () => {
+        return function (a: { [x: string]: any }, b: { [x: string]: any }) {
+          var value1 = microsecondTimeStamp(a[`rawLogJson`][`startTime`]);
+          var value2 = microsecondTimeStamp(b[`rawLogJson`][`startTime`]);
+          return value2 - value1;
+        };
+      };
+      const newDataList = dataList[key].sort(compare());
+      newDataList.map((item: any) => {
         if (!item.rawLogJson.references) {
           const children = handleFindChild(
             item?.rawLogJson.spanId,
-            dataList[key],
+            newDataList,
             item,
             2,
             endTime,
