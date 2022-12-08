@@ -76,7 +76,7 @@ export default function useLogUrlParams() {
     index: ACTIVE_TIME_INDEX,
     queryType: QueryTypeEnum.LOG,
   });
-  const { timeOptions } = useTimeOptions();
+  const { timeOptions, handleChangeRelativeAmountAndUnit } = useTimeOptions();
 
   const [tid, setTid] = useState<any>();
   const {
@@ -176,9 +176,9 @@ export default function useLogUrlParams() {
       logState: parseInt(urlState?.logState || lastDataLogsState.logState),
       relTraceTableId: res.data.traceTableId,
     };
-
     addLogPane(pane.paneId, pane);
     onChangeLogPane(pane);
+    handleChangeRelativeAmountAndUnit(pane);
     doParseQuery(urlState.kw);
 
     // 聚合告警模式调用这两接口会报错
