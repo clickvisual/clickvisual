@@ -75,6 +75,7 @@ services:
     restart: always
   mysql:
     image: mysql:5.7.37
+    platform: linux/amd64
     networks:
       - clickvisual-net
     environment:
