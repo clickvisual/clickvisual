@@ -72,3 +72,6 @@ export const LOGMAXTEXTLENGTH = 500;
 
 // // 默认链路日志查询条数
 export const LINKLOGS_PAGESIZE = 50;
+
+// CV日志衔接词
+export const CLICKVISUAL_LOGSPECIALCONNECTOR = "clickvisualLogSpecialConnector";

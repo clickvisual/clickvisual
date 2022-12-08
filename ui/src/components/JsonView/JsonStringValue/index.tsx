@@ -106,6 +106,12 @@ const JsonStringValue = ({
         return true;
       } else if (itemKey === "_raw_log_" && item.value === `%${value}%`) {
         return true;
+      } else if (
+        itemKey == keyItem &&
+        isValue(value) &&
+        item.value.indexOf(value) != -1
+      ) {
+        return true;
       }
       return false;
     });

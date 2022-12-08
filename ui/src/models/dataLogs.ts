@@ -14,6 +14,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
+  CLICKVISUAL_LOGSPECIALCONNECTOR,
   FIFTEEN_TIME,
   FIRST_PAGE,
   MINUTES_UNIT_TIME,
@@ -629,13 +630,26 @@ const DataLogsModel = () => {
     const isInterface = (keyword || keywordInput || "")?.indexOf(" and ") > 0;
 
     const defaultInput = isInterface
-      ? lodash.cloneDeep(keyword ? keyword : keywordInput)?.split(" and ") || [
-          "",
-        ]
-      : lodash.cloneDeep(keyword ? keyword : keywordInput)?.split(" AND ") || [
-          "",
-        ];
-    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'?([^']+)'?/gi;
+      ? lodash
+          .cloneDeep(keyword ? keyword : keywordInput)
+          ?.replace(
+            /(=|!=| like | not like )/i,
+            CLICKVISUAL_LOGSPECIALCONNECTOR
+          )
+          ?.split(" and ") || [""]
+      : lodash
+          .cloneDeep(keyword ? keyword : keywordInput)
+          ?.replace(
+            /(=|!=| like | not like )/i,
+            CLICKVISUAL_LOGSPECIALCONNECTOR
+          )
+          ?.split(" AND ") || [""];
+
+    const strReg = new RegExp(
+      "(`?w|.+`?)(" + CLICKVISUAL_LOGSPECIALCONNECTOR + ")'?([^']+)'?",
+      "gi"
+    );
+    // const strReg = /(`?\w|.+`?)(clickvisualLogSpecialConnector)'?([^']+)'?/gi;
     const allQuery: any[] = [];
     defaultInput.map((inputStr) =>
       Array.from(inputStr.replaceAll("`", "").matchAll(strReg))?.map((item) => {
