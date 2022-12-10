@@ -22,6 +22,8 @@ func Instantiate(s *Source) Operator {
 		return NewClickHouse(s)
 	case db.SourceTypMySQL:
 		return NewMySQL(s)
+	case db.SourceDatabend:
+		return NewDatabend(s)
 	}
 	return nil
 }
@@ -43,6 +45,8 @@ func (s *Source) GetDSN() string {
 		return fmt.Sprintf("clickhouse://%s:%s@%s/%s", s.UserName, s.Password, s.URL, "default")
 	case db.SourceTypMySQL:
 		return fmt.Sprintf("%s:%s@tcp(%s)/sys", s.UserName, s.Password, s.URL)
+	case db.SourceDatabend:
+		return fmt.Sprintf("databend://%s:%s@%s/%s", s.UserName, s.Password, s.URL, "default")
 	}
 	return ""
 }

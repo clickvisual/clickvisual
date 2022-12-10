@@ -24,6 +24,7 @@ const (
 const (
 	SourceTypMySQL      = 1
 	SourceTypClickHouse = 2
+	SourceDatabend      = 3
 )
 
 const (

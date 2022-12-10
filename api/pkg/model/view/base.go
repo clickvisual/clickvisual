@@ -276,10 +276,22 @@ func (r *SystemTables) Name() string {
 }
 
 type SystemClusters struct {
+	DatabendSystemClusters
+	ClickhouseSystemClusters
+}
+
+type ClickhouseSystemClusters struct {
 	Cluster     string `json:"cluster"`
 	ShardNum    uint32 `json:"shardNum"`
 	ShardWeight uint32 `json:"ShardWeight"`
 	ReplicaNum  uint32 `json:"replicaNum"`
+}
+
+type DatabendSystemClusters struct {
+	Host    string `json:"host"`
+	Name    string `json:"name"`
+	Port    uint16 `json:"port"`
+	Version string `json:"version"`
 }
 
 type (

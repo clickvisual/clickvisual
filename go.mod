@@ -9,6 +9,7 @@ require (
 	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/clickvisual/casbin-redis-watcher v0.0.1
 	github.com/clickvisual/prom2click v0.0.3
+	github.com/databendcloud/databend-go v0.1.5
 	github.com/ego-component/egorm v1.0.4
 	github.com/ego-component/eredis v1.0.3
 	github.com/gin-contrib/sessions v0.0.5
@@ -34,7 +35,7 @@ require (
 	github.com/speps/go-hashids/v2 v2.0.1
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.22.0
 	golang.org/x/crypto v0.2.0
@@ -63,6 +64,7 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220418222510-f25a4f6275ed // indirect
 	github.com/askuy/urlquery v1.2.8-0.20220415073902-eaf00ceabb52 // indirect
+	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go v1.44.20 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
@@ -159,6 +161,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
+	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
