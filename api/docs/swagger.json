@@ -2599,6 +2599,9 @@
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTestInstance": {
                 "properties": {
+                    "datasource": {
+                        "type": "string"
+                    },
                     "dsn": {
                         "type": "string"
                     }
@@ -8506,7 +8509,7 @@
                         }
                     }
                 },
-                "summary": "ClickHouse DSN 测试",
+                "summary": "ClickHouse/Databend DSN 测试",
                 "tags": [
                     "SYSTEM"
                 ]
