@@ -13,6 +13,7 @@ import (
 )
 
 var models = []interface{}{
+	db.BaseTableAttach{},
 	db.BaseInstance{},
 	db.BigdataCrontab{},
 	db.AlarmFilter{},

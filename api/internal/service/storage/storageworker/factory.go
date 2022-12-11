@@ -1,7 +1,9 @@
-package storage
+package storageworker
 
 import (
 	"database/sql"
+
+	"github.com/clickvisual/clickvisual/api/internal/service/storage"
 )
 
 type iWorker interface {
@@ -14,8 +16,8 @@ type WorkerParams struct {
 	Spec string
 
 	// for trace worker
-	Source Datasource // source database.table
-	Target Datasource // target database.table
+	Source storage.Datasource // source database.table
+	Target storage.Datasource // target database.table
 
 	DB *sql.DB // clickhouse instance
 }
@@ -28,8 +30,8 @@ type worker struct {
 	db   *sql.DB // clickhouse instance
 
 	// for trace worker
-	source Datasource // source database.table
-	target Datasource // target database.table
+	source storage.Datasource // source database.table
+	target storage.Datasource // target database.table
 }
 
 func (w *worker) SetParams(params WorkerParams) {

@@ -42,19 +42,19 @@ func GetRouter() *egin.Component {
 		c.FileFromFS(path, invoker.Gin.HTTPEmbedFs())
 		return
 	}))
-	apiPrefix := "/api"
+	apiPrefix := ""
 	if serveFromSubPath {
-		apiPrefix = appSubUrl + apiPrefix
+		apiPrefix = appSubUrl
 	}
 	g := r.Group(apiPrefix)
 
-	v1Open := g.Group("/v1")
+	v1Open := g.Group("/api/v1")
 	{
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
 		v1Open.POST("/prometheus/alerts", core.Handle(alert.Webhook))
 	}
-	admin := g.Group("/admin")
+	admin := g.Group("/api/admin")
 	{
 		admin.GET("/login/:oauth", core.Handle(user.Oauth)) // non-authentication api
 		admin.POST("/users/login", core.Handle(user.Login))

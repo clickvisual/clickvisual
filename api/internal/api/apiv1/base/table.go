@@ -253,7 +253,7 @@ func TableDelete(c *core.Context) {
 		return
 	}
 
-	// check if these is some alarms on this table
+	// check alarms
 	conds := egorm.Conds{}
 	conds["tid"] = tableInfo.ID
 	alarms, err := db.AlarmList(conds)

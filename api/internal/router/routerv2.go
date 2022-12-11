@@ -24,7 +24,7 @@ import (
 // The configuration module - cmdb
 // The system management module - sysop
 func v2(r *gin.RouterGroup) {
-	r = r.Group("/v2", middlewares.AuthChecker())
+	r = r.Group("/api/v2", middlewares.AuthChecker())
 	// swagger docs
 	{
 		r.GET("/swagger/*any", goredoc.GinHandler(&goredoc.Setting{

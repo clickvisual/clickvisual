@@ -103,10 +103,25 @@ func StorageCreateV3(uid int, databaseInfo db.BaseDatabase, param view.ReqStorag
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.CreateStorageV3(databaseInfo.ID, databaseInfo, param)
-	if err != nil {
-		err = errors.Wrap(err, "create failed 01:")
-		return
+	var s, d, v, a = "", "", "", ""
+	var names []string
+	var sqls []string
+	switch param.CreateType {
+	case constx.TableCreateTypeBufferNullDataPipe:
+		names, sqls, err = op.CreateBufferNullDataPipe(db.ReqCreateBufferNullDataPipe{
+			Cluster:  databaseInfo.Cluster,
+			Database: databaseInfo.Name,
+			Table:    param.TableName,
+			TTL:      param.Days,
+		})
+		if err != nil {
+			return
+		}
+	default:
+		s, d, v, a, err = op.CreateStorageV3(databaseInfo.ID, databaseInfo, param)
+		if err != nil {
+			return
+		}
 	}
 	tableInfo = db.BaseTable{
 		Did:                     databaseInfo.ID,
@@ -120,17 +135,31 @@ func StorageCreateV3(uid int, databaseInfo db.BaseDatabase, param view.ReqStorag
 		SqlStream:               s,
 		SqlView:                 v,
 		SqlDistributed:          a,
-		CreateType:              constx.TableCreateTypeUBW,
+		CreateType:              param.CreateType,
 		Uid:                     uid,
 		TimeField:               param.TimeField,
 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
 		V3TableType:             param.V3TableType,
 		IsKafkaTimestamp:        param.IsKafkaTimestamp,
 	}
-	err = db.TableCreate(invoker.Db, &tableInfo)
+	tx := invoker.Db.Begin()
+	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
+		tx.Rollback()
 		err = errors.Wrap(err, "create failed 02:")
 		return
+	}
+	tableAttach := db.BaseTableAttach{
+		Tid:   tableInfo.ID,
+		SQLs:  sqls,
+		Names: names,
+	}
+	if err = tableAttach.Create(tx); err != nil {
+		tx.Rollback()
+		return
+	}
+	if err = tx.Commit().Error; err != nil {
+		return tableInfo, err
 	}
 	return tableInfo, nil
 }
