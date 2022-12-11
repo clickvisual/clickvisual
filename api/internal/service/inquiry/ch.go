@@ -56,6 +56,7 @@ func (c *ClickHouse) GetMetricsSamples() error {
 }
 
 func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
+	c.db.Exec("set allow_deprecated_syntax_for_merge_tree=1")
 	switch c.mode {
 	case ModeStandalone:
 		_, err := c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
@@ -1060,9 +1061,9 @@ func (c *ClickHouse) CreateStorageV3(did int, database db.BaseDatabase, ct view.
 
 func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error) {
 	// jaegerJson dependencies table
-	sc, errGetTableCreator := builderv2.GetTableCreator(builderv2.StorageTypeTraceCal)
-	if errGetTableCreator != nil {
-		elog.Error("CreateTable", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
+	sc, err := builderv2.GetTableCreator(constx.TableCreateTypeTraceCalculation)
+	if err != nil {
+		elog.Error("CreateTable", elog.String("step", "GetTableCreator"), elog.FieldErr(err))
 		return
 	}
 	params := builderv2.Params{
@@ -1081,11 +1082,8 @@ func (c *ClickHouse) CreateTraceJaegerDependencies(database, cluster, table stri
 		}
 	}
 	sc.SetParams(params)
-	if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
-		elog.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
-		return
-	}
-	if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
+	_, sqls := sc.GetSQLs()
+	if _, err = sc.Execute(sqls); err != nil {
 		elog.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
@@ -1196,6 +1194,37 @@ func (c *ClickHouse) ListSystemCluster() (l []*view.SystemClusters, m map[string
 		}
 		l = append(l, &row)
 		m[cl["cluster"].(string)] = &row
+	}
+	return
+}
+
+func (c *ClickHouse) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error) {
+	// jaegerJson dependencies table
+	sc, err := builderv2.GetTableCreator(constx.TableCreateTypeBufferNullDataPipe)
+	if err != nil {
+		elog.Error("CreateTable", elog.String("step", "CreateBufferNullDataPipe"), elog.FieldErr(err))
+		return
+	}
+	params := builderv2.Params{
+		IsShard:   false,
+		IsReplica: false,
+		Cluster:   req.Cluster,
+		Database:  req.Database,
+		Table:     req.Table,
+		TTL:       req.TTL,
+		DB:        c.db,
+	}
+	if c.mode == ModeCluster {
+		params.IsShard = true
+		if c.rs == 0 {
+			params.IsReplica = true
+		}
+	}
+	sc.SetParams(params)
+	names, sqls = sc.GetSQLs()
+	if _, err = sc.Execute(sqls); err != nil {
+		elog.Error("CreateTable", elog.String("step", "CreateBufferNullDataPipe"), elog.FieldErr(err))
+		return
 	}
 	return
 }

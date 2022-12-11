@@ -74,7 +74,7 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		} else {
 			buffer.WriteString("##### 状态：：<font color=red>告警中</font>\n")
 		}
-		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
+		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s @%s \n", user.Username, user.Nickname))
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
 		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/alarm/rules/history?id=%d&filterId=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, filter.ID, start, end,

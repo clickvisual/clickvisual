@@ -23,6 +23,7 @@ func InitCfg() {
 	if os.Getenv("EGO_CONFIG_PATH") != "" {
 		File = os.Getenv("EGO_CONFIG_PATH")
 	}
+	log.Println("File", File)
 	provider, parser, tag, err := manager.NewDataSource(File, eflag.Bool("watch"))
 	if err != nil {
 		log.Fatal("load config fail: ", err)

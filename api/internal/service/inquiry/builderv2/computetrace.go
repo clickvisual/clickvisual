@@ -4,52 +4,53 @@ import (
 	"fmt"
 )
 
-var _ IStorageCreator = (*TraceCal)(nil)
+var _ IStorageCreator = (*ComputeTrace)(nil)
 
-type TraceCal struct {
+// ComputeTrace Link data calculation
+type ComputeTrace struct {
 	Storage
 }
 
-func newTraceCal() IStorageCreator {
-	return &TraceCal{}
+func newComputeTrace() IStorageCreator {
+	return &ComputeTrace{}
+}
+
+func (t *ComputeTrace) GetSQLs() (names []string, sqls []string) {
+	names = make([]string, 0)
+	sqls = make([]string, 0)
+	appendSQL(&names, &sqls, t.getDistributedSQL)
+	appendSQL(&names, &sqls, t.getMergeTreeSQL)
+	return
 }
 
 // GetDistributedSQL get distribution table sql
-func (t *TraceCal) GetDistributedSQL() (string, bool) {
+func (t *ComputeTrace) getDistributedSQL() (name string, sql string) {
 	if t.isReplica || t.isShard {
 		// ddn distribution database table name
 		ddt := fmt.Sprintf("`%s`.`%s`", t.database, t.table)
 		// mdt merge tree database table
 		mdt := fmt.Sprintf("`%s`.`%s_local`", t.database, t.table)
 		// Contains the shard or include a copy of the return distribution table sql
-		return fmt.Sprintf(`CREATE TABLE %s on cluster '%s' AS %s
-ENGINE = Distributed('%s', '%s', '%s_local', rand());`, ddt, t.cluster, mdt, t.cluster, t.database, t.table), true
+		return ddt, fmt.Sprintf(`CREATE TABLE %s on cluster '%s' AS %s
+ENGINE = Distributed('%s', '%s', '%s_local', rand());`, ddt, t.cluster, mdt, t.cluster, t.database, t.table)
 	}
-	return defaultMsg, false
+	return "", ""
 }
 
-func (t *TraceCal) GetMergeTreeSQL() (string, bool) {
+func (t *ComputeTrace) getMergeTreeSQL() (name string, sql string) {
 	if t.isShard {
-		return t.mergeTreeShardSQL(), true
+		return t.mergeTreeShardSQL()
 	}
 	if t.isReplica {
-		return t.mergeTreeReplicaSQL(), true
+		return t.mergeTreeReplicaSQL()
 	}
-	return t.mergeTreeSQL(), true
+	return t.mergeTreeSQL()
 }
 
-func (t *TraceCal) GetKafkaEngineSQL() (string, bool) {
-	return defaultMsg, false
-}
-
-func (t *TraceCal) GetMaterializeViewSQL() (string, bool) {
-	return defaultMsg, false
-}
-
-func (t *TraceCal) mergeTreeShardSQL() string {
+func (t *ComputeTrace) mergeTreeShardSQL() (name string, sql string) {
 	// mdt merge tree database table
 	mdt := fmt.Sprintf("`%s`.`%s_local`", t.database, t.table)
-	return fmt.Sprintf(`CREATE TABLE %s on cluster '%s'
+	return mdt, fmt.Sprintf(`CREATE TABLE %s on cluster '%s'
 (
     timestamp           DateTime,
     parent              String,
@@ -72,10 +73,10 @@ TTL toDate(timestamp) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;`, mdt, t.cluster, t.database, t.table, t.ttl)
 }
 
-func (t *TraceCal) mergeTreeReplicaSQL() string {
+func (t *ComputeTrace) mergeTreeReplicaSQL() (name string, sql string) {
 	// mdt merge tree database table
 	mdt := fmt.Sprintf("`%s`.`%s_local`", t.database, t.table)
-	return fmt.Sprintf(`CREATE TABLE %s on cluster '%s'
+	return mdt, fmt.Sprintf(`CREATE TABLE %s on cluster '%s'
 (
     timestamp           DateTime,
     parent              String,
@@ -98,10 +99,10 @@ TTL toDate(timestamp) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;`, mdt, t.cluster, t.ttl)
 }
 
-func (t *TraceCal) mergeTreeSQL() string {
+func (t *ComputeTrace) mergeTreeSQL() (name string, sql string) {
 	// mdt merge tree database table
 	mdt := fmt.Sprintf("`%s`.`%s`", t.database, t.table)
-	return fmt.Sprintf(`CREATE TABLE %s
+	return mdt, fmt.Sprintf(`CREATE TABLE %s
 (
     timestamp           DateTime,
     parent              String,

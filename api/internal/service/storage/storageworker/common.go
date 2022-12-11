@@ -1,4 +1,4 @@
-package storage
+package storageworker
 
 const (
 	batchInsertSize = 5000

@@ -1,4 +1,4 @@
-package storage
+package storageworker
 
 import (
 	"fmt"
@@ -11,10 +11,10 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-var _ iWorker = (*WorkerTrace)(nil)
+var _ iWorker = (*Trace)(nil)
 
-// WorkerTrace Used to otel jaeger json data analysis
-type WorkerTrace struct {
+// Trace Used to otel jaeger json data analysis
+type Trace struct {
 	// default
 	worker
 
@@ -22,31 +22,31 @@ type WorkerTrace struct {
 	c *cron.Cron
 }
 
-func NewWorkerTrace(params WorkerParams) *WorkerTrace {
-	w := &WorkerTrace{}
+func NewTrace(params WorkerParams) *Trace {
+	w := &Trace{}
 	w.SetParams(params)
 	xgo.Go(func() { w.Start() })
 	return w
 }
 
-func (w *WorkerTrace) Start() {
+func (w *Trace) Start() {
 	c := cron.New()
 	if _, err := c.AddFunc(w.spec, func() { w.run() }); err != nil {
-		elog.Error("WorkerTrace", elog.FieldComponent("Start"), elog.FieldName("addFunc"), elog.FieldErr(err))
+		elog.Error("Trace", elog.FieldComponent("Start"), elog.FieldName("addFunc"), elog.FieldErr(err))
 		return
 	}
 	c.Start()
 	w.c = c
 }
 
-func (w *WorkerTrace) Stop() {
+func (w *Trace) Stop() {
 	if w.c != nil {
 		w.c.Stop()
 	}
 	return
 }
 
-func (w *WorkerTrace) run() {
+func (w *Trace) run() {
 	elog.Info("workerTrace", elog.FieldComponent("run"), elog.FieldName("gogogo"))
 	var dependencies []view.JaegerDependencyDataModel
 	query := fmt.Sprintf(queryJaegerCallCountSql, time.Now().Format("2006-01-02 15:04:05"), w.source.String(), w.source.String())
@@ -103,14 +103,14 @@ func (w *WorkerTrace) run() {
 		}
 		err = w.batchInsert(dependencies[i:ends])
 		if err != nil {
-			elog.Error("WorkerTrace", elog.FieldComponent("run"), elog.FieldName("batchInsert"), elog.FieldErr(err))
+			elog.Error("Trace", elog.FieldComponent("run"), elog.FieldName("batchInsert"), elog.FieldErr(err))
 			return
 		}
 	}
 	return
 }
 
-func (w *WorkerTrace) batchInsert(req []view.JaegerDependencyDataModel) error {
+func (w *Trace) batchInsert(req []view.JaegerDependencyDataModel) error {
 	scope, err := w.db.Begin()
 	if err != nil {
 		elog.Error("workerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("begin"), elog.FieldErr(err))

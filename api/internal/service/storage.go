@@ -8,6 +8,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/storage"
+	"github.com/clickvisual/clickvisual/api/internal/service/storage/storageworker"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
@@ -20,13 +21,13 @@ type iSrvStorage interface {
 
 type srvStorage struct {
 	workersF map[int]bool
-	workers  map[int]*storage.WorkerTrace
+	workers  map[int]*storageworker.Trace
 }
 
 func NewSrvStorage() *srvStorage {
 	return &srvStorage{
 		workersF: make(map[int]bool, 0),
-		workers:  make(map[int]*storage.WorkerTrace, 0),
+		workers:  make(map[int]*storageworker.Trace, 0),
 	}
 }
 
@@ -80,7 +81,7 @@ func (s *srvStorage) on(row *db.BaseTable) error {
 		s.workersF[row.ID] = false
 		return err
 	}
-	worker := storage.NewWorkerTrace(storage.WorkerParams{
+	worker := storageworker.NewTrace(storageworker.WorkerParams{
 		Spec:   "*/10 * * * *",
 		Source: source,
 		Target: target,
