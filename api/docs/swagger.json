@@ -643,7 +643,7 @@
                         "type": "string"
                     },
                     "selectFields": {
-                        "description": "sql_distributed",
+                        "description": "text",
                         "type": "string"
                     },
                     "sqlData": {
@@ -2410,6 +2410,9 @@
                         "type": "string"
                     },
                     "Consumers": {
+                        "type": "integer"
+                    },
+                    "CreateType": {
                         "type": "integer"
                     },
                     "DatabaseId": {
@@ -11223,7 +11226,6 @@
         },
         "/api/v3/storage": {
             "post": {
-                "description": "godoc\n\nCreating a no format restrictions log library",
                 "operationId": "storage.Create",
                 "requestBody": {
                     "content": {
@@ -11254,7 +11256,7 @@
                         }
                     }
                 },
-                "summary": "Creating a no format restrictions log library",
+                "summary": "创建日志库 V3",
                 "tags": [
                     "LOGSTORE"
                 ]
