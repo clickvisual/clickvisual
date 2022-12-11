@@ -49,6 +49,18 @@ func NewInstanceManager() *instanceManager {
 				continue
 			}
 			m.dss.Store(ds.DsKey(), ch)
+		case db.DatasourceDatabend:
+			databendDb, err := DatabendLink(ds.Dsn)
+			if err != nil {
+				core.LoggerError("Databend", "link", err)
+				continue
+			}
+			dd, err := inquiry.NewDatabend(databendDb, ds)
+			if err != nil {
+				core.LoggerError("Databend", "new", err)
+				continue
+			}
+			m.dss.Store(ds.DsKey(), dd)
 		}
 	}
 	return m
@@ -72,6 +84,16 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 			return err
 		}
 		i.dss.Store(obj.DsKey(), ch)
+	case db.DatasourceDatabend:
+		databendDb, err := DatabendLink(obj.Dsn)
+		if err != nil {
+			return err
+		}
+		dd, err := inquiry.NewDatabend(databendDb, obj)
+		if err != nil {
+			return err
+		}
+		i.dss.Store(obj.DsKey(), dd)
 	}
 	return nil
 }
@@ -175,6 +197,18 @@ func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
 	conn.SetConnMaxLifetime(time.Minute * 3)
 	if err = conn.Ping(); err != nil {
 		return nil, errors.Wrap(err, "clickhouse link")
+	}
+	return
+}
+
+func DatabendLink(dsn string) (conn *sql.DB, err error) {
+	conn, err = sql.Open("databend", dsn)
+	if err != nil {
+		return nil, errors.Wrap(err, "sql.Open")
+	}
+
+	if err = conn.Ping(); err != nil {
+		return nil, errors.Wrap(err, "databend link")
 	}
 	return
 }

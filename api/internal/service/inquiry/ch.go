@@ -1187,10 +1187,12 @@ func (c *ClickHouse) ListSystemCluster() (l []*view.SystemClusters, m map[string
 	}
 	for _, cl := range clusters {
 		row := view.SystemClusters{
-			Cluster:     cl["cluster"].(string),
-			ShardNum:    cl["shard_num"].(uint32),
-			ShardWeight: cl["shard_weight"].(uint32),
-			ReplicaNum:  cl["replica_num"].(uint32),
+			ClickhouseSystemClusters: view.ClickhouseSystemClusters{
+				Cluster:     cl["cluster"].(string),
+				ShardNum:    cl["shard_num"].(uint32),
+				ShardWeight: cl["shard_weight"].(uint32),
+				ReplicaNum:  cl["replica_num"].(uint32),
+			},
 		}
 		l = append(l, &row)
 		m[cl["cluster"].(string)] = &row

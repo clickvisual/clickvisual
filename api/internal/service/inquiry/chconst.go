@@ -10,6 +10,8 @@ const (
   toDateTime64(parseDateTimeBestEffort(%s), 9) AS _time_nanosecond_`
 	defaultFloatTimeParse = `toDateTime(toInt64(%s)) AS _time_second_,
   fromUnixTimestamp64Nano(toInt64(%s*1000000000)) AS _time_nanosecond_`
+	databendFloatTimeParse = `to_timestamp(AS_INTEGER(%s)) AS _time_second_,
+  as_float(AS_INTEGER(%s*1000000000)) AS _time_nanosecond_`
 	defaultCondition = "1='1'"
 )
 
@@ -18,11 +20,16 @@ const (
   toDateTime64(parseDateTimeBestEffort(JSONExtractString(%s, '%s')), 9) AS _time_nanosecond_`
 	defaultFloatTimeParseV3 = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_,
   fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000)) AS _time_nanosecond_`
+	databendFloatTimeParseV3 = `to_timestamp(AS_INTEGER(json_extract_path_text(%s, '%s'))) AS _time_second_,
+  AS_INTEGER(json_extract_path_text(%s, '%s')*1000000000) AS _time_nanosecond_`
 )
 
 // time_field 高精度数据解析选择
-var nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_, 
+var (
+	nanosecondTimeParse = `toDateTime(toInt64(JSONExtractFloat(%s, '%s'))) AS _time_second_, 
   fromUnixTimestamp64Nano(toInt64(JSONExtractFloat(%s, '%s')*1000000000)) AS _time_nanosecond_`
+	databendNanoSecondTimeParse = databendFloatTimeParseV3
+)
 
 var typArr = []string{
 	"Array(String)",
