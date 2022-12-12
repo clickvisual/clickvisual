@@ -117,6 +117,8 @@ func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	switch instance.Datasource {
 	case db.DatasourceClickHouse:
 		return obj.(*inquiry.ClickHouse), nil
+	case db.DatasourceDatabend:
+		return obj.(*inquiry.Databend), nil
 	}
 	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 }
