@@ -4,6 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
+
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
@@ -13,14 +23,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/econf"
-	"github.com/gotomicro/ego/core/elog"
-	"github.com/pkg/errors"
-	"reflect"
-	"sort"
-	"strings"
-	"time"
 )
 
 var _ Operator = (*Databend)(nil)
@@ -30,6 +32,11 @@ type Databend struct {
 	mode int
 	rs   int // replica status
 	db   *sql.DB
+}
+
+func (c *Databend) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error) {
+	// TODO implement me
+	panic("implement me")
 }
 
 func NewDatabend(db *sql.DB, ins *db.BaseInstance) (*Databend, error) {
@@ -170,7 +177,7 @@ func (c *Databend) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStor
 
 func (c *Databend) CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error) {
 	// jaegerJson dependencies table
-	sc, errGetTableCreator := builderv2.GetTableCreator(builderv2.StorageTypeTraceCal)
+	sc, errGetTableCreator := builderv2.GetTableCreator(constx.TableCreateTypeTraceCalculation)
 	if errGetTableCreator != nil {
 		elog.Error("CreateTable", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
 		return
@@ -185,11 +192,8 @@ func (c *Databend) CreateTraceJaegerDependencies(database, cluster, table string
 		DB:        c.db,
 	}
 	sc.SetParams(params)
-	if _, err = sc.Execute(sc.GetMergeTreeSQL()); err != nil {
-		elog.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
-		return
-	}
-	if _, err = sc.Execute(sc.GetDistributedSQL()); err != nil {
+	_, sqls := sc.GetSQLs()
+	if _, err = sc.Execute(sqls); err != nil {
 		elog.Error("CreateTable", elog.String("step", "GetDistributedSQL"), elog.FieldErr(err))
 		return
 	}
