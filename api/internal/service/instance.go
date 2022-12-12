@@ -219,10 +219,9 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 	conds["name"] = req.Name
 	checks, err := db.InstanceList(conds)
 	if err != nil {
-		err = errors.Wrap(err, "create DB failed 01: ")
+		err = errors.Wrapf(err, "req: %v", req)
 		return
 	}
-	elog.Debug("InstanceCreate", elog.Any("checks", checks))
 	if len(checks) > 0 {
 		err = errors.New("data source configuration with duplicate name")
 		return
@@ -246,26 +245,25 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		Mode:             req.Mode,
 		Clusters:         req.Clusters,
 	}
-	elog.Debug("instanceCreate", elog.Any("obj", obj))
 	if req.PrometheusTarget != "" {
 		if err = Alert.PrometheusReload(req.PrometheusTarget); err != nil {
-			err = errors.Wrap(err, "create DB failed 02:")
+			err = errors.Wrapf(err, "prometheus target: %s", req.PrometheusTarget)
 			return
 		}
 	}
 	tx := invoker.Db.Begin()
 	if err = db.InstanceCreate(tx, &obj); err != nil {
 		tx.Rollback()
-		err = errors.Wrap(err, "create DB failed 03: ")
+		err = errors.Wrapf(err, "instance: %v", obj)
 		return
 	}
 	if err = InstanceManager.Add(&obj); err != nil {
 		tx.Rollback()
-		err = errors.Wrap(err, "DNS configuration exception, database connection failure 01: ")
+		err = errors.Wrapf(err, "instance: %v", obj)
 		return
 	}
 	if err = tx.Commit().Error; err != nil {
-		err = errors.Wrap(err, "DNS configuration exception, database connection failure 02: ")
+		err = errors.Wrap(err, "DNS configuration exception, database connection failure 02")
 		return
 	}
 	return obj, nil

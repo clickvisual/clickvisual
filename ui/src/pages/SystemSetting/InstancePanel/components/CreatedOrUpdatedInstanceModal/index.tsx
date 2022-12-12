@@ -1,28 +1,12 @@
-import {
-  Button,
-  Checkbox,
-  Form,
-  FormInstance,
-  Input,
-  message,
-  Modal,
-  Select,
-  Space,
-  Switch,
-  Tooltip,
-} from "antd";
-import { useDebounceFn } from "ahooks";
-import type { InstanceType } from "@/services/systemSetting";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useRef, useState } from "react";
-import { DEBOUNCE_WAIT } from "@/config/config";
-import { useIntl } from "umi";
-import {
-  MinusCircleOutlined,
-  PlusOutlined,
-  SaveOutlined,
-} from "@ant-design/icons";
-import { cloneDeep } from "lodash";
+import {Button, Checkbox, Form, FormInstance, Input, message, Modal, Select, Space, Switch, Tooltip,} from "antd";
+import {useDebounceFn} from "ahooks";
+import type {InstanceType} from "@/services/systemSetting";
+import {useModel} from "@@/plugin-model/useModel";
+import {useEffect, useRef, useState} from "react";
+import {DEBOUNCE_WAIT} from "@/config/config";
+import {useIntl} from "umi";
+import {MinusCircleOutlined, PlusOutlined, SaveOutlined,} from "@ant-design/icons";
+import {cloneDeep} from "lodash";
 import IconFont from "@/components/IconFont";
 
 type CreatedOrUpdatedInstanceModalProps = {
@@ -265,9 +249,9 @@ const CreatedOrUpdatedInstanceModal = (
             placeholder={i18n.formatMessage({
               id: "instance.form.placeholder.datasource",
             })}
-            disabled
           >
             <Option value={"ch"}>ClickHouse</Option>
+            <Option value={"databend"}>Databend</Option>
           </Select>
         </Form.Item>
 
