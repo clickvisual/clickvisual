@@ -56,7 +56,7 @@ func (c *ClickHouse) GetMetricsSamples() error {
 }
 
 func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
-	c.db.Exec("set allow_deprecated_syntax_for_merge_tree=1")
+	_, _ = c.db.Exec("set allow_deprecated_syntax_for_merge_tree=1")
 	switch c.mode {
 	case ModeStandalone:
 		_, err := c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
