@@ -196,12 +196,12 @@ func InstanceDelete(c *core.Context) {
 func InstanceTest(c *core.Context) {
 	var req view.ReqTestInstance
 	var err error
-	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 
@@ -212,7 +212,7 @@ func InstanceTest(c *core.Context) {
 		_, err = service.DatabendLink(req.Dsn)
 	}
 	if err != nil {
-		c.JSONE(1, "connection failure: "+err.Error(), nil)
+		c.JSONE(1, "connection failure: "+err.Error(), err)
 		return
 	}
 	c.JSONOK()

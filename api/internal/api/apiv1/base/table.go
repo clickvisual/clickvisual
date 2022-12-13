@@ -252,8 +252,6 @@ func TableDelete(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-
-	// check alarms
 	conds := egorm.Conds{}
 	conds["tid"] = tableInfo.ID
 	alarms, err := db.AlarmList(conds)
@@ -265,7 +263,6 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "you should delete all alarms before delete table.", nil)
 		return
 	}
-
 	tx := invoker.Db.Begin()
 	err = db.TableDelete(tx, tableInfo.ID)
 	if err != nil {
@@ -289,7 +286,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 06", err)
 		return
 	}
-	if tableInfo.CreateType != constx.TableCreateTypeExist {
+	if tableInfo.CreateType != constx.TableCreateTypeExist && tableInfo.CreateType != constx.TableCreateTypeBufferNullDataPipe {
 		table := tableInfo.Name
 		iid := tableInfo.Database.Iid
 		database := tableInfo.Database.Name
@@ -299,6 +296,15 @@ func TableDelete(c *core.Context) {
 			return
 		}
 		err = op.DeleteTable(database, table, tableInfo.Database.Cluster, tableInfo.ID)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+	}
+	if tableInfo.CreateType == constx.TableCreateTypeBufferNullDataPipe {
+		var tableAttach = db.BaseTableAttach{}
+		tableAttach.Tid = tableInfo.ID
+		err = tableAttach.Info(invoker.Db)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
 			return

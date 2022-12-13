@@ -33,6 +33,11 @@ type Databend struct {
 	db   *sql.DB
 }
 
+func (c *Databend) DeleteTableListByName(i []string, s string) error {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (c *Databend) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error) {
 	// TODO implement me
 	panic("implement me")

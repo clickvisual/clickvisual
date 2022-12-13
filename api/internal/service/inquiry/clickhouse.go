@@ -354,6 +354,25 @@ func (c *ClickHouse) DeleteAlertView(viewTableName, cluster string) (err error) 
 	return nil
 }
 
+// DeleteTableListByName data view stream
+func (c *ClickHouse) DeleteTableListByName(names []string, cluster string) (err error) {
+	for _, name := range names {
+		nameWithCluster := name
+		if c.mode == ModeCluster {
+			if cluster == "" {
+				err = constx.ErrClusterNameEmpty
+				return
+			}
+			nameWithCluster = fmt.Sprintf("%s ON CLUSTER '%s'", name, cluster)
+		}
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", nameWithCluster))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // DeleteTable data view stream
 func (c *ClickHouse) DeleteTable(database, table, cluster string, tid int) (err error) {
 	var (

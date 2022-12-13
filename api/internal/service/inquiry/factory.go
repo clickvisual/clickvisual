@@ -55,6 +55,7 @@ type Operator interface {
 	DeleteDatabase(string, string) error
 	DeleteAlertView(string, string) error
 	DeleteTable(string, string, string, int) error
+	DeleteTableListByName([]string, string) error
 	DeleteTraceJaegerDependencies(database, cluster, table string) (err error)
 	CalculateInterval(interval int64, timeField string) (string, int64)
 }
