@@ -17,7 +17,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/cluster"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/standalone"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
@@ -160,13 +159,7 @@ func (c *Databend) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStor
 			KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
 		},
 	}
-	if c.mode == ModeCluster {
-		streamParams.Cluster = tableInfo.Database.Cluster
-		streamParams.ReplicaStatus = c.rs
-		streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
-	} else {
-		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
-	}
+	streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
 	if _, err = c.db.Exec(streamSQL); err != nil {
 		elog.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
 		_, _ = c.db.Exec(currentKafkaSQL)
