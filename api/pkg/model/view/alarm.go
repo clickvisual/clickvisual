@@ -6,6 +6,8 @@ import (
 
 type ReqAlarmCreate struct {
 	Name       string                    `json:"alarmName" form:"alarmName"` // 告警名称
+	Service    string                    `json:"service" form:"service"`     // 服务名称
+	Mobiles    string                    `json:"mobiles" form:"mobiles"`     // 报警人手机号
 	Desc       string                    `json:"desc" form:"desc"`           // 描述说明
 	Interval   int                       `json:"interval" form:"interval"`   // 告警频率
 	Unit       int                       `json:"unit" form:"unit"`           // 0 m 1 s 2 h 3 d 4 w 5 y
@@ -126,6 +128,13 @@ type (
 		At       *At       `json:"at"`
 		Markdown *Markdown `json:"markdown"`
 	}
+
+    DingTalkText struct {
+        MsgType  string    `json:"msgtype"`
+        At       *At       `json:"at"`
+        Text     *Text     `json:"text"`
+    }
+
 	WeComMarkdown struct {
 		MsgType       string         `json:"msgtype"`
 		MentionedList *MentionedList `json:"mentionedList"`
@@ -141,4 +150,8 @@ type (
 		Title string `json:"title"`
 		Text  string `json:"text"`
 	}
+
+    Text struct {
+        Content string `json:"content"`
+    }
 )

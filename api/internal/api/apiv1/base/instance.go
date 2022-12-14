@@ -192,10 +192,9 @@ func InstanceDelete(c *core.Context) {
 
 // InstanceTest
 // @Tags         SYSTEM
-// @Summary 	 ClickHouse/Databend DSN 测试
+// @Summary 	 ClickHouse DSN 测试
 func InstanceTest(c *core.Context) {
 	var req view.ReqTestInstance
-	var err error
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
@@ -204,14 +203,7 @@ func InstanceTest(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-
-	switch req.Datasource {
-	case db.DatasourceClickHouse:
-		_, err = service.ClickHouseLink(req.Dsn)
-	case db.DatasourceDatabend:
-		_, err = service.DatabendLink(req.Dsn)
-	}
-	if err != nil {
+	if _, err := service.ClickHouseLink(req.Dsn); err != nil {
 		c.JSONE(1, "connection failure: "+err.Error(), nil)
 		return
 	}

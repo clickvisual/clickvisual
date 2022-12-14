@@ -225,6 +225,62 @@ const FormAlarmDraw = () => {
             </Select>
           </Form.Item>
           <InspectionFrequencyItem />
+          <Form.Item
+            label={i18n.formatMessage({ id: "alarm.rules.form.serviceName" })}
+            name={"service"}
+            rules={[
+              {
+                required: true,
+                message: i18n.formatMessage({
+                  id: "alarm.rules.form.placeholder.serviceName",
+                }),
+              },
+              {
+                max: 64,
+              },
+              {
+                // pattern: new RegExp("^[a-zA-Z1-9_]*$"),
+                message: i18n.formatMessage({
+                  id: "alarm.rules.form.rule.serviceName",
+                }),
+              },
+            ]}
+          >
+            <Input
+              placeholder={`${i18n.formatMessage({
+                id: "alarm.rules.form.placeholder.serviceName",
+              })}`}
+            />
+          </Form.Item>
+          
+          <Form.Item
+            label={i18n.formatMessage({ id: "alarm.rules.form.mobiles" })}
+            name={"mobiles"}
+            rules={[
+              {
+                required: true,
+                message: i18n.formatMessage({
+                  id: "alarm.rules.form.placeholder.mobiles",
+                }),
+              },
+              {
+                max: 1024,
+              },
+              {
+                // pattern: new RegExp("^[a-zA-Z1-9_]*$"),
+                message: i18n.formatMessage({
+                  id: "alarm.rules.form.rule.mobiles",
+                }),
+              },
+            ]}
+          >
+            <Input
+              placeholder={`${i18n.formatMessage({
+                id: "alarm.rules.form.placeholder.mobiles",
+              })}`}
+            />
+          </Form.Item>
+
           <QueryStatisticsItem formRef={alarmFormRef.current} />
           <MoreOptions />
 

@@ -35,6 +35,8 @@ export interface AlarmType extends TimeBaseType {
   tableName: string;
   uuid: string;
   alarmName: string;
+  serviceName: string;
+  mobiles: string;
   desc: string;
   interval: number;
   unit: number;
@@ -96,6 +98,9 @@ export interface AlarmInfoType extends AlarmType, TimeBaseType {
 
 export interface AlarmRequest {
   alarmName: string;
+  service: string;
+  serviceName: string;
+  mobiles: string;
   type: number;
   filters: AlarmFilterType[];
   channelIds: number[];

@@ -1,12 +1,10 @@
 package constx
 
 const (
-	TableCreateTypeCV int = iota
-	TableCreateTypeExist
-	TableCreateTypeJSONEachRow
-	TableCreateTypeUBW
-	TableCreateTypeTraceCalculation
-	TableCreateTypeBufferNullDataPipe
+	TableCreateTypeCV          = 0
+	TableCreateTypeExist       = 1
+	TableCreateTypeJSONEachRow = 2
+	TableCreateTypeUBW         = 3
 )
 
 const (

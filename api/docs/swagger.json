@@ -643,7 +643,7 @@
                         "type": "string"
                     },
                     "selectFields": {
-                        "description": "text",
+                        "description": "sql_distributed",
                         "type": "string"
                     },
                     "sqlData": {
@@ -2412,9 +2412,6 @@
                     "Consumers": {
                         "type": "integer"
                     },
-                    "CreateType": {
-                        "type": "integer"
-                    },
                     "DatabaseId": {
                         "type": "integer"
                     },
@@ -2602,9 +2599,6 @@
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTestInstance": {
                 "properties": {
-                    "datasource": {
-                        "type": "string"
-                    },
                     "dsn": {
                         "type": "string"
                     }
@@ -4000,7 +3994,7 @@
     },
     "openapi": "3.0.3",
     "paths": {
-        "/api/admin/login/{oauth}": {
+        "/admin/login/{oauth}": {
             "get": {
                 "operationId": "user.Oauth",
                 "parameters": [
@@ -4054,7 +4048,7 @@
                 ]
             }
         },
-        "/api/admin/users/login": {
+        "/admin/users/login": {
             "post": {
                 "operationId": "user.Login",
                 "requestBody": {
@@ -4092,7 +4086,7 @@
                 ]
             }
         },
-        "/api/v1/alarms": {
+        "/v1/alarms": {
             "get": {
                 "operationId": "alarm.List",
                 "parameters": [
@@ -4202,7 +4196,7 @@
                 ]
             }
         },
-        "/api/v1/alarms-channels": {
+        "/v1/alarms-channels": {
             "get": {
                 "operationId": "alarm.ChannelList",
                 "responses": {
@@ -4272,7 +4266,7 @@
                 ]
             }
         },
-        "/api/v1/alarms-channels/send-test": {
+        "/v1/alarms-channels/send-test": {
             "post": {
                 "operationId": "alarm.ChannelSendTest",
                 "requestBody": {
@@ -4310,7 +4304,7 @@
                 ]
             }
         },
-        "/api/v1/alarms-channels/{id}": {
+        "/v1/alarms-channels/{id}": {
             "delete": {
                 "operationId": "alarm.ChannelDelete",
                 "parameters": [
@@ -4433,7 +4427,7 @@
                 ]
             }
         },
-        "/api/v1/alarms-histories": {
+        "/v1/alarms-histories": {
             "get": {
                 "operationId": "alarm.HistoryList",
                 "parameters": [
@@ -4466,7 +4460,7 @@
                 ]
             }
         },
-        "/api/v1/alarms-histories/{id}": {
+        "/v1/alarms-histories/{id}": {
             "get": {
                 "operationId": "alarm.HistoryInfo",
                 "parameters": [
@@ -4507,7 +4501,7 @@
                 ]
             }
         },
-        "/api/v1/alarms/{id}": {
+        "/v1/alarms/{id}": {
             "delete": {
                 "operationId": "alarm.Delete",
                 "parameters": [
@@ -4630,7 +4624,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/folders": {
+        "/v1/bigdata/folders": {
             "post": {
                 "operationId": "bigdata.FolderCreate",
                 "requestBody": {
@@ -4667,7 +4661,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/folders/{id}": {
+        "/v1/bigdata/folders/{id}": {
             "delete": {
                 "operationId": "bigdata.FolderDelete",
                 "parameters": [
@@ -4787,7 +4781,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/instances/{id}/columns": {
+        "/v1/bigdata/mining/instances/{id}/columns": {
             "get": {
                 "operationId": "bigdata.InstanceColumnList",
                 "parameters": [
@@ -4844,7 +4838,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/instances/{id}/databases": {
+        "/v1/bigdata/mining/instances/{id}/databases": {
             "get": {
                 "operationId": "bigdata.InstanceDatabaseList",
                 "parameters": [
@@ -4884,7 +4878,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/instances/{id}/tables": {
+        "/v1/bigdata/mining/instances/{id}/tables": {
             "get": {
                 "operationId": "bigdata.InstanceTableList",
                 "parameters": [
@@ -4931,7 +4925,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/nodes/{id}/crontab": {
+        "/v1/bigdata/mining/nodes/{id}/crontab": {
             "delete": {
                 "operationId": "mining.CrontabDelete",
                 "parameters": [
@@ -5006,7 +5000,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/sources/{id}/columns": {
+        "/v1/bigdata/mining/sources/{id}/columns": {
             "get": {
                 "operationId": "bigdata.SourceColumnList",
                 "parameters": [
@@ -5063,7 +5057,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/sources/{id}/databases": {
+        "/v1/bigdata/mining/sources/{id}/databases": {
             "get": {
                 "operationId": "bigdata.SourceDatabaseList",
                 "parameters": [
@@ -5103,7 +5097,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/sources/{id}/tables": {
+        "/v1/bigdata/mining/sources/{id}/tables": {
             "get": {
                 "operationId": "bigdata.SourceTableList",
                 "parameters": [
@@ -5150,7 +5144,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/workflows": {
+        "/v1/bigdata/mining/workflows": {
             "get": {
                 "operationId": "mining.WorkflowList",
                 "parameters": [
@@ -5227,7 +5221,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/mining/workflows/{id}": {
+        "/v1/bigdata/mining/workflows/{id}": {
             "delete": {
                 "operationId": "mining.WorkflowDelete",
                 "parameters": [
@@ -5347,7 +5341,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes": {
+        "/v1/bigdata/nodes": {
             "get": {
                 "operationId": "bigdata.NodeList",
                 "parameters": [
@@ -5452,7 +5446,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}": {
+        "/v1/bigdata/nodes/{id}": {
             "delete": {
                 "operationId": "bigdata.NodeDelete",
                 "parameters": [
@@ -5572,7 +5566,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}/histories": {
+        "/v1/bigdata/nodes/{id}/histories": {
             "get": {
                 "operationId": "bigdata.NodeHistoryListPage",
                 "parameters": [
@@ -5598,7 +5592,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}/histories/{uuid}": {
+        "/v1/bigdata/nodes/{id}/histories/{uuid}": {
             "get": {
                 "operationId": "bigdata.NodeHistoryInfo",
                 "parameters": [
@@ -5638,7 +5632,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}/lock": {
+        "/v1/bigdata/nodes/{id}/lock": {
             "patch": {
                 "operationId": "bigdata.NodeLock",
                 "parameters": [
@@ -5675,7 +5669,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}/result/{rid}": {
+        "/v1/bigdata/nodes/{id}/result/{rid}": {
             "get": {
                 "operationId": "bigdata.NodeResultInfo",
                 "parameters": [
@@ -5715,7 +5709,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}/run": {
+        "/v1/bigdata/nodes/{id}/run": {
             "post": {
                 "operationId": "bigdata.NodeRun",
                 "parameters": [
@@ -5755,7 +5749,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}/stop": {
+        "/v1/bigdata/nodes/{id}/stop": {
             "post": {
                 "operationId": "bigdata.NodeStop",
                 "parameters": [
@@ -5795,7 +5789,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/nodes/{id}/unlock": {
+        "/v1/bigdata/nodes/{id}/unlock": {
             "patch": {
                 "operationId": "bigdata.NodeUnlock",
                 "parameters": [
@@ -5832,7 +5826,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/sources": {
+        "/v1/bigdata/sources": {
             "get": {
                 "operationId": "bigdata.SourceList",
                 "parameters": [
@@ -5923,7 +5917,7 @@
                 ]
             }
         },
-        "/api/v1/bigdata/sources/{id}": {
+        "/v1/bigdata/sources/{id}": {
             "delete": {
                 "operationId": "bigdata.SourceDelete",
                 "parameters": [
@@ -6043,7 +6037,7 @@
                 ]
             }
         },
-        "/api/v1/clusters": {
+        "/v1/clusters": {
             "get": {
                 "description": "根据分页获取Cluster列表",
                 "operationId": "kube.ClusterList",
@@ -6078,7 +6072,7 @@
                 ]
             }
         },
-        "/api/v1/clusters/{clusterId}/configmaps": {
+        "/v1/clusters/{clusterId}/configmaps": {
             "get": {
                 "description": "Get configmap by name",
                 "operationId": "kube.ConfigMapList",
@@ -6173,7 +6167,7 @@
                 ]
             }
         },
-        "/api/v1/clusters/{clusterId}/namespace/{namespace}/configmaps/{name}": {
+        "/v1/clusters/{clusterId}/namespace/{namespace}/configmaps/{name}": {
             "get": {
                 "description": "Get configmap by name",
                 "operationId": "kube.ConfigMapInfo",
@@ -6238,7 +6232,7 @@
                 ]
             }
         },
-        "/api/v1/configurations": {
+        "/v1/configurations": {
             "get": {
                 "description": "配置文件列表",
                 "operationId": "configure.List",
@@ -6337,7 +6331,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}": {
+        "/v1/configurations/{id}": {
             "delete": {
                 "description": "..",
                 "operationId": "configure.Delete",
@@ -6463,7 +6457,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}/diff": {
+        "/v1/configurations/{id}/diff": {
             "get": {
                 "description": "..",
                 "operationId": "configure.Diff",
@@ -6519,7 +6513,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}/histories": {
+        "/v1/configurations/{id}/histories": {
             "get": {
                 "description": "..",
                 "operationId": "configure.HistoryList",
@@ -6554,7 +6548,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}/histories/{version}": {
+        "/v1/configurations/{id}/histories/{version}": {
             "get": {
                 "description": "..",
                 "operationId": "configure.HistoryInfo",
@@ -6604,7 +6598,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}/lock": {
+        "/v1/configurations/{id}/lock": {
             "get": {
                 "operationId": "configure.Lock",
                 "parameters": [
@@ -6641,7 +6635,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}/publish": {
+        "/v1/configurations/{id}/publish": {
             "post": {
                 "description": "..",
                 "operationId": "configure.Publish",
@@ -6690,7 +6684,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}/sync": {
+        "/v1/configurations/{id}/sync": {
             "post": {
                 "description": "Synchronize the configmap configuration\n\nif id is 0 means all configurations need to be synchronized\n\nnot support update operator",
                 "operationId": "configure.Sync",
@@ -6742,7 +6736,7 @@
                 ]
             }
         },
-        "/api/v1/configurations/{id}/unlock": {
+        "/v1/configurations/{id}/unlock": {
             "post": {
                 "operationId": "configure.Unlock",
                 "parameters": [
@@ -6779,7 +6773,7 @@
                 ]
             }
         },
-        "/api/v1/databases/{did}/tables": {
+        "/v1/databases/{did}/tables": {
             "get": {
                 "operationId": "base.TableList",
                 "parameters": [
@@ -6869,7 +6863,7 @@
                 ]
             }
         },
-        "/api/v1/databases/{id}": {
+        "/v1/databases/{id}": {
             "delete": {
                 "operationId": "base.DatabaseDelete",
                 "parameters": [
@@ -6951,7 +6945,7 @@
                 ]
             }
         },
-        "/api/v1/event/enums": {
+        "/v1/event/enums": {
             "get": {
                 "operationId": "event.GetAllEnums",
                 "responses": {
@@ -6981,7 +6975,7 @@
                 ]
             }
         },
-        "/api/v1/event/source/{name}/enums": {
+        "/v1/event/source/{name}/enums": {
             "get": {
                 "operationId": "event.GetEnumsOfSource",
                 "parameters": [
@@ -7021,7 +7015,7 @@
                 ]
             }
         },
-        "/api/v1/events": {
+        "/v1/events": {
             "get": {
                 "operationId": "event.ListPage",
                 "parameters": [
@@ -7075,7 +7069,7 @@
                 ]
             }
         },
-        "/api/v1/hidden/{tid}": {
+        "/v1/hidden/{tid}": {
             "get": {
                 "operationId": "base.HiddenList",
                 "parameters": [
@@ -7160,7 +7154,7 @@
                 ]
             }
         },
-        "/api/v1/install": {
+        "/v1/install": {
             "get": {
                 "description": "Determine whether the installation process is required",
                 "operationId": "initialize.IsInstall",
@@ -7216,7 +7210,7 @@
                 ]
             }
         },
-        "/api/v1/instances/{iid}/columns-self-built": {
+        "/v1/instances/{iid}/columns-self-built": {
             "get": {
                 "operationId": "base.TableColumnsSelfBuilt",
                 "parameters": [
@@ -7296,7 +7290,7 @@
                 ]
             }
         },
-        "/api/v1/instances/{iid}/complete": {
+        "/v1/instances/{iid}/complete": {
             "get": {
                 "operationId": "base.QueryComplete",
                 "parameters": [
@@ -7344,7 +7338,7 @@
                 ]
             }
         },
-        "/api/v1/instances/{iid}/databases": {
+        "/v1/instances/{iid}/databases": {
             "get": {
                 "operationId": "base.DatabaseList",
                 "parameters": [
@@ -7432,7 +7426,7 @@
                 ]
             }
         },
-        "/api/v1/instances/{iid}/databases-exist": {
+        "/v1/instances/{iid}/databases-exist": {
             "get": {
                 "operationId": "base.DatabaseExistList",
                 "parameters": [
@@ -7475,7 +7469,7 @@
                 ]
             }
         },
-        "/api/v1/instances/{iid}/databases/{dn}/tables/{tn}/deps": {
+        "/v1/instances/{iid}/databases/{dn}/tables/{tn}/deps": {
             "get": {
                 "operationId": "base.TableDeps",
                 "parameters": [
@@ -7535,7 +7529,7 @@
                 ]
             }
         },
-        "/api/v1/instances/{iid}/tables-exist": {
+        "/v1/instances/{iid}/tables-exist": {
             "post": {
                 "operationId": "base.TableCreateSelfBuilt",
                 "parameters": [
@@ -7583,7 +7577,7 @@
                 ]
             }
         },
-        "/api/v1/instances/{iid}/tables-exist-batch": {
+        "/v1/instances/{iid}/tables-exist-batch": {
             "post": {
                 "operationId": "base.TableCreateSelfBuiltBatch",
                 "parameters": [
@@ -7631,7 +7625,7 @@
                 ]
             }
         },
-        "/api/v1/menus/list": {
+        "/v1/menus/list": {
             "get": {
                 "operationId": "permission.MenuList",
                 "responses": {
@@ -7664,7 +7658,7 @@
                 ]
             }
         },
-        "/api/v1/migration": {
+        "/v1/migration": {
             "get": {
                 "operationId": "initialize.Migration",
                 "responses": {
@@ -7691,7 +7685,7 @@
                 ]
             }
         },
-        "/api/v1/pms/check": {
+        "/v1/pms/check": {
             "post": {
                 "operationId": "permission.CheckPermission",
                 "requestBody": {
@@ -7728,7 +7722,7 @@
                 ]
             }
         },
-        "/api/v1/pms/commonInfo": {
+        "/v1/pms/commonInfo": {
             "get": {
                 "operationId": "permission.GetPmsCommonInfo",
                 "parameters": [
@@ -7767,7 +7761,7 @@
                 ]
             }
         },
-        "/api/v1/pms/instance/{iid}/role/grant": {
+        "/v1/pms/instance/{iid}/role/grant": {
             "get": {
                 "operationId": "permission.GetInstancePmsRolesGrant",
                 "parameters": [
@@ -7894,7 +7888,7 @@
                 ]
             }
         },
-        "/api/v1/pms/role": {
+        "/v1/pms/role": {
             "get": {
                 "operationId": "permission.PmsRoleList",
                 "parameters": [
@@ -7986,7 +7980,7 @@
                 ]
             }
         },
-        "/api/v1/pms/role/{id}": {
+        "/v1/pms/role/{id}": {
             "delete": {
                 "operationId": "permission.DeletePmsRole",
                 "parameters": [
@@ -8106,7 +8100,7 @@
                 ]
             }
         },
-        "/api/v1/pms/root/grant": {
+        "/v1/pms/root/grant": {
             "post": {
                 "operationId": "permission.GrantRootUids",
                 "requestBody": {
@@ -8143,7 +8137,7 @@
                 ]
             }
         },
-        "/api/v1/pms/root/uids": {
+        "/v1/pms/root/uids": {
             "get": {
                 "operationId": "permission.GetRootUids",
                 "responses": {
@@ -8173,7 +8167,7 @@
                 ]
             }
         },
-        "/api/v1/prometheus/alerts": {
+        "/v1/prometheus/alerts": {
             "post": {
                 "description": "godoc\n\n{\"version\":\"4\",\"groupKey\":\"{}:{alertname=\\\\\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\\\\\"}\",\"status\":\"firing\",\"receiver\":\"webhook\",\"groupLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\"},\"commonLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"commonAnnotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"externalURL\":\"http://duminxiangdeMacBook-Pro.local:9093\",\"alerts\":[{\"labels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"annotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"startsAt\":\"2022-11-07T09:23:17.6Z\",\"endsAt\":\"0001-01-01T00:00:00Z\"}]}",
                 "operationId": "alert.Webhook",
@@ -8212,7 +8206,7 @@
                 ]
             }
         },
-        "/api/v1/sys/clusters": {
+        "/v1/sys/clusters": {
             "get": {
                 "description": "根据分页获取Cluster列表",
                 "operationId": "setting.ClusterPageList",
@@ -8284,7 +8278,7 @@
                 ]
             }
         },
-        "/api/v1/sys/clusters/{id}": {
+        "/v1/sys/clusters/{id}": {
             "delete": {
                 "description": "删除数据",
                 "operationId": "setting.ClusterDelete",
@@ -8410,7 +8404,7 @@
                 ]
             }
         },
-        "/api/v1/sys/instances": {
+        "/v1/sys/instances": {
             "get": {
                 "operationId": "base.InstanceList",
                 "responses": {
@@ -8480,7 +8474,7 @@
                 ]
             }
         },
-        "/api/v1/sys/instances/test": {
+        "/v1/sys/instances/test": {
             "post": {
                 "operationId": "base.InstanceTest",
                 "requestBody": {
@@ -8512,13 +8506,13 @@
                         }
                     }
                 },
-                "summary": "ClickHouse/Databend DSN 测试",
+                "summary": "ClickHouse DSN 测试",
                 "tags": [
                     "SYSTEM"
                 ]
             }
         },
-        "/api/v1/sys/instances/{id}": {
+        "/v1/sys/instances/{id}": {
             "delete": {
                 "operationId": "base.InstanceDelete",
                 "parameters": [
@@ -8641,7 +8635,7 @@
                 ]
             }
         },
-        "/api/v1/table/id": {
+        "/v1/table/id": {
             "get": {
                 "operationId": "base.TableId",
                 "parameters": [
@@ -8702,7 +8696,7 @@
                 ]
             }
         },
-        "/api/v1/tables/{id}": {
+        "/v1/tables/{id}": {
             "delete": {
                 "operationId": "base.TableDelete",
                 "parameters": [
@@ -8825,7 +8819,7 @@
                 ]
             }
         },
-        "/api/v1/tables/{id}/charts": {
+        "/v1/tables/{id}/charts": {
             "get": {
                 "operationId": "base.TableCharts",
                 "parameters": [
@@ -8981,7 +8975,7 @@
                 ]
             }
         },
-        "/api/v1/tables/{id}/indexes": {
+        "/v1/tables/{id}/indexes": {
             "get": {
                 "operationId": "base.Indexes",
                 "parameters": [
@@ -9071,7 +9065,7 @@
                 ]
             }
         },
-        "/api/v1/tables/{id}/indexes/{idx}": {
+        "/v1/tables/{id}/indexes/{idx}": {
             "get": {
                 "operationId": "base.TableIndexes",
                 "parameters": [
@@ -9238,7 +9232,7 @@
                 ]
             }
         },
-        "/api/v1/tables/{id}/logs": {
+        "/v1/tables/{id}/logs": {
             "get": {
                 "operationId": "base.TableLogs",
                 "parameters": [
@@ -9394,7 +9388,7 @@
                 ]
             }
         },
-        "/api/v1/tables/{id}/views": {
+        "/v1/tables/{id}/views": {
             "get": {
                 "operationId": "base.ViewList",
                 "parameters": [
@@ -9482,7 +9476,7 @@
                 ]
             }
         },
-        "/api/v1/users": {
+        "/v1/users": {
             "get": {
                 "operationId": "user.List",
                 "responses": {
@@ -9516,7 +9510,7 @@
                 ]
             }
         },
-        "/api/v1/users/info": {
+        "/v1/users/info": {
             "get": {
                 "operationId": "user.Info",
                 "responses": {
@@ -9547,7 +9541,7 @@
                 ]
             }
         },
-        "/api/v1/users/logout": {
+        "/v1/users/logout": {
             "post": {
                 "operationId": "user.Logout",
                 "responses": {
@@ -9575,7 +9569,7 @@
                 ]
             }
         },
-        "/api/v1/users/{uid}/password": {
+        "/v1/users/{uid}/password": {
             "patch": {
                 "operationId": "user.UpdatePassword",
                 "parameters": [
@@ -9623,7 +9617,7 @@
                 ]
             }
         },
-        "/api/v1/views/{id}": {
+        "/v1/views/{id}": {
             "delete": {
                 "operationId": "base.ViewDelete",
                 "parameters": [
@@ -9744,7 +9738,7 @@
                 ]
             }
         },
-        "/api/v2/alert/metrics-samples": {
+        "/v2/alert/metrics-samples": {
             "post": {
                 "operationId": "alert.CreateMetricsSamples",
                 "requestBody": {
@@ -9782,7 +9776,7 @@
                 ]
             }
         },
-        "/api/v2/alert/settings": {
+        "/v2/alert/settings": {
             "get": {
                 "operationId": "alert.SettingList",
                 "responses": {
@@ -9816,7 +9810,7 @@
                 ]
             }
         },
-        "/api/v2/alert/settings/{instance-id}": {
+        "/v2/alert/settings/{instance-id}": {
             "get": {
                 "operationId": "alert.SettingInfo",
                 "parameters": [
@@ -9903,7 +9897,7 @@
                 ]
             }
         },
-        "/api/v2/base/instances": {
+        "/v2/base/instances": {
             "get": {
                 "description": "godoc\n\ngets all instances, databases, and table nested data",
                 "operationId": "base.InstanceList",
@@ -9938,7 +9932,7 @@
                 ]
             }
         },
-        "/api/v2/base/shorturls": {
+        "/v2/base/shorturls": {
             "post": {
                 "description": "godoc\n\nCreate short links",
                 "operationId": "base.ShortURLCreate",
@@ -9980,7 +9974,7 @@
                 ]
             }
         },
-        "/api/v2/base/su/{s-code}": {
+        "/v2/base/su/{s-code}": {
             "get": {
                 "operationId": "base.ShortURLRedirect",
                 "parameters": [
@@ -10002,7 +9996,7 @@
                 ]
             }
         },
-        "/api/v2/base/users": {
+        "/v2/base/users": {
             "get": {
                 "description": "Get user list",
                 "operationId": "base.UserList",
@@ -10062,7 +10056,7 @@
                 ]
             }
         },
-        "/api/v2/base/users/{user-id}": {
+        "/v2/base/users/{user-id}": {
             "delete": {
                 "description": "godoc\n\nUser delete",
                 "operationId": "base.UserDelete",
@@ -10101,7 +10095,7 @@
                 ]
             }
         },
-        "/api/v2/base/users/{user-id}/password-reset": {
+        "/v2/base/users/{user-id}/password-reset": {
             "patch": {
                 "description": "godoc\n\nReset user password",
                 "operationId": "base.UserPasswordReset",
@@ -10143,7 +10137,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql": {
+        "/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql": {
             "get": {
                 "description": "godoc\n\ntable create sql",
                 "operationId": "pandas.TableCreateSQL",
@@ -10201,7 +10195,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/instances/{instance-id}/table-dependencies": {
+        "/v2/pandas/instances/{instance-id}/table-dependencies": {
             "get": {
                 "operationId": "pandas.TableDependencies",
                 "parameters": [
@@ -10256,7 +10250,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes-results/{result-id}": {
+        "/v2/pandas/nodes-results/{result-id}": {
             "patch": {
                 "operationId": "pandas.NodeResultUpdate",
                 "parameters": [
@@ -10307,7 +10301,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes/{node-id}/crontab": {
+        "/v2/pandas/nodes/{node-id}/crontab": {
             "patch": {
                 "operationId": "pandas.NodeCrontabUpdate",
                 "parameters": [
@@ -10401,7 +10395,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes/{node-id}/lock-acquire": {
+        "/v2/pandas/nodes/{node-id}/lock-acquire": {
             "post": {
                 "description": "godoc\n\nForce the file edit lock to be acquired",
                 "operationId": "pandas.NodeLockAcquire",
@@ -10440,7 +10434,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes/{node-id}/results": {
+        "/v2/pandas/nodes/{node-id}/results": {
             "get": {
                 "operationId": "pandas.NodeResultListPage",
                 "parameters": [
@@ -10467,7 +10461,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/utils/structural-transfer": {
+        "/v2/pandas/utils/structural-transfer": {
             "post": {
                 "description": "godoc\n\nsource: mysql\n\ntarget: clickhouse",
                 "operationId": "pandas.StructuralTransfer",
@@ -10509,7 +10503,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/workers": {
+        "/v2/pandas/workers": {
             "get": {
                 "operationId": "pandas.WorkerList",
                 "parameters": [
@@ -10563,7 +10557,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/workers/dashboard": {
+        "/v2/pandas/workers/dashboard": {
             "get": {
                 "operationId": "pandas.WorkerDashboard",
                 "parameters": [
@@ -10624,7 +10618,7 @@
                 ]
             }
         },
-        "/api/v2/storage": {
+        "/v2/storage": {
             "post": {
                 "description": "godoc\n\nCreating a log library",
                 "operationId": "storage.Create",
@@ -10663,7 +10657,7 @@
                 ]
             }
         },
-        "/api/v2/storage/collects": {
+        "/v2/storage/collects": {
             "get": {
                 "description": "godoc\n\nList Collect",
                 "operationId": "storage.ListCollect",
@@ -10754,7 +10748,7 @@
                 ]
             }
         },
-        "/api/v2/storage/collects/{collect-id}": {
+        "/v2/storage/collects/{collect-id}": {
             "delete": {
                 "description": "godoc\n\nDelete Collect",
                 "operationId": "storage.DeleteCollect",
@@ -10840,7 +10834,7 @@
                 ]
             }
         },
-        "/api/v2/storage/mapping-json": {
+        "/v2/storage/mapping-json": {
             "post": {
                 "description": "godoc\n\nKafka JSON field mapping",
                 "operationId": "storage.KafkaJsonMapping",
@@ -10882,7 +10876,7 @@
                 ]
             }
         },
-        "/api/v2/storage/traces": {
+        "/v2/storage/traces": {
             "get": {
                 "description": "godoc\n\ntrace storage list",
                 "operationId": "storage.GetTraceList",
@@ -10917,7 +10911,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}": {
+        "/v2/storage/{storage-id}": {
             "patch": {
                 "description": "godoc\n\niStorage update",
                 "operationId": "storage.Update",
@@ -10966,7 +10960,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/analysis-fields": {
+        "/v2/storage/{storage-id}/analysis-fields": {
             "get": {
                 "description": "godoc\n\niStorage analysis field list",
                 "operationId": "storage.AnalysisFields",
@@ -11008,7 +11002,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/columns": {
+        "/v2/storage/{storage-id}/columns": {
             "get": {
                 "description": "godoc\n\nGet storage columns",
                 "operationId": "storage.GetStorageColumns",
@@ -11067,7 +11061,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/trace": {
+        "/v2/storage/{storage-id}/trace": {
             "patch": {
                 "description": "godoc\n\niStorage related trace info update",
                 "operationId": "storage.UpdateTraceInfo",
@@ -11116,7 +11110,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/trace-graph": {
+        "/v2/storage/{storage-id}/trace-graph": {
             "get": {
                 "description": "godoc\n\nGet trace graph",
                 "operationId": "storage.GetTraceGraph",
@@ -11175,7 +11169,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{template}": {
+        "/v2/storage/{template}": {
             "post": {
                 "description": "godoc\n\nCreate storage by template",
                 "operationId": "storage.CreateStorageByTemplate",
@@ -11224,8 +11218,9 @@
                 ]
             }
         },
-        "/api/v3/storage": {
+        "/v3/storage": {
             "post": {
+                "description": "godoc\n\nCreating a no format restrictions log library",
                 "operationId": "storage.Create",
                 "requestBody": {
                     "content": {
@@ -11256,7 +11251,7 @@
                         }
                     }
                 },
-                "summary": "创建日志库 V3",
+                "summary": "Creating a no format restrictions log library",
                 "tags": [
                     "LOGSTORE"
                 ]

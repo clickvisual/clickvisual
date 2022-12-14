@@ -25,7 +25,6 @@ const (
 const (
 	DatasourceMySQL      = "mysql"
 	DatasourceClickHouse = "ch"
-	DatasourceDatabend   = "databend"
 )
 
 const TimeFieldSecond = "_time_second_"

@@ -576,9 +576,13 @@ export default {
   "alarm.rules.table.logLibrary": "Associated log library",
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
+  "alarm.rules.form.serviceName": "Service Name",
+  "alarm.rules.form.mobiles": "mobile phone numbers",
   "alarm.rules.form.description": "Alarm Description",
   "alarm.rules.form.channelIds": "Notification channels",
   "alarm.rules.form.placeholder.alarmName": "Please enter a alarm name",
+  "alarm.rules.form.placeholder.serviceName": "Please input service name",
+  "alarm.rules.form.placeholder.mobiles":"Please input phone number, multiple use ',' to split",
   "alarm.rules.form.placeholder.alarmId": "Please enter the alarm Id",
   "alarm.rules.form.placeholder.level": "Please select alarm level",
   "alarm.rules.form.placeholder.description":

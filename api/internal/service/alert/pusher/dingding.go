@@ -14,17 +14,16 @@ var _ IPusher = (*DingDing)(nil)
 type DingDing struct{}
 
 func (d *DingDing) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
-	markdown := &view.DingTalkMarkdown{
-		MsgType: "markdown",
-		Markdown: &view.Markdown{
-			Title: msg.Title,
-			Text:  msg.Text,
+    text := &view.DingTalkText{
+        MsgType: "text",
+		Text: &view.Text{
+			Content:  msg.Text,
 		},
 		At: &view.At{
-			IsAtAll: false,
+            AtMobiles: msg.Mobiles,
 		},
 	}
-	data, err := json.Marshal(markdown)
+	data, err := json.Marshal(text)
 	if err != nil {
 		return
 	}

@@ -1,9 +1,8 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
-
 	"github.com/clickvisual/clickvisual/api/internal/middlewares"
+	"github.com/gin-gonic/gin"
 
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/alarm"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/base"
@@ -20,7 +19,7 @@ import (
 )
 
 func v1(r *gin.RouterGroup) {
-	r = r.Group("/api/v1", middlewares.AuthChecker())
+	r = r.Group("/v1", middlewares.AuthChecker())
 
 	// User related
 	r.GET("/users", core.Handle(user.List))

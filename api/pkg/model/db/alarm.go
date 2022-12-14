@@ -113,6 +113,8 @@ type Alarm struct {
 	Uid        int           `gorm:"column:uid;type:int(11)" json:"uid"`                              // uid of alarm operator
 	Uuid       string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`              // foreign key
 	Name       string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`         // name of an alarm
+	Service    string        `gorm:"column:service;type:varchar(128);" json:"service"`                // service name
+	Mobiles    string        `gorm:"column:mobiles;type:varchar(1024)" json:"mobiles"`                // list of alarm user mobile
 	Desc       string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`              // description
 	Interval   int           `gorm:"column:interval;type:int(11)" json:"interval"`                    // interval second between alarm
 	Unit       int           `gorm:"column:unit;type:int(11)" json:"unit"`                            // 0 m 1 s 2 h 3 d 4 w 5 y

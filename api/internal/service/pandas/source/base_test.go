@@ -5,10 +5,14 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func TestInstantiate(t *testing.T) {
+	invoker.Logger = elog.DefaultLogger
 	type args struct {
 		s *Source
 	}
@@ -39,19 +43,6 @@ func TestInstantiate(t *testing.T) {
 					UserName: "",
 					Password: "",
 					Typ:      db.SourceTypClickHouse,
-				},
-			},
-			want: nil,
-		},
-		{
-			name: "test-databend",
-			args: args{
-				s: &Source{
-					DSN:      "http://root:root@localhost:8081/default",
-					URL:      "localhost:8081",
-					UserName: "root",
-					Password: "root",
-					Typ:      db.SourceDatabend,
 				},
 			},
 			want: nil,

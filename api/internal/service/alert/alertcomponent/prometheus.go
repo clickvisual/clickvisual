@@ -212,11 +212,13 @@ type prometheusApiV1RulesResp struct {
 				Query    string `json:"query"`
 				Duration int    `json:"duration"`
 				Labels   struct {
+                    Service string `json:"service"`
 					Severity string `json:"severity"`
 				} `json:"labels"`
 				Annotations struct {
 					Description string `json:"description"`
 					Summary     string `json:"summary"`
+                    Mobiles     string `json:"mobiles"`
 				} `json:"annotations"`
 				Alerts         []interface{} `json:"alerts"`
 				Health         string        `json:"health"`
