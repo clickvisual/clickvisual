@@ -20,7 +20,7 @@ const DataSourceMenu = () => {
     onChangeIsHasDatabase,
   } = useModel("dataLogs");
   const { doGetAllInstances } = useModel("instances");
-  const [allInstancesData, setAllInstancesData] = useState<any>([]);
+  const [allInstancesData, setAllInstancesData] = useState<any[]>([]);
 
   useEffect(() => {
     getList();
@@ -128,7 +128,10 @@ const DataSourceMenu = () => {
         onResize={handleResize}
         onToggleExpand={handleToggleExpand}
       />
-      <EditDatabaseModel onGetList={getList} />
+      <EditDatabaseModel
+        onGetList={getList}
+        allInstancesData={allInstancesData}
+      />
     </div>
   );
 };
