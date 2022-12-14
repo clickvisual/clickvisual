@@ -28,6 +28,7 @@ func Init() (err error) {
 	Db = egorm.Load("mysql").Build()
 	Session = session.Load("auth").Build()
 	Gin = egin.Load("server.http").Build(egin.WithEmbedFs(ui.WebUI))
+	elog.DefaultLogger = elog.Load("logger").Build()
 
 	if econf.GetBool("app.isMultiCopy") {
 		Redis = eredis.Load("redis").Build()
