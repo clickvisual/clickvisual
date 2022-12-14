@@ -110,6 +110,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
             placeholder={`${i18n.formatMessage({
               id: "datasource.draw.selected",
             })}`}
+            disabled
             onChange={fillCluster}
           >
             {instanceList.map((item: InstanceType, index: number) => (
@@ -118,28 +119,6 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
               </Option>
             ))}
           </Select>
-        </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({ id: "database.form.label.name" })}
-          name={"databaseName"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "database.form.placeholder.name",
-              }),
-            },
-            {
-              pattern: new RegExp(/^[a-z][a-z\d_]{0,31}$/),
-              message: i18n.formatMessage({ id: "database.form.reg.name" }),
-            },
-          ]}
-        >
-          <Input
-            placeholder={`${i18n.formatMessage({
-              id: "database.form.placeholder.name",
-            })}`}
-          />
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
@@ -170,6 +149,48 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
               </Option>
             ))}
           </Select>
+        </Form.Item>
+        <Form.Item
+          label={i18n.formatMessage({ id: "database.form.label.name" })}
+          name={"databaseName"}
+          rules={[
+            {
+              required: true,
+              message: i18n.formatMessage({
+                id: "database.form.placeholder.name",
+              }),
+            },
+            {
+              pattern: new RegExp(/^[a-z][a-z\d_]{0,31}$/),
+              message: i18n.formatMessage({ id: "database.form.reg.name" }),
+            },
+          ]}
+        >
+          <Input
+            placeholder={`${i18n.formatMessage({
+              id: "database.form.placeholder.name",
+            })}`}
+          />
+        </Form.Item>
+        <Form.Item
+          label={i18n.formatMessage({ id: "description" })}
+          name={"desc"}
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <Input
+            placeholder={`${i18n.formatMessage(
+              {
+                id: "input.placeholder",
+              },
+              {
+                name: i18n.formatMessage({ id: "description" }),
+              }
+            )}`}
+          />
         </Form.Item>
         <Form.Item noStyle>
           <div className={databaseModalStyles.submitBtn}>
