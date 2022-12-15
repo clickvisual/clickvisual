@@ -56,6 +56,7 @@ type Operator interface {
 	DeleteAlertView(string, string) error
 	DeleteTable(string, string, string, int) error
 	DeleteTraceJaegerDependencies(database, cluster, table string) (err error)
+	CalculateInterval(interval int64, timeField string) (string, int64)
 }
 
 func TagsToString(alarm *db.Alarm, withQuote bool, filterId int) string {

@@ -522,7 +522,7 @@ func (c *Databend) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, originalW
 	}
 	c3 := time.Since(st).Milliseconds()
 	originalWhere = c.queryTransform(param, false)
-	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genDatabendTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d OFFSET %d",
 		selectFields,
 		param.DatabaseTable,
 		param.ST, param.ET,
@@ -688,7 +688,7 @@ func (c *Databend) ListColumn(database, table string, isTimeField bool) (res []*
 	var query string
 	if isTimeField {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and (`type` like %s or `type` like %s)",
-			database, table, "'%Int%'", "'%DateTime%'")
+			database, table, "'%INT%'", "'%TIME%'")
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
@@ -789,7 +789,7 @@ func (c *Databend) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, err
 		res.PageSize = 20
 	}
 	if res.Query == "" {
-		res.Query = defaultCondition
+		res.Query = defaultDatabendCondition
 	}
 	if res.ET == res.ST && res.ST != 0 {
 		res.ET = res.ST + 1
@@ -1026,10 +1026,10 @@ func (c *Databend) timeFieldEqual(param view.ReqQuery, tid int) string {
 			case time.Time:
 				t := v[param.TimeField].(time.Time)
 				if res == "" {
-					res = genTimeConditionEqual(param, t)
+					res = genDatabendTimeConditionEqual(param, t)
 				} else {
-					if !strings.Contains(res, genTimeConditionEqual(param, t)) {
-						res = fmt.Sprintf("%s or %s", res, genTimeConditionEqual(param, t))
+					if !strings.Contains(res, genDatabendTimeConditionEqual(param, t)) {
+						res = fmt.Sprintf("%s or %s", res, genDatabendTimeConditionEqual(param, t))
 					}
 				}
 			default:
@@ -1051,7 +1051,7 @@ func (c *Databend) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) {
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
-	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d",
+	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genDatabendTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d",
 		param.TimeField,
 		param.DatabaseTable,
 		param.ST, param.ET,
@@ -1074,7 +1074,7 @@ func (c *Databend) queryTransform(params view.ReqQuery, isOptimized bool) string
 }
 
 func (c *Databend) countSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE "+genTimeCondition(param)+" %s",
+	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE "+genDatabendTimeCondition(param)+" %s",
 		param.DatabaseTable,
 		param.ST, param.ET,
 		c.queryTransform(param, true))
@@ -1082,7 +1082,7 @@ func (c *Databend) countSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *Databend) chartSQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, %s as timeline  FROM %s WHERE "+genTimeCondition(param)+" %s GROUP BY %s ORDER BY %s ASC",
+	sql = fmt.Sprintf("SELECT count(*) as count, %s as timeline  FROM %s WHERE "+genDatabendTimeCondition(param)+" %s GROUP BY %s ORDER BY %s ASC",
 		param.GroupByCond,
 		param.DatabaseTable,
 		param.ST, param.ET,
@@ -1093,7 +1093,7 @@ func (c *Databend) chartSQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *Databend) groupBySQL(param view.ReqQuery) (sql string) {
-	sql = fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM %s WHERE "+genTimeCondition(param)+" %s group by `%s`  order by count desc limit 10",
+	sql = fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM %s WHERE "+genDatabendTimeCondition(param)+" %s group by `%s`  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
 		param.ST, param.ET,
@@ -1431,4 +1431,22 @@ func (c *Databend) execView(params bumo.Params) string {
 	var obj builder.Builder
 	obj = new(standalone.ViewBuilder)
 	return builder.Do(obj, params)
+}
+
+func (c *Databend) CalculateInterval(interval int64, timeField string) (string, int64) {
+	if interval == 0 {
+		return "", 0
+	}
+	if interval <= 60*5 {
+		return fmt.Sprintf("subtract_seconds(to_timestamp(%s),  1)", timeField), 1
+	} else if interval <= 60*30 {
+		return fmt.Sprintf("subtract_minutes(to_timestamp(%s),  1)", timeField), 60
+	} else if interval <= 60*60*4 {
+		return fmt.Sprintf("subtract_minutes(to_timestamp(%s), 10)", timeField), 600
+	} else if interval <= 60*60*24 {
+		return fmt.Sprintf("subtract_hours(to_timestamp(%s),  1)", timeField), 3600
+	} else if interval <= 60*60*24*7 {
+		return fmt.Sprintf("subtract_hours(to_timestamp(%s), 6)", timeField), 21600
+	}
+	return fmt.Sprintf("subtract_days(to_date(%s),  1)", timeField), 86400
 }

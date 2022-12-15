@@ -485,7 +485,7 @@ func TableCharts(c *core.Context) {
 		return
 	}
 	var interval int64
-	param.GroupByCond, interval = utils.CalculateInterval(param.ET-param.ST, inquiry.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
+	param.GroupByCond, interval = op.CalculateInterval(param.ET-param.ST, inquiry.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
 	charts, sql, err := op.Chart(param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), sql)
