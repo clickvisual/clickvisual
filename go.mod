@@ -9,7 +9,7 @@ require (
 	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/clickvisual/casbin-redis-watcher v0.0.1
 	github.com/clickvisual/prom2click v0.0.3
-	github.com/databendcloud/databend-go v0.1.5
+	github.com/databendcloud/databend-go v0.1.9
 	github.com/ego-component/egorm v1.0.4
 	github.com/ego-component/eredis v1.0.3
 	github.com/gin-contrib/sessions v0.0.5
