@@ -22,8 +22,8 @@ type BigdataCrontab struct {
 	IsRetry       int    `gorm:"column:is_retry;type:tinyint(1)" json:"isRetry"`
 	RetryTimes    int    `gorm:"column:retry_times;type:int(11)" json:"retryTimes"`
 	RetryInterval int    `gorm:"column:retry_interval;type:int(11)" json:"retryInterval"`
-	Ctime         int64  `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
-	Utime         int64  `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
+	Ctime         int64  `gorm:"column:ctime;bigint;autoCreateTime;comment:创建时间" json:"ctime"`
+	Utime         int64  `gorm:"column:utime;bigint;autoUpdateTime;comment:更新时间" json:"utime"`
 	ChannelIds    Ints   `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // channel of an alarm
 }
 

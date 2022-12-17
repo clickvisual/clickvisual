@@ -119,7 +119,7 @@ func dispatch(crontabs []*db.BigdataCrontab) {
 		_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusPreempt})
 		if err := buildCronFn(n); err != nil {
 			_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusWait})
-			elog.Error("crontabRules", elog.String("step", "buildCronFn"), elog.String("error", err.Error()))
+			elog.Error("crontabRules", elog.String("step", "CrontabUpdate"), elog.String("error", err.Error()))
 		}
 	}
 }

@@ -143,7 +143,7 @@ func (c *ClickHouse) SyncView(table db.BaseTable, current *db.BaseView, list []*
 	return
 }
 
-func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, error) {
+func (c *ClickHouse) Prepare(res view.ReqQuery, isRegroup bool) (view.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("`%s`.`%s`", res.Database, res.Table)
 	}
@@ -171,7 +171,7 @@ func (c *ClickHouse) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, e
 		res.Query = fmt.Sprintf("%s and %s", res.Query, filter)
 	}
 	var err error
-	if isFilter {
+	if isRegroup {
 		res.Query, err = queryTransformer(res.Query)
 	}
 	return res, err
@@ -350,6 +350,25 @@ func (c *ClickHouse) DeleteAlertView(viewTableName, cluster string) (err error) 
 	_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewTableName))
 	if err != nil {
 		return errors.Wrapf(err, "table %s", viewTableName)
+	}
+	return nil
+}
+
+// DeleteTableListByNames data view stream
+func (c *ClickHouse) DeleteTableListByNames(names []string, cluster string) (err error) {
+	for _, name := range names {
+		nameWithCluster := name
+		if c.mode == ModeCluster {
+			if cluster == "" {
+				err = constx.ErrClusterNameEmpty
+				return
+			}
+			nameWithCluster = fmt.Sprintf("%s ON CLUSTER '%s'", name, cluster)
+		}
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", nameWithCluster))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

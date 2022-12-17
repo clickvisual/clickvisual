@@ -25,7 +25,7 @@ func TestSettingUpdate(t *testing.T) {
 		byteInfo := m.Exec(
 			gintest.WithUri("/storage"),
 			gintest.WithJsonBody(view.ReqStorageCreateV3{
-				TableName:               "demo_1209_v1",
+				TableName:               "demo_1216_v4",
 				Days:                    1,
 				Brokers:                 "127.0.0.1:9092",
 				Topics:                  "Test",
