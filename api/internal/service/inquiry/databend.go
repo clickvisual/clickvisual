@@ -33,7 +33,7 @@ type Databend struct {
 	db   *sql.DB
 }
 
-func (c *Databend) DeleteTableListByName(i []string, s string) error {
+func (c *Databend) DeleteTableListByNames(i []string, s string) error {
 	// TODO implement me
 	panic("implement me")
 }

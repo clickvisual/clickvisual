@@ -302,9 +302,24 @@ func TableDelete(c *core.Context) {
 		}
 	}
 	if tableInfo.CreateType == constx.TableCreateTypeBufferNullDataPipe {
+		op, errLoad := service.InstanceManager.Load(tableInfo.Database.Iid)
+		if errLoad != nil {
+			c.JSONE(core.CodeErr, errLoad.Error(), errLoad)
+			return
+		}
 		var tableAttach = db.BaseTableAttach{}
 		tableAttach.Tid = tableInfo.ID
 		err = tableAttach.Info(invoker.Db)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+		err = op.DeleteTableListByNames(tableAttach.Names, tableInfo.Database.Cluster)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+		err = tableAttach.Delete(invoker.Db)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
 			return

@@ -823,13 +823,13 @@ export default {
     "请选择数据源类型",
   "bigdata.dataSourceManage.searchBar.dataSourceType.create": "新增数据源",
 
-  "bigdata.dataSourceManage.dataTable.dataSourceName": "数据源名称",
+  "bigdata.dataSourceManage.dataTable.dataSourceName": "名称",
   "bigdata.dataSourceManage.dataTable.linkInformation": "连接信息",
-  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "数据源描述",
+  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "描述",
   "bigdata.dataSourceManage.dataTable.deleteDataSourceTips":
     "确认删除数据源「{dataSource}」吗",
 
-  "bigdata.dataSourceManage.create.typ": "种类",
+  "bigdata.dataSourceManage.create.typ": "类型",
   "bigdata.dataSourceManage.create.userName": "用户名",
 
   // bigdata components
