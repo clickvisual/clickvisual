@@ -1,12 +1,28 @@
-import {Button, Checkbox, Form, FormInstance, Input, message, Modal, Select, Space, Switch, Tooltip,} from "antd";
-import {useDebounceFn} from "ahooks";
-import type {InstanceType} from "@/services/systemSetting";
-import {useModel} from "@@/plugin-model/useModel";
-import {useEffect, useRef, useState} from "react";
-import {DEBOUNCE_WAIT} from "@/config/config";
-import {useIntl} from "umi";
-import {MinusCircleOutlined, PlusOutlined, SaveOutlined,} from "@ant-design/icons";
-import {cloneDeep} from "lodash";
+import {
+  Button,
+  Checkbox,
+  Form,
+  FormInstance,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Switch,
+  Tooltip,
+} from "antd";
+import { useDebounceFn } from "ahooks";
+import type { InstanceType } from "@/services/systemSetting";
+import { useModel } from "@@/plugin-model/useModel";
+import { useEffect, useRef, useState } from "react";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import { useIntl } from "umi";
+import {
+  MinusCircleOutlined,
+  PlusOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
+import { cloneDeep } from "lodash";
 import IconFont from "@/components/IconFont";
 
 type CreatedOrUpdatedInstanceModalProps = {
@@ -294,6 +310,33 @@ const CreatedOrUpdatedInstanceModal = (
                 </span>
               )}
             </Form.Item>
+
+            <Form.Item
+              noStyle
+              shouldUpdate={(prevValues, nextValues) =>
+                prevValues.mode !== nextValues.mode
+              }
+            >
+              {({ getFieldValue }) => {
+                const mode = getFieldValue("mode");
+                if (!mode) {
+                  return <></>;
+                }
+                return (
+                  <Form.Item
+                    label={i18n.formatMessage({
+                      id: "instance.form.title.replicaStatus",
+                    })}
+                    valuePropName="checked"
+                    name={"replicaStatus"}
+                    initialValue={false}
+                    style={{ marginBottom: 0, marginLeft: 200 }}
+                  >
+                    <Checkbox />
+                  </Form.Item>
+                );
+              }}
+            </Form.Item>
           </Space>
         </Form.Item>
         <Form.Item
@@ -309,16 +352,6 @@ const CreatedOrUpdatedInstanceModal = (
             }
             return (
               <>
-                <Form.Item
-                  label={i18n.formatMessage({
-                    id: "instance.form.title.replicaStatus",
-                  })}
-                  valuePropName="checked"
-                  name={"replicaStatus"}
-                  initialValue={false}
-                >
-                  <Checkbox />
-                </Form.Item>
                 <Form.List name="clusters">
                   {(fields, { add, remove }, { errors }) => {
                     return (
