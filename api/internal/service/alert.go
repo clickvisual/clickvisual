@@ -27,7 +27,7 @@ import (
 const prometheusRuleTemplate = `groups:
 - name: default
   rules:
-  - alert: %s
+  - alert: ClickVisual-%s
     expr: %s
     for: %s
     labels:
