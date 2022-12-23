@@ -3,6 +3,8 @@ package inquiry
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"github.com/gotomicro/ego/core/econf"
 	"strconv"
 	"strings"
 
@@ -74,5 +76,9 @@ func TagsToString(alarm *db.Alarm, withQuote bool, filterId int) string {
 	if filterId != 0 {
 		result = resultAppend(result, "filterId", strconv.Itoa(filterId), withQuote)
 	}
-	return strings.Join(result, ",")
+	res := strings.Join(result, ",")
+	if econf.GetString("prom2click.tags") != "" {
+		res = fmt.Sprintf("%s,%s", res, econf.GetString("prom2click.tags"))
+	}
+	return res
 }
