@@ -166,14 +166,29 @@ func TableInfo(c *core.Context) {
 	}
 	keys := make([]string, 0)
 	data := make(map[string]string, 0)
-	keys = append(keys, "data_sql", "stream_sql", "view_sql")
-	data["data_sql"] = tableInfo.SqlData
-	data["stream_sql"] = tableInfo.SqlStream
-	data["view_sql"] = tableInfo.SqlView
 
-	if tableInfo.SqlDistributed != "" {
-		keys = append(keys, "distribute_sql")
-		data["distribute_sql"] = tableInfo.SqlDistributed
+	if tableInfo.CreateType == constx.TableCreateTypeBufferNullDataPipe {
+		tableAttach := db.BaseTableAttach{}
+		tableAttach.Tid = tableInfo.ID
+		if err = tableAttach.Info(invoker.Db); err != nil {
+			c.JSONE(core.CodeErr, "view sql read failed: "+err.Error(), nil)
+			return
+		}
+		if len(tableAttach.SQLs) == len(tableAttach.Names) {
+			keys = append(keys, tableAttach.Names...)
+			for k, name := range tableAttach.Names {
+				data[name] = tableAttach.SQLs[k]
+			}
+		}
+	} else {
+		keys = append(keys, "data_sql", "stream_sql", "view_sql")
+		data["data_sql"] = tableInfo.SqlData
+		data["stream_sql"] = tableInfo.SqlStream
+		data["view_sql"] = tableInfo.SqlView
+		if tableInfo.SqlDistributed != "" {
+			keys = append(keys, "distribute_sql")
+			data["distribute_sql"] = tableInfo.SqlDistributed
+		}
 	}
 
 	conds := egorm.Conds{}
