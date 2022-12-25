@@ -5,6 +5,7 @@ import (
 	"github.com/ego-component/eredis"
 	"github.com/gin-gonic/gin"
 	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egin"
 	"github.com/speps/go-hashids/v2"
 
