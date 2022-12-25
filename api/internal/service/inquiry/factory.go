@@ -3,6 +3,8 @@ package inquiry
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"github.com/gotomicro/ego/core/econf"
 	"strconv"
 	"strings"
 
@@ -60,7 +62,7 @@ type Operator interface {
 	CalculateInterval(interval int64, timeField string) (string, int64)
 }
 
-func TagsToString(alarm *db.Alarm, withQuote bool, filterId int) string {
+func TagsToString(alarm *db.Alarm, isMV bool, filterId int) string {
 	tags := alarm.Tags
 	if alarm.Tags == nil || len(alarm.Tags) == 0 {
 		tags = make(map[string]string, 0)
@@ -69,10 +71,14 @@ func TagsToString(alarm *db.Alarm, withQuote bool, filterId int) string {
 	tags["alarmId"] = strconv.Itoa(alarm.ID)
 	result := make([]string, 0)
 	for k, v := range tags {
-		result = resultAppend(result, k, v, withQuote)
+		result = resultAppend(result, k, v, isMV)
 	}
 	if filterId != 0 {
-		result = resultAppend(result, "filterId", strconv.Itoa(filterId), withQuote)
+		result = resultAppend(result, "filterId", strconv.Itoa(filterId), isMV)
 	}
-	return strings.Join(result, ",")
+	res := strings.Join(result, ",")
+	if isMV && econf.GetString("prom2click.tags") != "" {
+		res = fmt.Sprintf("%s,%s", res, econf.GetString("prom2click.tags"))
+	}
+	return res
 }

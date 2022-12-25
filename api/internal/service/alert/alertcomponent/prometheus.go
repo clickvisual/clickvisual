@@ -253,7 +253,8 @@ func (p *Prometheus) IsRuleTakeEffect(rules []string) (bool, error) {
 	ruleMap := make(map[string]interface{})
 	for _, group := range result.Data.Groups {
 		for _, rule := range group.Rules {
-			ruleMap[rule.Name] = struct{}{}
+			rn := strings.TrimPrefix(rule.Name, "ClickVisual-")
+			ruleMap[rn] = struct{}{}
 		}
 	}
 	flag := true
