@@ -155,6 +155,7 @@ const FormAlarmDraw = () => {
       width={"55%"}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
+      maskClosable={false}
       extra={
         <Space>
           <Button onClick={handleClose}>
@@ -209,6 +210,7 @@ const FormAlarmDraw = () => {
             })}
             name={"level"}
             required
+            initialValue={AlarmLvelType.Alarm}
           >
             <Select
               placeholder={i18n.formatMessage({
