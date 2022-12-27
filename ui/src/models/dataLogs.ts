@@ -633,14 +633,14 @@ const DataLogsModel = () => {
       ? lodash
           .cloneDeep(keyword ? keyword : keywordInput)
           ?.replace(
-            /(=|!=| like | not like )/i,
+            /(=|!=| like | not like )/gi,
             CLICKVISUAL_LOGSPECIALCONNECTOR
           )
           ?.split(" and ") || [""]
       : lodash
           .cloneDeep(keyword ? keyword : keywordInput)
           ?.replace(
-            /(=|!=| like | not like )/i,
+            /(=|!=| like | not like )/gi,
             CLICKVISUAL_LOGSPECIALCONNECTOR
           )
           ?.split(" AND ") || [""];
