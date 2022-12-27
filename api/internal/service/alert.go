@@ -124,15 +124,29 @@ func (i *alert) ConditionCreate(tx *gorm.DB, obj *db.Alarm, conditions []view.Re
 	})
 	for _, condition := range conditions {
 		var innerCond string
+		var ot string
+		switch condition.SetOperatorExp {
+		case 0:
+			ot = "avg_over_time"
+		case 1:
+			ot = "min_over_time"
+		case 2:
+			ot = "max_over_time"
+		case 3:
+			ot = "sum_over_time"
+		case 4:
+			ot = "count_over_time"
+		}
+		expValOverTime := fmt.Sprintf("%s(%s{%s}[%s] offset 10s)", ot, bumo.PrometheusMetricName, inquiry.TagsToString(obj, false, filter.ID), obj.AlertInterval())
 		switch condition.Cond {
 		case 0:
-			innerCond = fmt.Sprintf("%s>%d", expVal, condition.Val1)
+			innerCond = fmt.Sprintf("%s>%d", expValOverTime, condition.Val1)
 		case 1:
-			innerCond = fmt.Sprintf("%s<%d", expVal, condition.Val1)
+			innerCond = fmt.Sprintf("%s<%d", expValOverTime, condition.Val1)
 		case 2:
-			innerCond = fmt.Sprintf("(%s<%d or %s>%d)", expVal, condition.Val1, expVal, condition.Val2)
+			innerCond = fmt.Sprintf("(%s<%d or %s>%d)", expValOverTime, condition.Val1, expValOverTime, condition.Val2)
 		case 3:
-			innerCond = fmt.Sprintf("(%s>=%d and %s<=%d)", expVal, condition.Val1, expVal, condition.Val2)
+			innerCond = fmt.Sprintf("(%s>=%d and %s<=%d)", expValOverTime, condition.Val1, expValOverTime, condition.Val2)
 		}
 		switch condition.SetOperatorTyp {
 		case 0:
