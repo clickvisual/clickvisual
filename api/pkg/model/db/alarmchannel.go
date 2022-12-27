@@ -45,8 +45,24 @@ type ReqAlarmWebhook struct {
 }
 
 type PushMsg struct {
-	Title string `json:"title"`
-	Text  string `json:"text"`
+	Title   string   `json:"title"`
+	Text    string   `json:"text"`
+	Mobiles []string `json:"mobiles"`
+}
+
+type DingTalkText struct {
+	MsgType string `json:"msgType"`
+	At      *At    `json:"at"`
+	Text    *Text  `json:"text"`
+}
+
+type At struct {
+	AtMobiles []string `json:"atMobiles"`
+	IsAtAll   bool     `json:"isAtAll"`
+}
+
+type Text struct {
+	Content string `json:"content"`
 }
 
 func (m *AlarmChannel) TableName() string {
