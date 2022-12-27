@@ -10,20 +10,13 @@ import { PaneType } from "@/models/datalogs/types";
 import { LogsResponse } from "@/services/dataLogs";
 import { format } from "sql-formatter";
 import ExportExcelButton from "@/components/ExportExcelButton";
-// import MonacoEditor from "react-monaco-editor";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
 
 import { UnControlled as CodeMirror } from "react-codemirror2";
-
 import "codemirror/lib/codemirror.css";
 import "codemirror/lib/codemirror.js";
-
-// 白色主题
-// import "codemirror/theme/neo.css";
-// import "codemirror/addon/fold/foldgutter.css";
-
 import "codemirror/addon/lint/lint.css";
 import "codemirror/addon/fold/foldcode.js";
 import "codemirror/addon/fold/foldgutter.js";
@@ -35,7 +28,6 @@ import "codemirror/addon/lint/javascript-lint.js";
 import "codemirror/addon/display/placeholder.js";
 import "codemirror/mode/sql/sql.js";
 import "codemirror/mode/javascript/javascript.js";
-
 // 引入代码自动提示插件
 import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
@@ -183,12 +175,9 @@ const TableQuery = () => {
           options={{
             // 显示行号
             lineNumbers: true,
-            // 改变行号文案
             mode: {
               name: "text/x-mysql",
             },
-            // 自定义快捷键
-            // extraKeys: { Enter: handleEnter },
             hintOptions: {
               // 自定义提示选项
               completeSingle: false, // 当匹配只有一项的时候是否自动补全
@@ -197,8 +186,6 @@ const TableQuery = () => {
             },
             autofocus: false,
             styleActiveLine: true,
-            // 主题
-            // theme: "neo",
             // 溢出滚动而非换行
             lineWrapping: true,
             foldGutter: true,
@@ -206,42 +193,12 @@ const TableQuery = () => {
             indentUnit: 2,
             // 光标高度
             cursorHeight: 1,
-            // placeholder: placeholder || "",
             // tab缩进
             tabSize: 2,
-            // 滚动条样式
-            // scrollbarStyle: null,
             fixedGutter: true,
             coverGutterNextToScrollbar: true,
           }}
         />
-        {/* <MonacoEditor
-          height={"100%"}
-          width={"100%"}
-          language={"mysql"}
-          theme="vs-white"
-          options={{
-            selectOnLineNumbers: true,
-            automaticLayout: true,
-            wordWrap: "on",
-            wrappingStrategy: "simple",
-            wordWrapBreakBeforeCharacters: ",",
-            wordWrapBreakAfterCharacters: ",",
-            disableLayerHinting: true,
-            scrollBeyondLastLine: false,
-            minimap: {
-              enabled: true,
-            },
-          }}
-          value={sql}
-          onChange={(value) => {
-            changeLocalStorage(value);
-            setSql(value);
-            if (urlState?.mode == 1) {
-              onChangeAggregationChartSql(value);
-            }
-          }}
-        /> */}
       </div>
       <div className={searchBarStyles.btnList}>
         <Tooltip title={i18n.formatMessage({ id: "log.table.note" })}>
