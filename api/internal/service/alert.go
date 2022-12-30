@@ -554,9 +554,15 @@ func (i *alert) AddPrometheusReloadChan() {
 	// 10 times
 	for k := 0; k < reloadTimes; k++ {
 		if len(i.reloadChan) < reloadTimes {
-			elog.Debug("AllPrometheusReload", elog.String("step", "AddPrometheusReloadChan"), elog.Any("k", k))
 			i.reloadChan <- time.Now().Unix()
 		}
+	}
+}
+
+func (i *alert) PlusOnePrometheusReloadChan() {
+	// 10 times
+	if len(i.reloadChan) < reloadTimes {
+		i.reloadChan <- time.Now().Unix()
 	}
 }
 
