@@ -22,6 +22,7 @@ export interface AlarmsResponse {
   name?: string;
   alarmId?: number | string;
   status?: number;
+  isReload?: number;
   current: number;
   pageSize: number;
 }
