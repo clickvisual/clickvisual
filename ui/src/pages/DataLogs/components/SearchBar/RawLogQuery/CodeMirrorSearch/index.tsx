@@ -495,6 +495,7 @@ const Editors = (props: {
         onChange={onChange}
         onChangeIsDefault={onChangeIsDefault}
         collectingHistorical={collectingHistorical}
+        onPressEnter={onPressEnter}
       />
       <div
         className={styles.codemirrorInput}
@@ -507,11 +508,12 @@ const Editors = (props: {
           value={value}
           options={options}
           onKeyPress={handleKeyPress}
-          onBlur={() => setIsFocus(false)}
           onChange={handleChange}
-          onFocus={() => {
-            setIsFocus(true);
+          onBlur={() => {
+            onChangeIsDefault(true); // 重置初始value
+            setIsFocus(false);
           }}
+          onFocus={() => setIsFocus(true)}
         />
         <span className={styles.afterBox}></span>
       </div>

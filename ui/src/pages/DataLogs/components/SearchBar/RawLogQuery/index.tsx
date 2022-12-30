@@ -160,7 +160,7 @@ const RawLogQuery = () => {
       onChangeInitValue(queryKeyword);
       setIsDefault(false);
     }
-  }, [queryKeyword]);
+  }, [queryKeyword, isDefault]);
 
   useEffect(() => {
     logs?.defaultFields && onChangeAnalysisFieldTips(logs.defaultFields);
