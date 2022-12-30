@@ -209,6 +209,10 @@ func List(c *core.Context) {
 	did, _ := strconv.Atoi(c.Query("did"))
 	alarmId, _ := strconv.Atoi(c.Query("alarmId"))
 	status, _ := strconv.Atoi(c.Query("status"))
+	isReload, _ := strconv.Atoi(c.Query("isReload"))
+	if isReload == 1 {
+		go service.Alert.PlusOnePrometheusReloadChan()
+	}
 	query := egorm.Conds{}
 	if name != "" {
 		query["name"] = egorm.Cond{
