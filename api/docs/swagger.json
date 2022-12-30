@@ -4157,6 +4157,14 @@
                         "schema": {
                             "title": "status"
                         }
+                    },
+                    {
+                        "in": "path",
+                        "name": "isReload",
+                        "required": true,
+                        "schema": {
+                            "title": "isReload"
+                        }
                     }
                 ],
                 "responses": {},
