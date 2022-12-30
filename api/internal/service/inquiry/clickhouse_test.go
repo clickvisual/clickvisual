@@ -242,6 +242,15 @@ func Test_queryTransformLike(t *testing.T) {
 			},
 			want: "_raw_log_ LIKE '%handleCreated%' AND _container_name_='svc-task'",
 		},
+		{
+			name: "test-7",
+			args: args{
+				createType:  1,
+				rawLogField: "_raw_log_",
+				query:       "测试 and _container_name_='svc-task'",
+			},
+			want: "_raw_log_ LIKE '%测试%' AND _container_name_='svc-task'",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
