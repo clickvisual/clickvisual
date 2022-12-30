@@ -600,6 +600,9 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 				elog.Info("GroupBy", elog.Any("type", reflect.TypeOf(v["f"])))
 				continue
 			}
+			if key == "" {
+				continue
+			}
 			res[key] = v["count"].(uint64)
 		}
 	}

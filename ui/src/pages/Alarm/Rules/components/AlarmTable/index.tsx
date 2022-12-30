@@ -1,25 +1,25 @@
 import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import { Divider, message, Space, Table, Tooltip } from "antd";
-import { ColumnsType } from "antd/es/table";
-import { useIntl } from "umi";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect } from "react";
-import { AlarmsResponse, AlarmType } from "@/services/alarm";
+import {Divider, message, Space, Table, Tooltip} from "antd";
+import {ColumnsType} from "antd/es/table";
+import {useIntl} from "umi";
+import {useModel} from "@@/plugin-model/useModel";
+import {useEffect} from "react";
+import {AlarmsResponse, AlarmType} from "@/services/alarm";
 import IconFont from "@/components/IconFont";
-import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
+import {EditOutlined, FileTextOutlined} from "@ant-design/icons";
 import deletedModal from "@/components/DeletedModal";
 import BreadCrumbs from "@/components/BreadCrumbs";
 import classNames from "classnames";
-import { useDebounceFn } from "ahooks";
+import {useDebounceFn} from "ahooks";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
-import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
+import {ALARM_HISTORY_PATH} from "@/models/alarms/useAlarmHistory";
 import useUrlState from "@ahooksjs/use-url-state";
 import useTimeUnits from "@/hooks/useTimeUnits";
 
 import moment from "moment";
-import { DEBOUNCE_WAIT } from "@/config/config";
+import {DEBOUNCE_WAIT} from "@/config/config";
 import lodash from "lodash";
-import { urlStateType } from "@/pages/Alarm/Rules/components/Operations";
+import {urlStateType} from "@/pages/Alarm/Rules/components/Operations";
 
 const AlarmTable = () => {
   const [urlState] = useUrlState<urlStateType>();
@@ -222,9 +222,9 @@ const AlarmTable = () => {
       align: "center",
       ellipsis: { showTitle: true },
       render: (user: any) => (
-        <Tooltip title={user.nickname}>
+        <Tooltip title={user.username}>
           <div className={alarmStyles.columnsEllipsis}>
-            <span>{user.username}</span>
+            <span>{user.nickname}</span>
           </div>
         </Tooltip>
       ),

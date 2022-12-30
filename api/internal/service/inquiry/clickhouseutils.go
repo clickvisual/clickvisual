@@ -18,6 +18,7 @@ import (
 )
 
 var regSingleWord = regexp.MustCompile(`([a-z]|[A-Z]|[0-9]|_|-|')+`)
+var regChinese = regexp.MustCompile("^[\u4e00-\u9fa5]")
 var regDistributedSubTable = regexp.MustCompile(`ENGINE = Distributed\([^,]+,[^,]+,([\S\s]+),`)
 
 type JaegerJsonOriginal struct {
@@ -235,8 +236,12 @@ func queryTransformHash(params view.ReqQuery) string {
 func likeTransform(createType int, rawLogField, query string) string {
 	// 判断是否可以进行转换
 	matches := regSingleWord.FindAllString(strings.TrimSpace(query), -1)
+
 	if len(matches) != 1 {
-		return query
+		matchesChinese := regChinese.FindAllString(strings.TrimSpace(query), -1)
+		if len(matchesChinese) != 1 {
+			return query
+		}
 	}
 	field := "_raw_log_"
 	if createType == constx.TableCreateTypeExist && rawLogField != "" {
