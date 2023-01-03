@@ -214,7 +214,7 @@ func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName
 	if err = rc.CreateOrUpdate(groupName, ruleName, content); err != nil {
 		return
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 
@@ -235,7 +235,7 @@ func (i *alert) PrometheusRuleBatchSet(clusterRuleGroups map[string]db.ClusterRu
 			return err
 		}
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 
@@ -256,7 +256,7 @@ func (i *alert) PrometheusRuleBatchRemove(clusterRuleGroups map[string]db.Cluste
 			return err
 		}
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 
@@ -283,7 +283,7 @@ func (i *alert) DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (
 			}
 		}
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 

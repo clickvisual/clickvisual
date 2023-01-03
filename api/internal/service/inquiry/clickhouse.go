@@ -1337,7 +1337,7 @@ func (c *ClickHouse) storageViewOperatorV3(param view.OperatorViewParams) (res s
 	)
 	jsonExtractSQL := ""
 	if param.Tid != 0 {
-		jsonExtractSQL = c.genJsonExtractSQLV3(param.Indexes)
+		jsonExtractSQL = c.genJsonExtractSQLV3(param.Indexes, constx.UBWKafkaStreamField, true)
 	}
 	dName := genName(databaseInfo.Name, param.Table)
 	streamName := genStreamName(databaseInfo.Name, param.Table)
@@ -1392,8 +1392,7 @@ func (c *ClickHouse) storageViewOperatorV3(param view.OperatorViewParams) (res s
 	return viewSQL, nil
 }
 
-func (c *ClickHouse) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex) string {
-	rawLogField := constx.UBWKafkaStreamField
+func (c *ClickHouse) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex, rawLogField string, isV3 bool) string {
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
 		if obj.RootName == "" {
@@ -1405,8 +1404,12 @@ func (c *ClickHouse) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex) strin
 					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
 				}
 			}
-			if obj.Typ == 0 {
+			if obj.Typ == db.IndexTypeString {
 				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, obj.GetFieldName())
+				continue
+			}
+			if obj.Typ == db.IndexTypeRaw {
+				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractRaw(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, obj.GetFieldName())
 				continue
 			}
 			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(%s, '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.Field, obj.GetFieldName())
@@ -1414,16 +1417,25 @@ func (c *ClickHouse) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex) strin
 			if hashFieldName, ok := obj.GetHashFieldName(); ok {
 				switch obj.HashTyp {
 				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractString(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
 				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractString(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
 				}
 			}
-			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractString(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
+			// 在 version 21.11 后使用 JSON_VALUE(_raw_log_, '$._log_') 代替
+			if obj.Typ == db.IndexTypeString {
+				if isV3 {
+					jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
+					continue
+				}
+				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
 				continue
 			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(JSONExtractString(%s, '%s'), '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
+			if obj.Typ == db.IndexTypeRaw {
+				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractRaw(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
+				continue
+			}
+			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(JSONExtractRaw(%s, '%s'), '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
 		}
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",\n")
@@ -1470,43 +1482,6 @@ func (c *ClickHouse) timeParseSQLV3(typ int, v *db.BaseView, timeField string) s
 		return fmt.Sprintf(defaultStringTimeParseV3, rawLogField, timeField, rawLogField, timeField)
 	}
 	return fmt.Sprintf(defaultFloatTimeParseV3, rawLogField, timeField, rawLogField, timeField)
-}
-
-func (c *ClickHouse) genJsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogField string) string {
-	jsonExtractSQL := ",\n"
-	for _, obj := range indexes {
-		if obj.RootName == "" {
-			if hashFieldName, ok := obj.GetHashFieldName(); ok {
-				switch obj.HashTyp {
-				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
-				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
-				}
-			}
-			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, obj.GetFieldName())
-				continue
-			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(%s, '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.Field, obj.GetFieldName())
-		} else {
-			if hashFieldName, ok := obj.GetHashFieldName(); ok {
-				switch obj.HashTyp {
-				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
-				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
-				}
-			}
-			if obj.Typ == 0 {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
-				continue
-			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(JSONExtractRaw(%s, '%s'), '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
-		}
-	}
-	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",\n")
-	return jsonExtractSQL
 }
 
 func (c *ClickHouse) whereConditionSQLCurrent(current *db.BaseView, rawLogField string) string {
@@ -1567,7 +1542,7 @@ func (c *ClickHouse) storageViewOperator(typ, tid int, did int, table, customTim
 
 	jsonExtractSQL := ""
 	if tid != 0 {
-		jsonExtractSQL = c.genJsonExtractSQL(indexes, ct.GetRawLogField())
+		jsonExtractSQL = c.genJsonExtractSQLV3(indexes, ct.GetRawLogField(), false)
 	}
 	dName := genName(databaseInfo.Name, table)
 	streamName := genStreamName(databaseInfo.Name, table)
