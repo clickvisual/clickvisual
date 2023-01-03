@@ -123,6 +123,9 @@ Thanks for these wonderful people:
       <td align="center"><a href="http://laojianzi.github.io"><img src="https://avatars.githubusercontent.com/u/42930263?v=4" width="64px;" alt=""/><br /><sub><b>Jeff Li</b></sub></a></td>
       <td align="center"><a href="http://www.asarea.cn"><img src="https://avatars.githubusercontent.com/u/3275714?v=4" width="64px;" alt=""/><br /><sub><b>Ather Shu</b></sub></a></td>
     </tr>
+    <tr>
+      <td align="center"><a href="https://cloudsjhan.github.io/"><img src="https://avatars.githubusercontent.com/u/7600925?v=4" width="64px;" alt=""/><br /><sub><b>Jeremy</b></sub></a></td>
+    </tr>
   </tbody>
 </table>
 
