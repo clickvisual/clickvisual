@@ -30,9 +30,9 @@ See <https://clickvisual.gocn.vip>
 
 ## Features
 
-- visual query dashboard, support query Histogram and raw logs for SQL.
-- shows percentage for specified fields.
-- vscode style configuration board, you can easily emit your fluent-bit configuration to Kubernetes ConfigMap.
+- Support visual query dashboard, query histogram and raw logs for SQL.
+- Support showing percentage for specified fields.
+- Support vscode style configuration board, you can easily emit your fluent-bit configuration to Kubernetes ConfigMap.
 - Out of the box, easily deployment with `kubectl`.
 - Support for GitHub and GitLab Authentication.
 
