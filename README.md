@@ -125,6 +125,7 @@ Thanks for these wonderful people:
     </tr>
     <tr>
       <td align="center"><a href="https://cloudsjhan.github.io/"><img src="https://avatars.githubusercontent.com/u/7600925?v=4" width="64px;" alt=""/><br /><sub><b>Jeremy</b></sub></a></td>
+      <td align="center"><a href="https://github.com/pigcsy"><img src="https://avatars.githubusercontent.com/u/20635389?v=4" width="64px;" alt=""/><br /><sub><b>csy</b></sub></a></td>
     </tr>
   </tbody>
 </table>
