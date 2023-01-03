@@ -38,7 +38,10 @@ const UrlShareButton = (props: { style?: any; text?: string }) => {
         str += `kw=${arr?.join(" AND ")}&`;
       }
       let url = "";
-      if (window.location.href.indexOf("share?") > -1) {
+      if (
+        window.location.href.indexOf("share?") > -1 ||
+        window.location.href.indexOf("share/?") > -1
+      ) {
         url = window.location.href;
       } else {
         url = `${window.location.href.split("query")[0]}share?${str.slice(

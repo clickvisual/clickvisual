@@ -13,10 +13,12 @@ const WhereBox = ({
   collectingHistorical,
   onChangeIsDefault,
   onChange,
+  onPressEnter,
 }: {
   collectingHistorical: any[];
   onChangeIsDefault: (flag: boolean) => void;
   onChange: (str: string) => void;
+  onPressEnter: () => void;
 }) => {
   const i18n = useIntl();
   const [isCollectionPopover, setIsCollectionPopover] =
@@ -71,9 +73,7 @@ const WhereBox = ({
     return (
       <List.Item>
         <div className={styles.listItem}>
-          <div className={styles.text}>
-            ({item.alias}){item.statement}
-          </div>
+          <div className={styles.text}>{item.alias}</div>
           <div className={styles.btnList}>
             <Button
               type="link"
@@ -82,6 +82,7 @@ const WhereBox = ({
                 onChangeIsDefault(true);
                 onChange(item.statement);
                 setIsCollectionPopover(false);
+                onPressEnter();
               }}
             >
               {i18n.formatMessage({
