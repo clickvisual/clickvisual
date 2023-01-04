@@ -1409,9 +1409,6 @@
                     },
                     "iid": {
                         "type": "integer"
-                    },
-                    "version": {
-                        "type": "string"
                     }
                 },
                 "title": "ReqCreateMetricsSamples",
@@ -9787,7 +9784,7 @@
                         }
                     }
                 },
-                "summary": "创建 Metrics.samples",
+                "summary": "Create metrics.samples table",
                 "tags": [
                     "ALARM"
                 ]
