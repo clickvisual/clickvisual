@@ -490,4 +490,5 @@ type RespAlertSettingListItem struct {
 type ReqCreateMetricsSamples struct {
 	Iid     int    `json:"iid" form:"iid"`
 	Cluster string `json:"cluster" form:"cluster"`
+	Version string `json:"version" form:"version"`
 }
