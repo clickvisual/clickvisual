@@ -1,16 +1,16 @@
 import classNames from "classnames";
 import mangeIndexModalStyles
-    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/index.less";
+  from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/index.less";
 import {Button, Form, FormInstance, Input, Select} from "antd";
 import {IndexInfoType} from "@/services/dataLogs";
 import {CloseOutlined} from "@ant-design/icons";
 import {FormListFieldData, FormListOperation} from "antd/es/form/FormList";
 import {useIntl} from "umi";
 import Index
-    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody/JsonIndexItem";
+  from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody/JsonIndexItem";
 import {hashType} from "@/models/datalogs/types";
 import {
-    ColSpan
+  ColSpan
 } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableFooter";
 
 const { Option } = Select;
@@ -20,6 +20,7 @@ export enum FieldType {
   Int = 1,
   Float = 2,
   Json = 3,
+  Raw = -4,
 }
 
 // 0 text 1 long 2 double 3 json
@@ -27,7 +28,8 @@ export const typeList = [
   { value: FieldType.String, type: "String" },
   { value: FieldType.Int, type: "Int" },
   { value: FieldType.Float, type: "Float" },
-  { value: FieldType.Json, type: "Json" },
+  { value: FieldType.Json, type: "JSON" },
+  { value: FieldType.Raw, type: "Raw" },
 ];
 
 // 0 text 1 long 2 double 3 json
@@ -63,10 +65,8 @@ const IndexItem = ({
       }
     >
       {({ getFieldValue, setFields }) => {
-        const isJson =
-          getFieldValue(["data", indexField.name, "typ"]) === FieldType.Json;
-        const isString =
-          getFieldValue(["data", indexField.name, "typ"]) === FieldType.String;
+        const isJson = getFieldValue(["data", indexField.name, "typ"]) === FieldType.Json;
+        const isString = getFieldValue(["data", indexField.name, "typ"]) === FieldType.String;
         return (
           <>
             <tr className={classNames(mangeIndexModalStyles.tableTr)}>

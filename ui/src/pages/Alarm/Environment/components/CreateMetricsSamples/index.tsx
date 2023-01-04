@@ -1,10 +1,10 @@
-import { Form, FormInstance, Input, message, Modal, Select } from "antd";
-import { useEffect, useRef } from "react";
-import { useIntl, useModel } from "umi";
+import {Form, FormInstance, Input, message, Modal, Select} from "antd";
+import {useEffect, useRef} from "react";
+import {useIntl, useModel} from "umi";
 
 const { Option } = Select;
 
-const CreateMetricsAamples = (props: {
+const CreateMetricsSamples = (props: {
   visible: boolean;
   onChangeVisible: (flag: boolean) => void;
   currentIidAndIName: {
@@ -22,7 +22,7 @@ const CreateMetricsAamples = (props: {
     currentClusters,
     onGetList,
   } = props;
-  const metricsAamplesRef = useRef<FormInstance>(null);
+  const metricsSamplesRef = useRef<FormInstance>(null);
 
   const { doCreateMetricsSamplesTable } = useModel(
     "alarms.useAlarmEnvironment"
@@ -39,12 +39,12 @@ const CreateMetricsAamples = (props: {
 
   useEffect(() => {
     if (visible) {
-      metricsAamplesRef.current?.setFieldsValue({
+      metricsSamplesRef.current?.setFieldsValue({
         iid: currentIidAndIName.iid,
         instanceName: currentIidAndIName.instanceName,
       });
     } else {
-      metricsAamplesRef.current?.resetFields();
+      metricsSamplesRef.current?.resetFields();
     }
   }, [visible]);
 
@@ -57,19 +57,21 @@ const CreateMetricsAamples = (props: {
         }
       )}
       visible={visible}
-      onOk={() => metricsAamplesRef?.current?.submit()}
+      onOk={() => metricsSamplesRef?.current?.submit()}
       onCancel={() => onChangeVisible(false)}
     >
       <Form
         labelCol={{ span: 6 }}
         wrapperCol={{ span: 16 }}
-        ref={metricsAamplesRef}
+        ref={metricsSamplesRef}
         onFinish={handleFinish}
       >
         <Form.Item hidden label={"iid"} name={"iid"}>
           <Input />
         </Form.Item>
-        <Form.Item label={"instanceName"} name={"instanceName"}>
+        <Form.Item
+          label={i18n.formatMessage({ id: "datasource.logLibrary.from.newLogLibrary.instance" })}
+          name={"instanceName"}>
           <Input disabled />
         </Form.Item>
         <Form.Item
@@ -100,4 +102,4 @@ const CreateMetricsAamples = (props: {
     </Modal>
   );
 };
-export default CreateMetricsAamples;
+export default CreateMetricsSamples;

@@ -68,15 +68,13 @@ func Create(c *core.Context) {
 		c.JSONE(1, "alarm create failed 01", err)
 		return
 	}
-	err := service.Alert.CreateOrUpdate(tx, obj, req)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, err.Error(), err)
-		return
-	}
-	if err = tx.Commit().Error; err != nil {
+	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 03", err)
+		return
+	}
+	if err := service.Alert.CreateOrUpdate(obj, req); err != nil {
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsCreate, map[string]interface{}{"obj": obj})

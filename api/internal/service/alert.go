@@ -56,7 +56,7 @@ type iAlert interface {
 	PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string
 	PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName, ruleName, content string) (err error)
 	DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (err error)
-	CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error)
+	CreateOrUpdate(alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error)
 	OpenOperator(id int) (err error)
 	Update(uid, alarmId int, req view.ReqAlarmCreate) (err error)
 	AddPrometheusReloadChan()
@@ -214,7 +214,7 @@ func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName
 	if err = rc.CreateOrUpdate(groupName, ruleName, content); err != nil {
 		return
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 
@@ -235,7 +235,7 @@ func (i *alert) PrometheusRuleBatchSet(clusterRuleGroups map[string]db.ClusterRu
 			return err
 		}
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 
@@ -256,7 +256,7 @@ func (i *alert) PrometheusRuleBatchRemove(clusterRuleGroups map[string]db.Cluste
 			return err
 		}
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 
@@ -283,14 +283,14 @@ func (i *alert) DeletePrometheusRule(instance *db.BaseInstance, obj *db.Alarm) (
 			}
 		}
 	}
-	i.AddPrometheusReloadChan()
+	go i.AddPrometheusReloadChan()
 	return nil
 }
 
-func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error) {
+func (i *alert) CreateOrUpdate(alarmObj *db.Alarm, req view.ReqAlarmCreate) (err error) {
 	// v1 -> v2 disable root conditions field
 	req.ConvertV2()
-	filtersDB, err := i.FilterCreate(tx, alarmObj, req.Filters)
+	filtersDB, err := i.FilterCreate(invoker.Db, alarmObj, req.Filters)
 	if err != nil {
 		return
 	}
@@ -301,13 +301,13 @@ func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	for filterId, filterItem := range filtersDB {
 		var tableInfo db.BaseTable
 		// table info
-		tableInfo, err = db.TableInfo(tx, filterItem.Tid)
+		tableInfo, err = db.TableInfo(invoker.Db, filterItem.Tid)
 		if err != nil {
 			return
 		}
 		// prometheus set
 		var instance db.BaseInstance
-		instance, err = db.InstanceInfo(tx, tableInfo.Database.Iid)
+		instance, err = db.InstanceInfo(invoker.Db, tableInfo.Database.Iid)
 		if err != nil {
 			return
 		}
@@ -393,7 +393,7 @@ func (i *alert) CreateOrUpdate(tx *gorm.DB, alarmObj *db.Alarm, req view.ReqAlar
 	ups["alert_rules"] = alertRules
 	ups["view_ddl_s"] = viewDDLs
 	ups["status"] = db.AlarmStatusRuleCheck
-	return db.AlarmUpdate(tx, alarmObj.ID, ups)
+	return db.AlarmUpdate(invoker.Db, alarmObj.ID, ups)
 }
 
 func (i *alert) OpenOperator(id int) (err error) {
@@ -540,11 +540,10 @@ func (i *alert) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 		tx.Rollback()
 		return
 	}
-	if err = i.CreateOrUpdate(tx, &obj, req); err != nil {
-		tx.Rollback()
+	if err = tx.Commit().Error; err != nil {
 		return
 	}
-	if err = tx.Commit().Error; err != nil {
+	if err = i.CreateOrUpdate(&obj, req); err != nil {
 		return
 	}
 	return

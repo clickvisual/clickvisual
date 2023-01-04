@@ -76,6 +76,7 @@ var typKey = map[string]int{
 }
 
 var typORM = map[int]string{
+	-4: "String",
 	-3: "Array(String)",
 	-2: "DateTime64",
 	-1: "DateTime",
