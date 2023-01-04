@@ -227,9 +227,17 @@ func CreateMetricsSamples(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	if err = op.CreateMetricsSamples(params.Cluster); err != nil {
-		c.JSONE(core.CodeErr, err.Error(), err)
-		return
+	// We need to set version = "v2" can use new feature.
+	if params.Version == "v2" {
+		if err = op.CreateMetricsSamplesV2(params.Cluster); err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+	} else {
+		if err = op.CreateMetricsSamples(params.Cluster); err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
 	}
 	event.Event.UserCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"params": params})
 	c.JSONOK()
