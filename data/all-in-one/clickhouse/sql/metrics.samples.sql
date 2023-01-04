@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS metrics.samples
 (
     date Date DEFAULT toDate(0),
     name String,
-    tags Array(FixedString(50)),
+    tags Array(String),
     val Float64,
     ts DateTime,
     updated DateTime DEFAULT now()

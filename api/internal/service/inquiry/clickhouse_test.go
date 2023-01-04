@@ -260,3 +260,40 @@ func Test_queryTransformLike(t *testing.T) {
 		})
 	}
 }
+
+func Test_clickhouseVersionCompare(t *testing.T) {
+	type args struct {
+		current string
+		stand   string
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test-1",
+			args: args{
+				current: "22.11.2.30",
+				stand:   "22.3.7",
+			},
+			want: 1,
+		},
+		{
+			name: "test-2",
+			args: args{
+				current: "22.11.2.30",
+				stand:   "22.13.7",
+			},
+			want: -1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := clickhouseVersionCompare(tt.args.current, tt.args.stand); got != tt.want {
+				t.Errorf("clickhouseVersionCompare() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -738,7 +738,6 @@ func (c *Databend) GetMetricsSamples() error {
 }
 
 func (c *Databend) CreateMetricsSamples(cluster string) error {
-
 	_, err := c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
 	if err != nil {
 		return errors.Wrap(err, "create database")
@@ -756,13 +755,6 @@ func (c *Databend) CreateMetricsSamples(cluster string) error {
 		return errors.Wrap(err, "create table")
 	}
 	return nil
-}
-
-// CreateMetricsSamplesV2
-// Databend keeps same as CreateMetricsSamples needing not to change.
-func (c *Databend) CreateMetricsSamplesV2(cluster string) error {
-
-	return c.CreateMetricsSamples(cluster)
 }
 
 // SyncView

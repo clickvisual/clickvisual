@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/gotomicro/ego/core/econf"
 	"strconv"
 	"strings"
+
+	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -37,8 +38,7 @@ type Operator interface {
 	CreateTable(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
 	CreateStorage(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
 	CreateStorageV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
-	CreateMetricsSamples(cluster string) error
-	CreateMetricsSamplesV2(cluster string) error
+	CreateMetricsSamples(string) error
 	CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error)
 
 	UpdateIndex(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -55,11 +56,50 @@ func (c *ClickHouse) GetMetricsSamples() error {
 	return err
 }
 
+func (c *ClickHouse) Version() (ver string, err error) {
+	res, err := c.db.Query("select version() as ver")
+	if err != nil {
+		return "", errors.Wrap(err, "db query")
+	}
+	for res.Next() {
+		if err = res.Scan(&ver); err != nil {
+			return "", errors.Wrap(err, "row scan")
+		}
+	}
+	return
+}
+
+func clickhouseVersionCompare(current, stand string) int {
+	ca := strings.Split(current, ".")
+	sa := strings.Split(stand, ".")
+	minLen := len(ca)
+	if len(sa) < len(ca) {
+		minLen = len(sa)
+	}
+	for i := 0; i < minLen; i++ {
+		a, _ := strconv.Atoi(ca[i])
+		b, _ := strconv.Atoi(sa[i])
+		fmt.Println(b)
+		if a > b {
+			return +1
+		} else if a < b {
+			return -1
+		}
+	}
+	return 0
+}
+
 func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
-	_, _ = c.db.Exec("set allow_deprecated_syntax_for_merge_tree=1")
+	ver, err := c.Version()
+	if err != nil {
+		return err
+	}
+	if clickhouseVersionCompare(ver, "22.3.7") == 1 {
+		return c.createMetricsSamplesV2(cluster)
+	}
 	switch c.mode {
 	case ModeStandalone:
-		_, err := c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
+		_, err = c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
 		if err != nil {
 			return errors.Wrap(err, "create database")
 		}
@@ -67,7 +107,7 @@ func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
 (
     date Date DEFAULT toDate(0),
     name String,
-    tags Array(FixedString(50)),
+    tags Array(String),
     val Float64,
     ts DateTime,
     updated DateTime DEFAULT now()
@@ -76,7 +116,7 @@ func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
 			return errors.Wrap(err, "create table")
 		}
 	case ModeCluster:
-		_, err := c.db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS metrics ON CLUSTER '%s';", cluster))
+		_, err = c.db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS metrics ON CLUSTER '%s';", cluster))
 		if err != nil {
 			return errors.Wrap(err, "create database")
 		}
@@ -84,21 +124,21 @@ func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
 		switch c.rs {
 		case db.ReplicaStatusYes:
 			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
-(
-  date Date DEFAULT toDate(0),
-  name String,
-  tags Array(FixedString(50)),
-  val Float64,
-  ts DateTime,
-  updated DateTime DEFAULT now()
-)       
-ENGINE = ReplicatedMergeTree('/clickhouse/tables/metrics.samples_local/{shard}', '{replica}'  date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
+		(
+		  date Date DEFAULT toDate(0),
+		  name String,
+		  tags Array(String),
+		  val Float64,
+		  ts DateTime,
+		  updated DateTime DEFAULT now()
+		)
+		ENGINE = ReplicatedMergeTree('/clickhouse/tables/metrics.samples_local/{shard}', '{replica}', date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
 		case db.ReplicaStatusNo:
 			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
 (
   date Date DEFAULT toDate(0),
   name String,
-  tags Array(FixedString(50)),
+  tags Array(String),
   val Float64,
   ts DateTime,
   updated DateTime DEFAULT now()
@@ -119,8 +159,9 @@ ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup')`, cl
 }
 
 // CreateMetricsSamplesV2
-// Change tags type Array(String) to Array(FixedString).
-func (c *ClickHouse) CreateMetricsSamplesV2(cluster string) error {
+// Change tags type Array(String) to Array(FixedString)
+// Support clickhouse v22.3.7+
+func (c *ClickHouse) createMetricsSamplesV2(cluster string) error {
 	_, _ = c.db.Exec("set allow_deprecated_syntax_for_merge_tree=1")
 	switch c.mode {
 	case ModeStandalone:
@@ -132,7 +173,7 @@ func (c *ClickHouse) CreateMetricsSamplesV2(cluster string) error {
 (
     date Date DEFAULT toDate(0),
     name String,
-    tags Array(FixedString(50)),
+    tags Array(FixedString(64)),
     val Float64,
     ts DateTime,
     updated DateTime DEFAULT now()
@@ -146,30 +187,31 @@ func (c *ClickHouse) CreateMetricsSamplesV2(cluster string) error {
 			return errors.Wrap(err, "create database")
 		}
 		var mergeTreeSQL string
-		switch c.rs {
-		case db.ReplicaStatusYes:
-			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
+		// 		switch c.rs {
+		// 		case db.ReplicaStatusYes:
+		// 			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
+		// (
+		//   date Date DEFAULT toDate(0),
+		//   name String,
+		//   tags Array(FixedString(64)),
+		//   val Float64,
+		//   ts DateTime,
+		//   updated DateTime DEFAULT now()
+		// )
+		// SETTINGS index_granularity=8192;
+		// ENGINE = ReplicatedMergeTree('/clickhouse/tables/metrics.samples_local/{shard}', '{replica}', date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
+		// 		case db.ReplicaStatusNo:
+		mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
 (
   date Date DEFAULT toDate(0),
   name String,
-  tags Array(FixedString(50)),
-  val Float64,
-  ts DateTime,
-  updated DateTime DEFAULT now()
-)       
-ENGINE = ReplicatedMergeTree('/clickhouse/tables/metrics.samples_local/{shard}', '{replica}'  date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
-		case db.ReplicaStatusNo:
-			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
-(
-  date Date DEFAULT toDate(0),
-  name String,
-  tags Array(FixedString(50)),
+  tags Array(FixedString(64)),
   val Float64,
   ts DateTime,
   updated DateTime DEFAULT now()
 )       
 ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
-		}
+		// }
 		_, err = c.db.Exec(mergeTreeSQL)
 		if err != nil {
 			return errors.Wrap(err, "create mergeTree")

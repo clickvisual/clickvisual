@@ -203,7 +203,7 @@ func SettingInfo(c *core.Context) {
 
 // CreateMetricsSamples
 // @Tags         ALARM
-// @Summary      创建 Metrics.samples
+// @Summary      Create metrics.samples table
 func CreateMetricsSamples(c *core.Context) {
 	var err error
 	params := db.ReqCreateMetricsSamples{}
@@ -228,16 +228,9 @@ func CreateMetricsSamples(c *core.Context) {
 		return
 	}
 	// We need to set version = "v2" can use new feature.
-	if params.Version == "v2" {
-		if err = op.CreateMetricsSamplesV2(params.Cluster); err != nil {
-			c.JSONE(core.CodeErr, err.Error(), err)
-			return
-		}
-	} else {
-		if err = op.CreateMetricsSamples(params.Cluster); err != nil {
-			c.JSONE(core.CodeErr, err.Error(), err)
-			return
-		}
+	if err = op.CreateMetricsSamples(params.Cluster); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
 	}
 	event.Event.UserCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"params": params})
 	c.JSONOK()
