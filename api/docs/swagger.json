@@ -1409,6 +1409,9 @@
                     },
                     "iid": {
                         "type": "integer"
+                    },
+                    "version": {
+                        "type": "string"
                     }
                 },
                 "title": "ReqCreateMetricsSamples",
