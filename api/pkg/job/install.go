@@ -64,7 +64,7 @@ func installCH() error {
 	// (
 	//    date Date DEFAULT toDate(0),
 	//    name String,
-	//    tags Array(String),
+	//    tags Array(FixedString(50)),
 	//    val Float64,
 	//    ts DateTime,
 	//    updated DateTime DEFAULT now()

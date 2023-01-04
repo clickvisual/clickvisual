@@ -67,7 +67,7 @@ func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
 (
     date Date DEFAULT toDate(0),
     name String,
-    tags Array(String),
+    tags Array(FixedString(50)),
     val Float64,
     ts DateTime,
     updated DateTime DEFAULT now()
@@ -87,7 +87,7 @@ func (c *ClickHouse) CreateMetricsSamples(cluster string) error {
 (
   date Date DEFAULT toDate(0),
   name String,
-  tags Array(String),
+  tags Array(FixedString(50)),
   val Float64,
   ts DateTime,
   updated DateTime DEFAULT now()
@@ -98,7 +98,7 @@ ENGINE = ReplicatedMergeTree('/clickhouse/tables/metrics.samples_local/{shard}',
 (
   date Date DEFAULT toDate(0),
   name String,
-  tags Array(String),
+  tags Array(FixedString(50)),
   val Float64,
   ts DateTime,
   updated DateTime DEFAULT now()
