@@ -66,7 +66,7 @@ func (c *Databend) Chart(param view.ReqQuery) (res []*view.HighChart, q string, 
 		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return nil, q, err
 	}
-	res = make([]*view.HighChart, 0)
+	res = make([]*view.HighChart, 0, len(charts))
 	for _, chart := range charts {
 		row := view.HighChart{}
 		if chart["count"] != nil {
