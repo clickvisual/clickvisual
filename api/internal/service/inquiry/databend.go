@@ -1445,13 +1445,13 @@ func (c *Databend) CalculateInterval(interval int64, timeField string) (string, 
 	if interval <= 60*5 {
 		return fmt.Sprintf("subtract_seconds(to_timestamp(%s),  1)", timeField), 1
 	} else if interval <= 60*30 {
-		return fmt.Sprintf("subtract_minutes(to_timestamp(%s),  1)", timeField), 60
+		return fmt.Sprintf("subtract_minutes(to_timestamp(%s),  1)", timeField), 180
 	} else if interval <= 60*60*4 {
-		return fmt.Sprintf("subtract_minutes(to_timestamp(%s), 10)", timeField), 600
+		return fmt.Sprintf("to_start_of_minute(subtract_minutes(to_timestamp(%s), 10))", timeField), 720
 	} else if interval <= 60*60*24 {
-		return fmt.Sprintf("subtract_hours(to_timestamp(%s),  1)", timeField), 3600
+		return fmt.Sprintf("to_start_of_hour(subtract_hours(to_timestamp(%s),  1))", timeField), 7200
 	} else if interval <= 60*60*24*7 {
-		return fmt.Sprintf("subtract_hours(to_timestamp(%s), 6)", timeField), 21600
+		return fmt.Sprintf("to_start_of_hour(subtract_hours(to_timestamp(%s), 6))", timeField), 25200
 	}
 	return fmt.Sprintf("subtract_days(to_date(%s),  1)", timeField), 86400
 }

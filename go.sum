@@ -514,6 +514,8 @@ github.com/databendcloud/databend-go v0.1.5 h1:eVWC6+3GV/bxdmIaoYAmNuGBaT0eqmDi0
 github.com/databendcloud/databend-go v0.1.5/go.mod h1:xtE04GstfCRnV3jW8dxHR9VW8QxXvQvRApVonFEHy50=
 github.com/databendcloud/databend-go v0.1.9 h1:rANBqLv6dlqSVymzb3YBT88QYCElkzizLZGNiqoT6MI=
 github.com/databendcloud/databend-go v0.1.9/go.mod h1:xtE04GstfCRnV3jW8dxHR9VW8QxXvQvRApVonFEHy50=
+github.com/databendcloud/databend-go v0.2.1 h1:4J9ik+/BVZDbTKEtAlVQ62xcDh34M96LYw5bBpxOJtQ=
+github.com/databendcloud/databend-go v0.2.1/go.mod h1:xtE04GstfCRnV3jW8dxHR9VW8QxXvQvRApVonFEHy50=
 github.com/dave/dst v0.26.2 h1:lnxLAKI3tx7MgLNVDirFCsDTlTG9nKTk7GcptKcWSwY=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
