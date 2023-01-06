@@ -215,7 +215,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
         keyItem
       );
 
-      let content = "";
+      let content: any = "";
       if (isIndexAndRawLogKey && !!parseJsonObject(rawLogJson[keyItem])) {
         content = JSON.stringify(rawLogJson[keyItem]);
       }
@@ -226,6 +226,11 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
 
       if (!isIndexAndRawLogKey && newLog.hasOwnProperty(keyItem)) {
         content = newLog[keyItem];
+      }
+
+      // 如果content是布尔值则转换成字符串
+      if (typeof content === "boolean") {
+        content = content.toString();
       }
 
       // TODO: 兼容json字符串
