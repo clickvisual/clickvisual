@@ -78,12 +78,10 @@ cd ./clickvisual-${latest} && ./clickvisual --config config/default.toml
 # 默认登录密码: clickvisual
 ```
 
+## 文档贡献
 
-## Main Tasks
-
-## Bugs or features
-
-如果需要提交 Bug，可以点击 [这里](https://github.com/clickvisual/clickvisual/issues)。
+如果你要参与 [https://clickvisual.gocn.vip](https://clickvisual.gocn.vip) 文档更新的活动  
+可以参考该文档 [https://github.com/clickvisual/clickvisual/tree/master/docs](https://github.com/clickvisual/clickvisual/tree/master/docs)
 
 ## 加入我们
 
