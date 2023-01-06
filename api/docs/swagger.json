@@ -9940,7 +9940,7 @@
                         }
                     }
                 },
-                "summary": "Gets all instance database and table data filtered by permissions",
+                "summary": "Gets all instance database and table data filtered by permissions test",
                 "tags": [
                     "LOGSTORE"
                 ]
@@ -10030,7 +10030,7 @@
                 ]
             },
             "post": {
-                "description": "godoc\n\nusername 登陆账号\n\nnickname 显示用户名",
+                "description": "godoc\n\nusername 登陆账号2\n\nnickname 显示用户名",
                 "operationId": "base.UserCreate",
                 "requestBody": {
                     "content": {
@@ -10145,7 +10145,7 @@
                         }
                     }
                 },
-                "summary": "Reset user password",
+                "summary": "Reset user password test",
                 "tags": [
                     "LOGSTORE"
                 ]
