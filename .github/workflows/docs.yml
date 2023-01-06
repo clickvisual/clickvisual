@@ -1,0 +1,23 @@
+name: docs
+on:
+  push:
+    branches:
+      - 'master'
+      - 'feature/docker-ci'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v2
+      - name: Build docs
+        run: cd docs && npm install && npm run docs:build
+      - name: Install ossutil
+        run: wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64
+      - name: Config ossutil
+        run: ./ossutil64 config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.OSS_ACCESS_KEY_ID }} -k ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      - name: Upload docs
+        run: ./ossutil64 cp -r -f ./docs/.vuepress/dist/ oss://gocn-cdn/clickvisual/

@@ -466,6 +466,7 @@ func QueryComplete(c *core.Context) {
 		return
 	}
 	res.SortRule, res.IsNeedSort = utils.GenerateFieldOrderRules(param.Query)
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
 }
