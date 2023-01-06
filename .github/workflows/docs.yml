@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - 'master'
-      - 'feature/docker-ci'
+#      - 'feature/docker-ci'
 
 jobs:
   deploy:

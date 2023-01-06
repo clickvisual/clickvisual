@@ -82,12 +82,10 @@ cd ./clickvisual-${latest} && ./clickvisual -config config/default.toml
 # login password: clickvisual
 ```
 
+## Document Contribution
 
-## Main Tasks
-
-## Bugs or Features
-
-If you want to report a bug or request for a feature, create a issue [here](https://github.com/clickvisual/clickvisual/issues).
+If you want to participate in [https://clickvisual.gocn.vip](https://clickvisual.gocn.vip) document updating activities  
+Please refer to this document [https://github.com/clickvisual/clickvisual/tree/master/docs](https://github.com/clickvisual/clickvisual/tree/master/docs)
 
 ## Join Us
 
