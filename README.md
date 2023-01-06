@@ -1,9 +1,11 @@
 # ClickVisual
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/clickvisual/clickvisual)](https://goreportcard.com/report/github.com/clickvisual/clickvisual)
-[![Release](https://img.shields.io/github/v/release/clickvisual/clickvisual.svg)](https://github.com/clickvisual/clickvisual)
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/clickvisual/clickvisual?tab=doc)
+[![GitHub stars](https://img.shields.io/github/stars/clickvisual/clickvisual)](https://github.com/clickvisual/clickvisual/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/clickvisual/clickvisual)](https://github.com/clickvisual/clickvisual/issues)
 [![GitHub license](https://img.shields.io/github/license/clickvisual/clickvisual)](https://github.com/clickvisual/clickvisual/blob/master/LICENSE)
+[![Release](https://img.shields.io/github/v/release/clickvisual/clickvisual.svg)](https://github.com/clickvisual/clickvisual)
+[![Go Report Card](https://goreportcard.com/badge/github.com/clickvisual/clickvisual)](https://goreportcard.com/report/github.com/clickvisual/clickvisual)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/clickvisual/clickvisual?tab=doc)
 [![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
 
 [English](https://github.com/clickvisual/clickvisual/blob/master/README.md) | [中文](https://github.com/clickvisual/clickvisual/blob/master/README-CN.md)
@@ -28,9 +30,9 @@ See <https://clickvisual.gocn.vip>
 
 ## Features
 
-- visual query dashboard, support query Histogram and raw logs for SQL.
-- shows percentage for specified fields.
-- vscode style configuration board, you can easily emit your fluent-bit configuration to Kubernetes ConfigMap.
+- Support visual query dashboard, query histogram and raw logs for SQL.
+- Support showing percentage for specified fields.
+- Support vscode style configuration board, you can easily emit your fluent-bit configuration to Kubernetes ConfigMap.
 - Out of the box, easily deployment with `kubectl`.
 - Support for GitHub and GitLab Authentication.
 
@@ -120,6 +122,11 @@ Thanks for these wonderful people:
       <td align="center"><a href="https://github.com/ArthurQiuys"><img src="https://avatars.githubusercontent.com/u/16526475?v=4" width="64px;" alt=""/><br /><sub><b>ArthurQ</b></sub></a></td>
       <td align="center"><a href="http://laojianzi.github.io"><img src="https://avatars.githubusercontent.com/u/42930263?v=4" width="64px;" alt=""/><br /><sub><b>Jeff Li</b></sub></a></td>
       <td align="center"><a href="http://www.asarea.cn"><img src="https://avatars.githubusercontent.com/u/3275714?v=4" width="64px;" alt=""/><br /><sub><b>Ather Shu</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://cloudsjhan.github.io/"><img src="https://avatars.githubusercontent.com/u/7600925?v=4" width="64px;" alt=""/><br /><sub><b>Jeremy</b></sub></a></td>
+      <td align="center"><a href="https://github.com/pigcsy"><img src="https://avatars.githubusercontent.com/u/20635389?v=4" width="64px;" alt=""/><br /><sub><b>csy</b></sub></a></td>
+      <td align="center"><a href="https://github.com/zackzhangkai"><img src="https://avatars.githubusercontent.com/u/20178386?v=4" width="64px;" alt=""/><br /><sub><b>zackzhangkai</b></sub></a></td>
     </tr>
   </tbody>
 </table>

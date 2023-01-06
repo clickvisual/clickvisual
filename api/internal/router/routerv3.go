@@ -1,8 +1,9 @@
 package router
 
 import (
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/gin-gonic/gin"
+
+	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv3/storage"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -16,7 +17,7 @@ import (
 // The configuration module - cmdb
 // The system management module - sysop
 func v3(r *gin.RouterGroup) {
-	r = r.Group("/v3", middlewares.AuthChecker())
+	r = r.Group("/api/v3", middlewares.AuthChecker())
 
 	// The log module - storage
 	{

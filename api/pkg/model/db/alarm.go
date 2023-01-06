@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -14,13 +15,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-type IAlarm interface {
-	TableName() string
-	RuleName(filterId int) string
-	ViewName(database, table string, seq int) string
-	UniqueName(filterId int) string
-	StatusUpdate(status string) (err error)
+type iAlarm interface {
+	iModel
+
+	GetStatus(db *gorm.DB) int
 	AlertInterval() string
+	RuleName(filterId int) string
+	UniqueName(filterId int) string
+	UpdateStatus(db *gorm.DB, status int) (err error)
+	ViewName(database, table string, seq int) string
 }
 
 const (
@@ -30,7 +33,8 @@ const (
 )
 
 const (
-	AlarmStatusClose = iota + 1
+	AlarmStatusUnknown = iota
+	AlarmStatusClose
 	AlarmStatusOpen
 	AlarmStatusFiring
 	AlarmStatusRuleCheck
@@ -94,6 +98,15 @@ type Notification struct {
 	Alerts            []Alert           `json:"alerts"`
 }
 
+func (n *Notification) GetStatus() int {
+	if n.Status == "firing" {
+		return AlarmStatusFiring
+	} else if n.Status == "resolved" {
+		return AlarmStatusOpen
+	}
+	return AlarmStatusUnknown
+}
+
 type Alarm struct {
 	BaseModel
 
@@ -104,10 +117,10 @@ type Alarm struct {
 	Interval   int           `gorm:"column:interval;type:int(11)" json:"interval"`                    // interval second between alarm
 	Unit       int           `gorm:"column:unit;type:int(11)" json:"unit"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
 	Tags       String2String `gorm:"column:tag;type:text" json:"tag"`                                 // tags
-	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // status
 	ChannelIds Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // channel of an alarm
 	NoDataOp   int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`  // noDataOp 0 nodata 1 ok 2 alert
 	Level      int           `gorm:"column:level;type:int(11)" json:"level"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
+	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // status
 
 	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 
@@ -126,8 +139,24 @@ type Alarm struct {
 	ViewTableName string `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"` // name of view table
 }
 
+type ClusterRuleGroup struct {
+	ClusterId int
+	Instance  BaseInstance
+	GroupName string
+	Rules     []ClusterRuleItem
+}
+
+type ClusterRuleItem struct {
+	RuleName string
+	Content  string
+}
+
 func (m *Alarm) TableName() string {
 	return TableNameAlarm
+}
+
+func (m *Alarm) GetGroupName(instanceId int) string {
+	return fmt.Sprintf("cv-%d-%s", instanceId, m.Uuid)
 }
 
 func (m *Alarm) RuleName(filterId int) string {
@@ -135,6 +164,12 @@ func (m *Alarm) RuleName(filterId int) string {
 		return fmt.Sprintf("cv-%s.yaml", m.Uuid)
 	}
 	return fmt.Sprintf("cv-%s-%d.yaml", m.Uuid, filterId)
+}
+
+func TrimRuleName(name string) string {
+	name = strings.TrimPrefix(name, "cv-")
+	name = strings.TrimSuffix(name, ".yaml")
+	return name
 }
 
 func (m *Alarm) ViewName(database, table string, seq int) string {
@@ -149,18 +184,26 @@ func (m *Alarm) AlertInterval() string {
 	return fmt.Sprintf("%d%s", m.Interval, UnitMap[m.Unit].Alias)
 }
 
-func (m *Alarm) StatusUpdate(status string) (err error) {
+func (m *Alarm) UpdateStatus(db *gorm.DB, status int) (err error) {
 	ups := make(map[string]interface{}, 0)
-	if status == "firing" {
-		ups["status"] = AlarmStatusFiring
-	} else if status == "resolved" {
-		ups["status"] = AlarmStatusOpen
-	}
-	err = AlarmUpdate(invoker.Db, m.ID, ups)
+	ups["status"] = status
+	err = AlarmUpdate(db, m.ID, ups)
 	if err != nil {
 		return
 	}
 	return
+}
+
+func (m *Alarm) GetStatus(db *gorm.DB) int {
+	conds := egorm.Conds{}
+	conds["alarm_id"] = m.ID
+	filters, _ := AlarmFilterList(db, conds)
+	for _, filter := range filters {
+		if filter.Status == AlarmStatusFiring {
+			return AlarmStatusFiring
+		}
+	}
+	return AlarmStatusOpen
 }
 
 // RuleNameMap 提供 rule 兼容
@@ -170,11 +213,58 @@ func (m *Alarm) RuleNameMap() map[int][]string {
 		iidTableArr := strings.Split(iidRuleName, "|")
 		if len(iidTableArr) == 2 {
 			iid, _ := strconv.Atoi(iidTableArr[0])
-			res[iid] = append(res[iid], iidTableArr[1])
+			ruleName := iidTableArr[1]
+			// 	// alarm rule v1.5
+			// if len(strings.Split(ruleName, "-")) == 5 {
+			// 	conds := egorm.Conds{}
+			// 	conds["alarm_id"] = m.ID
+			// 	filters, _ := AlarmFilterList(invoker.Db, conds)
+			// 	if len(filters) == 1 {
+			// 		ruleName = strings.ReplaceAll(ruleName, ".yaml", fmt.Sprintf("-%d.yaml", filters[0].ID))
+			// 	}
+			// }
+			res[iid] = append(res[iid], ruleName)
 		}
 	}
 
 	return res
+}
+
+func GetAlarmTableInstanceInfoWithCache(id int, cache map[int]*RespAlarmListRelatedInfo) (alarmInfo Alarm, relatedList []*RespAlarmListRelatedInfo, err error) {
+	alarmInfo, err = AlarmInfo(invoker.Db, id)
+	if err != nil {
+		return
+	}
+	relatedList = make([]*RespAlarmListRelatedInfo, 0)
+	if len(alarmInfo.TableIds) != 0 {
+		for _, tid := range alarmInfo.TableIds {
+			var ri *RespAlarmListRelatedInfo
+			if val, ok := cache[tid]; ok {
+				ri = val
+			} else {
+				ri, err = alarmRelatedInfo(tid)
+				if err != nil {
+					return
+				}
+				cache[tid] = ri
+			}
+			relatedList = append(relatedList, ri)
+		}
+		return
+	}
+	// TODO: wait delete
+	var ri *RespAlarmListRelatedInfo
+	if val, ok := cache[alarmInfo.Tid]; ok {
+		ri = val
+	} else {
+		ri, err = alarmRelatedInfo(alarmInfo.Tid)
+		if err != nil {
+			return
+		}
+		cache[alarmInfo.Tid] = ri
+	}
+	relatedList = append(relatedList, ri)
+	return
 }
 
 func GetAlarmTableInstanceInfo(id int) (alarmInfo Alarm, relatedList []*RespAlarmListRelatedInfo, err error) {
@@ -313,7 +403,7 @@ func AlarmListByDidPage(conds egorm.Conds, reqList *ReqPage) (total int64, respL
 
 func AlarmCreate(db *gorm.DB, data *Alarm) (err error) {
 	if err = db.Model(Alarm{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create releaseZone error", zap.Error(err))
+		elog.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -330,14 +420,14 @@ func AlarmUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
 
 func AlarmDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(Alarm{}).Unscoped().Delete(&Alarm{}, id).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
+		elog.Error("release delete error", zap.Error(err))
 		return
 	}
 	return
 }
 
 type ReqAlertSettingUpdate struct {
-	RuleStoreType    int    `json:"ruleStoreType" form:"ruleStoreType"` // rule_store_type 1 文件 2 集群
+	RuleStoreType    int    `json:"ruleStoreType" form:"ruleStoreType"` // ruleStoreType 1 文件 2 configmap 3 prometheus operator
 	PrometheusTarget string `json:"prometheusTarget" form:"prometheusTarget"`
 
 	// file
@@ -347,6 +437,34 @@ type ReqAlertSettingUpdate struct {
 	Namespace string `json:"namespace" form:"namespace"`
 	Configmap string `json:"configmap" form:"configmap"`
 	ClusterId int    `json:"clusterId" form:"clusterId"`
+
+	// ConfigPrometheusOperator Yaml 格式 e.g.
+	// metadata:
+	//  labels:
+	//    prometheus: example
+	//    role: alert-rules
+	//  name: prometheus-example-rules-2
+	//  namespace: default
+	ConfigPrometheusOperator string `json:"configPrometheusOperator" form:"configPrometheusOperator"`
+}
+
+type ConfigPrometheusOperator struct {
+	MetaData struct {
+		Labels    map[string]string `json:"labels" form:"labels" yaml:"labels"`
+		Name      string            `json:"name" form:"name" yaml:"name"`
+		Namespace string            `json:"namespace" form:"namespace" yaml:"namespace"`
+	} `json:"metadata" form:"metadata" yaml:"metadata"`
+}
+
+func (c *ConfigPrometheusOperator) IsValid() bool {
+	if c.MetaData.Name != "" &&
+		c.MetaData.Namespace != "" &&
+		len(c.MetaData.Labels) > 1 &&
+		c.MetaData.Labels["role"] != "" &&
+		c.MetaData.Labels["prometheus"] != "" {
+		return true
+	}
+	return false
 }
 
 type RespAlertSettingInfo struct {

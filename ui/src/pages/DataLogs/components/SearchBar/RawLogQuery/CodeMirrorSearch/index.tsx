@@ -1,7 +1,7 @@
 import styles from "./index.less";
 import ReactDom from "react-dom";
 import { useIntl, useModel } from "umi";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 // 白色主题
 import "codemirror/theme/neo.css";
@@ -9,16 +9,15 @@ import {
   FontSizeOutlined,
   HistoryOutlined,
   KeyOutlined,
+  PushpinOutlined,
 } from "@ant-design/icons";
-import "codemirror/addon/hint/sql-hint";
 import { dataLogLocalaStorageType } from "@/models/dataLogs";
 import useLocalStorages from "@/hooks/useLocalStorages";
 import { MYSQL_KEYWORD } from "./MySQLKeyWord";
 import WhereBox from "./WhereBox";
 import CreateLogFilter from "@/pages/DataLogs/components/CreateLogFilter";
-import { CollectType, LogFilterType } from "@/services/dataLogs";
-import IconFont from "@/components/IconFont";
-import { message } from "antd";
+import { LogFilterType } from "@/services/dataLogs";
+import classNames from "classnames";
 
 export enum CodeHintsType {
   history = 1,
@@ -27,7 +26,11 @@ export enum CodeHintsType {
   /**
    * 收藏历史记录
    */
-  collection = 4,
+  // collection = 4,
+  /**
+   * 当前输入值
+   */
+  value = 5,
 }
 
 const Editors = (props: {
@@ -42,6 +45,9 @@ const Editors = (props: {
   currentTid: number;
   logQueryHistoricalList: { [tid: number]: string[] };
   collectingHistorical: LogFilterType[];
+  isMultipleLines: boolean;
+  onChangeIsMultipleLines: (flag: boolean) => void;
+  onChangeIsDefault: (flag: boolean) => void;
 }) => {
   const {
     title,
@@ -55,16 +61,17 @@ const Editors = (props: {
     currentTid,
     logQueryHistoricalList,
     collectingHistorical,
+    isMultipleLines,
+    onChangeIsMultipleLines,
+    onChangeIsDefault,
   } = props;
+
+  const { logsLoading } = useModel("dataLogs");
+
   const formRefs: any = useRef(null);
   const i18n = useIntl();
+  const [isFocus, setIsFocus] = useState<boolean>(false);
   const { onSetLocalData } = useLocalStorages();
-
-  const {
-    doDeleteLogFilter,
-    doGetLogFilterList,
-    onChangeCollectingHistorical,
-  } = useModel("dataLogs");
 
   // 回车事件
   const handleEnter = () => {
@@ -88,22 +95,6 @@ const Editors = (props: {
       codeHintsType != CodeHintsType.keyword
         ? str.toLowerCase()
         : str.toUpperCase();
-    // 用空格分割然后找到所编辑的单词
-    const strArr = lowerCase.split(" ");
-    let totalLenght = 0;
-    let currentWord = "";
-    // 为了查找光标所在的单词
-    for (let i = 0; i < strArr.length; i++) {
-      const wordItem = strArr[i];
-      if (
-        totalLenght < location &&
-        totalLenght + (wordItem.length + 1) > location
-      ) {
-        currentWord = wordItem;
-        break;
-      }
-      totalLenght += wordItem.length + 1;
-    }
     // 分配不同类型的icon和文本
     let icon: any = <></>;
     let infoText: any = "";
@@ -124,55 +115,44 @@ const Editors = (props: {
         icon = <KeyOutlined />;
         infoText = i18n.formatMessage({ id: "log.search.codeHinting.keyword" });
         break;
-      case CodeHintsType.collection:
-        icon = <IconFont type="icon-shoucang1" />;
-        infoText = i18n.formatMessage({
-          id: "log.search.codeHinting.collectHistory",
-        });
+      case CodeHintsType.value:
+        icon = <PushpinOutlined />;
+        infoText = i18n.formatMessage({ id: "log.search.codeHinting.value" });
         break;
       default:
     }
     let arr: any[] = [];
     let priorityArr: any[] = [];
     let allArr: any[] = [];
-    if (codeHintsType != CodeHintsType.collection) {
-      list.map((item: any) => {
-        // 从头开始匹配的优先级大于从中间开始匹配的大于模糊搜索
-        if (item.indexOf(currentWord) === 0) {
-          priorityArr.push({
-            text: item,
-          });
-        }
-        if (item.indexOf(currentWord) > 0) {
-          arr.push({
-            text: item,
-          });
-        }
-      });
+    list.map((item: any) => {
+      // 从头开始匹配的优先级大于从中间开始匹配的大于模糊搜索
+      if (item.indexOf(lowerCase) === 0) {
+        priorityArr.push({
+          text: item,
+        });
+      }
+      if (item.indexOf(lowerCase) > 0) {
+        arr.push({
+          text: item,
+        });
+      }
       allArr = [...priorityArr, ...arr];
 
-      // 处理模拟数据
-      let fuzzyList = fuzzyQuery(list, currentWord);
-      fuzzyList.map((item: any) => {
-        // 模糊搜索结果先过滤
-        if (
-          allArr.filter((allArrItem: any) => item != allArrItem.text).length ==
-          0
-        ) {
-          allArr.push({
-            text: item,
-          });
-        }
-      });
-    } else {
-      list.map((item: any) => {
-        allArr.push({
-          text: item.alias,
-          id: item.id,
-          statement: item.statement,
-        });
-      });
-    }
+      // 暂时取消模糊查询 优化性能
+      // 处理模糊数据
+      // const fuzzyList = fuzzyQuery(list, lowerCase);
+
+      // fuzzyList.map((item: any) => {
+      //   // 模糊搜索结果先过滤
+      //   if (
+      //     allArr.filter((allArrItem: any) => item.includes(allArrItem.text))
+      //       .length == 0
+      //   ) {
+      //     allArr.push({
+      //       text: item,
+      //     });
+      //   }
+    });
 
     // 将字符串数组变更为对象数组
     let resultArr: any[] = [];
@@ -181,7 +161,7 @@ const Editors = (props: {
       let virtualDom: any;
       handleHighlightAndPrompt(
         item,
-        currentWord,
+        lowerCase,
         virtualDom,
         resultArr,
         text,
@@ -200,18 +180,18 @@ const Editors = (props: {
    * @param  {String} keyWord  查询的关键词
    * @return {Array}           查询的结果
    */
-  const fuzzyQuery = (list: any[], keyWord: string): Array<any> => {
-    let arr: any[] = [];
-    const selectList = keyWord.split("");
-    var reg = new RegExp(".*" + selectList.join(".*") + ".*", "i");
-    list.map((listItem: string) => {
-      if (reg.test(listItem)) {
-        arr.push(listItem);
-      }
-    });
+  // const fuzzyQuery = (list: any[], keyWord: string): Array<any> => {
+  //   let arr: any[] = [];
+  //   const selectList = keyWord.split("");
+  //   let reg = new RegExp(".*" + selectList.join(".*") + ".*", "i");
+  //   list.map((listItem: string) => {
+  //     if (reg.test(listItem)) {
+  //       arr.push(listItem);
+  //     }
+  //   });
 
-    return arr;
-  };
+  //   return arr;
+  // };
 
   /**
    * 对匹配的提示项作高亮输入词的处理
@@ -235,44 +215,31 @@ const Editors = (props: {
     infoText: any,
     codeHintsType: CodeHintsType
   ) => {
-    if (codeHintsType != CodeHintsType.collection) {
-      let c = promptText.text;
-      let TemporaryArr: string[] = [];
-      // 将提示语句中的关键字母替换成高亮字母，替换后拿后面的字符串进行下一次替换 可以解决高亮的字母顺序与输入字母顺序不一致的问题
-      currentWord.split("").map((item: any, index: number) => {
-        const locationIndex = c.indexOf(item);
-        if (locationIndex > -1) {
-          TemporaryArr.push(c.substring(0, locationIndex));
-          TemporaryArr.push(
-            `<span style="color:hsl(21, 85%, 56%)">${item}</span>`
-          );
-          c = c.substring(locationIndex + 1, c.length);
+    let c = promptText.text;
+    let TemporaryArr: string[] = [];
+    // 将提示语句中的关键字母替换成高亮字母，替换后拿后面的字符串进行下一次替换 可以解决高亮的字母顺序与输入字母顺序不一致的问题
+    currentWord.split("").map((item: any, index: number) => {
+      const locationIndex = c.indexOf(item);
+      if (locationIndex > -1) {
+        TemporaryArr.push(c.substring(0, locationIndex));
+        TemporaryArr.push(
+          `<span style="color:hsl(21, 85%, 56%)">${item}</span>`
+        );
+        c = c.substring(locationIndex + 1, c.length);
+      }
+      if (index == currentWord.split("").length - 1) {
+        if (c.length > 0) {
+          TemporaryArr.push(c);
         }
-        if (index == currentWord.split("").length - 1) {
-          if (c.length > 0) {
-            TemporaryArr.push(c);
-          }
-          c = TemporaryArr.join("");
-        }
-      });
-      virtualDom = <div dangerouslySetInnerHTML={{ __html: c }} />;
+        c = TemporaryArr.join("");
+      }
+    });
+    virtualDom = <div dangerouslySetInnerHTML={{ __html: c }} />;
 
-      ReactDom.render(virtualDom, text);
-      arr.push({
-        text: promptText.text,
-        domText: text,
-        displayIcon: icon,
-        displayText: infoText,
-        codeHintsType: codeHintsType,
-        render: hintRender,
-      });
-      return;
-    }
-
+    ReactDom.render(virtualDom, text);
     arr.push({
-      text: promptText.statement,
-      domText: ReactDom.render(<>{promptText.text}</>, text),
-      id: promptText.id,
+      text: promptText.text,
+      domText: text,
       displayIcon: icon,
       displayText: infoText,
       codeHintsType: codeHintsType,
@@ -297,54 +264,56 @@ const Editors = (props: {
     },
     hintOptions: any
   ) => {
-    let cursor = cmInstance.getCursor();
-    let cursorLine = cmInstance.getLine(cursor.line);
-    let end = cursor.ch;
+    const cursor = cmInstance.getCursor();
+    const end = cursor.ch;
 
-    let token = cmInstance.getTokenAt(cursor);
+    const token = cmInstance.getTokenAt(cursor);
+    // 如果不是从单词最后开始的一律不提示代码提示
+    if (token.end != cursor.ch) {
+      return {
+        list: [],
+        from: { ch: 0, line: 0 },
+        to: { ch: 0, line: 0 },
+      };
+    }
+    const cursorLine = token.string.replace(/((?![A-Z]).)/gi, " ").split(" ");
+    const value = cursorLine[cursorLine.length - 1];
     // 按键触发的显示四种提示
-    if (cursorLine && cursorLine.length > 0 && cursorLine != "`") {
-      const collectionList = handleCodePromptRecord(
-        collectingHistorical,
-        cursorLine,
-        CodeHintsType.collection,
+    if (value && value.length > 0 && value != "`") {
+      const cursorLineList = handleCodePromptRecord(
+        [value],
+        value,
+        CodeHintsType.value,
         end
       );
       const historyList = handleCodePromptRecord(
         historicalRecord.slice(0, 10),
-        cursorLine,
+        value,
         CodeHintsType.history,
         end
       );
       const list = handleCodePromptRecord(
         tables,
-        cursorLine,
+        value,
         CodeHintsType.analysisField,
         end
       );
 
       const keyWordList = handleCodePromptRecord(
         MYSQL_KEYWORD,
-        cursorLine,
+        value,
         CodeHintsType.keyword,
         end
       );
 
       return {
         list:
-          // [...historyList, ...list, ...keyWordList] || [],
-          [...collectionList, ...historyList, ...list, ...keyWordList] || [],
-        from: { ch: token.start, line: cursor.line },
+          [...cursorLineList, ...historyList, ...list, ...keyWordList] || [],
+        from: { ch: token.end - value.length, line: cursor.line },
         to: { ch: token.end, line: cursor.line },
       };
     }
     // 否则显示一种提示
-    const collectionList = handleCodePromptRecord(
-      collectingHistorical,
-      cursorLine,
-      CodeHintsType.collection,
-      end
-    );
     const allHistoryList = handleCodePromptRecord(
       historicalRecord.slice(0, 10),
       "",
@@ -353,8 +322,8 @@ const Editors = (props: {
     );
 
     return {
-      list: [...collectionList, ...allHistoryList] || [],
-      from: { ch: token.start, line: cursor.line },
+      list: [...allHistoryList] || [],
+      from: { ch: token.end - value.length, line: cursor.line },
       to: { ch: token.end, line: cursor.line },
     };
   };
@@ -384,11 +353,7 @@ const Editors = (props: {
     divIcon.setAttribute("class", "autocomplete-icon");
 
     let divText = document.createElement("div");
-    if (data.codeHintsType !== CodeHintsType.collection) {
-      divText.setAttribute("class", "autocomplete-text");
-    } else {
-      divText.setAttribute("class", "autocomplete-collectionText");
-    }
+    divText.setAttribute("class", "autocomplete-text");
     divText.appendChild(data.domText);
 
     let divInfo = document.createElement("div");
@@ -399,11 +364,9 @@ const Editors = (props: {
     div.appendChild(divIcon);
     div.appendChild(divText);
     div.appendChild(divInfo);
-    const isNeedFork =
-      data.codeHintsType == CodeHintsType.history ||
-      data.codeHintsType == CodeHintsType.collection;
+    const isNeedFork = data.codeHintsType == CodeHintsType.history;
     if (isNeedFork) {
-      var delIcon = document.createElement("div");
+      let delIcon = document.createElement("div");
       delIcon.setAttribute("class", "autocomplete-delete");
 
       const delDom = (
@@ -412,8 +375,6 @@ const Editors = (props: {
             e.stopPropagation();
             if (data.codeHintsType == CodeHintsType.history) {
               handleHistoricalRecords(data);
-            } else {
-              data?.id && handleDeletingCollectionHistory(data?.id);
             }
           }}
         >
@@ -456,110 +417,103 @@ const Editors = (props: {
     }, 100);
   };
 
-  /**
-   * 删除收藏历史
-   */
-  const handleDeletingCollectionHistory = (id: number) => {
-    id &&
-      doDeleteLogFilter.run(id).then((res: any) => {
-        if (res.code != 0) {
-          message.error(res.msg);
-          return;
-        }
-        message.success(i18n.formatMessage({ id: "success" }));
-        const data = {
-          collectType: CollectType.query,
-        };
-        doGetLogFilterList.run(data).then((res: any) => {
-          if (res.code != 0) return;
-          onChangeCollectingHistorical(res.data);
+  const options = {
+    // 显示行号
+    lineNumbers: false,
+    // 改变行号文案
+    lineNumberFormatter: (line: number) => line,
+    mode: {
+      name: "text/x-mysql",
+    },
+    // 自定义快捷键
+    extraKeys: { Enter: handleEnter },
+    hintOptions: {
+      // 自定义提示选项
+      completeSingle: false, // 当匹配只有一项的时候是否自动补全
+      // 自定义的提示库
+      hint: handleShowHint,
+      tables: [...tables, ...historicalRecord],
+    },
+    autofocus: false,
+    styleActiveLine: true,
+    // 主题
+    theme: "neo",
+    // 溢出滚动而非换行
+    lineWrapping: isMultipleLines,
+    foldGutter: true,
+    gutters: false,
+    lint: false,
+    indentUnit: 2,
+    // 光标高度
+    cursorHeight: 1,
+    placeholder: placeholder || "",
+    // tab缩进
+    tabSize: 2,
+    // 滚动条样式
+    scrollbarStyle: null,
+    readOnly: logsLoading ? "nocursor" : false,
+  };
 
-          setTimeout(() => {
-            formRefs.current.editor.showHint();
-          }, 100);
-        });
-      });
+  const handleChange = (CodeMirror: string, changeObj: any, value: string) => {
+    if (value.indexOf("\n") > -1 && !isMultipleLines) {
+      onChangeIsMultipleLines(true);
+    } else if (isMultipleLines && value.indexOf("\n") == -1) {
+      onChangeIsMultipleLines(false);
+    }
+    onChange(value);
+  };
+
+  const handleKeyPress = (
+    a: any,
+    b: { charCode: number; preventDefault: () => void }
+  ) => {
+    // 阻止回车换行事件
+    if (b.charCode == 13 || logsLoading) {
+      b.preventDefault();
+      return;
+    }
+    // 按字母键的时候触发代码提示
+    if (
+      (b.charCode <= 90 && b.charCode >= 65) ||
+      (b.charCode <= 122 && b.charCode >= 97) ||
+      b.charCode == 96 ||
+      b.charCode == 32
+    ) {
+      formRefs.current.editor.showHint();
+    }
   };
 
   return (
-    <div className={styles.editors} key={title + "editors"}>
-      <WhereBox />
-      <div className={styles.codemirrorInput}>
+    <div
+      className={classNames([
+        styles.editors,
+        !isMultipleLines && styles.oneLine,
+      ])}
+      key={title + "editors"}
+    >
+      <WhereBox
+        onChange={onChange}
+        onChangeIsDefault={onChangeIsDefault}
+        collectingHistorical={collectingHistorical}
+        onPressEnter={onPressEnter}
+      />
+      <div
+        className={styles.codemirrorInput}
+        style={{ overflow: isMultipleLines && isFocus ? "" : "hidden" }}
+      >
         <CodeMirror
           className={styles.editorsDom}
           ref={formRefs}
           key={title}
-          onKeyPress={(a, b) => {
-            // 阻止回车换行事件
-            if (b.charCode == 13) {
-              b.preventDefault();
-              return;
-            }
-            // 按字母键的时候触发代码提示
-            if (
-              (b.charCode <= 90 && b.charCode >= 65) ||
-              (b.charCode <= 122 && b.charCode >= 97) ||
-              b.charCode == 96 ||
-              b.charCode == 32
-            ) {
-              formRefs.current.editor.showHint();
-            }
-          }}
-          // onCursorActivity={(codeMirror: any) => {
-          //   const text = codeMirror?.display?.maxLine?.text;
-          //   if (text == "" || text[text.length - 1] == " ") {
-          //     formRefs.current.editor.showHint();
-          //   }
-          // }}
-          // onFocus={() => {
-          //   // const CodeMirror = formRefs.current?.editor;
-          //   if (formRefs.current.editor.getValue() === "") {
-          //     // formRefs.current.editor.setOption({
-          //     //   hintOptions: {
-          //     //     tables: historicalRecord,
-          //     //   },
-          //     // });
-          //     // 值为空的时候聚焦会主动吊起历史记录提示框
-          //     formRefs.current.editor.showHint();
-          //   }
-          // }}
-          onChange={(CodeMirror: string, changeObj: any, value: string) =>
-            onChange(value)
-          }
           value={value}
-          options={{
-            // 显示行号
-            lineNumbers: false,
-            mode: {
-              name: "text/x-mysql",
-            },
-            // 自定义快捷键
-            extraKeys: { Enter: handleEnter },
-            hintOptions: {
-              // 自定义提示选项
-              completeSingle: false, // 当匹配只有一项的时候是否自动补全
-              // 自定义的提示库
-              hint: handleShowHint,
-              tables: [...tables, ...historicalRecord],
-            },
-            autofocus: false,
-            styleActiveLine: true,
-            // 主题
-            theme: "neo",
-            // 溢出滚动而非换行
-            lineWrapping: false,
-            foldGutter: true,
-            gutters: false,
-            lint: false,
-            indentUnit: 2,
-            // 光标高度
-            cursorHeight: 1,
-            placeholder: placeholder || "",
-            // tab缩进
-            tabSize: 2,
-            // 滚动条样式
-            scrollbarStyle: null,
+          options={options}
+          onKeyPress={handleKeyPress}
+          onChange={handleChange}
+          onBlur={() => {
+            onChangeIsDefault(true); // 重置初始value
+            setIsFocus(false);
           }}
+          onFocus={() => setIsFocus(true)}
         />
         <span className={styles.afterBox}></span>
       </div>

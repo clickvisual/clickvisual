@@ -1,8 +1,6 @@
 package db
 
 import (
-	"time"
-
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -26,6 +24,7 @@ const (
 const (
 	SourceTypMySQL      = 1
 	SourceTypClickHouse = 2
+	SourceDatabend      = 3
 )
 
 const (
@@ -56,18 +55,8 @@ const (
 	NodeStatusFinish  = 4
 )
 
-const (
-	BigdataNodeResultUnknown int = iota
-	BigdataNodeResultSucc
-	BigdataNodeResultFailed
-)
-
 func (m *BigdataWorkflow) TableName() string {
 	return TableNameBigDataWorkflow
-}
-
-func (m *BigdataCrontab) TableName() string {
-	return TableNameBigDataCrontab
 }
 
 func (m *BigdataSource) TableName() string {
@@ -84,10 +73,6 @@ func (m *BigdataNodeContent) TableName() string {
 
 func (m *BigdataNodeHistory) TableName() string {
 	return TableNameBigDataNodeHistory
-}
-
-func (m *BigdataNodeResult) TableName() string {
-	return TableNameBigDataNodeResult
 }
 
 func (m *BigdataFolder) TableName() string {
@@ -142,18 +127,6 @@ type (
 		Uid     int    `gorm:"column:uid;type:int(11)" json:"uid"`
 		Utime   int64  `gorm:"bigint;autoUpdateTime;comment:update time" json:"utime"`
 	}
-
-	BigdataNodeResult struct {
-		BaseModel
-
-		NodeId       int    `gorm:"column:node_id;type:int(11)" json:"nodeId"`
-		Content      string `gorm:"column:content;type:longtext" json:"content"`
-		Result       string `gorm:"column:result;type:longtext" json:"result"`
-		ExcelProcess string `gorm:"column:excel_process;type:longtext" json:"excelProcess"`
-		Uid          int    `gorm:"column:uid;type:int(11)" json:"uid"`
-		Cost         int64  `gorm:"column:cost;type:bigint(20)" json:"cost"` // ms
-		Status       int    `gorm:"column:status;type:int(11)" json:"status"`
-	}
 )
 
 type BigdataSource struct {
@@ -176,67 +149,6 @@ type BigdataWorkflow struct {
 	Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // name of an alarm
 	Desc string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"` // description
 	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`
-}
-
-type BigdataCrontab struct {
-	NodeId        int    `gorm:"column:node_id;type:int(11);uix_node_id,unique" json:"nodeId"`
-	Desc          string `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"` // description
-	DutyUid       int    `gorm:"column:duty_uid;type:int(11)" json:"dutyUid"`        // person in charge
-	Cron          string `gorm:"column:cron;type:varchar(255);NOT NULL" json:"cron"` // cron expression
-	Typ           int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // typ 0 Normal scheduling 1 Suspended scheduling
-	Status        int    `gorm:"column:status;type:int(11)" json:"status"`           // status 0 default 1 preempt 2 doing
-	Uid           int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // user id
-	Args          string `gorm:"args:sql_view;type:text" json:"args"`                // sql_view
-	IsRetry       int    `gorm:"column:is_retry;type:tinyint(1)" json:"isRetry"`
-	RetryTimes    int    `gorm:"column:retry_times;type:int(11)" json:"retryTimes"`
-	RetryInterval int    `gorm:"column:retry_interval;type:int(11)" json:"retryInterval"`
-	Ctime         int64  `gorm:"bigint;autoCreateTime;comment:创建时间" json:"ctime"`
-	Utime         int64  `gorm:"bigint;autoUpdateTime;comment:更新时间" json:"utime"`
-}
-
-func CrontabInfo(db *gorm.DB, nodeId int) (resp BigdataCrontab, err error) {
-	var sql = "`node_id`= ?"
-	var binds = []interface{}{nodeId}
-	if err = db.Model(BigdataCrontab{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		err = errors.Wrapf(err, "crontab node id: %d", nodeId)
-		return
-	}
-	return
-}
-
-func CrontabList(conds egorm.Conds) (resp []*BigdataCrontab, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(BigdataCrontab{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		err = errors.Wrapf(err, "conds: %v", conds)
-		return
-	}
-	return
-}
-
-func CrontabCreate(db *gorm.DB, data *BigdataCrontab) (err error) {
-	if err = db.Model(BigdataCrontab{}).Create(data).Error; err != nil {
-		elog.Error("create error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func CrontabUpdate(db *gorm.DB, nodeId int, ups map[string]interface{}) (err error) {
-	var sql = "`node_id`=?"
-	var binds = []interface{}{nodeId}
-	if err = db.Model(BigdataCrontab{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		elog.Error("update error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func CrontabDelete(db *gorm.DB, nodeId int) (err error) {
-	if err = db.Where("node_id=?", nodeId).Model(BigdataCrontab{}).Delete(&BigdataCrontab{}).Error; err != nil {
-		elog.Error("delete error", zap.Error(err))
-		return
-	}
-	return
 }
 
 func WorkflowInfo(db *gorm.DB, id int) (resp BigdataWorkflow, err error) {
@@ -453,64 +365,6 @@ func NodeHistoryCreate(db *gorm.DB, data *BigdataNodeHistory) (err error) {
 		elog.Error("create error", zap.Error(err))
 		return
 	}
-	return
-}
-
-func NodeResultInfo(db *gorm.DB, id int) (resp BigdataNodeResult, err error) {
-	var sql = "`id`= ? and dtime = 0"
-	var binds = []interface{}{id}
-	if err = db.Model(BigdataNodeResult{}).Where(sql, binds...).First(&resp).Error; err != nil {
-		err = errors.Wrapf(err, "node result node id: %d", id)
-		return
-	}
-	return
-}
-
-func NodeResultCreate(db *gorm.DB, data *BigdataNodeResult) (err error) {
-	if err = db.Model(BigdataNodeResult{}).Create(data).Error; err != nil {
-		return errors.Wrap(err, "NodeResultCreate")
-	}
-	return
-}
-
-func NodeResultUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err error) {
-	var sql = "`id`=?"
-	var binds = []interface{}{id}
-	if err = db.Model(BigdataNodeResult{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		return errors.Wrap(err, "NodeResultUpdate")
-	}
-	return
-}
-
-func NodeResultDelete30Days() {
-	expire := time.Hour * 24 * 30
-	if err := invoker.Db.Model(BigdataNodeResult{}).Where("ctime<?", time.Now().Add(-expire).Unix()).Unscoped().Delete(&BigdataNodeResult{}).Error; err != nil {
-		elog.Error("delete error", zap.Error(err))
-		return
-	}
-}
-
-func NodeResultList(conds egorm.Conds) (resp []*BigdataNodeResult, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Select("id, ctime, status").Where(sql, binds...).Order("id desc").Find(&resp).Error; err != nil {
-		err = errors.Wrapf(err, "conds: %v", conds)
-		return
-	}
-	return
-}
-
-func NodeResultListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList []*BigdataNodeResult) {
-	respList = make([]*BigdataNodeResult, 0)
-	if reqList.PageSize == 0 {
-		reqList.PageSize = 10
-	}
-	if reqList.Current == 0 {
-		reqList.Current = 1
-	}
-	sql, binds := egorm.BuildQuery(conds)
-	db := invoker.Db.Select("id, ctime, utime, uid, cost, status, node_id").Model(BigdataNodeResult{}).Where(sql, binds...).Order("id desc")
-	db.Count(&total)
-	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	return
 }
 

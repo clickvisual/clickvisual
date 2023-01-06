@@ -19,7 +19,7 @@ import (
 // GetTraceList  godoc
 // @Summary	     trace storage list
 // @Description  trace storage list
-// @Tags         storage
+// @Tags         LOGSTORE
 // @Accept       json
 // @Produce      json
 // @Success      200 {object} core.Res{data=[]view.RespTableSimple}
@@ -50,7 +50,7 @@ func GetTraceList(c *core.Context) {
 // UpdateTraceInfo  godoc
 // @Summary	     iStorage related trace info update
 // @Description  iStorage related trace info update
-// @Tags         storage
+// @Tags         LOGSTORE
 // @Accept       json
 // @Produce      json
 // @Param        storage-id path int true "table id"
@@ -99,7 +99,7 @@ func UpdateTraceInfo(c *core.Context) {
 // GetTraceGraph  godoc
 // @Summary	     Get trace graph
 // @Description  Get trace graph
-// @Tags         storage
+// @Tags         LOGSTORE
 // @Accept       json
 // @Produce      json
 // @Param        storage-id path int true "table id"
@@ -154,7 +154,7 @@ func GetTraceGraph(c *core.Context) {
 // GetStorageColumns  godoc
 // @Summary	     Get storage columns
 // @Description  Get storage columns
-// @Tags         storage
+// @Tags         LOGSTORE
 // @Accept       json
 // @Produce      json
 // @Param        storage-id path int true "table id"

@@ -71,7 +71,7 @@ mkdir -p ./clickvisual-${latest} && tar -zxvf clickvisual-${latest}.tar.gz -C ./
 # 修改 config/default.toml 配置文件
 # 执行 scripts/migration 下迁移脚本，创建数据库和表
 # 启动 clickvisual
-cd ./clickvisual-${latest} && ./clickvisual -config config/default.toml
+cd ./clickvisual-${latest} && ./clickvisual --config config/default.toml
 
 # 打开浏览器访问 http://localhost:19001
 # 默认登录用户名: clickvisual 

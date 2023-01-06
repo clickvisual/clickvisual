@@ -1,5 +1,5 @@
-import { Form, Input } from "antd";
-import { useIntl } from "umi";
+import {Form, Input} from "antd";
+import {useIntl} from "umi";
 
 export interface TemplateTableType {
   //   formRef: any;
@@ -46,7 +46,7 @@ const TemplateTable = (props: TemplateTableType) => {
         />
       </Form.Item>
       <Form.Item
-        name={"topicsIngressStderr"}
+        name={"topicsIngressStdout"}
         label={"Ingress stdout topic"}
         rules={[{ required: true }]}
       >
@@ -58,7 +58,7 @@ const TemplateTable = (props: TemplateTableType) => {
         />
       </Form.Item>
       <Form.Item
-        name={"topicsIngressStdout"}
+        name={"topicsIngressStderr"}
         label={"Ingress stderr topic"}
         rules={[{ required: true }]}
       >

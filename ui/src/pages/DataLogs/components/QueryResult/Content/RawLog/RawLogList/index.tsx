@@ -5,11 +5,13 @@ import classNames from "classnames";
 import { PaneType } from "@/models/datalogs/types";
 import LinkItem from "./LinkItem";
 import LinkItemTitle from "./LinkItemTitle";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { notification } from "antd";
 import { parseJsonObject } from "@/utils/string";
 import { microsecondTimeStamp } from "@/utils/time";
 import { useIntl } from "umi";
+import { cloneDeep } from "lodash";
+import { useThrottleFn } from "ahooks";
 
 // 链路主题色，循环使用，可直接在末尾新增
 const themeColor = [
@@ -19,25 +21,42 @@ const themeColor = [
   "#de5b9690",
   "#ecb9cc90",
 ];
+// 折叠item的高度（item的最小高度）
+const foldingHeight = 69;
 
 const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const i18n = useIntl();
-  const { logs, linkLogs, logState } = useModel("dataLogs");
+  const virtualRef: any = useRef<HTMLDivElement>(null);
+  const { logs, logState, pageSize } = useModel("dataLogs");
   const [isNotification, setIsNotification] = useState<boolean>(false);
   const [isLinkLogs, setIsLinkLogs] = useState<boolean>(true);
   const [dataListLength, setDataListLength] = useState<number>(0);
+  const [start, setStart] = useState(0);
+  const [count, setCount] = useState(0);
 
   const list = useMemo(() => {
+    const newLogs = cloneDeep(logs?.logs);
+    virtualRef.current && (virtualRef.current.scrollTop = 0);
     if (
+      oldPane?.logState != 1 &&
       logs?.isTrace == 1 &&
-      oldPane?.logState == 1 &&
-      linkLogs?.logs &&
-      linkLogs?.logs?.length > 0
+      logs?.logs &&
+      logs?.logs.length > pageSize
     ) {
-      return linkLogs?.logs || [];
+      return newLogs?.splice(0, pageSize - 1) || [];
     }
     return logs?.logs || [];
-  }, [logs?.logs, logs?.isTrace, oldPane, linkLogs?.logs]);
+  }, [logs?.logs, pageSize, oldPane?.logState]);
+
+  /**
+   * 链路切换为普通日志时的数据截取
+   */
+  const virtualList = useMemo(() => {
+    if (pageSize > start + count + 10) {
+      return list.slice(0, start + count + 10);
+    }
+    return list;
+  }, [start, count, pageSize, list]);
 
   const handleFindChild = (
     oneselfId: string,
@@ -55,7 +74,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         (item?.rawLogJson?.references &&
           item?.rawLogJson?.references[0]?.spanId)
       ) {
-        dataList.push({
+        dataList.unshift({
           title: (
             <LinkItemTitle
               title={
@@ -115,7 +134,9 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     if (logs?.isTrace !== 1) {
       return [];
     }
-    // 计算总长度
+    /**
+     * 计算总长度
+     */
     const handleGetTotalLength = (
       list: any[],
       arr: any[],
@@ -216,50 +237,63 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
             },
           });
       });
-
-      dataList[key].map((item: any) => {
+      // 按时间排序递增
+      const compare = () => {
+        return function (a: { [x: string]: any }, b: { [x: string]: any }) {
+          var value1 = microsecondTimeStamp(a[`rawLogJson`][`startTime`]);
+          var value2 = microsecondTimeStamp(b[`rawLogJson`][`startTime`]);
+          return value2 - value1;
+        };
+      };
+      const newDataList = dataList[key].sort(compare());
+      newDataList.map((item: any) => {
         if (!item.rawLogJson.references) {
           const children = handleFindChild(
             item?.rawLogJson.spanId,
-            dataList[key],
+            newDataList,
             item,
             2,
             endTime,
             themeColorList,
             startTime
           );
-          treeDataList.unshift({
-            title: (
-              <LinkItemTitle
-                title={
-                  <>
-                    {item?.rawLogJson.process.serviceName} &nbsp;
-                    <span style={{ color: "#9c9c9c" }}>
-                      {item?.rawLogJson.operationName}
-                    </span>
-                  </>
-                }
-                log={item}
-                initial={startTime}
-                totalLength={endTime - startTime}
-                hierarchy={1}
-                themeColor={
-                  themeColor[
-                    themeColorList.indexOf(
-                      item?.rawLogJson?.process?.serviceName
-                    ) % themeColor.length
-                  ]
-                }
-              />
-            ),
-            children: children,
-            key: item?.rawLogJson?.spanId,
-            data: item,
-            duration: endTime - startTime,
-            services: themeColorList.length,
-            totalSpans:
-              children.length > 0 ? handleGetChildElementsNumber(children) : 1,
-          });
+          treeDataList.filter(
+            (newItem: any) => newItem.key == item?.rawLogJson?.spanId
+          ).length == 0 &&
+            treeDataList.unshift({
+              title: (
+                <LinkItemTitle
+                  title={
+                    <>
+                      {item?.rawLogJson.process.serviceName} &nbsp;
+                      <span style={{ color: "#9c9c9c" }}>
+                        {item?.rawLogJson.operationName}
+                      </span>
+                    </>
+                  }
+                  log={item}
+                  initial={startTime}
+                  totalLength={endTime - startTime}
+                  hierarchy={1}
+                  themeColor={
+                    themeColor[
+                      themeColorList.indexOf(
+                        item?.rawLogJson?.process?.serviceName
+                      ) % themeColor.length
+                    ]
+                  }
+                />
+              ),
+              children: children,
+              key: item?.rawLogJson?.spanId,
+              data: item,
+              duration: endTime - startTime,
+              services: themeColorList.length,
+              totalSpans:
+                children.length > 0
+                  ? handleGetChildElementsNumber(children)
+                  : 1,
+            });
           return;
         }
       });
@@ -267,6 +301,21 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
     return treeDataList;
   }, [list, logs?.isTrace]);
+
+  const handleLogListScroll = useThrottleFn(
+    () => {
+      const { scrollTop } = virtualRef.current;
+      const newStart = Math.floor(scrollTop / foldingHeight);
+      setStart(newStart);
+    },
+    {
+      wait: 300,
+    }
+  );
+
+  useEffect(() => {
+    setCount(Math.ceil(virtualRef.current.clientHeight / foldingHeight));
+  }, []);
 
   useEffect(() => {
     if (!isLinkLogs) {
@@ -284,14 +333,12 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     }
   }, [isLinkLogs]);
 
-  // 出现第二个_key的时候就需要提示输入赛选条件
+  // 出现第二个_key的时候就需要提示输入筛选条件
   useEffect(() => {
     if (
       logs?.isTrace == 1 &&
       logState == 1 &&
-      linkLogs?.limited == 100 &&
       dataListLength > 1 &&
-      oldPane?.linkLogs &&
       !isNotification
     ) {
       setIsNotification(true);
@@ -309,9 +356,13 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   return (
     <div className={classNames(rawLogListStyles.rawLogListMain)}>
-      <div className={rawLogListStyles.hiddenScrollBox}>
+      <div
+        className={rawLogListStyles.hiddenScrollBox}
+        ref={virtualRef}
+        onScroll={() => handleLogListScroll.run()}
+      >
         {logs?.isTrace == 0 || logState != 1
-          ? list.map((logItem: any, index: number) => {
+          ? virtualList.map((logItem: any, index: number) => {
               return (
                 <LogItem
                   foldingChecked={oldPane?.foldingChecked}

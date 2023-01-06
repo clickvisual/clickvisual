@@ -17,6 +17,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// IndexUpdate
+// @Tags        LOGSTORE
+// @Summary 	分析字段更新
 func IndexUpdate(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	if tid == 0 {
@@ -28,12 +31,12 @@ func IndexUpdate(c *core.Context) {
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
-		c.JSONE(1, "param error:"+err.Error(), nil)
+		c.JSONE(1, "param error:"+err.Error(), err)
 		return
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
@@ -50,12 +53,15 @@ func IndexUpdate(c *core.Context) {
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesIndexUpdate, map[string]interface{}{"req": req})
 	if err = service.AnalysisFieldsUpdate(tid, req.Data); err != nil {
-		c.JSONE(1, err.Error(), nil)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	c.JSONOK()
 }
 
+// Indexes
+// @Tags    LOGSTORE
+// @Summary 分析字段列表
 func Indexes(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	if tid == 0 {

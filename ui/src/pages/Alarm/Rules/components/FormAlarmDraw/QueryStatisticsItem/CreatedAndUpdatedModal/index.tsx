@@ -9,6 +9,7 @@ import {
   Spin,
   Table,
 } from "antd";
+import styles from "./index.less";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
@@ -18,9 +19,28 @@ import api from "@/services/dataLogs";
 import Request, { Canceler } from "umi-request";
 import { ColumnsType } from "antd/es/table";
 import { useIntl } from "umi";
-import { SaveOutlined } from "@ant-design/icons";
+import { FormatPainterOutlined, SaveOutlined } from "@ant-design/icons";
 import { format } from "sql-formatter";
 import queryStatisticsItemStyle from "../index.less";
+
+import { UnControlled as CodeMirror } from "react-codemirror2";
+import "codemirror/lib/codemirror.css";
+import "codemirror/lib/codemirror.js";
+import "codemirror/addon/lint/lint.css";
+import "codemirror/addon/fold/foldcode.js";
+import "codemirror/addon/fold/foldgutter.js";
+import "codemirror/addon/fold/brace-fold.js";
+import "codemirror/addon/hint/javascript-hint.js";
+import "codemirror/addon/lint/lint.js";
+import "codemirror/addon/lint/json-lint.js";
+import "codemirror/addon/lint/javascript-lint.js";
+import "codemirror/addon/display/placeholder.js";
+import "codemirror/mode/sql/sql.js";
+import "codemirror/mode/javascript/javascript.js";
+// 引入代码自动提示插件
+import "codemirror/addon/hint/show-hint.css";
+import "codemirror/addon/hint/sql-hint";
+import "codemirror/addon/hint/show-hint";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -67,6 +87,7 @@ const CreatedAndUpdatedModal = ({
   onCancel,
 }: CreatedAndUpdatedModalProps) => {
   const modalForm = useRef<FormInstance>(null);
+  const codeRef = useRef<any>(null);
   const onClickPreview = useRef<boolean>(false);
   const cancelTokenQueryPreviewRef = useRef<Canceler | null>(null);
   const CancelToken = Request.CancelToken;
@@ -87,6 +108,7 @@ const CreatedAndUpdatedModal = ({
     alarmModePreviewType.AggregateData
   );
   const [currentTableName, setCurrentTableName] = useState<string>("");
+  const [defaultWhen, setDefaultWhen] = useState<string>("1=1");
 
   const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
     current: FIRST_PAGE,
@@ -282,6 +304,37 @@ const CreatedAndUpdatedModal = ({
   };
 
   const databaseId = modalForm.current?.getFieldValue("databaseId");
+  const codeMirrorOptions = {
+    // 显示行号
+    lineNumbers: true,
+    mode: {
+      name: "text/x-mysql",
+    },
+    hintOptions: {
+      // 自定义提示选项
+      completeSingle: false, // 当匹配只有一项的时候是否自动补全
+      // 自定义的提示库
+      tables: {
+        _key: [],
+        _raw_log_: [],
+      },
+    },
+    autofocus: false,
+    styleActiveLine: true,
+    // 主题
+    // theme: "neo",
+    // 溢出滚动而非换行
+    lineWrapping: true,
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    indentUnit: 2,
+    // 光标高度
+    cursorHeight: 1,
+    // tab缩进
+    tabSize: 2,
+    fixedGutter: true,
+    coverGutterNextToScrollbar: true,
+  };
 
   useEffect(() => {
     if (!visible || !databaseId) return;
@@ -319,6 +372,7 @@ const CreatedAndUpdatedModal = ({
             return;
           }
           getLogLibraries.run(res.data.did || 0);
+          setDefaultWhen(defaultData?.when);
           modalForm.current?.setFieldsValue({
             ...defaultData,
             databaseId: res.data.did,
@@ -331,6 +385,7 @@ const CreatedAndUpdatedModal = ({
 
   useEffect(() => {
     if (!visible && modalForm.current) {
+      setDefaultWhen("1=1");
       setCurrentTableName("");
       modalForm.current.resetFields();
       onClickPreview.current = false;
@@ -543,35 +598,55 @@ const CreatedAndUpdatedModal = ({
                 <Form.Item label={i18n.formatMessage({ id: "search" })}>
                   <Input.Group compact>
                     <Form.Item noStyle name={"when"} initialValue={"1=1"}>
-                      <TextArea
-                        autoSize={{ minRows: 1, maxRows: 15 }}
+                      <TextArea autoSize={{ minRows: 1, maxRows: 15 }} hidden />
+                      <div
+                        className={styles.editor}
                         style={{
                           width:
                             mode != alarmModeType.AggregationMode
-                              ? "calc(100% - 200px)"
+                              ? "calc(100% - 100px)"
                               : "100%",
                           borderRadius: "8px",
                         }}
-                      />
-                    </Form.Item>
-                    {mode != alarmModeType.AggregationMode && (
-                      <>
+                      >
+                        <CodeMirror
+                          className={styles.editorsDom}
+                          ref={codeRef}
+                          onChange={(
+                            CodeMirror: string,
+                            changeObj: any,
+                            value: string
+                          ) => {
+                            modalForm.current?.setFieldsValue({
+                              when: value,
+                            });
+                          }}
+                          onKeyPress={() => {
+                            // 按键的时候触发代码提示
+                            codeRef.current.editor.showHint();
+                          }}
+                          value={defaultWhen}
+                          options={codeMirrorOptions}
+                        />
                         <Button
+                          icon={<FormatPainterOutlined />}
                           style={{
-                            width: "calc(90px)",
-                            borderRadius: "8px",
-                            marginLeft: "10px",
+                            position: "absolute",
+                            zIndex: 10,
+                            right: 20,
+                            top: 10,
                           }}
                           onClick={() => {
+                            setDefaultWhen(format(getFieldValue("when")));
                             modalForm.current?.setFieldsValue({
                               when: format(getFieldValue("when")),
                             });
                           }}
-                        >
-                          {i18n.formatMessage({
-                            id: "bigdata.components.FileTitle.formatting",
-                          })}
-                        </Button>
+                        ></Button>
+                      </div>
+                    </Form.Item>
+                    {mode != alarmModeType.AggregationMode && (
+                      <>
                         <Button
                           style={{
                             width: "calc(90px)",

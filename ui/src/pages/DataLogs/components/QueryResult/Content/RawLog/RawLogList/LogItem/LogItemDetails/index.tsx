@@ -30,6 +30,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     indexRawLogKeys,
     indexList,
     secondaryIndexList,
+    indexNotRawLogKeys,
   } = useMemo(() => {
     // 隐藏字段
     const hiddenFields: string[] =
@@ -65,6 +66,8 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
     let rawLogKeys: any[] = [];
     // 存储 rawLog 字段中的索引字段
     let indexRawLogKeys: any[] = [];
+    // 存储 索引字段 中的非 rawLog 字段
+    let indexNotRawLogKeys: any[] = [];
     // 取出 rawLog 日志字段并转成 Json ，parseJsonObject 回参数 Json || false
     /**
      * 加.replace(/\\*\\/g, "\\")是为了去除多次编码后产生的多个\造成pre标签识别不了的问题
@@ -80,6 +83,10 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       // rawLog 字段中的索引字段
       indexRawLogKeys = Object.keys(rawLogJson).filter((item) =>
         indexList.includes(item)
+      );
+      // 索引字段但不在rawLog中
+      indexNotRawLogKeys = indexList.filter(
+        (item) => !Object.keys(rawLogJson).includes(item)
       );
 
       // rawLog 中非索引字段
@@ -120,6 +127,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
       rawLogKeys,
       indexRawLogKeys,
       secondaryIndexList,
+      indexNotRawLogKeys,
     };
   }, [logs, logs?.keys, log]);
 
@@ -207,7 +215,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
         keyItem
       );
 
-      let content = "";
+      let content: any = "";
       if (isIndexAndRawLogKey && !!parseJsonObject(rawLogJson[keyItem])) {
         content = JSON.stringify(rawLogJson[keyItem]);
       }
@@ -218,6 +226,11 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
 
       if (!isIndexAndRawLogKey && newLog.hasOwnProperty(keyItem)) {
         content = newLog[keyItem];
+      }
+
+      // 如果content是布尔值则转换成字符串
+      if (typeof content === "boolean") {
+        content = content.toString();
       }
 
       // TODO: 兼容json字符串
@@ -246,6 +259,9 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
           }
         });
       }
+      // 分析字段&&rawlog里没有这个字段&&值为空   的字段不显示
+      const isNoShowField =
+        indexNotRawLogKeys.includes(keyItem) && content.toString().length == 0;
 
       return {
         highlightFlag,
@@ -255,6 +271,7 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
         content,
         isNotTimeKey,
         regSpeFlag,
+        isNoShowField,
       };
     });
   }, [
@@ -281,44 +298,46 @@ const LogItemDetails = ({ log, foldingChecked }: LogItemDetailsProps) => {
             key,
             content,
             isNotTimeKey,
-          }) => (
-            <div key={key} className={logItemStyles.logLine}>
-              <div
-                className={classNames(
-                  logItemStyles.logKey,
-                  logItemStyles.logKeyHover
-                )}
-                onClick={() => handleCopyLog(key)}
-              >
-                <span
+            isNoShowField,
+          }) =>
+            !isNoShowField && (
+              <div key={key} className={logItemStyles.logLine}>
+                <div
                   className={classNames(
-                    rawLogKeys.includes(key) &&
-                      !indexList.includes(key) &&
-                      logItemStyles.notIndexContent
+                    logItemStyles.logKey,
+                    logItemStyles.logKeyHover
                   )}
+                  onClick={() => handleCopyLog(key)}
                 >
-                  {key}
-                </span>
-                :
+                  <span
+                    className={classNames(
+                      rawLogKeys.includes(key) &&
+                        !indexList.includes(key) &&
+                        logItemStyles.notIndexContent
+                    )}
+                  >
+                    {key}
+                  </span>
+                  :
+                </div>
+                <LogContent
+                  foldingChecked={foldingChecked}
+                  isRawLog={isRawLog}
+                  regSpeFlag={regSpeFlag}
+                  content={content}
+                  keyItem={key}
+                  secondaryIndexList={secondaryIndexList}
+                  quickInsertLikeQuery={quickInsertLikeQuery}
+                  quickInsertLikeExclusion={quickInsertLikeExclusion}
+                  onInsertQuery={handleInsertQuery}
+                  onInsertExclusion={handleInsertExclusion}
+                  isIndexAndRawLogKey={isIndexAndRawLogKey}
+                  highlightFlag={highlightFlag}
+                  isNotTimeKey={isNotTimeKey}
+                  newLog={newLog}
+                />
               </div>
-              <LogContent
-                foldingChecked={foldingChecked}
-                isRawLog={isRawLog}
-                regSpeFlag={regSpeFlag}
-                content={content}
-                keyItem={key}
-                secondaryIndexList={secondaryIndexList}
-                quickInsertLikeQuery={quickInsertLikeQuery}
-                quickInsertLikeExclusion={quickInsertLikeExclusion}
-                onInsertQuery={handleInsertQuery}
-                onInsertExclusion={handleInsertExclusion}
-                isIndexAndRawLogKey={isIndexAndRawLogKey}
-                highlightFlag={highlightFlag}
-                isNotTimeKey={isNotTimeKey}
-                newLog={newLog}
-              />
-            </div>
-          )
+            )
         )}
     </div>
   );

@@ -15,14 +15,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
-// ShortURLRedirect  godoc
-// @Summary      Get short links
-// @Description  Get short links
-// @Tags         base
-// @Produce      json
-// @Param        s-code path int true "short code"
-// @Success      301 {string} ok
-// @Router       /api/v2/base/su/{s-code} [get]
+// ShortURLRedirect
+// @Summary      获取短链接
+// @Tags         LOGSTORE
 func ShortURLRedirect(c *core.Context) {
 	sCode := strings.TrimSpace(c.Param("s-code"))
 	if sCode == "" {
@@ -36,7 +31,7 @@ func ShortURLRedirect(c *core.Context) {
 	}
 	if err = invoker.Db.WithContext(context.Background()).
 		Exec("update cv_base_short_url set call_cnt = call_cnt+1, utime = ? where s_code = ?", time.Now().Unix(), sCode).Error; err != nil {
-		invoker.Logger.Error("update call cnt error", elog.FieldErr(err))
+		elog.Error("update call cnt error", elog.FieldErr(err))
 		return
 	}
 	c.Redirect(301, shortUrl.OriginUrl)
@@ -46,7 +41,7 @@ func ShortURLRedirect(c *core.Context) {
 // ShortURLCreate  godoc
 // @Summary      Create short links
 // @Description  Create short links
-// @Tags         base
+// @Tags         LOGSTORE
 // @Produce      json
 // @Param        req body db.ReqShortURLCreate true "params"
 // @Success      200 {object} core.Res{}
@@ -79,6 +74,7 @@ func ShortURLCreate(c *core.Context) {
 		return
 	}
 	rootUrl := strings.TrimSuffix(econf.GetString("app.rootURL"), "/")
-	c.JSONOK(fmt.Sprintf("%s/api/v2/base/su/%s", rootUrl, sCode))
+	res := fmt.Sprintf("%s/api/v2/base/su/%s", rootUrl, sCode)
+	c.JSONOK(res)
 	return
 }

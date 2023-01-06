@@ -8,12 +8,17 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 var models = []interface{}{
+	db.BaseTableAttach{},
+	db.BaseInstance{},
+	db.BigdataCrontab{},
+	db.AlarmFilter{},
+	db.AlarmHistory{},
+
 	db.Collect{},
 
 	db.BigdataWorkflow{},
@@ -24,20 +29,16 @@ var models = []interface{}{
 	db.BigdataNodeHistory{},
 	db.BigdataNodeResult{},
 	db.BigdataDepend{},
-	db.BigdataCrontab{},
 
 	db.BaseView{},
 	db.BaseTable{},
 	db.BaseIndex{},
 	db.BaseShortURL{},
 	db.BaseDatabase{},
-	db.BaseInstance{},
 	db.BaseHiddenField{},
 
 	db.Alarm{},
-	db.AlarmFilter{},
 	db.AlarmCondition{},
-	db.AlarmHistory{},
 	db.AlarmChannel{},
 
 	db.User{},
@@ -97,7 +98,7 @@ func Install() (err error) {
 		d.Exec("rename table mogo_pms_default_role to cv_pms_default_role;")
 		d.Exec("rename table mogo_pms_custom_role to cv_pms_custom_role;")
 	}
-	invoker.Logger.Debug("install", elog.Any("tables", ot))
+	elog.Debug("install", elog.Any("tables", ot))
 
 	fmt.Println(`e--------------->`, err)
 	d = d.Debug()

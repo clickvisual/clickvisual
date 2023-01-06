@@ -13,7 +13,6 @@ import { currentTimeStamp } from "@/utils/momentUtils";
 import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
 import UrlShareButton from "@/components/UrlShareButton";
-import { cloneDeep } from "lodash";
 import CodeMirrorSearch from "./CodeMirrorSearch";
 import { CollectType } from "@/services/dataLogs";
 
@@ -53,6 +52,7 @@ const RawLogQuery = () => {
     keywordInput
   );
   const [isDefault, setIsDefault] = useState<boolean>(true);
+  const [isMultipleLines, setIsMultipleLines] = useState<boolean>(false);
 
   // 输入框自动填充历史记录
   const [historicalRecord, setHistoricalRecord] = useState<string[]>([]);
@@ -91,22 +91,11 @@ const RawLogQuery = () => {
         page: params.page,
         activeIndex: activeTimeOptionIndex,
       };
-      if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-        params.pageSize = 100;
-      }
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params }).then(
         (res) => {
           if (res) {
-            if (oldPane?.logState == 1 && oldPane?.linkLogs) {
-              let cloneLogs = cloneDeep(res.logs);
-              cloneLogs.logs = cloneLogs.logs.slice(0, 9);
-              pane.linkLogs = res.logs;
-              pane.logs = cloneLogs;
-            } else {
-              pane.logs = res.logs;
-            }
-
+            pane.logs = res.logs;
             pane.highCharts = res.highCharts;
             if (res.logs.query !== pane.querySql) {
               pane.logChart = { isNeedSort: false, logs: [], sortRule: ["*"] };
@@ -122,6 +111,10 @@ const RawLogQuery = () => {
     },
     { wait: 100 }
   );
+
+  const handleChange = (value: string) => {
+    setQueryKeyword(value);
+  };
 
   useEffect(() => {
     const data = {
@@ -167,7 +160,7 @@ const RawLogQuery = () => {
       onChangeInitValue(queryKeyword);
       setIsDefault(false);
     }
-  }, [queryKeyword]);
+  }, [queryKeyword, isDefault]);
 
   useEffect(() => {
     logs?.defaultFields && onChangeAnalysisFieldTips(logs.defaultFields);
@@ -175,7 +168,10 @@ const RawLogQuery = () => {
 
   return (
     <>
-      <div className={searchBarStyles.inputBox}>
+      <div
+        className={searchBarStyles.inputBox}
+        style={{ overflowX: isMultipleLines ? "visible" : "hidden" }}
+      >
         <CodeMirrorSearch
           title="logInput"
           value={initValue || ""}
@@ -183,13 +179,16 @@ const RawLogQuery = () => {
             id: "log.search.placeholder",
           })}
           onPressEnter={() => doSearchLog.run()}
-          onChange={(value: string) => setQueryKeyword(value)}
+          onChange={handleChange}
           tables={analysisFieldTips}
           historicalRecord={historicalRecord}
           onChangeHistoricalRecord={onChangeLogQueryHistoricalList}
           currentTid={currentLogLibrary?.id as number}
           logQueryHistoricalList={logQueryHistoricalList}
           collectingHistorical={collectingHistorical}
+          isMultipleLines={isMultipleLines}
+          onChangeIsMultipleLines={setIsMultipleLines}
+          onChangeIsDefault={setIsDefault}
         />
       </div>
       <SearchBarSuffixIcon />

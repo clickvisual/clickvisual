@@ -17,6 +17,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// InstanceCreate
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 创建
 func InstanceCreate(c *core.Context) {
 	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
@@ -35,6 +38,9 @@ func InstanceCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+// InstanceUpdate
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 更新
 func InstanceUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -88,30 +94,12 @@ func InstanceUpdate(c *core.Context) {
 		}
 		ups["dsn"] = req.Dsn
 	}
-
 	ups["name"] = req.Name
 	ups["mode"] = req.Mode
 	ups["datasource"] = req.Datasource
-	ups["rule_store_type"] = req.RuleStoreType
 	ups["replica_status"] = req.ReplicaStatus
-
-	if req.FilePath != "" {
-		ups["file_path"] = req.FilePath
-	}
-	if req.ClusterId != 0 {
-		ups["cluster_id"] = req.ClusterId
-	}
-	if req.Namespace != "" {
-		ups["namespace"] = req.Namespace
-	}
-	if req.Configmap != "" {
-		ups["configmap"] = req.Configmap
-	}
-	if req.Desc != "" {
-		ups["desc"] = req.Desc
-	}
+	ups["desc"] = req.Desc
 	ups["clusters"] = req.Clusters
-	ups["prometheus_target"] = req.PrometheusTarget
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
@@ -120,6 +108,9 @@ func InstanceUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
+// InstanceList
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 列表
 func InstanceList(c *core.Context) {
 	res := make([]*db.BaseInstance, 0)
 	tmp, err := db.InstanceList(egorm.Conds{})
@@ -137,6 +128,9 @@ func InstanceList(c *core.Context) {
 	return
 }
 
+// InstanceInfo
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 详情
 func InstanceInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -156,6 +150,9 @@ func InstanceInfo(c *core.Context) {
 	return
 }
 
+// InstanceDelete
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse 删除
 func InstanceDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -193,18 +190,29 @@ func InstanceDelete(c *core.Context) {
 	c.JSONOK()
 }
 
+// InstanceTest
+// @Tags         SYSTEM
+// @Summary 	 ClickHouse/Databend DSN 测试
 func InstanceTest(c *core.Context) {
 	var req view.ReqTestInstance
-	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+	var err error
+	if err = c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
-		c.JSONE(1, err.Error(), nil)
+	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), err)
 		return
 	}
-	if _, err := service.ClickHouseLink(req.Dsn); err != nil {
-		c.JSONE(1, "connection failure: "+err.Error(), nil)
+
+	switch req.Datasource {
+	case db.DatasourceClickHouse:
+		_, err = service.ClickHouseLink(req.Dsn)
+	case db.DatasourceDatabend:
+		_, err = service.DatabendLink(req.Dsn)
+	}
+	if err != nil {
+		c.JSONE(1, "connection failure: "+err.Error(), err)
 		return
 	}
 	c.JSONOK()

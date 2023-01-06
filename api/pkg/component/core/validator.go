@@ -6,12 +6,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	tzh "github.com/go-playground/validator/v10/translations/zh"
+	"github.com/gotomicro/ego/core/elog"
 )
 
 func init() {
@@ -59,7 +59,7 @@ func newValidator() *validator.Validate {
 		return label
 	})
 	if err := tzh.RegisterDefaultTranslations(validate, trans); err != nil {
-		invoker.Logger.Fatal("Gin fail to registered Translation")
+		elog.Fatal("Gin fail to registered Translation")
 	}
 	return validate
 }

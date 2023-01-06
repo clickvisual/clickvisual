@@ -70,5 +70,8 @@ export const LANG_CN = "zh-CN";
 // 不展开日志最大长度
 export const LOGMAXTEXTLENGTH = 500;
 
-// 链路日志查询条数
-export const LINKLOGS_PAGESIZE = 100;
+// // 默认链路日志查询条数
+export const LINKLOGS_PAGESIZE = 50;
+
+// CV日志衔接词
+export const CLICKVISUAL_LOGSPECIALCONNECTOR = "clickvisualLogSpecialConnector";

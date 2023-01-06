@@ -33,7 +33,7 @@ func installDB() error {
 	}
 	err := db.InstanceCreate(invoker.Db, &ins)
 	if err != nil {
-		invoker.Logger.Error("insert to index fail", elog.FieldErr(err))
+		elog.Error("insert to index fail", elog.FieldErr(err))
 		return err
 	}
 	return nil
@@ -42,11 +42,11 @@ func installDB() error {
 func installCH() error {
 	//	conn, err := sql.Open("clickhouse", econf.GetString("defaultCh.dsn"))
 	//	if err != nil {
-	//		invoker.Logger.Error("conn to clickhouse fail", elog.String("dsn", econf.GetString("defaultCh.dsn")), elog.FieldErr(err))
+	//		elog.Error("conn to clickhouse fail", elog.String("dsn", econf.GetString("defaultCh.dsn")), elog.FieldErr(err))
 	//		return err
 	//	}
 	//	if err := conn.Ping(); err != nil {
-	//		invoker.Logger.Error("ping clickhouse fail", elog.FieldErr(err))
+	//		elog.Error("ping clickhouse fail", elog.FieldErr(err))
 	//		return err
 	//	}
 	//
@@ -55,7 +55,7 @@ func installCH() error {
 	//		CREATE DATABASE IF NOT EXISTS metrics;
 	//		`)
 	//	if err != nil {
-	//		invoker.Logger.Error("create table fail", elog.FieldErr(err))
+	//		elog.Error("create table fail", elog.FieldErr(err))
 	//		return err
 	//	}
 	//
@@ -64,14 +64,14 @@ func installCH() error {
 	// (
 	//    date Date DEFAULT toDate(0),
 	//    name String,
-	//    tags Array(String),
+	//    tags Array(FixedString(50)),
 	//    val Float64,
 	//    ts DateTime,
 	//    updated DateTime DEFAULT now()
 	// )ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup');
 	//	`)
 	//	if err != nil {
-	//		invoker.Logger.Error("create table fail", elog.FieldErr(err))
+	//		elog.Error("create table fail", elog.FieldErr(err))
 	//		return err
 	//	}
 
@@ -89,12 +89,12 @@ func installCH() error {
 	//
 	// for _, val := range vals {
 	//	if _, err := stmt.Exec(val...); err != nil {
-	//		invoker.Logger.Error("exec fail", elog.FieldErr(err))
+	//		elog.Error("exec fail", elog.FieldErr(err))
 	//		return err
 	//	}
 	// }
 	// if err := tx.Commit(); err != nil {
-	//	invoker.Logger.Error("exec fail", elog.FieldErr(err))
+	//	elog.Error("exec fail", elog.FieldErr(err))
 	//	return err
 	// }
 	return nil

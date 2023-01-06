@@ -60,6 +60,7 @@ type (
 		AlarmMode     int      `form:"alarmMode"`
 		Filters       []string `form:"filters"`
 		GroupByCond   string   `form:"groupByCond"`
+		IsQueryCount  int      `form:"isQueryCount"` // 是否请求日志总数 0 不请求 1 请求
 	}
 
 	RespQuery struct {
@@ -275,10 +276,22 @@ func (r *SystemTables) Name() string {
 }
 
 type SystemClusters struct {
+	DatabendSystemClusters
+	ClickhouseSystemClusters
+}
+
+type ClickhouseSystemClusters struct {
 	Cluster     string `json:"cluster"`
 	ShardNum    uint32 `json:"shardNum"`
 	ShardWeight uint32 `json:"ShardWeight"`
 	ReplicaNum  uint32 `json:"replicaNum"`
+}
+
+type DatabendSystemClusters struct {
+	Host    string `json:"host"`
+	Name    string `json:"name"`
+	Port    uint16 `json:"port"`
+	Version string `json:"version"`
 }
 
 type (

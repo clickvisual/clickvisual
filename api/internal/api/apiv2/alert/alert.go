@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/pkg/errors"
 	"github.com/spf13/cast"
+	"gopkg.in/yaml.v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
@@ -18,16 +20,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-// SettingUpdate  godoc
-// @Summary	     Alert Basic Configuration Modification
-// @Description  Alert Basic Configuration Modification
-// @Tags         alert
-// @Accept       json
-// @Produce      json
-// @Param        instance-id path int true "instance id"
-// @Param        req query db.ReqAlertSettingUpdate true "params"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/alert/settings/{instance-id} [patch]
+// SettingUpdate
+// @Tags         ALARM
+// @Summary	     告警配置更新
 func SettingUpdate(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {
@@ -65,31 +60,45 @@ func SettingUpdate(c *core.Context) {
 	}
 	ups := make(map[string]interface{}, 0)
 	ups["rule_store_type"] = req.RuleStoreType
-	if req.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+	switch req.RuleStoreType {
+	case db.RuleStoreTypeFile:
+		ups["file_path"] = req.FilePath
+	case db.RuleStoreTypeK8sConfigMap:
 		ups["cluster_id"] = req.ClusterId
 		ups["namespace"] = req.Namespace
 		ups["configmap"] = req.Configmap
+	case db.RuleStoreTypeK8sOperator:
+		var check db.ConfigPrometheusOperator
+		err = yaml.Unmarshal([]byte(req.ConfigPrometheusOperator), &check)
+		if err != nil {
+			c.JSONE(1, err.Error(), err)
+			return
+		}
+		if !check.IsValid() {
+			c.JSONE(1, "prometheus operator rule is not valid", nil)
+			return
+		}
+		ups["cluster_id"] = req.ClusterId
+		ups["config_prometheus_operator"] = req.ConfigPrometheusOperator
 	}
-	if req.RuleStoreType == db.RuleStoreTypeFile {
-		ups["file_path"] = req.FilePath
-	}
+
 	if req.RuleStoreType != 0 {
 		prometheus := strings.TrimSpace(req.PrometheusTarget)
 		if !strings.HasPrefix(prometheus, "http") {
 			prometheus = "http://" + prometheus
 		}
-		p, err := alertcomponent.NewPrometheus(prometheus)
+		p, err := alertcomponent.NewPrometheus(prometheus, req.RuleStoreType)
 		if err != nil {
 			c.JSONE(1, "prometheus check failed: "+err.Error(), err)
 			return
 		}
-		if err = p.Health(); err != nil {
+		if err = p.Health(); err != nil && !errors.Is(err, alertcomponent.ErrCheckNotSupported) {
 			c.JSONE(1, "prometheus check failed: "+err.Error(), err)
 			return
 		}
 		ups["prometheus_target"] = prometheus
 	}
-	if err := db.InstanceUpdate(invoker.Db, iid, ups); err != nil {
+	if err = db.InstanceUpdate(invoker.Db, iid, ups); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
@@ -97,17 +106,16 @@ func SettingUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
-// SettingList   godoc
-// @Summary	     Instance alarm configuration list
-// @Description  Instance alarm configuration list
-// @Tags         alert
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} []db.RespAlertSettingListItem
-// @Router       /api/v2/alert/settings [get]
+// SettingList
+// @Tags         ALARM
+// @Summary	     告警配置列表
 func SettingList(c *core.Context) {
 	res := make([]*db.RespAlertSettingListItem, 0)
 	instanceList, err := db.InstanceList(egorm.Conds{})
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
 	for _, instance := range instanceList {
 		if !service.InstanceViewIsPermission(c.Uid(), instance.ID) {
 			continue
@@ -122,51 +130,47 @@ func SettingList(c *core.Context) {
 			IsMetricsSamplesOk: 1,
 		}
 		// prometheus
-		errProm, errAlertManager := func() (error, error) {
-			p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget)
+		errAlertManager, errProm := func() (error, error) {
+			p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget, instance.RuleStoreType)
 			if errProm != nil {
 				return errProm, errProm
 			}
-			return p.Health(), p.CheckDependents()
+			return p.CheckDependents(), p.Health()
 		}()
 		if errProm != nil {
 			row.IsPrometheusOK = 0
 			row.CheckPrometheusResult = errProm.Error()
+			if errors.Is(errProm, alertcomponent.ErrCheckNotSupported) {
+				row.IsPrometheusOK = 3
+			}
 		}
 		if errAlertManager != nil {
 			row.IsAlertManagerOK = 0
 			row.CheckAlertManagerResult = errAlertManager.Error()
+			if errors.Is(errAlertManager, alertcomponent.ErrCheckNotSupported) {
+				row.IsAlertManagerOK = 3
+			}
 		}
-		if err = func() error {
+		if errMetrics := func() error {
 			op, errCh := service.InstanceManager.Load(instance.ID)
 			if errCh != nil {
 				return err
 			}
 			return op.GetMetricsSamples()
-		}(); err != nil {
+		}(); errMetrics != nil {
 			row.IsMetricsSamplesOk = 0
-			row.CheckMetricsSamplesResult = err.Error()
+			row.CheckMetricsSamplesResult = errMetrics.Error()
 		}
 		// check metrics samples
 		res = append(res, &row)
-	}
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
 	}
 	c.JSONOK(res)
 	return
 }
 
-// SettingInfo   godoc
-// @Summary	     Advanced configuration information in the instance
-// @Description  Advanced configuration information in the instance
-// @Tags         alert
-// @Accept       json
-// @Produce      json
-// @Param        instance-id path int true "instance id"
-// @Success      200 {object} db.RespAlertSettingInfo
-// @Router       /api/v2/alert/settings/{instance-id} [get]
+// SettingInfo
+// @Tags         ALARM
+// @Summary	     告警配置详情
 func SettingInfo(c *core.Context) {
 	iid := cast.ToInt(c.Param("instance-id"))
 	if iid == 0 {
@@ -185,25 +189,21 @@ func SettingInfo(c *core.Context) {
 	c.JSONOK(&db.RespAlertSettingInfo{
 		InstanceId: iid,
 		ReqAlertSettingUpdate: db.ReqAlertSettingUpdate{
-			RuleStoreType:    res.RuleStoreType,
-			PrometheusTarget: res.PrometheusTarget,
-			FilePath:         res.FilePath,
-			Namespace:        res.Namespace,
-			Configmap:        res.Configmap,
-			ClusterId:        res.ClusterId,
+			RuleStoreType:            res.RuleStoreType,
+			PrometheusTarget:         res.PrometheusTarget,
+			FilePath:                 res.FilePath,
+			Namespace:                res.Namespace,
+			Configmap:                res.Configmap,
+			ClusterId:                res.ClusterId,
+			ConfigPrometheusOperator: res.ConfigPrometheusOperator,
 		},
 	})
 	return
 }
 
-// CreateMetricsSamples  godoc
-// @Summary      Create metrics samples table
-// @Description  Store advanced metric data
-// @Tags         alert
-// @Produce      json
-// @Param        req body db.ReqCreateMetricsSamples true "params"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/alert/metrics-samples [post]
+// CreateMetricsSamples
+// @Tags         ALARM
+// @Summary      Create metrics.samples table
 func CreateMetricsSamples(c *core.Context) {
 	var err error
 	params := db.ReqCreateMetricsSamples{}
@@ -227,6 +227,7 @@ func CreateMetricsSamples(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
+	// We need to set version = "v2" can use new feature.
 	if err = op.CreateMetricsSamples(params.Cluster); err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return

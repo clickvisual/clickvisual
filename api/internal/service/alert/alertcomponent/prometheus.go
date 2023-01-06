@@ -2,14 +2,18 @@ package alertcomponent
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 var _ Component = (*Prometheus)(nil)
@@ -18,12 +22,14 @@ var _ Component = (*Prometheus)(nil)
 var prometheusResourcePool sync.Map
 
 type Prometheus struct {
-	url string
+	url           string
+	ruleStoreType int
 }
 
-func NewPrometheus(url string) (*Prometheus, error) {
+func NewPrometheus(url string, ruleStoreType int) (*Prometheus, error) {
 	url = strings.TrimSuffix(url, "/")
-	if v, ok := prometheusResourcePool.Load(url); ok {
+	key := fmt.Sprintf("%s_%d", url, ruleStoreType)
+	if v, ok := prometheusResourcePool.Load(key); ok {
 		if v == nil {
 			return nil, errors.Wrap(ErrNilObject, "new prometheus")
 		}
@@ -32,8 +38,8 @@ func NewPrometheus(url string) (*Prometheus, error) {
 		}
 		return nil, errors.Wrap(ErrNilObject, "v.(*Prometheus)")
 	}
-	p := &Prometheus{url: url}
-	prometheusResourcePool.Store(url, p)
+	p := &Prometheus{url: url, ruleStoreType: ruleStoreType}
+	prometheusResourcePool.Store(key, p)
 	return p, nil
 }
 
@@ -59,18 +65,18 @@ func (p *Prometheus) Health() error {
 // CheckDependents prometheus dependent components
 // AlertManager
 func (p *Prometheus) CheckDependents() error {
-	configuration, err := p.configuration()
+	urls, err := p.alertmanagerURLs()
 	if err != nil {
+		if p.ruleStoreType == db.RuleStoreTypeK8sOperator {
+			return ErrCheckNotSupported
+		}
 		return err
 	}
-	urls := make([]string, 0)
-	for _, alertmanager := range configuration.Alerting.AlertManagers {
-		for _, staticConfig := range alertmanager.StaticConfigs {
-			urls = append(urls, staticConfig.Targets...)
-		}
-	}
 	if len(urls) == 0 {
-		return errors.Wrap(ErrPrometheusDependsEmpty, "0")
+		if p.ruleStoreType == db.RuleStoreTypeK8sOperator {
+			return ErrCheckNotSupported
+		}
+		return errors.Wrap(ErrPrometheusDependsEmpty, "webhook configuration is empty")
 	}
 	components := make([]Component, 0)
 	for _, url := range urls {
@@ -145,20 +151,24 @@ type prometheusConfiguration struct {
 	} `yaml:"remote_read"`
 }
 
+type prometheusApiV1Alertmanagers struct {
+	Status string `json:"status"`
+	Data   struct {
+		ActiveAlertmanagers []struct {
+			URL string `json:"url"`
+		} `json:"activeAlertmanagers"`
+	} `json:"data"`
+}
+
 func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 	var res prometheusConfiguration
-	// AlertManager
-	resp, err := http.Get(p.url + "/api/v1/status/config")
+	client := resty.New()
+	resp, err := client.R().Get(p.url + "/api/v1/status/config")
 	if err != nil {
-		return res, errors.Wrap(err, "http.Get alertmanagers")
-	}
-	defer func() { _ = resp.Body.Close() }()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return res, errors.Wrap(err, "io.ReadAll")
+		return res, errors.Wrap(err, "http.Get status config")
 	}
 	var result prometheusApiV1StatusConfigResp
-	if err = json.Unmarshal(body, &result); err != nil {
+	if err = json.Unmarshal(resp.Body(), &result); err != nil {
 		return res, errors.Wrap(err, "json.Unmarshal")
 	}
 	if result.Status != "success" {
@@ -168,6 +178,26 @@ func (p *Prometheus) configuration() (prometheusConfiguration, error) {
 		return res, errors.Wrap(err, "yaml.Unmarshal")
 	}
 	return res, nil
+}
+
+func (p *Prometheus) alertmanagerURLs() ([]string, error) {
+	var res prometheusApiV1Alertmanagers
+	client := resty.New()
+	resp, err := client.R().Get(p.url + "/api/v1/alertmanagers")
+	if err != nil {
+		return nil, errors.Wrap(err, "http.Get alertmanagers")
+	}
+	if err = json.Unmarshal(resp.Body(), &res); err != nil {
+		return nil, errors.Wrap(err, "json.Unmarshal")
+	}
+	if res.Status != "success" {
+		return nil, errors.Wrap(ErrPrometheusApiResponse, res.Status)
+	}
+	urls := make([]string, len(res.Data.ActiveAlertmanagers))
+	for i := range res.Data.ActiveAlertmanagers {
+		urls[i] = strings.TrimSuffix(res.Data.ActiveAlertmanagers[i].URL, "/api/v2/alerts")
+	}
+	return urls, nil
 }
 
 type prometheusApiV1RulesResp struct {
@@ -223,7 +253,8 @@ func (p *Prometheus) IsRuleTakeEffect(rules []string) (bool, error) {
 	ruleMap := make(map[string]interface{})
 	for _, group := range result.Data.Groups {
 		for _, rule := range group.Rules {
-			ruleMap[rule.Name] = struct{}{}
+			rn := strings.TrimPrefix(rule.Name, "ClickVisual-")
+			ruleMap[rn] = struct{}{}
 		}
 	}
 	flag := true

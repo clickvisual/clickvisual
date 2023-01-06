@@ -99,8 +99,8 @@ const LinkFDG = (props: { dataList: any }) => {
 
   const draw = (edges: edgesType[], nodes: nodesType[]) => {
     if (edges.length == 0 || nodes.length == 0) return;
-    var d3Chart = document.getElementById("d3Chart");
-    var oldSvg = document.getElementById("svg");
+    let d3Chart = document.getElementById("d3Chart");
+    let oldSvg = document.getElementById("svg");
     oldSvg?.parentNode?.removeChild(oldSvg);
     // 画布
     const width = d3Chart?.offsetWidth || 100;
@@ -151,10 +151,10 @@ const LinkFDG = (props: { dataList: any }) => {
       .append("g")
       .attr("marker-end", "url(#arrow)");
 
-    var defs = svg.append("defs");
+    let defs = svg.append("defs");
 
     // 箭头
-    var arrowMarker = defs
+    let arrowMarker = defs
       .append("marker")
       .attr("id", "arrow")
       .attr("markerUnits", "strokeWidth")
@@ -165,7 +165,7 @@ const LinkFDG = (props: { dataList: any }) => {
       .attr("refY", "6")
       .attr("orient", "auto");
 
-    var arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,10";
+    let arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,10";
 
     arrowMarker.append("path").attr("d", arrow_path).attr("fill", "#aaa");
 
@@ -217,8 +217,8 @@ const LinkFDG = (props: { dataList: any }) => {
       .enter()
       .append("g")
       .attr("transform", function (d: { x: any; y: any }, i: any) {
-        var cirX = d.x;
-        var cirY = d.y;
+        let cirX = d.x;
+        let cirY = d.y;
         return "translate(" + cirX + "," + cirY + ")";
       });
 

@@ -16,12 +16,9 @@ import { useIntl } from "umi";
 import { useEffect, useRef, useState } from "react";
 import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 import TextArea from "antd/es/input/TextArea";
-import { DownOutlined, RightOutlined, SaveOutlined } from "@ant-design/icons";
+import { SaveOutlined } from "@ant-design/icons";
 import { AlarmRequest, ChannelType } from "@/services/alarm";
-import { NoDataConfigs } from "@/pages/Alarm/service/type";
 import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
-import classNames from "classnames";
-import conditionStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/index.less";
 
 export enum AlarmLvelType {
   Alarm = 0,
@@ -47,7 +44,6 @@ const FormAlarmDraw = () => {
   const alarmFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const [channelList, setChannelList] = useState<ChannelType[]>([]);
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   const alarmLvelList = [
     {
@@ -122,10 +118,6 @@ const FormAlarmDraw = () => {
     !alarmDraw.isEditor ? doCreated(field) : doUpdated(field);
   };
 
-  const handleClickMoreOptions = () => {
-    setShowMoreOptions(() => !showMoreOptions);
-  };
-
   useEffect(() => {
     if (!alarmDraw.visibleDraw && alarmFormRef.current) {
       alarmFormRef.current.resetFields();
@@ -140,12 +132,6 @@ const FormAlarmDraw = () => {
     }
     alarmDraw.doGetAlarmInfo.run(currentRowAlarm.id).then((res) => {
       if (res?.code !== 0 || !alarmFormRef.current) return;
-      if (
-        res.data.noDataOp === NoDataConfigs.OK ||
-        res.data.noDataOp === NoDataConfigs.Alert
-      ) {
-        setShowMoreOptions(true);
-      }
       alarmFormRef.current.setFieldsValue({
         ...res.data,
         channelIds: res.data.channelIds ? res.data.channelIds : undefined,
@@ -155,11 +141,6 @@ const FormAlarmDraw = () => {
 
   useEffect(() => {
     if (alarmDraw.visibleDraw) getChannelList();
-  }, [alarmDraw.visibleDraw]);
-
-  useEffect(() => {
-    if (!alarmDraw.visibleDraw) setShowMoreOptions(false);
-    return () => setShowMoreOptions(false);
   }, [alarmDraw.visibleDraw]);
 
   return (
@@ -174,6 +155,7 @@ const FormAlarmDraw = () => {
       width={"55%"}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
+      maskClosable={false}
       extra={
         <Space>
           <Button onClick={handleClose}>
@@ -228,6 +210,7 @@ const FormAlarmDraw = () => {
             })}
             name={"level"}
             required
+            initialValue={AlarmLvelType.Alarm}
           >
             <Select
               placeholder={i18n.formatMessage({
@@ -245,21 +228,6 @@ const FormAlarmDraw = () => {
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef.current} />
-          {/* <Form.Item noStyle>
-            <div
-              className={classNames(
-                conditionStyles.moreOptionsBtn,
-                !showMoreOptions && conditionStyles.hideMoreOptions
-              )}
-              onClick={handleClickMoreOptions}
-            >
-              {showMoreOptions ? <DownOutlined /> : <RightOutlined />}
-              <span>
-                {i18n.formatMessage({ id: "instance.form.moreOptions" })}
-              </span>
-            </div>
-            {showMoreOptions && <MoreOptions />}
-          </Form.Item> */}
           <MoreOptions />
 
           <Form.Item

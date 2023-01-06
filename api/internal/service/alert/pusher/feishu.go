@@ -11,13 +11,8 @@ var _ IPusher = (*FeiShu)(nil)
 
 type FeiShu struct{}
 
-func (s *FeiShu) Send(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter,
-	channel *db.AlarmChannel, oneTheLogs string) (err error) {
-	title, text, err := constructMessage(notification, table, alarm, filter, oneTheLogs)
-	if err != nil {
-		return err
-	}
-	err = s.sendMessage(channel.Key, title, text)
+func (s *FeiShu) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
+	err = s.sendMessage(channel.Key, msg.Title, msg.Text)
 	if err != nil {
 		return err
 	}

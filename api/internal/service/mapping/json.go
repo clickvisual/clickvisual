@@ -6,7 +6,6 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
@@ -17,7 +16,7 @@ func Handle(req string) (res view.MappingStruct, err error) {
 	var obj = map[string]interface{}{}
 	err = json.Unmarshal(data, &obj)
 	if err != nil {
-		invoker.Logger.Error("Handle", elog.Any("req", req), elog.Any("err", err.Error()))
+		elog.Error("Handle", elog.Any("req", req), elog.Any("err", err.Error()))
 		return
 	}
 	for k, v := range obj {
@@ -53,7 +52,7 @@ func fieldTypeJudgment(req interface{}) string {
 		val = "Bool"
 	default:
 		if reflect.TypeOf(req) == nil {
-			invoker.Logger.Warn("fieldTypeJudgment", elog.Any("type", reflect.TypeOf(req)))
+			elog.Warn("fieldTypeJudgment", elog.Any("type", reflect.TypeOf(req)))
 			return "unknown"
 		}
 		return "unknown"

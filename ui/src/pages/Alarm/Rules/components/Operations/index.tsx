@@ -42,9 +42,10 @@ const Operations = () => {
   };
 
   const handleSearch = useDebounceFn(
-    () => {
+    (isReload?: Boolean) => {
       doGetAlarms.run({
         ...operations.searchQuery,
+        isReload: isReload ? 1 : undefined,
         did: operations.searchQuery.tid
           ? undefined
           : operations.searchQuery.did,
@@ -225,7 +226,7 @@ const Operations = () => {
         <Button
           loading={doGetAlarms.loading}
           icon={<RedoOutlined />}
-          onClick={handleSearch}
+          onClick={() => handleSearch(true)}
         >
           {i18n.formatMessage({ id: "table.column.filter.refresh" })}
         </Button>
@@ -239,7 +240,7 @@ const Operations = () => {
             id: "alarm.rules.form.placeholder.alarmName",
           })}`}
           onChange={(env) => operations.onChangeInputName(env.target.value)}
-          onPressEnter={handleSearch}
+          onPressEnter={() => handleSearch()}
         />
         <Input
           allowClear
@@ -253,13 +254,13 @@ const Operations = () => {
               env.target.value && parseInt(env.target.value)
             )
           }
-          onPressEnter={handleSearch}
+          onPressEnter={() => handleSearch()}
         />
         <Button
           loading={doGetAlarms.loading}
           icon={<SearchOutlined />}
           type="primary"
-          onClick={handleSearch}
+          onClick={() => handleSearch()}
         >
           {i18n.formatMessage({ id: "search" })}
         </Button>

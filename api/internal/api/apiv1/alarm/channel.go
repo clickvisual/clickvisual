@@ -11,6 +11,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
+// ChannelCreate
+// @Tags         ALARM
+// @Summary	     告警渠道创建
 func ChannelCreate(c *core.Context) {
 	var req db.AlarmChannel
 	if err := c.Bind(&req); err != nil {
@@ -31,6 +34,9 @@ func ChannelCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+// ChannelUpdate
+// @Tags         ALARM
+// @Summary	     告警渠道更新
 func ChannelUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -59,6 +65,9 @@ func ChannelUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
+// ChannelList
+// @Tags         ALARM
+// @Summary	     告警渠道列表
 func ChannelList(c *core.Context) {
 	res, err := db.AlarmChannelList(egorm.Conds{})
 	if err != nil {
@@ -69,6 +78,9 @@ func ChannelList(c *core.Context) {
 	return
 }
 
+// ChannelDelete
+// @Tags         ALARM
+// @Summary	     告警渠道删除
 func ChannelDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -84,6 +96,9 @@ func ChannelDelete(c *core.Context) {
 	c.JSONOK()
 }
 
+// ChannelInfo
+// @Tags         ALARM
+// @Summary	     告警渠道详情
 func ChannelInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -99,6 +114,9 @@ func ChannelInfo(c *core.Context) {
 	return
 }
 
+// ChannelSendTest
+// @Tags         ALARM
+// @Summary	     告警渠道测试
 func ChannelSendTest(c *core.Context) {
 	var req db.AlarmChannel
 	if err := c.Bind(&req); err != nil {

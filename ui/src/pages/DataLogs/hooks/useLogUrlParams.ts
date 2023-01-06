@@ -23,6 +23,8 @@ import useLocalStorages, {
   LocalModuleType,
 } from "@/hooks/useLocalStorages";
 import { isEqual } from "lodash";
+import useTimeOptions from "./useTimeOptions";
+import { TimeOption } from "../components/DateTimeSelected";
 
 export interface UrlStateType {
   tid?: string | number;
@@ -74,6 +76,7 @@ export default function useLogUrlParams() {
     index: ACTIVE_TIME_INDEX,
     queryType: QueryTypeEnum.LOG,
   });
+  const { timeOptions, handleChangeRelativeAmountAndUnit } = useTimeOptions();
 
   const [tid, setTid] = useState<any>();
   const {
@@ -98,7 +101,6 @@ export default function useLogUrlParams() {
     onChangeRawLogsIndexeList,
     onChangeCurrentLogPane,
     logState,
-    linkLogs,
     onChangeTableInfo,
     doGetColumns,
     onChangeColumsList,
@@ -140,21 +142,32 @@ export default function useLogUrlParams() {
       undefined,
       LocalModuleType.datalogsQuerySql
     );
+    const itemObj: TimeOption =
+      timeOptions[parseInt(urlState.index || lastDataLogsState.index)];
+    const isRelative =
+      (urlState.tab || lastDataLogsState.tab) == TimeRangeType.Relative;
+
+    const startTime: any = isRelative
+      ? moment()
+          .subtract(itemObj.relativeAmount, itemObj.relativeUnit)
+          .format("X")
+      : parseInt(urlState.start || lastDataLogsState.start);
+
+    const endTime: any = isRelative
+      ? moment().format("X")
+      : parseInt(urlState.end || lastDataLogsState.end);
 
     const pane: PaneType = {
       ...DefaultPane,
       pane: res.data.name,
       paneId: tid.toString(),
       paneType: res.data.createType,
-      start: parseInt(urlState.start || lastDataLogsState.start),
-      end: parseInt(urlState.end || lastDataLogsState.end),
+      start: startTime || parseInt(urlState.start || lastDataLogsState.start),
+      end: endTime || parseInt(urlState.end || lastDataLogsState.end),
       keyword: urlState.kw || lastDataLogsState.kw,
       page: parseInt(urlState.page || lastDataLogsState.page),
       pageSize: parseInt(urlState.size || lastDataLogsState.size),
-      activeTabKey:
-        (urlState.start && urlState.end && "custom") ||
-        urlState.tab ||
-        lastDataLogsState.tab,
+      activeTabKey: urlState.tab || lastDataLogsState.tab,
       activeIndex: parseInt(urlState.index || lastDataLogsState.index),
       queryType: urlState.queryType || lastDataLogsState.queryType,
       querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
@@ -163,9 +176,9 @@ export default function useLogUrlParams() {
       logState: parseInt(urlState?.logState || lastDataLogsState.logState),
       relTraceTableId: res.data.traceTableId,
     };
-
     addLogPane(pane.paneId, pane);
     onChangeLogPane(pane);
+    handleChangeRelativeAmountAndUnit(pane);
     doParseQuery(urlState.kw);
 
     // 聚合告警模式调用这两接口会报错
@@ -264,7 +277,6 @@ export default function useLogUrlParams() {
       tab: activeTabKey,
       queryType: activeQueryType,
       logState: logState,
-      linkLogs: linkLogs,
     };
     const defaultData = {
       end: undefined,
@@ -272,12 +284,11 @@ export default function useLogUrlParams() {
       kw: undefined,
       page: undefined,
       queryType: QueryTypeEnum.LOG,
-      size: undefined,
+      size: 10,
       start: undefined,
       tab: TimeRangeType.Relative,
       tid: undefined,
       logState: 0,
-      linkLogs: undefined,
     };
     // 初始化的时候时不时会执行一次，无法稳定复现，于是排除初始化的情况
     !isEqual(data, defaultData) && setUrlQuery.run();
@@ -292,7 +303,6 @@ export default function useLogUrlParams() {
     activeTabKey,
     activeQueryType,
     logState,
-    linkLogs,
   ]);
 
   useEffect(() => {

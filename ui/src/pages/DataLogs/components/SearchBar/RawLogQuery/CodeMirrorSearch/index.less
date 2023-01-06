@@ -3,17 +3,37 @@
   display: flex;
   width: 100%;
   height: 100%;
-  overflow: hidden;
 
   .codemirrorInput {
     display: flex;
     width: 100%;
-    padding-left: 10px;
-    overflow: hidden;
     background-color: #fff;
     border: 1px solid #e8e8e8;
     border-radius: 0 8px 8px 0;
 
+    .editorsDom {
+      width: 100%;
+      height: 100%;
+      font-size: 16px;
+      line-height: 26px;
+    }
+    :global(.CodeMirror) {
+      border: 1px solid #fa975a;
+      border-radius: 0 7px 7px 7px;
+    }
+    :global(.CodeMirror-cursor) {
+      width: 1px !important;
+      background-color: #000 !important;
+    }
+  }
+}
+
+.oneLine {
+  overflow: hidden;
+
+  .codemirrorInput {
+    padding-right: 60px;
+    padding-left: 10px;
     &:focus-within {
       border-color: #fa975a;
       outline: 0;
@@ -22,14 +42,6 @@
 
     &:hover {
       border-color: #fa975a;
-    }
-
-    .editorsDom {
-      width: 100%;
-      height: 100%;
-      overflow-y: hidden;
-      font-size: 16px;
-      line-height: 26px;
     }
     .editorsErrTxext {
       position: absolute;
@@ -46,7 +58,8 @@
     :global(.CodeMirror) {
       height: auto !important;
       min-height: 32px !important;
-      max-height: 32px !important;
+      max-height: 400px !important;
+      border: none !important;
     }
     :global(.CodeMirror-scroll) {
       height: auto !important;
@@ -79,13 +92,6 @@
       padding: 0;
     }
 
-    :global(.CodeMirror-cursor) {
-      top: 2px !important;
-      width: 1px !important;
-      height: 18px !important;
-      background-color: #000 !important;
-    }
-
     .afterBox {
       width: 60px;
       background-color: #fff;
@@ -112,7 +118,6 @@
 
 :global(.autocomplete-text) {
   flex: 1;
-  // width: calc(100% - 100px);
   padding: 0 15px 0 10px;
   overflow: hidden;
   font-weight: 700;
@@ -122,7 +127,6 @@
 
 :global(.autocomplete-collectionText) {
   flex: 1;
-  // width: calc(100% - 100px);
   padding: 0 15px 0 10px;
   overflow: hidden;
   color: #2fabee;

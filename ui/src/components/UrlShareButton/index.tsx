@@ -37,10 +37,18 @@ const UrlShareButton = (props: { style?: any; text?: string }) => {
           .filter((item: any) => item != "1='1'");
         str += `kw=${arr?.join(" AND ")}&`;
       }
-      const url = `${window.location.href.split("query")[0]}share?${str.slice(
-        0,
-        -1
-      )}`;
+      let url = "";
+      if (
+        window.location.href.indexOf("share?") > -1 ||
+        window.location.href.indexOf("share/?") > -1
+      ) {
+        url = window.location.href;
+      } else {
+        url = `${window.location.href.split("query")[0]}share?${str.slice(
+          0,
+          -1
+        )}`;
+      }
       doGetShorturls.run({ originUrl: url }).then((res: any) => {
         if (res.code != 0) return;
         message.success(i18n.formatMessage({ id: "log.share.success" }));

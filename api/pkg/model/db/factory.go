@@ -32,6 +32,7 @@ const (
 
 	TableNameBaseView        = "cv_base_view"
 	TableNameBaseTable       = "cv_base_table"
+	TableNameBaseTableAttach = "cv_base_table_attach"
 	TableNameBaseIndex       = "cv_base_index"
 	TableNameBaseDatabase    = "cv_base_database"
 	TableNameBaseInstance    = "cv_base_instance"

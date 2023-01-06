@@ -2,11 +2,10 @@ package db
 
 import (
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 // BaseDatabase 数据库管理
@@ -39,7 +38,7 @@ func DatabaseCreate(db *gorm.DB, data *BaseDatabase) (err error) {
 // DatabaseDelete Soft delete
 func DatabaseDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(BaseDatabase{}).Unscoped().Delete(&BaseDatabase{}, id).Error; err != nil {
-		invoker.Logger.Error("delete error", zap.Error(err))
+		elog.Error("delete error", zap.Error(err))
 		return
 	}
 	return
@@ -94,7 +93,7 @@ func DatabaseUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err e
 	var sql = "`id`=?"
 	var binds = []interface{}{paramId}
 	if err = db.Table(TableNameBaseDatabase).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("update error", zap.Error(err))
+		elog.Error("update error", zap.Error(err))
 		return
 	}
 	return

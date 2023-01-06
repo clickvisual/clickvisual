@@ -10,7 +10,7 @@ import (
 // @Summary	     Data field mapping transformation
 // @Description  source: mysql
 // @Description  target: clickhouse
-// @Tags         pandas
+// @Tags         BIGDATA
 // @Accept       json
 // @Produce      json
 // @Param        req body view.ReqStructuralTransfer{} true "params"

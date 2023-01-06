@@ -1,5 +1,5 @@
 import historyStyles from "@/pages/Alarm/Rules/components/AlarmHistory/index.less";
-import { message, Progress, Tooltip } from "antd";
+import { message, Progress, Tag, Tooltip } from "antd";
 import { AlarmHistoryType, AlarmInfoType } from "@/services/alarm";
 import { useIntl } from "umi";
 import copy from "copy-to-clipboard";
@@ -8,6 +8,7 @@ import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import IconFont from "@/components/IconFont";
 import useTimeUnits from "@/hooks/useTimeUnits";
 import moment from "moment";
+import { QueryTypeEnum } from "@/config/config";
 
 type HistoryBoardProps = {
   sucPublish: number;
@@ -15,12 +16,14 @@ type HistoryBoardProps = {
   dataList: AlarmHistoryType[];
   currentAlarm: AlarmInfoType;
   dashboardUrl: string;
+  filterId: string;
 };
 const HistoryBoard = ({
   sucPublish,
   total,
   currentAlarm,
   dashboardUrl,
+  filterId,
 }: HistoryBoardProps) => {
   const i18n = useIntl();
   const {
@@ -34,6 +37,7 @@ const HistoryBoard = ({
     uid,
     instance,
     table,
+    filters,
   } = currentAlarm;
   const { AlarmStatus } = useAlarmEnums();
   const status = AlarmStatus.find((item) => value === item.status);
@@ -47,9 +51,25 @@ const HistoryBoard = ({
         id: "alarm.rules.historyBorad.theLog",
       }),
       content: (
-        <a href={dashboardUrl}>
-          {i18n.formatMessage({ id: "alarm.rules.historyBorad.toView" })}
-        </a>
+        <>
+          {filters.map((item: any) => {
+            const newWw = item.when?.replace(/\n/g, " ");
+            return (
+              <Tag
+                color={filterId == item.id || item.status == 3 ? "red" : ""}
+                key={item.id}
+              >
+                <a
+                  href={`${dashboardUrl}&tid=${item.tid}&mode=${item.mode}${
+                    item.mode == 1 ? "&queryType=" + QueryTypeEnum.TABLE : ""
+                  }&kw=${newWw}`}
+                >
+                  {item.tableName}
+                </a>
+              </Tag>
+            );
+          })}
+        </>
       ),
       isCopy: false,
     },

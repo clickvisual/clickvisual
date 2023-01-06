@@ -4,8 +4,11 @@ import { useModel, useIntl } from "umi";
 
 const { Option } = Select;
 
-const EditDatabaseModel = (props: { onGetList: () => void }) => {
-  const { onGetList } = props;
+const EditDatabaseModel = (props: {
+  onGetList: () => void;
+  allInstancesData: any[];
+}) => {
+  const { onGetList, allInstancesData } = props;
   const i18n = useIntl();
   const { isEditDatabase, onChangeIsEditDatabase, currentEditDatabase } =
     useModel("dataLogs");
@@ -13,6 +16,7 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
   const { instanceList, getInstanceList } = useModel("instances");
   const editDatabaseFormRef = useRef<FormInstance>(null);
   const [clustersList, steClustersList] = useState<any>([]);
+  const [iName, setIName] = useState<string>("");
 
   useEffect(() => {
     if (isEditDatabase) {
@@ -23,13 +27,21 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
       if (instanceList?.length == 0) {
         getInstanceList.run();
       }
+      setIName(
+        allInstancesData.filter(
+          (item: any) => item.id == currentEditDatabase.iid
+        )[0].instanceName || ""
+      );
     } else {
       editDatabaseFormRef.current?.resetFields();
+      setIName("");
     }
   }, [isEditDatabase]);
 
   useEffect(() => {
-    currentEditDatabase?.iid && fillCluster(currentEditDatabase?.iid);
+    if (currentEditDatabase?.iid) {
+      fillCluster(currentEditDatabase?.iid);
+    }
   }, [isEditDatabase, instanceList]);
 
   const handleSubmit = (val: any) => {
@@ -77,22 +89,11 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
           <Input />
         </Form.Item>
         <Form.Item
-          label={i18n.formatMessage({ id: "database.form.label.name" })}
-          name={"name"}
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item
           label={i18n.formatMessage({
-            id: "DescAsAlias",
+            id: "datasource.logLibrary.from.newLogLibrary.instance",
           })}
-          name={"desc"}
         >
-          <Input
-            placeholder={i18n.formatMessage({
-              id: "log.editLogLibraryModal.label.desc.placeholder",
-            })}
-          />
+          <Input value={iName} disabled />
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
@@ -113,6 +114,7 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
         >
           <Select
             style={{ width: "100%" }}
+            disabled={!!currentEditDatabase?.cluster}
             placeholder={`${i18n.formatMessage({
               id: "config.selectedBar.cluster",
             })}`}
@@ -123,6 +125,24 @@ const EditDatabaseModel = (props: { onGetList: () => void }) => {
               </Option>
             ))}
           </Select>
+        </Form.Item>
+        <Form.Item
+          label={i18n.formatMessage({ id: "database.form.label.name" })}
+          name={"name"}
+        >
+          <Input disabled />
+        </Form.Item>
+        <Form.Item
+          label={i18n.formatMessage({
+            id: "DescAsAlias",
+          })}
+          name={"desc"}
+        >
+          <Input
+            placeholder={i18n.formatMessage({
+              id: "log.editLogLibraryModal.label.desc.placeholder",
+            })}
+          />
         </Form.Item>
       </Form>
     </Modal>

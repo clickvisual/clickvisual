@@ -3,19 +3,16 @@ package builderv2
 import (
 	"database/sql"
 	"errors"
-)
 
-const (
-	// StorageTypeTraceCal Used to store using jaegerJson format otel trace data calculation results
-	StorageTypeTraceCal = "trace_calculate"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 )
 
 var (
-	ErrorStorageType = errors.New("storage type error")
+	ErrorCreateType = errors.New("create type error")
 )
 
 var (
-	defaultMsg = "Hello, world!"
+	defaultValue []string
 )
 
 type Params struct {
@@ -36,28 +33,74 @@ type IStorageCreator interface {
 	// SetParams Initialization parameter
 	SetParams(Params)
 
-	// GetDistributedSQL get distribution table sql
-	GetDistributedSQL() (string, bool)
-
-	// GetMergeTreeSQL get mergeTree table sql
-	GetMergeTreeSQL() (string, bool)
-
-	// GetKafkaEngineSQL get kafka engine table sql
-	GetKafkaEngineSQL() (string, bool)
-
-	// GetMaterializeViewSQL get materialized view table sql
-	GetMaterializeViewSQL() (string, bool)
+	// GetSQLs get distribution table sql
+	GetSQLs() (names []string, sqls []string)
 
 	// Execute SQL and return the results
-	Execute(string, bool) (string, error)
+	Execute([]string) (string, error)
 }
 
 // GetTableCreator Through specific types of logging library access to build table objects,
 // obtain four different SQL statements on the basis of the process to create
-func GetTableCreator(storageType string) (IStorageCreator, error) {
-	switch storageType {
-	case StorageTypeTraceCal:
-		return newTraceCal(), nil
+func GetTableCreator(cType int) (IStorageCreator, error) {
+	switch cType {
+	case constx.TableCreateTypeTraceCalculation:
+		return newComputeTrace(), nil
+	case constx.TableCreateTypeBufferNullDataPipe:
+		return newBuffNullDataPipe(), nil
 	}
-	return nil, ErrorStorageType
+	return nil, ErrorCreateType
+}
+
+type generateSQL func() (name string, sql string)
+
+func appendSQL(names, sqls *[]string, opt generateSQL) {
+	n, s := opt()
+	if n != "" {
+		*names = append(*names, n)
+	}
+	if s != "" {
+		*sqls = append(*sqls, s)
+	}
+}
+
+var _ IStorageCreator = (*Storage)(nil)
+
+type Storage struct {
+	isShard   bool // isShard Does it include shard
+	isReplica bool // isReplica Does it include replica
+
+	cluster  string // cluster name
+	database string // database name
+	table    string // table name
+
+	ttl int // ttl Data expiration time, unit is the day
+
+	db *sql.DB // clickhouse instance
+}
+
+func (t *Storage) SetParams(req Params) {
+	t.isShard = req.IsShard
+	t.isReplica = req.IsReplica
+	t.cluster = req.Cluster
+	t.database = req.Database
+	t.table = req.Table
+	t.ttl = req.TTL
+	t.db = req.DB
+}
+
+func (t *Storage) GetSQLs() ([]string, []string) {
+	return defaultValue, defaultValue
+}
+
+func (t *Storage) Execute(sqls []string) (string, error) {
+	for _, sq := range sqls {
+		if sq == "" {
+			continue
+		}
+		if _, err := t.db.Exec(sq); err != nil {
+			return sq, err
+		}
+	}
+	return "", nil
 }

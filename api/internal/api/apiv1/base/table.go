@@ -25,6 +25,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
+// TableId
+// @Tags         LOGSTORE
+// @Summary		 日志库ID获取
 func TableId(c *core.Context) {
 	var param view.ReqTableId
 	err := c.Bind(&param)
@@ -59,6 +62,9 @@ func TableId(c *core.Context) {
 	c.JSONOK(tableInfo.ID)
 }
 
+// TableCreate
+// @Tags         LOGSTORE
+// @Summary		 日志库创建
 func TableCreate(c *core.Context) {
 	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
@@ -97,6 +103,9 @@ func TableCreate(c *core.Context) {
 	c.JSONOK()
 }
 
+// TableInfo
+// @Tags         LOGSTORE
+// @Summary		 日志库详情
 func TableInfo(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
 	if tid == 0 {
@@ -157,14 +166,29 @@ func TableInfo(c *core.Context) {
 	}
 	keys := make([]string, 0)
 	data := make(map[string]string, 0)
-	keys = append(keys, "data_sql", "stream_sql", "view_sql")
-	data["data_sql"] = tableInfo.SqlData
-	data["stream_sql"] = tableInfo.SqlStream
-	data["view_sql"] = tableInfo.SqlView
 
-	if tableInfo.SqlDistributed != "" {
-		keys = append(keys, "distribute_sql")
-		data["distribute_sql"] = tableInfo.SqlDistributed
+	if tableInfo.CreateType == constx.TableCreateTypeBufferNullDataPipe {
+		tableAttach := db.BaseTableAttach{}
+		tableAttach.Tid = tableInfo.ID
+		if err = tableAttach.Info(invoker.Db); err != nil {
+			c.JSONE(core.CodeErr, "view sql read failed: "+err.Error(), nil)
+			return
+		}
+		if len(tableAttach.SQLs) == len(tableAttach.Names) {
+			keys = append(keys, tableAttach.Names...)
+			for k, name := range tableAttach.Names {
+				data[name] = tableAttach.SQLs[k]
+			}
+		}
+	} else {
+		keys = append(keys, "data_sql", "stream_sql", "view_sql")
+		data["data_sql"] = tableInfo.SqlData
+		data["stream_sql"] = tableInfo.SqlStream
+		data["view_sql"] = tableInfo.SqlView
+		if tableInfo.SqlDistributed != "" {
+			keys = append(keys, "distribute_sql")
+			data["distribute_sql"] = tableInfo.SqlDistributed
+		}
 	}
 
 	conds := egorm.Conds{}
@@ -185,6 +209,9 @@ func TableInfo(c *core.Context) {
 	return
 }
 
+// TableList
+// @Tags         LOGSTORE
+// @Summary		 日志库列表
 func TableList(c *core.Context) {
 	did := cast.ToInt(c.Param("did"))
 	if did == 0 {
@@ -214,6 +241,9 @@ func TableList(c *core.Context) {
 	return
 }
 
+// TableDelete
+// @Tags         LOGSTORE
+// @Summary 	 日志库删除
 func TableDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	tableInfo, err := db.TableInfo(invoker.Db, id)
@@ -237,8 +267,6 @@ func TableDelete(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-
-	// check if these is some alarms on this table
 	conds := egorm.Conds{}
 	conds["tid"] = tableInfo.ID
 	alarms, err := db.AlarmList(conds)
@@ -250,7 +278,6 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "you should delete all alarms before delete table.", nil)
 		return
 	}
-
 	tx := invoker.Db.Begin()
 	err = db.TableDelete(tx, tableInfo.ID)
 	if err != nil {
@@ -274,7 +301,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 06", err)
 		return
 	}
-	if tableInfo.CreateType != constx.TableCreateTypeExist {
+	if tableInfo.CreateType != constx.TableCreateTypeExist && tableInfo.CreateType != constx.TableCreateTypeBufferNullDataPipe {
 		table := tableInfo.Name
 		iid := tableInfo.Database.Iid
 		database := tableInfo.Database.Name
@@ -289,10 +316,37 @@ func TableDelete(c *core.Context) {
 			return
 		}
 	}
+	if tableInfo.CreateType == constx.TableCreateTypeBufferNullDataPipe {
+		op, errLoad := service.InstanceManager.Load(tableInfo.Database.Iid)
+		if errLoad != nil {
+			c.JSONE(core.CodeErr, errLoad.Error(), errLoad)
+			return
+		}
+		var tableAttach = db.BaseTableAttach{}
+		tableAttach.Tid = tableInfo.ID
+		err = tableAttach.Info(invoker.Db)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+		err = op.DeleteTableListByNames(tableAttach.Names, tableInfo.Database.Cluster)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+		err = tableAttach.Delete(invoker.Db)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesDelete, map[string]interface{}{"tableInfo": tableInfo})
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")
 }
 
+// TableLogs
+// @Tags         LOGSTORE
+// @Summary	 	 日志搜索
 func TableLogs(c *core.Context) {
 	st := time.Now()
 	var param view.ReqQuery
@@ -363,12 +417,22 @@ func TableLogs(c *core.Context) {
 			res.HiddenFields = append(res.HiddenFields, list[i].Field)
 		}
 	}
+	if param.IsQueryCount == 1 {
+		res.Count, err = op.Count(firstTry)
+		if err != nil {
+			c.JSONE(core.CodeErr, err.Error(), err)
+			return
+		}
+	}
 	res.Cost = time.Since(st).Milliseconds()
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
 }
 
+// QueryComplete
+// @Tags         LOGSTORE
+// @Summary      执行SQL请求
 func QueryComplete(c *core.Context) {
 	var param view.ReqComplete
 	err := c.Bind(&param)
@@ -402,10 +466,14 @@ func QueryComplete(c *core.Context) {
 		return
 	}
 	res.SortRule, res.IsNeedSort = utils.GenerateFieldOrderRules(param.Query)
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 	return
 }
 
+// TableCharts
+// @Tags         LOGSTORE
+// @Summary	     日志趋势图
 func TableCharts(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
@@ -454,17 +522,17 @@ func TableCharts(c *core.Context) {
 		return
 	}
 	var interval int64
-	param.GroupByCond, interval = utils.CalculateInterval(param.ET-param.ST, inquiry.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
-	charts, err := op.Chart(param)
+	param.GroupByCond, interval = op.CalculateInterval(param.ET-param.ST, inquiry.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
+	charts, sql, err := op.Chart(param)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), err)
+		c.JSONE(core.CodeErr, err.Error(), sql)
 		return
 	}
 	res := view.HighCharts{
 		Histograms: make([]*view.HighChart, 0),
 	}
 	if len(charts) == 0 {
-		c.JSONOK(res)
+		c.JSONE(core.CodeOK, sql, res)
 		return
 	}
 	chartMap := make(map[int64]*view.HighChart)
@@ -542,24 +610,26 @@ func TableCharts(c *core.Context) {
 	if l == 1 {
 		fillCharts[0].From = st
 		fillCharts[0].To = et
-	}
-	for i := range fillCharts {
-		if i == 0 {
-			fillCharts[0].From = st
-			fillCharts[0].To = fillCharts[1].From
-		} else if i == l-1 {
-			fillCharts[i].To = et
-		} else {
-			fillCharts[i].To = fillCharts[i+1].From
+	} else if l > 1 {
+		for i := range fillCharts {
+			if i == 0 {
+				fillCharts[0].From = st
+				fillCharts[0].To = fillCharts[1].From
+			} else if i == l-1 {
+				fillCharts[i].To = et
+			} else {
+				fillCharts[i].To = fillCharts[i+1].From
+			}
 		}
 	}
-
 	res.Histograms = fillCharts
-
 	c.JSONOK(res)
 	return
 }
 
+// TableIndexes
+// @Tags         LOGSTORE
+// @Summary      分析字段列表
 func TableIndexes(c *core.Context) {
 	var param view.ReqQuery
 	err := c.Bind(&param)
@@ -613,7 +683,7 @@ func TableIndexes(c *core.Context) {
 	}
 	list := op.GroupBy(param)
 
-	invoker.Logger.Debug("Indexes", elog.Any("list", list))
+	elog.Debug("Indexes", elog.Any("list", list))
 
 	res := make([]view.RespIndexItem, 0)
 	sum, err := op.Count(param)
@@ -633,11 +703,14 @@ func TableIndexes(c *core.Context) {
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
-	invoker.Logger.Debug("Indexes", elog.Any("res", res))
+	elog.Debug("Indexes", elog.Any("res", res))
 	c.JSONOK(res)
 	return
 }
 
+// TableCreateSelfBuilt
+// @Tags        LOGSTORE
+// @Summary 	接入已有日志库
 func TableCreateSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -669,6 +742,9 @@ func TableCreateSelfBuilt(c *core.Context) {
 	c.JSONOK()
 }
 
+// TableCreateSelfBuiltBatch
+// @Tags    LOGSTORE
+// @Summary 批量接入已有日志库
 func TableCreateSelfBuiltBatch(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -757,7 +833,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		return err
 	}
 	for _, col := range columns {
-		if col.Type == -1 {
+		if col.Type < 0 || col.Type == 3 {
 			continue
 		}
 		err = db.IndexCreate(tx, &db.BaseIndex{
@@ -778,6 +854,9 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 	return nil
 }
 
+// TableColumnsSelfBuilt
+// @Tags         LOGSTORE
+// @Summary		 接入已有日志库
 func TableColumnsSelfBuilt(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -786,7 +865,7 @@ func TableColumnsSelfBuilt(c *core.Context) {
 	}
 	var param view.ReqTableCreateExist
 	err := c.Bind(&param)
-	invoker.Logger.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
+	elog.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -813,6 +892,9 @@ func TableColumnsSelfBuilt(c *core.Context) {
 	c.JSONOK(columnsInfo)
 }
 
+// TableUpdate
+// @Tags         LOGSTORE
+// @Summary 	 日志库配置更新
 func TableUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -850,6 +932,9 @@ func TableUpdate(c *core.Context) {
 	c.JSONOK()
 }
 
+// TableDeps
+// @Tags         LOGSTORE
+// @Summary 	 日志库依赖分析
 func TableDeps(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	dn := strings.TrimSpace(c.Param("dn"))

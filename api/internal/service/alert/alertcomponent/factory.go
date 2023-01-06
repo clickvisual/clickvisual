@@ -13,6 +13,7 @@ var (
 	ErrIllegalAddress         = errors.New("The access address is illegal")
 	ErrPrometheusApiResponse  = errors.New("Prometheus API request error")
 	ErrPrometheusDependsEmpty = errors.New("Prometheus does not configure alertmanager")
+	ErrCheckNotSupported      = errors.New("Detection is not supported")
 )
 
 type Component interface {

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -41,6 +42,27 @@ type ReqAlarmWebhook struct {
 	Key  string `json:"key" form:"key"`
 	Typ  int    `json:"typ" form:"typ"`
 	Uid  int    `json:"uid" form:"uid"`
+}
+
+type PushMsg struct {
+	Title   string   `json:"title"`
+	Text    string   `json:"text"`
+	Mobiles []string `json:"mobiles"`
+}
+
+type DingTalkText struct {
+	MsgType string `json:"msgType"`
+	At      *At    `json:"at"`
+	Text    *Text  `json:"text"`
+}
+
+type At struct {
+	AtMobiles []string `json:"atMobiles"`
+	IsAtAll   bool     `json:"isAtAll"`
+}
+
+type Text struct {
+	Content string `json:"content"`
 }
 
 func (m *AlarmChannel) TableName() string {
@@ -92,7 +114,7 @@ func AlarmChannelList(conds egorm.Conds) (resp []*AlarmChannel, err error) {
 
 func AlarmChannelCreate(db *gorm.DB, data *AlarmChannel) (err error) {
 	if err = db.Model(AlarmChannel{}).Create(data).Error; err != nil {
-		invoker.Logger.Error("create releaseZone error", zap.Error(err))
+		elog.Error("create releaseZone error", zap.Error(err))
 		return
 	}
 	return
@@ -102,7 +124,7 @@ func AlarmChannelUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 	var sql = "`id`=?"
 	var binds = []interface{}{id}
 	if err = db.Model(AlarmChannel{}).Where(sql, binds...).Updates(ups).Error; err != nil {
-		invoker.Logger.Error("release update error", zap.Error(err))
+		elog.Error("release update error", zap.Error(err))
 		return
 	}
 	return
@@ -110,7 +132,7 @@ func AlarmChannelUpdate(db *gorm.DB, id int, ups map[string]interface{}) (err er
 
 func AlarmChannelDelete(db *gorm.DB, id int) (err error) {
 	if err = db.Model(AlarmChannel{}).Unscoped().Delete(&AlarmChannel{}, id).Error; err != nil {
-		invoker.Logger.Error("release delete error", zap.Error(err))
+		elog.Error("release delete error", zap.Error(err))
 		return
 	}
 	return

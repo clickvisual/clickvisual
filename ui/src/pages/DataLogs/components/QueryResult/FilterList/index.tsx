@@ -24,6 +24,8 @@ const FilterList = ({ tid }: { tid: number }) => {
     onChangeEditLogFilterInfo,
     doEditLogFilter,
     doGetLogsAndHighCharts,
+    onChangeCurrentLogPane,
+    logPanesHelper,
   } = useModel("dataLogs");
 
   const getList = () => {
@@ -46,7 +48,14 @@ const FilterList = ({ tid }: { tid: number }) => {
       }
       message.success("success");
       // 以下函数会刷新filterList
-      doGetLogsAndHighCharts(tid);
+      doGetLogsAndHighCharts(tid).then((data: any) => {
+        const { logs } = data;
+        const pane = logPanesHelper.logPanes[tid];
+        onChangeCurrentLogPane({
+          ...pane,
+          logs: logs,
+        });
+      });
     });
   };
 
@@ -80,7 +89,14 @@ const FilterList = ({ tid }: { tid: number }) => {
             doEditLogFilter.run(data.id, data).then((res: any) => {
               if (res.code != 0) return;
               // 以下函数会刷新filterList
-              doGetLogsAndHighCharts(tid);
+              doGetLogsAndHighCharts(tid).then((data: any) => {
+                const { logs } = data;
+                const pane = logPanesHelper.logPanes[tid];
+                onChangeCurrentLogPane({
+                  ...pane,
+                  logs: logs,
+                });
+              });
             });
           }}
         >
@@ -116,7 +132,14 @@ const FilterList = ({ tid }: { tid: number }) => {
               LocalModuleType.datalogsFilterDisableIds,
               JSON.stringify(data)
             );
-            doGetLogsAndHighCharts(tid);
+            doGetLogsAndHighCharts(tid).then((data: any) => {
+              const { logs } = data;
+              const pane = logPanesHelper.logPanes[tid];
+              onChangeCurrentLogPane({
+                ...pane,
+                logs: logs,
+              });
+            });
           }}
         >
           {filterIndex != -1

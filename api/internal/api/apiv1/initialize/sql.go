@@ -9,6 +9,7 @@ import (
 )
 
 // IsInstall Determine whether the installation process is required
+// @Tags         INSTILL
 func IsInstall(c *core.Context) {
 	var u db.User
 	err := invoker.Db.Table(db.TableNameUser).Select("id, username").Limit(1).First(&u).Error
@@ -24,6 +25,7 @@ func IsInstall(c *core.Context) {
 }
 
 // Install Perform the installation process
+// @Tags         INSTILL
 func Install(c *core.Context) {
 	err := install.Install()
 	if err != nil {
@@ -33,6 +35,7 @@ func Install(c *core.Context) {
 	c.JSONOK("install finish")
 }
 
+// @Tags         INSTILL
 func Migration(c *core.Context) {
 	defaultAdminId := 1
 	roots := permission.Manager.GetRootUsersId()

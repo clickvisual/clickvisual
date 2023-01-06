@@ -14,7 +14,7 @@ import (
 )
 
 type IPusher interface {
-	Send(db.Notification, *db.BaseTable, *db.Alarm, *db.AlarmFilter, *db.AlarmChannel, string) error
+	Send(*db.AlarmChannel, *db.PushMsg) error
 }
 
 func GetPusher(typ int) (IPusher, error) {
@@ -38,19 +38,15 @@ func GetPusher(typ int) (IPusher, error) {
 	return nil, err
 }
 
-// constructMessage
+// BuildAlarmMsg
 // Description: 提供一个通用的md模式的获取内容的方法
 // param notification  通知的部分方法
 // param alarm 警告的数据库连接
 // param oneTheLogs 日志内容
-// return title 标题
-// return text 内容
-// return err 错误
-func constructMessage(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, partialLog string) (title, text string, err error) {
+func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, partialLog string) (msg *db.PushMsg, err error) {
 	// groupKey := notification.GroupKey
 	status := notification.Status
 	annotations := notification.CommonAnnotations
-
 	var buffer bytes.Buffer
 	// base info
 	if status == "resolved" {
@@ -62,16 +58,9 @@ func constructMessage(notification db.Notification, table *db.BaseTable, alarm *
 	if alarm.Desc != "" {
 		buffer.WriteString(fmt.Sprintf("##### 告警描述: %s\n", alarm.Desc))
 	}
-
 	user, _ := db.UserInfo(alarm.Uid)
-	instance := db.BaseInstance{}
-	if table.ID == 0 {
-		instance = db.BaseInstance{Name: "test", Desc: "test"}
-	} else {
-		instance, _ = db.InstanceInfo(invoker.Db, table.Database.Iid)
-	}
+	instance, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
 	statusText := "告警中"
-
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
@@ -85,20 +74,41 @@ func constructMessage(notification db.Notification, table *db.BaseTable, alarm *
 		} else {
 			buffer.WriteString("##### 状态：：<font color=red>告警中</font>\n")
 		}
-		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s)\n", user.Username, user.Nickname))
-
+		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s) \n", user.Username, user.Nickname))
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
-
 		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/alarm/rules/history?id=%d&filterId=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, filter.ID, start, end,
 		))
 		if partialLog != "" {
-			if len(partialLog) > 400 {
-				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", partialLog[0:399]))
+			partialLog = strings.Replace(partialLog, "\"", "", -1)
+			if len(partialLog) > 600 {
+				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", partialLog[0:599]))
 			} else {
 				buffer.WriteString(fmt.Sprintf("##### 详情: %s", partialLog))
 			}
 		}
 	}
-	return fmt.Sprintf("【%s】%s", statusText, alarm.Name), buffer.String(), nil
+	return &db.PushMsg{
+		Title: fmt.Sprintf("【%s】%s", statusText, alarm.Name),
+		Text:  buffer.String(),
+		// Mobiles: strings.Split(alarm.Mobiles, ","),
+	}, nil
+}
+
+func Execute(channelIds []int, pushMsg *db.PushMsg) error {
+	for _, channelId := range channelIds {
+		channel, err := db.AlarmChannelInfo(invoker.Db, channelId)
+		if err != nil {
+			return err
+		}
+		channelPusher, err := GetPusher(channel.Typ)
+		if err != nil {
+			return err
+		}
+		err = channelPusher.Send(&channel, pushMsg)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

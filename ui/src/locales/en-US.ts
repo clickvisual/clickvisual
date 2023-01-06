@@ -32,6 +32,7 @@ export default {
   required: "Required",
   tips: "Tips",
   unit: "Unit",
+  time: "Time",
 
   type: "Type",
   capacity: "Capacity",
@@ -480,6 +481,7 @@ export default {
   "log.search.codeHinting.analysisField": "Field",
   "log.search.codeHinting.keyword": "Keyword",
   "log.search.codeHinting.collectHistory": "Collect",
+  "log.search.codeHinting.value": "Value",
   "log.search.icon.quickSearch": "Created Query Criteria",
   "log.search.help.content.specifyField":
     "Specify the field query: Method='Get' and _raw_log_ like '%error%'",
@@ -489,6 +491,7 @@ export default {
   "log.search.quickSearch.column.placeholder": "Please select column",
   "log.search.quickSearch.operator.placeholder": "Please select operator",
   "log.search.quickSearch.value.placeholder": "Please enter a value",
+  "log.search.quickSearch.fill": "Fill",
 
   "log.index.header.title": "Analysis",
   "log.index.search.placeholder": "Search field",
@@ -574,10 +577,14 @@ export default {
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
   "alarm.rules.form.description": "Alarm Description",
+  "alarm.rules.form.serviceName": "Service Name",
+  "alarm.rules.form.mobiles": "mobile phone numbers",
   "alarm.rules.form.channelIds": "Notification channels",
   "alarm.rules.form.placeholder.alarmName": "Please enter a alarm name",
   "alarm.rules.form.placeholder.alarmId": "Please enter the alarm Id",
   "alarm.rules.form.placeholder.level": "Please select alarm level",
+  "alarm.rules.form.placeholder.serviceName": "Please input service name",
+  "alarm.rules.form.placeholder.mobiles":"Please input phone number, multiple use ',' to split",
   "alarm.rules.form.placeholder.description":
     "Please enter an alarm description",
   "alarm.rules.form.placeholder.channelIds":
@@ -918,6 +925,7 @@ export default {
   "bigdata.components.RightMenu.Scheduling.nodeType": "Type",
   "bigdata.components.RightMenu.Scheduling.basicConfig": "General",
   "bigdata.components.RightMenu.Scheduling.isPerform": "Perform",
+  "bigdata.components.RightMenu.Scheduling.channelIds": "Failure alarm",
   "bigdata.components.RightMenu.Scheduling.thoseResponsible": "Owner",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "Scheduling rule cron field fill in the help document",
@@ -1013,11 +1021,11 @@ export default {
     "I am in charge of the",
 
   "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance":
-    "Instance of failure",
+    "Failed task",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
-    "Successful instances",
+    "Task of success",
   "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance":
-    "Unknown instance",
+    "Unknown task",
   "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "Node failure",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode":
     "Successful node",

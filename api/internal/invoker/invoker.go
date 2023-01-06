@@ -11,12 +11,13 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/ui"
 	"github.com/clickvisual/clickvisual/api/pkg/session"
+
+	_ "github.com/ClickHouse/clickhouse-go/v2"
 )
 
 var (
 	Db      *egorm.Component
 	Gin     *egin.Component
-	Logger  *elog.Component
 	Session gin.HandlerFunc
 	Redis   *eredis.Component
 
@@ -26,9 +27,9 @@ var (
 // Init invoker
 func Init() (err error) {
 	Db = egorm.Load("mysql").Build()
-	Logger = elog.Load("logger").Build()
 	Session = session.Load("auth").Build()
 	Gin = egin.Load("server.http").Build(egin.WithEmbedFs(ui.WebUI))
+	elog.DefaultLogger = elog.Load("logger").Build()
 
 	if econf.GetBool("app.isMultiCopy") {
 		Redis = eredis.Load("redis").Build()

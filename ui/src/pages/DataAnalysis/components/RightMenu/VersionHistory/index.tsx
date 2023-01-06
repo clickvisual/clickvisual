@@ -67,7 +67,7 @@ const VersionHistory = (props: {
 
   const handleContentData = (value: string) => {
     if (isJsonString(value)) {
-      var jsonObj = JSON.parse(value);
+      let jsonObj = JSON.parse(value);
       return JSON.stringify(jsonObj, null, 4);
     }
     return format(value);

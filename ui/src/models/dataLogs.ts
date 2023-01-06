@@ -14,6 +14,7 @@ import useRequest from "@/hooks/useRequest/useRequest";
 import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
+  CLICKVISUAL_LOGSPECIALCONNECTOR,
   FIFTEEN_TIME,
   FIRST_PAGE,
   MINUTES_UNIT_TIME,
@@ -64,7 +65,7 @@ const DataLogsModel = () => {
   const [endDateTime, setEndDateTime] = useState<number>();
   // 分页参数
 
-  const [pageSize, setPageSize] = useState<number>();
+  const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>();
 
   // 日志库列表
@@ -112,9 +113,6 @@ const DataLogsModel = () => {
 
   // 链路模式下日志的三种状态
   const [logState, setLogState] = useState<number>(0);
-
-  // 链路的100条日志信息
-  const [linkLogs, setLinkLogs] = useState<LogsResponse>();
 
   const { onSetLocalData } = useLocalStorages();
   // 历史记录
@@ -334,7 +332,7 @@ const DataLogsModel = () => {
     setLogs(tabPane.logs);
     onChangeRawLogsIndexeList(tabPane?.rawLogsIndexeList);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
-    setLogCount(tabPane?.highCharts?.count || 0);
+    setLogCount(tabPane?.highCharts?.count || tabPane?.logs?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
     statisticalChartsHelper.setActiveQueryType(
       tabPane?.queryType ?? QueryTypeEnum.LOG
@@ -351,7 +349,6 @@ const DataLogsModel = () => {
         ? tabPane.logs?.where
         : false) || keywordInput
     );
-    setLinkLogs(tabPane?.linkLogs);
     setLogState(tabPane?.logState);
   };
 
@@ -485,7 +482,8 @@ const DataLogsModel = () => {
 
   const logsAndHighChartsPayload = (
     params?: QueryParams,
-    filters?: string[]
+    filters?: string[],
+    histogramChecked?: boolean
   ) => {
     return {
       st: params?.st || (startDateTime as number),
@@ -494,6 +492,7 @@ const DataLogsModel = () => {
       pageSize: params?.pageSize || pageSize,
       page: params?.page || currentPage,
       filters: filters || [],
+      isQueryCount: Number(!histogramChecked),
     };
   };
 
@@ -570,7 +569,7 @@ const DataLogsModel = () => {
     if (!!extra?.isPaging || !!extra?.isOnlyLog || !histogramChecked) {
       const logsRes = await getLogs.run(
         id,
-        logsAndHighChartsPayload(extra?.reqParams, filters),
+        logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
         new CancelToken(function executor(c) {
           cancelTokenLogsRef.current = c;
         })
@@ -585,14 +584,14 @@ const DataLogsModel = () => {
       const [logsRes, highChartsRes] = await Promise.all([
         getLogs.run(
           id,
-          logsAndHighChartsPayload(extra?.reqParams, filters),
+          logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
           new CancelToken(function executor(c) {
             cancelTokenLogsRef.current = c;
           })
         ),
         getHighCharts.run(
           id,
-          logsAndHighChartsPayload(extra?.reqParams, filters),
+          logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
           new CancelToken(function executor(c) {
             cancelTokenHighChartsRef.current = c;
           })
@@ -631,13 +630,26 @@ const DataLogsModel = () => {
     const isInterface = (keyword || keywordInput || "")?.indexOf(" and ") > 0;
 
     const defaultInput = isInterface
-      ? lodash.cloneDeep(keyword ? keyword : keywordInput)?.split(" and ") || [
-          "",
-        ]
-      : lodash.cloneDeep(keyword ? keyword : keywordInput)?.split(" AND ") || [
-          "",
-        ];
-    const strReg = /(`?\w|.+`?)(=|!=| like | not like )'?([^']+)'?/g;
+      ? lodash
+          .cloneDeep(keyword ? keyword : keywordInput)
+          ?.replace(
+            /(=|!=| like | not like )/gi,
+            CLICKVISUAL_LOGSPECIALCONNECTOR
+          )
+          ?.split(" and ") || [""]
+      : lodash
+          .cloneDeep(keyword ? keyword : keywordInput)
+          ?.replace(
+            /(=|!=| like | not like )/gi,
+            CLICKVISUAL_LOGSPECIALCONNECTOR
+          )
+          ?.split(" AND ") || [""];
+
+    const strReg = new RegExp(
+      "(`?w|.+`?)(" + CLICKVISUAL_LOGSPECIALCONNECTOR + ")'?([^']+)'?",
+      "gi"
+    );
+    // const strReg = /(`?\w|.+`?)(clickvisualLogSpecialConnector)'?([^']+)'?/gi;
     const allQuery: any[] = [];
     defaultInput.map((inputStr) =>
       Array.from(inputStr.replaceAll("`", "").matchAll(strReg))?.map((item) => {
@@ -664,7 +676,7 @@ const DataLogsModel = () => {
     if (defaultValueArr.length === 1 && defaultValueArr[0] === "") {
       defaultValueArr.pop();
     }
-    var newValueArr: string[] = [];
+    let newValueArr: string[] = [];
     lodash.cloneDeep(defaultValueArr).map((item: string) => {
       newValueArr.push(item.replace(/(=|!=| like | not like )/gi, ""));
     });
@@ -709,14 +721,14 @@ const DataLogsModel = () => {
       .catch(() => {
         resetLogPaneLogsAndHighCharts(newPane);
       });
-    setInitValue(kw);
+    onChangeInitValue(kw);
     doParseQuery(kw);
   };
 
   const isJsonFun = (str: string | object) => {
     if (typeof str == "string") {
       try {
-        var obj = JSON.parse(str);
+        let obj = JSON.parse(str);
         return !!(typeof obj == "object" && obj);
       } catch (e) {
         return false;
@@ -740,7 +752,6 @@ const DataLogsModel = () => {
 
   const resetCurrentHighChart = () => {
     setLogs(undefined);
-    setLinkLogs(undefined);
     setHighChartList([]);
     setIsHiddenHighChart(false);
   };
@@ -792,7 +803,6 @@ const DataLogsModel = () => {
     isHasDatabase,
     addLogToDatabase,
     logs,
-    linkLogs,
     logCount,
     startDateTime,
     endDateTime,

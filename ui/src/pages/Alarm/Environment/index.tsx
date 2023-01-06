@@ -1,11 +1,11 @@
-import { INSTANCEMANAGEMENT_PATH } from "@/config/config";
-import { EditOutlined, PlusSquareOutlined } from "@ant-design/icons";
-import { Button, message, Table, Tag, Tooltip } from "antd";
-import { useEffect, useState } from "react";
-import { useIntl, useModel } from "umi";
+import {INSTANCEMANAGEMENT_PATH} from "@/config/config";
+import {EditOutlined, PlusSquareOutlined} from "@ant-design/icons";
+import {Button, message, Table, Tag, Tooltip} from "antd";
+import {useEffect, useState} from "react";
+import {useIntl, useModel} from "umi";
 import EditEnvironmentModal from "./components/EditEnvironmentModal";
-import type { InstanceType } from "@/services/systemSetting";
-import CreateMetricsAamples from "./components/CreateMetricsAamples";
+import type {InstanceType} from "@/services/systemSetting";
+import CreateMetricsSamples from "./components/CreateMetricsSamples";
 
 export interface ResGetAlarmConfigList {
   instanceId: number;
@@ -24,6 +24,7 @@ export enum RuleStoreType {
   notOpen = 0,
   file = 1,
   k8s = 2,
+  operator = 3,
 }
 
 const Environment = () => {
@@ -34,7 +35,7 @@ const Environment = () => {
   } = useModel("alarms.useAlarmEnvironment");
   const i18n = useIntl();
   const [visibleEnvironment, setVisibleEnvironment] = useState<boolean>(false);
-  const [visibleMetricsAamples, setVisibleMetricsAamples] =
+  const [visibleMetricsSamples, setVisibleMetricsSamples] =
     useState<boolean>(false);
   const [currentIidAndIName, setCurrentIidAndIName] = useState<{
     iid: number;
@@ -79,6 +80,7 @@ const Environment = () => {
               })}
             </Tag>
           ),
+          [RuleStoreType.operator]: <Tag color="orange">operator</Tag>,
         };
         return stateList[state];
       },
@@ -224,7 +226,7 @@ const Environment = () => {
                       iid: record.instanceId,
                       instanceName: record.instanceName,
                     });
-                    setVisibleMetricsAamples(true);
+                    setVisibleMetricsSamples(true);
                     setCurrentClusters(currentIid[0].clusters || []);
                   } else {
                     doCreateMetricsSamplesTable.run(data).then((res: any) => {
@@ -265,6 +267,7 @@ const Environment = () => {
       <Table
         dataSource={alarmConfigList || []}
         columns={column}
+        loading={doGetAlarmConfigList.loading}
         size="small"
         pagination={{ hideOnSinglePage: true }}
         rowKey={(item: any) => item.instanceId}
@@ -275,9 +278,9 @@ const Environment = () => {
         onChangeVisible={setVisibleEnvironment}
         onGetList={gitList}
       />
-      <CreateMetricsAamples
-        visible={visibleMetricsAamples}
-        onChangeVisible={setVisibleMetricsAamples}
+      <CreateMetricsSamples
+        visible={visibleMetricsSamples}
+        onChangeVisible={setVisibleMetricsSamples}
         currentIidAndIName={currentIidAndIName}
         currentClusters={currentClusters}
         onGetList={gitList}

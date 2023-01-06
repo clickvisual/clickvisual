@@ -47,7 +47,7 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 	if strings.Contains(param.Name, "__metadata") {
 		return configuration, constx.ErrSkipConfigureName
 	}
-	fileNameRegex := regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_-]{1,64}$")
+	fileNameRegex := regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_-]{1,255}$")
 	if !fileNameRegex.MatchString(param.Name) {
 		return configuration, errors.New("Invalid file name: " + param.Name)
 	}
@@ -161,7 +161,7 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 	configureObj, _ := db.ConfigurationInfo(history.ConfigurationId)
 	k8sConfigmap, _ := db.K8SConfigMapInfo(configureObj.K8SCmId)
 
-	invoker.Logger.Debug("Publish", elog.Any("k8sConfigmap", k8sConfigmap), elog.Any("configureObj", configureObj), elog.Any("history", history))
+	elog.Debug("Publish", elog.Any("k8sConfigmap", k8sConfigmap), elog.Any("configureObj", configureObj), elog.Any("history", history))
 
 	configData := make(map[string]string)
 	filename := configureObj.FileName()
@@ -181,7 +181,7 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 	if err != nil {
 		return fmt.Errorf("cluster data acquisition failed: " + err.Error())
 	}
-	err = resource.ConfigmapCreateOrUpdate(client, k8sConfigmap.Namespace, k8sConfigmap.Name, configData)
+	err = resource.CreateOrUpdateConfigmap(client, k8sConfigmap.Namespace, k8sConfigmap.Name, configData)
 	if err != nil {
 		return errors.Wrap(err, "configMap update failed")
 	}
@@ -209,13 +209,13 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 		}
 		// read remote configmap data
 		var upstreamValue string
-		upstreamValue, err = resource.ConfigmapInfo(k8sCM.ClusterId, k8sCM.Namespace, k8sCM.Name, config.FileName())
+		upstreamValue, err = resource.GetConfigmap(k8sCM.ClusterId, k8sCM.Namespace, k8sCM.Name, config.FileName())
 		if err != nil {
 			tx.Rollback()
 			return errors.Wrap(err, "read configmap data failed")
 		}
 		if utils.MD5Encode32(upstreamValue) != utils.MD5Encode32(config.Content) {
-			invoker.Logger.Debug("delete", elog.Any("upstreamValue", upstreamValue), elog.Any("config.Content", config.Content))
+			elog.Debug("delete", elog.Any("upstreamValue", upstreamValue), elog.Any("config.Content", config.Content))
 			tx.Rollback()
 			return errors.New("The deleted configuration is inconsistent with the effective configuration. The effective configuration cannot be deleted.")
 		}
@@ -234,7 +234,7 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 		// 	tx.Rollback()
 		// 	return errors.Errorf("failed to delete because there are other users operating the configuration")
 		// }
-		err = resource.ConfigmapDelete(kcm.ClusterId, kcm.Namespace, kcm.Name, config.FileName(), s.configMetadataKey(config.FileName()))
+		err = resource.DeleteConfigmap(kcm.ClusterId, kcm.Namespace, kcm.Name, config.FileName(), s.configMetadataKey(config.FileName()))
 		if err != nil {
 			// configLock.Unlock()
 			tx.Rollback()

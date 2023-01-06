@@ -32,6 +32,7 @@ export default {
   required: "必填",
   tips: "提示",
   unit: "单位",
+  time: "时间",
 
   type: "类型",
   capacity: "容量",
@@ -453,6 +454,7 @@ export default {
   "log.search.codeHinting.analysisField": "分析字段",
   "log.search.codeHinting.keyword": "关键字",
   "log.search.codeHinting.collectHistory": "收藏历史",
+  "log.search.codeHinting.value": "当前值",
   "log.search.icon.quickSearch": "增加查询条件",
   "log.search.help.content.specifyField":
     "指定字段查询：Method='Get' and _raw_log_ like '%error%'",
@@ -462,6 +464,7 @@ export default {
   "log.search.quickSearch.column.placeholder": "请选择 column",
   "log.search.quickSearch.operator.placeholder": "请选择 operator",
   "log.search.quickSearch.value.placeholder": "请输入 value",
+  "log.search.quickSearch.fill": "填充",
 
   "log.index.header.title": "分析",
   "log.index.search.placeholder": "搜索字段",
@@ -541,6 +544,8 @@ export default {
   "alarm.rules.form.title": "报警监控规则",
   "alarm.rules.form.alarmName": "报警名称",
   "alarm.rules.form.level": "报警级别",
+  "alarm.rules.form.serviceName": "服务名称",
+  "alarm.rules.form.mobiles": "报警人手机号",
   "alarm.rules.form.level.alarm": "告警",
   "alarm.rules.form.level.notice": "通知",
   "alarm.rules.form.level.serious": "严重",
@@ -550,6 +555,8 @@ export default {
   "alarm.rules.form.placeholder.alarmId": "请输入报警Id",
   "alarm.rules.form.placeholder.level": "请选择报警级别",
   "alarm.rules.form.placeholder.description": "请输入报警描述",
+  "alarm.rules.form.placeholder.serviceName": "请输入服务名称",
+  "alarm.rules.form.placeholder.mobiles": "请输入报警人手机号，多个以逗号分隔",
   "alarm.rules.form.placeholder.channelIds": "请选择通知渠道",
   "alarm.rules.form.rule.alarmName": "请输入小写字母、大写字母或下划线",
   "alarm.rules.inspectionFrequency": "检查频率",
@@ -820,13 +827,13 @@ export default {
     "请选择数据源类型",
   "bigdata.dataSourceManage.searchBar.dataSourceType.create": "新增数据源",
 
-  "bigdata.dataSourceManage.dataTable.dataSourceName": "数据源名称",
+  "bigdata.dataSourceManage.dataTable.dataSourceName": "名称",
   "bigdata.dataSourceManage.dataTable.linkInformation": "连接信息",
-  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "数据源描述",
+  "bigdata.dataSourceManage.dataTable.dataSourceDesc": "描述",
   "bigdata.dataSourceManage.dataTable.deleteDataSourceTips":
     "确认删除数据源「{dataSource}」吗",
 
-  "bigdata.dataSourceManage.create.typ": "种类",
+  "bigdata.dataSourceManage.create.typ": "类型",
   "bigdata.dataSourceManage.create.userName": "用户名",
 
   // bigdata components
@@ -861,6 +868,7 @@ export default {
   "bigdata.components.RightMenu.Scheduling.nodeType": "节点类型",
   "bigdata.components.RightMenu.Scheduling.basicConfig": "基础配置",
   "bigdata.components.RightMenu.Scheduling.isPerform": "是否执行",
+  "bigdata.components.RightMenu.Scheduling.channelIds": "失败告警",
   "bigdata.components.RightMenu.Scheduling.thoseResponsible": "责任人",
   "bigdata.components.RightMenu.Scheduling.cronTips":
     "调度规则 cron 字段填写 帮助文档",
@@ -946,10 +954,10 @@ export default {
   "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek": "近七天",
   "bigdata.dataAnalysis.statisticalBoard.Screening.inCharge": "我负责的",
 
-  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败实例",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.failureInstance": "失败任务",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulInstance":
-    "成功实例",
-  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知实例",
+    "成功任务",
+  "bigdata.dataAnalysis.statisticalBoard.Screening.unknownInstance": "未知任务",
   "bigdata.dataAnalysis.statisticalBoard.Screening.failureNode": "失败节点",
   "bigdata.dataAnalysis.statisticalBoard.Screening.successfulNode": "成功节点",
   "bigdata.dataAnalysis.statisticalBoard.Screening.unknownNode": "未知节点",

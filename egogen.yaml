@@ -4,17 +4,34 @@ dir: 'api'
 
 depends:
   - gorm.io/plugin/soft_delete
+  - github.com/gotomicro/gotoant
+  - gorm.io/datatypes
+
+#generators:
+#  - name: umi
+#    output: ./ui/src/requests
+#  - name: ts
+#    output: ./ui/src/types
 
 properties:
   request:
     - type: '*github.com/clickvisual/clickvisual/api/pkg/component/core.Context'
       method: 'Bind'
       return:
-        data: 'args[0]'
+        data:
+          type: 'args[0]'
   response:
     - type: '*github.com/clickvisual/clickvisual/api/pkg/component/core.Context'
       method: 'JSONOK'
       return:
-        contentType: 'application/json'
-        data: 'args[0]'
-        status: 200
+        contentType: 'application/json'  # 指定响应的 content-type
+        data: # 这是一个嵌套的数据格式示例 '{"code":0,"msg":"hello",data:{...}}'
+          type: 'object'
+          properties:
+            code:
+              type: 'number'
+            msg:
+              type: 'string'
+            data:
+              type: 'args[0]' # 指定为第一个函数参数
+        status: 200 # 指定为 200 状态码

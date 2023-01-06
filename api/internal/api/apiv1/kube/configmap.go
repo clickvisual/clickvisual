@@ -21,6 +21,7 @@ import (
 )
 
 // ConfigMapList Get configmap by name
+// @Tags         KUBE
 func ConfigMapList(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	if clusterId == 0 {
@@ -57,10 +58,10 @@ func ConfigMapList(c *core.Context) {
 
 	for _, obj := range namespaces {
 		ns := *(obj.(*corev1.Namespace))
-		invoker.Logger.Debug("namespace", elog.Any("ns", ns))
+		elog.Debug("namespace", elog.Any("ns", ns))
 		configmaps, errConfigs := client.KubeClient.List(api.ResourceNameConfigMap, ns.Name, "")
 		if errConfigs != nil {
-			invoker.Logger.Error("configmaps", elog.String("err", errConfigs.Error()))
+			elog.Error("configmaps", elog.String("err", errConfigs.Error()))
 			continue
 		}
 		for _, configMapObj := range configmaps {
@@ -85,11 +86,13 @@ func ConfigMapList(c *core.Context) {
 			})
 		}
 	}
-	sort.Slice(resp, func(i, j int) bool { return len(resp[i].Configmaps) > len(resp[j].Configmaps) })
+	sort.Slice(resp,
+		func(i, j int) bool { return len(resp[i].Configmaps) > len(resp[j].Configmaps) })
 	c.JSONOK(resp)
 }
 
 // ConfigMapCreate Get configmap by name
+// @Tags         KUBE
 func ConfigMapCreate(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	if clusterId == 0 {
@@ -118,6 +121,7 @@ func ConfigMapCreate(c *core.Context) {
 }
 
 // ConfigMapInfo Get configmap by name
+// @Tags         KUBE
 func ConfigMapInfo(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("clusterId"))
 	namespace := strings.TrimSpace(c.Param("namespace"))
@@ -133,7 +137,7 @@ func ConfigMapInfo(c *core.Context) {
 		return
 	}
 	var upstreamValue string
-	upstreamValue, err = resource.ConfigmapInfo(clusterId, namespace, name, param.Key)
+	upstreamValue, err = resource.GetConfigmap(clusterId, namespace, name, param.Key)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return

@@ -12,15 +12,13 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	clientcmdapiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 func buildClient(apiServerAddr string, kubeconfig string) (*kubernetes.Clientset, *rest.Config, error) {
 	configV1 := clientcmdapiv1.Config{}
 	err := json.Unmarshal([]byte(kubeconfig), &configV1)
 	if err != nil {
-		invoker.Logger.Error("json unmarshal kubeconfig error.", elog.String("kubeconfig", kubeconfig), elog.String("err", err.Error()))
+		elog.Error("json unmarshal kubeconfig error.", elog.String("kubeconfig", kubeconfig), elog.FieldErr(err))
 		return nil, nil, err
 	}
 	configObject, err := clientcmdlatest.Scheme.ConvertToVersion(&configV1, clientcmdapi.SchemeGroupVersion)
@@ -31,7 +29,7 @@ func buildClient(apiServerAddr string, kubeconfig string) (*kubernetes.Clientset
 	}).ClientConfig()
 
 	if err != nil {
-		invoker.Logger.Error("build client config error. ", zap.Error(err))
+		elog.Error("build client config error. ", zap.Error(err))
 		return nil, nil, err
 	}
 
@@ -41,7 +39,7 @@ func buildClient(apiServerAddr string, kubeconfig string) (*kubernetes.Clientset
 	clientSet, err := kubernetes.NewForConfig(clientConfig)
 
 	if err != nil {
-		invoker.Logger.Error(fmt.Sprintf("apiServerAddr(%s) kubernetes.NewForConfig(%v) error.", apiServerAddr, clientConfig), zap.Error(err))
+		elog.Error(fmt.Sprintf("apiServerAddr(%s) kubernetes.NewForConfig(%v) error.", apiServerAddr, clientConfig), zap.Error(err))
 		return nil, nil, err
 	}
 

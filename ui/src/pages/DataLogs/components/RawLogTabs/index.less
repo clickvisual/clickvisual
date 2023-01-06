@@ -7,11 +7,18 @@
   overflow: hidden;
   .tabs {
     flex: 1;
-    :global {
-      .ant-tabs-content-holder {
-        display: flex;
-        flex: 1;
-      }
+
+    :global .ant-tabs-content-holder {
+      display: flex;
+      flex: 1;
+    }
+
+    :global .ant-tabs-nav {
+      margin-bottom: 6px;
+    }
+
+    :global .ant-tabs-tab {
+      padding: 4px 10px;
     }
   }
 

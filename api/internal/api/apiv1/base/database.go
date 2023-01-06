@@ -18,6 +18,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// @Tags         LOGSTORE
 func DatabaseCreate(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -57,6 +58,7 @@ func DatabaseCreate(c *core.Context) {
 	return
 }
 
+// @Tags         LOGSTORE
 func DatabaseExistList(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	if iid == 0 {
@@ -77,6 +79,7 @@ func DatabaseExistList(c *core.Context) {
 	return
 }
 
+// @Tags         LOGSTORE
 func DatabaseList(c *core.Context) {
 	iid := cast.ToInt(c.Param("iid"))
 	conds := egorm.Conds{}
@@ -113,6 +116,7 @@ func DatabaseList(c *core.Context) {
 	return
 }
 
+// @Tags         LOGSTORE
 func DatabaseDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -164,6 +168,7 @@ func DatabaseDelete(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         LOGSTORE
 func DatabaseUpdate(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

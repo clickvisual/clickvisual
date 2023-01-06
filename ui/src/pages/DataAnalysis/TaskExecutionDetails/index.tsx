@@ -10,6 +10,12 @@ import { useIntl, useModel } from "umi";
 import { getTime } from "../components/RightMenu/Results";
 import TaskFilter from "./TaskFilter";
 
+export enum StatusType {
+  unknown = 0,
+  success = 1,
+  error = 2,
+}
+
 const TaskExecutionDetails = () => {
   const i18n = useIntl();
   const { statisticalBoard, currentInstances } = useModel("dataAnalysis");
@@ -19,6 +25,7 @@ const TaskExecutionDetails = () => {
   const [startTime, setStartTime] = useState<number>();
   const [nodeName, setNodeName] = useState<string>();
   const [tertiary, setTertiary] = useState<TaskListTertiaryEnum | undefined>();
+  const [state, setState] = useState<StatusType | undefined>();
   const [currentPagination, setCurrentPagination] = useState<API.Pagination>({
     current: 1,
     pageSize: 10,
@@ -30,7 +37,8 @@ const TaskExecutionDetails = () => {
       if (res.code != 0) return;
       setTaskList(res.data.list);
       setCurrentPagination({
-        ...currentPagination,
+        current: data.current || 1,
+        pageSize: data.pageSize || 10,
         total: res.data.total,
       });
     });
@@ -41,6 +49,7 @@ const TaskExecutionDetails = () => {
     start?: number;
     nodeName?: string;
     tertiary?: number;
+    state?: number;
   }) =>
     currentInstances &&
     getList({
@@ -48,10 +57,29 @@ const TaskExecutionDetails = () => {
       end: data.end == 0 ? undefined : data.end || endTime,
       start: data.start == 0 ? undefined : data.start || endTime,
       nodeName: data.nodeName || nodeName,
+      status: data.state ?? state,
       tertiary:
         data.tertiary === undefined ? undefined : data.tertiary || tertiary,
       ...currentPagination,
     });
+
+  const stateTag = {
+    [StatusType.unknown]: <Tag>unknown</Tag>,
+    [StatusType.success]: (
+      <Tag color="lime">
+        {i18n.formatMessage({
+          id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful",
+        })}
+      </Tag>
+    ),
+    [StatusType.error]: (
+      <Tag color="red">
+        {i18n.formatMessage({
+          id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure",
+        })}
+      </Tag>
+    ),
+  };
 
   const column: any = [
     {
@@ -79,23 +107,7 @@ const TaskExecutionDetails = () => {
       dataIndex: "status",
       align: "center",
       render: (status: number) => {
-        return (
-          <Tooltip title={status}>
-            {status ? (
-              <Tag color="lime">
-                {i18n.formatMessage({
-                  id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.successful",
-                })}
-              </Tag>
-            ) : (
-              <Tag color="red">
-                {i18n.formatMessage({
-                  id: "bigdata.dataAnalysis.taskExecutionDetails.column.status.failure",
-                })}
-              </Tag>
-            )}
-          </Tooltip>
-        );
+        return <Tooltip title={status}>{stateTag[status]}</Tooltip>;
       },
     },
     {
@@ -184,6 +196,8 @@ const TaskExecutionDetails = () => {
           setEndTime={setEndTime}
           setStartTime={setStartTime}
           setTertiary={setTertiary}
+          setState={setState}
+          state={state}
           tertiary={tertiary}
           nodeName={nodeName}
           endTime={endTime}
@@ -194,7 +208,6 @@ const TaskExecutionDetails = () => {
         <Table
           rowKey={"id"}
           columns={column}
-          // size={"small"}
           loading={doGetTaskList.loading}
           dataSource={taskList}
           bordered

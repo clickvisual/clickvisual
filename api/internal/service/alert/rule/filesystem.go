@@ -6,6 +6,8 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 var _ Component = (*fileSystem)(nil)
@@ -38,24 +40,32 @@ func NewFileSystem(params *Params) (*fileSystem, error) {
 	return p, nil
 }
 
-func (r *fileSystem) CreateOrUpdate(name, content string) error {
+func (r *fileSystem) CreateOrUpdate(groupName, ruleName, content string) error {
 	if r.rulePath == "" {
 		return errors.Wrapf(ErrParameter, "rule: %v", r)
 	}
 	path := strings.TrimSuffix(r.rulePath, "/")
-	if err := os.WriteFile(path+"/"+name, []byte(content), 0644); err != nil {
-		return errors.Wrapf(err, "rule name %s, rule %s", name, content)
+	if err := os.WriteFile(path+"/"+ruleName, []byte(content), 0644); err != nil {
+		return errors.Wrapf(err, "rule name %s, rule %s", ruleName, content)
 	}
 	return nil
 }
 
-func (r *fileSystem) Delete(name string) error {
+func (r *fileSystem) Delete(groupName, ruleName string) error {
 	if r.rulePath == "" {
 		return errors.Wrapf(ErrParameter, "rule: %v", r)
 	}
 	path := strings.TrimSuffix(r.rulePath, "/")
-	if err := os.Remove(path + "/" + name); err != nil && !errors.Is(err, os.ErrNotExist) {
+	if err := os.Remove(path + "/" + ruleName); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return errors.Wrapf(err, "file path is %s", r.rulePath)
 	}
 	return nil
+}
+
+func (r *fileSystem) BatchSet(groupName string, rules []db.ClusterRuleItem) error {
+	return ErrNotYetSupported
+}
+
+func (r *fileSystem) BatchRemove(groupName string) error {
+	return ErrNotYetSupported
 }

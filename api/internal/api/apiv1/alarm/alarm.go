@@ -21,6 +21,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
+// Create
+// @Tags         ALARM
+// @Summary	     告警创建
 func Create(c *core.Context) {
 	var req view.ReqAlarmCreate
 	if err := c.Bind(&req); err != nil {
@@ -65,15 +68,13 @@ func Create(c *core.Context) {
 		c.JSONE(1, "alarm create failed 01", err)
 		return
 	}
-	err := service.Alert.CreateOrUpdate(tx, obj, req)
-	if err != nil {
-		tx.Rollback()
-		c.JSONE(1, err.Error(), err)
-		return
-	}
-	if err = tx.Commit().Error; err != nil {
+	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 03", err)
+		return
+	}
+	if err := service.Alert.CreateOrUpdate(obj, req); err != nil {
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsCreate, map[string]interface{}{"obj": obj})
@@ -81,6 +82,9 @@ func Create(c *core.Context) {
 	return
 }
 
+// Update
+// @Tags         ALARM
+// @Summary 	 告警更新
 func Update(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -112,11 +116,35 @@ func Update(c *core.Context) {
 			return
 		}
 	}
-
 	switch req.Status {
 	case db.AlarmStatusOpen:
 		err = service.Alert.OpenOperator(id)
 	case db.AlarmStatusClose:
+		clusterRuleGroups := map[string]db.ClusterRuleGroup{}
+		// 删除告警规则
+		for _, ri := range relatedList {
+			instance := ri.Instance
+			if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
+				clusterRuleGroup := db.ClusterRuleGroup{}
+				if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
+					clusterRuleGroup = tmp
+				} else {
+					clusterRuleGroup.ClusterId = instance.ClusterId
+					clusterRuleGroup.Instance = instance
+					clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
+				}
+				clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
+			} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+				if err = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo); err != nil {
+					c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
+					return
+				}
+			}
+		}
+		if len(clusterRuleGroups) > 0 {
+			_ = service.Alert.PrometheusRuleBatchRemove(clusterRuleGroups)
+		}
+		// 删除 clickhouse 物化视图
 		for _, ri := range relatedList {
 			op, errInstanceManager := service.InstanceManager.Load(ri.Instance.ID)
 			if errInstanceManager != nil {
@@ -150,11 +178,8 @@ func Update(c *core.Context) {
 					return
 				}
 			}
-			if err = service.Alert.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
-				c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
-				return
-			}
 		}
+		_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
 		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
 	default:
 		err = service.Alert.Update(c.Uid(), id, req)
@@ -167,6 +192,9 @@ func Update(c *core.Context) {
 	c.JSONOK()
 }
 
+// List
+// @Tags         ALARM
+// @Summary	     告警列表
 func List(c *core.Context) {
 	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
@@ -179,6 +207,10 @@ func List(c *core.Context) {
 	did, _ := strconv.Atoi(c.Query("did"))
 	alarmId, _ := strconv.Atoi(c.Query("alarmId"))
 	status, _ := strconv.Atoi(c.Query("status"))
+	isReload, _ := strconv.Atoi(c.Query("isReload"))
+	if isReload == 1 {
+		go service.Alert.PlusOnePrometheusReloadChan()
+	}
 	query := egorm.Conds{}
 	if name != "" {
 		query["name"] = egorm.Cond{
@@ -253,6 +285,9 @@ func List(c *core.Context) {
 	return
 }
 
+// Info
+// @Tags         ALARM
+// @Summary	     告警详情
 func Info(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -280,7 +315,7 @@ func Info(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["alarm_id"] = alarmInfo.ID
-	filters, err := db.AlarmFilterList(conds)
+	filters, err := db.AlarmFilterList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
@@ -329,6 +364,9 @@ func Info(c *core.Context) {
 	return
 }
 
+// Delete
+// @Tags         ALARM
+// @Summary	     告警删除
 func Delete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -337,7 +375,7 @@ func Delete(c *core.Context) {
 	}
 	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
 	if err != nil {
-		c.JSONE(1, "alarm failed to delete 01", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	for _, ri := range relatedList {
@@ -356,32 +394,42 @@ func Delete(c *core.Context) {
 	}
 	tx := invoker.Db.Begin()
 	if err = db.AlarmDelete(tx, id); err != nil {
-		c.JSONE(1, "alarm failed to delete 02", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// filter
 	if err = db.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 03", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// condition
 	if err = db.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
-		c.JSONE(1, "alarm failed to delete 04", err)
+		c.JSONE(1, err.Error(), err)
 		return
 	}
+	clusterRuleGroups := map[string]db.ClusterRuleGroup{}
 	for _, ri := range relatedList {
-		if err = service.Alert.PrometheusRuleDelete(&ri.Instance, &alarmInfo); err != nil {
-			tx.Rollback()
-			c.JSONE(1, "alarm failed to delete 05", err)
-			return
+		instance := ri.Instance
+		if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
+			clusterRuleGroup := db.ClusterRuleGroup{}
+			if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
+				clusterRuleGroup = tmp
+			} else {
+				clusterRuleGroup.ClusterId = instance.ClusterId
+				clusterRuleGroup.Instance = instance
+				clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
+			}
+			clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
+		} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+			_ = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo)
 		}
 		var op inquiry.Operator
 		op, err = service.InstanceManager.Load(ri.Table.Database.Iid)
 		if err != nil {
 			tx.Rollback()
-			c.JSONE(core.CodeErr, "clickhouse load failed", err)
+			c.JSONE(core.CodeErr, err.Error(), err)
 			return
 		}
 		if len(alarmInfo.ViewDDLs) > 0 {
@@ -394,7 +442,7 @@ func Delete(c *core.Context) {
 					op, err = service.InstanceManager.Load(iid)
 					if err != nil {
 						tx.Rollback()
-						c.JSONE(core.CodeErr, "clickhouse load failed", err)
+						c.JSONE(core.CodeErr, err.Error(), err)
 						return
 					}
 					if iid != ri.Table.Database.Iid {
@@ -403,33 +451,39 @@ func Delete(c *core.Context) {
 				}
 				if err = op.DeleteAlertView(table, ri.Table.Database.Cluster); err != nil {
 					tx.Rollback()
-					c.JSONE(core.CodeErr, "alarm view drop failed", err)
+					c.JSONE(core.CodeErr, err.Error(), err)
 					return
 				}
 			}
 		} else {
 			if err = op.DeleteAlertView(alarmInfo.ViewTableName, ri.Table.Database.Cluster); err != nil {
 				tx.Rollback()
-				c.JSONE(core.CodeErr, "alarm failed to delete 06", err)
+				c.JSONE(core.CodeErr, err.Error(), err)
 				return
 			}
 		}
 	}
+	if len(clusterRuleGroups) > 0 {
+		_ = service.Alert.PrometheusRuleBatchRemove(clusterRuleGroups)
+	}
 	if err = tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, "alarm failed to delete 07", err)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
 	c.JSONOK()
 }
 
+// HistoryList
+// @Tags         ALARM
+// @Summary	     告警推送记录
 func HistoryList(c *core.Context) {
 	var req view.ReqAlarmHistoryList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	invoker.Logger.Debug("history", elog.Any("req", req))
+	elog.Debug("history", elog.Any("req", req))
 	conds := egorm.Conds{}
 	if req.AlarmId != 0 {
 		conds["alarm_id"] = req.AlarmId
@@ -461,6 +515,9 @@ func HistoryList(c *core.Context) {
 	return
 }
 
+// HistoryInfo
+// @Tags         ALARM
+// @Summary	     告警推送详情
 func HistoryInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {

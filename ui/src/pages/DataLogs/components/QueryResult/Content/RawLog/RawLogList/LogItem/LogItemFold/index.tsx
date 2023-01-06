@@ -140,6 +140,7 @@ const LogItemFold = ({ onFoldClick, log }: LogItemFoldProps) => {
 
         {logFields.length > 0 &&
           logFields
+            .filter((item: any) => !hiddenFields.includes(item))
             .filter((item) => !indexList.includes(item))
             .map((field) => {
               return (

@@ -27,7 +27,7 @@ func (c *ClickHouse2MySQL) Stop() error {
 		err error
 	)
 	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
-		invoker.Logger.Error("ClickHouse2MySQL", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
+		elog.Error("ClickHouse2MySQL", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return err
 	}
 	if err = dropMaterialView(ins, c.nodeId, c.sc); err != nil {
@@ -94,7 +94,7 @@ func (c *ClickHouse2MySQL) materializedView(ins db.BaseInstance) error {
 	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s SELECT %s FROM %s WHERE %s",
 		viewClusterInfo, mapping(c.sc.Mapping), sourceTableName, where(c.sc.Source.SourceFilter))
 
-	invoker.Logger.Debug("ClickHouse2MySQL", elog.String("step", "c2mMaterialView"), elog.String("completeSQL", completeSQL))
+	elog.Debug("ClickHouse2MySQL", elog.String("step", "c2mMaterialView"), elog.String("completeSQL", completeSQL))
 
 	c.involvedSQLs["c2mMaterialView"] = completeSQL
 
@@ -136,7 +136,7 @@ func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db.BaseInstance, sc *view.Syn
 		sc.Target.Database,
 		s.UserName,
 		s.Password)
-	invoker.Logger.Debug("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
+	elog.Debug("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,

@@ -17,6 +17,7 @@ export interface getTaskListType {
   sort?: string;
   tertiary?: TaskListTertiaryEnum;
   total?: number;
+  status?: number;
 }
 
 export const EnumsTertiary = {

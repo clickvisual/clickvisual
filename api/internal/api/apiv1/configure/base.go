@@ -23,6 +23,7 @@ import (
 )
 
 // List 配置文件列表
+// @Tags         CONFIGURE
 func List(c *core.Context) {
 	param := view.ReqListConfig{}
 	err := c.Bind(&param)
@@ -69,6 +70,7 @@ func List(c *core.Context) {
 }
 
 // Detail ..
+// @Tags         CONFIGURE
 func Detail(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -97,6 +99,7 @@ func Detail(c *core.Context) {
 }
 
 // Create ..
+// @Tags         CONFIGURE
 func Create(c *core.Context) {
 	param := view.ReqCreateConfig{}
 	err := c.Bind(&param)
@@ -114,6 +117,7 @@ func Create(c *core.Context) {
 }
 
 // Update ..
+// @Tags         CONFIGURE
 func Update(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -148,6 +152,7 @@ func Update(c *core.Context) {
 }
 
 // Publish ..
+// @Tags         CONFIGURE
 func Publish(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id == 0 {
@@ -177,6 +182,7 @@ func Publish(c *core.Context) {
 }
 
 // HistoryList ..
+// @Tags         CONFIGURE
 func HistoryList(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -214,6 +220,7 @@ func HistoryList(c *core.Context) {
 }
 
 // HistoryInfo ..
+// @Tags         CONFIGURE
 func HistoryInfo(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	version := strings.TrimSpace(c.Param("version"))
@@ -233,6 +240,7 @@ func HistoryInfo(c *core.Context) {
 }
 
 // Diff ..
+// @Tags         CONFIGURE
 func Diff(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -255,6 +263,7 @@ func Diff(c *core.Context) {
 }
 
 // Delete ..
+// @Tags         CONFIGURE
 func Delete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -271,6 +280,7 @@ func Delete(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         CONFIGURE
 func Lock(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -291,6 +301,7 @@ func Lock(c *core.Context) {
 	c.JSONOK()
 }
 
+// @Tags         CONFIGURE
 func Unlock(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
 	if id < 1 {
@@ -308,6 +319,7 @@ func Unlock(c *core.Context) {
 // Sync Synchronize the configmap configuration
 // if id is 0 means all configurations need to be synchronized
 // not support update operator
+// @Tags         CONFIGURE
 func Sync(c *core.Context) {
 	param := view.ReqSyncConfig{}
 	err := c.Bind(&param)
@@ -331,13 +343,13 @@ func Sync(c *core.Context) {
 	var obj runtime.Object
 	obj, err = client.KubeClient.Get(api.ResourceNameConfigMap, param.K8SConfigMapNamespace, param.K8SConfigMapName)
 	if err != nil {
-		invoker.Logger.Error("configmaps", elog.String("err", err.Error()), elog.String("namespace", param.K8SConfigMapNamespace), elog.String("configmap", param.K8SConfigMapName))
+		elog.Error("configmaps", elog.String("err", err.Error()), elog.String("namespace", param.K8SConfigMapNamespace), elog.String("configmap", param.K8SConfigMapName))
 		c.JSONE(core.CodeErr, "client.KubeClient.List", err)
 		return
 	}
 	tx := invoker.Db.Begin()
 	cm := *(obj.(*corev1.ConfigMap))
-	invoker.Logger.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
+	elog.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
 
 	k8sCMObject := db.K8SConfigMap{
 		ClusterId: param.ClusterId,
@@ -359,7 +371,7 @@ func Sync(c *core.Context) {
 	for key, val := range cm.Data {
 		nameArr := strings.Split(key, ".")
 		if len(nameArr) < 2 {
-			invoker.Logger.Warn("sync", elog.String("name", key), elog.String("err", "nameArr size error"))
+			elog.Warn("sync", elog.String("name", key), elog.String("err", "nameArr size error"))
 			continue
 		}
 		format := nameArr[len(nameArr)-1]
@@ -393,7 +405,7 @@ func Sync(c *core.Context) {
 				return
 			}
 		}
-		invoker.Logger.Debug("sync", elog.String("step", "Update"), elog.Any("configuration", configuration))
+		elog.Debug("sync", elog.String("step", "Update"), elog.Any("configuration", configuration))
 		err = configure.Configure.Update(c, tx, view.ReqUpdateConfig{ID: configuration.ID, Message: "sync from cluster", Content: val}, configuration)
 		if err != nil {
 			if errors.Is(err, constx.ErrConfigurationIsNoDifference) {

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -183,7 +184,7 @@ func (pr *PmsRole) GenerateOnePRuleTplByDetail(roleDetail *PmsRoleDetail) (resp 
 
 func PmsRoleInfo(id int) (resp *PmsRole, err error) {
 	if err = invoker.Db.Table(TableNamePmsRole).Where("id = ?", id).First(&resp).Error; err != nil {
-		invoker.Logger.Error("get pms_role by id failed.", zap.Error(err))
+		elog.Error("get pms_role by id failed.", zap.Error(err))
 		return
 	}
 	err = invoker.Db.Table(TableNamePmsRoleDetail).Where("pms_role_id = ?", resp.ID).Find(&(resp.Details)).Error
@@ -264,7 +265,7 @@ func CreatePmsRole(db *gorm.DB, data *PmsRole) (err error) {
 	tx := db.Begin()
 	// create pms_role first
 	if err = tx.Model(data).Create(&data).Error; err != nil {
-		invoker.Logger.Error("Create pms_role error", zap.Error(err))
+		elog.Error("Create pms_role error", zap.Error(err))
 		tx.Rollback()
 		return
 	}
@@ -277,7 +278,7 @@ func CreatePmsRole(db *gorm.DB, data *PmsRole) (err error) {
 		}
 		detail.PmsRoleId = data.ID
 		if err = tx.Model(detail).Create(detail).Error; err != nil {
-			invoker.Logger.Error("Create pms_role_detail error", zap.Error(err))
+			elog.Error("Create pms_role_detail error", zap.Error(err))
 			tx.Rollback()
 			return
 		}
@@ -289,7 +290,7 @@ func CreatePmsRole(db *gorm.DB, data *PmsRole) (err error) {
 
 func CreatePmsRoleDetail(db *gorm.DB, data *PmsRoleDetail) (err error) {
 	if err = db.Model(data).Create(data).Error; err != nil {
-		invoker.Logger.Error("create pms_role_detail error", zap.Error(err))
+		elog.Error("create pms_role_detail error", zap.Error(err))
 		return
 	}
 	return
@@ -299,32 +300,32 @@ func CreatePmsRoleDetail(db *gorm.DB, data *PmsRoleDetail) (err error) {
 func DeletePmsRoleById(tx *gorm.DB, pmsRoleId int) (err error) {
 	// delete detail(s) first
 	if err = tx.Where("pms_role_id=?", pmsRoleId).Delete(&PmsRoleDetail{}).Error; err != nil {
-		invoker.Logger.Error("delete PmsRoleDetail failed.", zap.Error(err))
+		elog.Error("delete PmsRoleDetail failed.", zap.Error(err))
 		return fmt.Errorf("delete PmsRoleDetail error. ")
 	}
 
 	// delete grant of each ref
 	refs, err := GetPmsRoleRefList(egorm.Conds{"pms_role_id": pmsRoleId})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		invoker.Logger.Error("list refs of target pms_role failed.", zap.Error(err))
+		elog.Error("list refs of target pms_role failed.", zap.Error(err))
 		return fmt.Errorf("list refs of pms_role failed")
 	}
 	for _, ref := range refs {
 		if err = tx.Where("pms_role_ref_id=?", ref.ID).Delete(&PmsRoleRefGrant{}).Error; err != nil {
-			invoker.Logger.Error("delete PmsRoleRefGrant failed.", zap.Error(err))
+			elog.Error("delete PmsRoleRefGrant failed.", zap.Error(err))
 			return fmt.Errorf("delete PmsRoleRefGrant error. ")
 		}
 	}
 
 	// delete ref(s)
 	if err = tx.Where("pms_role_id=?", pmsRoleId).Delete(&PmsRoleRef{}).Error; err != nil {
-		invoker.Logger.Error("delete PmsRoleRef failed.", zap.Error(err))
+		elog.Error("delete PmsRoleRef failed.", zap.Error(err))
 		return fmt.Errorf("delete PmsRoleRef error. ")
 	}
 
 	// finally, delete pmsRole.
 	if err = tx.Table(TableNamePmsRole).Where("id=?", pmsRoleId).Delete(&PmsRole{}).Error; err != nil {
-		invoker.Logger.Error("delete PmsRole error", zap.Error(err))
+		elog.Error("delete PmsRole error", zap.Error(err))
 		return fmt.Errorf("delete PmsRole record failed. ")
 	}
 	return
@@ -333,12 +334,12 @@ func DeletePmsRoleById(tx *gorm.DB, pmsRoleId int) (err error) {
 func DeletePmsRoleRef(tx *gorm.DB, id int) (err error) {
 	// delete grant first
 	if err = tx.Where("pms_role_ref_id=?", id).Delete(&PmsRoleRefGrant{}).Error; err != nil {
-		invoker.Logger.Error("delete PmsRoleRefGrant of PmsRoleRef failed.", zap.Error(err))
+		elog.Error("delete PmsRoleRefGrant of PmsRoleRef failed.", zap.Error(err))
 		return fmt.Errorf("delete PmsRoleRefGrant of PmsRoleRef error. ")
 	}
 	// delete target ref
 	if err = tx.Where("id=?", id).Delete(&PmsRoleRef{}).Error; err != nil {
-		invoker.Logger.Error("delete PmsRoleRef failed.", zap.Error(err))
+		elog.Error("delete PmsRoleRef failed.", zap.Error(err))
 		return fmt.Errorf("delete PmsRoleRef error. ")
 	}
 	return
@@ -456,7 +457,7 @@ func PmsCustomRoleCreate(item *PmsCustomRole) (err error) {
 
 func PmsCustomRoleDelete(paramId int) (err error) {
 	if err = invoker.Db.Table(TableNamePmsCustomRole).Where("id = ?", paramId).Delete(&PmsCustomRole{}).Error; err != nil {
-		invoker.Logger.Error("delete customRole error", zap.Error(err))
+		elog.Error("delete customRole error", zap.Error(err))
 		return
 	}
 	return
@@ -464,7 +465,7 @@ func PmsCustomRoleDelete(paramId int) (err error) {
 
 func PmsDefaultRoleDelete(paramId int) (err error) {
 	if err = invoker.Db.Table(TableNamePmsDefaultRole).Where("id = ?", paramId).Delete(&PmsDefaultRole{}).Error; err != nil {
-		invoker.Logger.Error("delete defaultRole error", zap.Error(err))
+		elog.Error("delete defaultRole error", zap.Error(err))
 		return
 	}
 	return

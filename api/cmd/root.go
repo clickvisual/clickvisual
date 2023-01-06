@@ -6,6 +6,7 @@ import (
 	"github.com/clickvisual/prom2click"
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egovernor"
 	"github.com/gotomicro/ego/task/ejob"
 	"github.com/spf13/cobra"
@@ -65,6 +66,6 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 	}
 	err := app.Run()
 	if err != nil {
-		invoker.Logger.Panic("start up error: " + err.Error())
+		elog.Panic("start up error: " + err.Error())
 	}
 }

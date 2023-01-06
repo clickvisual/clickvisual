@@ -137,6 +137,33 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "hantmac",
+      "name": "Jeremy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7600925?v=4",
+      "profile": "https://cloudsjhan.github.io/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "pigcsy",
+      "name": "csy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20635389?v=4",
+      "profile": "https://github.com/pigcsy",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "zackzhangkai",
+      "name": "zackzhangkai",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20178386?v=4",
+      "profile": "https://github.com/zackzhangkai",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

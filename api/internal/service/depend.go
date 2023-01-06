@@ -59,13 +59,13 @@ func (d *dependence) analysis() {
 	// Get all the instance data
 	instances, err := db.InstanceList(egorm.Conds{})
 	if err != nil {
-		invoker.Logger.Error("depsBatch", elog.String("step", "instances"), elog.String("error", err.Error()))
+		elog.Error("depsBatch", elog.String("step", "instances"), elog.String("error", err.Error()))
 		return
 	}
 	for _, instance := range instances {
 		op, errLoad := InstanceManager.Load(instance.ID)
 		if errLoad != nil {
-			invoker.Logger.Error("depsBatch", elog.String("step", "Load"), elog.String("error", errLoad.Error()))
+			elog.Error("depsBatch", elog.String("step", "Load"), elog.String("error", errLoad.Error()))
 			continue
 		}
 		// Try again once
@@ -113,7 +113,7 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTables) {
 			Bytes:                row.TotalBytes,
 		}
 		if _, ok := filter[item.Name()]; ok {
-			invoker.Logger.Error("depsBatch", elog.String("step", "repeat"), elog.String("key", item.Key()))
+			elog.Error("depsBatch", elog.String("step", "repeat"), elog.String("key", item.Key()))
 			continue
 		}
 		filter[item.Name()] = item
@@ -143,16 +143,16 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTables) {
 	tx := invoker.Db.Begin()
 	if err := db.DependsDeleteAll(tx, iid); err != nil {
 		tx.Rollback()
-		invoker.Logger.Error("analysisInstance", elog.String("step", "DependsDeleteAll"), elog.FieldErr(err))
+		elog.Error("analysisInstance", elog.String("step", "DependsDeleteAll"), elog.FieldErr(err))
 		return
 	}
 	if err := db.DependsBatchInsert(tx, depends); err != nil {
 		tx.Rollback()
-		invoker.Logger.Error("analysisInstance", elog.String("step", "DependsBatchInsert"), elog.FieldErr(err))
+		elog.Error("analysisInstance", elog.String("step", "DependsBatchInsert"), elog.FieldErr(err))
 		return
 	}
 	if err := tx.Commit().Error; err != nil {
-		invoker.Logger.Error("analysisInstance", elog.String("step", "commit"), elog.FieldErr(err))
+		elog.Error("analysisInstance", elog.String("step", "commit"), elog.FieldErr(err))
 		return
 	}
 	return

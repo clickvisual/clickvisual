@@ -10,6 +10,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
+// @Tags         PREMISSION
 func MenuList(c *core.Context) {
 	if err := permission.Manager.IsRootUser(c.Uid()); err == nil {
 		c.JSONOK(service.Permission.AdminMenuList())

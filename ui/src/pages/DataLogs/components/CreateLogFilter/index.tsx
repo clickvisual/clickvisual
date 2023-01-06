@@ -6,6 +6,7 @@ import {
   message,
   Modal,
   Select,
+  Space,
   Switch,
 } from "antd";
 import { useEffect, useRef } from "react";
@@ -16,6 +17,11 @@ import { cloneDeep } from "lodash";
 
 const operatorList = ["=", "!=", "<", "<=", ">", ">="];
 const { Option } = Select;
+enum FilterValueTypeEnum {
+  String = 1,
+  Int = 2,
+  // Boolean = 3,
+}
 
 const CreateLogFilter = ({ tid }: { tid: number }) => {
   const i18n = useIntl();
@@ -28,6 +34,8 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
     doEditLogFilter,
     doGetLogsAndHighCharts,
     columsList,
+    logPanesHelper,
+    onChangeCurrentLogPane,
   } = useModel("dataLogs");
   const formFilterRef = useRef<FormInstance>(null);
 
@@ -37,11 +45,21 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
     isCustom: boolean;
     operator: string;
     value: string;
+    valueType: FilterValueTypeEnum;
   }) => {
+    let statement = "";
+    switch (file.valueType) {
+      case FilterValueTypeEnum.String:
+        statement = `${file.field} ${file.operator} '${file.value}'`;
+        break;
+      case FilterValueTypeEnum.Int:
+        statement = `${file.field} ${file.operator} ${file.value}`;
+        break;
+    }
     const data: any = {
       alias: file?.isCustom ? file?.alias : undefined,
       collectType: CollectType.tableFilter,
-      statement: `${file.field} ${file.operator} '${file.value}'`,
+      statement: statement,
       tableId: tid,
       column: file.field, // 分析字段名称
     };
@@ -53,7 +71,15 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
         message.success("success");
         onChangeVisibleLogFilter(false);
         // 以下函数会刷新filterList
-        doGetLogsAndHighCharts(tid);
+
+        doGetLogsAndHighCharts(tid).then((data: any) => {
+          const { logs } = data;
+          const pane = logPanesHelper.logPanes[tid];
+          onChangeCurrentLogPane({
+            ...pane,
+            logs: logs,
+          });
+        });
       });
     } else {
       // add
@@ -62,26 +88,45 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
         message.success("success");
         onChangeVisibleLogFilter(false);
         // 以下函数会刷新filterList
-        doGetLogsAndHighCharts(tid);
+
+        doGetLogsAndHighCharts(tid).then((data: any) => {
+          const { logs } = data;
+          const pane = logPanesHelper.logPanes[tid];
+          onChangeCurrentLogPane({
+            ...pane,
+            logs: logs,
+          });
+        });
       });
     }
   };
 
   useEffect(() => {
-    if (visibleLogFilter && editLogFilterInfo) {
-      const arr = editLogFilterInfo.statement.split(" ");
-      let newArr = cloneDeep(arr);
-      newArr.splice(0, 2);
-      formFilterRef.current?.setFieldsValue({
-        field: arr[0],
-        operator: arr[1],
-        value: newArr.join(" ").replace(/'/g, ""),
-        isCustom: editLogFilterInfo.alias ? true : false,
-        alias: editLogFilterInfo.alias,
-      });
-    } else {
+    if (!visibleLogFilter) {
       onChangeEditLogFilterInfo(undefined);
       formFilterRef.current?.resetFields();
+    } else {
+      if (visibleLogFilter && !editLogFilterInfo) {
+        formFilterRef.current?.setFieldsValue({
+          valueType: FilterValueTypeEnum.String,
+        });
+      }
+      if (visibleLogFilter && editLogFilterInfo) {
+        const arr = editLogFilterInfo.statement.split(" ");
+        let newArr = cloneDeep(arr);
+        newArr.splice(0, 2);
+        formFilterRef.current?.setFieldsValue({
+          field: arr[0],
+          valueType:
+            editLogFilterInfo.statement.indexOf("'") == -1
+              ? FilterValueTypeEnum.Int
+              : FilterValueTypeEnum.String,
+          operator: arr[1],
+          value: newArr.join(" ").replace(/'/g, ""),
+          isCustom: editLogFilterInfo.alias ? true : false,
+          alias: editLogFilterInfo.alias,
+        });
+      }
     }
   }, [visibleLogFilter]);
 
@@ -111,7 +156,7 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
                   id: "log.filter.form.field",
                 })}
               >
-                {columsList.map((item: string) => {
+                {columsList?.map((item: string) => {
                   return (
                     <Option key={item} value={item}>
                       {item}
@@ -145,10 +190,23 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
           </div>
         </div>
         <div className={styles.title}>
+          <Form.Item label="值类型" name={"valueType"} style={{ width: 100 }}>
+            <Select
+              onChange={() => {
+                formFilterRef?.current?.setFieldsValue({ value: undefined });
+              }}
+            >
+              <Option value={FilterValueTypeEnum.String}>String</Option>
+              <Option value={FilterValueTypeEnum.Int}>Int</Option>
+            </Select>
+          </Form.Item>
           <Form.Item
-            label={i18n.formatMessage({ id: "log.filter.form.value" })}
+            label={i18n.formatMessage({
+              id: "log.filter.form.value",
+            })}
             name={"value"}
             rules={[{ required: true }]}
+            style={{ flex: 1, marginLeft: 10 }}
           >
             <Input
               placeholder={i18n.formatMessage({

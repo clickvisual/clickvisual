@@ -265,9 +265,9 @@ const CreatedOrUpdatedInstanceModal = (
             placeholder={i18n.formatMessage({
               id: "instance.form.placeholder.datasource",
             })}
-            disabled
           >
             <Option value={"ch"}>ClickHouse</Option>
+            <Option value={"databend"}>Databend</Option>
           </Select>
         </Form.Item>
 
@@ -310,6 +310,33 @@ const CreatedOrUpdatedInstanceModal = (
                 </span>
               )}
             </Form.Item>
+
+            <Form.Item
+              noStyle
+              shouldUpdate={(prevValues, nextValues) =>
+                prevValues.mode !== nextValues.mode
+              }
+            >
+              {({ getFieldValue }) => {
+                const mode = getFieldValue("mode");
+                if (!mode) {
+                  return <></>;
+                }
+                return (
+                  <Form.Item
+                    label={i18n.formatMessage({
+                      id: "instance.form.title.replicaStatus",
+                    })}
+                    valuePropName="checked"
+                    name={"replicaStatus"}
+                    initialValue={false}
+                    style={{ marginBottom: 0, marginLeft: 200 }}
+                  >
+                    <Checkbox />
+                  </Form.Item>
+                );
+              }}
+            </Form.Item>
           </Space>
         </Form.Item>
         <Form.Item
@@ -325,16 +352,6 @@ const CreatedOrUpdatedInstanceModal = (
             }
             return (
               <>
-                <Form.Item
-                  label={i18n.formatMessage({
-                    id: "instance.form.title.replicaStatus",
-                  })}
-                  valuePropName="checked"
-                  name={"replicaStatus"}
-                  initialValue={false}
-                >
-                  <Checkbox />
-                </Form.Item>
                 <Form.List name="clusters">
                   {(fields, { add, remove }, { errors }) => {
                     return (
