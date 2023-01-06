@@ -691,6 +691,10 @@ func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 				key = v["f"].(string)
 			case *string:
 				key = *(v["f"].(*string))
+			case int16:
+				key = fmt.Sprintf("%d", v["f"].(int16))
+			case *int16:
+				key = fmt.Sprintf("%d", v["f"].(*int16))
 			case uint16:
 				key = fmt.Sprintf("%d", v["f"].(uint16))
 			case int32:
