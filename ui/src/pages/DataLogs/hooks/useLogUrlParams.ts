@@ -157,23 +157,28 @@ export default function useLogUrlParams() {
       ? moment().format("X")
       : parseInt(urlState.end || lastDataLogsState.end);
 
+    const isTid = !!urlState?.tid;
+
     const pane: PaneType = {
       ...DefaultPane,
       pane: res.data.name,
       paneId: tid.toString(),
       paneType: res.data.createType,
-      start: startTime || parseInt(urlState.start || lastDataLogsState.start),
-      end: endTime || parseInt(urlState.end || lastDataLogsState.end),
-      keyword: urlState.kw || lastDataLogsState.kw,
-      page: parseInt(urlState.page || lastDataLogsState.page),
-      pageSize: parseInt(urlState.size || lastDataLogsState.size),
-      activeTabKey: urlState.tab || lastDataLogsState.tab,
-      activeIndex: parseInt(urlState.index || lastDataLogsState.index),
-      queryType: urlState.queryType || lastDataLogsState.queryType,
-      querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
+      start:
+        startTime || parseInt(isTid ? urlState.start : lastDataLogsState.start),
+      end: endTime || parseInt(isTid ? urlState.end : lastDataLogsState.end),
+      keyword: isTid ? urlState.kw : lastDataLogsState.kw,
+      page: parseInt(isTid ? urlState.page : lastDataLogsState.page),
+      pageSize: parseInt(isTid ? urlState.size : lastDataLogsState.size),
+      activeTabKey: isTid ? urlState.tab : lastDataLogsState.tab,
+      activeIndex: parseInt(isTid ? urlState.index : lastDataLogsState.index),
+      queryType: isTid ? urlState.queryType : lastDataLogsState.queryType,
+      querySql: isTid ? dataLogsQuerySql[tid] : lastDataLogsState.querySql,
       desc: res.data.desc,
       mode: urlState?.mode, // 为1时：聚合报警详情页面过来的
-      logState: parseInt(urlState?.logState || lastDataLogsState.logState),
+      logState: parseInt(
+        isTid ? urlState?.logState : lastDataLogsState.logState
+      ),
       relTraceTableId: res.data.traceTableId,
     };
     addLogPane(pane.paneId, pane);
