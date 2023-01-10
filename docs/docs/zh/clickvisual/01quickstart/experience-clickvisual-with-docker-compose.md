@@ -21,7 +21,13 @@
 
 ### 2.2. 创建数据库
 
-创建实例，填写 DSN 参数 clickhouse://username:password@host1:9000,host2:9000/database?dial_timeout=200ms&max_execution_time=60
+创建实例，填写 DSN 参数 
+
+> clickhouse://username:password@host1:9000,host2:9000/database?max_execution_time=60
+
+docker-compose demo 填写
+
+> clickhouse://root:shimo@clickhouse:9000/default?max_execution_time=60
 
 ![img.png](../../../images/create-database.png)
 
