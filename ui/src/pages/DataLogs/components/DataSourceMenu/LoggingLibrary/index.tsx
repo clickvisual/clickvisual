@@ -3,7 +3,7 @@ import SearchLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/SearchL
 import LogLibraryList from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList";
 import CreatedDatabaseModal from "@/pages/DataLogs/components/DataSourceMenu/CreatedDatabaseModal";
 import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useIntl, useModel } from "umi";
 import { cloneDeep } from "lodash";
 import { Empty, Spin } from "antd";
@@ -14,12 +14,9 @@ const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
   const [listData, setListData] = useState<any[]>(instanceTree);
   const { filterSelectedTree, doGetAllInstances } = useModel("instances");
 
-  let cloneList = useMemo(() => {
-    return cloneDeep(instanceTree);
-  }, [instanceTree]);
-
   const onSearch = (val: string) => {
     if (val.trim().length != 0) {
+      const cloneList = cloneDeep(instanceTree);
       setListData(filterSelectedTree(cloneList, val));
       return;
     }
