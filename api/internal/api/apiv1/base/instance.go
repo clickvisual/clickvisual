@@ -204,12 +204,14 @@ func InstanceTest(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-
 	switch req.Datasource {
 	case db.DatasourceClickHouse:
 		_, err = service.ClickHouseLink(req.Dsn)
 	case db.DatasourceDatabend:
 		_, err = service.DatabendLink(req.Dsn)
+	default:
+		c.JSONE(1, "data source type error", nil)
+		return
 	}
 	if err != nil {
 		c.JSONE(1, "connection failure: "+err.Error(), err)

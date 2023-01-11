@@ -1,28 +1,12 @@
-import {
-  Button,
-  Checkbox,
-  Form,
-  FormInstance,
-  Input,
-  message,
-  Modal,
-  Select,
-  Space,
-  Switch,
-  Tooltip,
-} from "antd";
-import { useDebounceFn } from "ahooks";
-import type { InstanceType } from "@/services/systemSetting";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useRef, useState } from "react";
-import { DEBOUNCE_WAIT } from "@/config/config";
-import { useIntl } from "umi";
-import {
-  MinusCircleOutlined,
-  PlusOutlined,
-  SaveOutlined,
-} from "@ant-design/icons";
-import { cloneDeep } from "lodash";
+import {Button, Checkbox, Form, FormInstance, Input, message, Modal, Select, Space, Switch, Tooltip,} from "antd";
+import {useDebounceFn} from "ahooks";
+import type {InstanceType} from "@/services/systemSetting";
+import {useModel} from "@@/plugin-model/useModel";
+import {useEffect, useRef, useState} from "react";
+import {DEBOUNCE_WAIT} from "@/config/config";
+import {useIntl} from "umi";
+import {MinusCircleOutlined, PlusOutlined, SaveOutlined,} from "@ant-design/icons";
+import {cloneDeep} from "lodash";
 import IconFont from "@/components/IconFont";
 
 type CreatedOrUpdatedInstanceModalProps = {
@@ -78,13 +62,14 @@ const CreatedOrUpdatedInstanceModal = (
   const handleTest = useDebounceFn(
     () => {
       const dsn = instanceFormRef.current?.getFieldValue("dsn");
+      const datasource = instanceFormRef.current?.getFieldValue("datasource");
       if (!dsn) {
         message.warning(
           i18n.formatMessage({ id: "instance.form.test.warning" })
         );
         return;
       }
-      doTestInstance.run({ dsn }).then((res) => {
+      doTestInstance.run({ dsn, datasource }).then((res) => {
         if (res?.code === 0) {
           message.success(
             i18n.formatMessage({ id: "instance.form.test.success" })
