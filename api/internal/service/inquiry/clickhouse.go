@@ -1837,7 +1837,7 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		}
 		for k := range fields {
 			if isEmpty(values[k]) {
-				line[fields[k]] = ""
+				line[fields[k]] = "[NULL]"
 			} else {
 				line[fields[k]] = values[k]
 			}
