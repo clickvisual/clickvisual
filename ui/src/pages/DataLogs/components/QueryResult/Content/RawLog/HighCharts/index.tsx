@@ -100,7 +100,6 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         ...(oldPane as PaneType),
         start,
         end,
-        activeIndex: ACTIVE_TIME_NOT_INDEX,
         activeTabKey: TimeRangeType.Custom,
       };
       const reqParams: any = { st: start, et: end };
