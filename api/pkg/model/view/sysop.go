@@ -14,7 +14,7 @@ type RespConfigmap struct {
 }
 
 type ReqTestInstance struct {
-	Datasource string `json:"datasource" default:"ch"`
+	Datasource string `json:"datasource" binding:"required"`
 	Dsn        string `json:"dsn" binding:"required"`
 }
 
