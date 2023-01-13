@@ -1,12 +1,12 @@
-import { useIntl } from "umi";
+import {useIntl} from "umi";
 
 const useAlarmEnums = () => {
   const i18n = useIntl();
   const ChannelTypes = [
     { name: i18n.formatMessage({ id: "dingTalk" }), value: 1 },
-    { name: i18n.formatMessage({ id: "WeCom" }), value: 2 },
-    { name: i18n.formatMessage({ id: "Feishu" }), value: 3 },
-    { name: i18n.formatMessage({ id: "Slack" }), value: 4 },
+    { name: i18n.formatMessage({ id: "weCom" }), value: 2 },
+    { name: i18n.formatMessage({ id: "feishu" }), value: 3 },
+    { name: i18n.formatMessage({ id: "slack" }), value: 4 },
   ];
   const AlarmStatus = [
     {

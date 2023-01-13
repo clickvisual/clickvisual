@@ -1,6 +1,6 @@
-import { Form, FormInstance, Input, message, Modal, Select } from "antd";
-import { useEffect, useRef, useState } from "react";
-import { useModel, useIntl } from "umi";
+import {Form, FormInstance, Input, message, Modal, Select} from "antd";
+import {useEffect, useRef, useState} from "react";
+import {useIntl, useModel} from "umi";
 
 const { Option } = Select;
 
@@ -134,7 +134,7 @@ const EditDatabaseModel = (props: {
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({
-            id: "DescAsAlias",
+            id: "descAsAlias",
           })}
           name={"desc"}
         >

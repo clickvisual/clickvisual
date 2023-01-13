@@ -3,6 +3,7 @@ package base
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -49,32 +50,41 @@ func ShortURLRedirect(c *core.Context) {
 func ShortURLCreate(c *core.Context) {
 	var req db.ReqShortURLCreate
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
+	u, err := url.Parse(req.OriginUrl)
+	if err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	v := url.Values{}
+	v = u.Query()
+	v.Set("tab", "custom")
+	u2 := fmt.Sprintf("%s://%s%s?%s", u.Scheme, u.Host, u.Path, v.Encode())
 	shortUrl := db.BaseShortURL{
-		OriginUrl: req.OriginUrl,
+		OriginUrl: u2,
 		SCode:     "",
 		CallCnt:   0,
 	}
 	tx := invoker.Db.Begin()
-	if err := db.ShortURLCreate(tx, &shortUrl); err != nil {
+	if err = db.ShortURLCreate(tx, &shortUrl); err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	sCode := service.HashIDGenCode(shortUrl.ID)
-	if err := db.ShortURLUpdate(tx, shortUrl.ID, map[string]interface{}{"s_code": sCode}); err != nil {
+	if err = db.ShortURLUpdate(tx, shortUrl.ID, map[string]interface{}{"s_code": sCode}); err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err := tx.Commit().Error; err != nil {
+	if err = tx.Commit().Error; err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	rootUrl := strings.TrimSuffix(econf.GetString("app.rootURL"), "/")
-	res := fmt.Sprintf("%s/api/v2/base/su/%s", rootUrl, sCode)
+	res := fmt.Sprintf("%s/api/share/%s", rootUrl, sCode)
 	c.JSONOK(res)
 	return
 }

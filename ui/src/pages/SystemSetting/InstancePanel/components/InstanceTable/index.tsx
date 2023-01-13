@@ -1,18 +1,18 @@
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import { Divider, message, Space, Table, Tooltip } from "antd";
-import type { AlignType, FixedType } from "rc-table/lib/interface";
-import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
+import {Divider, message, Space, Table, Tooltip} from "antd";
+import type {AlignType, FixedType} from "rc-table/lib/interface";
+import {EditOutlined, UsergroupAddOutlined} from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
-import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
-import { useContext, useState } from "react";
+import {InstancePanelContext} from "@/pages/SystemSetting/InstancePanel";
+import {useContext, useState} from "react";
 import deletedModal from "@/components/DeletedModal";
-import { useModel } from "@@/plugin-model/useModel";
-import type { InstanceType } from "@/services/systemSetting";
+import {useModel} from "@@/plugin-model/useModel";
+import type {InstanceType} from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
-import { useIntl } from "umi";
-import { ColumnsType } from "antd/es/table";
-import { CheckPermission } from "@/services/pms";
+import {useIntl} from "umi";
+import {ColumnsType} from "antd/es/table";
+import {CheckPermission} from "@/services/pms";
 import AppRoleAssignListForm from "../RoleAssign";
 
 type InstanceTableProps = {
@@ -51,7 +51,7 @@ const InstanceTable = (props: InstanceTableProps) => {
   const column: ColumnsType<any> = [
     {
       title: `${i18n.formatMessage({
-        id: "instance.instanceName",
+        id: "instance.name",
       })}`,
       align: "left" as AlignType,
       dataIndex: "name",
@@ -107,7 +107,7 @@ const InstanceTable = (props: InstanceTableProps) => {
     //   ),
     // },
     {
-      title: i18n.formatMessage({ id: "DescAsAlias" }),
+      title: i18n.formatMessage({ id: "descAsAlias" }),
       align: "left" as AlignType,
       dataIndex: "desc",
       ellipsis: { showTitle: false },

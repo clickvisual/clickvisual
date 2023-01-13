@@ -1,9 +1,9 @@
 import deletedModal from "@/components/DeletedModal";
 import IconFont from "@/components/IconFont";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import { PlusSquareOutlined } from "@ant-design/icons";
-import { Dropdown, Menu, message, Tooltip } from "antd";
-import { useIntl, useModel } from "umi";
+import {PlusSquareOutlined} from "@ant-design/icons";
+import {Dropdown, Menu, message, Tooltip} from "antd";
+import {useIntl, useModel} from "umi";
 
 const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
   const { databasesItem, onGetList } = props;
@@ -105,7 +105,7 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
-          {i18n.formatMessage({ id: "DescAsAlias" })}
+          {i18n.formatMessage({ id: "descAsAlias" })}
           :&nbsp; {!databasesItem?.desc ? "" : databasesItem.desc}
         </div>
       </div>
