@@ -27,6 +27,14 @@ const HistoryTable = ({ dataList, loadList }: HistoryTableProps) => {
       align: "center",
       render: (value) => {
         switch (value) {
+          case 0:
+            return (
+              <span>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.zero",
+                })}
+              </span>
+            );
           case 1:
             return (
               <span>

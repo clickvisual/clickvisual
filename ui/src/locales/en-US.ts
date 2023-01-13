@@ -584,7 +584,8 @@ export default {
   "alarm.rules.form.placeholder.alarmId": "Please enter the alarm Id",
   "alarm.rules.form.placeholder.level": "Please select alarm level",
   "alarm.rules.form.placeholder.serviceName": "Please input service name",
-  "alarm.rules.form.placeholder.mobiles":"Please input phone number, multiple use ',' to split",
+  "alarm.rules.form.placeholder.mobiles":
+    "Please input phone number, multiple use ',' to split",
   "alarm.rules.form.placeholder.description":
     "Please enter an alarm description",
   "alarm.rules.form.placeholder.channelIds":
@@ -644,6 +645,7 @@ export default {
   "alarm.rules.history.column.ctime": "Triggering time",
   "alarm.rules.history.isPushed.true": "Yes",
   "alarm.rules.history.isPushed.false": "No",
+  "alarm.rules.history.isPushed.zero": "Repeat alarm - Not pushed",
   "alarm.rules.history.title.total": "The total number of alarm",
   "alarm.rules.history.title.sucPublish": "Times of successful push",
 
