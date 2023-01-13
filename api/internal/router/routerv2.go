@@ -46,6 +46,7 @@ func v2(r *gin.RouterGroup) {
 		r.DELETE("/base/users/:user-id", core.Handle(base.UserDelete))
 		// other apis
 		r.GET("/base/instances", core.Handle(base.InstanceList))
+		// todo: deprecated
 		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
 	}

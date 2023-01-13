@@ -11,7 +11,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/initialize"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/middlewares"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
@@ -47,6 +49,8 @@ func GetRouter() *egin.Component {
 		apiPrefix = appSubUrl
 	}
 	g := r.Group(apiPrefix)
+
+	r.GET("/api/share/:s-code", core.Handle(base.ShortURLRedirect), middlewares.AuthChecker())
 
 	v1Open := g.Group("/api/v1")
 	{

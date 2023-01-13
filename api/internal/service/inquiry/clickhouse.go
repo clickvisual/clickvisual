@@ -546,7 +546,7 @@ func (c *ClickHouse) DeleteDatabase(name string, cluster string) (err error) {
 
 func (c *ClickHouse) DoSQL(sql string) (res view.RespComplete, err error) {
 	res.Logs = make([]map[string]interface{}, 0)
-	tmp, err := c.doQuery(sql)
+	tmp, err := c.doQuery(sql, true)
 	if err != nil {
 		return
 	}
@@ -575,7 +575,7 @@ func (c *ClickHouse) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, 
 	if optimizeSQL != "" {
 		execSQL = optimizeSQL
 	}
-	res.Logs, err = c.doQuery(execSQL)
+	res.Logs, err = c.doQuery(execSQL, false)
 	if err != nil {
 		return
 	}
@@ -634,7 +634,7 @@ func (c *ClickHouse) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, 
 
 func (c *ClickHouse) Chart(param view.ReqQuery) (res []*view.HighChart, q string, err error) {
 	q = c.chartSQL(param)
-	charts, err := c.doQuery(q)
+	charts, err := c.doQuery(q, false)
 	if err != nil {
 		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return nil, q, err
@@ -661,7 +661,7 @@ func (c *ClickHouse) Chart(param view.ReqQuery) (res []*view.HighChart, q string
 
 func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {
 	q := c.countSQL(param)
-	sqlCountData, err := c.doQuery(q)
+	sqlCountData, err := c.doQuery(q, false)
 	if err != nil {
 		return 0, err
 	}
@@ -678,7 +678,7 @@ func (c *ClickHouse) Count(param view.ReqQuery) (res uint64, err error) {
 
 func (c *ClickHouse) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	res = make(map[string]uint64, 0)
-	sqlCountData, err := c.doQuery(c.groupBySQL(param))
+	sqlCountData, err := c.doQuery(c.groupBySQL(param), false)
 	if err != nil {
 		elog.Error("ClickHouse", elog.Any("sql", c.groupBySQL(param)), elog.FieldErr(err))
 		return
@@ -724,7 +724,7 @@ func (c *ClickHouse) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
 	dm := make(map[string][]*view.RespTablesSelfBuilt)
 	query := fmt.Sprintf("select database, name from system.tables")
-	list, err := c.doQuery(query)
+	list, err := c.doQuery(query, false)
 	if err != nil {
 		return nil, err
 	}
@@ -756,7 +756,7 @@ func (c *ClickHouse) ListColumn(database, table string, isTimeField bool) (res [
 	} else {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
 	}
-	list, err := c.doQuery(query)
+	list, err := c.doQuery(query, false)
 	if err != nil {
 		return
 	}
@@ -923,7 +923,7 @@ func (c *ClickHouse) ListSystemTable() (res []*view.SystemTables) {
 	// s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
 	// Get full data if it is reset mode
 	s := "select * from system.tables"
-	deps, err := c.doQuery(s)
+	deps, err := c.doQuery(s, false)
 	if err != nil {
 		elog.Error("ListSystemTable", elog.Any("s", s), elog.Any("deps", deps), elog.Any("error", err))
 		return
@@ -1314,7 +1314,7 @@ func (c *ClickHouse) ListSystemCluster() (l []*view.SystemClusters, m map[string
 	l = make([]*view.SystemClusters, 0)
 	m = make(map[string]*view.SystemClusters, 0)
 	s := "select * from system.clusters"
-	clusters, err := c.doQuery(s)
+	clusters, err := c.doQuery(s, false)
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "doQuery")
 	}
@@ -1383,7 +1383,7 @@ func (c *ClickHouse) storageViewOperatorV3(param view.OperatorViewParams) (res s
 	)
 	jsonExtractSQL := ""
 	if param.Tid != 0 {
-		jsonExtractSQL = c.genJsonExtractSQLV3(param.Indexes, constx.UBWKafkaStreamField, true)
+		jsonExtractSQL = c.jsonExtractSQL(param.Indexes, constx.UBWKafkaStreamField)
 	}
 	dName := genName(databaseInfo.Name, param.Table)
 	streamName := genStreamName(databaseInfo.Name, param.Table)
@@ -1438,50 +1438,48 @@ func (c *ClickHouse) storageViewOperatorV3(param view.OperatorViewParams) (res s
 	return viewSQL, nil
 }
 
-func (c *ClickHouse) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex, rawLogField string, isV3 bool) string {
+func (c *ClickHouse) jsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogField string) string {
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
 		if obj.RootName == "" {
+			rawVal := fmt.Sprintf("replaceAll(JSONExtractRaw(%s, '%s'), '\"', '')", rawLogField, obj.Field)
 			if hashFieldName, ok := obj.GetHashFieldName(); ok {
 				switch obj.HashTyp {
 				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("sipHash64(toString(%s) AS `%s`,\n", rawVal, hashFieldName)
 				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("URLHash(toString(%s) AS `%s`,\n", rawVal, hashFieldName)
 				}
 			}
 			if obj.Typ == db.IndexTypeString {
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(toString(%s) AS `%s`,\n", rawVal, obj.GetFieldName())
 				continue
 			}
 			if obj.Typ == db.IndexTypeRaw {
 				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractRaw(%s, '%s')) AS `%s`,\n", rawLogField, obj.Field, obj.GetFieldName())
 				continue
 			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(%s, '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.Field, obj.GetFieldName())
+			jsonExtractSQL += fmt.Sprintf("%s(%s) AS `%s`,\n", jsonExtractORM[obj.Typ], rawVal, obj.GetFieldName())
 		} else {
+			rawVal := fmt.Sprintf("replaceAll(JSONExtractRaw(JSONExtractRaw(%s, '%s'), '%s'), '\"', '')", rawLogField, obj.RootName, obj.Field)
 			if hashFieldName, ok := obj.GetHashFieldName(); ok {
 				switch obj.HashTyp {
 				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("sipHash64(%s) AS `%s`,\n", rawVal, hashFieldName)
 				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("URLHash(%s) AS `%s`,\n", rawVal, hashFieldName)
 				}
 			}
 			// 在 version 21.11 后使用 JSON_VALUE(_raw_log_, '$._log_') 代替
 			if obj.Typ == db.IndexTypeString {
-				if isV3 {
-					jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
-					continue
-				}
-				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractString(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(toString(%s) AS `%s`,\n", rawVal, obj.GetFieldName())
 				continue
 			}
 			if obj.Typ == db.IndexTypeRaw {
 				jsonExtractSQL += fmt.Sprintf("toNullable(JSONExtractRaw(JSONExtractRaw(%s, '%s'), '%s')) AS `%s`,\n", rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
 				continue
 			}
-			jsonExtractSQL += fmt.Sprintf("%s(replaceAll(JSONExtractRaw(JSONExtractRaw(%s, '%s'), '%s'), '\"', '')) AS `%s`,\n", jsonExtractORM[obj.Typ], rawLogField, obj.RootName, obj.Field, obj.GetFieldName())
+			jsonExtractSQL += fmt.Sprintf("%s(%s) AS `%s`,\n", jsonExtractORM[obj.Typ], rawVal, obj.GetFieldName())
 		}
 	}
 	jsonExtractSQL = strings.TrimSuffix(jsonExtractSQL, ",\n")
@@ -1588,7 +1586,7 @@ func (c *ClickHouse) storageViewOperator(typ, tid int, did int, table, customTim
 
 	jsonExtractSQL := ""
 	if tid != 0 {
-		jsonExtractSQL = c.genJsonExtractSQLV3(indexes, ct.GetRawLogField(), false)
+		jsonExtractSQL = c.jsonExtractSQL(indexes, ct.GetRawLogField())
 	}
 	dName := genName(databaseInfo.Name, table)
 	streamName := genStreamName(databaseInfo.Name, table)
@@ -1811,7 +1809,7 @@ func (c *ClickHouse) groupBySQL(param view.ReqQuery) (sql string) {
 	return
 }
 
-func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err error) {
+func (c *ClickHouse) doQuery(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
 	res = make([]map[string]interface{}, 0)
 	rows, err := c.db.Query(sql)
 	if err != nil {
@@ -1837,7 +1835,11 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 		}
 		for k := range fields {
 			if isEmpty(values[k]) {
-				line[fields[k]] = "[NULL]"
+				if isShowNull {
+					line[fields[k]] = "[NULL]"
+				} else {
+					line[fields[k]] = ""
+				}
 			} else {
 				line[fields[k]] = values[k]
 			}
@@ -1853,7 +1855,7 @@ func (c *ClickHouse) doQuery(sql string) (res []map[string]interface{}, err erro
 func (c *ClickHouse) timeFieldEqual(param view.ReqQuery, tid int) string {
 	var res string
 	s := c.logsTimelineSQL(param, tid)
-	out, err := c.doQuery(s)
+	out, err := c.doQuery(s, false)
 	if err != nil {
 		elog.Error("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("sql", s), elog.String("error", err.Error()))
 		return res
