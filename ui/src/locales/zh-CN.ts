@@ -1,4 +1,6 @@
 export default {
+  "global.database.add": "新增/接入数据库",
+
   operation: "操作",
   create: "新建",
   add: "添加",
@@ -8,7 +10,7 @@ export default {
   submit: "提交",
   name: "名称",
   description: "描述",
-  DescAsAlias: "备注",
+  descAsAlias: "备注",
   loading: "正在加载",
   loadingDone: "加载成功",
   noData: "没有数据",
@@ -41,9 +43,9 @@ export default {
   count: "总量",
   status: "状态",
   dingTalk: "钉钉",
-  WeCom: "企业微信",
-  Feishu: "飞书",
-  Slack: "Slack",
+  weCom: "企业微信",
+  feishu: "飞书",
+  slack: "Slack",
 
   user: "用户",
   utime: "更新时间",
@@ -125,7 +127,7 @@ export default {
   // Instance Management
   "instance.role.tip": "修改权限",
   "instance.button.add": "新增实例",
-  "instance.instanceName": "实例名称",
+  "instance.name": "实例名称",
   "instance.datasource": "数据源",
   "instance.storagePah": "存储路径",
   "instance.delete.confirmTip": "确认删除实例：{name} 吗？",
@@ -158,14 +160,12 @@ export default {
   "instance.form.test.success": "测试成功",
   "instance.form.test.fail": "测试失败",
   "instance.form.test.tip": "请先进行连接测试后再提交表单",
-  "instance.operation.addDatabase": "新增数据库",
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
   "instance.success.deleted": "删除实例成功",
 
   // Database Management
-  "database.form.title": "新增数据库",
-  "database.form.label.name": "数据库名称",
+  "database.form.label.name": "数据库",
   "database.form.placeholder.name": "请输入数据库名称",
   "database.form.reg.name": "仅支持_、小写字母或数字，且以字母开头",
   "database.success.created": "新增数据库成功",

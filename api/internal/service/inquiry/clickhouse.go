@@ -1446,13 +1446,13 @@ func (c *ClickHouse) jsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogFiel
 			if hashFieldName, ok := obj.GetHashFieldName(); ok {
 				switch obj.HashTyp {
 				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(toString(%s) AS `%s`,\n", rawVal, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("sipHash64(toString(%s)) AS `%s`,\n", rawVal, hashFieldName)
 				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(toString(%s) AS `%s`,\n", rawVal, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("URLHash(toString(%s)) AS `%s`,\n", rawVal, hashFieldName)
 				}
 			}
 			if obj.Typ == db.IndexTypeString {
-				jsonExtractSQL += fmt.Sprintf("toNullable(toString(%s) AS `%s`,\n", rawVal, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(toString(%s)) AS `%s`,\n", rawVal, obj.GetFieldName())
 				continue
 			}
 			if obj.Typ == db.IndexTypeRaw {
@@ -1465,14 +1465,14 @@ func (c *ClickHouse) jsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogFiel
 			if hashFieldName, ok := obj.GetHashFieldName(); ok {
 				switch obj.HashTyp {
 				case db.HashTypeSip:
-					jsonExtractSQL += fmt.Sprintf("sipHash64(%s) AS `%s`,\n", rawVal, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("sipHash64(toString(%s)) AS `%s`,\n", rawVal, hashFieldName)
 				case db.HashTypeURL:
-					jsonExtractSQL += fmt.Sprintf("URLHash(%s) AS `%s`,\n", rawVal, hashFieldName)
+					jsonExtractSQL += fmt.Sprintf("URLHash(toString(%s)) AS `%s`,\n", rawVal, hashFieldName)
 				}
 			}
 			// 在 version 21.11 后使用 JSON_VALUE(_raw_log_, '$._log_') 代替
 			if obj.Typ == db.IndexTypeString {
-				jsonExtractSQL += fmt.Sprintf("toNullable(toString(%s) AS `%s`,\n", rawVal, obj.GetFieldName())
+				jsonExtractSQL += fmt.Sprintf("toNullable(toString(%s)) AS `%s`,\n", rawVal, obj.GetFieldName())
 				continue
 			}
 			if obj.Typ == db.IndexTypeRaw {

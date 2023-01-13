@@ -1,9 +1,9 @@
-import { Form, FormInstance, message, Modal, Select } from "antd";
-import { useEffect, useRef, useState } from "react";
-import { useIntl } from "umi";
-import { useModel } from "@@/plugin-model/useModel";
-import { useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT } from "@/config/config";
+import {Form, FormInstance, message, Modal, Select} from "antd";
+import {useEffect, useRef, useState} from "react";
+import {useIntl} from "umi";
+import {useModel} from "@@/plugin-model/useModel";
+import {useDebounceFn} from "ahooks";
+import {DEBOUNCE_WAIT} from "@/config/config";
 import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
 import LocalTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/LocalTable";
 import SelectField from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/SelectField";
@@ -190,14 +190,13 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                 {i18n.formatMessage({
                   id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
                 })}
-                - JSONEachRow
               </Option>
-              <Option value={2}>
-                {i18n.formatMessage({
-                  id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",
-                })}
-                - JSONAsString
-              </Option>
+              {/*<Option value={2}>*/}
+              {/*  {i18n.formatMessage({*/}
+              {/*    id: "datasource.logLibrary.from.creationMode.option.newLogLibrary",*/}
+              {/*  })}*/}
+              {/*  - JSONAsString*/}
+              {/*</Option>*/}
               <Option value={1}>
                 {i18n.formatMessage({
                   id: "datasource.logLibrary.from.creationMode.option.logLibrary",

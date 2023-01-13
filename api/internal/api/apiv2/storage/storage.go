@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -79,7 +78,7 @@ func Create(c *core.Context) {
 	}
 	_, err = service.StorageCreate(c.Uid(), databaseInfo, param)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
@@ -164,7 +163,6 @@ func Update(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	elog.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(1, "update failed 01: "+err.Error(), nil)

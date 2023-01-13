@@ -1,11 +1,11 @@
 import infoStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryInfoDraw/index.less";
-import { TableInfoResponse, TablesResponse } from "@/services/dataLogs";
-import { useEffect, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import { Drawer, Select, Tooltip } from "antd";
+import {TableInfoResponse, TablesResponse} from "@/services/dataLogs";
+import {useEffect, useState} from "react";
+import {useModel} from "@@/plugin-model/useModel";
+import {Drawer, Select, Tooltip} from "antd";
 import MonacoEditor from "react-monaco-editor";
-import { useIntl } from "umi";
-import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
+import {useIntl} from "umi";
+import {logLibraryTypes} from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import classNames from "classnames";
 
 const { Option } = Select;
@@ -80,7 +80,7 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
     },
     {
       id: 107,
-      title: i18n.formatMessage({ id: "DescAsAlias" }),
+      title: i18n.formatMessage({ id: "descAsAlias" }),
       content: libraryInfo?.desc,
       tooltip: false,
       // Desc: (

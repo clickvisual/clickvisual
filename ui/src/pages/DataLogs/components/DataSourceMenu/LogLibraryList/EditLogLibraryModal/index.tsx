@@ -1,15 +1,6 @@
-import {
-  Form,
-  FormInstance,
-  Input,
-  InputNumber,
-  message,
-  Modal,
-  Spin,
-  Switch,
-} from "antd";
-import { useEffect, useMemo, useRef } from "react";
-import { useIntl, useModel } from "umi";
+import {Form, FormInstance, Input, InputNumber, message, Modal, Spin, Switch,} from "antd";
+import {useEffect, useMemo, useRef} from "react";
+import {useIntl, useModel} from "umi";
 import style from "./index.less";
 
 const EditLogLibraryModal = (props: { onGetList: any }) => {
@@ -177,7 +168,7 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
           </Form.Item>
           <Form.Item
             label={i18n.formatMessage({
-              id: "DescAsAlias",
+              id: "descAsAlias",
             })}
             name={"desc"}
           >

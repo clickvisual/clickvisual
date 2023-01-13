@@ -216,7 +216,7 @@ const CreatedOrUpdatedInstanceModal = (
       >
         <Form.Item
           name={"name"}
-          label={i18n.formatMessage({ id: "instance.instanceName" })}
+          label={i18n.formatMessage({ id: "instance.name" })}
           rules={[
             {
               required: true,
@@ -432,7 +432,7 @@ const CreatedOrUpdatedInstanceModal = (
         </Form.Item>
         <Form.Item
           name={"desc"}
-          label={i18n.formatMessage({ id: "DescAsAlias" })}
+          label={i18n.formatMessage({ id: "descAsAlias" })}
         >
           <Input
             placeholder={i18n.formatMessage({

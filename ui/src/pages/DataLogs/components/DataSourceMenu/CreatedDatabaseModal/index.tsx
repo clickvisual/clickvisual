@@ -1,13 +1,13 @@
 import databaseModalStyles from "./index.less";
-import { Button, Form, FormInstance, Input, Select } from "antd";
-import { useIntl } from "umi";
-import { useEffect, useRef, useState } from "react";
+import {Button, Form, FormInstance, Input, Select} from "antd";
+import {useIntl} from "umi";
+import {useEffect, useRef, useState} from "react";
 import CustomModal from "@/components/CustomModal";
-import { useModel } from "@@/plugin-model/useModel";
-import { SaveOutlined } from "@ant-design/icons";
-import { useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT } from "@/config/config";
-import { InstanceType } from "@/services/systemSetting";
+import {useModel} from "@@/plugin-model/useModel";
+import {SaveOutlined} from "@ant-design/icons";
+import {useDebounceFn} from "ahooks";
+import {DEBOUNCE_WAIT} from "@/config/config";
+import {InstanceType} from "@/services/systemSetting";
 
 const { Option } = Select;
 
@@ -81,7 +81,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
   return (
     <CustomModal
       title={i18n.formatMessage({
-        id: "database.form.title",
+        id: "global.database.add",
       })}
       visible={visibleCreatedDatabaseModal}
       onCancel={onCancel}

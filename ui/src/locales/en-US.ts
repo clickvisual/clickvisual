@@ -1,4 +1,6 @@
 export default {
+  "global.database.add": "Create/Access Database",
+
   operation: "Operation",
   create: "Create",
   add: "Add",
@@ -8,7 +10,7 @@ export default {
   submit: "Submit",
   name: "Name",
   description: "Description",
-  DescAsAlias: "Alias",
+  descAsAlias: "Alias",
   loading: "loading",
   loadingDone: "Loading successful",
   noData: "no data",
@@ -125,7 +127,7 @@ export default {
   // Instance Management
   "instance.role.tip": "Modify the permissions",
   "instance.button.add": "Add instance",
-  "instance.instanceName": "Instance Name",
+  "instance.name": "Instance Name",
   "instance.datasource": "Datasource",
   "instance.storagePah": "Storage Path",
   "instance.delete.confirmTip": "Confirm deleting instance: {name} ?",
@@ -159,15 +161,13 @@ export default {
   "instance.form.test.fail": "Test to fail",
   "instance.form.test.tip":
     "Please test the connection before submitting the form",
-  "instance.operation.addDatabase": "Adding a database",
   "instance.success.created": "Created instance succeeded",
   "instance.success.updated": "Updated instance succeeded",
   "instance.success.deleted": "Deleted instance succeeded",
 
   // Database Management
-  "database.form.title": "Create Database",
-  "database.form.label.name": "Database Name",
-  "database.form.placeholder.name": "Please enter a database name",
+  "database.form.label.name": "Database",
+  "database.form.placeholder.name": "Please enter database name",
   "database.form.reg.name":
     "Support only _, lowercase letters or Numbers, and begin with a letter",
   "database.success.created": "Created database succeeded",

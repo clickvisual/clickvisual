@@ -48,7 +48,7 @@ const Environment = () => {
 
   const column: any[] = [
     {
-      title: i18n.formatMessage({ id: "instance.instanceName" }),
+      title: i18n.formatMessage({ id: "instance.name" }),
       dataIndex: "instanceName",
       align: "left",
       render: (instanceName: string) => {
