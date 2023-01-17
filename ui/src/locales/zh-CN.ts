@@ -610,6 +610,7 @@ export default {
   "alarm.rules.history.column.ctime": "触发时间",
   "alarm.rules.history.isPushed.true": "是",
   "alarm.rules.history.isPushed.false": "否",
+  "alarm.rules.history.isPushed.zero": "重复报警-未推送",
   "alarm.rules.history.title.total": "总报警数",
   "alarm.rules.history.title.sucPublish": "成功推送次数",
 
