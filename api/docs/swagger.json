@@ -165,11 +165,19 @@
                     "dtime": {
                         "$ref": "#/components/schemas/gorm.io_plugin_soft_delete.DeletedAt"
                     },
+                    "dutyOfficers": {
+                        "description": "duty officer id list",
+                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
+                    },
                     "id": {
                         "type": "integer"
                     },
                     "interval": {
                         "description": "interval second between alarm",
+                        "type": "integer"
+                    },
+                    "isDisableResolve": {
+                        "description": "is disable resolve message",
                         "type": "integer"
                     },
                     "level": {
@@ -1439,6 +1447,21 @@
                 "title": "ReqUpdateCollect",
                 "type": "object"
             },
+            "github.com_clickvisual_clickvisual_api_pkg_model_db.ReqUserUpdate": {
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "nickname": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    }
+                },
+                "title": "ReqUserUpdate",
+                "type": "object"
+            },
             "github.com_clickvisual_clickvisual_api_pkg_model_db.RespAlarmListRelatedInfo": {
                 "properties": {
                     "instance": {
@@ -1627,6 +1650,10 @@
                     },
                     "password": {
                         "description": "password",
+                        "type": "string"
+                    },
+                    "phone": {
+                        "description": "phone",
                         "type": "string"
                     },
                     "secret": {
@@ -2931,6 +2958,10 @@
                     "dtime": {
                         "$ref": "#/components/schemas/gorm.io_plugin_soft_delete.DeletedAt"
                     },
+                    "dutyOfficers": {
+                        "description": "duty officer id list",
+                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
+                    },
                     "email": {
                         "description": "email",
                         "type": "string"
@@ -2954,6 +2985,10 @@
                     },
                     "interval": {
                         "description": "interval second between alarm",
+                        "type": "integer"
+                    },
+                    "isDisableResolve": {
+                        "description": "is disable resolve message",
                         "type": "integer"
                     },
                     "level": {
@@ -2982,6 +3017,10 @@
                     },
                     "password": {
                         "description": "password",
+                        "type": "string"
+                    },
+                    "phone": {
+                        "description": "phone",
                         "type": "string"
                     },
                     "relatedList": {
@@ -10013,7 +10052,7 @@
         "/api/v2/base/users": {
             "get": {
                 "description": "Get user list",
-                "operationId": "base.UserList",
+                "operationId": "base.ListUser",
                 "parameters": [
                     {
                         "in": "query",
@@ -10026,12 +10065,12 @@
                 "responses": {},
                 "summary": "Get user list",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
                 ]
             },
             "post": {
-                "description": "godoc\n\nusername 登陆账号\n\nnickname 显示用户名",
-                "operationId": "base.UserCreate",
+                "description": "godoc",
+                "operationId": "base.CreateUser",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10064,16 +10103,16 @@
                         }
                     }
                 },
-                "summary": "Create new user",
+                "summary": "godoc",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
                 ]
             }
         },
         "/api/v2/base/users/{user-id}": {
             "delete": {
-                "description": "godoc\n\nUser delete",
-                "operationId": "base.UserDelete",
+                "description": "godoc",
+                "operationId": "base.DeleteUser",
                 "parameters": [
                     {
                         "in": "path",
@@ -10103,16 +10142,61 @@
                         }
                     }
                 },
-                "summary": "User delete",
+                "summary": "godoc",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
+                ]
+            },
+            "patch": {
+                "operationId": "base.UpdateUser",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "user-id",
+                        "required": true,
+                        "schema": {
+                            "title": "user-id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.ReqUserUpdate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "User"
                 ]
             }
         },
         "/api/v2/base/users/{user-id}/password-reset": {
             "patch": {
-                "description": "godoc\n\nReset user password",
-                "operationId": "base.UserPasswordReset",
+                "description": "godoc",
+                "operationId": "base.ResetUserPassword",
                 "parameters": [
                     {
                         "in": "path",
@@ -10145,9 +10229,9 @@
                         }
                     }
                 },
-                "summary": "Reset user password",
+                "summary": "godoc",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
                 ]
             }
         },
