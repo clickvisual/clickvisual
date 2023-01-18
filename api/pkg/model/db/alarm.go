@@ -110,17 +110,19 @@ func (n *Notification) GetStatus() int {
 type Alarm struct {
 	BaseModel
 
-	Uid        int           `gorm:"column:uid;type:int(11)" json:"uid"`                              // uid of alarm operator
-	Uuid       string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`              // foreign key
-	Name       string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`         // name of an alarm
-	Desc       string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`              // description
-	Interval   int           `gorm:"column:interval;type:int(11)" json:"interval"`                    // interval second between alarm
-	Unit       int           `gorm:"column:unit;type:int(11)" json:"unit"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
-	Tags       String2String `gorm:"column:tag;type:text" json:"tag"`                                 // tags
-	ChannelIds Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // channel of an alarm
-	NoDataOp   int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`  // noDataOp 0 nodata 1 ok 2 alert
-	Level      int           `gorm:"column:level;type:int(11)" json:"level"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
-	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // status
+	Uid              int           `gorm:"column:uid;type:int(11)" json:"uid"`                                // uid of alarm operator
+	Uuid             string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                // foreign key
+	Name             string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`           // name of an alarm
+	Desc             string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                // description
+	Interval         int           `gorm:"column:interval;type:int(11)" json:"interval"`                      // interval second between alarm
+	Unit             int           `gorm:"column:unit;type:int(11)" json:"unit"`                              // 0 m 1 s 2 h 3 d 4 w 5 y
+	Tags             String2String `gorm:"column:tag;type:text" json:"tag"`                                   // tags
+	ChannelIds       Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`   // channel of an alarm
+	NoDataOp         int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`    // noDataOp 0 nodata 1 ok 2 alert
+	Level            int           `gorm:"column:level;type:int(11)" json:"level"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
+	Status           int           `gorm:"column:status;type:int(11)" json:"status"`                          // status
+	DutyOfficers     Ints          `gorm:"column:duty_officer;type:varchar(255)" json:"dutyOfficers"`         // duty officer id list
+	IsDisableResolve int           `gorm:"column:is_disable_resolve;type:tinyint(1)" json:"isDisableResolve"` // is disable resolve message
 
 	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 

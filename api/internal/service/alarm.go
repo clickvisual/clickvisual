@@ -14,9 +14,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/alertcomponent"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/rule"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarm/alertcomponent"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarm/rule"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"

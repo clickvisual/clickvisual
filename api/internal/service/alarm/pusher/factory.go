@@ -58,7 +58,7 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 	if alarm.Desc != "" {
 		buffer.WriteString(fmt.Sprintf("##### 告警描述: %s\n", alarm.Desc))
 	}
-	user, _ := db.UserInfo(alarm.Uid)
+	users, phones := dutyOffices(alarm)
 	instance, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
 	statusText := "告警中"
 	for _, alert := range notification.Alerts {
@@ -74,7 +74,15 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		} else {
 			buffer.WriteString("##### 状态：：<font color=red>告警中</font>\n")
 		}
-		buffer.WriteString(fmt.Sprintf("##### 创建人 ：%s(%s) \n", user.Username, user.Nickname))
+		dutyOfficesStr := ""
+		for _, user := range users {
+			if dutyOfficesStr == "" {
+				dutyOfficesStr = fmt.Sprintf("%s@%s", user.Nickname, user.Phone)
+			} else {
+				dutyOfficesStr = fmt.Sprintf("%s %s@%s", dutyOfficesStr, user.Nickname, user.Phone)
+			}
+		}
+		buffer.WriteString(fmt.Sprintf("##### 责任人 ：%s \n", dutyOfficesStr))
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
 		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/alarm/rules/history?id=%d&filterId=%d&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, filter.ID, start, end,
@@ -88,11 +96,14 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 			}
 		}
 	}
-	return &db.PushMsg{
+	pushMsg := &db.PushMsg{
 		Title: fmt.Sprintf("【%s】%s", statusText, alarm.Name),
 		Text:  buffer.String(),
-		// Mobiles: strings.Split(alarm.Mobiles, ","),
-	}, nil
+	}
+	if len(phones) != 0 {
+		pushMsg.Mobiles = phones
+	}
+	return pushMsg, nil
 }
 
 func Execute(channelIds []int, pushMsg *db.PushMsg) error {
@@ -111,4 +122,25 @@ func Execute(channelIds []int, pushMsg *db.PushMsg) error {
 		}
 	}
 	return nil
+}
+
+func dutyOffices(alarm *db.Alarm) ([]db.User, []string) {
+	dutyOfficers := make([]db.User, 0)
+	phones := make([]string, 0)
+	if len(alarm.DutyOfficers) == 0 {
+		user, _ := db.UserInfo(alarm.Uid)
+		if user.Phone != "" {
+			dutyOfficers = append(dutyOfficers, user)
+			phones = append(phones, user.Phone)
+		}
+	} else {
+		for dutyOfficer := range alarm.DutyOfficers {
+			user, _ := db.UserInfo(dutyOfficer)
+			if user.Phone != "" {
+				dutyOfficers = append(dutyOfficers, user)
+				phones = append(phones, user.Phone)
+			}
+		}
+	}
+	return dutyOfficers, phones
 }
