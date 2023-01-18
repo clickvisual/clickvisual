@@ -14,7 +14,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/node"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/preempt"

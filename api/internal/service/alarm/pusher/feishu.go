@@ -3,7 +3,7 @@ package pusher
 import (
 	"errors"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher/feishu"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher/feishu"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 

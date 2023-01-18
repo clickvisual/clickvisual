@@ -10,44 +10,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-const (
-	HashTypeSip int = 1
-	HashTypeURL int = 2
-)
-
-const (
-	_ = iota
-	V3TableTypeJaegerJSON
-)
-
-const (
-	DatasourceMySQL      = "mysql"
-	DatasourceClickHouse = "ch"
-	DatasourceDatabend   = "databend"
-)
-
-const TimeFieldSecond = "_time_second_"
-const TimeFieldNanoseconds = "_time_nanosecond_"
-
-const (
-	SuffixJaegerJSON = "_jaeger_dependencies"
-)
-
-func (b *BaseView) TableName() string {
-	return TableNameBaseView
-}
-
-func (b *BaseHiddenField) TableName() string {
-	return TableNameBaseHiddenField
-}
-
-type BaseHiddenField struct {
-	BaseModel
-
-	Tid   int    `gorm:"column:tid;type:int(11);index:uix_tid_field,unique" json:"tid"`                   // table id idx
-	Field string `gorm:"column:field;type:varchar(128);NOT NULL;index:uix_tid_field,unique" json:"field"` // index field name
-}
-
 // BaseView Materialized view management
 type BaseView struct {
 	BaseModel
@@ -61,35 +23,8 @@ type BaseView struct {
 	Uid              int    `gorm:"column:uid;type:int(11)" json:"uid"`                                          // operator uid
 }
 
-func HiddenFieldCreateBatch(db *gorm.DB, data []*BaseHiddenField) (err error) {
-	if data == nil || len(data) == 0 {
-		return errors.New("empty param")
-	}
-	if err = db.Model(BaseHiddenField{}).CreateInBatches(data, 100).Error; err != nil {
-		elog.Error("create BaseHiddenField error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func HiddenFieldDeleteByFields(db *gorm.DB, fields []string) (err error) {
-	if fields == nil || len(fields) == 0 {
-		return errors.New("empty param")
-	}
-	if err = db.Model(BaseHiddenField{}).Unscoped().Where("`field` in (?)", fields).Delete(&BaseHiddenField{}).Error; err != nil {
-		elog.Error("release delete error", zap.Error(err))
-		return
-	}
-	return
-}
-
-func HiddenFieldList(conds egorm.Conds) (resp []*BaseHiddenField, err error) {
-	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(BaseHiddenField{}).Where(sql, binds...).Find(&resp).Error; err != nil {
-		err = errors.Wrapf(err, "conds: %v", conds)
-		return
-	}
-	return
+func (b *BaseView) TableName() string {
+	return TableNameBaseView
 }
 
 // ViewUpdate ...

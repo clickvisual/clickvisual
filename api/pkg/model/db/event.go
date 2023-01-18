@@ -93,6 +93,7 @@ const (
 	OpnUserCreate        = "opn_base_user_create"
 	OpnUserDelete        = "opn_base_user_delete"
 	OpnUserPasswordReset = "opn_base_user_password_reset"
+	OpnUserUpdate        = "opn_base_user_update"
 	OpnUserPwdChange     = "user_pwd_change"
 )
 
@@ -161,6 +162,7 @@ var OperationMap = map[string]string{
 	OpnUserDelete:        "user delete",
 	OpnUserPasswordReset: "user password reset",
 	OpnUserPwdChange:     "change the password",
+	OpnUserUpdate:        "user update",
 }
 
 const (
@@ -219,7 +221,7 @@ var (
 			OpnConfigsUpdate,
 			OpnConfigsPublish,
 		},
-		SourceUserMgtCenter: {OpnUserPwdChange, OpnUserCreate, OpnUserDelete, OpnUserPasswordReset},
+		SourceUserMgtCenter: {OpnUserPwdChange, OpnUserCreate, OpnUserDelete, OpnUserPasswordReset, OpnUserUpdate},
 		SourceSystemSetting: {OpnMigration},
 		SourceBigDataMgtCenter: {
 			OpnBigDataNodeCreate,

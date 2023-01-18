@@ -50,7 +50,7 @@ func GetRouter() *egin.Component {
 	}
 	g := r.Group(apiPrefix)
 
-	r.GET("/api/share/:s-code", core.Handle(base.ShortURLRedirect), middlewares.AuthChecker())
+	r.Group(apiPrefix).GET("/api/share/:s-code", core.Handle(base.ShortURLRedirect), middlewares.AuthChecker())
 
 	v1Open := g.Group("/api/v1")
 	{

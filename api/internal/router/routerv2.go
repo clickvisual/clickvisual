@@ -40,10 +40,11 @@ func v2(r *gin.RouterGroup) {
 	// The global basic readable information module - base
 	{
 		// user apis
-		r.GET("/base/users", core.Handle(base.UserList))
-		r.POST("/base/users", core.Handle(base.UserCreate))
-		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.UserPasswordReset))
-		r.DELETE("/base/users/:user-id", core.Handle(base.UserDelete))
+		r.POST("/base/users", core.Handle(base.CreateUser))
+		r.PATCH("/base/users/:user-id", core.Handle(base.UpdateUser))
+		r.GET("/base/users", core.Handle(base.ListUser))
+		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.ResetUserPassword))
+		r.DELETE("/base/users/:user-id", core.Handle(base.DeleteUser))
 		// other apis
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		// todo: deprecated
