@@ -3625,6 +3625,9 @@
                     "nodeId": {
                         "type": "integer"
                     },
+                    "phone": {
+                        "type": "string"
+                    },
                     "result": {
                         "type": "string"
                     },
@@ -3915,6 +3918,9 @@
                         "type": "string"
                     },
                     "nickname": {
+                        "type": "string"
+                    },
+                    "phone": {
                         "type": "string"
                     },
                     "uid": {
