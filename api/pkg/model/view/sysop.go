@@ -48,6 +48,7 @@ type RespUserSimpleInfo struct {
 	Nickname string `json:"nickname"`
 	Email    string `json:"email"`
 	Avatar   string `json:"avatar"`
+	Phone    string `json:"phone"`
 }
 
 func (r *RespUserSimpleInfo) Gen(u db.User) {

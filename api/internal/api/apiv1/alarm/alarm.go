@@ -117,7 +117,7 @@ func Update(c *core.Context) {
 		}
 	}
 	switch req.Status {
-	case db.AlarmStatusOpen:
+	case db.AlarmStatusNormal:
 		err = service.Alert.OpenOperator(id)
 	case db.AlarmStatusClose:
 		clusterRuleGroups := map[string]db.ClusterRuleGroup{}
