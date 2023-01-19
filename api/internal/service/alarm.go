@@ -495,7 +495,7 @@ func (i *alert) OpenOperator(id int) (err error) {
 			return
 		}
 	}
-	_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusOpen})
+	_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusNormal})
 	if err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusRuleCheck}); err != nil {
 		return
 	}
@@ -668,7 +668,7 @@ func AlertRuleCheck() error {
 			}
 		}
 		if isRuleOk {
-			if err = db.AlarmUpdate(invoker.Db, alarm.ID, map[string]interface{}{"status": db.AlarmStatusOpen}); err != nil {
+			if err = db.AlarmUpdate(invoker.Db, alarm.ID, map[string]interface{}{"status": db.AlarmStatusNormal}); err != nil {
 				core.LoggerError("ruleCheck", "isRuleTakeEffect", err)
 				continue
 			}

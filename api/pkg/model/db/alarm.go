@@ -35,7 +35,7 @@ const (
 const (
 	AlarmStatusUnknown = iota
 	AlarmStatusClose
-	AlarmStatusOpen
+	AlarmStatusNormal
 	AlarmStatusFiring
 	AlarmStatusRuleCheck
 )
@@ -102,7 +102,7 @@ func (n *Notification) GetStatus() int {
 	if n.Status == "firing" {
 		return AlarmStatusFiring
 	} else if n.Status == "resolved" {
-		return AlarmStatusOpen
+		return AlarmStatusNormal
 	}
 	return AlarmStatusUnknown
 }
@@ -205,7 +205,7 @@ func (m *Alarm) GetStatus(db *gorm.DB) int {
 			return AlarmStatusFiring
 		}
 	}
-	return AlarmStatusOpen
+	return AlarmStatusNormal
 }
 
 // RuleNameMap 提供 rule 兼容

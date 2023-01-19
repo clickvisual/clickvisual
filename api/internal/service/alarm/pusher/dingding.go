@@ -21,9 +21,12 @@ func (d *DingDing) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 			Text:  msg.Text,
 		},
 		At: &view.At{
-			IsAtAll: false,
-			// AtMobiles: msg.Mobiles,
+			IsAtAll:   false,
+			AtMobiles: msg.Mobiles,
 		},
+	}
+	if len(msg.Mobiles) != 0 {
+		markdown.At.AtMobiles = msg.Mobiles
 	}
 	data, err := json.Marshal(markdown)
 	if err != nil {

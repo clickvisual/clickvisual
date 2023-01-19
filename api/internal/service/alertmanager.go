@@ -31,6 +31,10 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 		return
 	}
 	notifStatus := notification.GetStatus() // 当前需要推送的状态
+	if alarm.IsDisableResolve == 1 && notifStatus == db.AlarmStatusNormal {
+		tx.Commit()
+		return
+	}
 	// create history
 	filterId, _ := strconv.Atoi(filterIdStr)
 	alarmHistory := db.AlarmHistory{AlarmId: alarm.ID, FilterId: filterId, FilterStatus: notifStatus, IsPushed: db.PushedStatusRepeat}
@@ -52,7 +56,7 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 		tx.Rollback()
 		return err
 	}
-	if currentFiltersStatus == notifStatus {
+	if currentFiltersStatus == notifStatus && time.Now().Unix()-alarm.Utime < 300 {
 		// 此时有正在进行中的告警
 		elog.Info("PushAlertManagerRepeat", elog.Int("notifStatus", notifStatus), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		tx.Commit()

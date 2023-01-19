@@ -89,6 +89,7 @@ func ListUser(c *core.Context) {
 			Nickname: row.Nickname,
 			Email:    row.Email,
 			Avatar:   row.Avatar,
+			Phone:    utils.PhoneSensitiveInfoRemove(row.Phone),
 		})
 	}
 	c.JSONPage(view.RespUserSimpleList{
@@ -123,6 +124,10 @@ UPDATE:
 	var req db.ReqUserUpdate
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(core.CodeErr, "param error:"+err.Error(), err)
+		return
+	}
+	if len(req.Phone) != 11 {
+		c.JSONE(1, "Illegal cell phone number length", nil)
 		return
 	}
 	ups := make(map[string]interface{}, 0)

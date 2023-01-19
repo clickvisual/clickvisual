@@ -45,11 +45,10 @@ func GetPusher(typ int) (IPusher, error) {
 // param oneTheLogs 日志内容
 func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, partialLog string) (msg *db.PushMsg, err error) {
 	// groupKey := notification.GroupKey
-	status := notification.Status
 	annotations := notification.CommonAnnotations
 	var buffer bytes.Buffer
 	// base info
-	if status == "resolved" {
+	if notification.GetStatus() == db.AlarmStatusNormal {
 		buffer.WriteString("###  <font color=#008000>您的告警已恢复</font>\n")
 	} else {
 		buffer.WriteString("###  <font color=#FF0000>您有待处理的告警</font>\n")
@@ -68,7 +67,7 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		buffer.WriteString(fmt.Sprintf("##### 触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", instance.Name, instance.Desc))
 		buffer.WriteString(fmt.Sprintf("##### 日志库：%s %s\n", table.Name, table.Desc))
-		if status == "resolved" {
+		if notification.GetStatus() == db.AlarmStatusNormal {
 			statusText = "已恢复"
 			buffer.WriteString("##### 状态：<font color=#008000>已恢复</font>\n")
 		} else {
@@ -77,15 +76,15 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		dutyOfficesStr := ""
 		for _, user := range users {
 			if dutyOfficesStr == "" {
-				dutyOfficesStr = fmt.Sprintf("%s@%s", user.Nickname, user.Phone)
+				dutyOfficesStr = fmt.Sprintf("@%s", user.Phone)
 			} else {
-				dutyOfficesStr = fmt.Sprintf("%s %s@%s", dutyOfficesStr, user.Nickname, user.Phone)
+				dutyOfficesStr = fmt.Sprintf("%s@%s", dutyOfficesStr, user.Phone)
 			}
 		}
 		buffer.WriteString(fmt.Sprintf("##### 责任人 ：%s \n", dutyOfficesStr))
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
-		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/alarm/rules/history?id=%d&filterId=%d&start=%d&end=%d\n\n",
-			strings.TrimRight(econf.GetString("app.rootURL"), "/"), alarm.ID, filter.ID, start, end,
+		buffer.WriteString(fmt.Sprintf("##### 日志详情: %s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d\n\n",
+			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, filter.When, start, end,
 		))
 		if partialLog != "" {
 			partialLog = strings.Replace(partialLog, "\"", "", -1)

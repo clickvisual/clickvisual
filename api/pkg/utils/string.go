@@ -11,3 +11,11 @@ func RandomString(length int) string {
 	}
 	return string(b)
 }
+
+// PhoneSensitiveInfoRemove ...
+func PhoneSensitiveInfoRemove(phone string) string {
+	if len(phone) != 11 {
+		return phone
+	}
+	return phone[0:3] + "****" + phone[7:11]
+}
