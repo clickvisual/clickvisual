@@ -78,6 +78,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		Brokers:                 param.Brokers,
 		Topic:                   param.Topics,
 		Desc:                    param.Desc,
+		ConsumerNum:             param.Consumers,
 		SqlData:                 d,
 		SqlStream:               s,
 		SqlView:                 v,

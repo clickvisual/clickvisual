@@ -29,6 +29,12 @@ const (
 	DatasourceDatabend   = "databend"
 )
 
+var Datasource2IntORM = map[string]int{
+	DatasourceMySQL:      SourceTypMySQL,
+	DatasourceClickHouse: SourceTypClickHouse,
+	DatasourceDatabend:   SourceDatabend,
+}
+
 const TimeFieldSecond = "_time_second_"
 const TimeFieldNanoseconds = "_time_nanosecond_"
 

@@ -1,5 +1,5 @@
 export default {
-  "global.database.add": "新增/接入数据库",
+  "global.database.add": "添加数据库",
 
   operation: "操作",
   create: "新建",

@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/pandas/source"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"

@@ -106,6 +106,9 @@ func (r *ReqStorageCreate) Mapping2String(withType bool) string {
 		if v.Key == r.TimeField || v.Key == r.RawLogField {
 			continue
 		}
+		if v.Key == "_time_second_" || v.Key == "_time_nanosecond_" || v.Key == "_raw_log_" {
+			continue
+		}
 		if res == "" {
 			res = v.Assemble(withType)
 			continue

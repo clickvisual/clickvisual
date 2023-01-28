@@ -3,10 +3,12 @@ package source
 import (
 	"database/sql"
 	"fmt"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/gotomicro/ego/core/elog"
 	"reflect"
 	"time"
+
+	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 
 	_ "github.com/databendcloud/databend-go"
 )
@@ -125,6 +127,74 @@ func (c *Databend) doQuery(ins *sql.DB, sql string) (res []map[string]interface{
 	if err = rows.Err(); err != nil {
 		elog.Error("Databend", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
 		return
+	}
+	return
+}
+
+func (c *Databend) ClusterInfo() (isCluster, isShard, isReplica int, clusters []string, err error) {
+	cs, err := c.clusters()
+	clusterMap := make(map[string]interface{})
+	clusters = make([]string, 0)
+	if err != nil {
+		return
+	}
+	for _, clu := range cs {
+		clusterMap[clu.Cluster] = struct{}{}
+		if clu.ReplicaNum > 1 {
+			isReplica = 1
+			isCluster = 1
+		}
+		if clu.ShardNum > 1 {
+			isShard = 1
+			isCluster = 1
+		}
+	}
+	for clu := range clusterMap {
+		clusters = append(clusters, clu)
+	}
+	return
+}
+
+func (c *Databend) clusters() (res []view.Cluster, err error) {
+	obj, err := sql.Open("clickhouse", c.s.GetDSN())
+	if err != nil {
+		elog.Error("ClickHouse", elog.Any("step", "open"), elog.FieldErr(err))
+		return
+	}
+	defer func() { _ = obj.Close() }()
+	// query databases
+	rows, err := obj.Query("SELECT * from `system`.`clusters`")
+	if err != nil {
+		elog.Error("ClickHouse", elog.Any("step", "query"), elog.FieldErr(err))
+		return
+	}
+	for rows.Next() {
+		var cluster string
+		var shard_num int
+		var shard_weight int
+		var replica_num int
+		var host_name string
+		var host_address string
+		var port int
+		var is_local int
+		var user string
+		var default_database string
+		var errors_count int
+		var estimated_recovery_time int
+		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port,
+			&is_local, &user, &default_database, &errors_count, &estimated_recovery_time)
+		if errScan != nil {
+			elog.Error("source", elog.FieldErr(err))
+			continue
+		}
+		res = append(res, view.Cluster{
+			Cluster:     cluster,
+			ShardNum:    shard_num,
+			ReplicaNum:  replica_num,
+			HostName:    host_name,
+			HostAddress: host_address,
+			Port:        port,
+		})
 	}
 	return
 }
