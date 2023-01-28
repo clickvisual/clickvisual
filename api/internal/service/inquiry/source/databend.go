@@ -3,10 +3,12 @@ package source
 import (
 	"database/sql"
 	"fmt"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/gotomicro/ego/core/elog"
 	"reflect"
 	"time"
+
+	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 
 	_ "github.com/databendcloud/databend-go"
 )
