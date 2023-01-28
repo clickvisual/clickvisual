@@ -2089,9 +2089,6 @@
                     "clusterId": {
                         "type": "integer"
                     },
-                    "clusters": {
-                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Strings"
-                    },
                     "configmap": {
                         "type": "string"
                     },
@@ -2107,9 +2104,6 @@
                     "filePath": {
                         "type": "string"
                     },
-                    "mode": {
-                        "type": "integer"
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -2118,9 +2112,6 @@
                     },
                     "prometheusTarget": {
                         "type": "string"
-                    },
-                    "replicaStatus": {
-                        "type": "integer"
                     },
                     "ruleStoreType": {
                         "type": "integer"
@@ -2429,54 +2420,6 @@
                     }
                 },
                 "title": "ReqStorageCreate",
-                "type": "object"
-            },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqStorageCreateV3": {
-                "properties": {
-                    "Brokers": {
-                        "type": "string"
-                    },
-                    "Consumers": {
-                        "type": "integer"
-                    },
-                    "CreateType": {
-                        "type": "integer"
-                    },
-                    "DatabaseId": {
-                        "type": "integer"
-                    },
-                    "Days": {
-                        "type": "integer"
-                    },
-                    "Desc": {
-                        "type": "string"
-                    },
-                    "IsKafkaTimestamp": {
-                        "description": "1 yes",
-                        "type": "integer"
-                    },
-                    "KafkaSkipBrokenMessages": {
-                        "type": "integer"
-                    },
-                    "TableName": {
-                        "type": "string"
-                    },
-                    "TimeField": {
-                        "type": "string"
-                    },
-                    "TimeFieldType": {
-                        "description": "1 string 2 float",
-                        "type": "integer"
-                    },
-                    "Topics": {
-                        "type": "string"
-                    },
-                    "V3TableType": {
-                        "description": "0 default 1 jaegerJson",
-                        "type": "integer"
-                    }
-                },
-                "title": "ReqStorageCreateV3",
                 "type": "object"
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqStorageUpdate": {
@@ -11317,44 +11260,6 @@
                     }
                 },
                 "summary": "Create storage by template",
-                "tags": [
-                    "LOGSTORE"
-                ]
-            }
-        },
-        "/api/v3/storage": {
-            "post": {
-                "operationId": "storage.Create",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqStorageCreateV3"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "创建日志库 V3",
                 "tags": [
                     "LOGSTORE"
                 ]
