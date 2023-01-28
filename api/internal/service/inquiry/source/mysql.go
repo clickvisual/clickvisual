@@ -149,3 +149,7 @@ func (c *MySQL) queryStringArr(sq string) (res []string, err error) {
 	}
 	return
 }
+
+func (c *MySQL) ClusterInfo() (isCluster, isShard, isReplica int, clusters []string, err error) {
+	return
+}

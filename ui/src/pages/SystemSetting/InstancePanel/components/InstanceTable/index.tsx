@@ -1,5 +1,5 @@
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import {Divider, message, Space, Table, Tooltip} from "antd";
+import {Divider, message, Space, Table, Tag, Tooltip} from "antd";
 import type {AlignType, FixedType} from "rc-table/lib/interface";
 import {EditOutlined, UsergroupAddOutlined} from "@ant-design/icons";
 import IconFont from "@/components/IconFont";
@@ -89,23 +89,23 @@ const InstanceTable = (props: InstanceTableProps) => {
         return <></>;
       },
     },
-    // {
-    //   title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
-    //   dataIndex: "clusters",
-    //   align: "center" as AlignType,
-    //   width: 100,
-    //   render: (clusters: string[]) => (
-    //     <Tooltip title={clusters}>
-    //       {clusters?.map((item: string, index: number) => {
-    //         return (
-    //           <Tag color="lime" key={index}>
-    //             {item}
-    //           </Tag>
-    //         );
-    //       })}
-    //     </Tooltip>
-    //   ),
-    // },
+    {
+      title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
+      dataIndex: "clusters",
+      align: "center" as AlignType,
+      width: 100,
+      render: (clusters: string[]) => (
+        <Tooltip title={clusters}>
+          {clusters?.map((item: string, index: number) => {
+            return (
+              <Tag color="lime" key={index}>
+                {item}
+              </Tag>
+            );
+          })}
+        </Tooltip>
+      ),
+    },
     {
       title: i18n.formatMessage({ id: "descAsAlias" }),
       align: "left" as AlignType,

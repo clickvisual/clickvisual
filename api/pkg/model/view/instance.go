@@ -19,19 +19,25 @@ type ReqTestInstance struct {
 }
 
 type ReqCreateInstance struct {
-	Datasource       string     `json:"datasource" binding:"required"`
-	Name             string     `json:"name" binding:"required"`
-	Dsn              string     `json:"dsn" binding:"required"`
-	RuleStoreType    int        `json:"ruleStoreType"`
-	FilePath         string     `json:"filePath"`
-	Desc             string     `json:"desc"`
-	ClusterId        int        `json:"clusterId"`
-	Namespace        string     `json:"namespace"`
-	Configmap        string     `json:"configmap"`
-	PrometheusTarget string     `json:"prometheusTarget"`
-	Mode             int        `json:"mode"`
-	ReplicaStatus    int        `json:"replicaStatus"`
-	Clusters         db.Strings `json:"clusters"`
+	Datasource       string `json:"datasource" binding:"required"`
+	Name             string `json:"name" binding:"required"`
+	Dsn              string `json:"dsn" binding:"required"`
+	RuleStoreType    int    `json:"ruleStoreType"`
+	FilePath         string `json:"filePath"`
+	Desc             string `json:"desc"`
+	ClusterId        int    `json:"clusterId"`
+	Namespace        string `json:"namespace"`
+	Configmap        string `json:"configmap"`
+	PrometheusTarget string `json:"prometheusTarget"`
+}
+
+type Cluster struct {
+	Cluster     string
+	ShardNum    int
+	ReplicaNum  int
+	HostName    string
+	HostAddress string
+	Port        int
 }
 
 type ReqCreateCluster struct {
