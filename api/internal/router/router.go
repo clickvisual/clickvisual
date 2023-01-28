@@ -66,6 +66,5 @@ func GetRouter() *egin.Component {
 
 	v1(g)
 	v2(g)
-	v3(g)
 	return r
 }

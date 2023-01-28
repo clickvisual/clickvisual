@@ -130,7 +130,6 @@ rule_files:
 ![img.png](../../../images/alarm-store-file.png)
 
 If deployed in k8s mode, this configmap is the location where the rules are stored.
-![img.png](../../../images/alarm-store-k8s.png)
 
 Alarm message push effect display
 
