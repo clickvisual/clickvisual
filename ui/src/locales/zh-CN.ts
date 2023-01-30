@@ -167,6 +167,9 @@ export default {
   // Database Management
   "database.form.label.name": "数据库",
   "database.form.placeholder.name": "请输入数据库名称",
+  "database.form.select.placeholder.name": "请选择数据库",
+  "database.created.datalogs": "创建数据库",
+  "database.access.datalogs": "接入已有数据库",
   "database.form.reg.name": "仅支持_、小写字母或数字，且以字母开头",
   "database.success.created": "新增数据库成功",
 

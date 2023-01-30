@@ -168,6 +168,9 @@ export default {
   // Database Management
   "database.form.label.name": "Database",
   "database.form.placeholder.name": "Please enter database name",
+  "database.form.select.placeholder.name": "Please select database",
+  "database.created.datalogs": "Create a database",
+  "database.access.datalogs": "Access an existing database",
   "database.form.reg.name":
     "Support only _, lowercase letters or Numbers, and begin with a letter",
   "database.success.created": "Created database succeeded",

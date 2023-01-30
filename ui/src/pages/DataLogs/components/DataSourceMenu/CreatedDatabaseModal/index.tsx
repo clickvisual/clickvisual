@@ -1,15 +1,26 @@
 import databaseModalStyles from "./index.less";
-import {Button, Form, FormInstance, Input, Select} from "antd";
-import {useIntl} from "umi";
-import {useEffect, useRef, useState} from "react";
+import { Button, Form, FormInstance, Input, Radio, Select } from "antd";
+import { useIntl } from "umi";
+import { useEffect, useRef, useState } from "react";
 import CustomModal from "@/components/CustomModal";
-import {useModel} from "@@/plugin-model/useModel";
-import {SaveOutlined} from "@ant-design/icons";
-import {useDebounceFn} from "ahooks";
-import {DEBOUNCE_WAIT} from "@/config/config";
-import {InstanceType} from "@/services/systemSetting";
+import { useModel } from "@@/plugin-model/useModel";
+import { SaveOutlined } from "@ant-design/icons";
+import { useDebounceFn } from "ahooks";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import { InstanceType } from "@/services/systemSetting";
 
 const { Option } = Select;
+
+enum CreateType {
+  /**
+   * 创建数据库
+   */
+  create = 0,
+  /**
+   * 接入已有数据库
+   */
+  access = 1,
+}
 
 const CreatedDatabaseModal = (props: { onGetList: any }) => {
   const { onGetList } = props;
@@ -20,10 +31,12 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     createDatabaseCurrentInstance,
     onChangeCreateDatabaseCurrentInstance,
   } = useModel("database");
+  const { getLocalTables } = useModel("dataLogs");
   const { instanceList, getInstanceList } = useModel("instances");
   const databaseFormRef = useRef<FormInstance>(null);
 
-  const [clustersList, steClustersList] = useState<any>([]);
+  const [clustersList, setClustersList] = useState<any>([]);
+  const [localTables, setLocalTables] = useState<any>([]);
 
   const i18n = useIntl();
 
@@ -47,9 +60,9 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     const dataList = instanceList.filter((item) => item.id == iid);
 
     if (dataList[0]?.mode == 1) {
-      steClustersList(dataList[0].clusters);
+      setClustersList(dataList[0].clusters);
     } else {
-      steClustersList([]);
+      setClustersList([]);
     }
   };
 
@@ -71,6 +84,11 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
     ) {
       databaseFormRef.current?.setFieldsValue({
         iid: createDatabaseCurrentInstance,
+        type: CreateType.create,
+      });
+      getLocalTables.run(createDatabaseCurrentInstance).then((res: any) => {
+        if (res.code != 0) return;
+        setLocalTables(res.data || []);
       });
       fillCluster(createDatabaseCurrentInstance);
       onChangeCreateDatabaseCurrentInstance(undefined);
@@ -120,6 +138,18 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
             ))}
           </Select>
         </Form.Item>
+
+        <Form.Item label={i18n.formatMessage({ id: "operation" })} name="type">
+          <Radio.Group>
+            <Radio value={CreateType.create}>
+              {i18n.formatMessage({ id: "database.created.datalogs" })}
+            </Radio>
+            <Radio value={CreateType.access}>
+              {i18n.formatMessage({ id: "database.access.datalogs" })}
+            </Radio>
+          </Radio.Group>
+        </Form.Item>
+
         <Form.Item
           label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
           name={"cluster"}
@@ -150,27 +180,69 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
             ))}
           </Select>
         </Form.Item>
-        <Form.Item
-          label={i18n.formatMessage({ id: "database.form.label.name" })}
-          name={"databaseName"}
-          rules={[
-            {
-              required: true,
-              message: i18n.formatMessage({
-                id: "database.form.placeholder.name",
-              }),
-            },
-            {
-              pattern: new RegExp(/^[a-z][a-z\d_]{0,31}$/),
-              message: i18n.formatMessage({ id: "database.form.reg.name" }),
-            },
-          ]}
-        >
-          <Input
-            placeholder={`${i18n.formatMessage({
-              id: "database.form.placeholder.name",
-            })}`}
-          />
+
+        <Form.Item shouldUpdate={(pre, next) => pre.type != next.type} noStyle>
+          {({ getFieldValue, resetFields }) => {
+            const type = getFieldValue("type");
+            resetFields(["databaseName"]);
+
+            if (type == CreateType.create) {
+              return (
+                <Form.Item
+                  label={i18n.formatMessage({ id: "database.form.label.name" })}
+                  name={"databaseName"}
+                  labelCol={{ span: 5 }}
+                  wrapperCol={{ span: 14 }}
+                  rules={[
+                    {
+                      required: true,
+                      message: i18n.formatMessage({
+                        id: "database.form.placeholder.name",
+                      }),
+                    },
+                    {
+                      pattern: new RegExp(/^[a-z][a-z\d_]{0,31}$/),
+                      message: i18n.formatMessage({
+                        id: "database.form.reg.name",
+                      }),
+                    },
+                  ]}
+                >
+                  <Input
+                    placeholder={`${i18n.formatMessage({
+                      id: "database.form.placeholder.name",
+                    })}`}
+                  />
+                </Form.Item>
+              );
+            }
+            if (type == CreateType.access) {
+              return (
+                <Form.Item
+                  label={i18n.formatMessage({ id: "database.form.label.name" })}
+                  name={"databaseName"}
+                  labelCol={{ span: 5 }}
+                  wrapperCol={{ span: 14 }}
+                  required
+                >
+                  <Select
+                    placeholder={`${i18n.formatMessage({
+                      id: "database.form.select.placeholder.name",
+                    })}`}
+                  >
+                    {localTables?.map((item: any) => {
+                      return (
+                        <Option key={item.name} value={item.name}>
+                          {item.name}
+                        </Option>
+                      );
+                    })}
+                  </Select>
+                </Form.Item>
+              );
+            }
+            return <></>;
+          }}
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({ id: "description" })}
