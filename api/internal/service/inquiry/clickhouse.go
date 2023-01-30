@@ -15,6 +15,12 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
+	"github.com/clickvisual/clickvisual/api/core/reader"
+	"github.com/clickvisual/clickvisual/api/core/reader/ifreader"
+	"github.com/clickvisual/clickvisual/api/core/storer"
+	"github.com/clickvisual/clickvisual/api/core/storer/ifstorer"
+	"github.com/clickvisual/clickvisual/api/core/switcher"
+	"github.com/clickvisual/clickvisual/api/core/switcher/ifswitcher"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
@@ -963,6 +969,34 @@ func (c *ClickHouse) ListSystemTable() (res []*view.SystemTables) {
 
 // CreateStorage create default stream data table and view
 func (c *ClickHouse) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+
+	if ct.CreateType == constx.TableCreateTypeJSONAsString {
+		// 采用 core 的新流程
+		// 创建 storer -> reader -> switcher
+		var storeSQLs, readerSQLs, switcherSQLs = []string{}, []string{}, []string{}
+		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{}).Create()
+		if err != nil {
+			return
+		}
+		// reader
+		_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{}).Create()
+		if err != nil {
+			return
+		}
+		// switcher
+		_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{}).Create()
+		if err != nil {
+			return
+		}
+		dDataSQL = storeSQLs[0]
+		if len(storeSQLs[0]) == 2 {
+			dDistributedSQL = storeSQLs[1]
+		}
+		dStreamSQL = readerSQLs[0]
+		dViewSQL = switcherSQLs[0]
+		return
+	}
+
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement

@@ -28,6 +28,8 @@ type ReqStorageCreate struct {
 	RawLogField string `form:"rawLogField" binding:"required"`
 
 	SourceMapping MappingStruct `form:"-"`
+
+	CreateType int `form:"createType" binding:"required"`
 }
 
 type ReqCreateStorageByTemplate struct {

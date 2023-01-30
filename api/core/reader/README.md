@@ -1,0 +1,1 @@
+如果遇到 json 类型数据，reader 使用 JSONAsString 方式进行 kafka 表创建。
