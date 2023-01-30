@@ -121,7 +121,7 @@ type Alarm struct {
 	NoDataOp         int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`    // noDataOp 0 nodata 1 ok 2 alert
 	Level            int           `gorm:"column:level;type:int(11)" json:"level"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
 	Status           int           `gorm:"column:status;type:int(11)" json:"status"`                          // status
-	DutyOfficers     Ints          `gorm:"column:duty_officer;type:varchar(255)" json:"dutyOfficers"`         // duty officer id list
+	DutyOfficers     Ints          `gorm:"column:duty_officers;type:varchar(255)" json:"dutyOfficers"`        // duty officer id list
 	IsDisableResolve int           `gorm:"column:is_disable_resolve;type:tinyint(1)" json:"isDisableResolve"` // is disable resolve message
 
 	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`

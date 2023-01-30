@@ -34,18 +34,20 @@ func fieldTypeJudgment(req interface{}) string {
 	switch req.(type) {
 	case string:
 		val = "String"
-	// case uint16:
-	// 	val = "uint16"
-	// case uint64:
-	// 	val = "uint64"
-	// case int32:
-	// 	val = "int32"
-	// case int64:
-	// 	val = "int64"
-	// case []interface{}:
-	// 	val = "Array(T)"
-	// case map[string]interface{}:
-	// 	val = "JSON"
+	case uint16:
+		val = "uint16"
+	case uint64:
+		val = "uint64"
+	case int32:
+		val = "int32"
+	case int64:
+		val = "int64"
+	case []interface{}:
+		innerTyp := fieldTypeJudgment(req.([]interface{})[0])
+		val = "Array(" + innerTyp + ")"
+	case map[string]interface{}:
+		// val = "JSON"
+		val = "String"
 	case float64:
 		val = "Float64"
 	case bool:

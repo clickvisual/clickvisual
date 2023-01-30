@@ -161,7 +161,7 @@ func (c *ClickHouse) clusters() (res []view.Cluster, err error) {
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
-	rows, err := obj.Query("SELECT * from `system`.`clusters`")
+	rows, err := obj.Query("SELECT cluster,shard_num,shard_weight,replica_num,host_name,host_address,port from `system`.`clusters`")
 	if err != nil {
 		elog.Error("ClickHouse", elog.Any("step", "query"), elog.FieldErr(err))
 		return
@@ -174,13 +174,12 @@ func (c *ClickHouse) clusters() (res []view.Cluster, err error) {
 		var host_name string
 		var host_address string
 		var port int
-		var is_local int
-		var user string
-		var default_database string
-		var errors_count int
-		var estimated_recovery_time int
-		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port,
-			&is_local, &user, &default_database, &errors_count, &estimated_recovery_time)
+		// var is_local int
+		// var user string
+		// var default_database string
+		// var errors_count int
+		// var estimated_recovery_time int
+		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port)
 		if errScan != nil {
 			elog.Error("source", elog.FieldErr(err))
 			continue
