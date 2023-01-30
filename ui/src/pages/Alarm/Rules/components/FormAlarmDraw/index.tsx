@@ -262,7 +262,7 @@ const FormAlarmDraw = () => {
             })}
             name="dutyOfficers"
           >
-            <UserSelect multiple mode={"list"} />
+            <UserSelect multiple mode={"list"} isCancelAll />
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef.current} />
