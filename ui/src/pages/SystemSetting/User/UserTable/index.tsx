@@ -1,7 +1,14 @@
-import { DeleteOutlined, RedoOutlined } from "@ant-design/icons";
+import { UserInfoType } from "@/services/systemUser";
+import { DeleteOutlined, EditOutlined, RedoOutlined } from "@ant-design/icons";
 import { Button, message, Popconfirm, Space, Table, Tooltip } from "antd";
+import { useState } from "react";
 import { useIntl, useModel } from "umi";
 import { userListType } from "..";
+import EditUser from "./components/EditUser";
+
+export interface EditUserInfoType extends UserInfoType {
+  uid: number;
+}
 
 const UserTable = (props: {
   dataObj: { list: userListType[]; total: number };
@@ -10,6 +17,8 @@ const UserTable = (props: {
   currentPagination: { current: number; pageSize: number };
   copyInformation: (res: any, title: string) => void;
 }) => {
+  const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [editUserInfo, setEditUserInfo] = useState<EditUserInfoType>();
   const i18n = useIntl();
   const {
     dataObj,
@@ -43,6 +52,11 @@ const UserTable = (props: {
     { key: "uid", title: "Uid", dataIndex: "uid" },
     { key: "username", title: "UserName", dataIndex: "username" },
     { key: "nickname", title: "NickName", dataIndex: "nickname" },
+    {
+      key: "phone",
+      title: i18n.formatMessage({ id: "sys.user.table.phone" }),
+      dataIndex: "phone",
+    },
     { key: "email", title: "Email", dataIndex: "email" },
     {
       title: "Options",
@@ -81,36 +95,61 @@ const UserTable = (props: {
               <Button size={"small"} type={"link"} icon={<DeleteOutlined />} />
             </Popconfirm>
           </Tooltip>
+          <Button
+            size={"small"}
+            type={"link"}
+            onClick={() => {
+              setIsEdit(true);
+              setEditUserInfo({
+                uid: record.uid,
+                nickname: record.nickname,
+                email: record.email,
+                phone: record.phone,
+              });
+            }}
+            icon={<EditOutlined />}
+          />
         </Space>
       ),
     },
   ];
 
   return (
-    <Table
-      dataSource={dataObj?.list || []}
-      columns={column}
-      size="small"
-      rowKey={(item: any) => item.uid}
-      pagination={{
-        responsive: true,
-        showSizeChanger: true,
-        size: "small",
-        ...currentPagination,
-        total: dataObj?.total || 0,
-        onChange: (page, pageSize) => {
-          setCurrentPagination({
-            ...currentPagination,
-            current: page,
-            pageSize,
-          });
-          loadList({
-            current: page,
-            pageSize,
-          });
-        },
-      }}
-    />
+    <>
+      <EditUser
+        open={isEdit}
+        editUserInfo={editUserInfo}
+        onChangeOpen={(flag: boolean) => {
+          setIsEdit(flag);
+        }}
+        loadList={loadList}
+      />
+
+      <Table
+        dataSource={dataObj?.list || []}
+        columns={column}
+        size="small"
+        rowKey={(item: any) => item.uid}
+        pagination={{
+          responsive: true,
+          showSizeChanger: true,
+          size: "small",
+          ...currentPagination,
+          total: dataObj?.total || 0,
+          onChange: (page, pageSize) => {
+            setCurrentPagination({
+              ...currentPagination,
+              current: page,
+              pageSize,
+            });
+            loadList({
+              current: page,
+              pageSize,
+            });
+          },
+        }}
+      />
+    </>
   );
 };
 export default UserTable;

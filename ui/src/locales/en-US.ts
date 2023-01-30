@@ -832,6 +832,9 @@ export default {
   "sys.user.deleteName": "Delete user",
   "sys.user.deleteNameTips": "Are you sure to delete user '{user}'?",
   "sys.user.deleteName.success": "Deleting a User Succeeded",
+  "sys.user.table.phone": "Mobile phone number",
+  "sys.user.form.eidtUser": "Edit user",
+  "sys.user.form.editSuccess": "Edit successfully",
 
   // hooks->role
   "hooks.role.create.ing": "Being added",

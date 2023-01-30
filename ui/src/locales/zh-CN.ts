@@ -791,6 +791,9 @@ export default {
   "sys.user.deleteName": "删除用户",
   "sys.user.deleteNameTips": "确定删除用户「{user}」吗？",
   "sys.user.deleteName.success": "删除用户成功",
+  "sys.user.table.phone": "手机号",
+  "sys.user.form.eidtUser": "编辑用户",
+  "sys.user.form.editSuccess": "编辑成功",
 
   // models -> pms
   "models.pms.creating": "创建中...",

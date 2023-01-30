@@ -11,6 +11,12 @@ export interface createUserType {
   username: string | number;
 }
 
+export interface UserInfoType {
+  email: string;
+  phone: string;
+  nickname: string;
+}
+
 export default {
   // Get user list
   async getUserList(params: getUserListType) {
@@ -43,5 +49,13 @@ export default {
         method: "PATCH",
       }
     );
+  },
+
+  // edit user
+  async editUserInfo(userId: number, data: UserInfoType) {
+    return request(process.env.PUBLIC_PATH + `api/v2/base/users/${userId}`, {
+      method: "PATCH",
+      data,
+    });
   },
 };
