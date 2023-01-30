@@ -98,10 +98,14 @@ const TriggerConditionItem = ({ firstField }: TriggerConditionItemProps) => {
                       <Form.Item
                         noStyle
                         shouldUpdate={(prevValues, nextValues) =>
-                          prevValues.filters[field.name]?.conditions[field.name]
-                            ?.cond !==
-                          nextValues.filters[field.name]?.conditions[field.name]
-                            ?.cond
+                          (prevValues?.filters[field.name]?.conditions &&
+                            prevValues?.filters[field.name]?.conditions[
+                              field.name
+                            ]?.cond) !==
+                          (nextValues?.filters[field.name]?.conditions &&
+                            nextValues?.filters[field.name]?.conditions[
+                              field.name
+                            ]?.cond)
                         }
                       >
                         {({ getFieldValue }) => {

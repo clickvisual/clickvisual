@@ -543,6 +543,7 @@ export default {
   "alarm.rules.table.logLibrary": "关联日志库",
   "alarm.rules.form.title": "报警监控规则",
   "alarm.rules.form.alarmName": "报警名称",
+  "alarm.rules.form.isDisableResolve": "关闭恢复通知",
   "alarm.rules.form.level": "报警级别",
   "alarm.rules.form.serviceName": "服务名称",
   "alarm.rules.form.mobiles": "报警人手机号",

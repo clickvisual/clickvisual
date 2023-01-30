@@ -576,6 +576,7 @@ export default {
   "alarm.rules.table.logLibrary": "Associated log library",
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
+  "alarm.rules.form.isDisableResolve": "Disable Resolve Message",
   "alarm.rules.form.description": "Alarm Description",
   "alarm.rules.form.serviceName": "Service Name",
   "alarm.rules.form.mobiles": "mobile phone numbers",
