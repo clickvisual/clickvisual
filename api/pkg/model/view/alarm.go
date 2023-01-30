@@ -18,7 +18,7 @@ type ReqAlarmCreate struct {
 	Filters          []ReqAlarmFilterCreate    `json:"filters" form:"filters"`
 	Conditions       []ReqAlarmConditionCreate `json:"conditions" form:"conditions"`
 	Level            int                       `json:"level" form:"level"`
-	DutyOfficers     []int                     `json:"duty" form:"dutyOfficers"`
+	DutyOfficers     []int                     `json:"dutyOfficers" form:"dutyOfficers"`
 	IsDisableResolve int                       `json:"isDisableResolve" form:"isDisableResolve"`
 }
 
