@@ -51,17 +51,19 @@ func Create(c *core.Context) {
 		tableIds = append(tableIds, f.Tid)
 	}
 	obj := &db.Alarm{
-		Uuid:       uuid.NewString(),
-		Name:       req.Name,
-		Desc:       req.Desc,
-		Interval:   req.Interval,
-		Unit:       req.Unit,
-		Tags:       req.Tags,
-		NoDataOp:   req.NoDataOp,
-		ChannelIds: db.Ints(req.ChannelIds),
-		Uid:        c.Uid(),
-		Level:      req.Level,
-		TableIds:   tableIds,
+		Uuid:             uuid.NewString(),
+		Name:             req.Name,
+		Desc:             req.Desc,
+		Interval:         req.Interval,
+		Unit:             req.Unit,
+		Tags:             req.Tags,
+		NoDataOp:         req.NoDataOp,
+		ChannelIds:       db.Ints(req.ChannelIds),
+		Uid:              c.Uid(),
+		Level:            req.Level,
+		TableIds:         tableIds,
+		DutyOfficers:     db.Ints(req.DutyOfficers),
+		IsDisableResolve: req.IsDisableResolve,
 	}
 	if err := db.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()

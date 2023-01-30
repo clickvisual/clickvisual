@@ -5,19 +5,21 @@ import (
 )
 
 type ReqAlarmCreate struct {
-	Name       string                    `json:"alarmName" form:"alarmName"` // 告警名称
-	Desc       string                    `json:"desc" form:"desc"`           // 描述说明
-	Interval   int                       `json:"interval" form:"interval"`   // 告警频率
-	Unit       int                       `json:"unit" form:"unit"`           // 0 m 1 s 2 h 3 d 4 w 5 y
-	Status     int                       `json:"status" form:"status"`
-	AlertRule  string                    `json:"alertRule" form:"alertRule"` // prometheus alert rule
-	View       string                    `json:"view" form:"view"`           // 数据转换视图
-	NoDataOp   int                       `json:"noDataOp" form:"noDataOp"`
-	Tags       map[string]string         `json:"tags" form:"tags"` //
-	ChannelIds []int                     `json:"channelIds" form:"channelIds"`
-	Filters    []ReqAlarmFilterCreate    `json:"filters" form:"filters"`
-	Conditions []ReqAlarmConditionCreate `json:"conditions" form:"conditions"`
-	Level      int                       `json:"level" form:"level"`
+	Name             string                    `json:"alarmName" form:"alarmName"` // 告警名称
+	Desc             string                    `json:"desc" form:"desc"`           // 描述说明
+	Interval         int                       `json:"interval" form:"interval"`   // 告警频率
+	Unit             int                       `json:"unit" form:"unit"`           // 0 m 1 s 2 h 3 d 4 w 5 y
+	Status           int                       `json:"status" form:"status"`
+	AlertRule        string                    `json:"alertRule" form:"alertRule"` // prometheus alert rule
+	View             string                    `json:"view" form:"view"`           // 数据转换视图
+	NoDataOp         int                       `json:"noDataOp" form:"noDataOp"`
+	Tags             map[string]string         `json:"tags" form:"tags"` //
+	ChannelIds       []int                     `json:"channelIds" form:"channelIds"`
+	Filters          []ReqAlarmFilterCreate    `json:"filters" form:"filters"`
+	Conditions       []ReqAlarmConditionCreate `json:"conditions" form:"conditions"`
+	Level            int                       `json:"level" form:"level"`
+	DutyOfficers     []int                     `json:"duty" form:"dutyOfficers"`
+	IsDisableResolve int                       `json:"isDisableResolve" form:"isDisableResolve"`
 }
 
 func (r *ReqAlarmCreate) ConvertV2() {
