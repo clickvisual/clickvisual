@@ -11,12 +11,12 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/mapping"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
 )
 
 // KafkaJsonMapping  godoc
@@ -26,7 +26,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqKafkaJSONMapping true "params"
-// @Success      200 {object} view.MappingStruct
+// @Success      200 {object} view.List
 // @Router       /api/v2/storage/mapping-json [post]
 func KafkaJsonMapping(c *core.Context) {
 	var req view.ReqKafkaJSONMapping

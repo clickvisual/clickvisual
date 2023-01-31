@@ -84,21 +84,21 @@ func (ch *Storer) mergeTreeTable() (name string, sql string) {
 	}
 	return tableName, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 (
-    %s
-    _time_second_ DateTime,
-    _time_nanosecond_ DateTime64(9),
-    _raw_log_ String CODEC(ZSTD(1)),
-    _key String CODEC(ZSTD(1)),
-  	%s Array(String),
-  	%s Array(String),
-    INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
+%s
+_time_second_ DateTime,
+_time_nanosecond_ DateTime64(9),
+_raw_log_ String CODEC(ZSTD(1)),
+_key String CODEC(ZSTD(1)),
+%s Array(String),
+%s Array(String),
+INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
 )
 %s
 PARTITION BY toYYYYMMDD(_time_second_)
 ORDER BY _time_second_
 TTL toDateTime(_time_second_) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;
-`, tableNameWithCluster, ch.fields, engine, "`_headers.name`", "`_headers.value`", ch.ttl)
+`, tableNameWithCluster, ch.fields, "`_headersname`", "`_headersvalue`", engine, ch.ttl)
 }
 
 func (ch *Storer) distributedTable() (name string, sql string) {

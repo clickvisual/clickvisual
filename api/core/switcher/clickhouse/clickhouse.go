@@ -14,7 +14,7 @@ import (
 var _ ifswitcher.Switcher = (*Switcher)(nil)
 
 type Switcher struct {
-	readerType int
+	createType int
 
 	isShard   bool   // isShard Does it include shard
 	isReplica bool   // isReplica Does it include replica
@@ -24,19 +24,27 @@ type Switcher struct {
 
 	conn *sql.DB // clickhouse instance
 
-	jsonParseFields string
+	rawLogField  string
+	parseIndexes string
+	parseFields  string
+	parseTime    string
+	parseWhere   string
 }
 
 func NewSwitcher(req ifswitcher.Params) *Switcher {
 	return &Switcher{
-		readerType:      req.ReaderType,
-		isShard:         req.IsShard,
-		isReplica:       req.IsReplica,
-		cluster:         req.Cluster,
-		database:        req.Database,
-		table:           req.Table,
-		conn:            req.Conn,
-		jsonParseFields: req.JsonParseFields,
+		createType:   req.CreateType,
+		isShard:      req.IsShard,
+		isReplica:    req.IsReplica,
+		cluster:      req.Cluster,
+		database:     req.Database,
+		table:        req.Table,
+		conn:         req.Conn,
+		rawLogField:  req.RawLogField,
+		parseIndexes: req.ParseIndexes,
+		parseFields:  req.ParseFields,
+		parseTime:    req.ParseTime,
+		parseWhere:   req.ParseWhere,
 	}
 }
 
@@ -47,7 +55,7 @@ func (ch *Switcher) Description() string {
 func (ch *Switcher) Create() (tables []string, sqls []string, err error) {
 	tables = make([]string, 0)
 	sqls = make([]string, 0)
-	switch ch.readerType {
+	switch ch.createType {
 	case constx.TableCreateTypeJSONEachRow:
 		// todo nothing, wait for implementation
 	case constx.TableCreateTypeJSONAsString:
@@ -80,13 +88,15 @@ func (ch *Switcher) materializedView() (name string, sql string) {
 	}
 	return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS  %s TO %s AS
 SELECT
-    toDateTime(toInt64(_timestamp)) AS _time_second_,
-    toDateTime64(toInt64(_timestamp), 9) AS _time_nanosecond_,
-  	_key AS _key,
-  	%s,
-  	_log AS _raw_log_%s
-FROM %s;
-`, viewNameWithCluster, dataName, "`_headers.name` AS `_headers.name`,`_headers.value` AS `_headers.value`", ch.jsonParseFields, streamName)
+%s
+%s,
+_key AS _key,
+%s,
+toString(JSONExtractRaw(_log, '%s')) AS _raw_log_%s
+FROM %s
+WHERE %s;
+`, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime, "`_headers.name` AS `_headersname`,\n`_headers.value` AS `_headersvalue`",
+		ch.rawLogField, ch.parseIndexes, streamName, ch.parseWhere)
 }
 
 func (ch *Switcher) Delete() error {

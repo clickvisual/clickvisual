@@ -35,10 +35,11 @@ import (
 var _ Operator = (*ClickHouseX)(nil)
 
 type ClickHouseX struct {
-	id   int
-	mode int
-	rs   int // replica status
-	db   *sql.DB
+	id            int
+	mode          int
+	replicaStatus int // replica status
+	isShard       int // 0 no 1 yes
+	db            *sql.DB
 }
 
 func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouseX, error) {
@@ -46,10 +47,11 @@ func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouseX, error) {
 		return nil, errors.New("clickhouse add err, id is 0")
 	}
 	return &ClickHouseX{
-		db:   db,
-		id:   ins.ID,
-		mode: ins.Mode,
-		rs:   ins.ReplicaStatus,
+		db:            db,
+		id:            ins.ID,
+		mode:          ins.Mode,
+		isShard:       ins.Mode,
+		replicaStatus: ins.ReplicaStatus,
 	}, nil
 }
 
@@ -127,7 +129,7 @@ func (c *ClickHouseX) CreateMetricsSamples(cluster string) error {
 			return errors.Wrap(err, "create database")
 		}
 		var mergeTreeSQL string
-		switch c.rs {
+		switch c.replicaStatus {
 		case db.ReplicaStatusYes:
 			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
 		(
@@ -193,7 +195,7 @@ func (c *ClickHouseX) createMetricsSamplesV2(cluster string) error {
 			return errors.Wrap(err, "create database")
 		}
 		var mergeTreeSQL string
-		// 		switch c.rs {
+		// 		switch c.replicaStatus {
 		// 		case db.ReplicaStatusYes:
 		// 			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
 		// (
@@ -314,9 +316,9 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 
 	if c.mode == ModeCluster {
 		dataParams.Cluster = database.Cluster
-		dataParams.ReplicaStatus = c.rs
+		dataParams.ReplicaStatus = c.replicaStatus
 		streamParams.Cluster = database.Cluster
-		streamParams.ReplicaStatus = c.rs
+		streamParams.ReplicaStatus = c.replicaStatus
 		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
 		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 	} else {
@@ -341,7 +343,7 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 	if c.mode == ModeCluster {
 		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
 			Cluster:       database.Cluster,
-			ReplicaStatus: c.rs,
+			ReplicaStatus: c.replicaStatus,
 			Data: bumo.ParamsData{
 				DataType:    bumo.DataTypeDistributed,
 				TableName:   genName(database.Name, ct.TableName),
@@ -429,7 +431,7 @@ func (c *ClickHouseX) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, f
 	}
 	viewSQL = c.execView(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,
-		ReplicaStatus: c.rs,
+		ReplicaStatus: c.replicaStatus,
 		TimeField:     tableInfo.GetTimeField(),
 		View:          vp})
 	return viewTableName, viewSQL, nil
@@ -974,17 +976,60 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 		// 采用 core 的新流程
 		// 创建 storer -> reader -> switcher
 		var storeSQLs, readerSQLs, switcherSQLs = []string{}, []string{}, []string{}
-		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{}).Create()
+		var isShard, isReplica = false, false
+		if c.isShard == 1 {
+			isShard = true
+		}
+		if c.replicaStatus == db.ReplicaStatusYes {
+			isReplica = true
+		}
+		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
+			CreateType: ct.CreateType,
+			IsShard:    isShard,
+			IsReplica:  isReplica,
+			Cluster:    database.Cluster,
+			Database:   database.Name,
+			Table:      ct.TableName,
+			Conn:       c.Conn(),
+			Fields:     ct.Mapping2String(true),
+			TTL:        ct.Days,
+		}).Create()
 		if err != nil {
 			return
 		}
 		// reader
-		_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{}).Create()
+		_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{
+			CreateType:              ct.CreateType,
+			IsShard:                 isShard,
+			IsReplica:               isReplica,
+			Cluster:                 database.Cluster,
+			Database:                database.Name,
+			Table:                   ct.TableName,
+			Conn:                    c.Conn(),
+			Brokers:                 ct.Brokers,
+			Topics:                  ct.Topics,
+			GroupName:               database.Name + "_" + ct.TableName,
+			KafkaNumConsumers:       ct.Consumers,
+			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
+		}).Create()
 		if err != nil {
 			return
 		}
 		// switcher
-		_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{}).Create()
+		_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
+			CreateType:   ct.CreateType,
+			IsShard:      isShard,
+			IsReplica:    isReplica,
+			Cluster:      database.Cluster,
+			Database:     database.Name,
+			Table:        ct.TableName,
+			Conn:         c.Conn(),
+			RawLogField:  ct.RawLogField,
+			ParseIndexes: c.jsonExtractSQL(nil, ct.GetRawLogField()),
+			ParseFields:  ct.Mapping2Fields(),
+			ParseTime:    c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.GetRawLogField()),
+			ParseWhere:   c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+		}).Create()
 		if err != nil {
 			return
 		}
@@ -1034,9 +1079,9 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 	}
 	if c.mode == ModeCluster {
 		dataParams.Cluster = database.Cluster
-		dataParams.ReplicaStatus = c.rs
+		dataParams.ReplicaStatus = c.replicaStatus
 		streamParams.Cluster = database.Cluster
-		streamParams.ReplicaStatus = c.rs
+		streamParams.ReplicaStatus = c.replicaStatus
 		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
 		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 	} else {
@@ -1061,7 +1106,7 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 	if c.mode == ModeCluster {
 		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
 			Cluster:       database.Cluster,
-			ReplicaStatus: c.rs,
+			ReplicaStatus: c.replicaStatus,
 			Data: bumo.ParamsData{
 				DataType:    bumo.DataTypeDistributed,
 				TableName:   genName(database.Name, ct.TableName),
@@ -1119,7 +1164,7 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 	}
 	if c.mode == ModeCluster {
 		streamParams.Cluster = tableInfo.Database.Cluster
-		streamParams.ReplicaStatus = c.rs
+		streamParams.ReplicaStatus = c.replicaStatus
 		streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 	} else {
 		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
@@ -1169,9 +1214,9 @@ func (c *ClickHouseX) CreateStorageV3(did int, database db.BaseDatabase, ct view
 	}
 	if c.mode == ModeCluster {
 		dataParams.Cluster = database.Cluster
-		dataParams.ReplicaStatus = c.rs
+		dataParams.ReplicaStatus = c.replicaStatus
 		streamParams.Cluster = database.Cluster
-		streamParams.ReplicaStatus = c.rs
+		streamParams.ReplicaStatus = c.replicaStatus
 		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
 		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 	} else {
@@ -1208,7 +1253,7 @@ func (c *ClickHouseX) CreateStorageV3(did int, database db.BaseDatabase, ct view
 	if c.mode == ModeCluster {
 		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
 			Cluster:       database.Cluster,
-			ReplicaStatus: c.rs,
+			ReplicaStatus: c.replicaStatus,
 			Data: bumo.ParamsData{
 				DataType:    bumo.DataTypeDistributed,
 				TableName:   genName(database.Name, ct.TableName),
@@ -1246,7 +1291,7 @@ func (c *ClickHouseX) CreateTraceJaegerDependencies(database, cluster, table str
 	}
 	if c.mode == ModeCluster {
 		params.IsShard = true
-		if c.rs == 0 {
+		if c.replicaStatus == 0 {
 			params.IsReplica = true
 		}
 	}
@@ -1385,7 +1430,7 @@ func (c *ClickHouseX) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPip
 	}
 	if c.mode == ModeCluster {
 		params.IsShard = true
-		if c.rs == 0 {
+		if c.replicaStatus == 0 {
 			params.IsReplica = true
 		}
 	}
@@ -1452,7 +1497,7 @@ func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res 
 		TableCreateType: constx.TableCreateTypeUBW,
 		TimeField:       param.TimeField,
 		Cluster:         databaseInfo.Cluster,
-		ReplicaStatus:   c.rs,
+		ReplicaStatus:   c.replicaStatus,
 		View: bumo.ParamsView{
 			ViewTable:        viewName,
 			TargetTable:      dName,
@@ -1588,6 +1633,17 @@ func (c *ClickHouseX) whereConditionSQLDefault(list []*db.BaseView, rawLogField 
 	return defaultSQL
 }
 
+func (c *ClickHouseX) timeParseJSONAsString(typ int, v *db.BaseView, timeField, rawLogField string) string {
+	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
+		timeField = fmt.Sprintf("JSONExtractInt(_log, '%s')", timeField)
+	} else if typ == TableTypeFloat {
+		timeField = fmt.Sprintf("JSONExtractFloat(_log, '%s')", timeField)
+	} else {
+		timeField = fmt.Sprintf("JSONExtractString(_log, '%s')", timeField)
+	}
+	return c.timeParseSQL(typ, v, timeField, rawLogField)
+}
+
 func (c *ClickHouseX) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogField string) string {
 	if timeField == "" {
 		timeField = "_time_"
@@ -1656,7 +1712,7 @@ func (c *ClickHouseX) storageViewOperator(typ, tid int, did int, table, customTi
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Cluster:          databaseInfo.Cluster,
-		ReplicaStatus:    c.rs,
+		ReplicaStatus:    c.replicaStatus,
 		View: bumo.ParamsView{
 			ViewTable:    viewName,
 			TargetTable:  dName,

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
 )
 
 type ReqKafkaJSONMapping struct {
@@ -27,7 +28,7 @@ type ReqStorageCreate struct {
 	TimeField   string `form:"timeField" binding:"required"`
 	RawLogField string `form:"rawLogField" binding:"required"`
 
-	SourceMapping MappingStruct `form:"-"`
+	SourceMapping mapping.List `form:"-"`
 
 	CreateType int `form:"createType" binding:"required"`
 }
@@ -99,16 +100,39 @@ func ReqStorageCreateUnmarshal(res string) ReqStorageCreate {
 	return resp
 }
 
+func (r *ReqStorageCreate) Mapping2Fields() string {
+	var res string
+	if len(r.SourceMapping.Data) == 0 {
+		return res
+	}
+	for _, v := range r.SourceMapping.Data {
+		if v.Key == r.TimeField ||
+			v.Key == r.RawLogField ||
+			v.Key == "_time_second_" ||
+			v.Key == "_time_nanosecond_" ||
+			v.Key == "_raw_log_" {
+			continue
+		}
+		if res == "" {
+			res = v.AssembleJSONAsString()
+			continue
+		}
+		res = fmt.Sprintf("%s\n%s", res, v.AssembleJSONAsString())
+	}
+	return res
+}
+
 func (r *ReqStorageCreate) Mapping2String(withType bool) string {
 	var res string
 	if len(r.SourceMapping.Data) == 0 {
 		return res
 	}
 	for _, v := range r.SourceMapping.Data {
-		if v.Key == r.TimeField || v.Key == r.RawLogField {
-			continue
-		}
-		if v.Key == "_time_second_" || v.Key == "_time_nanosecond_" || v.Key == "_raw_log_" {
+		if v.Key == r.TimeField ||
+			v.Key == r.RawLogField ||
+			v.Key == "_time_second_" ||
+			v.Key == "_time_nanosecond_" ||
+			v.Key == "_raw_log_" {
 			continue
 		}
 		if res == "" {
@@ -118,22 +142,6 @@ func (r *ReqStorageCreate) Mapping2String(withType bool) string {
 		res = fmt.Sprintf("%s\n%s", res, v.Assemble(withType))
 	}
 	return res
-}
-
-type MappingStruct struct {
-	Data []MappingStructItem `json:"data"`
-}
-
-type MappingStructItem struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-func (m *MappingStructItem) Assemble(withType bool) string {
-	if withType {
-		return fmt.Sprintf("`%s` %s,", m.Key, m.Value)
-	}
-	return fmt.Sprintf("`%s`,", m.Key)
 }
 
 type RespStorageAnalysisFields struct {

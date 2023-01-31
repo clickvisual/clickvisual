@@ -16,7 +16,7 @@ type Switcher interface {
 
 type Params struct {
 	// common
-	ReaderType int
+	CreateType int
 
 	IsShard   bool    // isShard Does it include shard
 	IsReplica bool    // isReplica Does it include replica
@@ -26,5 +26,9 @@ type Params struct {
 	Conn      *sql.DB // clickhouse
 
 	// switcher
-	JsonParseFields string
+	RawLogField  string
+	ParseIndexes string
+	ParseFields  string
+	ParseTime    string
+	ParseWhere   string
 }

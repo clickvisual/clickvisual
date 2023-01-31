@@ -81,8 +81,7 @@ func (ch *Reader) createJSONAsString() (tables []string, sqls []string) {
 (
   _log String
 )
-ENGINE = Kafka SETTINGS 
-kafka_broker_list = '%s', 
+ENGINE = Kafka SETTINGS kafka_broker_list = '%s', 
 kafka_topic_list = '%s', 
 kafka_group_name = '%s', 
 kafka_format = 'JSONAsString', 
