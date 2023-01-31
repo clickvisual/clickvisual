@@ -1876,6 +1876,12 @@
                         "description": "描述说明",
                         "type": "string"
                     },
+                    "dutyOfficers": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array"
+                    },
                     "filters": {
                         "items": {
                             "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqAlarmFilterCreate"
@@ -1884,6 +1890,9 @@
                     },
                     "interval": {
                         "description": "告警频率",
+                        "type": "integer"
+                    },
+                    "isDisableResolve": {
                         "type": "integer"
                     },
                     "level": {
