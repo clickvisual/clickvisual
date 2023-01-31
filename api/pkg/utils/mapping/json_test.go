@@ -3,8 +3,6 @@ package mapping
 import (
 	"reflect"
 	"testing"
-
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func Test_mapping(t *testing.T) {
@@ -14,7 +12,7 @@ func Test_mapping(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want view.MappingStruct
+		want List
 	}{
 		// TODO: Add test cases.
 		{
@@ -22,8 +20,8 @@ func Test_mapping(t *testing.T) {
 			args: args{
 				input: `{"Followers":8900}`,
 			},
-			want: view.MappingStruct{
-				Data: []view.MappingStructItem{
+			want: List{
+				Data: []Item{
 					{
 						Key:   "Followers",
 						Value: "Float64",
@@ -36,8 +34,8 @@ func Test_mapping(t *testing.T) {
 			args: args{
 				input: `{"Name":"gopher"}`,
 			},
-			want: view.MappingStruct{
-				Data: []view.MappingStructItem{
+			want: List{
+				Data: []Item{
 					{
 						Key:   "Name",
 						Value: "String",
@@ -50,8 +48,8 @@ func Test_mapping(t *testing.T) {
 			args: args{
 				input: `{"IsAdmin":false}`,
 			},
-			want: view.MappingStruct{
-				Data: []view.MappingStructItem{
+			want: List{
+				Data: []Item{
 					{
 						Key:   "IsAdmin",
 						Value: "Bool",
@@ -73,8 +71,8 @@ func Test_mapping(t *testing.T) {
         }
 ]}`,
 			},
-			want: view.MappingStruct{
-				Data: []view.MappingStructItem{
+			want: List{
+				Data: []Item{
 					{
 						Key:   "tags",
 						Value: "Array(String)",
@@ -103,8 +101,8 @@ func Test_mapping(t *testing.T) {
         ]
     }}`,
 			},
-			want: view.MappingStruct{
-				Data: []view.MappingStructItem{
+			want: List{
+				Data: []Item{
 					{
 						Key:   "process",
 						Value: "String",
