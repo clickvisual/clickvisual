@@ -19,6 +19,7 @@ import TextArea from "antd/es/input/TextArea";
 import { SaveOutlined } from "@ant-design/icons";
 import { AlarmRequest, ChannelType } from "@/services/alarm";
 import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
+import UserSelect from "@/pages/SystemSetting/Role/components/UserSelect";
 
 export enum AlarmLvelType {
   Alarm = 0,
@@ -115,6 +116,9 @@ const FormAlarmDraw = () => {
   };
 
   const handleSubmit = (field: AlarmRequest) => {
+    if (!field.dutyOfficers) {
+      field.dutyOfficers = [];
+    }
     !alarmDraw.isEditor ? doCreated(field) : doUpdated(field);
   };
 
@@ -128,6 +132,10 @@ const FormAlarmDraw = () => {
 
   useEffect(() => {
     if (!alarmDraw.visibleDraw || !alarmDraw.isEditor || !currentRowAlarm) {
+      alarmFormRef?.current?.setFieldsValue({
+        dutyOfficers: [],
+        isDisableResolve: 0,
+      });
       return;
     }
     alarmDraw.doGetAlarmInfo.run(currentRowAlarm.id).then((res) => {
@@ -204,6 +212,27 @@ const FormAlarmDraw = () => {
               })}`}
             />
           </Form.Item>
+
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "alarm.rules.form.isDisableResolve",
+            })}
+            name={"isDisableResolve"}
+          >
+            <Select>
+              <Option value={1}>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.true",
+                })}
+              </Option>
+              <Option value={0}>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.false",
+                })}
+              </Option>
+            </Select>
+          </Form.Item>
+
           <Form.Item
             label={i18n.formatMessage({
               id: "alarm.rules.form.level",
@@ -225,6 +254,15 @@ const FormAlarmDraw = () => {
                 );
               })}
             </Select>
+          </Form.Item>
+
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "bigdata.components.RightMenu.Scheduling.thoseResponsible",
+            })}
+            name="dutyOfficers"
+          >
+            <UserSelect multiple mode={"list"} isCancelAll />
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef.current} />

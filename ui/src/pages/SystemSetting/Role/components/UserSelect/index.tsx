@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Avatar, Select, TreeSelect } from "antd";
 import { SelectProps } from "antd/es/select";
 import useConsole, { DepTree } from "../../hooks/useConsole";
@@ -43,11 +43,24 @@ export interface UserSelectProps
    * @description 无需指定，仅用于调试时强制指定地址
    */
   host?: string;
+
+  /**
+   * 是否取消全选
+   */
+  isCancelAll?: boolean;
 }
 
 const UserSelect = (props: UserSelectProps) => {
-  const { multiple, mode, host, onChange, value, onlyMainDep, ...restProps } =
-    props;
+  const {
+    multiple,
+    mode,
+    host,
+    onChange,
+    value,
+    onlyMainDep,
+    isCancelAll,
+    ...restProps
+  } = props;
   const _value = value || undefined;
   const store = useConsole({ host: host });
 
@@ -96,6 +109,12 @@ const UserSelect = (props: UserSelectProps) => {
     });
   };
 
+  const userList = useMemo(() => {
+    return isCancelAll
+      ? store.users?.filter((item: any) => item.id !== -1)
+      : store.users;
+  }, [store, store.users, isCancelAll]);
+
   return (
     <Select<number>
       mode={multiple ? "multiple" : undefined}
@@ -105,7 +124,7 @@ const UserSelect = (props: UserSelectProps) => {
       value={store.usersLoading ? undefined : _value}
       {...restProps}
     >
-      {store.users?.map((user) => (
+      {userList?.map((user) => (
         <Select.Option
           value={user.uid}
           key={user.uid}

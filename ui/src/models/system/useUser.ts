@@ -18,11 +18,16 @@ const User = () => {
     loadingText: false,
   });
 
+  const doEditUserInfo = useRequest(sysUserApi.editUserInfo, {
+    loadingText: false,
+  });
+
   return {
     doGetUserList,
     doCreateUser,
     doDeleteUser,
     doResetUserPassword,
+    doEditUserInfo,
   };
 };
 export default User;

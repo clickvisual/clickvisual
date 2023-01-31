@@ -516,7 +516,7 @@ func (i *alert) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	ups["no_data_op"] = req.NoDataOp
 	ups["level"] = req.Level
 	ups["channel_ids"] = db.Ints(req.ChannelIds)
-	ups["duty_offices"] = db.Ints(req.DutyOfficers)
+	ups["duty_officers"] = db.Ints(req.DutyOfficers)
 	ups["is_disable_resolve"] = req.IsDisableResolve
 	tableIds := db.Ints{}
 	for _, f := range req.Filters {

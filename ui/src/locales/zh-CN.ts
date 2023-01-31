@@ -167,6 +167,9 @@ export default {
   // Database Management
   "database.form.label.name": "数据库",
   "database.form.placeholder.name": "请输入数据库名称",
+  "database.form.select.placeholder.name": "请选择数据库",
+  "database.created.datalogs": "创建数据库",
+  "database.access.datalogs": "接入已有数据库",
   "database.form.reg.name": "仅支持_、小写字母或数字，且以字母开头",
   "database.success.created": "新增数据库成功",
 
@@ -543,6 +546,7 @@ export default {
   "alarm.rules.table.logLibrary": "关联日志库",
   "alarm.rules.form.title": "报警监控规则",
   "alarm.rules.form.alarmName": "报警名称",
+  "alarm.rules.form.isDisableResolve": "关闭恢复通知",
   "alarm.rules.form.level": "报警级别",
   "alarm.rules.form.serviceName": "服务名称",
   "alarm.rules.form.mobiles": "报警人手机号",
@@ -791,6 +795,9 @@ export default {
   "sys.user.deleteName": "删除用户",
   "sys.user.deleteNameTips": "确定删除用户「{user}」吗？",
   "sys.user.deleteName.success": "删除用户成功",
+  "sys.user.table.phone": "手机号",
+  "sys.user.form.eidtUser": "编辑用户",
+  "sys.user.form.editSuccess": "编辑成功",
 
   // models -> pms
   "models.pms.creating": "创建中...",

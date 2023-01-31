@@ -168,6 +168,9 @@ export default {
   // Database Management
   "database.form.label.name": "Database",
   "database.form.placeholder.name": "Please enter database name",
+  "database.form.select.placeholder.name": "Please select database",
+  "database.created.datalogs": "Create a database",
+  "database.access.datalogs": "Access an existing database",
   "database.form.reg.name":
     "Support only _, lowercase letters or Numbers, and begin with a letter",
   "database.success.created": "Created database succeeded",
@@ -576,6 +579,7 @@ export default {
   "alarm.rules.table.logLibrary": "Associated log library",
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
+  "alarm.rules.form.isDisableResolve": "Disable Resolve Message",
   "alarm.rules.form.description": "Alarm Description",
   "alarm.rules.form.serviceName": "Service Name",
   "alarm.rules.form.mobiles": "mobile phone numbers",
@@ -832,6 +836,9 @@ export default {
   "sys.user.deleteName": "Delete user",
   "sys.user.deleteNameTips": "Are you sure to delete user '{user}'?",
   "sys.user.deleteName.success": "Deleting a User Succeeded",
+  "sys.user.table.phone": "Mobile phone number",
+  "sys.user.form.eidtUser": "Edit user",
+  "sys.user.form.editSuccess": "Edit successfully",
 
   // hooks->role
   "hooks.role.create.ing": "Being added",
