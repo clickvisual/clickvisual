@@ -209,11 +209,12 @@ type RespTableDetail struct {
 		Keys []string          `json:"keys"`
 		Data map[string]string `json:"data"`
 	} `json:"sqlContent"`
-	Database   RespDatabaseItem `json:"database"`
-	CreateType int              `json:"createType"`
-	TimeField  string           `json:"timeField"`
-	Ctime      int64            `json:"ctime"`
-	Utime      int64            `json:"utime"`
+	Database    RespDatabaseItem `json:"database"`
+	CreateType  int              `json:"createType"`
+	TimeField   string           `json:"timeField"`
+	RawLogField string           `json:"rawLogField"`
+	Ctime       int64            `json:"ctime"`
+	Utime       int64            `json:"utime"`
 
 	TraceTableId int `json:"traceTableId"`
 	V3TableType  int `json:"v3TableType"`

@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -10,6 +11,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
@@ -52,11 +54,25 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 	return false
 }
 
+// 判断日志库类型
+func decideCreateType(param view.ReqStorageCreate) int {
+	for _, m := range param.SourceMapping.Data {
+		if strings.Contains(m.Value, "JSON") {
+			return constx.TableCreateTypeJSONAsString
+		}
+	}
+	if param.RawLogField == "" {
+		return constx.TableCreateTypeJSONAsString
+	}
+	return constx.TableCreateTypeJSONEachRow
+}
+
 func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (tableInfo db.BaseTable, err error) {
 	param.SourceMapping, err = mapping.Handle(param.Source)
 	if err != nil {
 		return
 	}
+	tableCreateType := decideCreateType(param)
 	if err = json.Unmarshal([]byte(param.Source), &param.SourceMapping); err != nil {
 		return
 	}
@@ -64,7 +80,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.CreateStorage(databaseInfo.ID, databaseInfo, param)
+	s, d, v, a, err := op.CreateStorage(tableCreateType, databaseInfo.ID, databaseInfo, param)
 	if err != nil {
 		err = errors.Wrap(err, "create failed 01:")
 		return
@@ -82,7 +98,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		SqlStream:               s,
 		SqlView:                 v,
 		SqlDistributed:          a,
-		CreateType:              param.CreateType,
+		CreateType:              tableCreateType,
 		Uid:                     uid,
 		RawLogField:             param.RawLogField,
 		TimeField:               db.TimeFieldSecond,

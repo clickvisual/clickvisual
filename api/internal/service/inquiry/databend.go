@@ -199,7 +199,7 @@ func (c *Databend) CreateTraceJaegerDependencies(database, cluster, table string
 }
 
 // CreateStorage create default stream data table and view
-func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *Databend) CreateStorage(tableCreateType, did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement

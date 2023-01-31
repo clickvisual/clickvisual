@@ -26,11 +26,9 @@ type ReqStorageCreate struct {
 	Source      string `form:"source" binding:"required"` // Raw JSON data
 	DatabaseId  int    `form:"databaseId" binding:"required"`
 	TimeField   string `form:"timeField" binding:"required"`
-	RawLogField string `form:"rawLogField" binding:"required"`
+	RawLogField string `form:"rawLogField"`
 
 	SourceMapping mapping.List `form:"-"`
-
-	CreateType int `form:"createType" binding:"required"`
 }
 
 type ReqCreateStorageByTemplate struct {

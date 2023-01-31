@@ -970,9 +970,9 @@ func (c *ClickHouseX) ListSystemTable() (res []*view.SystemTables) {
 }
 
 // CreateStorage create default stream data table and view
-func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *ClickHouseX) CreateStorage(tableCreateType, did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 
-	if ct.CreateType == constx.TableCreateTypeJSONAsString {
+	if tableCreateType == constx.TableCreateTypeJSONAsString {
 		// 采用 core 的新流程
 		// 创建 storer -> reader -> switcher
 		var storeSQLs, readerSQLs, switcherSQLs = []string{}, []string{}, []string{}
@@ -984,7 +984,7 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 			isReplica = true
 		}
 		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
-			CreateType: ct.CreateType,
+			CreateType: tableCreateType,
 			IsShard:    isShard,
 			IsReplica:  isReplica,
 			Cluster:    database.Cluster,
@@ -999,7 +999,7 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 		}
 		// reader
 		_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{
-			CreateType:              ct.CreateType,
+			CreateType:              tableCreateType,
 			IsShard:                 isShard,
 			IsReplica:               isReplica,
 			Cluster:                 database.Cluster,
@@ -1017,7 +1017,7 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 		}
 		// switcher
 		_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
-			CreateType:   ct.CreateType,
+			CreateType:   tableCreateType,
 			IsShard:      isShard,
 			IsReplica:    isReplica,
 			Cluster:      database.Cluster,
