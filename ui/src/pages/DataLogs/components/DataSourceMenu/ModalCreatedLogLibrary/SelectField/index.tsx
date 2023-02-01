@@ -1,8 +1,8 @@
 import CustomModal from "@/components/CustomModal";
-import { Button, message, Space, Table } from "antd";
-import { ColumnsType } from "antd/lib/table";
-import { useCallback, useEffect, useState } from "react";
-import { useIntl } from "umi";
+import {Button, message, Space, Table} from "antd";
+import {ColumnsType} from "antd/lib/table";
+import {useCallback, useEffect, useState} from "react";
+import {useIntl} from "umi";
 import SelectFieldStyle from "./index.less";
 
 export interface SelectFieldType {
@@ -59,7 +59,7 @@ const SelectField = (props: SelectFieldType) => {
           content: (
             <a
               target="_blank"
-              href="https://clickvisual.gocn.vip/clickvisual/02install/quick-start.html#第六步-创建日志库"
+              href="https://clickvisual.gocn.vip/zh/clickvisual/02install/quick-start.html#第六步-创建日志库"
             >
               {i18n.formatMessage({
                 id: "datasource.logLibrary.from.souceTips",

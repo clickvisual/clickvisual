@@ -1,6 +1,6 @@
-import { useIntl } from "umi";
-import { Button, Form, Input, message, Select } from "antd";
-import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
+import {useIntl} from "umi";
+import {Button, Form, Input, message, Select} from "antd";
+import {logLibraryTypes} from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import styles from "./index.less";
 import TextArea from "antd/lib/input/TextArea";
 
@@ -58,7 +58,7 @@ const JsonEachRow = ({
             </Button>
             <Button
               type="link"
-              href="https://clickvisual.gocn.vip/clickvisual/02install/quick-start.html#第六步-创建日志库"
+              href="https://clickvisual.gocn.vip/zh/clickvisual/02install/quick-start.html#第六步-创建日志库"
               target="_blank"
             >
               {i18n.formatMessage({ id: "datasource.logLibrary.documentBtn" })}
