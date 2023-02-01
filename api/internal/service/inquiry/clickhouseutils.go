@@ -184,7 +184,7 @@ func genSelectFields(tid int) string {
 }
 
 func queryTransformLike(createType int, rawLogField, query string) string {
-	if query == "" {
+	if query == "" || rawLogField == "" {
 		return query
 	}
 	var res string

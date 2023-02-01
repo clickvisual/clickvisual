@@ -143,7 +143,10 @@ func (r *ReqStorageCreate) Mapping2String(withType bool) string {
 }
 
 type RespStorageAnalysisFields struct {
-	Keys []StorageAnalysisField `json:"keys"`
+	// Deprecated: Keys
+	Keys       []StorageAnalysisField `json:"keys"`
+	BaseFields []StorageAnalysisField `json:"baseFields"`
+	LogFields  []StorageAnalysisField `json:"logFields"`
 }
 
 type StorageAnalysisField struct {

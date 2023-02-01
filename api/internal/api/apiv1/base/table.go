@@ -65,43 +65,43 @@ func TableId(c *core.Context) {
 // TableCreate
 // @Tags         LOGSTORE
 // @Summary		 日志库创建
-func TableCreate(c *core.Context) {
-	did := cast.ToInt(c.Param("did"))
-	if did == 0 {
-		c.JSONE(core.CodeErr, "params error", nil)
-		return
-	}
-	var param view.ReqTableCreate
-	err := c.Bind(&param)
-	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
-	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
-		SubResource: pmsplugin.Log,
-		Acts:        []string{pmsplugin.ActEdit},
-		DomainType:  pmsplugin.PrefixDatabase,
-		DomainId:    strconv.Itoa(databaseInfo.ID),
-	}); err != nil {
-		c.JSONE(1, "permission verification failed", err)
-		return
-	}
-	_, err = service.TableCreate(c.Uid(), databaseInfo, param)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
-	c.JSONOK()
-}
+// func TableCreate(c *core.Context) {
+// 	did := cast.ToInt(c.Param("did"))
+// 	if did == 0 {
+// 		c.JSONE(core.CodeErr, "params error", nil)
+// 		return
+// 	}
+// 	var param view.ReqTableCreate
+// 	err := c.Bind(&param)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+// 		return
+// 	}
+// 	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+// 		return
+// 	}
+// 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+// 		UserId:      c.Uid(),
+// 		ObjectType:  pmsplugin.PrefixInstance,
+// 		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
+// 		SubResource: pmsplugin.Log,
+// 		Acts:        []string{pmsplugin.ActEdit},
+// 		DomainType:  pmsplugin.PrefixDatabase,
+// 		DomainId:    strconv.Itoa(databaseInfo.ID),
+// 	}); err != nil {
+// 		c.JSONE(1, "permission verification failed", err)
+// 		return
+// 	}
+// 	_, err = service.TableCreate(c.Uid(), databaseInfo, param)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, err.Error(), nil)
+// 		return
+// 	}
+// 	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
+// 	c.JSONOK()
+// }
 
 // TableInfo
 // @Tags         LOGSTORE
@@ -164,6 +164,9 @@ func TableInfo(c *core.Context) {
 	}
 	if res.TimeField == "" {
 		res.TimeField = db.TimeFieldSecond
+	}
+	if tableInfo.RawLogField == "" {
+		res.IsNotSupAnalysisField = 1
 	}
 	keys := make([]string, 0)
 	data := make(map[string]string, 0)

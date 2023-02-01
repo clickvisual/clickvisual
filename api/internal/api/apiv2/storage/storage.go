@@ -100,13 +100,17 @@ func AnalysisFields(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res := view.RespStorageAnalysisFields{}
+	res := view.RespStorageAnalysisFields{
+		Keys:       make([]view.StorageAnalysisField, 0),
+		BaseFields: make([]view.StorageAnalysisField, 0),
+		LogFields:  make([]view.StorageAnalysisField, 0),
+	}
 	// Read the index data
 	conds := egorm.Conds{}
 	conds["tid"] = storageId
 	fields, _ := db.IndexList(conds)
 	for _, row := range fields {
-		res.Keys = append(res.Keys, view.StorageAnalysisField{
+		f := view.StorageAnalysisField{
 			Id:       row.ID,
 			Tid:      row.Tid,
 			Field:    row.Field,
@@ -116,7 +120,13 @@ func AnalysisFields(c *core.Context) {
 			Alias:    row.Alias,
 			Ctime:    row.Ctime,
 			Utime:    row.Utime,
-		})
+		}
+		if row.Kind == 0 {
+			res.BaseFields = append(res.BaseFields, f)
+		} else {
+			res.LogFields = append(res.LogFields, f)
+		}
+		res.Keys = append(res.Keys, f)
 	}
 	// keys sort by the first letter
 	sort.Slice(res.Keys, func(i, j int) bool {

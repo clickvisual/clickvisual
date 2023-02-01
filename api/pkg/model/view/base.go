@@ -41,6 +41,11 @@ type IndexItem struct {
 	Typ      int    `json:"typ" form:"typ"`
 	RootName string `json:"rootName" form:"rootName"`
 	HashTyp  int    `json:"hashTyp" form:"hashTyp"`
+	Kind     int    `json:"kind" form:"kind"`
+}
+
+func (i *IndexItem) Name() string {
+	return fmt.Sprintf("%s-%s-%d-%s-%d", i.Field, i.Alias, i.Typ, i.RootName, i.HashTyp)
 }
 
 type (
@@ -218,6 +223,8 @@ type RespTableDetail struct {
 
 	TraceTableId int `json:"traceTableId"`
 	V3TableType  int `json:"v3TableType"`
+
+	IsNotSupAnalysisField int `json:"isNotSupAnalysisField"`
 }
 
 type RespColumn struct {

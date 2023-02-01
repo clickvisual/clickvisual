@@ -106,10 +106,42 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		AnyJSON:                 param.JSON(),
 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
 	}
-	err = db.TableCreate(invoker.Db, &tableInfo)
+	tx := invoker.Db.Begin()
+	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
+		tx.Rollback()
 		err = errors.Wrap(err, "create failed 02:")
 		return
+	}
+	if tableCreateType == constx.TableCreateTypeJSONAsString || tableCreateType == constx.TableCreateTypeJSONEachRow {
+		columns := make([]*view.RespColumn, 0)
+		columns, err = op.ListColumn(databaseInfo.Name, param.TableName, false)
+		if err != nil {
+			return
+		}
+		for _, col := range columns {
+			if col.Type < 0 || col.Type == 3 {
+				continue
+			}
+			if col.Name == "_raw_log_" {
+				continue
+			}
+			err = db.IndexCreate(tx, &db.BaseIndex{
+				Tid:      tableInfo.ID,
+				Field:    col.Name,
+				Typ:      col.Type,
+				Alias:    "",
+				RootName: "",
+				Kind:     0,
+			})
+			if err != nil {
+				tx.Rollback()
+				return
+			}
+		}
+	}
+	if err = tx.Commit().Error; err != nil {
+		return tableInfo, err
 	}
 	return tableInfo, nil
 }
