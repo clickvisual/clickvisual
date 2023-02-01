@@ -14,9 +14,6 @@ import (
 
 const (
 	IndexTypeString int = 0
-	IndexTypeInt    int = 1
-	IndexTypeFloat  int = 2
-	IndexTypeJSON   int = 3
 	IndexTypeRaw    int = -4
 )
 
@@ -30,6 +27,7 @@ type BaseIndex struct {
 	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                                // 0 string 1 int 2 float
 	HashTyp  int    `gorm:"column:hash_typ;type:tinyint(1)" json:"hashTyp"`                                             // hash type, 0 no hash 1 sipHash64 2 URLHash
 	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                                       // index filed alias name
+	Kind     int    `gorm:"column:kind;type:tinyint(1)" json:"kind"`                                                    // 0 base field 1 log field
 }
 
 func (b *BaseIndex) TableName() string {

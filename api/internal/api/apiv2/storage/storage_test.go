@@ -14,17 +14,17 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func TestCreate(t *testing.T) {
+func TestCreateJSONAsString(t *testing.T) {
 	config.InitCfg()
-	invoker.Init()
-	service.Init()
+	_ = invoker.Init()
+	_ = service.Init()
 	objTest1 := gintest.Init()
 	// prometheus file
 	objTest1.POST(core.Handle(Create), func(m *gintest.Mock) error {
 		byteInfo := m.Exec(
 			gintest.WithUri("/storage"),
 			gintest.WithJsonBody(view.ReqStorageCreate{
-				TableName: "demo_0131_v5",
+				TableName: "demo_0201_v4",
 				Typ:       1,
 				Days:      1,
 				Brokers:   "192.168.64.65:9092",
@@ -41,5 +41,35 @@ func TestCreate(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/storage"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest1.Run()
+	_ = objTest1.Run()
+}
+
+func TestCreateJSONEachRow(t *testing.T) {
+	config.InitCfg()
+	_ = invoker.Init()
+	_ = service.Init()
+	objTest1 := gintest.Init()
+	// prometheus file
+	objTest1.POST(core.Handle(Create), func(m *gintest.Mock) error {
+		byteInfo := m.Exec(
+			gintest.WithUri("/storage"),
+			gintest.WithJsonBody(view.ReqStorageCreate{
+				TableName: "demo_0201_v3",
+				Typ:       1,
+				Days:      1,
+				// Brokers:   "192.168.64.65:9092",
+				Brokers:                 "127.0.0.1:9092",
+				Topics:                  "otlp_spans",
+				Consumers:               1,
+				KafkaSkipBrokenMessages: 0,
+				Desc:                    "",
+				Source:                  `{"_time_":"2022-11-08T10:35:58.837927Z","_log_":"","_source_":"stdout","_pod_name_":"xx-x-xx","time":"xx-x-xx","_namespace_":"default","_node_name_":"xx-f.192.x.119.x","_container_name_":"xx","_cluster_":"xx","_log_agent_":"xx-b","_node_ip_":"192.1"}`,
+				DatabaseId:              14,
+				TimeField:               "_time_",
+				RawLogField:             "_log_",
+			}))
+		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
+		return nil
+	}, gintest.WithRoutePath("/storage"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = objTest1.Run()
 }

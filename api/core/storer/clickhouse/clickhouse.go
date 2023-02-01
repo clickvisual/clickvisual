@@ -54,7 +54,9 @@ func (ch *Storer) Create() (names []string, sqls []string, err error) {
 	case constx.TableCreateTypeJSONEachRow:
 		// todo nothing, wait for implementation
 	case constx.TableCreateTypeJSONAsString:
+		// 创建数据落地表，包括分布式表和存储表
 		names, sqls = ch.createJSONAsString()
+		// 创建 cv 分析字段映射
 	default:
 		return names, sqls, errors.New("clickhouse reader type not supported")
 	}
