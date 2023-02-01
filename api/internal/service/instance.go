@@ -41,12 +41,12 @@ func NewInstanceManager() *instanceManager {
 			// Test connection, storage
 			chDb, err := ClickHouseLink(ds.Dsn)
 			if err != nil {
-				core.LoggerError("ClickHouse", "link", err)
+				core.LoggerError("ClickHouseX", "link", err)
 				continue
 			}
 			ch, err := inquiry.NewClickHouse(chDb, ds)
 			if err != nil {
-				core.LoggerError("ClickHouse", "new", err)
+				core.LoggerError("ClickHouseX", "new", err)
 				continue
 			}
 			m.dss.Store(ds.DsKey(), ch)
@@ -117,7 +117,7 @@ func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	}
 	switch instance.Datasource {
 	case db.DatasourceClickHouse:
-		return obj.(*inquiry.ClickHouse), nil
+		return obj.(*inquiry.ClickHouseX), nil
 	case db.DatasourceDatabend:
 		return obj.(*inquiry.Databend), nil
 	}
@@ -130,7 +130,7 @@ func (i *instanceManager) All() []inquiry.Operator {
 		iid, _ := strconv.Atoi(key.(string))
 		instance, _ := db.InstanceInfo(invoker.Db, iid)
 		if instance.Datasource == db.DatasourceClickHouse {
-			res = append(res, obj.(*inquiry.ClickHouse))
+			res = append(res, obj.(*inquiry.ClickHouseX))
 		}
 		return true
 	})
@@ -204,6 +204,7 @@ func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
 	return
 }
 
+// DatabendLink 这里 dsn 好像写任意地址都能测试成功
 func DatabendLink(dsn string) (conn *sql.DB, err error) {
 	conn, err = sql.Open("databend", dsn)
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/session"
 
 	_ "github.com/ClickHouse/clickhouse-go/v2"
+	_ "github.com/databendcloud/databend-go"
 )
 
 var (

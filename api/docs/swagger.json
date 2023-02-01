@@ -1800,30 +1800,6 @@
                 "title": "InfoItem",
                 "type": "object"
             },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct": {
-                "properties": {
-                    "data": {
-                        "items": {
-                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStructItem"
-                        },
-                        "type": "array"
-                    }
-                },
-                "title": "MappingStruct",
-                "type": "object"
-            },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStructItem": {
-                "properties": {
-                    "key": {
-                        "type": "string"
-                    },
-                    "value": {
-                        "type": "string"
-                    }
-                },
-                "title": "MappingStructItem",
-                "type": "object"
-            },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqAlarmConditionCreate": {
                 "properties": {
                     "cond": {
@@ -1876,6 +1852,12 @@
                         "description": "描述说明",
                         "type": "string"
                     },
+                    "dutyOfficers": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array"
+                    },
                     "filters": {
                         "items": {
                             "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqAlarmFilterCreate"
@@ -1884,6 +1866,9 @@
                     },
                     "interval": {
                         "description": "告警频率",
+                        "type": "integer"
+                    },
+                    "isDisableResolve": {
                         "type": "integer"
                     },
                     "level": {
@@ -2403,7 +2388,7 @@
                         "type": "string"
                     },
                     "SourceMapping": {
-                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct"
+                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_utils_mapping.List"
                     },
                     "TableName": {
                         "type": "string"
@@ -2493,36 +2478,6 @@
                     }
                 },
                 "title": "ReqSyncConfig",
-                "type": "object"
-            },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTableCreate": {
-                "properties": {
-                    "Brokers": {
-                        "type": "string"
-                    },
-                    "Consumers": {
-                        "type": "integer"
-                    },
-                    "Days": {
-                        "type": "integer"
-                    },
-                    "Desc": {
-                        "type": "string"
-                    },
-                    "KafkaSkipBrokenMessages": {
-                        "type": "integer"
-                    },
-                    "TableName": {
-                        "type": "string"
-                    },
-                    "Topics": {
-                        "type": "string"
-                    },
-                    "Typ": {
-                        "type": "integer"
-                    }
-                },
-                "title": "ReqTableCreate",
                 "type": "object"
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTableCreateExist": {
@@ -3759,6 +3714,9 @@
                         "description": "table",
                         "type": "string"
                     },
+                    "rawLogField": {
+                        "type": "string"
+                    },
                     "sqlContent": {
                         "properties": {
                             "data": {
@@ -3974,6 +3932,30 @@
                     }
                 },
                 "title": "WorkerStatsRow",
+                "type": "object"
+            },
+            "github.com_clickvisual_clickvisual_api_pkg_utils_mapping.Item": {
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "title": "Item",
+                "type": "object"
+            },
+            "github.com_clickvisual_clickvisual_api_pkg_utils_mapping.List": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_utils_mapping.Item"
+                        },
+                        "type": "array"
+                    }
+                },
+                "title": "List",
                 "type": "object"
             },
             "gorm.io_plugin_soft_delete.DeletedAt": {
@@ -6814,52 +6796,6 @@
                     }
                 },
                 "summary": "日志库列表",
-                "tags": [
-                    "LOGSTORE"
-                ]
-            },
-            "post": {
-                "operationId": "base.TableCreate",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "did",
-                        "required": true,
-                        "schema": {
-                            "title": "did"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTableCreate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "日志库创建",
                 "tags": [
                     "LOGSTORE"
                 ]
@@ -10905,7 +10841,7 @@
                                             "type": "number"
                                         },
                                         "data": {
-                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct"
+                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_utils_mapping.List"
                                         },
                                         "msg": {
                                             "type": "string"
