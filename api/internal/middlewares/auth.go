@@ -21,31 +21,33 @@ import (
 func AuthChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		switch {
-		case !isNotAnonymousUser(c):
+		case !isNotLogin(c):
 		case !isNotAuthProxy(c):
+		case !isNotAnonymousUser(c):
 		default:
-			session := sessions.Default(c)
-			user := session.Get("user")
-			if user == nil {
-				appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-				c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
-				c.Abort()
-				return
-			}
-			u := db.User{}
-			userBytes, _ := json.Marshal(user)
-			if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
-				appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-				c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 2)"})
-				c.Abort()
-				return
-			}
-			ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
-			c.Set(core.UserContextKey, ctxUser)
-			c.Next()
+			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
+			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
+			c.Abort()
 			return
 		}
 	}
+}
+
+func isNotLogin(c *gin.Context) bool {
+	session := sessions.Default(c)
+	user := session.Get("user")
+	if user == nil {
+		return true
+	}
+	u := db.User{}
+	userBytes, _ := json.Marshal(user)
+	if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
+		return true
+	}
+	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
+	c.Set(core.UserContextKey, ctxUser)
+	c.Next()
+	return false
 }
 
 func isNotAnonymousUser(c *gin.Context) bool {

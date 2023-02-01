@@ -204,6 +204,7 @@ func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
 	return
 }
 
+// DatabendLink 这里 dsn 好像写任意地址都能测试成功
 func DatabendLink(dsn string) (conn *sql.DB, err error) {
 	conn, err = sql.Open("databend", dsn)
 	if err != nil {
