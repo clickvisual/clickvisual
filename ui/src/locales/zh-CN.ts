@@ -463,7 +463,7 @@ export default {
     "指定字段查询：Method='Get' and _raw_log_ like '%error%'",
   "log.search.help.content.directionsUse": "使用说明",
   "log.search.help.content.directionsUse.url":
-    "https://clickvisual.gocn.vip/clickvisual/03funcintro/instructions.html",
+    "https://clickvisual.gocn.vip/zh/clickvisual/03funcintro/instructions.html",
   "log.search.quickSearch.column.placeholder": "请选择 column",
   "log.search.quickSearch.operator.placeholder": "请选择 operator",
   "log.search.quickSearch.value.placeholder": "请输入 value",

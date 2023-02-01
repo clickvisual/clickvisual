@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -64,14 +65,14 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
 		annotations = alert.Annotations
-		buffer.WriteString(fmt.Sprintf("##### 触发时间：%s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
-		buffer.WriteString(fmt.Sprintf("##### 相关实例：%s %s\n", instance.Name, instance.Desc))
-		buffer.WriteString(fmt.Sprintf("##### 日志库：%s %s\n", table.Name, table.Desc))
+		buffer.WriteString(fmt.Sprintf("##### 触发时间: %s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
+		buffer.WriteString(fmt.Sprintf("##### 相关实例: %s %s\n", instance.Name, instance.Desc))
+		buffer.WriteString(fmt.Sprintf("##### 日志库: %s %s\n", table.Name, table.Desc))
 		if notification.GetStatus() == db.AlarmStatusNormal {
 			statusText = "已恢复"
-			buffer.WriteString("##### 状态：<font color=#008000>已恢复</font>\n")
+			buffer.WriteString("##### 状态: <font color=#008000>已恢复</font>\n")
 		} else {
-			buffer.WriteString("##### 状态：：<font color=red>告警中</font>\n")
+			buffer.WriteString("##### 状态: <font color=red>告警中</font>\n")
 		}
 		dutyOfficesStr := ""
 		for _, user := range users {
@@ -81,17 +82,17 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 				dutyOfficesStr = fmt.Sprintf("%s@%s", dutyOfficesStr, user.Phone)
 			}
 		}
-		buffer.WriteString(fmt.Sprintf("##### 责任人 ：%s \n", dutyOfficesStr))
+		buffer.WriteString(fmt.Sprintf("##### 责任人: %s \n", dutyOfficesStr))
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
-		buffer.WriteString(fmt.Sprintf("##### 日志详情: %s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d\n\n",
-			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, filter.When, start, end,
+		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d\n\n",
+			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, url.QueryEscape(filter.When), start, end,
 		))
 		if partialLog != "" {
 			partialLog = strings.Replace(partialLog, "\"", "", -1)
 			if len(partialLog) > 600 {
-				buffer.WriteString(fmt.Sprintf("##### 详情: %s ...", partialLog[0:599]))
+				buffer.WriteString(fmt.Sprintf("##### 日志: %s ...", partialLog[0:599]))
 			} else {
-				buffer.WriteString(fmt.Sprintf("##### 详情: %s", partialLog))
+				buffer.WriteString(fmt.Sprintf("##### 日志: %s", partialLog))
 			}
 		}
 	}
