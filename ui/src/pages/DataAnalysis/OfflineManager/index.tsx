@@ -200,7 +200,9 @@ const OfflineManager = () => {
                 );
               })}
             </Tabs>
-            {getCurrentPane()[0].node.secondary == SecondaryEnums.dataMining ? (
+            {getCurrentPane().length > 0 &&
+            getCurrentPane()[0]?.node?.secondary ==
+              SecondaryEnums.dataMining ? (
               <Spin spinning={doGetNodeInfo.loading}>
                 <div className={offlineStyles.luckysheet}>
                   {luckysheetData[0].celldata.length > 0 ? (
