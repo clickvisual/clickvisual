@@ -134,7 +134,7 @@ func (i *alert) getPartialLog(op inquiry.Operator, table *db.BaseTable, alarm *d
 		AlarmMode:     filter.Mode,
 		TimeField:     table.TimeField,
 		TimeFieldType: table.TimeFieldType,
-		ST:            time.Now().Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix(),
+		ST:            time.Now().Add(-alarm.GetInterval() - time.Minute).Unix(),
 		ET:            time.Now().Add(time.Minute).Unix(),
 		Page:          1,
 		PageSize:      1,

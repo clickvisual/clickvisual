@@ -36,12 +36,12 @@ type Operator interface {
 	CreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)
 	CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error)
 	CreateTable(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
-	CreateStorage(tableCreateType int, did int, database db.BaseDatabase, params view.ReqStorageCreate) (string, string, string, string, error)
+	CreateStorage(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
 	CreateStorageV3(int, db.BaseDatabase, view.ReqStorageCreateV3) (string, string, string, string, error)
 	CreateMetricsSamples(string) error
 	CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error)
 
-	UpdateIndex(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error
+	UpdateLogAnalysisFields(db.BaseDatabase, db.BaseTable, map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex) error
 	UpdateMergeTreeTable(*db.BaseTable, view.ReqStorageUpdate) error
 
 	GetLogs(view.ReqQuery, int) (view.RespQuery, error)

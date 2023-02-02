@@ -132,6 +132,12 @@ func AnalysisFields(c *core.Context) {
 	sort.Slice(res.Keys, func(i, j int) bool {
 		return res.Keys[i].Field < res.Keys[j].Field
 	})
+	sort.Slice(res.BaseFields, func(i, j int) bool {
+		return res.BaseFields[i].Field < res.BaseFields[j].Field
+	})
+	sort.Slice(res.LogFields, func(i, j int) bool {
+		return res.LogFields[i].Field < res.LogFields[j].Field
+	})
 	c.JSONOK(res)
 	return
 }

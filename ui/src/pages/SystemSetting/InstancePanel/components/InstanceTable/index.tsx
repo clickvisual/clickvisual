@@ -55,7 +55,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       })}`,
       align: "left" as AlignType,
       dataIndex: "name",
-      width: 160,
+      width: 100,
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
     },
@@ -93,9 +93,9 @@ const InstanceTable = (props: InstanceTableProps) => {
       title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
       dataIndex: "clusters",
       align: "center" as AlignType,
-      width: 100,
+      width: 300,
       render: (clusters: string[]) => (
-        <Tooltip title={clusters}>
+        <div>
           {clusters?.map((item: string, index: number) => {
             return (
               <Tag color="lime" key={index}>
@@ -103,7 +103,7 @@ const InstanceTable = (props: InstanceTableProps) => {
               </Tag>
             );
           })}
-        </Tooltip>
+        </div>
       ),
     },
     {
@@ -111,7 +111,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       align: "left" as AlignType,
       dataIndex: "desc",
       ellipsis: { showTitle: false },
-      width: 200,
+      width: 100,
       render: (_: any) => TooltipUtil(_),
     },
     {
