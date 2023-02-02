@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/gotomicro/ego/core/elog"
@@ -182,6 +183,9 @@ func (c *ClickHouse) clusters() (res []view.Cluster, err error) {
 		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port)
 		if errScan != nil {
 			elog.Error("source", elog.FieldErr(err))
+			continue
+		}
+		if strings.HasPrefix(cluster, "test_") {
 			continue
 		}
 		res = append(res, view.Cluster{

@@ -82,7 +82,13 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 				dutyOfficesStr = fmt.Sprintf("%s@%s", dutyOfficesStr, user.Phone)
 			}
 		}
-		buffer.WriteString(fmt.Sprintf("##### 责任人: %s \n", dutyOfficesStr))
+		if dutyOfficesStr == "" {
+			user, _ := db.UserInfo(alarm.Uid)
+			buffer.WriteString(fmt.Sprintf("##### 创建人: %s \n", user.Nickname))
+		} else {
+			buffer.WriteString(fmt.Sprintf("##### 责任人: %s \n", dutyOfficesStr))
+		}
+
 		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
 		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d\n\n",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, url.QueryEscape(filter.When), start, end,
@@ -127,19 +133,11 @@ func Execute(channelIds []int, pushMsg *db.PushMsg) error {
 func dutyOffices(alarm *db.Alarm) ([]db.User, []string) {
 	dutyOfficers := make([]db.User, 0)
 	phones := make([]string, 0)
-	if len(alarm.DutyOfficers) == 0 {
-		user, _ := db.UserInfo(alarm.Uid)
+	for _, dutyOfficer := range alarm.DutyOfficers {
+		user, _ := db.UserInfo(dutyOfficer)
 		if user.Phone != "" {
 			dutyOfficers = append(dutyOfficers, user)
 			phones = append(phones, user.Phone)
-		}
-	} else {
-		for dutyOfficer := range alarm.DutyOfficers {
-			user, _ := db.UserInfo(dutyOfficer)
-			if user.Phone != "" {
-				dutyOfficers = append(dutyOfficers, user)
-				phones = append(phones, user.Phone)
-			}
 		}
 	}
 	return dutyOfficers, phones

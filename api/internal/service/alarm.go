@@ -686,7 +686,7 @@ func SendTestToChannel(c *db.AlarmChannel) (err error) {
 	}
 	err = ci.Send(c, &db.PushMsg{
 		Title: "Hello",
-		Text:  "Test the availability of the alarm channel",
+		Text:  "test/alert/alarm/告警 the availability of the alarm channel",
 	})
 	return
 }
