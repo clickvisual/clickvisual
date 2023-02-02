@@ -329,7 +329,7 @@ export default {
     "请选择时间戳类型",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "秒",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond": "毫秒",
-  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "分析字段",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "基础字段",
   "datasource.logLibrary.from.newLogLibrary.desc.placeholder": "请输入描述",
 
   "datasource.logLibrary.placeholder.tableName":
