@@ -1,19 +1,29 @@
-import {Button, DatePicker, Form, FormInstance, Input, Modal, Select, Spin, Table,} from "antd";
+import {
+  Button,
+  DatePicker,
+  Form,
+  FormInstance,
+  Input,
+  Modal,
+  Select,
+  Spin,
+  Table,
+} from "antd";
 import styles from "./index.less";
-import {useEffect, useMemo, useRef, useState} from "react";
-import {useModel} from "@@/plugin-model/useModel";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
-import {FIRST_PAGE, MINUTES_UNIT_TIME, PAGE_SIZE} from "@/config/config";
+import { FIRST_PAGE, MINUTES_UNIT_TIME, PAGE_SIZE } from "@/config/config";
 import useRequest from "@/hooks/useRequest/useRequest";
 import api from "@/services/dataLogs";
-import Request, {Canceler} from "umi-request";
-import {ColumnsType} from "antd/es/table";
-import {useIntl} from "umi";
-import {FormatPainterOutlined, SaveOutlined} from "@ant-design/icons";
-import {format} from "sql-formatter";
+import Request, { Canceler } from "umi-request";
+import { ColumnsType } from "antd/es/table";
+import { useIntl } from "umi";
+import { FormatPainterOutlined, SaveOutlined } from "@ant-design/icons";
+import { format } from "sql-formatter";
 import queryStatisticsItemStyle from "../index.less";
 
-import {UnControlled as CodeMirror} from "react-codemirror2";
+import { UnControlled as CodeMirror } from "react-codemirror2";
 import "codemirror/lib/codemirror.css";
 import "codemirror/lib/codemirror.js";
 import "codemirror/addon/lint/lint.css";
@@ -462,6 +472,11 @@ const CreatedAndUpdatedModal = ({
             <Select
               disabled={isDisable}
               showSearch
+              filterOption={(input: any, option: any) =>
+                (option?.children ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
               placeholder={`${i18n.formatMessage({
                 id: "alarm.rules.inspectionFrequency.placeholder.database",
               })}`}
@@ -511,6 +526,11 @@ const CreatedAndUpdatedModal = ({
                       id: "alarm.rules.inspectionFrequency.placeholder.logLibrary",
                     })}`}
                     showSearch
+                    filterOption={(input: any, option: any) =>
+                      ((option?.children && option?.children[0]) ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
                     onChange={(id: number) => {
                       handleChangeLogLibrary();
                       const currentTable = logLibraryList.filter(
