@@ -6,21 +6,39 @@ import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
 import { PaneType } from "@/models/datalogs/types";
 
+export enum IndexType {
+  /**
+   * 基础字段
+   */
+  baseField = 1,
+  /**
+   * 日志字段
+   */
+  logField = 2,
+}
+
 const RawLogsIndexes = (props: { oldPane?: PaneType }) => {
   const { oldPane } = props;
-  const { onChangeRawLogsIndexeList, rawLogsIndexeList } = useModel("dataLogs");
+  const {
+    onChangeBaseFieldsIndexList,
+    onChangeLogFieldsIndexList,
+    baseFieldsIndexList,
+    logFieldsIndexList,
+  } = useModel("dataLogs");
 
   useEffect(() => {
     oldPane &&
-      oldPane?.rawLogsIndexeList &&
-      onChangeRawLogsIndexeList(oldPane?.rawLogsIndexeList);
+      oldPane?.baseFieldsIndexList &&
+      onChangeBaseFieldsIndexList(oldPane?.baseFieldsIndexList);
+    oldPane?.logFieldsIndexList &&
+      onChangeLogFieldsIndexList(oldPane?.logFieldsIndexList);
   }, [oldPane]);
 
   return (
     <div className={classNames(logsIndexStyles.logsIndexMain)}>
       <IndexHeader />
-      {/* <IndexSearchBar onSearch={onSearch} /> */}
-      <IndexList list={rawLogsIndexeList} />
+      <IndexList list={baseFieldsIndexList} indexType={IndexType.baseField} />
+      <IndexList list={logFieldsIndexList} indexType={IndexType.logField} />
     </div>
   );
 };

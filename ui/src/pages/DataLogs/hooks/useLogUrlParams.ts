@@ -96,9 +96,11 @@ export default function useLogUrlParams() {
     onChangeLogPane,
     logPanesHelper,
     statisticalChartsHelper,
-    rawLogsIndexeList,
+    baseFieldsIndexList,
+    logFieldsIndexList,
     doGetAnalysisField,
-    onChangeRawLogsIndexeList,
+    onChangeBaseFieldsIndexList,
+    onChangeLogFieldsIndexList,
     onChangeCurrentLogPane,
     logState,
     onChangeTableInfo,
@@ -115,8 +117,11 @@ export default function useLogUrlParams() {
   const { activeQueryType } = statisticalChartsHelper;
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
     useLocalStorages();
-  const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
-    rawLogsIndexeList
+  const baseIndexeListRef = useRef<IndexInfoType[] | undefined>(
+    baseFieldsIndexList
+  );
+  const logsIndexeListRef = useRef<IndexInfoType[] | undefined>(
+    logFieldsIndexList
   );
 
   const isShare = useMemo(
@@ -124,7 +129,8 @@ export default function useLogUrlParams() {
     [document.location.pathname]
   );
 
-  rawLogsIndexeListRef.current = rawLogsIndexeList;
+  baseIndexeListRef.current = baseFieldsIndexList;
+  logsIndexeListRef.current = logFieldsIndexList;
   const handleResponse = (
     res: BaseRes<TableInfoResponse>,
     tid: number,
@@ -201,10 +207,12 @@ export default function useLogUrlParams() {
 
       doGetAnalysisField.run(tid).then((res: any) => {
         if (res.code != 0) return;
-        onChangeRawLogsIndexeList(res.data?.keys);
+        onChangeBaseFieldsIndexList(res.data?.baseFields);
+        onChangeLogFieldsIndexList(res.data?.logFields);
         onChangeCurrentLogPane({
           ...(pane as PaneType),
-          rawLogsIndexeList: res.data?.keys,
+          baseFieldsIndexList: res.data?.baseFields,
+          logFieldsIndexList: res.data?.logFields,
         });
 
         doGetLogsAndHighCharts(tid, {
@@ -225,7 +233,8 @@ export default function useLogUrlParams() {
             };
             pane.highCharts = res.highCharts;
             pane.logChart = { logs: [], isNeedSort: false, sortRule: [] };
-            pane.rawLogsIndexeList = rawLogsIndexeListRef.current;
+            pane.baseFieldsIndexList = baseIndexeListRef.current;
+            pane.logFieldsIndexList = logsIndexeListRef.current;
             pane.columsList = columsArr;
             onChangeLogPane(pane);
           })

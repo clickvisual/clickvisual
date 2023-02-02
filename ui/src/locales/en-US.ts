@@ -515,6 +515,8 @@ export default {
   "log.index.manage.button.deleted": "Drop Field",
   "log.index.manage.button.created": "Created Field",
   "log.index.manage.message.save.success": "Save success",
+  "log.index.baseField": "Base field",
+  "log.index.logField": "Log field",
 
   "log.highChart.tooltip.startTime": "start time: ",
   "log.highChart.tooltip.endTime": "end time: ",

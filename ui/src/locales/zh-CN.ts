@@ -487,6 +487,8 @@ export default {
   "log.index.manage.button.deleted": "删除字段",
   "log.index.manage.button.created": "新增字段",
   "log.index.manage.message.save.success": "保存成功",
+  "log.index.baseField": "基础字段",
+  "log.index.logField": "日志字段",
 
   "log.highChart.tooltip.startTime": "开始时间：",
   "log.highChart.tooltip.endTime": "结束时间：",

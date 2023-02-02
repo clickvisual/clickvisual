@@ -76,8 +76,14 @@ const DataLogsModel = () => {
   const [highlightKeywords, setHighlightKeywords] = useState<
     { key: string; value: string }[] | undefined
   >();
-  // 日志索引
-  const [rawLogsIndexeList, setRawLogsIndexeList] = useState<IndexInfoType[]>();
+  // 日志基础索引字段
+  const [baseFieldsIndexList, setBaseFieldsIndexList] =
+    useState<IndexInfoType[]>();
+
+  // 日志可供新增的索引字段
+  const [logFieldsIndexList, setBaseLogFieldsIndexList] =
+    useState<IndexInfoType[]>();
+
   // 数据库列表
   const [databaseList, setDataBaseList] = useState<DatabaseResponse[]>([]);
   // 从数据库列表选择
@@ -266,8 +272,12 @@ const DataLogsModel = () => {
     setLogState(num);
   };
 
-  const onChangeRawLogsIndexeList = (list?: IndexInfoType[]) => {
-    setRawLogsIndexeList(list);
+  const onChangeBaseFieldsIndexList = (list?: IndexInfoType[]) => {
+    setBaseFieldsIndexList(list);
+  };
+
+  const onChangeLogFieldsIndexList = (list?: IndexInfoType[]) => {
+    setBaseLogFieldsIndexList(list);
   };
 
   const onChangeInitValue = (str: string) => {
@@ -330,7 +340,8 @@ const DataLogsModel = () => {
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
     onChangeColumsList(tabPane.columsList);
     setLogs(tabPane.logs);
-    onChangeRawLogsIndexeList(tabPane?.rawLogsIndexeList);
+    onChangeBaseFieldsIndexList(tabPane?.baseFieldsIndexList);
+    onChangeLogFieldsIndexList(tabPane?.logFieldsIndexList);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
     setLogCount(tabPane?.highCharts?.count || tabPane?.logs?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
@@ -421,7 +432,9 @@ const DataLogsModel = () => {
   const doGetAnalysisField = useRequest(api.getAnalysisField, {
     loadingText: false,
     onSuccess: (res) => {
-      const keys = res?.data?.keys;
+      const baseFields = res?.data?.baseFields;
+      const logFields = res?.data?.logFields;
+      const keys = baseFields.concat(logFields);
       let arr: string[] = [];
       if (keys && keys.length > 0) {
         keys.map((item: any) => {
@@ -711,7 +724,8 @@ const DataLogsModel = () => {
         } else {
           newPane.logs = res.logs;
           newPane.highCharts = res.highCharts;
-          newPane.rawLogsIndexeList = rawLogsIndexeList;
+          newPane.baseFieldsIndexList = baseFieldsIndexList;
+          newPane.logFieldsIndexList = logFieldsIndexList;
           if (res.logs.query !== pane.querySql) {
             newPane.logChart = { logs: [], sortRule: [], isNeedSort: false };
           }
@@ -926,7 +940,8 @@ const DataLogsModel = () => {
     isModifyLog,
     doGetViewInfo,
     lastLoadingTid,
-    rawLogsIndexeList,
+    baseFieldsIndexList,
+    logFieldsIndexList,
     isAssociatedLinkLogLibrary,
     onChangeIsAssociatedLinkLogLibrary,
     onChangeViewIsEdit,
@@ -934,7 +949,8 @@ const DataLogsModel = () => {
     onChangeViewsVisibleDraw,
     onChangeIsModifyLog,
     onChangeLastLoadingTid,
-    onChangeRawLogsIndexeList,
+    onChangeBaseFieldsIndexList,
+    onChangeLogFieldsIndexList,
 
     foldingState,
     onChangeFoldingState,
