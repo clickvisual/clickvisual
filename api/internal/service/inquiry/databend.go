@@ -143,7 +143,7 @@ func (c *Databend) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 // CreateKafkaTable Drop and Create
 func (c *Databend) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
 	currentKafkaSQL := tableInfo.SqlStream
-	// Drop Table
+	// Drop TableName
 	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s",
 		genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
 		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
@@ -151,7 +151,7 @@ func (c *Databend) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStor
 		elog.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
 		return
 	}
-	// Create Table
+	// Create TableName
 	streamParams := bumo.Params{
 		TableCreateType: tableInfo.CreateType,
 		Stream: bumo.ParamsStream{
@@ -199,7 +199,7 @@ func (c *Databend) CreateTraceJaegerDependencies(database, cluster, table string
 }
 
 // CreateStorage create default stream data table and view
-func (c *Databend) CreateStorage(tableCreateType, did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
@@ -306,7 +306,7 @@ func (c *Databend) CreateStorageV3(did int, database db.BaseDatabase, ct view.Re
 		Typ:              ct.TimeFieldType,
 		Tid:              0,
 		Did:              did,
-		Table:            ct.TableName,
+		TableName:        ct.TableName,
 		CustomTimeField:  "",
 		Current:          nil,
 		List:             nil,
@@ -327,7 +327,7 @@ func (c *Databend) CreateStorageV3(did int, database db.BaseDatabase, ct view.Re
 }
 
 // UpdateIndex Data table index operation
-func (c *Databend) UpdateIndex(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
+func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""
 	for _, del := range dels {
@@ -865,7 +865,7 @@ func (c *Databend) CreateDatabase(name, cluster string) error {
 
 	_, err := c.db.Exec(query)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
+		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
 		return err
 	}
 	return nil
@@ -1114,7 +1114,7 @@ func (c *Databend) viewOperator(typ, tid int, did int, table, customTimeField st
 			Typ:              typ,
 			Tid:              tid,
 			Did:              did,
-			Table:            table,
+			TableName:        table,
 			CustomTimeField:  customTimeField,
 			Current:          current,
 			List:             list,
@@ -1136,7 +1136,7 @@ func (c *Databend) storageViewOperatorV3(param view.OperatorViewParams) (res str
 	if err != nil {
 		return
 	}
-	viewName := genViewName(databaseInfo.Name, param.Table, param.CustomTimeField)
+	viewName := genViewName(databaseInfo.Name, param.TableName, param.CustomTimeField)
 	defer func() {
 		if err != nil {
 			c.viewRollback(param.Tid, param.CustomTimeField)
@@ -1149,13 +1149,13 @@ func (c *Databend) storageViewOperatorV3(param view.OperatorViewParams) (res str
 	if param.Tid != 0 {
 		jsonExtractSQL = c.genJsonExtractSQLV3(param.Indexes)
 	}
-	dName := genName(databaseInfo.Name, param.Table)
-	streamName := genStreamName(databaseInfo.Name, param.Table)
+	dName := genName(databaseInfo.Name, param.TableName)
+	streamName := genStreamName(databaseInfo.Name, param.TableName)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
 	_, err = c.db.Exec(viewDropSQL)
 	if err != nil {
-		elog.Error("viewOperator", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
+		elog.Error("updateSwitcher", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
 		return "", err
 	}
 	// create
@@ -1258,7 +1258,7 @@ func (c *Databend) storageViewOperator(typ, tid int, did int, table, customTimeF
 	}
 	_, err = c.db.Exec(viewDropSQL)
 	if err != nil {
-		elog.Error("viewOperator", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
+		elog.Error("updateSwitcher", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
 		return "", err
 	}
 	// create
@@ -1350,7 +1350,7 @@ func (c *Databend) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogField 
 func (c *Databend) viewRollback(tid int, key string) {
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
+		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
 		return
 	}
 	var viewQuery string
@@ -1364,14 +1364,14 @@ func (c *Databend) viewRollback(tid int, key string) {
 		condsView["key"] = key
 		viewInfo, err := db.ViewInfoX(condsView)
 		if err != nil {
-			elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
+			elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
 			return
 		}
 		viewQuery = viewInfo.SqlView
 	}
 	_, err = c.db.Exec(viewQuery)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
+		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
 		return
 	}
 }

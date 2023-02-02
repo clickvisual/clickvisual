@@ -67,7 +67,7 @@ func v1(r *gin.RouterGroup) {
 	r.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
 	r.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
 	r.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
-	// Table
+	// TableName
 	r.GET("/table/id", core.Handle(base.TableId))
 	r.GET("/tables/:id", core.Handle(base.TableInfo))
 	r.PATCH("/tables/:id", core.Handle(base.TableUpdate))

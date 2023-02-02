@@ -487,6 +487,10 @@
                     "id": {
                         "type": "integer"
                     },
+                    "kind": {
+                        "description": "0 base field 1 log field",
+                        "type": "integer"
+                    },
                     "rootName": {
                         "description": "root_name",
                         "type": "string"
@@ -1778,6 +1782,9 @@
                     "hashTyp": {
                         "type": "integer"
                     },
+                    "kind": {
+                        "type": "integer"
+                    },
                     "rootName": {
                         "type": "string"
                     },
@@ -2366,6 +2373,9 @@
                         "type": "string"
                     },
                     "Consumers": {
+                        "type": "integer"
+                    },
+                    "CreateType": {
                         "type": "integer"
                     },
                     "DatabaseId": {
@@ -3620,7 +3630,20 @@
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.RespStorageAnalysisFields": {
                 "properties": {
+                    "baseFields": {
+                        "items": {
+                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.StorageAnalysisField"
+                        },
+                        "type": "array"
+                    },
                     "keys": {
+                        "description": "Deprecated: Keys",
+                        "items": {
+                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.StorageAnalysisField"
+                        },
+                        "type": "array"
+                    },
+                    "logFields": {
                         "items": {
                             "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.StorageAnalysisField"
                         },
@@ -3705,6 +3728,9 @@
                     },
                     "did": {
                         "description": "数据库 id",
+                        "type": "integer"
+                    },
+                    "isNotSupAnalysisField": {
                         "type": "integer"
                     },
                     "kafkaSkipBrokenMessages": {

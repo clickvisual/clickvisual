@@ -72,7 +72,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	if err != nil {
 		return
 	}
-	tableCreateType := decideCreateType(param)
+	param.CreateType = decideCreateType(param)
 	if err = json.Unmarshal([]byte(param.Source), &param.SourceMapping); err != nil {
 		return
 	}
@@ -80,7 +80,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.CreateStorage(tableCreateType, databaseInfo.ID, databaseInfo, param)
+	s, d, v, a, err := op.CreateStorage(databaseInfo.ID, databaseInfo, param)
 	if err != nil {
 		err = errors.Wrap(err, "create failed 01:")
 		return
@@ -98,7 +98,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		SqlStream:               s,
 		SqlView:                 v,
 		SqlDistributed:          a,
-		CreateType:              tableCreateType,
+		CreateType:              param.CreateType,
 		Uid:                     uid,
 		RawLogField:             param.RawLogField,
 		TimeField:               db.TimeFieldSecond,
@@ -113,7 +113,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		err = errors.Wrap(err, "create failed 02:")
 		return
 	}
-	if tableCreateType == constx.TableCreateTypeJSONAsString || tableCreateType == constx.TableCreateTypeJSONEachRow {
+	if param.CreateType == constx.TableCreateTypeJSONAsString || param.CreateType == constx.TableCreateTypeJSONEachRow {
 		columns := make([]*view.RespColumn, 0)
 		columns, err = op.ListColumn(databaseInfo.Name, param.TableName, false)
 		if err != nil {
@@ -160,7 +160,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 // 		names, sqls, err = op.CreateBufferNullDataPipe(db.ReqCreateBufferNullDataPipe{
 // 			Cluster:  databaseInfo.Cluster,
 // 			Database: databaseInfo.Name,
-// 			Table:    param.TableName,
+// 			TableName:    param.TableName,
 // 			TTL:      param.Days,
 // 		})
 // 		if err != nil {

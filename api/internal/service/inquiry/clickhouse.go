@@ -38,7 +38,7 @@ type ClickHouseX struct {
 	id            int
 	mode          int
 	replicaStatus int // replica status
-	isShard       int // 0 no 1 yes
+	shardStatus   int // 0 no 1 yes
 	db            *sql.DB
 }
 
@@ -50,7 +50,7 @@ func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouseX, error) {
 		db:            db,
 		id:            ins.ID,
 		mode:          ins.Mode,
-		isShard:       ins.Mode,
+		shardStatus:   ins.Mode,
 		replicaStatus: ins.ReplicaStatus,
 	}, nil
 }
@@ -250,11 +250,11 @@ func (c *ClickHouseX) SyncView(table db.BaseTable, current *db.BaseView, list []
 		indexMap[i.Field] = i
 	}
 	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
-	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
+	dViewSQL, err = c.updateSwitcher(table.Typ, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
 	}
-	cViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
+	cViewSQL, err = c.updateSwitcher(table.Typ, table.ID, table.Did, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
 	return
 }
 
@@ -335,7 +335,7 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
-	dViewSQL, err = c.viewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true)
+	dViewSQL, err = c.updateSwitcher(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true)
 	if err != nil {
 		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
@@ -373,7 +373,7 @@ func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
 
 	_, err := c.db.Exec(query)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
+		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
 		return err
 	}
 	return nil
@@ -779,8 +779,8 @@ func (c *ClickHouseX) ListColumn(database, table string, isTimeField bool) (res 
 	return
 }
 
-// UpdateIndex Data table index operation
-func (c *ClickHouseX) UpdateIndex(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
+// UpdateLogAnalysisFields Data table index operation
+func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""
 	for _, del := range dels {
@@ -889,7 +889,7 @@ func (c *ClickHouseX) UpdateIndex(database db.BaseDatabase, table db.BaseTable, 
 	tx := invoker.Db.Begin()
 	// step 3 rebuild view
 	// step 3.1 default view
-	defaultViewSQL, err := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
+	defaultViewSQL, err := c.updateSwitcher(table.Typ, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
 	if err != nil {
 		return
 	}
@@ -903,11 +903,12 @@ func (c *ClickHouseX) UpdateIndex(database db.BaseDatabase, table db.BaseTable, 
 		tx.Rollback()
 		return err
 	}
+	// 更新自定义时间轴字段数据
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
 	for _, current := range viewList {
-		innerViewSQL, errViewOperator := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
+		innerViewSQL, errViewOperator := c.updateSwitcher(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
 			tx.Rollback()
 			return errViewOperator
@@ -969,24 +970,32 @@ func (c *ClickHouseX) ListSystemTable() (res []*view.SystemTables) {
 	return
 }
 
-// CreateStorage create default stream data table and view
-func (c *ClickHouseX) CreateStorage(tableCreateType, did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *ClickHouseX) isShard() bool {
+	if c.shardStatus == 1 {
+		return true
+	}
+	return false
+}
 
-	if tableCreateType == constx.TableCreateTypeJSONAsString {
+func (c *ClickHouseX) isReplica() bool {
+	if c.replicaStatus == db.ReplicaStatusYes {
+		return true
+	}
+	return false
+}
+
+// CreateStorage create default stream data table and view
+func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+
+	if ct.CreateType == constx.TableCreateTypeJSONAsString {
 		// 采用 core 的新流程
 		// 创建 storer -> reader -> switcher
 		var storeSQLs, readerSQLs, switcherSQLs = []string{}, []string{}, []string{}
-		var isShard, isReplica = false, false
-		if c.isShard == 1 {
-			isShard = true
-		}
-		if c.replicaStatus == db.ReplicaStatusYes {
-			isReplica = true
-		}
+
 		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
-			CreateType: tableCreateType,
-			IsShard:    isShard,
-			IsReplica:  isReplica,
+			CreateType: ct.CreateType,
+			IsShard:    c.isShard(),
+			IsReplica:  c.isReplica(),
 			Cluster:    database.Cluster,
 			Database:   database.Name,
 			Table:      ct.TableName,
@@ -999,9 +1008,9 @@ func (c *ClickHouseX) CreateStorage(tableCreateType, did int, database db.BaseDa
 		}
 		// reader
 		_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{
-			CreateType:              tableCreateType,
-			IsShard:                 isShard,
-			IsReplica:               isReplica,
+			CreateType:              ct.CreateType,
+			IsShard:                 c.isShard(),
+			IsReplica:               c.isReplica(),
 			Cluster:                 database.Cluster,
 			Database:                database.Name,
 			Table:                   ct.TableName,
@@ -1017,9 +1026,9 @@ func (c *ClickHouseX) CreateStorage(tableCreateType, did int, database db.BaseDa
 		}
 		// switcher
 		_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
-			CreateType:   tableCreateType,
-			IsShard:      isShard,
-			IsReplica:    isReplica,
+			CreateType:   ct.CreateType,
+			IsShard:      c.isShard(),
+			IsReplica:    c.isReplica(),
 			Cluster:      database.Cluster,
 			Database:     database.Name,
 			Table:        ct.TableName,
@@ -1098,7 +1107,7 @@ func (c *ClickHouseX) CreateStorage(tableCreateType, did int, database db.BaseDa
 		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
-	dViewSQL, err = c.storageViewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true, ct)
+	dViewSQL, err = c.updateSwitcherJSONEachRow(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true, ct)
 	if err != nil {
 		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
@@ -1141,7 +1150,7 @@ func (c *ClickHouseX) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.
 // CreateKafkaTable Drop and Create
 func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
 	currentKafkaSQL := tableInfo.SqlStream
-	// Drop Table
+	// Drop TableName
 	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s",
 		genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
 		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
@@ -1149,7 +1158,7 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 		elog.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
 		return
 	}
-	// Create Table
+	// Create TableName
 	streamParams := bumo.Params{
 		TableCreateType: tableInfo.CreateType,
 		Stream: bumo.ParamsStream{
@@ -1237,7 +1246,7 @@ func (c *ClickHouseX) CreateStorageV3(did int, database db.BaseDatabase, ct view
 		Typ:              ct.TimeFieldType,
 		Tid:              0,
 		Did:              did,
-		Table:            ct.TableName,
+		TableName:        ct.TableName,
 		CustomTimeField:  "",
 		Current:          nil,
 		List:             nil,
@@ -1443,18 +1452,55 @@ func (c *ClickHouseX) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPip
 	return
 }
 
+func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, database *db.BaseDatabase, tid int, customTimeField string) (res string, err error) {
+	params := ifswitcher.Params{
+		CreateType:   constx.TableCreateTypeJSONAsString,
+		IsShard:      c.isShard(),
+		IsReplica:    c.isReplica(),
+		Cluster:      database.Cluster,
+		Database:     database.Name,
+		Table:        ct.TableName,
+		Conn:         c.Conn(),
+		RawLogField:  ct.RawLogField,
+		ParseIndexes: c.jsonExtractSQL(nil, ct.GetRawLogField()),
+		ParseFields:  ct.Mapping2Fields(),
+		ParseTime:    c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.GetRawLogField()),
+		ParseWhere:   c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+	}
+	// 初始化 switcher
+	sw := switcher.New(db.DatasourceClickHouse, params)
+	// 删除
+	if err = sw.Delete(); err != nil {
+		return
+	}
+	// 回滚
+	defer func() {
+		if err != nil {
+			c.switcherRollback(tid, customTimeField)
+		}
+	}()
+	// 新建
+	switcherSQLs := make([]string, 0)
+	_, switcherSQLs, err = sw.Create()
+	if err != nil {
+		return
+	}
+	return switcherSQLs[0], nil
+}
+
+// Deprecated: storageViewOperatorV3
 func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res string, err error) {
 	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.Did)
 	if err != nil {
 		return
 	}
 	if c.mode == ModeCluster {
-		param.Table += "_local"
+		param.TableName += "_local"
 	}
-	viewName := genViewName(databaseInfo.Name, param.Table, param.CustomTimeField)
+	viewName := genViewName(databaseInfo.Name, param.TableName, param.CustomTimeField)
 	defer func() {
 		if err != nil {
-			c.viewRollback(param.Tid, param.CustomTimeField)
+			c.switcherRollback(param.Tid, param.CustomTimeField)
 		}
 	}()
 	var (
@@ -1464,8 +1510,8 @@ func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res 
 	if param.Tid != 0 {
 		jsonExtractSQL = c.jsonExtractSQL(param.Indexes, constx.UBWKafkaStreamField)
 	}
-	dName := genName(databaseInfo.Name, param.Table)
-	streamName := genStreamName(databaseInfo.Name, param.Table)
+	dName := genName(databaseInfo.Name, param.TableName)
+	streamName := genStreamName(databaseInfo.Name, param.TableName)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
 	if c.mode == ModeCluster {
@@ -1477,7 +1523,7 @@ func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res 
 	}
 	_, err = c.db.Exec(viewDropSQL)
 	if err != nil {
-		elog.Error("viewOperator", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
+		elog.Error("updateSwitcher", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
 		return "", err
 	}
 	// create
@@ -1657,7 +1703,7 @@ func (c *ClickHouseX) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogFie
 	return fmt.Sprintf(defaultFloatTimeParse, timeField, timeField)
 }
 
-func (c *ClickHouseX) storageViewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
+func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
 	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool, ct view.ReqStorageCreate) (res string, err error) {
 	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
 	if err != nil {
@@ -1670,7 +1716,7 @@ func (c *ClickHouseX) storageViewOperator(typ, tid int, did int, table, customTi
 
 	defer func() {
 		if err != nil {
-			c.viewRollback(tid, customTimeField)
+			c.switcherRollback(tid, customTimeField)
 		}
 	}()
 
@@ -1691,7 +1737,7 @@ func (c *ClickHouseX) storageViewOperator(typ, tid int, did int, table, customTi
 	}
 	_, err = c.db.Exec(viewDropSQL)
 	if err != nil {
-		elog.Error("viewOperator", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
+		elog.Error("updateSwitcher", elog.String("viewDropSQL", viewDropSQL), elog.String("jsonExtractSQL", jsonExtractSQL), elog.String("viewName", viewName), elog.String("cluster", databaseInfo.Cluster))
 		return "", err
 	}
 	// create
@@ -1731,15 +1777,25 @@ func (c *ClickHouseX) storageViewOperator(typ, tid int, did int, table, customTi
 	return viewSQL, nil
 }
 
-func (c *ClickHouseX) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
+func (c *ClickHouseX) updateSwitcher(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
 	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
-	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	if tableInfo.CreateType == constx.TableCreateTypeUBW {
+	// 基础信息获取
+	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	if err != nil {
+		return "", err
+	}
+	rsc := view.ReqStorageCreate{}
+	if tableInfo.AnyJSON != "" {
+		rsc = view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
+	}
+	// 新版本参数组装
+	switch tableInfo.CreateType {
+	case constx.TableCreateTypeUBW:
 		return c.storageViewOperatorV3(view.OperatorViewParams{
 			Typ:              typ,
 			Tid:              tid,
 			Did:              did,
-			Table:            table,
+			TableName:        table,
 			CustomTimeField:  customTimeField,
 			Current:          current,
 			List:             list,
@@ -1747,19 +1803,21 @@ func (c *ClickHouseX) viewOperator(typ, tid int, did int, table, customTimeField
 			IsCreate:         isCreate,
 			TimeField:        tableInfo.TimeField,
 			IsKafkaTimestamp: tableInfo.IsKafkaTimestamp,
+			RawLogField:      tableInfo.RawLogField,
+			Database:         tableInfo.Database,
 		})
+	case constx.TableCreateTypeJSONAsString:
+		return c.updateSwitcherJSONAsString(rsc, tableInfo.Database, tid, customTimeField)
+	default:
+		// 默认执行 JSONAsEachRow 模式
+		return c.updateSwitcherJSONEachRow(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, rsc)
 	}
-	rsc := view.ReqStorageCreate{}
-	if tableInfo.AnyJSON != "" {
-		rsc = view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
-	}
-	return c.storageViewOperator(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, rsc)
 }
 
-func (c *ClickHouseX) viewRollback(tid int, key string) {
+func (c *ClickHouseX) switcherRollback(tid int, key string) {
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
+		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
 		return
 	}
 	var viewQuery string
@@ -1773,14 +1831,14 @@ func (c *ClickHouseX) viewRollback(tid int, key string) {
 		condsView["key"] = key
 		viewInfo, err := db.ViewInfoX(condsView)
 		if err != nil {
-			elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
+			elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
 			return
 		}
 		viewQuery = viewInfo.SqlView
 	}
 	_, err = c.db.Exec(viewQuery)
 	if err != nil {
-		elog.Error("viewOperator", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
+		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("viewQuery", viewQuery))
 		return
 	}
 }

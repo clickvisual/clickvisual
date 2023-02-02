@@ -67,7 +67,7 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/pandas/instances/:instance-id/table-dependencies", core.Handle(pandas.TableDependencies))
 		// DDL structural transfer
 		r.POST("/pandas/utils/structural-transfer", core.Handle(pandas.StructuralTransfer))
-		// Table Create SQL
+		// TableName Create SQL
 		r.GET("/pandas/instances/:instance-id/databases/:database/tables/:table/create-sql", core.Handle(pandas.TableCreateSQL))
 	}
 	// The log module - storage

@@ -168,11 +168,11 @@ func (m *Alarm) RuleName(filterId int) string {
 	return fmt.Sprintf("cv-%s-%d.yaml", m.Uuid, filterId)
 }
 
-func TrimRuleName(name string) string {
-	name = strings.TrimPrefix(name, "cv-")
-	name = strings.TrimSuffix(name, ".yaml")
-	return name
-}
+// func TrimRuleName(name string) string {
+// 	name = strings.TrimPrefix(name, "cv-")
+// 	name = strings.TrimSuffix(name, ".yaml")
+// 	return name
+// }
 
 func (m *Alarm) ViewName(database, table string, seq int) string {
 	return fmt.Sprintf("%s.%s_%s", database, table, m.UniqueName(seq))
@@ -180,6 +180,10 @@ func (m *Alarm) ViewName(database, table string, seq int) string {
 
 func (m *Alarm) UniqueName(filterId int) string {
 	return strings.ReplaceAll(fmt.Sprintf("%s_%d", m.Uuid, filterId), "-", "_")
+}
+
+func (m *Alarm) GetInterval() time.Duration {
+	return UnitMap[m.Unit].Duration * time.Duration(m.Interval)
 }
 
 func (m *Alarm) AlertInterval() string {
