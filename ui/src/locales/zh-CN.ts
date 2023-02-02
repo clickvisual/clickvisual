@@ -329,7 +329,7 @@ export default {
     "请选择时间戳类型",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "秒",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond": "毫秒",
-  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "分析字段",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "基础字段",
   "datasource.logLibrary.from.newLogLibrary.desc.placeholder": "请输入描述",
 
   "datasource.logLibrary.placeholder.tableName":
@@ -487,6 +487,8 @@ export default {
   "log.index.manage.button.deleted": "删除字段",
   "log.index.manage.button.created": "新增字段",
   "log.index.manage.message.save.success": "保存成功",
+  "log.index.baseField": "基础字段",
+  "log.index.logField": "日志字段",
 
   "log.highChart.tooltip.startTime": "开始时间：",
   "log.highChart.tooltip.endTime": "结束时间：",

@@ -36,7 +36,8 @@ export type PaneType = {
   histogramChecked: boolean;
   foldingChecked: boolean;
   mode?: number;
-  rawLogsIndexeList?: IndexInfoType[];
+  baseFieldsIndexList?: IndexInfoType[];
+  logFieldsIndexList?: IndexInfoType[];
   logState: number;
   relTraceTableId: number;
   columsList: string[];

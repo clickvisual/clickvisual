@@ -338,7 +338,7 @@ export default {
     "Please enter the time resolution field Type",
   "datasource.logLibrary.from.newLogLibrary.timeFieldType":
     "Time Resolution Field Type",
-  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Analysis Field",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Base field",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "seconds",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond":
     "millisecond",
@@ -515,6 +515,8 @@ export default {
   "log.index.manage.button.deleted": "Drop Field",
   "log.index.manage.button.created": "Created Field",
   "log.index.manage.message.save.success": "Save success",
+  "log.index.baseField": "Base field",
+  "log.index.logField": "Log field",
 
   "log.highChart.tooltip.startTime": "start time: ",
   "log.highChart.tooltip.endTime": "end time: ",

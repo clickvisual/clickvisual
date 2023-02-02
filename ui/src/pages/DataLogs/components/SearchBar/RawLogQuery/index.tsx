@@ -102,7 +102,8 @@ const RawLogQuery = () => {
             }
             doGetAnalysisField.run(currentLogLibrary?.id).then((res: any) => {
               if (res.code != 0) return;
-              (pane.rawLogsIndexeList = res.data.keys),
+              (pane.baseFieldsIndexList = res.data.baseFields),
+                (pane.logFieldsIndexList = res.data.logFields),
                 onChangeCurrentLogPane(pane);
             });
           }

@@ -6,47 +6,61 @@
   min-width: 0;
   margin: 0 0 5px 0;
   overflow-y: auto;
-  & ul {
-    flex: 1;
-    overflow-x: auto;
+  :global(.ant-collapse > .ant-collapse-item > .ant-collapse-header) {
+    padding: 2px 6px;
   }
-  & ul,
-  li {
-    min-width: 183px;
-    max-width: 200px;
-    margin: 0;
-    padding: 0;
-  }
-  .indexRowMain {
-    &:first-child {
-      border-top: 1px solid @border-color;
+  :global(.ant-collapse-content-box) {
+    padding: 0 2px !important;
+    & ul {
+      flex: 1;
+      overflow-x: auto;
     }
+    & ul,
+    li {
+      min-width: 183px;
+      max-width: 200px;
+      margin: 0;
+      padding: 0;
+    }
+    .indexRowMain {
+      &:first-child {
+        border-top: 1px solid @border-color;
+      }
 
-    .indexRow {
-      display: flex;
-      justify-content: space-between;
-      padding: 0 5px;
-      color: @font-color;
-      font-size: 14px;
-      line-height: 32px;
-      border-bottom: 1px solid @border-color;
-      cursor: pointer;
-      user-select: none;
-      .title {
-        flex: 0 0 80%;
-        overflow: hidden;
-        white-space: nowrap;
-        text-align: left;
-        text-overflow: ellipsis;
+      .indexRow {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 5px;
+        color: @font-color;
+        font-size: 14px;
+        line-height: 32px;
+        border-bottom: 1px solid @border-color;
+        cursor: pointer;
+        user-select: none;
+        .title {
+          flex: 0 0 80%;
+          overflow: hidden;
+          white-space: nowrap;
+          text-align: left;
+          text-overflow: ellipsis;
+        }
+        &:hover {
+          color: @font-color-white;
+          background: @primary-color-70;
+        }
       }
-      &:hover {
+      .activeIndexRow {
         color: @font-color-white;
-        background: @primary-color-70;
+        background: @primary-color-90;
       }
-    }
-    .activeIndexRow {
-      color: @font-color-white;
-      background: @primary-color-90;
     }
   }
+}
+
+.flexNone {
+  flex: none;
+}
+
+.borderTop {
+  border-top: 1px solid @border-color;
 }
