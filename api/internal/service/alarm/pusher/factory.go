@@ -63,7 +63,7 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 	statusText := "告警中"
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
-		start := alert.StartsAt.Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix()
+		start := alert.StartsAt.Add(-alarm.GetInterval() - time.Minute).Unix()
 		annotations = alert.Annotations
 		buffer.WriteString(fmt.Sprintf("##### 触发时间: %s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
 		buffer.WriteString(fmt.Sprintf("##### 相关实例: %s %s\n", instance.Name, instance.Desc))

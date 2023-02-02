@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
 )
@@ -29,6 +30,7 @@ type ReqStorageCreate struct {
 	RawLogField string `form:"rawLogField"`
 
 	SourceMapping mapping.List `form:"-"`
+	CreateType    int          `form:"createType"`
 }
 
 type ReqCreateStorageByTemplate struct {
@@ -41,6 +43,7 @@ type ReqCreateStorageByTemplate struct {
 	TopicsIngressStderr string `form:"topicsIngressStderr" binding:"required"`
 }
 
+// Deprecated: ReqStorageCreateV3
 type ReqStorageCreateV3 struct {
 	TableName               string `form:"tableName" binding:"required"`
 	Days                    int    `form:"days" binding:"required"`
@@ -58,6 +61,9 @@ type ReqStorageCreateV3 struct {
 }
 
 func (r *ReqStorageCreate) GetRawLogField() string {
+	if r.CreateType == constx.TableCreateTypeJSONAsString {
+		return fmt.Sprintf("JSONExtractString(_log, '%s')", r.RawLogField)
+	}
 	if r.RawLogField != "" {
 		return r.RawLogField
 	}
@@ -185,14 +191,16 @@ type OperatorViewParams struct {
 	Typ              int
 	Tid              int
 	Did              int
-	Table            string
+	TableName        string
 	CustomTimeField  string
 	Current          *db.BaseView
 	List             []*db.BaseView
 	Indexes          map[string]*db.BaseIndex
 	IsCreate         bool
 	TimeField        string
+	RawLogField      string
 	IsKafkaTimestamp int
+	Database         *db.BaseDatabase
 }
 
 type JaegerDependencyDataModel struct {
