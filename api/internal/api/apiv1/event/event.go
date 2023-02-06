@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -33,6 +34,10 @@ func ListPage(c *core.Context) {
 	var req view.ReqEventList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "请求参数错误. "+err.Error(), nil)
+		return
+	}
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
 		return
 	}
 	eventList, page, err := event.Event.List(req)

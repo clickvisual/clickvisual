@@ -33,6 +33,29 @@ func AuthChecker() gin.HandlerFunc {
 	}
 }
 
+func RootChecker() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		user := session.Get("user")
+		if user == nil {
+			c.Abort()
+			return
+		}
+		u := db.User{}
+		userBytes, _ := json.Marshal(user)
+		if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
+			c.Abort()
+			return
+		}
+		if err := permission.Manager.IsRootUser(u.ID); err != nil {
+			c.JSON(http.StatusOK, core.Res{Code: 0, Data: "IsRootUser: " + err.Error(), Msg: ""})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
 func isNotLogin(c *gin.Context) bool {
 	session := sessions.Default(c)
 	user := session.Get("user")
