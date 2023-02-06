@@ -12,6 +12,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -139,6 +140,14 @@ func UpdatePassword(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	// 本人或者 root 有权限修改秘密
+	if uid != c.Uid() {
+		if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+			c.JSONE(1, "IsRootUser: "+err.Error(), nil)
+			return
+		}
+	}
+
 	var param password
 	err := c.Bind(&param)
 	if err != nil {

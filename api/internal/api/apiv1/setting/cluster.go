@@ -13,6 +13,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -25,6 +26,10 @@ func ClusterInfo(c *core.Context) {
 		err  error
 		info db.Cluster
 	)
+	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
+		return
+	}
 	clusterId := cast.ToInt(c.Param("id"))
 	if clusterId == 0 {
 		c.JSONE(1, "error cluster id", nil)
@@ -44,6 +49,10 @@ func ClusterPageList(c *core.Context) {
 	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
 		c.JSONE(1, "invalid parameter", err)
+		return
+	}
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
 		return
 	}
 	query := egorm.Conds{}
@@ -70,6 +79,10 @@ func ClusterCreate(c *core.Context) {
 	err = c.Bind(&params)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
 		return
 	}
 	// check the format of kubeConfig which submitted from frontend
@@ -107,6 +120,10 @@ func ClusterUpdate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
+		return
+	}
 	// make sure the format of kubeConfig is json.
 	params.KubeConfig, err = getJsonStr(params.KubeConfig)
 	if err != nil {
@@ -137,6 +154,10 @@ func ClusterDelete(c *core.Context) {
 	clusterId := cast.ToInt(c.Param("id"))
 	if clusterId == 0 {
 		c.JSONE(1, "error cluster id", nil)
+		return
+	}
+	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
 		return
 	}
 	clusterInfo, _ := db.ClusterInfo(clusterId)
