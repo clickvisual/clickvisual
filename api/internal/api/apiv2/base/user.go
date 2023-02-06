@@ -89,7 +89,7 @@ func ListUser(c *core.Context) {
 			Nickname: row.Nickname,
 			Email:    row.Email,
 			Avatar:   row.Avatar,
-			Phone:    utils.PhoneSensitiveInfoRemove(row.Phone),
+			Phone:    row.Phone,
 		})
 	}
 	c.JSONPage(view.RespUserSimpleList{
