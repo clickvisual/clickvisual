@@ -91,6 +91,7 @@ const RawLogQuery = () => {
         page: params.page,
         activeIndex: activeTimeOptionIndex,
       };
+      onChangeInitValue(queryKeyword ?? "");
       onChangeCurrentLogPane(pane);
       doGetLogsAndHighCharts(currentLogLibrary?.id, { reqParams: params }).then(
         (res) => {
@@ -175,7 +176,7 @@ const RawLogQuery = () => {
       >
         <CodeMirrorSearch
           title="logInput"
-          value={initValue || ""}
+          value={initValue}
           placeholder={i18n.formatMessage({
             id: "log.search.placeholder",
           })}
