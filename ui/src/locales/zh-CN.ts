@@ -85,7 +85,7 @@ export default {
   "menu.alarm": "报警",
   "menu.alarm.rules": "报警列表",
   "menu.alarm.notifications": "通知渠道",
-  "menu.alarm.environment": "配置管理",
+  "menu.alarm.environment": "环境检测",
   "menu.systemSettings": "系统管理",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
