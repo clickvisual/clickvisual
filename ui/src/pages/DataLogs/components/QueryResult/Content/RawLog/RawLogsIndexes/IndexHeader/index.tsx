@@ -4,15 +4,30 @@ import { Button, Space, Tooltip } from "antd";
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import { IndexType } from "../..";
+import classNames from "classnames";
+import { useMemo } from "react";
 
-const IndexHeader = () => {
+const IndexHeader = ({ indexType }: { indexType: IndexType }) => {
   const { onChangeVisibleIndexModal, currentLogLibrary } = useModel("dataLogs");
   const i18n = useIntl();
+
+  const isBaseField = useMemo(() => {
+    return indexType == IndexType.baseField;
+  }, [indexType]);
+
   return (
-    <div className={indexHeaderStyles.indexHeaderMain}>
+    <div
+      className={classNames([
+        indexHeaderStyles.indexHeaderMain,
+        !isBaseField && indexHeaderStyles.whiteStripe,
+      ])}
+    >
       <Space>
         <span className={indexHeaderStyles.title}>
-          {i18n.formatMessage({ id: "log.index.header.title" })}
+          {isBaseField
+            ? i18n.formatMessage({ id: "log.index.baseField" })
+            : i18n.formatMessage({ id: "log.index.logField" })}
         </span>
         <div className={indexHeaderStyles.icon}>
           <Tooltip
@@ -25,7 +40,7 @@ const IndexHeader = () => {
           </Tooltip>
         </div>
       </Space>
-      {currentLogLibrary?.createType !== 1 && (
+      {currentLogLibrary?.createType !== 1 && !isBaseField && (
         <div className={indexHeaderStyles.icon}>
           <Button
             onClick={() => {

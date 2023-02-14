@@ -7,7 +7,18 @@ import RawLogs from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawL
 import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+
+export enum IndexType {
+  /**
+   * 基础字段
+   */
+  baseField = 1,
+  /**
+   * 日志字段
+   */
+  logField = 2,
+}
 
 const RawLogContent = (props: { tid: string }) => {
   const { tid } = props;
@@ -21,6 +32,8 @@ const RawLogContent = (props: { tid: string }) => {
     doGetAnalysisField,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
+  const [baseActiveKey, setBaseActiveKey] = useState<string[]>([]);
+  const [logActiveKey, setLogActiveKey] = useState<string[]>([]);
 
   const oldPane = useMemo(() => {
     if (!currentLogLibrary?.id) return;
@@ -31,7 +44,24 @@ const RawLogContent = (props: { tid: string }) => {
 
   return (
     <div className={queryResultStyles.content}>
-      <RawLogsIndexes oldPane={oldPane} />
+      <div className={queryResultStyles.indexList}>
+        <RawLogsIndexes
+          oldPane={oldPane}
+          indexType={IndexType.baseField}
+          baseActiveKey={baseActiveKey}
+          logActiveKey={logActiveKey}
+          setLogActiveKey={setLogActiveKey}
+          setBaseActiveKey={setBaseActiveKey}
+        />
+        <RawLogsIndexes
+          oldPane={oldPane}
+          indexType={IndexType.logField}
+          baseActiveKey={baseActiveKey}
+          logActiveKey={logActiveKey}
+          setLogActiveKey={setLogActiveKey}
+          setBaseActiveKey={setBaseActiveKey}
+        />
+      </div>
       <div className={queryResultStyles.queryDetail}>
         {oldPane?.histogramChecked && (
           <Spin

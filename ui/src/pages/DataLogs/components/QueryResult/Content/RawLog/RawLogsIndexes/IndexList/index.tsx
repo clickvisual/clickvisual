@@ -1,23 +1,40 @@
 import indexListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexList/index.less";
+import indexHeaderStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader/index.less";
+import IconFont from "@/components/IconFont";
 import classNames from "classnames";
-import { Empty, Spin, Tooltip } from "antd";
-import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons";
+import { Button, Empty, Space, Spin, Tooltip } from "antd";
+import {
+  CaretDownOutlined,
+  CaretUpOutlined,
+  QuestionCircleOutlined,
+} from "@ant-design/icons";
 import { useEffect, useMemo, useState } from "react";
 import IndexItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexItem";
 import { useIntl, useModel } from "umi";
 import { IndexInfoType } from "@/services/dataLogs";
 import { Collapse } from "antd";
-import { IndexType } from "..";
+import { IndexType } from "../..";
 
 const { Panel } = Collapse;
 
 type IndexListProps = {
   list?: IndexInfoType[];
   indexType: IndexType;
+  baseActiveKey: string[];
+  logActiveKey: string[];
+  activeKey: string[];
+  setActiveKey: (str: string[]) => void;
 };
 
 const IndexList = (props: IndexListProps) => {
-  const { list, indexType } = props;
+  const {
+    list,
+    indexType,
+    activeKey,
+    setActiveKey,
+    baseActiveKey,
+    logActiveKey,
+  } = props;
   const [activeList, setActiveList] = useState<number[]>([]);
 
   const isBaseField = useMemo(
@@ -25,32 +42,46 @@ const IndexList = (props: IndexListProps) => {
     [indexType]
   );
 
-  const [activeKey, setActiveKey] = useState<string[]>(
-    isBaseField ? [] : ["1"]
-  );
   const i18n = useIntl();
 
-  const { doGetAnalysisField } = useModel("dataLogs");
+  const { doGetAnalysisField, onChangeVisibleIndexModal, currentLogLibrary } =
+    useModel("dataLogs");
 
   useEffect(() => {
     setActiveList([]);
   }, [list]);
 
-  useEffect;
+  const maxHeightClass = useMemo(() => {
+    if (
+      (isBaseField && activeKey.length == 1) ||
+      (baseActiveKey.length == 0 && logActiveKey.length == 0) ||
+      (baseActiveKey.length == 1 && logActiveKey.length == 1)
+    ) {
+      return indexListStyles.fiveFiveOpen;
+    }
+    if (isBaseField && activeKey.length == 0) {
+      return indexListStyles.zero;
+    }
+    if (!isBaseField && baseActiveKey.length == 0 && logActiveKey.length != 0) {
+      return indexListStyles.nine;
+    }
+  }, [isBaseField, activeKey, baseActiveKey, logActiveKey]);
 
   return (
     <div
       className={classNames([
         indexListStyles.indexListMain,
         isBaseField && activeKey.length == 0 ? indexListStyles.flexNone : "",
-        indexType == IndexType.logField && indexListStyles.borderTop,
+        indexType == IndexType.logField && indexListStyles.whiteStripe,
+        maxHeightClass,
       ])}
     >
       <Collapse
-        // defaultActiveKey={isBaseField ? [] : ["1"]}
         activeKey={activeKey}
         bordered={false}
-        style={{ width: "100%" }}
+        style={{
+          width: "100%",
+        }}
         onChange={(e: any) => {
           setActiveKey(e);
         }}
@@ -58,9 +89,49 @@ const IndexList = (props: IndexListProps) => {
       >
         <Panel
           header={
-            isBaseField
-              ? i18n.formatMessage({ id: "log.index.baseField" })
-              : i18n.formatMessage({ id: "log.index.logField" })
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-around",
+                alignItems: "center",
+              }}
+            >
+              {isBaseField
+                ? i18n.formatMessage({ id: "log.index.baseField" })
+                : i18n.formatMessage({ id: "log.index.logField" })}
+              <div
+                className={indexHeaderStyles.icon}
+                style={{ marginLeft: "5px", marginRight: "60px" }}
+              >
+                <Tooltip
+                  placement={"right"}
+                  title={i18n.formatMessage({ id: "log.index.help" })}
+                >
+                  <a>
+                    <QuestionCircleOutlined />
+                  </a>
+                </Tooltip>
+              </div>
+              {currentLogLibrary?.createType !== 1 && !isBaseField && (
+                <div className={indexHeaderStyles.icon}>
+                  <Button
+                    onClick={() => {
+                      onChangeVisibleIndexModal(true);
+                    }}
+                    type={"link"}
+                    // size="small"
+                    size="small"
+                    icon={
+                      <Tooltip
+                        title={i18n.formatMessage({ id: "log.index.manage" })}
+                      >
+                        <IconFont type={"icon-setting"} />
+                      </Tooltip>
+                    }
+                  />
+                </div>
+              )}
+            </div>
           }
           key="1"
         >
