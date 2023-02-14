@@ -28,7 +28,7 @@ const IndexItem = (props: IndexItemProps) => {
     if (index.rootName != "") {
       currentSelected = `${index.rootName}.${index.field}='${name}'`;
     } else {
-      currentSelected = `${index.field}='${name}'`;
+      currentSelected = `\`${index.field}\`='${name}'`;
     }
     doUpdatedQuery(currentSelected);
   };
