@@ -496,14 +496,13 @@ export default {
   "log.search.quickSearch.value.placeholder": "Please enter a value",
   "log.search.quickSearch.fill": "Fill",
 
-  "log.index.header.title": "Analysis",
   "log.index.search.placeholder": "Search field",
   "log.index.empty": "Temporarily not create fields",
   "log.index.item.empty": "No Data",
   "log.index.manage": "Index Management",
   "log.index.manage.desc": "Index Management",
   "log.index.help":
-    "Fields with an orange background color are system fields or index fields, and fields with a gray background color are fields that are not indexed. Index statistics take effect only for data that has been indexed",
+    "The background color of the field is orange. Statistics can be calculated.",
   "log.index.manage.table.header.indexName": "Field Name",
   "log.index.manage.table.header.query": "Enable Query",
   "log.index.manage.table.header.indexType": "Field Type",

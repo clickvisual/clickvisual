@@ -469,14 +469,12 @@ export default {
   "log.search.quickSearch.value.placeholder": "请输入 value",
   "log.search.quickSearch.fill": "填充",
 
-  "log.index.header.title": "分析",
   "log.index.search.placeholder": "搜索字段",
   "log.index.empty": "暂未创建字段",
   "log.index.item.empty": "暂无数据",
   "log.index.manage": "字段管理",
   "log.index.manage.desc": "字段管理",
-  "log.index.help":
-    "橙色背景色的字段是系统字段或用户字段，灰色背景色的字段是未设置字段，统计只对配置的字段生效",
+  "log.index.help": "该字段背景色为橙色，可进行统计计算。",
   "log.index.manage.table.header.indexName": "字段名称",
   "log.index.manage.table.header.query": "开启查询",
   "log.index.manage.table.header.indexType": "字段类型",
