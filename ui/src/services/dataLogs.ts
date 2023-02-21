@@ -532,7 +532,7 @@ export default {
     return request<API.Res<StatisticalTableResponse>>(
       process.env.PUBLIC_PATH + `api/v1/instances/${iid}/complete`,
       {
-        method: "GET",
+        method: "POST",
         params,
       }
     );

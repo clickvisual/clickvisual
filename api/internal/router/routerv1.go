@@ -76,7 +76,7 @@ func v1(r *gin.RouterGroup) {
 	r.GET("/tables/:id/charts", core.Handle(base.TableCharts))
 	r.GET("/databases/:did/tables", core.Handle(base.TableList))
 	// r.POST("/databases/:did/tables", core.Handle(base.TableCreate))
-	r.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
+	r.POST("/instances/:iid/complete", core.Handle(base.QueryComplete))
 	r.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
 	r.POST("/instances/:iid/tables-exist-batch", core.Handle(base.TableCreateSelfBuiltBatch))
 	// hidden field
