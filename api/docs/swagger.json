@@ -1935,6 +1935,15 @@
                 "title": "ReqAlarmFilterCreate",
                 "type": "object"
             },
+            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqComplete": {
+                "properties": {
+                    "Query": {
+                        "type": "string"
+                    }
+                },
+                "title": "ReqComplete",
+                "type": "object"
+            },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateCluster": {
                 "properties": {
                     "apiServer": {
@@ -7255,16 +7264,9 @@
             }
         },
         "/api/v1/instances/{iid}/complete": {
-            "get": {
+            "post": {
                 "operationId": "base.QueryComplete",
                 "parameters": [
-                    {
-                        "in": "query",
-                        "name": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "in": "path",
                         "name": "iid",
@@ -7274,6 +7276,16 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqComplete"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "content": {
