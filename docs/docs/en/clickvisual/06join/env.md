@@ -31,7 +31,7 @@ fork 代码后，在项目根目录可以看到 `docker-compose.devops.yml`
 
 ### 新增日志库
 创建实例 
-> clickhouse://username:password@host1:9000,host2:9000/database?dial_timeout=200ms&max_execution_time=60
+> clickhouse://root:shimo@127.0.0.1:19000?dial_timeout=200ms&max_execution_time=60
 
 ![img_3.png](../../../images/env-3.png)
 

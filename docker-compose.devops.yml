@@ -110,7 +110,8 @@ services:
     expose:
       - 9000
     ports:
-      - "8123:8123"
+      - "18123:8123"
+      - "19000:9000"
     volumes:
       - ./data/all-in-one/clickhouse/database:/var/lib/clickhouse
       - ./data/all-in-one/clickhouse/logs:/var/log
