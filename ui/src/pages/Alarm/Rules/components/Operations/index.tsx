@@ -179,6 +179,11 @@ const Operations = () => {
           showSearch
           allowClear
           value={operations.selectTid}
+          filterOption={(input, option) =>
+            (option?.data_label ?? "")
+              .toLowerCase()
+              .includes(input.toLowerCase())
+          }
           onChange={(id) => {
             operations.onChangeSelectTid(id);
             handleSelect({ ...operations.searchQuery, tid: id });
@@ -191,7 +196,11 @@ const Operations = () => {
         >
           {tableList.length > 0 &&
             tableList.map((item) => (
-              <Option key={item.id} value={item.id}>
+              <Option
+                key={item.id}
+                value={item.id}
+                data_label={item.tableName + (item?.desc || "")}
+              >
                 <Tooltip
                   title={item.tableName + (item.desc ? `(${item.desc})` : "")}
                 >
