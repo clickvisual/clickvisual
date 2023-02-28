@@ -652,6 +652,7 @@ func TableIndexes(c *core.Context) {
 	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
+	param.Tid = tid
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	param.TimeFieldType = tableInfo.TimeFieldType
@@ -672,7 +673,6 @@ func TableIndexes(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-
 	indexInfo, _ := db.IndexInfo(invoker.Db, indexId)
 	param.Field = indexInfo.GetFieldName()
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
@@ -686,9 +686,6 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	list := op.GroupBy(param)
-
-	elog.Debug("Indexes", elog.Any("list", list))
-
 	res := make([]view.RespIndexItem, 0)
 	sum, err := op.Count(param)
 	if err != nil {
@@ -707,7 +704,6 @@ func TableIndexes(c *core.Context) {
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
-	elog.Debug("Indexes", elog.Any("res", res))
 	c.JSONOK(res)
 	return
 }
