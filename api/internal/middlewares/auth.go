@@ -35,20 +35,21 @@ func AuthChecker() gin.HandlerFunc {
 
 func RootChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		user := session.Get("user")
+		user := core.ContextUser(c)
 		if user == nil {
+			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "session user is nil", Msg: ""})
 			c.Abort()
 			return
 		}
 		u := db.User{}
 		userBytes, _ := json.Marshal(user)
 		if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
+			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "illegal user struct: " + string(userBytes), Msg: ""})
 			c.Abort()
 			return
 		}
-		if err := permission.Manager.IsRootUser(u.ID); err != nil {
-			c.JSON(http.StatusOK, core.Res{Code: 0, Data: "IsRootUser: " + err.Error(), Msg: ""})
+		if err := permission.Manager.IsRootUser(u.Uid); err != nil {
+			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "IsRootUser: " + err.Error(), Msg: ""})
 			c.Abort()
 			return
 		}

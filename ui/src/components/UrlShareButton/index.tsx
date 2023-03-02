@@ -1,11 +1,11 @@
-import { ShareAltOutlined } from "@ant-design/icons";
-import { Button, message, Tooltip } from "antd";
+import {ShareAltOutlined} from "@ant-design/icons";
+import {Button, message, Tooltip} from "antd";
 import copy from "copy-to-clipboard";
 import api from "@/services/dataLogs";
 import useRequest from "@/hooks/useRequest/useRequest";
-import { useIntl, useModel } from "umi";
+import {useIntl, useModel} from "umi";
 import useUrlState from "@ahooksjs/use-url-state";
-import { cloneDeep } from "lodash";
+import {cloneDeep} from "lodash";
 
 const UrlShareButton = (props: { style?: any; text?: string }) => {
   const { style, text } = props;
@@ -44,10 +44,10 @@ const UrlShareButton = (props: { style?: any; text?: string }) => {
       ) {
         url = window.location.href;
       } else {
-        url = `${window.location.href.split("query")[0]}share?${str.slice(
+        url = `${window.location.href.split("query")[0]}share?${encodeURI(str.slice(
           0,
           -1
-        )}`;
+        ))}`;
       }
       doGetShorturls.run({ originUrl: url }).then((res: any) => {
         if (res.code != 0) return;
