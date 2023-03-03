@@ -33,7 +33,7 @@ const ContentItem = ({
     return isTips
       ? "972px"
       : `calc(85vw - ${
-          !foldingState ? resizeMenuWidth + 4 : 0
+          !isShare && !foldingState ? resizeMenuWidth + 4 : 0
         }px - 300px - 15px ${isShare ? "+ 48px" : ""})`;
   }, [resizeMenuWidth, foldingState, isTips]);
 
