@@ -4,7 +4,6 @@ import {
 } from "@/utils/time";
 import { Tooltip } from "antd";
 import { useMemo } from "react";
-// import LogsItem from "../LogsItem";
 import styles from "./index.less";
 
 const ProgressBar = (props: {
@@ -64,32 +63,28 @@ const ProgressBar = (props: {
       </Tooltip>
       {errLocation &&
         errLocation.length > 0 &&
-        errLocation.map((item: any) => {
+        errLocation.map((item: any, index: number) => {
           return (
-            <>
-              <Tooltip
-                // title={<LogsItem isTips log={log} initial={initial} />}
-                title={microsecondsTimeUnitConversion(
-                  microsecondTimeStamp(item.absoluteTime) - initial
-                )}
-                color="#fff"
-                // overlayInnerStyle={{ width: "1000px", color: "#000" }}
-                overlayInnerStyle={{ color: "#000" }}
-                // autoAdjustOverflow={false}
+            <Tooltip
+              title={microsecondsTimeUnitConversion(
+                microsecondTimeStamp(item.absoluteTime) - initial
+              )}
+              color="#fff"
+              key={index}
+              overlayInnerStyle={{ color: "#000" }}
+            >
+              <span
+                className={styles.errorLine}
+                style={{
+                  left:
+                    log?.rawLogJson?.logs && log?.rawLogJson?.logs.length
+                      ? item.relativeTime * 100 + "%"
+                      : "-100%",
+                }}
               >
-                <span
-                  className={styles.errorLine}
-                  style={{
-                    left:
-                      log?.rawLogJson?.logs && log?.rawLogJson?.logs.length
-                        ? item.relativeTime * 100 + "%"
-                        : "-100%",
-                  }}
-                >
-                  |
-                </span>
-              </Tooltip>
-            </>
+                |
+              </span>
+            </Tooltip>
           );
         })}
     </div>
