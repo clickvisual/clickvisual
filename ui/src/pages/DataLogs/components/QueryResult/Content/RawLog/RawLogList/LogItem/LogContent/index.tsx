@@ -1,5 +1,6 @@
 import LogItemDetailsContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogItemDetails/LogItemDetailsContent";
 import LogContentParse from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContentParse";
+import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import { useMemo } from "react";
 
 interface LogContentProps {
@@ -51,7 +52,7 @@ const LogContent = (props: LogContentProps) => {
     }, [secondaryIndexList, keyItem, newLog]) || [];
 
   return (
-    <>
+    <div className={logItemStyles.logLine}>
       {!isRawLog ? (
         regSpeFlag ? (
           <LogContentParse
@@ -81,7 +82,7 @@ const LogContent = (props: LogContentProps) => {
           quickInsertLikeExclusion={quickInsertLikeExclusion}
         />
       )}
-    </>
+    </div>
   );
 };
 export default LogContent;

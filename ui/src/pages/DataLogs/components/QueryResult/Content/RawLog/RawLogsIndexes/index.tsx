@@ -66,6 +66,7 @@ const RawLogsIndexes = (props: {
       className={classNames(logsIndexStyles.logsIndexMain)}
       style={{
         maxHeight: maxHeight,
+        minHeight: 30,
       }}
     >
       {/* <IndexHeader indexType={indexType} /> */}
