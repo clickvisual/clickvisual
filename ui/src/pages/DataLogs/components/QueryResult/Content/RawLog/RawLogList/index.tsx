@@ -358,26 +358,20 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
 
   return (
     <div className={classNames(rawLogListStyles.rawLogListMain)}>
-      <div
-        className={rawLogListStyles.hiddenScrollBox}
-        // ref={virtualRef}
-        // onScroll={() => handleLogListScroll.run()}
-      >
-        {logs?.isTrace == 0 || logState != 1
-          ? list.map((logItem: any, index: number) => {
-              return (
-                <LogItem
-                  foldingChecked={oldPane?.foldingChecked}
-                  log={logItem}
-                  key={index}
-                />
-              );
-            })
-          : // 链路日志
-            linkDataList.map((item: any) => {
-              return <LinkItem key={item.key} log={item} />;
-            })}
-      </div>
+      {logs?.isTrace == 0 || logState != 1
+        ? list.map((logItem: any, index: number) => {
+            return (
+              <LogItem
+                foldingChecked={oldPane?.foldingChecked}
+                log={logItem}
+                key={index}
+              />
+            );
+          })
+        : // 链路日志
+          linkDataList.map((item: any) => {
+            return <LinkItem key={item.key} log={item} />;
+          })}
     </div>
   );
 };
