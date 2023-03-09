@@ -52,14 +52,27 @@ const RawLogsIndexes = (props: {
   }, [oldPane]);
 
   const maxHeight = useMemo(() => {
-    if (indexType == IndexType.baseField && activeKey.length == 0) {
-      return "3%";
+    // 基础字段
+    if (isBaseField) {
+      if (activeKey.length == 0) {
+        return "3%";
+      }
+      if (logActiveKey.length == 1) {
+        return "50%";
+      }
+      return "97%";
     }
-    if (indexType == IndexType.baseField && activeKey.length == 1) {
-      return "50%";
+    // 日志字段
+    if (baseActiveKey.length == 1) {
+      if (activeKey.length == 1) {
+        return "50%";
+      }
+      if (activeKey.length == 0) {
+        return "3%";
+      }
     }
     return "97%";
-  }, [indexType, activeKey]);
+  }, [indexType, activeKey, logActiveKey, baseActiveKey]);
 
   return (
     <div
@@ -69,7 +82,6 @@ const RawLogsIndexes = (props: {
         minHeight: 30,
       }}
     >
-      {/* <IndexHeader indexType={indexType} /> */}
       <IndexList
         activeKey={activeKey}
         setActiveKey={setActiveKey}
