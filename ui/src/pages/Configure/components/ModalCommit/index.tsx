@@ -1,12 +1,12 @@
 import CustomModal from "@/components/CustomModal";
-import { Button, Form, FormInstance, Input } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { MonacoDiffEditor } from "react-monaco-editor";
-import { useEffect, useRef } from "react";
-import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT, FIRST_PAGE } from "@/config/config";
-import { useIntl } from "umi";
 import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Form, FormInstance, Input } from "antd";
+import { useEffect, useRef } from "react";
+import { MonacoDiffEditor } from "react-monaco-editor";
+import { useIntl } from "umi";
 
 const ModalCommit = () => {
   const commitFormRef = useRef<FormInstance>(null);
@@ -66,7 +66,7 @@ const ModalCommit = () => {
     <CustomModal
       title={i18n.formatMessage({ id: "config.commit.title" })}
       width={"90vw"}
-      visible={visibleCommit}
+      open={visibleCommit}
       footer={
         <Button
           loading={doUpdatedConfiguration.loading}

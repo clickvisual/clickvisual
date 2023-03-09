@@ -11,12 +11,12 @@ import ReactFlow, {
 
 import { graphlib, layout } from "dagre";
 
-import "./styles/index.less";
-import { useModel } from "@@/plugin-model/useModel";
 import NodeContent from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart/NodeContent";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useModel } from "@umijs/max";
 import moment from "moment";
 import { useIntl } from "umi";
-import useUrlState from "@ahooksjs/use-url-state";
+import "./styles/index.less";
 
 const DefaultWidth = 240;
 const DefaultHeight = 100;

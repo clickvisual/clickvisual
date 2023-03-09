@@ -1,22 +1,22 @@
-import styles from "../index.less";
-import {Button, Form, Input, Select, Switch, Tooltip} from "antd";
-import {QuestionCircleOutlined} from "@ant-design/icons";
-import {useIntl, useModel} from "umi";
-import {useEffect, useState} from "react";
-import {ChannelType} from "@/services/alarm";
 import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
+import { ChannelType } from "@/services/alarm";
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Select, Switch, Tooltip } from "antd";
+import { useEffect, useState } from "react";
+import { useIntl, useModel } from "umi";
+import styles from "../index.less";
 
 const { Option } = Select;
 const { TextArea } = Input;
 export interface BasisConfigType {
   infoList: any;
   userList: any[];
-  visible: boolean;
+  open: boolean;
 }
 
 const BasisConfig = (props: BasisConfigType) => {
   const i18n = useIntl();
-  const { infoList, userList, visible } = props;
+  const { infoList, userList, open } = props;
   const [channelList, setChannelList] = useState<ChannelType[]>([]);
   const { alarmChannel, alarmChannelModal } = useModel("alarm");
   const { doGetChannels } = alarmChannel;
@@ -29,8 +29,8 @@ const BasisConfig = (props: BasisConfigType) => {
   };
 
   useEffect(() => {
-    if (visible) getChannelList();
-  }, [visible]);
+    if (open) getChannelList();
+  }, [open]);
 
   return (
     <div className={styles.basicInfo}>

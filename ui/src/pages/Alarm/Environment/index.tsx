@@ -1,11 +1,12 @@
-import {INSTANCEMANAGEMENT_PATH} from "@/config/config";
-import {EditOutlined, PlusSquareOutlined} from "@ant-design/icons";
-import {Button, message, Table, Tag, Tooltip} from "antd";
-import {useEffect, useState} from "react";
-import {useIntl, useModel} from "umi";
-import EditEnvironmentModal from "./components/EditEnvironmentModal";
-import type {InstanceType} from "@/services/systemSetting";
+import { INSTANCEMANAGEMENT_PATH } from "@/config/config";
+import type { InstanceType } from "@/services/systemSetting";
+import { EditOutlined, PlusSquareOutlined } from "@ant-design/icons";
+import { Button, message, Table, Tag, Tooltip } from "antd";
+import { useEffect, useState } from "react";
+import { useIntl, useModel } from "umi";
 import CreateMetricsSamples from "./components/CreateMetricsSamples";
+import EditEnvironmentModal from "./components/EditEnvironmentModal";
+import styles from "./index.less";
 
 export interface ResGetAlarmConfigList {
   instanceId: number;
@@ -60,7 +61,9 @@ const Environment = () => {
       },
     },
     {
-      title: i18n.formatMessage({ id: "alarm.environment.form.ruleStoreType" }),
+      title: i18n.formatMessage({
+        id: "themeLayout.alarm.environment.form.ruleStoreType",
+      }),
       dataIndex: "ruleStoreType",
       align: "left",
       render: (state: number) => {
@@ -68,7 +71,7 @@ const Environment = () => {
           [RuleStoreType.notOpen]: (
             <Tag color="blue">
               {i18n.formatMessage({
-                id: "alarm.environment.RuleStoreType.notOpen",
+                id: "themeLayout.alarm.environment.RuleStoreType.notOpen",
               })}
             </Tag>
           ),
@@ -76,7 +79,7 @@ const Environment = () => {
           [RuleStoreType.file]: (
             <Tag color="purple">
               {i18n.formatMessage({
-                id: "alarm.environment.RuleStoreType.file",
+                id: "themeLayout.alarm.environment.RuleStoreType.file",
               })}
             </Tag>
           ),
@@ -99,7 +102,7 @@ const Environment = () => {
     },
     {
       title: i18n.formatMessage({
-        id: "alarm.environment.form.isPrometheusOK",
+        id: "themeLayout.alarm.environment.form.isPrometheusOK",
       }),
       dataIndex: "isPrometheusOK",
       align: "left",
@@ -124,7 +127,7 @@ const Environment = () => {
     },
     {
       title: i18n.formatMessage({
-        id: "alarm.environment.form.isAlertManagerOK",
+        id: "themeLayout.alarm.environment.form.isAlertManagerOK",
       }),
       dataIndex: "isAlertManagerOK",
       align: "left",
@@ -149,7 +152,7 @@ const Environment = () => {
     },
     {
       title: i18n.formatMessage({
-        id: "alarm.environment.form.isMetricsSamplesOk",
+        id: "themeLayout.alarm.environment.form.isMetricsSamplesOk",
       }),
       dataIndex: "isMetricsSamplesOk",
       align: "left",
@@ -263,7 +266,7 @@ const Environment = () => {
   }, []);
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className={styles.environment}>
       <Table
         dataSource={alarmConfigList || []}
         columns={column}
@@ -274,12 +277,12 @@ const Environment = () => {
       />
       <EditEnvironmentModal
         editEnvironmentId={editEnvironmentId}
-        visible={visibleEnvironment}
+        open={visibleEnvironment}
         onChangeVisible={setVisibleEnvironment}
         onGetList={gitList}
       />
       <CreateMetricsSamples
-        visible={visibleMetricsSamples}
+        open={visibleMetricsSamples}
         onChangeVisible={setVisibleMetricsSamples}
         currentIidAndIName={currentIidAndIName}
         currentClusters={currentClusters}

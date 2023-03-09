@@ -83,9 +83,9 @@ export default {
   "menu.configure": "配置",
   "menu.log": "日志",
   "menu.alarm": "报警",
-  "menu.alarm.rules": "报警列表",
-  "menu.alarm.notifications": "通知渠道",
-  "menu.alarm.environment": "环境检测",
+  "menu.themeLayout.alarm.rules": "报警列表",
+  "menu.themeLayout.alarm.notifications": "通知渠道",
+  "menu.themeLayout.alarm.environment": "环境检测",
   "menu.systemSettings": "系统管理",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
@@ -96,6 +96,17 @@ export default {
   "menu.bigdata": "分析",
   "menu.bigdata.realtime": "实时业务",
   "menu.bigdata.temporaryQuery": "临时查询",
+
+  //
+  "menu.themeLayout": "themeLayout",
+  "menu.themeLayout.configure": "配置",
+  "menu.themeLayout.alarm": "报警",
+  "menu.themeLayout.log": "日志",
+  "menu.themeLayout.bigdata": "分析",
+
+  "menu.alarm.rules": "报警列表",
+  "menu.alarm.notifications": "通知渠道",
+  "menu.alarm.environment": "环境检测",
 
   // user
   "login.header": "欢迎来到 ClickVisual",
@@ -654,14 +665,15 @@ export default {
   "alarm.notify.url.placeholder": "请输入通知url",
 
   // alarm -> environment
-  "alarm.environment.RuleStoreType.notOpen": "未开启",
-  "alarm.environment.form.notOpen": "不开启",
-  "alarm.environment.RuleStoreType.file": "文件",
-  "alarm.environment.form.title": "编辑告警环境",
-  "alarm.environment.form.ruleStoreType": "告警类型",
-  "alarm.environment.form.isPrometheusOK": "Prometheus 检测",
-  "alarm.environment.form.isAlertManagerOK": "AlertManager 检测",
-  "alarm.environment.form.isMetricsSamplesOk": "metrics.samples 检测",
+  "themeLayout.alarm.environment.RuleStoreType.notOpen": "未开启",
+  "themeLayout.alarm.environment.form.notOpen": "不开启",
+  "themeLayout.alarm.environment.RuleStoreType.file": "文件",
+  "themeLayout.alarm.environment.form.title": "编辑告警环境",
+  "themeLayout.alarm.environment.form.ruleStoreType": "告警类型",
+  "themeLayout.alarm.environment.form.isPrometheusOK": "Prometheus 检测",
+  "themeLayout.alarm.environment.form.isAlertManagerOK": "AlertManager 检测",
+  "themeLayout.alarm.environment.form.isMetricsSamplesOk":
+    "metrics.samples 检测",
 
   // install
   "install.init.text.databaseInit":

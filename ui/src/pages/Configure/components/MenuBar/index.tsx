@@ -1,8 +1,8 @@
 import configsStyles from "@/pages/Configure/styles/index.less";
-import { FileOutlined, CloudServerOutlined } from "@ant-design/icons";
-import classNames from "classnames";
-import { useModel } from "@@/plugin-model/useModel";
+import { CloudServerOutlined, FileOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
 import { Tooltip } from "antd";
+import classNames from "classnames";
 import { useIntl } from "umi";
 
 const MenuBar = () => {

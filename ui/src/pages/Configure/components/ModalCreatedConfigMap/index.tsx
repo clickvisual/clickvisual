@@ -1,11 +1,11 @@
 import CustomModal from "@/components/CustomModal";
-import { Button, Form, FormInstance, Input } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useRef } from "react";
-import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
-import { useIntl } from "umi";
 import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Form, FormInstance, Input } from "antd";
+import { useRef } from "react";
+import { useIntl } from "umi";
 
 const ModalCreatedConfigMap = () => {
   const configMapFormRef = useRef<FormInstance>(null);
@@ -33,7 +33,7 @@ const ModalCreatedConfigMap = () => {
 
   return (
     <CustomModal
-      visible={visibleCreatedConfigMap}
+      open={visibleCreatedConfigMap}
       title={i18n.formatMessage(
         { id: "config.createdConfigMap.title" },
         {

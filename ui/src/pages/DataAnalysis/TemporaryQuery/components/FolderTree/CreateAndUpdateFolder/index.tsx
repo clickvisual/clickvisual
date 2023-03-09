@@ -1,8 +1,11 @@
-import {Form, FormInstance, Input, message, Modal, Select} from "antd";
-import {useEffect, useRef} from "react";
-import {useIntl, useModel} from "umi";
-import {BigDataNavEnum} from "@/pages/DataAnalysis";
-import {FolderEnums, SecondaryEnums,} from "@/pages/DataAnalysis/service/enums";
+import { BigDataNavEnum } from "@/pages/DataAnalysis";
+import {
+  FolderEnums,
+  SecondaryEnums,
+} from "@/pages/DataAnalysis/service/enums";
+import { Form, FormInstance, Input, message, Modal, Select } from "antd";
+import { useEffect, useRef } from "react";
+import { useIntl, useModel } from "umi";
 
 const { Option } = Select;
 
@@ -113,7 +116,7 @@ const CreateAndUpdateFolder = () => {
               id: "bigdata.components.FolderTree.crateFolder.updateTitle",
             })
       }
-      visible={visibleFolder}
+      open={visibleFolder}
       bodyStyle={{ paddingBottom: 0 }}
       onCancel={() => changeVisibleFolder(false)}
       onOk={() => folderForm.current?.submit()}
@@ -151,15 +154,21 @@ const CreateAndUpdateFolder = () => {
             )}
           </Select>
         </Form.Item>
-        <Form.Item name={"name"} label={i18n.formatMessage({
-          id: "name",
-        })
-        } required>
+        <Form.Item
+          name={"name"}
+          label={i18n.formatMessage({
+            id: "name",
+          })}
+          required
+        >
           <Input />
         </Form.Item>
-        <Form.Item name={"desc"} label={i18n.formatMessage({
-          id: "description",
-        })}>
+        <Form.Item
+          name={"desc"}
+          label={i18n.formatMessage({
+            id: "description",
+          })}
+        >
           <Input />
         </Form.Item>
       </Form>

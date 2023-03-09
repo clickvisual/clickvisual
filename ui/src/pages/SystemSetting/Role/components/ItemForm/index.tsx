@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Form, Input, Modal, Select } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
 import { ItemInfo } from "@/models/pms";
+import { useModel } from "@umijs/max";
+import { Form, Input, Modal, Select } from "antd";
+import React, { useEffect, useState } from "react";
 import { useIntl } from "umi";
 
 interface ListFormProps {
@@ -69,7 +69,7 @@ const Index: React.FC<ListFormProps> = (props) => {
     <Modal
       destroyOnClose
       title={formTitle}
-      visible={modalVisible}
+      open={modalVisible}
       onCancel={() => onCancel()}
       {...modalFooter}
     >

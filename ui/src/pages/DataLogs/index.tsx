@@ -1,11 +1,11 @@
-import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
+import CollapseMenu from "@/pages/DataLogs/components/CollapseAndExpandMenu/CollapseMenu";
 import DataSourceMenu from "@/pages/DataLogs/components/DataSourceMenu";
-import classNames from "classnames";
-import { useEffect } from "react";
-import { useModel } from "@@/plugin-model/useModel";
 import RawLogTabs from "@/pages/DataLogs/components/RawLogTabs";
 import useLogUrlParams from "@/pages/DataLogs/hooks/useLogUrlParams";
-import CollapseMenu from "@/pages/DataLogs/components/CollapseAndExpandMenu/CollapseMenu";
+import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
+import { useModel } from "@umijs/max";
+import classNames from "classnames";
+import { useEffect } from "react";
 
 const DataLogs = () => {
   const { logPanesHelper } = useModel("dataLogs");

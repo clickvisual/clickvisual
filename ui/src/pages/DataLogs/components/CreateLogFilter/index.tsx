@@ -1,4 +1,4 @@
-import styles from "./index.less";
+import { CollectType } from "@/services/dataLogs";
 import {
   Form,
   FormInstance,
@@ -6,14 +6,13 @@ import {
   message,
   Modal,
   Select,
-  Space,
   Switch,
 } from "antd";
+import classNames from "classnames";
+import { cloneDeep } from "lodash";
 import { useEffect, useRef } from "react";
 import { useIntl, useModel } from "umi";
-import classNames from "classnames";
-import { CollectType } from "@/services/dataLogs";
-import { cloneDeep } from "lodash";
+import styles from "./index.less";
 
 const operatorList = ["=", "!=", "<", "<=", ">", ">="];
 const { Option } = Select;
@@ -137,7 +136,7 @@ const CreateLogFilter = ({ tid }: { tid: number }) => {
           ? i18n.formatMessage({ id: "log.filter.edit.title" })
           : i18n.formatMessage({ id: "log.filter.add.title" })
       }
-      visible={visibleLogFilter}
+      open={visibleLogFilter}
       onOk={() => formFilterRef.current?.submit()}
       onCancel={() => onChangeVisibleLogFilter(false)}
       width={800}

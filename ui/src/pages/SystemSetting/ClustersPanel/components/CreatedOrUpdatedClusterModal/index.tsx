@@ -1,28 +1,28 @@
-import clusterPanelStyles from "@/pages/SystemSetting/ClustersPanel/index.less";
 import CustomModal from "@/components/CustomModal";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import clusterPanelStyles from "@/pages/SystemSetting/ClustersPanel/index.less";
+import type { ClusterType } from "@/services/systemSetting";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
 import type { FormInstance } from "antd";
 import { Button, Form, Input, Select } from "antd";
 import { useEffect, useRef } from "react";
-import { useDebounceFn } from "ahooks";
-import { useModel } from "@@/plugin-model/useModel";
-import type { ClusterType } from "@/services/systemSetting";
-import { DEBOUNCE_WAIT } from "@/config/config";
 import { useIntl } from "umi";
-import { SaveOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
 type CreatedOrUpdatedClusterModalProps = {
   isEditor?: boolean;
   current?: ClusterType;
-  visible: boolean;
+  open: boolean;
   onCancel: () => void;
 };
 
 const CreatedOrUpdatedClusterModal = (
   props: CreatedOrUpdatedClusterModalProps
 ) => {
-  const { visible, onCancel, isEditor, current } = props;
+  const { open, onCancel, isEditor, current } = props;
   const { doCreatedCluster, doGetClustersList, doUpdatedCluster } =
     useModel("clusters");
   const clusterFormRef = useRef<FormInstance>(null);
@@ -54,18 +54,18 @@ const CreatedOrUpdatedClusterModal = (
   const loading = doCreatedCluster.loading || doUpdatedCluster.loading;
 
   useEffect(() => {
-    if (visible && isEditor && current) {
+    if (open && isEditor && current) {
       clusterFormRef.current?.setFieldsValue(current);
     } else {
       clusterFormRef.current?.resetFields();
     }
-  }, [visible, isEditor, current]);
+  }, [open, isEditor, current]);
   return (
     <CustomModal
       title={i18n.formatMessage({
         id: `cluster.form.title.${isEditor ? "edit" : "created"}`,
       })}
-      visible={visible}
+      open={open}
       onCancel={onCancel}
       width={"70vw"}
     >

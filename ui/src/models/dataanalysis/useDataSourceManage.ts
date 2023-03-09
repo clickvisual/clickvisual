@@ -4,7 +4,7 @@ import dataSourceManageApi, {
   SourceInfoType,
 } from "@/services/dataSourceManage";
 import { useRef, useState } from "react";
-import Request, { Canceler } from "umi-request";
+// import Request, { Canceler } from "umi-request";
 
 const useDataSourceManage = () => {
   const [currentTyp, setCurrentTyp] = useState<number>();

@@ -1,5 +1,3 @@
-@import "~antd/es/style/themes/default.less";
-
 html,
 body,
 #root {
@@ -82,26 +80,50 @@ ol {
   list-style: none;
 }
 
-@media (max-width: @screen-xs) {
-  .ant-table {
-    width: 100%;
-    overflow-x: auto;
-    &-thead > tr,
-    &-tbody > tr {
-      > th,
-      > td {
-        white-space: pre;
-        > span {
-          display: block;
-        }
-      }
-    }
-  }
-}
-
 // Compatible with IE11
 @media screen and(-ms-high-contrast: active), (-ms-high-contrast: none) {
   body .ant-design-pro > .ant-layout {
     min-height: 100vh;
   }
+}
+
+/**
+  antd 5重置样式
+*/
+:where(.css-dev-only-do-not-override-11zu8kq).ant-pro-top-nav-header-wide {
+  max-width: none;
+}
+
+body {
+  margin: 0;
+}
+
+.ant-layout {
+  min-height: 100vh !important;
+}
+
+.ant-pro .ant-pro-layout .ant-pro-layout-content {
+  padding-top: 24px;
+  padding-bottom: 6px;
+}
+.ant-pro-layout-bg-list {
+  background: linear-gradient(#f6f6f6, #f4f4f4 28%) !important ;
+}
+
+.ant-modal .ant-modal-close {
+  width: 43px;
+  height: 43px;
+  transform: translateX(-17px) translateY(4px);
+}
+
+:where(.css-dev-only-do-not-override-bcpycx).ant-dropdown {
+  z-index: 999;
+}
+.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: inherit;
+}
+
+.ant-menu-item-selected,
+.ant-menu-submenu-selected {
+  color: #ee722f !important;
 }

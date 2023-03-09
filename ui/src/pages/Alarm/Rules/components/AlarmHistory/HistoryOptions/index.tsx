@@ -1,8 +1,8 @@
 import historyStyles from "@/pages/Alarm/Rules/components/AlarmHistory/index.less";
-import moment from "moment";
-import { Button, DatePicker, Space } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
 import { AlarmHistoryRequest } from "@/services/alarm";
+import { useModel } from "@umijs/max";
+import { Button, DatePicker, Space } from "antd";
+import moment from "moment";
 import { useIntl } from "umi";
 
 const { RangePicker } = DatePicker;

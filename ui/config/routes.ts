@@ -1,45 +1,57 @@
 export default [
   { path: "/", redirect: "/" },
   {
-    path: "/query",
-    component: "./DataLogs",
-    name: "log",
-  },
-  {
-    path: "/share",
-    component: "./DataLogs/ShareQueryResultPage",
-    layout: false,
-    hideInMenu: true,
-  },
-  {
-    path: "/configure",
-    name: "configure",
-    component: "./Configure",
-  },
-  {
-    name: "alarm",
-    path: "/alarm",
+    name: "themeLayout",
+    // path: "/",
+    component: "../layouts/ThemeLayout",
     routes: [
       {
-        path: "/alarm/rules",
-        name: "rules",
-        component: "./Alarm/Rules",
+        path: "/query",
+        component: "./DataLogs",
+        name: "log",
       },
       {
-        path: "/alarm/rules/history",
-        component: "./Alarm/Rules/components/AlarmHistory",
+        path: "/share",
+        component: "./DataLogs/ShareQueryResultPage",
         layout: false,
         hideInMenu: true,
       },
       {
-        path: "/alarm/notifications",
-        name: "notifications",
-        component: "./Alarm/Notifications",
+        path: "/configure",
+        name: "configure",
+        component: "./Configure",
       },
       {
-        path: "/alarm/environment",
-        name: "environment",
-        component: "./Alarm/Environment",
+        name: "alarm",
+        path: "/alarm",
+        routes: [
+          {
+            path: "/alarm/rules",
+            name: "rules",
+            component: "./Alarm/Rules",
+          },
+          {
+            path: "/alarm/rules/history",
+            component: "./Alarm/Rules/components/AlarmHistory",
+            layout: false,
+            hideInMenu: true,
+          },
+          {
+            path: "/alarm/notifications",
+            name: "notifications",
+            component: "./Alarm/Notifications",
+          },
+          {
+            path: "/alarm/environment",
+            name: "environment",
+            component: "./Alarm/Environment",
+          },
+        ],
+      },
+      {
+        path: "/bigdata",
+        name: "bigdata",
+        component: "./DataAnalysis",
       },
     ],
   },
@@ -77,11 +89,6 @@ export default [
         redirect: "/",
       },
     ],
-  },
-  {
-    path: "/bigdata",
-    name: "bigdata",
-    component: "./DataAnalysis",
   },
   {
     path: "/user",

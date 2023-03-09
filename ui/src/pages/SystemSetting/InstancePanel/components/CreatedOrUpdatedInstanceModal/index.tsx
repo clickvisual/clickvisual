@@ -1,18 +1,27 @@
-import {Button, Form, FormInstance, Input, message, Modal, Select, Tooltip,} from "antd";
-import {useDebounceFn} from "ahooks";
-import type {InstanceType} from "@/services/systemSetting";
-import {useModel} from "@@/plugin-model/useModel";
-import {useEffect, useRef, useState} from "react";
-import {DEBOUNCE_WAIT} from "@/config/config";
-import {useIntl} from "umi";
-import {SaveOutlined,} from "@ant-design/icons";
-import {cloneDeep} from "lodash";
 import IconFont from "@/components/IconFont";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import type { InstanceType } from "@/services/systemSetting";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import {
+  Button,
+  Form,
+  FormInstance,
+  Input,
+  message,
+  Modal,
+  Select,
+  Tooltip,
+} from "antd";
+import { cloneDeep } from "lodash";
+import { useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 type CreatedOrUpdatedInstanceModalProps = {
   isEditor?: boolean;
   current?: InstanceType;
-  visible: boolean;
+  open: boolean;
   onCancel: () => void;
 };
 const { Option } = Select;
@@ -20,7 +29,7 @@ const { Option } = Select;
 const CreatedOrUpdatedInstanceModal = (
   props: CreatedOrUpdatedInstanceModalProps
 ) => {
-  const { visible, isEditor, current, onCancel } = props;
+  const { open, isEditor, current, onCancel } = props;
   const {
     doCreatedInstance,
     doUpdatedInstance,
@@ -86,7 +95,7 @@ const CreatedOrUpdatedInstanceModal = (
   const { run } = useDebounceFn(onSubmit, { wait: DEBOUNCE_WAIT });
 
   useEffect(() => {
-    if (visible && isEditor && current && current?.id) {
+    if (open && isEditor && current && current?.id) {
       doGetInstanceInfo.run(current.id).then((res: any) => {
         if (res.code == 0) {
           const cloneCurrent: any = cloneDeep(res.data);
@@ -112,7 +121,7 @@ const CreatedOrUpdatedInstanceModal = (
         }
       });
     }
-  }, [visible, isEditor, current, current?.id]);
+  }, [open, isEditor, current, current?.id]);
 
   const formItemLayout = {
     labelCol: {
@@ -140,20 +149,20 @@ const CreatedOrUpdatedInstanceModal = (
   };
 
   useEffect(() => {
-    if (!visible) {
+    if (!open) {
       setDisabledSubmit(false);
       instanceFormRef.current?.resetFields();
     }
-  }, [visible]);
+  }, [open]);
 
   useEffect(() => {
-    if (!visible || isEditor) return;
+    if (!open || isEditor) return;
     setDisabledSubmit(true);
-  }, [visible, isEditor]);
+  }, [open, isEditor]);
 
   useEffect(() => {
-    if (visible) doGetClusters();
-  }, [visible]);
+    if (open) doGetClusters();
+  }, [open]);
 
   return (
     <Modal
@@ -164,7 +173,7 @@ const CreatedOrUpdatedInstanceModal = (
       })}
       maskClosable={false}
       onCancel={onCancel}
-      visible={visible}
+      open={open}
       footer={[
         <Button key="back" onClick={onCancel}>
           {i18n.formatMessage({ id: "button.cancel" })}

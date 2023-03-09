@@ -1,8 +1,8 @@
-import styles from "./index.less";
 import { Form, FormInstance, Input, Modal, Select, Switch } from "antd";
+import classNames from "classnames";
 import { useRef } from "react";
 import { useModel } from "umi";
-import classNames from "classnames";
+import styles from "./index.less";
 
 enum operatorType {
   is = 1,
@@ -42,7 +42,7 @@ const CreateLogFilter = ({ tables }: { tables: any[] }) => {
   return (
     <Modal
       title="Add filter"
-      visible={visibleLogFilter}
+      open={visibleLogFilter}
       onOk={() => formFilterRef.current?.submit()}
       onCancel={() => onChangeVisibleLogFilter(false)}
       width={800}

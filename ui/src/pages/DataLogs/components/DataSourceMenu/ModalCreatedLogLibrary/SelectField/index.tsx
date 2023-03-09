@@ -1,19 +1,19 @@
 import CustomModal from "@/components/CustomModal";
-import {Button, message, Space, Table} from "antd";
-import {ColumnsType} from "antd/lib/table";
-import {useCallback, useEffect, useState} from "react";
-import {useIntl} from "umi";
+import { Button, message, Space, Table } from "antd";
+import { ColumnsType } from "antd/lib/table";
+import { useCallback, useEffect, useState } from "react";
+import { useIntl } from "umi";
 import SelectFieldStyle from "./index.less";
 
 export interface SelectFieldType {
-  visible: boolean;
+  open: boolean;
   onCancel: () => void;
   mappingJson: any;
   onConfirm: (data: { rawLogField: string; timeField: string }) => void;
 }
 
 const SelectField = (props: SelectFieldType) => {
-  const { visible, onCancel, mappingJson, onConfirm } = props;
+  const { open, onCancel, mappingJson, onConfirm } = props;
   const i18n = useIntl();
   const [rawLogSelectedRowKeys, setRawLogSelectedRowKeys] = useState<string[]>(
     []
@@ -77,7 +77,7 @@ const SelectField = (props: SelectFieldType) => {
       title={i18n.formatMessage({
         id: "datasource.logLibrary.selectField.title",
       })}
-      visible={visible}
+      open={open}
       onCancel={onCancel}
       width={700}
       footer={[

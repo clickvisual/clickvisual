@@ -1,7 +1,7 @@
-import workflowApi from "@/services/bigDataWorkflow";
 import useRequest from "@/hooks/useRequest/useRequest";
+import workflowApi from "@/services/bigDataWorkflow";
 import { useRef } from "react";
-import Request, { Canceler } from "umi-request";
+// import Request, { Canceler } from "umi-request";
 
 export enum OpenTypeEnums {
   source = "source",

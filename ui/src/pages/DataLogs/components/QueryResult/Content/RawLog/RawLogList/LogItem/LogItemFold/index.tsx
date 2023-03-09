@@ -1,9 +1,9 @@
-import { useCallback, useMemo } from "react";
-import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import { Tag, Tooltip } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
 import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
+import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import LogItemDetail from "@/pages/DataLogs/utils/LogItemDetail";
+import { useModel } from "@umijs/max";
+import { Tag, Tooltip } from "antd";
+import { useCallback, useMemo } from "react";
 
 const TagFieldContent = ({
   field,

@@ -1,13 +1,13 @@
 import dataSourceMenuStyles from "@/pages/DataLogs/components/DataSourceMenu/index.less";
 import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import classNames from "classnames";
 import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth";
-import LogLibraryItem from "./LogLibraryList/LogLibraryItem";
+import { useModel } from "@umijs/max";
+import classNames from "classnames";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import EditDatabaseModel from "./EditDatabaseModel";
 import DatabaseItem from "./LogLibraryList/DatabaseItem";
 import InstanceItem from "./LogLibraryList/InstanceItem";
-import EditDatabaseModel from "./EditDatabaseModel";
+import LogLibraryItem from "./LogLibraryList/LogLibraryItem";
 
 const MENU_MIN = 200;
 const MENU_MAX = 400;

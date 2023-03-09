@@ -1,6 +1,15 @@
-import {Form, FormInstance, Input, InputNumber, message, Modal, Spin, Switch,} from "antd";
-import {useEffect, useMemo, useRef} from "react";
-import {useIntl, useModel} from "umi";
+import {
+  Form,
+  FormInstance,
+  Input,
+  InputNumber,
+  message,
+  Modal,
+  Spin,
+  Switch,
+} from "antd";
+import { useEffect, useMemo, useRef } from "react";
+import { useIntl, useModel } from "umi";
 import style from "./index.less";
 
 const EditLogLibraryModal = (props: { onGetList: any }) => {
@@ -73,7 +82,7 @@ const EditLogLibraryModal = (props: { onGetList: any }) => {
   return (
     <Modal
       title={i18n.formatMessage({ id: "datasource.tooltip.icon.edit" })}
-      visible={isModifyLog}
+      open={isModifyLog}
       onCancel={() => onChangeIsModifyLog(false)}
       onOk={() => editDatabaseFormRef.current?.submit()}
       width={"60%"}

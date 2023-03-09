@@ -1,3 +1,8 @@
+import { FIRST_PAGE, MINUTES_UNIT_TIME, PAGE_SIZE } from "@/config/config";
+import useRequest from "@/hooks/useRequest/useRequest";
+import api from "@/services/dataLogs";
+import { FormatPainterOutlined, SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
 import {
   Button,
   DatePicker,
@@ -9,38 +14,33 @@ import {
   Spin,
   Table,
 } from "antd";
-import styles from "./index.less";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import moment from "moment";
-import { FIRST_PAGE, MINUTES_UNIT_TIME, PAGE_SIZE } from "@/config/config";
-import useRequest from "@/hooks/useRequest/useRequest";
-import api from "@/services/dataLogs";
-import Request, { Canceler } from "umi-request";
 import { ColumnsType } from "antd/es/table";
-import { useIntl } from "umi";
-import { FormatPainterOutlined, SaveOutlined } from "@ant-design/icons";
+import moment from "moment";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "sql-formatter";
+import { useIntl } from "umi";
+// import Request, { Canceler } from "umi-request";
 import queryStatisticsItemStyle from "../index.less";
+import styles from "./index.less";
 
-import { UnControlled as CodeMirror } from "react-codemirror2";
-import "codemirror/lib/codemirror.css";
-import "codemirror/lib/codemirror.js";
-import "codemirror/addon/lint/lint.css";
+import "codemirror/addon/display/placeholder.js";
+import "codemirror/addon/fold/brace-fold.js";
 import "codemirror/addon/fold/foldcode.js";
 import "codemirror/addon/fold/foldgutter.js";
-import "codemirror/addon/fold/brace-fold.js";
 import "codemirror/addon/hint/javascript-hint.js";
-import "codemirror/addon/lint/lint.js";
-import "codemirror/addon/lint/json-lint.js";
 import "codemirror/addon/lint/javascript-lint.js";
-import "codemirror/addon/display/placeholder.js";
-import "codemirror/mode/sql/sql.js";
+import "codemirror/addon/lint/json-lint.js";
+import "codemirror/addon/lint/lint.css";
+import "codemirror/addon/lint/lint.js";
+import "codemirror/lib/codemirror.css";
+import "codemirror/lib/codemirror.js";
 import "codemirror/mode/javascript/javascript.js";
+import "codemirror/mode/sql/sql.js";
+import { UnControlled as CodeMirror } from "react-codemirror2";
 // 引入代码自动提示插件
+import "codemirror/addon/hint/show-hint";
 import "codemirror/addon/hint/show-hint.css";
 import "codemirror/addon/hint/sql-hint";
-import "codemirror/addon/hint/show-hint";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -73,14 +73,14 @@ export enum alarmModePreviewType {
 }
 
 type CreatedAndUpdatedModalProps = {
-  visible: boolean;
+  open: boolean;
   onOk: (fields: any) => void;
   onCancel: () => void;
   isEdit: boolean;
   defaultData: any;
 };
 const CreatedAndUpdatedModal = ({
-  visible,
+  open,
   onOk,
   isEdit,
   defaultData,
@@ -337,17 +337,17 @@ const CreatedAndUpdatedModal = ({
   };
 
   useEffect(() => {
-    if (!visible || !databaseId) return;
+    if (!open || !databaseId) return;
     getLogLibraries.run(databaseId);
-  }, [visible, databaseId]);
+  }, [open, databaseId]);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!open) return;
     doGetDatabaseList();
-  }, [visible]);
+  }, [open]);
 
   useEffect(() => {
-    if (visible && modalForm.current && !isEdit) {
+    if (open && modalForm.current && !isEdit) {
       modalForm.current.setFieldsValue({
         mode: alarmModeType.NormalMode,
       });
@@ -361,10 +361,10 @@ const CreatedAndUpdatedModal = ({
       if (operations.selectTid)
         modalForm.current.setFieldsValue({ tableId: operations.selectTid });
     }
-  }, [visible, operations.selectDid, operations.selectTid]);
+  }, [open, operations.selectDid, operations.selectTid]);
 
   useEffect(() => {
-    if (visible && isEdit && (defaultData?.tid || defaultData?.tableId)) {
+    if (open && isEdit && (defaultData?.tid || defaultData?.tableId)) {
       doGetLogLibrary
         .run(defaultData?.tid || defaultData?.tableId)
         .then((res) => {
@@ -381,10 +381,10 @@ const CreatedAndUpdatedModal = ({
           // handlePreview(modalForm.current?.getFieldsValue());
         });
     }
-  }, [visible, isEdit, defaultData]);
+  }, [open, isEdit, defaultData]);
 
   useEffect(() => {
-    if (!visible && modalForm.current) {
+    if (!open && modalForm.current) {
       setDefaultWhen("1=1");
       setCurrentTableName("");
       modalForm.current.resetFields();
@@ -392,7 +392,7 @@ const CreatedAndUpdatedModal = ({
       setIsPreviewData(alarmModePreviewType.AggregateData);
       doShowTable(false);
     }
-  }, [visible]);
+  }, [open]);
 
   const aggregatePreviewText = useMemo(() => {
     switch (isPreviewData) {
@@ -421,7 +421,7 @@ const CreatedAndUpdatedModal = ({
       title={i18n.formatMessage({
         id: "alarm.rules.form.inspectionStatistics",
       })}
-      visible={visible}
+      open={open}
       width={"60%"}
       onOk={onSubmit}
       onCancel={onCancel}

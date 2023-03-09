@@ -1,20 +1,20 @@
+import { PaneType } from "@/models/datalogs/types";
 import rawLogListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/index.less";
 import LogItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem";
-import { useModel } from "@@/plugin-model/useModel";
-import classNames from "classnames";
-import { PaneType } from "@/models/datalogs/types";
-import LinkItem from "./LinkItem";
-import LinkItemTitle from "./LinkItemTitle";
-import { useEffect, useMemo, useState } from "react";
-import { notification } from "antd";
-import { parseJsonObject } from "@/utils/string";
-import { useIntl } from "umi";
-import { cloneDeep } from "lodash";
 import {
   compare,
   handleGetChildElementsNumber,
   handleGetTotalLength,
 } from "@/utils/linkLog";
+import { parseJsonObject } from "@/utils/string";
+import { useModel } from "@umijs/max";
+import { notification } from "antd";
+import classNames from "classnames";
+import { cloneDeep } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+import { useIntl } from "umi";
+import LinkItem from "./LinkItem";
+import LinkItemTitle from "./LinkItemTitle";
 // import { useThrottleFn } from "ahooks";
 
 // 链路主题色，循环使用，可直接在末尾新增

@@ -1,17 +1,17 @@
-import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import { Button, Empty, Tree } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import DatabaseViewsDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw";
-import AssociatLogLibraries from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/AssociatLogLibraries";
-import EditLogLibraryModal from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/EditLogLibraryModal";
-import LogLibraryInfoDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryInfoDraw";
-import { useEffect, useState } from "react";
-import { TablesResponse } from "@/services/dataLogs";
-import { DownOutlined, PlusOutlined } from "@ant-design/icons";
-import { cloneDeep } from "lodash";
-import useUrlState from "@ahooksjs/use-url-state";
 import useLocalStorages from "@/hooks/useLocalStorages";
+import AssociatLogLibraries from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/AssociatLogLibraries";
+import DatabaseViewsDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw";
+import EditLogLibraryModal from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/EditLogLibraryModal";
+import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
+import LogLibraryInfoDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryInfoDraw";
+import { TablesResponse } from "@/services/dataLogs";
+import useUrlState from "@ahooksjs/use-url-state";
+import { DownOutlined, PlusOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Button, Empty, Tree } from "antd";
+import { cloneDeep } from "lodash";
+import { useEffect, useState } from "react";
+import { useIntl } from "umi";
 
 type LogLibraryListProps = {
   list: any[];

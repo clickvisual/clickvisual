@@ -1,12 +1,12 @@
-import { Form, FormInstance, message, Modal, Button } from "antd";
-import { useEffect, useRef } from "react";
+import IconFont from "@/components/IconFont";
 import ChannelFormItems, {
   ChannelFormType,
 } from "@/pages/Alarm/Notifications/components/ChannelFormItems";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import IconFont from "@/components/IconFont";
 import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Button, Form, FormInstance, message, Modal } from "antd";
+import { useEffect, useRef } from "react";
+import { useIntl } from "umi";
 
 type CreateChannelProps = {
   loadList: () => void;
@@ -60,7 +60,7 @@ const CreateChannelModal = ({ loadList }: CreateChannelProps) => {
   return (
     <Modal
       title={i18n.formatMessage({ id: "alarm.notify.modal.created" })}
-      visible={visibleCreate}
+      open={visibleCreate}
       width={700}
       onCancel={onCancel}
       footer={[

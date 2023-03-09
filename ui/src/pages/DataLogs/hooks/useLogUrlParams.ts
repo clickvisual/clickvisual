@@ -1,6 +1,3 @@
-import useUrlState from "@ahooksjs/use-url-state";
-import { useModel } from "@@/plugin-model/useModel";
-import { useDebounceFn } from "ahooks";
 import {
   ACTIVE_TIME_INDEX,
   DEBOUNCE_WAIT,
@@ -11,20 +8,23 @@ import {
   QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
-import moment from "moment";
-import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { IndexInfoType, TableInfoResponse } from "@/services/dataLogs";
-import { BaseRes } from "@/hooks/useRequest/useRequest";
-import { DefaultPane } from "@/models/datalogs/useLogPanes";
-import { PaneType } from "@/models/datalogs/types";
 import useLocalStorages, {
   LastDataLogsStateType,
   LocalModuleType,
 } from "@/hooks/useLocalStorages";
+import { BaseRes } from "@/hooks/useRequest/useRequest";
+import { PaneType } from "@/models/datalogs/types";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import { IndexInfoType, TableInfoResponse } from "@/services/dataLogs";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
 import { isEqual } from "lodash";
-import useTimeOptions from "./useTimeOptions";
+import moment from "moment";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { TimeOption } from "../components/DateTimeSelected";
+import useTimeOptions from "./useTimeOptions";
 
 export interface UrlStateType {
   tid?: string | number;

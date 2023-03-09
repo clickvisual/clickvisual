@@ -1,30 +1,30 @@
 import CustomModal from "@/components/CustomModal";
+import { useModel } from "@umijs/max";
 import { AutoComplete, Button, Form, FormInstance, Select } from "antd";
 import { useEffect, useRef } from "react";
-import { useModel } from "@@/plugin-model/useModel";
 import { useIntl } from "umi";
 
 const { Option } = Select;
 type ModalAddQueryCriteriaProps = {
-  visible: boolean;
+  open: boolean;
   onCancel: () => void;
 };
 const operatorList = ["=", "!=", "<", "<=", ">", ">="];
 const ModalAddQueryCriteria = (props: ModalAddQueryCriteriaProps) => {
   const formRef = useRef<FormInstance>(null);
   const i18n = useIntl();
-  const { visible, onCancel } = props;
+  const { open, onCancel } = props;
   const { logs, doUpdatedQuery } = useModel("dataLogs");
   const columns: string[] = logs?.defaultFields || [];
   useEffect(() => {
-    if (!visible) {
+    if (!open) {
       formRef.current?.resetFields();
     }
-  }, [visible]);
+  }, [open]);
   return (
     <CustomModal
       title={i18n.formatMessage({ id: "log.search.icon.quickSearch" })}
-      visible={visible}
+      open={open}
       onCancel={onCancel}
       footer={
         <Button

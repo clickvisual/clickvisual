@@ -1,10 +1,10 @@
 import queryResultStyles from "@/pages/DataLogs/components/QueryResult/index.less";
-import { useModel } from "@@/plugin-model/useModel";
-import Luckysheet from "./Luckysheet/inex";
-import { useMemo, useRef } from "react";
+import { useModel } from "@umijs/max";
+import { Empty } from "antd";
 import { ColumnsType } from "antd/es/table";
 import classNames from "classnames";
-import { Empty } from "antd";
+import { useMemo, useRef } from "react";
+import Luckysheet from "./Luckysheet/inex";
 
 const StatisticalTableContent = (props: { isShare: boolean }) => {
   const { isShare } = props;

@@ -16,7 +16,7 @@ import { RuleStoreType } from "../..";
 const { Option } = Select;
 
 interface EditEnvironmentModalProps {
-  visible: boolean;
+  open: boolean;
   onChangeVisible: (flag: boolean) => void;
   editEnvironmentId: number;
   onGetList: () => void;
@@ -24,7 +24,7 @@ interface EditEnvironmentModalProps {
 
 const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
   const i18n = useIntl();
-  const { visible, onChangeVisible, editEnvironmentId, onGetList } = props;
+  const { open, onChangeVisible, editEnvironmentId, onGetList } = props;
   const formRef = useRef<FormInstance>(null);
   const [clusterList, setClusterList] = useState<any[]>([]);
 
@@ -49,7 +49,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
   } = useModel("alarms.useAlarmEnvironment");
 
   useEffect(() => {
-    if (visible && editEnvironmentId) {
+    if (open && editEnvironmentId) {
       getClusterList.run({ pageSize: 100 }).then((res: any) => {
         if (res.code != 0) return;
         setClusterList(res.data);
@@ -76,7 +76,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
       setSelectedNameSpace(undefined);
       setSelectedConfigMap(undefined);
     }
-  }, [visible]);
+  }, [open]);
 
   const options = useMemo(() => {
     return (
@@ -127,8 +127,10 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
 
   return (
     <Modal
-      title={i18n.formatMessage({ id: "alarm.environment.form.title" })}
-      visible={visible}
+      title={i18n.formatMessage({
+        id: "themeLayout.alarm.environment.form.title",
+      })}
+      open={open}
       width={800}
       onCancel={() => onChangeVisible(false)}
       onOk={() => formRef.current?.submit()}
@@ -142,7 +144,7 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
       >
         <Form.Item
           label={i18n.formatMessage({
-            id: "alarm.environment.form.ruleStoreType",
+            id: "themeLayout.alarm.environment.form.ruleStoreType",
           })}
           name={"ruleStoreType"}
         >
@@ -150,13 +152,13 @@ const EditEnvironmentModal = (props: EditEnvironmentModalProps) => {
             options={[
               {
                 label: i18n.formatMessage({
-                  id: "alarm.environment.form.notOpen",
+                  id: "themeLayout.alarm.environment.form.notOpen",
                 }),
                 value: RuleStoreType.notOpen,
               },
               {
                 label: i18n.formatMessage({
-                  id: "alarm.environment.RuleStoreType.file",
+                  id: "themeLayout.alarm.environment.RuleStoreType.file",
                 }),
                 value: RuleStoreType.file,
               },

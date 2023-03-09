@@ -1,8 +1,8 @@
+import { useModel } from "@umijs/max";
 import { Button, Form, Input, Modal, Select } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
 import { useEffect } from "react";
-import DetailList from "./detailList";
 import { useIntl } from "umi";
+import DetailList from "./detailList";
 
 const { Option } = Select;
 
@@ -97,7 +97,7 @@ const RoleModel = () => {
       }${i18n.formatMessage({
         id: "systemSetting.instancePanel.roleAssign.roleModel.role",
       })}`}
-      visible={roleModal}
+      open={roleModal}
       destroyOnClose={true}
       onCancel={resetRole}
       width={"60vw"}

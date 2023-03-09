@@ -1,17 +1,3 @@
-import { useMemo, useRef, useState } from "react";
-import copy from "copy-to-clipboard";
-import { message } from "antd";
-import api, {
-  CollectType,
-  DatabaseResponse,
-  HighCharts,
-  IndexInfoType,
-  LogFilterType,
-  LogsResponse,
-  TablesResponse,
-} from "@/services/dataLogs";
-import useRequest from "@/hooks/useRequest/useRequest";
-import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
   CLICKVISUAL_LOGSPECIALCONNECTOR,
@@ -22,18 +8,32 @@ import {
   QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
-import moment from "moment";
-import Request, { Canceler } from "umi-request";
-import lodash from "lodash";
-import { formatMessage } from "@@/plugin-locale/localeExports";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useRequest from "@/hooks/useRequest/useRequest";
+import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
+import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
 import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
-import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
-import useLogPanes from "@/models/datalogs/useLogPanes";
-import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
-import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 import useLogOptions from "@/models/datalogs/useLogOptions";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useLogPanes from "@/models/datalogs/useLogPanes";
+import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
+import api, {
+  CollectType,
+  DatabaseResponse,
+  HighCharts,
+  IndexInfoType,
+  LogFilterType,
+  LogsResponse,
+  TablesResponse,
+} from "@/services/dataLogs";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import { formatMessage } from "@@/plugin-locale/localeExports";
+import { message } from "antd";
+import copy from "copy-to-clipboard";
+import lodash from "lodash";
+import moment from "moment";
+import { useMemo, useState } from "react";
+// import Request, { Canceler } from "umi-request";
 
 export enum dataLogLocalaStorageType {
   /**
@@ -110,9 +110,9 @@ const DataLogsModel = () => {
   const [logExcelData, setLogExcelData] = useState<any[]>([]);
 
   // 用于关闭无效请求
-  const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
-  const cancelTokenLogsRef = useRef<Canceler | null>(null);
-  const CancelToken = Request.CancelToken;
+  // const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
+  // const cancelTokenLogsRef = useRef<Canceler | null>(null);
+  // const CancelToken = Request.CancelToken;
 
   // 最近一次正在加载的tid
   const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
@@ -389,27 +389,27 @@ const DataLogsModel = () => {
 
   const getLogs = useRequest(api.getLogs, {
     loadingText: false,
-    onError: (e) => {
-      if (Request.isCancel(e)) {
-        return false;
-      } else {
-        // setLogs(undefined);
-      }
-      return;
-    },
+    // onError: (e) => {
+    //   if (Request.isCancel(e)) {
+    //     return false;
+    //   } else {
+    //     // setLogs(undefined);
+    //   }
+    //   return;
+    // },
     onSuccess: (res) => setLogs(res.data),
   });
 
   const getHighCharts = useRequest(api.getHighCharts, {
     loadingText: false,
-    onError: (e) => {
-      if (Request.isCancel(e)) {
-        return false;
-      } else {
-        // setHighChartList([]);
-      }
-      return;
-    },
+    // onError: (e) => {
+    //   if (Request.isCancel(e)) {
+    //     return false;
+    //   } else {
+    //     // setHighChartList([]);
+    //   }
+    //   return;
+    // },
     onSuccess: (res) => {
       setLogCount(res.data?.count);
       res &&
@@ -523,13 +523,14 @@ const DataLogsModel = () => {
   // };
   const doGetHighCharts = async (params?: QueryParams) => {
     if (currentLogLibrary) {
-      cancelTokenHighChartsRef.current?.();
+      // cancelTokenHighChartsRef.current?.();
       const highChartsRes = await getHighCharts.run(
         currentLogLibrary.id,
         logsAndHighChartsPayload(params),
-        new CancelToken(function executor(c) {
-          cancelTokenHighChartsRef.current = c;
-        })
+        {}
+        // new CancelToken(function executor(c) {
+        //   cancelTokenHighChartsRef.current = c;
+        // })
       );
       if (highChartsRes?.code === 0) {
         return {
@@ -542,8 +543,8 @@ const DataLogsModel = () => {
 
   const doGetLogsAndHighCharts = async (id: number, extra?: Extra) => {
     if (!id) return;
-    cancelTokenLogsRef.current?.();
-    cancelTokenHighChartsRef.current?.();
+    // cancelTokenLogsRef.current?.();
+    // cancelTokenHighChartsRef.current?.();
     const currentPane = logPanesHelper.logPanes[id.toString()];
     const histogramChecked = currentPane?.histogramChecked ?? true;
 
@@ -583,9 +584,10 @@ const DataLogsModel = () => {
       const logsRes = await getLogs.run(
         id,
         logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
-        new CancelToken(function executor(c) {
-          cancelTokenLogsRef.current = c;
-        })
+        {}
+        // new CancelToken(function executor(c) {
+        //   cancelTokenLogsRef.current = c;
+        // })
       );
       if ((extra?.isPaging || !histogramChecked) && logsRes?.code === 0) {
         return {
@@ -598,16 +600,18 @@ const DataLogsModel = () => {
         getLogs.run(
           id,
           logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
-          new CancelToken(function executor(c) {
-            cancelTokenLogsRef.current = c;
-          })
+          {}
+          // new CancelToken(function executor(c) {
+          //   cancelTokenLogsRef.current = c;
+          // })
         ),
         getHighCharts.run(
           id,
           logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
-          new CancelToken(function executor(c) {
-            cancelTokenHighChartsRef.current = c;
-          })
+          {}
+          // new CancelToken(function executor(c) {
+          //   cancelTokenHighChartsRef.current = c;
+          // })
         ),
       ]);
       if (logsRes?.code === 0 && highChartsRes?.code === 0) {

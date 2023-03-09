@@ -2,8 +2,8 @@ import { FIRST_PAGE } from "@/config/config";
 import { versionHistoryListType } from "@/models/dataAnalysis";
 import { Tooltip } from "antd";
 import { useState } from "react";
-import { useModel, useIntl } from "umi";
-import { SecondaryEnums, TertiaryEnums } from "../../service/enums";
+import { useIntl, useModel } from "umi";
+import { TertiaryEnums } from "../../service/enums";
 import style from "./index.less";
 import Results from "./Results";
 import Scheduling from "./Scheduling";
@@ -168,13 +168,13 @@ const RightMenu = (props: RightMenu) => {
         );
       })}
       <Scheduling
-        visible={visibleScheduling}
+        open={visibleScheduling}
         setVisible={setVisibleScheduling}
         node={node}
         currentPaneActiveKey={currentPaneActiveKey}
       />
       <Results
-        visible={visibleResults}
+        open={visibleResults}
         setVisible={setVisibleResults}
         resultsList={resultsList}
         currentResultsPagination={currentResultsPagination}
@@ -186,7 +186,7 @@ const RightMenu = (props: RightMenu) => {
       />
       <VersionHistory
         node={node}
-        visible={visibleVersionHistory}
+        open={visibleVersionHistory}
         setVisible={setVisibleVersionHistory}
         versionHistoryList={versionHistoryList}
         currentPagination={currentPagination}

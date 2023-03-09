@@ -1,6 +1,5 @@
-import { request } from "umi";
 import { TimeBaseType } from "@/services/systemSetting";
-
+import { request } from "@umijs/max";
 export interface QueryLogsProps {
   st: number;
   et: number;

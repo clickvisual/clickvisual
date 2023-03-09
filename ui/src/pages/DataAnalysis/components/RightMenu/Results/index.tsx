@@ -3,7 +3,7 @@ import { ClockCircleOutlined } from "@ant-design/icons";
 import { Drawer, Table, Tooltip } from "antd";
 import moment from "moment";
 import { useEffect, useState } from "react";
-import { useModel, useIntl } from "umi";
+import { useIntl, useModel } from "umi";
 import ResultsItem from "./ResultsItem";
 
 export const getTime = (time: number) => {
@@ -27,7 +27,7 @@ export const getTime = (time: number) => {
 };
 
 const VersionHistory = (props: {
-  visible: boolean;
+  open: boolean;
   setVisible: (flag: boolean) => void;
   resultsList: any;
   currentResultsPagination: any;
@@ -38,7 +38,7 @@ const VersionHistory = (props: {
   onChangeCurrentPagination: (val: any) => void;
 }) => {
   const {
-    visible,
+    open,
     setVisible,
     resultsList,
     currentResultsPagination,
@@ -75,10 +75,10 @@ const VersionHistory = (props: {
   };
 
   useEffect(() => {
-    if (!visible) {
+    if (!open) {
       onChangeResultsList({ list: [], total: 0 });
     }
-  }, [visible]);
+  }, [open]);
 
   const onClose = () => {
     setVisible(false);
@@ -197,7 +197,7 @@ const VersionHistory = (props: {
       })}
       placement="right"
       onClose={onClose}
-      visible={visible}
+      open={open}
       width={"50vw"}
       style={{ transform: "none" }}
     >
@@ -224,7 +224,7 @@ const VersionHistory = (props: {
         rowKey={(item: any) => item.id}
       />
       <ResultsItem
-        visible={visibleResultsItem}
+        open={visibleResultsItem}
         setVisible={setVisibleResultsItem}
         nodeId={openNodeId}
         resultId={resultId}

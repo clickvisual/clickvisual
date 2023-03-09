@@ -83,9 +83,9 @@ export default {
   "menu.configure": "Config",
   "menu.log": "Logs",
   "menu.alarm": "Alarm",
-  "menu.alarm.rules": "Alarm list",
-  "menu.alarm.notifications": "Notification Channel",
-  "menu.alarm.environment": "Configuration anagement",
+  "menu.themeLayout.alarm.rules": "Alarm list",
+  "menu.themeLayout.alarm.notifications": "Notification Channel",
+  "menu.themeLayout.alarm.environment": "Configuration anagement",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
@@ -96,6 +96,18 @@ export default {
   "menu.bigdata": "Data Analysis",
   "menu.bigdata.realtime": "Real-time Industry",
   "menu.bigdata.temporaryQuery": "Temporary Query",
+
+  //
+  "menu.themeLayout": "themeLayout",
+  "menu.themeLayout.configure": "Config",
+  "menu.themeLayout.alarm": "Alarm",
+  "menu.themeLayout.log": "Logs",
+  "menu.themeLayout.bigdata": "Data Analysis",
+  //
+
+  "menu.alarm.rules": "Alarm list",
+  "menu.alarm.notifications": "Notification Channel",
+  "menu.alarm.environment": "Configuration anagement",
 
   // user
   "login.header": "Welcome to ClickVisual",
@@ -695,14 +707,15 @@ export default {
   "alarm.notify.url.placeholder": "Please enter the url",
 
   // alarm -> environment
-  "alarm.environment.RuleStoreType.notOpen": "Did not open",
-  "alarm.environment.form.notOpen": "Did not open",
-  "alarm.environment.RuleStoreType.file": "File",
-  "alarm.environment.form.title": "Editing the Alarm Environment",
-  "alarm.environment.form.ruleStoreType": "The alarm types",
-  "alarm.environment.form.isPrometheusOK": "Prometheus state",
-  "alarm.environment.form.isAlertManagerOK": "AlertManager state",
-  "alarm.environment.form.isMetricsSamplesOk": "The metrics. Samples status",
+  "themeLayout.alarm.environment.RuleStoreType.notOpen": "Did not open",
+  "themeLayout.alarm.environment.form.notOpen": "Did not open",
+  "themeLayout.alarm.environment.RuleStoreType.file": "File",
+  "themeLayout.alarm.environment.form.title": "Editing the Alarm Environment",
+  "themeLayout.alarm.environment.form.ruleStoreType": "The alarm types",
+  "themeLayout.alarm.environment.form.isPrometheusOK": "Prometheus state",
+  "themeLayout.alarm.environment.form.isAlertManagerOK": "AlertManager state",
+  "themeLayout.alarm.environment.form.isMetricsSamplesOk":
+    "The metrics. Samples status",
 
   // install
   "install.init.text.databaseInit":

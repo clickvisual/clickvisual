@@ -1,15 +1,15 @@
-import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
-import { Button, Divider, Drawer, Space, Table, Tooltip } from "antd";
-import classNames from "classnames";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { useIntl } from "umi";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect } from "react";
-import ModalCreatedAndUpdatedView from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/ModalCreatedAndUpdatedView";
 import deletedModal from "@/components/DeletedModal";
-import { TablesResponse, ViewResponse } from "@/services/dataLogs";
 import IconFont from "@/components/IconFont";
+import viewDrawStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/index.less";
+import ModalCreatedAndUpdatedView from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/DatabaseViewsDraw/ModalCreatedAndUpdatedView";
+import { TablesResponse, ViewResponse } from "@/services/dataLogs";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Button, Divider, Drawer, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
+import classNames from "classnames";
+import { useEffect } from "react";
+import { useIntl } from "umi";
 
 type DatabaseViewsDrawProps = {
   logLibrary: TablesResponse;
@@ -112,7 +112,7 @@ const DatabaseViewsDraw = (props: DatabaseViewsDrawProps) => {
       width={"35vw"}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
-      visible={viewsVisibleDraw}
+      open={viewsVisibleDraw}
       onClose={() => onChangeViewsVisibleDraw(false)}
     >
       <div className={classNames(viewDrawStyles.drawCreatedButton)}>

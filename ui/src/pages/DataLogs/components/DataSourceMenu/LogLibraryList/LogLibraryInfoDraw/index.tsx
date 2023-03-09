@@ -1,12 +1,12 @@
 import infoStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryInfoDraw/index.less";
-import {TableInfoResponse, TablesResponse} from "@/services/dataLogs";
-import {useEffect, useState} from "react";
-import {useModel} from "@@/plugin-model/useModel";
-import {Drawer, Select, Tooltip} from "antd";
-import MonacoEditor from "react-monaco-editor";
-import {useIntl} from "umi";
-import {logLibraryTypes} from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
+import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
+import { TableInfoResponse, TablesResponse } from "@/services/dataLogs";
+import { useModel } from "@umijs/max";
+import { Drawer, Select, Tooltip } from "antd";
 import classNames from "classnames";
+import { useEffect, useState } from "react";
+import MonacoEditor from "react-monaco-editor";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 
@@ -146,7 +146,7 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
         flexDirection: "column",
       }}
       headerStyle={{ padding: 10 }}
-      visible={logLibraryInfoDrawVisible}
+      open={logLibraryInfoDrawVisible}
       onClose={() => onChangeLogLibraryInfoDrawVisible(false)}
     >
       <div className={infoStyles.infoMain}>

@@ -1,7 +1,7 @@
 import style from "@/pages/DataAnalysis/DataSourceManage/index.less";
 import { Button, Form, FormInstance, Select, Space } from "antd";
-import { useModel, useIntl } from "umi";
 import { useEffect, useRef } from "react";
+import { useIntl, useModel } from "umi";
 const { Option } = Select;
 const SearchBar = () => {
   const i18n = useIntl();

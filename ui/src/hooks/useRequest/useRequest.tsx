@@ -1,9 +1,9 @@
-import { useDebounceFn } from "ahooks";
-import { Button, message, notification } from "antd";
-import { CopyOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
-import copy from "copy-to-clipboard";
 import { formatMessage } from "@@/plugin-locale/localeExports";
+import { CopyOutlined } from "@ant-design/icons";
+import { useDebounceFn } from "ahooks";
+import { Button, ConfigProvider, message, notification } from "antd";
+import copy from "copy-to-clipboard";
+import { useEffect, useState } from "react";
 
 export interface ResPage {
   current: number;
@@ -217,28 +217,38 @@ function useRequest<R = any, P extends any[] = any>(
       message: formatMessage({ id: "error.title" }),
       duration: 0,
       description: (
-        <div>
-          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-            {formatMessage(
-              { id: "error.content" },
-              { msg: `${data?.msg || formatMessage({ id: "error.default" })}` }
-            )}
+        <ConfigProvider
+          theme={{
+            token: {
+              colorPrimary: "#ee722f",
+            },
+          }}
+        >
+          <div>
+            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+              {formatMessage(
+                { id: "error.content" },
+                {
+                  msg: `${data?.msg || formatMessage({ id: "error.default" })}`,
+                }
+              )}
+            </div>
+            <div style={{ marginTop: "10px" }}>
+              <Button
+                size="small"
+                type="primary"
+                shape="round"
+                style={{ marginRight: "10px" }}
+                onClick={() => {
+                  copy(resText);
+                }}
+              >
+                <CopyOutlined />
+                {formatMessage({ id: "error.copy" })}
+              </Button>
+            </div>
           </div>
-          <div style={{ marginTop: "10px" }}>
-            <Button
-              size="small"
-              type="primary"
-              shape="round"
-              style={{ marginRight: "10px" }}
-              onClick={() => {
-                copy(resText);
-              }}
-            >
-              <CopyOutlined />
-              {formatMessage({ id: "error.copy" })}
-            </Button>
-          </div>
-        </div>
+        </ConfigProvider>
       ),
     });
   };

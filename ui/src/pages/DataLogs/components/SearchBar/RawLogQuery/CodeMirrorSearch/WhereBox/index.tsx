@@ -1,13 +1,13 @@
-import styles from "./index.less";
+import { CollectType } from "@/services/dataLogs";
 import {
   BarsOutlined,
   CloseOutlined,
   PlusCircleFilled,
 } from "@ant-design/icons";
-import { useIntl, useModel } from "umi";
 import { Button, List, message, Popover } from "antd";
-import { CollectType } from "@/services/dataLogs";
 import { useState } from "react";
+import { useIntl, useModel } from "umi";
+import styles from "./index.less";
 
 const WhereBox = ({
   collectingHistorical,
@@ -109,7 +109,7 @@ const WhereBox = ({
       <Popover
         placement="bottomLeft"
         title={title}
-        visible={isCollectionPopover}
+        open={isCollectionPopover}
         content={
           <List
             bordered

@@ -1,8 +1,8 @@
-import classNames from "classnames";
-import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import { useModel } from "@@/plugin-model/useModel";
 import JsonView from "@/components/JsonView";
 import JsonStringValue from "@/components/JsonView/JsonStringValue";
+import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
+import { useModel } from "@umijs/max";
+import classNames from "classnames";
 
 type LogContentParseProps = {
   logContent: any;

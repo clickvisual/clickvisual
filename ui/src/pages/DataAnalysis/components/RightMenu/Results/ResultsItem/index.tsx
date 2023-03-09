@@ -1,12 +1,11 @@
 import { Drawer, Form, Select, Tabs } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import style from "./index.less";
 import MonacoEditor from "react-monaco-editor";
-import { useModel, useIntl } from "umi";
 import { format } from "sql-formatter";
+import { useIntl, useModel } from "umi";
+import style from "./index.less";
 
 const { Option } = Select;
-const { TabPane } = Tabs;
 
 const Results = (props: {
   visible: boolean;
@@ -45,7 +44,6 @@ const Results = (props: {
       setSQLcontent("");
       SQLForm.resetFields();
       setActiveKey("logs");
-      // setUpdatedResults({});
       setDefaultResultsData({});
     }
   }, [visible]);
@@ -109,6 +107,49 @@ const Results = (props: {
     </div>
   );
 
+  const items = [
+    {
+      key: "logs",
+      label: "logs",
+      children: (
+        <div
+          style={{
+            height: "50vh",
+            position: "relative",
+            border: "1px solid #ccc",
+            borderRadius: "8px",
+            overflow: "hidden",
+          }}
+        >
+          <MonacoEditor
+            height={"100%"}
+            language={"json"}
+            theme="vs-white"
+            options={{
+              automaticLayout: true,
+              scrollBeyondLastLine: false,
+              wordWrap: "on",
+              minimap: {
+                enabled: true,
+              },
+              readOnly: true,
+            }}
+            value={format(
+              (defaultResultsData?.logs &&
+                JSON.stringify(defaultResultsData?.logs)) ||
+                ""
+            )}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "involvedSQLs",
+      label: "sqls",
+      children: involvedSQLsContent,
+    },
+  ];
+
   return (
     <Drawer
       title={i18n.formatMessage({
@@ -116,7 +157,7 @@ const Results = (props: {
       })}
       placement="bottom"
       onClose={onClose}
-      visible={visible}
+      open={visible}
       height={"80vh"}
     >
       <div className={style.infoList}>
@@ -130,43 +171,11 @@ const Results = (props: {
           </div>
         </div>
       </div>
-      <Tabs activeKey={activeKey} onTabClick={(e) => setActiveKey(e)}>
-        <TabPane
-          tab="logs"
-          key="logs"
-          style={{
-            position: "relative",
-            border: "1px solid #ccc",
-            minHeight: "700px",
-            borderRadius: "8px",
-          }}
-        >
-          <div style={{ height: "100%" }}>
-            <MonacoEditor
-              height={"100%"}
-              language={"json"}
-              theme="vs-white"
-              options={{
-                automaticLayout: true,
-                scrollBeyondLastLine: false,
-                wordWrap: "on",
-                minimap: {
-                  enabled: true,
-                },
-                readOnly: true,
-              }}
-              value={format(
-                (defaultResultsData?.logs &&
-                  JSON.stringify(defaultResultsData?.logs)) ||
-                  ""
-              )}
-            />
-          </div>
-        </TabPane>
-        <TabPane tab="sqls" key="involvedSQLs">
-          {involvedSQLsContent}
-        </TabPane>
-      </Tabs>
+      <Tabs
+        items={items}
+        activeKey={activeKey}
+        onTabClick={(e) => setActiveKey(e)}
+      />
     </Drawer>
   );
 };

@@ -1,7 +1,7 @@
-import offlineStyles from "@/pages/DataAnalysis/OfflineManager/index.less";
-import { useModel } from "@@/plugin-model/useModel";
-import { useMemo } from "react";
 import WorkflowLine from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/WorkflowList/WorkflowLine";
+import offlineStyles from "@/pages/DataAnalysis/OfflineManager/index.less";
+import { useModel } from "@umijs/max";
+import { useMemo } from "react";
 
 export interface WorkflowListType {}
 

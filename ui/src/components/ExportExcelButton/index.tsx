@@ -1,11 +1,10 @@
-import { Button, Input, message, Modal, Tooltip } from "antd";
 import { ExportExcel } from "@/utils/excel";
-import { useIntl } from "umi";
-import { CSSProperties, useEffect, useState } from "react";
-import { useRef } from "react";
-import IconFont from "../IconFont";
+import { Button, Input, message, Modal, Tooltip } from "antd";
 import { ButtonType } from "antd/es/button";
 import { TooltipPlacement } from "antd/es/tooltip";
+import { CSSProperties, useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
+import IconFont from "../IconFont";
 
 interface ExportExcelButtonProps {
   data: any;
@@ -70,7 +69,7 @@ const ExportExcelButton = ({
       {isModalVisible ? (
         <Modal
           title={i18n.formatMessage({ id: "export" })}
-          visible={isModalVisible}
+          open={isModalVisible}
           onOk={handleOK}
           onCancel={() => {
             setIsModalVisible(false);

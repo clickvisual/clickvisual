@@ -1,11 +1,11 @@
-import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import { useMemo } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import classNames from "classnames";
-import { parseJsonObject } from "@/utils/string";
-import lodash from "lodash";
 import { REG_SEPARATORS } from "@/components/JsonView/JsonStringValue";
+import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
 import LogContent from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/LogContent";
+import { parseJsonObject } from "@/utils/string";
+import { useModel } from "@umijs/max";
+import classNames from "classnames";
+import lodash from "lodash";
+import { useMemo } from "react";
 
 interface LogItemDetailsProps {
   log: any;

@@ -1,11 +1,11 @@
-import {Dropdown, Menu, Tooltip} from "antd";
-import {useModel} from "@@/plugin-model/useModel";
-import {useEffect, useMemo, useState} from "react";
-import {TertiaryEnums} from "@/pages/DataAnalysis/service/enums";
-import SVGIcon, {SVGTypeEnums} from "@/components/SVGIcon";
-import {NodeBoardIdEnums} from "@/models/dataanalysis/useManageNodeAndFolder";
-import {cloneDeep} from "lodash";
-import {useIntl} from "umi";
+import SVGIcon, { SVGTypeEnums } from "@/components/SVGIcon";
+import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import { useModel } from "@umijs/max";
+import { Dropdown, Tooltip } from "antd";
+import { cloneDeep } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+import { useIntl } from "umi";
 
 const BoardNode = ({
   node,
@@ -128,8 +128,7 @@ const BoardNode = ({
   }, []);
   const i18n = useIntl();
 
-  const menu = () => {
-
+  const menu = useMemo(() => {
     let menuItems = [
       {
         onClick: handleDelete,
@@ -154,8 +153,8 @@ const BoardNode = ({
         ...menuItems,
       ];
     }
-    return <Menu items={menuItems} />;
-  };
+    return menuItems;
+  }, [node.id]);
 
   const Icon = useMemo(() => {
     switch (node.tertiary) {
@@ -177,7 +176,7 @@ const BoardNode = ({
   }, [node]);
 
   return (
-    <Dropdown overlay={menu} trigger={["contextMenu"]}>
+    <Dropdown menu={{ items: menu }} trigger={["contextMenu"]}>
       <div style={{ display: "flex" }} onClick={handleDoubleClick}>
         <div style={{ margin: "0 4px" }}>{Icon}</div>
         <Tooltip title={node.name}>

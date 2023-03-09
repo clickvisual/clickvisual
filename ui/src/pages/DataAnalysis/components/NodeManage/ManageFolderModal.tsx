@@ -1,6 +1,6 @@
+import { useModel } from "@umijs/max";
 import { Form, FormInstance, Input, Modal } from "antd";
 import { useEffect, useRef } from "react";
-import { useModel } from "@@/plugin-model/useModel";
 export interface ManageFolderModalType {
   // // visibleFolder: any;
   // isEditNode: any;
@@ -77,7 +77,7 @@ const ManageFolderModal = (props: ManageFolderModalType) => {
   return (
     <Modal
       title={`${isEditNode ? "编辑" : "新增"}文件夹`}
-      visible={visibleFolder}
+      open={visibleFolder}
       onCancel={onCancel}
       onOk={() => formRef.current?.submit()}
       confirmLoading={doCreatedFolder.loading || doUpdateFolder.loading}

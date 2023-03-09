@@ -1,6 +1,6 @@
-import {Form, FormInstance, Input, message, Modal, Select} from "antd";
-import {useEffect, useRef, useState} from "react";
-import {useIntl, useModel} from "umi";
+import { Form, FormInstance, Input, message, Modal, Select } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { useIntl, useModel } from "umi";
 
 const { Option } = Select;
 
@@ -74,7 +74,7 @@ const EditDatabaseModel = (props: {
   return (
     <Modal
       title={i18n.formatMessage({ id: "log.editDatabaseModel.title" })}
-      visible={isEditDatabase}
+      open={isEditDatabase}
       onCancel={() => onChangeIsEditDatabase(false)}
       onOk={() => editDatabaseFormRef.current?.submit()}
       width={"45%"}

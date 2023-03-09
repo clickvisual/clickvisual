@@ -1,28 +1,24 @@
-import RightContent from "@/components/RightContent";
 import Footer from "@/components/Footer";
-import type {
-  BasicLayoutProps,
-  MenuDataItem,
-  ProSettings,
-} from "@ant-design/pro-layout";
-import defaultSettings from "../config/defaultSettings";
-import { AccountMenus } from "@/services/menu";
-import React from "react";
-import * as Icon from "@ant-design/icons/lib/icons";
-import Logo from "../public/cv.png";
-import { FetchCurrentUserInfo } from "@/services/users";
+import RightContent from "@/components/RightContent";
 import { AVOID_CLOSE_ROUTING, LOGIN_PATH } from "@/config/config";
+import { AccountMenus } from "@/services/menu";
+import { FetchCurrentUserInfo } from "@/services/users";
+import * as Icon from "@ant-design/icons/lib/icons";
+import type { MenuDataItem, ProSettings } from "@ant-design/pro-layout";
+import React from "react";
 import { history, IRoute } from "umi";
+import defaultSettings from "../config/defaultSettings";
+import Logo from "../public/cv.png";
 
 export interface InitialStateType {
   settings: ProSettings;
   menus: MenuDataItem[];
   currentUser?: API.CurrentUser;
 }
-const LoginPath = [
-  process.env.PUBLIC_PATH + "user/login",
-  process.env.PUBLIC_PATH + "user/login/",
-];
+// const LoginPath = [
+//   process.env.PUBLIC_PATH + "user/login",
+//   process.env.PUBLIC_PATH + "user/login/",
+// ];
 let routeList: IRoute[] = [];
 
 const fetchMenu = async () => {
@@ -43,23 +39,23 @@ const fetchMenu = async () => {
 };
 
 // 登录情况下添加重定向路由
-export async function patchRoutes({ routes }: { routes: IRoute[] }) {
-  if (LoginPath.includes(document.location.pathname)) {
-    return routeList;
-  }
-  await fetchMenu();
-  let pagesRoutes: IRoute[] = routes[0].routes || [];
-  if (routeList[0]) {
-    pagesRoutes?.unshift({
-      path: "/",
-      exact: true,
-      redirect: routeList[0]?.children
-        ? routeList[0]?.children[0].path
-        : routeList[0]?.path,
-    });
-  }
-  return;
-}
+// export async function patchRoutes({ routes }: { routes: IRoute[] }) {
+//   if (LoginPath.includes(document.location.pathname)) {
+//     return routeList;
+//   }
+//   await fetchMenu();
+//   let pagesRoutes: IRoute[] = routes[0].routes || [];
+//   if (routeList[0]) {
+//     pagesRoutes?.unshift({
+//       path: "/",
+//       exact: true,
+//       redirect: routeList[0]?.children
+//         ? routeList[0]?.children[0].path
+//         : routeList[0]?.path,
+//     });
+//   }
+//   return;
+// }
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
   const pathname = history.location.pathname;
@@ -91,12 +87,12 @@ export const layout = ({
   initialState,
 }: {
   initialState: InitialStateType;
-}): BasicLayoutProps => {
+}): any => {
   const { menus, settings, currentUser } = initialState;
   return {
     menuDataRender: () => menus,
     rightContentRender: () => <RightContent />,
-    disableContentMargin: false,
+    disableContentMargin: true,
     footerRender: () => <Footer />,
     onPageChange: () => {
       const { location } = history;

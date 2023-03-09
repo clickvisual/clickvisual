@@ -1,5 +1,5 @@
 import CustomCard from "@/components/CustomCard";
-import { Chart, Axis, Tooltip, Coordinate, Interval } from "bizcharts";
+import { Axis, Chart, Coordinate, Interval, Tooltip } from "bizcharts";
 import { useMemo } from "react";
 import { useIntl } from "umi";
 import { dashboardDataType } from "../..";

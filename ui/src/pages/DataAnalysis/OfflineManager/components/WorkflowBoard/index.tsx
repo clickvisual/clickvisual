@@ -1,16 +1,16 @@
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo } from "react";
+import deletedModal from "@/components/DeletedModal";
+import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
 import FileTitle, {
   FileTitleType,
 } from "@/pages/DataAnalysis/components/FileTitle";
-import { BoardChart } from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
+import BoardChart from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/BoardChart";
 import NodeManage from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard/NodeManage/indxe";
-import { message, Modal } from "antd";
 import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
-import deletedModal from "@/components/DeletedModal";
-import { NodeBoardIdEnums } from "@/models/dataanalysis/useManageNodeAndFolder";
-import { useIntl } from "umi";
+import { useModel } from "@umijs/max";
+import { message, Modal } from "antd";
+import { useEffect, useMemo } from "react";
 import { useEdgesState, useNodesState } from "react-flow-renderer";
+import { useIntl } from "umi";
 // import { BoardCreateNodeInfo } from "@/models/dataanalysis/useWorkflowBoard";
 
 export interface WorkflowBoardProps {

@@ -1,8 +1,8 @@
-import { useIntl } from "umi";
-import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import { Tooltip } from "antd";
 import IconFont from "@/components/IconFont";
-import { useModel } from "@@/plugin-model/useModel";
+import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
+import { useModel } from "@umijs/max";
+import { Tooltip } from "antd";
+import { useIntl } from "umi";
 
 interface CopyLogProps {
   log: any;

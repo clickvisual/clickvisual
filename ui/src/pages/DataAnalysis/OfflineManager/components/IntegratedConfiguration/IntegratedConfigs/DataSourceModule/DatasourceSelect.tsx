@@ -1,5 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ClusterMode } from "@/models/clusters";
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
+import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
+import {
+  DataSourceTypeEnums,
+  FormItemEnums,
+  TypeOptions,
+} from "@/pages/DataAnalysis/OfflineManager/config";
+import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
+import { useModel } from "@umijs/max";
 import {
   Button,
   Col,
@@ -10,17 +19,8 @@ import {
   Select,
   Space,
 } from "antd";
-import { SourceCardProps } from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
-import {
-  DataSourceTypeEnums,
-  FormItemEnums,
-  TypeOptions,
-} from "@/pages/DataAnalysis/OfflineManager/config";
-import { useModel } from "@@/plugin-model/useModel";
-import Request from "umi-request";
-import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
-import { ClusterMode } from "@/models/clusters";
-import { TertiaryEnums } from "@/pages/DataAnalysis/service/enums";
+import { useCallback, useEffect, useMemo, useState } from "react";
+// import Request from "umi-request";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
