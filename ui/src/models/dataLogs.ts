@@ -29,11 +29,11 @@ import api, {
 import { currentTimeStamp } from "@/utils/momentUtils";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
+import axios, { Canceler } from "axios";
 import copy from "copy-to-clipboard";
 import lodash from "lodash";
 import moment from "moment";
-import { useMemo, useState } from "react";
-// import Request, { Canceler } from "umi-request";
+import { useMemo, useRef, useState } from "react";
 
 export enum dataLogLocalaStorageType {
   /**
@@ -110,9 +110,9 @@ const DataLogsModel = () => {
   const [logExcelData, setLogExcelData] = useState<any[]>([]);
 
   // 用于关闭无效请求
-  // const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
-  // const cancelTokenLogsRef = useRef<Canceler | null>(null);
-  // const CancelToken = Request.CancelToken;
+  const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
+  const cancelTokenLogsRef = useRef<Canceler | null>(null);
+  const CancelToken = axios.CancelToken;
 
   // 最近一次正在加载的tid
   const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
@@ -389,27 +389,27 @@ const DataLogsModel = () => {
 
   const getLogs = useRequest(api.getLogs, {
     loadingText: false,
-    // onError: (e) => {
-    //   if (Request.isCancel(e)) {
-    //     return false;
-    //   } else {
-    //     // setLogs(undefined);
-    //   }
-    //   return;
-    // },
+    onError: (e) => {
+      if (axios.isCancel(e)) {
+        return false;
+      } else {
+        // setLogs(undefined);
+      }
+      return;
+    },
     onSuccess: (res) => setLogs(res.data),
   });
 
   const getHighCharts = useRequest(api.getHighCharts, {
     loadingText: false,
-    // onError: (e) => {
-    //   if (Request.isCancel(e)) {
-    //     return false;
-    //   } else {
-    //     // setHighChartList([]);
-    //   }
-    //   return;
-    // },
+    onError: (e) => {
+      if (axios.isCancel(e)) {
+        return false;
+      } else {
+        // setHighChartList([]);
+      }
+      return;
+    },
     onSuccess: (res) => {
       setLogCount(res.data?.count);
       res &&
@@ -523,14 +523,13 @@ const DataLogsModel = () => {
   // };
   const doGetHighCharts = async (params?: QueryParams) => {
     if (currentLogLibrary) {
-      // cancelTokenHighChartsRef.current?.();
+      cancelTokenHighChartsRef.current?.();
       const highChartsRes = await getHighCharts.run(
         currentLogLibrary.id,
         logsAndHighChartsPayload(params),
-        {}
-        // new CancelToken(function executor(c) {
-        //   cancelTokenHighChartsRef.current = c;
-        // })
+        new CancelToken(function executor(c) {
+          cancelTokenHighChartsRef.current = c;
+        })
       );
       if (highChartsRes?.code === 0) {
         return {
@@ -543,8 +542,8 @@ const DataLogsModel = () => {
 
   const doGetLogsAndHighCharts = async (id: number, extra?: Extra) => {
     if (!id) return;
-    // cancelTokenLogsRef.current?.();
-    // cancelTokenHighChartsRef.current?.();
+    cancelTokenLogsRef.current?.();
+    cancelTokenHighChartsRef.current?.();
     const currentPane = logPanesHelper.logPanes[id.toString()];
     const histogramChecked = currentPane?.histogramChecked ?? true;
 
@@ -584,10 +583,9 @@ const DataLogsModel = () => {
       const logsRes = await getLogs.run(
         id,
         logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
-        {}
-        // new CancelToken(function executor(c) {
-        //   cancelTokenLogsRef.current = c;
-        // })
+        new CancelToken(function executor(c) {
+          cancelTokenLogsRef.current = c;
+        })
       );
       if ((extra?.isPaging || !histogramChecked) && logsRes?.code === 0) {
         return {
@@ -600,18 +598,16 @@ const DataLogsModel = () => {
         getLogs.run(
           id,
           logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
-          {}
-          // new CancelToken(function executor(c) {
-          //   cancelTokenLogsRef.current = c;
-          // })
+          new CancelToken(function executor(c) {
+            cancelTokenLogsRef.current = c;
+          })
         ),
         getHighCharts.run(
           id,
           logsAndHighChartsPayload(extra?.reqParams, filters, histogramChecked),
-          {}
-          // new CancelToken(function executor(c) {
-          //   cancelTokenHighChartsRef.current = c;
-          // })
+          new CancelToken(function executor(c) {
+            cancelTokenHighChartsRef.current = c;
+          })
         ),
       ]);
       if (logsRes?.code === 0 && highChartsRes?.code === 0) {

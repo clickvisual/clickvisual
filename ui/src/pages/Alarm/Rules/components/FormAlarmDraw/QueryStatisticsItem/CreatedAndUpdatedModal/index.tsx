@@ -15,11 +15,11 @@ import {
   Table,
 } from "antd";
 import { ColumnsType } from "antd/es/table";
+import axios, { Canceler } from "axios";
 import moment from "moment";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "sql-formatter";
 import { useIntl } from "umi";
-// import Request, { Canceler } from "umi-request";
 import queryStatisticsItemStyle from "../index.less";
 import styles from "./index.less";
 
@@ -90,7 +90,7 @@ const CreatedAndUpdatedModal = ({
   const codeRef = useRef<any>(null);
   const onClickPreview = useRef<boolean>(false);
   const cancelTokenQueryPreviewRef = useRef<Canceler | null>(null);
-  const CancelToken = Request.CancelToken;
+  const CancelToken = axios.CancelToken;
   const i18n = useIntl();
   const { doGetLogLibrary } = useModel("dataLogs");
 
@@ -135,7 +135,7 @@ const CreatedAndUpdatedModal = ({
     onError: (e) => {
       setTableColumns([]);
       setTableLogs([]);
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       }
       return;

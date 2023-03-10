@@ -38,8 +38,6 @@ const fetchMenu = async () => {
   return menuDataRender(res.data);
 };
 
-console.log(123, "打印了就没生效");
-
 // 登录情况下添加重定向路由
 // export async function patchRoutes({ routes }: { routes: IRoute[] }) {
 //   if (LoginPath.includes(document.location.pathname)) {

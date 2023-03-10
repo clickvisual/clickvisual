@@ -3,8 +3,8 @@ import { DataSourceReqTypEnums } from "@/pages/DataAnalysis/service/enums";
 import dataSourceManageApi, {
   SourceInfoType,
 } from "@/services/dataSourceManage";
+import axios, { Canceler } from "axios";
 import { useRef, useState } from "react";
-// import Request, { Canceler } from "umi-request";
 
 const useDataSourceManage = () => {
   const [currentTyp, setCurrentTyp] = useState<number>();
@@ -47,7 +47,7 @@ const useDataSourceManage = () => {
   const doGetSourceList = useRequest(dataSourceManageApi.getSourceList, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       }
       return;

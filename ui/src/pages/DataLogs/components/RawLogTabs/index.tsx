@@ -123,6 +123,7 @@ const RawLogTabs = () => {
           label: pane.pane,
           key: pane.paneId,
           forceRender: true,
+          style: { height: "100%" },
           children:
             pane.paneId === currentLogLibrary?.id.toString() ? (
               <QueryResult tid={pane.paneId} />

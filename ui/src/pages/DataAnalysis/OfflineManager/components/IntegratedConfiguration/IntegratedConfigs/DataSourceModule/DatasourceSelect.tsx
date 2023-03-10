@@ -19,8 +19,8 @@ import {
   Select,
   Space,
 } from "antd";
+import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
-// import Request from "umi-request";
 
 export interface DatasourceSelectProps extends SourceCardProps {
   itemNamePath: string[];
@@ -30,7 +30,7 @@ export interface DatasourceSelectProps extends SourceCardProps {
   node: any;
 }
 
-const CancelToken = Request.CancelToken;
+const CancelToken = axios.CancelToken;
 
 const DatasourceSelect = ({
   form,
