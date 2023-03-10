@@ -38,6 +38,8 @@ const fetchMenu = async () => {
   return menuDataRender(res.data);
 };
 
+console.log(123, "打印了就没生效");
+
 // 登录情况下添加重定向路由
 // export async function patchRoutes({ routes }: { routes: IRoute[] }) {
 //   if (LoginPath.includes(document.location.pathname)) {
@@ -55,6 +57,14 @@ const fetchMenu = async () => {
 //     });
 //   }
 //   return;
+// }
+
+// export function patchRoutes({ routes }) {
+//   routes.unshift({
+//     path: "/foo",
+//     exact: true,
+//     component: require("@/extraRoutes/foo").default,
+//   });
 // }
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {

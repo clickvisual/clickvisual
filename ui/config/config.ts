@@ -6,6 +6,8 @@ import routes from "./routes";
 
 const { REACT_APP_ENV } = process.env;
 
+const TerserPlugin = require("terser-webpack-plugin");
+
 export default defineConfig({
   define: {
     "process.env.PUBLIC_PATH": process.env.PUBLIC_PATH || "/",
@@ -51,15 +53,14 @@ export default defineConfig({
   request: {},
   initialState: {},
   chainWebpack: (config, { env, webpack, createCSSRule }) => {
-    // config.optimization.splitChunks({
-    //   chunks: "all",
-    //   minSize: 30000,
-    //   minChunks: 1,
-    //   automaticNameDelimiter: ".",
-    //   cacheGroups: {
-    //
-    //   },
-    // });
+    config.plugin("TerserPlugin").use(TerserPlugin, [
+      {
+        terserOptions: {
+          compress: { drop_console: process.env.NODE_ENV === "production" },
+          // compress: { drop_console: true },
+        },
+      },
+    ]);
     config.plugin("monaco-editor").use(MonacoEditorWebpackPlugin, [
       {
         languages: ["json", "ini", "yaml", "sb", "sql", "mysql"],
