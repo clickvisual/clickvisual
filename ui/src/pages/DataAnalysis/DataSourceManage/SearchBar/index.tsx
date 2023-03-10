@@ -42,12 +42,11 @@ const SearchBar = () => {
             label={i18n.formatMessage({
               id: "log.editDatabaseModel.label.datasourceType",
             })}
-            style={{ margin: 0 }}
             name="typ"
             shouldUpdate
           >
             <Select
-              style={{ width: "300px" }}
+              style={{ width: "170px" }}
               placeholder={i18n.formatMessage({
                 id: "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder",
               })}
@@ -68,7 +67,6 @@ const SearchBar = () => {
           </Form.Item>
           <Form.Item noStyle>
             <Button
-              // type="primary"
               onClick={() => {
                 onSearch(currentInstances as number, {
                   typ: currentTyp as number,
