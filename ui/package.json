@@ -84,6 +84,7 @@
     "react-resizable": "^3.0.4",
     "sql-formatter": "^6.1.2",
     "styled-components": "^5.3.5",
+    "terser-webpack-plugin": "^4.2.3",
     "umi": "3.5.26",
     "umi-serve": "^1.9.11",
     "xlsx": "^0.18.5",
