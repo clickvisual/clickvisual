@@ -328,8 +328,10 @@ const Editors = (props: {
 
     return {
       list: [...allHistoryList] || [],
-      from: { ch: token.end - value.length - 1, line: cursor.line }, // 因为识别不到`,所以不算长度  所以在原先的基础上再减一
-      to: { ch: token.end, line: cursor.line },
+      from: { ch: 0, line: 0 }, // 反引号呼出的all历史记录会将全部输入内容替换
+      to: { ch: 100, line: 100 },
+      // from: { ch: token.end - value.length - 1, line: cursor.line }, // 因为识别不到`,所以不算长度  所以在原先的基础上再减一
+      // to: { ch: token.end, line: cursor.line },
     };
   };
 
