@@ -5,6 +5,7 @@ import { AccountMenus } from "@/services/menu";
 import { FetchCurrentUserInfo } from "@/services/users";
 import * as Icon from "@ant-design/icons/lib/icons";
 import type { MenuDataItem, ProSettings } from "@ant-design/pro-layout";
+import { Navigate } from "@umijs/max";
 import React from "react";
 import { history, IRoute } from "umi";
 import defaultSettings from "../config/defaultSettings";
@@ -15,10 +16,10 @@ export interface InitialStateType {
   menus: MenuDataItem[];
   currentUser?: API.CurrentUser;
 }
-// const LoginPath = [
-//   process.env.PUBLIC_PATH + "user/login",
-//   process.env.PUBLIC_PATH + "user/login/",
-// ];
+const LoginPath = [
+  process.env.PUBLIC_PATH + "user/login",
+  process.env.PUBLIC_PATH + "user/login/",
+];
 let routeList: IRoute[] = [];
 
 const fetchMenu = async () => {
@@ -39,31 +40,15 @@ const fetchMenu = async () => {
 };
 
 // 登录情况下添加重定向路由
-// export async function patchRoutes({ routes }: { routes: IRoute[] }) {
-//   if (LoginPath.includes(document.location.pathname)) {
-//     return routeList;
-//   }
-//   await fetchMenu();
-//   let pagesRoutes: IRoute[] = routes[0].routes || [];
-//   if (routeList[0]) {
-//     pagesRoutes?.unshift({
-//       path: "/",
-//       exact: true,
-//       redirect: routeList[0]?.children
-//         ? routeList[0]?.children[0].path
-//         : routeList[0]?.path,
-//     });
-//   }
-//   return;
-// }
-
-// export function patchRoutes({ routes }) {
-//   routes.unshift({
-//     path: "/foo",
-//     exact: true,
-//     component: require("@/extraRoutes/foo").default,
-//   });
-// }
+export async function patchClientRoutes({ routes }: { routes: any }) {
+  if (!LoginPath.includes(document.location.pathname)) {
+    if (routeList && routeList.length == 0) await fetchMenu();
+    routes.unshift({
+      path: "/",
+      element: <Navigate to={routeList[0].path} replace />,
+    });
+  }
+}
 
 export async function getInitialState(): Promise<InitialStateType | undefined> {
   const pathname = history.location.pathname;
