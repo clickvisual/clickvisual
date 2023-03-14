@@ -276,10 +276,12 @@ const Editors = (props: {
         to: { ch: 0, line: 0 },
       };
     }
-    const cursorLine = token.string.replace(/((?![A-Z]).)/gi, " ").split(" ");
+    const cursorLine = token.string
+      .replace(/((?![A-Z0-9]).)/gi, " ")
+      .split(" ");
     const value = cursorLine[cursorLine.length - 1];
     // 按键触发的显示四种提示
-    if (value && value.length > 0 && value != "`") {
+    if (value && value.length > 0 && token.string != "`") {
       const cursorLineList = handleCodePromptRecord(
         [value],
         value,
@@ -313,7 +315,10 @@ const Editors = (props: {
         to: { ch: token.end, line: cursor.line },
       };
     }
+    // const isBackQuotes = token.string.includes("`");
+    // isBackQuotes && token.string?.length == 0
     // 否则显示一种提示
+    // 按反引号`出现全部的历史记录
     const allHistoryList = handleCodePromptRecord(
       historicalRecord.slice(0, 10),
       "",
@@ -323,8 +328,10 @@ const Editors = (props: {
 
     return {
       list: [...allHistoryList] || [],
-      from: { ch: token.end - value.length, line: cursor.line },
-      to: { ch: token.end, line: cursor.line },
+      from: { ch: 0, line: 0 }, // 反引号呼出的all历史记录会将全部输入内容替换
+      to: { ch: 100, line: 100 },
+      // from: { ch: token.end - value.length - 1, line: cursor.line }, // 因为识别不到`,所以不算长度  所以在原先的基础上再减一
+      // to: { ch: token.end, line: cursor.line },
     };
   };
 
@@ -476,6 +483,7 @@ const Editors = (props: {
     if (
       (b.charCode <= 90 && b.charCode >= 65) ||
       (b.charCode <= 122 && b.charCode >= 97) ||
+      (b.charCode <= 57 && b.charCode >= 48) ||
       b.charCode == 96 ||
       b.charCode == 32
     ) {
