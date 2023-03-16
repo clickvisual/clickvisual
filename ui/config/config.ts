@@ -4,6 +4,8 @@ import proxy from "./proxy";
 import routes from "./routes";
 import MonacoEditorWebpackPlugin from "monaco-editor-webpack-plugin";
 
+const TerserPlugin = require("terser-webpack-plugin");
+
 const { REACT_APP_ENV } = process.env;
 
 export default defineConfig({
@@ -54,6 +56,13 @@ export default defineConfig({
   nodeModulesTransform: { type: "none" },
   exportStatic: {},
   chainWebpack: (config, { env, webpack, createCSSRule }) => {
+    config.plugin("TerserPlugin").use(TerserPlugin, [
+      {
+        terserOptions: {
+          compress: { drop_console: process.env.NODE_ENV === "production" },
+        },
+      },
+    ]);
     // config.optimization.splitChunks({
     //   chunks: "all",
     //   minSize: 30000,
