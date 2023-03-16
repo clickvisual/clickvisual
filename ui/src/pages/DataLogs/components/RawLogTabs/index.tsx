@@ -149,7 +149,7 @@ const RawLogTabs = () => {
           onEdit={onEdit}
           destroyInactiveTabPane
           animated={false}
-          style={{ width: `calc(100vw - ${83 + resizeMenuWidth}px)` }}
+          style={{ width: `calc(100vw - ${110 + resizeMenuWidth}px)` }}
           items={items}
           tabBarExtraContent={
             <Button
