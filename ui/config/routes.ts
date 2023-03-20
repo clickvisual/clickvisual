@@ -2,7 +2,7 @@ export default [
   { path: "/", redirect: "/" },
   {
     name: "themeLayout",
-    // path: "/",
+    path: "/",
     component: "../layouts/ThemeLayout",
     routes: [
       {
@@ -86,6 +86,7 @@ export default [
         component: "./SystemSetting/User",
       },
       {
+        path: "*",
         redirect: "/",
       },
     ],
@@ -100,6 +101,7 @@ export default [
         component: "./User/Login",
       },
       {
+        path: "*",
         redirect: "/",
       },
     ],
@@ -111,15 +113,17 @@ export default [
     routes: [
       { path: "/install/init", component: "./Install/Init" },
       {
+        path: "*",
         redirect: "/",
       },
     ],
   },
   {
-    path: "graphics",
+    path: "/graphics",
     component: "./Graphics",
   },
   {
+    path: "*",
     component: "./404",
   },
 ];
