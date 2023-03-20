@@ -229,7 +229,7 @@ func (i *alert) PrometheusRuleBatchSet(clusterRuleGroups map[string]db.ClusterRu
 			PrometheusOperator: clusterRuleGroup.Instance.ConfigPrometheusOperator,
 		})
 		if err != nil {
-			return err
+			return errors.Wrap(err, "k8s configmap write error")
 		}
 		if err = rc.BatchSet(clusterRuleGroup.GroupName, clusterRuleGroup.Rules); err != nil {
 			return err
@@ -384,16 +384,20 @@ func (i *alert) CreateOrUpdate(alarmObj *db.Alarm, req view.ReqAlarmCreate) (err
 			}
 		}
 	}
+	ups := make(map[string]interface{}, 0)
+	ups["alert_rules"] = alertRules
+	ups["view_ddl_s"] = viewDDLs
+	ups["status"] = db.AlarmStatusRuleCheck
+	err = db.AlarmUpdate(invoker.Db, alarmObj.ID, ups)
+	if err != nil {
+		return
+	}
 	if len(clusterRuleGroups) > 0 {
 		if err = i.PrometheusRuleBatchSet(clusterRuleGroups); err != nil {
 			return
 		}
 	}
-	ups := make(map[string]interface{}, 0)
-	ups["alert_rules"] = alertRules
-	ups["view_ddl_s"] = viewDDLs
-	ups["status"] = db.AlarmStatusRuleCheck
-	return db.AlarmUpdate(invoker.Db, alarmObj.ID, ups)
+	return nil
 }
 
 func (i *alert) OpenOperator(id int) (err error) {
