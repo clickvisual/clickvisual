@@ -1,20 +1,20 @@
-import { Button, Tooltip } from "antd";
-import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
-import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
+import IconFont from "@/components/IconFont";
+import UrlShareButton from "@/components/UrlShareButton";
+import { FIRST_PAGE, TimeRangeType } from "@/config/config";
 import { PaneType, QueryParams } from "@/models/datalogs/types";
 import DarkTimeSelect from "@/pages/DataLogs/components/DateTimeSelected";
-import IconFont from "@/components/IconFont";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import { useDebounceFn } from "ahooks";
-import { FIRST_PAGE, TimeRangeType } from "@/config/config";
-import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
-import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect, useMemo, useState } from "react";
-import useUrlState from "@ahooksjs/use-url-state";
-import UrlShareButton from "@/components/UrlShareButton";
-import CodeMirrorSearch from "./CodeMirrorSearch";
+import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
+import SearchBarSuffixIcon from "@/pages/DataLogs/components/SearchBar/SearchBarSuffixIcon";
 import { CollectType } from "@/services/dataLogs";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Tooltip } from "antd";
+import moment, { DurationInputArg1, DurationInputArg2 } from "moment";
+import { useEffect, useMemo, useState } from "react";
+import { useIntl } from "umi";
+import CodeMirrorSearch from "./CodeMirrorSearch";
 
 const RawLogQuery = () => {
   const [urlState] = useUrlState();

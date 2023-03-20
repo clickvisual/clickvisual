@@ -1,9 +1,9 @@
-import loginStyles from "@/pages/User/Login/index.less";
-import LoginFooter from "@/pages/User/Login/Footer";
 import LoginContext from "@/pages/User/Login/Context";
-import { useIntl } from "umi";
-import { useModel } from "@@/plugin-model/useModel";
+import LoginFooter from "@/pages/User/Login/Footer";
+import loginStyles from "@/pages/User/Login/index.less";
+import { useModel } from "@umijs/max";
 import { useEffect } from "react";
+import { useIntl } from "umi";
 
 const Login = () => {
   const i18n = useIntl();

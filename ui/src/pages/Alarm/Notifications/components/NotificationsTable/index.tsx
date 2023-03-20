@@ -1,13 +1,13 @@
+import deletedModal from "@/components/DeletedModal";
+import IconFont from "@/components/IconFont";
+import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
 import notificationStyles from "@/pages/Alarm/Notifications/styles/index.less";
+import { ChannelType } from "@/services/alarm";
+import { EditOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
 import { Button, Divider, message, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
-import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
-import { ChannelType } from "@/services/alarm";
 import { useIntl } from "umi";
-import IconFont from "@/components/IconFont";
-import { EditOutlined } from "@ant-design/icons";
-import { useModel } from "@@/plugin-model/useModel";
-import deletedModal from "@/components/DeletedModal";
 
 type NotificationProps = {
   dataList: ChannelType[];

@@ -1,13 +1,13 @@
-import styles from "./index.less";
-import { Button, Form, Modal } from "antd";
-import RolesList from "./components/RolesList";
-import React, { useEffect } from "react";
-import { FormInstance } from "antd/es/form";
-import RoleModel from "./components/RoleModel";
-import { useModel } from "@@/plugin-model/useModel";
 import useRequestX from "@/hooks/useRequest/useRequest";
 import { reqUpdatePmsGrant } from "@/services/pms";
+import { useModel } from "@umijs/max";
+import { Button, Form, Modal } from "antd";
+import { FormInstance } from "antd/es/form";
+import React, { useEffect } from "react";
 import { useIntl } from "umi";
+import RoleModel from "./components/RoleModel";
+import RolesList from "./components/RolesList";
+import styles from "./index.less";
 
 export type AppRolesContextType = {
   iid: number;
@@ -87,7 +87,7 @@ const AppRoleAssignListForm = (props: AppRolesProps) => {
         onChangeDrawerVisible(false);
       }}
       bodyStyle={{ padding: 0 }}
-      visible={drawerVisible}
+      open={drawerVisible}
       width={"90%"}
       wrapClassName={styles.roleModal}
     >

@@ -1,15 +1,4 @@
-import classNames from "classnames";
-import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import { Dropdown, Menu, message, Tooltip } from "antd";
-import {
-  ApartmentOutlined,
-  CalendarOutlined,
-  FileTextOutlined,
-  FundOutlined,
-  FundProjectionScreenOutlined,
-  FundViewOutlined,
-  LinkOutlined,
-} from "@ant-design/icons";
+import deletedModal from "@/components/DeletedModal";
 import IconFont from "@/components/IconFont";
 import {
   ALARMRULES_PATH,
@@ -20,19 +9,30 @@ import {
   MINUTES_UNIT_TIME,
   PAGE_SIZE,
 } from "@/config/config";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
+import { PaneType } from "@/models/datalogs/types";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
+import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
+import { IndexInfoType, TablesResponse } from "@/services/dataLogs";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import useUrlState from "@ahooksjs/use-url-state";
+import {
+  ApartmentOutlined,
+  CalendarOutlined,
+  FileTextOutlined,
+  FundOutlined,
+  FundProjectionScreenOutlined,
+  FundViewOutlined,
+  LinkOutlined,
+} from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Dropdown, message, Tooltip } from "antd";
+import classNames from "classnames";
 import lodash from "lodash";
 import moment from "moment";
-import { currentTimeStamp } from "@/utils/momentUtils";
-import deletedModal from "@/components/DeletedModal";
-import { IndexInfoType, TablesResponse } from "@/services/dataLogs";
-import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
-import { DefaultPane } from "@/models/datalogs/useLogPanes";
-import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
-import useUrlState from "@ahooksjs/use-url-state";
-import { PaneType } from "@/models/datalogs/types";
 import { useEffect, useMemo, useRef } from "react";
+import { useIntl } from "umi";
 
 interface logLibraryType extends TablesResponse {
   did: number;
@@ -337,8 +337,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     logLibrary.createType,
   ]);
 
-  const menu = useMemo(() => <Menu items={items} />, [items]);
-
   const tooltipTitle = useMemo(
     () => (
       <div>
@@ -392,7 +390,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
       className={classNames(logLibraryListStyles.tableTitle)}
       style={{ width: `${resizeMenuWidth - 80}px` }}
     >
-      <Dropdown overlay={menu} trigger={["contextMenu"]}>
+      <Dropdown menu={{ items: items }} trigger={["contextMenu"]}>
         <Tooltip
           title={tooltipTitle}
           placement="right"

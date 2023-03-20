@@ -1,8 +1,8 @@
-import { Button, Form, Select } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import styles from "./index.less";
+import { useModel } from "@umijs/max";
+import { Button, Form, Select } from "antd";
 import { useIntl } from "umi";
+import styles from "./index.less";
 
 const { Option } = Select;
 

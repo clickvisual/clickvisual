@@ -1,11 +1,10 @@
-import instancePanelStyles from "@/pages/SystemSetting/InstancePanel/styles/index.less";
+import CreatedOrUpdatedInstanceModal from "@/pages/SystemSetting/InstancePanel/components/CreatedOrUpdatedInstanceModal";
 import InstanceSearchBar from "@/pages/SystemSetting/InstancePanel/components/InstanceSearchBar";
 import InstanceTable from "@/pages/SystemSetting/InstancePanel/components/InstanceTable";
-import {useModel} from "@@/plugin-model/useModel";
-import React, {useEffect, useState} from "react";
-import CreatedOrUpdatedInstanceModal
-    from "@/pages/SystemSetting/InstancePanel/components/CreatedOrUpdatedInstanceModal";
-import type {InstanceType} from "@/services/systemSetting";
+import instancePanelStyles from "@/pages/SystemSetting/InstancePanel/styles/index.less";
+import type { InstanceType } from "@/services/systemSetting";
+import { useModel } from "@umijs/max";
+import React, { useEffect, useState } from "react";
 
 type InstancePanelContextType = {
   onChangeVisible?: (flag: boolean) => void;
@@ -51,7 +50,7 @@ const InstancePanel = () => {
         <InstanceTable list={list} />
       </InstancePanelContext.Provider>
       <CreatedOrUpdatedInstanceModal
-        visible={instanceFormVisible}
+        open={instanceFormVisible}
         isEditor={isEditorInstanceForm}
         current={currentInstance}
         onCancel={() => {

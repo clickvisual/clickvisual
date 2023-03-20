@@ -1,14 +1,14 @@
 import CustomModal from "@/components/CustomModal";
-import {useModel} from "@@/plugin-model/useModel";
-import {EyeInvisibleOutlined} from "@ant-design/icons";
-import {useDebounceFn} from "ahooks";
-import {Button, Table, Tooltip} from "antd";
-import type {ColumnsType} from "antd/es/table";
-import type {Key} from "react";
-import {useCallback, useEffect, useMemo, useState} from "react";
-import {useIntl} from "umi";
-import {parseJsonObject} from "@/utils/string";
-import {PaneType} from "@/models/datalogs/types";
+import { PaneType } from "@/models/datalogs/types";
+import { parseJsonObject } from "@/utils/string";
+import { EyeInvisibleOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Table, Tooltip } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import type { Key } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useIntl } from "umi";
 
 const HiddenFieldModal = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const i18n = useIntl();
@@ -126,7 +126,7 @@ const HiddenFieldModal = ({ oldPane }: { oldPane: PaneType | undefined }) => {
       title={"Hidden Fields"}
       width={700}
       onCancel={handleCancel}
-      visible={visibleHideField}
+      open={visibleHideField}
     >
       <div style={{ height: 40 }}>
         <Button

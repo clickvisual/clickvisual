@@ -1,15 +1,15 @@
-import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
-import { useModel } from "@@/plugin-model/useModel";
-import moment from "moment";
-import { currentTimeStamp, timeStampFormat } from "@/utils/momentUtils";
-import { useContext, useMemo, useState } from "react";
-import classNames from "classnames";
+import { FIRST_PAGE } from "@/config/config";
+import { PaneType } from "@/models/datalogs/types";
 import {
   DarkTimeContext,
   TimeUnit,
 } from "@/pages/DataLogs/components/DateTimeSelected";
-import { FIRST_PAGE } from "@/config/config";
-import { PaneType } from "@/models/datalogs/types";
+import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
+import { currentTimeStamp, timeStampFormat } from "@/utils/momentUtils";
+import { useModel } from "@umijs/max";
+import classNames from "classnames";
+import moment from "moment";
+import { useContext, useMemo, useState } from "react";
 
 const RelativeTime = (props: { onChangeVisble: (flag: boolean) => void }) => {
   const {

@@ -35,7 +35,7 @@ const CreateUser = (props: CreateUserType) => {
   return (
     <Modal
       title={i18n.formatMessage({ id: "sys.user.createUser" })}
-      visible={visibleCreateUser}
+      open={visibleCreateUser}
       width={800}
       onOk={() => resetFormRef.current?.submit()}
       onCancel={() => setVisibleCreateUser(false)}

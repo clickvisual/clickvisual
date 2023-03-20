@@ -1,11 +1,11 @@
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import styles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft/index.less";
+import { FIRST_PAGE, LINKLOGS_PAGESIZE } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
+import styles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft/index.less";
+import { useModel } from "@umijs/max";
+import { Switch } from "antd";
 import classNames from "classnames";
 import { useMemo } from "react";
-import { Switch } from "antd";
-import { FIRST_PAGE, LINKLOGS_PAGESIZE } from "@/config/config";
+import { useIntl } from "umi";
 
 const FoldingExpansionSwitch = ({
   oldPane,

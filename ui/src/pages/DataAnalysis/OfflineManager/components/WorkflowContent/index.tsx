@@ -1,21 +1,21 @@
+import { FileTitleType } from "@/pages/DataAnalysis/components/FileTitle";
 import WorkflowSql from "@/pages/DataAnalysis/components/SQLEditor";
-import { useModel } from "@@/plugin-model/useModel";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Empty, message } from "antd";
+import IntegratedConfiguration from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration";
+import WorkflowBoard from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard";
 import {
   PrimaryEnums,
   SecondaryEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
-import IntegratedConfiguration from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration";
-import WorkflowBoard from "@/pages/DataAnalysis/OfflineManager/components/WorkflowBoard";
-import { FileTitleType } from "@/pages/DataAnalysis/components/FileTitle";
 import { parseJsonObject } from "@/utils/string";
+import { useModel } from "@umijs/max";
+import { Empty, message } from "antd";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format } from "sql-formatter";
 import { useIntl } from "umi";
 // import { NodeInfo } from "@/services/dataAnalysis";
-import lodash from "lodash";
 import { BoardCreateNodeInfo } from "@/models/dataanalysis/useWorkflowBoard";
+import lodash from "lodash";
 
 export interface WorkflowContentType {
   id: number;

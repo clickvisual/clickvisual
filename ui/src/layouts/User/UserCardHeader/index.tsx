@@ -1,5 +1,5 @@
 import userCardHeaderStyles from "@/layouts/User/UserCardHeader/index.less";
-import { useIntl } from "umi";
+import { useIntl } from "@umijs/max";
 
 const UserCardHeader = () => {
   const i18n = useIntl();

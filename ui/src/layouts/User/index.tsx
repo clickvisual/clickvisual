@@ -1,22 +1,26 @@
 import userStyles from "@/layouts/User/styles/index.less";
 import UserCardHeader from "@/layouts/User/UserCardHeader";
-import React from "react";
-import { SelectLang } from "umi";
+import { ConfigProvider } from "antd";
+import { Outlet, SelectLang } from "umi";
 
-type UserProps = {
-  children: React.ReactNode;
-};
-
-const LoginLayout = ({ children }: UserProps) => {
+const LoginLayout = () => {
   return (
-    <div className={userStyles.userMain}>
-      <div className={userStyles.userCard}>
-        <UserCardHeader />
-        <div className={userStyles.divider} />
-        {children}
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: "#ee722f",
+        },
+      }}
+    >
+      <div className={userStyles.userMain}>
+        <div className={userStyles.userCard}>
+          <UserCardHeader />
+          <div className={userStyles.divider} />
+          <Outlet />
+        </div>
+        <SelectLang className={userStyles.lang} reload={false} />
       </div>
-      <SelectLang className={userStyles.lang} reload={false} />
-    </div>
+    </ConfigProvider>
   );
 };
 

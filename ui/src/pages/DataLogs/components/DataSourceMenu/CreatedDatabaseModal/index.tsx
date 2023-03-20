@@ -1,13 +1,13 @@
-import databaseModalStyles from "./index.less";
-import { Button, Form, FormInstance, Input, Radio, Select } from "antd";
-import { useIntl } from "umi";
-import { useEffect, useRef, useState } from "react";
 import CustomModal from "@/components/CustomModal";
-import { useModel } from "@@/plugin-model/useModel";
-import { SaveOutlined } from "@ant-design/icons";
-import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import { InstanceType } from "@/services/systemSetting";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Form, FormInstance, Input, Radio, Select } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
+import databaseModalStyles from "./index.less";
 
 const { Option } = Select;
 
@@ -101,7 +101,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
       title={i18n.formatMessage({
         id: "global.database.add",
       })}
-      visible={visibleCreatedDatabaseModal}
+      open={visibleCreatedDatabaseModal}
       onCancel={onCancel}
       width={"45%"}
     >

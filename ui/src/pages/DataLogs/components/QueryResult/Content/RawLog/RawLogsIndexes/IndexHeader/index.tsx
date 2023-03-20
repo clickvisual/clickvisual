@@ -1,12 +1,12 @@
-import indexHeaderStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader/index.less";
 import IconFont from "@/components/IconFont";
-import { Button, Space, Tooltip } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
+import indexHeaderStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader/index.less";
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { IndexType } from "../..";
+import { useModel } from "@umijs/max";
+import { Button, Space, Tooltip } from "antd";
 import classNames from "classnames";
 import { useMemo } from "react";
+import { useIntl } from "umi";
+import { IndexType } from "../..";
 
 const IndexHeader = ({ indexType }: { indexType: IndexType }) => {
   const { onChangeVisibleIndexModal, currentLogLibrary } = useModel("dataLogs");

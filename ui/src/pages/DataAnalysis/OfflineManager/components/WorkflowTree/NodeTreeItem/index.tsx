@@ -1,9 +1,9 @@
 import { Dropdown } from "antd";
-import { ReactElement, ReactNode, useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 
 export interface NodeTreeItemProps {
   children: ReactNode;
-  menus: ReactElement;
+  menus: any[];
   onMenuClose?: () => void;
 }
 
@@ -13,7 +13,7 @@ const NodeTreeItem = ({ onMenuClose, children, menus }: NodeTreeItemProps) => {
   }, []);
 
   return (
-    <Dropdown overlay={menus} trigger={["contextMenu"]}>
+    <Dropdown menu={{ items: menus }} trigger={["contextMenu"]}>
       {children}
     </Dropdown>
   );

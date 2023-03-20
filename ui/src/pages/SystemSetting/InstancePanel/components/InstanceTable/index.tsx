@@ -1,18 +1,18 @@
-import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import {Divider, message, Space, Table, Tag, Tooltip} from "antd";
-import type {AlignType, FixedType} from "rc-table/lib/interface";
-import {EditOutlined, UsergroupAddOutlined} from "@ant-design/icons";
-import IconFont from "@/components/IconFont";
-import classNames from "classnames";
-import {InstancePanelContext} from "@/pages/SystemSetting/InstancePanel";
-import {useContext, useState} from "react";
 import deletedModal from "@/components/DeletedModal";
-import {useModel} from "@@/plugin-model/useModel";
-import type {InstanceType} from "@/services/systemSetting";
+import IconFont from "@/components/IconFont";
+import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
+import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
+import { CheckPermission } from "@/services/pms";
+import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
-import {useIntl} from "umi";
-import {ColumnsType} from "antd/es/table";
-import {CheckPermission} from "@/services/pms";
+import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Divider, message, Space, Table, Tag, Tooltip } from "antd";
+import { ColumnsType } from "antd/es/table";
+import classNames from "classnames";
+import type { AlignType, FixedType } from "rc-table/lib/interface";
+import { useContext, useState } from "react";
+import { useIntl } from "umi";
 import AppRoleAssignListForm from "../RoleAssign";
 
 type InstanceTableProps = {

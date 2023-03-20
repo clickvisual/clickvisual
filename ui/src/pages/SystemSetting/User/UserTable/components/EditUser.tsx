@@ -47,7 +47,7 @@ const EditUser = ({
   return (
     <Modal
       title={i18n.formatMessage({ id: "sys.user.form.eidtUser" })}
-      visible={open}
+      open={open}
       width={800}
       onOk={() => {
         userFormRef.current?.submit();

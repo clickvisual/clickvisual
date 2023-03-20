@@ -1,25 +1,25 @@
+import deletedModal from "@/components/DeletedModal";
+import IconFont from "@/components/IconFont";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import ActionButton from "@/pages/Configure/components/CustomButton/ActionButton";
+import DarkButton from "@/pages/Configure/components/CustomButton/DarkButton";
+import TextButton from "@/pages/Configure/components/CustomButton/TextButton";
 import fileStyles from "@/pages/Configure/components/Menu/Files/index.less";
+import OnlineDiff from "@/pages/Configure/components/Menu/Files/OnlineDiff";
 import {
   DeleteOutlined,
   DiffOutlined,
-  SyncOutlined,
   FileAddOutlined,
   FileSyncOutlined,
   HistoryOutlined,
   LoadingOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
-import DarkButton from "@/pages/Configure/components/CustomButton/DarkButton";
-import { Empty, message, Space, Spin, Tooltip } from "antd";
-import TextButton from "@/pages/Configure/components/CustomButton/TextButton";
-import IconFont from "@/components/IconFont";
-import ActionButton from "@/pages/Configure/components/CustomButton/ActionButton";
-import classNames from "classnames";
-import { useModel } from "@@/plugin-model/useModel";
-import deletedModal from "@/components/DeletedModal";
-import OnlineDiff from "@/pages/Configure/components/Menu/Files/OnlineDiff";
-import { useState } from "react";
+import { useModel } from "@umijs/max";
 import { useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT } from "@/config/config";
+import { Empty, message, Space, Spin, Tooltip } from "antd";
+import classNames from "classnames";
+import { useState } from "react";
 import { useIntl } from "umi";
 
 const Files = () => {
@@ -231,10 +231,7 @@ const Files = () => {
           </DarkButton>
         </div>
       )}
-      <OnlineDiff
-        visible={visibleDiff}
-        onCancel={() => setVisibleDiff(false)}
-      />
+      <OnlineDiff open={visibleDiff} onCancel={() => setVisibleDiff(false)} />
     </div>
   );
 };

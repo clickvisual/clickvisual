@@ -1,9 +1,9 @@
-import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
-import { DatePicker } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import moment from "moment";
-import { currentTimeStamp } from "@/utils/momentUtils";
 import { FIFTEEN_TIME, MINUTES_UNIT_TIME } from "@/config/config";
+import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import { useModel } from "@umijs/max";
+import { DatePicker } from "antd";
+import moment from "moment";
 
 const { RangePicker } = DatePicker;
 

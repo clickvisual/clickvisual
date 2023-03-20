@@ -1,11 +1,11 @@
+import { PaneType } from "@/models/datalogs/types";
+import RawLogList from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
 import rawLogsStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogs/index.less";
 import RawLogsOperations from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations";
-import RawLogList from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList";
-import { useModel } from "@@/plugin-model/useModel";
+import { useModel } from "@umijs/max";
 import { Empty } from "antd";
-import { useIntl } from "umi";
 import { useMemo } from "react";
-import { PaneType } from "@/models/datalogs/types";
+import { useIntl } from "umi";
 
 const RawLogs = (props: { oldPane: PaneType | undefined }) => {
   const { logs } = useModel("dataLogs");

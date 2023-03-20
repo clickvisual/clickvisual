@@ -1,7 +1,10 @@
-import {CreateSourceType, UpdateSourceType,} from "@/services/dataSourceManage";
-import {Form, FormInstance, Input, message, Modal, Select} from "antd";
-import {useEffect, useRef} from "react";
-import {useIntl, useModel} from "umi";
+import {
+  CreateSourceType,
+  UpdateSourceType,
+} from "@/services/dataSourceManage";
+import { Form, FormInstance, Input, message, Modal, Select } from "antd";
+import { useEffect, useRef } from "react";
+import { useIntl, useModel } from "umi";
 
 const { Option } = Select;
 
@@ -90,7 +93,7 @@ const CreateAndUpdateModel = () => {
               id: "bigdata.dataSourceManage.searchBar.dataSourceType.create",
             })
       }
-      visible={visibleDataSource}
+      open={visibleDataSource}
       bodyStyle={{ paddingBottom: 0 }}
       onCancel={() => changeVisibleDataSource(false)}
       onOk={() => DataSourceForm.current?.submit()}
@@ -138,9 +141,7 @@ const CreateAndUpdateModel = () => {
           <Input />
         </Form.Item>
         <Form.Item label={`地址`} name={"url"} rules={[{ required: true }]}>
-          <Input
-              placeholder="127.0.0.1:9001"
-          />
+          <Input placeholder="127.0.0.1:9001" />
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({

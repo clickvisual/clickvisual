@@ -1,8 +1,8 @@
-import { BusinessEChart } from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart";
+import BusinessEChart from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/BusinessChart";
 import LibraryTree from "@/pages/DataAnalysis/RealTimeBusinessFlow/components/LibraryTree";
 import TrafficStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/index.less";
+import { useModel } from "@umijs/max";
 import { useEffect, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
 
 const RealTimeTrafficFlow = () => {
   const [utime, setUtime] = useState<number>();

@@ -1,11 +1,11 @@
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 import SourceCard from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/SourceCard";
-import { useModel } from "@@/plugin-model/useModel";
+import TableColumns from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/TableColumns";
 import TargetCard from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/TargetCard";
+import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
+import { useModel } from "@umijs/max";
 import { FormInstance } from "antd";
 import { useCallback, useState } from "react";
-import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
-import TableColumns from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule/TableColumns";
-import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 
 export interface DataSourceModuleProps {
   form: FormInstance<any>;

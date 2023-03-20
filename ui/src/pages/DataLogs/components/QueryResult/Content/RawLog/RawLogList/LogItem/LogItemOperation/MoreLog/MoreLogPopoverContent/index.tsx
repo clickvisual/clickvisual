@@ -1,10 +1,10 @@
-import { useModel } from "@@/plugin-model/useModel";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import classNames from "classnames";
-import { Empty } from "antd";
 import LogItemDetail from "@/pages/DataLogs/utils/LogItemDetail";
-import { useMemo } from "react";
 import { parseJsonObject } from "@/utils/string";
+import { useModel } from "@umijs/max";
+import { Empty } from "antd";
+import classNames from "classnames";
+import { useMemo } from "react";
 
 interface MoreLogPopoverContentProps {
   log: any;

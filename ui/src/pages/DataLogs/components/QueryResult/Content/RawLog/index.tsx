@@ -1,13 +1,13 @@
-import queryResultStyles from "@/pages/DataLogs/components/QueryResult/index.less";
-import RawLogsIndexes from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes";
-import { Spin } from "antd";
-import classNames from "classnames";
 import HighCharts from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts";
 import RawLogs from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogs";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
+import RawLogsIndexes from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes";
 import ManageIndexModal from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal";
+import queryResultStyles from "@/pages/DataLogs/components/QueryResult/index.less";
+import { useModel } from "@umijs/max";
+import { Spin } from "antd";
+import classNames from "classnames";
 import { useMemo, useState } from "react";
+import { useIntl } from "umi";
 
 export enum IndexType {
   /**

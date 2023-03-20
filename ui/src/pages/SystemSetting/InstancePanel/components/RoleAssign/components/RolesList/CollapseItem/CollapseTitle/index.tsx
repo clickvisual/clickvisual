@@ -1,10 +1,10 @@
 import { PmsRole } from "@/services/pms";
-import styles from "./index.less";
-import { message, Tooltip } from "antd";
 import { EditFilled, QuestionCircleOutlined } from "@ant-design/icons";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
+import { useModel } from "@umijs/max";
+import { message, Tooltip } from "antd";
 import { useState } from "react";
+import { useIntl } from "umi";
+import styles from "./index.less";
 
 type DetailsProps = {
   details: any[];

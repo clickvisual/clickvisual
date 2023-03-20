@@ -1,11 +1,11 @@
-import {Form, FormInstance, Input, message, Modal, Select} from "antd";
-import {useEffect, useRef} from "react";
-import {useIntl, useModel} from "umi";
+import { Form, FormInstance, Input, message, Modal, Select } from "antd";
+import { useEffect, useRef } from "react";
+import { useIntl, useModel } from "umi";
 
 const { Option } = Select;
 
 const CreateMetricsSamples = (props: {
-  visible: boolean;
+  open: boolean;
   onChangeVisible: (flag: boolean) => void;
   currentIidAndIName: {
     iid: number;
@@ -16,7 +16,7 @@ const CreateMetricsSamples = (props: {
 }) => {
   const i18n = useIntl();
   const {
-    visible,
+    open,
     onChangeVisible,
     currentIidAndIName,
     currentClusters,
@@ -38,7 +38,7 @@ const CreateMetricsSamples = (props: {
   };
 
   useEffect(() => {
-    if (visible) {
+    if (open) {
       metricsSamplesRef.current?.setFieldsValue({
         iid: currentIidAndIName.iid,
         instanceName: currentIidAndIName.instanceName,
@@ -46,7 +46,7 @@ const CreateMetricsSamples = (props: {
     } else {
       metricsSamplesRef.current?.resetFields();
     }
-  }, [visible]);
+  }, [open]);
 
   return (
     <Modal
@@ -56,7 +56,7 @@ const CreateMetricsSamples = (props: {
           name: "metrics-samples",
         }
       )}
-      visible={visible}
+      open={open}
       onOk={() => metricsSamplesRef?.current?.submit()}
       onCancel={() => onChangeVisible(false)}
     >
@@ -70,8 +70,11 @@ const CreateMetricsSamples = (props: {
           <Input />
         </Form.Item>
         <Form.Item
-          label={i18n.formatMessage({ id: "datasource.logLibrary.from.newLogLibrary.instance" })}
-          name={"instanceName"}>
+          label={i18n.formatMessage({
+            id: "datasource.logLibrary.from.newLogLibrary.instance",
+          })}
+          name={"instanceName"}
+        >
           <Input disabled />
         </Form.Item>
         <Form.Item

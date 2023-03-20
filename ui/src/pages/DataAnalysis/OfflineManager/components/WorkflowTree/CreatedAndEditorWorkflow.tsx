@@ -1,9 +1,9 @@
-import { Form, Modal, Input } from "antd";
-import { useCallback, useEffect, useRef } from "react";
-import { FormInstance } from "antd/es/form";
-import { useModel } from "@@/plugin-model/useModel";
-import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Form, Input, Modal } from "antd";
+import { FormInstance } from "antd/es/form";
+import { useCallback, useEffect, useRef } from "react";
 import { useIntl } from "umi";
 
 const CreatedAndEditorWorkflow = () => {
@@ -90,7 +90,7 @@ const CreatedAndEditorWorkflow = () => {
         id: `bigdata.workflow.rightMenu.${!isEditWorkflow ? "add" : "update"}`,
       })}
       width={700}
-      visible={visibleWorkflowEditModal}
+      open={visibleWorkflowEditModal}
       onCancel={handleCancel}
       onOk={onOk}
       confirmLoading={addWorkflow.loading || updateWorkflow.loading}

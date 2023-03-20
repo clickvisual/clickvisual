@@ -1,10 +1,9 @@
 import ExportExcelButton from "@/components/ExportExcelButton";
 import { SaveOutlined } from "@ant-design/icons";
 import { Button, message, Spin, Tabs, Tooltip } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useIntl, useModel } from "umi";
 import styles from "../index.less";
-const { TabPane } = Tabs;
 
 const SQLResult = (props: {
   resultsList: any[];
@@ -154,7 +153,7 @@ const SQLResult = (props: {
     if (resultsList && resultsList.length > 0 && resultsList[0]?.id) {
       setUpdatedResults({});
       setDefaultResultsData({});
-      setActiveKey(resultsList[0]?.id.toString());
+      setActiveKey(resultsList[0]?.id);
       getResultsInfo(resultsList[0]?.id);
       setResultsId(resultsList[0]?.id);
     } else {
@@ -163,6 +162,17 @@ const SQLResult = (props: {
       setUpdatedResults({});
       setActiveKey("");
     }
+  }, [resultsList]);
+
+  const items = useMemo(() => {
+    let arr: any[] = [];
+    resultsList.map((item: any, index: number) => {
+      arr.push({
+        key: item.id,
+        label: `result ${index + 1}`,
+      });
+    });
+    return arr;
   }, [resultsList]);
 
   return (
@@ -197,16 +207,11 @@ const SQLResult = (props: {
         <div className={styles.resultTabs}>
           <div className={styles.tabList}>
             {resultsList.length > 0 ? (
-              <Tabs onChange={handleTabsChange} activeKey={activeKey}>
-                {resultsList.map((item: any, index: number) => {
-                  return (
-                    <TabPane
-                      tab={`result ${index + 1}`}
-                      key={item.id}
-                    ></TabPane>
-                  );
-                })}
-              </Tabs>
+              <Tabs
+                items={items}
+                onChange={handleTabsChange}
+                activeKey={activeKey}
+              />
             ) : null}
           </div>
         </div>

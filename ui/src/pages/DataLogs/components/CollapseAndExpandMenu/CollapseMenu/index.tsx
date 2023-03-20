@@ -1,8 +1,8 @@
-import classNames from "classnames";
 import dataLogsStyles from "@/pages/DataLogs/styles/index.less";
 import { CaretLeftOutlined, CaretRightOutlined } from "@ant-design/icons";
-import { useModel } from "@@/plugin-model/useModel";
+import { useModel } from "@umijs/max";
 import { useDebounceFn } from "ahooks";
+import classNames from "classnames";
 
 const CollapseMenu = () => {
   const { foldingState, resizeMenuWidth, onChangeFoldingState } = useModel(

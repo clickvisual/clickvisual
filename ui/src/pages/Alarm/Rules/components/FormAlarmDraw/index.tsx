@@ -1,3 +1,11 @@
+import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
+import InspectionFrequencyItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem";
+import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem";
+import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
+import UserSelect from "@/pages/SystemSetting/Role/components/UserSelect";
+import { AlarmRequest, ChannelType } from "@/services/alarm";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
 import {
   Button,
   Drawer,
@@ -9,17 +17,9 @@ import {
   Space,
   Spin,
 } from "antd";
-import InspectionFrequencyItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem";
-import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import { useEffect, useRef, useState } from "react";
-import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 import TextArea from "antd/es/input/TextArea";
-import { SaveOutlined } from "@ant-design/icons";
-import { AlarmRequest, ChannelType } from "@/services/alarm";
-import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
-import UserSelect from "@/pages/SystemSetting/Role/components/UserSelect";
+import { useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 export enum AlarmLvelType {
   Alarm = 0,
@@ -156,7 +156,7 @@ const FormAlarmDraw = () => {
       closable
       destroyOnClose
       title={i18n.formatMessage({ id: "alarm.rules.form.title" })}
-      visible={alarmDraw.visibleDraw}
+      open={alarmDraw.visibleDraw}
       placement="left"
       onClose={handleClose}
       getContainer={false}

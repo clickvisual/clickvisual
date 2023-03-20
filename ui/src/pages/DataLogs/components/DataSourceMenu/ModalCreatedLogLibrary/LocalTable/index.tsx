@@ -1,19 +1,19 @@
-import { useIntl } from "umi";
-import {
-  Select,
-  Form,
-  Empty,
-  Cascader,
-  FormInstance,
-  Table,
-  Radio,
-  Collapse,
-  Input,
-} from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { InstanceType } from "@/services/systemSetting";
 import { LocalTables } from "@/services/dataLogs";
+import { InstanceType } from "@/services/systemSetting";
+import { useModel } from "@umijs/max";
+import {
+  Cascader,
+  Collapse,
+  Empty,
+  Form,
+  FormInstance,
+  Input,
+  Radio,
+  Select,
+  Table,
+} from "antd";
 import { useState } from "react";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 const { TextArea } = Input;

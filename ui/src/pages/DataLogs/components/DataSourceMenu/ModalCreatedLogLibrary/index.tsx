@@ -1,13 +1,13 @@
-import {Form, FormInstance, message, Modal, Select} from "antd";
-import {useEffect, useRef, useState} from "react";
-import {useIntl} from "umi";
-import {useModel} from "@@/plugin-model/useModel";
-import {useDebounceFn} from "ahooks";
-import {DEBOUNCE_WAIT} from "@/config/config";
-import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
+import { DEBOUNCE_WAIT } from "@/config/config";
 import LocalTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/LocalTable";
+import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
 import SelectField from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/SelectField";
 import TemplateTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTable";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Form, FormInstance, message, Modal, Select } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 
@@ -150,7 +150,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
       title={i18n.formatMessage({ id: "datasource.logLibrary.search.created" })}
       width={900}
       bodyStyle={{ overflowY: "scroll", maxHeight: "80vh" }}
-      visible={logLibraryCreatedModalVisible}
+      open={logLibraryCreatedModalVisible}
       onCancel={() => onChangeLogLibraryCreatedModalVisible(false)}
       confirmLoading={
         doCreatedLogLibraryAsString.loading ||
@@ -247,7 +247,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
       {visibleSelectField && (
         <SelectField
           mappingJson={mappingJson}
-          visible={visibleSelectField}
+          open={visibleSelectField}
           onCancel={() => setVisibleSelectField(false)}
           onConfirm={handleConfirm}
         />

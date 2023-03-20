@@ -1,14 +1,14 @@
-import offlineStyles from "@/pages/DataAnalysis/OfflineManager/index.less";
-import { RightOutlined } from "@ant-design/icons";
-import classNames from "classnames";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useRef } from "react";
-import { Dropdown } from "antd";
-import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
-import { OfflineRightMenuClickSourceEnums } from "@/pages/DataAnalysis/service/enums";
 import CreatedAndEditorWorkflow from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/CreatedAndEditorWorkflow";
-import { useIntl } from "umi";
+import useRightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
 import WorkflowList from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/WorkflowList";
+import offlineStyles from "@/pages/DataAnalysis/OfflineManager/index.less";
+import { OfflineRightMenuClickSourceEnums } from "@/pages/DataAnalysis/service/enums";
+import { RightOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Dropdown } from "antd";
+import classNames from "classnames";
+import { useEffect, useRef } from "react";
+import { useIntl } from "umi";
 
 const WorkflowTree = (props: {}) => {
   const i18n = useIntl();
@@ -16,6 +16,9 @@ const WorkflowTree = (props: {}) => {
   const { isFold, setIsFold, getWorkflows, setWorkflowList } = workflow;
   const titleParentRef = useRef<HTMLDivElement>(null);
 
+  const { items } = useRightMenu({
+    clickSource: OfflineRightMenuClickSourceEnums.workflowHeader,
+  });
   useEffect(() => {
     if (!currentInstances) return;
     getWorkflows.run({ iid: currentInstances }).then((res) => {
@@ -37,11 +40,9 @@ const WorkflowTree = (props: {}) => {
       <div className={offlineStyles.header}>
         <div className={offlineStyles.title} ref={titleParentRef}>
           <Dropdown
-            overlay={
-              <RightMenu
-                clickSource={OfflineRightMenuClickSourceEnums.workflowHeader}
-              />
-            }
+            menu={{
+              items: items,
+            }}
             trigger={["contextMenu"]}
             getPopupContainer={() => titleParentRef.current!}
           >

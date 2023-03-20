@@ -1,12 +1,12 @@
-import { useModel } from "@@/plugin-model/useModel";
 import CustomModal from "@/components/CustomModal";
-import { Button, Table } from "antd";
-import { useEffect } from "react";
 import { DEBOUNCE_WAIT, FIRST_PAGE, PAGE_SIZE } from "@/config/config";
-import moment from "moment";
-import { useDebounceFn } from "ahooks";
-import { useIntl } from "umi";
 import { DiffOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Table } from "antd";
+import moment from "moment";
+import { useEffect } from "react";
+import { useIntl } from "umi";
 
 const ModalHistory = () => {
   const {
@@ -47,7 +47,7 @@ const ModalHistory = () => {
     <CustomModal
       title={i18n.formatMessage({ id: "config.files.history" })}
       width={900}
-      visible={visibleHistory}
+      open={visibleHistory}
       maskClosable={false}
       onCancel={() => onChangeVisibleHistory(false)}
     >

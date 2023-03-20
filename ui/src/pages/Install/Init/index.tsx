@@ -1,12 +1,11 @@
-import initStyles from "@/pages/Install/Init/index.less";
-import classNames from "classnames";
-import { Button, Modal } from "antd";
 import IconFont from "@/components/IconFont";
-import { useIntl } from "umi";
-import { useModel } from "@@/plugin-model/useModel";
-import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT, LOGIN_PATH } from "@/config/config";
-import { history } from "umi";
+import initStyles from "@/pages/Install/Init/index.less";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Modal } from "antd";
+import classNames from "classnames";
+import { history, useIntl } from "umi";
 
 const Init = () => {
   const i18n = useIntl();

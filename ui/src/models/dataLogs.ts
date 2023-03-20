@@ -1,17 +1,3 @@
-import { useMemo, useRef, useState } from "react";
-import copy from "copy-to-clipboard";
-import { message } from "antd";
-import api, {
-  CollectType,
-  DatabaseResponse,
-  HighCharts,
-  IndexInfoType,
-  LogFilterType,
-  LogsResponse,
-  TablesResponse,
-} from "@/services/dataLogs";
-import useRequest from "@/hooks/useRequest/useRequest";
-import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
   CLICKVISUAL_LOGSPECIALCONNECTOR,
@@ -22,18 +8,32 @@ import {
   QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
-import moment from "moment";
-import Request, { Canceler } from "umi-request";
-import lodash from "lodash";
-import { formatMessage } from "@@/plugin-locale/localeExports";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useRequest from "@/hooks/useRequest/useRequest";
+import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
+import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
 import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
-import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
-import useLogPanes from "@/models/datalogs/useLogPanes";
-import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
-import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 import useLogOptions from "@/models/datalogs/useLogOptions";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useLogPanes from "@/models/datalogs/useLogPanes";
+import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
+import api, {
+  CollectType,
+  DatabaseResponse,
+  HighCharts,
+  IndexInfoType,
+  LogFilterType,
+  LogsResponse,
+  TablesResponse,
+} from "@/services/dataLogs";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import { formatMessage } from "@@/plugin-locale/localeExports";
+import { message } from "antd";
+import axios, { Canceler } from "axios";
+import copy from "copy-to-clipboard";
+import lodash from "lodash";
+import moment from "moment";
+import { useMemo, useRef, useState } from "react";
 
 export enum dataLogLocalaStorageType {
   /**
@@ -112,7 +112,7 @@ const DataLogsModel = () => {
   // 用于关闭无效请求
   const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
   const cancelTokenLogsRef = useRef<Canceler | null>(null);
-  const CancelToken = Request.CancelToken;
+  const CancelToken = axios.CancelToken;
 
   // 最近一次正在加载的tid
   const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
@@ -390,7 +390,7 @@ const DataLogsModel = () => {
   const getLogs = useRequest(api.getLogs, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       } else {
         // setLogs(undefined);
@@ -403,7 +403,7 @@ const DataLogsModel = () => {
   const getHighCharts = useRequest(api.getHighCharts, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       } else {
         // setHighChartList([]);

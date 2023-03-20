@@ -1,10 +1,10 @@
-import classNames from "classnames";
-import eventStyles from "@/pages/SystemSetting/Events/index.less";
 import EventList from "@/pages/SystemSetting/Events/EventList";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useState } from "react";
+import eventStyles from "@/pages/SystemSetting/Events/index.less";
 import Operations from "@/pages/SystemSetting/Events/Operations";
 import useUrlState from "@ahooksjs/use-url-state";
+import { useModel } from "@umijs/max";
+import classNames from "classnames";
+import { useEffect, useState } from "react";
 
 const Events = () => {
   const {

@@ -1,13 +1,13 @@
-import { Avatar, Divider, List } from "antd";
-import { useEffect } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import InfiniteScroll from "react-infinite-scroll-component";
-import eventStyles from "@/pages/SystemSetting/Events/index.less";
 import styles from "@/components/RightContent/index.less";
-import { UserOutlined } from "@ant-design/icons";
 import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
-import { useIntl } from "umi";
+import eventStyles from "@/pages/SystemSetting/Events/index.less";
+import { UserOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Avatar, Divider, List } from "antd";
 import moment from "moment";
+import { useEffect } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { useIntl } from "umi";
 
 type EventListProps = {
   loading: boolean;

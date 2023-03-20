@@ -1,7 +1,7 @@
-import workflowApi from "@/services/bigDataWorkflow";
 import useRequest from "@/hooks/useRequest/useRequest";
+import workflowApi from "@/services/bigDataWorkflow";
+import axios, { Canceler } from "axios";
 import { useRef } from "react";
-import Request, { Canceler } from "umi-request";
 
 export enum OpenTypeEnums {
   source = "source",
@@ -20,7 +20,7 @@ const useIntegratedConfigs = () => {
   const doGetSources = useRequest(workflowApi.getSourceList, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       }
       return;
@@ -29,7 +29,7 @@ const useIntegratedConfigs = () => {
   const doGetSourceTables = useRequest(workflowApi.getSourceTables, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       }
       return;
@@ -39,7 +39,7 @@ const useIntegratedConfigs = () => {
   const doGetColumns = useRequest(workflowApi.getSourceColumns, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       }
       return;
@@ -49,7 +49,7 @@ const useIntegratedConfigs = () => {
   const doStructuralTransfer = useRequest(workflowApi.structuralTransfer, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       }
       return;
