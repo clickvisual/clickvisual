@@ -157,9 +157,13 @@ FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
 	return out
 }
 
+// deprecated
 func adaSelectPart(in string) (out string) {
 	arr := strings.Split(strings.Replace(in, "from", "FROM", 1), "FROM ")
 	if len(arr) <= 1 {
+		return in
+	}
+	if strings.Contains(arr[0], "WITH(") {
 		return in
 	}
 	if strings.Contains(arr[0], ",") {
