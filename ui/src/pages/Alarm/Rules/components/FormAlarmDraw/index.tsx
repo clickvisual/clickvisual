@@ -153,7 +153,7 @@ const FormAlarmDraw = () => {
 
   return (
     <Drawer
-      closable
+      closable={false}
       destroyOnClose
       title={i18n.formatMessage({ id: "alarm.rules.form.title" })}
       open={alarmDraw.visibleDraw}
