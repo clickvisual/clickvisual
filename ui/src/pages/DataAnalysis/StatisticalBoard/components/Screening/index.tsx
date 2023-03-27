@@ -1,8 +1,8 @@
-import styles from "./index.less";
 import { Button, DatePicker } from "antd";
+import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
-import moment from "moment";
 import { useIntl } from "umi";
+import styles from "./index.less";
 const { RangePicker } = DatePicker;
 
 export enum timeStateType {
@@ -50,8 +50,8 @@ const Screening = (props: {
           id: "bigdata.dataAnalysis.statisticalBoard.Screening.yesterday",
         }),
         onClick: () => {
-          const start = +moment().startOf("day").subtract(1, "d");
-          const end = +moment().endOf("day").subtract(1, "d");
+          const start = +dayjs().startOf("day").subtract(1, "d");
+          const end = +dayjs().endOf("day").subtract(1, "d");
           timeChange(start, end);
         },
         style: {
@@ -67,8 +67,8 @@ const Screening = (props: {
           id: "bigdata.dataAnalysis.statisticalBoard.Screening.beforeYesterday",
         }),
         onClick: () => {
-          const start = +moment().startOf("day").subtract(2, "d");
-          const end = +moment().endOf("day").subtract(2, "d");
+          const start = +dayjs().startOf("day").subtract(2, "d");
+          const end = +dayjs().endOf("day").subtract(2, "d");
           timeChange(start, end);
         },
         style: {
@@ -84,8 +84,8 @@ const Screening = (props: {
           id: "bigdata.dataAnalysis.statisticalBoard.Screening.nearlyWeek",
         }),
         onClick: () => {
-          const start = +moment().subtract(7, "d");
-          const end = +moment();
+          const start = +dayjs().subtract(7, "d");
+          const end = +dayjs();
           timeChange(start, end);
         },
         style: {
@@ -122,7 +122,7 @@ const Screening = (props: {
         <RangePicker
           size="small"
           showTime
-          value={[moment(startTime / 1000, "X"), moment(endTime / 1000, "X")]}
+          value={[dayjs(startTime / 1000, "X"), dayjs(endTime / 1000, "X")]}
           onChange={(timeList: any) => {
             timeChange(+timeList[0], +timeList[1]);
             setTimeState("");
@@ -179,8 +179,8 @@ const Screening = (props: {
 
   useEffect(() => {
     if (isFirst) {
-      const start = +moment().startOf("day").subtract(1, "d");
-      const end = +moment().endOf("day").subtract(1, "d");
+      const start = +dayjs().startOf("day").subtract(1, "d");
+      const end = +dayjs().endOf("day").subtract(1, "d");
       timeChange(start, end);
       setIsFirst(false);
       return;
