@@ -4,7 +4,7 @@ import eventStyles from "@/pages/SystemSetting/Events/index.less";
 import { UserOutlined } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
 import { Avatar, Divider, List } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useEffect } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useIntl } from "umi";
@@ -58,7 +58,7 @@ const EventList = ({ loading, data, loadList }: EventListProps) => {
                 title={item.userName}
                 description={
                   <span>
-                    {moment(item.ctime * 1000).format("YYYY-MM-DD HH:mm:ss")}{" "}
+                    {dayjs(item.ctime * 1000).format("YYYY-MM-DD HH:mm:ss")}{" "}
                     &nbsp;
                     {item.sourceName}&nbsp;-&gt;&nbsp;
                     {item.operationName}

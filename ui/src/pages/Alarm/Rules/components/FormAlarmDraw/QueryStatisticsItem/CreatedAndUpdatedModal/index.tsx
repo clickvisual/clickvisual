@@ -16,7 +16,7 @@ import {
 } from "antd";
 import { ColumnsType } from "antd/es/table";
 import axios, { Canceler } from "axios";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "sql-formatter";
 import { useIntl } from "umi";
@@ -458,7 +458,7 @@ const CreatedAndUpdatedModal = ({
               id: "alarm.rules.inspectionFrequency.between",
             })}
             name={"between"}
-            initialValue={[moment().subtract(1, MINUTES_UNIT_TIME), moment()]}
+            initialValue={[dayjs().subtract(1, MINUTES_UNIT_TIME), dayjs()]}
           >
             <RangePicker showTime />
           </Form.Item>
@@ -606,9 +606,8 @@ const CreatedAndUpdatedModal = ({
               const mode = getFieldValue("mode");
               return (
                 <Form.Item label={i18n.formatMessage({ id: "search" })}>
-                  <Input.Group compact>
+                  <Input.Group compact style={{ display: "flex" }}>
                     <Form.Item noStyle name={"when"} initialValue={"1=1"}>
-                      <TextArea autoSize={{ minRows: 1, maxRows: 15 }} hidden />
                       <div
                         className={styles.editor}
                         style={{

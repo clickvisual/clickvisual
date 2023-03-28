@@ -31,8 +31,8 @@ import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 import axios, { Canceler } from "axios";
 import copy from "copy-to-clipboard";
+import dayjs from "dayjs";
 import lodash from "lodash";
-import moment from "moment";
 import { useMemo, useRef, useState } from "react";
 
 export enum dataLogLocalaStorageType {
@@ -756,7 +756,7 @@ const DataLogsModel = () => {
   const resetLogs = () => {
     onChangeEndDateTime(currentTimeStamp());
     onChangeStartDateTime(
-      moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
+      dayjs().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
     );
     onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
     onChangeKeywordInput(undefined);

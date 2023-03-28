@@ -20,8 +20,8 @@ import { currentTimeStamp } from "@/utils/momentUtils";
 import useUrlState from "@ahooksjs/use-url-state";
 import { useModel } from "@umijs/max";
 import { useDebounceFn } from "ahooks";
+import dayjs from "dayjs";
 import { isEqual } from "lodash";
-import moment from "moment";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TimeOption } from "../components/DateTimeSelected";
 import useTimeOptions from "./useTimeOptions";
@@ -68,7 +68,7 @@ const SharePath = [
 
 export default function useLogUrlParams() {
   const [urlState, setUrlState] = useUrlState<UrlStateType>({
-    start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+    start: dayjs().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
     end: currentTimeStamp(),
     page: FIRST_PAGE,
     size: PAGE_SIZE,
@@ -154,13 +154,13 @@ export default function useLogUrlParams() {
       (urlState.tab || lastDataLogsState.tab) == TimeRangeType.Relative;
 
     const startTime: any = isRelative
-      ? moment()
+      ? dayjs()
           .subtract(itemObj.relativeAmount, itemObj.relativeUnit)
           .format("X")
       : parseInt(urlState.start || lastDataLogsState.start);
 
     const endTime: any = isRelative
-      ? moment().format("X")
+      ? dayjs().format("X")
       : parseInt(urlState.end || lastDataLogsState.end);
 
     const isTid = !!urlState?.tid;

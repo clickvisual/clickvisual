@@ -118,6 +118,7 @@ const AlarmInfoDraw = () => {
             className={classNames([
               showViewDDLs ? infoStyles.editor : infoStyles.editorHeight,
             ])}
+            style={{ height: "100%" }}
           >
             {!showViewDDLs || (showViewDDLs && viewIndex.length > 0) ? (
               <MonacoEditor
