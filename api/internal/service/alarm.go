@@ -36,6 +36,17 @@ const prometheusRuleTemplate = `groups:
       summary: "告警 {{ $labels.name }}"
       description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
 
+const prometheusRuleTemplateWithoutFor = `groups:
+- name: default
+  rules:
+  - alert: ClickVisual-%s
+    expr: %s
+    labels:
+      severity: warning
+    annotations:
+      summary: "告警 {{ $labels.name }}"
+      description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
+
 const (
 	reloadTimes    = 30
 	reloadInterval = time.Second * 5
@@ -196,7 +207,9 @@ func (i *alert) PrometheusReload(prometheusTarget string) (err error) {
 }
 
 func (i *alert) PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string {
-	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
+	// TODO 后期增加 for 参数
+	// return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
+	return fmt.Sprintf(prometheusRuleTemplateWithoutFor, obj.UniqueName(filterId), exp)
 }
 
 func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName, ruleName, content string) (err error) {
