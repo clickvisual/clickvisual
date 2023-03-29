@@ -142,6 +142,35 @@ limit 1)`,
 WHERE ("_time_second_" >= toDateTime(NOW() - 3300)) AND ("_time_second_" < toDateTime(NOW()))   
 limit 1)`,
 		},
+		{
+			name: "test-4",
+			args: args{
+				in: `WITH(
+	SELECT 
+	       count(*) as p
+	from pro_log.app_stdout_svc_front_tracker
+	WHERE ("_time_second_" >= toDateTime(NOW() - 604800-600)) AND ("_time_second_" < toDateTime(NOW()-604800)) AND body.error_name like 'ERR_%'
+) as p
+SELECT 
+	  p,
+      count(*) as n,
+      round((n-p)*100/n,2) as val
+from pro_log.app_stdout_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() -600)) AND ("_time_second_" < toDateTime(NOW())) AND body.error_name like 'ERR_%'`,
+			},
+			wantOut: `WITH(
+	SELECT 
+	       count(*) as p
+	from pro_log.app_stdout_svc_front_tracker
+	WHERE ("_time_second_" >= toDateTime(NOW() - 604800-600)) AND ("_time_second_" < toDateTime(NOW()-604800)) AND body.error_name like 'ERR_%'
+) as p
+SELECT 
+	  p,
+      count(*) as n,
+      round((n-p)*100/n,2) as val
+from pro_log.app_stdout_svc_front_tracker
+WHERE ("_time_second_" >= toDateTime(NOW() -600)) AND ("_time_second_" < toDateTime(NOW())) AND body.error_name like 'ERR_%'`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
