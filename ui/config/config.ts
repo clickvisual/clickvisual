@@ -7,7 +7,7 @@ import routes from "./routes";
 const { REACT_APP_ENV } = process.env;
 
 const TerserPlugin = require("terser-webpack-plugin");
-
+console.log(process.env.PUBLIC_PATH, "process.env.PUBLIC_PATH");
 export default defineConfig({
   define: {
     "process.env.PUBLIC_PATH": process.env.PUBLIC_PATH || "/",
@@ -16,9 +16,7 @@ export default defineConfig({
   publicPath: process.env.PUBLIC_PATH || "/",
   base: process.env.PUBLIC_PATH || "/",
   antd: {},
-  dva: {
-    // hmr: true,
-  },
+  dva: {},
   layout: {
     locale: true,
     siderWidth: 208,
@@ -29,35 +27,27 @@ export default defineConfig({
     default: "zh-CN",
     baseNavigator: true,
   },
-  // dynamicImport: {
-  //   // loading: "@ant-design/pro-layout/es/PageLoading",
-  // },
-  // chunks: ["react", "vendors", "umi"],
   targets: {},
   routes,
   theme: {
     "primary-color": "hsl(21, 85%, 56%)",
     "border-radius-base": "8px",
   },
-  // esbuild: {},
   title: "",
   ignoreMomentLocale: true,
   proxy: proxy[REACT_APP_ENV || "dev"],
   manifest: {
     basePath: "/",
   },
-  // fastRefresh: {},
-  // nodeModulesTransform: { type: "none" },
   exportStatic: {},
   model: {},
   request: {},
   initialState: {},
-  chainWebpack: (config, { env, webpack, createCSSRule }) => {
+  chainWebpack: (config, { env, webpack }) => {
     config.plugin("TerserPlugin").use(TerserPlugin, [
       {
         terserOptions: {
           compress: { drop_console: process.env.NODE_ENV === "production" },
-          // compress: { drop_console: true },
         },
       },
     ]);
