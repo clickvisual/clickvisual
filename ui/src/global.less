@@ -127,3 +127,14 @@ body {
 .ant-menu-submenu-selected {
   color: #ee722f !important;
 }
+
+// 弹窗定位
+/**
+  新版框架为了让定位和层级不那么混乱，将fixed定位修改为了absolute定位，
+  本意上是挺好的，但是由于cv之前用着fixed的特性做了一些组件分类，导致目
+  前可能存在的部分弹窗都被定位在了一个小盒子里，为了能够迅速修改这些定位
+  的问题，先将定位改成fixed,日后有梳理结构的需求和时间后再改回来。
+*/
+.ant-drawer-inline {
+  position: fixed;
+}
