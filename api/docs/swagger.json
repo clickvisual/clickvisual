@@ -1782,9 +1782,6 @@
                     "hashTyp": {
                         "type": "integer"
                     },
-                    "kind": {
-                        "type": "integer"
-                    },
                     "rootName": {
                         "type": "string"
                     },
@@ -3640,13 +3637,6 @@
             "github.com_clickvisual_clickvisual_api_pkg_model_view.RespStorageAnalysisFields": {
                 "properties": {
                     "baseFields": {
-                        "items": {
-                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.StorageAnalysisField"
-                        },
-                        "type": "array"
-                    },
-                    "keys": {
-                        "description": "Deprecated: Keys",
                         "items": {
                             "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.StorageAnalysisField"
                         },
