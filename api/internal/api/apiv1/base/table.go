@@ -295,7 +295,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 04", err)
 		return
 	}
-	err = db.IndexDeleteBatch(tx, tableInfo.ID)
+	err = db.IndexDeleteBatch(tx, tableInfo.ID, true)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed 05", err)

@@ -26,6 +26,7 @@ func NewIndex() *index {
 func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex, error) {
 	conds := egorm.Conds{}
 	conds["tid"] = req.Tid
+	conds["kind"] = db.IndexKindLog
 	nowIndexList, err := db.IndexList(conds)
 	if err != nil {
 		return nil, nil, nil, err
@@ -84,20 +85,21 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[str
 // 4. Create BaseView
 func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	tx := invoker.Db.Begin()
-	err = db.IndexDeleteBatch(tx, req.Tid)
+	err = db.IndexDeleteBatch(tx, req.Tid, false)
 	if err != nil {
 		tx.Rollback()
 		return
 	}
 	for _, d := range req.Data {
 		err = db.IndexCreate(tx, &db.BaseIndex{
-			Tid:      req.Tid,
-			Field:    d.Field,
-			Typ:      d.Typ,
+			Tid:   req.Tid,
+			Field: d.Field,
+			Typ:   d.Typ,
+
 			Alias:    d.Alias,
 			RootName: d.RootName,
 			HashTyp:  d.HashTyp,
-			Kind:     d.Kind,
+			Kind:     db.IndexKindLog,
 		})
 		if err != nil {
 			tx.Rollback()

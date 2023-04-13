@@ -17,6 +17,11 @@ const (
 	IndexTypeRaw    int = -4
 )
 
+const (
+	IndexKindBase int = 0
+	IndexKindLog  int = 1
+)
+
 // BaseIndex 索引数据存储
 type BaseIndex struct {
 	BaseModel
@@ -79,8 +84,16 @@ func IndexCreate(db *gorm.DB, data *BaseIndex) (err error) {
 	return
 }
 
-func IndexDeleteBatch(db *gorm.DB, tid int) (err error) {
-	if err = db.Model(BaseIndex{}).Where("`tid`=?", tid).Unscoped().Delete(&BaseIndex{}).Error; err != nil {
+// IndexDeleteBatch 删除索引
+// isDeleteAll 是否删除所有索引 false 只删除日志索引
+func IndexDeleteBatch(db *gorm.DB, tid int, isDeleteAll bool) (err error) {
+	q := db.Model(BaseIndex{})
+	if isDeleteAll {
+		q.Where("`tid`=?", tid)
+	} else {
+		q.Where("`tid`=? and `kind`=1", tid)
+	}
+	if err = q.Unscoped().Delete(&BaseIndex{}).Error; err != nil {
 		elog.Error("release delete error", zap.Error(err))
 		return
 	}
