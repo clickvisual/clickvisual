@@ -2,7 +2,7 @@ import infoStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryLis
 import { logLibraryTypes } from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import { TableInfoResponse, TablesResponse } from "@/services/dataLogs";
 import { useModel } from "@umijs/max";
-import { Drawer, Select, Tooltip } from "antd";
+import { Drawer,Modal, Select, Tooltip } from "antd";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
 import MonacoEditor from "react-monaco-editor";
@@ -133,21 +133,24 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
   if (!libraryInfo) return <></>;
 
   return (
-    <Drawer
+    <Modal
       title={`${libraryInfo.name}`}
-      placement="right"
       closable
       getContainer={false}
-      width={"60vw"}
+      width={"70vw"}
+      style={{ top: 50 }}
       bodyStyle={{
         margin: 10,
         padding: 0,
         display: "flex",
         flexDirection: "column",
+        height: "500px",
       }}
-      headerStyle={{ padding: 10 }}
       open={logLibraryInfoDrawVisible}
-      onClose={() => onChangeLogLibraryInfoDrawVisible(false)}
+      onCancel={() => onChangeLogLibraryInfoDrawVisible(false)}
+      footer={
+        [] // 设置footer为空，去掉 取消 确定默认按钮
+      }
     >
       <div className={infoStyles.infoMain}>
         {infoData.map((item: any) => (
@@ -188,7 +191,7 @@ const LogLibraryInfoDraw = (props: LogLibraryInfoDrawProps) => {
           }}
         />
       </div>
-    </Drawer>
+    </Modal>
   );
 };
 export default LogLibraryInfoDraw;
