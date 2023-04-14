@@ -12,6 +12,7 @@
     "type": "git",
     "url": "git@github.com:clickvisual/clickvisual.git"
   },
+  "license": "MIT",
   "keywords": [],
   "author": "",
   "dependencies": {
