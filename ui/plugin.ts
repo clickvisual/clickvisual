@@ -23,24 +23,24 @@ export default (api: IApi) => {
     { rel: "icon", type: "image/x-icon", href: "./cv.png" },
     {
       rel: "stylesheet",
-      href: "./luckysheet/css/pluginsCss.css",
+      href: "/luckysheet/css/pluginsCss.css",
     },
     {
       rel: "stylesheet",
-      href: "./luckysheet/css/plugins.css",
+      href: "/luckysheet/css/plugins.css",
     },
     {
       rel: "stylesheet",
-      href: "./luckysheet/css/luckysheet.css",
+      href: "/luckysheet/css/luckysheet.css",
     },
   ]);
 
   api.addHTMLScripts(() => [
     {
-      src: "./luckysheet/js/plugin.js",
+      src: "/luckysheet/js/plugin.js",
     },
     {
-      src: "./luckysheet/js/luckysheet.umd.js",
+      src: "/luckysheet/js/luckysheet.umd.js",
     },
   ]);
 };
