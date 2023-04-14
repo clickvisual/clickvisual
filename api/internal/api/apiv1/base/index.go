@@ -70,6 +70,7 @@ func Indexes(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["tid"] = tid
+	conds["kind"] = 1
 	indexes, err := db.IndexList(conds)
 	if err != nil {
 		c.JSONE(1, "unknown error: "+err.Error(), nil)

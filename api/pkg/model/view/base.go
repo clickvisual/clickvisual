@@ -41,7 +41,6 @@ type IndexItem struct {
 	Typ      int    `json:"typ" form:"typ"`
 	RootName string `json:"rootName" form:"rootName"`
 	HashTyp  int    `json:"hashTyp" form:"hashTyp"`
-	Kind     int    `json:"kind" form:"kind"`
 }
 
 func (i *IndexItem) Name() string {

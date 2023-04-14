@@ -36,6 +36,17 @@ const prometheusRuleTemplate = `groups:
       summary: "告警 {{ $labels.name }}"
       description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
 
+const prometheusRuleTemplateWithoutFor = `groups:
+- name: default
+  rules:
+  - alert: ClickVisual-%s
+    expr: %s
+    labels:
+      severity: warning
+    annotations:
+      summary: "告警 {{ $labels.name }}"
+      description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
+
 const (
 	reloadTimes    = 30
 	reloadInterval = time.Second * 5
@@ -196,7 +207,9 @@ func (i *alert) PrometheusReload(prometheusTarget string) (err error) {
 }
 
 func (i *alert) PrometheusRuleGen(obj *db.Alarm, exp string, filterId int) string {
-	return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
+	// TODO 后期增加 for 参数
+	// return fmt.Sprintf(prometheusRuleTemplate, obj.UniqueName(filterId), exp, obj.AlertInterval())
+	return fmt.Sprintf(prometheusRuleTemplateWithoutFor, obj.UniqueName(filterId), exp)
 }
 
 func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName, ruleName, content string) (err error) {
@@ -229,7 +242,7 @@ func (i *alert) PrometheusRuleBatchSet(clusterRuleGroups map[string]db.ClusterRu
 			PrometheusOperator: clusterRuleGroup.Instance.ConfigPrometheusOperator,
 		})
 		if err != nil {
-			return err
+			return errors.Wrap(err, "k8s configmap write error")
 		}
 		if err = rc.BatchSet(clusterRuleGroup.GroupName, clusterRuleGroup.Rules); err != nil {
 			return err
@@ -384,16 +397,20 @@ func (i *alert) CreateOrUpdate(alarmObj *db.Alarm, req view.ReqAlarmCreate) (err
 			}
 		}
 	}
+	ups := make(map[string]interface{}, 0)
+	ups["alert_rules"] = alertRules
+	ups["view_ddl_s"] = viewDDLs
+	ups["status"] = db.AlarmStatusRuleCheck
+	err = db.AlarmUpdate(invoker.Db, alarmObj.ID, ups)
+	if err != nil {
+		return
+	}
 	if len(clusterRuleGroups) > 0 {
 		if err = i.PrometheusRuleBatchSet(clusterRuleGroups); err != nil {
 			return
 		}
 	}
-	ups := make(map[string]interface{}, 0)
-	ups["alert_rules"] = alertRules
-	ups["view_ddl_s"] = viewDDLs
-	ups["status"] = db.AlarmStatusRuleCheck
-	return db.AlarmUpdate(invoker.Db, alarmObj.ID, ups)
+	return nil
 }
 
 func (i *alert) OpenOperator(id int) (err error) {

@@ -101,7 +101,6 @@ func AnalysisFields(c *core.Context) {
 		return
 	}
 	res := view.RespStorageAnalysisFields{
-		Keys:       make([]view.StorageAnalysisField, 0),
 		BaseFields: make([]view.StorageAnalysisField, 0),
 		LogFields:  make([]view.StorageAnalysisField, 0),
 	}
@@ -126,12 +125,8 @@ func AnalysisFields(c *core.Context) {
 		} else {
 			res.LogFields = append(res.LogFields, f)
 		}
-		res.Keys = append(res.Keys, f)
 	}
 	// keys sort by the first letter
-	sort.Slice(res.Keys, func(i, j int) bool {
-		return res.Keys[i].Field < res.Keys[j].Field
-	})
 	sort.Slice(res.BaseFields, func(i, j int) bool {
 		return res.BaseFields[i].Field < res.BaseFields[j].Field
 	})

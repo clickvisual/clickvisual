@@ -452,6 +452,9 @@ func (c *ClickHouseX) CreateAlertView(viewTableName, viewSQL, cluster string) (e
 }
 
 func (c *ClickHouseX) DeleteAlertView(viewTableName, cluster string) (err error) {
+	if viewTableName == "" {
+		return nil
+	}
 	if c.mode == ModeCluster {
 		if cluster == "" {
 			return errors.Wrapf(constx.ErrClusterNameEmpty, "table %s, cluster %s", viewTableName, cluster)
