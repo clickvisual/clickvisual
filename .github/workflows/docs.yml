@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
       - name: Build docs
-        run: cd docs && yarn add -D vuepress && yarn install && yarn run docs:build
+        run: cd docs && yarn install && yarn run docs:build
       - name: Install obsutil
         run: cd docs && wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -xf obsutil_linux_amd64.tar.gz && chmod 755 obsutil
       - name: Upload docs by obsutil
