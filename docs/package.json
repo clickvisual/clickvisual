@@ -11,6 +11,7 @@
     "docs:build": "vuepress build docs"
   },
   "dependencies": {
-    "moment": "^2.29.4"
+    "moment": "^2.29.4",
+    "url-loader": "^4.1.1"
   }
 }
