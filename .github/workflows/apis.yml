@@ -21,6 +21,12 @@ jobs:
           go version 
           go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.6
           egogen --config egogen.yaml
+      - name: Install obsutil
+        run: wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -zxvf obsutil_linux_amd64.tar.gz && chmod 755 ./obsutil_linux_amd64_5.4.11/obsutil
+      - name: Config ossutil
+        run: ./obsutil_linux_amd64_5.4.11/obsutil config -i ${{ secrets.OBS_ACCESS_KEY_ID }} -k ${{ secrets.OBS_ACCESS_KEY_SECRET }} -e https://obs.cn-north-4.myhuaweicloud.com
+      - name: Upload docs by obsutil
+        run: ./obsutil_linux_amd64_5.4.11/obsutil cp ./api/docs/swagger.json obs://open-read/clickvisual/api -f -r -flat
       - name: Install ossutil
         run: wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64
       - name: Config ossutil
