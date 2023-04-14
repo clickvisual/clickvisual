@@ -15,6 +15,13 @@ jobs:
         uses: actions/setup-node@v2
       - name: Build docs
         run: cd docs && npm install && npm run docs:build
+      - name: Install obsutil
+        run: cd docs && wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -xf obsutil_linux_amd64.tar.gz && chmod 755 obsutil
+      - name: Upload docs by obsutil
+        run: cd docs && ./obsutil cp -r -f ./docs/.vuepress/dist/ obs://open-read/clickvisual/ -i ak -k sk -t token
+
+
+
       - name: Install ossutil
         run: cd docs && wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64
       - name: Config ossutil
