@@ -7,7 +7,7 @@ import routes from "./routes";
 const { REACT_APP_ENV } = process.env;
 
 const TerserPlugin = require("terser-webpack-plugin");
-console.log(process.env.PUBLIC_PATH, "process.env.PUBLIC_PATH");
+
 export default defineConfig({
   define: {
     "process.env.PUBLIC_PATH": process.env.PUBLIC_PATH || "/",
