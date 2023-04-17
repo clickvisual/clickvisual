@@ -16,8 +16,8 @@ import (
 
 func TestCreate(t *testing.T) {
 	config.InitCfg()
-	invoker.Init()
-	service.Init()
+	_ = invoker.Init()
+	_ = service.Init()
 	objTest := gintest.Init()
 	objTest.PATCH(core.Handle(Create), func(m *gintest.Mock) error {
 		byteInfo := m.Exec(
@@ -62,13 +62,13 @@ func TestCreate(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/alarms"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest.Run()
+	_ = objTest.Run()
 }
 
 func TestUpdate(t *testing.T) {
 	config.InitCfg()
-	invoker.Init()
-	service.Init()
+	_ = invoker.Init()
+	_ = service.Init()
 	objTest := gintest.Init()
 	objTest.PATCH(core.Handle(Update), func(m *gintest.Mock) error {
 		byteInfo := m.Exec(
@@ -114,13 +114,13 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/alarms/:id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest.Run()
+	_ = objTest.Run()
 }
 
 func TestDelete(t *testing.T) {
 	config.InitCfg()
-	invoker.Init()
-	service.Init()
+	_ = invoker.Init()
+	_ = service.Init()
 	objTest := gintest.Init()
 	objTest.DELETE(core.Handle(Delete), func(m *gintest.Mock) error {
 		byteInfo := m.Exec(
@@ -129,5 +129,5 @@ func TestDelete(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/alarms/:id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest.Run()
+	_ = objTest.Run()
 }

@@ -255,78 +255,7 @@ func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqS
 	return
 }
 
-// CreateStorageV3 create default stream data table and view
-func (c *Databend) CreateStorageV3(did int, database db.BaseDatabase, ct view.ReqStorageCreateV3) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
-	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
-	// build view statement
-	var timeTyp string
-	if ct.TimeFieldType == TableTypeString {
-		timeTyp = "String"
-	} else if ct.TimeFieldType == TableTypeFloat {
-		timeTyp = "Float64"
-	} else {
-		// TODO more check
-		timeTyp = "Float64"
-	}
-	dataParams := bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       ct.TimeField,
-		Data: bumo.ParamsData{
-			TableName: dName,
-			Days:      ct.Days,
-		},
-	}
-	streamParams := bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       ct.TimeField,
-		Stream: bumo.ParamsStream{
-			TableName:               dStreamName,
-			TableTyp:                timeTyp,
-			Brokers:                 ct.Brokers,
-			Topic:                   ct.Topics,
-			Group:                   database.Name + "_" + ct.TableName,
-			ConsumerNum:             ct.Consumers,
-			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
-		},
-	}
-	dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
-	dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
-	_, err = c.db.Exec(dStreamSQL)
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
-		return
-	}
-	_, err = c.db.Exec(dDataSQL)
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
-		return
-	}
-	dViewSQL, err = c.storageViewOperatorV3(view.OperatorViewParams{
-		Typ:              ct.TimeFieldType,
-		Tid:              0,
-		Did:              did,
-		TableName:        ct.TableName,
-		CustomTimeField:  "",
-		Current:          nil,
-		List:             nil,
-		Indexes:          nil,
-		IsCreate:         true,
-		TimeField:        ct.TimeField,
-		IsKafkaTimestamp: ct.IsKafkaTimestamp,
-	})
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
-		return
-	}
-
-	if ct.V3TableType == db.V3TableTypeJaegerJSON {
-		_ = c.CreateTraceJaegerDependencies(database.Name, database.Cluster, ct.TableName, ct.Days)
-	}
-	return
-}
-
-// UpdateIndex Data table index operation
+// UpdateLogAnalysisFields Data table index operation
 func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""

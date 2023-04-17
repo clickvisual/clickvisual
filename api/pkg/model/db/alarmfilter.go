@@ -6,11 +6,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type iAlarmFilter interface {
-	iModel
-
-	UpdateStatus(db *gorm.DB) error
-}
+// type iAlarmFilter interface {
+// 	iModel
+//
+// 	UpdateStatus(db *gorm.DB) error
+// }
 
 type AlarmFilter struct {
 	BaseModel
