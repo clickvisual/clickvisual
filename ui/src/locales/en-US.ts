@@ -363,7 +363,7 @@ export default {
   "datasource.logLibrary.usingSystemTime": "Using system time",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
-  "datasource.logLibrary.placeholder.brokers": "kafka:9092",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9092,kafka:9093,kafka:9094",
   "datasource.logLibrary.placeholder.topics":
     "Please type Topics with numbers, letters, or hyphens",
   "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
