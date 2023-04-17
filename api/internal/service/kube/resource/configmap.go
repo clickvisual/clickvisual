@@ -7,7 +7,6 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	kapi "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -84,7 +83,7 @@ func GetConfigmap(clusterId int, namespace, name string, key string) (data strin
 }
 
 func createConfigmap(client *kube.ClusterClient, namespace, name string, data map[string]string) error {
-	acm := kapi.ConfigMap{
+	acm := corev1.ConfigMap{
 		TypeMeta: metaV1.TypeMeta{},
 		ObjectMeta: metaV1.ObjectMeta{
 			Name:      name,
@@ -102,7 +101,7 @@ func createConfigmap(client *kube.ClusterClient, namespace, name string, data ma
 	return nil
 }
 
-func updateConfigmap(client *kube.ClusterClient, namespace, name string, configMap *kapi.ConfigMap) error {
+func updateConfigmap(client *kube.ClusterClient, namespace, name string, configMap *corev1.ConfigMap) error {
 	acmBytes, _ := json.Marshal(configMap)
 	_, err := client.KubeClient.Update(api.ResourceNameConfigMap, namespace, name, &runtime.Unknown{
 		Raw: acmBytes,

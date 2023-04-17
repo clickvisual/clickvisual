@@ -15,16 +15,16 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-type iAlarm interface {
-	iModel
-
-	GetStatus(db *gorm.DB) int
-	AlertInterval() string
-	RuleName(filterId int) string
-	UniqueName(filterId int) string
-	UpdateStatus(db *gorm.DB, status int) (err error)
-	ViewName(database, table string, seq int) string
-}
+// type iAlarm interface {
+// 	iModel
+//
+// 	GetStatus(db *gorm.DB) int
+// 	AlertInterval() string
+// 	RuleName(filterId int) string
+// 	UniqueName(filterId int) string
+// 	UpdateStatus(db *gorm.DB, status int) (err error)
+// 	ViewName(database, table string, seq int) string
+// }
 
 const (
 	_ int = iota
