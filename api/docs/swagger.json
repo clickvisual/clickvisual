@@ -144,7 +144,7 @@
                         "type": "string"
                     },
                     "alertRule": {
-                        "description": "Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
+                        "description": "nolint\n\nDeprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
                         "type": "string"
                     },
                     "alertRules": {
@@ -200,7 +200,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "tid": {
-                        "description": "Deprecated: Tid",
+                        "description": "lint:ignore SA1019 Deprecated: Tid\n\nDeprecated: Tid",
                         "type": "integer"
                     },
                     "uid": {
@@ -222,7 +222,7 @@
                         "type": "string"
                     },
                     "view": {
-                        "description": "Deprecated: View",
+                        "description": "lint:ignore SA1019 Deprecated: View\n\nDeprecated: View",
                         "type": "string"
                     },
                     "viewDDLs": {
@@ -230,7 +230,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "viewTableName": {
-                        "description": "Deprecated: ViewTableName",
+                        "description": "lint:ignore SA1019 Deprecated: ViewTableName\n\nDeprecated: ViewTableName",
                         "type": "string"
                     }
                 },
@@ -2181,30 +2181,6 @@
                 "title": "ReqCreateSource",
                 "type": "object"
             },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateStorageByTemplate": {
-                "properties": {
-                    "Brokers": {
-                        "type": "string"
-                    },
-                    "DatabaseId": {
-                        "type": "integer"
-                    },
-                    "TopicsApp": {
-                        "type": "string"
-                    },
-                    "TopicsEgo": {
-                        "type": "string"
-                    },
-                    "TopicsIngressStderr": {
-                        "type": "string"
-                    },
-                    "TopicsIngressStdout": {
-                        "type": "string"
-                    }
-                },
-                "title": "ReqCreateStorageByTemplate",
-                "type": "object"
-            },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateWorkflow": {
                 "properties": {
                     "desc": {
@@ -2836,7 +2812,7 @@
                         "type": "string"
                     },
                     "alertRule": {
-                        "description": "Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
+                        "description": "nolint\n\nDeprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
                         "type": "string"
                     },
                     "alertRules": {
@@ -2967,7 +2943,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "tid": {
-                        "description": "Deprecated: Tid",
+                        "description": "lint:ignore SA1019 Deprecated: Tid\n\nDeprecated: Tid",
                         "type": "integer"
                     },
                     "uid": {
@@ -2992,7 +2968,7 @@
                         "type": "string"
                     },
                     "view": {
-                        "description": "Deprecated: View",
+                        "description": "lint:ignore SA1019 Deprecated: View\n\nDeprecated: View",
                         "type": "string"
                     },
                     "viewDDLs": {
@@ -3000,7 +2976,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "viewTableName": {
-                        "description": "Deprecated: ViewTableName",
+                        "description": "lint:ignore SA1019 Deprecated: ViewTableName\n\nDeprecated: ViewTableName",
                         "type": "string"
                     },
                     "webUrl": {
@@ -11194,35 +11170,7 @@
                         }
                     }
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateStorageByTemplate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
+                "responses": {},
                 "summary": "Create storage by template",
                 "tags": [
                     "LOGSTORE"
