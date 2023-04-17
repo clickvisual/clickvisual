@@ -5,13 +5,18 @@ on:
       - v*
     branches:
       - master
-      - main
+      - 'feature/docker-ci'
+
   pull_request:
 jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.18'
+          cache: false
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -20,10 +25,10 @@ jobs:
           version: v1.45.2
 
           # Optional: working directory, useful for monorepos
-#          working-directory: ./
+          #          working-directory: ./
 
           # Optional: golangci-lint command line arguments.
-          args: --timeout=5m --print-issued-lines=true --print-linter-name=true --uniq-by-line=true
+          args: --timeout=10m --print-issued-lines=true --print-linter-name=true --uniq-by-line=true
 
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           only-new-issues: true
