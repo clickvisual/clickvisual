@@ -54,7 +54,6 @@ func NodeLockAcquire(c *core.Context) {
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
 	c.JSONOK()
-	return
 }
 
 // NodeCrontabCreate
@@ -238,7 +237,6 @@ func NodeResultUpdate(c *core.Context) {
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeResultUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK(service.Node.NodeResultRespAssemble(&nr))
-	return
 }
 
 // NodeResultListPage
@@ -290,7 +288,6 @@ func NodeResultListPage(c *core.Context) {
 		PageSize: req.PageSize,
 		Total:    total,
 	})
-	return
 }
 
 // WorkerDashboard
@@ -314,7 +311,6 @@ func WorkerDashboard(c *core.Context) {
 	}
 	res := service.Node.WorkerDashboard(req, c.Uid())
 	c.JSONOK(res)
-	return
 }
 
 // WorkerList
@@ -391,7 +387,6 @@ func WorkerList(c *core.Context) {
 		PageSize: req.PageSize,
 		Total:    total,
 	})
-	return
 }
 
 // TableDependencies
@@ -454,5 +449,4 @@ func TableDependencies(c *core.Context) {
 		Utime: row.Utime,
 		Data:  res,
 	})
-	return
 }

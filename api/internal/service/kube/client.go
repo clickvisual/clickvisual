@@ -6,6 +6,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -21,18 +22,21 @@ func buildClient(apiServerAddr string, kubeconfig string) (*kubernetes.Clientset
 		elog.Error("json unmarshal kubeconfig error.", elog.String("kubeconfig", kubeconfig), elog.FieldErr(err))
 		return nil, nil, err
 	}
-	configObject, err := clientcmdlatest.Scheme.ConvertToVersion(&configV1, clientcmdapi.SchemeGroupVersion)
-	configInternal := configObject.(*clientcmdapi.Config)
-
-	clientConfig, err := clientcmd.NewDefaultClientConfig(*configInternal, &clientcmd.ConfigOverrides{
-		ClusterDefaults: clientcmdapi.Cluster{Server: apiServerAddr}, // InsecureSkipTLSVerify: true
-	}).ClientConfig()
-
+	var configObject runtime.Object
+	configObject, err = clientcmdlatest.Scheme.ConvertToVersion(&configV1, clientcmdapi.SchemeGroupVersion)
 	if err != nil {
 		elog.Error("build client config error. ", zap.Error(err))
 		return nil, nil, err
 	}
-
+	configInternal := configObject.(*clientcmdapi.Config)
+	var clientConfig *rest.Config
+	clientConfig, err = clientcmd.NewDefaultClientConfig(*configInternal, &clientcmd.ConfigOverrides{
+		ClusterDefaults: clientcmdapi.Cluster{Server: apiServerAddr}, // InsecureSkipTLSVerify: true
+	}).ClientConfig()
+	if err != nil {
+		elog.Error("build client config error. ", zap.Error(err))
+		return nil, nil, err
+	}
 	clientConfig.QPS = defaultQPS
 	clientConfig.Burst = defaultBurst
 

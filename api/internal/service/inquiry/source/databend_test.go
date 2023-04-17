@@ -8,7 +8,7 @@ import (
 )
 
 func testDSN() string {
-	return fmt.Sprintf("http://root:root@localhost:8081/default")
+	return "http://root:root@localhost:8081/default"
 }
 
 func mockDatabend() *Databend {

@@ -72,6 +72,10 @@ func UpdateTraceInfo(c *core.Context) {
 		return
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "update failed 01: "+err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -121,6 +125,10 @@ func GetTraceGraph(c *core.Context) {
 		return
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "get trace graph failed: "+err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,

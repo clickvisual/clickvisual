@@ -45,7 +45,6 @@ func InstanceDatabaseList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -84,7 +83,6 @@ func InstanceTableList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -123,5 +121,4 @@ func InstanceColumnList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }

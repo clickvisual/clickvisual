@@ -48,9 +48,9 @@ const (
 	ReplicaStatusNo  = 1
 )
 
-type iModel interface {
-	TableName() string
-}
+// type iModel interface {
+// 	TableName() string
+// }
 
 const (
 	TableNameUser         = "cv_user"

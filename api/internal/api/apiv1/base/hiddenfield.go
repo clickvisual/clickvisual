@@ -66,7 +66,7 @@ func HiddenUpsert(c *core.Context) {
 	}
 	deleteList := utils.DiffList(oldFields, req.Fields, cmp)
 	insert := utils.DiffList(req.Fields, oldFields, cmp)
-	if deleteList != nil && len(deleteList) > 0 {
+	if len(deleteList) > 0 {
 		deleteField := make([]string, 0, len(deleteList))
 		for i := range deleteList {
 			deleteField = append(deleteField, deleteList[i].(string))
@@ -78,7 +78,7 @@ func HiddenUpsert(c *core.Context) {
 		}
 	}
 
-	if insert != nil && len(insert) > 0 {
+	if len(insert) > 0 {
 		hiddenFields := make([]*db.BaseHiddenField, 0)
 		for i := range insert {
 			hiddenFields = append(hiddenFields, &db.BaseHiddenField{

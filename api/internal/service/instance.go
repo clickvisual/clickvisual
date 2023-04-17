@@ -69,7 +69,6 @@ func NewInstanceManager() *instanceManager {
 
 func (i *instanceManager) Delete(key string) {
 	i.dss.Delete(key)
-	return
 }
 
 func (i *instanceManager) Add(obj *db.BaseInstance) error {

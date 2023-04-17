@@ -27,5 +27,4 @@ func StructuralTransfer(c *core.Context) {
 		return
 	}
 	c.JSONOK(service.StructuralTransfer(req.Columns))
-	return
 }

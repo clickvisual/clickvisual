@@ -50,7 +50,6 @@ func SourceCreate(c *core.Context) {
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataSourceCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
-	return
 }
 
 // @Tags         BIGDATA
@@ -131,7 +130,6 @@ func SourceList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -162,7 +160,6 @@ func SourceDelete(c *core.Context) {
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataSourceDelete, map[string]interface{}{"obj": sourceInfo})
 	c.JSONOK()
-	return
 }
 
 // @Tags         BIGDATA
@@ -188,7 +185,6 @@ func SourceInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -224,7 +220,6 @@ func SourceDatabaseList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -265,7 +260,6 @@ func SourceTableList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -306,5 +300,4 @@ func SourceColumnList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }

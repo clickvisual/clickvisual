@@ -11,6 +11,5 @@ func SetMockUser() gin.HandlerFunc {
 		ctxUser := &core.User{Uid: int64(1), Nickname: "clickvisual", Username: "clickvisual"}
 		c.Set(core.UserContextKey, ctxUser)
 		c.Next()
-		return
 	}
 }

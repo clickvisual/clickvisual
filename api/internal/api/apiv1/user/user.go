@@ -37,9 +37,7 @@ func Info(c *core.Context) {
 			u.Access = "auth.proxy.cookie"
 		}
 	}
-
 	c.JSONOK(u)
-	return
 }
 
 // @Tags         USER
@@ -109,7 +107,6 @@ func Login(c *core.Context) {
 	session.Set("user", user)
 	_ = session.Save()
 	c.JSONOK("")
-	return
 }
 
 // @Tags         USER
@@ -123,7 +120,6 @@ func Logout(c *core.Context) {
 		return
 	}
 	c.JSONOK("succ")
-	return
 }
 
 type password struct {
@@ -186,5 +182,4 @@ func UpdatePassword(c *core.Context) {
 	}
 	event.Event.UserCMDB(c.User(), db.OpnUserPwdChange, nil)
 	c.JSONOK()
-	return
 }

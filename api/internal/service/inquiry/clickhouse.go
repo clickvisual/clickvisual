@@ -512,6 +512,9 @@ func (c *ClickHouseX) DeleteTable(database, table, cluster string, tid int) (err
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, err = db.ViewList(invoker.Db, conds)
+	if err != nil {
+		return err
+	}
 	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
 	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
 	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table)
@@ -734,7 +737,7 @@ func (c *ClickHouseX) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 func (c *ClickHouseX) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
 	dm := make(map[string][]*view.RespTablesSelfBuilt)
-	query := fmt.Sprintf("select database, name from system.tables")
+	query := "select database, name from system.tables"
 	list, err := c.doQuery(query, false)
 	if err != nil {
 		return nil, err
@@ -910,6 +913,10 @@ func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 	for _, current := range viewList {
 		innerViewSQL, errViewOperator := c.updateSwitcher(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
@@ -974,17 +981,11 @@ func (c *ClickHouseX) ListSystemTable() (res []*view.SystemTables) {
 }
 
 func (c *ClickHouseX) isShard() bool {
-	if c.shardStatus == 1 {
-		return true
-	}
-	return false
+	return c.shardStatus == 1
 }
 
 func (c *ClickHouseX) isReplica() bool {
-	if c.replicaStatus == db.ReplicaStatusYes {
-		return true
-	}
-	return false
+	return c.replicaStatus == db.ReplicaStatusYes
 }
 
 // CreateStorage create default stream data table and view
@@ -993,7 +994,9 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 	if ct.CreateType == constx.TableCreateTypeJSONAsString {
 		// 采用 core 的新流程
 		// 创建 storer -> reader -> switcher
-		var storeSQLs, readerSQLs, switcherSQLs = []string{}, []string{}, []string{}
+		var storeSQLs []string
+		var readerSQLs []string
+		var switcherSQLs []string
 
 		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
 			CreateType: ct.CreateType,
@@ -1185,102 +1188,6 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 		elog.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
 		_, _ = c.db.Exec(currentKafkaSQL)
 		return
-	}
-	return
-}
-
-// CreateStorageV3 create default stream data table and view
-func (c *ClickHouseX) CreateStorageV3(did int, database db.BaseDatabase, ct view.ReqStorageCreateV3) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
-	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
-	// build view statement
-	var timeTyp string
-	if ct.TimeFieldType == TableTypeString {
-		timeTyp = "String"
-	} else if ct.TimeFieldType == TableTypeFloat {
-		timeTyp = "Float64"
-	} else {
-		// TODO more check
-		timeTyp = "Float64"
-	}
-	dataParams := bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       ct.TimeField,
-		Data: bumo.ParamsData{
-			TableName: dName,
-			Days:      ct.Days,
-		},
-	}
-	streamParams := bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       ct.TimeField,
-		Stream: bumo.ParamsStream{
-			TableName:               dStreamName,
-			TableTyp:                timeTyp,
-			Brokers:                 ct.Brokers,
-			Topic:                   ct.Topics,
-			Group:                   database.Name + "_" + ct.TableName,
-			ConsumerNum:             ct.Consumers,
-			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
-		},
-	}
-	if c.mode == ModeCluster {
-		dataParams.Cluster = database.Cluster
-		dataParams.ReplicaStatus = c.replicaStatus
-		streamParams.Cluster = database.Cluster
-		streamParams.ReplicaStatus = c.replicaStatus
-		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
-		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
-	} else {
-		dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
-		dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
-	}
-	_, err = c.db.Exec(dStreamSQL)
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
-		return
-	}
-	_, err = c.db.Exec(dDataSQL)
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
-		return
-	}
-	dViewSQL, err = c.storageViewOperatorV3(view.OperatorViewParams{
-		Typ:              ct.TimeFieldType,
-		Tid:              0,
-		Did:              did,
-		TableName:        ct.TableName,
-		CustomTimeField:  "",
-		Current:          nil,
-		List:             nil,
-		Indexes:          nil,
-		IsCreate:         true,
-		TimeField:        ct.TimeField,
-		IsKafkaTimestamp: ct.IsKafkaTimestamp,
-	})
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
-		return
-	}
-	if c.mode == ModeCluster {
-		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
-			Cluster:       database.Cluster,
-			ReplicaStatus: c.replicaStatus,
-			Data: bumo.ParamsData{
-				DataType:    bumo.DataTypeDistributed,
-				TableName:   genName(database.Name, ct.TableName),
-				SourceTable: dName,
-			},
-		})
-		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
-		_, err = c.db.Exec(dDistributedSQL)
-		if err != nil {
-			elog.Error("CreateTable", elog.Any("dDistributedSQL", dDistributedSQL), elog.Any("err", err.Error()))
-			return
-		}
-	}
-	if ct.V3TableType == db.V3TableTypeJaegerJSON {
-		_ = c.CreateTraceJaegerDependencies(database.Name, database.Cluster, ct.TableName, ct.Days)
 	}
 	return
 }
@@ -1483,8 +1390,7 @@ func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, datab
 		}
 	}()
 	// 新建
-	switcherSQLs := make([]string, 0)
-	_, switcherSQLs, err = sw.Create()
+	_, switcherSQLs, err := sw.Create()
 	if err != nil {
 		return
 	}

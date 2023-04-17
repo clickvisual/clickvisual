@@ -16,8 +16,8 @@ import (
 
 func TestSettingUpdate(t *testing.T) {
 	config.InitCfg()
-	invoker.Init()
-	service.Init()
+	_ = invoker.Init()
+	_ = service.Init()
 	objTest1 := gintest.Init()
 	// prometheus file
 	objTest1.PATCH(core.Handle(SettingUpdate), func(m *gintest.Mock) error {
@@ -31,7 +31,7 @@ func TestSettingUpdate(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/alert/settings/:instance-id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest1.Run()
+	_ = objTest1.Run()
 	objTest2 := gintest.Init()
 	// prometheus operator
 	objTest2.PATCH(core.Handle(SettingUpdate), func(m *gintest.Mock) error {
@@ -52,7 +52,7 @@ func TestSettingUpdate(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/alert/settings/:instance-id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest2.Run()
+	_ = objTest2.Run()
 	objTest3 := gintest.Init()
 	// prometheus file
 	objTest3.PATCH(core.Handle(SettingUpdate), func(m *gintest.Mock) error {
@@ -68,5 +68,5 @@ func TestSettingUpdate(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/alert/settings/:instance-id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest3.Run()
+	_ = objTest3.Run()
 }

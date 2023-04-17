@@ -10,13 +10,9 @@ import (
 	"testing"
 
 	_ "github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/gotomicro/ego/core/elog"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 func TestMain(m *testing.M) {
-	invoker.Logger = elog.DefaultLogger
 	os.Exit(m.Run())
 }
 

@@ -383,7 +383,7 @@ func CmpUserIds2GetNewAndRmUserIds(currentUids []int, futureUids []int) (isEqual
 		}
 	}
 	if len(currentUidsMap) > 0 {
-		for residualCurrentUid, _ := range currentUidsMap {
+		for residualCurrentUid := range currentUidsMap {
 			needRmUids = append(needRmUids, residualCurrentUid)
 		}
 	}
@@ -421,9 +421,7 @@ func IsStringSliceEqual(a, b []string) bool {
 
 func Convert2InterfaceSlice(builtinItems ...interface{}) (res []interface{}) {
 	res = make([]interface{}, len(builtinItems))
-	for idx, v := range builtinItems {
-		res[idx] = v
-	}
+	copy(res, builtinItems)
 	return res
 }
 

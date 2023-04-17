@@ -53,5 +53,4 @@ func TableCreateSQL(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
