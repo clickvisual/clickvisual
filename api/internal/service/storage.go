@@ -37,7 +37,6 @@ func (s *srvStorage) tickerTraceWorker() {
 	for range ticker.C {
 		core.LoggerError("srvStorage", "tickerTraceWorker", s.syncTraceWorker())
 	}
-	return
 }
 
 func (s *srvStorage) syncTraceWorker() error {
@@ -100,7 +99,6 @@ func (s *srvStorage) off(row *db.BaseTable) {
 	if w != nil {
 		w.Stop()
 	}
-	return
 }
 
 func (s *srvStorage) stop() {
@@ -109,7 +107,6 @@ func (s *srvStorage) stop() {
 			w.Stop()
 		}
 	}
-	return
 }
 
 func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatabase, param view.ReqCreateStorageByTemplateILogtail) (err error) {

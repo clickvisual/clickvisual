@@ -34,7 +34,7 @@ func (b *DataBuilder) BuilderFields() {
 	switch b.QueryAssembly.Params.Data.DataType {
 	case bumo.DataTypeDistributed:
 	default:
-		b.QueryAssembly.Result += common.BuilderFieldsData(b.QueryAssembly.Params.TableCreateType, b.QueryAssembly.Params.KafkaJsonMapping)
+		b.QueryAssembly.Result += common.BuilderFieldsData(b.QueryAssembly.Params.KafkaJsonMapping)
 	}
 }
 
@@ -64,7 +64,7 @@ func builderEngineByReplicaStatus(rs int, tableName string) string {
 	case bumo.ReplicaStatusYes:
 		return engineSQL
 	case bumo.ReplicaStatusNo:
-		return fmt.Sprintf("ENGINE = MergeTree PARTITION BY toYYYYMMDD(_time_second_)\n")
+		return "ENGINE = MergeTree PARTITION BY toYYYYMMDD(_time_second_)\n"
 	default:
 		return engineSQL
 	}

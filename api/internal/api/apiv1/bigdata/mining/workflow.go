@@ -112,7 +112,6 @@ func WorkflowList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -168,5 +167,4 @@ func WorkflowInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }

@@ -114,10 +114,9 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		return
 	}
 	if param.CreateType == constx.TableCreateTypeJSONAsString || param.CreateType == constx.TableCreateTypeJSONEachRow {
-		columns := make([]*view.RespColumn, 0)
-		columns, err = op.ListColumn(databaseInfo.Name, param.TableName, false)
-		if err != nil {
-			return
+		columns, errListColumn := op.ListColumn(databaseInfo.Name, param.TableName, false)
+		if errListColumn != nil {
+			return tableInfo, errListColumn
 		}
 		for _, col := range columns {
 			if col.Type < 0 || col.Type == 3 {
@@ -136,7 +135,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 			})
 			if err != nil {
 				tx.Rollback()
-				return
+				return tableInfo, err
 			}
 		}
 	}

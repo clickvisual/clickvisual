@@ -138,7 +138,6 @@ func InstanceList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // InstanceInfo
@@ -160,7 +159,6 @@ func InstanceInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // InstanceDelete

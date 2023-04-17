@@ -100,7 +100,6 @@ func ListUser(c *core.Context) {
 		PageSize: req.PageSize,
 		Total:    total,
 	})
-	return
 }
 
 // UpdateUser

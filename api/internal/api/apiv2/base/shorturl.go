@@ -36,7 +36,6 @@ func ShortURLRedirect(c *core.Context) {
 		return
 	}
 	c.Redirect(301, shortUrl.OriginUrl)
-	return
 }
 
 // ShortURLCreate  godoc
@@ -58,8 +57,7 @@ func ShortURLCreate(c *core.Context) {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	v := url.Values{}
-	v = u.Query()
+	v := u.Query()
 	v.Set("tab", "custom")
 	u2 := fmt.Sprintf("%s://%s%s?%s", u.Scheme, u.Host, u.Path, v.Encode())
 	shortUrl := db.BaseShortURL{
@@ -86,5 +84,4 @@ func ShortURLCreate(c *core.Context) {
 	rootUrl := strings.TrimSuffix(econf.GetString("app.rootURL"), "/")
 	res := fmt.Sprintf("%s/api/share/%s", rootUrl, sCode)
 	c.JSONOK(res)
-	return
 }

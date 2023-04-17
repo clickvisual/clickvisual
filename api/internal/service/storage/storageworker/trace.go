@@ -43,7 +43,6 @@ func (w *Trace) Stop() {
 	if w.c != nil {
 		w.c.Stop()
 	}
-	return
 }
 
 func (w *Trace) run() {
@@ -107,7 +106,6 @@ func (w *Trace) run() {
 			return
 		}
 	}
-	return
 }
 
 func (w *Trace) batchInsert(req []view.JaegerDependencyDataModel) error {

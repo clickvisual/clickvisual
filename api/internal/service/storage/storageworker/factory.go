@@ -41,13 +41,10 @@ func (w *worker) SetParams(params WorkerParams) {
 	// for trace worker
 	w.source = params.Source
 	w.target = params.Target
-	return
 }
 
 func (w *worker) Start() {
-	return
 }
 
 func (w *worker) Stop() {
-	return
 }

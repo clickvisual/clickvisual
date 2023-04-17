@@ -224,5 +224,4 @@ func Oauth(c *core.Context) {
 		return
 	}
 	c.Redirect(http.StatusFound, toURL)
-	return
 }
