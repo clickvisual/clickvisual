@@ -40,7 +40,6 @@ func KafkaJsonMapping(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // Create  godoc
@@ -134,7 +133,6 @@ func AnalysisFields(c *core.Context) {
 		return res.LogFields[i].Field < res.LogFields[j].Field
 	})
 	c.JSONOK(res)
-	return
 }
 
 // Update  godoc
@@ -162,6 +160,10 @@ func Update(c *core.Context) {
 		return
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -258,7 +260,6 @@ func CreateStorageByTemplate(c *core.Context) {
 		return
 	}
 	c.JSONE(core.CodeErr, "template error", nil)
-	return
 }
 
 func createStorageByTemplateEgo(c *core.Context) {

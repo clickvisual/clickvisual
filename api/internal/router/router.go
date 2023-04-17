@@ -42,7 +42,6 @@ func GetRouter() *egin.Component {
 		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
 		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
 		c.FileFromFS(path, invoker.Gin.HTTPEmbedFs())
-		return
 	}))
 	apiPrefix := ""
 	if serveFromSubPath {

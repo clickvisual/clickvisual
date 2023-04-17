@@ -82,8 +82,6 @@ func (p *Preempt) flows() {
 		go p.startFunc()
 		return
 	}
-	// the competition failed, try to be the only worker in the next life cycle
-	return
 }
 
 func (p *Preempt) renew() {
@@ -92,7 +90,6 @@ func (p *Preempt) renew() {
 		elog.Error("preempt", elog.String("step", "renew"), elog.String("key", p.key), elog.String("error", err.Error()))
 		return
 	}
-	return
 }
 
 func (p *Preempt) isStillOnlyWorker() bool {
@@ -135,5 +132,4 @@ func (p *Preempt) unlock() {
 		return
 	}
 	elog.Info("preempt", elog.String("key", p.key), elog.String("step", "deleteSucc"))
-	return
 }

@@ -512,6 +512,9 @@ func (c *ClickHouseX) DeleteTable(database, table, cluster string, tid int) (err
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, err = db.ViewList(invoker.Db, conds)
+	if err != nil {
+		return err
+	}
 	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
 	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
 	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table)
@@ -734,7 +737,7 @@ func (c *ClickHouseX) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 func (c *ClickHouseX) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
 	dm := make(map[string][]*view.RespTablesSelfBuilt)
-	query := fmt.Sprintf("select database, name from system.tables")
+	query := "select database, name from system.tables"
 	list, err := c.doQuery(query, false)
 	if err != nil {
 		return nil, err
@@ -910,6 +913,10 @@ func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 	for _, current := range viewList {
 		innerViewSQL, errViewOperator := c.updateSwitcher(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
@@ -974,17 +981,11 @@ func (c *ClickHouseX) ListSystemTable() (res []*view.SystemTables) {
 }
 
 func (c *ClickHouseX) isShard() bool {
-	if c.shardStatus == 1 {
-		return true
-	}
-	return false
+	return c.shardStatus == 1
 }
 
 func (c *ClickHouseX) isReplica() bool {
-	if c.replicaStatus == db.ReplicaStatusYes {
-		return true
-	}
-	return false
+	return c.replicaStatus == db.ReplicaStatusYes
 }
 
 // CreateStorage create default stream data table and view
@@ -993,7 +994,9 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 	if ct.CreateType == constx.TableCreateTypeJSONAsString {
 		// 采用 core 的新流程
 		// 创建 storer -> reader -> switcher
-		var storeSQLs, readerSQLs, switcherSQLs = []string{}, []string{}, []string{}
+		var storeSQLs []string
+		var readerSQLs []string
+		var switcherSQLs []string
 
 		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
 			CreateType: ct.CreateType,
@@ -1387,8 +1390,7 @@ func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, datab
 		}
 	}()
 	// 新建
-	switcherSQLs := make([]string, 0)
-	_, switcherSQLs, err = sw.Create()
+	_, switcherSQLs, err := sw.Create()
 	if err != nil {
 		return
 	}

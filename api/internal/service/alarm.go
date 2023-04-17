@@ -24,17 +24,17 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-const prometheusRuleTemplate = `groups:
-- name: default
-  rules:
-  - alert: ClickVisual-%s
-    expr: %s
-    for: %s
-    labels:
-      severity: warning
-    annotations:
-      summary: "告警 {{ $labels.name }}"
-      description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
+// const prometheusRuleTemplate = `groups:
+// - name: default
+//   rules:
+//   - alert: ClickVisual-%s
+//     expr: %s
+//     for: %s
+//     labels:
+//       severity: warning
+//     annotations:
+//       summary: "告警 {{ $labels.name }}"
+//       description: "{{ $labels.desc }}  (当前值: {{ $value }})"`
 
 const prometheusRuleTemplateWithoutFor = `groups:
 - name: default
@@ -586,6 +586,9 @@ func (i *alert) PlusOnePrometheusReloadChan() {
 
 func (i *alert) IsAllClosed(iid int) (err error) {
 	tables, err := db.TableListByInstanceId(invoker.Db, iid)
+	if err != nil {
+		return err
+	}
 	tidArr := make([]int, 0)
 	for _, table := range tables {
 		tidArr = append(tidArr, table.ID)
@@ -628,7 +631,6 @@ func AllPrometheusReload() {
 			elog.Error("AllPrometheusReload", elog.String("step", "PrometheusReload"), elog.String("error", errReload.Error()))
 		}
 	}
-	return
 }
 
 // AlertRuleCheck Detect alert rules in progress

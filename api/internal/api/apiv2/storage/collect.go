@@ -148,7 +148,6 @@ func ListCollect(c *core.Context) {
 		resp = append(resp, tmp...)
 	}
 	c.JSONOK(resp)
-	return
 }
 
 // DeleteCollect godoc

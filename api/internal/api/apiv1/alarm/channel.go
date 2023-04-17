@@ -75,7 +75,6 @@ func ChannelList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // ChannelDelete
@@ -111,7 +110,6 @@ func ChannelInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // ChannelSendTest

@@ -174,7 +174,6 @@ func SettingList(c *core.Context) {
 		res = append(res, &row)
 	}
 	c.JSONOK(res)
-	return
 }
 
 // SettingInfo
@@ -207,7 +206,6 @@ func SettingInfo(c *core.Context) {
 			ConfigPrometheusOperator: res.ConfigPrometheusOperator,
 		},
 	})
-	return
 }
 
 // CreateMetricsSamples
@@ -243,5 +241,4 @@ func CreateMetricsSamples(c *core.Context) {
 	}
 	event.Event.UserCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"params": params})
 	c.JSONOK()
-	return
 }

@@ -131,12 +131,16 @@ type Alarm struct {
 	TableIds   Ints          `gorm:"column:table_ids;type:varchar(255);NOT NULL" json:"tableIds"`
 	AlertRules String2String `gorm:"column:alert_rules;type:text" json:"alertRules"` // prometheus alert rule
 
+	// lint:ignore SA1019 Deprecated: Tid
 	// Deprecated: Tid
 	Tid int `gorm:"column:tid;type:int(11)" json:"tid"` // table id
+	// nolint
 	// Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version
 	AlertRule string `gorm:"column:alert_rule;type:text" json:"alertRule"` // prometheus alert rule
+	// lint:ignore SA1019 Deprecated: View
 	// Deprecated: View
 	View string `gorm:"column:view;type:text" json:"view"` // view table ddl
+	// lint:ignore SA1019 Deprecated: ViewTableName
 	// Deprecated: ViewTableName
 	ViewTableName string `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"` // name of view table
 }

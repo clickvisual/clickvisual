@@ -35,11 +35,9 @@ func init() {
 
 func TestNewPreempt(t *testing.T) {
 	type args struct {
-		ctx       context.Context
-		db        *eredis.Component
-		key       string
-		startFunc func()
-		closeFunc func()
+		ctx context.Context
+		db  *eredis.Component
+		key string
 	}
 	tests := []struct {
 		name string

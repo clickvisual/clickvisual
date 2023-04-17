@@ -163,5 +163,4 @@ func FolderInfo(c *core.Context) {
 		res.NickName = u.Nickname
 	}
 	c.JSONOK(res)
-	return
 }

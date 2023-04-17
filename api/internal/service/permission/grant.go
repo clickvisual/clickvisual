@@ -578,7 +578,7 @@ func (p *pms) pmsRoleDeleteRef(tx *gorm.DB, tgtPmsRole *db.PmsRole, delRefs ...d
 	}
 	// 1.2. find out all casbin rules based on roleStrings
 	var associatedEhRules = make([]pmsplugin.EnhancedCasbinRulesItem, 0)
-	for roleStr, _ := range roleStrMap {
+	for roleStr := range roleStrMap {
 		ehRulesPt := pmsplugin.GetRulesByRole(roleStr, "")
 		if len(*ehRulesPt) > 0 {
 			associatedEhRules = append(associatedEhRules, *ehRulesPt...)
@@ -661,9 +661,7 @@ func (p *pms) getResourceRolesWithGrantInfo(filter *view.RoleGrantInfoFilter) (r
 		roleConds["resource_id"] = filter.ResourceId
 		roleSql, binds = db.BuildQuery(roleConds)
 	case 0:
-		if _, exist := roleConds["role_type"]; exist {
-			delete(roleConds, "role_type")
-		}
+		delete(roleConds, "role_type")
 		roleSql, binds = db.BuildQuery(roleConds)
 		roleSql += fmt.Sprintf(" AND ((`role_type`=%d AND `resource_id`=%d) OR (`role_type`=%d AND `resource_id`=%d))",
 			db.PmsRoleTypeDefault, 0, db.PmsRoleTypeCustom, filter.ResourceId)

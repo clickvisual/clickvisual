@@ -31,5 +31,4 @@ func Webhook(c *core.Context) {
 		return
 	}
 	c.JSONOK()
-	return
 }

@@ -41,9 +41,11 @@ func (d *WeChat) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	dataJsonStr := fmt.Sprintf(`{"msgtype": "%s", "%s": {"content": "%s", "mentioned_list": %s, "mentioned_mobile_list": %s}}`, typeStr, typeStr, msg.Text, string(b1), string(b2))
 	// 默认markdown 可以制作格式
 	resp, err := http.Post(
-		fmt.Sprintf(`%s`, channel.Key),
+		channel.Key,
 		"application/json",
 		bytes.NewBuffer([]byte(dataJsonStr)))
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	return
 }

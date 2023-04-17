@@ -546,8 +546,7 @@ func GetRulesByRoleStrDirectly(roleStr string, reqDom string) *[]EnhancedCasbinR
 	result := make([]EnhancedCasbinRulesItem, 0)
 	// now searching...
 	for _, rType := range targetRuleTypes {
-		var rules [][]string
-		rules = enforcer.GetFilteredNamedGroupingPolicy(rType, 1, roleStr)
+		rules := enforcer.GetFilteredNamedGroupingPolicy(rType, 1, roleStr)
 		if len(rules) <= 0 {
 			continue
 		}

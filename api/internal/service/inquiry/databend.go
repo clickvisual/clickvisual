@@ -318,6 +318,9 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
+	if err != nil {
+		return err
+	}
 	for _, current := range viewList {
 		innerViewSQL, errViewOperator := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
@@ -593,7 +596,7 @@ func (c *Databend) ListSystemCluster() (l []*view.SystemClusters, m map[string]*
 func (c *Databend) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
 	dm := make(map[string][]*view.RespTablesSelfBuilt)
-	query := fmt.Sprintf("select database, name from system.tables")
+	query := "select database, name from system.tables"
 	list, err := c.doQuery(query)
 	if err != nil {
 		return nil, err
@@ -865,6 +868,9 @@ func (c *Databend) DeleteTable(database, table, cluster string, tid int) (err er
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, err = db.ViewList(invoker.Db, conds)
+	if err != nil {
+		return err
+	}
 	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
 	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
 	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table)
@@ -1361,9 +1367,7 @@ func (c *Databend) genJsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogFie
 }
 
 func (c *Databend) execView(params bumo.Params) string {
-	var obj builder.Builder
-	obj = new(standalone.ViewBuilder)
-	return builder.Do(obj, params)
+	return builder.Do(new(standalone.ViewBuilder), params)
 }
 
 func (c *Databend) CalculateInterval(interval int64, timeField string) (string, int64) {

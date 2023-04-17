@@ -55,7 +55,6 @@ func DatabaseCreate(c *core.Context) {
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"database": obj})
 	c.JSONOK()
-	return
 }
 
 // @Tags         LOGSTORE
@@ -76,7 +75,6 @@ func DatabaseExistList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         LOGSTORE
@@ -113,7 +111,6 @@ func DatabaseList(c *core.Context) {
 		res = append(res, tmp)
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         LOGSTORE
@@ -184,6 +181,10 @@ func DatabaseUpdate(c *core.Context) {
 		return
 	}
 	database, err := db.DatabaseInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "failed to update database: "+err.Error(), err)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,

@@ -60,8 +60,25 @@ type (
 
 		Ctime int64 `json:"ctime"`
 		Utime int64 `json:"utime"`
+
 		db.Alarm
-		db.User
+
+		Uid              int    `gorm:"-" json:"uid"`
+		OaId             int64  `gorm:"column:oa_id;type:bigint(20);NOT NULL" json:"oaId"`                                // oa_id
+		Username         string `gorm:"column:username;type:varchar(128);NOT NULL;index:uix_user,unique" json:"username"` // 用户名
+		Nickname         string `gorm:"column:nickname;type:varchar(128);NOT NULL;index:uix_user,unique" json:"nickname"` // 昵称
+		Secret           string `gorm:"column:secret;type:varchar(256);NOT NULL" json:"secret"`                           // 实例名称
+		Phone            string `gorm:"column:phone;type:varchar(64);NOT NULL" json:"phone"`                              // phone
+		Email            string `gorm:"column:email;type:varchar(64);NOT NULL" json:"email"`                              // email
+		Avatar           string `gorm:"column:avatar;type:varchar(256);NOT NULL" json:"avatar"`                           // avatar
+		Hash             string `gorm:"column:hash;type:varchar(256);NOT NULL" json:"hash"`                               // hash
+		WebUrl           string `gorm:"column:web_url;type:varchar(256);NOT NULL" json:"webUrl"`                          // webUrl
+		Oauth            string `gorm:"column:oauth;type:varchar(256);NOT NULL" json:"oauth"`                             // oauth
+		State            string `gorm:"column:state;type:varchar(256);NOT NULL" json:"state"`                             // state
+		OauthId          string `gorm:"column:oauth_id;type:varchar(256);NOT NULL" json:"oauthId"`                        // oauthId
+		Password         string `gorm:"column:password;type:varchar(256);NOT NULL" json:"password"`                       // password
+		CurrentAuthority string `gorm:"column:current_authority;type:varchar(256);NOT NULL" json:"currentAuthority"`      // currentAuthority
+		Access           string `gorm:"column:access;type:varchar(256);NOT NULL" json:"access"`                           // access
 
 		// Deprecated:
 		Table db.BaseTable `json:"table"`

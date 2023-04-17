@@ -71,11 +71,11 @@ func fieldReplace(current string) (after string) {
 // fieldTypeJudgment json -> clickhouse
 func fieldTypeJudgment(req interface{}) string {
 	var val string
-	switch req.(type) {
+	switch req := req.(type) {
 	case string:
 		val = "String"
 	case []interface{}:
-		innerTyp := fieldTypeJudgment(req.([]interface{})[0])
+		innerTyp := fieldTypeJudgment(req[0])
 		val = "Array(" + innerTyp + ")"
 	case map[string]interface{}:
 		val = "JSON"

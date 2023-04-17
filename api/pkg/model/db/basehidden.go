@@ -22,7 +22,7 @@ type BaseHiddenField struct {
 }
 
 func HiddenFieldCreateBatch(db *gorm.DB, data []*BaseHiddenField) (err error) {
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		return errors.New("empty param")
 	}
 	if err = db.Model(BaseHiddenField{}).CreateInBatches(data, 100).Error; err != nil {
@@ -33,7 +33,7 @@ func HiddenFieldCreateBatch(db *gorm.DB, data []*BaseHiddenField) (err error) {
 }
 
 func HiddenFieldDeleteByFields(db *gorm.DB, fields []string) (err error) {
-	if fields == nil || len(fields) == 0 {
+	if len(fields) == 0 {
 		return errors.New("empty param")
 	}
 	if err = db.Model(BaseHiddenField{}).Unscoped().Where("`field` in (?)", fields).Delete(&BaseHiddenField{}).Error; err != nil {
