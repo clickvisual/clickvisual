@@ -283,20 +283,15 @@ func DatabaseCreate(req db.BaseDatabase) (out db.BaseDatabase, err error) {
 	if err != nil {
 		return
 	}
-	tx := invoker.Db.Begin()
-	if err = db.DatabaseCreate(tx, &req); err != nil {
+	if req.IsCreateByCV == 1 {
+		err = op.CreateDatabase(req.Name, req.Cluster)
+		if err != nil {
+			err = errors.Wrap(err, "create database")
+			return
+		}
+	}
+	if err = db.DatabaseCreate(invoker.Db, &req); err != nil {
 		err = errors.Wrap(err, "create failed 01:")
-		return
-	}
-	err = op.CreateDatabase(req.Name, req.Cluster)
-	if err != nil {
-		tx.Rollback()
-		err = errors.Wrap(err, "create failed 02: ")
-		return
-	}
-	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
-		err = errors.Wrap(err, "create failed 03: ")
 		return
 	}
 	return req, nil

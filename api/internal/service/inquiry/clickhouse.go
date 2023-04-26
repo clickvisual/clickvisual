@@ -734,9 +734,24 @@ func (c *ClickHouseX) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 	return
 }
 
+func (c *ClickHouseX) databases() map[string][]*view.RespTablesSelfBuilt {
+	res := make(map[string][]*view.RespTablesSelfBuilt)
+	query := "select name from system.databases"
+	list, err := c.doQuery(query, false)
+	if err != nil {
+		return res
+	}
+	for _, row := range list {
+		t := row["name"].(string)
+		res[t] = make([]*view.RespTablesSelfBuilt, 0)
+	}
+	return res
+}
+
 func (c *ClickHouseX) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
-	dm := make(map[string][]*view.RespTablesSelfBuilt)
+	dm := c.databases()
+	// 先从 system.databases 获取所有的数据库
 	query := "select database, name from system.tables"
 	list, err := c.doQuery(query, false)
 	if err != nil {
