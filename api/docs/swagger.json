@@ -2230,6 +2230,9 @@
                     },
                     "desc": {
                         "type": "string"
+                    },
+                    "type": {
+                        "type": "integer"
                     }
                 },
                 "title": "ReqDatabaseCreate",
@@ -7334,16 +7337,6 @@
                         }
                     }
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqDatabaseCreate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "responses": {
                     "200": {
                         "content": {
