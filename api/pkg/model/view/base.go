@@ -7,9 +7,10 @@ import (
 )
 
 type ReqDatabaseCreate struct {
-	Name    string `json:"databaseName" form:"databaseName"`
+	Name    string `json:"databaseName" form:"databaseName" binding:"required"`
 	Cluster string `json:"cluster" form:"cluster"`
 	Desc    string `json:"desc" form:"desc"`
+	Type    int    `json:"type" form:"type"`
 }
 
 type RespDatabaseItem struct {

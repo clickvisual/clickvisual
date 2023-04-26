@@ -26,7 +26,7 @@ func DatabaseCreate(c *core.Context) {
 		return
 	}
 	var req view.ReqDatabaseCreate
-	if err := c.Bind(&req); err != nil {
+	if err := c.ShouldBind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
@@ -47,6 +47,9 @@ func DatabaseCreate(c *core.Context) {
 		Uid:          c.Uid(),
 		IsCreateByCV: 1,
 		Desc:         req.Desc,
+	}
+	if req.Type == 1 {
+		obj.IsCreateByCV = 0
 	}
 	_, err := service.DatabaseCreate(obj)
 	if err != nil {
