@@ -250,7 +250,6 @@ func Update(c *core.Context) {
 // @Router       /api/v2/storage/{template} [post]
 func CreateStorageByTemplate(c *core.Context) {
 	tpl := strings.TrimSpace(c.Param("template"))
-
 	switch tpl {
 	case "ego":
 		createStorageByTemplateEgo(c)
