@@ -142,7 +142,7 @@ func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatab
 	}
 	cp.Topics = param.Topic
 	cp.TableName = param.Name
-	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
+	if err = s.createByILogtailTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
 	return
@@ -183,6 +183,26 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, 
 		return err
 	}
 	return
+}
+
+func (s *srvStorage) createByILogtailTemplateItem(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (err error) {
+	// Detection is whether it has been created
+	conds := egorm.Conds{}
+	conds["did"] = databaseInfo.ID
+	conds["name"] = param.TableName
+	tableInfo, _ := db.TableInfoX(invoker.Db, conds)
+	if tableInfo.ID != 0 {
+		return nil
+	}
+	table, err := StorageCreate(uid, databaseInfo, param)
+	if err != nil {
+		return
+	}
+	err = AnalysisFieldsUpdate(table.ID, templateTableAnalysisField[table.Name])
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *srvStorage) createByEgoTemplateItem(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (err error) {

@@ -46,9 +46,8 @@ type ReqCreateStorageByTemplateEgo struct {
 type ReqCreateStorageByTemplateILogtail struct {
 	Brokers    string `form:"brokers" binding:"required"`
 	DatabaseId int    `form:"databaseId" binding:"required"`
-
-	Name  string `form:"name" binding:"required"`
-	Topic string `form:"topic" binding:"required"`
+	Name       string `form:"name" binding:"required"`
+	Topic      string `form:"topic" binding:"required"`
 }
 
 func (r *ReqStorageCreate) GetRawLogField() string {

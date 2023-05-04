@@ -1005,7 +1005,6 @@ func (c *ClickHouseX) isReplica() bool {
 
 // CreateStorage create default stream data table and view
 func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-
 	if ct.CreateType == constx.TableCreateTypeJSONAsString {
 		// 采用 core 的新流程
 		// 创建 storer -> reader -> switcher

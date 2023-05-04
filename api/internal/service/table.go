@@ -82,7 +82,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	}
 	s, d, v, a, err := op.CreateStorage(databaseInfo.ID, databaseInfo, param)
 	if err != nil {
-		err = errors.Wrap(err, "create failed 01:")
+		err = errors.Wrap(err, "storage create failed")
 		return
 	}
 	tableInfo = db.BaseTable{
