@@ -101,9 +101,9 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		if partialLog != "" {
 			partialLog = strings.Replace(partialLog, "\"", "", -1)
 			if len(partialLog) > 600 {
-				buffer.WriteString(fmt.Sprintf("【告警详情】: %s ...more", partialLog[0:599]))
+				buffer.WriteString(fmt.Sprintf("【告警日志】: %s", partialLog[0:599]))
 			} else {
-				buffer.WriteString(fmt.Sprintf("【告警详情】: %s", partialLog))
+				buffer.WriteString(fmt.Sprintf("【告警日志】: %s", partialLog))
 			}
 		}
 	}

@@ -47,7 +47,7 @@ func Init() error {
 		Dependence.Sync()
 	})
 	xgo.Go(func() {
-		shorturl.ShortURLClean()
+		shorturl.Clean()
 	})
 
 	Node = NewNode()
