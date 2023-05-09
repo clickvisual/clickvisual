@@ -136,9 +136,11 @@ Thanks for these wonderful people:
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## Thank You
- 
-- [Jetbrains](https://www.jetbrains.com)
 - [腾源会/WeOpen](https://cloud.tencent.com/act/pro/weopen-home)
+
+## Thank JetBrains for Open Source licenses support
+<a href="https://www.jetbrains.com/?from=Ego"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/GoLand_icon.svg" height="120" alt="JetBrains"/></a>
+
 
 ## Friends
 

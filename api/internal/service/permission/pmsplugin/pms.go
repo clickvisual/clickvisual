@@ -48,7 +48,7 @@ func Invoker() {
 			elog.Panic("Casbin redis connect panic", zap.Error(err))
 		}
 		watcher = &w
-		enforcer.SetWatcher(w)
+		_ = enforcer.SetWatcher(w)
 		// @Overwrite
 		// See if policy changed and do distributed notification
 		_ = w.SetUpdateCallback(func(s string) {
@@ -89,7 +89,7 @@ func GetRulesByUserId(userId int, ruleTypes ...string) (result []EnhancedCasbinR
 			return result, errors.New(fmt.Sprintf("all of %v are invalid userRule type(p, g, g3).", ruleTypes))
 		}
 	} else { // not specify any gTypes, so using all permitted userRuleTypes.
-		for rType, _ := range PermittedRuleTypes {
+		for rType := range PermittedRuleTypes {
 			targetRuleTypes = append(targetRuleTypes, rType)
 		}
 	}
@@ -154,75 +154,6 @@ func TransUserGxRule2RoleItemDetail(gType string, ruleParams ...string) (res vie
 	res.BelongType = splitRole[2]
 	res.ReferId = referId
 	return res, nil
-}
-
-/*
-GetRulesByResourceObj: Search CasbinRules to get all rules(explicit and implicit) which related to "obj" string
-Parameter:
-
-	targetObj: the target resource obj string which in policy_definition; like: app__{{AID}}__baseInfo, app__{{AID}}__* and etc.
-	reqAct: (Optional) the act of targetResource for filter out the rules. If empty string will not check act
-	reqDom: (Optional) the domain of targetResource for filter out the rules. If empty string will not check dom
-
-Return:
-
-	a pointer which point to the casbin rule list which related to targetObj
-*/
-func GetRulesByResourceObj(targetObj string, reqAct string, reqDom string) *[]EnhancedCasbinRulesItem {
-	if targetObj == "" {
-		return nil
-	}
-	if targetObj != "" {
-		if _, valid := PermittedPrefixMap[GetPrefixOfString(targetObj)]; !valid {
-			return nil
-		}
-	}
-	var needCheckAct = true
-	var needCheckDom = true
-	if reqAct == "" {
-		needCheckAct = false
-	}
-	if reqDom == "" {
-		needCheckDom = false
-	}
-	finalResultList := make([]EnhancedCasbinRulesItem, 0)
-	/*
-		init EnhancedCasbinRulesItem list before recursion
-		only need to search in p and g2, because only p and g2 may contain resource obj
-	*/
-	pRules := enforcer.GetFilteredPolicy(1, targetObj) // index:1 i.e. the second item of a p rule may contain resourceObj
-	if len(pRules) > 0 {
-		eItem := EnhancedCasbinRulesItem{
-			Ptype: RuleTypeP,
-			Rules: [][]string{},
-		}
-		// p rules contains dom and act, so check domain and action based on 2 vars, i.e. needCheckAct and needCheckDom
-		for _, p_r := range pRules {
-			if needCheckAct && !IsActMatched(reqAct, p_r[2]) {
-				continue
-			}
-			if needCheckDom && !IsDomMatched(reqDom, p_r[3]) {
-				continue
-			}
-			eItem.Rules = append(eItem.Rules, p_r)
-		}
-		if len(eItem.Rules) > 0 {
-			finalResultList = append(finalResultList, eItem)
-		}
-	}
-	g2Rules := enforcer.GetFilteredNamedGroupingPolicy(RuleTypeG2, 0, targetObj) // index:0 i.e. the first item of a g2 rule may contain resourceObj
-	if len(g2Rules) > 0 {
-		// g2 rules do not need to check domain
-		eItem := EnhancedCasbinRulesItem{
-			Ptype: RuleTypeG2,
-			Rules: g2Rules,
-		}
-		finalResultList = append(finalResultList, eItem)
-	}
-
-	// then further searching... invoke the recursive search function.
-	reverseSearchFurtherRules(&finalResultList, reqAct, reqDom, finalResultList...)
-	return &finalResultList
 }
 
 /*
@@ -471,12 +402,12 @@ func EnforcerUnlock() {
 // 	}
 // }
 
-func ReloadPolicy() {
-	elog.Info("Casbin policies reloaded.")
-	enforcerLock.Lock()
-	_ = enforcer.LoadPolicy()
-	enforcerLock.Unlock()
-}
+// func ReloadPolicy() {
+// 	elog.Info("Casbin policies reloaded.")
+// 	enforcerLock.Lock()
+// 	_ = enforcer.LoadPolicy()
+// 	enforcerLock.Unlock()
+// }
 
 // remember reload casbin policy after invoked this function
 func AddCasbinRules2Db(tx *gorm.DB, addEhRules []EnhancedCasbinRulesItem) (err error) {
@@ -615,8 +546,7 @@ func GetRulesByRoleStrDirectly(roleStr string, reqDom string) *[]EnhancedCasbinR
 	result := make([]EnhancedCasbinRulesItem, 0)
 	// now searching...
 	for _, rType := range targetRuleTypes {
-		var rules [][]string
-		rules = enforcer.GetFilteredNamedGroupingPolicy(rType, 1, roleStr)
+		rules := enforcer.GetFilteredNamedGroupingPolicy(rType, 1, roleStr)
 		if len(rules) <= 0 {
 			continue
 		}
@@ -755,34 +685,6 @@ func IsRootWithoutCheckingSysLock(uid int) bool {
 	return len(g3s) > 0
 }
 
-// EnsureRuleExist: ensure the rule exist in casbin
-func EnsureRuleExist(ruleType string, ruleItems ...string) (err error) {
-	if ruleType == RuleTypeP {
-		rules := enforcer.GetFilteredPolicy(0, ruleItems...)
-		if len(rules) > 0 {
-			return nil
-		}
-	} else {
-		rules := enforcer.GetFilteredNamedGroupingPolicy(ruleType, 0, ruleItems...)
-		if len(rules) > 0 {
-			return nil
-		}
-	}
-	newRule := make([]interface{}, len(ruleItems))
-	for i := 0; i < len(ruleItems); i++ {
-		newRule[i] = ruleItems[i]
-	}
-	_, err = AddRule(ruleType, newRule...)
-	return err
-}
-
-// Enforce : check permission
-func Enforce(params ...interface{}) (bool, error) {
-	enforcerLock.Lock()
-	defer enforcerLock.Unlock()
-	return enforcer.Enforce(params...)
-}
-
 // EnforceOneInMany : check many rules, if one of them has passed then return true.
 func EnforceOneInMany(rules ...[]interface{}) (bool, error) {
 	enforcerLock.Lock()
@@ -794,13 +696,6 @@ func EnforceOneInMany(rules ...[]interface{}) (bool, error) {
 		}
 	}
 	return false, err
-}
-
-// Enforce : check permission
-func EnforceEX(params ...interface{}) (bool, []string, error) {
-	enforcerLock.Lock()
-	defer enforcerLock.Unlock()
-	return enforcer.EnforceEx(params...)
 }
 
 func EnforcerLoadPolicy() {

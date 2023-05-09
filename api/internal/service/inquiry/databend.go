@@ -255,78 +255,7 @@ func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqS
 	return
 }
 
-// CreateStorageV3 create default stream data table and view
-func (c *Databend) CreateStorageV3(did int, database db.BaseDatabase, ct view.ReqStorageCreateV3) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
-	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
-	// build view statement
-	var timeTyp string
-	if ct.TimeFieldType == TableTypeString {
-		timeTyp = "String"
-	} else if ct.TimeFieldType == TableTypeFloat {
-		timeTyp = "Float64"
-	} else {
-		// TODO more check
-		timeTyp = "Float64"
-	}
-	dataParams := bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       ct.TimeField,
-		Data: bumo.ParamsData{
-			TableName: dName,
-			Days:      ct.Days,
-		},
-	}
-	streamParams := bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
-		TimeField:       ct.TimeField,
-		Stream: bumo.ParamsStream{
-			TableName:               dStreamName,
-			TableTyp:                timeTyp,
-			Brokers:                 ct.Brokers,
-			Topic:                   ct.Topics,
-			Group:                   database.Name + "_" + ct.TableName,
-			ConsumerNum:             ct.Consumers,
-			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
-		},
-	}
-	dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
-	dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
-	_, err = c.db.Exec(dStreamSQL)
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
-		return
-	}
-	_, err = c.db.Exec(dDataSQL)
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
-		return
-	}
-	dViewSQL, err = c.storageViewOperatorV3(view.OperatorViewParams{
-		Typ:              ct.TimeFieldType,
-		Tid:              0,
-		Did:              did,
-		TableName:        ct.TableName,
-		CustomTimeField:  "",
-		Current:          nil,
-		List:             nil,
-		Indexes:          nil,
-		IsCreate:         true,
-		TimeField:        ct.TimeField,
-		IsKafkaTimestamp: ct.IsKafkaTimestamp,
-	})
-	if err != nil {
-		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
-		return
-	}
-
-	if ct.V3TableType == db.V3TableTypeJaegerJSON {
-		_ = c.CreateTraceJaegerDependencies(database.Name, database.Cluster, ct.TableName, ct.Days)
-	}
-	return
-}
-
-// UpdateIndex Data table index operation
+// UpdateLogAnalysisFields Data table index operation
 func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""
@@ -389,6 +318,9 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
 	viewList, err := db.ViewList(invoker.Db, condsViews)
+	if err != nil {
+		return err
+	}
 	for _, current := range viewList {
 		innerViewSQL, errViewOperator := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
@@ -664,7 +596,7 @@ func (c *Databend) ListSystemCluster() (l []*view.SystemClusters, m map[string]*
 func (c *Databend) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	databases := make([]*view.RespDatabaseSelfBuilt, 0)
 	dm := make(map[string][]*view.RespTablesSelfBuilt)
-	query := fmt.Sprintf("select database, name from system.tables")
+	query := "select database, name from system.tables"
 	list, err := c.doQuery(query)
 	if err != nil {
 		return nil, err
@@ -936,6 +868,9 @@ func (c *Databend) DeleteTable(database, table, cluster string, tid int) (err er
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	views, err = db.ViewList(invoker.Db, conds)
+	if err != nil {
+		return err
+	}
 	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
 	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
 	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table)
@@ -1432,9 +1367,7 @@ func (c *Databend) genJsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogFie
 }
 
 func (c *Databend) execView(params bumo.Params) string {
-	var obj builder.Builder
-	obj = new(standalone.ViewBuilder)
-	return builder.Do(obj, params)
+	return builder.Do(new(standalone.ViewBuilder), params)
 }
 
 func (c *Databend) CalculateInterval(interval int64, timeField string) (string, int64) {

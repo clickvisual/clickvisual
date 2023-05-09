@@ -95,7 +95,6 @@ func (p *Pagination) List(db *gorm.DB, list interface{}) {
 	}
 	db.Count(&p.Total)
 	db.Order(p.Sort).Offset((p.Current - 1) * p.PageSize).Limit(p.PageSize).Find(list)
-	return
 }
 
 // JSON returns JSON response
@@ -116,15 +115,13 @@ func (c *Context) JSONOK(data ...interface{}) {
 		j.Data = ""
 	}
 	c.Context.JSON(http.StatusOK, j)
-	return
 }
 
 func LoggerError(comp, typ string, data interface{}) {
-	switch data.(type) {
+	switch dt := data.(type) {
 	case error:
-		elog.Error("innerError", elog.FieldComponent(comp), elog.FieldType(typ), elog.FieldErr(data.(error)))
+		elog.Error("innerError", elog.FieldComponent(comp), elog.FieldType(typ), elog.FieldErr(dt))
 	}
-	return
 }
 
 // JSONE returns JSON response with failure business code ,msg and data
@@ -142,7 +139,6 @@ func (c *Context) JSONE(code int, msg string, data interface{}) {
 		elog.Warn("bizWarning", elog.FieldValue(msg), elog.FieldExtMessage(data), elog.FieldTid(etrace.ExtractTraceID(c.Request.Context())))
 	}
 	c.Context.JSON(http.StatusOK, j)
-	return
 }
 
 // JSONPage returns JSON response with pagination

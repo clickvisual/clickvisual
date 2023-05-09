@@ -33,7 +33,7 @@ type ReqStorageCreate struct {
 	CreateType    int          `form:"createType"`
 }
 
-type ReqCreateStorageByTemplate struct {
+type ReqCreateStorageByTemplateEgo struct {
 	Brokers    string `form:"brokers" binding:"required"`
 	DatabaseId int    `form:"databaseId" binding:"required"`
 
@@ -43,21 +43,11 @@ type ReqCreateStorageByTemplate struct {
 	TopicsIngressStderr string `form:"topicsIngressStderr" binding:"required"`
 }
 
-// Deprecated: ReqStorageCreateV3
-type ReqStorageCreateV3 struct {
-	TableName               string `form:"tableName" binding:"required"`
-	Days                    int    `form:"days" binding:"required"`
-	Brokers                 string `form:"brokers" binding:"required"`
-	Topics                  string `form:"topics" binding:"required"`
-	Consumers               int    `form:"consumers" binding:"required"`
-	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
-	Desc                    string `form:"desc"`
-	DatabaseId              int    `form:"databaseId" binding:"required"`
-	TimeField               string `form:"timeField"`
-	TimeFieldType           int    `form:"timeFieldType"`    // 1 string 2 float
-	IsKafkaTimestamp        int    `form:"isKafkaTimestamp"` // 1 yes
-	V3TableType             int    `form:"v3TableType"`      // 0 default 1 jaegerJson
-	CreateType              int    `form:"createType"`
+type ReqCreateStorageByTemplateILogtail struct {
+	Brokers    string `form:"brokers" binding:"required"`
+	DatabaseId int    `form:"databaseId" binding:"required"`
+	Name       string `form:"name" binding:"required"`
+	Topic      string `form:"topic" binding:"required"`
 }
 
 func (r *ReqStorageCreate) GetRawLogField() string {

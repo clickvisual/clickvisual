@@ -71,12 +71,12 @@ func yamlChecker(content string) error {
 }
 
 func iniChecker(content string) error {
-	sectionRegex := regexp.MustCompile("^\\[[^\\[]+]$")
-	keyValueRegex := regexp.MustCompile("\\w+[\\s]*=[\\s]*.*")
+	sectionRegex := regexp.MustCompile(`^\\[[^\\[]+]$`)
+	keyValueRegex := regexp.MustCompile(`\\w+[\\s]*=[\\s]*.*`)
 
 	lines := strings.Split(content, "\n")
 	for lineNumber, line := range lines {
-		line = strings.Trim(line, " \\r\\n\\t")
+		line = strings.Trim(line, "\r\n\t")
 
 		// skip blank line
 		if line == "" {

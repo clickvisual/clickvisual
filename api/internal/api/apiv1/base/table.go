@@ -210,7 +210,6 @@ func TableInfo(c *core.Context) {
 	res.SQLContent.Data = data
 	res.CreateType = tableInfo.CreateType
 	c.JSONOK(res)
-	return
 }
 
 // TableList
@@ -242,7 +241,6 @@ func TableList(c *core.Context) {
 		})
 	}
 	c.JSONOK(res)
-	return
 }
 
 // TableDelete
@@ -431,7 +429,6 @@ func TableLogs(c *core.Context) {
 	res.Cost = time.Since(st).Milliseconds()
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
-	return
 }
 
 // QueryComplete
@@ -472,7 +469,6 @@ func QueryComplete(c *core.Context) {
 	res.SortRule, res.IsNeedSort = utils.GenerateFieldOrderRules(param.Query)
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
-	return
 }
 
 // TableCharts
@@ -580,11 +576,11 @@ func TableCharts(c *core.Context) {
 		// 说明有很多数据需要填充
 		fillNum := (et - latestFrom) / interval
 		for i := int64(0); i < (fillNum); i++ {
-			to := latestFrom + interval*(i+2)
+			// to := latestFrom + interval*(i+2)
 			from := latestFrom + interval*(i+1)
-			if to > st {
-				to = st
-			}
+			// if to > st {
+			// 	to = st
+			// }
 			if _, ok := chartMap[from]; !ok {
 				chartMap[from] = &view.HighChart{
 					Count: 0,
@@ -628,7 +624,6 @@ func TableCharts(c *core.Context) {
 	}
 	res.Histograms = fillCharts
 	c.JSONOK(res)
-	return
 }
 
 // TableIndexes
@@ -705,7 +700,6 @@ func TableIndexes(c *core.Context) {
 		return res[i].Count > res[j].Count
 	})
 	c.JSONOK(res)
-	return
 }
 
 // TableCreateSelfBuilt
@@ -910,6 +904,10 @@ func TableUpdate(c *core.Context) {
 		return
 	}
 	table, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "update failed 00"+err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -959,5 +957,4 @@ func TableDeps(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }

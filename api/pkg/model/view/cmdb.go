@@ -9,12 +9,12 @@ type ConfigFormat string
 
 const (
 	ConfigFormatToml       ConfigFormat = "toml"
-	ConfigFormatYaml                    = "yaml"
-	ConfigFormatJson                    = "json"
-	ConfigFormatXml                     = "xml"
-	ConfigFormatProperties              = "properties"
-	ConfigFormatIni                     = "ini"
-	ConfigFormatConf                    = "conf"
+	ConfigFormatYaml       ConfigFormat = "yaml"
+	ConfigFormatJson       ConfigFormat = "json"
+	ConfigFormatXml        ConfigFormat = "xml"
+	ConfigFormatProperties ConfigFormat = "properties"
+	ConfigFormatIni        ConfigFormat = "ini"
+	ConfigFormatConf       ConfigFormat = "conf"
 )
 
 // ReqCreateConfig ..

@@ -40,7 +40,6 @@ func KafkaJsonMapping(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // Create  godoc
@@ -134,7 +133,6 @@ func AnalysisFields(c *core.Context) {
 		return res.LogFields[i].Field < res.LogFields[j].Field
 	})
 	c.JSONOK(res)
-	return
 }
 
 // Update  godoc
@@ -162,6 +160,10 @@ func Update(c *core.Context) {
 		return
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -243,16 +245,24 @@ func Update(c *core.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        template path string true "template"
-// @Param        req query view.ReqCreateStorageByTemplate true "params"
+// @Param        req query view.ReqCreateStorageByTemplateEgo true "params"
 // @Success      200 {object} core.Res{}
 // @Router       /api/v2/storage/{template} [post]
 func CreateStorageByTemplate(c *core.Context) {
 	tpl := strings.TrimSpace(c.Param("template"))
-	if tpl != "ego" {
-		c.JSONE(core.CodeErr, "template error", nil)
+	switch tpl {
+	case "ego":
+		createStorageByTemplateEgo(c)
+		return
+	case "ilogtail":
+		createStorageByTemplateILogtail(c)
 		return
 	}
-	var param view.ReqCreateStorageByTemplate
+	c.JSONE(core.CodeErr, "template error", nil)
+}
+
+func createStorageByTemplateEgo(c *core.Context) {
+	var param view.ReqCreateStorageByTemplateEgo
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
@@ -276,6 +286,38 @@ func CreateStorageByTemplate(c *core.Context) {
 		return
 	}
 	if err = service.Storage.CreateByEgoTemplate(c.Uid(), databaseInfo, param); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
+	c.JSONOK()
+}
+
+func createStorageByTemplateILogtail(c *core.Context) {
+	var param view.ReqCreateStorageByTemplateILogtail
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(databaseInfo.ID),
+	}); err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	if err = service.Storage.CreateByILogtailTemplate(c.Uid(), databaseInfo, param); err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}

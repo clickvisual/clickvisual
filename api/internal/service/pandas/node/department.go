@@ -69,7 +69,7 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 		tertiaryDone:  false,
 	})
 	cost := time.Since(now).Milliseconds()
-	execStatus := db.BigdataNodeResultUnknown
+	var execStatus int
 	if err != nil {
 		execStatus = db.BigdataNodeResultFailed
 		execResult.Message = err.Error()

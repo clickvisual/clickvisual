@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/service/shorturl"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
@@ -46,17 +48,16 @@ func GetPusher(typ int) (IPusher, error) {
 // param oneTheLogs 日志内容
 func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.Alarm, filter *db.AlarmFilter, partialLog string) (msg *db.PushMsg, err error) {
 	// groupKey := notification.GroupKey
-	annotations := notification.CommonAnnotations
 	var buffer bytes.Buffer
 	// base info
 	if notification.GetStatus() == db.AlarmStatusNormal {
-		buffer.WriteString("###  <font color=#008000>您的告警已恢复</font>\n")
+		buffer.WriteString("<font color=#008000>您的告警已恢复</font>\n\n")
 	} else {
-		buffer.WriteString("###  <font color=#FF0000>您有待处理的告警</font>\n")
+		buffer.WriteString("<font color=#FF0000>您有待处理的告警</font>\n\n")
 	}
-	buffer.WriteString(fmt.Sprintf("##### 告警名称: %s\n", alarm.Name))
+	buffer.WriteString(fmt.Sprintf("【告警名称】: %s\n\n", alarm.Name))
 	if alarm.Desc != "" {
-		buffer.WriteString(fmt.Sprintf("##### 告警描述: %s\n", alarm.Desc))
+		buffer.WriteString(fmt.Sprintf("【告警描述】: %s\n\n", alarm.Desc))
 	}
 	users, phones := dutyOffices(alarm)
 	instance, _ := db.InstanceInfo(invoker.Db, table.Database.Iid)
@@ -64,15 +65,14 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 	for _, alert := range notification.Alerts {
 		end := alert.StartsAt.Add(time.Minute).Unix()
 		start := alert.StartsAt.Add(-alarm.GetInterval() - time.Minute).Unix()
-		annotations = alert.Annotations
-		buffer.WriteString(fmt.Sprintf("##### 触发时间: %s\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
-		buffer.WriteString(fmt.Sprintf("##### 相关实例: %s %s\n", instance.Name, instance.Desc))
-		buffer.WriteString(fmt.Sprintf("##### 日志库: %s %s\n", table.Name, table.Desc))
+		buffer.WriteString(fmt.Sprintf("【触发时间】: %s\n\n", alert.StartsAt.Add(time.Hour*8).Format("2006-01-02 15:04:05")))
+		buffer.WriteString(fmt.Sprintf("【相关实例】: %s %s\n\n", instance.Name, instance.Desc))
+		buffer.WriteString(fmt.Sprintf("【日志库表】: %s %s\n\n", table.Name, table.Desc))
 		if notification.GetStatus() == db.AlarmStatusNormal {
 			statusText = "已恢复"
-			buffer.WriteString("##### 状态: <font color=#008000>已恢复</font>\n")
+			buffer.WriteString("【告警状态】: <font color=#008000>已恢复</font>\n\n")
 		} else {
-			buffer.WriteString("##### 状态: <font color=red>告警中</font>\n")
+			buffer.WriteString("【告警状态】: <font color=red>告警中</font>\n\n")
 		}
 		dutyOfficesStr := ""
 		for _, user := range users {
@@ -84,21 +84,26 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		}
 		if dutyOfficesStr == "" {
 			user, _ := db.UserInfo(alarm.Uid)
-			buffer.WriteString(fmt.Sprintf("##### 创建人: %s \n", user.Nickname))
+			buffer.WriteString(fmt.Sprintf("【告警创建】: %s\n\n", user.Nickname))
 		} else {
-			buffer.WriteString(fmt.Sprintf("##### 责任人: %s \n", dutyOfficesStr))
+			buffer.WriteString(fmt.Sprintf("【告警责任】: %s\n\n", dutyOfficesStr))
 		}
-
-		buffer.WriteString(fmt.Sprintf("##### %s\n\n", annotations["description"]))
-		buffer.WriteString(fmt.Sprintf("##### clickvisual 跳转: %s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d\n\n",
+		jumpURL := fmt.Sprintf("%s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, url.QueryEscape(filter.When), start, end,
-		))
+		)
+		shortURL, err := shorturl.GenShortURL(jumpURL)
+		if err != nil {
+			elog.Error("shorturl.GenShortURL", elog.FieldErr(err), elog.String("jumpURL", jumpURL))
+			buffer.WriteString(fmt.Sprintf("【链接跳转】: %s\n\n", jumpURL))
+		} else {
+			buffer.WriteString(fmt.Sprintf("【链接跳转】: %s\n\n", shortURL))
+		}
 		if partialLog != "" {
 			partialLog = strings.Replace(partialLog, "\"", "", -1)
 			if len(partialLog) > 600 {
-				buffer.WriteString(fmt.Sprintf("##### 日志: %s ...", partialLog[0:599]))
+				buffer.WriteString(fmt.Sprintf("【告警详情】: %s ...more", partialLog[0:599]))
 			} else {
-				buffer.WriteString(fmt.Sprintf("##### 日志: %s", partialLog))
+				buffer.WriteString(fmt.Sprintf("【告警详情】: %s", partialLog))
 			}
 		}
 	}

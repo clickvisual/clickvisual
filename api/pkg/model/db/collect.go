@@ -39,7 +39,7 @@ type Collect struct {
 }
 
 type ReqCreateCollect struct {
-	TableId int `json:"tableId" json:"tableId"`
+	TableId int `json:"tableId" form:"tableId"`
 	ReqUpdateCollect
 }
 

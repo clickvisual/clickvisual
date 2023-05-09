@@ -99,16 +99,3 @@ func (u *user) Delete(item db.User) (err error) {
 	err = invoker.Db.Where("uid = ?", item.ID).Delete(&db.User{}).Error
 	return
 }
-
-// GetUserByUID 根据oaUid获取用户
-func (u *user) GetUserByUID(uid int) (user db.User) {
-	err := invoker.Db.Where("id = ?", uid).First(&user).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return
-	}
-	if user.ID == 0 {
-		err = errors.New("user is not exist")
-		return
-	}
-	return
-}

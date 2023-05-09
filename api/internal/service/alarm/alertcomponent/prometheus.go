@@ -78,7 +78,6 @@ func (p *Prometheus) CheckDependents() error {
 		}
 		return errors.Wrap(ErrPrometheusDependsEmpty, "webhook configuration is empty")
 	}
-	components := make([]Component, 0)
 	for _, url := range urls {
 		am, errNewAM := NewAlertManager(url)
 		if errNewAM != nil {
@@ -90,7 +89,6 @@ func (p *Prometheus) CheckDependents() error {
 			}
 			return errors.WithMessage(err, "alertmanager")
 		}
-		components = append(components, am)
 	}
 	return nil
 }

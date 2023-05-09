@@ -349,7 +349,7 @@ export default {
   "datasource.logLibrary.usingSystemTime": "使用系统时间",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
-  "datasource.logLibrary.placeholder.brokers": "kafka:9092",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9092,kafka:9093,kafka:9094",
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持数字、英文字母或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",

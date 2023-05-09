@@ -73,3 +73,24 @@ func TestCreateJSONEachRow(t *testing.T) {
 	}, gintest.WithRoutePath("/storage"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
 	_ = objTest1.Run()
 }
+
+func TestCreateStorageByTemplate(t *testing.T) {
+	config.InitCfg()
+	_ = invoker.Init()
+	_ = service.Init()
+	objTest1 := gintest.Init()
+	// prometheus file
+	objTest1.POST(core.Handle(CreateStorageByTemplate), func(m *gintest.Mock) error {
+		byteInfo := m.Exec(
+			gintest.WithUri("/storage/ilogtail"),
+			gintest.WithJsonBody(view.ReqCreateStorageByTemplateILogtail{
+				Name:       "demo_0201_v3",
+				Brokers:    "127.0.0.1:9092",
+				DatabaseId: 14,
+				Topic:      "otlp_spans",
+			}))
+		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
+		return nil
+	}, gintest.WithRoutePath("/storage/:template"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = objTest1.Run()
+}

@@ -102,21 +102,21 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 
 // isEmpty filter empty index value
 func transformVal(input interface{}) interface{} {
-	switch input.(type) {
+	switch input := input.(type) {
 	case []uint8:
-		return string(input.([]uint8))
+		return string(input)
 	case string:
-		return input.(string)
+		return input
 	case uint16:
-		return fmt.Sprintf("%d", input.(uint16))
+		return fmt.Sprintf("%d", input)
 	case uint64:
-		return fmt.Sprintf("%d", input.(uint64))
+		return fmt.Sprintf("%d", input)
 	case int32:
-		return fmt.Sprintf("%d", input.(int32))
+		return fmt.Sprintf("%d", input)
 	case int64:
-		return fmt.Sprintf("%d", input.(int64))
+		return fmt.Sprintf("%d", input)
 	case float64:
-		return fmt.Sprintf("%f", input.(float64))
+		return fmt.Sprintf("%f", input)
 	default:
 		elog.Debug("ClickHouse", elog.FieldComponent("transformVal"),
 			elog.Any("type", reflect.TypeOf(input)))
