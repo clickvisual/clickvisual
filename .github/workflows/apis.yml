@@ -22,7 +22,7 @@ jobs:
           go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.6
           egogen --config egogen.yaml
       - name: Install ReDoc
-        run: npm i redoc-cli
+        run: npm i -g redoc-cli
       - name: Gen HTML
         run: redoc-cli bundle ./api/docs/swagger.json ./api/docs/index.html
       - name: Install obsutil
