@@ -9861,7 +9861,7 @@
                         }
                     }
                 },
-                "summary": "Gets all instance database and table data filtered by permissions",
+                "summary": "Gets all instance database and table data filtered by permissions test",
                 "tags": [
                     "LOGSTORE"
                 ]
