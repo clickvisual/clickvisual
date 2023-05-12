@@ -13,43 +13,44 @@ sketch
 *.log
 *.swp
 *.swo
+*.tar.gz
+*.sys
 
+
+### root folder
 /tests
 /bin
-/api/bin
-
 /logs
+/rules
+/configs
+/api/bin
 /api/logs
 
-*.tar.gz
+/data/k8s/fluent-bit/
+/data/all-in-one/kafka/data/
+/data/all-in-one/zookeeper/data/
+/data/all-in-one/zookeeper/datalog/
+/data/all-in-one/clickhouse/database/
 
-*.sys
-configs/
+### inner folder
 logs/
-
+dist/
 node_modules/
-/dist
-/ui/dist
-api/internal/ui/dist/*
-!api/internal/ui/dist/README.md
 
 .umi/
 .umi-production/
+
+### necessary file
+!api/internal/ui/dist/README.md
+
+### file
 package-lock.json
+api/docs/index.html
 
-data/all-in-one/clickhouse/database/
-data/all-in-one/kafka/data/
-data/all-in-one/zookeeper/data/
-data/all-in-one/zookeeper/datalog/
-
-rules/*
 /data/helm/clickvisual/default.toml
 /data/helm/clickvisual/resource.yaml
 
-/data/k8s/fluent-bit/
-
+### ci tools
 ossutil64
 ossutil64.1
-
 obsutil_linux_amd64*/
-
