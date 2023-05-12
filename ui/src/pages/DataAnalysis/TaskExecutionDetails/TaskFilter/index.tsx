@@ -1,8 +1,8 @@
-import styles from "./index.less";
 import { DatePicker, Input, Select, Space } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useIntl } from "umi";
 import { StatusType } from "..";
+import styles from "./index.less";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -106,19 +106,29 @@ const TaskFilter = (props: TaskFilterType) => {
             style={{ width: "360px" }}
             allowClear
             value={[
-              startTime ? moment(startTime / 1000, "X") : null,
-              endTime ? moment(endTime / 1000, "X") : null,
+              startTime ? dayjs(startTime / 1000, "X") : null,
+              endTime ? dayjs(endTime / 1000, "X") : null,
             ]}
-            ranges={{
-              昨天: [
-                moment().startOf("day").subtract(1, "d"),
-                moment().endOf("day").subtract(1, "d"),
-              ],
-              前天: [
-                moment().startOf("day").subtract(2, "d"),
-                moment().endOf("day").subtract(2, "d"),
-              ],
-            }}
+            presets={[
+              {
+                label: i18n.formatMessage({
+                  id: "bigdata.dataAnalysis.statisticalBoard.Screening.yesterday",
+                }),
+                value: [
+                  dayjs().startOf("day").subtract(1, "d"),
+                  dayjs().endOf("day").subtract(1, "d"),
+                ],
+              },
+              {
+                label: i18n.formatMessage({
+                  id: "bigdata.dataAnalysis.statisticalBoard.Screening.beforeYesterday",
+                }),
+                value: [
+                  dayjs().startOf("day").subtract(2, "d"),
+                  dayjs().endOf("day").subtract(2, "d"),
+                ],
+              },
+            ]}
             onChange={(timeList: any) => {
               const start = timeList && timeList.length > 1 ? +timeList[0] : 0;
               const end = timeList && timeList.length > 1 ? +timeList[1] : 0;

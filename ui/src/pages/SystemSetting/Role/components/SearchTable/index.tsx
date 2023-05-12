@@ -1,3 +1,8 @@
+import { Form, message, Table } from "antd";
+import { FormInstance } from "antd/es/form";
+import { ColumnType, TablePaginationConfig, TableProps } from "antd/es/table";
+import { SorterResult } from "antd/lib/table/interface";
+import qs, { stringify } from "qs";
 import React, {
   forwardRef,
   ReactNode,
@@ -6,18 +11,13 @@ import React, {
   useImperativeHandle,
   useMemo,
   useState,
-} from 'react';
-import { Form, message, Table } from 'antd';
-import { ColumnType, TablePaginationConfig, TableProps } from 'antd/es/table';
-import { FormInstance } from 'antd/es/form';
-import { useHistory } from 'umi';
-import qs, { stringify } from 'qs';
-import './index.less';
-import { SorterResult } from 'antd/lib/table/interface';
+} from "react";
+import { history } from "umi";
+import "./index.less";
 
 const directionMap: { [key: string]: string } = {
-  ascend: 'asc',
-  descend: 'desc',
+  ascend: "asc",
+  descend: "desc",
 };
 
 export declare type TableColumnType<T> = ColumnType<T> & {
@@ -47,7 +47,7 @@ export declare type TableColumnTypes<T> = (TableColumnType<T> & {
 })[];
 
 function isTableEnumType(object: any): object is TableEnumType {
-  return 'text' in object;
+  return "text" in object;
 }
 
 interface PaginationProps {
@@ -57,13 +57,13 @@ interface PaginationProps {
 }
 
 interface SearchTableProps<T>
-  extends Omit<TableProps<T>, 'pagination' | 'dataSource' | 'columns'> {
+  extends Omit<TableProps<T>, "pagination" | "dataSource" | "columns"> {
   formContent?: (
     search: (fields: any) => void,
-    form: FormInstance,
+    form: FormInstance
   ) => React.ReactNode;
   request: (params: any) => Promise<{ data: T[]; pagination: PaginationProps }>;
-  queryArrayFormat?: 'indices' | 'brackets' | 'repeat' | 'comma';
+  queryArrayFormat?: "indices" | "brackets" | "repeat" | "comma";
   columns: TableColumnTypes<T>;
 
   // 禁用 Query 参数用于搜索
@@ -71,7 +71,7 @@ interface SearchTableProps<T>
 
   pagination?:
     | false
-    | Omit<TablePaginationConfig, 'current' | 'total' | 'pageSize'>;
+    | Omit<TablePaginationConfig, "current" | "total" | "pageSize">;
 }
 
 export interface SearchTableInstance {
@@ -85,7 +85,7 @@ type Sorter = {
 };
 
 const parseValueEnum = (
-  valueEnum: ValueEnumMap | ValueEnumArray,
+  valueEnum: ValueEnumMap | ValueEnumArray
 ): ValueEnumMap => {
   let res: ValueEnumMap = {};
 
@@ -101,9 +101,9 @@ const parseValueEnum = (
   return res;
 };
 
-const SearchTable = function<T extends object>(
+const SearchTable = function <T extends object>(
   props: SearchTableProps<T>,
-  ref: Ref<SearchTableInstance>,
+  ref: Ref<SearchTableInstance>
 ) {
   const {
     columns,
@@ -123,11 +123,11 @@ const SearchTable = function<T extends object>(
 
   const getQueryParams = () => {
     if (disableQuery === true) return {};
-    return qs.parse(window.location.search.replace('?', ''));
+    return qs.parse(window.location.search.replace("?", ""));
   };
   const params = getQueryParams();
 
-  const history = useHistory();
+  // const history = useHistory();
   const [form] = Form.useForm();
 
   const _form = useMemo(() => {
@@ -141,7 +141,7 @@ const SearchTable = function<T extends object>(
   }, [form]);
 
   useImperativeHandle(ref, () => ({
-    refresh: params => {
+    refresh: (params) => {
       params = loadFormData(params);
       setFields({ ...fields, ...params });
       onSearch({ ...fields, ...params }, page);
@@ -178,11 +178,11 @@ const SearchTable = function<T extends object>(
     };
     if (disableQuery !== true) {
       history.replace({
-        search:
-          '?' +
+        pathname:
+          "?" +
           stringify(
             { ...getQueryParams(), ...params },
-            { arrayFormat: queryArrayFormat || 'repeat' },
+            { arrayFormat: queryArrayFormat || "repeat" }
           ),
       });
     }
@@ -192,24 +192,24 @@ const SearchTable = function<T extends object>(
     setLoading(true);
 
     return request({ ...params })
-      .then(r => {
+      .then((r) => {
         setDataSource(r.data);
         setPage(r.pagination);
         setLoading(false);
       })
-      .catch(e => {
+      .catch((e) => {
         message.error(e);
       });
   };
 
   const _columns = useMemo(() => {
-    const makeColumns = function<T>(
-      columns: TableColumnTypes<T>,
+    const makeColumns = function <T>(
+      columns: TableColumnTypes<T>
     ): TableColumnTypes<T> {
-      return columns.map(col => {
+      return columns.map((col) => {
         let { render, valueEnum, children } = col;
         if (!render && valueEnum) {
-          render = val => {
+          render = (val) => {
             const valueEnumMap = parseValueEnum(valueEnum || []);
             let enumVal = valueEnumMap[val];
             if (!enumVal) return val;
@@ -252,13 +252,13 @@ const SearchTable = function<T extends object>(
   return (
     <div>
       {formContent ? (
-        <div>{formContent(fields => onSearch(fields, {}), _form)}</div>
+        <div>{formContent((fields) => onSearch(fields, {}), _form)}</div>
       ) : (
-        <Form form={form} onFinish={fields => onSearch(fields, {})} />
+        <Form form={form} onFinish={(fields) => onSearch(fields, {})} />
       )}
 
       <Table<T>
-        style={{ marginTop: '10px' }}
+        style={{ marginTop: "10px" }}
         loading={loading}
         columns={_columns}
         dataSource={dataSource}
@@ -276,7 +276,7 @@ const SearchTable = function<T extends object>(
               ...fields,
             },
             { pageSize, current },
-            sortParams,
+            sortParams
           );
 
           onChange?.(pagination, filters, sorter, extra);

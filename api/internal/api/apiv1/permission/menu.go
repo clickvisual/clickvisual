@@ -42,5 +42,4 @@ func MenuList(c *core.Context) {
 		}
 	}
 	c.JSONOK(res)
-	return
 }

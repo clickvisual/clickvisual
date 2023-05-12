@@ -9,7 +9,6 @@
     left: -4px;
     width: 4px;
     height: calc(100% - 4px);
-    // background-color: rgba(40, 154, 233, 0.4);
     background-color: inherit;
     border-radius: 6px;
     content: "";
@@ -88,7 +87,7 @@
 
     .progressContent {
       flex: 1;
-      padding: 4px 8px 8px;
+      padding: 4px 0 8px;
       background-color: #f3f3f3;
       border-bottom: 1px solid #ccc;
       border-left: 1px solid #ccc;
@@ -97,12 +96,14 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-left: 8px;
         padding-right: 20px;
         font-weight: 600;
         border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       }
 
       .progressContentList {
+        margin-left: 8px;
         .progressLogs {
           margin-top: 8px;
           font-size: 14px;
@@ -111,6 +112,7 @@
       }
 
       .bottomInfo {
+        margin-left: 8px;
         padding-right: 20px;
         text-align: right;
         &::before {

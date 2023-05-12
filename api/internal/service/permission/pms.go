@@ -177,7 +177,7 @@ func (p *pms) CreateDefaultRolePms(newDefaultRole *view.DefaultRolePms) (err err
 		pRulesField01NotDone = append(pRulesField01NotDone, []string{p0RoleTpl, p1SubResrcTpl, p2Act, p3Dom})
 	}
 	// 3.2 find all items of belongType, and add p rules for item, current only support app
-	var pRuleAdded = false
+	var pRuleAdded bool
 	switch newDefaultRole.BelongType {
 	case pmsplugin.PrefixInstance:
 		instances, err := db.InstanceList(egorm.Conds{})
@@ -192,13 +192,12 @@ func (p *pms) CreateDefaultRolePms(newDefaultRole *view.DefaultRolePms) (err err
 			}
 		}
 		pRuleAdded = true
-
 	default:
 		return errors.Errorf("Not support add defaultRole for %s resource type currently", newDefaultRole.BelongType)
 	}
 	// 4. finally, if p rule(s) added in casbin then add this new default role in db.
 	if pRuleAdded {
-		if err := db.PmsDefaultRoleCreate(&(newDefaultRole.PmsDefaultRole)); err != nil {
+		if err = db.PmsDefaultRoleCreate(&(newDefaultRole.PmsDefaultRole)); err != nil {
 			return err
 		}
 	}
@@ -263,7 +262,7 @@ func (*pms) CreateCustomRolePms(newCustomRole view.CustomRolePms) (err error) {
 		pRules = append(pRules, []string{p0Role, p1Resrc, p2Act, p3Dom})
 	}
 	// 3.2 check the existence of target belongType resource, then add p rules for it, current only support app
-	var pRuleAdded = false
+	var pRuleAdded bool
 	switch newCustomRole.BelongType {
 	case pmsplugin.PrefixInstance:
 		instances, err := db.InstanceList(egorm.Conds{"id": newCustomRole.ReferId})
@@ -328,7 +327,7 @@ func (p *pms) DeleteDefaultRolePms(delDefaultRole view.DefaultRolePms) (err erro
 		}
 	}
 	// 3.2 find all items of belongType, and remove p, g, g3 rules for item, current only support app
-	var rulesDeleted = false
+	var rulesDeleted bool
 	switch delDefaultRole.BelongType {
 	case pmsplugin.PrefixInstance:
 		instances, err := db.InstanceList(egorm.Conds{})

@@ -54,7 +54,7 @@ const AssociatLogLibraries = (props: { onGetList: any }) => {
   return (
     <Modal
       title={i18n.formatMessage({ id: "datasource.tooltip.icon.link" })}
-      visible={isAssociatedLinkLogLibrary}
+      open={isAssociatedLinkLogLibrary}
       onCancel={() => onChangeIsAssociatedLinkLogLibrary(false)}
       onOk={() => editLinkFormRef.current?.submit()}
       width={600}

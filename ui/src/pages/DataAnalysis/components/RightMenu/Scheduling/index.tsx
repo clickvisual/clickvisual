@@ -1,21 +1,21 @@
-import styles from "./index.less";
-import CustomCollapse from "./CustomCollapse";
+import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
 import { Button, Drawer, Form, FormInstance, message, Space } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useModel, useIntl } from "umi";
-import { SecondaryEnums } from "@/pages/DataAnalysis/service/enums";
+import { useIntl, useModel } from "umi";
 import BasisConfig from "./BasisConfig";
+import CustomCollapse from "./CustomCollapse";
+import styles from "./index.less";
 import Parameter from "./Parameter";
 import TimeProperty from "./TimeProperty";
 
 const Scheduling = (props: {
-  visible: boolean;
+  open: boolean;
   setVisible: (flag: boolean) => void;
   node: any;
   currentPaneActiveKey: string;
 }) => {
   const i18n = useIntl();
-  const { visible, setVisible, node, currentPaneActiveKey } = props;
+  const { open, setVisible, node, currentPaneActiveKey } = props;
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const {
     doGetCrontabInfo,
@@ -142,7 +142,7 @@ const Scheduling = (props: {
 
   useEffect(() => {
     if (node?.id != currentPaneActiveKey) return;
-    if (visible && node) {
+    if (open && node) {
       doGetCrontabInfo.run(node.id).then((res: any) => {
         if (res?.code == 0) {
           const { data } = res;
@@ -175,7 +175,7 @@ const Scheduling = (props: {
       return;
     }
     CrontabFormRef.current?.resetFields();
-  }, [visible, node?.id, currentPaneActiveKey]);
+  }, [open, node?.id, currentPaneActiveKey]);
 
   return (
     <Drawer
@@ -184,7 +184,7 @@ const Scheduling = (props: {
       })}
       placement="right"
       onClose={onClose}
-      visible={visible}
+      open={open}
       width={"50vw"}
       className={styles.drawer}
       extra={
@@ -225,11 +225,7 @@ const Scheduling = (props: {
             id: "bigdata.components.RightMenu.Scheduling.basicConfig",
           })}
         >
-          <BasisConfig
-            infoList={infoList}
-            userList={userList}
-            visible={visible}
-          />
+          <BasisConfig infoList={infoList} userList={userList} open={open} />
         </CustomCollapse>
         {/* 参数 */}
         {(node?.secondary == SecondaryEnums.database ||

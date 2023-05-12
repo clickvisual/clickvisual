@@ -1,12 +1,12 @@
-import styles from "./index.less";
-import { Button, message, Space, Tooltip } from "antd";
+import IconFont from "@/components/IconFont";
+import ModalAddQueryCriteria from "@/pages/DataLogs/components/SearchBar/ModalAddQueryCriteria";
 import SearchBarToolTip from "@/pages/DataLogs/components/SearchBar/SearchBarToolTip";
 import { QuestionCircleFilled } from "@ant-design/icons";
-import ModalAddQueryCriteria from "@/pages/DataLogs/components/SearchBar/ModalAddQueryCriteria";
+import { Button, message, Space, Tooltip } from "antd";
 import { useState } from "react";
 import { useIntl, useModel } from "umi";
-import IconFont from "@/components/IconFont";
 import CreatCollectingHistorical from "./CreatCollectingHistorical";
+import styles from "./index.less";
 
 const SearchBarSuffixIcon = () => {
   const [visible, setVisible] = useState<boolean>(false);
@@ -51,11 +51,11 @@ const SearchBarSuffixIcon = () => {
         />
       </Tooltip>
       <ModalAddQueryCriteria
-        visible={visible}
+        open={visible}
         onCancel={() => setVisible(false)}
       />
       <CreatCollectingHistorical
-        visible={visibleCollectingHistorical}
+        open={visibleCollectingHistorical}
         onChangeVisible={() => setVisibleCollectingHistorical(false)}
       />
     </Space>

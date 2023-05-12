@@ -1,13 +1,13 @@
-import publishStyles from "./style.less";
+import { useModel } from "@umijs/max";
 import { Form, Modal, Select, Tag } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
 import moment from "moment";
 import { useEffect, useState } from "react";
+import publishStyles from "./style.less";
 
-import DarkButton from "@/pages/Configure/components/CustomButton/DarkButton";
 import { FIRST_PAGE } from "@/config/config";
-import { HistoryConfigurationResponse } from "@/services/configure";
+import DarkButton from "@/pages/Configure/components/CustomButton/DarkButton";
 import RealtimeDiff from "@/pages/Configure/components/Menu/Publish/RealtimeDiff";
+import { HistoryConfigurationResponse } from "@/services/configure";
 import classNames from "classnames";
 import { useIntl } from "umi";
 
@@ -91,7 +91,7 @@ const Publish = () => {
               publishStyles.formSelectInput,
               publishStyles.darkSelect
             )}
-            dropdownClassName={publishStyles.darkSelectDropdown}
+            popupClassName={publishStyles.darkSelectDropdown}
             placeholder={`${i18n.formatMessage({
               id: "config.publish.form.placeholder.configure",
             })}`}
@@ -117,7 +117,7 @@ const Publish = () => {
               publishStyles.formSelectInput,
               publishStyles.darkSelect
             )}
-            dropdownClassName={publishStyles.darkSelectDropdown}
+            popupClassName={publishStyles.darkSelectDropdown}
             optionLabelProp="label"
           >
             {doGetHistoryConfiguration.data?.map((config) => (
@@ -234,7 +234,7 @@ const Publish = () => {
       </Form>
 
       <RealtimeDiff
-        visible={visibleDiff}
+        open={visibleDiff}
         configId={selectedVersion?.configurationId as number}
         version={selectedVersion?.version as string}
         onCancel={() => {

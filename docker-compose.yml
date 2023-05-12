@@ -101,7 +101,7 @@ services:
     restart: always
     command: [ '--port 6380' ]
   clickhouse:
-    image: clickhouse/clickhouse-server:latest
+    image: clickhouse/clickhouse-server:23.4.1
     networks:
       - clickvisual-net
     environment:
@@ -124,7 +124,7 @@ services:
   alertmanager:
     networks:
       - clickvisual-net
-    image: prom/alertmanager:latest
+    image: prom/alertmanager:v0.25.0
     volumes:
       - ./data/all-in-one/alertmanager/alertmanager.yaml:/etc/alertmanager/config/alertmanager.yaml
     command: [
@@ -139,26 +139,10 @@ services:
       - 9093
     ports:
       - 19005:9093
-  prom2click:
-    networks:
-      - clickvisual-net
-    image: fhalim/prom2click:latest
-    command:
-      - '-ch.dsn=tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&write_timeout=10&debug=true'
-      - '-ch.db=metrics'
-      - '-ch.table=samples'
-    expose:
-      - 9201
-    ports:
-      - 19006:9201
-    depends_on:
-      - clickhouse
-    links:
-      - clickhouse
   prometheus:
     networks:
       - clickvisual-net
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.37.7
     command:
       - '--web.enable-lifecycle'
       - '--storage.tsdb.retention=6h'
@@ -177,15 +161,18 @@ services:
       - prom2click
     ports:
       - 19004:9090
-  api:
+  clickvisual:
     image: clickvisual/clickvisual:master
     networks:
       - clickvisual-net
     environment:
       EGO_CONFIG_PATH: /clickvisual/config/docker.toml
       EGO_LOG_WRITER: stderr
+    expose:
+      - 9201
     ports:
       - "19001:19001"
+      - "19006:19006"
     depends_on:
       - mysql
       - redis

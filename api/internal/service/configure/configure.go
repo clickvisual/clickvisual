@@ -30,8 +30,6 @@ type configure struct{}
 // InitConfigure ...
 func InitConfigure() {
 	Configure = &configure{}
-	// go Configure.clearLockPeriodically()
-	return
 }
 
 func (s *configure) configMetadataKey(filename string) string {

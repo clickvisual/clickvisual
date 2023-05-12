@@ -12,10 +12,10 @@ const LinkLogInfo = (props: { log: any }) => {
   const depth = useMemo(() => {
     let defaultHierarchy = 1;
 
-    const aa = (log: any, hierarchy: number) => {
+    const handleDealWith = (log: any, hierarchy: number) => {
       log.map((item: any) => {
         if (item?.children && item?.children.length > 0) {
-          aa(item.children, hierarchy + 1);
+          handleDealWith(item.children, hierarchy + 1);
         } else {
           if (defaultHierarchy < hierarchy) {
             defaultHierarchy = hierarchy;
@@ -23,7 +23,7 @@ const LinkLogInfo = (props: { log: any }) => {
         }
       });
     };
-    aa([log], defaultHierarchy);
+    handleDealWith([log], defaultHierarchy);
 
     return defaultHierarchy;
   }, [log]);

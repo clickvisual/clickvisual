@@ -1,17 +1,15 @@
-import rawLogTabsStyles from "@/pages/DataLogs/components/RawLogTabs/index.less";
-import { Button, Empty, Tabs } from "antd";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
 import QueryResult from "@/pages/DataLogs/components/QueryResult";
-import { useModel } from "@@/plugin-model/useModel";
-import lodash from "lodash";
-import { useIntl } from "umi";
+import rawLogTabsStyles from "@/pages/DataLogs/components/RawLogTabs/index.less";
+import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 import useUrlState from "@ahooksjs/use-url-state";
-import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
-import { useEffect } from "react";
 import { FullscreenOutlined } from "@ant-design/icons";
-
-const { TabPane } = Tabs;
+import { useModel } from "@umijs/max";
+import { Button, Empty, Tabs } from "antd";
+import lodash from "lodash";
+import { useEffect, useMemo } from "react";
+import { useIntl } from "umi";
 
 const RawLogTabs = () => {
   const [_, setUrlState] = useUrlState();
@@ -116,6 +114,28 @@ const RawLogTabs = () => {
     };
   }, []);
 
+  const items = useMemo(() => {
+    let arr: any[] = [];
+    paneKeys.map((item) => {
+      const pane = logPanes[item];
+      if (pane) {
+        arr.push({
+          label: pane.pane,
+          key: pane.paneId,
+          forceRender: true,
+          style: { height: "100%" },
+          children:
+            pane.paneId === currentLogLibrary?.id.toString() ? (
+              <QueryResult tid={pane.paneId} />
+            ) : (
+              <></>
+            ),
+        });
+      }
+    });
+    return arr;
+  }, [paneKeys, logPanes, currentLogLibrary?.id]);
+
   // TODO: Tabs性能待优化
   return (
     <div className={rawLogTabsStyles.rawLogTabsMain}>
@@ -129,7 +149,8 @@ const RawLogTabs = () => {
           onEdit={onEdit}
           destroyInactiveTabPane
           animated={false}
-          style={{ width: `calc(100vw - ${83 + resizeMenuWidth}px)` }}
+          style={{ width: `calc(100vw - ${110 + resizeMenuWidth}px)` }}
+          items={items}
           tabBarExtraContent={
             <Button
               type="link"
@@ -137,20 +158,7 @@ const RawLogTabs = () => {
               onClick={handleFullScreen}
             />
           }
-        >
-          {paneKeys.map((item) => {
-            const pane = logPanes[item];
-            return (
-              pane && (
-                <TabPane key={pane.paneId} tab={pane.pane} forceRender>
-                  {pane.paneId === currentLogLibrary?.id.toString() ? (
-                    <QueryResult tid={pane.paneId} />
-                  ) : null}
-                </TabPane>
-              )
-            );
-          })}
-        </Tabs>
+        />
       ) : (
         <Empty
           style={{ flex: 1 }}

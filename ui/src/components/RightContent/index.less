@@ -1,5 +1,3 @@
-@import '~antd/es/style/themes/default.less';
-
 @pro-header-hover-bg: rgba(0, 0, 0, 0.025);
 
 .menu {
@@ -43,7 +41,7 @@
   .account {
     .avatar {
       margin-right: 8px;
-      color: @primary-color;
+      // color: @primary-color;
       vertical-align: top;
       background: hsla(0, 0%, 65%, 0.3);
     }
@@ -57,28 +55,6 @@
     }
     &:global(.opened) {
       background: #252a3d;
-    }
-  }
-}
-
-@media only screen and (max-width: @screen-md) {
-  :global(.ant-divider-vertical) {
-    vertical-align: unset;
-  }
-  .name {
-    display: none;
-  }
-  .right {
-    position: absolute;
-    top: 0;
-    right: 12px;
-    .account {
-      .avatar {
-        margin-right: 0;
-      }
-    }
-    .search {
-      display: none;
     }
   }
 }

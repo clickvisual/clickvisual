@@ -15,8 +15,8 @@ import (
 
 func TestSettingUpdate(t *testing.T) {
 	config.InitCfg()
-	invoker.Init()
-	service.Init()
+	_ = invoker.Init()
+	_ = service.Init()
 	objTest1 := gintest.Init()
 	// prometheus file
 	objTest1.DELETE(core.Handle(TableDelete), func(m *gintest.Mock) error {
@@ -26,5 +26,5 @@ func TestSettingUpdate(t *testing.T) {
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil
 	}, gintest.WithRoutePath("/tables/:id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
-	objTest1.Run()
+	_ = objTest1.Run()
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
-	"github.com/clickvisual/clickvisual/api/internal/service/pandas/source"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
@@ -116,26 +116,26 @@ func (c *MySQL2ClickHouse) Stop() error {
 	return nil
 }
 
-// materializedView ...
-func (c *MySQL2ClickHouse) materializedView(ins db.BaseInstance) (string, error) {
-	viewClusterInfo := materialView(c.sc)
-	if ins.Mode == inquiry.ModeCluster {
-		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, c.sc.Cluster())
-	}
-	// Deletes the materialized view from the last execution
-	if err := dropMaterialView(ins, c.nodeId, c.sc); err != nil {
-		return "", err
-	}
-	sourceTableName := fmt.Sprintf("`%s`.`%s`", mysqlEngineDatabaseName(c.sc), c.sc.Source.Table)
-	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s Engine=Memory POPULATE AS SELECT %s FROM %s WHERE %s",
-		viewClusterInfo, mapping(c.sc.Mapping), sourceTableName, where(c.sc.Source.SourceFilter))
-	elog.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
-	c.involvedSQLs["m2cMaterialView"] = completeSQL
-	return viewClusterInfo, source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
-	}).Exec(completeSQL)
-}
+// // materializedView ...
+// func (c *MySQL2ClickHouse) materializedView(ins db.BaseInstance) (string, error) {
+// 	viewClusterInfo := materialView(c.sc)
+// 	if ins.Mode == inquiry.ModeCluster {
+// 		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, c.sc.Cluster())
+// 	}
+// 	// Deletes the materialized view from the last execution
+// 	if err := dropMaterialView(ins, c.nodeId, c.sc); err != nil {
+// 		return "", err
+// 	}
+// 	sourceTableName := fmt.Sprintf("`%s`.`%s`", mysqlEngineDatabaseName(c.sc), c.sc.Source.Table)
+// 	completeSQL := fmt.Sprintf("CREATE MATERIALIZED VIEW %s Engine=Memory POPULATE AS SELECT %s FROM %s WHERE %s",
+// 		viewClusterInfo, mapping(c.sc.Mapping), sourceTableName, where(c.sc.Source.SourceFilter))
+// 	elog.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
+// 	c.involvedSQLs["m2cMaterialView"] = completeSQL
+// 	return viewClusterInfo, source.Instantiate(&source.Source{
+// 		DSN: ins.Dsn,
+// 		Typ: db.SourceTypClickHouse,
+// 	}).Exec(completeSQL)
+// }
 
 // insert into `local_mex_2`.`test_0701` select * from `local_mex_2`.`clickvisualrtsync_test_0701_view`
 func (c *MySQL2ClickHouse) insert(ins db.BaseInstance) error {

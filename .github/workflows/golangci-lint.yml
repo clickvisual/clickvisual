@@ -5,6 +5,7 @@ on:
       - v*
     branches:
       - master
+      - main
       - 'feature/docker-ci'
 
   pull_request:
@@ -25,7 +26,7 @@ jobs:
           version: v1.45.2
 
           # Optional: working directory, useful for monorepos
-#          working-directory: ./
+          #          working-directory: ./
 
           # Optional: golangci-lint command line arguments.
           args: --timeout=10m --print-issued-lines=true --print-linter-name=true --uniq-by-line=true

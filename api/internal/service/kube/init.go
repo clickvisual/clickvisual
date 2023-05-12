@@ -51,7 +51,6 @@ func InitClusterManager() {
 		sc.sync()
 	})
 	ClusterManager = sc
-	return
 }
 
 func (s *clusterManager) sync() {

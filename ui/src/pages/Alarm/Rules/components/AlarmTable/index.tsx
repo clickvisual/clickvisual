@@ -1,25 +1,25 @@
-import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import {Divider, message, Space, Table, Tooltip} from "antd";
-import {ColumnsType} from "antd/es/table";
-import {useIntl} from "umi";
-import {useModel} from "@@/plugin-model/useModel";
-import {useEffect} from "react";
-import {AlarmsResponse, AlarmType} from "@/services/alarm";
-import IconFont from "@/components/IconFont";
-import {EditOutlined, FileTextOutlined} from "@ant-design/icons";
-import deletedModal from "@/components/DeletedModal";
 import BreadCrumbs from "@/components/BreadCrumbs";
-import classNames from "classnames";
-import {useDebounceFn} from "ahooks";
-import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
-import {ALARM_HISTORY_PATH} from "@/models/alarms/useAlarmHistory";
-import useUrlState from "@ahooksjs/use-url-state";
+import deletedModal from "@/components/DeletedModal";
+import IconFont from "@/components/IconFont";
 import useTimeUnits from "@/hooks/useTimeUnits";
+import { ALARM_HISTORY_PATH } from "@/models/alarms/useAlarmHistory";
+import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
+import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
+import { AlarmsResponse, AlarmType } from "@/services/alarm";
+import useUrlState from "@ahooksjs/use-url-state";
+import { EditOutlined, FileTextOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Divider, message, Space, Table, Tooltip } from "antd";
+import { ColumnsType } from "antd/es/table";
+import classNames from "classnames";
+import { useEffect } from "react";
+import { useIntl } from "umi";
 
-import moment from "moment";
-import {DEBOUNCE_WAIT} from "@/config/config";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import { urlStateType } from "@/pages/Alarm/Rules/components/Operations";
 import lodash from "lodash";
-import {urlStateType} from "@/pages/Alarm/Rules/components/Operations";
+import moment from "moment";
 
 const AlarmTable = () => {
   const [urlState] = useUrlState<urlStateType>();

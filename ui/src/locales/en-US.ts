@@ -1,4 +1,6 @@
 export default {
+  "global.database.add": "Create/Access Database",
+
   operation: "Operation",
   create: "Create",
   add: "Add",
@@ -8,7 +10,7 @@ export default {
   submit: "Submit",
   name: "Name",
   description: "Description",
-  DescAsAlias: "Alias",
+  descAsAlias: "Alias",
   loading: "loading",
   loadingDone: "Loading successful",
   noData: "no data",
@@ -81,9 +83,9 @@ export default {
   "menu.configure": "Config",
   "menu.log": "Logs",
   "menu.alarm": "Alarm",
-  "menu.alarm.rules": "Alarm list",
-  "menu.alarm.notifications": "Notification Channel",
-  "menu.alarm.environment": "Configuration anagement",
+  "menu.themeLayout.alarm.rules": "Alarm list",
+  "menu.themeLayout.alarm.notifications": "Notification Channel",
+  "menu.themeLayout.alarm.environment": "Configuration anagement",
   "menu.systemSettings": "Setting",
   "menu.systemSettings.database": "Instances",
   "menu.systemSettings.cluster": "Cluster",
@@ -94,6 +96,18 @@ export default {
   "menu.bigdata": "Data Analysis",
   "menu.bigdata.realtime": "Real-time Industry",
   "menu.bigdata.temporaryQuery": "Temporary Query",
+
+  //
+  "menu.themeLayout": "themeLayout",
+  "menu.themeLayout.configure": "Config",
+  "menu.themeLayout.alarm": "Alarm",
+  "menu.themeLayout.log": "Logs",
+  "menu.themeLayout.bigdata": "Data Analysis",
+  //
+
+  "menu.alarm.rules": "Alarm list",
+  "menu.alarm.notifications": "Notification Channel",
+  "menu.alarm.environment": "Configuration anagement",
 
   // user
   "login.header": "Welcome to ClickVisual",
@@ -125,7 +139,7 @@ export default {
   // Instance Management
   "instance.role.tip": "Modify the permissions",
   "instance.button.add": "Add instance",
-  "instance.instanceName": "Instance Name",
+  "instance.name": "Instance Name",
   "instance.datasource": "Datasource",
   "instance.storagePah": "Storage Path",
   "instance.delete.confirmTip": "Confirm deleting instance: {name} ?",
@@ -159,15 +173,16 @@ export default {
   "instance.form.test.fail": "Test to fail",
   "instance.form.test.tip":
     "Please test the connection before submitting the form",
-  "instance.operation.addDatabase": "Adding a database",
   "instance.success.created": "Created instance succeeded",
   "instance.success.updated": "Updated instance succeeded",
   "instance.success.deleted": "Deleted instance succeeded",
 
   // Database Management
-  "database.form.title": "Create Database",
-  "database.form.label.name": "Database Name",
-  "database.form.placeholder.name": "Please enter a database name",
+  "database.form.label.name": "Database",
+  "database.form.placeholder.name": "Please enter database name",
+  "database.form.select.placeholder.name": "Please select database",
+  "database.created.datalogs": "Create a database",
+  "database.access.datalogs": "Access an existing database",
   "database.form.reg.name":
     "Support only _, lowercase letters or Numbers, and begin with a letter",
   "database.success.created": "Created database succeeded",
@@ -335,7 +350,7 @@ export default {
     "Please enter the time resolution field Type",
   "datasource.logLibrary.from.newLogLibrary.timeFieldType":
     "Time Resolution Field Type",
-  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Analysis Field",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "Base field",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "seconds",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond":
     "millisecond",
@@ -348,7 +363,7 @@ export default {
   "datasource.logLibrary.usingSystemTime": "Using system time",
   "datasource.logLibrary.placeholder.type": "Please select a table type",
   "datasource.logLibrary.placeholder.days": "Please enter the log to save days",
-  "datasource.logLibrary.placeholder.brokers": "kafka:9092",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9092,kafka:9093,kafka:9094",
   "datasource.logLibrary.placeholder.topics":
     "Please type Topics with numbers, letters, or hyphens",
   "datasource.logLibrary.placeholder.consumers": "Please enter Consumers",
@@ -493,14 +508,13 @@ export default {
   "log.search.quickSearch.value.placeholder": "Please enter a value",
   "log.search.quickSearch.fill": "Fill",
 
-  "log.index.header.title": "Analysis",
   "log.index.search.placeholder": "Search field",
   "log.index.empty": "Temporarily not create fields",
   "log.index.item.empty": "No Data",
   "log.index.manage": "Index Management",
   "log.index.manage.desc": "Index Management",
   "log.index.help":
-    "Fields with an orange background color are system fields or index fields, and fields with a gray background color are fields that are not indexed. Index statistics take effect only for data that has been indexed",
+    "The background color of the field is orange. Statistics can be calculated.",
   "log.index.manage.table.header.indexName": "Field Name",
   "log.index.manage.table.header.query": "Enable Query",
   "log.index.manage.table.header.indexType": "Field Type",
@@ -512,6 +526,8 @@ export default {
   "log.index.manage.button.deleted": "Drop Field",
   "log.index.manage.button.created": "Created Field",
   "log.index.manage.message.save.success": "Save success",
+  "log.index.baseField": "Base field",
+  "log.index.logField": "Log field",
 
   "log.highChart.tooltip.startTime": "start time: ",
   "log.highChart.tooltip.endTime": "end time: ",
@@ -576,6 +592,7 @@ export default {
   "alarm.rules.table.logLibrary": "Associated log library",
   "alarm.rules.form.title": "Alarm Monitoring Rule",
   "alarm.rules.form.alarmName": "Alarm Name",
+  "alarm.rules.form.isDisableResolve": "Disable Resolve Message",
   "alarm.rules.form.description": "Alarm Description",
   "alarm.rules.form.serviceName": "Service Name",
   "alarm.rules.form.mobiles": "mobile phone numbers",
@@ -584,7 +601,8 @@ export default {
   "alarm.rules.form.placeholder.alarmId": "Please enter the alarm Id",
   "alarm.rules.form.placeholder.level": "Please select alarm level",
   "alarm.rules.form.placeholder.serviceName": "Please input service name",
-  "alarm.rules.form.placeholder.mobiles":"Please input phone number, multiple use ',' to split",
+  "alarm.rules.form.placeholder.mobiles":
+    "Please input phone number, multiple use ',' to split",
   "alarm.rules.form.placeholder.description":
     "Please enter an alarm description",
   "alarm.rules.form.placeholder.channelIds":
@@ -644,6 +662,7 @@ export default {
   "alarm.rules.history.column.ctime": "Triggering time",
   "alarm.rules.history.isPushed.true": "Yes",
   "alarm.rules.history.isPushed.false": "No",
+  "alarm.rules.history.isPushed.zero": "Repeat alarm - Not pushed",
   "alarm.rules.history.title.total": "The total number of alarm",
   "alarm.rules.history.title.sucPublish": "Times of successful push",
 
@@ -688,14 +707,15 @@ export default {
   "alarm.notify.url.placeholder": "Please enter the url",
 
   // alarm -> environment
-  "alarm.environment.RuleStoreType.notOpen": "Did not open",
-  "alarm.environment.form.notOpen": "Did not open",
-  "alarm.environment.RuleStoreType.file": "File",
-  "alarm.environment.form.title": "Editing the Alarm Environment",
-  "alarm.environment.form.ruleStoreType": "The alarm types",
-  "alarm.environment.form.isPrometheusOK": "Prometheus state",
-  "alarm.environment.form.isAlertManagerOK": "AlertManager state",
-  "alarm.environment.form.isMetricsSamplesOk": "The metrics. Samples status",
+  "themeLayout.alarm.environment.RuleStoreType.notOpen": "Did not open",
+  "themeLayout.alarm.environment.form.notOpen": "Did not open",
+  "themeLayout.alarm.environment.RuleStoreType.file": "File",
+  "themeLayout.alarm.environment.form.title": "Editing the Alarm Environment",
+  "themeLayout.alarm.environment.form.ruleStoreType": "The alarm types",
+  "themeLayout.alarm.environment.form.isPrometheusOK": "Prometheus state",
+  "themeLayout.alarm.environment.form.isAlertManagerOK": "AlertManager state",
+  "themeLayout.alarm.environment.form.isMetricsSamplesOk":
+    "The metrics. Samples status",
 
   // install
   "install.init.text.databaseInit":
@@ -830,6 +850,9 @@ export default {
   "sys.user.deleteName": "Delete user",
   "sys.user.deleteNameTips": "Are you sure to delete user '{user}'?",
   "sys.user.deleteName.success": "Deleting a User Succeeded",
+  "sys.user.table.phone": "Mobile phone number",
+  "sys.user.form.eidtUser": "Edit user",
+  "sys.user.form.editSuccess": "Edit successfully",
 
   // hooks->role
   "hooks.role.create.ing": "Being added",

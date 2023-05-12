@@ -12,6 +12,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/kube"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/shorturl"
 	"github.com/clickvisual/clickvisual/api/internal/service/user"
 	"github.com/clickvisual/clickvisual/api/pkg/preempt"
 )
@@ -46,7 +47,7 @@ func Init() error {
 		Dependence.Sync()
 	})
 	xgo.Go(func() {
-		ShortURLClean()
+		shorturl.Clean()
 	})
 
 	Node = NewNode()

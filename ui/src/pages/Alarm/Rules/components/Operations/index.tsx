@@ -1,14 +1,14 @@
-import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
-import { Button, Input, Select, Space, Tooltip } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect } from "react";
-import { useIntl } from "umi";
-import { PlusOutlined, RedoOutlined, SearchOutlined } from "@ant-design/icons";
-import { useDebounceFn } from "ahooks";
 import { DEBOUNCE_WAIT } from "@/config/config";
 import useAlarmEnums from "@/pages/Alarm/hooks/useAlarmEnums";
-import useUrlState from "@ahooksjs/use-url-state";
+import alarmStyles from "@/pages/Alarm/Rules/styles/index.less";
 import { AlarmsResponse } from "@/services/alarm";
+import useUrlState from "@ahooksjs/use-url-state";
+import { PlusOutlined, RedoOutlined, SearchOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Input, Select, Space, Tooltip } from "antd";
+import { useEffect, useMemo } from "react";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 
@@ -97,6 +97,78 @@ const Operations = () => {
     });
   }, []);
 
+  const instanceOpt = useMemo(() => {
+    let arr: any[] = [];
+
+    instanceList.map((item) =>
+      arr.push({
+        value: item.id as number,
+        label: (
+          <Tooltip title={item.name + (item.desc ? `(${item.desc})` : "")}>
+            {item.name}
+            {item.desc ? `(${item.desc})` : ""}
+          </Tooltip>
+        ),
+      })
+    );
+
+    return arr;
+  }, [instanceList]);
+
+  const databaseOpt = useMemo(() => {
+    let arr: any[] = [];
+    if (databaseList.length > 0 && operations.selectIid) {
+      databaseList
+        .filter((item) => item.iid === operations.selectIid)
+        .map((item) => {
+          arr.push({
+            value: item.id,
+            label: (
+              <Tooltip title={item.name + (item.desc ? `(${item.desc})` : "")}>
+                {item.name}
+                {item.desc ? `(${item.desc})` : ""}
+              </Tooltip>
+            ),
+          });
+        });
+    }
+    return arr;
+  }, [databaseList, operations?.selectIid]);
+
+  const tableOpt = useMemo(() => {
+    let arr: any[] = [];
+    if (tableList.length > 0) {
+      tableList.map((item) => {
+        arr.push({
+          value: item.id,
+          label: (
+            <Tooltip
+              title={item.tableName + (item.desc ? `(${item.desc})` : "")}
+            >
+              {item.tableName}
+              {item.desc ? `(${item.desc})` : ""}
+            </Tooltip>
+          ),
+          data_label: item.tableName + (item?.desc || ""),
+        });
+      });
+    }
+
+    return arr;
+  }, [tableList]);
+
+  const AlarmStatusOpt = useMemo(() => {
+    let arr: any[] = [];
+
+    AlarmStatus.map((item) => {
+      arr.push({
+        value: item.status,
+        label: item.label,
+      });
+    });
+    return arr;
+  }, [AlarmStatus]);
+
   return (
     <div className={alarmStyles.operationMain}>
       <Space>
@@ -125,19 +197,8 @@ const Operations = () => {
           placeholder={`${i18n.formatMessage({
             id: "datasource.draw.selected",
           })}`}
-        >
-          {instanceList.length > 0 &&
-            instanceList.map((item) => (
-              <Option key={item.id} value={item.id as number}>
-                <Tooltip
-                  title={item.name + (item.desc ? `(${item.desc})` : "")}
-                >
-                  {item.name}
-                  {item.desc ? `(${item.desc})` : ""}
-                </Tooltip>
-              </Option>
-            ))}
-        </Select>
+          options={instanceOpt}
+        />
         <Select
           disabled={!operations.selectIid}
           showSearch
@@ -158,27 +219,18 @@ const Operations = () => {
           placeholder={`${i18n.formatMessage({
             id: "alarm.rules.selected.placeholder.database",
           })}`}
-        >
-          {databaseList.length > 0 &&
-            operations.selectIid &&
-            databaseList
-              .filter((item) => item.iid === operations.selectIid)
-              .map((item) => (
-                <Option key={item.id} value={item.id}>
-                  <Tooltip
-                    title={item.name + (item.desc ? `(${item.desc})` : "")}
-                  >
-                    {item.name}
-                    {item.desc ? `(${item.desc})` : ""}
-                  </Tooltip>
-                </Option>
-              ))}
-        </Select>
+          options={databaseOpt}
+        />
         <Select
           disabled={!operations.selectDid}
           showSearch
           allowClear
           value={operations.selectTid}
+          filterOption={(input, option) =>
+            (option?.data_label ?? "")
+              .toLowerCase()
+              .includes(input.toLowerCase())
+          }
           onChange={(id) => {
             operations.onChangeSelectTid(id);
             handleSelect({ ...operations.searchQuery, tid: id });
@@ -188,19 +240,8 @@ const Operations = () => {
           placeholder={`${i18n.formatMessage({
             id: "alarm.rules.selected.placeholder.logLibrary",
           })}`}
-        >
-          {tableList.length > 0 &&
-            tableList.map((item) => (
-              <Option key={item.id} value={item.id}>
-                <Tooltip
-                  title={item.tableName + (item.desc ? `(${item.desc})` : "")}
-                >
-                  {item.tableName}
-                  {item.desc ? `(${item.desc})` : ""}
-                </Tooltip>
-              </Option>
-            ))}
-        </Select>
+          options={tableOpt}
+        />
         <Select
           allowClear
           value={operations.statusId}
@@ -213,13 +254,8 @@ const Operations = () => {
             handleSelect({ ...operations.searchQuery, status: id });
             urlChange("status", id);
           }}
-        >
-          {AlarmStatus.map((item) => (
-            <Option key={item.status} value={item.status}>
-              {item.label}
-            </Option>
-          ))}
-        </Select>
+          options={AlarmStatusOpt}
+        />
         <Button icon={<PlusOutlined />} type="primary" onClick={handleOpenDraw}>
           {i18n.formatMessage({ id: "alarm.rules.button.created" })}
         </Button>

@@ -10,7 +10,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/pusher"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
@@ -31,6 +31,10 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 		return
 	}
 	notifStatus := notification.GetStatus() // 当前需要推送的状态
+	if alarm.IsDisableResolve == 1 && notifStatus == db.AlarmStatusNormal {
+		tx.Commit()
+		return
+	}
 	// create history
 	filterId, _ := strconv.Atoi(filterIdStr)
 	alarmHistory := db.AlarmHistory{AlarmId: alarm.ID, FilterId: filterId, FilterStatus: notifStatus, IsPushed: db.PushedStatusRepeat}
@@ -52,7 +56,7 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 		tx.Rollback()
 		return err
 	}
-	if currentFiltersStatus == notifStatus {
+	if currentFiltersStatus == notifStatus && time.Now().Unix()-alarm.Utime < 300 {
 		// 此时有正在进行中的告警
 		elog.Info("PushAlertManagerRepeat", elog.Int("notifStatus", notifStatus), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		tx.Commit()
@@ -130,7 +134,7 @@ func (i *alert) getPartialLog(op inquiry.Operator, table *db.BaseTable, alarm *d
 		AlarmMode:     filter.Mode,
 		TimeField:     table.TimeField,
 		TimeFieldType: table.TimeFieldType,
-		ST:            time.Now().Add(-db.UnitMap[alarm.Unit].Duration - time.Minute).Unix(),
+		ST:            time.Now().Add(-alarm.GetInterval() - time.Minute).Unix(),
 		ET:            time.Now().Add(time.Minute).Unix(),
 		Page:          1,
 		PageSize:      1,

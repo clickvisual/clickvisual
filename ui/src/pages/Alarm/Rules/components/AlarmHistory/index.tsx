@@ -1,11 +1,11 @@
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useState } from "react";
-import { AlarmHistoryRequest, AlarmHistoryType } from "@/services/alarm";
-import HistoryTable from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryTable";
 import HistoryBoard from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryBorad";
 import HistoryOptions from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryOptions";
+import HistoryTable from "@/pages/Alarm/Rules/components/AlarmHistory/HistoryTable";
+import { AlarmHistoryRequest, AlarmHistoryType } from "@/services/alarm";
 import useUrlState from "@ahooksjs/use-url-state";
+import { useModel } from "@umijs/max";
 import { Card } from "antd";
+import { useEffect, useState } from "react";
 import { SelectLang } from "umi";
 import historyStyles from "./index.less";
 

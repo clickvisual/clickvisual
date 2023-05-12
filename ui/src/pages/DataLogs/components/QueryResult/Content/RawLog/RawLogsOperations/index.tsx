@@ -1,11 +1,11 @@
-import rawLogsOperationsStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/index.less";
-import { Pagination } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
 import { FIRST_PAGE } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
+import rawLogsOperationsStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/index.less";
 import HistogramSwitch from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft";
+import { useModel } from "@umijs/max";
+import { Pagination } from "antd";
 import { useMemo } from "react";
+import { useIntl } from "umi";
 
 const RawLogsOperations = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {

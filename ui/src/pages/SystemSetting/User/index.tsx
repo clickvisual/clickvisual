@@ -14,6 +14,7 @@ export interface userListType {
   nickname: string;
   uid: number;
   username: string;
+  phone: string;
 }
 
 interface currentPaginationType {

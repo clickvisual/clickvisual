@@ -1,9 +1,9 @@
 import historyStyles from "@/pages/Alarm/Rules/components/AlarmHistory/index.less";
+import { AlarmHistoryRequest, AlarmHistoryType } from "@/services/alarm";
+import { useModel } from "@umijs/max";
 import { Table } from "antd";
 import { ColumnsType } from "antd/es/table";
 import moment from "moment";
-import { useModel } from "@@/plugin-model/useModel";
-import { AlarmHistoryRequest, AlarmHistoryType } from "@/services/alarm";
 import { useIntl } from "umi";
 
 type HistoryTableProps = {
@@ -27,6 +27,14 @@ const HistoryTable = ({ dataList, loadList }: HistoryTableProps) => {
       align: "center",
       render: (value) => {
         switch (value) {
+          case 0:
+            return (
+              <span>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.zero",
+                })}
+              </span>
+            );
           case 1:
             return (
               <span>

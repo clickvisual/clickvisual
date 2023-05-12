@@ -1,13 +1,13 @@
-import { Avatar, Divider, List } from "antd";
-import { useEffect } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import InfiniteScroll from "react-infinite-scroll-component";
-import eventStyles from "@/pages/SystemSetting/Events/index.less";
 import styles from "@/components/RightContent/index.less";
-import { UserOutlined } from "@ant-design/icons";
 import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
+import eventStyles from "@/pages/SystemSetting/Events/index.less";
+import { UserOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Avatar, Divider, List } from "antd";
+import dayjs from "dayjs";
+import { useEffect } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
 import { useIntl } from "umi";
-import moment from "moment";
 
 type EventListProps = {
   loading: boolean;
@@ -58,7 +58,7 @@ const EventList = ({ loading, data, loadList }: EventListProps) => {
                 title={item.userName}
                 description={
                   <span>
-                    {moment(item.ctime * 1000).format("YYYY-MM-DD HH:mm:ss")}{" "}
+                    {dayjs(item.ctime * 1000).format("YYYY-MM-DD HH:mm:ss")}{" "}
                     &nbsp;
                     {item.sourceName}&nbsp;-&gt;&nbsp;
                     {item.operationName}

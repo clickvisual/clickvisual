@@ -1,4 +1,7 @@
-import request from "@/utils/requestUtils/request";
+// import request from "@/utils/requestUtils/request";
+// TODO: 升级
+
+import { request } from "@umijs/max";
 
 export interface UserLoginType {
   username: string;

@@ -4,11 +4,11 @@ import { useEffect, useRef } from "react";
 import { useIntl, useModel } from "umi";
 
 const creatCollectingHistorical = (props: {
-  visible: boolean;
+  open: boolean;
   onChangeVisible: (flag: boolean) => void;
 }) => {
   const i18n = useIntl();
-  const { visible, onChangeVisible } = props;
+  const { open, onChangeVisible } = props;
   const collectingHistoricalRef = useRef<FormInstance>(null);
   const {
     keywordInput,
@@ -34,19 +34,19 @@ const creatCollectingHistorical = (props: {
   };
 
   useEffect(() => {
-    if (visible) {
+    if (open) {
       collectingHistoricalRef.current?.setFieldsValue({
         statement: keywordInput,
       });
     } else {
       collectingHistoricalRef.current?.resetFields();
     }
-  }, [visible]);
+  }, [open]);
 
   return (
     <Modal
       title={i18n.formatMessage({ id: "log.collectHistory.modal.title" })}
-      visible={visible}
+      open={open}
       onCancel={() => onChangeVisible(false)}
       onOk={() => collectingHistoricalRef.current?.submit()}
       width={800}

@@ -7,9 +7,9 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/ofsync"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/rtsync"
-	"github.com/clickvisual/clickvisual/api/internal/service/pandas/source"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"

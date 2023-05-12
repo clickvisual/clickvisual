@@ -1,4 +1,6 @@
 export default {
+  "global.database.add": "添加数据库",
+
   operation: "操作",
   create: "新建",
   add: "添加",
@@ -8,7 +10,7 @@ export default {
   submit: "提交",
   name: "名称",
   description: "描述",
-  DescAsAlias: "备注",
+  descAsAlias: "备注",
   loading: "正在加载",
   loadingDone: "加载成功",
   noData: "没有数据",
@@ -41,9 +43,9 @@ export default {
   count: "总量",
   status: "状态",
   dingTalk: "钉钉",
-  WeCom: "企业微信",
-  Feishu: "飞书",
-  Slack: "Slack",
+  weCom: "企业微信",
+  feishu: "飞书",
+  slack: "Slack",
 
   user: "用户",
   utime: "更新时间",
@@ -81,9 +83,9 @@ export default {
   "menu.configure": "配置",
   "menu.log": "日志",
   "menu.alarm": "报警",
-  "menu.alarm.rules": "报警列表",
-  "menu.alarm.notifications": "通知渠道",
-  "menu.alarm.environment": "配置管理",
+  "menu.themeLayout.alarm.rules": "报警列表",
+  "menu.themeLayout.alarm.notifications": "通知渠道",
+  "menu.themeLayout.alarm.environment": "环境检测",
   "menu.systemSettings": "系统管理",
   "menu.systemSettings.database": "实例管理",
   "menu.systemSettings.cluster": "集群管理",
@@ -94,6 +96,17 @@ export default {
   "menu.bigdata": "分析",
   "menu.bigdata.realtime": "实时业务",
   "menu.bigdata.temporaryQuery": "临时查询",
+
+  //
+  "menu.themeLayout": "themeLayout",
+  "menu.themeLayout.configure": "配置",
+  "menu.themeLayout.alarm": "报警",
+  "menu.themeLayout.log": "日志",
+  "menu.themeLayout.bigdata": "分析",
+
+  "menu.alarm.rules": "报警列表",
+  "menu.alarm.notifications": "通知渠道",
+  "menu.alarm.environment": "环境检测",
 
   // user
   "login.header": "欢迎来到 ClickVisual",
@@ -125,7 +138,7 @@ export default {
   // Instance Management
   "instance.role.tip": "修改权限",
   "instance.button.add": "新增实例",
-  "instance.instanceName": "实例名称",
+  "instance.name": "实例名称",
   "instance.datasource": "数据源",
   "instance.storagePah": "存储路径",
   "instance.delete.confirmTip": "确认删除实例：{name} 吗？",
@@ -158,15 +171,16 @@ export default {
   "instance.form.test.success": "测试成功",
   "instance.form.test.fail": "测试失败",
   "instance.form.test.tip": "请先进行连接测试后再提交表单",
-  "instance.operation.addDatabase": "新增数据库",
   "instance.success.created": "新增实例成功",
   "instance.success.updated": "更新实例成功",
   "instance.success.deleted": "删除实例成功",
 
   // Database Management
-  "database.form.title": "新增数据库",
-  "database.form.label.name": "数据库名称",
+  "database.form.label.name": "数据库",
   "database.form.placeholder.name": "请输入数据库名称",
+  "database.form.select.placeholder.name": "请选择数据库",
+  "database.created.datalogs": "创建数据库",
+  "database.access.datalogs": "接入已有数据库",
   "database.form.reg.name": "仅支持_、小写字母或数字，且以字母开头",
   "database.success.created": "新增数据库成功",
 
@@ -326,7 +340,7 @@ export default {
     "请选择时间戳类型",
   "datasource.logLibrary.from.newLogLibrary.timeType.seconds": "秒",
   "datasource.logLibrary.from.newLogLibrary.timeType.millisecond": "毫秒",
-  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "分析字段",
+  "datasource.logLibrary.from.newLogLibrary.fieldsInTheTable": "基础字段",
   "datasource.logLibrary.from.newLogLibrary.desc.placeholder": "请输入描述",
 
   "datasource.logLibrary.placeholder.tableName":
@@ -335,7 +349,7 @@ export default {
   "datasource.logLibrary.usingSystemTime": "使用系统时间",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
-  "datasource.logLibrary.placeholder.brokers": "kafka:9092",
+  "datasource.logLibrary.placeholder.brokers": "kafka:9092,kafka:9093,kafka:9094",
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持数字、英文字母或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
@@ -460,20 +474,18 @@ export default {
     "指定字段查询：Method='Get' and _raw_log_ like '%error%'",
   "log.search.help.content.directionsUse": "使用说明",
   "log.search.help.content.directionsUse.url":
-    "https://clickvisual.gocn.vip/clickvisual/03funcintro/instructions.html",
+    "https://clickvisual.gocn.vip/zh/clickvisual/03funcintro/instructions.html",
   "log.search.quickSearch.column.placeholder": "请选择 column",
   "log.search.quickSearch.operator.placeholder": "请选择 operator",
   "log.search.quickSearch.value.placeholder": "请输入 value",
   "log.search.quickSearch.fill": "填充",
 
-  "log.index.header.title": "分析",
   "log.index.search.placeholder": "搜索字段",
   "log.index.empty": "暂未创建字段",
   "log.index.item.empty": "暂无数据",
   "log.index.manage": "字段管理",
   "log.index.manage.desc": "字段管理",
-  "log.index.help":
-    "橙色背景色的字段是系统字段或用户字段，灰色背景色的字段是未设置字段，统计只对配置的字段生效",
+  "log.index.help": "该字段背景色为橙色，可进行统计计算。",
   "log.index.manage.table.header.indexName": "字段名称",
   "log.index.manage.table.header.query": "开启查询",
   "log.index.manage.table.header.indexType": "字段类型",
@@ -484,6 +496,8 @@ export default {
   "log.index.manage.button.deleted": "删除字段",
   "log.index.manage.button.created": "新增字段",
   "log.index.manage.message.save.success": "保存成功",
+  "log.index.baseField": "基础字段",
+  "log.index.logField": "日志字段",
 
   "log.highChart.tooltip.startTime": "开始时间：",
   "log.highChart.tooltip.endTime": "结束时间：",
@@ -543,6 +557,7 @@ export default {
   "alarm.rules.table.logLibrary": "关联日志库",
   "alarm.rules.form.title": "报警监控规则",
   "alarm.rules.form.alarmName": "报警名称",
+  "alarm.rules.form.isDisableResolve": "关闭恢复通知",
   "alarm.rules.form.level": "报警级别",
   "alarm.rules.form.serviceName": "服务名称",
   "alarm.rules.form.mobiles": "报警人手机号",
@@ -610,6 +625,7 @@ export default {
   "alarm.rules.history.column.ctime": "触发时间",
   "alarm.rules.history.isPushed.true": "是",
   "alarm.rules.history.isPushed.false": "否",
+  "alarm.rules.history.isPushed.zero": "重复报警-未推送",
   "alarm.rules.history.title.total": "总报警数",
   "alarm.rules.history.title.sucPublish": "成功推送次数",
 
@@ -649,14 +665,15 @@ export default {
   "alarm.notify.url.placeholder": "请输入通知url",
 
   // alarm -> environment
-  "alarm.environment.RuleStoreType.notOpen": "未开启",
-  "alarm.environment.form.notOpen": "不开启",
-  "alarm.environment.RuleStoreType.file": "文件",
-  "alarm.environment.form.title": "编辑告警环境",
-  "alarm.environment.form.ruleStoreType": "告警类型",
-  "alarm.environment.form.isPrometheusOK": "Prometheus 检测",
-  "alarm.environment.form.isAlertManagerOK": "AlertManager 检测",
-  "alarm.environment.form.isMetricsSamplesOk": "metrics.samples 检测",
+  "themeLayout.alarm.environment.RuleStoreType.notOpen": "未开启",
+  "themeLayout.alarm.environment.form.notOpen": "不开启",
+  "themeLayout.alarm.environment.RuleStoreType.file": "文件",
+  "themeLayout.alarm.environment.form.title": "编辑告警环境",
+  "themeLayout.alarm.environment.form.ruleStoreType": "告警类型",
+  "themeLayout.alarm.environment.form.isPrometheusOK": "Prometheus 检测",
+  "themeLayout.alarm.environment.form.isAlertManagerOK": "AlertManager 检测",
+  "themeLayout.alarm.environment.form.isMetricsSamplesOk":
+    "metrics.samples 检测",
 
   // install
   "install.init.text.databaseInit":
@@ -790,6 +807,9 @@ export default {
   "sys.user.deleteName": "删除用户",
   "sys.user.deleteNameTips": "确定删除用户「{user}」吗？",
   "sys.user.deleteName.success": "删除用户成功",
+  "sys.user.table.phone": "手机号",
+  "sys.user.form.eidtUser": "编辑用户",
+  "sys.user.form.editSuccess": "编辑成功",
 
   // models -> pms
   "models.pms.creating": "创建中...",

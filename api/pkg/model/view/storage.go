@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
 )
 
 type ReqKafkaJSONMapping struct {
@@ -25,12 +27,13 @@ type ReqStorageCreate struct {
 	Source      string `form:"source" binding:"required"` // Raw JSON data
 	DatabaseId  int    `form:"databaseId" binding:"required"`
 	TimeField   string `form:"timeField" binding:"required"`
-	RawLogField string `form:"rawLogField" binding:"required"`
+	RawLogField string `form:"rawLogField"`
 
-	SourceMapping MappingStruct `form:"-"`
+	SourceMapping mapping.List `form:"-"`
+	CreateType    int          `form:"createType"`
 }
 
-type ReqCreateStorageByTemplate struct {
+type ReqCreateStorageByTemplateEgo struct {
 	Brokers    string `form:"brokers" binding:"required"`
 	DatabaseId int    `form:"databaseId" binding:"required"`
 
@@ -40,23 +43,17 @@ type ReqCreateStorageByTemplate struct {
 	TopicsIngressStderr string `form:"topicsIngressStderr" binding:"required"`
 }
 
-type ReqStorageCreateV3 struct {
-	TableName               string `form:"tableName" binding:"required"`
-	Days                    int    `form:"days" binding:"required"`
-	Brokers                 string `form:"brokers" binding:"required"`
-	Topics                  string `form:"topics" binding:"required"`
-	Consumers               int    `form:"consumers" binding:"required"`
-	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
-	Desc                    string `form:"desc"`
-	DatabaseId              int    `form:"databaseId" binding:"required"`
-	TimeField               string `form:"timeField"`
-	TimeFieldType           int    `form:"timeFieldType"`    // 1 string 2 float
-	IsKafkaTimestamp        int    `form:"isKafkaTimestamp"` // 1 yes
-	V3TableType             int    `form:"v3TableType"`      // 0 default 1 jaegerJson
-	CreateType              int    `form:"createType"`
+type ReqCreateStorageByTemplateILogtail struct {
+	Brokers    string `form:"brokers" binding:"required"`
+	DatabaseId int    `form:"databaseId" binding:"required"`
+	Name       string `form:"name" binding:"required"`
+	Topic      string `form:"topic" binding:"required"`
 }
 
 func (r *ReqStorageCreate) GetRawLogField() string {
+	if r.CreateType == constx.TableCreateTypeJSONAsString {
+		return fmt.Sprintf("JSONExtractString(_log, '%s')", r.RawLogField)
+	}
 	if r.RawLogField != "" {
 		return r.RawLogField
 	}
@@ -97,13 +94,39 @@ func ReqStorageCreateUnmarshal(res string) ReqStorageCreate {
 	return resp
 }
 
+func (r *ReqStorageCreate) Mapping2Fields() string {
+	var res string
+	if len(r.SourceMapping.Data) == 0 {
+		return res
+	}
+	for _, v := range r.SourceMapping.Data {
+		if v.Key == r.TimeField ||
+			v.Key == r.RawLogField ||
+			v.Key == "_time_second_" ||
+			v.Key == "_time_nanosecond_" ||
+			v.Key == "_raw_log_" {
+			continue
+		}
+		if res == "" {
+			res = v.AssembleJSONAsString()
+			continue
+		}
+		res = fmt.Sprintf("%s\n%s", res, v.AssembleJSONAsString())
+	}
+	return res
+}
+
 func (r *ReqStorageCreate) Mapping2String(withType bool) string {
 	var res string
 	if len(r.SourceMapping.Data) == 0 {
 		return res
 	}
 	for _, v := range r.SourceMapping.Data {
-		if v.Key == r.TimeField || v.Key == r.RawLogField {
+		if v.Key == r.TimeField ||
+			v.Key == r.RawLogField ||
+			v.Key == "_time_second_" ||
+			v.Key == "_time_nanosecond_" ||
+			v.Key == "_raw_log_" {
 			continue
 		}
 		if res == "" {
@@ -115,24 +138,9 @@ func (r *ReqStorageCreate) Mapping2String(withType bool) string {
 	return res
 }
 
-type MappingStruct struct {
-	Data []MappingStructItem `json:"data"`
-}
-
-type MappingStructItem struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-func (m *MappingStructItem) Assemble(withType bool) string {
-	if withType {
-		return fmt.Sprintf("`%s` %s,", m.Key, m.Value)
-	}
-	return fmt.Sprintf("`%s`,", m.Key)
-}
-
 type RespStorageAnalysisFields struct {
-	Keys []StorageAnalysisField `json:"keys"`
+	BaseFields []StorageAnalysisField `json:"baseFields"`
+	LogFields  []StorageAnalysisField `json:"logFields"`
 }
 
 type StorageAnalysisField struct {
@@ -171,14 +179,16 @@ type OperatorViewParams struct {
 	Typ              int
 	Tid              int
 	Did              int
-	Table            string
+	TableName        string
 	CustomTimeField  string
 	Current          *db.BaseView
 	List             []*db.BaseView
 	Indexes          map[string]*db.BaseIndex
 	IsCreate         bool
 	TimeField        string
+	RawLogField      string
 	IsKafkaTimestamp int
+	Database         *db.BaseDatabase
 }
 
 type JaegerDependencyDataModel struct {

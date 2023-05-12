@@ -1,17 +1,21 @@
+import { PaneType } from "@/models/datalogs/types";
 import rawLogListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/index.less";
 import LogItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem";
-import { useModel } from "@@/plugin-model/useModel";
+import {
+  compare,
+  handleGetChildElementsNumber,
+  handleGetTotalLength,
+} from "@/utils/linkLog";
+import { parseJsonObject } from "@/utils/string";
+import { useModel } from "@umijs/max";
+import { notification } from "antd";
 import classNames from "classnames";
-import { PaneType } from "@/models/datalogs/types";
+import { cloneDeep } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+import { useIntl } from "umi";
 import LinkItem from "./LinkItem";
 import LinkItemTitle from "./LinkItemTitle";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { notification } from "antd";
-import { parseJsonObject } from "@/utils/string";
-import { microsecondTimeStamp } from "@/utils/time";
-import { useIntl } from "umi";
-import { cloneDeep } from "lodash";
-import { useThrottleFn } from "ahooks";
+// import { useThrottleFn } from "ahooks";
 
 // 链路主题色，循环使用，可直接在末尾新增
 const themeColor = [
@@ -22,21 +26,21 @@ const themeColor = [
   "#ecb9cc90",
 ];
 // 折叠item的高度（item的最小高度）
-const foldingHeight = 69;
+// const foldingHeight = 69;
 
 const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const i18n = useIntl();
-  const virtualRef: any = useRef<HTMLDivElement>(null);
+  // const virtualRef: any = useRef<HTMLDivElement>(null);
   const { logs, logState, pageSize } = useModel("dataLogs");
   const [isNotification, setIsNotification] = useState<boolean>(false);
   const [isLinkLogs, setIsLinkLogs] = useState<boolean>(true);
   const [dataListLength, setDataListLength] = useState<number>(0);
-  const [start, setStart] = useState(0);
-  const [count, setCount] = useState(0);
+  // const [start, setStart] = useState(0);
+  // const [count, setCount] = useState(0);
 
   const list = useMemo(() => {
     const newLogs = cloneDeep(logs?.logs);
-    virtualRef.current && (virtualRef.current.scrollTop = 0);
+    // virtualRef.current && (virtualRef.current.scrollTop = 0);
     if (
       oldPane?.logState != 1 &&
       logs?.isTrace == 1 &&
@@ -48,15 +52,17 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     return logs?.logs || [];
   }, [logs?.logs, pageSize, oldPane?.logState]);
 
+  // console.log(oldPane?.logState, "oldPane?.logState");
+
   /**
    * 链路切换为普通日志时的数据截取
    */
-  const virtualList = useMemo(() => {
-    if (pageSize > start + count + 10) {
-      return list.slice(0, start + count + 10);
-    }
-    return list;
-  }, [start, count, pageSize, list]);
+  // const virtualList = useMemo(() => {
+  //   if (pageSize > 10) {
+  //     return list.slice(0, 10);
+  //   }
+  //   return list;
+  // }, [pageSize, list]);
 
   const handleFindChild = (
     oneselfId: string,
@@ -116,66 +122,10 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     return dataList;
   };
 
-  /**
-   * 计算有多少个子元素
-   */
-  const handleGetChildElementsNumber = (list: any, number: number = 1) => {
-    let num = number;
-    list.map((item: any) => {
-      num++;
-      if (item.children && item.children.length > 0) {
-        num = handleGetChildElementsNumber(item.children);
-      }
-    });
-    return num;
-  };
-
   const linkDataList = useMemo(() => {
     if (logs?.isTrace !== 1) {
       return [];
     }
-    /**
-     * 计算总长度
-     */
-    const handleGetTotalLength = (
-      list: any[],
-      arr: any[],
-      serviceNameList: string[]
-    ) => {
-      let spanIdList: any[] = [];
-      let referencesSpanIdList: any[] = [];
-      list.map((item: any) => {
-        if (item?.rawLogJson?.spanId && item?.rawLogJson?.references) {
-          referencesSpanIdList.push(item?.rawLogJson?.references[0].spanId);
-        }
-        spanIdList.push(item?.rawLogJson?.spanId);
-        const duration = item?.rawLogJson?.duration
-          ? item?.rawLogJson?.duration.slice(0, -1) * Math.pow(10, 6)
-          : 0;
-        arr.push({
-          et: duration + microsecondTimeStamp(item?.rawLogJson?.startTime),
-          st: microsecondTimeStamp(item?.rawLogJson?.startTime),
-        });
-        // name对应主题色
-        if (
-          item?.rawLogJson?.process?.serviceName &&
-          !serviceNameList.includes(item?.rawLogJson?.process?.serviceName)
-        ) {
-          serviceNameList.push(item?.rawLogJson?.process?.serviceName);
-        }
-      });
-      // 计算假的根节点
-      const newList: any[] = [];
-      referencesSpanIdList.map((item: string, index: number) => {
-        if (!spanIdList.includes(item)) {
-          newList.push(item);
-        }
-      });
-      return {
-        arr,
-        referencesSpanIdList: Array.from(new Set(newList)),
-      };
-    };
 
     let keyList: string[] = [];
     let dataList: any = {};
@@ -237,14 +187,7 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
             },
           });
       });
-      // 按时间排序递增
-      const compare = () => {
-        return function (a: { [x: string]: any }, b: { [x: string]: any }) {
-          var value1 = microsecondTimeStamp(a[`rawLogJson`][`startTime`]);
-          var value2 = microsecondTimeStamp(b[`rawLogJson`][`startTime`]);
-          return value2 - value1;
-        };
-      };
+
       const newDataList = dataList[key].sort(compare());
       newDataList.map((item: any) => {
         if (!item.rawLogJson.references) {
@@ -302,20 +245,20 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     return treeDataList;
   }, [list, logs?.isTrace]);
 
-  const handleLogListScroll = useThrottleFn(
-    () => {
-      const { scrollTop } = virtualRef.current;
-      const newStart = Math.floor(scrollTop / foldingHeight);
-      setStart(newStart);
-    },
-    {
-      wait: 300,
-    }
-  );
+  // const handleLogListScroll = useThrottleFn(
+  //   () => {
+  //     const { scrollTop } = virtualRef.current;
+  //     const newStart = Math.floor(scrollTop / foldingHeight);
+  //     setStart(newStart);
+  //   },
+  //   {
+  //     wait: 100,
+  //   }
+  // );
 
-  useEffect(() => {
-    setCount(Math.ceil(virtualRef.current.clientHeight / foldingHeight));
-  }, []);
+  // useEffect(() => {
+  //   setCount(Math.ceil(virtualRef.current.clientHeight / foldingHeight));
+  // }, []);
 
   useEffect(() => {
     if (!isLinkLogs) {
@@ -354,29 +297,26 @@ const RawLogList = ({ oldPane }: { oldPane: PaneType | undefined }) => {
     }
   }, [linkDataList]);
 
+  // 日志列表
+  const logList = useMemo(() => {
+    return logs?.isTrace == 0 || logState != 1
+      ? list.map((logItem: any, index: number) => {
+          return (
+            <LogItem
+              foldingChecked={oldPane?.foldingChecked}
+              log={logItem}
+              key={index}
+            />
+          );
+        })
+      : // 链路日志
+        linkDataList.map((item: any) => {
+          return <LinkItem key={item.key} log={item} />;
+        });
+  }, [logs?.isTrace, logState, list, oldPane?.foldingChecked, linkDataList]);
+
   return (
-    <div className={classNames(rawLogListStyles.rawLogListMain)}>
-      <div
-        className={rawLogListStyles.hiddenScrollBox}
-        ref={virtualRef}
-        onScroll={() => handleLogListScroll.run()}
-      >
-        {logs?.isTrace == 0 || logState != 1
-          ? virtualList.map((logItem: any, index: number) => {
-              return (
-                <LogItem
-                  foldingChecked={oldPane?.foldingChecked}
-                  log={logItem}
-                  key={index}
-                />
-              );
-            })
-          : // 链路日志
-            linkDataList.map((item: any) => {
-              return <LinkItem key={item.key} log={item} />;
-            })}
-      </div>
-    </div>
+    <div className={classNames(rawLogListStyles.rawLogListMain)}>{logList}</div>
   );
 };
 export default RawLogList;

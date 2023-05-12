@@ -1,8 +1,8 @@
-import { Dropdown, Menu, Tooltip } from "antd";
-import { useIntl, useModel } from "umi";
+import IconFont from "@/components/IconFont";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
 import { PlusSquareOutlined } from "@ant-design/icons";
-import IconFont from "@/components/IconFont";
+import { Dropdown, Tooltip } from "antd";
+import { useIntl, useModel } from "umi";
 
 const InstanceItem = (props: { instanceItem: any }) => {
   const {
@@ -22,13 +22,13 @@ const InstanceItem = (props: { instanceItem: any }) => {
     <div>
       <div className={logLibraryListStyles.logTipTitle}>
         <span>
-          {i18n.formatMessage({ id: "instance.instanceName" })}:&nbsp;
+          {i18n.formatMessage({ id: "instance.name" })}:&nbsp;
           {instanceItem.instanceName}
         </span>
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
-          {i18n.formatMessage({ id: "DescAsAlias" })}
+          {i18n.formatMessage({ id: "descAsAlias" })}
           :&nbsp; {!instanceItem?.desc ? "" : instanceItem.desc}
         </div>
       </div>
@@ -37,7 +37,7 @@ const InstanceItem = (props: { instanceItem: any }) => {
 
   const menuList = [
     {
-      label: i18n.formatMessage({ id: "instance.operation.addDatabase" }),
+      label: i18n.formatMessage({ id: "global.database.add" }),
       key: "database-create",
       onClick: () => {
         onChangeCreatedDatabaseModal(true);
@@ -59,10 +59,8 @@ const InstanceItem = (props: { instanceItem: any }) => {
     },
   ];
 
-  const menu = <Menu items={menuList} />;
-
   return (
-    <Dropdown overlay={menu} trigger={["contextMenu"]}>
+    <Dropdown menu={{ items: menuList }} trigger={["contextMenu"]}>
       <Tooltip
         title={tooltipTitle}
         placement="right"
@@ -78,7 +76,7 @@ const InstanceItem = (props: { instanceItem: any }) => {
           }}
         >
           <IconFont type="icon-instance" style={{ marginRight: "4px" }} />
-          {instanceItem.instanceName}
+          {instanceItem.instanceName} {instanceItem.desc}
         </div>
       </Tooltip>
     </Dropdown>

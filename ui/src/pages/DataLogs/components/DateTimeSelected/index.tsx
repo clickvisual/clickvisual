@@ -1,13 +1,13 @@
-import { Button, Popover } from "antd";
-import { CaretDownFilled } from "@ant-design/icons";
-import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
-import React, { useEffect, useRef, useState } from "react";
-import DateTimeSelectedCard from "@/pages/DataLogs/components/DateTimeSelected/DateTimeSelectedCard";
-import { useModel } from "@@/plugin-model/useModel";
-import { timeStampFormat } from "@/utils/momentUtils";
 import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
-import { useIntl } from "umi";
+import DateTimeSelectedCard from "@/pages/DataLogs/components/DateTimeSelected/DateTimeSelectedCard";
+import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
+import { timeStampFormat } from "@/utils/momentUtils";
+import { CaretDownFilled } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Button, Popover } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 export type TimeUnit =
   | "seconds"
@@ -80,8 +80,8 @@ const DarkTimeSelect = () => {
         placement="bottomRight"
         content={<DateTimeSelectedCard onChangeVisble={setVisibleTime} />}
         trigger="click"
-        visible={visibleTime}
-        onVisibleChange={setVisibleTime}
+        open={visibleTime}
+        onOpenChange={setVisibleTime}
       >
         <Button className={darkTimeStyles.darkTimeBtn}>
           <span>

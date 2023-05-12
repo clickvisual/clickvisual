@@ -26,7 +26,7 @@ func DatabaseCreate(c *core.Context) {
 		return
 	}
 	var req view.ReqDatabaseCreate
-	if err := c.Bind(&req); err != nil {
+	if err := c.ShouldBind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
@@ -48,6 +48,9 @@ func DatabaseCreate(c *core.Context) {
 		IsCreateByCV: 1,
 		Desc:         req.Desc,
 	}
+	if req.Type == 1 {
+		obj.IsCreateByCV = 0
+	}
 	_, err := service.DatabaseCreate(obj)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
@@ -55,7 +58,6 @@ func DatabaseCreate(c *core.Context) {
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"database": obj})
 	c.JSONOK()
-	return
 }
 
 // @Tags         LOGSTORE
@@ -76,7 +78,6 @@ func DatabaseExistList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         LOGSTORE
@@ -113,7 +114,6 @@ func DatabaseList(c *core.Context) {
 		res = append(res, tmp)
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         LOGSTORE
@@ -184,6 +184,10 @@ func DatabaseUpdate(c *core.Context) {
 		return
 	}
 	database, err := db.DatabaseInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "failed to update database: "+err.Error(), err)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,

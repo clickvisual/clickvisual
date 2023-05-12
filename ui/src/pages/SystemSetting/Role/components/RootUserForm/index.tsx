@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Form, message, Modal } from "antd";
 import { reqRootUids } from "@/services/pms";
-import UserSelect from "../UserSelect";
+import { Form, message, Modal } from "antd";
+import React, { useEffect, useState } from "react";
 import { useIntl } from "umi";
+import UserSelect from "../UserSelect";
 interface ListFormProps {
   modalVisible: boolean;
   formTitle: string;
@@ -67,7 +67,7 @@ const RootUsersForm: React.FC<ListFormProps> = (props) => {
     <Modal
       destroyOnClose
       title={formTitle}
-      visible={modalVisible}
+      open={modalVisible}
       onCancel={() => onCancel()}
       {...modalFooter}
       width={800}

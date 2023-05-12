@@ -135,16 +135,60 @@ receivers:
 
 ![img.png](../../../images/alarm-manager.png)
 
-- 如果 Prometheus 使用本地文件，则将文件路径配置为 `/etc/prometheus/rules`
+#### 文件模式
+将告警规则写入本地文件，则将文件路径配置为 `/etc/prometheus/rules`
+
+> tips：考虑容器挂载统一同一个目录的情况，这里的配置路径为 clickvisual 可读写路径，会通过挂载自动同步到 prometheus。
 
 ```yaml
 rule_files:
 - /etc/prometheus/rules/*.yaml
 ```
 
-- 如果是使用 configmap 则选择对应 configmap 即可
+#### K8s 模式
+如果是使用 K8s 模式选择对应 configmap 即可。
 
-![img.png](../../../images/alarm-store-k8s.png)
+#### Operator 模式
+
+```yaml
+metadata:
+  labels:
+    prometheus: k8s
+    role: alert-rules
+  name: prometheus-k8s-rulefiles-0
+  namespace: monitoring
+```
+
+根据以上配置，rules 会存储到如下环境的，一下文件中。
+
+![img.png](../../../images/alarm-operator.png)
+
+文件名 `monitoring-prometheus-k8s-rulefiles-0-056fd48d-b00b-4291-9737-bc53cf343f8a.yaml`
+
+内容：
+```yaml
+groups:
+- name: cv-1-a06b3784-a4d1-4d20-8adf-1d00827f2be7
+  rules:
+  - alert: ClickVisual-a06b3784_a4d1_4d20_8adf_1d00827f2be7_58
+    annotations:
+    description: '{{ $labels.desc }}  (当前值: {{ $value }})'
+    summary: 告警 {{ $labels.name }}
+    expr: min_over_time(clickvisual_alert_metrics{uuid="a06b3784-a4d1-4d20-8adf-1d00827f2be7",alarmId="1",filterId="58"}[1m] offset 10s)>50
+    for: 1m
+    labels:
+    severity: warning
+- name: cv-1-a0698d5a-9584-4979-90fc-2ff2a667d7c1
+  rules:
+  - alert: ClickVisual-a0698d5a_9584_4979_90fc_2ff2a667d7c1_9
+    annotations:
+    description: '{{ $labels.desc }}  (当前值: {{ $value }})'
+    summary: 告警 {{ $labels.name }}
+    expr: clickvisual_alert_metrics{uuid="a0698d5a-9584-4979-90fc-2ff2a667d7c1",alarmId="2",filterId="9"} offset 10s>1
+    for: 1m
+    labels:
+    severity: warning
+```
 
 ### 告警配置
 

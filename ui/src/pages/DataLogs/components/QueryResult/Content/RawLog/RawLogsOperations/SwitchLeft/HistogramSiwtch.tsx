@@ -1,8 +1,8 @@
-import { Switch } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import switchStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft/index.less";
 import { PaneType } from "@/models/datalogs/types";
+import switchStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsOperations/SwitchLeft/index.less";
+import { useModel } from "@umijs/max";
+import { Switch } from "antd";
+import { useIntl } from "umi";
 
 const HistogramSwitch = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const { logPanesHelper, doGetHighCharts } = useModel("dataLogs");

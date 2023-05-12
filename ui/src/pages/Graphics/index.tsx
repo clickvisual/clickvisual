@@ -1,6 +1,6 @@
 import useUrlState from "@ahooksjs/use-url-state";
 import { message } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
 import {
   useEffect,
   // useMemo,
@@ -45,8 +45,8 @@ const Graphics = () => {
     const tid = parseInt(urlState?.tid);
     doGetLinkLogLibraryDependency
       .run(tid, {
-        startTime: parseInt(moment().subtract(3, "h").format("X")),
-        endTime: parseInt(moment().format("X")),
+        startTime: parseInt(dayjs().subtract(3, "h").format("X")),
+        endTime: parseInt(dayjs().format("X")),
       })
       .then((res: any) => {
         if (res.code != 0) return;

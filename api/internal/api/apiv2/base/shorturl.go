@@ -2,15 +2,13 @@ package base
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
-	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/shorturl"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -35,7 +33,6 @@ func ShortURLRedirect(c *core.Context) {
 		return
 	}
 	c.Redirect(301, shortUrl.OriginUrl)
-	return
 }
 
 // ShortURLCreate  godoc
@@ -49,32 +46,13 @@ func ShortURLRedirect(c *core.Context) {
 func ShortURLCreate(c *core.Context) {
 	var req db.ReqShortURLCreate
 	if err := c.Bind(&req); err != nil {
-		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	shortUrl := db.BaseShortURL{
-		OriginUrl: req.OriginUrl,
-		SCode:     "",
-		CallCnt:   0,
-	}
-	tx := invoker.Db.Begin()
-	if err := db.ShortURLCreate(tx, &shortUrl); err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
+	res, err := shorturl.GenShortURL(req.OriginUrl)
+	if err != nil {
+		c.JSONE(1, "gen short url error: "+err.Error(), err)
 		return
 	}
-	sCode := service.HashIDGenCode(shortUrl.ID)
-	if err := db.ShortURLUpdate(tx, shortUrl.ID, map[string]interface{}{"s_code": sCode}); err != nil {
-		tx.Rollback()
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	if err := tx.Commit().Error; err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	rootUrl := strings.TrimSuffix(econf.GetString("app.rootURL"), "/")
-	res := fmt.Sprintf("%s/api/v2/base/su/%s", rootUrl, sCode)
 	c.JSONOK(res)
-	return
 }

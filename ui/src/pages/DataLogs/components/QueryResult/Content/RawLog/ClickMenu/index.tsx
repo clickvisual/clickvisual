@@ -1,9 +1,9 @@
 // import style from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu/index.less";
-import { Dropdown, Menu, message } from "antd";
-import { ReactNode, useMemo } from "react";
-import copy from "copy-to-clipboard";
-import { useIntl, useModel } from "umi";
 import { QUERY_PATH } from "@/config/config";
+import { Dropdown, message } from "antd";
+import copy from "copy-to-clipboard";
+import { ReactNode, useMemo } from "react";
+import { useIntl, useModel } from "umi";
 
 interface ClickMenuProps {
   children: ReactNode;
@@ -74,10 +74,12 @@ const ClickMenu = (props: ClickMenuProps) => {
     return arr;
   }, [isHidden, handleAddCondition, handleOutCondition, handleCopyLog]);
 
-  const menu = <Menu style={{ width: "190px" }} items={items} />;
-
   return (
-    <Dropdown overlay={menu} placement="bottomLeft" trigger={["click"]}>
+    <Dropdown
+      menu={{ items: items, style: { width: "190px" } }}
+      placement="bottomLeft"
+      trigger={["click"]}
+    >
       {children}
     </Dropdown>
   );

@@ -105,7 +105,7 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
       </div>
       <div>
         <div className={logLibraryListStyles.logTipTitle}>
-          {i18n.formatMessage({ id: "DescAsAlias" })}
+          {i18n.formatMessage({ id: "descAsAlias" })}
           :&nbsp; {!databasesItem?.desc ? "" : databasesItem.desc}
         </div>
       </div>
@@ -132,7 +132,7 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
   );
 
   return (
-    <Dropdown overlay={menu} trigger={["contextMenu"]}>
+    <Dropdown menu={{ items: items }} trigger={["contextMenu"]}>
       <Tooltip
         title={tooltipTitle}
         placement="right"

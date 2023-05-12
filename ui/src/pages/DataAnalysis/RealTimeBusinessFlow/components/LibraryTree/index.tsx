@@ -1,12 +1,12 @@
-import TrafficStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/index.less";
-import { Button, Form, Select } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect } from "react";
-import { useDebounceFn } from "ahooks";
-import { useIntl } from "umi";
-import { SearchOutlined } from "@ant-design/icons";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import TrafficStyles from "@/pages/DataAnalysis/RealTimeBusinessFlow/index.less";
 import useUrlState from "@ahooksjs/use-url-state";
+import { SearchOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Form, Select } from "antd";
+import { useEffect } from "react";
+import { useIntl } from "umi";
 
 const LibraryTree = (props: { setUtime: (num?: number) => void }) => {
   const { setUtime } = props;

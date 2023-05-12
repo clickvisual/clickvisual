@@ -3,27 +3,26 @@ package ofsync
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
-	"github.com/clickvisual/clickvisual/api/internal/service/pandas/source"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func mapping(mappings []view.IntegrationMapping) (res string) {
-	for _, m := range mappings {
-		if res == "" {
-			res = fmt.Sprintf("%s as %s", mappingKV(m.SourceType, m.Source), m.Target)
-		} else {
-			res = fmt.Sprintf("%s, %s as %s", res, mappingKV(m.SourceType, m.Source), m.Target)
-		}
-	}
-	return
-}
+// func mapping(mappings []view.IntegrationMapping) (res string) {
+// 	for _, m := range mappings {
+// 		if res == "" {
+// 			res = fmt.Sprintf("%s as %s", mappingKV(m.SourceType, m.Source), m.Target)
+// 		} else {
+// 			res = fmt.Sprintf("%s, %s as %s", res, mappingKV(m.SourceType, m.Source), m.Target)
+// 		}
+// 	}
+// 	return
+// }
 
 func columns(mappings []view.IntegrationMapping) (source, target string) {
 	for k, m := range mappings {
@@ -38,26 +37,26 @@ func columns(mappings []view.IntegrationMapping) (source, target string) {
 	return
 }
 
-func mappingKV(typ string, val string) string {
-	lowerTyp := strings.ToLower(typ)
-	if strings.Contains(lowerTyp, "int") {
-		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
-	}
-	if strings.Contains(lowerTyp, "string") || strings.Contains(lowerTyp, "varchar") {
-		return fmt.Sprintf("ifNull(%s, %s)", val, "''")
-	}
-	if strings.Contains(lowerTyp, "float") {
-		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
-	}
-	return val
-}
+// func mappingKV(typ string, val string) string {
+// 	lowerTyp := strings.ToLower(typ)
+// 	if strings.Contains(lowerTyp, "int") {
+// 		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
+// 	}
+// 	if strings.Contains(lowerTyp, "string") || strings.Contains(lowerTyp, "varchar") {
+// 		return fmt.Sprintf("ifNull(%s, %s)", val, "''")
+// 	}
+// 	if strings.Contains(lowerTyp, "float") {
+// 		return fmt.Sprintf("ifNull(%s, %d)", val, 0)
+// 	}
+// 	return val
+// }
 
-func where(f string) string {
-	if f == "" {
-		return "1=1"
-	}
-	return f
-}
+// func where(f string) string {
+// 	if f == "" {
+// 		return "1=1"
+// 	}
+// 	return f
+// }
 
 func materialView(s *view.SyncContent) string {
 	switch syncTypeJudgment(s) {

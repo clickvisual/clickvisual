@@ -23,7 +23,7 @@ func (b *DataBuilder) BuilderCreate() {
 }
 
 func (b *DataBuilder) BuilderFields() {
-	b.QueryAssembly.Result += common.BuilderFieldsData(b.QueryAssembly.Params.TableCreateType, b.QueryAssembly.Params.KafkaJsonMapping)
+	b.QueryAssembly.Result += common.BuilderFieldsData(b.QueryAssembly.Params.KafkaJsonMapping)
 }
 
 func (b *DataBuilder) BuilderWhere() {

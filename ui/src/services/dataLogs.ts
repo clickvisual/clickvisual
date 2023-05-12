@@ -1,6 +1,5 @@
-import { request } from "umi";
 import { TimeBaseType } from "@/services/systemSetting";
-
+import { request } from "@umijs/max";
 export interface QueryLogsProps {
   st: number;
   et: number;
@@ -532,7 +531,7 @@ export default {
     return request<API.Res<StatisticalTableResponse>>(
       process.env.PUBLIC_PATH + `api/v1/instances/${iid}/complete`,
       {
-        method: "GET",
+        method: "POST",
         params,
       }
     );
@@ -559,7 +558,7 @@ export default {
 
   // Storage analysis field list
   async getAnalysisField(tid: number) {
-    return request<API.Res<{ keys: string[] }>>(
+    return request<API.Res<{ baseFields: any[]; logFields: any[] }>>(
       process.env.PUBLIC_PATH + `api/v2/storage/${tid}/analysis-fields`
     );
   },

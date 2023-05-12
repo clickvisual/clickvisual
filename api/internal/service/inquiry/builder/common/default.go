@@ -7,19 +7,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 )
 
-func BuilderFieldsData(tableCreateType int, mapping string) string {
-	if tableCreateType == constx.TableCreateTypeUBW {
-		return fmt.Sprintf(`(
-  _time_second_ DateTime,
-  _time_nanosecond_ DateTime64(9),
-  _key String CODEC(ZSTD(1)),
-  _raw_log_ String CODEC(ZSTD(1)),
-  %s Array(String),
-  %s Array(String),
-  INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
-)
-`, "`_headers.name`", "`_headers.value`")
-	}
+func BuilderFieldsData(mapping string) string {
 	if mapping == "" {
 		mapping = `_source_ String,
   _cluster_ String,
@@ -40,13 +28,7 @@ func BuilderFieldsData(tableCreateType int, mapping string) string {
 `, mapping)
 }
 
-func BuilderFieldsStream(tableCreateType int, mapping, timeField, timeTyp, logField string) string {
-	if tableCreateType == constx.TableCreateTypeUBW {
-		return fmt.Sprintf(`(
-  body String
-)
-`)
-	}
+func BuilderFieldsStream(mapping, timeField, timeTyp, logField string) string {
 	if timeField == "" {
 		timeField = "_time_"
 	}
@@ -71,31 +53,7 @@ func BuilderFieldsStream(tableCreateType int, mapping, timeField, timeTyp, logFi
 `, mapping, timeField, timeTyp, logField)
 }
 
-func BuilderFieldsView(tableCreateType int, mapping, logField string, paramsView bumo.ParamsView) string {
-	if tableCreateType == constx.TableCreateTypeUBW {
-		headersAs := "`_headers.name` AS `_headers.name`,`_headers.value` AS `_headers.value`"
-		if paramsView.IsKafkaTimestamp == 1 {
-			// use kafka timestamp
-			return fmt.Sprintf(`SELECT
-	toDateTime(toInt64(_timestamp)) AS _time_second_,
-	toDateTime64(toInt64(_timestamp_ms), 9) AS _time_nanosecond_,
-	_key AS _key,
-	%s,
-	body AS _raw_log_%s
-FROM %s
-`, headersAs, paramsView.CommonFields, paramsView.SourceTable)
-		}
-		// log time field
-		return fmt.Sprintf(`SELECT
-  %s,
-  _key AS _key,
-  %s,
-  body AS _raw_log_%s 
-FROM %s
-`, paramsView.TimeConvert, headersAs, paramsView.CommonFields, paramsView.SourceTable)
-	}
-
-	// v1 or v2
+func BuilderFieldsView(mapping, logField string, paramsView bumo.ParamsView) string {
 	if logField == "" {
 		logField = "_log_"
 	}

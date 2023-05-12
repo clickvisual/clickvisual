@@ -1,13 +1,13 @@
+import CustomModal from "@/components/CustomModal";
+import diffStyles from "@/pages/Configure/components/Menu/Publish/RealtimeDiff/index.less";
+import { useModel } from "@umijs/max";
 import { Button, Spin } from "antd";
 import { useEffect } from "react";
 import { MonacoDiffEditor } from "react-monaco-editor";
-import { useModel } from "@@/plugin-model/useModel";
-import CustomModal from "@/components/CustomModal";
-import diffStyles from "@/pages/Configure/components/Menu/Publish/RealtimeDiff/index.less";
 import { useIntl } from "umi";
 
 type RealtimeDiffProps = {
-  visible?: boolean;
+  open?: boolean;
   configId?: number;
   version?: string;
   onCancel?: () => void;
@@ -15,7 +15,7 @@ type RealtimeDiffProps = {
 };
 
 const RealtimeDiff = (props: RealtimeDiffProps) => {
-  const { visible, configId, version, onCancel, onOk } = props;
+  const { open, configId, version, onCancel, onOk } = props;
   const {
     selectedClusterId,
     selectedConfigMap,
@@ -28,7 +28,7 @@ const RealtimeDiff = (props: RealtimeDiffProps) => {
   const i18n = useIntl();
 
   useEffect(() => {
-    if (!visible || !configId || !version) return;
+    if (!open || !configId || !version) return;
     doGetCurrentVersionConfiguration.run(configId, version);
     const config = configurationList.find((item) => item.id === configId);
     doGetOnlineConfiguration.run(
@@ -37,11 +37,11 @@ const RealtimeDiff = (props: RealtimeDiffProps) => {
       selectedConfigMap as string,
       `${config?.name}.${config?.format}`
     );
-  }, [visible, configId, version]);
+  }, [open, configId, version]);
 
   return (
     <CustomModal
-      visible={visible}
+      open={open}
       title={i18n.formatMessage({ id: "config.diff.title" })}
       width="90%"
       footer={

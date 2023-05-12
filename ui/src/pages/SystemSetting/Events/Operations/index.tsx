@@ -1,13 +1,13 @@
-import eventStyles from "@/pages/SystemSetting/Events/index.less";
-import { Button, Form, FormInstance, Select, Space } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import useRequest from "@/hooks/useRequest/useRequest";
-import { getSourceOptions } from "@/services/events";
-import { useIntl } from "umi";
 import { FIRST_PAGE, PAGE_SIZE } from "@/config/config";
+import useRequest from "@/hooks/useRequest/useRequest";
+import eventStyles from "@/pages/SystemSetting/Events/index.less";
+import { getSourceOptions } from "@/services/events";
 import useUrlState from "@ahooksjs/use-url-state";
+import { SearchOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Button, Form, FormInstance, Select, Space } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 

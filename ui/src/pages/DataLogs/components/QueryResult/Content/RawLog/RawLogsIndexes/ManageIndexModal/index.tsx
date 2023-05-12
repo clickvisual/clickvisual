@@ -1,24 +1,18 @@
-import mangeIndexModalStyles
-    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/index.less";
 import CustomModal from "@/components/CustomModal";
-import {useModel} from "@@/plugin-model/useModel";
-import {Button, Form, FormInstance, Spin} from "antd";
-import {useEffect, useMemo, useRef, useState} from "react";
-import {SaveOutlined} from "@ant-design/icons";
-import TableHeader
-    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableHeader";
-import TableBody
-    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody";
-import TableFooter
-    from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableFooter";
-import {useDebounceFn} from "ahooks";
-import {DEBOUNCE_WAIT} from "@/config/config";
-import {useIntl} from "umi";
-import {
-    FieldType
-} from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody/IndexItem";
-import {IndexInfoType} from "@/services/dataLogs";
-import {PaneType} from "@/models/datalogs/types";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import { PaneType } from "@/models/datalogs/types";
+import mangeIndexModalStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/index.less";
+import TableBody from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody";
+import { FieldType } from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableBody/IndexItem";
+import TableFooter from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableFooter";
+import TableHeader from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/ManageIndexModal/TableHeader";
+import { IndexInfoType } from "@/services/dataLogs";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Form, FormInstance, Spin } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 const ManageIndexModal = () => {
   const {
@@ -31,7 +25,8 @@ const ManageIndexModal = () => {
     logPanesHelper,
     onChangeCurrentLogPane,
     doGetAnalysisField,
-    onChangeRawLogsIndexeList,
+    onChangeBaseFieldsIndexList,
+    onChangeLogFieldsIndexList,
   } = useModel("dataLogs");
   const { logPanes } = logPanesHelper;
   const indexFormRef = useRef<FormInstance>(null);
@@ -57,24 +52,30 @@ const ManageIndexModal = () => {
           else prev.push({ ...current, jsonIndex: [] });
           return prev;
         }, []) || [];
-      settingIndexes.run(currentLogLibrary.id, { data: params }).then((res) => {
-        if (res?.code === 0) {
-          cancel();
-          doGetAnalysisField.run(currentLogLibrary.id).then((resField: any) => {
-            if (resField.code != 0) return;
-            onChangeRawLogsIndexeList(resField.data?.keys);
-            doGetLogsAndHighCharts(currentLogLibrary.id).then((res) => {
-              if (!res) return;
-              onChangeCurrentLogPane({
-                ...(oldPane as PaneType),
-                logs: res.logs,
-                highCharts: res.highCharts,
-                rawLogsIndexeList: resField.data?.keys || [],
+      settingIndexes
+        .run(currentLogLibrary.id, { data: params })
+        .then((res: any) => {
+          if (res?.code === 0) {
+            cancel();
+            doGetAnalysisField
+              .run(currentLogLibrary.id)
+              .then((resField: any) => {
+                if (resField.code != 0) return;
+                onChangeBaseFieldsIndexList(res.data?.baseFields);
+                onChangeLogFieldsIndexList(res.data?.logFields);
+                doGetLogsAndHighCharts(currentLogLibrary.id).then((res) => {
+                  if (!res) return;
+                  onChangeCurrentLogPane({
+                    ...(oldPane as PaneType),
+                    logs: res.logs,
+                    highCharts: res.highCharts,
+                    baseFieldsIndexList: resField.data?.baseFields || [],
+                    logFieldsIndexList: resField.data?.logFields || [],
+                  });
+                });
               });
-            });
-          });
-        }
-      });
+          }
+        });
     },
     { wait: DEBOUNCE_WAIT }
   );
@@ -131,7 +132,7 @@ const ManageIndexModal = () => {
     <CustomModal
       onCancel={cancel}
       title={i18n.formatMessage({ id: "log.index.manage.desc" })}
-      visible={visibleIndexModal}
+      open={visibleIndexModal}
       width={"70vw"}
       footer={
         <Button

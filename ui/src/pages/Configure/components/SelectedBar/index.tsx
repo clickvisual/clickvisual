@@ -1,7 +1,7 @@
 import searchBarStyles from "@/pages/Configure/components/SelectedBar/index.less";
-import { Button, Cascader, Select, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { useModel } from "@@/plugin-model/useModel";
+import { useModel } from "@umijs/max";
+import { Button, Cascader, Select, Tooltip } from "antd";
 import { useEffect } from "react";
 import { useIntl } from "umi";
 

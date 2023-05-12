@@ -218,10 +218,10 @@ func (p *pms) UpdatePmsRole(updatePmsRole *view.ReqUpdatePmsRole) (err error) {
 		addPRules [][]string
 	)
 	for _, ref := range refs {
-		for delRuleTpl, _ := range delRuleTplDetailMap {
+		for delRuleTpl := range delRuleTplDetailMap {
 			delPRules = append(delPRules, strings.Split(strings.ReplaceAll(delRuleTpl, db.RefId, strconv.Itoa(ref.RefId)), ","))
 		}
-		for addRuleTpl, _ := range addRuleTplDetailMap {
+		for addRuleTpl := range addRuleTplDetailMap {
 			addPRules = append(addPRules, strings.Split(strings.ReplaceAll(addRuleTpl, db.RefId, strconv.Itoa(ref.RefId)), ","))
 		}
 	}
@@ -268,7 +268,7 @@ func (p *pms) deletePmsRole(tx *gorm.DB, tgtPmsRole *db.PmsRole) (err error) { /
 	}
 	// 2. find out all casbin rules based on roleStrings
 	var associatedEhRules = make([]pmsplugin.EnhancedCasbinRulesItem, 0)
-	for roleStr, _ := range roleStrMap {
+	for roleStr := range roleStrMap {
 		ehRulesPt := pmsplugin.GetRulesByRole(roleStr, "")
 		if len(*ehRulesPt) > 0 {
 			associatedEhRules = append(associatedEhRules, *ehRulesPt...)

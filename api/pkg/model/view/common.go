@@ -64,5 +64,4 @@ func (p *Pagination) List(db *gorm.DB, list interface{}) {
 	}
 	db.Count(&p.Total)
 	db.Order(p.Sort).Offset((p.Current - 1) * p.PageSize).Limit(p.PageSize).Find(list)
-	return
 }

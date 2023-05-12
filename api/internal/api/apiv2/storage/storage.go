@@ -6,18 +6,17 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/mapping"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
 )
 
 // KafkaJsonMapping  godoc
@@ -27,7 +26,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        req query view.ReqKafkaJSONMapping true "params"
-// @Success      200 {object} view.MappingStruct
+// @Success      200 {object} view.List
 // @Router       /api/v2/storage/mapping-json [post]
 func KafkaJsonMapping(c *core.Context) {
 	var req view.ReqKafkaJSONMapping
@@ -41,7 +40,6 @@ func KafkaJsonMapping(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // Create  godoc
@@ -79,7 +77,7 @@ func Create(c *core.Context) {
 	}
 	_, err = service.StorageCreate(c.Uid(), databaseInfo, param)
 	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
@@ -101,13 +99,16 @@ func AnalysisFields(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res := view.RespStorageAnalysisFields{}
+	res := view.RespStorageAnalysisFields{
+		BaseFields: make([]view.StorageAnalysisField, 0),
+		LogFields:  make([]view.StorageAnalysisField, 0),
+	}
 	// Read the index data
 	conds := egorm.Conds{}
 	conds["tid"] = storageId
 	fields, _ := db.IndexList(conds)
 	for _, row := range fields {
-		res.Keys = append(res.Keys, view.StorageAnalysisField{
+		f := view.StorageAnalysisField{
 			Id:       row.ID,
 			Tid:      row.Tid,
 			Field:    row.Field,
@@ -117,14 +118,21 @@ func AnalysisFields(c *core.Context) {
 			Alias:    row.Alias,
 			Ctime:    row.Ctime,
 			Utime:    row.Utime,
-		})
+		}
+		if row.Kind == 0 {
+			res.BaseFields = append(res.BaseFields, f)
+		} else {
+			res.LogFields = append(res.LogFields, f)
+		}
 	}
 	// keys sort by the first letter
-	sort.Slice(res.Keys, func(i, j int) bool {
-		return res.Keys[i].Field < res.Keys[j].Field
+	sort.Slice(res.BaseFields, func(i, j int) bool {
+		return res.BaseFields[i].Field < res.BaseFields[j].Field
+	})
+	sort.Slice(res.LogFields, func(i, j int) bool {
+		return res.LogFields[i].Field < res.LogFields[j].Field
 	})
 	c.JSONOK(res)
-	return
 }
 
 // Update  godoc
@@ -152,6 +160,10 @@ func Update(c *core.Context) {
 		return
 	}
 	tableInfo, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -164,7 +176,6 @@ func Update(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	elog.Debug("storage", elog.String("step", "update"), elog.Any("database", tableInfo.Database))
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(1, "update failed 01: "+err.Error(), nil)
@@ -234,16 +245,24 @@ func Update(c *core.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        template path string true "template"
-// @Param        req query view.ReqCreateStorageByTemplate true "params"
+// @Param        req query view.ReqCreateStorageByTemplateEgo true "params"
 // @Success      200 {object} core.Res{}
 // @Router       /api/v2/storage/{template} [post]
 func CreateStorageByTemplate(c *core.Context) {
 	tpl := strings.TrimSpace(c.Param("template"))
-	if tpl != "ego" {
-		c.JSONE(core.CodeErr, "template error", nil)
+	switch tpl {
+	case "ego":
+		createStorageByTemplateEgo(c)
+		return
+	case "ilogtail":
+		createStorageByTemplateILogtail(c)
 		return
 	}
-	var param view.ReqCreateStorageByTemplate
+	c.JSONE(core.CodeErr, "template error", nil)
+}
+
+func createStorageByTemplateEgo(c *core.Context) {
+	var param view.ReqCreateStorageByTemplateEgo
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
@@ -267,6 +286,38 @@ func CreateStorageByTemplate(c *core.Context) {
 		return
 	}
 	if err = service.Storage.CreateByEgoTemplate(c.Uid(), databaseInfo, param); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
+	c.JSONOK()
+}
+
+func createStorageByTemplateILogtail(c *core.Context) {
+	var param view.ReqCreateStorageByTemplateILogtail
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(databaseInfo.ID),
+	}); err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	if err = service.Storage.CreateByILogtailTemplate(c.Uid(), databaseInfo, param); err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}

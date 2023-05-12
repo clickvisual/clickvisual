@@ -248,7 +248,6 @@ func NodeInfo(c *core.Context) {
 		res.Nickname = u.Nickname
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -281,7 +280,6 @@ func NodeLock(c *core.Context) {
 	}
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
 	c.JSONOK()
-	return
 }
 
 // @Tags         BIGDATA
@@ -315,7 +313,6 @@ func NodeUnlock(c *core.Context) {
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeUnlock, map[string]interface{}{"obj": n})
 
 	c.JSONOK()
-	return
 }
 
 // @Tags         BIGDATA
@@ -392,7 +389,6 @@ func NodeList(c *core.Context) {
 		}
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -424,7 +420,6 @@ func NodeRun(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -472,7 +467,6 @@ func NodeStop(c *core.Context) {
 	res.Status = afterNodeInfo.Status
 	event.Event.Pandas(c.User(), db.OpnBigDataNodeStop, map[string]interface{}{"obj": n})
 	c.JSONOK(res)
-	return
 }
 
 // @Tags         BIGDATA
@@ -504,7 +498,6 @@ func NodeHistoryInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(nh)
-	return
 }
 
 // @Tags         BIGDATA
@@ -559,7 +552,6 @@ func NodeHistoryListPage(c *core.Context) {
 		PageSize: req.PageSize,
 		Total:    total,
 	})
-	return
 }
 
 // @Tags         BIGDATA
@@ -586,5 +578,4 @@ func NodeResultInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(service.Node.NodeResultRespAssemble(&nr))
-	return
 }

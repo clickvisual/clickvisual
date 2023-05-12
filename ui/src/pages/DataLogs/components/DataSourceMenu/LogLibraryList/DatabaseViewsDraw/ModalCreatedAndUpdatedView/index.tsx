@@ -1,13 +1,13 @@
 import CustomModal from "@/components/CustomModal";
-import { Button, Form, FormInstance, Input, Select, Switch } from "antd";
-import { SaveOutlined } from "@ant-design/icons";
-import { useIntl } from "umi";
-import { useEffect, useRef } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import { useDebounceFn } from "ahooks";
-import { cloneDeep } from "lodash";
-import { CreatedViewRequest, TablesResponse } from "@/services/dataLogs";
 import { DEBOUNCE_WAIT } from "@/config/config";
+import { CreatedViewRequest, TablesResponse } from "@/services/dataLogs";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import { Button, Form, FormInstance, Input, Select, Switch } from "antd";
+import { cloneDeep } from "lodash";
+import { useEffect, useRef } from "react";
+import { useIntl } from "umi";
 
 const { Option } = Select;
 type ModalCreatedAndUpdatedViewProps = {
@@ -98,7 +98,7 @@ const ModalCreatedAndUpdatedView = ({
         }`,
       })}
       width={800}
-      visible={viewVisibleModal}
+      open={viewVisibleModal}
       onCancel={() => onChangeViewVisibleModal(false)}
       footer={
         <Button

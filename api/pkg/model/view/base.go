@@ -7,9 +7,10 @@ import (
 )
 
 type ReqDatabaseCreate struct {
-	Name    string `json:"databaseName" form:"databaseName"`
+	Name    string `json:"databaseName" form:"databaseName" binding:"required"`
 	Cluster string `json:"cluster" form:"cluster"`
 	Desc    string `json:"desc" form:"desc"`
+	Type    int    `json:"type" form:"type"`
 }
 
 type RespDatabaseItem struct {
@@ -41,6 +42,10 @@ type IndexItem struct {
 	Typ      int    `json:"typ" form:"typ"`
 	RootName string `json:"rootName" form:"rootName"`
 	HashTyp  int    `json:"hashTyp" form:"hashTyp"`
+}
+
+func (i *IndexItem) Name() string {
+	return fmt.Sprintf("%s-%s-%d-%s-%d", i.Field, i.Alias, i.Typ, i.RootName, i.HashTyp)
 }
 
 type (
@@ -209,14 +214,17 @@ type RespTableDetail struct {
 		Keys []string          `json:"keys"`
 		Data map[string]string `json:"data"`
 	} `json:"sqlContent"`
-	Database   RespDatabaseItem `json:"database"`
-	CreateType int              `json:"createType"`
-	TimeField  string           `json:"timeField"`
-	Ctime      int64            `json:"ctime"`
-	Utime      int64            `json:"utime"`
+	Database    RespDatabaseItem `json:"database"`
+	CreateType  int              `json:"createType"`
+	TimeField   string           `json:"timeField"`
+	RawLogField string           `json:"rawLogField"`
+	Ctime       int64            `json:"ctime"`
+	Utime       int64            `json:"utime"`
 
 	TraceTableId int `json:"traceTableId"`
 	V3TableType  int `json:"v3TableType"`
+
+	IsNotSupAnalysisField int `json:"isNotSupAnalysisField"`
 }
 
 type RespColumn struct {

@@ -19,5 +19,4 @@ func InstanceList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }

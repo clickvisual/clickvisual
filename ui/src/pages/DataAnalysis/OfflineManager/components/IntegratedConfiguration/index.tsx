@@ -1,17 +1,17 @@
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 import FileTitle, {
   FileTitleType,
 } from "@/pages/DataAnalysis/components/FileTitle";
+import styles from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/index.less";
 import IntegratedConfigs from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs";
-import { Form, Spin } from "antd";
-import { useEffect, useMemo, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
 import { DataSourceTypeEnums } from "@/pages/DataAnalysis/OfflineManager/config";
-import message from "antd/es/message";
 import { BigDataSourceType } from "@/services/bigDataWorkflow";
 import { parseJsonObject } from "@/utils/string";
-import styles from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/index.less";
+import { useModel } from "@umijs/max";
+import { Form, Spin } from "antd";
+import message from "antd/es/message";
+import { useEffect, useMemo, useState } from "react";
 import { useIntl } from "umi";
-import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 
 export interface IntegratedConfigurationProps {
   currentNode: any;

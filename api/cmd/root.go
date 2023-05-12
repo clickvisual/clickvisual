@@ -28,7 +28,7 @@ var RootCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("Run args: ", args)
 		if len(args) == 0 {
-			CmdFunc(cmd, args)
+			FC(cmd, args)
 		}
 	},
 }
@@ -37,7 +37,7 @@ func init() {
 	RootCommand.PersistentFlags().StringVarP(&config.File, "config", "c", "config/default.toml", "指定配置文件，默认 config/default.toml")
 }
 
-func CmdFunc(cmd *cobra.Command, args []string) {
+func FC(cmd *cobra.Command, args []string) {
 	app := ego.New(
 		ego.WithBeforeStopClean(
 			worker.Close,

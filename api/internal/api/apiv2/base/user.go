@@ -15,16 +15,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
-// UserCreate  godoc
-// @Summary      Create new user
-// @Description  username 登陆账号2
-// @Description  nickname 显示用户名
-// @Tags         LOGSTORE
-// @Produce      json
-// @Param        req body view.ReqUserCreate true "params"
-// @Success      200 {object} core.Res{data=view.RespUserCreate}
-// @Router       /api/v2/base/users [post]
-func UserCreate(c *core.Context) {
+// CreateUser  godoc
+// @Tags         User
+func CreateUser(c *core.Context) {
 	var err error
 	params := view.ReqUserCreate{}
 	err = c.Bind(&params)
@@ -69,15 +62,9 @@ func UserCreate(c *core.Context) {
 	})
 }
 
-// UserList   	 Get user list
-// @Summary	     Get user list
-// @Tags         LOGSTORE
-// @Accept       json
-// @Produce      json
-// @Param        req query view.ReqUserList true "params"
-// @Success      200 {object} view.RespUserSimpleList
-// @Router       /api/v2/base/users [get]
-func UserList(c *core.Context) {
+// ListUser   	 Get user list
+// @Tags         User
+func ListUser(c *core.Context) {
 	var req view.ReqUserList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "request parameter error: "+err.Error(), nil)
@@ -102,6 +89,7 @@ func UserList(c *core.Context) {
 			Nickname: row.Nickname,
 			Email:    row.Email,
 			Avatar:   row.Avatar,
+			Phone:    row.Phone,
 		})
 	}
 	c.JSONPage(view.RespUserSimpleList{
@@ -112,19 +100,50 @@ func UserList(c *core.Context) {
 		PageSize: req.PageSize,
 		Total:    total,
 	})
-	return
 }
 
-// UserPasswordReset  godoc
-// @Summary	     Reset user password test
-// @Description  Reset user password
-// @Tags         LOGSTORE
-// @Accept       json
-// @Produce      json
-// @Param        user-id path int true "user id"
-// @Success      200 {object} core.Res{data=view.RespUserCreate}
-// @Router       /api/v2/base/users/{user-id}/password-reset [patch]
-func UserPasswordReset(c *core.Context) {
+// UpdateUser
+// @Tags         User
+func UpdateUser(c *core.Context) {
+	uid := cast.ToInt(c.Param("user-id"))
+	if uid == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if uid != c.Uid() {
+		err := permission.Manager.IsRootUser(c.Uid())
+		if err == nil {
+			goto UPDATE
+		}
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+
+UPDATE:
+	var req db.ReqUserUpdate
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(core.CodeErr, "param error:"+err.Error(), err)
+		return
+	}
+	if len(req.Phone) != 11 {
+		c.JSONE(1, "Illegal cell phone number length", nil)
+		return
+	}
+	ups := make(map[string]interface{}, 0)
+	ups["email"] = req.Email
+	ups["phone"] = req.Phone
+	ups["nickname"] = req.Nickname
+	if err := db.UserUpdate(invoker.Db, uid, ups); err != nil {
+		c.JSONE(1, "password reset failed 01: "+err.Error(), nil)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnUserUpdate, map[string]interface{}{"req": req})
+	c.JSONOK()
+}
+
+// ResetUserPassword  godoc
+// @Tags         User
+func ResetUserPassword(c *core.Context) {
 	uid := cast.ToInt(c.Param("user-id"))
 	if uid == 0 {
 		c.JSONE(1, "invalid parameter", nil)
@@ -164,16 +183,9 @@ func UserPasswordReset(c *core.Context) {
 	})
 }
 
-// UserDelete  godoc
-// @Summary	     User delete
-// @Description  User delete
-// @Tags         LOGSTORE
-// @Accept       json
-// @Produce      json
-// @Param        user-id path int true "user id"
-// @Success      200 {object} core.Res{}
-// @Router       /api/v2/base/users/{user-id} [delete]
-func UserDelete(c *core.Context) {
+// DeleteUser  godoc
+// @Tags         User
+func DeleteUser(c *core.Context) {
 	uid := cast.ToInt(c.Param("user-id"))
 	if uid == 0 {
 		c.JSONE(1, "invalid parameter", nil)

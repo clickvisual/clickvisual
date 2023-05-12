@@ -40,12 +40,14 @@ func v2(r *gin.RouterGroup) {
 	// The global basic readable information module - base
 	{
 		// user apis
-		r.GET("/base/users", core.Handle(base.UserList))
-		r.POST("/base/users", core.Handle(base.UserCreate))
-		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.UserPasswordReset))
-		r.DELETE("/base/users/:user-id", core.Handle(base.UserDelete))
+		r.POST("/base/users", core.Handle(base.CreateUser))
+		r.PATCH("/base/users/:user-id", core.Handle(base.UpdateUser))
+		r.GET("/base/users", core.Handle(base.ListUser))
+		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.ResetUserPassword))
+		r.DELETE("/base/users/:user-id", core.Handle(base.DeleteUser))
 		// other apis
 		r.GET("/base/instances", core.Handle(base.InstanceList))
+		// todo: deprecated
 		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
 	}
@@ -65,7 +67,7 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/pandas/instances/:instance-id/table-dependencies", core.Handle(pandas.TableDependencies))
 		// DDL structural transfer
 		r.POST("/pandas/utils/structural-transfer", core.Handle(pandas.StructuralTransfer))
-		// Table Create SQL
+		// TableName Create SQL
 		r.GET("/pandas/instances/:instance-id/databases/:database/tables/:table/create-sql", core.Handle(pandas.TableCreateSQL))
 	}
 	// The log module - storage

@@ -2,12 +2,10 @@
 快速搭建本地开发环境
 
 ## 启动
-fork 代码后，在项目根目录可以看到，以下两个文件，根据自己的硬件情况选择启动
-- docker-compose.devops.yml
-- docker-compose.devops.m1.yml
+fork 代码后，在项目根目录可以看到 `docker-compose.devops.yml`
 
-例如 mac m1 机器可以执行
->  docker-compose -f docker-compose.devops.m1.yml up
+执行
+>  docker-compose -f docker-compose.devops.yml up
 
 成功启动
 
@@ -33,7 +31,7 @@ fork 代码后，在项目根目录可以看到，以下两个文件，根据自
 
 ### 新增日志库
 创建实例 
-> clickhouse://username:password@host1:9000,host2:9000/database?dial_timeout=200ms&max_execution_time=60
+> clickhouse://root:shimo@127.0.0.1:19000?dial_timeout=200ms&max_execution_time=60
 
 ![img_3.png](../../../images/env-3.png)
 

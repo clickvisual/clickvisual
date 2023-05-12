@@ -14,14 +14,43 @@ import (
 )
 
 const (
+	HashTypeSip int = 1
+	HashTypeURL int = 2
+)
+
+const (
+	_ = iota
+	V3TableTypeJaegerJSON
+)
+
+const (
+	DatasourceMySQL      = "mysql"
+	DatasourceClickHouse = "ch"
+	DatasourceDatabend   = "databend"
+)
+
+var Datasource2IntORM = map[string]int{
+	DatasourceMySQL:      SourceTypMySQL,
+	DatasourceClickHouse: SourceTypClickHouse,
+	DatasourceDatabend:   SourceDatabend,
+}
+
+const TimeFieldSecond = "_time_second_"
+const TimeFieldNanoseconds = "_time_nanosecond_"
+
+const (
+	SuffixJaegerJSON = "_jaeger_dependencies"
+)
+
+const (
 	// ReplicaStatusYes This definition is really outrageous
 	ReplicaStatusYes = 0
 	ReplicaStatusNo  = 1
 )
 
-type iModel interface {
-	TableName() string
-}
+// type iModel interface {
+// 	TableName() string
+// }
 
 const (
 	TableNameUser         = "cv_user"

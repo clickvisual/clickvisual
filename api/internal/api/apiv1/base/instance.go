@@ -10,6 +10,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -74,17 +75,29 @@ func InstanceUpdate(c *core.Context) {
 		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
+	isCluster, _, isReplica, clusters, err := source.Instantiate(&source.Source{
+		DSN: req.Dsn,
+		Typ: db.Datasource2IntORM[req.Datasource],
+	}).ClusterInfo()
+	if err != nil {
+		return
+	}
+	// status 0 has replica 1 no replica
+	replicaStatus := 1
+	if isReplica == 1 {
+		replicaStatus = 0
+	}
 	ups := make(map[string]interface{}, 0)
-	if objBef.Dsn != req.Dsn || objBef.Mode != req.Mode || objBef.ReplicaStatus != req.ReplicaStatus {
+	if objBef.Dsn != req.Dsn || objBef.Mode != isCluster || objBef.ReplicaStatus != isReplica {
 		// dns changed
 		service.InstanceManager.Delete(objBef.DsKey())
 		objUpdate := db.BaseInstance{
 			Datasource:    req.Datasource,
 			Name:          req.Name,
 			Dsn:           req.Dsn,
-			Mode:          req.Mode,
-			Clusters:      req.Clusters,
-			ReplicaStatus: req.ReplicaStatus,
+			Mode:          isCluster,
+			Clusters:      clusters,
+			ReplicaStatus: replicaStatus,
 		}
 		objUpdate.ID = id
 		if err = service.InstanceManager.Add(&objUpdate); err != nil {
@@ -95,13 +108,13 @@ func InstanceUpdate(c *core.Context) {
 		ups["dsn"] = req.Dsn
 	}
 	ups["name"] = req.Name
-	ups["mode"] = req.Mode
+	ups["mode"] = isCluster
 	ups["datasource"] = req.Datasource
-	ups["replica_status"] = req.ReplicaStatus
+	ups["replica_status"] = replicaStatus
 	ups["desc"] = req.Desc
-	ups["clusters"] = req.Clusters
+	ups["clusters"] = db.Strings(clusters)
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
-		c.JSONE(1, "update failed: "+err.Error(), nil)
+		c.JSONE(1, "update failed: "+err.Error(), err)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnInstancesUpdate, map[string]interface{}{"req": req})
@@ -125,7 +138,6 @@ func InstanceList(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // InstanceInfo
@@ -147,7 +159,6 @@ func InstanceInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }
 
 // InstanceDelete
@@ -204,12 +215,14 @@ func InstanceTest(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-
 	switch req.Datasource {
 	case db.DatasourceClickHouse:
 		_, err = service.ClickHouseLink(req.Dsn)
 	case db.DatasourceDatabend:
 		_, err = service.DatabendLink(req.Dsn)
+	default:
+		c.JSONE(1, "data source type error", nil)
+		return
 	}
 	if err != nil {
 		c.JSONE(1, "connection failure: "+err.Error(), err)

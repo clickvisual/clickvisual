@@ -1,34 +1,27 @@
+import IconFont from "@/components/IconFont";
+import { DEBOUNCE_WAIT } from "@/config/config";
+import type { InstanceType } from "@/services/systemSetting";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
 import {
   Button,
-  Checkbox,
   Form,
   FormInstance,
   Input,
   message,
   Modal,
   Select,
-  Space,
-  Switch,
   Tooltip,
 } from "antd";
-import { useDebounceFn } from "ahooks";
-import type { InstanceType } from "@/services/systemSetting";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useRef, useState } from "react";
-import { DEBOUNCE_WAIT } from "@/config/config";
-import { useIntl } from "umi";
-import {
-  MinusCircleOutlined,
-  PlusOutlined,
-  SaveOutlined,
-} from "@ant-design/icons";
 import { cloneDeep } from "lodash";
-import IconFont from "@/components/IconFont";
+import { useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 type CreatedOrUpdatedInstanceModalProps = {
   isEditor?: boolean;
   current?: InstanceType;
-  visible: boolean;
+  open: boolean;
   onCancel: () => void;
 };
 const { Option } = Select;
@@ -36,7 +29,7 @@ const { Option } = Select;
 const CreatedOrUpdatedInstanceModal = (
   props: CreatedOrUpdatedInstanceModalProps
 ) => {
-  const { visible, isEditor, current, onCancel } = props;
+  const { open, isEditor, current, onCancel } = props;
   const {
     doCreatedInstance,
     doUpdatedInstance,
@@ -78,13 +71,14 @@ const CreatedOrUpdatedInstanceModal = (
   const handleTest = useDebounceFn(
     () => {
       const dsn = instanceFormRef.current?.getFieldValue("dsn");
+      const datasource = instanceFormRef.current?.getFieldValue("datasource");
       if (!dsn) {
         message.warning(
           i18n.formatMessage({ id: "instance.form.test.warning" })
         );
         return;
       }
-      doTestInstance.run({ dsn }).then((res) => {
+      doTestInstance.run({ dsn, datasource }).then((res) => {
         if (res?.code === 0) {
           message.success(
             i18n.formatMessage({ id: "instance.form.test.success" })
@@ -101,7 +95,7 @@ const CreatedOrUpdatedInstanceModal = (
   const { run } = useDebounceFn(onSubmit, { wait: DEBOUNCE_WAIT });
 
   useEffect(() => {
-    if (visible && isEditor && current && current?.id) {
+    if (open && isEditor && current && current?.id) {
       doGetInstanceInfo.run(current.id).then((res: any) => {
         if (res.code == 0) {
           const cloneCurrent: any = cloneDeep(res.data);
@@ -127,7 +121,7 @@ const CreatedOrUpdatedInstanceModal = (
         }
       });
     }
-  }, [visible, isEditor, current, current?.id]);
+  }, [open, isEditor, current, current?.id]);
 
   const formItemLayout = {
     labelCol: {
@@ -155,20 +149,20 @@ const CreatedOrUpdatedInstanceModal = (
   };
 
   useEffect(() => {
-    if (!visible) {
+    if (!open) {
       setDisabledSubmit(false);
       instanceFormRef.current?.resetFields();
     }
-  }, [visible]);
+  }, [open]);
 
   useEffect(() => {
-    if (!visible || isEditor) return;
+    if (!open || isEditor) return;
     setDisabledSubmit(true);
-  }, [visible, isEditor]);
+  }, [open, isEditor]);
 
   useEffect(() => {
-    if (visible) doGetClusters();
-  }, [visible]);
+    if (open) doGetClusters();
+  }, [open]);
 
   return (
     <Modal
@@ -179,7 +173,7 @@ const CreatedOrUpdatedInstanceModal = (
       })}
       maskClosable={false}
       onCancel={onCancel}
-      visible={visible}
+      open={open}
       footer={[
         <Button key="back" onClick={onCancel}>
           {i18n.formatMessage({ id: "button.cancel" })}
@@ -231,7 +225,7 @@ const CreatedOrUpdatedInstanceModal = (
       >
         <Form.Item
           name={"name"}
-          label={i18n.formatMessage({ id: "instance.instanceName" })}
+          label={i18n.formatMessage({ id: "instance.name" })}
           rules={[
             {
               required: true,
@@ -271,154 +265,154 @@ const CreatedOrUpdatedInstanceModal = (
           </Select>
         </Form.Item>
 
-        <Form.Item
-          label={i18n.formatMessage({ id: "instance.form.title.mode" })}
-        >
-          <Space>
-            <Form.Item
-              name={"mode"}
-              noStyle
-              valuePropName="checked"
-              initialValue={false}
-            >
-              <Switch
-                onChange={(flag: boolean) => {
-                  if (flag) {
-                    instanceFormRef.current?.setFieldsValue({
-                      clusters: [""],
-                      replicaStatus: false,
-                    });
-                  }
-                }}
-              />
-            </Form.Item>
-            <Form.Item
-              shouldUpdate={(prevValues, nextValues) =>
-                prevValues.mode !== nextValues.mode
-              }
-              noStyle
-            >
-              {({ getFieldValue }) => (
-                <span>
-                  {getFieldValue("mode")
-                    ? i18n.formatMessage({
-                        id: "instance.form.title.cluster",
-                      })
-                    : i18n.formatMessage({
-                        id: "instance.form.title.modeType.single",
-                      })}
-                </span>
-              )}
-            </Form.Item>
+        {/*<Form.Item*/}
+        {/*  label={i18n.formatMessage({ id: "instance.form.title.mode" })}*/}
+        {/*>*/}
+        {/*  <Space>*/}
+        {/*    <Form.Item*/}
+        {/*      name={"mode"}*/}
+        {/*      noStyle*/}
+        {/*      valuePropName="checked"*/}
+        {/*      initialValue={false}*/}
+        {/*    >*/}
+        {/*      <Switch*/}
+        {/*        onChange={(flag: boolean) => {*/}
+        {/*          if (flag) {*/}
+        {/*            instanceFormRef.current?.setFieldsValue({*/}
+        {/*              clusters: [""],*/}
+        {/*              replicaStatus: false,*/}
+        {/*            });*/}
+        {/*          }*/}
+        {/*        }}*/}
+        {/*      />*/}
+        {/*    </Form.Item>*/}
+        {/*    <Form.Item*/}
+        {/*      shouldUpdate={(prevValues, nextValues) =>*/}
+        {/*        prevValues.mode !== nextValues.mode*/}
+        {/*      }*/}
+        {/*      noStyle*/}
+        {/*    >*/}
+        {/*      {({ getFieldValue }) => (*/}
+        {/*        <span>*/}
+        {/*          {getFieldValue("mode")*/}
+        {/*            ? i18n.formatMessage({*/}
+        {/*                id: "instance.form.title.cluster",*/}
+        {/*              })*/}
+        {/*            : i18n.formatMessage({*/}
+        {/*                id: "instance.form.title.modeType.single",*/}
+        {/*              })}*/}
+        {/*        </span>*/}
+        {/*      )}*/}
+        {/*    </Form.Item>*/}
 
-            <Form.Item
-              noStyle
-              shouldUpdate={(prevValues, nextValues) =>
-                prevValues.mode !== nextValues.mode
-              }
-            >
-              {({ getFieldValue }) => {
-                const mode = getFieldValue("mode");
-                if (!mode) {
-                  return <></>;
-                }
-                return (
-                  <Form.Item
-                    label={i18n.formatMessage({
-                      id: "instance.form.title.replicaStatus",
-                    })}
-                    valuePropName="checked"
-                    name={"replicaStatus"}
-                    initialValue={false}
-                    style={{ marginBottom: 0, marginLeft: 200 }}
-                  >
-                    <Checkbox />
-                  </Form.Item>
-                );
-              }}
-            </Form.Item>
-          </Space>
-        </Form.Item>
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, nextValues) =>
-            prevValues.mode !== nextValues.mode
-          }
-        >
-          {({ getFieldValue }) => {
-            const mode = getFieldValue("mode");
-            if (!mode) {
-              return <></>;
-            }
-            return (
-              <>
-                <Form.List name="clusters">
-                  {(fields, { add, remove }, { errors }) => {
-                    return (
-                      <>
-                        {fields.map((field, index) => (
-                          <Form.Item
-                            key={field.key}
-                            {...(index === 0
-                              ? formItemLayout
-                              : formItemLayoutWithOutLabel)}
-                            required
-                            label={
-                              index === 0
-                                ? i18n.formatMessage({
-                                    id: "instance.form.title.cluster",
-                                  })
-                                : ""
-                            }
-                          >
-                            <Form.Item
-                              {...field}
-                              validateTrigger={["onChange", "onBlur"]}
-                              rules={[
-                                {
-                                  required: true,
-                                  whitespace: true,
-                                  message: i18n.formatMessage({
-                                    id: "instance.form.placeholder.clusterName",
-                                  }),
-                                },
-                              ]}
-                              noStyle
-                            >
-                              <Input
-                                placeholder={i18n.formatMessage({
-                                  id: "instance.form.placeholder.clusterName",
-                                })}
-                                style={{ width: "90%", marginRight: "10px" }}
-                              />
-                            </Form.Item>
-                            {fields.length > 1 ? (
-                              <MinusCircleOutlined
-                                className="dynamic-delete-button"
-                                onClick={() => remove(field.name)}
-                              />
-                            ) : null}
-                          </Form.Item>
-                        ))}
-                        <Form.Item {...formItemLayoutBtnLabel}>
-                          <Button
-                            type="dashed"
-                            onClick={() => add()}
-                            style={{ width: "100%" }}
-                            icon={<PlusOutlined />}
-                          >
-                            {i18n.formatMessage({ id: "cluster.button.add" })}
-                          </Button>
-                          <Form.ErrorList errors={errors} />
-                        </Form.Item>
-                      </>
-                    );
-                  }}
-                </Form.List>
-              </>
-            );
-          }}
-        </Form.Item>
+        {/*    <Form.Item*/}
+        {/*      noStyle*/}
+        {/*      shouldUpdate={(prevValues, nextValues) =>*/}
+        {/*        prevValues.mode !== nextValues.mode*/}
+        {/*      }*/}
+        {/*    >*/}
+        {/*      {({ getFieldValue }) => {*/}
+        {/*        const mode = getFieldValue("mode");*/}
+        {/*        if (!mode) {*/}
+        {/*          return <></>;*/}
+        {/*        }*/}
+        {/*        return (*/}
+        {/*          <Form.Item*/}
+        {/*            label={i18n.formatMessage({*/}
+        {/*              id: "instance.form.title.replicaStatus",*/}
+        {/*            })}*/}
+        {/*            valuePropName="checked"*/}
+        {/*            name={"replicaStatus"}*/}
+        {/*            initialValue={false}*/}
+        {/*            style={{ marginBottom: 0, marginLeft: 200 }}*/}
+        {/*          >*/}
+        {/*            <Checkbox />*/}
+        {/*          </Form.Item>*/}
+        {/*        );*/}
+        {/*      }}*/}
+        {/*    </Form.Item>*/}
+        {/*  </Space>*/}
+        {/*</Form.Item>*/}
+        {/*<Form.Item*/}
+        {/*  noStyle*/}
+        {/*  shouldUpdate={(prevValues, nextValues) =>*/}
+        {/*    prevValues.mode !== nextValues.mode*/}
+        {/*  }*/}
+        {/*>*/}
+        {/*  {({ getFieldValue }) => {*/}
+        {/*    const mode = getFieldValue("mode");*/}
+        {/*    if (!mode) {*/}
+        {/*      return <></>;*/}
+        {/*    }*/}
+        {/*    return (*/}
+        {/*      <>*/}
+        {/*        <Form.List name="clusters">*/}
+        {/*          {(fields, { add, remove }, { errors }) => {*/}
+        {/*            return (*/}
+        {/*              <>*/}
+        {/*                {fields.map((field, index) => (*/}
+        {/*                  <Form.Item*/}
+        {/*                    key={field.key}*/}
+        {/*                    {...(index === 0*/}
+        {/*                      ? formItemLayout*/}
+        {/*                      : formItemLayoutWithOutLabel)}*/}
+        {/*                    required*/}
+        {/*                    label={*/}
+        {/*                      index === 0*/}
+        {/*                        ? i18n.formatMessage({*/}
+        {/*                            id: "instance.form.title.cluster",*/}
+        {/*                          })*/}
+        {/*                        : ""*/}
+        {/*                    }*/}
+        {/*                  >*/}
+        {/*                    <Form.Item*/}
+        {/*                      {...field}*/}
+        {/*                      validateTrigger={["onChange", "onBlur"]}*/}
+        {/*                      rules={[*/}
+        {/*                        {*/}
+        {/*                          required: true,*/}
+        {/*                          whitespace: true,*/}
+        {/*                          message: i18n.formatMessage({*/}
+        {/*                            id: "instance.form.placeholder.clusterName",*/}
+        {/*                          }),*/}
+        {/*                        },*/}
+        {/*                      ]}*/}
+        {/*                      noStyle*/}
+        {/*                    >*/}
+        {/*                      <Input*/}
+        {/*                        placeholder={i18n.formatMessage({*/}
+        {/*                          id: "instance.form.placeholder.clusterName",*/}
+        {/*                        })}*/}
+        {/*                        style={{ width: "90%", marginRight: "10px" }}*/}
+        {/*                      />*/}
+        {/*                    </Form.Item>*/}
+        {/*                    {fields.length > 1 ? (*/}
+        {/*                      <MinusCircleOutlined*/}
+        {/*                        className="dynamic-delete-button"*/}
+        {/*                        onClick={() => remove(field.name)}*/}
+        {/*                      />*/}
+        {/*                    ) : null}*/}
+        {/*                  </Form.Item>*/}
+        {/*                ))}*/}
+        {/*                <Form.Item {...formItemLayoutBtnLabel}>*/}
+        {/*                  <Button*/}
+        {/*                    type="dashed"*/}
+        {/*                    onClick={() => add()}*/}
+        {/*                    style={{ width: "100%" }}*/}
+        {/*                    icon={<PlusOutlined />}*/}
+        {/*                  >*/}
+        {/*                    {i18n.formatMessage({ id: "cluster.button.add" })}*/}
+        {/*                  </Button>*/}
+        {/*                  <Form.ErrorList errors={errors} />*/}
+        {/*                </Form.Item>*/}
+        {/*              </>*/}
+        {/*            );*/}
+        {/*          }}*/}
+        {/*        </Form.List>*/}
+        {/*      </>*/}
+        {/*    );*/}
+        {/*  }}*/}
+        {/*</Form.Item>*/}
 
         <Form.Item
           name={"dsn"}
@@ -447,7 +441,7 @@ const CreatedOrUpdatedInstanceModal = (
         </Form.Item>
         <Form.Item
           name={"desc"}
-          label={i18n.formatMessage({ id: "DescAsAlias" })}
+          label={i18n.formatMessage({ id: "descAsAlias" })}
         >
           <Input
             placeholder={i18n.formatMessage({

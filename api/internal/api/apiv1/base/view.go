@@ -109,7 +109,6 @@ func ViewDelete(c *core.Context) {
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnViewsDelete, map[string]interface{}{"viewInfo": viewInfo})
 	c.JSONOK()
-	return
 }
 
 // ViewCreate
@@ -202,7 +201,6 @@ func ViewCreate(c *core.Context) {
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnViewsCreate, map[string]interface{}{"viewInfo": current})
 	c.JSONOK()
-	return
 }
 
 // @Tags         LOGSTORE
@@ -301,7 +299,6 @@ func ViewUpdate(c *core.Context) {
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnViewsUpdate, map[string]interface{}{"params": params})
 	c.JSONOK()
-	return
 }
 
 // @Tags         LOGSTORE
@@ -338,7 +335,6 @@ func ViewInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(viewInfo)
-	return
 }
 
 // @Tags         LOGSTORE
@@ -391,5 +387,4 @@ func ViewList(c *core.Context) {
 		})
 	}
 	c.JSONOK(res)
-	return
 }

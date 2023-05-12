@@ -24,12 +24,11 @@ func Webhook(c *core.Context) {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-	elog.Debug("alarm", elog.Any("notification", notification))
+	elog.Info("alarm", elog.Any("notification", notification))
 	err = service.Alert.HandlerAlertManager(notification.CommonLabels["uuid"], notification.CommonLabels["filterId"], notification)
 	if err != nil {
 		c.JSONE(1, "message send failed: "+err.Error(), err)
 		return
 	}
 	c.JSONOK()
-	return
 }

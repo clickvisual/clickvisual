@@ -1,9 +1,5 @@
-import styles from "./index.less";
+import { LocalModuleType } from "@/hooks/useLocalStorages";
 import { CollectType, LogFilterType } from "@/services/dataLogs";
-import { Dropdown, Menu, message, Tag } from "antd";
-import { useEffect } from "react";
-import { useIntl, useModel } from "umi";
-import classNames from "classnames";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -11,7 +7,11 @@ import {
   EyeOutlined,
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
-import { LocalModuleType } from "@/hooks/useLocalStorages";
+import { Dropdown, message, Tag } from "antd";
+import classNames from "classnames";
+import { useEffect } from "react";
+import { useIntl, useModel } from "umi";
+import styles from "./index.less";
 
 const FilterList = ({ tid }: { tid: number }) => {
   const i18n = useIntl();
@@ -69,69 +69,25 @@ const FilterList = ({ tid }: { tid: number }) => {
     oldIds: any[],
     filterIndex: number
   ) => {
-    return (
-      <Menu style={{ width: "200px" }}>
-        <Menu.Item
-          key="allApps"
-          icon={<VerticalAlignTopOutlined />}
-          onClick={() => {
-            const isGlobal = item.collectType == 4;
-            const data: any = {
-              id: item.id,
-            };
-            if (isGlobal) {
-              data.collectType = 2;
-              data.tableId = tid;
-            } else {
-              data.collectType = 4;
-              delete data.tableId;
-            }
-            doEditLogFilter.run(data.id, data).then((res: any) => {
-              if (res.code != 0) return;
-              // 以下函数会刷新filterList
-              doGetLogsAndHighCharts(tid).then((data: any) => {
-                const { logs } = data;
-                const pane = logPanesHelper.logPanes[tid];
-                onChangeCurrentLogPane({
-                  ...pane,
-                  logs: logs,
-                });
-              });
-            });
-          }}
-        >
-          {item.collectType == 2
-            ? i18n.formatMessage({ id: "log.filter.menu.global" })
-            : i18n.formatMessage({ id: "log.filter.menu.unpin" })}
-        </Menu.Item>
-        <Menu.Item
-          key="eidt"
-          icon={<EditOutlined />}
-          onClick={() => {
-            onChangeVisibleLogFilter(true);
-            onChangeEditLogFilterInfo(item);
-          }}
-        >
-          {i18n.formatMessage({ id: "log.filter.edit.title" })}
-        </Menu.Item>
-
-        <Menu.Item
-          key="isEnable"
-          icon={filterIndex != -1 ? <EyeOutlined /> : <EyeInvisibleOutlined />}
-          onClick={() => {
-            if (filterIndex != -1) {
-              oldIds.splice(filterIndex, 1);
-            } else {
-              oldIds.push(item.id);
-            }
-            const data = {
-              ...filterDisableIds,
-              [`${tid}`]: oldIds,
-            };
-            localStorage.setItem(
-              LocalModuleType.datalogsFilterDisableIds,
-              JSON.stringify(data)
-            );
+    return [
+      {
+        key: "allApps",
+        icon: <VerticalAlignTopOutlined />,
+        onClick: () => {
+          const isGlobal = item.collectType == 4;
+          const data: any = {
+            id: item.id,
+          };
+          if (isGlobal) {
+            data.collectType = 2;
+            data.tableId = tid;
+          } else {
+            data.collectType = 4;
+            delete data.tableId;
+          }
+          doEditLogFilter.run(data.id, data).then((res: any) => {
+            if (res.code != 0) return;
+            // 以下函数会刷新filterList
             doGetLogsAndHighCharts(tid).then((data: any) => {
               const { logs } = data;
               const pane = logPanesHelper.logPanes[tid];
@@ -140,24 +96,62 @@ const FilterList = ({ tid }: { tid: number }) => {
                 logs: logs,
               });
             });
-          }}
-        >
-          {filterIndex != -1
+          });
+        },
+        label:
+          item.collectType == 2
+            ? i18n.formatMessage({ id: "log.filter.menu.global" })
+            : i18n.formatMessage({ id: "log.filter.menu.unpin" }),
+      },
+      {
+        key: "eidt",
+        icon: <EditOutlined />,
+        onClick: () => {
+          onChangeVisibleLogFilter(true);
+          onChangeEditLogFilterInfo(item);
+        },
+        label: i18n.formatMessage({ id: "log.filter.edit.title" }),
+      },
+      {
+        key: "isEnable",
+        icon: filterIndex != -1 ? <EyeOutlined /> : <EyeInvisibleOutlined />,
+        onClick: () => {
+          if (filterIndex != -1) {
+            oldIds.splice(filterIndex, 1);
+          } else {
+            oldIds.push(item.id);
+          }
+          const data = {
+            ...filterDisableIds,
+            [`${tid}`]: oldIds,
+          };
+          localStorage.setItem(
+            LocalModuleType.datalogsFilterDisableIds,
+            JSON.stringify(data)
+          );
+          doGetLogsAndHighCharts(tid).then((data: any) => {
+            const { logs } = data;
+            const pane = logPanesHelper.logPanes[tid];
+            onChangeCurrentLogPane({
+              ...pane,
+              logs: logs,
+            });
+          });
+        },
+        label:
+          filterIndex != -1
             ? i18n.formatMessage({ id: "log.filter.menu.enable" })
-            : i18n.formatMessage({ id: "log.filter.menu.disable" })}
-        </Menu.Item>
-
-        <Menu.Item
-          key="delete"
-          icon={<DeleteOutlined />}
-          onClick={(e: any) => {
-            handleDeleteLogFilter(item.id, e);
-          }}
-        >
-          {i18n.formatMessage({ id: "delete" })}
-        </Menu.Item>
-      </Menu>
-    );
+            : i18n.formatMessage({ id: "log.filter.menu.disable" }),
+      },
+      {
+        key: "delete",
+        icon: <DeleteOutlined />,
+        onClick: (e: any) => {
+          handleDeleteLogFilter(item.id, e);
+        },
+        label: i18n.formatMessage({ id: "delete" }),
+      },
+    ];
   };
 
   return (
@@ -181,7 +175,10 @@ const FilterList = ({ tid }: { tid: number }) => {
           const filterIndex = oldIds.indexOf(item.id);
           return (
             <Dropdown
-              overlay={() => menu(item, filterDisableIds, oldIds, filterIndex)}
+              menu={{
+                items: menu(item, filterDisableIds, oldIds, filterIndex),
+                style: { width: "200px" },
+              }}
               placement="bottomLeft"
               trigger={["click"]}
               key={item.id}

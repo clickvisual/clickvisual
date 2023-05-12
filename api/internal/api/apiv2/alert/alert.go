@@ -11,7 +11,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
-	"github.com/clickvisual/clickvisual/api/internal/service/alert/alertcomponent"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarm/alertcomponent"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
@@ -116,6 +116,7 @@ func SettingList(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	checkHistory := make(map[string]db.RespAlertSettingListItem)
 	for _, instance := range instanceList {
 		if !service.InstanceViewIsPermission(c.Uid(), instance.ID) {
 			continue
@@ -129,28 +130,36 @@ func SettingList(c *core.Context) {
 			IsPrometheusOK:     1,
 			IsMetricsSamplesOk: 1,
 		}
-		// prometheus
-		errAlertManager, errProm := func() (error, error) {
-			p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget, instance.RuleStoreType)
+		if tmp, ok := checkHistory[instance.PrometheusTarget]; ok {
+			row.IsPrometheusOK = tmp.IsPrometheusOK
+			row.CheckPrometheusResult = tmp.CheckPrometheusResult
+			row.IsAlertManagerOK = tmp.IsAlertManagerOK
+			row.CheckAlertManagerResult = tmp.CheckAlertManagerResult
+		} else {
+			errAlertManager, errProm := func() (error, error) {
+				p, errProm := alertcomponent.NewPrometheus(instance.PrometheusTarget, instance.RuleStoreType)
+				if errProm != nil {
+					return errProm, errProm
+				}
+				return p.CheckDependents(), p.Health()
+			}()
 			if errProm != nil {
-				return errProm, errProm
+				row.IsPrometheusOK = 0
+				row.CheckPrometheusResult = errProm.Error()
+				if errors.Is(errProm, alertcomponent.ErrCheckNotSupported) {
+					row.IsPrometheusOK = 3
+				}
 			}
-			return p.CheckDependents(), p.Health()
-		}()
-		if errProm != nil {
-			row.IsPrometheusOK = 0
-			row.CheckPrometheusResult = errProm.Error()
-			if errors.Is(errProm, alertcomponent.ErrCheckNotSupported) {
-				row.IsPrometheusOK = 3
+			if errAlertManager != nil {
+				row.IsAlertManagerOK = 0
+				row.CheckAlertManagerResult = errAlertManager.Error()
+				if errors.Is(errAlertManager, alertcomponent.ErrCheckNotSupported) {
+					row.IsAlertManagerOK = 3
+				}
 			}
+			checkHistory[instance.PrometheusTarget] = row
 		}
-		if errAlertManager != nil {
-			row.IsAlertManagerOK = 0
-			row.CheckAlertManagerResult = errAlertManager.Error()
-			if errors.Is(errAlertManager, alertcomponent.ErrCheckNotSupported) {
-				row.IsAlertManagerOK = 3
-			}
-		}
+		// prometheus
 		if errMetrics := func() error {
 			op, errCh := service.InstanceManager.Load(instance.ID)
 			if errCh != nil {
@@ -165,7 +174,6 @@ func SettingList(c *core.Context) {
 		res = append(res, &row)
 	}
 	c.JSONOK(res)
-	return
 }
 
 // SettingInfo
@@ -198,7 +206,6 @@ func SettingInfo(c *core.Context) {
 			ConfigPrometheusOperator: res.ConfigPrometheusOperator,
 		},
 	})
-	return
 }
 
 // CreateMetricsSamples
@@ -234,5 +241,4 @@ func CreateMetricsSamples(c *core.Context) {
 	}
 	event.Event.UserCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"params": params})
 	c.JSONOK()
-	return
 }

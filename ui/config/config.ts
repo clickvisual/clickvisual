@@ -1,10 +1,12 @@
+import MonacoEditorWebpackPlugin from "monaco-editor-webpack-plugin";
 import { defineConfig } from "umi";
 import defaultSettings from "./defaultSettings";
 import proxy from "./proxy";
 import routes from "./routes";
-import MonacoEditorWebpackPlugin from "monaco-editor-webpack-plugin";
 
 const { REACT_APP_ENV } = process.env;
+
+const TerserPlugin = require("terser-webpack-plugin");
 
 export default defineConfig({
   define: {
@@ -14,9 +16,7 @@ export default defineConfig({
   publicPath: process.env.PUBLIC_PATH || "/",
   base: process.env.PUBLIC_PATH || "/",
   antd: {},
-  dva: {
-    hmr: true,
-  },
+  dva: {},
   layout: {
     locale: true,
     siderWidth: 208,
@@ -27,42 +27,30 @@ export default defineConfig({
     default: "zh-CN",
     baseNavigator: true,
   },
-  dynamicImport: {
-    loading: "@ant-design/pro-layout/es/PageLoading",
-  },
-  // chunks: ["react", "vendors", "umi"],
-  targets: {
-    chrome: 79,
-    firefox: false,
-    safari: false,
-    edge: false,
-    ios: false,
-  },
+  targets: {},
   routes,
   theme: {
     "primary-color": "hsl(21, 85%, 56%)",
     "border-radius-base": "8px",
   },
-  esbuild: {},
-  title: false,
+  title: "",
   ignoreMomentLocale: true,
   proxy: proxy[REACT_APP_ENV || "dev"],
   manifest: {
     basePath: "/",
   },
-  fastRefresh: {},
-  nodeModulesTransform: { type: "none" },
   exportStatic: {},
-  chainWebpack: (config, { env, webpack, createCSSRule }) => {
-    // config.optimization.splitChunks({
-    //   chunks: "all",
-    //   minSize: 30000,
-    //   minChunks: 1,
-    //   automaticNameDelimiter: ".",
-    //   cacheGroups: {
-    //
-    //   },
-    // });
+  model: {},
+  request: {},
+  initialState: {},
+  chainWebpack: (config, { env, webpack }) => {
+    config.plugin("TerserPlugin").use(TerserPlugin, [
+      {
+        terserOptions: {
+          compress: { drop_console: process.env.NODE_ENV === "production" },
+        },
+      },
+    ]);
     config.plugin("monaco-editor").use(MonacoEditorWebpackPlugin, [
       {
         languages: ["json", "ini", "yaml", "sb", "sql", "mysql"],

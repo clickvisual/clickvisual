@@ -1,18 +1,18 @@
-import { useModel } from "@@/plugin-model/useModel";
 import CustomModal from "@/components/CustomModal";
-import { Spin } from "antd";
-import { MonacoDiffEditor } from "react-monaco-editor";
-import { useEffect } from "react";
 import diffStyles from "@/pages/Configure/components/Menu/Publish/RealtimeDiff/index.less";
+import { useModel } from "@umijs/max";
+import { Spin } from "antd";
+import { useEffect } from "react";
+import { MonacoDiffEditor } from "react-monaco-editor";
 import { useIntl } from "umi";
 
 type OnlineDiffProps = {
-  visible: boolean;
+  open: boolean;
   onCancel?: () => void;
 };
 
 const OnlineDiff = (props: OnlineDiffProps) => {
-  const { visible, onCancel } = props;
+  const { open, onCancel } = props;
   const {
     selectedClusterId,
     selectedConfigMap,
@@ -23,18 +23,18 @@ const OnlineDiff = (props: OnlineDiffProps) => {
   const i18n = useIntl();
 
   useEffect(() => {
-    if (!visible) return;
+    if (!open) return;
     doGetOnlineConfiguration.run(
       selectedClusterId as number,
       selectedNameSpace as string,
       selectedConfigMap as string,
       `${currentConfiguration?.name}.${currentConfiguration?.format}`
     );
-  }, [visible]);
+  }, [open]);
 
   return (
     <CustomModal
-      visible={visible}
+      open={open}
       title={i18n.formatMessage({ id: "config.diff.title" })}
       width="90%"
       onCancel={onCancel}

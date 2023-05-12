@@ -1,9 +1,9 @@
+import { FIFTEEN_TIME } from "@/config/config";
 import darkTimeStyles from "@/pages/DataLogs/components/DateTimeSelected/index.less";
-import { DatePicker } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import moment from "moment";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import { FIFTEEN_TIME, MINUTES_UNIT_TIME } from "@/config/config";
+import { useModel } from "@umijs/max";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
 
 const { RangePicker } = DatePicker;
 
@@ -17,10 +17,15 @@ const CustomTimeInterval = () => {
   } = useModel("dataLogs");
 
   return (
-    <div className={darkTimeStyles.tabCard}>
+    <div
+      className={darkTimeStyles.tabCard}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
       <RangePicker
         showTime
-        value={[moment(startDateTime, "X"), moment(endDateTime, "X")]}
+        value={[dayjs(startDateTime, "X"), dayjs(endDateTime, "X")]}
         onChange={(dates) => {
           if (dates && dates[0] && dates[1]) {
             const start = dates[0].unix();
@@ -29,9 +34,7 @@ const CustomTimeInterval = () => {
             onChangeEndDateTime(end);
             onChangeActiveTimeOptionIndex(-1);
           } else {
-            const start = moment()
-              .subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME)
-              .unix();
+            const start = dayjs().subtract(FIFTEEN_TIME, "m").unix();
             const end = currentTimeStamp();
             onChangeStartDateTime(start);
             onChangeEndDateTime(end);

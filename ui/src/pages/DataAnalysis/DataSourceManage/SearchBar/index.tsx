@@ -1,7 +1,7 @@
 import style from "@/pages/DataAnalysis/DataSourceManage/index.less";
 import { Button, Form, FormInstance, Select, Space } from "antd";
-import { useModel, useIntl } from "umi";
 import { useEffect, useRef } from "react";
+import { useIntl, useModel } from "umi";
 const { Option } = Select;
 const SearchBar = () => {
   const i18n = useIntl();
@@ -42,12 +42,11 @@ const SearchBar = () => {
             label={i18n.formatMessage({
               id: "log.editDatabaseModel.label.datasourceType",
             })}
-            style={{ margin: 0 }}
             name="typ"
             shouldUpdate
           >
             <Select
-              style={{ width: "300px" }}
+              style={{ width: "170px" }}
               placeholder={i18n.formatMessage({
                 id: "bigdata.dataSourceManage.searchBar.dataSourceType.placeholder",
               })}
@@ -68,7 +67,6 @@ const SearchBar = () => {
           </Form.Item>
           <Form.Item noStyle>
             <Button
-              // type="primary"
               onClick={() => {
                 onSearch(currentInstances as number, {
                   typ: currentTyp as number,

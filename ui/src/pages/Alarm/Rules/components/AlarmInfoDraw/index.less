@@ -29,6 +29,11 @@
   display: flex;
   flex: 1;
   padding: 0 20px;
+
+  :global(.ant-tabs-tabpane) {
+    height: calc(100% - 44px);
+  }
+
   .tabs {
     flex: 1;
     :global {

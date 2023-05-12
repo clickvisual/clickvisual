@@ -65,43 +65,43 @@ func TableId(c *core.Context) {
 // TableCreate
 // @Tags         LOGSTORE
 // @Summary		 日志库创建
-func TableCreate(c *core.Context) {
-	did := cast.ToInt(c.Param("did"))
-	if did == 0 {
-		c.JSONE(core.CodeErr, "params error", nil)
-		return
-	}
-	var param view.ReqTableCreate
-	err := c.Bind(&param)
-	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
-	if err != nil {
-		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
-		return
-	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
-		UserId:      c.Uid(),
-		ObjectType:  pmsplugin.PrefixInstance,
-		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
-		SubResource: pmsplugin.Log,
-		Acts:        []string{pmsplugin.ActEdit},
-		DomainType:  pmsplugin.PrefixDatabase,
-		DomainId:    strconv.Itoa(databaseInfo.ID),
-	}); err != nil {
-		c.JSONE(1, "permission verification failed", err)
-		return
-	}
-	_, err = service.TableCreate(c.Uid(), databaseInfo, param)
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
-		return
-	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
-	c.JSONOK()
-}
+// func TableCreate(c *core.Context) {
+// 	did := cast.ToInt(c.Param("did"))
+// 	if did == 0 {
+// 		c.JSONE(core.CodeErr, "params error", nil)
+// 		return
+// 	}
+// 	var param view.ReqTableCreate
+// 	err := c.Bind(&param)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+// 		return
+// 	}
+// 	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
+// 		return
+// 	}
+// 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+// 		UserId:      c.Uid(),
+// 		ObjectType:  pmsplugin.PrefixInstance,
+// 		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
+// 		SubResource: pmsplugin.Log,
+// 		Acts:        []string{pmsplugin.ActEdit},
+// 		DomainType:  pmsplugin.PrefixDatabase,
+// 		DomainId:    strconv.Itoa(databaseInfo.ID),
+// 	}); err != nil {
+// 		c.JSONE(1, "permission verification failed", err)
+// 		return
+// 	}
+// 	_, err = service.TableCreate(c.Uid(), databaseInfo, param)
+// 	if err != nil {
+// 		c.JSONE(core.CodeErr, err.Error(), nil)
+// 		return
+// 	}
+// 	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
+// 	c.JSONOK()
+// }
 
 // TableInfo
 // @Tags         LOGSTORE
@@ -160,9 +160,13 @@ func TableInfo(c *core.Context) {
 		},
 		TraceTableId: tableInfo.TraceTableId,
 		V3TableType:  tableInfo.V3TableType,
+		RawLogField:  tableInfo.RawLogField,
 	}
 	if res.TimeField == "" {
 		res.TimeField = db.TimeFieldSecond
+	}
+	if tableInfo.RawLogField == "" {
+		res.IsNotSupAnalysisField = 1
 	}
 	keys := make([]string, 0)
 	data := make(map[string]string, 0)
@@ -206,7 +210,6 @@ func TableInfo(c *core.Context) {
 	res.SQLContent.Data = data
 	res.CreateType = tableInfo.CreateType
 	c.JSONOK(res)
-	return
 }
 
 // TableList
@@ -238,7 +241,6 @@ func TableList(c *core.Context) {
 		})
 	}
 	c.JSONOK(res)
-	return
 }
 
 // TableDelete
@@ -291,7 +293,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "delete failed 04", err)
 		return
 	}
-	err = db.IndexDeleteBatch(tx, tableInfo.ID)
+	err = db.IndexDeleteBatch(tx, tableInfo.ID, true)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed 05", err)
@@ -427,7 +429,6 @@ func TableLogs(c *core.Context) {
 	res.Cost = time.Since(st).Milliseconds()
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
-	return
 }
 
 // QueryComplete
@@ -468,7 +469,6 @@ func QueryComplete(c *core.Context) {
 	res.SortRule, res.IsNeedSort = utils.GenerateFieldOrderRules(param.Query)
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
-	return
 }
 
 // TableCharts
@@ -576,11 +576,11 @@ func TableCharts(c *core.Context) {
 		// 说明有很多数据需要填充
 		fillNum := (et - latestFrom) / interval
 		for i := int64(0); i < (fillNum); i++ {
-			to := latestFrom + interval*(i+2)
+			// to := latestFrom + interval*(i+2)
 			from := latestFrom + interval*(i+1)
-			if to > st {
-				to = st
-			}
+			// if to > st {
+			// 	to = st
+			// }
 			if _, ok := chartMap[from]; !ok {
 				chartMap[from] = &view.HighChart{
 					Count: 0,
@@ -624,7 +624,6 @@ func TableCharts(c *core.Context) {
 	}
 	res.Histograms = fillCharts
 	c.JSONOK(res)
-	return
 }
 
 // TableIndexes
@@ -648,6 +647,7 @@ func TableIndexes(c *core.Context) {
 	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
+	param.Tid = tid
 	param.Table = tableInfo.Name
 	param.Database = tableInfo.Database.Name
 	param.TimeFieldType = tableInfo.TimeFieldType
@@ -668,7 +668,6 @@ func TableIndexes(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-
 	indexInfo, _ := db.IndexInfo(invoker.Db, indexId)
 	param.Field = indexInfo.GetFieldName()
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
@@ -682,9 +681,6 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	list := op.GroupBy(param)
-
-	elog.Debug("Indexes", elog.Any("list", list))
-
 	res := make([]view.RespIndexItem, 0)
 	sum, err := op.Count(param)
 	if err != nil {
@@ -703,9 +699,7 @@ func TableIndexes(c *core.Context) {
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Count > res[j].Count
 	})
-	elog.Debug("Indexes", elog.Any("res", res))
 	c.JSONOK(res)
-	return
 }
 
 // TableCreateSelfBuilt
@@ -910,6 +904,10 @@ func TableUpdate(c *core.Context) {
 		return
 	}
 	table, err := db.TableInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(1, "update failed 00"+err.Error(), nil)
+		return
+	}
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
@@ -959,5 +957,4 @@ func TableDeps(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }

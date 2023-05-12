@@ -73,6 +73,7 @@ export interface AlarmConditionType extends TimeBaseType {
 }
 
 export interface AlarmInfoType extends AlarmType, TimeBaseType {
+  isDisableResolve: 0 | 1;
   id: number;
   filters: AlarmFilterType[];
   channelIds: number[];
@@ -96,6 +97,7 @@ export interface AlarmInfoType extends AlarmType, TimeBaseType {
 }
 
 export interface AlarmRequest {
+  dutyOfficers: number[];
   alarmName: string;
   type: number;
   filters: AlarmFilterType[];

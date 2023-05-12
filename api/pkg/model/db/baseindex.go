@@ -14,10 +14,12 @@ import (
 
 const (
 	IndexTypeString int = 0
-	IndexTypeInt    int = 1
-	IndexTypeFloat  int = 2
-	IndexTypeJSON   int = 3
 	IndexTypeRaw    int = -4
+)
+
+const (
+	IndexKindBase int = 0
+	IndexKindLog  int = 1
 )
 
 // BaseIndex 索引数据存储
@@ -30,6 +32,7 @@ type BaseIndex struct {
 	Typ      int    `gorm:"column:typ;type:int(11);NOT NULL" json:"typ"`                                                // 0 string 1 int 2 float
 	HashTyp  int    `gorm:"column:hash_typ;type:tinyint(1)" json:"hashTyp"`                                             // hash type, 0 no hash 1 sipHash64 2 URLHash
 	Alias    string `gorm:"column:alias;type:varchar(128);NOT NULL" json:"alias"`                                       // index filed alias name
+	Kind     int    `gorm:"column:kind;type:tinyint(1)" json:"kind"`                                                    // 0 base field 1 log field
 }
 
 func (b *BaseIndex) TableName() string {
@@ -81,8 +84,16 @@ func IndexCreate(db *gorm.DB, data *BaseIndex) (err error) {
 	return
 }
 
-func IndexDeleteBatch(db *gorm.DB, tid int) (err error) {
-	if err = db.Model(BaseIndex{}).Where("`tid`=?", tid).Unscoped().Delete(&BaseIndex{}).Error; err != nil {
+// IndexDeleteBatch 删除索引
+// isDeleteAll 是否删除所有索引 false 只删除日志索引
+func IndexDeleteBatch(db *gorm.DB, tid int, isDeleteAll bool) (err error) {
+	q := db.Model(BaseIndex{})
+	if isDeleteAll {
+		q.Where("`tid`=?", tid)
+	} else {
+		q.Where("`tid`=? and `kind`=1", tid)
+	}
+	if err = q.Unscoped().Delete(&BaseIndex{}).Error; err != nil {
 		elog.Error("release delete error", zap.Error(err))
 		return
 	}

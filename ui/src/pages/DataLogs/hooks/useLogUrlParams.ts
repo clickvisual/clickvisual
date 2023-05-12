@@ -1,6 +1,3 @@
-import useUrlState from "@ahooksjs/use-url-state";
-import { useModel } from "@@/plugin-model/useModel";
-import { useDebounceFn } from "ahooks";
 import {
   ACTIVE_TIME_INDEX,
   DEBOUNCE_WAIT,
@@ -11,20 +8,23 @@ import {
   QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
-import moment from "moment";
-import { currentTimeStamp } from "@/utils/momentUtils";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { IndexInfoType, TableInfoResponse } from "@/services/dataLogs";
-import { BaseRes } from "@/hooks/useRequest/useRequest";
-import { DefaultPane } from "@/models/datalogs/useLogPanes";
-import { PaneType } from "@/models/datalogs/types";
 import useLocalStorages, {
   LastDataLogsStateType,
   LocalModuleType,
 } from "@/hooks/useLocalStorages";
+import { BaseRes } from "@/hooks/useRequest/useRequest";
+import { PaneType } from "@/models/datalogs/types";
+import { DefaultPane } from "@/models/datalogs/useLogPanes";
+import { IndexInfoType, TableInfoResponse } from "@/services/dataLogs";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import useUrlState from "@ahooksjs/use-url-state";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
+import dayjs from "dayjs";
 import { isEqual } from "lodash";
-import useTimeOptions from "./useTimeOptions";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { TimeOption } from "../components/DateTimeSelected";
+import useTimeOptions from "./useTimeOptions";
 
 export interface UrlStateType {
   tid?: string | number;
@@ -68,7 +68,7 @@ const SharePath = [
 
 export default function useLogUrlParams() {
   const [urlState, setUrlState] = useUrlState<UrlStateType>({
-    start: moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
+    start: dayjs().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix(),
     end: currentTimeStamp(),
     page: FIRST_PAGE,
     size: PAGE_SIZE,
@@ -96,9 +96,11 @@ export default function useLogUrlParams() {
     onChangeLogPane,
     logPanesHelper,
     statisticalChartsHelper,
-    rawLogsIndexeList,
+    baseFieldsIndexList,
+    logFieldsIndexList,
     doGetAnalysisField,
-    onChangeRawLogsIndexeList,
+    onChangeBaseFieldsIndexList,
+    onChangeLogFieldsIndexList,
     onChangeCurrentLogPane,
     logState,
     onChangeTableInfo,
@@ -115,8 +117,11 @@ export default function useLogUrlParams() {
   const { activeQueryType } = statisticalChartsHelper;
   const { onChangeDataLogsState, getLastDataLogsState, onSetLocalData } =
     useLocalStorages();
-  const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
-    rawLogsIndexeList
+  const baseIndexeListRef = useRef<IndexInfoType[] | undefined>(
+    baseFieldsIndexList
+  );
+  const logsIndexeListRef = useRef<IndexInfoType[] | undefined>(
+    logFieldsIndexList
   );
 
   const isShare = useMemo(
@@ -124,7 +129,8 @@ export default function useLogUrlParams() {
     [document.location.pathname]
   );
 
-  rawLogsIndexeListRef.current = rawLogsIndexeList;
+  baseIndexeListRef.current = baseFieldsIndexList;
+  logsIndexeListRef.current = logFieldsIndexList;
   const handleResponse = (
     res: BaseRes<TableInfoResponse>,
     tid: number,
@@ -148,32 +154,37 @@ export default function useLogUrlParams() {
       (urlState.tab || lastDataLogsState.tab) == TimeRangeType.Relative;
 
     const startTime: any = isRelative
-      ? moment()
+      ? dayjs()
           .subtract(itemObj.relativeAmount, itemObj.relativeUnit)
           .format("X")
       : parseInt(urlState.start || lastDataLogsState.start);
 
     const endTime: any = isRelative
-      ? moment().format("X")
+      ? dayjs().format("X")
       : parseInt(urlState.end || lastDataLogsState.end);
+
+    const isTid = !!urlState?.tid;
 
     const pane: PaneType = {
       ...DefaultPane,
       pane: res.data.name,
       paneId: tid.toString(),
       paneType: res.data.createType,
-      start: startTime || parseInt(urlState.start || lastDataLogsState.start),
-      end: endTime || parseInt(urlState.end || lastDataLogsState.end),
-      keyword: urlState.kw || lastDataLogsState.kw,
-      page: parseInt(urlState.page || lastDataLogsState.page),
-      pageSize: parseInt(urlState.size || lastDataLogsState.size),
-      activeTabKey: urlState.tab || lastDataLogsState.tab,
-      activeIndex: parseInt(urlState.index || lastDataLogsState.index),
-      queryType: urlState.queryType || lastDataLogsState.queryType,
-      querySql: dataLogsQuerySql[tid] || lastDataLogsState.querySql,
+      start:
+        startTime || parseInt(isTid ? urlState.start : lastDataLogsState.start),
+      end: endTime || parseInt(isTid ? urlState.end : lastDataLogsState.end),
+      keyword: isTid ? urlState.kw : lastDataLogsState.kw,
+      page: parseInt(isTid ? urlState.page : lastDataLogsState.page),
+      pageSize: parseInt(isTid ? urlState.size : lastDataLogsState.size),
+      activeTabKey: isTid ? urlState.tab : lastDataLogsState.tab,
+      activeIndex: parseInt(isTid ? urlState.index : lastDataLogsState.index),
+      queryType: isTid ? urlState.queryType : lastDataLogsState.queryType,
+      querySql: isTid ? dataLogsQuerySql[tid] : lastDataLogsState.querySql,
       desc: res.data.desc,
       mode: urlState?.mode, // 为1时：聚合报警详情页面过来的
-      logState: parseInt(urlState?.logState || lastDataLogsState.logState),
+      logState: parseInt(
+        isTid ? urlState?.logState : lastDataLogsState.logState
+      ),
       relTraceTableId: res.data.traceTableId,
     };
     addLogPane(pane.paneId, pane);
@@ -196,10 +207,12 @@ export default function useLogUrlParams() {
 
       doGetAnalysisField.run(tid).then((res: any) => {
         if (res.code != 0) return;
-        onChangeRawLogsIndexeList(res.data?.keys);
+        onChangeBaseFieldsIndexList(res.data?.baseFields);
+        onChangeLogFieldsIndexList(res.data?.logFields);
         onChangeCurrentLogPane({
           ...(pane as PaneType),
-          rawLogsIndexeList: res.data?.keys,
+          baseFieldsIndexList: res.data?.baseFields,
+          logFieldsIndexList: res.data?.logFields,
         });
 
         doGetLogsAndHighCharts(tid, {
@@ -220,7 +233,8 @@ export default function useLogUrlParams() {
             };
             pane.highCharts = res.highCharts;
             pane.logChart = { logs: [], isNeedSort: false, sortRule: [] };
-            pane.rawLogsIndexeList = rawLogsIndexeListRef.current;
+            pane.baseFieldsIndexList = baseIndexeListRef.current;
+            pane.logFieldsIndexList = logsIndexeListRef.current;
             pane.columsList = columsArr;
             onChangeLogPane(pane);
           })

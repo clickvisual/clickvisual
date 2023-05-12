@@ -1,6 +1,6 @@
-import { useModel } from "@@/plugin-model/useModel";
 import Files from "@/pages/Configure/components/Menu/Files";
 import Publish from "@/pages/Configure/components/Menu/Publish";
+import { useModel } from "@umijs/max";
 
 const Menu = () => {
   const { activeMenu } = useModel("configure");

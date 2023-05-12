@@ -1,12 +1,12 @@
 import { Drawer, Table, Tooltip } from "antd";
 import moment from "moment";
 import { useEffect, useState } from "react";
-import { useModel, useIntl } from "umi";
 import MonacoEditor from "react-monaco-editor";
 import { format } from "sql-formatter";
+import { useIntl, useModel } from "umi";
 
 const VersionHistory = (props: {
-  visible: boolean;
+  open: boolean;
   setVisible: (flag: boolean) => void;
   node: any;
   onChangeVersionHistoryList: any;
@@ -16,7 +16,7 @@ const VersionHistory = (props: {
   currentPaneActiveKey: string;
 }) => {
   const {
-    visible,
+    open,
     setVisible,
     node,
     onChangeVersionHistoryList,
@@ -56,10 +56,10 @@ const VersionHistory = (props: {
   };
 
   useEffect(() => {
-    if (!visible) {
+    if (!open) {
       onChangeVersionHistoryList({ list: [], total: 0 });
     }
-  }, [visible]);
+  }, [open]);
 
   const onClose = () => {
     setVisible(false);
@@ -161,7 +161,7 @@ const VersionHistory = (props: {
       })}
       placement="right"
       onClose={onClose}
-      visible={visible}
+      open={open}
       width={"50vw"}
     >
       <Table
@@ -192,7 +192,7 @@ const VersionHistory = (props: {
         })}
         width={"50vw"}
         onClose={() => setVisibleQuery(false)}
-        visible={visibleQuery}
+        open={visibleQuery}
       >
         <MonacoEditor
           height={"100%"}

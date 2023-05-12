@@ -32,6 +32,10 @@ func Create(c *core.Context) {
 	}
 	for _, f := range req.Filters {
 		tableInfo, err := db.TableInfo(invoker.Db, f.Tid)
+		if err != nil {
+			c.JSONE(1, "table create", err)
+			return
+		}
 		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 			UserId:      c.Uid(),
 			ObjectType:  pmsplugin.PrefixInstance,
@@ -51,17 +55,19 @@ func Create(c *core.Context) {
 		tableIds = append(tableIds, f.Tid)
 	}
 	obj := &db.Alarm{
-		Uuid:       uuid.NewString(),
-		Name:       req.Name,
-		Desc:       req.Desc,
-		Interval:   req.Interval,
-		Unit:       req.Unit,
-		Tags:       req.Tags,
-		NoDataOp:   req.NoDataOp,
-		ChannelIds: db.Ints(req.ChannelIds),
-		Uid:        c.Uid(),
-		Level:      req.Level,
-		TableIds:   tableIds,
+		Uuid:             uuid.NewString(),
+		Name:             req.Name,
+		Desc:             req.Desc,
+		Interval:         req.Interval,
+		Unit:             req.Unit,
+		Tags:             req.Tags,
+		NoDataOp:         req.NoDataOp,
+		ChannelIds:       db.Ints(req.ChannelIds),
+		Uid:              c.Uid(),
+		Level:            req.Level,
+		TableIds:         tableIds,
+		DutyOfficers:     db.Ints(req.DutyOfficers),
+		IsDisableResolve: req.IsDisableResolve,
 	}
 	if err := db.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()
@@ -79,7 +85,6 @@ func Create(c *core.Context) {
 	}
 	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
-	return
 }
 
 // Update
@@ -117,7 +122,7 @@ func Update(c *core.Context) {
 		}
 	}
 	switch req.Status {
-	case db.AlarmStatusOpen:
+	case db.AlarmStatusNormal:
 		err = service.Alert.OpenOperator(id)
 	case db.AlarmStatusClose:
 		clusterRuleGroups := map[string]db.ClusterRuleGroup{}
@@ -282,7 +287,6 @@ func List(c *core.Context) {
 		PageSize: req.PageSize,
 		Total:    total,
 	})
-	return
 }
 
 // Info
@@ -349,19 +353,33 @@ func Info(c *core.Context) {
 	user.Password = "*"
 
 	res := view.RespAlarmInfo{
-		Alarm:       alarmInfo,
-		Filters:     respAlarmFilters,
-		User:        user,
-		Ctime:       alarmInfo.Ctime,
-		Utime:       alarmInfo.Utime,
-		RelatedList: relatedList,
+		Alarm:            alarmInfo,
+		Filters:          respAlarmFilters,
+		Uid:              user.Uid,
+		OaId:             user.OaId,
+		Username:         user.Username,
+		Nickname:         user.Nickname,
+		Secret:           user.Secret,
+		Phone:            user.Phone,
+		Email:            user.Email,
+		Avatar:           user.Avatar,
+		Hash:             user.Hash,
+		WebUrl:           user.WebUrl,
+		Oauth:            user.Oauth,
+		State:            user.State,
+		OauthId:          user.OauthId,
+		Password:         user.Password,
+		CurrentAuthority: user.CurrentAuthority,
+		Access:           user.Access,
+		Ctime:            alarmInfo.Ctime,
+		Utime:            alarmInfo.Utime,
+		RelatedList:      relatedList,
 
 		Instance: instanceInfo,
 		Table:    tableInfo,
 	}
 	res.Tid = res.Table.ID
 	c.JSONOK(res)
-	return
 }
 
 // Delete
@@ -512,7 +530,6 @@ func HistoryList(c *core.Context) {
 		PageSize: req.PageSize,
 		Total:    total,
 	})
-	return
 }
 
 // HistoryInfo
@@ -530,5 +547,4 @@ func HistoryInfo(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
-	return
 }

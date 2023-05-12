@@ -1,18 +1,18 @@
-import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import { Divider, message, Space, Table, Tooltip } from "antd";
-import type { AlignType, FixedType } from "rc-table/lib/interface";
-import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
-import IconFont from "@/components/IconFont";
-import classNames from "classnames";
-import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
-import { useContext, useState } from "react";
 import deletedModal from "@/components/DeletedModal";
-import { useModel } from "@@/plugin-model/useModel";
+import IconFont from "@/components/IconFont";
+import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
+import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
+import { CheckPermission } from "@/services/pms";
 import type { InstanceType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
-import { useIntl } from "umi";
+import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Divider, message, Space, Table, Tag, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
-import { CheckPermission } from "@/services/pms";
+import classNames from "classnames";
+import type { AlignType, FixedType } from "rc-table/lib/interface";
+import { useContext, useState } from "react";
+import { useIntl } from "umi";
 import AppRoleAssignListForm from "../RoleAssign";
 
 type InstanceTableProps = {
@@ -51,11 +51,11 @@ const InstanceTable = (props: InstanceTableProps) => {
   const column: ColumnsType<any> = [
     {
       title: `${i18n.formatMessage({
-        id: "instance.instanceName",
+        id: "instance.name",
       })}`,
       align: "left" as AlignType,
       dataIndex: "name",
-      width: 160,
+      width: 100,
       ellipsis: { showTitle: false },
       render: TooltipRender({ placement: "right" }),
     },
@@ -89,29 +89,29 @@ const InstanceTable = (props: InstanceTableProps) => {
         return <></>;
       },
     },
-    // {
-    //   title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
-    //   dataIndex: "clusters",
-    //   align: "center" as AlignType,
-    //   width: 100,
-    //   render: (clusters: string[]) => (
-    //     <Tooltip title={clusters}>
-    //       {clusters?.map((item: string, index: number) => {
-    //         return (
-    //           <Tag color="lime" key={index}>
-    //             {item}
-    //           </Tag>
-    //         );
-    //       })}
-    //     </Tooltip>
-    //   ),
-    // },
     {
-      title: i18n.formatMessage({ id: "DescAsAlias" }),
+      title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
+      dataIndex: "clusters",
+      align: "center" as AlignType,
+      width: 300,
+      render: (clusters: string[]) => (
+        <div>
+          {clusters?.map((item: string, index: number) => {
+            return (
+              <Tag color="lime" key={index}>
+                {item}
+              </Tag>
+            );
+          })}
+        </div>
+      ),
+    },
+    {
+      title: i18n.formatMessage({ id: "descAsAlias" }),
       align: "left" as AlignType,
       dataIndex: "desc",
       ellipsis: { showTitle: false },
-      width: 200,
+      width: 100,
       render: (_: any) => TooltipUtil(_),
     },
     {

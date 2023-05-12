@@ -155,7 +155,6 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTables) {
 		elog.Error("analysisInstance", elog.String("step", "commit"), elog.FieldErr(err))
 		return
 	}
-	return
 }
 
 func (d *dependence) loopDepsV2(iid int, database, table string, checked map[string]interface{}, op int) (res []view.RespTableDeps) {

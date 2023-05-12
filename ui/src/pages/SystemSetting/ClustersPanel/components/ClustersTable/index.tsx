@@ -1,17 +1,17 @@
-import clusterPanelStyles from "@/pages/SystemSetting/ClustersPanel/index.less";
-import { Divider, Space, Table, Tooltip } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useContext } from "react";
-import type { AlignType, FixedType } from "rc-table/lib/interface";
-import { EditOutlined } from "@ant-design/icons";
-import IconFont from "@/components/IconFont";
 import deletedModal from "@/components/DeletedModal";
-import classNames from "classnames";
-import type { ClusterType } from "@/services/systemSetting";
+import IconFont from "@/components/IconFont";
 import { ClustersPanelContext } from "@/pages/SystemSetting/ClustersPanel";
+import clusterPanelStyles from "@/pages/SystemSetting/ClustersPanel/index.less";
+import type { ClusterType } from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
-import { useIntl } from "umi";
+import { EditOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Divider, Space, Table, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
+import classNames from "classnames";
+import type { AlignType, FixedType } from "rc-table/lib/interface";
+import { useContext } from "react";
+import { useIntl } from "umi";
 
 const ClustersTable = () => {
   const { onChangeVisible, onChangeIsEditor, onChangeCurrentCluster } =

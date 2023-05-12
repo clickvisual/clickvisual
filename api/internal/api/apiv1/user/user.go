@@ -12,6 +12,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
+	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
@@ -36,9 +37,7 @@ func Info(c *core.Context) {
 			u.Access = "auth.proxy.cookie"
 		}
 	}
-
 	c.JSONOK(u)
-	return
 }
 
 // @Tags         USER
@@ -108,7 +107,6 @@ func Login(c *core.Context) {
 	session.Set("user", user)
 	_ = session.Save()
 	c.JSONOK("")
-	return
 }
 
 // @Tags         USER
@@ -122,7 +120,6 @@ func Logout(c *core.Context) {
 		return
 	}
 	c.JSONOK("succ")
-	return
 }
 
 type password struct {
@@ -139,6 +136,14 @@ func UpdatePassword(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
+	// 本人或者 root 有权限修改秘密
+	if uid != c.Uid() {
+		if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+			c.JSONE(1, "IsRootUser: "+err.Error(), nil)
+			return
+		}
+	}
+
 	var param password
 	err := c.Bind(&param)
 	if err != nil {
@@ -177,5 +182,4 @@ func UpdatePassword(c *core.Context) {
 	}
 	event.Event.UserCMDB(c.User(), db.OpnUserPwdChange, nil)
 	c.JSONOK()
-	return
 }

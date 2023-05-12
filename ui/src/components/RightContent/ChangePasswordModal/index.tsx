@@ -1,11 +1,11 @@
+import { DEBOUNCE_WAIT } from "@/config/config";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { useDebounceFn } from "ahooks";
 import { Form, FormInstance, Input, message, Modal } from "antd";
+import CryptoJs from "crypto-js";
 import { useEffect, useRef } from "react";
 import { useIntl } from "umi";
-import { useModel } from "@@/plugin-model/useModel";
-import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
-import { useDebounceFn } from "ahooks";
-import { DEBOUNCE_WAIT } from "@/config/config";
-import CryptoJs from "crypto-js";
 
 const ChangePasswordModal = () => {
   const i18n = useIntl();
@@ -73,7 +73,7 @@ const ChangePasswordModal = () => {
       width={700}
       confirmLoading={doChangePassword.loading}
       title={i18n.formatMessage({ id: "password.title" })}
-      visible={visibleChangePassword}
+      open={visibleChangePassword}
       bodyStyle={{ paddingBottom: 0 }}
       onCancel={handleCancel}
       onOk={() => resetFormRef.current?.submit()}

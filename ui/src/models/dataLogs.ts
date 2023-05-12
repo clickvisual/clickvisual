@@ -1,17 +1,3 @@
-import { useMemo, useRef, useState } from "react";
-import copy from "copy-to-clipboard";
-import { message } from "antd";
-import api, {
-  CollectType,
-  DatabaseResponse,
-  HighCharts,
-  IndexInfoType,
-  LogFilterType,
-  LogsResponse,
-  TablesResponse,
-} from "@/services/dataLogs";
-import useRequest from "@/hooks/useRequest/useRequest";
-import { currentTimeStamp } from "@/utils/momentUtils";
 import {
   ACTIVE_TIME_INDEX,
   CLICKVISUAL_LOGSPECIALCONNECTOR,
@@ -22,18 +8,32 @@ import {
   QueryTypeEnum,
   TimeRangeType,
 } from "@/config/config";
-import moment from "moment";
-import Request, { Canceler } from "umi-request";
-import lodash from "lodash";
-import { formatMessage } from "@@/plugin-locale/localeExports";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useRequest from "@/hooks/useRequest/useRequest";
+import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
+import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
 import useLogLibrary from "@/models/datalogs/useLogLibrary";
 import useLogLibraryViews from "@/models/datalogs/useLogLibraryViews";
-import useCollapseDatasourceMenu from "@/models/datalogs/useCollapseDatasourceMenu";
-import useLogPanes from "@/models/datalogs/useLogPanes";
-import { Extra, PaneType, QueryParams } from "@/models/datalogs/types";
-import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
 import useLogOptions from "@/models/datalogs/useLogOptions";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import useLogPanes from "@/models/datalogs/useLogPanes";
+import useStatisticalCharts from "@/models/datalogs/useStatisticalCharts";
+import api, {
+  CollectType,
+  DatabaseResponse,
+  HighCharts,
+  IndexInfoType,
+  LogFilterType,
+  LogsResponse,
+  TablesResponse,
+} from "@/services/dataLogs";
+import { currentTimeStamp } from "@/utils/momentUtils";
+import { formatMessage } from "@@/plugin-locale/localeExports";
+import { message } from "antd";
+import axios, { Canceler } from "axios";
+import copy from "copy-to-clipboard";
+import dayjs from "dayjs";
+import lodash from "lodash";
+import { useMemo, useRef, useState } from "react";
 
 export enum dataLogLocalaStorageType {
   /**
@@ -76,8 +76,14 @@ const DataLogsModel = () => {
   const [highlightKeywords, setHighlightKeywords] = useState<
     { key: string; value: string }[] | undefined
   >();
-  // 日志索引
-  const [rawLogsIndexeList, setRawLogsIndexeList] = useState<IndexInfoType[]>();
+  // 日志基础索引字段
+  const [baseFieldsIndexList, setBaseFieldsIndexList] =
+    useState<IndexInfoType[]>();
+
+  // 日志可供新增的索引字段
+  const [logFieldsIndexList, setBaseLogFieldsIndexList] =
+    useState<IndexInfoType[]>();
+
   // 数据库列表
   const [databaseList, setDataBaseList] = useState<DatabaseResponse[]>([]);
   // 从数据库列表选择
@@ -106,7 +112,7 @@ const DataLogsModel = () => {
   // 用于关闭无效请求
   const cancelTokenHighChartsRef = useRef<Canceler | null>(null);
   const cancelTokenLogsRef = useRef<Canceler | null>(null);
-  const CancelToken = Request.CancelToken;
+  const CancelToken = axios.CancelToken;
 
   // 最近一次正在加载的tid
   const [lastLoadingTid, setLastLoadingTid] = useState<number>(0);
@@ -266,8 +272,12 @@ const DataLogsModel = () => {
     setLogState(num);
   };
 
-  const onChangeRawLogsIndexeList = (list?: IndexInfoType[]) => {
-    setRawLogsIndexeList(list);
+  const onChangeBaseFieldsIndexList = (list?: IndexInfoType[]) => {
+    setBaseFieldsIndexList(list);
+  };
+
+  const onChangeLogFieldsIndexList = (list?: IndexInfoType[]) => {
+    setBaseLogFieldsIndexList(list);
   };
 
   const onChangeInitValue = (str: string) => {
@@ -330,7 +340,8 @@ const DataLogsModel = () => {
     onChangeActiveTimeOptionIndex(tabPane?.activeIndex ?? ACTIVE_TIME_INDEX);
     onChangeColumsList(tabPane.columsList);
     setLogs(tabPane.logs);
-    onChangeRawLogsIndexeList(tabPane?.rawLogsIndexeList);
+    onChangeBaseFieldsIndexList(tabPane?.baseFieldsIndexList);
+    onChangeLogFieldsIndexList(tabPane?.logFieldsIndexList);
     setHighChartList(tabPane?.highCharts?.histograms ?? []);
     setLogCount(tabPane?.highCharts?.count || tabPane?.logs?.count || 0);
     logPanesHelper.updateLogPane(tabPane.paneId, tabPane, panes);
@@ -379,7 +390,7 @@ const DataLogsModel = () => {
   const getLogs = useRequest(api.getLogs, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       } else {
         // setLogs(undefined);
@@ -392,7 +403,7 @@ const DataLogsModel = () => {
   const getHighCharts = useRequest(api.getHighCharts, {
     loadingText: false,
     onError: (e) => {
-      if (Request.isCancel(e)) {
+      if (axios.isCancel(e)) {
         return false;
       } else {
         // setHighChartList([]);
@@ -421,7 +432,9 @@ const DataLogsModel = () => {
   const doGetAnalysisField = useRequest(api.getAnalysisField, {
     loadingText: false,
     onSuccess: (res) => {
-      const keys = res?.data?.keys;
+      const baseFields = res?.data?.baseFields;
+      const logFields = res?.data?.logFields;
+      const keys = baseFields.concat(logFields);
       let arr: string[] = [];
       if (keys && keys.length > 0) {
         keys.map((item: any) => {
@@ -711,7 +724,8 @@ const DataLogsModel = () => {
         } else {
           newPane.logs = res.logs;
           newPane.highCharts = res.highCharts;
-          newPane.rawLogsIndexeList = rawLogsIndexeList;
+          newPane.baseFieldsIndexList = baseFieldsIndexList;
+          newPane.logFieldsIndexList = logFieldsIndexList;
           if (res.logs.query !== pane.querySql) {
             newPane.logChart = { logs: [], sortRule: [], isNeedSort: false };
           }
@@ -742,7 +756,7 @@ const DataLogsModel = () => {
   const resetLogs = () => {
     onChangeEndDateTime(currentTimeStamp());
     onChangeStartDateTime(
-      moment().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
+      dayjs().subtract(FIFTEEN_TIME, MINUTES_UNIT_TIME).unix()
     );
     onChangeLogsPage(FIRST_PAGE, PAGE_SIZE);
     onChangeKeywordInput(undefined);
@@ -926,7 +940,8 @@ const DataLogsModel = () => {
     isModifyLog,
     doGetViewInfo,
     lastLoadingTid,
-    rawLogsIndexeList,
+    baseFieldsIndexList,
+    logFieldsIndexList,
     isAssociatedLinkLogLibrary,
     onChangeIsAssociatedLinkLogLibrary,
     onChangeViewIsEdit,
@@ -934,7 +949,8 @@ const DataLogsModel = () => {
     onChangeViewsVisibleDraw,
     onChangeIsModifyLog,
     onChangeLastLoadingTid,
-    onChangeRawLogsIndexeList,
+    onChangeBaseFieldsIndexList,
+    onChangeLogFieldsIndexList,
 
     foldingState,
     onChangeFoldingState,

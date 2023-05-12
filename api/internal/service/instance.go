@@ -14,6 +14,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -40,12 +41,12 @@ func NewInstanceManager() *instanceManager {
 			// Test connection, storage
 			chDb, err := ClickHouseLink(ds.Dsn)
 			if err != nil {
-				core.LoggerError("ClickHouse", "link", err)
+				core.LoggerError("ClickHouseX", "link", err)
 				continue
 			}
 			ch, err := inquiry.NewClickHouse(chDb, ds)
 			if err != nil {
-				core.LoggerError("ClickHouse", "new", err)
+				core.LoggerError("ClickHouseX", "new", err)
 				continue
 			}
 			m.dss.Store(ds.DsKey(), ch)
@@ -68,7 +69,6 @@ func NewInstanceManager() *instanceManager {
 
 func (i *instanceManager) Delete(key string) {
 	i.dss.Delete(key)
-	return
 }
 
 func (i *instanceManager) Add(obj *db.BaseInstance) error {
@@ -116,7 +116,7 @@ func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	}
 	switch instance.Datasource {
 	case db.DatasourceClickHouse:
-		return obj.(*inquiry.ClickHouse), nil
+		return obj.(*inquiry.ClickHouseX), nil
 	case db.DatasourceDatabend:
 		return obj.(*inquiry.Databend), nil
 	}
@@ -129,7 +129,7 @@ func (i *instanceManager) All() []inquiry.Operator {
 		iid, _ := strconv.Atoi(key.(string))
 		instance, _ := db.InstanceInfo(invoker.Db, iid)
 		if instance.Datasource == db.DatasourceClickHouse {
-			res = append(res, obj.(*inquiry.ClickHouse))
+			res = append(res, obj.(*inquiry.ClickHouseX))
 		}
 		return true
 	})
@@ -203,6 +203,7 @@ func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
 	return
 }
 
+// DatabendLink 这里 dsn 好像写任意地址都能测试成功
 func DatabendLink(dsn string) (conn *sql.DB, err error) {
 	conn, err = sql.Open("databend", dsn)
 	if err != nil {
@@ -228,8 +229,11 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		err = errors.New("data source configuration with duplicate name")
 		return
 	}
-	if req.Mode == inquiry.ModeCluster && len(req.Clusters) == 0 {
-		err = errors.New("you need to fill in the cluster information")
+	isCluster, _, isReplica, clusters, err := source.Instantiate(&source.Source{
+		DSN: req.Dsn,
+		Typ: db.Datasource2IntORM[req.Datasource],
+	}).ClusterInfo()
+	if err != nil {
 		return
 	}
 	obj = db.BaseInstance{
@@ -243,9 +247,12 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		Namespace:        req.Namespace,
 		Configmap:        req.Configmap,
 		PrometheusTarget: req.PrometheusTarget,
-		ReplicaStatus:    req.ReplicaStatus,
-		Mode:             req.Mode,
-		Clusters:         req.Clusters,
+		Mode:             isCluster,
+		Clusters:         clusters,
+	}
+	// status 0 has replica 1 no replica
+	if isReplica == 1 {
+		obj.Mode = 0
 	}
 	if req.PrometheusTarget != "" {
 		if err = Alert.PrometheusReload(req.PrometheusTarget); err != nil {
@@ -276,59 +283,18 @@ func DatabaseCreate(req db.BaseDatabase) (out db.BaseDatabase, err error) {
 	if err != nil {
 		return
 	}
-	tx := invoker.Db.Begin()
-	if err = db.DatabaseCreate(tx, &req); err != nil {
+	if req.IsCreateByCV == 1 {
+		err = op.CreateDatabase(req.Name, req.Cluster)
+		if err != nil {
+			err = errors.Wrap(err, "create database")
+			return
+		}
+	}
+	if err = db.DatabaseCreate(invoker.Db, &req); err != nil {
 		err = errors.Wrap(err, "create failed 01:")
-		return
-	}
-	err = op.CreateDatabase(req.Name, req.Cluster)
-	if err != nil {
-		tx.Rollback()
-		err = errors.Wrap(err, "create failed 02: ")
-		return
-	}
-	if err = tx.Commit().Error; err != nil {
-		tx.Rollback()
-		err = errors.Wrap(err, "create failed 03: ")
 		return
 	}
 	return req, nil
-}
-
-func TableCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqTableCreate) (tableInfo db.BaseTable, err error) {
-	op, err := InstanceManager.Load(databaseInfo.Iid)
-	if err != nil {
-		return
-	}
-	s, d, v, a, err := op.CreateTable(databaseInfo.ID, databaseInfo, param)
-	if err != nil {
-		err = errors.Wrap(err, "create failed 01:")
-		return
-	}
-	tableInfo = db.BaseTable{
-		Did:                     databaseInfo.ID,
-		Name:                    param.TableName,
-		Typ:                     param.Typ,
-		Days:                    param.Days,
-		Brokers:                 param.Brokers,
-		Topic:                   param.Topics,
-		ConsumerNum:             param.Consumers,
-		Desc:                    param.Desc,
-		SqlData:                 d,
-		SqlStream:               s,
-		SqlView:                 v,
-		SqlDistributed:          a,
-		TimeField:               db.TimeFieldSecond,
-		CreateType:              constx.TableCreateTypeCV,
-		Uid:                     uid,
-		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
-	}
-	err = db.TableCreate(invoker.Db, &tableInfo)
-	if err != nil {
-		err = errors.Wrap(err, "create failed 02:")
-		return
-	}
-	return tableInfo, nil
 }
 
 func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {

@@ -1,10 +1,10 @@
-import queryStatisticsStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem/index.less";
-import { Button, Form, FormInstance, Input, Space } from "antd";
 import CreatedAndUpdatedModal from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem/CreatedAndUpdatedModal";
-import { useRef, useState } from "react";
-import { FormListOperation } from "antd/es/form/FormList";
-import { useIntl } from "umi";
+import queryStatisticsStyles from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem/index.less";
 import { PlusOutlined } from "@ant-design/icons";
+import { Button, Form, FormInstance, Input, Space } from "antd";
+import { FormListOperation } from "antd/es/form/FormList";
+import { useRef, useState } from "react";
+import { useIntl } from "umi";
 import TriggerConditionItem from "../TriggerConditionItem";
 
 const { TextArea } = Input;
@@ -153,7 +153,7 @@ const QueryStatisticsItem = (props: { formRef: FormInstance | null }) => {
                 </Form.Item>
               )}
               <CreatedAndUpdatedModal
-                visible={visibleModal}
+                open={visibleModal}
                 isEdit={isEdit}
                 defaultData={defaultData}
                 onOk={(fields: any) => {

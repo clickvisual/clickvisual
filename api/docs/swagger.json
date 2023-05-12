@@ -144,7 +144,7 @@
                         "type": "string"
                     },
                     "alertRule": {
-                        "description": "Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
+                        "description": "nolint\n\nDeprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
                         "type": "string"
                     },
                     "alertRules": {
@@ -165,11 +165,19 @@
                     "dtime": {
                         "$ref": "#/components/schemas/gorm.io_plugin_soft_delete.DeletedAt"
                     },
+                    "dutyOfficers": {
+                        "description": "duty officer id list",
+                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
+                    },
                     "id": {
                         "type": "integer"
                     },
                     "interval": {
                         "description": "interval second between alarm",
+                        "type": "integer"
+                    },
+                    "isDisableResolve": {
+                        "description": "is disable resolve message",
                         "type": "integer"
                     },
                     "level": {
@@ -192,7 +200,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "tid": {
-                        "description": "Deprecated: Tid",
+                        "description": "lint:ignore SA1019 Deprecated: Tid\n\nDeprecated: Tid",
                         "type": "integer"
                     },
                     "uid": {
@@ -214,7 +222,7 @@
                         "type": "string"
                     },
                     "view": {
-                        "description": "Deprecated: View",
+                        "description": "lint:ignore SA1019 Deprecated: View\n\nDeprecated: View",
                         "type": "string"
                     },
                     "viewDDLs": {
@@ -222,7 +230,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "viewTableName": {
-                        "description": "Deprecated: ViewTableName",
+                        "description": "lint:ignore SA1019 Deprecated: ViewTableName\n\nDeprecated: ViewTableName",
                         "type": "string"
                     }
                 },
@@ -477,6 +485,10 @@
                         "type": "integer"
                     },
                     "id": {
+                        "type": "integer"
+                    },
+                    "kind": {
+                        "description": "0 base field 1 log field",
                         "type": "integer"
                     },
                     "rootName": {
@@ -1439,6 +1451,21 @@
                 "title": "ReqUpdateCollect",
                 "type": "object"
             },
+            "github.com_clickvisual_clickvisual_api_pkg_model_db.ReqUserUpdate": {
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "nickname": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    }
+                },
+                "title": "ReqUserUpdate",
+                "type": "object"
+            },
             "github.com_clickvisual_clickvisual_api_pkg_model_db.RespAlarmListRelatedInfo": {
                 "properties": {
                     "instance": {
@@ -1629,6 +1656,10 @@
                         "description": "password",
                         "type": "string"
                     },
+                    "phone": {
+                        "description": "phone",
+                        "type": "string"
+                    },
                     "secret": {
                         "description": "实例名称",
                         "type": "string"
@@ -1773,30 +1804,6 @@
                 "title": "InfoItem",
                 "type": "object"
             },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct": {
-                "properties": {
-                    "data": {
-                        "items": {
-                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStructItem"
-                        },
-                        "type": "array"
-                    }
-                },
-                "title": "MappingStruct",
-                "type": "object"
-            },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStructItem": {
-                "properties": {
-                    "key": {
-                        "type": "string"
-                    },
-                    "value": {
-                        "type": "string"
-                    }
-                },
-                "title": "MappingStructItem",
-                "type": "object"
-            },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqAlarmConditionCreate": {
                 "properties": {
                     "cond": {
@@ -1849,6 +1856,12 @@
                         "description": "描述说明",
                         "type": "string"
                     },
+                    "dutyOfficers": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array"
+                    },
                     "filters": {
                         "items": {
                             "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqAlarmFilterCreate"
@@ -1857,6 +1870,9 @@
                     },
                     "interval": {
                         "description": "告警频率",
+                        "type": "integer"
+                    },
+                    "isDisableResolve": {
                         "type": "integer"
                     },
                     "level": {
@@ -1914,6 +1930,15 @@
                     }
                 },
                 "title": "ReqAlarmFilterCreate",
+                "type": "object"
+            },
+            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqComplete": {
+                "properties": {
+                    "Query": {
+                        "type": "string"
+                    }
+                },
+                "title": "ReqComplete",
                 "type": "object"
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateCluster": {
@@ -2062,9 +2087,6 @@
                     "clusterId": {
                         "type": "integer"
                     },
-                    "clusters": {
-                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Strings"
-                    },
                     "configmap": {
                         "type": "string"
                     },
@@ -2080,9 +2102,6 @@
                     "filePath": {
                         "type": "string"
                     },
-                    "mode": {
-                        "type": "integer"
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -2091,9 +2110,6 @@
                     },
                     "prometheusTarget": {
                         "type": "string"
-                    },
-                    "replicaStatus": {
-                        "type": "integer"
                     },
                     "ruleStoreType": {
                         "type": "integer"
@@ -2165,30 +2181,6 @@
                 "title": "ReqCreateSource",
                 "type": "object"
             },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateStorageByTemplate": {
-                "properties": {
-                    "Brokers": {
-                        "type": "string"
-                    },
-                    "DatabaseId": {
-                        "type": "integer"
-                    },
-                    "TopicsApp": {
-                        "type": "string"
-                    },
-                    "TopicsEgo": {
-                        "type": "string"
-                    },
-                    "TopicsIngressStderr": {
-                        "type": "string"
-                    },
-                    "TopicsIngressStdout": {
-                        "type": "string"
-                    }
-                },
-                "title": "ReqCreateStorageByTemplate",
-                "type": "object"
-            },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateWorkflow": {
                 "properties": {
                     "desc": {
@@ -2238,6 +2230,9 @@
                     },
                     "desc": {
                         "type": "string"
+                    },
+                    "type": {
+                        "type": "integer"
                     }
                 },
                 "title": "ReqDatabaseCreate",
@@ -2365,6 +2360,9 @@
                     "Consumers": {
                         "type": "integer"
                     },
+                    "CreateType": {
+                        "type": "integer"
+                    },
                     "DatabaseId": {
                         "type": "integer"
                     },
@@ -2385,7 +2383,7 @@
                         "type": "string"
                     },
                     "SourceMapping": {
-                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct"
+                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_utils_mapping.List"
                     },
                     "TableName": {
                         "type": "string"
@@ -2402,54 +2400,6 @@
                     }
                 },
                 "title": "ReqStorageCreate",
-                "type": "object"
-            },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqStorageCreateV3": {
-                "properties": {
-                    "Brokers": {
-                        "type": "string"
-                    },
-                    "Consumers": {
-                        "type": "integer"
-                    },
-                    "CreateType": {
-                        "type": "integer"
-                    },
-                    "DatabaseId": {
-                        "type": "integer"
-                    },
-                    "Days": {
-                        "type": "integer"
-                    },
-                    "Desc": {
-                        "type": "string"
-                    },
-                    "IsKafkaTimestamp": {
-                        "description": "1 yes",
-                        "type": "integer"
-                    },
-                    "KafkaSkipBrokenMessages": {
-                        "type": "integer"
-                    },
-                    "TableName": {
-                        "type": "string"
-                    },
-                    "TimeField": {
-                        "type": "string"
-                    },
-                    "TimeFieldType": {
-                        "description": "1 string 2 float",
-                        "type": "integer"
-                    },
-                    "Topics": {
-                        "type": "string"
-                    },
-                    "V3TableType": {
-                        "description": "0 default 1 jaegerJson",
-                        "type": "integer"
-                    }
-                },
-                "title": "ReqStorageCreateV3",
                 "type": "object"
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqStorageUpdate": {
@@ -2523,36 +2473,6 @@
                     }
                 },
                 "title": "ReqSyncConfig",
-                "type": "object"
-            },
-            "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTableCreate": {
-                "properties": {
-                    "Brokers": {
-                        "type": "string"
-                    },
-                    "Consumers": {
-                        "type": "integer"
-                    },
-                    "Days": {
-                        "type": "integer"
-                    },
-                    "Desc": {
-                        "type": "string"
-                    },
-                    "KafkaSkipBrokenMessages": {
-                        "type": "integer"
-                    },
-                    "TableName": {
-                        "type": "string"
-                    },
-                    "Topics": {
-                        "type": "string"
-                    },
-                    "Typ": {
-                        "type": "integer"
-                    }
-                },
-                "title": "ReqTableCreate",
                 "type": "object"
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTableCreateExist": {
@@ -2895,7 +2815,7 @@
                         "type": "string"
                     },
                     "alertRule": {
-                        "description": "Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
+                        "description": "nolint\n\nDeprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version",
                         "type": "string"
                     },
                     "alertRules": {
@@ -2931,6 +2851,10 @@
                     "dtime": {
                         "$ref": "#/components/schemas/gorm.io_plugin_soft_delete.DeletedAt"
                     },
+                    "dutyOfficers": {
+                        "description": "duty officer id list",
+                        "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Ints"
+                    },
                     "email": {
                         "description": "email",
                         "type": "string"
@@ -2954,6 +2878,10 @@
                     },
                     "interval": {
                         "description": "interval second between alarm",
+                        "type": "integer"
+                    },
+                    "isDisableResolve": {
+                        "description": "is disable resolve message",
                         "type": "integer"
                     },
                     "level": {
@@ -2982,6 +2910,10 @@
                     },
                     "password": {
                         "description": "password",
+                        "type": "string"
+                    },
+                    "phone": {
+                        "description": "phone",
                         "type": "string"
                     },
                     "relatedList": {
@@ -3014,7 +2946,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "tid": {
-                        "description": "Deprecated: Tid",
+                        "description": "lint:ignore SA1019 Deprecated: Tid\n\nDeprecated: Tid",
                         "type": "integer"
                     },
                     "uid": {
@@ -3039,7 +2971,7 @@
                         "type": "string"
                     },
                     "view": {
-                        "description": "Deprecated: View",
+                        "description": "lint:ignore SA1019 Deprecated: View\n\nDeprecated: View",
                         "type": "string"
                     },
                     "viewDDLs": {
@@ -3047,7 +2979,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.String2String"
                     },
                     "viewTableName": {
-                        "description": "Deprecated: ViewTableName",
+                        "description": "lint:ignore SA1019 Deprecated: ViewTableName\n\nDeprecated: ViewTableName",
                         "type": "string"
                     },
                     "webUrl": {
@@ -3586,6 +3518,9 @@
                     "nodeId": {
                         "type": "integer"
                     },
+                    "phone": {
+                        "type": "string"
+                    },
                     "result": {
                         "type": "string"
                     },
@@ -3680,7 +3615,13 @@
             },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.RespStorageAnalysisFields": {
                 "properties": {
-                    "keys": {
+                    "baseFields": {
+                        "items": {
+                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.StorageAnalysisField"
+                        },
+                        "type": "array"
+                    },
+                    "logFields": {
                         "items": {
                             "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.StorageAnalysisField"
                         },
@@ -3767,11 +3708,17 @@
                         "description": "数据库 id",
                         "type": "integer"
                     },
+                    "isNotSupAnalysisField": {
+                        "type": "integer"
+                    },
                     "kafkaSkipBrokenMessages": {
                         "type": "integer"
                     },
                     "name": {
                         "description": "table",
+                        "type": "string"
+                    },
+                    "rawLogField": {
                         "type": "string"
                     },
                     "sqlContent": {
@@ -3876,6 +3823,9 @@
                         "type": "string"
                     },
                     "nickname": {
+                        "type": "string"
+                    },
+                    "phone": {
                         "type": "string"
                     },
                     "uid": {
@@ -3986,6 +3936,30 @@
                     }
                 },
                 "title": "WorkerStatsRow",
+                "type": "object"
+            },
+            "github.com_clickvisual_clickvisual_api_pkg_utils_mapping.Item": {
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "title": "Item",
+                "type": "object"
+            },
+            "github.com_clickvisual_clickvisual_api_pkg_utils_mapping.List": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_utils_mapping.Item"
+                        },
+                        "type": "array"
+                    }
+                },
+                "title": "List",
                 "type": "object"
             },
             "gorm.io_plugin_soft_delete.DeletedAt": {
@@ -6829,52 +6803,6 @@
                 "tags": [
                     "LOGSTORE"
                 ]
-            },
-            "post": {
-                "operationId": "base.TableCreate",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "did",
-                        "required": true,
-                        "schema": {
-                            "title": "did"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqTableCreate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "日志库创建",
-                "tags": [
-                    "LOGSTORE"
-                ]
             }
         },
         "/api/v1/databases/{id}": {
@@ -7305,16 +7233,9 @@
             }
         },
         "/api/v1/instances/{iid}/complete": {
-            "get": {
+            "post": {
                 "operationId": "base.QueryComplete",
                 "parameters": [
-                    {
-                        "in": "query",
-                        "name": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "in": "path",
                         "name": "iid",
@@ -7324,6 +7245,16 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqComplete"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "content": {
@@ -7406,16 +7337,6 @@
                         }
                     }
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqDatabaseCreate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "responses": {
                     "200": {
                         "content": {
@@ -9940,7 +9861,7 @@
                         }
                     }
                 },
-                "summary": "Gets all instance database and table data filtered by permissions test",
+                "summary": "Gets all instance database and table data filtered by permissions",
                 "tags": [
                     "LOGSTORE"
                 ]
@@ -10013,7 +9934,7 @@
         "/api/v2/base/users": {
             "get": {
                 "description": "Get user list",
-                "operationId": "base.UserList",
+                "operationId": "base.ListUser",
                 "parameters": [
                     {
                         "in": "query",
@@ -10026,12 +9947,12 @@
                 "responses": {},
                 "summary": "Get user list",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
                 ]
             },
             "post": {
-                "description": "godoc\n\nusername 登陆账号2\n\nnickname 显示用户名",
-                "operationId": "base.UserCreate",
+                "description": "godoc",
+                "operationId": "base.CreateUser",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10064,16 +9985,16 @@
                         }
                     }
                 },
-                "summary": "Create new user",
+                "summary": "godoc",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
                 ]
             }
         },
         "/api/v2/base/users/{user-id}": {
             "delete": {
-                "description": "godoc\n\nUser delete",
-                "operationId": "base.UserDelete",
+                "description": "godoc",
+                "operationId": "base.DeleteUser",
                 "parameters": [
                     {
                         "in": "path",
@@ -10103,16 +10024,61 @@
                         }
                     }
                 },
-                "summary": "User delete",
+                "summary": "godoc",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
+                ]
+            },
+            "patch": {
+                "operationId": "base.UpdateUser",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "user-id",
+                        "required": true,
+                        "schema": {
+                            "title": "user-id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.ReqUserUpdate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "User"
                 ]
             }
         },
         "/api/v2/base/users/{user-id}/password-reset": {
             "patch": {
-                "description": "godoc\n\nReset user password",
-                "operationId": "base.UserPasswordReset",
+                "description": "godoc",
+                "operationId": "base.ResetUserPassword",
                 "parameters": [
                     {
                         "in": "path",
@@ -10145,9 +10111,9 @@
                         }
                     }
                 },
-                "summary": "Reset user password test",
+                "summary": "godoc",
                 "tags": [
-                    "LOGSTORE"
+                    "User"
                 ]
             }
         },
@@ -10872,7 +10838,7 @@
                                             "type": "number"
                                         },
                                         "data": {
-                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.MappingStruct"
+                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_utils_mapping.List"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -11197,74 +11163,8 @@
                         }
                     }
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateStorageByTemplate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
+                "responses": {},
                 "summary": "Create storage by template",
-                "tags": [
-                    "LOGSTORE"
-                ]
-            }
-        },
-        "/api/v3/storage": {
-            "post": {
-                "operationId": "storage.Create",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqStorageCreateV3"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "创建日志库 V3",
                 "tags": [
                     "LOGSTORE"
                 ]

@@ -80,5 +80,15 @@ allowedDomains = []
 teamIds = []
 allowedOrganizations = []
 
+[prom2click]
+enable = true
+
+[[prom2click.cfgs]]
+host = "127.0.0.1"
+port = 19006
+clickhouseDSN = "tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&write_timeout=10&debug=true"
+clickhouseDB = "metrics"
+clickhouseTable = "samples"
+
 [defaultCh]
-dsn="tcp://clickhouse:9000?username=root&password=shimo&read_timeout=10&write_timeout=10&debug=true"
+dsn="clickhouse://root:shimo@clickhouse:9000/default?max_execution_time=60"

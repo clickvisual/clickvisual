@@ -6,14 +6,14 @@ import { useIntl } from "umi";
 import SelectFieldStyle from "./index.less";
 
 export interface SelectFieldType {
-  visible: boolean;
+  open: boolean;
   onCancel: () => void;
   mappingJson: any;
   onConfirm: (data: { rawLogField: string; timeField: string }) => void;
 }
 
 const SelectField = (props: SelectFieldType) => {
-  const { visible, onCancel, mappingJson, onConfirm } = props;
+  const { open, onCancel, mappingJson, onConfirm } = props;
   const i18n = useIntl();
   const [rawLogSelectedRowKeys, setRawLogSelectedRowKeys] = useState<string[]>(
     []
@@ -59,7 +59,7 @@ const SelectField = (props: SelectFieldType) => {
           content: (
             <a
               target="_blank"
-              href="https://clickvisual.gocn.vip/clickvisual/02install/quick-start.html#第六步-创建日志库"
+              href="https://clickvisual.gocn.vip/zh/clickvisual/02install/quick-start.html#第六步-创建日志库"
             >
               {i18n.formatMessage({
                 id: "datasource.logLibrary.from.souceTips",
@@ -77,7 +77,7 @@ const SelectField = (props: SelectFieldType) => {
       title={i18n.formatMessage({
         id: "datasource.logLibrary.selectField.title",
       })}
-      visible={visible}
+      open={open}
       onCancel={onCancel}
       width={700}
       footer={[

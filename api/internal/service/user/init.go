@@ -6,5 +6,4 @@ var (
 
 func Init() {
 	User = NewUser()
-	return
 }

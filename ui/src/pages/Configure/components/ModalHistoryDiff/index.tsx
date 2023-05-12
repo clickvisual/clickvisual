@@ -1,7 +1,7 @@
 import CustomModal from "@/components/CustomModal";
-import { MonacoDiffEditor } from "react-monaco-editor";
-import { useModel } from "@@/plugin-model/useModel";
+import { useModel } from "@umijs/max";
 import { useEffect } from "react";
+import { MonacoDiffEditor } from "react-monaco-editor";
 import { useIntl } from "umi";
 
 const ModalHistoryDiff = () => {
@@ -24,7 +24,7 @@ const ModalHistoryDiff = () => {
     <CustomModal
       title={i18n.formatMessage({ id: "config.historyDiff.title" })}
       width={"90vw"}
-      visible={visibleHistoryDiff}
+      open={visibleHistoryDiff}
       onCancel={() => onChangeVisibleHistoryDiff(false)}
     >
       <MonacoDiffEditor

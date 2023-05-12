@@ -1,18 +1,15 @@
-import offlineStyles from "@/pages/DataAnalysis/OfflineManager/index.less";
-import WorkflowTree from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree";
-import { useEffect, useMemo } from "react";
-import { Empty, Spin, Tabs } from "antd";
-import TabPaneItem from "./components/TabPaneItem";
-import { PaneItemType } from "@/models/dataanalysis/useFilePane";
-import { useModel } from "umi";
-import { cloneDeep } from "lodash";
 import Luckysheet from "@/components/Luckysheet";
-import { useIntl } from "umi";
-import { PrimaryEnums, SecondaryEnums } from "../service/enums";
 import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import { PaneItemType } from "@/models/dataanalysis/useFilePane";
+import WorkflowTree from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree";
+import offlineStyles from "@/pages/DataAnalysis/OfflineManager/index.less";
 import useUrlState from "@ahooksjs/use-url-state";
-
-const { TabPane } = Tabs;
+import { Empty, Spin, Tabs } from "antd";
+import { cloneDeep } from "lodash";
+import { useEffect, useMemo } from "react";
+import { useIntl, useModel } from "umi";
+import { PrimaryEnums, SecondaryEnums } from "../service/enums";
+import TabPaneItem from "./components/TabPaneItem";
 
 const OfflineManager = () => {
   const i18n = useIntl();
@@ -166,6 +163,29 @@ const OfflineManager = () => {
     }
   }, [nodes, workflowList]);
 
+  const items = useMemo(() => {
+    let arr: any[] = [];
+
+    panes.map((pane: PaneItemType) => {
+      arr.push({
+        key: pane.key,
+        label: pane.title,
+        forceRender: true,
+        style: { background: "#fff", width: "100%", height: "100%" },
+        children: (
+          <TabPaneItem
+            id={parseInt(pane.key)}
+            node={pane.node}
+            parentId={pane.parentId}
+            currentOfflinePaneActiveKey={currentOfflinePaneActiveKey}
+          />
+        ),
+      });
+    });
+
+    return arr;
+  }, [panes, currentOfflinePaneActiveKey]);
+
   return (
     <div className={offlineStyles.offlineMain} style={{ background: "#fff" }}>
       <div className={offlineStyles.right}>
@@ -176,31 +196,16 @@ const OfflineManager = () => {
           <>
             <Tabs
               hideAdd
+              items={items}
               onChange={onChange}
               activeKey={currentOfflinePaneActiveKey}
               type="editable-card"
               onEdit={onEdit}
               className={offlineStyles.fileNameList}
-            >
-              {panes.map((pane: PaneItemType) => {
-                return (
-                  <TabPane
-                    tab={pane.title}
-                    key={pane.key}
-                    forceRender
-                    style={{ background: "#fff", width: "100%" }}
-                  >
-                    <TabPaneItem
-                      id={parseInt(pane.key)}
-                      node={pane.node}
-                      parentId={pane.parentId}
-                      currentOfflinePaneActiveKey={currentOfflinePaneActiveKey}
-                    />
-                  </TabPane>
-                );
-              })}
-            </Tabs>
-            {getCurrentPane()[0].node.secondary == SecondaryEnums.dataMining ? (
+            />
+            {getCurrentPane().length > 0 &&
+            getCurrentPane()[0]?.node?.secondary ==
+              SecondaryEnums.dataMining ? (
               <Spin spinning={doGetNodeInfo.loading}>
                 <div className={offlineStyles.luckysheet}>
                   {luckysheetData[0].celldata.length > 0 ? (

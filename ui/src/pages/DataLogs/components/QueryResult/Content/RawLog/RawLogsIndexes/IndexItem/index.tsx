@@ -1,10 +1,10 @@
+import useRequest from "@/hooks/useRequest/useRequest";
 import indexItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexItem/index.less";
+import api, { IndexDetail, IndexInfoType } from "@/services/dataLogs";
+import { useModel } from "@umijs/max";
+import { Progress, Spin, Tooltip } from "antd";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import { Progress, Spin, Tooltip } from "antd";
-import useRequest from "@/hooks/useRequest/useRequest";
-import api, { IndexDetail, IndexInfoType } from "@/services/dataLogs";
 import { useIntl } from "umi";
 
 type IndexItemProps = {
@@ -28,7 +28,7 @@ const IndexItem = (props: IndexItemProps) => {
     if (index.rootName != "") {
       currentSelected = `${index.rootName}.${index.field}='${name}'`;
     } else {
-      currentSelected = `${index.field}='${name}'`;
+      currentSelected = `\`${index.field}\`='${name}'`;
     }
     doUpdatedQuery(currentSelected);
   };

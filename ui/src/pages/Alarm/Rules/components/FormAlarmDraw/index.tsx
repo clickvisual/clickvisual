@@ -1,3 +1,11 @@
+import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
+import InspectionFrequencyItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem";
+import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem";
+import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
+import UserSelect from "@/pages/SystemSetting/Role/components/UserSelect";
+import { AlarmRequest, ChannelType } from "@/services/alarm";
+import { SaveOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
 import {
   Button,
   Drawer,
@@ -9,16 +17,9 @@ import {
   Space,
   Spin,
 } from "antd";
-import InspectionFrequencyItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/InspectionFrequencyItem";
-import QueryStatisticsItem from "@/pages/Alarm/Rules/components/FormAlarmDraw/QueryStatisticsItem";
-import { useModel } from "@@/plugin-model/useModel";
-import { useIntl } from "umi";
-import { useEffect, useRef, useState } from "react";
-import MoreOptions from "@/pages/Alarm/Rules/components/FormAlarmDraw/TriggerConditionItem/MoreOptions";
 import TextArea from "antd/es/input/TextArea";
-import { SaveOutlined } from "@ant-design/icons";
-import { AlarmRequest, ChannelType } from "@/services/alarm";
-import CreateChannelModal from "@/pages/Alarm/Notifications/components/CreateChannelModal";
+import { useEffect, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 export enum AlarmLvelType {
   Alarm = 0,
@@ -115,6 +116,9 @@ const FormAlarmDraw = () => {
   };
 
   const handleSubmit = (field: AlarmRequest) => {
+    if (!field.dutyOfficers) {
+      field.dutyOfficers = [];
+    }
     !alarmDraw.isEditor ? doCreated(field) : doUpdated(field);
   };
 
@@ -128,6 +132,10 @@ const FormAlarmDraw = () => {
 
   useEffect(() => {
     if (!alarmDraw.visibleDraw || !alarmDraw.isEditor || !currentRowAlarm) {
+      alarmFormRef?.current?.setFieldsValue({
+        dutyOfficers: [],
+        isDisableResolve: 0,
+      });
       return;
     }
     alarmDraw.doGetAlarmInfo.run(currentRowAlarm.id).then((res) => {
@@ -145,10 +153,10 @@ const FormAlarmDraw = () => {
 
   return (
     <Drawer
-      closable
+      closable={false}
       destroyOnClose
       title={i18n.formatMessage({ id: "alarm.rules.form.title" })}
-      visible={alarmDraw.visibleDraw}
+      open={alarmDraw.visibleDraw}
       placement="left"
       onClose={handleClose}
       getContainer={false}
@@ -204,6 +212,27 @@ const FormAlarmDraw = () => {
               })}`}
             />
           </Form.Item>
+
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "alarm.rules.form.isDisableResolve",
+            })}
+            name={"isDisableResolve"}
+          >
+            <Select>
+              <Option value={1}>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.true",
+                })}
+              </Option>
+              <Option value={0}>
+                {i18n.formatMessage({
+                  id: "alarm.rules.history.isPushed.false",
+                })}
+              </Option>
+            </Select>
+          </Form.Item>
+
           <Form.Item
             label={i18n.formatMessage({
               id: "alarm.rules.form.level",
@@ -225,6 +254,15 @@ const FormAlarmDraw = () => {
                 );
               })}
             </Select>
+          </Form.Item>
+
+          <Form.Item
+            label={i18n.formatMessage({
+              id: "bigdata.components.RightMenu.Scheduling.thoseResponsible",
+            })}
+            name="dutyOfficers"
+          >
+            <UserSelect multiple mode={"list"} isCancelAll />
           </Form.Item>
           <InspectionFrequencyItem />
           <QueryStatisticsItem formRef={alarmFormRef.current} />

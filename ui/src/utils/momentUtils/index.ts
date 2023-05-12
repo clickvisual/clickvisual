@@ -1,9 +1,9 @@
-import moment from 'moment';
+import moment from "moment";
 
 export const timeStampFormat = (TimeStamp: number) => {
-  return moment(TimeStamp, 'X').format('YYYY-MM-DD HH:mm:ss');
+  return moment(TimeStamp, "X").format("YYYY-MM-DD HH:mm:ss");
 };
 
 export const currentTimeStamp = () => {
-  return parseInt(moment().format('X'));
+  return parseInt(moment().format("X"));
 };

@@ -1,16 +1,14 @@
-import infoStyles from "@/pages/Alarm/Rules/components/AlarmInfoDraw/index.less";
-import { Drawer, Empty, message, Select, Tabs, Tooltip } from "antd";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo, useState } from "react";
-import { useIntl } from "umi";
 import useTimeUnits from "@/hooks/useTimeUnits";
-import MonacoEditor from "react-monaco-editor";
-import copy from "copy-to-clipboard";
+import infoStyles from "@/pages/Alarm/Rules/components/AlarmInfoDraw/index.less";
+import { useModel } from "@umijs/max";
+import { Drawer, Empty, message, Select, Tabs, Tooltip } from "antd";
 import classNames from "classnames";
+import copy from "copy-to-clipboard";
+import { useEffect, useMemo, useState } from "react";
+import MonacoEditor from "react-monaco-editor";
+import { useIntl } from "umi";
 
 const { Option } = Select;
-
-const { TabPane } = Tabs;
 
 const AlarmInfoDraw = () => {
   const { FixedTimeUnits } = useTimeUnits();
@@ -92,6 +90,130 @@ const AlarmInfoDraw = () => {
   useEffect(() => {
     return () => onClose();
   }, []);
+
+  const items = [
+    {
+      key: "view",
+      forceRender: false,
+      label: i18n.formatMessage({ id: "alarm.rules.info.view" }),
+      children: (
+        <>
+          {showViewDDLs &&
+            i18n.formatMessage({ id: "alarm.rules.materializedViews" })}
+          {showViewDDLs && (
+            <Select
+              className={infoStyles.select}
+              onChange={(e) => setViewIndex(e)}
+              value={viewIndex}
+            >
+              {alarmInfo?.viewDDLs &&
+                Object.keys(alarmInfo?.viewDDLs).map((item: any) => (
+                  <Option value={item} key={item}>
+                    {item}
+                  </Option>
+                ))}
+            </Select>
+          )}
+          <div
+            className={classNames([
+              showViewDDLs ? infoStyles.editor : infoStyles.editorHeight,
+            ])}
+            style={{ height: "100%" }}
+          >
+            {!showViewDDLs || (showViewDDLs && viewIndex.length > 0) ? (
+              <MonacoEditor
+                height={"100%"}
+                language={"sql"}
+                theme="vs-dark"
+                value={
+                  showViewDDLs
+                    ? alarmInfo?.viewDDLs[viewIndex]
+                    : alarmInfo?.view
+                }
+                options={{
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                  smoothScrolling: true,
+                  wordWrap: "on",
+                  scrollbar: { alwaysConsumeMouseWheel: false },
+                }}
+              />
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={i18n.formatMessage(
+                  { id: "select.placeholder" },
+                  {
+                    name: i18n.formatMessage({
+                      id: "alarm.rules.materializedViews",
+                    }),
+                  }
+                )}
+              />
+            )}
+          </div>
+        </>
+      ),
+    },
+    {
+      key: "rule",
+      forceRender: false,
+      label: i18n.formatMessage({ id: "alarm.rules.info.rule" }),
+      children: (
+        <>
+          {showRules && "Prometheus Rule："}
+          {showRules && (
+            <Select
+              className={infoStyles.select}
+              onChange={(e) => setRulesIndex(e)}
+              value={rulesIndex}
+            >
+              {alarmInfo?.alertRules &&
+                Object.keys(alarmInfo?.alertRules).map((item: any) => (
+                  <Option value={item} key={item}>
+                    {item}
+                  </Option>
+                ))}
+            </Select>
+          )}
+          <div
+            className={classNames([
+              showRules ? infoStyles.editor : infoStyles.editorHeight,
+            ])}
+          >
+            {!showRules || (showRules && rulesIndex.length > 0) ? (
+              <MonacoEditor
+                height={"100%"}
+                language={"yaml"}
+                theme="vs-dark"
+                value={
+                  showRules
+                    ? alarmInfo?.alertRules[rulesIndex]
+                    : alarmInfo?.alertRule
+                }
+                options={{
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                  wordWrap: "on",
+                  smoothScrolling: true,
+                  scrollbar: { alwaysConsumeMouseWheel: false },
+                }}
+              />
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={i18n.formatMessage(
+                  { id: "select.placeholder" },
+                  { name: "Prometheus Rule" }
+                )}
+              />
+            )}
+          </div>
+        </>
+      ),
+    },
+  ];
+
   return (
     <Drawer
       closable
@@ -106,7 +228,7 @@ const AlarmInfoDraw = () => {
       headerStyle={{ padding: 10 }}
       destroyOnClose
       title={i18n.formatMessage({ id: "alarm.rules.info.title" })}
-      visible={visibleInfo}
+      open={visibleInfo}
       onClose={onClose}
     >
       <div className={infoStyles.details}>
@@ -143,121 +265,12 @@ const AlarmInfoDraw = () => {
       </div>
 
       <div className={infoStyles.configs}>
-        <Tabs defaultActiveKey="view" size="small" className={infoStyles.tabs}>
-          <TabPane
-            forceRender={false}
-            tab={i18n.formatMessage({ id: "alarm.rules.info.view" })}
-            key="view"
-          >
-            {showViewDDLs &&
-              i18n.formatMessage({ id: "alarm.rules.materializedViews" })}
-            {showViewDDLs && (
-              <Select
-                className={infoStyles.select}
-                onChange={(e) => setViewIndex(e)}
-                value={viewIndex}
-              >
-                {alarmInfo?.viewDDLs &&
-                  Object.keys(alarmInfo?.viewDDLs).map((item: any) => (
-                    <Option value={item} key={item}>
-                      {item}
-                    </Option>
-                  ))}
-              </Select>
-            )}
-            <div
-              className={classNames([
-                showViewDDLs ? infoStyles.editor : infoStyles.editorHeight,
-              ])}
-            >
-              {!showViewDDLs || (showViewDDLs && viewIndex.length > 0) ? (
-                <MonacoEditor
-                  height={"100%"}
-                  language={"sql"}
-                  theme="vs-dark"
-                  value={
-                    showViewDDLs
-                      ? alarmInfo?.viewDDLs[viewIndex]
-                      : alarmInfo?.view
-                  }
-                  options={{
-                    automaticLayout: true,
-                    scrollBeyondLastLine: false,
-                    smoothScrolling: true,
-                    wordWrap: "on",
-                    scrollbar: { alwaysConsumeMouseWheel: false },
-                  }}
-                />
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={i18n.formatMessage(
-                    { id: "select.placeholder" },
-                    {
-                      name: i18n.formatMessage({
-                        id: "alarm.rules.materializedViews",
-                      }),
-                    }
-                  )}
-                />
-              )}
-            </div>
-          </TabPane>
-          <TabPane
-            forceRender={false}
-            tab={i18n.formatMessage({ id: "alarm.rules.info.rule" })}
-            key="rule"
-          >
-            {showRules && "Prometheus Rule："}
-            {showRules && (
-              <Select
-                className={infoStyles.select}
-                onChange={(e) => setRulesIndex(e)}
-                value={rulesIndex}
-              >
-                {alarmInfo?.alertRules &&
-                  Object.keys(alarmInfo?.alertRules).map((item: any) => (
-                    <Option value={item} key={item}>
-                      {item}
-                    </Option>
-                  ))}
-              </Select>
-            )}
-            <div
-              className={classNames([
-                showRules ? infoStyles.editor : infoStyles.editorHeight,
-              ])}
-            >
-              {!showRules || (showRules && rulesIndex.length > 0) ? (
-                <MonacoEditor
-                  height={"100%"}
-                  language={"yaml"}
-                  theme="vs-dark"
-                  value={
-                    showRules
-                      ? alarmInfo?.alertRules[rulesIndex]
-                      : alarmInfo?.alertRule
-                  }
-                  options={{
-                    automaticLayout: true,
-                    scrollBeyondLastLine: false,
-                    wordWrap: "on",
-                    smoothScrolling: true,
-                    scrollbar: { alwaysConsumeMouseWheel: false },
-                  }}
-                />
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={i18n.formatMessage(
-                    { id: "select.placeholder" },
-                    { name: "Prometheus Rule" }
-                  )}
-                />
-              )}
-            </div>
-          </TabPane>
-        </Tabs>
+        <Tabs
+          items={items}
+          defaultActiveKey="view"
+          size="small"
+          className={infoStyles.tabs}
+        />
       </div>
     </Drawer>
   );

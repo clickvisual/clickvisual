@@ -1,16 +1,14 @@
-import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
-import FolderTree from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree";
-import {Empty, Spin, Tabs} from "antd";
-import {useEffect, useMemo} from "react";
-import SQLTabPaneItem from "./components/SQLTabPaneItem";
-import {useIntl, useModel} from "umi";
-import {cloneDeep} from "lodash";
-import {PaneItemType} from "@/models/dataanalysis/useFilePane";
 import Luckysheet from "@/components/Luckysheet";
+import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
+import { PaneItemType } from "@/models/dataanalysis/useFilePane";
+import FolderTree from "@/pages/DataAnalysis/TemporaryQuery/components/FolderTree";
+import TemporaryQueryStyle from "@/pages/DataAnalysis/TemporaryQuery/index.less";
 import useUrlState from "@ahooksjs/use-url-state";
-import useLocalStorages, {LocalModuleType} from "@/hooks/useLocalStorages";
-
-const { TabPane } = Tabs;
+import { Empty, Spin, Tabs } from "antd";
+import { cloneDeep } from "lodash";
+import { useEffect, useMemo } from "react";
+import { useIntl, useModel } from "umi";
+import SQLTabPaneItem from "./components/SQLTabPaneItem";
 
 const TemporaryQuery = () => {
   const i18n = useIntl();
@@ -123,6 +121,29 @@ const TemporaryQuery = () => {
     }
   }, []);
 
+  const items = useMemo(() => {
+    let arr: any[] = [];
+
+    panes.map((pane: PaneItemType) => {
+      arr.push({
+        key: pane.key,
+        label: pane.title,
+        forceRender: true,
+        style: { background: "#fff", width: "100%" },
+        children: (
+          <SQLTabPaneItem
+            id={parseInt(pane.key)}
+            parentId={pane.parentId || 0}
+            node={pane.node}
+            currentPaneActiveKey={currentPaneActiveKey}
+          />
+        ),
+      });
+    });
+
+    return arr;
+  }, [panes, currentPaneActiveKey]);
+
   return (
     <div className={TemporaryQueryStyle.queryMain}>
       <FolderTree />
@@ -131,30 +152,14 @@ const TemporaryQuery = () => {
           <div style={{ width: "100%" }}>
             <Tabs
               hideAdd
+              items={items}
               onChange={onChange}
               activeKey={currentPaneActiveKey}
               type="editable-card"
               onEdit={onEdit}
               className={TemporaryQueryStyle.fileNameList}
-            >
-              {panes.map((pane: PaneItemType) => {
-                return (
-                  <TabPane
-                    tab={pane.title}
-                    key={pane.key}
-                    forceRender
-                    style={{ background: "#fff", width: "100%" }}
-                  >
-                    <SQLTabPaneItem
-                      id={parseInt(pane.key)}
-                      parentId={pane.parentId || 0}
-                      node={pane.node}
-                      currentPaneActiveKey={currentPaneActiveKey}
-                    />
-                  </TabPane>
-                );
-              })}
-            </Tabs>
+            />
+
             <Spin spinning={doGetNodeInfo.loading}>
               <div className={TemporaryQueryStyle.luckysheet}>
                 {luckysheetData[0].celldata.length > 0 ? (

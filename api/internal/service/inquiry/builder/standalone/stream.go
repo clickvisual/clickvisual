@@ -22,7 +22,7 @@ func (b *StreamBuilder) BuilderCreate() {
 }
 
 func (b *StreamBuilder) BuilderFields() {
-	b.QueryAssembly.Result += common.BuilderFieldsStream(b.QueryAssembly.Params.TableCreateType, b.QueryAssembly.Params.KafkaJsonMapping,
+	b.QueryAssembly.Result += common.BuilderFieldsStream(b.QueryAssembly.Params.KafkaJsonMapping,
 		b.QueryAssembly.Params.TimeField,
 		b.QueryAssembly.Params.Stream.TableTyp,
 		b.QueryAssembly.Params.LogField,

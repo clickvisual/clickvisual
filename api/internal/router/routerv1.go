@@ -21,7 +21,7 @@ import (
 
 func v1(r *gin.RouterGroup) {
 	r = r.Group("/api/v1", middlewares.AuthChecker())
-
+	rootGroup := r.Group("", middlewares.RootChecker())
 	// User related
 	r.GET("/users", core.Handle(user.List))
 	r.GET("/users/info", core.Handle(user.Info))
@@ -36,23 +36,23 @@ func v1(r *gin.RouterGroup) {
 	r.PATCH("/sys/clusters/:id", core.Handle(setting.ClusterUpdate))
 	r.DELETE("/sys/clusters/:id", core.Handle(setting.ClusterDelete))
 	// Configuration management
-	r.GET("/configurations", core.Handle(configure.List))
-	r.POST("/configurations", core.Handle(configure.Create))
-	r.GET("/configurations/:id", core.Handle(configure.Detail))
-	r.PATCH("/configurations/:id", core.Handle(configure.Update))
-	r.GET("/configurations/:id/diff", core.Handle(configure.Diff))
-	r.GET("/configurations/:id/lock", core.Handle(configure.Lock))
-	r.DELETE("/configurations/:id", core.Handle(configure.Delete))
-	r.POST("/configurations/:id/sync", core.Handle(configure.Sync))
-	r.POST("/configurations/:id/unlock", core.Handle(configure.Unlock))
-	r.POST("/configurations/:id/publish", core.Handle(configure.Publish))
-	r.GET("/configurations/:id/histories", core.Handle(configure.HistoryList))
-	r.GET("/configurations/:id/histories/:version", core.Handle(configure.HistoryInfo))
+	rootGroup.GET("/configurations", core.Handle(configure.List))
+	rootGroup.POST("/configurations", core.Handle(configure.Create))
+	rootGroup.GET("/configurations/:id", core.Handle(configure.Detail))
+	rootGroup.PATCH("/configurations/:id", core.Handle(configure.Update))
+	rootGroup.GET("/configurations/:id/diff", core.Handle(configure.Diff))
+	rootGroup.GET("/configurations/:id/lock", core.Handle(configure.Lock))
+	rootGroup.DELETE("/configurations/:id", core.Handle(configure.Delete))
+	rootGroup.POST("/configurations/:id/sync", core.Handle(configure.Sync))
+	rootGroup.POST("/configurations/:id/unlock", core.Handle(configure.Unlock))
+	rootGroup.POST("/configurations/:id/publish", core.Handle(configure.Publish))
+	rootGroup.GET("/configurations/:id/histories", core.Handle(configure.HistoryList))
+	rootGroup.GET("/configurations/:id/histories/:version", core.Handle(configure.HistoryInfo))
 	// Cluster-related interfaces
-	r.GET("/clusters", core.Handle(kube.ClusterList))
-	r.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))
-	r.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
-	r.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
+	rootGroup.GET("/clusters", core.Handle(kube.ClusterList))
+	rootGroup.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))
+	rootGroup.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
+	rootGroup.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
 	// Instance
 	r.GET("/sys/instances", core.Handle(base.InstanceList))
 	r.POST("/sys/instances", core.Handle(base.InstanceCreate))
@@ -67,7 +67,7 @@ func v1(r *gin.RouterGroup) {
 	r.GET("/instances/:iid/databases", core.Handle(base.DatabaseList))
 	r.POST("/instances/:iid/databases", core.Handle(base.DatabaseCreate))
 	r.GET("/instances/:iid/databases-exist", core.Handle(base.DatabaseExistList))
-	// Table
+	// TableName
 	r.GET("/table/id", core.Handle(base.TableId))
 	r.GET("/tables/:id", core.Handle(base.TableInfo))
 	r.PATCH("/tables/:id", core.Handle(base.TableUpdate))
@@ -75,8 +75,8 @@ func v1(r *gin.RouterGroup) {
 	r.DELETE("/tables/:id", core.Handle(base.TableDelete))
 	r.GET("/tables/:id/charts", core.Handle(base.TableCharts))
 	r.GET("/databases/:did/tables", core.Handle(base.TableList))
-	r.POST("/databases/:did/tables", core.Handle(base.TableCreate))
-	r.GET("/instances/:iid/complete", core.Handle(base.QueryComplete))
+	// r.POST("/databases/:did/tables", core.Handle(base.TableCreate))
+	r.POST("/instances/:iid/complete", core.Handle(base.QueryComplete))
 	r.POST("/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
 	r.POST("/instances/:iid/tables-exist-batch", core.Handle(base.TableCreateSelfBuiltBatch))
 	// hidden field

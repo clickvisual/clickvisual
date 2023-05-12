@@ -1,20 +1,20 @@
-import { WorkflowInfo } from "@/services/bigDataWorkflow";
-import { useIntl } from "umi";
+import CustomTree, { NodeType } from "@/components/CustomTree";
+import TreeNodeTypeIcon, {
+  TreeNodeTypeEnums,
+} from "@/components/TreeNodeTypeIcon";
+import NodeTreeItem from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/NodeTreeItem";
+import useRightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
 import {
   OfflineRightMenuClickSourceEnums,
   PrimaryEnums,
   SecondaryEnums,
   TertiaryEnums,
 } from "@/pages/DataAnalysis/service/enums";
-import TreeNodeTypeIcon, {
-  TreeNodeTypeEnums,
-} from "@/components/TreeNodeTypeIcon";
-import NodeTreeItem from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/NodeTreeItem";
-import CustomTree, { NodeType } from "@/components/CustomTree";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useModel } from "@@/plugin-model/useModel";
-import RightMenu from "@/pages/DataAnalysis/OfflineManager/components/WorkflowTree/RightMenu";
+import { WorkflowInfo } from "@/services/bigDataWorkflow";
+import { useModel } from "@umijs/max";
 import lodash, { cloneDeep } from "lodash";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useIntl } from "umi";
 
 const folderTree = (
   workflow: any,
@@ -367,18 +367,15 @@ const WorkflowLine = ({
     setTreeData(nodeTree);
   }, [nodes, folders, workflowItem, workflowItem?.board]);
 
+  const { items } = useRightMenu({
+    handleCloseNodeModal: handleCloseModal,
+    clickSource: clickSource,
+    currentNode: currentNode,
+  });
+
   return (
     <>
-      <NodeTreeItem
-        menus={
-          <RightMenu
-            handleCloseNodeModal={handleCloseModal}
-            clickSource={clickSource}
-            currentNode={currentNode}
-          />
-        }
-        onMenuClose={handleCloseRightMenu}
-      >
+      <NodeTreeItem menus={items} onMenuClose={handleCloseRightMenu}>
         <CustomTree
           onSelectNode={handleClickNode}
           treeData={treeData}

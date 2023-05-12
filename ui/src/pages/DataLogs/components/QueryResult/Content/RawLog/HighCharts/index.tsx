@@ -1,15 +1,15 @@
-import highChartsStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts/index.less";
-import { Chart, Tooltip, Interval, Interaction } from "bizcharts";
-import { Empty } from "antd";
-import classNames from "classnames";
-import { useModel } from "@@/plugin-model/useModel";
-import { useMemo, useRef, useState } from "react";
-import HighChartsTooltip from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts/HighChartsTooltip";
-import moment from "moment";
-import { ACTIVE_TIME_NOT_INDEX, TimeRangeType } from "@/config/config";
-import { useIntl } from "umi";
+import { TimeRangeType } from "@/config/config";
 import { PaneType } from "@/models/datalogs/types";
+import HighChartsTooltip from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts/HighChartsTooltip";
+import highChartsStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/HighCharts/index.less";
 import { timeIntervalIsConvertedIntoUnits } from "@/utils/time";
+import { useModel } from "@umijs/max";
+import { Empty } from "antd";
+import { Chart, Interaction, Interval, Tooltip } from "bizcharts";
+import classNames from "classnames";
+import moment from "moment";
+import { useMemo, useRef, useState } from "react";
+import { useIntl } from "umi";
 
 const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const {
@@ -100,7 +100,6 @@ const HighCharts = ({ oldPane }: { oldPane: PaneType | undefined }) => {
         ...(oldPane as PaneType),
         start,
         end,
-        activeIndex: ACTIVE_TIME_NOT_INDEX,
         activeTabKey: TimeRangeType.Custom,
       };
       const reqParams: any = { st: start, et: end };

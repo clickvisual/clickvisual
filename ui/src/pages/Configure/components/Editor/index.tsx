@@ -1,10 +1,10 @@
-import editorStyles from "@/pages/Configure/components/Editor/index.less";
-import MonacoEditor from "react-monaco-editor";
-import { useModel } from "@@/plugin-model/useModel";
-import { Empty, Modal, Spin } from "antd";
 import OptionButton, {
   ButtonType,
 } from "@/pages/Configure/components/CustomButton/OptionButton";
+import editorStyles from "@/pages/Configure/components/Editor/index.less";
+import { useModel } from "@umijs/max";
+import { Empty, Modal, Spin } from "antd";
+import MonacoEditor from "react-monaco-editor";
 import { useIntl } from "umi";
 
 const Editor = () => {

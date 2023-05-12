@@ -1,8 +1,8 @@
+import CustomModal from "@/components/CustomModal";
+import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
 import { Button, Table } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useMemo } from "react";
-import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
-import CustomModal from "@/components/CustomModal";
 
 export interface TableColumnsType {
   source: any;
@@ -57,7 +57,7 @@ const TableColumns = ({
   return (
     <CustomModal
       title={title}
-      visible={openVisible}
+      open={openVisible}
       onCancel={cancelModal}
       width={700}
       footer={[

@@ -1,11 +1,11 @@
-import { Button } from "antd";
 import IconFont from "@/components/IconFont";
-import { PaneType } from "@/models/datalogs/types";
-import { useModel } from "@@/plugin-model/useModel";
-import { useEffect, useMemo } from "react";
 import { QueryTypeEnum } from "@/config/config";
+import { PaneType } from "@/models/datalogs/types";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import useUrlState from "@ahooksjs/use-url-state";
+import { useModel } from "@umijs/max";
+import { Button } from "antd";
+import { useEffect, useMemo } from "react";
 
 const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
   const [usrState] = useUrlState<any>();

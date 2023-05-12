@@ -157,9 +157,13 @@ FROM  %s GROUP BY %s ORDER BY %s DESC LIMIT 10
 	return out
 }
 
+// deprecated
 func adaSelectPart(in string) (out string) {
 	arr := strings.Split(strings.Replace(in, "from", "FROM", 1), "FROM ")
 	if len(arr) <= 1 {
+		return in
+	}
+	if strings.Contains(arr[0], "WITH(") {
 		return in
 	}
 	if strings.Contains(arr[0], ",") {
@@ -184,7 +188,7 @@ func genSelectFields(tid int) string {
 }
 
 func queryTransformLike(createType int, rawLogField, query string) string {
-	if query == "" {
+	if query == "" || rawLogField == "" {
 		return query
 	}
 	var res string
@@ -278,23 +282,23 @@ func hashTransform(query string, index *db.BaseIndex) string {
 // isEmpty filter empty index value
 func isEmpty(input interface{}) bool {
 	var val string
-	switch input.(type) {
+	switch input := input.(type) {
 	case string:
-		val = input.(string)
+		val = input
 	case uint8:
-		val = fmt.Sprintf("%d", input.(uint8))
+		val = fmt.Sprintf("%d", input)
 	case uint16:
-		val = fmt.Sprintf("%d", input.(uint16))
+		val = fmt.Sprintf("%d", input)
 	case uint64:
-		val = fmt.Sprintf("%d", input.(uint64))
+		val = fmt.Sprintf("%d", input)
 	case int32:
-		val = fmt.Sprintf("%d", input.(int32))
+		val = fmt.Sprintf("%d", input)
 	case int64:
-		val = fmt.Sprintf("%d", input.(int64))
+		val = fmt.Sprintf("%d", input)
 	case *uint64:
-		val = fmt.Sprintf("%d", input.(*uint64))
+		val = fmt.Sprintf("%d", input)
 	case float64:
-		val = fmt.Sprintf("%f", input.(float64))
+		val = fmt.Sprintf("%f", input)
 	case []string:
 		return false
 	case time.Time:
@@ -358,8 +362,7 @@ func genViewName(database, tableName string, timeKey string) string {
 }
 
 func queryTransformer(in string) (out string, err error) {
-	items := make([]queryItem, 0)
-	items, err = queryEncode(in)
+	items, err := queryEncode(in)
 	if err != nil {
 		return
 	}

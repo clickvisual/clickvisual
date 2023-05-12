@@ -1,12 +1,12 @@
-import DataSourceModule from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule";
-import { Form, FormInstance } from "antd";
-import FieldMappingModule from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/FieldMappingModule";
-import { useModel } from "@@/plugin-model/useModel";
-import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/config";
-import CustomCollapse from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/CustomCollapse";
-import { useMemo } from "react";
-import { isEqual } from "lodash";
 import { OpenTypeEnums } from "@/models/dataanalysis/useIntegratedConfigs";
+import CustomCollapse from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/CustomCollapse";
+import DataSourceModule from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/DataSourceModule";
+import FieldMappingModule from "@/pages/DataAnalysis/OfflineManager/components/IntegratedConfiguration/IntegratedConfigs/FieldMappingModule";
+import { CustomCollapseEnums } from "@/pages/DataAnalysis/OfflineManager/config";
+import { useModel } from "@umijs/max";
+import { Form, FormInstance } from "antd";
+import { isEqual } from "lodash";
+import { useMemo } from "react";
 
 export interface IntegratedConfigsProps {
   file: any;

@@ -1,4 +1,5 @@
-import { request } from "umi";
+import {request} from "umi";
+
 export interface TimeBaseType {
   utime?: number;
   ctime?: number;
@@ -20,6 +21,7 @@ export interface InstanceType extends TimeBaseType {
 
 export interface TestInstanceRequest {
   dsn: string;
+  datasource: string;
 }
 
 export interface ClustersRequest {

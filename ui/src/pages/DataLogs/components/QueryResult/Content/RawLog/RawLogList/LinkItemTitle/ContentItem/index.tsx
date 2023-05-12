@@ -5,6 +5,12 @@ import { useMemo, useState } from "react";
 import copy from "copy-to-clipboard";
 import styles from "./index.less";
 import { useModel } from "umi";
+import { handleValueDisplayLogic } from "@/utils/linkLog";
+
+const SharePath = [
+  process.env.PUBLIC_PATH + "share",
+  process.env.PUBLIC_PATH + "share/",
+];
 
 const ContentItem = ({
   title,
@@ -18,44 +24,17 @@ const ContentItem = ({
   const [isTagsHidden, setIsTagsHidden] = useState<boolean>(true);
   const { foldingState, resizeMenuWidth } = useModel("dataLogs");
 
-  const handleValueDisplayLogic = (obj: any) => {
-    if (obj?.vType) {
-      switch (obj.vType) {
-        case "INT64":
-          return (
-            <span style={{ color: "#2fabee" }}>{obj?.vInt64 || "「0」"}</span>
-          );
-
-        case "BOOL":
-          return (
-            <span style={{ color: "#f22222" }}>
-              {obj?.vBool?.toString() || "「not BOOL」"}
-            </span>
-          );
-
-        case "FLOAT64":
-          return (
-            <span style={{ color: "#00f" }}>
-              {obj?.vFloat64 || "「not FLOAT64」"}
-            </span>
-          );
-
-        case "BINARY":
-          return <span style={{ color: "#000" }}>「binary」</span>;
-
-        default:
-          return <span>「Contacting an Administrator」</span>;
-          break;
-      }
-    } else {
-      return obj?.vStr || "「no vStr」";
-    }
-  };
+  const isShare = useMemo(
+    () => SharePath.includes(document.location.pathname),
+    [document.location.pathname]
+  );
 
   const titleWidth = useMemo(() => {
     return isTips
       ? "972px"
-      : `calc(85vw - ${!foldingState ? resizeMenuWidth : 0}px - 300px)`;
+      : `calc(85vw - ${
+          !isShare && !foldingState ? resizeMenuWidth + 4 : 0
+        }px - 300px - 15px ${isShare ? "+ 48px" : ""})`;
   }, [resizeMenuWidth, foldingState, isTips]);
 
   return (

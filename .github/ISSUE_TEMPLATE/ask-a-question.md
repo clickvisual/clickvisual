@@ -1,6 +1,6 @@
 ---
 name: Ask a question
-about: Ask anything of ilogtail. It is recommended to ask a question in discussions.
+about: Ask anything of clickvisual. It is recommended to ask a question in discussions.
 title: "[QUESTION]:"
 labels: question
 assignees: ''
@@ -15,7 +15,7 @@ Before asking a question, please first consider:
 
 -------
 
-提问之前，建议先在 iLogtail 社区寻找答案。
+提问之前，建议先在 ClickVisual 社区寻找答案。
 
 - 查看 [存在的 discussions](https://github.com/clickvisual/clickvisual/discussions/)
 - 查看 [存在的 issues](https://github.com/clickvisual/clickvisual/issues/)

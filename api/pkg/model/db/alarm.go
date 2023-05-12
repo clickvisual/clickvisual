@@ -15,16 +15,16 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
-type iAlarm interface {
-	iModel
-
-	GetStatus(db *gorm.DB) int
-	AlertInterval() string
-	RuleName(filterId int) string
-	UniqueName(filterId int) string
-	UpdateStatus(db *gorm.DB, status int) (err error)
-	ViewName(database, table string, seq int) string
-}
+// type iAlarm interface {
+// 	iModel
+//
+// 	GetStatus(db *gorm.DB) int
+// 	AlertInterval() string
+// 	RuleName(filterId int) string
+// 	UniqueName(filterId int) string
+// 	UpdateStatus(db *gorm.DB, status int) (err error)
+// 	ViewName(database, table string, seq int) string
+// }
 
 const (
 	_ int = iota
@@ -35,7 +35,7 @@ const (
 const (
 	AlarmStatusUnknown = iota
 	AlarmStatusClose
-	AlarmStatusOpen
+	AlarmStatusNormal
 	AlarmStatusFiring
 	AlarmStatusRuleCheck
 )
@@ -102,7 +102,7 @@ func (n *Notification) GetStatus() int {
 	if n.Status == "firing" {
 		return AlarmStatusFiring
 	} else if n.Status == "resolved" {
-		return AlarmStatusOpen
+		return AlarmStatusNormal
 	}
 	return AlarmStatusUnknown
 }
@@ -110,17 +110,19 @@ func (n *Notification) GetStatus() int {
 type Alarm struct {
 	BaseModel
 
-	Uid        int           `gorm:"column:uid;type:int(11)" json:"uid"`                              // uid of alarm operator
-	Uuid       string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`              // foreign key
-	Name       string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`         // name of an alarm
-	Desc       string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`              // description
-	Interval   int           `gorm:"column:interval;type:int(11)" json:"interval"`                    // interval second between alarm
-	Unit       int           `gorm:"column:unit;type:int(11)" json:"unit"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
-	Tags       String2String `gorm:"column:tag;type:text" json:"tag"`                                 // tags
-	ChannelIds Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"` // channel of an alarm
-	NoDataOp   int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`  // noDataOp 0 nodata 1 ok 2 alert
-	Level      int           `gorm:"column:level;type:int(11)" json:"level"`                          // 0 m 1 s 2 h 3 d 4 w 5 y
-	Status     int           `gorm:"column:status;type:int(11)" json:"status"`                        // status
+	Uid              int           `gorm:"column:uid;type:int(11)" json:"uid"`                                // uid of alarm operator
+	Uuid             string        `gorm:"column:uuid;type:varchar(128);NOT NULL" json:"uuid"`                // foreign key
+	Name             string        `gorm:"column:name;type:varchar(128);NOT NULL" json:"alarmName"`           // name of an alarm
+	Desc             string        `gorm:"column:desc;type:varchar(255);NOT NULL" json:"desc"`                // description
+	Interval         int           `gorm:"column:interval;type:int(11)" json:"interval"`                      // interval second between alarm
+	Unit             int           `gorm:"column:unit;type:int(11)" json:"unit"`                              // 0 m 1 s 2 h 3 d 4 w 5 y
+	Tags             String2String `gorm:"column:tag;type:text" json:"tag"`                                   // tags
+	ChannelIds       Ints          `gorm:"column:channel_ids;type:varchar(255);NOT NULL" json:"channelIds"`   // channel of an alarm
+	NoDataOp         int           `gorm:"column:no_data_op;type:int(11)" db:"no_data_op" json:"noDataOp"`    // noDataOp 0 nodata 1 ok 2 alert
+	Level            int           `gorm:"column:level;type:int(11)" json:"level"`                            // 0 m 1 s 2 h 3 d 4 w 5 y
+	Status           int           `gorm:"column:status;type:int(11)" json:"status"`                          // status
+	DutyOfficers     Ints          `gorm:"column:duty_officers;type:varchar(255)" json:"dutyOfficers"`        // duty officer id list
+	IsDisableResolve int           `gorm:"column:is_disable_resolve;type:tinyint(1)" json:"isDisableResolve"` // is disable resolve message
 
 	User *User `json:"user,omitempty" gorm:"foreignKey:uid;references:id"`
 
@@ -129,12 +131,16 @@ type Alarm struct {
 	TableIds   Ints          `gorm:"column:table_ids;type:varchar(255);NOT NULL" json:"tableIds"`
 	AlertRules String2String `gorm:"column:alert_rules;type:text" json:"alertRules"` // prometheus alert rule
 
+	// lint:ignore SA1019 Deprecated: Tid
 	// Deprecated: Tid
 	Tid int `gorm:"column:tid;type:int(11)" json:"tid"` // table id
+	// nolint
 	// Deprecated: AlertRule will be replaced by AlertRules field, is expected to delete 0.5.0 version
 	AlertRule string `gorm:"column:alert_rule;type:text" json:"alertRule"` // prometheus alert rule
+	// lint:ignore SA1019 Deprecated: View
 	// Deprecated: View
 	View string `gorm:"column:view;type:text" json:"view"` // view table ddl
+	// lint:ignore SA1019 Deprecated: ViewTableName
 	// Deprecated: ViewTableName
 	ViewTableName string `gorm:"column:view_table_name;type:varchar(255)" json:"viewTableName"` // name of view table
 }
@@ -166,11 +172,11 @@ func (m *Alarm) RuleName(filterId int) string {
 	return fmt.Sprintf("cv-%s-%d.yaml", m.Uuid, filterId)
 }
 
-func TrimRuleName(name string) string {
-	name = strings.TrimPrefix(name, "cv-")
-	name = strings.TrimSuffix(name, ".yaml")
-	return name
-}
+// func TrimRuleName(name string) string {
+// 	name = strings.TrimPrefix(name, "cv-")
+// 	name = strings.TrimSuffix(name, ".yaml")
+// 	return name
+// }
 
 func (m *Alarm) ViewName(database, table string, seq int) string {
 	return fmt.Sprintf("%s.%s_%s", database, table, m.UniqueName(seq))
@@ -178,6 +184,10 @@ func (m *Alarm) ViewName(database, table string, seq int) string {
 
 func (m *Alarm) UniqueName(filterId int) string {
 	return strings.ReplaceAll(fmt.Sprintf("%s_%d", m.Uuid, filterId), "-", "_")
+}
+
+func (m *Alarm) GetInterval() time.Duration {
+	return UnitMap[m.Unit].Duration * time.Duration(m.Interval)
 }
 
 func (m *Alarm) AlertInterval() string {
@@ -203,7 +213,7 @@ func (m *Alarm) GetStatus(db *gorm.DB) int {
 			return AlarmStatusFiring
 		}
 	}
-	return AlarmStatusOpen
+	return AlarmStatusNormal
 }
 
 // RuleNameMap 提供 rule 兼容
