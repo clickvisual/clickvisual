@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -704,8 +705,9 @@ func SendTestToChannel(c *db.AlarmChannel) (err error) {
 		return
 	}
 	err = ci.Send(c, &db.PushMsg{
-		Title: "Hello",
-		Text:  "test/alert/alarm/告警 the availability of the alarm channel",
+		Title:   "Hello",
+		Text:    "test/alert/alarm/告警 the availability of the alarm channel",
+		Mobiles: econf.GetStringSlice("app.mobiles"),
 	})
 	return
 }
