@@ -205,7 +205,7 @@ func Execute(channelIds []int, pushMsg *db.PushMsg, pushMsgWithAt *db.PushMsg) e
 		if err != nil {
 			return err
 		}
-		if channelId == db.ChannelDingDing {
+		if channel.Typ == db.ChannelDingDing {
 			err = channelPusher.Send(&channel, pushMsgWithAt)
 		} else {
 			err = channelPusher.Send(&channel, pushMsg)
