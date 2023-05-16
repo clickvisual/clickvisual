@@ -74,8 +74,6 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		} else {
 			buffer.WriteString("【告警状态】: <font color=red>告警中</font>\n")
 		}
-		user, _ := db.UserInfo(alarm.Uid)
-		buffer.WriteString(fmt.Sprintf("【告警更新】: %s\n", user.Nickname))
 		dutyOfficesStr := ""
 		for _, u := range users {
 			if dutyOfficesStr == "" {
@@ -86,10 +84,12 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 		}
 		if dutyOfficesStr != "" {
 			buffer.WriteString(fmt.Sprintf("【告警责任】: %s\n", dutyOfficesStr))
+		} else {
+			user, _ := db.UserInfo(alarm.Uid)
+			buffer.WriteString(fmt.Sprintf("【告警更新】: %s\n\n", user.Nickname))
 		}
 		jumpURL := fmt.Sprintf("%s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d",
-			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, url.QueryEscape(filter.When), start, end,
-		)
+			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, url.QueryEscape(filter.When), start, end)
 		shortURL, err := shorturl.GenShortURL(jumpURL)
 		if err != nil {
 			elog.Error("shorturl.GenShortURL", elog.FieldErr(err), elog.String("jumpURL", jumpURL))
@@ -149,8 +149,6 @@ func BuildAlarmMsgWithAt(notification db.Notification, table *db.BaseTable, alar
 		} else {
 			buffer.WriteString("【告警状态】: <font color=red>告警中</font>\n\n")
 		}
-		user, _ := db.UserInfo(alarm.Uid)
-		buffer.WriteString(fmt.Sprintf("【告警更新】: %s\n\n", user.Nickname))
 		dutyOfficesStr := ""
 		for _, u := range users {
 			at := u.Phone
@@ -165,6 +163,9 @@ func BuildAlarmMsgWithAt(notification db.Notification, table *db.BaseTable, alar
 		}
 		if dutyOfficesStr != "" {
 			buffer.WriteString(fmt.Sprintf("【告警责任】: %s\n\n", dutyOfficesStr))
+		} else {
+			user, _ := db.UserInfo(alarm.Uid)
+			buffer.WriteString(fmt.Sprintf("【告警更新】: %s\n\n", user.Nickname))
 		}
 		jumpURL := fmt.Sprintf("%s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d",
 			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, url.QueryEscape(filter.When), start, end,
