@@ -181,10 +181,11 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 }
 
 func pushExec(channelIds []int, text string, iid int) {
-	_ = pusher.Execute(channelIds, &db.PushMsg{
+	msg := db.PushMsg{
 		Title: "###  <font color=#FF0000>您有待处理的告警</font>\n",
 		Text: fmt.Sprintf("Scheduled task execution failed: %s\n href: %s/bigdata?id=%d&navKey=TaskExecutionDetails\n",
 			text, strings.TrimRight(econf.GetString("app.rootURL"), "/"), iid,
 		),
-	})
+	}
+	_ = pusher.Execute(channelIds, &msg, &msg)
 }

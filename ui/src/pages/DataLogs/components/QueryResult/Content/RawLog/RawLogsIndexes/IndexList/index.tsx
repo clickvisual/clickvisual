@@ -2,7 +2,7 @@ import indexListStyles from "@/pages/DataLogs/components/QueryResult/Content/Raw
 import indexHeaderStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader/index.less";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
-import { Button, Empty, Space, Spin, Tooltip } from "antd";
+import { Button, Empty, Spin, Tooltip } from "antd";
 import {
   CaretDownOutlined,
   CaretUpOutlined,

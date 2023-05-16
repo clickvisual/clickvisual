@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	ChannelDingDing = iota + 1
-	ChannelWeChat
-	ChannelFeiShu
-	ChannelSlack
-	ChannelEmail
-	ChannelTelegram
+	ChannelDingDing = 1
+	ChannelWeChat   = 2
+	ChannelFeiShu   = 3
+	ChannelSlack    = 4
+	ChannelWebHook  = 5
+	ChannelTelegram = 6
 )
 
 const (
@@ -77,7 +77,7 @@ func (m *AlarmChannel) JudgmentType() (err error) {
 	case ChannelDingDing:
 	case ChannelWeChat:
 	case ChannelTelegram:
-	case ChannelEmail:
+	case ChannelWebHook:
 	case ChannelFeiShu:
 		if !(strings.HasPrefix(m.Key, LARKSUITE) || strings.HasPrefix(m.Key, FEISHUURL)) {
 			err = errors.New("invalid FeiShu webhook url")
