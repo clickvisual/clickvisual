@@ -1,6 +1,7 @@
 package pusher
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -14,13 +15,18 @@ import (
 type Webhook struct{}
 
 func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
+	b, err := json.Marshal(dto.WebhookReq{
+		CalledNumberList: msg.Mobiles,
+		CallContent:      msg.Title + msg.Text,
+	})
+	if err != nil {
+		elog.Error("webhookSend", elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles), elog.FieldErr(err))
+		return errors.New(err.Error())
+	}
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(dto.WebhookReq{
-			CalledNumberList: msg.Mobiles,
-			CallContent:      msg.Title + msg.Text,
-		}).
+		SetBody(b).
 		SetResult(&dto.WebhookResp{}). // or SetResult(AuthSuccess{}).
 		Post(channel.Key)
 	if err != nil {
