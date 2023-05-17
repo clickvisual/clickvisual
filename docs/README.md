@@ -8,4 +8,4 @@
 
 提交前需要确认 `npm run docs:build` 没有报错
 
-成功合并后会自动更新到 [https://clickvisual.gocn.vip/](https://clickvisual.gocn.vip/)
+成功合并后会自动更新到 [https://clickvisual.net/](https://clickvisual.net/)
