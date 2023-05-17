@@ -45,6 +45,6 @@ func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 		}
 		return errors.New("webhook send error, failed number: " + strings.TrimSuffix(failedNumber, ","))
 	}
-	elog.Info("webhookSend", elog.String("resp", string(resp.Body())), elog.String("url", channel.Key), elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles))
+	elog.Info("webhookSend", elog.String("req", string(b)), elog.String("resp", string(resp.Body())), elog.String("url", channel.Key), elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles))
 	return nil
 }
