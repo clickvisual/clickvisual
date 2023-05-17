@@ -17,7 +17,7 @@ type Webhook struct{}
 func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	b, err := json.Marshal(dto.WebhookReq{
 		CalledNumberList: msg.Mobiles,
-		CallContent:      msg.Title + msg.Text,
+		CallContent:      msg.Title,
 	})
 	if err != nil {
 		elog.Error("webhookSend", elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles), elog.FieldErr(err))
@@ -45,6 +45,6 @@ func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 		}
 		return errors.New("webhook send error, failed number: " + strings.TrimSuffix(failedNumber, ","))
 	}
-	elog.Info("webhookSend", elog.String("url", channel.Key), elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles))
+	elog.Info("webhookSend", elog.String("resp", string(resp.Body())), elog.String("url", channel.Key), elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles))
 	return nil
 }
