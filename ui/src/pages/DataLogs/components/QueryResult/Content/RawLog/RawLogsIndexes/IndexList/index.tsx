@@ -1,19 +1,16 @@
-import indexListStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexList/index.less";
-import indexHeaderStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader/index.less";
+import indexListStyles
+  from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexList/index.less";
+import indexHeaderStyles
+  from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader/index.less";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
-import { Button, Empty, Spin, Tooltip } from "antd";
-import {
-  CaretDownOutlined,
-  CaretUpOutlined,
-  QuestionCircleOutlined,
-} from "@ant-design/icons";
-import { useEffect, useMemo, useState } from "react";
+import {Button, Collapse, Empty, Spin, Tooltip} from "antd";
+import {CaretDownOutlined, CaretUpOutlined, QuestionCircleOutlined,} from "@ant-design/icons";
+import {useEffect, useMemo, useState} from "react";
 import IndexItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexItem";
-import { useIntl, useModel } from "umi";
-import { IndexInfoType } from "@/services/dataLogs";
-import { Collapse } from "antd";
-import { IndexType } from "../..";
+import {useIntl, useModel} from "umi";
+import {IndexInfoType} from "@/services/dataLogs";
+import {IndexType} from "../..";
 
 const { Panel } = Collapse;
 
@@ -53,13 +50,15 @@ const IndexList = (props: IndexListProps) => {
 
   const maxHeightClass = useMemo(() => {
     if (
-      (isBaseField && activeKey.length == 1) ||
       (baseActiveKey.length == 0 && logActiveKey.length == 0) ||
       (baseActiveKey.length == 1 && logActiveKey.length == 1)
     ) {
       return indexListStyles.fiveFiveOpen;
     }
     if (isBaseField && activeKey.length == 0) {
+      return indexListStyles.zero;
+    }
+    if (!isBaseField && activeKey.length == 0 && baseActiveKey.length == 1 && logActiveKey.length == 0) {
       return indexListStyles.zero;
     }
     if (!isBaseField && baseActiveKey.length == 0 && logActiveKey.length != 0) {
