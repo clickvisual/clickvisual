@@ -583,7 +583,7 @@ const CreatedAndUpdatedModal = ({
             </Form.Item>
             <Button className={queryStatisticsItemStyle.formItem} type="link">
               <a
-                href="https://clickvisual.gocn.vip/zh/clickvisual/03funcintro/alarm-function-configuration-description.html#%E8%81%9A%E5%90%88%E6%A8%A1%E5%BC%8F"
+                href="https://clickvisual.net/zh/clickvisual/03funcintro/alarm-function-configuration-description.html#%E8%81%9A%E5%90%88%E6%A8%A1%E5%BC%8F"
                 target="_bank"
               >
                 {i18n.formatMessage({

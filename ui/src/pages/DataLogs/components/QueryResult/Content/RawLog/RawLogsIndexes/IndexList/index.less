@@ -4,12 +4,15 @@
   flex: 1;
   justify-content: center;
   min-width: 0;
-  // max-height: 50%;
+  max-height: auto;
   margin: 0 0 5px 0;
   overflow-y: hidden;
   :global(.ant-collapse > .ant-collapse-item > .ant-collapse-header) {
     padding: 2px 6px;
   }
+//   :global(.ant-collapse > .ant-collapse-item > .ant-collapse-content)  {
+//     height: auto;
+//    }
   :global(.ant-collapse-content-box) {
     padding: 0 2px !important;
     & ul {
@@ -76,7 +79,7 @@
 }
 
 .fiveFiveOpen {
-  :global(.ant-collapse-content) {
+  :global(.ant-collapse > .ant-collapse-item > .ant-collapse-content) {
     height: calc((100vh - 265px) / 2);
     overflow-x: hidden;
     overflow-y: auto;
@@ -85,7 +88,7 @@
 }
 
 .zero {
-  :global(.ant-collapse-content) {
+  :global(.ant-collapse > .ant-collapse-item > .ant-collapse-content) {
     height: 100px;
     overflow-x: hidden;
     overflow-y: auto;
@@ -94,7 +97,7 @@
 }
 
 .nine {
-  :global(.ant-collapse-content) {
+  :global(.ant-collapse > .ant-collapse-item > .ant-collapse-content) {
     height: calc(100vh - 260px);
     overflow-x: hidden;
     overflow-y: auto;

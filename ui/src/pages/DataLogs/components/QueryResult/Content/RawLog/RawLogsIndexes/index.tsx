@@ -58,14 +58,14 @@ const RawLogsIndexes = (props: {
         return "22px";
       }
       if (logActiveKey.length == 1) {
-        return "50%";
+        return "97%";
       }
       return "97%";
     }
     // 日志字段
     if (baseActiveKey.length == 1) {
       if (activeKey.length == 1) {
-        return "50%";
+        return "97%";
       }
       if (activeKey.length == 0) {
         return "22px";

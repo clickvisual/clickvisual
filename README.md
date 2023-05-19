@@ -14,7 +14,7 @@ ClickVisual is a lightweight browser-based logs analytics and logs search platfo
 
 ### Documentation
 
-See <https://clickvisual.gocn.vip>
+See <https://clickvisual.net>
 
 ### Log Query Demonstration
 ![log-search](https://cdn.gocn.vip/clickvisual/assets/img/logs.b24e990e.gif)
@@ -84,7 +84,7 @@ cd ./clickvisual-${latest} && ./clickvisual -config config/default.toml
 
 ## Document Contribution
 
-If you want to participate in [https://clickvisual.gocn.vip](https://clickvisual.gocn.vip) document updating activities  
+If you want to participate in [https://clickvisual.net](https://clickvisual.net) document updating activities  
 Please refer to this document [https://github.com/clickvisual/clickvisual/tree/master/docs](https://github.com/clickvisual/clickvisual/tree/master/docs)
 
 ## Join Us

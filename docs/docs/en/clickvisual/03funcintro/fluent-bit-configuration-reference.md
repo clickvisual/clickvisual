@@ -21,7 +21,7 @@ Logs are sent from the data source to the destination through a data pipeline. A
 
 Suppose you deploy Fluent-bit in the DaemonSet mode, and your goal is to collect the Nginx Ingress logs and business standard output logs of the kubernetes cluster. You can refer to the following example to configure your Fluent-bit.
 
-You can config Fluent-bit by the visual config panel at ClickVisual.The detail operation is: Click top nav bar,access **Config**.Then select **Fluent-bit Cluster / Namespace / ConfigMap** on the page.If the cluster data has been not entered,refer to[Setting](https://clickvisual.gocn.vip/doc/AWHIVJKJABTK6)
+You can config Fluent-bit by the visual config panel at ClickVisual.The detail operation is: Click top nav bar,access **Config**.Then select **Fluent-bit Cluster / Namespace / ConfigMap** on the page.If the cluster data has been not entered,refer to[Setting](https://clickvisual.net/doc/AWHIVJKJABTK6)
 
 The following figure shows how to edit `fluent-bit-config` of the `kube-system` namespace in  the `xxx-dev` cluster.
 
