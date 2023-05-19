@@ -429,7 +429,7 @@ Ego 仓库： [https://github.com/gotomicro/ego](https://github.com/gotomicro/eg
 
 ClickHouse 官网：[https://clickhouse.com](https://clickhouse.com)
 
-ClickVisual 主页：[https://clickvisual.gocn.vip](https://clickvisual.gocn.vip)
+ClickVisual 主页：[https://clickvisual.net](https://clickvisual.net)
 
 ClickVisual 仓库：[https://github.com/clickvisual/clickvisual](https://github.com/clickvisual/clickvisual)
 

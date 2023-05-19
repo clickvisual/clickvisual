@@ -179,8 +179,8 @@ create table logger.ingress_stdout ( _time_second_ DateTime, _time_nanosecond_ D
 
 8. 参考资料
 - [GitHub](https://github.com/clickvisual/clickvisual)
-- [ClickVisual 文档](https://clickvisual.gocn.vip)
-- [ClickVisual 使用文档](https://clickvisual.gocn.vip/doc/AV62KU4AABMRQ)
+- [ClickVisual 文档](https://clickvisual.net)
+- [ClickVisual 使用文档](https://clickvisual.net/doc/AV62KU4AABMRQ)
 - [fluent-bit 文档](https://docs.fluentbit.io/)
 - [6 个 Kubernetes 日志系统建设中的典型问题，你遇到过几个](https://developer.aliyun.com/article/718735)
 - [一文看懂 Kubernetes 日志系统设计和实践](https://developer.aliyun.com/article/727594)

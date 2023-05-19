@@ -1,6 +1,7 @@
 package pusher
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -14,20 +15,26 @@ import (
 type Webhook struct{}
 
 func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
-	elog.Info("webhookSend", elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles))
+	b, err := json.Marshal(dto.WebhookReq{
+		CalledNumberList: msg.Mobiles,
+		CallContent:      msg.Title,
+	})
+	if err != nil {
+		elog.Error("webhookSend", elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles), elog.FieldErr(err))
+		return errors.New(err.Error())
+	}
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(dto.WebhookReq{
-			CalledNumberList: msg.Mobiles,
-			CallContent:      msg.Title + msg.Text,
-		}).
+		SetBody(b).
 		SetResult(&dto.WebhookResp{}). // or SetResult(AuthSuccess{}).
 		Post(channel.Key)
 	if err != nil {
+		elog.Error("webhookSend", elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles), elog.FieldErr(err))
 		return errors.New(err.Error())
 	}
 	if resp.StatusCode() != 200 {
+		elog.Error("webhookSend", elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles), elog.FieldErr(err))
 		webhookResp := resp.Result().(*dto.WebhookResp)
 		failedNumber := ""
 		for _, v := range webhookResp.Data {
@@ -38,5 +45,6 @@ func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 		}
 		return errors.New("webhook send error, failed number: " + strings.TrimSuffix(failedNumber, ","))
 	}
+	elog.Info("webhookSend", elog.String("req", string(b)), elog.String("resp", string(resp.Body())), elog.String("url", channel.Key), elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles))
 	return nil
 }

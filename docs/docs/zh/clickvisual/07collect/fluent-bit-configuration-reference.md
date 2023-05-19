@@ -21,7 +21,7 @@
 
 假设你是采用的 DaemonSet 方式部署 Fluent-bit，你的目标是采集 Kubernetes 集群的 Nginx Ingress 日志和业务标准输出日志，那么你可以参考如下样例来配置你的 Fluent-bit。
 
-你可以通过 clickvisual 的可视化配置界面来对 Fluent-bit 进行配置的删改，具体操作方法是：点击顶部导航栏，选择 **配置**。然后在页面中两个联动选择器中选择已部署 **Fluent-bit 的集群 / 命名空间 / ConfigMap**。如还未录入集群数据，可以参考 [系统配置](https://clickvisual.gocn.vip/doc/AWHIVJKJABTK6) 进行录入。
+你可以通过 clickvisual 的可视化配置界面来对 Fluent-bit 进行配置的删改，具体操作方法是：点击顶部导航栏，选择 **配置**。然后在页面中两个联动选择器中选择已部署 **Fluent-bit 的集群 / 命名空间 / ConfigMap**。如还未录入集群数据，可以参考 [系统配置](https://clickvisual.net/doc/AWHIVJKJABTK6) 进行录入。
 
 下图是选择 `xxx-dev` 集群下的 `kube-system` 命名空间下 `fluent-bit-config` 这个 ConfigMap 来进行更新。
 
