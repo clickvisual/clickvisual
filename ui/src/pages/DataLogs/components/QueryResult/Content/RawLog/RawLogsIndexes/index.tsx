@@ -1,9 +1,9 @@
 import logsIndexStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/index.less";
 import classNames from "classnames";
 // import IndexHeader from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader";
+import { PaneType } from "@/models/datalogs/types";
 import IndexList from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexList";
 import { useCallback, useEffect, useMemo } from "react";
-import { PaneType } from "@/models/datalogs/types";
 import { IndexType } from "..";
 
 const RawLogsIndexes = (props: {
@@ -55,7 +55,7 @@ const RawLogsIndexes = (props: {
     // 基础字段
     if (isBaseField) {
       if (activeKey.length == 0) {
-        return "3%";
+        return "22px";
       }
       if (logActiveKey.length == 1) {
         return "97%";
@@ -68,7 +68,7 @@ const RawLogsIndexes = (props: {
         return "97%";
       }
       if (activeKey.length == 0) {
-        return "3%";
+        return "22px";
       }
     }
     return "97%";
