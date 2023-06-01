@@ -64,6 +64,13 @@ const IndexList = (props: IndexListProps) => {
     if (!isBaseField && baseActiveKey.length == 0 && logActiveKey.length != 0) {
       return indexListStyles.nine;
     }
+    if (isBaseField && activeKey.length == 1) {
+      return indexListStyles.nine;
+    }
+    // console.log("isBaseField", isBaseField);
+    // console.log("baseActiveKey", baseActiveKey.length);
+    // console.log("activeKey", activeKey.length);
+    // console.log("logActiveKey", logActiveKey.length);
   }, [isBaseField, activeKey, baseActiveKey, logActiveKey]);
 
   return (
