@@ -1,7 +1,7 @@
 import { IApi } from "umi";
 
 const handleResourcePath = (url: string): string => {
-  return process.env.PUBLIC_PATH ?? "/" + url;
+  return (process.env.PUBLIC_PATH ?? "/") + url;
 };
 /**
  * html
