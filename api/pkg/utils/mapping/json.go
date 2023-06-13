@@ -14,32 +14,37 @@ type List struct {
 }
 
 type Item struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key    string `json:"key"`
+	Typ    string `json:"value"`
+	Parent string `json:"parent"`
 }
 
 func (m *Item) Assemble(withType bool) string {
 	if withType {
-		return fmt.Sprintf("`%s` %s,", m.Key, fieldReplace(m.Value))
+		return fmt.Sprintf("`%s` %s,", m.Key, fieldReplace(m.Typ))
 	}
 	return fmt.Sprintf("`%s`,", m.Key)
 }
 
 func (m *Item) AssembleJSONAsString() (res string) {
-	if strings.Contains(m.Value, "JSON") {
+	field := fmt.Sprintf("_log, '%s'", m.Key)
+	if m.Parent != "" {
+		field = fmt.Sprintf("JSONExtractRaw(_log, '%s'), '%s'", m.Parent, m.Key)
+	}
+	if strings.Contains(m.Typ, "JSON") {
 		// 需要将包含 JSON 类型的数据转换为 string
-		return fmt.Sprintf("toString(JSONExtractRaw(_log, '%s')) AS `%s`,", m.Key, m.Key)
+		return fmt.Sprintf("toString(JSONExtractRaw(%s)) AS `%s`,", field, m.Key)
 	}
-	if m.Value == "String" {
-		return fmt.Sprintf("JSONExtractString(_log, '%s') AS `%s`,", m.Key, m.Key)
+	if m.Typ == "String" {
+		return fmt.Sprintf("JSONExtractString(%s) AS `%s`,", field, m.Key)
 	}
-	if m.Value == "Float64" {
-		return fmt.Sprintf("JSONExtractFloat(_log, '%s') AS `%s`,", m.Key, m.Key)
+	if m.Typ == "Float64" {
+		return fmt.Sprintf("JSONExtractFloat(%s) AS `%s`,", field, m.Key)
 	}
-	if m.Value == "Bool" {
-		return fmt.Sprintf("JSONExtractBool(_log, '%s') AS `%s`,", m.Key, m.Key)
+	if m.Typ == "Bool" {
+		return fmt.Sprintf("JSONExtractBool(%s) AS `%s`,", field, m.Key)
 	}
-	return fmt.Sprintf("JSONExtractRaw(_log, '%s') AS `%s`,", m.Key, m.Key)
+	return fmt.Sprintf("JSONExtractRaw(%s) AS `%s`,", field, m.Key)
 }
 
 func Handle(req string) (res List, err error) {
@@ -53,12 +58,34 @@ func Handle(req string) (res List, err error) {
 		return
 	}
 	for k, v := range obj {
-		items = append(items, Item{
-			Key:   k,
-			Value: fieldTypeJudgment(v),
-		})
+		typ := fieldTypeJudgment(v)
+		if typ == FieldTypeJSON {
+			innerItem, errJson := handleJSON(k, v.(map[string]interface{}))
+			if errJson != nil {
+				return res, errJson
+			}
+			items = append(items, innerItem...)
+		} else {
+			items = append(items, Item{
+				Key: k,
+				Typ: typ,
+			})
+		}
 	}
 	return List{Data: items}, nil
+}
+
+func handleJSON(p string, req map[string]interface{}) (items []Item, err error) {
+	items = make([]Item, 0)
+	// Converted to json string structure type, the need to pay attention to is the json string type;
+	for k, v := range req {
+		items = append(items, Item{
+			Key:    k,
+			Typ:    fieldTypeJudgment(v),
+			Parent: p,
+		})
+	}
+	return
 }
 
 func fieldReplace(current string) (after string) {
@@ -67,6 +94,10 @@ func fieldReplace(current string) (after string) {
 	}
 	return current
 }
+
+const (
+	FieldTypeJSON = "JSON"
+)
 
 // fieldTypeJudgment json -> clickhouse
 func fieldTypeJudgment(req interface{}) string {
@@ -78,7 +109,7 @@ func fieldTypeJudgment(req interface{}) string {
 		innerTyp := fieldTypeJudgment(req[0])
 		val = "Array(" + innerTyp + ")"
 	case map[string]interface{}:
-		val = "JSON"
+		val = FieldTypeJSON
 	case float64:
 		val = "Float64"
 	case bool:

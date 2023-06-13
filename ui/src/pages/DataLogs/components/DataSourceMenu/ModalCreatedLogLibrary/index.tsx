@@ -1,13 +1,15 @@
-import { DEBOUNCE_WAIT } from "@/config/config";
+import {DEBOUNCE_WAIT} from "@/config/config";
 import LocalTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/LocalTable";
 import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
 import SelectField from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/SelectField";
-import TemplateTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTable";
-import { useModel } from "@umijs/max";
-import { useDebounceFn } from "ahooks";
-import { Form, FormInstance, message, Modal, Select } from "antd";
-import { useEffect, useRef, useState } from "react";
-import { useIntl } from "umi";
+import TemplateTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTableEgo";
+import TemplateTableILogtail
+    from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTableILogtail";
+import {useModel} from "@umijs/max";
+import {useDebounceFn} from "ahooks";
+import {Form, FormInstance, message, Modal, Select} from "antd";
+import {useEffect, useRef, useState} from "react";
+import {useIntl} from "umi";
 
 const { Option } = Select;
 
@@ -73,6 +75,14 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               topicsIngressStderr: field.topicsIngressStderr,
               topicsIngressStdout: field.topicsIngressStdout,
             })
+          : field.mode === 4
+              ? doCreatedTableTemplate.run("ilogtail", {
+                brokers: field.brokers,
+                databaseId: addLogToDatabase?.id as number,
+                topic: field.topic,
+                days: field.days,
+                name: field.name,
+              })
           : null;
       response &&
         response
@@ -210,6 +220,14 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                   { name: "EGO" }
                 )}
               </Option>
+              <Option value={4}>
+                {i18n.formatMessage(
+                    {
+                      id: "datasource.logLibrary.from.creationMode.option.template",
+                    },
+                    { name: "iLogtail" }
+                )}
+              </Option>
             </Select>
           )}
         </Form.Item>
@@ -232,6 +250,8 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                 );
               case 3:
                 return <TemplateTable />;
+             case 4:
+                return <TemplateTableILogtail />;
               default:
                 return (
                   <NewTable

@@ -112,7 +112,7 @@ func (s *srvStorage) stop() {
 func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatabase, param view.ReqCreateStorageByTemplateILogtail) (err error) {
 	cp := view.ReqStorageCreate{
 		Typ:                     1,
-		Days:                    14,
+		Days:                    param.Days,
 		Brokers:                 param.Brokers,
 		Consumers:               1,
 		KafkaSkipBrokenMessages: 1000,
@@ -136,9 +136,11 @@ func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatab
     },
     "time": 1681704438
 }`,
-		DatabaseId:  databaseInfo.ID,
-		TimeField:   "JSONExtractString(JSONExtractRaw(_log,'contents'),'time')",
-		RawLogField: "JSONExtractString(JSONExtractRaw(_log,'contents'),'content')",
+		DatabaseId:        databaseInfo.ID,
+		TimeField:         "_time_",
+		TimeFieldParent:   "contents",
+		RawLogField:       "content",
+		RawLogFieldParent: "contents",
 	}
 	cp.Topics = param.Topic
 	cp.TableName = param.Name
@@ -194,13 +196,9 @@ func (s *srvStorage) createByILogtailTemplateItem(uid int, databaseInfo db.BaseD
 	if tableInfo.ID != 0 {
 		return nil
 	}
-	table, err := StorageCreate(uid, databaseInfo, param)
+	_, err = StorageCreate(uid, databaseInfo, param)
 	if err != nil {
 		return
-	}
-	err = AnalysisFieldsUpdate(table.ID, templateTableAnalysisField[table.Name])
-	if err != nil {
-		return err
 	}
 	return nil
 }

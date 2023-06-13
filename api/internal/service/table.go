@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -54,10 +53,10 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 	return false
 }
 
-// 判断日志库类型
+// decideCreateType 判断日志库类型
 func decideCreateType(param view.ReqStorageCreate) int {
 	for _, m := range param.SourceMapping.Data {
-		if strings.Contains(m.Value, "JSON") {
+		if m.Parent != "" {
 			return constx.TableCreateTypeJSONAsString
 		}
 	}
@@ -80,7 +79,19 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.CreateStorage(databaseInfo.ID, databaseInfo, param)
+	var (
+		s string
+		d string
+		v string
+		a string
+	)
+
+	if param.CreateType == constx.TableCreateTypeJSONAsString {
+		s, d, v, a, err = op.CreateStorageJSONAsString(databaseInfo, param)
+	} else {
+		s, d, v, a, err = op.CreateStorage(databaseInfo.ID, databaseInfo, param)
+	}
+
 	if err != nil {
 		err = errors.Wrap(err, "storage create failed")
 		return
@@ -110,12 +121,14 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
 		tx.Rollback()
-		err = errors.Wrap(err, "create failed 02:")
+		err = errors.WithMessage(err, "TableCreateFailed")
 		return
 	}
 	if param.CreateType == constx.TableCreateTypeJSONAsString || param.CreateType == constx.TableCreateTypeJSONEachRow {
 		columns, errListColumn := op.ListColumn(databaseInfo.Name, param.TableName, false)
 		if errListColumn != nil {
+			tx.Rollback()
+			err = errors.WithMessage(err, "ListColumn")
 			return tableInfo, errListColumn
 		}
 		for _, col := range columns {
@@ -135,6 +148,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 			})
 			if err != nil {
 				tx.Rollback()
+				err = errors.WithMessage(err, "IndexCreateFailed")
 				return tableInfo, err
 			}
 		}

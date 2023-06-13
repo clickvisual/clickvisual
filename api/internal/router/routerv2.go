@@ -30,7 +30,7 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/swagger/*any", goredoc.GinHandler(&goredoc.Setting{
 			OpenAPIJson: docs.EGOGenAPI,
 			UriPrefix:   "/api/v2/swagger",
-			Title:       "Go Redoc",
+			Title:       "Go ReDoc",
 			RedocOptions: map[string]string{
 				"schema-expansion-level": "all",
 				"expand-responses":       "200,201",
@@ -40,16 +40,16 @@ func v2(r *gin.RouterGroup) {
 	// The global basic readable information module - base
 	{
 		// user apis
+		r.GET("/base/users", core.Handle(base.ListUser))
 		r.POST("/base/users", core.Handle(base.CreateUser))
 		r.PATCH("/base/users/:user-id", core.Handle(base.UpdateUser))
-		r.GET("/base/users", core.Handle(base.ListUser))
-		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.ResetUserPassword))
 		r.DELETE("/base/users/:user-id", core.Handle(base.DeleteUser))
+		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.ResetUserPassword))
 		// other apis
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		// todo: deprecated
-		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
+		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))
 	}
 	// The data analysis module - pandas
 	{
@@ -59,8 +59,8 @@ func v2(r *gin.RouterGroup) {
 		r.POST("/pandas/nodes/:node-id/crontab", core.Handle(pandas.NodeCrontabCreate))
 		r.PATCH("/pandas/nodes/:node-id/crontab", core.Handle(pandas.NodeCrontabUpdate))
 		// The node running data is processed by Excel
-		r.PATCH("/pandas/nodes-results/:result-id", core.Handle(pandas.NodeResultUpdate))
 		r.GET("/pandas/nodes/:node-id/results", core.Handle(pandas.NodeResultListPage))
+		r.PATCH("/pandas/nodes-results/:result-id", core.Handle(pandas.NodeResultUpdate))
 		// Timing schedule stats
 		r.GET("/pandas/workers", core.Handle(pandas.WorkerList))
 		r.GET("/pandas/workers/dashboard", core.Handle(pandas.WorkerDashboard))
@@ -73,10 +73,10 @@ func v2(r *gin.RouterGroup) {
 	// The log module - storage
 	{
 		r.POST("/storage", core.Handle(storage.Create))
-		r.POST("/storage/:template", core.Handle(storage.CreateStorageByTemplate))
-		r.POST("/storage/mapping-json", core.Handle(storage.KafkaJsonMapping))
-		r.GET("/storage/:storage-id/analysis-fields", core.Handle(storage.AnalysisFields))
 		r.PATCH("/storage/:storage-id", core.Handle(storage.Update))
+		r.POST("/storage/mapping-json", core.Handle(storage.KafkaJsonMapping))
+		r.POST("/storage/:template", core.Handle(storage.CreateStorageByTemplate))
+		r.GET("/storage/:storage-id/analysis-fields", core.Handle(storage.AnalysisFields))
 		// trace apis
 		r.GET("/storage/traces", core.Handle(storage.GetTraceList))
 		r.PATCH("/storage/:storage-id/trace", core.Handle(storage.UpdateTraceInfo))
@@ -92,7 +92,8 @@ func v2(r *gin.RouterGroup) {
 	{
 		r.GET("/alert/settings", core.Handle(alert.SettingList))
 		r.GET("/alert/settings/:instance-id", core.Handle(alert.SettingInfo))
-		r.PATCH("/alert/settings/:instance-id", core.Handle(alert.SettingUpdate))
 		r.POST("/alert/metrics-samples", core.Handle(alert.CreateMetricsSamples))
+		r.PATCH("/alert/settings/:instance-id", core.Handle(alert.SettingUpdate))
+
 	}
 }

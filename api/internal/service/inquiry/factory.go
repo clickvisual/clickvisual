@@ -36,6 +36,7 @@ type Operator interface {
 	CreateKafkaTable(*db.BaseTable, view.ReqStorageUpdate) (string, error)
 	CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error)
 	CreateTable(int, db.BaseDatabase, view.ReqTableCreate) (string, string, string, string, error)
+	CreateStorageJSONAsString(db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
 	CreateStorage(int, db.BaseDatabase, view.ReqStorageCreate) (string, string, string, string, error)
 	CreateMetricsSamples(string) error
 	CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error)

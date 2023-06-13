@@ -1,7 +1,7 @@
 ---
 name: Ask a question
 about: Ask anything of clickvisual. It is recommended to ask a question in discussions.
-title: "[QUESTION]:"
+title: "question:"
 labels: question
 assignees: ''
 
