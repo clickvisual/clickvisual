@@ -79,7 +79,7 @@ func IndexList(conds egorm.Conds) (resp []*BaseIndex, err error) {
 
 func IndexCreate(db *gorm.DB, data *BaseIndex) (err error) {
 	if err = db.Model(BaseIndex{}).Create(data).Error; err != nil {
-		return errors.Wrapf(err, "data: %v", data)
+		return errors.Wrapf(err, "data: %v", &data)
 	}
 	return
 }

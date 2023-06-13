@@ -200,6 +200,7 @@ func Update(c *core.Context) {
 			c.JSONE(1, "update failed 03: "+err.Error(), nil)
 			return
 		}
+
 	}
 	// just mysql record update
 	ups := make(map[string]interface{}, 0)

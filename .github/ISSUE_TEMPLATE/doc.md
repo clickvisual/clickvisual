@@ -1,7 +1,7 @@
 ---
 name: Doc
 about: Have doubts or suggestions about clickvisual docs
-title: "[DOC]:"
+title: "doc:"
 labels: documentation
 assignees: ''
 

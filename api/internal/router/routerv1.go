@@ -20,21 +20,7 @@ import (
 )
 
 func v1(r *gin.RouterGroup) {
-	r = r.Group("/api/v1", middlewares.AuthChecker())
 	rootGroup := r.Group("", middlewares.RootChecker())
-	// User related
-	r.GET("/users", core.Handle(user.List))
-	r.GET("/users/info", core.Handle(user.Info))
-	r.POST("/users/logout", core.Handle(user.Logout))
-	r.GET("/migration", core.Handle(initialize.Migration))
-	r.GET("/menus/list", core.Handle(permission.MenuList))
-	r.PATCH("/users/:uid/password", core.Handle(user.UpdatePassword))
-	// Cluster configuration
-	r.POST("/sys/clusters", core.Handle(setting.ClusterCreate))
-	r.GET("/sys/clusters/:id", core.Handle(setting.ClusterInfo))
-	r.GET("/sys/clusters", core.Handle(setting.ClusterPageList))
-	r.PATCH("/sys/clusters/:id", core.Handle(setting.ClusterUpdate))
-	r.DELETE("/sys/clusters/:id", core.Handle(setting.ClusterDelete))
 	// Configuration management
 	rootGroup.GET("/configurations", core.Handle(configure.List))
 	rootGroup.POST("/configurations", core.Handle(configure.Create))
@@ -53,6 +39,21 @@ func v1(r *gin.RouterGroup) {
 	rootGroup.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))
 	rootGroup.POST("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapCreate))
 	rootGroup.GET("/clusters/:clusterId/namespace/:namespace/configmaps/:name", core.Handle(kube.ConfigMapInfo))
+
+	r = r.Group("/api/v1", middlewares.AuthChecker())
+	// User related
+	r.GET("/users", core.Handle(user.List))
+	r.GET("/users/info", core.Handle(user.Info))
+	r.POST("/users/logout", core.Handle(user.Logout))
+	r.GET("/migration", core.Handle(initialize.Migration))
+	r.GET("/menus/list", core.Handle(permission.MenuList))
+	r.PATCH("/users/:uid/password", core.Handle(user.UpdatePassword))
+	// Cluster configuration
+	r.POST("/sys/clusters", core.Handle(setting.ClusterCreate))
+	r.GET("/sys/clusters/:id", core.Handle(setting.ClusterInfo))
+	r.GET("/sys/clusters", core.Handle(setting.ClusterPageList))
+	r.PATCH("/sys/clusters/:id", core.Handle(setting.ClusterUpdate))
+	r.DELETE("/sys/clusters/:id", core.Handle(setting.ClusterDelete))
 	// Instance
 	r.GET("/sys/instances", core.Handle(base.InstanceList))
 	r.POST("/sys/instances", core.Handle(base.InstanceCreate))
@@ -94,7 +95,6 @@ func v1(r *gin.RouterGroup) {
 	r.POST("/tables/:id/views", core.Handle(base.ViewCreate))
 	// alarm
 	r.GET("/alarms", core.Handle(alarm.List))
-	r.POST("/alarms-channels/send-test", core.Handle(alarm.ChannelSendTest)) // alarms send test
 	r.POST("/alarms", core.Handle(alarm.Create))
 	r.GET("/alarms/:id", core.Handle(alarm.Info))
 	r.PATCH("/alarms/:id", core.Handle(alarm.Update))
@@ -106,6 +106,7 @@ func v1(r *gin.RouterGroup) {
 	r.GET("/alarms-histories/:id", core.Handle(alarm.HistoryInfo))
 	r.PATCH("/alarms-channels/:id", core.Handle(alarm.ChannelUpdate))
 	r.DELETE("/alarms-channels/:id", core.Handle(alarm.ChannelDelete))
+	r.POST("/alarms-channels/send-test", core.Handle(alarm.ChannelSendTest)) // alarms send test
 	// OpEvent Operation event interface
 	r.GET("/events", core.Handle(event.ListPage))
 	r.GET("/event/enums", core.Handle(event.GetAllEnums))

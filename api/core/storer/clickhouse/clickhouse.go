@@ -24,9 +24,9 @@ type Storer struct {
 
 	conn *sql.DB // clickhouse instance
 
-	fields string
-	ttl    int // ttl Data expiration time, unit is the day
-
+	fields           string
+	ttl              int  // ttl Data expiration time, unit is the day
+	withAttachFields bool // withAttachFields Whether to include attachment fields, such as _key/headers
 }
 
 func NewStorer(req ifstorer.Params) *Storer {
@@ -84,23 +84,39 @@ func (ch *Storer) mergeTreeTable() (name string, sql string) {
 		tableNameWithCluster = tableName
 		engine = "ENGINE = MergeTree"
 	}
-	return tableName, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
+	if ch.withAttachFields {
+		return tableName, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 (
-%s
-_time_second_ DateTime,
-_time_nanosecond_ DateTime64(9),
-_raw_log_ String CODEC(ZSTD(1)),
-_key String CODEC(ZSTD(1)),
-%s Array(String),
-%s Array(String),
-INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
+  %s
+  _time_second_ DateTime,
+  _time_nanosecond_ DateTime64(9),
+  _raw_log_ String CODEC(ZSTD(1)),
+  _key String CODEC(ZSTD(1)),
+  %s Array(String),
+  %s Array(String),
+  INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
 )
 %s
 PARTITION BY toYYYYMMDD(_time_second_)
 ORDER BY _time_second_
 TTL toDateTime(_time_second_) + INTERVAL %d DAY
 SETTINGS index_granularity = 8192;
-`, tableNameWithCluster, ch.fields, "`_headersname`", "`_headersvalue`", engine, ch.ttl)
+`, tableNameWithCluster, ch.fields, "`_headers_name`", "`_headers_value`", engine, ch.ttl)
+	}
+	return tableName, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
+(
+  %s
+  _time_second_ DateTime,
+  _time_nanosecond_ DateTime64(9),
+  _raw_log_ String CODEC(ZSTD(1)),
+  INDEX idx_raw_log _raw_log_ TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1
+)
+%s
+PARTITION BY toYYYYMMDD(_time_second_)
+ORDER BY _time_second_
+TTL toDateTime(_time_second_) + INTERVAL %d DAY
+SETTINGS index_granularity = 8192;
+`, tableNameWithCluster, ch.fields, engine, ch.ttl)
 }
 
 func (ch *Storer) distributedTable() (name string, sql string) {

@@ -27,8 +27,8 @@ type BaseTable struct {
 	ConsumerNum             int    `gorm:"column:consumer_num;type:int(11)" json:"consumerNum"`                          // kafka consumer number
 	Uid                     int    `gorm:"column:uid;type:int(11)" json:"uid"`                                           // operator uid
 	CreateType              int    `gorm:"column:create_type;type:tinyint(1)" json:"createType"`                         // operation type, 0 means create clickvisual fresh table, 1 means use exists table
-	TimeField               string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`                // custom time filed name of _time_
-	TimeFieldType           int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"`  // custom time filed type name of _time_
+	TimeField               string `gorm:"column:time_field;type:varchar(128);NOT NULL" json:"timeField"`
+	TimeFieldType           int    `gorm:"column:time_field_type;type:int(11);default:0;NOT NULL" json:"timeFieldType"`
 	Desc                    string `gorm:"column:desc;type:varchar(255)" json:"desc"`
 	RawLogField             string `gorm:"column:raw_log_field;type:varchar(255)" json:"rawLogField"`
 	KafkaSkipBrokenMessages int    `gorm:"column:kafka_skip_broken_messages;type:int(11)" json:"kafkaSkipBrokenMessages"`

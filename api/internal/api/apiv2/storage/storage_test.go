@@ -84,10 +84,11 @@ func TestCreateStorageByTemplate(t *testing.T) {
 		byteInfo := m.Exec(
 			gintest.WithUri("/storage/ilogtail"),
 			gintest.WithJsonBody(view.ReqCreateStorageByTemplateILogtail{
-				Name:       "demo_0201_v3",
+				Name:       "demo_0612_v1",
 				Brokers:    "127.0.0.1:9092",
 				DatabaseId: 14,
 				Topic:      "otlp_spans",
+				Days:       1,
 			}))
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil

@@ -33,6 +33,11 @@ type Databend struct {
 	db   *sql.DB
 }
 
+func (c *Databend) CreateStorageJSONAsString(database db.BaseDatabase, create view.ReqStorageCreate) (string, string, string, string, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (c *Databend) DeleteTableListByNames(i []string, s string) error {
 	// TODO implement me
 	panic("implement me")
@@ -213,7 +218,7 @@ func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqS
 		return
 	}
 	dataParams := bumo.Params{
-		KafkaJsonMapping: ct.Mapping2String(true),
+		KafkaJsonMapping: ct.Mapping2String(true, ""),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Data: bumo.ParamsData{
@@ -222,7 +227,7 @@ func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqS
 		},
 	}
 	streamParams := bumo.Params{
-		KafkaJsonMapping: ct.Mapping2String(true),
+		KafkaJsonMapping: ct.Mapping2String(true, ""),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Stream: bumo.ParamsStream{
@@ -1210,7 +1215,7 @@ func (c *Databend) storageViewOperator(typ, tid int, did int, table, customTimeF
 		whereCond = c.whereConditionSQLCurrent(current, ct.GetRawLogField())
 	}
 	viewSQL := c.execView(bumo.Params{
-		KafkaJsonMapping: ct.Mapping2String(false),
+		KafkaJsonMapping: ct.Mapping2String(false, ""),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Cluster:          databaseInfo.Cluster,

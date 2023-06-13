@@ -1,7 +1,7 @@
 ---
 name: Feature enhancement
 about: Enhancement to existing features
-title: "[FEATURE]:"
+title: "feat:"
 labels: 'enhancement'
 assignees: ''
 

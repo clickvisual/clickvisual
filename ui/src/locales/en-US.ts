@@ -38,8 +38,10 @@ export default {
 
   type: "Type",
   capacity: "Capacity",
-  shardNum: "Shard",
-  replicaNum: "Replica",
+  shardNum: "Shard Number",
+  shard: "Shard",
+  replicaNum: "Replica Number",
+  replica: "Replica",
   count: "Count",
   status: "Status",
   dingTalk: "DingTalk",

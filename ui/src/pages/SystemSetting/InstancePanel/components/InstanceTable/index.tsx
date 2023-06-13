@@ -1,18 +1,18 @@
 import deletedModal from "@/components/DeletedModal";
 import IconFont from "@/components/IconFont";
-import { InstancePanelContext } from "@/pages/SystemSetting/InstancePanel";
+import {InstancePanelContext} from "@/pages/SystemSetting/InstancePanel";
 import instanceTableStyles from "@/pages/SystemSetting/InstancePanel/components/InstanceTable/index.less";
-import { CheckPermission } from "@/services/pms";
-import type { InstanceType } from "@/services/systemSetting";
+import {CheckPermission} from "@/services/pms";
+import type {InstanceType} from "@/services/systemSetting";
 import TooltipRender from "@/utils/tooltipUtils/TooltipRender";
-import { EditOutlined, UsergroupAddOutlined } from "@ant-design/icons";
-import { useModel } from "@umijs/max";
-import { Divider, message, Space, Table, Tag, Tooltip } from "antd";
-import { ColumnsType } from "antd/es/table";
+import {EditOutlined, UsergroupAddOutlined} from "@ant-design/icons";
+import {useModel} from "@umijs/max";
+import {Divider, message, Space, Table, Tag, Tooltip} from "antd";
+import {ColumnsType} from "antd/es/table";
 import classNames from "classnames";
-import type { AlignType, FixedType } from "rc-table/lib/interface";
-import { useContext, useState } from "react";
-import { useIntl } from "umi";
+import type {AlignType, FixedType} from "rc-table/lib/interface";
+import {useContext, useState} from "react";
+import {useIntl} from "umi";
 import AppRoleAssignListForm from "../RoleAssign";
 
 type InstanceTableProps = {
@@ -60,7 +60,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
-      title: i18n.formatMessage({ id: "instance.form.title.mode" }),
+      title: i18n.formatMessage({ id: "shard" }),
       dataIndex: "mode",
       align: "center" as AlignType,
       width: 100,
@@ -90,7 +90,7 @@ const InstanceTable = (props: InstanceTableProps) => {
       },
     },
     {
-      title: i18n.formatMessage({ id: "instance.form.title.cluster" }),
+      title: i18n.formatMessage({ id: "replica" }),
       dataIndex: "clusters",
       align: "center" as AlignType,
       width: 300,

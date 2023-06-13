@@ -23,8 +23,8 @@ func Test_mapping(t *testing.T) {
 			want: List{
 				Data: []Item{
 					{
-						Key:   "Followers",
-						Value: "Float64",
+						Key: "Followers",
+						Typ: "Float64",
 					},
 				},
 			},
@@ -37,8 +37,8 @@ func Test_mapping(t *testing.T) {
 			want: List{
 				Data: []Item{
 					{
-						Key:   "Name",
-						Value: "String",
+						Key: "Name",
+						Typ: "String",
 					},
 				},
 			},
@@ -51,8 +51,8 @@ func Test_mapping(t *testing.T) {
 			want: List{
 				Data: []Item{
 					{
-						Key:   "IsAdmin",
-						Value: "Bool",
+						Key: "IsAdmin",
+						Typ: "Bool",
 					},
 				},
 			},
@@ -74,8 +74,8 @@ func Test_mapping(t *testing.T) {
 			want: List{
 				Data: []Item{
 					{
-						Key:   "tags",
-						Value: "Array(String)",
+						Key: "tags",
+						Typ: "Array(String)",
 					},
 				},
 			},
@@ -104,8 +104,8 @@ func Test_mapping(t *testing.T) {
 			want: List{
 				Data: []Item{
 					{
-						Key:   "process",
-						Value: "String",
+						Key: "process",
+						Typ: "String",
 					},
 				},
 			},

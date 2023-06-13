@@ -1003,74 +1003,75 @@ func (c *ClickHouseX) isReplica() bool {
 	return c.replicaStatus == db.ReplicaStatusYes
 }
 
-// CreateStorage create default stream data table and view
-func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	if ct.CreateType == constx.TableCreateTypeJSONAsString {
-		// 采用 core 的新流程
-		// 创建 storer -> reader -> switcher
-		var storeSQLs []string
-		var readerSQLs []string
-		var switcherSQLs []string
-
-		_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
-			CreateType: ct.CreateType,
-			IsShard:    c.isShard(),
-			IsReplica:  c.isReplica(),
-			Cluster:    database.Cluster,
-			Database:   database.Name,
-			Table:      ct.TableName,
-			Conn:       c.Conn(),
-			Fields:     ct.Mapping2String(true),
-			TTL:        ct.Days,
-		}).Create()
-		if err != nil {
-			return
-		}
-		// reader
-		_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{
-			CreateType:              ct.CreateType,
-			IsShard:                 c.isShard(),
-			IsReplica:               c.isReplica(),
-			Cluster:                 database.Cluster,
-			Database:                database.Name,
-			Table:                   ct.TableName,
-			Conn:                    c.Conn(),
-			Brokers:                 ct.Brokers,
-			Topics:                  ct.Topics,
-			GroupName:               database.Name + "_" + ct.TableName,
-			KafkaNumConsumers:       ct.Consumers,
-			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
-		}).Create()
-		if err != nil {
-			return
-		}
-		// switcher
-		_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
-			CreateType:   ct.CreateType,
-			IsShard:      c.isShard(),
-			IsReplica:    c.isReplica(),
-			Cluster:      database.Cluster,
-			Database:     database.Name,
-			Table:        ct.TableName,
-			Conn:         c.Conn(),
-			RawLogField:  ct.RawLogField,
-			ParseIndexes: c.jsonExtractSQL(nil, ct.GetRawLogField()),
-			ParseFields:  ct.Mapping2Fields(),
-			ParseTime:    c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.GetRawLogField()),
-			ParseWhere:   c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
-		}).Create()
-		if err != nil {
-			return
-		}
-		dDataSQL = storeSQLs[0]
-		if len(storeSQLs[0]) == 2 {
-			dDistributedSQL = storeSQLs[1]
-		}
-		dStreamSQL = readerSQLs[0]
-		dViewSQL = switcherSQLs[0]
+func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+	// 采用 core 的新流程
+	// 创建 storer -> reader -> switcher
+	var storeSQLs []string
+	var readerSQLs []string
+	var switcherSQLs []string
+	// storer
+	_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
+		CreateType: ct.CreateType,
+		IsShard:    c.isShard(),
+		IsReplica:  c.isReplica(),
+		Cluster:    database.Cluster,
+		Database:   database.Name,
+		Table:      ct.TableName,
+		Conn:       c.Conn(),
+		Fields:     ct.Mapping2String(true, ct.RawLogFieldParent),
+		TTL:        ct.Days,
+	}).Create()
+	if err != nil {
 		return
 	}
+	// reader
+	_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{
+		CreateType:              ct.CreateType,
+		IsShard:                 c.isShard(),
+		IsReplica:               c.isReplica(),
+		Cluster:                 database.Cluster,
+		Database:                database.Name,
+		Table:                   ct.TableName,
+		Conn:                    c.Conn(),
+		Brokers:                 ct.Brokers,
+		Topics:                  ct.Topics,
+		GroupName:               database.Name + "_" + ct.TableName,
+		KafkaNumConsumers:       ct.Consumers,
+		KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
+	}).Create()
+	if err != nil {
+		return
+	}
+	// switcher
+	_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
+		CreateType:        ct.CreateType,
+		IsShard:           c.isShard(),
+		IsReplica:         c.isReplica(),
+		Cluster:           database.Cluster,
+		Database:          database.Name,
+		Table:             ct.TableName,
+		Conn:              c.Conn(),
+		RawLogField:       ct.RawLogField,
+		RawLogFieldParent: ct.RawLogFieldParent,
+		ParseIndexes:      c.jsonExtractSQL(nil, ct.GetRawLogField()),
+		ParseFields:       ct.Mapping2Fields(ct.RawLogFieldParent),
+		ParseTime:         c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField()),
+		ParseWhere:        c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+	}).Create()
+	if err != nil {
+		return
+	}
+	dDataSQL = storeSQLs[0]
+	if len(storeSQLs[0]) == 2 {
+		dDistributedSQL = storeSQLs[1]
+	}
+	dStreamSQL = readerSQLs[0]
+	dViewSQL = switcherSQLs[0]
+	return
+}
 
+// CreateStorage create default stream data table and view
+func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
@@ -1084,7 +1085,7 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 		return
 	}
 	dataParams := bumo.Params{
-		KafkaJsonMapping: ct.Mapping2String(true),
+		KafkaJsonMapping: ct.Mapping2String(true, ""),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Data: bumo.ParamsData{
@@ -1093,7 +1094,7 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 		},
 	}
 	streamParams := bumo.Params{
-		KafkaJsonMapping: ct.Mapping2String(true),
+		KafkaJsonMapping: ct.Mapping2String(true, ""),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Stream: bumo.ParamsStream{
@@ -1178,27 +1179,35 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 		elog.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
 		return
 	}
-	// Create TableName
-	streamParams := bumo.Params{
-		TableCreateType: tableInfo.CreateType,
-		Stream: bumo.ParamsStream{
-			TableName:               genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
-			TableTyp:                tableTypStr(tableInfo.Typ),
-			Group:                   tableInfo.Database.Name + "_" + tableInfo.Name,
-			Brokers:                 params.KafkaBrokers,
-			Topic:                   params.KafkaTopic,
-			ConsumerNum:             params.KafkaConsumerNum,
-			KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
-		},
-	}
-	if c.mode == ModeCluster {
-		streamParams.Cluster = tableInfo.Database.Cluster
-		streamParams.ReplicaStatus = c.replicaStatus
-		streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+
+	if tableInfo.CreateType == constx.TableCreateTypeJSONAsString {
+		streamSQL, err = c.updateReaderJSONAsString(tableInfo, params)
+		return
 	} else {
-		streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+		// Create TableName
+		streamParams := bumo.Params{
+			TableCreateType: tableInfo.CreateType,
+			Stream: bumo.ParamsStream{
+				TableName:               genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+				TableTyp:                tableTypStr(tableInfo.Typ),
+				Group:                   tableInfo.Database.Name + "_" + tableInfo.Name,
+				Brokers:                 params.KafkaBrokers,
+				Topic:                   params.KafkaTopic,
+				ConsumerNum:             params.KafkaConsumerNum,
+				KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
+			},
+		}
+		if c.mode == ModeCluster {
+			streamParams.Cluster = tableInfo.Database.Cluster
+			streamParams.ReplicaStatus = c.replicaStatus
+			streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+		} else {
+			streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+		}
+		_, err = c.db.Exec(streamSQL)
 	}
-	if _, err = c.db.Exec(streamSQL); err != nil {
+
+	if err != nil {
 		elog.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
 		_, _ = c.db.Exec(currentKafkaSQL)
 		return
@@ -1376,7 +1385,36 @@ func (c *ClickHouseX) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPip
 	return
 }
 
-func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, database *db.BaseDatabase, tid int, customTimeField string) (res string, err error) {
+// MergeTreeTTL
+// KafkaBrokers
+// KafkaTopic
+// KafkaConsumerNum
+// KafkaSkipBrokenMessages
+// Desc
+// V3TableType
+func (c *ClickHouseX) updateReaderJSONAsString(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (res string, err error) {
+	// reader
+	_, readerSQLs, err := reader.New(db.DatasourceClickHouse, ifreader.Params{
+		CreateType:              tableInfo.CreateType,
+		IsShard:                 c.isShard(),
+		IsReplica:               c.isReplica(),
+		Cluster:                 tableInfo.Database.Cluster,
+		Database:                tableInfo.Database.Name,
+		Table:                   tableInfo.Name,
+		Conn:                    c.Conn(),
+		Brokers:                 params.KafkaBrokers,
+		Topics:                  params.KafkaTopic,
+		GroupName:               tableInfo.Database.Name + "_" + tableInfo.Name,
+		KafkaNumConsumers:       params.KafkaConsumerNum,
+		KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
+	}).Create()
+	if err != nil {
+		return
+	}
+	return readerSQLs[0], nil
+}
+
+func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, database *db.BaseDatabase, tid int, customTimeField string, indexes map[string]*db.BaseIndex) (res string, err error) {
 	params := ifswitcher.Params{
 		CreateType:   constx.TableCreateTypeJSONAsString,
 		IsShard:      c.isShard(),
@@ -1386,9 +1424,9 @@ func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, datab
 		Table:        ct.TableName,
 		Conn:         c.Conn(),
 		RawLogField:  ct.RawLogField,
-		ParseIndexes: c.jsonExtractSQL(nil, ct.GetRawLogField()),
-		ParseFields:  ct.Mapping2Fields(),
-		ParseTime:    c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.GetRawLogField()),
+		ParseIndexes: c.jsonExtractSQL(indexes, ct.GetRawLogField()),
+		ParseFields:  ct.Mapping2Fields(ct.RawLogFieldParent),
+		ParseTime:    c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField()),
 		ParseWhere:   c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
 	}
 	// 初始化 switcher
@@ -1602,13 +1640,17 @@ func (c *ClickHouseX) whereConditionSQLDefault(list []*db.BaseView, rawLogField 
 	return defaultSQL
 }
 
-func (c *ClickHouseX) timeParseJSONAsString(typ int, v *db.BaseView, timeField, rawLogField string) string {
+func (c *ClickHouseX) timeParseJSONAsString(typ int, v *db.BaseView, timeField, timeFieldParent, rawLogField string) string {
+	l := "_log"
+	if timeFieldParent != "" {
+		l = fmt.Sprintf("JSONExtractRaw(_log, '%s')", timeFieldParent)
+	}
 	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
-		timeField = fmt.Sprintf("JSONExtractInt(_log, '%s')", timeField)
+		timeField = fmt.Sprintf("JSONExtractInt(%s, '%s')", l, timeField)
 	} else if typ == TableTypeFloat {
-		timeField = fmt.Sprintf("JSONExtractFloat(_log, '%s')", timeField)
+		timeField = fmt.Sprintf("JSONExtractFloat(%s, '%s')", l, timeField)
 	} else {
-		timeField = fmt.Sprintf("JSONExtractString(_log, '%s')", timeField)
+		timeField = fmt.Sprintf("JSONExtractString(%s, '%s')", l, timeField)
 	}
 	return c.timeParseSQL(typ, v, timeField, rawLogField)
 }
@@ -1677,7 +1719,7 @@ func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, cu
 		whereCond = c.whereConditionSQLCurrent(current, ct.GetRawLogField())
 	}
 	viewSQL := c.execView(bumo.Params{
-		KafkaJsonMapping: ct.Mapping2String(false),
+		KafkaJsonMapping: ct.Mapping2String(false, ""),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Cluster:          databaseInfo.Cluster,
@@ -1730,7 +1772,7 @@ func (c *ClickHouseX) updateSwitcher(typ, tid int, did int, table, customTimeFie
 			Database:         tableInfo.Database,
 		})
 	case constx.TableCreateTypeJSONAsString:
-		return c.updateSwitcherJSONAsString(rsc, tableInfo.Database, tid, customTimeField)
+		return c.updateSwitcherJSONAsString(rsc, tableInfo.Database, tid, customTimeField, indexes)
 	default:
 		// 默认执行 JSONAsEachRow 模式
 		return c.updateSwitcherJSONEachRow(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, rsc)

@@ -155,14 +155,12 @@ services:
       - 9090
     depends_on:
       - alertmanager
-      - prom2click
     links:
       - alertmanager
-      - prom2click
     ports:
       - 19004:9090
   clickvisual:
-    image: clickvisual/clickvisual:master
+    image: clickvisual/clickvisual:1.0.0-rc2
     networks:
       - clickvisual-net
     environment:
@@ -171,7 +169,7 @@ services:
     expose:
       - 9201
     ports:
-      - "19001:19001"
+      - "18001:19001"
       - "19006:19006"
     depends_on:
       - mysql

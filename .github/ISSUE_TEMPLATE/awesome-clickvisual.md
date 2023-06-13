@@ -1,7 +1,7 @@
 ---
 name: Awesome ClickVisual
 about: Join the ClickVisual ambassador program
-title: "[Publicity]:"
+title: "publicity:"
 labels: awesome clickvisual
 assignees: ''
 

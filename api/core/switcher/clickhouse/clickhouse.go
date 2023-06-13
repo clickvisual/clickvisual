@@ -24,27 +24,30 @@ type Switcher struct {
 
 	conn *sql.DB // clickhouse instance
 
-	rawLogField  string
-	parseIndexes string
-	parseFields  string
-	parseTime    string
-	parseWhere   string
+	rawLogField       string
+	rawLogFieldParent string
+	parseIndexes      string
+	parseFields       string
+	parseTime         string
+	parseWhere        string
+	withAttachFields  bool // withAttachFields Whether to include attachment fields, such as _key/headers
 }
 
 func NewSwitcher(req ifswitcher.Params) *Switcher {
 	return &Switcher{
-		createType:   req.CreateType,
-		isShard:      req.IsShard,
-		isReplica:    req.IsReplica,
-		cluster:      req.Cluster,
-		database:     req.Database,
-		table:        req.Table,
-		conn:         req.Conn,
-		rawLogField:  req.RawLogField,
-		parseIndexes: req.ParseIndexes,
-		parseFields:  req.ParseFields,
-		parseTime:    req.ParseTime,
-		parseWhere:   req.ParseWhere,
+		createType:        req.CreateType,
+		isShard:           req.IsShard,
+		isReplica:         req.IsReplica,
+		cluster:           req.Cluster,
+		database:          req.Database,
+		table:             req.Table,
+		conn:              req.Conn,
+		rawLogField:       req.RawLogField,
+		rawLogFieldParent: req.RawLogFieldParent,
+		parseIndexes:      req.ParseIndexes,
+		parseFields:       req.ParseFields,
+		parseTime:         req.ParseTime,
+		parseWhere:        req.ParseWhere,
 	}
 }
 
@@ -86,22 +89,61 @@ func (ch *Switcher) materializedView() (name string, sql string) {
 		dataName = fmt.Sprintf("`%s`.`%s`", ch.database, ch.table)
 		viewNameWithCluster = viewName
 	}
-	return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS  %s TO %s AS
+	l := "_log"
+	if ch.rawLogFieldParent != "" {
+		l = fmt.Sprintf("JSONExtractRaw(_log, '%s')", ch.rawLogFieldParent)
+	}
+
+	if ch.withAttachFields {
+		return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS
 SELECT
 %s
 %s,
 _key AS _key,
 %s,
-toString(JSONExtractRaw(_log, '%s')) AS _raw_log_%s
-FROM %s
-WHERE %s;
-`, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime, "`_headers.name` AS `_headersname`,\n`_headers.value` AS `_headersvalue`",
-		ch.rawLogField, ch.parseIndexes, streamName, ch.parseWhere)
+JSONExtractString(%s, '%s') AS _raw_log_%s
+FROM 
+(
+  SELECT
+    _log,
+    JSONLength(JSONExtractString(%s, '%s')) as len
+  FROM %s 
+)
+WHERE len>0 and %s;
+`, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime,
+			"`_headers.name` AS `_headers_name`,\n`_headers.value` AS `_headers_name`",
+			l, ch.rawLogField, ch.parseIndexes, l, ch.rawLogField, streamName, ch.parseWhere)
+	}
+	return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS
+SELECT
+%s
+%s,
+JSONExtractString(%s, '%s') AS _raw_log_%s
+FROM 
+(
+  SELECT
+    _log,
+    JSONLength(JSONExtractString(%s, '%s')) as len
+  FROM %s 
+)
+WHERE len>0 and %s;
+`, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime,
+		l, ch.rawLogField, ch.parseIndexes,
+		l, ch.rawLogField,
+		streamName,
+		ch.parseWhere)
 }
 
 func (ch *Switcher) Delete() error {
-	// TODO implement me
-	panic("implement me")
+	sqls := make([]string, 0)
+	// delete mv table
+	viewName := fmt.Sprintf("`%s`.`%s_view`", ch.database, ch.table)
+	if ch.isReplica || ch.isShard {
+		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER %s", viewName, ch.cluster))
+	} else {
+		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS %s", viewName))
+	}
+	return common.Exec(ch.conn, sqls)
 }
 
 func (ch *Switcher) Detach() error {

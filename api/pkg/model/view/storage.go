@@ -15,22 +15,22 @@ type ReqKafkaJSONMapping struct {
 }
 
 type ReqStorageCreate struct {
-	TableName               string `form:"tableName" binding:"required"`
-	Typ                     int    `form:"typ" binding:"required"` // 1 string 2 float
-	Days                    int    `form:"days" binding:"required"`
-	Brokers                 string `form:"brokers" binding:"required"`
-	Topics                  string `form:"topics" binding:"required"`
-	Consumers               int    `form:"consumers" binding:"required"`
-	KafkaSkipBrokenMessages int    `form:"kafkaSkipBrokenMessages"`
-	Desc                    string `form:"desc"`
-
-	Source      string `form:"source" binding:"required"` // Raw JSON data
-	DatabaseId  int    `form:"databaseId" binding:"required"`
-	TimeField   string `form:"timeField" binding:"required"`
-	RawLogField string `form:"rawLogField"`
-
-	SourceMapping mapping.List `form:"-"`
-	CreateType    int          `form:"createType"`
+	TableName               string       `form:"tableName" binding:"required"`
+	Typ                     int          `form:"typ" binding:"required"` // 1 string 2 float
+	Days                    int          `form:"days" binding:"required"`
+	Brokers                 string       `form:"brokers" binding:"required"`
+	Topics                  string       `form:"topics" binding:"required"`
+	Consumers               int          `form:"consumers" binding:"required"`
+	KafkaSkipBrokenMessages int          `form:"kafkaSkipBrokenMessages"`
+	Desc                    string       `form:"desc"`
+	Source                  string       `form:"source" binding:"required"` // Raw JSON data
+	DatabaseId              int          `form:"databaseId" binding:"required"`
+	TimeField               string       `form:"timeField" binding:"required"`
+	TimeFieldParent         string       `form:"timeFieldParent"`
+	RawLogField             string       `form:"rawLogField"`
+	RawLogFieldParent       string       `form:"rawLogFieldParent"`
+	SourceMapping           mapping.List `form:"-"`
+	CreateType              int          `form:"createType"`
 }
 
 type ReqCreateStorageByTemplateEgo struct {
@@ -46,6 +46,7 @@ type ReqCreateStorageByTemplateEgo struct {
 type ReqCreateStorageByTemplateILogtail struct {
 	Brokers    string `form:"brokers" binding:"required"`
 	DatabaseId int    `form:"databaseId" binding:"required"`
+	Days       int    `form:"days" binding:"required"`
 	Name       string `form:"name" binding:"required"`
 	Topic      string `form:"topic" binding:"required"`
 }
@@ -94,17 +95,28 @@ func ReqStorageCreateUnmarshal(res string) ReqStorageCreate {
 	return resp
 }
 
-func (r *ReqStorageCreate) Mapping2Fields() string {
+func (r *ReqStorageCreate) isSkipField(parent, key string) bool {
+	if key == "" {
+		return false
+	}
+	if key == r.TimeField ||
+		key == r.RawLogField ||
+		key == "_time_second_" ||
+		key == "_time_nanosecond_" ||
+		key == "_raw_log_" ||
+		key == parent {
+		return true
+	}
+	return false
+}
+
+func (r *ReqStorageCreate) Mapping2Fields(rawLogFieldParent string) string {
 	var res string
 	if len(r.SourceMapping.Data) == 0 {
 		return res
 	}
 	for _, v := range r.SourceMapping.Data {
-		if v.Key == r.TimeField ||
-			v.Key == r.RawLogField ||
-			v.Key == "_time_second_" ||
-			v.Key == "_time_nanosecond_" ||
-			v.Key == "_raw_log_" {
+		if r.isSkipField(rawLogFieldParent, v.Key) || r.isSkipField(rawLogFieldParent, v.Parent) {
 			continue
 		}
 		if res == "" {
@@ -116,17 +128,13 @@ func (r *ReqStorageCreate) Mapping2Fields() string {
 	return res
 }
 
-func (r *ReqStorageCreate) Mapping2String(withType bool) string {
+func (r *ReqStorageCreate) Mapping2String(withType bool, rawLogFieldParent string) string {
 	var res string
 	if len(r.SourceMapping.Data) == 0 {
 		return res
 	}
 	for _, v := range r.SourceMapping.Data {
-		if v.Key == r.TimeField ||
-			v.Key == r.RawLogField ||
-			v.Key == "_time_second_" ||
-			v.Key == "_time_nanosecond_" ||
-			v.Key == "_raw_log_" {
+		if r.isSkipField(rawLogFieldParent, v.Key) || r.isSkipField(rawLogFieldParent, v.Parent) {
 			continue
 		}
 		if res == "" {
