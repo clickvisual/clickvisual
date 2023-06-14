@@ -184,46 +184,5 @@ var templateTableAnalysisField = map[string][]view.IndexItem{
 			Typ:   0,
 		},
 	},
-	"ingress_stderr": {
-		{
-			Field: "body_bytes_sent",
-			Typ:   1,
-		},
-		{
-			Field: "host",
-			Typ:   0,
-		},
-		{
-			Field: "proxy_upstream_name",
-			Typ:   0,
-		},
-		{
-			Field: "request_length",
-			Typ:   1,
-		},
-		{
-			Field: "request_time",
-			Typ:   2,
-		},
-		{
-			Field: "status",
-			Typ:   1,
-		},
-		{
-			Field: "upstream_response_time",
-			Typ:   2,
-		},
-		{
-			Field: "upstream_status",
-			Typ:   1,
-		},
-		{
-			Field: "url",
-			Typ:   0,
-		},
-		{
-			Field: "x_forward_for",
-			Typ:   0,
-		},
-	},
+	"ingress_stderr": {},
 }

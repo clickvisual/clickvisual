@@ -84,7 +84,7 @@ func TestCreateStorageByTemplate(t *testing.T) {
 		byteInfo := m.Exec(
 			gintest.WithUri("/storage/ilogtail"),
 			gintest.WithJsonBody(view.ReqCreateStorageByTemplateILogtail{
-				Name:       "demo_0612_v1",
+				Name:       "demo_0614_v1",
 				Brokers:    "127.0.0.1:9092",
 				DatabaseId: 14,
 				Topic:      "otlp_spans",

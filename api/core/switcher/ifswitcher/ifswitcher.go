@@ -26,10 +26,11 @@ type Params struct {
 	Conn      *sql.DB // clickhouse
 
 	// switcher
-	RawLogField       string
-	RawLogFieldParent string
-	ParseIndexes      string
-	ParseFields       string
-	ParseTime         string
-	ParseWhere        string
+	RawLogField         string
+	RawLogFieldParent   string
+	ParseIndexes        string
+	ParseFields         string
+	ParseTime           string
+	ParseWhere          string
+	IsRawLogFieldString bool
 }

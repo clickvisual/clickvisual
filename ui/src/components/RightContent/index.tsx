@@ -1,8 +1,9 @@
-import { Space } from "antd";
+import {Button, Space, Tooltip} from "antd";
 import React from "react";
-import { SelectLang, useModel } from "umi";
+import {SelectLang, useModel} from "umi";
 import Avatar from "./AvatarDropdown";
 import styles from "./index.less";
+import IconFont from "@/components/IconFont";
 
 export type SiderTheme = "light" | "dark";
 
@@ -22,7 +23,21 @@ const RightContent: React.FC = () => {
   return (
     <Space className={className}>
       <Avatar />
-      <SelectLang className={styles.action} reload={false} />
+        <Tooltip placement="bottom" title={"Shimo"}>
+        <Button type="link">
+            <a href="https://shimo.im/welcome" target="_blank">
+            <IconFont type={"icon-shimo"} />
+            </a>
+        </Button>
+        </Tooltip>
+        <Tooltip placement="bottom" title={"Github"}>
+        <Button type="link">
+            <a href="https://github.com/clickvisual/clickvisual" target="_blank">
+            <IconFont type={"icon-github"} />
+            </a>
+        </Button>
+        </Tooltip>
+        <SelectLang className={styles.action} reload={false} />
     </Space>
   );
 };

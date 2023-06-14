@@ -24,30 +24,32 @@ type Switcher struct {
 
 	conn *sql.DB // clickhouse instance
 
-	rawLogField       string
-	rawLogFieldParent string
-	parseIndexes      string
-	parseFields       string
-	parseTime         string
-	parseWhere        string
-	withAttachFields  bool // withAttachFields Whether to include attachment fields, such as _key/headers
+	rawLogField         string
+	rawLogFieldParent   string
+	parseIndexes        string
+	parseFields         string
+	parseTime           string
+	parseWhere          string
+	withAttachFields    bool // withAttachFields Whether to include attachment fields, such as _key/headers
+	isRawLogFieldString bool // isRawLogFieldJSON Whether the raw log field is JSON
 }
 
 func NewSwitcher(req ifswitcher.Params) *Switcher {
 	return &Switcher{
-		createType:        req.CreateType,
-		isShard:           req.IsShard,
-		isReplica:         req.IsReplica,
-		cluster:           req.Cluster,
-		database:          req.Database,
-		table:             req.Table,
-		conn:              req.Conn,
-		rawLogField:       req.RawLogField,
-		rawLogFieldParent: req.RawLogFieldParent,
-		parseIndexes:      req.ParseIndexes,
-		parseFields:       req.ParseFields,
-		parseTime:         req.ParseTime,
-		parseWhere:        req.ParseWhere,
+		createType:          req.CreateType,
+		isShard:             req.IsShard,
+		isReplica:           req.IsReplica,
+		cluster:             req.Cluster,
+		database:            req.Database,
+		table:               req.Table,
+		conn:                req.Conn,
+		rawLogField:         req.RawLogField,
+		rawLogFieldParent:   req.RawLogFieldParent,
+		parseIndexes:        req.ParseIndexes,
+		parseFields:         req.ParseFields,
+		parseTime:           req.ParseTime,
+		parseWhere:          req.ParseWhere,
+		isRawLogFieldString: req.IsRawLogFieldString,
 	}
 }
 
@@ -93,6 +95,18 @@ func (ch *Switcher) materializedView() (name string, sql string) {
 	if ch.rawLogFieldParent != "" {
 		l = fmt.Sprintf("JSONExtractRaw(_log, '%s')", ch.rawLogFieldParent)
 	}
+	var rawLogFieldCheck = fmt.Sprintf(`FROM 
+(
+  SELECT
+    _log,
+    JSONLength(JSONExtractString(%s, '%s')) as len
+  FROM %s 
+)
+WHERE len>0 and`, l, ch.rawLogField, streamName)
+
+	if ch.isRawLogFieldString {
+		rawLogFieldCheck = fmt.Sprintf("FROM %s WHERE", streamName)
+	}
 
 	if ch.withAttachFields {
 		return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS
@@ -102,35 +116,20 @@ SELECT
 _key AS _key,
 %s,
 JSONExtractString(%s, '%s') AS _raw_log_%s
-FROM 
-(
-  SELECT
-    _log,
-    JSONLength(JSONExtractString(%s, '%s')) as len
-  FROM %s 
-)
-WHERE len>0 and %s;
+%s %s;
 `, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime,
 			"`_headers.name` AS `_headers_name`,\n`_headers.value` AS `_headers_name`",
-			l, ch.rawLogField, ch.parseIndexes, l, ch.rawLogField, streamName, ch.parseWhere)
+			l, ch.rawLogField, ch.parseIndexes, rawLogFieldCheck, ch.parseWhere)
 	}
 	return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS
 SELECT
 %s
 %s,
 JSONExtractString(%s, '%s') AS _raw_log_%s
-FROM 
-(
-  SELECT
-    _log,
-    JSONLength(JSONExtractString(%s, '%s')) as len
-  FROM %s 
-)
-WHERE len>0 and %s;
+%s %s;
 `, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime,
 		l, ch.rawLogField, ch.parseIndexes,
-		l, ch.rawLogField,
-		streamName,
+		rawLogFieldCheck,
 		ch.parseWhere)
 }
 
