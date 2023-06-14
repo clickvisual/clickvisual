@@ -120,7 +120,7 @@ func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatab
     "contents": {
         "_source_": "stderr",
         "_time_": "2023-04-17T04:07:17.624075074Z",
-        "content": "{\"lv\":\"debug\",\"ts\":1681704437,\"msg\":\"presigned get object URL\"}"
+        "content": "abc123...asfa"
     },
     "tags": {  
         "container.image.name": "xxx",
@@ -157,30 +157,72 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, 
 		Brokers:                 param.Brokers,
 		Consumers:               1,
 		KafkaSkipBrokenMessages: 1000,
-		Source:                  `{"_time_":"2022-11-08T10:35:58.837927Z","_log_":"","_source_":"stdout","_pod_name_":"xx-x-xx","time":"xx-x-xx","_namespace_":"default","_node_name_":"xx-f.192.x.119.x","_container_name_":"xx","_cluster_":"xx","_log_agent_":"xx-b","_node_ip_":"192.1"}`,
-		DatabaseId:              databaseInfo.ID,
-		TimeField:               "_time_",
-		RawLogField:             "_log_",
+		Source: `{
+    "contents": {
+        "_source_": "stderr",
+        "_time_": "2023-04-17T04:07:17.624075074Z",
+        "content": "{\"lv\":\"debug\",\"ts\":1681704437,\"msg\":\"presigned get object URL\"}"
+    },
+    "tags": {  
+        "container.image.name": "xxx",
+        "container.ip": "127.0.0.1",
+        "container.name": "xx-xx",
+        "host.ip": "127.0.0.1",
+        "host.name": "xx-xx-xx",
+        "k8s.namespace.name": "default",
+        "k8s.node.ip": "127.0.0.1",
+        "k8s.node.name": "127.0.0.1",
+        "k8s.pod.name": "xx-xx-xx-xx",
+        "k8s.pod.uid": "xx-xx-xx-xx-xx"
+    },
+    "time": 1681704438
+}`,
+		DatabaseId:        databaseInfo.ID,
+		TimeField:         "_time_",
+		TimeFieldParent:   "contents",
+		RawLogField:       "content",
+		RawLogFieldParent: "contents",
 	}
 	cp.Topics = param.TopicsApp
 	cp.TableName = "app_stdout"
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
+
 	cp.Topics = param.TopicsEgo
 	cp.TableName = "ego_stdout"
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
+
 	cp.Topics = param.TopicsIngressStdout
 	cp.TableName = "ingress_stdout"
-	cp.TimeField = "time"
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
+
 	cp.Topics = param.TopicsIngressStderr
 	cp.TableName = "ingress_stderr"
-	cp.TimeField = "time"
+	cp.Source = `{
+    "contents": {
+        "_source_": "stderr",
+        "_time_": "2023-04-17T04:07:17.624075074Z",
+        "content": "abc123...asfa"
+    },
+    "tags": {  
+        "container.image.name": "xxx",
+        "container.ip": "127.0.0.1",
+        "container.name": "xx-xx",
+        "host.ip": "127.0.0.1",
+        "host.name": "xx-xx-xx",
+        "k8s.namespace.name": "default",
+        "k8s.node.ip": "127.0.0.1",
+        "k8s.node.name": "127.0.0.1",
+        "k8s.pod.name": "xx-xx-xx-xx",
+        "k8s.pod.uid": "xx-xx-xx-xx-xx"
+    },
+    "time": 1681704438
+}`
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}

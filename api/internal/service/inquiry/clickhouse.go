@@ -1044,19 +1044,20 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 	}
 	// switcher
 	_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
-		CreateType:        ct.CreateType,
-		IsShard:           c.isShard(),
-		IsReplica:         c.isReplica(),
-		Cluster:           database.Cluster,
-		Database:          database.Name,
-		Table:             ct.TableName,
-		Conn:              c.Conn(),
-		RawLogField:       ct.RawLogField,
-		RawLogFieldParent: ct.RawLogFieldParent,
-		ParseIndexes:      c.jsonExtractSQL(nil, ct.GetRawLogField()),
-		ParseFields:       ct.Mapping2Fields(ct.RawLogFieldParent),
-		ParseTime:         c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField()),
-		ParseWhere:        c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+		CreateType:          ct.CreateType,
+		IsShard:             c.isShard(),
+		IsReplica:           c.isReplica(),
+		Cluster:             database.Cluster,
+		Database:            database.Name,
+		Table:               ct.TableName,
+		Conn:                c.Conn(),
+		RawLogField:         ct.RawLogField,
+		RawLogFieldParent:   ct.RawLogFieldParent,
+		ParseIndexes:        c.jsonExtractSQL(nil, ct.GetRawLogField()),
+		ParseFields:         ct.Mapping2Fields(ct.RawLogFieldParent),
+		ParseTime:           c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField()),
+		ParseWhere:          c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+		IsRawLogFieldString: ct.IsRawLogFieldString(),
 	}).Create()
 	if err != nil {
 		return
@@ -1416,18 +1417,20 @@ func (c *ClickHouseX) updateReaderJSONAsString(tableInfo *db.BaseTable, params v
 
 func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, database *db.BaseDatabase, tid int, customTimeField string, indexes map[string]*db.BaseIndex) (res string, err error) {
 	params := ifswitcher.Params{
-		CreateType:   constx.TableCreateTypeJSONAsString,
-		IsShard:      c.isShard(),
-		IsReplica:    c.isReplica(),
-		Cluster:      database.Cluster,
-		Database:     database.Name,
-		Table:        ct.TableName,
-		Conn:         c.Conn(),
-		RawLogField:  ct.RawLogField,
-		ParseIndexes: c.jsonExtractSQL(indexes, ct.GetRawLogField()),
-		ParseFields:  ct.Mapping2Fields(ct.RawLogFieldParent),
-		ParseTime:    c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField()),
-		ParseWhere:   c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+		CreateType:          constx.TableCreateTypeJSONAsString,
+		IsShard:             c.isShard(),
+		IsReplica:           c.isReplica(),
+		Cluster:             database.Cluster,
+		Database:            database.Name,
+		Table:               ct.TableName,
+		Conn:                c.Conn(),
+		RawLogField:         ct.RawLogField,
+		RawLogFieldParent:   ct.RawLogFieldParent,
+		ParseIndexes:        c.jsonExtractSQL(indexes, ct.GetRawLogField()),
+		ParseFields:         ct.Mapping2Fields(ct.RawLogFieldParent),
+		ParseTime:           c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField()),
+		ParseWhere:          c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+		IsRawLogFieldString: ct.IsRawLogFieldString(),
 	}
 	// 初始化 switcher
 	sw := switcher.New(db.DatasourceClickHouse, params)

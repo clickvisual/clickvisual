@@ -53,12 +53,16 @@ type ReqCreateStorageByTemplateILogtail struct {
 
 func (r *ReqStorageCreate) GetRawLogField() string {
 	if r.CreateType == constx.TableCreateTypeJSONAsString {
-		return fmt.Sprintf("JSONExtractString(_log, '%s')", r.RawLogField)
+		if r.RawLogFieldParent != "" {
+			return fmt.Sprintf("JSONExtractString(JSONExtractRaw(_log, '%s'), '%s')", r.RawLogFieldParent, r.RawLogField)
+		} else {
+			return fmt.Sprintf("JSONExtractString(_log, '%s')", r.RawLogField)
+		}
 	}
 	if r.RawLogField != "" {
 		return r.RawLogField
 	}
-	return "_log_"
+	return "_log"
 }
 
 func (r *ReqStorageCreate) SelectFields() string {
@@ -126,6 +130,20 @@ func (r *ReqStorageCreate) Mapping2Fields(rawLogFieldParent string) string {
 		res = fmt.Sprintf("%s\n%s", res, v.AssembleJSONAsString())
 	}
 	return res
+}
+
+// IsRawLogFieldString 判断 raw log 字段是否是 string 类型
+func (r *ReqStorageCreate) IsRawLogFieldString() bool {
+	for _, v := range r.SourceMapping.Data {
+		if r.RawLogField == v.Key {
+			if v.Typ != mapping.FieldTypeJSON {
+				return true
+			} else {
+				return false
+			}
+		}
+	}
+	return false
 }
 
 func (r *ReqStorageCreate) Mapping2String(withType bool, rawLogFieldParent string) string {

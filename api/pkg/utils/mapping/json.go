@@ -81,7 +81,7 @@ func handleJSON(p string, req map[string]interface{}) (items []Item, err error) 
 	for k, v := range req {
 		items = append(items, Item{
 			Key:    k,
-			Typ:    fieldTypeJudgment(v),
+			Typ:    fieldTypeJudgmentInner(v),
 			Parent: p,
 		})
 	}
@@ -107,6 +107,34 @@ func fieldTypeJudgment(req interface{}) string {
 		val = "String"
 	case []interface{}:
 		innerTyp := fieldTypeJudgment(req[0])
+		val = "Array(" + innerTyp + ")"
+	case map[string]interface{}:
+		val = FieldTypeJSON
+	case float64:
+		val = "Float64"
+	case bool:
+		val = "Bool"
+	default:
+		if reflect.TypeOf(req) == nil {
+			elog.Warn("fieldTypeJudgment", elog.Any("type", reflect.TypeOf(req)))
+			return "unknown"
+		}
+		return "unknown"
+	}
+	return val
+}
+
+// fieldTypeJudgment json -> clickhouse
+func fieldTypeJudgmentInner(req interface{}) string {
+	var val string
+	switch reqType := req.(type) {
+	case string:
+		val = "String"
+		if json.Valid([]byte(req.(string))) {
+			val = FieldTypeJSON
+		}
+	case []interface{}:
+		innerTyp := fieldTypeJudgment(reqType[0])
 		val = "Array(" + innerTyp + ")"
 	case map[string]interface{}:
 		val = FieldTypeJSON
