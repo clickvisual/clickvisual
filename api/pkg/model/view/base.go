@@ -63,7 +63,7 @@ type (
 		Page          uint32   `form:"page"`
 		PageSize      uint32   `form:"pageSize"`
 		AlarmMode     int      `form:"alarmMode"`
-		Filters       []string `form:"filters"`
+		Filters       []string `form:"filters[]"`
 		GroupByCond   string   `form:"groupByCond"`
 		IsQueryCount  int      `form:"isQueryCount"` // 是否请求日志总数 0 不请求 1 请求
 	}
