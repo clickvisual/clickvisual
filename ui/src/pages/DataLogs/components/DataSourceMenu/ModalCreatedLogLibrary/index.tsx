@@ -4,7 +4,7 @@ import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLog
 import SelectField from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/SelectField";
 import TemplateTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTableEgo";
 import TemplateTableILogtail
-    from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTableILogtail";
+  from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTableILogtail";
 import {useModel} from "@umijs/max";
 import {useDebounceFn} from "ahooks";
 import {Form, FormInstance, message, Modal, Select} from "antd";
@@ -212,20 +212,20 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                   id: "datasource.logLibrary.from.creationMode.option.logLibrary",
                 })}
               </Option>
-              <Option value={3}>
-                {i18n.formatMessage(
-                  {
-                    id: "datasource.logLibrary.from.creationMode.option.template",
-                  },
-                  { name: "EGO" }
-                )}
-              </Option>
               <Option value={4}>
                 {i18n.formatMessage(
                     {
                       id: "datasource.logLibrary.from.creationMode.option.template",
                     },
                     { name: "iLogtail" }
+                )}
+              </Option>
+              <Option value={3}>
+                {i18n.formatMessage(
+                    {
+                      id: "datasource.logLibrary.from.creationMode.option.template",
+                    },
+                    { name: "EGO" }
                 )}
               </Option>
             </Select>

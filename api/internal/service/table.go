@@ -53,25 +53,18 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 	return false
 }
 
-// decideCreateType 判断日志库类型
-func decideCreateType(param view.ReqStorageCreate) int {
-	for _, m := range param.SourceMapping.Data {
-		if m.Parent != "" {
-			return constx.TableCreateTypeJSONAsString
-		}
+func IsCheckInner(createType int) bool {
+	if createType == constx.TableCreateTypeJSONAsString {
+		return true
 	}
-	if param.RawLogField == "" {
-		return constx.TableCreateTypeJSONAsString
-	}
-	return constx.TableCreateTypeJSONEachRow
+	return false
 }
 
 func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (tableInfo db.BaseTable, err error) {
-	param.SourceMapping, err = mapping.Handle(param.Source)
+	param.SourceMapping, err = mapping.Handle(param.Source, IsCheckInner(param.CreateType))
 	if err != nil {
 		return
 	}
-	param.CreateType = decideCreateType(param)
 	if err = json.Unmarshal([]byte(param.Source), &param.SourceMapping); err != nil {
 		return
 	}
@@ -85,13 +78,11 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		v string
 		a string
 	)
-
 	if param.CreateType == constx.TableCreateTypeJSONAsString {
 		s, d, v, a, err = op.CreateStorageJSONAsString(databaseInfo, param)
 	} else {
 		s, d, v, a, err = op.CreateStorage(databaseInfo.ID, databaseInfo, param)
 	}
-
 	if err != nil {
 		err = errors.Wrap(err, "storage create failed")
 		return
@@ -99,7 +90,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	tableInfo = db.BaseTable{
 		Did:                     databaseInfo.ID,
 		Name:                    param.TableName,
-		Typ:                     param.Typ,
+		TimeFieldKind:           param.Typ,
 		Days:                    param.Days,
 		Brokers:                 param.Brokers,
 		Topic:                   param.Topics,

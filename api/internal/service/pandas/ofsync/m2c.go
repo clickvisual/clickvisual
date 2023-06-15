@@ -133,7 +133,7 @@ func (c *MySQL2ClickHouse) Stop() error {
 // 	c.involvedSQLs["m2cMaterialView"] = completeSQL
 // 	return viewClusterInfo, source.Instantiate(&source.Source{
 // 		DSN: ins.Dsn,
-// 		Typ: db.SourceTypClickHouse,
+// 		TimeFieldKind: db.SourceTypClickHouse,
 // 	}).Exec(completeSQL)
 // }
 

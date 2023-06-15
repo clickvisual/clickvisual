@@ -250,11 +250,11 @@ func (c *ClickHouseX) SyncView(table db.BaseTable, current *db.BaseView, list []
 		indexMap[i.Field] = i
 	}
 	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
-	dViewSQL, err = c.updateSwitcher(table.Typ, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
+	dViewSQL, err = c.updateSwitcher(table.TimeFieldKind, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
 	}
-	cViewSQL, err = c.updateSwitcher(table.Typ, table.ID, table.Did, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
+	cViewSQL, err = c.updateSwitcher(table.TimeFieldKind, table.ID, table.Did, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
 	return
 }
 
@@ -910,7 +910,7 @@ func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db
 	tx := invoker.Db.Begin()
 	// step 3 rebuild view
 	// step 3.1 default view
-	defaultViewSQL, err := c.updateSwitcher(table.Typ, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
+	defaultViewSQL, err := c.updateSwitcher(table.TimeFieldKind, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
 	if err != nil {
 		return
 	}
@@ -933,7 +933,7 @@ func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db
 		return err
 	}
 	for _, current := range viewList {
-		innerViewSQL, errViewOperator := c.updateSwitcher(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
+		innerViewSQL, errViewOperator := c.updateSwitcher(table.TimeFieldKind, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
 			tx.Rollback()
 			return errViewOperator
@@ -1190,7 +1190,7 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 			TableCreateType: tableInfo.CreateType,
 			Stream: bumo.ParamsStream{
 				TableName:               genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
-				TableTyp:                tableTypStr(tableInfo.Typ),
+				TableTyp:                tableTypStr(tableInfo.TimeFieldKind),
 				Group:                   tableInfo.Database.Name + "_" + tableInfo.Name,
 				Brokers:                 params.KafkaBrokers,
 				Topic:                   params.KafkaTopic,
@@ -1198,6 +1198,26 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 				KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
 			},
 		}
+		// 兼容旧版本
+		if tableInfo.TimeField != "" {
+			streamParams.TimeField = tableInfo.TimeField
+		}
+		if tableInfo.RawLogField != "" {
+			streamParams.LogField = tableInfo.RawLogField
+		}
+		// 新版本数据填充
+		if tableInfo.AnyJSON != "" {
+			rsc := view.ReqStorageCreate{}
+			rsc = view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
+			streamParams.KafkaJsonMapping = rsc.Mapping2String(true, "")
+			if rsc.TimeField != "" {
+				streamParams.TimeField = rsc.TimeField
+			}
+			if rsc.RawLogField != "" {
+				streamParams.LogField = rsc.RawLogField
+			}
+		}
+
 		if c.mode == ModeCluster {
 			streamParams.Cluster = tableInfo.Database.Cluster
 			streamParams.ReplicaStatus = c.replicaStatus

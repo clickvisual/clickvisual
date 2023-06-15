@@ -14,6 +14,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
@@ -34,7 +35,7 @@ func KafkaJsonMapping(c *core.Context) {
 		c.JSONE(1, "request parameter error: "+err.Error(), nil)
 		return
 	}
-	res, err := mapping.Handle(req.Data)
+	res, err := mapping.Handle(req.Data, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -75,6 +76,7 @@ func Create(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
+	param.CreateType = constx.TableCreateTypeJSONEachRow
 	_, err = service.StorageCreate(c.Uid(), databaseInfo, param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)

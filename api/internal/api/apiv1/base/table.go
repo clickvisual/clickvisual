@@ -137,7 +137,7 @@ func TableInfo(c *core.Context) {
 	res := view.RespTableDetail{
 		Did:                     tableInfo.Did,
 		Name:                    tableInfo.Name,
-		Typ:                     tableInfo.Typ,
+		Typ:                     tableInfo.TimeFieldKind,
 		Days:                    tableInfo.Days,
 		Brokers:                 tableInfo.Brokers,
 		Topic:                   tableInfo.Topic,
