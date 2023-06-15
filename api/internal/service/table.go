@@ -54,10 +54,7 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 }
 
 func IsCheckInner(createType int) bool {
-	if createType == constx.TableCreateTypeJSONAsString {
-		return true
-	}
-	return false
+	return createType == constx.TableCreateTypeJSONAsString
 }
 
 func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (tableInfo db.BaseTable, err error) {
@@ -119,8 +116,8 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		columns, errListColumn := op.ListColumn(databaseInfo.Name, param.TableName, false)
 		if errListColumn != nil {
 			tx.Rollback()
-			err = errors.WithMessage(err, "ListColumn")
-			return tableInfo, errListColumn
+			err = errors.WithMessage(errListColumn, "ListColumn")
+			return tableInfo, err
 		}
 		for _, col := range columns {
 			if col.Type < 0 || col.Type == 3 {

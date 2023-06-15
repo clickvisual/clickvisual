@@ -1207,8 +1207,7 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 		}
 		// 新版本数据填充
 		if tableInfo.AnyJSON != "" {
-			rsc := view.ReqStorageCreate{}
-			rsc = view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
+			rsc := view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
 			streamParams.KafkaJsonMapping = rsc.Mapping2String(true, "")
 			if rsc.TimeField != "" {
 				streamParams.TimeField = rsc.TimeField
