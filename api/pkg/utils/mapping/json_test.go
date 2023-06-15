@@ -113,7 +113,7 @@ func Test_mapping(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, _ := Handle(tt.args.input); !reflect.DeepEqual(got, tt.want) {
+			if got, _ := Handle(tt.args.input, true); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("mapping() = %v, want %v", got, tt.want)
 			}
 		})

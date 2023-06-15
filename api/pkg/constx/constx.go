@@ -1,13 +1,16 @@
 package constx
 
 const (
-	TableCreateTypeCV                 int = 0
 	TableCreateTypeExist              int = 1
 	TableCreateTypeJSONEachRow        int = 2
-	TableCreateTypeUBW                int = 3
+	TableCreateTypeJSONAsString       int = 6
 	TableCreateTypeTraceCalculation   int = 4
 	TableCreateTypeBufferNullDataPipe int = 5
-	TableCreateTypeJSONAsString       int = 6
+
+	// Deprecated: TableCreateTypeCV
+	TableCreateTypeCV int = 0
+	// Deprecated: TableCreateTypeUBW
+	TableCreateTypeUBW int = 3
 )
 
 const (

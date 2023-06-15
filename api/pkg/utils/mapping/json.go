@@ -47,7 +47,7 @@ func (m *Item) AssembleJSONAsString() (res string) {
 	return fmt.Sprintf("JSONExtractRaw(%s) AS `%s`,", field, m.Key)
 }
 
-func Handle(req string) (res List, err error) {
+func Handle(req string, checkInner bool) (res List, err error) {
 	items := make([]Item, 0)
 	data := []byte(req)
 	// Converted to json string structure type, the need to pay attention to is the json string type;
@@ -72,7 +72,13 @@ func Handle(req string) (res List, err error) {
 			})
 		}
 	}
-	return List{Data: items}, nil
+	if checkInner {
+		res = List{Data: items}
+	} else {
+		res = filter(List{Data: items})
+	}
+
+	return res, nil
 }
 
 func handleJSON(p string, req map[string]interface{}) (items []Item, err error) {
@@ -86,6 +92,21 @@ func handleJSON(p string, req map[string]interface{}) (items []Item, err error) 
 		})
 	}
 	return
+}
+
+// Filter 保证返回数据没有重复内容
+func filter(req List) (res List) {
+	res.Data = make([]Item, 0)
+	for _, item := range req.Data {
+		if item.Parent != "" {
+			continue
+		}
+		res.Data = append(res.Data, Item{
+			Key: item.Key,
+			Typ: item.Typ,
+		})
+	}
+	return res
 }
 
 func fieldReplace(current string) (after string) {

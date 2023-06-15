@@ -161,7 +161,7 @@ func (c *Databend) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStor
 		TableCreateType: tableInfo.CreateType,
 		Stream: bumo.ParamsStream{
 			TableName:               genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
-			TableTyp:                tableTypStr(tableInfo.Typ),
+			TableTyp:                tableTypStr(tableInfo.TimeFieldKind),
 			Group:                   tableInfo.Database.Name + "_" + tableInfo.Name,
 			Brokers:                 params.KafkaBrokers,
 			Topic:                   params.KafkaTopic,
@@ -306,7 +306,7 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 	tx := invoker.Db.Begin()
 	// step 3 rebuild view
 	// step 3.1 default view
-	defaultViewSQL, err := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
+	defaultViewSQL, err := c.viewOperator(table.TimeFieldKind, table.ID, database.ID, table.Name, "", nil, nil, newList, true)
 	if err != nil {
 		return
 	}
@@ -327,7 +327,7 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 		return err
 	}
 	for _, current := range viewList {
-		innerViewSQL, errViewOperator := c.viewOperator(table.Typ, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
+		innerViewSQL, errViewOperator := c.viewOperator(table.TimeFieldKind, table.ID, database.ID, table.Name, current.Key, current, viewList, newList, true)
 		if errViewOperator != nil {
 			tx.Rollback()
 			return errViewOperator
@@ -711,11 +711,11 @@ func (c *Databend) SyncView(table db.BaseTable, current *db.BaseView, list []*db
 		indexMap[i.Field] = i
 	}
 	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
-	dViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
+	dViewSQL, err = c.viewOperator(table.TimeFieldKind, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
 	}
-	cViewSQL, err = c.viewOperator(table.Typ, table.ID, table.Did, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
+	cViewSQL, err = c.viewOperator(table.TimeFieldKind, table.ID, table.Did, table.Name, current.Key, current, list, indexMap, isAddOrUpdate)
 	return
 }
 
