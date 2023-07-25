@@ -432,5 +432,5 @@ func getDistributedSubTableName(sql string) (string, error) {
 		res = strings.ReplaceAll(res, "'", "")
 		return res, nil
 	}
-	return "", errors.New("cannot find mergeTree table")
+	return "", errors.New("cannot find distributed sub table")
 }
