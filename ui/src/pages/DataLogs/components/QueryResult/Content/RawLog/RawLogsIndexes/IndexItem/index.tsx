@@ -42,7 +42,6 @@ const IndexItem = (props: IndexItemProps) => {
         !logFilterList
     )
       return;
-    console.log("logFilterList", logFilterList)
     // 循环读取 logFilterList 里的 statement 值，放到 filters 数组中
     let filters: string[] = [];
     logFilterList.forEach((item) => {
@@ -50,8 +49,6 @@ const IndexItem = (props: IndexItemProps) => {
             filters.push(item.statement);
         }
     });
-    console.log("filters", filters)
-
     const params = {
       st: startDateTime,
       et: endDateTime,

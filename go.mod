@@ -8,7 +8,7 @@ require (
 	github.com/casbin/casbin/v2 v2.51.0
 	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/clickvisual/casbin-redis-watcher v0.0.1
-	github.com/clickvisual/prom2click v0.0.3
+	github.com/clickvisual/prom2click v0.0.4-0.20230725081057-8faff41f6c43
 	github.com/databendcloud/databend-go v0.2.1
 	github.com/ego-component/egorm v1.0.4
 	github.com/ego-component/eredis v1.0.3
@@ -37,7 +37,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/multierr v1.8.0
-	go.uber.org/zap v1.22.0
+	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.2.0
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094
 	gopkg.in/telebot.v3 v3.0.0
@@ -115,6 +115,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/gotomicro/cetus/l v0.0.0-20230725040649-ab58de0846c1 // indirect
 	github.com/gotomicro/logrotate v0.0.0-20211108034117-46d53eedc960 // indirect
 	github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
