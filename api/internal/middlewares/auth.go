@@ -26,7 +26,7 @@ func AuthChecker() gin.HandlerFunc {
 		case !isNotAnonymousUser(c):
 		default:
 			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "Cannot find specified token information (# 1)"})
+			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "cannot find specified token information (# 1)"})
 			c.Abort()
 			return
 		}
@@ -44,12 +44,12 @@ func RootChecker() gin.HandlerFunc {
 		u := db.User{}
 		userBytes, _ := json.Marshal(user)
 		if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
-			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "illegal user struct: " + string(userBytes), Msg: ""})
+			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "user content is empty: " + string(userBytes), Msg: "administrator privileges are required to access this api"})
 			c.Abort()
 			return
 		}
 		if err := permission.Manager.IsRootUser(u.Uid); err != nil {
-			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "IsRootUser: " + err.Error(), Msg: ""})
+			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "IsRootUser: " + err.Error(), Msg: "administrator privileges are required to access this api"})
 			c.Abort()
 			return
 		}

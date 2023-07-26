@@ -80,6 +80,7 @@ func InstanceUpdate(c *core.Context) {
 		Typ: db.Datasource2IntORM[req.Datasource],
 	}).ClusterInfo()
 	if err != nil {
+		c.JSONE(1, "dsn error: "+err.Error(), nil)
 		return
 	}
 	// status 0 has replica 1 no replica
