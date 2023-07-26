@@ -20,7 +20,7 @@ import (
 )
 
 func v1(r *gin.RouterGroup) {
-	rootGroup := r.Group("", middlewares.RootChecker())
+	rootGroup := r.Group("/api/v1", middlewares.RootChecker())
 	// Configuration management
 	rootGroup.GET("/configurations", core.Handle(configure.List))
 	rootGroup.POST("/configurations", core.Handle(configure.Create))
