@@ -38,7 +38,7 @@ const CreatedOrUpdatedInstanceModal = (
     doTestInstance,
   } = useModel("instances");
 
-  const { doGetClusters, doGetConfigMaps } = useModel("configure");
+  const { doGetConfigMaps } = useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const [disabledSubmit, setDisabledSubmit] = useState<boolean>(false);
@@ -123,31 +123,6 @@ const CreatedOrUpdatedInstanceModal = (
     }
   }, [open, isEditor, current, current?.id]);
 
-  const formItemLayout = {
-    labelCol: {
-      xs: { span: 20 },
-      sm: { span: 4 },
-    },
-    wrapperCol: {
-      xs: { span: 24 },
-      sm: { span: 20 },
-    },
-  };
-
-  const formItemLayoutWithOutLabel = {
-    wrapperCol: {
-      xs: { span: 20, offset: 4 },
-      sm: { span: 20, offset: 4 },
-    },
-  };
-
-  const formItemLayoutBtnLabel = {
-    wrapperCol: {
-      xs: { span: 20, offset: 4 },
-      sm: { span: 18, offset: 4 },
-    },
-  };
-
   useEffect(() => {
     if (!open) {
       setDisabledSubmit(false);
@@ -159,10 +134,6 @@ const CreatedOrUpdatedInstanceModal = (
     if (!open || isEditor) return;
     setDisabledSubmit(true);
   }, [open, isEditor]);
-
-  useEffect(() => {
-    if (open) doGetClusters();
-  }, [open]);
 
   return (
     <Modal
