@@ -128,7 +128,7 @@ const EditDatabaseModel = (props: {
         </Form.Item>
         <Form.Item
           label={i18n.formatMessage({ id: "database.form.label.name" })}
-          name={"name"}
+          name={"databaseName"}
         >
           <Input disabled />
         </Form.Item>
