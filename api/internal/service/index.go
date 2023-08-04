@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/cetus/pkg/kutl"
+	"github.com/gotomicro/cetus/pkg/xgo"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 
@@ -114,19 +116,19 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 		tx.Rollback()
 		return errors.New("corresponding configuration instance does not exist")
 	}
-	err = op.UpdateLogAnalysisFields(databaseInfo, tableInfo,
-		filterSystemField(tableInfo.CreateType, adds, req.Tid),
-		filterSystemField(tableInfo.CreateType, dels, req.Tid),
-		filterSystemField(tableInfo.CreateType, newList, req.Tid))
-	if err != nil {
-		tx.Rollback()
-		return
-	}
 	// If the commit fails, the clickhouse operation is not rolled back
 	if err = tx.Commit().Error; err != nil {
 		elog.Error("Fatal", elog.String("error", err.Error()), elog.Any("step", "clickhouse db struct can't rollback"))
 		return
 	}
+	// 异步处理
+	xgo.Go(func() {
+		err = op.UpdateLogAnalysisFields(databaseInfo, tableInfo, filterSystemField(tableInfo.CreateType, adds, req.Tid), filterSystemField(tableInfo.CreateType, dels, req.Tid), filterSystemField(tableInfo.CreateType, newList, req.Tid))
+		if err != nil {
+			elog.Error("Fatal", l.E(err), l.S("step", "UpdateLogAnalysisFieldsFail"))
+			return
+		}
+	})
 	return
 }
 
