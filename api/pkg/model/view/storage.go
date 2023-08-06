@@ -170,15 +170,16 @@ type RespStorageAnalysisFields struct {
 }
 
 type StorageAnalysisField struct {
-	Id       int    `json:"id"`
-	Tid      int    `json:"tid"`
-	Field    string `json:"field"`
-	RootName string `json:"rootName"`
-	Typ      int    `json:"typ"`
-	HashTyp  int    `json:"hashTyp"`
-	Alias    string `json:"alias"`
-	Ctime    int64  `json:"ctime"`
-	Utime    int64  `json:"utime"`
+	Id         int    `json:"id"`
+	Tid        int    `json:"tid"`
+	Field      string `json:"field"`
+	RootName   string `json:"rootName"`
+	Typ        int    `json:"typ"`
+	HashTyp    int    `json:"hashTyp"`
+	Alias      string `json:"alias"`
+	Ctime      int64  `json:"ctime"`
+	Utime      int64  `json:"utime"`
+	OrderField string `json:"orderField"`
 }
 
 type ReqStorageUpdate struct {
