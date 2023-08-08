@@ -70,7 +70,7 @@ func (ch *Reader) Create() (tables []string, sqls []string, err error) {
 func (ch *Reader) createJSONAsString() (tables []string, sqls []string) {
 	readerName := fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
 	if ch.isReplica || ch.isShard {
-		readerName = fmt.Sprintf("%s on cluster '%s'", readerName, ch.cluster)
+		readerName = fmt.Sprintf("`%s`.`%s_local_stream` on cluster '%s'", ch.database, ch.table, ch.cluster)
 	}
 
 	tables = make([]string, 0)

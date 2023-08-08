@@ -175,11 +175,6 @@ func (c *ClickHouse) clusters() (res []view.Cluster, err error) {
 		var host_name string
 		var host_address string
 		var port int
-		// var is_local int
-		// var user string
-		// var default_database string
-		// var errors_count int
-		// var estimated_recovery_time int
 		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port)
 		if errScan != nil {
 			elog.Error("source", elog.FieldErr(err))

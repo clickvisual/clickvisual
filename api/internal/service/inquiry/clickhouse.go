@@ -493,16 +493,13 @@ func (c *ClickHouseX) DeleteTableListByNames(names []string, cluster string) (er
 
 // DeleteTable data view stream
 func (c *ClickHouseX) DeleteTable(database, table, cluster string, tid int) (err error) {
-	var (
-		views []*db.BaseView
-	)
-
+	var views []*db.BaseView
 	if c.mode == ModeCluster {
 		if cluster == "" {
 			err = constx.ErrClusterNameEmpty
 			return
 		}
-		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s ON CLUSTER '%s';", database, table, cluster))
+		_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s` ON CLUSTER '%s';", database, table, cluster))
 		if err != nil {
 			return err
 		}
@@ -517,11 +514,11 @@ func (c *ClickHouseX) DeleteTable(database, table, cluster string, tid int) (err
 	}
 	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
 	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
-	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table)
+	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s`;", database, table)
 	if c.mode == ModeCluster {
 		delViewSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genViewName(database, table, ""), cluster)
 		delStreamSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genStreamName(database, table), cluster)
-		delDataSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s.%s ON CLUSTER '%s';", database, table, cluster)
+		delDataSQL = fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s` ON CLUSTER '%s';", database, table, cluster)
 	}
 	_, err = c.db.Exec(delViewSQL)
 	if err != nil {
@@ -1173,9 +1170,7 @@ func (c *ClickHouseX) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.
 func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
 	currentKafkaSQL := tableInfo.SqlStream
 	// Drop TableName
-	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s",
-		genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
-		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
+	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s", genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name), genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
 	if _, err = c.db.Exec(dropSQL); err != nil {
 		elog.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
 		return

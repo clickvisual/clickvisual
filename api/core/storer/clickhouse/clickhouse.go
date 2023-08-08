@@ -76,13 +76,15 @@ func (ch *Storer) mergeTreeTable() (name string, sql string) {
 	var engine string
 	var tableNameWithCluster string
 	tableName := fmt.Sprintf("`%s`.`%s`", ch.database, ch.table)
+	engine = "ENGINE = MergeTree"
 	if ch.isReplica || ch.isShard {
 		tableName = fmt.Sprintf("`%s`.`%s_local`", ch.database, ch.table)
 		tableNameWithCluster = fmt.Sprintf("%s on cluster '%s'", tableName, ch.cluster)
-		engine = fmt.Sprintf("ENGINE = ReplicatedMergeTree('/clickhouse/tables/%s.%s_local/{shard}', '{replica}')", ch.database, ch.table)
+		if ch.isReplica {
+			engine = fmt.Sprintf("ENGINE = ReplicatedMergeTree('/clickhouse/tables/%s.%s_local/{shard}', '{replica}')", ch.database, ch.table)
+		}
 	} else {
 		tableNameWithCluster = tableName
-		engine = "ENGINE = MergeTree"
 	}
 	if ch.withAttachFields {
 		return tableName, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s

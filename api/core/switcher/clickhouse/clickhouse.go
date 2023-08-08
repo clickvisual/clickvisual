@@ -81,14 +81,16 @@ func (ch *Switcher) createJSONAsString() (names []string, sqls []string) {
 
 func (ch *Switcher) materializedView() (name string, sql string) {
 	var dataName string
-	streamName := fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
+	var streamName string
 	var viewNameWithCluster string
 	viewName := fmt.Sprintf("`%s`.`%s_view`", ch.database, ch.table)
 	if ch.isReplica || ch.isShard {
 		dataName = fmt.Sprintf("`%s`.`%s_local`", ch.database, ch.table)
+		streamName = fmt.Sprintf("`%s`.`%s_local_stream`", ch.database, ch.table)
 		viewNameWithCluster = fmt.Sprintf("%s on cluster '%s'", viewName, ch.cluster)
 	} else {
 		dataName = fmt.Sprintf("`%s`.`%s`", ch.database, ch.table)
+		streamName = fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
 		viewNameWithCluster = viewName
 	}
 	l := "_log"
