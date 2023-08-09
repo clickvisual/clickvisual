@@ -10,7 +10,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -75,30 +74,14 @@ func InstanceUpdate(c *core.Context) {
 		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
-	isCluster, _, isReplica, clusters, err := source.Instantiate(&source.Source{
-		DSN: req.Dsn,
-		Typ: db.Datasource2IntORM[req.Datasource],
-	}).ClusterInfo()
-	if err != nil {
-		c.JSONE(1, "dsn error: "+err.Error(), nil)
-		return
-	}
-	// status 0 has replica 1 no replica
-	replicaStatus := 1
-	if isReplica == 1 {
-		replicaStatus = 0
-	}
 	ups := make(map[string]interface{}, 0)
-	if objBef.Dsn != req.Dsn || objBef.Mode != isCluster || objBef.ReplicaStatus != isReplica {
+	if objBef.Dsn != req.Dsn {
 		// dns changed
 		service.InstanceManager.Delete(objBef.DsKey())
 		objUpdate := db.BaseInstance{
-			Datasource:    req.Datasource,
-			Name:          req.Name,
-			Dsn:           req.Dsn,
-			Mode:          isCluster,
-			Clusters:      clusters,
-			ReplicaStatus: replicaStatus,
+			Datasource: req.Datasource,
+			Name:       req.Name,
+			Dsn:        req.Dsn,
 		}
 		objUpdate.ID = id
 		if err = service.InstanceManager.Add(&objUpdate); err != nil {
@@ -109,11 +92,8 @@ func InstanceUpdate(c *core.Context) {
 		ups["dsn"] = req.Dsn
 	}
 	ups["name"] = req.Name
-	ups["mode"] = isCluster
 	ups["datasource"] = req.Datasource
-	ups["replica_status"] = replicaStatus
 	ups["desc"] = req.Desc
-	ups["clusters"] = db.Strings(clusters)
 	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), err)
 		return
@@ -126,12 +106,38 @@ func InstanceUpdate(c *core.Context) {
 // @Tags         SYSTEM
 // @Summary 	 ClickHouse 列表
 func InstanceList(c *core.Context) {
-	res := make([]*db.BaseInstance, 0)
+	res := make([]view.RespInstance, 0)
 	tmp, err := db.InstanceList(egorm.Conds{})
 	for _, row := range tmp {
 		if service.InstanceViewIsPermission(c.Uid(), row.ID) {
-			row.Dsn = "*"
-			res = append(res, row)
+			op, err := service.InstanceManager.Load(row.ID)
+			if err != nil {
+				c.JSONE(core.CodeErr, err.Error(), err)
+				return
+			}
+			clusterInfo, err := op.ClusterInfo()
+			if err != nil {
+				c.JSONE(core.CodeErr, err.Error(), err)
+				return
+			}
+			cis := make([]string, 0)
+			cs := make([]string, 0)
+			isCluster := 0
+			for _, ci := range clusterInfo {
+				cis = append(cis, ci.Info())
+				cs = append(cs, ci.Name)
+				if ci.MaxShardNum > 1 || ci.MaxReplicaNum > 1 {
+					isCluster = 1
+				}
+			}
+			res = append(res, view.RespInstance{
+				Id:          row.ID,
+				Name:        row.Name,
+				Clusters:    cs,
+				ClusterInfo: cis,
+				Mode:        isCluster,
+				Desc:        row.Desc,
+			})
 		}
 	}
 	if err != nil {

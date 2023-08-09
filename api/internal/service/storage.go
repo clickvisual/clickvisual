@@ -121,7 +121,7 @@ func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatab
     "contents": {
         "_source_": "stderr",
         "_time_": "2023-04-17T04:07:17.624075074Z",
-        "content": "abc123...asfa"
+        "content": "{\"lv\":\"debug\",\"ts\":1681704437,\"msg\":\"presigned get object URL\"}"
     },
     "tags": {  
         "container.image.name": "xxx",

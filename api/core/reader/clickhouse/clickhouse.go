@@ -86,7 +86,7 @@ kafka_topic_list = '%s',
 kafka_group_name = '%s', 
 kafka_format = 'JSONAsString', 
 kafka_num_consumers = %d,
-kafka_skip_broken_messages = %d;`, readerName, ch.brokers, ch.topics, ch.table, ch.kafkaNumConsumers, ch.kafkaSkipBrokenMessages))
+kafka_skip_broken_messages = %d;`, readerName, ch.brokers, ch.topics, fmt.Sprintf("%s_%s", ch.database, ch.table), ch.kafkaNumConsumers, ch.kafkaSkipBrokenMessages))
 
 	return
 }

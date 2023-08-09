@@ -200,9 +200,9 @@ func SettingInfo(c *core.Context) {
 			RuleStoreType:            res.RuleStoreType,
 			PrometheusTarget:         res.PrometheusTarget,
 			FilePath:                 res.FilePath,
-			Namespace:                res.Namespace,
-			Configmap:                res.Configmap,
-			ClusterId:                res.ClusterId,
+			Namespace:                res.K8sNamespace,
+			Configmap:                res.K8sConfigmap,
+			ClusterId:                res.K8sClusterId,
 			ConfigPrometheusOperator: res.ConfigPrometheusOperator,
 		},
 	})

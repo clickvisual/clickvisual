@@ -21,6 +21,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
@@ -31,6 +32,12 @@ type Databend struct {
 	mode int
 	rs   int // replica status
 	db   *sql.DB
+}
+
+func (c *Databend) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
+	// TODO implement me
+	clusters = make(map[string]dto.ClusterInfo)
+	return clusters, err
 }
 
 func (c *Databend) CreateStorageJSONAsString(database db.BaseDatabase, create view.ReqStorageCreate) (string, string, string, string, error) {
@@ -244,12 +251,12 @@ func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqS
 	dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("isCluster", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("isCluster", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.storageViewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true, ct)
@@ -779,12 +786,12 @@ func (c *Databend) CreateTable(did int, database db.BaseDatabase, ct view.ReqTab
 	dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("isCluster", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("isCluster", c.mode), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.viewOperator(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true)

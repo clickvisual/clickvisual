@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/gotomicro/ego/core/elog"
@@ -126,71 +125,6 @@ func (c *ClickHouse) doQuery(ins *sql.DB, sql string) (res []map[string]interfac
 	if err = rows.Err(); err != nil {
 		elog.Error("ClickHouse", elog.Any("step", "doQuery"), elog.Any("error", err.Error()))
 		return
-	}
-	return
-}
-
-func (c *ClickHouse) ClusterInfo() (isCluster, isShard, isReplica int, clusters []string, err error) {
-	cs, err := c.clusters()
-	clusterMap := make(map[string]interface{})
-	clusters = make([]string, 0)
-	if err != nil {
-		return
-	}
-	for _, clu := range cs {
-		clusterMap[clu.Cluster] = struct{}{}
-		if clu.ReplicaNum > 1 {
-			isReplica = 1
-			isCluster = 1
-		}
-		if clu.ShardNum > 1 {
-			isShard = 1
-			isCluster = 1
-		}
-	}
-	for clu := range clusterMap {
-		clusters = append(clusters, clu)
-	}
-	return
-}
-
-func (c *ClickHouse) clusters() (res []view.Cluster, err error) {
-	obj, err := sql.Open("clickhouse", c.s.GetDSN())
-	if err != nil {
-		elog.Error("ClickHouse", elog.Any("step", "open"), elog.FieldErr(err))
-		return
-	}
-	defer func() { _ = obj.Close() }()
-	// query databases
-	rows, err := obj.Query("SELECT cluster,shard_num,shard_weight,replica_num,host_name,host_address,port from `system`.`clusters`")
-	if err != nil {
-		elog.Error("ClickHouse", elog.Any("step", "query"), elog.FieldErr(err))
-		return
-	}
-	for rows.Next() {
-		var cluster string
-		var shard_num int
-		var shard_weight int
-		var replica_num int
-		var host_name string
-		var host_address string
-		var port int
-		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port)
-		if errScan != nil {
-			elog.Error("source", elog.FieldErr(err))
-			continue
-		}
-		if strings.HasPrefix(cluster, "test_") {
-			continue
-		}
-		res = append(res, view.Cluster{
-			Cluster:     cluster,
-			ShardNum:    shard_num,
-			ReplicaNum:  replica_num,
-			HostName:    host_name,
-			HostAddress: host_address,
-			Port:        port,
-		})
 	}
 	return
 }

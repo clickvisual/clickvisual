@@ -64,3 +64,12 @@ func (r *RespUserSimpleInfo) Gen(u db.User) {
 	r.Email = u.Email
 	r.Avatar = u.Avatar
 }
+
+type RespInstance struct {
+	Id          int      `json:"id"`
+	Name        string   `json:"name"`
+	Clusters    []string `json:"clusters"`
+	ClusterInfo []string `json:"clusterInfo"`
+	Desc        string   `json:"desc"`
+	Mode        int      `json:"mode"`
+}

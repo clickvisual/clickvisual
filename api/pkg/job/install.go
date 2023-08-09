@@ -26,9 +26,9 @@ func installDB() error {
 		Dsn:              econf.GetString("defaultCh.dsn"),
 		RuleStoreType:    0,
 		FilePath:         "",
-		ClusterId:        0,
-		Namespace:        "",
-		Configmap:        "",
+		K8sClusterId:     0,
+		K8sNamespace:     "",
+		K8sConfigmap:     "",
 		PrometheusTarget: "",
 	}
 	err := db.InstanceCreate(invoker.Db, &ins)

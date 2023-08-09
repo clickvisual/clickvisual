@@ -134,7 +134,7 @@ func Update(c *core.Context) {
 				if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
 					clusterRuleGroup = tmp
 				} else {
-					clusterRuleGroup.ClusterId = instance.ClusterId
+					clusterRuleGroup.ClusterId = instance.K8sClusterId
 					clusterRuleGroup.Instance = instance
 					clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
 				}
@@ -435,7 +435,7 @@ func Delete(c *core.Context) {
 			if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
 				clusterRuleGroup = tmp
 			} else {
-				clusterRuleGroup.ClusterId = instance.ClusterId
+				clusterRuleGroup.ClusterId = instance.K8sClusterId
 				clusterRuleGroup.Instance = instance
 				clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
 			}

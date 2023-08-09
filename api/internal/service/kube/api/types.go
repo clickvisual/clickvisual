@@ -17,7 +17,7 @@ const (
 
 const (
 	KindNameConfigMap      KindName = "ConfigMap"
-	KindNameNamespace      KindName = "Namespace"
+	KindNameNamespace      KindName = "K8sNamespace"
 	KindNamePrometheusRule KindName = "PrometheusRule"
 )
 

@@ -14,7 +14,6 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 	"github.com/clickvisual/clickvisual/api/pkg/component/core"
@@ -229,10 +228,6 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		err = errors.New("data source configuration with duplicate name")
 		return
 	}
-	isCluster, _, isReplica, clusters, err := source.Instantiate(&source.Source{
-		DSN: req.Dsn,
-		Typ: db.Datasource2IntORM[req.Datasource],
-	}).ClusterInfo()
 	if err != nil {
 		return
 	}
@@ -243,16 +238,10 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		RuleStoreType:    req.RuleStoreType,
 		FilePath:         req.FilePath,
 		Desc:             req.Desc,
-		ClusterId:        req.ClusterId,
-		Namespace:        req.Namespace,
-		Configmap:        req.Configmap,
+		K8sClusterId:     req.ClusterId,
+		K8sNamespace:     req.Namespace,
+		K8sConfigmap:     req.Configmap,
 		PrometheusTarget: req.PrometheusTarget,
-		Mode:             isCluster,
-		Clusters:         clusters,
-	}
-	// status 0 has replica 1 no replica
-	if isReplica == 1 {
-		obj.Mode = 0
 	}
 	if req.PrometheusTarget != "" {
 		if err = Alert.PrometheusReload(req.PrometheusTarget); err != nil {

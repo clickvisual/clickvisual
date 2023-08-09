@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -29,17 +30,15 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 var _ Operator = (*ClickHouseX)(nil)
 
 type ClickHouseX struct {
-	id            int
-	mode          int
-	replicaStatus int // replica status
-	shardStatus   int // 0 no 1 yes
-	db            *sql.DB
+	id int
+	db *sql.DB
 }
 
 func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouseX, error) {
@@ -47,12 +46,104 @@ func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouseX, error) {
 		return nil, errors.New("clickhouse add err, id is 0")
 	}
 	return &ClickHouseX{
-		db:            db,
-		id:            ins.ID,
-		mode:          ins.Mode,
-		shardStatus:   ins.Mode,
-		replicaStatus: ins.ReplicaStatus,
+		db: db,
+		id: ins.ID,
 	}, nil
+}
+
+func (c *ClickHouseX) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
+	// query databases
+	rows, err := c.db.Query("SELECT cluster,shard_num,shard_weight,replica_num,host_name,host_address,port from `system`.`clusters`")
+	if err != nil {
+		elog.Error("ClickHouse", elog.Any("step", "query"), elog.FieldErr(err))
+		return
+	}
+	dbClusterList := make([]view.Cluster, 0)
+	for rows.Next() {
+		var cluster string
+		var shard_num int
+		var shard_weight int
+		var replica_num int
+		var host_name string
+		var host_address string
+		var port int
+		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port)
+		if errScan != nil {
+			elog.Error("source", elog.FieldErr(err))
+			continue
+		}
+		if strings.HasPrefix(cluster, "test_") {
+			continue
+		}
+		dbClusterList = append(dbClusterList, view.Cluster{
+			Cluster:     cluster,
+			ShardNum:    shard_num,
+			ReplicaNum:  replica_num,
+			HostName:    host_name,
+			HostAddress: host_address,
+			Port:        port,
+		})
+	}
+	clusters = make(map[string]dto.ClusterInfo, 0)
+	for _, dbCluster := range dbClusterList {
+		clusterInfo, ok := clusters[dbCluster.Cluster]
+		if !ok {
+			clusterInfo = dto.ClusterInfo{
+				Name:          dbCluster.Cluster,
+				MaxShardNum:   0,
+				MaxReplicaNum: 0,
+				Hosts:         make([]dto.ClusterInfoHost, 0),
+			}
+		}
+		if clusterInfo.MaxReplicaNum < dbCluster.ReplicaNum {
+			clusterInfo.MaxReplicaNum = dbCluster.ReplicaNum
+		}
+		if clusterInfo.MaxShardNum < dbCluster.ShardNum {
+			clusterInfo.MaxShardNum = dbCluster.ShardNum
+		}
+		clusters[dbCluster.Cluster] = clusterInfo
+	}
+	return
+}
+
+// IsReplica status 0 has replica 1 no replica
+func (c *ClickHouseX) isReplica(cluster string) bool {
+	clusters, err := c.ClusterInfo()
+	if err != nil {
+		elog.Error("cluster info get failed", l.E(err))
+		return false
+	}
+	if clu, ok := clusters[cluster]; ok {
+		if clu.MaxReplicaNum > 1 {
+			return true
+		}
+	}
+	return false
+}
+
+// IsShard status 1 has shard 0 no shard
+func (c *ClickHouseX) isShard(cluster string) bool {
+	clusters, err := c.ClusterInfo()
+	if err != nil {
+		elog.Error("cluster info get failed", l.E(err))
+		return false
+	}
+	if clu, ok := clusters[cluster]; ok {
+		if clu.MaxShardNum > 1 {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *ClickHouseX) isCluster(cluster string) (int, error) {
+	if c.isShard(cluster) {
+		return 1, nil
+	}
+	if c.isReplica(cluster) {
+		return 1, nil
+	}
+	return 0, nil
 }
 
 func (c *ClickHouseX) Conn() *sql.DB {
@@ -105,7 +196,11 @@ func (c *ClickHouseX) CreateMetricsSamples(cluster string) error {
 	if clickhouseVersionCompare(ver, "22.3.7") == 1 {
 		return c.createMetricsSamplesV2(cluster)
 	}
-	switch c.mode {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster get failed")
+	}
+	switch isCluster {
 	case ModeStandalone:
 		_, err = c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
 		if err != nil {
@@ -129,8 +224,7 @@ func (c *ClickHouseX) CreateMetricsSamples(cluster string) error {
 			return errors.Wrap(err, "create database")
 		}
 		var mergeTreeSQL string
-		switch c.replicaStatus {
-		case db.ReplicaStatusYes:
+		if c.isReplica(cluster) {
 			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
 		(
 		  date Date DEFAULT toDate(0),
@@ -141,7 +235,7 @@ func (c *ClickHouseX) CreateMetricsSamples(cluster string) error {
 		  updated DateTime DEFAULT now()
 		)
 		ENGINE = ReplicatedMergeTree('/clickhouse/tables/metrics.samples_local/{shard}', '{replica}', date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
-		case db.ReplicaStatusNo:
+		} else {
 			mergeTreeSQL = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS metrics.samples_local ON CLUSTER '%s'
 (
   date Date DEFAULT toDate(0),
@@ -150,7 +244,7 @@ func (c *ClickHouseX) CreateMetricsSamples(cluster string) error {
   val Float64,
   ts DateTime,
   updated DateTime DEFAULT now()
-)       
+)
 ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
 		}
 		_, err = c.db.Exec(mergeTreeSQL)
@@ -171,7 +265,11 @@ ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup')`, cl
 // Support clickhouse v22.3.7+
 func (c *ClickHouseX) createMetricsSamplesV2(cluster string) error {
 	_, _ = c.db.Exec("set allow_deprecated_syntax_for_merge_tree=1")
-	switch c.mode {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster get failed")
+	}
+	switch isCluster {
 	case ModeStandalone:
 		_, err := c.db.Exec("CREATE DATABASE IF NOT EXISTS metrics;")
 		if err != nil {
@@ -217,7 +315,7 @@ func (c *ClickHouseX) createMetricsSamplesV2(cluster string) error {
   val Float64,
   ts DateTime,
   updated DateTime DEFAULT now()
-)       
+)
 ENGINE = GraphiteMergeTree(date, (name, tags, ts), 8192, 'graphite_rollup')`, cluster)
 		// }
 		_, err = c.db.Exec(mergeTreeSQL)
@@ -294,8 +392,12 @@ func (c *ClickHouseX) Prepare(res view.ReqQuery, isRegroup bool) (view.ReqQuery,
 
 // CreateTable create default stream data table and view
 func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
-	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
+	isCluster, err := c.isCluster(database.Cluster)
+	if err != nil {
+		return
+	}
+	dName := genNameWithMode(isCluster, database.Name, ct.TableName)
+	dStreamName := genStreamNameWithMode(isCluster, database.Name, ct.TableName)
 	dataParams := bumo.Params{
 		Data: bumo.ParamsData{
 			TableName: dName,
@@ -314,11 +416,16 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 		},
 	}
 
-	if c.mode == ModeCluster {
+	if isCluster == ModeCluster {
 		dataParams.Cluster = database.Cluster
-		dataParams.ReplicaStatus = c.replicaStatus
 		streamParams.Cluster = database.Cluster
-		streamParams.ReplicaStatus = c.replicaStatus
+		if c.isReplica(database.Cluster) {
+			dataParams.ReplicaStatus = db.ReplicaStatusYes
+			streamParams.ReplicaStatus = db.ReplicaStatusYes
+		} else {
+			dataParams.ReplicaStatus = db.ReplicaStatusNo
+			streamParams.ReplicaStatus = db.ReplicaStatusNo
+		}
 		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
 		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 	} else {
@@ -327,12 +434,12 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("isCluster", isCluster), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("isCluster", isCluster), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.updateSwitcher(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true)
@@ -340,16 +447,26 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
-	if c.mode == ModeCluster {
-		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
+	if isCluster == ModeCluster {
+		rs := db.ReplicaStatusNo
+		if c.isReplica(database.Cluster) {
+			rs = db.ReplicaStatusYes
+		}
+		p := bumo.Params{
 			Cluster:       database.Cluster,
-			ReplicaStatus: c.replicaStatus,
+			ReplicaStatus: rs,
 			Data: bumo.ParamsData{
 				DataType:    bumo.DataTypeDistributed,
 				TableName:   genName(database.Name, ct.TableName),
 				SourceTable: dName,
 			},
-		})
+		}
+		if c.isReplica(database.Cluster) {
+			p.ReplicaStatus = db.ReplicaStatusYes
+		} else {
+			p.ReplicaStatus = db.ReplicaStatusNo
+		}
+		dDistributedSQL = builder.Do(new(cluster.DataBuilder), p)
 		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
@@ -363,7 +480,11 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
 
 	query := fmt.Sprintf("create database `%s`;", name)
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster error")
+	}
+	if isCluster == ModeCluster {
 		if cluster == "" {
 			return errors.New("cluster is required")
 		}
@@ -371,7 +492,7 @@ func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
 	}
 	elog.Error("CreateTable", elog.String("query", query))
 
-	_, err := c.db.Exec(query)
+	_, err = c.db.Exec(query)
 	if err != nil {
 		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
 		return err
@@ -401,7 +522,11 @@ func (c *ClickHouseX) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, f
 	viewTableName = alarm.ViewName(tableInfo.Database.Name, tableInfo.Name, filterId)
 
 	tableName := tableInfo.Name
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(tableInfo.Database.Cluster)
+	if err != nil {
+		return "", "", errors.Wrap(err, "isCluster get failed")
+	}
+	if isCluster == ModeCluster {
 		if tableInfo.CreateType == constx.TableCreateTypeExist {
 			createSQL, err := c.GetCreateSQL(tableInfo.Database.Name, tableInfo.Name)
 			if err != nil {
@@ -429,11 +554,18 @@ func (c *ClickHouseX) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, f
 		// vp.WithSQL = adaSelectPart(filter.When)
 		vp.WithSQL = filter.When
 	}
-	viewSQL = c.execView(bumo.Params{
+	rs := db.ReplicaStatusNo
+	if c.isReplica(tableInfo.Database.Cluster) {
+		rs = db.ReplicaStatusYes
+	}
+	viewSQL, err = c.execView(bumo.Params{
 		Cluster:       tableInfo.Database.Cluster,
-		ReplicaStatus: c.replicaStatus,
+		ReplicaStatus: rs,
 		TimeField:     tableInfo.GetTimeField(),
 		View:          vp})
+	if err != nil {
+		return "", "", err
+	}
 	return viewTableName, viewSQL, nil
 }
 
@@ -455,7 +587,11 @@ func (c *ClickHouseX) DeleteAlertView(viewTableName, cluster string) (err error)
 	if viewTableName == "" {
 		return nil
 	}
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster get failed")
+	}
+	if isCluster == ModeCluster {
 		if cluster == "" {
 			return errors.Wrapf(constx.ErrClusterNameEmpty, "table %s, cluster %s", viewTableName, cluster)
 		}
@@ -474,9 +610,13 @@ func (c *ClickHouseX) DeleteAlertView(viewTableName, cluster string) (err error)
 
 // DeleteTableListByNames data view stream
 func (c *ClickHouseX) DeleteTableListByNames(names []string, cluster string) (err error) {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster get failed")
+	}
 	for _, name := range names {
 		nameWithCluster := name
-		if c.mode == ModeCluster {
+		if isCluster == ModeCluster {
 			if cluster == "" {
 				err = constx.ErrClusterNameEmpty
 				return
@@ -494,7 +634,11 @@ func (c *ClickHouseX) DeleteTableListByNames(names []string, cluster string) (er
 // DeleteTable data view stream
 func (c *ClickHouseX) DeleteTable(database, table, cluster string, tid int) (err error) {
 	var views []*db.BaseView
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster get failed")
+	}
+	if isCluster == ModeCluster {
 		if cluster == "" {
 			err = constx.ErrClusterNameEmpty
 			return
@@ -515,7 +659,7 @@ func (c *ClickHouseX) DeleteTable(database, table, cluster string, tid int) (err
 	delViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, ""))
 	delStreamSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genStreamName(database, table))
 	delDataSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s`;", database, table)
-	if c.mode == ModeCluster {
+	if isCluster == ModeCluster {
 		delViewSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genViewName(database, table, ""), cluster)
 		delStreamSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genStreamName(database, table), cluster)
 		delDataSQL = fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s` ON CLUSTER '%s';", database, table, cluster)
@@ -527,7 +671,7 @@ func (c *ClickHouseX) DeleteTable(database, table, cluster string, tid int) (err
 	// query all view
 	for _, v := range views {
 		userViewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", genViewName(database, table, v.Key))
-		if c.mode == ModeCluster {
+		if isCluster == ModeCluster {
 			userViewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s';", genViewName(database, table, v.Key), cluster)
 		}
 		_, err = c.db.Exec(userViewDropSQL)
@@ -801,8 +945,12 @@ func (c *ClickHouseX) ListColumn(database, table string, isTimeField bool) (res 
 func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""
+	isCluster, err := c.isCluster(database.Cluster)
+	if err != nil {
+		return
+	}
 	for _, del := range dels {
-		if c.mode == ModeCluster {
+		if isCluster == ModeCluster {
 			if del.HashTyp == db.HashTypeSip || del.HashTyp == db.HashTypeURL {
 				hashFieldName, ok := del.GetHashFieldName()
 				if ok {
@@ -854,7 +1002,7 @@ func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db
 	}
 	// step 2 add
 	for _, add := range adds {
-		if c.mode == ModeCluster {
+		if isCluster == ModeCluster {
 			if add.HashTyp == db.HashTypeSip || add.HashTyp == db.HashTypeURL {
 				hashFieldName, ok := add.GetHashFieldName()
 				if ok {
@@ -952,7 +1100,7 @@ func (c *ClickHouseX) UpdateLogAnalysisFields(database db.BaseDatabase, table db
 func (c *ClickHouseX) ListSystemTable() (res []*view.SystemTables) {
 	res = make([]*view.SystemTables, 0)
 	// s := fmt.Sprintf("select * from system.tables where metadata_modification_time>toDateTime(%d)", time.Now().Add(-time.Minute*10).Unix())
-	// Get full data if it is reset mode
+	// Get full data if it is reset isCluster
 	s := "select * from system.tables"
 	deps, err := c.doQuery(s, false)
 	if err != nil {
@@ -992,14 +1140,6 @@ func (c *ClickHouseX) ListSystemTable() (res []*view.SystemTables) {
 	return
 }
 
-func (c *ClickHouseX) isShard() bool {
-	return c.shardStatus == 1
-}
-
-func (c *ClickHouseX) isReplica() bool {
-	return c.replicaStatus == db.ReplicaStatusYes
-}
-
 func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	// 采用 core 的新流程
 	// 创建 storer -> reader -> switcher
@@ -1009,8 +1149,8 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 	// storer
 	_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
 		CreateType: ct.CreateType,
-		IsShard:    c.isShard(),
-		IsReplica:  c.isReplica(),
+		IsShard:    c.isShard(database.Cluster),
+		IsReplica:  c.isReplica(database.Cluster),
 		Cluster:    database.Cluster,
 		Database:   database.Name,
 		Table:      ct.TableName,
@@ -1024,8 +1164,8 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 	// reader
 	_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{
 		CreateType:              ct.CreateType,
-		IsShard:                 c.isShard(),
-		IsReplica:               c.isReplica(),
+		IsShard:                 c.isShard(database.Cluster),
+		IsReplica:               c.isReplica(database.Cluster),
 		Cluster:                 database.Cluster,
 		Database:                database.Name,
 		Table:                   ct.TableName,
@@ -1042,8 +1182,8 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 	// switcher
 	_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
 		CreateType:          ct.CreateType,
-		IsShard:             c.isShard(),
-		IsReplica:           c.isReplica(),
+		IsShard:             c.isShard(database.Cluster),
+		IsReplica:           c.isReplica(database.Cluster),
 		Cluster:             database.Cluster,
 		Database:            database.Name,
 		Table:               ct.TableName,
@@ -1070,8 +1210,12 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 
 // CreateStorage create default stream data table and view
 func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
-	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
-	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
+	isCluster, err := c.isCluster(database.Cluster)
+	if err != nil {
+		return
+	}
+	dName := genNameWithMode(isCluster, database.Name, ct.TableName)
+	dStreamName := genStreamNameWithMode(isCluster, database.Name, ct.TableName)
 	// build view statement
 	var timeTyp string
 	if ct.Typ == TableTypeString {
@@ -1105,11 +1249,16 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
 		},
 	}
-	if c.mode == ModeCluster {
+	if isCluster == ModeCluster {
 		dataParams.Cluster = database.Cluster
-		dataParams.ReplicaStatus = c.replicaStatus
 		streamParams.Cluster = database.Cluster
-		streamParams.ReplicaStatus = c.replicaStatus
+		if c.isReplica(database.Cluster) {
+			streamParams.ReplicaStatus = db.ReplicaStatusYes
+			dataParams.ReplicaStatus = db.ReplicaStatusYes
+		} else {
+			streamParams.ReplicaStatus = db.ReplicaStatusNo
+			dataParams.ReplicaStatus = db.ReplicaStatusNo
+		}
 		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
 		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 	} else {
@@ -1118,12 +1267,12 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("isCluster", isCluster), elog.Any("cluster", database.Cluster))
 		return
 	}
 	_, err = c.db.Exec(dDataSQL)
 	if err != nil {
-		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("mode", c.mode), elog.Any("cluster", database.Cluster))
+		elog.Error("CreateTable", elog.Any("dDataSQL", dDataSQL), elog.Any("err", err.Error()), elog.Any("isCluster", isCluster), elog.Any("cluster", database.Cluster))
 		return
 	}
 	dViewSQL, err = c.updateSwitcherJSONEachRow(ct.Typ, 0, did, ct.TableName, "", nil, nil, nil, true, ct)
@@ -1131,16 +1280,21 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 		elog.Error("CreateTable", elog.Any("dViewSQL", dViewSQL), elog.Any("err", err.Error()))
 		return
 	}
-	if c.mode == ModeCluster {
-		dDistributedSQL = builder.Do(new(cluster.DataBuilder), bumo.Params{
-			Cluster:       database.Cluster,
-			ReplicaStatus: c.replicaStatus,
+	if isCluster == ModeCluster {
+		p := bumo.Params{
+			Cluster: database.Cluster,
 			Data: bumo.ParamsData{
 				DataType:    bumo.DataTypeDistributed,
 				TableName:   genName(database.Name, ct.TableName),
 				SourceTable: dName,
 			},
-		})
+		}
+		if c.isReplica(database.Cluster) {
+			p.ReplicaStatus = db.ReplicaStatusYes
+		} else {
+			p.ReplicaStatus = db.ReplicaStatusNo
+		}
+		dDistributedSQL = builder.Do(new(cluster.DataBuilder), p)
 		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
@@ -1154,9 +1308,13 @@ func (c *ClickHouseX) CreateStorage(did int, database db.BaseDatabase, ct view.R
 // UpdateMergeTreeTable ...
 // ALTER TABLE dev.test MODIFY TTL toDateTime(time_second) + toIntervalDay(7)
 func (c *ClickHouseX) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (err error) {
+	isCluster, err := c.isCluster(tableInfo.Database.Cluster)
+	if err != nil {
+		return errors.Wrap(err, "get isCluster error")
+	}
 	s := fmt.Sprintf("ALTER TABLE %s%s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)",
-		genNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
-		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster),
+		genNameWithMode(isCluster, tableInfo.Database.Name, tableInfo.Name),
+		genSQLClusterInfo(isCluster, tableInfo.Database.Cluster),
 		params.MergeTreeTTL)
 	_, err = c.db.Exec(s)
 	if err != nil {
@@ -1170,7 +1328,11 @@ func (c *ClickHouseX) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.
 func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
 	currentKafkaSQL := tableInfo.SqlStream
 	// Drop TableName
-	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s", genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name), genSQLClusterInfo(c.mode, tableInfo.Database.Cluster))
+	isCluster, err := c.isCluster(tableInfo.Database.Cluster)
+	if err != nil {
+		return "", errors.Wrap(err, "isCluster error")
+	}
+	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s", genStreamNameWithMode(isCluster, tableInfo.Database.Name, tableInfo.Name), genSQLClusterInfo(isCluster, tableInfo.Database.Cluster))
 	if _, err = c.db.Exec(dropSQL); err != nil {
 		elog.Error("CreateKafkaTable", elog.Any("dropSQL", dropSQL), elog.Any("err", err.Error()))
 		return
@@ -1184,7 +1346,7 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 		streamParams := bumo.Params{
 			TableCreateType: tableInfo.CreateType,
 			Stream: bumo.ParamsStream{
-				TableName:               genStreamNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
+				TableName:               genStreamNameWithMode(isCluster, tableInfo.Database.Name, tableInfo.Name),
 				TableTyp:                tableTypStr(tableInfo.TimeFieldKind),
 				Group:                   tableInfo.Database.Name + "_" + tableInfo.Name,
 				Brokers:                 params.KafkaBrokers,
@@ -1212,9 +1374,13 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqS
 			}
 		}
 
-		if c.mode == ModeCluster {
+		if isCluster == ModeCluster {
 			streamParams.Cluster = tableInfo.Database.Cluster
-			streamParams.ReplicaStatus = c.replicaStatus
+			if c.isReplica(tableInfo.Database.Cluster) {
+				streamParams.ReplicaStatus = db.ReplicaStatusYes
+			} else {
+				streamParams.ReplicaStatus = db.ReplicaStatusNo
+			}
 			streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
 		} else {
 			streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
@@ -1246,9 +1412,13 @@ func (c *ClickHouseX) CreateTraceJaegerDependencies(database, cluster, table str
 		TTL:       ttl,
 		DB:        c.db,
 	}
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster get failed")
+	}
+	if isCluster == ModeCluster {
 		params.IsShard = true
-		if c.replicaStatus == 0 {
+		if c.isReplica(cluster) {
 			params.IsReplica = true
 		}
 	}
@@ -1263,7 +1433,11 @@ func (c *ClickHouseX) CreateTraceJaegerDependencies(database, cluster, table str
 
 func (c *ClickHouseX) DeleteTraceJaegerDependencies(database, cluster, table string) (err error) {
 	table = table + db.SuffixJaegerJSON
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(cluster)
+	if err != nil {
+		return errors.Wrap(err, "isCluster get failed")
+	}
+	if isCluster == ModeCluster {
 		if cluster == "" {
 			err = constx.ErrClusterNameEmpty
 			return
@@ -1370,33 +1544,33 @@ func (c *ClickHouseX) ListSystemCluster() (l []*view.SystemClusters, m map[strin
 }
 
 func (c *ClickHouseX) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error) {
-	// jaegerJson dependencies table
-	sc, err := builderv2.GetTableCreator(constx.TableCreateTypeBufferNullDataPipe)
-	if err != nil {
-		elog.Error("CreateTable", elog.String("step", "CreateBufferNullDataPipe"), elog.FieldErr(err))
-		return
-	}
-	params := builderv2.Params{
-		IsShard:   false,
-		IsReplica: false,
-		Cluster:   req.Cluster,
-		Database:  req.Database,
-		Table:     req.Table,
-		TTL:       req.TTL,
-		DB:        c.db,
-	}
-	if c.mode == ModeCluster {
-		params.IsShard = true
-		if c.replicaStatus == 0 {
-			params.IsReplica = true
-		}
-	}
-	sc.SetParams(params)
-	names, sqls = sc.GetSQLs()
-	if _, err = sc.Execute(sqls); err != nil {
-		elog.Error("CreateTable", elog.String("step", "CreateBufferNullDataPipe"), elog.FieldErr(err))
-		return
-	}
+	// // jaegerJson dependencies table
+	// sc, err := builderv2.GetTableCreator(constx.TableCreateTypeBufferNullDataPipe)
+	// if err != nil {
+	// 	elog.Error("CreateTable", elog.String("step", "CreateBufferNullDataPipe"), elog.FieldErr(err))
+	// 	return
+	// }
+	// params := builderv2.Params{
+	// 	IsShard:   false,
+	// 	IsReplica: false,
+	// 	Cluster:   req.Cluster,
+	// 	Database:  req.Database,
+	// 	Table:     req.Table,
+	// 	TTL:       req.TTL,
+	// 	DB:        c.db,
+	// }
+	// if c.isCluster == ModeCluster {
+	// 	params.IsShard = true
+	// 	if c.replicaStatus == 0 {
+	// 		params.IsReplica = true
+	// 	}
+	// }
+	// sc.SetParams(params)
+	// names, sqls = sc.GetSQLs()
+	// if _, err = sc.Execute(sqls); err != nil {
+	// 	elog.Error("CreateTable", elog.String("step", "CreateBufferNullDataPipe"), elog.FieldErr(err))
+	// 	return
+	// }
 	return
 }
 
@@ -1411,8 +1585,8 @@ func (c *ClickHouseX) updateReaderJSONAsString(tableInfo *db.BaseTable, params v
 	// reader
 	_, readerSQLs, err := reader.New(db.DatasourceClickHouse, ifreader.Params{
 		CreateType:              tableInfo.CreateType,
-		IsShard:                 c.isShard(),
-		IsReplica:               c.isReplica(),
+		IsShard:                 c.isShard(tableInfo.Database.Cluster),
+		IsReplica:               c.isReplica(tableInfo.Database.Cluster),
 		Cluster:                 tableInfo.Database.Cluster,
 		Database:                tableInfo.Database.Name,
 		Table:                   tableInfo.Name,
@@ -1432,8 +1606,8 @@ func (c *ClickHouseX) updateReaderJSONAsString(tableInfo *db.BaseTable, params v
 func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, database *db.BaseDatabase, tid int, customTimeField string, indexes map[string]*db.BaseIndex) (res string, err error) {
 	params := ifswitcher.Params{
 		CreateType:          constx.TableCreateTypeJSONAsString,
-		IsShard:             c.isShard(),
-		IsReplica:           c.isReplica(),
+		IsShard:             c.isShard(database.Cluster),
+		IsReplica:           c.isReplica(database.Cluster),
 		Cluster:             database.Cluster,
 		Database:            database.Name,
 		Table:               ct.TableName,
@@ -1472,7 +1646,11 @@ func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res 
 	if err != nil {
 		return
 	}
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(databaseInfo.Cluster)
+	if err != nil {
+		return
+	}
+	if isCluster == ModeCluster {
 		param.TableName += "_local"
 	}
 	viewName := genViewName(databaseInfo.Name, param.TableName, param.CustomTimeField)
@@ -1492,7 +1670,7 @@ func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res 
 	streamName := genStreamName(databaseInfo.Name, param.TableName)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
-	if c.mode == ModeCluster {
+	if isCluster == ModeCluster {
 		if databaseInfo.Cluster == "" {
 			err = constx.ErrClusterNameEmpty
 			return
@@ -1517,11 +1695,15 @@ func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res 
 		timeConv = c.timeParseSQLV3(param.Typ, param.Current, param.TimeField)
 		whereCond = c.whereConditionSQLCurrentV3(param.Current)
 	}
-	viewSQL = c.execView(bumo.Params{
+	rs := db.ReplicaStatusNo
+	if c.isReplica(databaseInfo.Cluster) {
+		rs = db.ReplicaStatusYes
+	}
+	viewSQL, err = c.execView(bumo.Params{
 		TableCreateType: constx.TableCreateTypeUBW,
 		TimeField:       param.TimeField,
 		Cluster:         databaseInfo.Cluster,
-		ReplicaStatus:   c.replicaStatus,
+		ReplicaStatus:   rs,
 		View: bumo.ParamsView{
 			ViewTable:        viewName,
 			TargetTable:      dName,
@@ -1532,6 +1714,9 @@ func (c *ClickHouseX) storageViewOperatorV3(param view.OperatorViewParams) (res 
 			IsKafkaTimestamp: param.IsKafkaTimestamp,
 		},
 	})
+	if err != nil {
+		return
+	}
 	if param.IsCreate {
 		_, err = c.db.Exec(viewSQL)
 		if err != nil {
@@ -1691,7 +1876,11 @@ func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, cu
 	if err != nil {
 		return
 	}
-	if c.mode == ModeCluster {
+	isCluster, err := c.isCluster(databaseInfo.Cluster)
+	if err != nil {
+		return
+	}
+	if isCluster == ModeCluster {
 		table += "_local"
 	}
 	viewName := genViewName(databaseInfo.Name, table, customTimeField)
@@ -1710,7 +1899,7 @@ func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, cu
 	streamName := genStreamName(databaseInfo.Name, table)
 	// drop
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
-	if c.mode == ModeCluster {
+	if isCluster == ModeCluster {
 		if databaseInfo.Cluster == "" {
 			err = constx.ErrClusterNameEmpty
 			return
@@ -1735,12 +1924,16 @@ func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, cu
 		timeConv = c.timeParseSQL(typ, current, ct.TimeField, ct.GetRawLogField())
 		whereCond = c.whereConditionSQLCurrent(current, ct.GetRawLogField())
 	}
-	viewSQL := c.execView(bumo.Params{
+	rs := db.ReplicaStatusNo
+	if c.isReplica(databaseInfo.Cluster) {
+		rs = db.ReplicaStatusYes
+	}
+	viewSQL, err := c.execView(bumo.Params{
 		KafkaJsonMapping: ct.Mapping2String(false, ""),
 		LogField:         ct.RawLogField,
 		TimeField:        ct.TimeField,
 		Cluster:          databaseInfo.Cluster,
-		ReplicaStatus:    c.replicaStatus,
+		ReplicaStatus:    rs,
 		View: bumo.ParamsView{
 			ViewTable:    viewName,
 			TargetTable:  dName,
@@ -1750,6 +1943,9 @@ func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, cu
 			Where:        whereCond,
 		},
 	})
+	if err != nil {
+		return "", err
+	}
 	if isCreate {
 		_, err = c.db.Exec(viewSQL)
 		if err != nil {
@@ -1759,8 +1955,7 @@ func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, cu
 	return viewSQL, nil
 }
 
-func (c *ClickHouseX) updateSwitcher(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
-	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
+func (c *ClickHouseX) updateSwitcher(typ, tid int, did int, table, customTimeField string, current *db.BaseView, list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
 	// 基础信息获取
 	tableInfo, err := db.TableInfo(invoker.Db, tid)
 	if err != nil {
@@ -2013,15 +2208,19 @@ func (c *ClickHouseX) timeFieldEqual(param view.ReqQuery, tid int) string {
 	return "(" + res + ")"
 }
 
-func (c *ClickHouseX) execView(params bumo.Params) string {
+func (c *ClickHouseX) execView(params bumo.Params) (string, error) {
 	var obj builder.Builder
-	switch c.mode {
+	isCluster, err := c.isCluster(params.Cluster)
+	if err != nil {
+		return "", errors.Wrap(err, "isCluster get failed")
+	}
+	switch isCluster {
 	case ModeCluster:
 		obj = new(cluster.ViewBuilder)
 	default:
 		obj = new(standalone.ViewBuilder)
 	}
-	return builder.Do(obj, params)
+	return builder.Do(obj, params), nil
 }
 
 func (c *ClickHouseX) CalculateInterval(interval int64, timeField string) (string, int64) {

@@ -10,6 +10,7 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
@@ -49,6 +50,7 @@ type Operator interface {
 	GetAlertViewSQL(*db.Alarm, db.BaseTable, int, *view.AlarmFilterItem) (string, string, error)
 	GetTraceGraph(ctx context.Context) ([]view.RespJaegerDependencyDataModel, error)
 	GetMetricsSamples() error
+	ClusterInfo() (clusters map[string]dto.ClusterInfo, err error)
 
 	ListSystemTable() []*view.SystemTables
 	ListSystemCluster() ([]*view.SystemClusters, map[string]*view.SystemClusters, error)

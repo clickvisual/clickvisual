@@ -16,13 +16,17 @@ import (
 type BaseInstance struct {
 	BaseModel
 
-	Datasource    string  `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // datasource type
-	Name          string  `gorm:"column:name;type:varchar(128);NOT NULL;index:idx_datasource_name,unique" json:"name"`            // datasource instance name
-	Dsn           string  `gorm:"column:dsn;type:text" json:"dsn"`                                                                // dsn
-	Desc          string  `gorm:"column:desc;type:varchar(255)" json:"desc"`                                                      // file_path
-	Mode          int     `gorm:"column:mode;type:tinyint(1)" json:"mode"`                                                        // 0 standalone 1 cluster
-	ReplicaStatus int     `gorm:"column:replica_status;type:tinyint(1)" json:"replicaStatus"`                                     // status 0 has replica 1 no replica
-	Clusters      Strings `gorm:"column:clusters;type:text" json:"clusters"`
+	Datasource string `gorm:"column:datasource;type:varchar(32);NOT NULL;index:idx_datasource_name,unique" json:"datasource"` // datasource type
+	Name       string `gorm:"column:name;type:varchar(128);NOT NULL;index:idx_datasource_name,unique" json:"name"`            // datasource instance name
+	Dsn        string `gorm:"column:dsn;type:text" json:"dsn"`                                                                // dsn
+	Desc       string `gorm:"column:desc;type:varchar(255)" json:"desc"`                                                      // file_path
+
+	// Deprecated: Use real time data instead.
+	Mode int `gorm:"column:mode;type:tinyint(1)" json:"mode"` // 0 standalone 1 cluster
+	// Deprecated: Use real time data instead.
+	ReplicaStatus int `gorm:"column:replica_status;type:tinyint(1)" json:"replicaStatus"` // status 0 has replica 1 no replica
+	// Deprecated: Use real time data instead.
+	Clusters Strings `gorm:"column:clusters;type:text" json:"clusters"`
 
 	// alarm
 	PrometheusTarget string `gorm:"column:prometheus_target;type:varchar(128)" json:"prometheusTarget"` // prometheus ip or domain, eg: https://prometheus:9090
@@ -30,9 +34,9 @@ type BaseInstance struct {
 	// file
 	FilePath string `gorm:"column:file_path;type:varchar(255)" json:"filePath"` // file_path
 	// configmap
-	ClusterId int    `gorm:"column:cluster_id;type:int(11)" json:"clusterId"`     // cluster_id
-	Namespace string `gorm:"column:namespace;type:varchar(128)" json:"namespace"` // namespace
-	Configmap string `gorm:"column:configmap;type:varchar(128)" json:"configmap"` // configmap
+	K8sClusterId int    `gorm:"column:cluster_id;type:int(11)" json:"clusterId"`     // k8s cluster id
+	K8sNamespace string `gorm:"column:namespace;type:varchar(128)" json:"namespace"` // namespace
+	K8sConfigmap string `gorm:"column:configmap;type:varchar(128)" json:"configmap"` // configmap
 	// operator
 	ConfigPrometheusOperator string `gorm:"column:config_prometheus_operator;type:text" json:"ConfigPrometheusOperator"` // configmap
 }
@@ -46,7 +50,7 @@ func (b *BaseInstance) DsKey() string {
 }
 
 func (b *BaseInstance) GetRuleStoreKey() string {
-	return fmt.Sprintf("%d_%d", b.ClusterId, b.ID)
+	return fmt.Sprintf("%d_%d", b.K8sClusterId, b.ID)
 }
 
 func InstanceKey(id int) string {
