@@ -81,14 +81,17 @@ func (ch *Switcher) createJSONAsString() (names []string, sqls []string) {
 
 func (ch *Switcher) materializedView() (name string, sql string) {
 	var dataName string
-	streamName := fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
+	var streamName string
 	var viewNameWithCluster string
 	viewName := fmt.Sprintf("`%s`.`%s_view`", ch.database, ch.table)
 	if ch.isReplica || ch.isShard {
 		dataName = fmt.Sprintf("`%s`.`%s_local`", ch.database, ch.table)
+		streamName = fmt.Sprintf("`%s`.`%s_local_stream`", ch.database, ch.table)
+		viewName = fmt.Sprintf("`%s`.`%s_local_view`", ch.database, ch.table)
 		viewNameWithCluster = fmt.Sprintf("%s on cluster '%s'", viewName, ch.cluster)
 	} else {
 		dataName = fmt.Sprintf("`%s`.`%s`", ch.database, ch.table)
+		streamName = fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
 		viewNameWithCluster = viewName
 	}
 	l := "_log"
@@ -136,11 +139,10 @@ JSONExtractString(%s, '%s') AS _raw_log_%s
 func (ch *Switcher) Delete() error {
 	sqls := make([]string, 0)
 	// delete mv table
-	viewName := fmt.Sprintf("`%s`.`%s_view`", ch.database, ch.table)
 	if ch.isReplica || ch.isShard {
-		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER %s", viewName, ch.cluster))
+		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.cluster))
 	} else {
-		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS %s", viewName))
+		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_view`", ch.database, ch.table))
 	}
 	return common.Exec(ch.conn, sqls)
 }

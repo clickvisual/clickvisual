@@ -60,43 +60,13 @@ const InstanceTable = (props: InstanceTableProps) => {
       render: TooltipRender({ placement: "right" }),
     },
     {
-      title: i18n.formatMessage({ id: "shard" }),
-      dataIndex: "mode",
-      align: "center" as AlignType,
-      width: 100,
-      render: (mode: number) => {
-        if (mode === 1 || mode === 0) {
-          return (
-            <Tooltip
-              title={i18n.formatMessage({
-                id:
-                  mode === 1
-                    ? "instance.form.title.cluster"
-                    : "instance.form.title.modeType.single",
-              })}
-            >
-              <span>
-                {i18n.formatMessage({
-                  id:
-                    mode === 1
-                      ? "instance.form.title.cluster"
-                      : "instance.form.title.modeType.single",
-                })}
-              </span>
-            </Tooltip>
-          );
-        }
-        return <></>;
-      },
-    },
-    {
-      title: i18n.formatMessage({ id: "replica" }),
-      dataIndex: "clusters",
+      title: i18n.formatMessage({ id: "instance.form.title.cluster" }) + "(sharding/replica)",
+      dataIndex: "clusterInfo",
       align: "center" as AlignType,
       width: 300,
-      render: (clusters: string[]) => (
+      render: (clusterInfo: string[]) => (
         <div>
-          {clusters?.map((item: string, index: number) => {
+          {clusterInfo?.map((item: string, index: number) => {
             return (
               <Tag color="lime" key={index}>
                 {item}

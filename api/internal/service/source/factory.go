@@ -14,7 +14,6 @@ type Operator interface {
 	Columns(string, string) ([]view.Column, error)
 	Query(s string) (res []map[string]interface{}, err error)
 	Exec(s string) error
-	ClusterInfo() (isCluster, isShard, isReplica int, clusters []string, err error)
 }
 
 func Instantiate(s *Source) Operator {

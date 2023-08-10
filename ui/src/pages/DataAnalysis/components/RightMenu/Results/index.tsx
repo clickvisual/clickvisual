@@ -224,7 +224,7 @@ const VersionHistory = (props: {
         rowKey={(item: any) => item.id}
       />
       <ResultsItem
-        open={visibleResultsItem}
+        visible={visibleResultsItem}
         setVisible={setVisibleResultsItem}
         nodeId={openNodeId}
         resultId={resultId}

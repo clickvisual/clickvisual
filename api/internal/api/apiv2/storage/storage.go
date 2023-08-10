@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -111,15 +112,16 @@ func AnalysisFields(c *core.Context) {
 	fields, _ := db.IndexList(conds)
 	for _, row := range fields {
 		f := view.StorageAnalysisField{
-			Id:       row.ID,
-			Tid:      row.Tid,
-			Field:    row.Field,
-			RootName: row.RootName,
-			Typ:      row.Typ,
-			HashTyp:  row.HashTyp,
-			Alias:    row.Alias,
-			Ctime:    row.Ctime,
-			Utime:    row.Utime,
+			Id:         row.ID,
+			Tid:        row.Tid,
+			Field:      row.Field,
+			RootName:   row.RootName,
+			Typ:        row.Typ,
+			HashTyp:    row.HashTyp,
+			Alias:      row.Alias,
+			Ctime:      row.Ctime,
+			Utime:      row.Utime,
+			OrderField: fmt.Sprintf("%s.%s", row.RootName, row.Field),
 		}
 		if row.Kind == 0 {
 			res.BaseFields = append(res.BaseFields, f)
@@ -129,10 +131,10 @@ func AnalysisFields(c *core.Context) {
 	}
 	// keys sort by the first letter
 	sort.Slice(res.BaseFields, func(i, j int) bool {
-		return res.BaseFields[i].Field < res.BaseFields[j].Field
+		return res.BaseFields[i].OrderField < res.BaseFields[j].OrderField
 	})
 	sort.Slice(res.LogFields, func(i, j int) bool {
-		return res.LogFields[i].Field < res.LogFields[j].Field
+		return res.LogFields[i].OrderField < res.LogFields[j].OrderField
 	})
 	c.JSONOK(res)
 }

@@ -83,7 +83,7 @@ var templateTableAnalysisField = map[string][]view.IndexItem{
 		},
 		{
 			Field: "comp",
-			Typ:   1,
+			Typ:   0,
 		},
 		{
 			Field: "compName",

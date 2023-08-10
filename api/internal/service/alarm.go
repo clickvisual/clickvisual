@@ -217,9 +217,9 @@ func (i *alert) PrometheusRuleCreateOrUpdate(instance db.BaseInstance, groupName
 	rc, err := rule.GetComponent(instance.RuleStoreType, &rule.Params{
 		InstanceID:         instance.ID,
 		RulePath:           instance.FilePath,
-		ClusterId:          instance.ClusterId,
-		Namespace:          instance.Namespace,
-		Configmap:          instance.Configmap,
+		ClusterId:          instance.K8sClusterId,
+		Namespace:          instance.K8sNamespace,
+		Configmap:          instance.K8sConfigmap,
 		PrometheusOperator: instance.ConfigPrometheusOperator,
 	})
 	if err != nil {
@@ -237,9 +237,9 @@ func (i *alert) PrometheusRuleBatchSet(clusterRuleGroups map[string]db.ClusterRu
 		rc, err := rule.GetComponent(clusterRuleGroup.Instance.RuleStoreType, &rule.Params{
 			InstanceID:         clusterRuleGroup.Instance.ID,
 			RulePath:           clusterRuleGroup.Instance.FilePath,
-			ClusterId:          clusterRuleGroup.Instance.ClusterId,
-			Namespace:          clusterRuleGroup.Instance.Namespace,
-			Configmap:          clusterRuleGroup.Instance.Configmap,
+			ClusterId:          clusterRuleGroup.Instance.K8sClusterId,
+			Namespace:          clusterRuleGroup.Instance.K8sNamespace,
+			Configmap:          clusterRuleGroup.Instance.K8sConfigmap,
 			PrometheusOperator: clusterRuleGroup.Instance.ConfigPrometheusOperator,
 		})
 		if err != nil {
@@ -258,9 +258,9 @@ func (i *alert) PrometheusRuleBatchRemove(clusterRuleGroups map[string]db.Cluste
 		rc, err := rule.GetComponent(clusterRuleGroup.Instance.RuleStoreType, &rule.Params{
 			InstanceID:         clusterRuleGroup.Instance.ID,
 			RulePath:           clusterRuleGroup.Instance.FilePath,
-			ClusterId:          clusterRuleGroup.Instance.ClusterId,
-			Namespace:          clusterRuleGroup.Instance.Namespace,
-			Configmap:          clusterRuleGroup.Instance.Configmap,
+			ClusterId:          clusterRuleGroup.Instance.K8sClusterId,
+			Namespace:          clusterRuleGroup.Instance.K8sNamespace,
+			Configmap:          clusterRuleGroup.Instance.K8sConfigmap,
 			PrometheusOperator: clusterRuleGroup.Instance.ConfigPrometheusOperator,
 		})
 		if err != nil {
@@ -379,7 +379,7 @@ func (i *alert) CreateOrUpdate(alarmObj *db.Alarm, req view.ReqAlarmCreate) (err
 			if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
 				clusterRuleGroup = tmp
 			} else {
-				clusterRuleGroup.ClusterId = instance.ClusterId
+				clusterRuleGroup.ClusterId = instance.K8sClusterId
 				clusterRuleGroup.Instance = instance
 				clusterRuleGroup.GroupName = alarmObj.GetGroupName(instance.ID)
 				clusterRuleGroup.Rules = make([]db.ClusterRuleItem, 0)
@@ -465,7 +465,7 @@ func (i *alert) OpenOperator(id int) (err error) {
 					if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
 						clusterRuleGroup = tmp
 					} else {
-						clusterRuleGroup.ClusterId = instance.ClusterId
+						clusterRuleGroup.ClusterId = instance.K8sClusterId
 						clusterRuleGroup.Instance = instance
 						clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
 						clusterRuleGroup.Rules = make([]db.ClusterRuleItem, 0)
@@ -490,7 +490,7 @@ func (i *alert) OpenOperator(id int) (err error) {
 				if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
 					clusterRuleGroup = tmp
 				} else {
-					clusterRuleGroup.ClusterId = instance.ClusterId
+					clusterRuleGroup.ClusterId = instance.K8sClusterId
 					clusterRuleGroup.Instance = instance
 					clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
 					clusterRuleGroup.Rules = make([]db.ClusterRuleItem, 0)
@@ -777,9 +777,9 @@ func alarmRuleDelete(instance *db.BaseInstance, groupName, ruleName string) (err
 	rc, err := rule.GetComponent(instance.RuleStoreType, &rule.Params{
 		InstanceID:         instance.ID,
 		RulePath:           instance.FilePath,
-		ClusterId:          instance.ClusterId,
-		Namespace:          instance.Namespace,
-		Configmap:          instance.Configmap,
+		ClusterId:          instance.K8sClusterId,
+		Namespace:          instance.K8sNamespace,
+		Configmap:          instance.K8sConfigmap,
 		PrometheusOperator: instance.ConfigPrometheusOperator,
 	})
 	if err != nil {

@@ -169,7 +169,7 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 		ChangeLog:   history.ChangeLog,
 		PublishedBy: c.Uid(),
 	})
-	// lock := NewConfigMapLock(k8sConfigmap.Namespace, k8sConfigmap.Name, configureObj.K8SCmId)
+	// lock := NewConfigMapLock(k8sConfigmap.K8sNamespace, k8sConfigmap.Name, configureObj.K8SCmId)
 	// if !lock.Lock() {
 	// 	return fmt.Errorf("configMap is being updated by another user or system. update failed")
 	// }
@@ -227,7 +227,7 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 			tx.Rollback()
 			return errKcm
 		}
-		// configLock := NewConfigMapLock(kcm.Namespace, kcm.Name, kcm.ID)
+		// configLock := NewConfigMapLock(kcm.K8sNamespace, kcm.Name, kcm.ID)
 		// if !configLock.Lock() {
 		// 	tx.Rollback()
 		// 	return errors.Errorf("failed to delete because there are other users operating the configuration")
