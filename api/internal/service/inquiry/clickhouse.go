@@ -478,7 +478,6 @@ func (c *ClickHouseX) CreateTable(did int, database db.BaseDatabase, ct view.Req
 }
 
 func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
-	query := fmt.Sprintf("create database `%s`;", name)
 	isCluster, err := c.isCluster(cluster)
 	if err != nil {
 		return errors.Wrap(err, "isCluster error")
@@ -487,9 +486,10 @@ func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
 		if cluster == "" {
 			return errors.New("cluster is required")
 		}
-		query = fmt.Sprintf("create database `%s` on cluster `%s`;", name, cluster)
+		_, err = c.db.Exec("CREATE DATABASE `?` ON CLUSTER ?", name, cluster)
+	} else {
+		_, err = c.db.Exec("CREATE DATABASE `?`", name)
 	}
-	_, err = c.db.Exec(query)
 	if err != nil {
 		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
 		return err

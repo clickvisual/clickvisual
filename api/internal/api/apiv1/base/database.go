@@ -42,7 +42,7 @@ func DatabaseCreate(c *core.Context) {
 	}
 	obj := db.BaseDatabase{
 		Iid:          iid,
-		Name:         strconv.Quote(req.Name),
+		Name:         req.Name,
 		Cluster:      req.Cluster,
 		Uid:          c.Uid(),
 		IsCreateByCV: 1,
