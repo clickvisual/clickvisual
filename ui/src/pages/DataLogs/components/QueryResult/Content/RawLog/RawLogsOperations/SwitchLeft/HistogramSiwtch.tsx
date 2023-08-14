@@ -8,14 +8,18 @@ const HistogramSwitch = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   const { logPanesHelper, doGetHighCharts } = useModel("dataLogs");
   const { updateLogPane, logPanes } = logPanesHelper;
 
-  const handleChangeHistogramChecked = () => {
+  const handleChangeHistogramChecked = async () => {
     if (!oldPane) return;
     if (!oldPane.histogramChecked) {
-      doGetHighCharts().then((res) => {
-        oldPane.highCharts = res?.highCharts;
-      });
+      const res = await doGetHighCharts();
+      oldPane.highCharts = res?.highCharts;
     } else {
-      oldPane.highCharts = { count: 0, progress: "", histograms: [] };
+      // oldPane.highCharts = { count: 0, progress: "", histograms: [] };
+      oldPane.highCharts = {
+        ...oldPane.highCharts,
+        progress: "",
+        histograms: [],
+      };
     }
     updateLogPane(
       oldPane.paneId,
