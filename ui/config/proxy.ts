@@ -1,7 +1,7 @@
 export default {
   dev: {
     "/api/": {
-      target: "https://logstest.mihoyo.com",
+      target: "http://127.0.0.1:19001",
       changeOrigin: true,
       pathRewrite: { "^": "" },
     },
