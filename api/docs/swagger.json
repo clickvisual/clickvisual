@@ -521,6 +521,7 @@
                         "type": "integer"
                     },
                     "clusters": {
+                        "description": "Deprecated: Use real time data instead.",
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Strings"
                     },
                     "configmap": {
@@ -553,7 +554,7 @@
                         "type": "integer"
                     },
                     "mode": {
-                        "description": "0 standalone 1 cluster",
+                        "description": "Deprecated: Use real time data instead.",
                         "type": "integer"
                     },
                     "name": {
@@ -569,7 +570,7 @@
                         "type": "string"
                     },
                     "replicaStatus": {
-                        "description": "status 0 has replica 1 no replica",
+                        "description": "Deprecated: Use real time data instead.",
                         "type": "integer"
                     },
                     "ruleStoreType": {
@@ -3350,6 +3351,36 @@
                 "title": "RespInfoNode",
                 "type": "object"
             },
+            "github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstance": {
+                "properties": {
+                    "clusterInfo": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "clusters": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "desc": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "mode": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "title": "RespInstance",
+                "type": "object"
+            },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstanceSimple": {
                 "properties": {
                     "databases": {
@@ -3911,6 +3942,9 @@
                     },
                     "id": {
                         "type": "integer"
+                    },
+                    "orderField": {
+                        "type": "string"
                     },
                     "rootName": {
                         "type": "string"
@@ -6036,6 +6070,742 @@
                 ]
             }
         },
+        "/api/v1/clusters": {
+            "get": {
+                "description": "根据分页获取Cluster列表",
+                "operationId": "kube.ClusterList",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "items": {
+                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Cluster"
+                                            },
+                                            "type": "array"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "根据分页获取Cluster列表",
+                "tags": [
+                    "KUBE"
+                ]
+            }
+        },
+        "/api/v1/clusters/{clusterId}/configmaps": {
+            "get": {
+                "description": "Get configmap by name",
+                "operationId": "kube.ConfigMapList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "clusterId",
+                        "required": true,
+                        "schema": {
+                            "title": "clusterId"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "items": {
+                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespNamespaceConfigmaps"
+                                            },
+                                            "type": "array"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Get configmap by name",
+                "tags": [
+                    "KUBE"
+                ]
+            },
+            "post": {
+                "description": "Get configmap by name",
+                "operationId": "kube.ConfigMapCreate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "clusterId",
+                        "required": true,
+                        "schema": {
+                            "title": "clusterId"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateConfigMap"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.K8SConfigMap"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Get configmap by name",
+                "tags": [
+                    "KUBE"
+                ]
+            }
+        },
+        "/api/v1/clusters/{clusterId}/namespace/{namespace}/configmaps/{name}": {
+            "get": {
+                "description": "Get configmap by name",
+                "operationId": "kube.ConfigMapInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "clusterId",
+                        "required": true,
+                        "schema": {
+                            "title": "clusterId"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "namespace",
+                        "required": true,
+                        "schema": {
+                            "title": "namespace"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "title": "name"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "key",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "type": "string"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Get configmap by name",
+                "tags": [
+                    "KUBE"
+                ]
+            }
+        },
+        "/api/v1/configurations": {
+            "get": {
+                "description": "配置文件列表",
+                "operationId": "configure.List",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "k8sConfigMapId",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "k8sConfigMapName",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "k8sConfigMapNameSpace",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "clusterId",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespListConfig"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "配置文件列表",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            },
+            "post": {
+                "description": "..",
+                "operationId": "configure.Create",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateConfig"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}": {
+            "delete": {
+                "description": "..",
+                "operationId": "configure.Delete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            },
+            "get": {
+                "description": "..",
+                "operationId": "configure.Detail",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDetailConfig"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            },
+            "patch": {
+                "description": "..",
+                "operationId": "configure.Update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqUpdateConfig"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/diff": {
+            "get": {
+                "description": "..",
+                "operationId": "configure.Diff",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "historyId",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDiffConfig"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/histories": {
+            "get": {
+                "description": "..",
+                "operationId": "configure.HistoryList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "current",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "pageSize",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/histories/{version}": {
+            "get": {
+                "description": "..",
+                "operationId": "configure.HistoryInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "version",
+                        "required": true,
+                        "schema": {
+                            "title": "version"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.ConfigurationHistory"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/lock": {
+            "get": {
+                "operationId": "configure.Lock",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/publish": {
+            "post": {
+                "description": "..",
+                "operationId": "configure.Publish",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqPublishConfig"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "..",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/sync": {
+            "post": {
+                "description": "Synchronize the configmap configuration\n\nif id is 0 means all configurations need to be synchronized\n\nnot support update operator",
+                "operationId": "configure.Sync",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqSyncConfig"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "data": {
+                                            "type": "string"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Synchronize the configmap configuration\n\nif id is 0 means all configurations need to be synchronized\n\nnot support update operator",
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/unlock": {
+            "post": {
+                "operationId": "configure.Unlock",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
         "/api/v1/databases/{did}/tables": {
             "get": {
                 "operationId": "base.TableList",
@@ -7628,7 +8398,7 @@
                                         },
                                         "data": {
                                             "items": {
-                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance"
+                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstance"
                                             },
                                             "type": "array"
                                         },
@@ -10442,742 +11212,6 @@
                 "summary": "Create storage by template",
                 "tags": [
                     "LOGSTORE"
-                ]
-            }
-        },
-        "/clusters": {
-            "get": {
-                "description": "根据分页获取Cluster列表",
-                "operationId": "kube.ClusterList",
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "items": {
-                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Cluster"
-                                            },
-                                            "type": "array"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "根据分页获取Cluster列表",
-                "tags": [
-                    "KUBE"
-                ]
-            }
-        },
-        "/clusters/{clusterId}/configmaps": {
-            "get": {
-                "description": "Get configmap by name",
-                "operationId": "kube.ConfigMapList",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "clusterId",
-                        "required": true,
-                        "schema": {
-                            "title": "clusterId"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "items": {
-                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespNamespaceConfigmaps"
-                                            },
-                                            "type": "array"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Get configmap by name",
-                "tags": [
-                    "KUBE"
-                ]
-            },
-            "post": {
-                "description": "Get configmap by name",
-                "operationId": "kube.ConfigMapCreate",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "clusterId",
-                        "required": true,
-                        "schema": {
-                            "title": "clusterId"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateConfigMap"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.K8SConfigMap"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Get configmap by name",
-                "tags": [
-                    "KUBE"
-                ]
-            }
-        },
-        "/clusters/{clusterId}/namespace/{namespace}/configmaps/{name}": {
-            "get": {
-                "description": "Get configmap by name",
-                "operationId": "kube.ConfigMapInfo",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "clusterId",
-                        "required": true,
-                        "schema": {
-                            "title": "clusterId"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "namespace",
-                        "required": true,
-                        "schema": {
-                            "title": "namespace"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "name",
-                        "required": true,
-                        "schema": {
-                            "title": "name"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "key",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "type": "string"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Get configmap by name",
-                "tags": [
-                    "KUBE"
-                ]
-            }
-        },
-        "/configurations": {
-            "get": {
-                "description": "配置文件列表",
-                "operationId": "configure.List",
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "k8sConfigMapId",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "k8sConfigMapName",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "k8sConfigMapNameSpace",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "clusterId",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespListConfig"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "配置文件列表",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            },
-            "post": {
-                "description": "..",
-                "operationId": "configure.Create",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqCreateConfig"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}": {
-            "delete": {
-                "description": "..",
-                "operationId": "configure.Delete",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            },
-            "get": {
-                "description": "..",
-                "operationId": "configure.Detail",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDetailConfig"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            },
-            "patch": {
-                "description": "..",
-                "operationId": "configure.Update",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqUpdateConfig"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}/diff": {
-            "get": {
-                "description": "..",
-                "operationId": "configure.Diff",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "id",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "historyId",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespDiffConfig"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}/histories": {
-            "get": {
-                "description": "..",
-                "operationId": "configure.HistoryList",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "current",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "pageSize",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {},
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}/histories/{version}": {
-            "get": {
-                "description": "..",
-                "operationId": "configure.HistoryInfo",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "version",
-                        "required": true,
-                        "schema": {
-                            "title": "version"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.ConfigurationHistory"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}/lock": {
-            "get": {
-                "operationId": "configure.Lock",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}/publish": {
-            "post": {
-                "description": "..",
-                "operationId": "configure.Publish",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqPublishConfig"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "..",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}/sync": {
-            "post": {
-                "description": "Synchronize the configmap configuration\n\nif id is 0 means all configurations need to be synchronized\n\nnot support update operator",
-                "operationId": "configure.Sync",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.ReqSyncConfig"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "data": {
-                                            "type": "string"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Synchronize the configmap configuration\n\nif id is 0 means all configurations need to be synchronized\n\nnot support update operator",
-                "tags": [
-                    "CONFIGURE"
-                ]
-            }
-        },
-        "/configurations/{id}/unlock": {
-            "post": {
-                "operationId": "configure.Unlock",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "title": "id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "CONFIGURE"
                 ]
             }
         }
