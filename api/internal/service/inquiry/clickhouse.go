@@ -339,6 +339,7 @@ func (c *ClickHouseX) SyncView(table db.BaseTable, current *db.BaseView, list []
 	// build view statement
 	conds := egorm.Conds{}
 	conds["tid"] = table.ID
+	conds["kind"] = db.IndexKindLog
 	indexes, err := db.IndexList(conds)
 	if err != nil {
 		return
@@ -347,7 +348,6 @@ func (c *ClickHouseX) SyncView(table db.BaseTable, current *db.BaseView, list []
 	for _, i := range indexes {
 		indexMap[i.Field] = i
 	}
-	elog.Debug("ViewCreate", elog.String("dViewSQL", dViewSQL), elog.String("cViewSQL", cViewSQL))
 	dViewSQL, err = c.updateSwitcher(table.TimeFieldKind, table.ID, table.Did, table.Name, "", current, list, indexMap, isAddOrUpdate)
 	if err != nil {
 		return
