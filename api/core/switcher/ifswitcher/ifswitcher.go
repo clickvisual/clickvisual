@@ -33,4 +33,5 @@ type Params struct {
 	ParseTime           string
 	ParseWhere          string
 	IsRawLogFieldString bool
+	CustomTimeField     string
 }

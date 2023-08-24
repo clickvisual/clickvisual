@@ -1600,7 +1600,17 @@ func (c *ClickHouseX) updateReaderJSONAsString(tableInfo *db.BaseTable, params v
 	return readerSQLs[0], nil
 }
 
-func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, database *db.BaseDatabase, tid int, customTimeField string, indexes map[string]*db.BaseIndex) (res string, err error) {
+func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, timeView *db.BaseView, timeViewList []*db.BaseView, database *db.BaseDatabase, tid int, customTimeField string, indexes map[string]*db.BaseIndex) (res string, err error) {
+	var parseTime string
+	var parseWhere string
+	if customTimeField == "" {
+		parseTime = c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField())
+		parseWhere = c.whereConditionSQLDefault(timeViewList, ct.GetRawLogField())
+	} else {
+		parseTime = c.timeParseJSONAsString(ct.Typ, timeView, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField())
+		parseWhere = c.whereConditionSQLCurrent(timeView, ct.GetRawLogField())
+	}
+
 	params := ifswitcher.Params{
 		CreateType:          constx.TableCreateTypeJSONAsString,
 		IsShard:             c.isShard(database.Cluster),
@@ -1613,9 +1623,12 @@ func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, datab
 		RawLogFieldParent:   ct.RawLogFieldParent,
 		ParseIndexes:        c.jsonExtractSQL(indexes, ct.GetRawLogField()),
 		ParseFields:         ct.Mapping2Fields(ct.RawLogFieldParent),
-		ParseTime:           c.timeParseJSONAsString(ct.Typ, nil, ct.TimeField, ct.TimeFieldParent, ct.GetRawLogField()),
-		ParseWhere:          c.whereConditionSQLDefault(nil, ct.GetRawLogField()),
+		ParseTime:           parseTime,
+		ParseWhere:          parseWhere,
 		IsRawLogFieldString: ct.IsRawLogFieldString(),
+	}
+	if customTimeField != "" {
+		params.CustomTimeField = timeView.Key
 	}
 	// 初始化 switcher
 	sw := switcher.New(db.DatasourceClickHouse, params)
@@ -1981,7 +1994,7 @@ func (c *ClickHouseX) updateSwitcher(typ, tid int, did int, table, customTimeFie
 			Database:         tableInfo.Database,
 		})
 	case constx.TableCreateTypeJSONAsString:
-		return c.updateSwitcherJSONAsString(rsc, tableInfo.Database, tid, customTimeField, indexes)
+		return c.updateSwitcherJSONAsString(rsc, current, list, tableInfo.Database, tid, customTimeField, indexes)
 	default:
 		// 默认执行 JSONAsEachRow 模式
 		return c.updateSwitcherJSONEachRow(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, rsc)
