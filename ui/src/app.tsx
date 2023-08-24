@@ -81,7 +81,12 @@ export const layout = ({
 }: {
   initialState: InitialStateType;
 }): any => {
-  const { menus, settings, currentUser } = initialState;
+  let headerRender = true
+  const path = history.location.pathname;
+  if( path.endsWith("/share") || path.endsWith("/share/")) {
+    headerRender = false
+  }
+  const { menus, settings, currentUser, } = initialState;
   return {
     menuDataRender: () => menus,
     rightContentRender: () => <RightContent />,
@@ -99,6 +104,7 @@ export const layout = ({
     },
     links: [],
     menuHeaderRender: undefined,
+    headerRender: headerRender,
     logo: Logo,
     ...settings,
   };
