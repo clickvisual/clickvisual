@@ -32,6 +32,7 @@ type Switcher struct {
 	parseWhere          string
 	withAttachFields    bool // withAttachFields Whether to include attachment fields, such as _key/headers
 	isRawLogFieldString bool // isRawLogFieldJSON Whether the raw log field is JSON
+	customTimeField     string
 }
 
 func NewSwitcher(req ifswitcher.Params) *Switcher {
@@ -50,6 +51,7 @@ func NewSwitcher(req ifswitcher.Params) *Switcher {
 		parseTime:           req.ParseTime,
 		parseWhere:          req.ParseWhere,
 		isRawLogFieldString: req.IsRawLogFieldString,
+		customTimeField:     req.CustomTimeField,
 	}
 }
 
@@ -88,10 +90,16 @@ func (ch *Switcher) materializedView() (name string, sql string) {
 		dataName = fmt.Sprintf("`%s`.`%s_local`", ch.database, ch.table)
 		streamName = fmt.Sprintf("`%s`.`%s_local_stream`", ch.database, ch.table)
 		viewName = fmt.Sprintf("`%s`.`%s_local_view`", ch.database, ch.table)
+		if ch.customTimeField != "" {
+			viewName = fmt.Sprintf("`%s`.`%s_%s_local_view`", ch.database, ch.table, ch.customTimeField)
+		}
 		viewNameWithCluster = fmt.Sprintf("%s on cluster '%s'", viewName, ch.cluster)
 	} else {
 		dataName = fmt.Sprintf("`%s`.`%s`", ch.database, ch.table)
 		streamName = fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
+		if ch.customTimeField != "" {
+			viewName = fmt.Sprintf("`%s`.`%s_%s_view`", ch.database, ch.table, ch.customTimeField)
+		}
 		viewNameWithCluster = viewName
 	}
 	l := "_log"
@@ -140,9 +148,17 @@ func (ch *Switcher) Delete() error {
 	sqls := make([]string, 0)
 	// delete mv table
 	if ch.isReplica || ch.isShard {
-		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.cluster))
+		if ch.customTimeField != "" {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.customTimeField, ch.cluster))
+		} else {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.cluster))
+		}
 	} else {
-		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_view`", ch.database, ch.table))
+		if ch.customTimeField != "" {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.customTimeField, ch.cluster))
+		} else {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_view`", ch.database, ch.table))
+		}
 	}
 	return common.Exec(ch.conn, sqls)
 }
