@@ -1,4 +1,4 @@
-package ifreader
+package i
 
 import (
 	"database/sql"
@@ -14,7 +14,7 @@ type Reader interface {
 	Attach() error
 }
 
-type Params struct {
+type ReaderParams struct {
 	// common
 	CreateType int
 

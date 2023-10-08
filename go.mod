@@ -1,6 +1,6 @@
 module github.com/clickvisual/clickvisual
 
-go 1.20
+go 1.21
 
 require (
 	github.com/BurntSushi/toml v1.2.1
@@ -20,6 +20,7 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/google/uuid v1.3.0
 	github.com/gotomicro/cetus v0.1.2
+	github.com/gotomicro/cetus/l v0.0.0-20230725040649-ab58de0846c1
 	github.com/gotomicro/ego v1.1.5
 	github.com/gotomicro/unittest v0.0.1
 	github.com/jinzhu/gorm v1.9.16
@@ -115,7 +116,6 @@ require (
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/gotomicro/cetus/l v0.0.0-20230725040649-ab58de0846c1 // indirect
 	github.com/gotomicro/logrotate v0.0.0-20211108034117-46d53eedc960 // indirect
 	github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect

@@ -7,11 +7,11 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/core/common"
-	"github.com/clickvisual/clickvisual/api/core/switcher/ifswitcher"
+	"github.com/clickvisual/clickvisual/api/core/i"
 	"github.com/clickvisual/clickvisual/api/pkg/constx"
 )
 
-var _ ifswitcher.Switcher = (*Switcher)(nil)
+var _ i.Switcher = (*Switcher)(nil)
 
 type Switcher struct {
 	createType int
@@ -35,7 +35,7 @@ type Switcher struct {
 	customTimeField     string
 }
 
-func NewSwitcher(req ifswitcher.Params) *Switcher {
+func NewSwitcher(req i.SwitcherParams) *Switcher {
 	return &Switcher{
 		createType:          req.CreateType,
 		isShard:             req.IsShard,

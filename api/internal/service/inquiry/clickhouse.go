@@ -16,12 +16,10 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
+	"github.com/clickvisual/clickvisual/api/core/i"
 	"github.com/clickvisual/clickvisual/api/core/reader"
-	"github.com/clickvisual/clickvisual/api/core/reader/ifreader"
 	"github.com/clickvisual/clickvisual/api/core/storer"
-	"github.com/clickvisual/clickvisual/api/core/storer/ifstorer"
 	"github.com/clickvisual/clickvisual/api/core/switcher"
-	"github.com/clickvisual/clickvisual/api/core/switcher/ifswitcher"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
@@ -1144,7 +1142,7 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 	var readerSQLs []string
 	var switcherSQLs []string
 	// storer
-	_, storeSQLs, err = storer.New(db.DatasourceClickHouse, ifstorer.Params{
+	_, storeSQLs, err = storer.New(db.DatasourceClickHouse, i.StorerParams{
 		CreateType: ct.CreateType,
 		IsShard:    c.isShard(database.Cluster),
 		IsReplica:  c.isReplica(database.Cluster),
@@ -1159,7 +1157,7 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 		return
 	}
 	// reader
-	_, readerSQLs, err = reader.New(db.DatasourceClickHouse, ifreader.Params{
+	_, readerSQLs, err = reader.New(db.DatasourceClickHouse, i.ReaderParams{
 		CreateType:              ct.CreateType,
 		IsShard:                 c.isShard(database.Cluster),
 		IsReplica:               c.isReplica(database.Cluster),
@@ -1177,7 +1175,7 @@ func (c *ClickHouseX) CreateStorageJSONAsString(database db.BaseDatabase, ct vie
 		return
 	}
 	// switcher
-	_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, ifswitcher.Params{
+	_, switcherSQLs, err = switcher.New(db.DatasourceClickHouse, i.SwitcherParams{
 		CreateType:          ct.CreateType,
 		IsShard:             c.isShard(database.Cluster),
 		IsReplica:           c.isReplica(database.Cluster),
@@ -1580,7 +1578,7 @@ func (c *ClickHouseX) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPip
 // V3TableType
 func (c *ClickHouseX) updateReaderJSONAsString(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (res string, err error) {
 	// reader
-	_, readerSQLs, err := reader.New(db.DatasourceClickHouse, ifreader.Params{
+	_, readerSQLs, err := reader.New(db.DatasourceClickHouse, i.ReaderParams{
 		CreateType:              tableInfo.CreateType,
 		IsShard:                 c.isShard(tableInfo.Database.Cluster),
 		IsReplica:               c.isReplica(tableInfo.Database.Cluster),
@@ -1611,7 +1609,7 @@ func (c *ClickHouseX) updateSwitcherJSONAsString(ct view.ReqStorageCreate, timeV
 		parseWhere = c.whereConditionSQLCurrent(timeView, ct.GetRawLogField())
 	}
 
-	params := ifswitcher.Params{
+	params := i.SwitcherParams{
 		CreateType:          constx.TableCreateTypeJSONAsString,
 		IsShard:             c.isShard(database.Cluster),
 		IsReplica:           c.isReplica(database.Cluster),

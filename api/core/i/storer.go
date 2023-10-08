@@ -1,10 +1,10 @@
-package ifswitcher
+package i
 
 import (
 	"database/sql"
 )
 
-type Switcher interface {
+type Storer interface {
 	// Description read model
 	Description() string
 
@@ -14,7 +14,7 @@ type Switcher interface {
 	Attach() error
 }
 
-type Params struct {
+type StorerParams struct {
 	// common
 	CreateType int
 
@@ -25,13 +25,10 @@ type Params struct {
 	Table     string  // table name
 	Conn      *sql.DB // clickhouse
 
+	// storer
+	Fields string
+	TTL    int // ttl Data expiration time, unit is the day
+
 	// switcher
-	RawLogField         string
-	RawLogFieldParent   string
-	ParseIndexes        string
-	ParseFields         string
-	ParseTime           string
-	ParseWhere          string
-	IsRawLogFieldString bool
-	CustomTimeField     string
+
 }

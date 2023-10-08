@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/clickvisual/clickvisual/api/cmd"
-	_ "github.com/clickvisual/clickvisual/api/cmd/sten"
+	_ "github.com/clickvisual/clickvisual/api/cmd/agent"
 )
 
 func main() {

@@ -134,6 +134,16 @@ allowedOrganizations = []
 [app]
 isMultiCopy = true
 
+[auth]
+mode = "redis" # redis memstore
+# 组件名，默认 clickvisual-session
+name = "clickvisual-session"
+keypairs = "secret"
+redisSize = 10
+redisNetwork = "tcp"
+redisAddr = ""
+redisPassword = ""
+
 [redis]
 debug = true
 addr = "127.0.0.1:6379"

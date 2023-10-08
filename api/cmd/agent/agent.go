@@ -1,4 +1,4 @@
-package sten
+package agent
 
 import (
 	"fmt"
@@ -10,10 +10,9 @@ import (
 )
 
 var CmdRun = &cobra.Command{
-	Use:   "sten",
+	Use:   "agent",
 	Short: "create a log library from a template",
-	Long: `create a log library from a template
-	`,
+	Long:  `create a log library from a template`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		config.PreRun(cmd, args)
 	},
