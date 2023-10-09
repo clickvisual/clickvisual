@@ -9,9 +9,9 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type pms struct{}
@@ -129,7 +129,7 @@ func (p *pms) CreateDefaultRolePms(newDefaultRole *view.DefaultRolePms) (err err
 	}
 
 	// check the existence of current default roles, if already exist, then need to check the equality of subResource
-	searchDefaultRes, err := db.GetDefaultRolePmsList(db.Conds{
+	searchDefaultRes, err := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": newDefaultRole.BelongType,
 		"role_name":   newDefaultRole.RoleName,
 	})
@@ -146,7 +146,7 @@ func (p *pms) CreateDefaultRolePms(newDefaultRole *view.DefaultRolePms) (err err
 		}
 	}
 	// 2. check if the customRole already has the role with same belongType and roleName, if exist, will return error
-	searchCustomRes, err := db.GetCustomRolePmsList(db.Conds{
+	searchCustomRes, err := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": newDefaultRole.BelongType,
 		"role_name":   newDefaultRole.RoleName,
 	})
@@ -180,7 +180,7 @@ func (p *pms) CreateDefaultRolePms(newDefaultRole *view.DefaultRolePms) (err err
 	var pRuleAdded bool
 	switch newDefaultRole.BelongType {
 	case pmsplugin.PrefixInstance:
-		instances, err := db.InstanceList(egorm.Conds{})
+		instances, err := db2.InstanceList(egorm.Conds{})
 		if err != nil {
 			return errors.Wrap(err, "get apps failed, stop adding p rules for app")
 		}
@@ -197,7 +197,7 @@ func (p *pms) CreateDefaultRolePms(newDefaultRole *view.DefaultRolePms) (err err
 	}
 	// 4. finally, if p rule(s) added in casbin then add this new default role in db.
 	if pRuleAdded {
-		if err = db.PmsDefaultRoleCreate(&(newDefaultRole.PmsDefaultRole)); err != nil {
+		if err = db2.PmsDefaultRoleCreate(&(newDefaultRole.PmsDefaultRole)); err != nil {
 			return err
 		}
 	}
@@ -217,7 +217,7 @@ func (*pms) CreateCustomRolePms(newCustomRole view.CustomRolePms) (err error) {
 	}
 
 	// check the existence of current default roles, if already exist, then return error
-	searchDefaultRes, err := db.GetDefaultRolePmsList(db.Conds{
+	searchDefaultRes, err := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": newCustomRole.BelongType,
 		"role_name":   newCustomRole.RoleName,
 	})
@@ -229,7 +229,7 @@ func (*pms) CreateCustomRolePms(newCustomRole view.CustomRolePms) (err error) {
 		return errors.New("same role already exist in default role.")
 	}
 	// 2. check the existence of customRole,
-	searchCustomRes, err := db.GetCustomRolePmsList(db.Conds{
+	searchCustomRes, err := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": newCustomRole.BelongType,
 		"role_name":   newCustomRole.RoleName,
 		"refer_id":    newCustomRole.ReferId,
@@ -265,7 +265,7 @@ func (*pms) CreateCustomRolePms(newCustomRole view.CustomRolePms) (err error) {
 	var pRuleAdded bool
 	switch newCustomRole.BelongType {
 	case pmsplugin.PrefixInstance:
-		instances, err := db.InstanceList(egorm.Conds{"id": newCustomRole.ReferId})
+		instances, err := db2.InstanceList(egorm.Conds{"id": newCustomRole.ReferId})
 		if err != nil {
 			return errors.Wrap(err, "get target app failed, stop adding p rules for app")
 		}
@@ -282,7 +282,7 @@ func (*pms) CreateCustomRolePms(newCustomRole view.CustomRolePms) (err error) {
 	}
 	// 4. finally, if p rule(s) added in casbin then add this new custom role in db.
 	if pRuleAdded {
-		if err := db.PmsCustomRoleCreate(&(newCustomRole.PmsCustomRole)); err != nil {
+		if err := db2.PmsCustomRoleCreate(&(newCustomRole.PmsCustomRole)); err != nil {
 			return err
 		}
 	}
@@ -300,7 +300,7 @@ func (p *pms) DeleteDefaultRolePms(delDefaultRole view.DefaultRolePms) (err erro
 	}
 
 	// check the existence in current default roles, if not exist, then return error
-	currentDefaultRoles, err := db.GetDefaultRolePmsList(db.Conds{
+	currentDefaultRoles, err := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": delDefaultRole.BelongType,
 		"role_name":   delDefaultRole.RoleName,
 	})
@@ -330,7 +330,7 @@ func (p *pms) DeleteDefaultRolePms(delDefaultRole view.DefaultRolePms) (err erro
 	var rulesDeleted bool
 	switch delDefaultRole.BelongType {
 	case pmsplugin.PrefixInstance:
-		instances, err := db.InstanceList(egorm.Conds{})
+		instances, err := db2.InstanceList(egorm.Conds{})
 		if err != nil {
 			return errors.Wrap(err, "get apps failed, stop removing p rules of default role for app")
 		}
@@ -364,7 +364,7 @@ func (p *pms) DeleteDefaultRolePms(delDefaultRole view.DefaultRolePms) (err erro
 
 	if rulesDeleted {
 		for _, dbDefaultRole := range currentDefaultRoles {
-			if err := db.PmsDefaultRoleDelete(int(dbDefaultRole.ID)); err != nil {
+			if err := db2.PmsDefaultRoleDelete(int(dbDefaultRole.ID)); err != nil {
 				elog.Error("delete defaultRole db record error", zap.Error(err))
 			}
 		}
@@ -384,7 +384,7 @@ func (p *pms) DeleteCustomRolePms(delCustomRole view.CustomRolePms) (err error) 
 		return errors.New("the id of refer obj of custom role cannot be 0, stop deleting")
 	}
 	// check the existence in current custom roles, if not exist, then return error
-	currentCustomRoles, err := db.GetCustomRolePmsList(db.Conds{
+	currentCustomRoles, err := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": delCustomRole.BelongType,
 		"role_name":   delCustomRole.RoleName,
 		"refer_id":    delCustomRole.ReferId,
@@ -434,7 +434,7 @@ func (p *pms) DeleteCustomRolePms(delCustomRole view.CustomRolePms) (err error) 
 
 	// 4. finally, delete custom role in db.
 	for _, dbCustomRole := range currentCustomRoles {
-		if err := db.PmsCustomRoleDelete(int(dbCustomRole.ID)); err != nil {
+		if err := db2.PmsCustomRoleDelete(int(dbCustomRole.ID)); err != nil {
 			elog.Error("delete customRole db record error", zap.Error(err))
 		}
 	}
@@ -494,14 +494,14 @@ func (*pms) EnsureResourceHasDefaultRoles(resourceType string, resourceIdx strin
 			return fmt.Errorf("resourceIdx is an invalid appId, error: %s", err.Error())
 		}
 		// 2. check the existence of target app based on resourceIdx(i.e. appId)
-		targetInstanceList, err := db.InstanceList(egorm.Conds{
+		targetInstanceList, err := db2.InstanceList(egorm.Conds{
 			"id": insId,
 		})
 		if err != nil || len(targetInstanceList) <= 0 {
 			return fmt.Errorf("not found target app based on resourceIdx(appId) %s", resourceIdx)
 		}
 		// 3. check the existence of "app" type defaultRole
-		defaultRolePmsList, _ := db.GetDefaultRolePmsList(db.Conds{
+		defaultRolePmsList, _ := db2.GetDefaultRolePmsList(db2.Conds{
 			"belong_type": pmsplugin.PrefixInstance,
 		})
 		if len(defaultRolePmsList) <= 0 {
@@ -541,9 +541,9 @@ func (*pms) EnsureUsersHaveResourceDefaultRole(reqFuzzyDefaultRole view.ReqEnsur
 		return nil
 	}
 	// search fuzzyDefaultRole(s)
-	fuzzyDefaultRoles, err := db.GetDefaultRolePmsList(db.Conds{
+	fuzzyDefaultRoles, err := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": reqFuzzyDefaultRole.BelongType,
-		"role_name": db.Cond{
+		"role_name": db2.Cond{
 			Op:  "like",
 			Val: reqFuzzyDefaultRole.RoleNameLike,
 		},
@@ -561,7 +561,7 @@ func (*pms) EnsureUsersHaveResourceDefaultRole(reqFuzzyDefaultRole view.ReqEnsur
 			return fmt.Errorf("referIdx is an invalid appId, error: %s", err.Error())
 		}
 		// 2. check the existence of target app based on referIdx(i.e. appId)
-		targetInstanceList, err := db.InstanceList(egorm.Conds{
+		targetInstanceList, err := db2.InstanceList(egorm.Conds{
 			"id": insId,
 		})
 		if err != nil || len(targetInstanceList) <= 0 {
@@ -693,7 +693,7 @@ func (*pms) GetAllRolesOfUser(uid int) (res []view.RoleItem, err error) {
 func (p *pms) GetUsersIdByAppRoleInAllDomain(appId int, roleName string) view.DomainUids {
 	result := make(view.DomainUids)
 	// check custom role table
-	customRolePmsList, _ := db.GetCustomRolePmsList(db.Conds{
+	customRolePmsList, _ := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 		"refer_id":    appId,
 		"role_name":   roleName,
@@ -730,7 +730,7 @@ func (p *pms) GetUsersIdByAppRoleInAllDomain(appId int, roleName string) view.Do
 		return result
 	}
 	// default role table
-	defaultRolePmsList, _ := db.GetDefaultRolePmsList(db.Conds{
+	defaultRolePmsList, _ := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 		"role_name":   roleName,
 	})
@@ -771,7 +771,7 @@ func (p *pms) GetUsersIdByAppRoleInAllDomain(appId int, roleName string) view.Do
 func (p *pms) GetUsersIdByAppRoleInDom(appId int, roleName string, reqDom string) []int {
 	uids := make([]int, 0)
 	// check custom role table
-	customRolePmsList, _ := db.GetCustomRolePmsList(db.Conds{
+	customRolePmsList, _ := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 		"refer_id":    appId,
 		"role_name":   roleName,
@@ -792,7 +792,7 @@ func (p *pms) GetUsersIdByAppRoleInDom(appId int, roleName string, reqDom string
 		return uids
 	}
 	// default role table
-	defaultRolePmsList, _ := db.GetDefaultRolePmsList(db.Conds{
+	defaultRolePmsList, _ := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 		"role_name":   roleName,
 	})
@@ -819,13 +819,13 @@ func (p *pms) GetTableAvailableRoles(appId int) *view.AppAvailableRoles {
 	var appDefaultRoles = make([]view.RoleItem, 0)
 	var appCustomRoles = make([]view.RoleItem, 0)
 	// 1. process app default roles
-	defaultRolePmsList, _ := db.GetDefaultRolePmsList(db.Conds{
+	defaultRolePmsList, _ := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 	})
-	defaultRoleMap := make(map[string][]db.PmsDefaultRole)
+	defaultRoleMap := make(map[string][]db2.PmsDefaultRole)
 	for _, defaultRole := range defaultRolePmsList {
 		if _, exist := defaultRoleMap[defaultRole.RoleName]; !exist {
-			defaultRoleMap[defaultRole.RoleName] = []db.PmsDefaultRole{*defaultRole}
+			defaultRoleMap[defaultRole.RoleName] = []db2.PmsDefaultRole{*defaultRole}
 			continue
 		}
 		defaultRoleMap[defaultRole.RoleName] = append(defaultRoleMap[defaultRole.RoleName], *defaultRole)
@@ -852,14 +852,14 @@ func (p *pms) GetTableAvailableRoles(appId int) *view.AppAvailableRoles {
 
 	}
 	// 2. process app custom roles
-	customRolePmsList, _ := db.GetCustomRolePmsList(db.Conds{
+	customRolePmsList, _ := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 		"refer_id":    appId,
 	})
-	customRoleMap := make(map[string][]db.PmsCustomRole)
+	customRoleMap := make(map[string][]db2.PmsCustomRole)
 	for _, customRole := range customRolePmsList {
 		if _, exist := customRoleMap[customRole.RoleName]; !exist {
-			customRoleMap[customRole.RoleName] = []db.PmsCustomRole{*customRole}
+			customRoleMap[customRole.RoleName] = []db2.PmsCustomRole{*customRole}
 			continue
 		}
 		customRoleMap[customRole.RoleName] = append(customRoleMap[customRole.RoleName], *customRole)
@@ -895,19 +895,19 @@ func (p *pms) GetTableAvailableRoles(appId int) *view.AppAvailableRoles {
 
 func (p *pms) GetTableRolesAssignmentInfoInAllDom(appId int) (appRolesAssignRes view.TableRolesAssignmentInfo) {
 	// 先查两个表, default_role & custom_role; 然后通过casbin api去获取userId 填充AppRolesAssignmentInfo
-	customRolePmsList, _ := db.GetCustomRolePmsList(db.Conds{
+	customRolePmsList, _ := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 		"refer_id":    appId,
 	})
-	defaultRolePmsList, _ := db.GetDefaultRolePmsList(db.Conds{
+	defaultRolePmsList, _ := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 	})
 	appRolesAssignRes.AppId = appId
 	// first traverse app customRole item
-	customRoleMap := make(map[string][]db.PmsCustomRole)
+	customRoleMap := make(map[string][]db2.PmsCustomRole)
 	for _, customRole := range customRolePmsList {
 		if _, exist := customRoleMap[customRole.RoleName]; !exist {
-			customRoleMap[customRole.RoleName] = []db.PmsCustomRole{*customRole}
+			customRoleMap[customRole.RoleName] = []db2.PmsCustomRole{*customRole}
 			continue
 		}
 		customRoleMap[customRole.RoleName] = append(customRoleMap[customRole.RoleName], *customRole)
@@ -944,10 +944,10 @@ func (p *pms) GetTableRolesAssignmentInfoInAllDom(appId int) (appRolesAssignRes 
 
 	}
 	// then traverse global defaultRole item of app
-	defaultRoleMap := make(map[string][]db.PmsDefaultRole)
+	defaultRoleMap := make(map[string][]db2.PmsDefaultRole)
 	for _, defaultRole := range defaultRolePmsList {
 		if _, exist := defaultRoleMap[defaultRole.RoleName]; !exist {
-			defaultRoleMap[defaultRole.RoleName] = []db.PmsDefaultRole{*defaultRole}
+			defaultRoleMap[defaultRole.RoleName] = []db2.PmsDefaultRole{*defaultRole}
 			continue
 		}
 		defaultRoleMap[defaultRole.RoleName] = append(defaultRoleMap[defaultRole.RoleName], *defaultRole)
@@ -988,19 +988,19 @@ func (p *pms) GetTableRolesAssignmentInfoInAllDom(appId int) (appRolesAssignRes 
 func (p *pms) GetAppRolesAssignmentInfoInDom(appId int, reqDom string) (appRolesAssignRes view.TableRolesAssignmentInfo) {
 	reqDomType, reqDomId := pmsplugin.GetDomTypeAndId(reqDom)
 	// 先查两个表, default_role & custom_role; 然后通过casbin api去获取userId 填充AppRolesAssignmentInfo
-	customRolePmsList, _ := db.GetCustomRolePmsList(db.Conds{
+	customRolePmsList, _ := db2.GetCustomRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 		"refer_id":    appId,
 	})
-	defaultRolePmsList, _ := db.GetDefaultRolePmsList(db.Conds{
+	defaultRolePmsList, _ := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": pmsplugin.PrefixInstance,
 	})
 	appRolesAssignRes.AppId = appId
 	// first traverse app customRole item
-	customRoleMap := make(map[string][]db.PmsCustomRole)
+	customRoleMap := make(map[string][]db2.PmsCustomRole)
 	for _, customRole := range customRolePmsList {
 		if _, exist := customRoleMap[customRole.RoleName]; !exist {
-			customRoleMap[customRole.RoleName] = []db.PmsCustomRole{*customRole}
+			customRoleMap[customRole.RoleName] = []db2.PmsCustomRole{*customRole}
 			continue
 		}
 		customRoleMap[customRole.RoleName] = append(customRoleMap[customRole.RoleName], *customRole)
@@ -1031,10 +1031,10 @@ func (p *pms) GetAppRolesAssignmentInfoInDom(appId int, reqDom string) (appRoles
 		})
 	}
 	// then traverse global defaultRole item of app
-	defaultRoleMap := make(map[string][]db.PmsDefaultRole)
+	defaultRoleMap := make(map[string][]db2.PmsDefaultRole)
 	for _, defaultRole := range defaultRolePmsList {
 		if _, exist := defaultRoleMap[defaultRole.RoleName]; !exist {
-			defaultRoleMap[defaultRole.RoleName] = []db.PmsDefaultRole{*defaultRole}
+			defaultRoleMap[defaultRole.RoleName] = []db2.PmsDefaultRole{*defaultRole}
 			continue
 		}
 		defaultRoleMap[defaultRole.RoleName] = append(defaultRoleMap[defaultRole.RoleName], *defaultRole)
@@ -1068,8 +1068,8 @@ func (p *pms) GetAppRolesAssignmentInfoInDom(appId int, reqDom string) (appRoles
 }
 
 // GetAllDefaultRoles:  get all current default roles
-func (*pms) GetPmsDefaultRoles(conds db.Conds) ([]*db.PmsDefaultRole, error) {
-	return db.GetDefaultRolePmsList(conds)
+func (*pms) GetPmsDefaultRoles(conds db2.Conds) ([]*db2.PmsDefaultRole, error) {
+	return db2.GetDefaultRolePmsList(conds)
 }
 
 // OverwriteAppRolesUser: overwrite the granted state of all roles of an app, based on the input param []AppRoleUsersItem

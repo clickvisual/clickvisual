@@ -13,9 +13,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 )
 
 func GetRouter() *egin.Component {

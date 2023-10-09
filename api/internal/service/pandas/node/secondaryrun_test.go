@@ -6,7 +6,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func Test_dagEdgeExecFlow(t *testing.T) {

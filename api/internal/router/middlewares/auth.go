@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	core2 "github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 func AuthChecker() gin.HandlerFunc {
@@ -26,7 +26,7 @@ func AuthChecker() gin.HandlerFunc {
 		case !isNotAnonymousUser(c):
 		default:
 			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login", Msg: "cannot find specified token information (# 1)"})
+			c.JSON(http.StatusOK, core2.Res{Code: 302, Data: appURL + "user/login", Msg: "cannot find specified token information (# 1)"})
 			c.Abort()
 			return
 		}
@@ -35,21 +35,21 @@ func AuthChecker() gin.HandlerFunc {
 
 func RootChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user := core.ContextUser(c)
+		user := core2.ContextUser(c)
 		if user == nil {
-			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "session user is nil", Msg: ""})
+			c.JSON(http.StatusOK, core2.Res{Code: 1, Data: "session user is nil", Msg: ""})
 			c.Abort()
 			return
 		}
-		u := db.User{}
+		u := db2.User{}
 		userBytes, _ := json.Marshal(user)
 		if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
-			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "user content is empty: " + string(userBytes), Msg: "administrator privileges are required to access this api"})
+			c.JSON(http.StatusOK, core2.Res{Code: 1, Data: "user content is empty: " + string(userBytes), Msg: "administrator privileges are required to access this api"})
 			c.Abort()
 			return
 		}
 		if err := permission.Manager.IsRootUser(u.Uid); err != nil {
-			c.JSON(http.StatusOK, core.Res{Code: 1, Data: "IsRootUser: " + err.Error(), Msg: "administrator privileges are required to access this api"})
+			c.JSON(http.StatusOK, core2.Res{Code: 1, Data: "IsRootUser: " + err.Error(), Msg: "administrator privileges are required to access this api"})
 			c.Abort()
 			return
 		}
@@ -63,13 +63,13 @@ func isNotLogin(c *gin.Context) bool {
 	if user == nil {
 		return true
 	}
-	u := db.User{}
+	u := db2.User{}
 	userBytes, _ := json.Marshal(user)
 	if _ = json.Unmarshal(userBytes, &u); u.Username == "" {
 		return true
 	}
-	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
-	c.Set(core.UserContextKey, ctxUser)
+	ctxUser := &core2.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
+	c.Set(core2.UserContextKey, ctxUser)
 	c.Next()
 	return false
 }
@@ -78,9 +78,9 @@ func isNotAnonymousUser(c *gin.Context) bool {
 	if !econf.GetBool("auth.anonymous.enabled") {
 		return true
 	}
-	u := &db.User{Username: "anonymous", Nickname: "anonymous", BaseModel: db.BaseModel{ID: 999999}}
-	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
-	c.Set(core.UserContextKey, ctxUser)
+	u := &db2.User{Username: "anonymous", Nickname: "anonymous", BaseModel: db2.BaseModel{ID: 999999}}
+	ctxUser := &core2.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
+	c.Set(core2.UserContextKey, ctxUser)
 	c.Next()
 	return false
 }
@@ -98,7 +98,7 @@ func isNotAuthProxy(c *gin.Context) bool {
 	// User login
 	conds := egorm.Conds{}
 	conds["username"] = username
-	u, err := db.UserInfoX(conds)
+	u, err := db2.UserInfoX(conds)
 	if err != nil && !errors.Is(err, egorm.ErrRecordNotFound) {
 		elog.Error("isNotAuthProxy", elog.String("step", "UserInfoX"), elog.String("username", username), elog.String("error", err.Error()))
 		return true
@@ -108,8 +108,8 @@ func isNotAuthProxy(c *gin.Context) bool {
 		if nickName == "" {
 			nickName = username
 		}
-		u = db.User{Username: username, Nickname: nickName, Access: "auth.proxy"}
-		err = db.UserCreate(invoker.Db, &u)
+		u = db2.User{Username: username, Nickname: nickName, Access: "auth.proxy"}
+		err = db2.UserCreate(invoker.Db, &u)
 		if err != nil {
 			elog.Error("isNotAuthProxy", elog.String("step", "UserCreate"), elog.String("username", username), elog.String("error", err.Error()))
 			return true
@@ -127,8 +127,8 @@ func isNotAuthProxy(c *gin.Context) bool {
 		}
 	}
 	elog.Debug("isNotAuthProxy", elog.String("step", "finish"), elog.Any("user", u))
-	ctxUser := &core.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
-	c.Set(core.UserContextKey, ctxUser)
+	ctxUser := &core2.User{Uid: int64(u.ID), Nickname: u.Nickname, Username: u.Username, Avatar: u.Avatar, Email: u.Email}
+	c.Set(core2.UserContextKey, ctxUser)
 	c.Next()
 	return false
 }

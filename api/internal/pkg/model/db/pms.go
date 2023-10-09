@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 const (

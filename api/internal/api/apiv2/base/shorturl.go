@@ -8,9 +8,9 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/shorturl"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 // ShortURLRedirect

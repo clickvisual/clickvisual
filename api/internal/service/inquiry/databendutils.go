@@ -2,9 +2,10 @@ package inquiry
 
 import (
 	"fmt"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 	"time"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func genDatabendTimeCondition(param view.ReqQuery) string {

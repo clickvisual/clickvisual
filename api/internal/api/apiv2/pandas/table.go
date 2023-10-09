@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cast"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // TableCreateSQL  godoc

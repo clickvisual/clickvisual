@@ -6,7 +6,7 @@ import (
 	"github.com/gotomicro/ego/task/ejob"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 func RunInstall(ctx ejob.Context) error {

@@ -1,7 +1,7 @@
 package view
 
 import (
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 type RespNamespaceConfigmaps struct {

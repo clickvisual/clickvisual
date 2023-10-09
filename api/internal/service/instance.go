@@ -13,14 +13,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 type instanceManager struct {
@@ -31,12 +31,12 @@ func NewInstanceManager() *instanceManager {
 	m := &instanceManager{
 		dss: sync.Map{},
 	}
-	datasourceList, _ := db.InstanceList(egorm.Conds{})
+	datasourceList, _ := db2.InstanceList(egorm.Conds{})
 	for _, ds := range datasourceList {
 		switch ds.Datasource {
-		case db.DatasourceMySQL:
+		case db2.DatasourceMySQL:
 			// TODO Not supported at this time
-		case db.DatasourceClickHouse:
+		case db2.DatasourceClickHouse:
 			// Test connection, storage
 			chDb, err := ClickHouseLink(ds.Dsn)
 			if err != nil {
@@ -49,7 +49,7 @@ func NewInstanceManager() *instanceManager {
 				continue
 			}
 			m.dss.Store(ds.DsKey(), ch)
-		case db.DatasourceDatabend:
+		case db2.DatasourceDatabend:
 			databendDb, err := DatabendLink(ds.Dsn)
 			if err != nil {
 				core.LoggerError("Databend", "link", err)
@@ -70,9 +70,9 @@ func (i *instanceManager) Delete(key string) {
 	i.dss.Delete(key)
 }
 
-func (i *instanceManager) Add(obj *db.BaseInstance) error {
+func (i *instanceManager) Add(obj *db2.BaseInstance) error {
 	switch obj.Datasource {
-	case db.DatasourceClickHouse:
+	case db2.DatasourceClickHouse:
 		// Test connection, storage
 		chDb, err := ClickHouseLink(obj.Dsn)
 		if err != nil {
@@ -83,7 +83,7 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 			return err
 		}
 		i.dss.Store(obj.DsKey(), ch)
-	case db.DatasourceDatabend:
+	case db2.DatasourceDatabend:
 		databendDb, err := DatabendLink(obj.Dsn)
 		if err != nil {
 			return err
@@ -98,25 +98,25 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 }
 
 func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
-	instance, err := db.InstanceInfo(invoker.Db, id)
+	instance, err := db2.InstanceInfo(invoker.Db, id)
 	if err != nil {
 		return nil, err
 	}
-	obj, ok := i.dss.Load(db.InstanceKey(id))
+	obj, ok := i.dss.Load(db2.InstanceKey(id))
 	if !ok {
 		// try again
 		if err = i.Add(&instance); err != nil {
 			return nil, err
 		}
-		obj, _ = i.dss.Load(db.InstanceKey(id))
+		obj, _ = i.dss.Load(db2.InstanceKey(id))
 	}
 	if obj == nil {
 		return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 	}
 	switch instance.Datasource {
-	case db.DatasourceClickHouse:
+	case db2.DatasourceClickHouse:
 		return obj.(*inquiry.ClickHouseX), nil
-	case db.DatasourceDatabend:
+	case db2.DatasourceDatabend:
 		return obj.(*inquiry.Databend), nil
 	}
 	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
@@ -126,8 +126,8 @@ func (i *instanceManager) All() []inquiry.Operator {
 	res := make([]inquiry.Operator, 0)
 	i.dss.Range(func(key, obj interface{}) bool {
 		iid, _ := strconv.Atoi(key.(string))
-		instance, _ := db.InstanceInfo(invoker.Db, iid)
-		if instance.Datasource == db.DatasourceClickHouse {
+		instance, _ := db2.InstanceInfo(invoker.Db, iid)
+		if instance.Datasource == db2.DatasourceClickHouse {
 			res = append(res, obj.(*inquiry.ClickHouseX))
 		}
 		return true
@@ -136,7 +136,7 @@ func (i *instanceManager) All() []inquiry.Operator {
 }
 
 func ReadAllPermissionTable(uid int) []int {
-	tables, _ := db.TableList(invoker.Db, egorm.Conds{})
+	tables, _ := db2.TableList(invoker.Db, egorm.Conds{})
 	resArr := make([]int, 0)
 	for _, table := range tables {
 		if !TableViewIsPermission(uid, table.Database.Iid, table.ID) {
@@ -158,7 +158,7 @@ func InstanceViewIsPermission(uid, iid int) bool {
 
 func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 	// check instance permission
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      uid,
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -175,7 +175,7 @@ func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 	// check databases permission
 	conds := egorm.Conds{}
 	conds["iid"] = iid
-	databases, err := db.DatabaseList(invoker.Db, conds)
+	databases, err := db2.DatabaseList(invoker.Db, conds)
 	if err != nil {
 		elog.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
 		return false
@@ -215,11 +215,11 @@ func DatabendLink(dsn string) (conn *sql.DB, err error) {
 	return
 }
 
-func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error) {
+func InstanceCreate(req view2.ReqCreateInstance) (obj db2.BaseInstance, err error) {
 	conds := egorm.Conds{}
 	conds["datasource"] = req.Datasource
 	conds["name"] = req.Name
-	checks, err := db.InstanceList(conds)
+	checks, err := db2.InstanceList(conds)
 	if err != nil {
 		err = errors.Wrapf(err, "req: %v", req)
 		return
@@ -231,7 +231,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 	if err != nil {
 		return
 	}
-	obj = db.BaseInstance{
+	obj = db2.BaseInstance{
 		Datasource:       req.Datasource,
 		Name:             req.Name,
 		Dsn:              strings.TrimSpace(req.Dsn),
@@ -250,7 +250,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		}
 	}
 	tx := invoker.Db.Begin()
-	if err = db.InstanceCreate(tx, &obj); err != nil {
+	if err = db2.InstanceCreate(tx, &obj); err != nil {
 		tx.Rollback()
 		err = errors.Wrapf(err, "instance: %v", obj)
 		return
@@ -267,7 +267,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 	return obj, nil
 }
 
-func DatabaseCreate(req db.BaseDatabase) (out db.BaseDatabase, err error) {
+func DatabaseCreate(req db2.BaseDatabase) (out db2.BaseDatabase, err error) {
 	op, err := InstanceManager.Load(req.Iid)
 	if err != nil {
 		return
@@ -279,18 +279,18 @@ func DatabaseCreate(req db.BaseDatabase) (out db.BaseDatabase, err error) {
 			return
 		}
 	}
-	if err = db.DatabaseCreate(invoker.Db, &req); err != nil {
+	if err = db2.DatabaseCreate(invoker.Db, &req); err != nil {
 		err = errors.Wrap(err, "create failed 01:")
 		return
 	}
 	return req, nil
 }
 
-func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
+func AnalysisFieldsUpdate(tid int, data []view2.IndexItem) (err error) {
 	var (
-		addMap map[string]*db.BaseIndex
-		delMap map[string]*db.BaseIndex
-		newMap map[string]*db.BaseIndex
+		addMap map[string]*db2.BaseIndex
+		delMap map[string]*db2.BaseIndex
+		newMap map[string]*db2.BaseIndex
 	)
 	for i := range data {
 		data[i].Field = strings.TrimSpace(data[i].Field)
@@ -313,7 +313,7 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 		}
 		repeatMap[key] = struct{}{}
 	}
-	req := view.ReqCreateIndex{
+	req := view2.ReqCreateIndex{
 		Tid:  tid,
 		Data: data,
 	}
@@ -329,24 +329,24 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 	return nil
 }
 
-func InstanceFilterPms(uid int) (res []view.RespInstanceSimple, err error) {
+func InstanceFilterPms(uid int) (res []view2.RespInstanceSimple, err error) {
 	dArr, err := DatabaseListFilterPms(uid)
 	if err != nil {
 		return
 	}
-	res = make([]view.RespInstanceSimple, 0)
-	iMap := make(map[int]view.RespInstanceSimple)
+	res = make([]view2.RespInstanceSimple, 0)
+	iMap := make(map[int]view2.RespInstanceSimple)
 	// Fill in all database information and verify related permissions
-	is, _ := db.InstanceList(egorm.Conds{})
+	is, _ := db2.InstanceList(egorm.Conds{})
 	for _, i := range is {
 		if !InstanceViewIsPermission(uid, i.ID) {
 			continue
 		}
-		iMap[i.ID] = view.RespInstanceSimple{
+		iMap[i.ID] = view2.RespInstanceSimple{
 			Id:           i.ID,
 			InstanceName: i.Name,
 			Desc:         i.Desc,
-			Databases:    make([]view.RespDatabaseSimple, 0),
+			Databases:    make([]view2.RespDatabaseSimple, 0),
 		}
 	}
 	for _, d := range dArr {

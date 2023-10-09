@@ -12,8 +12,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/pandas"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 )
 
 // Defines interface prefixes in terms of module overrides：

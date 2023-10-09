@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type MySQL struct {

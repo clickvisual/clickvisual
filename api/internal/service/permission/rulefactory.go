@@ -1,6 +1,8 @@
 package permission
 
-import "github.com/clickvisual/clickvisual/api/pkg/model/db"
+import (
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+)
 
 // PmsRuleController ...
 type PmsRuleController interface {

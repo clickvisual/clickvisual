@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
 )
 
 func main() {

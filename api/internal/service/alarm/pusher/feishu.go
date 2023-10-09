@@ -3,8 +3,8 @@ package pusher
 import (
 	"errors"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher/feishu"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 var _ IPusher = (*FeiShu)(nil)

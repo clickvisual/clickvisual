@@ -8,13 +8,13 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // ViewDelete
@@ -31,18 +31,18 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(1, "default time field not support delete", nil)
 		return
 	}
-	var viewInfo db.BaseView
-	viewInfo, err = db.ViewInfo(invoker.Db, id)
+	var viewInfo db2.BaseView
+	viewInfo, err = db2.ViewInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, viewInfo.Tid)
+	tableInfo, err := db2.TableInfo(invoker.Db, viewInfo.Tid)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -55,23 +55,23 @@ func ViewDelete(c *core.Context) {
 		return
 	}
 	tx := invoker.Db.Begin()
-	err = db.ViewDelete(tx, id)
+	err = db2.ViewDelete(tx, id)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewList []*db.BaseView
+	var viewList []*db2.BaseView
 	conds := egorm.Conds{}
 	conds["tid"] = viewInfo.Tid
-	viewList, err = db.ViewList(tx, conds)
+	viewList, err = db2.ViewList(tx, conds)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
 
-	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	databaseInfo, _ := db2.DatabaseInfo(tx, tableInfo.Did)
 	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
@@ -87,7 +87,7 @@ func ViewDelete(c *core.Context) {
 
 	ups := make(map[string]interface{}, 0)
 	ups["sql_view"] = cQSL
-	err = db.ViewUpdate(tx, id, ups)
+	err = db2.ViewUpdate(tx, id, ups)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -96,7 +96,7 @@ func ViewDelete(c *core.Context) {
 
 	ups2 := make(map[string]interface{}, 0)
 	ups2["sql_view"] = dSQL
-	err = db.TableUpdate(tx, id, ups2)
+	err = db2.TableUpdate(tx, id, ups2)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -107,7 +107,7 @@ func ViewDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnViewsDelete, map[string]interface{}{"viewInfo": viewInfo})
+	event.Event.InquiryCMDB(c.User(), db2.OpnViewsDelete, map[string]interface{}{"viewInfo": viewInfo})
 	c.JSONOK()
 }
 
@@ -115,7 +115,7 @@ func ViewDelete(c *core.Context) {
 // @Tags         LOGSTORE
 func ViewCreate(c *core.Context) {
 	tid := cast.ToInt(c.Param("id"))
-	params := view.ReqViewCreate{}
+	params := view2.ReqViewCreate{}
 	err := c.Bind(&params)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -125,8 +125,8 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	tableInfo, _ := db2.TableInfo(invoker.Db, tid)
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -138,7 +138,7 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	current := db.BaseView{
+	current := db2.BaseView{
 		Tid:              tid,
 		Name:             params.Name,
 		IsUseDefaultTime: params.IsUseDefaultTime,
@@ -146,21 +146,21 @@ func ViewCreate(c *core.Context) {
 		Format:           params.Format,
 	}
 	tx := invoker.Db.Begin()
-	if err = db.ViewCreate(tx, &current); err != nil {
+	if err = db2.ViewCreate(tx, &current); err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewList []*db.BaseView
+	var viewList []*db2.BaseView
 	condsView := egorm.Conds{}
 	condsView["tid"] = tid
-	viewList, err = db.ViewList(tx, condsView)
+	viewList, err = db2.ViewList(tx, condsView)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	databaseInfo, _ := db2.DatabaseInfo(tx, tableInfo.Did)
 	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
@@ -178,7 +178,7 @@ func ViewCreate(c *core.Context) {
 	ups := make(map[string]interface{}, 0)
 	ups["sql_view"] = cQSL
 	ups["uid"] = c.Uid()
-	err = db.ViewUpdate(tx, current.ID, ups)
+	err = db2.ViewUpdate(tx, current.ID, ups)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -188,7 +188,7 @@ func ViewCreate(c *core.Context) {
 	ups2 := make(map[string]interface{}, 0)
 	ups2["sql_view"] = dSQL
 	ups2["uid"] = c.Uid()
-	err = db.TableUpdate(tx, tableInfo.ID, ups2)
+	err = db2.TableUpdate(tx, tableInfo.ID, ups2)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -199,7 +199,7 @@ func ViewCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnViewsCreate, map[string]interface{}{"viewInfo": current})
+	event.Event.InquiryCMDB(c.User(), db2.OpnViewsCreate, map[string]interface{}{"viewInfo": current})
 	c.JSONOK()
 }
 
@@ -211,7 +211,7 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(1, "error id", nil)
 		return
 	}
-	params := view.ReqViewCreate{}
+	params := view2.ReqViewCreate{}
 	err = c.Bind(&params)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -222,26 +222,26 @@ func ViewUpdate(c *core.Context) {
 	ups["is_use_default_time"] = params.IsUseDefaultTime
 	ups["key"] = params.Key
 	ups["format"] = params.Format
-	err = db.ViewUpdate(tx, id, ups)
+	err = db2.ViewUpdate(tx, id, ups)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var viewInfo db.BaseView
-	viewInfo, err = db.ViewInfo(tx, id)
+	var viewInfo db2.BaseView
+	viewInfo, err = db2.ViewInfo(tx, id)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(tx, viewInfo.Tid)
+	tableInfo, err := db2.TableInfo(tx, viewInfo.Tid)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -253,16 +253,16 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	var viewList []*db.BaseView
+	var viewList []*db2.BaseView
 	conds := egorm.Conds{}
 	conds["tid"] = viewInfo.Tid
-	viewList, err = db.ViewList(tx, conds)
+	viewList, err = db2.ViewList(tx, conds)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	databaseInfo, _ := db2.DatabaseInfo(tx, tableInfo.Did)
 	op, err := service.InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
@@ -278,7 +278,7 @@ func ViewUpdate(c *core.Context) {
 	ups1 := make(map[string]interface{}, 0)
 	ups1["sql_view"] = cQSL
 	ups1["uid"] = c.Uid()
-	err = db.ViewUpdate(tx, viewInfo.ID, ups1)
+	err = db2.ViewUpdate(tx, viewInfo.ID, ups1)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -287,7 +287,7 @@ func ViewUpdate(c *core.Context) {
 	ups2 := make(map[string]interface{}, 0)
 	ups2["sql_view"] = dSQL
 	ups2["uid"] = c.Uid()
-	err = db.TableUpdate(tx, tableInfo.ID, ups2)
+	err = db2.TableUpdate(tx, tableInfo.ID, ups2)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, err.Error(), nil)
@@ -297,7 +297,7 @@ func ViewUpdate(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnViewsUpdate, map[string]interface{}{"params": params})
+	event.Event.InquiryCMDB(c.User(), db2.OpnViewsUpdate, map[string]interface{}{"params": params})
 	c.JSONOK()
 }
 
@@ -312,17 +312,17 @@ func ViewInfo(c *core.Context) {
 		c.JSONE(1, "default time field not support modify", nil)
 		return
 	}
-	viewInfo, err := db.ViewInfo(invoker.Db, id)
+	viewInfo, err := db2.ViewInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, viewInfo.Tid)
+	tableInfo, err := db2.TableInfo(invoker.Db, viewInfo.Tid)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -344,7 +344,7 @@ func ViewList(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	tableInfo, _ := db2.TableInfo(invoker.Db, id)
 	iid := tableInfo.Database.Iid
 	database := tableInfo.Database.Name
 	table := tableInfo.Name
@@ -352,7 +352,7 @@ func ViewList(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -366,22 +366,22 @@ func ViewList(c *core.Context) {
 	}
 	condsView := egorm.Conds{}
 	condsView["tid"] = tableInfo.ID
-	views, err := db.ViewList(invoker.Db, condsView)
+	views, err := db2.ViewList(invoker.Db, condsView)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	var res []view.ReqViewList
-	res = make([]view.ReqViewList, 0)
+	var res []view2.ReqViewList
+	res = make([]view2.ReqViewList, 0)
 
 	// add default val
-	res = append(res, view.ReqViewList{
+	res = append(res, view2.ReqViewList{
 		ID:   -1,
 		Name: tableInfo.GetTimeField(),
 	})
 
 	for _, v := range views {
-		res = append(res, view.ReqViewList{
+		res = append(res, view2.ReqViewList{
 			ID:   v.ID,
 			Name: v.Name,
 		})

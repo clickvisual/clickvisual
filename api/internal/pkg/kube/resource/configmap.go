@@ -11,8 +11,8 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/api"
 )
 
 func CreateOrUpdateConfigmap(client *kube.ClusterClient, namespace, name string, data map[string]string) error {

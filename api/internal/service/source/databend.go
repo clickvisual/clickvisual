@@ -8,9 +8,9 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-
 	_ "github.com/databendcloud/databend-go"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type Databend struct {

@@ -11,10 +11,10 @@ import (
 	"github.com/gin-contrib/sessions"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 // @Tags         USER
@@ -23,7 +23,7 @@ func Info(c *core.Context) {
 	session := sessions.Default(c.Context)
 	user := session.Get("user")
 	tmp, _ := json.Marshal(user)
-	u := db.User{}
+	u := db2.User{}
 	_ = json.Unmarshal(tmp, &u)
 	u.Password = ""
 
@@ -43,9 +43,9 @@ func Info(c *core.Context) {
 // @Tags         USER
 // @Summary	     用户列表
 func List(c *core.Context) {
-	res := make([]*db.User, 0)
-	res = append(res, &db.User{
-		BaseModel: db.BaseModel{
+	res := make([]*db2.User, 0)
+	res = append(res, &db2.User{
+		BaseModel: db2.BaseModel{
 			ID:    -1,
 			Ctime: 0,
 			Utime: 0,
@@ -66,9 +66,9 @@ func List(c *core.Context) {
 		Password:         "",
 		CurrentAuthority: "",
 		Access:           "",
-		OauthToken:       db.OAuthToken{},
+		OauthToken:       db2.OAuthToken{},
 	})
-	dbUsers, err := db.UserList(egorm.Conds{})
+	dbUsers, err := db2.UserList(egorm.Conds{})
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
@@ -97,7 +97,7 @@ func Login(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["username"] = param.Username
-	user, _ := db.UserInfoX(conds)
+	user, _ := db2.UserInfoX(conds)
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
 		c.JSONE(1, "account or password error", "")
@@ -162,7 +162,7 @@ func UpdatePassword(c *core.Context) {
 		c.JSONE(1, "password length should between 5 ~ 32", "")
 		return
 	}
-	user, _ := db.UserInfo(uid)
+	user, _ := db2.UserInfo(uid)
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
 		c.JSONE(1, "account or password error", "")
@@ -175,11 +175,11 @@ func UpdatePassword(c *core.Context) {
 	}
 	ups := make(map[string]interface{}, 0)
 	ups["password"] = string(hash)
-	err = db.UserUpdate(invoker.Db, uid, ups)
+	err = db2.UserUpdate(invoker.Db, uid, ups)
 	if err != nil {
 		c.JSONE(1, "password update error", err.Error())
 		return
 	}
-	event.Event.UserCMDB(c.User(), db.OpnUserPwdChange, nil)
+	event.Event.UserCMDB(c.User(), db2.OpnUserPwdChange, nil)
 	c.JSONOK()
 }

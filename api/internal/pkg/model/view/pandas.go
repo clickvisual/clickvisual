@@ -1,7 +1,7 @@
 package view
 
 import (
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 type ReqCreateFolder struct {
@@ -20,18 +20,18 @@ type ReqUpdateFolder struct {
 }
 
 type RespListFolder struct {
-	Id        int               `json:"id"`
-	Name      string            `json:"name"`
-	Desc      string            `json:"desc"`
-	Primary   int               `json:"primary"`
-	Secondary int               `json:"secondary"`
-	ParentId  int               `json:"parentId"`
-	Children  []RespListFolder  `json:"children"`
-	Nodes     []*db.BigdataNode `json:"nodes"`
+	Id        int                `json:"id"`
+	Name      string             `json:"name"`
+	Desc      string             `json:"desc"`
+	Primary   int                `json:"primary"`
+	Secondary int                `json:"secondary"`
+	ParentId  int                `json:"parentId"`
+	Children  []RespListFolder   `json:"children"`
+	Nodes     []*db2.BigdataNode `json:"nodes"`
 }
 
 type RespInfoFolder struct {
-	db.BigdataFolder
+	db2.BigdataFolder
 	UserName string `json:"userName"`
 	NickName string `json:"nickName"`
 }
@@ -186,8 +186,8 @@ type (
 	}
 
 	InnerNodeRun struct {
-		N  *db.BigdataNode
-		NC *db.BigdataNodeContent
+		N  *db2.BigdataNode
+		NC *db2.BigdataNodeContent
 	}
 
 	ReqNodeRunOpenAPI struct {
@@ -195,7 +195,7 @@ type (
 	}
 
 	ReqNodeHistoryList struct {
-		db.ReqPage
+		db2.ReqPage
 
 		IsExcludeCrontabResult int `json:"isExcludeCrontabResult" form:"isExcludeCrontabResult"`
 	}
@@ -214,7 +214,7 @@ type (
 	}
 
 	ReqNodeResultList struct {
-		db.ReqPage
+		db2.ReqPage
 	}
 
 	RespNodeResult struct {

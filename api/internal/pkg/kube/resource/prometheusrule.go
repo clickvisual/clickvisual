@@ -8,9 +8,9 @@ import (
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 // CreateOrUpdatePrometheusRule 存在出现脏数据可能

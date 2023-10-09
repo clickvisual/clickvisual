@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 )
 
 var (

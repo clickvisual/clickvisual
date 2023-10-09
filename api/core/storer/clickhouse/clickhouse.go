@@ -8,7 +8,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/core/common"
 	"github.com/clickvisual/clickvisual/api/core/i"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 )
 
 var _ i.Storer = (*Storer)(nil)

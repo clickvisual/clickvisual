@@ -12,9 +12,9 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	constx2 "github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 var regSingleWord = regexp.MustCompile(`([a-z]|[A-Z]|[0-9]|_|-|')+`)
@@ -54,14 +54,14 @@ type queryItem struct {
 	Value    string
 }
 
-func transformJaegerDependencies(req []view.JaegerDependencyDataModel) (resp []view.RespJaegerDependencyDataModel) {
-	data := make(map[string][]view.JaegerDependencyDataModel, 0)
+func transformJaegerDependencies(req []view2.JaegerDependencyDataModel) (resp []view2.RespJaegerDependencyDataModel) {
+	data := make(map[string][]view2.JaegerDependencyDataModel, 0)
 	for _, row := range req {
 		key := row.Parent + "-" + row.Child
 		data[key] = append(data[key], row)
 	}
 	for _, row := range data {
-		respRow := view.RespJaegerDependencyDataModel{}
+		respRow := view2.RespJaegerDependencyDataModel{}
 		for _, j := range row {
 			respRow.Child = j.Child
 			respRow.Parent = j.Parent
@@ -89,13 +89,13 @@ func transformJaegerDependencies(req []view.JaegerDependencyDataModel) (resp []v
 	return
 }
 
-func genTimeCondition(param view.ReqQuery) string {
+func genTimeCondition(param view2.ReqQuery) string {
 	switch param.TimeFieldType {
-	case db.TimeFieldTypeDT:
+	case db2.TimeFieldTypeDT:
 		return fmt.Sprintf("%s >= toDateTime(%s) AND %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
-	case db.TimeFieldTypeDT3:
+	case db2.TimeFieldTypeDT3:
 		return fmt.Sprintf("%s >= toDateTime64(%s, 3) AND %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
-	case db.TimeFieldTypeTsMs:
+	case db2.TimeFieldTypeTsMs:
 		return fmt.Sprintf("intDiv(%s,1000) >= %s AND intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
 	}
 	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
@@ -103,25 +103,25 @@ func genTimeCondition(param view.ReqQuery) string {
 
 func TransferGroupTimeField(timeField string, timeFieldTyp int) string {
 	switch timeFieldTyp {
-	case db.TimeFieldTypeDT:
+	case db2.TimeFieldTypeDT:
 		return timeField
-	case db.TimeFieldTypeDT3:
+	case db2.TimeFieldTypeDT3:
 		return timeField
-	case db.TimeFieldTypeTsMs:
+	case db2.TimeFieldTypeTsMs:
 		return fmt.Sprintf("toDateTime(intDiv(%s,1000))", timeField)
-	case db.TimeFieldTypeSecond:
+	case db2.TimeFieldTypeSecond:
 		return fmt.Sprintf("toDateTime(%s)", timeField)
 	}
 	return timeField
 }
 
-func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
+func genTimeConditionEqual(param view2.ReqQuery, t time.Time) string {
 	switch param.TimeFieldType {
-	case db.TimeFieldTypeDT:
+	case db2.TimeFieldTypeDT:
 		return fmt.Sprintf("toUnixTimestamp(%s) = %d", param.TimeField, t.Unix())
-	case db.TimeFieldTypeDT3:
+	case db2.TimeFieldTypeDT3:
 		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
-	case db.TimeFieldTypeTsMs:
+	case db2.TimeFieldTypeTsMs:
 		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
 	}
 	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
@@ -145,7 +145,7 @@ func fieldTypeJudgment(typ string) int {
 	return -1
 }
 
-func alarmAggregationSQLWith(param view.ReqQuery) (sql string) {
+func alarmAggregationSQLWith(param view2.ReqQuery) (sql string) {
 	out := fmt.Sprintf(`with(
 select val from (%s) limit 1
 ) as limbo
@@ -177,8 +177,8 @@ func adaSelectPart(in string) (out string) {
 }
 
 func genSelectFields(tid int) string {
-	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	if tableInfo.CreateType == constx.TableCreateTypeCV {
+	tableInfo, _ := db2.TableInfo(invoker.Db, tid)
+	if tableInfo.CreateType == constx2.TableCreateTypeCV {
 		if tableInfo.SelectFields != "" {
 			return tableInfo.SelectFields
 		}
@@ -218,12 +218,12 @@ func likeTransformAndArr(query string) []string {
 	return res
 }
 
-func queryTransformHash(params view.ReqQuery) string {
+func queryTransformHash(params view2.ReqQuery) string {
 	query := params.Query
 	conds := egorm.Conds{}
 	conds["tid"] = params.Tid
 	conds["hash_typ"] = egorm.Cond{Op: "!=", Val: 0}
-	indexes, _ := db.IndexList(conds)
+	indexes, _ := db2.IndexList(conds)
 	for _, index := range indexes {
 		if index.HashTyp == 0 {
 			continue
@@ -248,13 +248,13 @@ func likeTransform(createType int, rawLogField, query string) string {
 		}
 	}
 	field := "_raw_log_"
-	if createType == constx.TableCreateTypeExist && rawLogField != "" {
+	if createType == constx2.TableCreateTypeExist && rawLogField != "" {
 		field = rawLogField
 	}
 	return field + " LIKE '%" + query + "%'"
 }
 
-func hashTransform(query string, index *db.BaseIndex) string {
+func hashTransform(query string, index *db2.BaseIndex) string {
 	var (
 		key              = index.GetFieldName()
 		hashTyp          = index.HashTyp
@@ -266,10 +266,10 @@ func hashTransform(query string, index *db.BaseIndex) string {
 		val := r.FindString(query)
 		val = strings.Replace(val, key+"=", "", 1)
 		query = strings.Replace(query, key+"=", hashFieldName+"=", 1)
-		if hashTyp == db.HashTypeSip {
+		if hashTyp == db2.HashTypeSip {
 			query = strings.Replace(query, val, fmt.Sprintf("sipHash64(%s)", val), 1)
 		}
-		if hashTyp == db.HashTypeURL {
+		if hashTyp == db2.HashTypeURL {
 			query = strings.Replace(query, val, fmt.Sprintf("URLHash(%s)", val), 1)
 		}
 		if !strings.HasPrefix(query, "_inner") && !strings.Contains(query, " _inner") {
@@ -384,7 +384,7 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Key == db.TimeFieldSecond {
+		if item.Key == db2.TimeFieldSecond {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
 		if index == 0 {
@@ -411,7 +411,7 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	}
 	opArr := strings.SplitN(strings.TrimSpace(a), op, 2)
 	if len(opArr) != 2 {
-		return constx.ErrQueryFormatIllegal
+		return constx2.ErrQueryFormatIllegal
 	}
 	val := opArr[1]
 	if strings.Contains(val, "'") {

@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func Test_argsReplaces(t *testing.T) {

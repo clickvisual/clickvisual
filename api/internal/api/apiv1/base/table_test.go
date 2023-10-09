@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
+	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 	"github.com/clickvisual/clickvisual/api/internal/service"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/config"
 )
 
 func TestSettingUpdate(t *testing.T) {

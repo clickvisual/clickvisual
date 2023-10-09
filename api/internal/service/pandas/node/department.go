@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 const (
@@ -23,8 +23,8 @@ const (
 )
 
 type node struct {
-	n  *db.BigdataNode
-	nc *db.BigdataNodeContent
+	n  *db2.BigdataNode
+	nc *db2.BigdataNodeContent
 
 	op  int
 	uid int
@@ -39,7 +39,7 @@ type department interface {
 	setNext(department)
 }
 
-func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (view.RespRunNode, error) {
+func Operator(n *db2.BigdataNode, nc *db2.BigdataNodeContent, op int, uid int) (view.RespRunNode, error) {
 	// Building chains of Responsibility
 	t := &tertiary{}
 	s := &secondary{next: t}
@@ -50,12 +50,12 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 	// record update
 	tx := invoker.Db.Begin()
 	// create result record
-	nodeResult := db.BigdataNodeResult{
+	nodeResult := db2.BigdataNodeResult{
 		NodeId:  n.ID,
 		Content: nc.Content,
 		Uid:     uid,
 	}
-	if errNodeCreate := db.NodeResultCreate(tx, &nodeResult); errNodeCreate != nil {
+	if errNodeCreate := db2.NodeResultCreate(tx, &nodeResult); errNodeCreate != nil {
 		tx.Rollback()
 		return res, errors.WithMessage(errNodeCreate, "operator db node result create")
 	}
@@ -71,10 +71,10 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 	cost := time.Since(now).Milliseconds()
 	var execStatus int
 	if err != nil {
-		execStatus = db.BigdataNodeResultFailed
+		execStatus = db2.BigdataNodeResultFailed
 		execResult.Message = err.Error()
 	} else {
-		execStatus = db.BigdataNodeResultSucc
+		execStatus = db2.BigdataNodeResultSucc
 		execResult.Message = "success"
 	}
 	if execResult.Logs == nil {
@@ -93,12 +93,12 @@ func Operator(n *db.BigdataNode, nc *db.BigdataNodeContent, op int, uid int) (vi
 		conds["result"] = execResultStr
 		conds["cost"] = cost
 		conds["status"] = execStatus
-		if errNodeUpdate := db.NodeResultUpdate(tx, nodeResult.ID, conds); errNodeUpdate != nil {
+		if errNodeUpdate := db2.NodeResultUpdate(tx, nodeResult.ID, conds); errNodeUpdate != nil {
 			tx.Rollback()
 			return res, errors.WithMessage(errNodeUpdate, "operator db node result update: "+execResult.Message)
 		}
 	}
-	if errContentUpdate := db.NodeContentUpdate(invoker.Db, n.ID, ups); errContentUpdate != nil {
+	if errContentUpdate := db2.NodeContentUpdate(invoker.Db, n.ID, ups); errContentUpdate != nil {
 		tx.Rollback()
 		return res, errors.WithMessage(errContentUpdate, "operator db node content update: "+execResult.Message)
 	}

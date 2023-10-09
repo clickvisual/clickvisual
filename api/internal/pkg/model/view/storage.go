@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils/mapping"
 )
 
 type ReqKafkaJSONMapping struct {
@@ -208,14 +208,14 @@ type OperatorViewParams struct {
 	Did              int
 	TableName        string
 	CustomTimeField  string
-	Current          *db.BaseView
-	List             []*db.BaseView
-	Indexes          map[string]*db.BaseIndex
+	Current          *db2.BaseView
+	List             []*db2.BaseView
+	Indexes          map[string]*db2.BaseIndex
 	IsCreate         bool
 	TimeField        string
 	RawLogField      string
 	IsKafkaTimestamp int
-	Database         *db.BaseDatabase
+	Database         *db2.BaseDatabase
 }
 
 type JaegerDependencyDataModel struct {

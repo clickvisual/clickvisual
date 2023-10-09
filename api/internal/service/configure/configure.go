@@ -14,13 +14,13 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/resource"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/resource"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 var Configure *configure
@@ -41,7 +41,7 @@ func (s *configure) marshallMetadata(metadata view.ConfigMetadata) string {
 	return string(metadataBytes)
 }
 
-func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateConfig) (configuration db.Configuration, err error) {
+func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateConfig) (configuration db2.Configuration, err error) {
 	if strings.Contains(param.Name, "__metadata") {
 		return configuration, constx.ErrSkipConfigureName
 	}
@@ -51,12 +51,12 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 	}
 	if param.K8SConfigMapId == 0 {
 		// Gets the configmap ID
-		obj := db.K8SConfigMap{
+		obj := db2.K8SConfigMap{
 			ClusterId: param.ClusterId,
 			Name:      param.K8SConfigMapName,
 			Namespace: param.K8SConfigMapNamespace,
 		}
-		dbConfigMap, errK8SConfigMapLoadOrSave := db.K8SConfigMapLoadOrSave(invoker.Db, &obj)
+		dbConfigMap, errK8SConfigMapLoadOrSave := db2.K8SConfigMapLoadOrSave(invoker.Db, &obj)
 		if errK8SConfigMapLoadOrSave != nil {
 			return configuration, errK8SConfigMapLoadOrSave
 		}
@@ -68,7 +68,7 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 		}
 		param.K8SConfigMapId = dbConfigMap.ID
 	}
-	data := db.Configuration{
+	data := db2.Configuration{
 		K8SCmId:     param.K8SConfigMapId,
 		Name:        param.Name,
 		Content:     "",
@@ -81,7 +81,7 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 	conds["name"] = param.Name
 	conds["format"] = string(param.Format)
 	conds["k8s_cm_id"] = param.K8SConfigMapId
-	hc, err := db.ConfigurationInfoX(conds)
+	hc, err := db2.ConfigurationInfoX(conds)
 	if err != nil {
 		return configuration, err
 	}
@@ -91,17 +91,17 @@ func (s *configure) Create(c *core.Context, tx *gorm.DB, param view.ReqCreateCon
 		ups["dtime"] = 0
 		ups["lock_uid"] = 0
 		ups["lock_at"] = 0
-		if err = db.ConfigurationUpdate(tx, hc.ID, ups); err != nil {
+		if err = db2.ConfigurationUpdate(tx, hc.ID, ups); err != nil {
 			return configuration, err
 		}
 		hc.Dtime = 0
 		return hc, err
 	}
-	err = db.ConfigurationCreate(tx, &data)
+	err = db2.ConfigurationCreate(tx, &data)
 	return data, err
 }
 
-func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateConfig, configuration db.Configuration) (err error) {
+func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateConfig, configuration db2.Configuration) (err error) {
 	err = CheckSyntax(view.ConfigFormat(configuration.Format), param.Content)
 	if err != nil {
 		return
@@ -111,7 +111,7 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 		return constx.ErrConfigurationIsNoDifference
 	}
 	version := uuid.New().String()
-	history := db.ConfigurationHistory{
+	history := db2.ConfigurationHistory{
 		ConfigurationId: configuration.ID,
 		ChangeLog:       param.Message,
 		Content:         param.Content,
@@ -134,7 +134,7 @@ func (s *configure) Update(c *core.Context, tx *gorm.DB, param view.ReqUpdateCon
 		ups := make(map[string]interface{}, 0)
 		ups["version"] = version
 		ups["content"] = param.Content
-		err = db.ConfigurationUpdate(tx, param.ID, ups)
+		err = db2.ConfigurationUpdate(tx, param.ID, ups)
 		if err != nil {
 			return err
 		}
@@ -151,13 +151,13 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 	conds := egorm.Conds{}
 	conds["configuration_id"] = param.ID
 	conds["version"] = param.Version
-	var history db.ConfigurationHistory
-	history, err = db.ConfigurationHistoryInfoX(conds)
+	var history db2.ConfigurationHistory
+	history, err = db2.ConfigurationHistoryInfoX(conds)
 	if err != nil {
 		return err
 	}
-	configureObj, _ := db.ConfigurationInfo(history.ConfigurationId)
-	k8sConfigmap, _ := db.K8SConfigMapInfo(configureObj.K8SCmId)
+	configureObj, _ := db2.ConfigurationInfo(history.ConfigurationId)
+	k8sConfigmap, _ := db2.K8SConfigMapInfo(configureObj.K8SCmId)
 
 	elog.Debug("Publish", elog.Any("k8sConfigmap", k8sConfigmap), elog.Any("configureObj", configureObj), elog.Any("history", history))
 
@@ -188,19 +188,19 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 
 // Delete ..
 func (s *configure) Delete(c *core.Context, id int) (err error) {
-	var config db.Configuration
+	var config db2.Configuration
 	if c.Uid() == 0 {
 		return fmt.Errorf("unable to get authorization information")
 	}
 
 	tx := invoker.Db.Begin()
 	{
-		config, err = db.ConfigurationInfo(id)
+		config, err = db2.ConfigurationInfo(id)
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
-		k8sCM, errK8sCM := db.K8SConfigMapInfo(config.K8SCmId)
+		k8sCM, errK8sCM := db2.K8SConfigMapInfo(config.K8SCmId)
 		if errK8sCM != nil {
 			tx.Rollback()
 			return errK8sCM
@@ -217,12 +217,12 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 			tx.Rollback()
 			return errors.New("The deleted configuration is inconsistent with the effective configuration. The effective configuration cannot be deleted.")
 		}
-		err = db.ConfigurationDelete(tx, id)
+		err = db2.ConfigurationDelete(tx, id)
 		if err != nil {
 			tx.Rollback()
 			return errors.Wrap(err, "configuration deletion failed")
 		}
-		kcm, errKcm := db.K8SConfigMapInfo(config.K8SCmId)
+		kcm, errKcm := db2.K8SConfigMapInfo(config.K8SCmId)
 		if errKcm != nil {
 			tx.Rollback()
 			return errKcm
@@ -249,14 +249,14 @@ func (s *configure) Delete(c *core.Context, id int) (err error) {
 
 // Diff ..
 func (s *configure) Diff(configID, historyID int) (resp view.RespDiffConfig, err error) {
-	modifiedConfig := db.ConfigurationHistory{}
+	modifiedConfig := db2.ConfigurationHistory{}
 	err = invoker.Db.Preload("Configuration").
 		Where("id = ?", historyID).First(&modifiedConfig).Error
 	if err != nil {
 		return
 	}
 
-	originConfig := db.ConfigurationHistory{}
+	originConfig := db2.ConfigurationHistory{}
 	err = invoker.Db.Preload("Configuration").
 		Where("id < ? and configuration_id = ?", historyID, configID).Order("id desc").First(&originConfig).Error
 	if err != nil {

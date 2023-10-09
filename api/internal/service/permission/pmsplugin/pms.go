@@ -19,8 +19,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 var (
@@ -32,7 +32,7 @@ var (
 // Invoker SetUp permission handler
 func Invoker() {
 	rulePath := econf.GetString("casbin.rule.path")
-	a, err := gormadapter.NewAdapterByDBUseTableName(invoker.Db, "", db.TableNamePmsCasbinRule)
+	a, err := gormadapter.NewAdapterByDBUseTableName(invoker.Db, "", db2.TableNamePmsCasbinRule)
 	if err != nil {
 		elog.Panic("Casbin gorm-adapter panic", zap.Error(err))
 	}
@@ -440,7 +440,7 @@ func DelCasbinRulesFromDb(tx *gorm.DB, delEhRules []EnhancedCasbinRulesItem) (er
 }
 
 func addCasbinRuleDbRecord(tx *gorm.DB, ptype string, vxs []string) (err error) {
-	var newDbItem = db.PmsCasbinRule{
+	var newDbItem = db2.PmsCasbinRule{
 		Ptype: ptype,
 	}
 	conds := make(egorm.Conds)
@@ -472,8 +472,8 @@ func addCasbinRuleDbRecord(tx *gorm.DB, ptype string, vxs []string) (err error) 
 	newDbItem.V0 = vxs[0]
 	newDbItem.V1 = vxs[1]
 	sql, binds := egorm.BuildQuery(conds)
-	var existRecord db.PmsCasbinRule
-	err = tx.Table(db.TableNamePmsCasbinRule).Where(sql, binds...).First(&existRecord).Error
+	var existRecord db2.PmsCasbinRule
+	err = tx.Table(db2.TableNamePmsCasbinRule).Where(sql, binds...).First(&existRecord).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		elog.Error("check existence of casbinRule error.", zap.Error(err))
 		return fmt.Errorf("check existence of casbinRule failed. ")
@@ -510,8 +510,8 @@ func delCasbinRuleDbRecord(tx *gorm.DB, ptype string, vxs []string) (err error) 
 	conds["v0"] = vxs[0]
 	conds["v1"] = vxs[1]
 	sql, binds := egorm.BuildQuery(conds)
-	var existRecord db.PmsCasbinRule
-	err = tx.Table(db.TableNamePmsCasbinRule).Where(sql, binds...).First(&existRecord).Error
+	var existRecord db2.PmsCasbinRule
+	err = tx.Table(db2.TableNamePmsCasbinRule).Where(sql, binds...).First(&existRecord).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		elog.Error("check existence of casbinRule error.", zap.Error(err))
 		return fmt.Errorf("check existence of casbinRule failed. ")
@@ -521,7 +521,7 @@ func delCasbinRuleDbRecord(tx *gorm.DB, ptype string, vxs []string) (err error) 
 	if existRecord.Id == 0 {
 		return nil
 	}
-	return tx.Table(db.TableNamePmsCasbinRule).Where("id = ?", existRecord.Id).Delete(&db.PmsCasbinRule{}).Error
+	return tx.Table(db2.TableNamePmsCasbinRule).Where("id = ?", existRecord.Id).Delete(&db2.PmsCasbinRule{}).Error
 }
 
 /*

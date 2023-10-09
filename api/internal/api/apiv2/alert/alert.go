@@ -10,14 +10,14 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/alertcomponent"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // SettingUpdate
@@ -29,7 +29,7 @@ func SettingUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req db.ReqAlertSettingUpdate
+	var req db2.ReqAlertSettingUpdate
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
@@ -45,7 +45,7 @@ func SettingUpdate(c *core.Context) {
 		return
 	}
 	// Obtain the current alarm basic configuration
-	current, err := db.InstanceInfo(invoker.Db, iid)
+	current, err := db2.InstanceInfo(invoker.Db, iid)
 	if err != nil {
 		c.JSONE(1, "permission verification failed", err)
 		return
@@ -61,14 +61,14 @@ func SettingUpdate(c *core.Context) {
 	ups := make(map[string]interface{}, 0)
 	ups["rule_store_type"] = req.RuleStoreType
 	switch req.RuleStoreType {
-	case db.RuleStoreTypeFile:
+	case db2.RuleStoreTypeFile:
 		ups["file_path"] = req.FilePath
-	case db.RuleStoreTypeK8sConfigMap:
+	case db2.RuleStoreTypeK8sConfigMap:
 		ups["cluster_id"] = req.ClusterId
 		ups["namespace"] = req.Namespace
 		ups["configmap"] = req.Configmap
-	case db.RuleStoreTypeK8sOperator:
-		var check db.ConfigPrometheusOperator
+	case db2.RuleStoreTypeK8sOperator:
+		var check db2.ConfigPrometheusOperator
 		err = yaml.Unmarshal([]byte(req.ConfigPrometheusOperator), &check)
 		if err != nil {
 			c.JSONE(1, err.Error(), err)
@@ -98,11 +98,11 @@ func SettingUpdate(c *core.Context) {
 		}
 		ups["prometheus_target"] = prometheus
 	}
-	if err = db.InstanceUpdate(invoker.Db, iid, ups); err != nil {
+	if err = db2.InstanceUpdate(invoker.Db, iid, ups); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnInstancesUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db2.OpnInstancesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -110,18 +110,18 @@ func SettingUpdate(c *core.Context) {
 // @Tags         ALARM
 // @Summary	     告警配置列表
 func SettingList(c *core.Context) {
-	res := make([]*db.RespAlertSettingListItem, 0)
-	instanceList, err := db.InstanceList(egorm.Conds{})
+	res := make([]*db2.RespAlertSettingListItem, 0)
+	instanceList, err := db2.InstanceList(egorm.Conds{})
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	checkHistory := make(map[string]db.RespAlertSettingListItem)
+	checkHistory := make(map[string]db2.RespAlertSettingListItem)
 	for _, instance := range instanceList {
 		if !service.InstanceViewIsPermission(c.Uid(), instance.ID) {
 			continue
 		}
-		row := db.RespAlertSettingListItem{
+		row := db2.RespAlertSettingListItem{
 			InstanceId:         instance.ID,
 			InstanceName:       instance.Name,
 			RuleStoreType:      instance.RuleStoreType,
@@ -189,14 +189,14 @@ func SettingInfo(c *core.Context) {
 		c.JSONE(1, "authentication failed", nil)
 		return
 	}
-	res, err := db.InstanceInfo(invoker.Db, iid)
+	res, err := db2.InstanceInfo(invoker.Db, iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	c.JSONOK(&db.RespAlertSettingInfo{
+	c.JSONOK(&db2.RespAlertSettingInfo{
 		InstanceId: iid,
-		ReqAlertSettingUpdate: db.ReqAlertSettingUpdate{
+		ReqAlertSettingUpdate: db2.ReqAlertSettingUpdate{
 			RuleStoreType:            res.RuleStoreType,
 			PrometheusTarget:         res.PrometheusTarget,
 			FilePath:                 res.FilePath,
@@ -213,7 +213,7 @@ func SettingInfo(c *core.Context) {
 // @Summary      Create metrics.samples table
 func CreateMetricsSamples(c *core.Context) {
 	var err error
-	params := db.ReqCreateMetricsSamples{}
+	params := db2.ReqCreateMetricsSamples{}
 	err = c.Bind(&params)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
@@ -239,6 +239,6 @@ func CreateMetricsSamples(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	event.Event.UserCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"params": params})
+	event.Event.UserCMDB(c.User(), db2.OpnDatabasesCreate, map[string]interface{}{"params": params})
 	c.JSONOK()
 }

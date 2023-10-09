@@ -28,8 +28,8 @@ import (
 	"k8s.io/client-go/restmapper"
 	"k8s.io/kubectl/pkg/util"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/patcher"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/patcher"
 )
 
 type Metadata struct {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 var (
@@ -13,19 +13,19 @@ var (
 )
 
 type event struct {
-	eventChan chan db.Event
+	eventChan chan db2.Event
 }
 
 func InitService() *event {
 	obj := &event{
-		eventChan: make(chan db.Event, 1000),
+		eventChan: make(chan db2.Event, 1000),
 	}
 	go obj.ConsumeEvent()
 	Event = obj
 	return obj
 }
 
-func (a *event) PutEvent(event db.Event) {
+func (a *event) PutEvent(event db2.Event) {
 	select {
 	case a.eventChan <- event:
 	default:
@@ -42,43 +42,43 @@ func (a *event) ConsumeEvent() {
 	}
 }
 
-func (a *event) insert(event db.Event) error {
+func (a *event) insert(event db2.Event) error {
 	if err := invoker.Db.Create(&event).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *event) GetAllEnums() db.RespAllEnums {
-	resp := db.RespAllEnums{
-		SourceEnums:    db.SourceMap,
-		OperationEnums: db.OperationMap,
+func (a *event) GetAllEnums() db2.RespAllEnums {
+	resp := db2.RespAllEnums{
+		SourceEnums:    db2.SourceMap,
+		OperationEnums: db2.OperationMap,
 	}
 	resp.UserEnums = make(map[int]string)
-	usersBase := make([]db.UserIdName, 0)
-	invoker.Db.Table(db.TableNameUser).Select("id, username").Find(&usersBase)
+	usersBase := make([]db2.UserIdName, 0)
+	invoker.Db.Table(db2.TableNameUser).Select("id, username").Find(&usersBase)
 	for _, userBase := range usersBase {
 		resp.UserEnums[userBase.ID] = userBase.Username
 	}
 	return resp
 }
 
-func (a *event) GetEnumsOfSource(source string) (resp db.RespEnumsOfSource, err error) {
+func (a *event) GetEnumsOfSource(source string) (resp db2.RespEnumsOfSource, err error) {
 	resp.TargetSource = source
 	resp.OperationEnums = make(map[string]string)
-	sourceOpList, exist := db.SourceOpnMap[source]
+	sourceOpList, exist := db2.SourceOpnMap[source]
 	if !exist {
 		return resp, fmt.Errorf("souce %s has no enums", source)
 	}
 	for _, op := range sourceOpList {
-		resp.OperationEnums[op] = db.OperationMap[op]
+		resp.OperationEnums[op] = db2.OperationMap[op]
 	}
 	return resp, nil
 }
 
-func (a *event) List(param view.ReqEventList) (res []db.Event, page *view.Pagination, err error) {
-	page = view.NewPagination(param.Current, param.PageSize)
-	query := invoker.Db.Table(db.TableNameEvent)
+func (a *event) List(param view2.ReqEventList) (res []db2.Event, page *view2.Pagination, err error) {
+	page = view2.NewPagination(param.Current, param.PageSize)
+	query := invoker.Db.Table(db2.TableNameEvent)
 	if param.Source != "" {
 		query = query.Where("source = ?", param.Source)
 	}
@@ -88,7 +88,7 @@ func (a *event) List(param view.ReqEventList) (res []db.Event, page *view.Pagina
 	if param.Uid > 0 {
 		query = query.Where("uid = ?", param.Uid)
 	}
-	res = make([]db.Event, 0)
+	res = make([]db2.Event, 0)
 	err = query.Count(&page.Total).
 		Order("id desc").
 		Offset((page.Current - 1) * page.PageSize).

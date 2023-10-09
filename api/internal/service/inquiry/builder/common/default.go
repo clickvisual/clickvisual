@@ -3,8 +3,8 @@ package common
 import (
 	"fmt"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
 )
 
 func BuilderFieldsData(mapping string) string {

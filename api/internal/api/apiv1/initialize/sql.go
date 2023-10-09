@@ -2,17 +2,17 @@ package initialize
 
 import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/install"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 // IsInstall Determine whether the installation process is required
 // @Tags         INSTILL
 func IsInstall(c *core.Context) {
-	var u db.User
-	err := invoker.Db.Table(db.TableNameUser).Select("id, username").Limit(1).First(&u).Error
+	var u db2.User
+	err := invoker.Db.Table(db2.TableNameUser).Select("id, username").Limit(1).First(&u).Error
 	if err != nil {
 		c.JSONOK(0)
 		return

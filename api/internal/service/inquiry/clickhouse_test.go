@@ -3,7 +3,7 @@ package inquiry
 import (
 	"testing"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 func Test_hashTransform(t *testing.T) {

@@ -3,7 +3,7 @@ package view
 import (
 	"fmt"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 type ReqDatabaseCreate struct {
@@ -70,7 +70,7 @@ type (
 
 	RespQuery struct {
 		Limited       uint32                   `json:"limited"`
-		Keys          []*db.BaseIndex          `json:"keys"`
+		Keys          []*db2.BaseIndex         `json:"keys"`
 		ShowKeys      []string                 `json:"showKeys"`
 		Count         uint64                   `json:"count"`
 		Terms         [][]string               `json:"terms"`
@@ -313,7 +313,7 @@ type (
 	}
 	ReqUserList struct {
 		Username string `json:"username" form:"username"`
-		db.ReqPage
+		db2.ReqPage
 	}
 	RespUserSimpleList struct {
 		Total int64                `json:"total"`

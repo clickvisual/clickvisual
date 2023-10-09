@@ -7,12 +7,12 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/storage"
 	"github.com/clickvisual/clickvisual/api/internal/service/storage/storageworker"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // type iSrvStorage interface {
@@ -43,12 +43,12 @@ func (s *srvStorage) syncTraceWorker() error {
 	// 获取链路表的数据
 	conds := egorm.Conds{}
 	conds["create_type"] = constx.TableCreateTypeUBW
-	list, err := db.TableList(invoker.Db, conds)
+	list, err := db2.TableList(invoker.Db, conds)
 	if err != nil {
 		return err
 	}
 	for _, row := range list {
-		if row.V3TableType == db.V3TableTypeJaegerJSON {
+		if row.V3TableType == db2.V3TableTypeJaegerJSON {
 			errRow := s.on(row)
 			if errRow != nil {
 				err = multierr.Append(err, err)
@@ -60,7 +60,7 @@ func (s *srvStorage) syncTraceWorker() error {
 	return err
 }
 
-func (s *srvStorage) on(row *db.BaseTable) error {
+func (s *srvStorage) on(row *db2.BaseTable) error {
 	flag, ok := s.workersF[row.ID]
 	if ok && flag {
 		return nil
@@ -73,7 +73,7 @@ func (s *srvStorage) on(row *db.BaseTable) error {
 	// target table
 	target := storage.Datasource{}
 	target.SetDatabase(row.Database.Name)
-	target.SetTable(row.Name + db.SuffixJaegerJSON)
+	target.SetTable(row.Name + db2.SuffixJaegerJSON)
 	// params
 	op, err := InstanceManager.Load(row.Database.Iid)
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *srvStorage) on(row *db.BaseTable) error {
 	return nil
 }
 
-func (s *srvStorage) off(row *db.BaseTable) {
+func (s *srvStorage) off(row *db2.BaseTable) {
 	flag, ok := s.workersF[row.ID]
 	if !ok || !flag {
 		return
@@ -109,7 +109,7 @@ func (s *srvStorage) stop() {
 	}
 }
 
-func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatabase, param view.ReqCreateStorageByTemplateILogtail) (err error) {
+func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db2.BaseDatabase, param view.ReqCreateStorageByTemplateILogtail) (err error) {
 	cp := view.ReqStorageCreate{
 		CreateType:              constx.TableCreateTypeJSONAsString,
 		Typ:                     1,
@@ -152,7 +152,7 @@ func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db.BaseDatab
 	return
 }
 
-func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, param view.ReqCreateStorageByTemplateEgo) (err error) {
+func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db2.BaseDatabase, param view.ReqCreateStorageByTemplateEgo) (err error) {
 	cp := view.ReqStorageCreate{
 		CreateType:              constx.TableCreateTypeJSONAsString,
 		Typ:                     1,
@@ -234,12 +234,12 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db.BaseDatabase, 
 	return
 }
 
-func (s *srvStorage) createByILogtailTemplateItem(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (err error) {
+func (s *srvStorage) createByILogtailTemplateItem(uid int, databaseInfo db2.BaseDatabase, param view.ReqStorageCreate) (err error) {
 	// Detection is whether it has been created
 	conds := egorm.Conds{}
 	conds["did"] = databaseInfo.ID
 	conds["name"] = param.TableName
-	tableInfo, _ := db.TableInfoX(invoker.Db, conds)
+	tableInfo, _ := db2.TableInfoX(invoker.Db, conds)
 	if tableInfo.ID != 0 {
 		return nil
 	}
@@ -250,12 +250,12 @@ func (s *srvStorage) createByILogtailTemplateItem(uid int, databaseInfo db.BaseD
 	return nil
 }
 
-func (s *srvStorage) createByEgoTemplateItem(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (err error) {
+func (s *srvStorage) createByEgoTemplateItem(uid int, databaseInfo db2.BaseDatabase, param view.ReqStorageCreate) (err error) {
 	// Detection is whether it has been created
 	conds := egorm.Conds{}
 	conds["did"] = databaseInfo.ID
 	conds["name"] = param.TableName
-	tableInfo, _ := db.TableInfoX(invoker.Db, conds)
+	tableInfo, _ := db2.TableInfoX(invoker.Db, conds)
 	if tableInfo.ID != 0 {
 		return nil
 	}

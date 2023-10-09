@@ -15,14 +15,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	constx2 "github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/standalone"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/dto"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 var _ Operator = (*Databend)(nil)
@@ -40,7 +40,7 @@ func (c *Databend) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error
 	return clusters, err
 }
 
-func (c *Databend) CreateStorageJSONAsString(database db.BaseDatabase, create view.ReqStorageCreate) (string, string, string, string, error) {
+func (c *Databend) CreateStorageJSONAsString(database db2.BaseDatabase, create view2.ReqStorageCreate) (string, string, string, string, error) {
 	// TODO implement me
 	panic("implement me")
 }
@@ -50,12 +50,12 @@ func (c *Databend) DeleteTableListByNames(i []string, s string) error {
 	panic("implement me")
 }
 
-func (c *Databend) CreateBufferNullDataPipe(req db.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error) {
+func (c *Databend) CreateBufferNullDataPipe(req db2.ReqCreateBufferNullDataPipe) (names []string, sqls []string, err error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func NewDatabend(db *sql.DB, ins *db.BaseInstance) (*Databend, error) {
+func NewDatabend(db *sql.DB, ins *db2.BaseInstance) (*Databend, error) {
 	if ins.ID == 0 {
 		return nil, errors.New("databend add err, id is 0")
 	}
@@ -71,16 +71,16 @@ func (c *Databend) Conn() *sql.DB {
 	return c.db
 }
 
-func (c *Databend) Chart(param view.ReqQuery) (res []*view.HighChart, q string, err error) {
+func (c *Databend) Chart(param view2.ReqQuery) (res []*view2.HighChart, q string, err error) {
 	q = c.chartSQL(param)
 	charts, err := c.doQuery(q)
 	if err != nil {
 		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return nil, q, err
 	}
-	res = make([]*view.HighChart, 0, len(charts))
+	res = make([]*view2.HighChart, 0, len(charts))
 	for _, chart := range charts {
-		row := view.HighChart{}
+		row := view2.HighChart{}
 		if chart["count"] != nil {
 			switch chart["count"].(type) {
 			case uint64:
@@ -98,7 +98,7 @@ func (c *Databend) Chart(param view.ReqQuery) (res []*view.HighChart, q string, 
 	return res, q, nil
 }
 
-func (c *Databend) Count(param view.ReqQuery) (uint64, error) {
+func (c *Databend) Count(param view2.ReqQuery) (uint64, error) {
 	q := c.countSQL(param)
 	sqlCountData, err := c.doQuery(q)
 	if err != nil {
@@ -115,7 +115,7 @@ func (c *Databend) Count(param view.ReqQuery) (uint64, error) {
 	return 0, nil
 }
 
-func (c *Databend) GroupBy(param view.ReqQuery) (res map[string]uint64) {
+func (c *Databend) GroupBy(param view2.ReqQuery) (res map[string]uint64) {
 	res = make(map[string]uint64, 0)
 	sqlCountData, err := c.doQuery(c.groupBySQL(param))
 	if err != nil {
@@ -153,7 +153,7 @@ func (c *Databend) GroupBy(param view.ReqQuery) (res map[string]uint64) {
 }
 
 // CreateKafkaTable Drop and Create
-func (c *Databend) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (streamSQL string, err error) {
+func (c *Databend) CreateKafkaTable(tableInfo *db2.BaseTable, params view2.ReqStorageUpdate) (streamSQL string, err error) {
 	currentKafkaSQL := tableInfo.SqlStream
 	// Drop TableName
 	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s%s",
@@ -187,7 +187,7 @@ func (c *Databend) CreateKafkaTable(tableInfo *db.BaseTable, params view.ReqStor
 
 func (c *Databend) CreateTraceJaegerDependencies(database, cluster, table string, ttl int) (err error) {
 	// jaegerJson dependencies table
-	sc, errGetTableCreator := builderv2.GetTableCreator(constx.TableCreateTypeTraceCalculation)
+	sc, errGetTableCreator := builderv2.GetTableCreator(constx2.TableCreateTypeTraceCalculation)
 	if errGetTableCreator != nil {
 		elog.Error("CreateTable", elog.String("step", "GetTableCreator"), elog.FieldErr(errGetTableCreator))
 		return
@@ -197,7 +197,7 @@ func (c *Databend) CreateTraceJaegerDependencies(database, cluster, table string
 		IsReplica: false,
 		Cluster:   cluster,
 		Database:  database,
-		Table:     table + db.SuffixJaegerJSON,
+		Table:     table + db2.SuffixJaegerJSON,
 		TTL:       ttl,
 		DB:        c.db,
 	}
@@ -211,7 +211,7 @@ func (c *Databend) CreateTraceJaegerDependencies(database, cluster, table string
 }
 
 // CreateStorage create default stream data table and view
-func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *Databend) CreateStorage(did int, database db2.BaseDatabase, ct view2.ReqStorageCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
@@ -268,11 +268,11 @@ func (c *Databend) CreateStorage(did int, database db.BaseDatabase, ct view.ReqS
 }
 
 // UpdateLogAnalysisFields Data table index operation
-func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.BaseTable, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
+func (c *Databend) UpdateLogAnalysisFields(database db2.BaseDatabase, table db2.BaseTable, adds map[string]*db2.BaseIndex, dels map[string]*db2.BaseIndex, newList map[string]*db2.BaseIndex) (err error) {
 	// step 1 drop
 	alertSQL := ""
 	for _, del := range dels {
-		if del.HashTyp == db.HashTypeSip || del.HashTyp == db.HashTypeURL {
+		if del.HashTyp == db2.HashTypeSip || del.HashTyp == db2.HashTypeURL {
 			hashFieldName, ok := del.GetHashFieldName()
 			if ok {
 				sql3 := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP COLUMN IF EXISTS `%s`;", database.Name, table.Name, hashFieldName)
@@ -292,7 +292,7 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 	}
 	// step 2 add
 	for _, add := range adds {
-		if add.HashTyp == db.HashTypeSip {
+		if add.HashTyp == db2.HashTypeSip {
 			hashFieldName, ok := add.GetHashFieldName()
 			if ok {
 				sql3 := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `%s` %s;", database.Name, table.Name, hashFieldName, typORM[4])
@@ -322,14 +322,14 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 	if alertSQL != "" {
 		ups["sql_data"] = fmt.Sprintf("%s\n%s", table.SqlData, alertSQL)
 	}
-	err = db.TableUpdate(tx, table.ID, ups)
+	err = db2.TableUpdate(tx, table.ID, ups)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	condsViews := egorm.Conds{}
 	condsViews["tid"] = table.ID
-	viewList, err := db.ViewList(invoker.Db, condsViews)
+	viewList, err := db2.ViewList(invoker.Db, condsViews)
 	if err != nil {
 		return err
 	}
@@ -341,7 +341,7 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 		}
 		upsView := make(map[string]interface{}, 0)
 		upsView["sql_view"] = innerViewSQL
-		errViewUpdate := db.ViewUpdate(tx, current.ID, upsView)
+		errViewUpdate := db2.ViewUpdate(tx, current.ID, upsView)
 		if errViewUpdate != nil {
 			tx.Rollback()
 			return errViewUpdate
@@ -355,7 +355,7 @@ func (c *Databend) UpdateLogAnalysisFields(database db.BaseDatabase, table db.Ba
 
 // UpdateMergeTreeTable ...
 // ALTER TABLE dev.test MODIFY TTL toDateTime(time_second) + toIntervalDay(7)
-func (c *Databend) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.ReqStorageUpdate) (err error) {
+func (c *Databend) UpdateMergeTreeTable(tableInfo *db2.BaseTable, params view2.ReqStorageUpdate) (err error) {
 	s := fmt.Sprintf("ALTER TABLE %s%s MODIFY TTL toDateTime(_time_second_) + toIntervalDay(%d)",
 		genNameWithMode(c.mode, tableInfo.Database.Name, tableInfo.Name),
 		genSQLClusterInfo(c.mode, tableInfo.Database.Cluster),
@@ -368,9 +368,9 @@ func (c *Databend) UpdateMergeTreeTable(tableInfo *db.BaseTable, params view.Req
 	return
 }
 
-func (c *Databend) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
+func (c *Databend) GetLogs(param view2.ReqQuery, tid int) (res view2.RespQuery, err error) {
 	res.Logs = make([]map[string]interface{}, 0)
-	res.Keys = make([]*db.BaseIndex, 0)
+	res.Keys = make([]*db2.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
 	var (
 		defaultSQL    string
@@ -378,9 +378,9 @@ func (c *Databend) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, er
 		optimizeSQL   string
 	)
 	switch param.AlarmMode {
-	case db.AlarmModeAggregation:
+	case db2.AlarmModeAggregation:
 		defaultSQL = param.Query
-	case db.AlarmModeAggregationCheck:
+	case db2.AlarmModeAggregationCheck:
 		defaultSQL = alarmAggregationSQLWith(param)
 	default:
 		defaultSQL, optimizeSQL, originalWhere = c.logsSQL(param, tid)
@@ -397,14 +397,14 @@ func (c *Databend) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, er
 	res.Query = defaultSQL
 	res.Where = strings.TrimSuffix(strings.TrimPrefix(originalWhere, "AND ("), ")")
 	for k := range res.Logs {
-		if param.TimeField != db.TimeFieldSecond {
-			if param.TimeFieldType == db.TimeFieldTypeTsMs {
-				if _, ok := res.Logs[k][db.TimeFieldSecond]; !ok {
-					res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
-					res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField].(int64)
+		if param.TimeField != db2.TimeFieldSecond {
+			if param.TimeFieldType == db2.TimeFieldTypeTsMs {
+				if _, ok := res.Logs[k][db2.TimeFieldSecond]; !ok {
+					res.Logs[k][db2.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
+					res.Logs[k][db2.TimeFieldNanoseconds] = res.Logs[k][param.TimeField].(int64)
 				}
 			} else {
-				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
+				res.Logs[k][db2.TimeFieldSecond] = res.Logs[k][param.TimeField]
 			}
 		} else {
 			// If Kafka's key is empty, it will not be displayed on the interface
@@ -417,7 +417,7 @@ func (c *Databend) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, er
 	// Read the index data
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	res.Keys, _ = db.IndexList(conds)
+	res.Keys, _ = db2.IndexList(conds)
 	// keys sort by the first letter
 	sort.Slice(res.Keys, func(i, j int) bool {
 		return res.Keys[i].Field < res.Keys[j].Field
@@ -444,15 +444,15 @@ func (c *Databend) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, er
 	return
 }
 
-func (c *Databend) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, originalWhere string) {
+func (c *Databend) logsSQL(param view2.ReqQuery, tid int) (sql, optSQL, originalWhere string) {
 	st := time.Now()
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	views, _ := db.ViewList(invoker.Db, conds)
+	views, _ := db2.ViewList(invoker.Db, conds)
 	c1 := time.Since(st).Milliseconds()
 	orderByField := param.TimeField
 	if len(views) > 0 {
-		orderByField = db.TimeFieldNanoseconds
+		orderByField = db2.TimeFieldNanoseconds
 	}
 	selectFields := genSelectFields(tid)
 	c2 := time.Since(st).Milliseconds()
@@ -487,15 +487,15 @@ func (c *Databend) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, originalW
 	return
 }
 
-func (c *Databend) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerDependencyDataModel, err error) {
-	dependencies := make([]view.JaegerDependencyDataModel, 0)
-	resp = make([]view.RespJaegerDependencyDataModel, 0)
+func (c *Databend) GetTraceGraph(ctx context.Context) (resp []view2.RespJaegerDependencyDataModel, err error) {
+	dependencies := make([]view2.JaegerDependencyDataModel, 0)
+	resp = make([]view2.RespJaegerDependencyDataModel, 0)
 	st := ctx.Value("st")
 	et := ctx.Value("et")
 	database := ctx.Value("database")
 	table := ctx.Value("table")
 
-	querySQL := fmt.Sprintf("select * from `%s`.`%s` where timestamp>%d and timestamp<%d", database.(string), table.(string)+db.SuffixJaegerJSON, st.(int), et.(int))
+	querySQL := fmt.Sprintf("select * from `%s`.`%s` where timestamp>%d and timestamp<%d", database.(string), table.(string)+db2.SuffixJaegerJSON, st.(int), et.(int))
 
 	elog.Debug("databend", elog.FieldComponent("GetTraceGraph"), elog.FieldName("sql"), elog.String("sql", querySQL))
 
@@ -522,7 +522,7 @@ func (c *Databend) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerDep
 			elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("scan"), elog.FieldErr(err))
 			return
 		}
-		dependencies = append(dependencies, view.JaegerDependencyDataModel{
+		dependencies = append(dependencies, view2.JaegerDependencyDataModel{
 			Timestamp:         timestamp,
 			Parent:            parent,
 			Child:             child,
@@ -541,8 +541,8 @@ func (c *Databend) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerDep
 	return transformJaegerDependencies(dependencies), nil
 }
 
-func (c *Databend) ListSystemTable() (res []*view.SystemTables) {
-	res = make([]*view.SystemTables, 0)
+func (c *Databend) ListSystemTable() (res []*view2.SystemTables) {
+	res = make([]*view2.SystemTables, 0)
 	s := "select * from system.tables"
 	deps, err := c.doQuery(s)
 	if err != nil {
@@ -550,7 +550,7 @@ func (c *Databend) ListSystemTable() (res []*view.SystemTables) {
 		return
 	}
 	for _, table := range deps {
-		row := view.SystemTables{
+		row := view2.SystemTables{
 			Database:         table["database"].(string),
 			Table:            table["name"].(string),
 			Engine:           table["engine"].(string),
@@ -582,17 +582,17 @@ func (c *Databend) ListSystemTable() (res []*view.SystemTables) {
 	return
 }
 
-func (c *Databend) ListSystemCluster() (l []*view.SystemClusters, m map[string]*view.SystemClusters, err error) {
-	l = make([]*view.SystemClusters, 0)
-	m = make(map[string]*view.SystemClusters, 0)
+func (c *Databend) ListSystemCluster() (l []*view2.SystemClusters, m map[string]*view2.SystemClusters, err error) {
+	l = make([]*view2.SystemClusters, 0)
+	m = make(map[string]*view2.SystemClusters, 0)
 	s := "select * from system.clusters"
 	clusters, err := c.doQuery(s)
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "doQuery")
 	}
 	for _, cl := range clusters {
-		row := view.SystemClusters{
-			DatabendSystemClusters: view.DatabendSystemClusters{
+		row := view2.SystemClusters{
+			DatabendSystemClusters: view2.DatabendSystemClusters{
 				Host:    cl["host"].(string),
 				Name:    cl["name"].(string),
 				Port:    cl["port"].(uint16),
@@ -605,9 +605,9 @@ func (c *Databend) ListSystemCluster() (l []*view.SystemClusters, m map[string]*
 	return
 }
 
-func (c *Databend) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
-	databases := make([]*view.RespDatabaseSelfBuilt, 0)
-	dm := make(map[string][]*view.RespTablesSelfBuilt)
+func (c *Databend) ListDatabase() ([]*view2.RespDatabaseSelfBuilt, error) {
+	databases := make([]*view2.RespDatabaseSelfBuilt, 0)
+	dm := make(map[string][]*view2.RespTablesSelfBuilt)
 	query := "select database, name from system.tables"
 	list, err := c.doQuery(query)
 	if err != nil {
@@ -617,14 +617,14 @@ func (c *Databend) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 		d := row["database"].(string)
 		t := row["name"].(string)
 		if _, ok := dm[d]; !ok {
-			dm[d] = make([]*view.RespTablesSelfBuilt, 0)
+			dm[d] = make([]*view2.RespTablesSelfBuilt, 0)
 		}
-		dm[d] = append(dm[d], &view.RespTablesSelfBuilt{
+		dm[d] = append(dm[d], &view2.RespTablesSelfBuilt{
 			Name: t,
 		})
 	}
 	for databaseName, tables := range dm {
-		databases = append(databases, &view.RespDatabaseSelfBuilt{
+		databases = append(databases, &view2.RespDatabaseSelfBuilt{
 			Name:   databaseName,
 			Tables: tables,
 		})
@@ -632,8 +632,8 @@ func (c *Databend) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	return databases, nil
 }
 
-func (c *Databend) ListColumn(database, table string, isTimeField bool) (res []*view.RespColumn, err error) {
-	res = make([]*view.RespColumn, 0)
+func (c *Databend) ListColumn(database, table string, isTimeField bool) (res []*view2.RespColumn, err error) {
+	res = make([]*view2.RespColumn, 0)
 	var query string
 	if isTimeField {
 		query = fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s' and (`type` like %s or `type` like %s)",
@@ -647,7 +647,7 @@ func (c *Databend) ListColumn(database, table string, isTimeField bool) (res []*
 	}
 	for _, row := range list {
 		typeDesc := row["type"].(string)
-		res = append(res, &view.RespColumn{
+		res = append(res, &view2.RespColumn{
 			Name:     row["name"].(string),
 			TypeDesc: typeDesc,
 			Type:     fieldTypeJudgment(typeDesc),
@@ -657,7 +657,7 @@ func (c *Databend) ListColumn(database, table string, isTimeField bool) (res []*
 }
 
 func (c *Databend) DeleteTraceJaegerDependencies(database, cluster, table string) (err error) {
-	table = table + db.SuffixJaegerJSON
+	table = table + db2.SuffixJaegerJSON
 	_, err = c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s.%s;", database, table))
 	return
 }
@@ -705,15 +705,15 @@ func (c *Databend) CreateMetricsSamples(cluster string) error {
 // delete: list need remove current
 // update: list need update current
 // create: list need add current
-func (c *Databend) SyncView(table db.BaseTable, current *db.BaseView, list []*db.BaseView, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
+func (c *Databend) SyncView(table db2.BaseTable, current *db2.BaseView, list []*db2.BaseView, isAddOrUpdate bool) (dViewSQL, cViewSQL string, err error) {
 	// build view statement
 	conds := egorm.Conds{}
 	conds["tid"] = table.ID
-	indexes, err := db.IndexList(conds)
+	indexes, err := db2.IndexList(conds)
 	if err != nil {
 		return
 	}
-	indexMap := make(map[string]*db.BaseIndex)
+	indexMap := make(map[string]*db2.BaseIndex)
 	for _, i := range indexes {
 		indexMap[i.Field] = i
 	}
@@ -726,7 +726,7 @@ func (c *Databend) SyncView(table db.BaseTable, current *db.BaseView, list []*db
 	return
 }
 
-func (c *Databend) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, error) {
+func (c *Databend) Prepare(res view2.ReqQuery, isFilter bool) (view2.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("`%s`.`%s`", res.Database, res.Table)
 	}
@@ -744,7 +744,7 @@ func (c *Databend) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, err
 	}
 	interval := res.ET - res.ST
 	if econf.GetInt64("app.queryLimitHours") != 0 && interval > econf.GetInt64("app.queryLimitHours")*3600 {
-		return res, constx.ErrQueryIntervalLimit
+		return res, constx2.ErrQueryIntervalLimit
 	}
 	if interval <= 0 {
 		res.ST = time.Now().Add(-time.Minute * 15).Unix()
@@ -761,7 +761,7 @@ func (c *Databend) Prepare(res view.ReqQuery, isFilter bool) (view.ReqQuery, err
 }
 
 // CreateTable create default stream data table and view
-func (c *Databend) CreateTable(did int, database db.BaseDatabase, ct view.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
+func (c *Databend) CreateTable(did int, database db2.BaseDatabase, ct view2.ReqTableCreate) (dStreamSQL, dDataSQL, dViewSQL, dDistributedSQL string, err error) {
 	dName := genNameWithMode(c.mode, database.Name, ct.TableName)
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	dataParams := bumo.Params{
@@ -815,7 +815,7 @@ func (c *Databend) CreateDatabase(name, cluster string) error {
 	return nil
 }
 
-func (c *Databend) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, filterId int, filter *view.AlarmFilterItem) (string, string, error) {
+func (c *Databend) GetAlertViewSQL(alarm *db2.Alarm, tableInfo db2.BaseTable, filterId int, filter *view2.AlarmFilterItem) (string, string, error) {
 	if filter.When == "" {
 		filter.When = "1=1"
 	}
@@ -836,7 +836,7 @@ func (c *Databend) GetAlertViewSQL(alarm *db.Alarm, tableInfo db.BaseTable, filt
 		SourceTable:  sourceTableName,
 		Where:        filter.When,
 	}
-	if filter.Mode == db.AlarmModeAggregation || filter.Mode == db.AlarmModeAggregationCheck {
+	if filter.Mode == db2.AlarmModeAggregation || filter.Mode == db2.AlarmModeAggregationCheck {
 		vp.ViewType = bumo.ViewTypePrometheusMetricAggregation
 		// vp.WithSQL = adaSelectPart(filter.When)
 		vp.WithSQL = filter.When
@@ -874,12 +874,12 @@ func (c *Databend) DeleteAlertView(viewTableName, cluster string) (err error) {
 // DeleteTable data view stream
 func (c *Databend) DeleteTable(database, table, cluster string, tid int) (err error) {
 	var (
-		views []*db.BaseView
+		views []*db2.BaseView
 	)
 
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	views, err = db.ViewList(invoker.Db, conds)
+	views, err = db2.ViewList(invoker.Db, conds)
 	if err != nil {
 		return err
 	}
@@ -914,7 +914,7 @@ func (c *Databend) DeleteDatabase(name string, cluster string) (err error) {
 	return err
 }
 
-func (c *Databend) DoSQL(sql string) (res view.RespComplete, err error) {
+func (c *Databend) DoSQL(sql string) (res view2.RespComplete, err error) {
 	res.Logs = make([]map[string]interface{}, 0)
 	tmp, err := c.doQuery(sql)
 	if err != nil {
@@ -963,7 +963,7 @@ func (c *Databend) doQuery(sql string) (res []map[string]interface{}, err error)
 	return
 }
 
-func (c *Databend) timeFieldEqual(param view.ReqQuery, tid int) string {
+func (c *Databend) timeFieldEqual(param view2.ReqQuery, tid int) string {
 	var res string
 	s := c.logsTimelineSQL(param, tid)
 	out, err := c.doQuery(s)
@@ -994,13 +994,13 @@ func (c *Databend) timeFieldEqual(param view.ReqQuery, tid int) string {
 	return "(" + res + ")"
 }
 
-func (c *Databend) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) {
+func (c *Databend) logsTimelineSQL(param view2.ReqQuery, tid int) (sql string) {
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	views, _ := db.ViewList(invoker.Db, conds)
+	views, _ := db2.ViewList(invoker.Db, conds)
 	orderByField := param.TimeField
 	if len(views) > 0 {
-		orderByField = db.TimeFieldNanoseconds
+		orderByField = db2.TimeFieldNanoseconds
 	}
 	sql = fmt.Sprintf("SELECT %s FROM %s WHERE "+genDatabendTimeCondition(param)+" %s ORDER BY "+orderByField+" DESC LIMIT %d",
 		param.TimeField,
@@ -1012,11 +1012,11 @@ func (c *Databend) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) {
 	return
 }
 
-func (c *Databend) queryTransform(params view.ReqQuery, isOptimized bool) string {
+func (c *Databend) queryTransform(params view2.ReqQuery, isOptimized bool) string {
 	if isOptimized {
 		params.Query = queryTransformHash(params) // hash transform
 	}
-	table, _ := db.TableInfo(invoker.Db, params.Tid)
+	table, _ := db2.TableInfo(invoker.Db, params.Tid)
 	query := queryTransformLike(table.CreateType, table.RawLogField, params.Query) // _raw_log_ like
 	if query == "" {
 		return query
@@ -1024,7 +1024,7 @@ func (c *Databend) queryTransform(params view.ReqQuery, isOptimized bool) string
 	return fmt.Sprintf("AND (%s)", query)
 }
 
-func (c *Databend) countSQL(param view.ReqQuery) (sql string) {
+func (c *Databend) countSQL(param view2.ReqQuery) (sql string) {
 	sql = fmt.Sprintf("SELECT count(*) as count FROM %s WHERE "+genDatabendTimeCondition(param)+" %s",
 		param.DatabaseTable,
 		param.ST, param.ET,
@@ -1032,7 +1032,7 @@ func (c *Databend) countSQL(param view.ReqQuery) (sql string) {
 	return
 }
 
-func (c *Databend) chartSQL(param view.ReqQuery) (sql string) {
+func (c *Databend) chartSQL(param view2.ReqQuery) (sql string) {
 	sql = fmt.Sprintf("SELECT count(*) as count, %s as timeline  FROM %s WHERE "+genDatabendTimeCondition(param)+" %s GROUP BY %s ORDER BY %s ASC",
 		param.GroupByCond,
 		param.DatabaseTable,
@@ -1043,7 +1043,7 @@ func (c *Databend) chartSQL(param view.ReqQuery) (sql string) {
 	return
 }
 
-func (c *Databend) groupBySQL(param view.ReqQuery) (sql string) {
+func (c *Databend) groupBySQL(param view2.ReqQuery) (sql string) {
 	sql = fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM %s WHERE "+genDatabendTimeCondition(param)+" %s group by `%s`  order by count desc limit 10",
 		param.Field,
 		param.DatabaseTable,
@@ -1053,11 +1053,11 @@ func (c *Databend) groupBySQL(param view.ReqQuery) (sql string) {
 	return
 }
 
-func (c *Databend) viewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
-	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool) (res string, err error) {
-	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	if tableInfo.CreateType == constx.TableCreateTypeUBW {
-		return c.storageViewOperatorV3(view.OperatorViewParams{
+func (c *Databend) viewOperator(typ, tid int, did int, table, customTimeField string, current *db2.BaseView,
+	list []*db2.BaseView, indexes map[string]*db2.BaseIndex, isCreate bool) (res string, err error) {
+	tableInfo, _ := db2.TableInfo(invoker.Db, tid)
+	if tableInfo.CreateType == constx2.TableCreateTypeUBW {
+		return c.storageViewOperatorV3(view2.OperatorViewParams{
 			Typ:              typ,
 			Tid:              tid,
 			Did:              did,
@@ -1071,15 +1071,15 @@ func (c *Databend) viewOperator(typ, tid int, did int, table, customTimeField st
 			IsKafkaTimestamp: tableInfo.IsKafkaTimestamp,
 		})
 	}
-	rsc := view.ReqStorageCreate{}
+	rsc := view2.ReqStorageCreate{}
 	if tableInfo.AnyJSON != "" {
-		rsc = view.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
+		rsc = view2.ReqStorageCreateUnmarshal(tableInfo.AnyJSON)
 	}
 	return c.storageViewOperator(typ, tid, did, table, customTimeField, current, list, indexes, isCreate, rsc)
 }
 
-func (c *Databend) storageViewOperatorV3(param view.OperatorViewParams) (res string, err error) {
-	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.Did)
+func (c *Databend) storageViewOperatorV3(param view2.OperatorViewParams) (res string, err error) {
+	databaseInfo, err := db2.DatabaseInfo(invoker.Db, param.Did)
 	if err != nil {
 		return
 	}
@@ -1119,7 +1119,7 @@ func (c *Databend) storageViewOperatorV3(param view.OperatorViewParams) (res str
 		whereCond = c.whereConditionSQLCurrentV3(param.Current)
 	}
 	viewSQL = c.execView(bumo.Params{
-		TableCreateType: constx.TableCreateTypeUBW,
+		TableCreateType: constx2.TableCreateTypeUBW,
 		TimeField:       param.TimeField,
 		Cluster:         databaseInfo.Cluster,
 		ReplicaStatus:   c.rs,
@@ -1142,16 +1142,16 @@ func (c *Databend) storageViewOperatorV3(param view.OperatorViewParams) (res str
 	return viewSQL, nil
 }
 
-func (c *Databend) whereConditionSQLCurrentV3(current *db.BaseView) string {
-	rawLogField := constx.UBWKafkaStreamField
+func (c *Databend) whereConditionSQLCurrentV3(current *db2.BaseView) string {
+	rawLogField := constx2.UBWKafkaStreamField
 	if current == nil {
 		return "1=1"
 	}
 	return fmt.Sprintf("JSONHas(%s, '%s') = 1", rawLogField, current.Key)
 }
 
-func (c *Databend) whereConditionSQLDefaultV3(list []*db.BaseView) string {
-	rawLogField := constx.UBWKafkaStreamField
+func (c *Databend) whereConditionSQLDefaultV3(list []*db2.BaseView) string {
+	rawLogField := constx2.UBWKafkaStreamField
 	if list == nil {
 		return "1=1"
 	}
@@ -1171,9 +1171,9 @@ func (c *Databend) whereConditionSQLDefaultV3(list []*db.BaseView) string {
 	return defaultSQL
 }
 
-func (c *Databend) storageViewOperator(typ, tid int, did int, table, customTimeField string, current *db.BaseView,
-	list []*db.BaseView, indexes map[string]*db.BaseIndex, isCreate bool, ct view.ReqStorageCreate) (res string, err error) {
-	databaseInfo, err := db.DatabaseInfo(invoker.Db, did)
+func (c *Databend) storageViewOperator(typ, tid int, did int, table, customTimeField string, current *db2.BaseView,
+	list []*db2.BaseView, indexes map[string]*db2.BaseIndex, isCreate bool, ct view2.ReqStorageCreate) (res string, err error) {
+	databaseInfo, err := db2.DatabaseInfo(invoker.Db, did)
 	if err != nil {
 		return
 	}
@@ -1198,7 +1198,7 @@ func (c *Databend) storageViewOperator(typ, tid int, did int, table, customTimeF
 	viewDropSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s;", viewName)
 	if c.mode == ModeCluster {
 		if databaseInfo.Cluster == "" {
-			err = constx.ErrClusterNameEmpty
+			err = constx2.ErrClusterNameEmpty
 			return
 		}
 		viewDropSQL = fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER `%s` ;", viewName, databaseInfo.Cluster)
@@ -1245,7 +1245,7 @@ func (c *Databend) storageViewOperator(typ, tid int, did int, table, customTimeF
 	return viewSQL, nil
 }
 
-func (c *Databend) whereConditionSQLDefault(list []*db.BaseView, rawLogField string) string {
+func (c *Databend) whereConditionSQLDefault(list []*db2.BaseView, rawLogField string) string {
 	if list == nil {
 		return "1=1"
 	}
@@ -1265,7 +1265,7 @@ func (c *Databend) whereConditionSQLDefault(list []*db.BaseView, rawLogField str
 	return defaultSQL
 }
 
-func (c *Databend) whereConditionSQLCurrent(current *db.BaseView, rawLogField string) string {
+func (c *Databend) whereConditionSQLCurrent(current *db2.BaseView, rawLogField string) string {
 	if current == nil {
 		return "1=1"
 	}
@@ -1273,8 +1273,8 @@ func (c *Databend) whereConditionSQLCurrent(current *db.BaseView, rawLogField st
 	return fmt.Sprintf("JSONHas(%s, '%s') = 1", rawLogField, current.Key)
 }
 
-func (c *Databend) timeParseSQLV3(typ int, v *db.BaseView, timeField string) string {
-	rawLogField := constx.UBWKafkaStreamField
+func (c *Databend) timeParseSQLV3(typ int, v *db2.BaseView, timeField string) string {
+	rawLogField := constx2.UBWKafkaStreamField
 	if timeField == "" {
 		timeField = "_time_"
 	}
@@ -1284,7 +1284,7 @@ func (c *Databend) timeParseSQLV3(typ int, v *db.BaseView, timeField string) str
 	return fmt.Sprintf(databendFloatTimeParseV3, rawLogField, timeField, rawLogField, timeField)
 }
 
-func (c *Databend) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogField string) string {
+func (c *Databend) timeParseSQL(typ int, v *db2.BaseView, timeField, rawLogField string) string {
 	if timeField == "" {
 		timeField = "_time_"
 	}
@@ -1295,7 +1295,7 @@ func (c *Databend) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogField 
 }
 
 func (c *Databend) viewRollback(tid int, key string) {
-	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	tableInfo, err := db2.TableInfo(invoker.Db, tid)
 	if err != nil {
 		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "doViewRollback"))
 		return
@@ -1309,7 +1309,7 @@ func (c *Databend) viewRollback(tid int, key string) {
 		condsView := egorm.Conds{}
 		condsView["tid"] = tid
 		condsView["key"] = key
-		viewInfo, err := db.ViewInfoX(condsView)
+		viewInfo, err := db2.ViewInfoX(condsView)
 		if err != nil {
 			elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "doViewRollbackViewInfoX"))
 			return
@@ -1323,8 +1323,8 @@ func (c *Databend) viewRollback(tid int, key string) {
 	}
 }
 
-func (c *Databend) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex) string {
-	rawLogField := constx.UBWKafkaStreamField
+func (c *Databend) genJsonExtractSQLV3(indexes map[string]*db2.BaseIndex) string {
+	rawLogField := constx2.UBWKafkaStreamField
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
 		if obj.RootName == "" {
@@ -1351,7 +1351,7 @@ func (c *Databend) genJsonExtractSQLV3(indexes map[string]*db.BaseIndex) string 
 	return jsonExtractSQL
 }
 
-func (c *Databend) genJsonExtractSQL(indexes map[string]*db.BaseIndex, rawLogField string) string {
+func (c *Databend) genJsonExtractSQL(indexes map[string]*db2.BaseIndex, rawLogField string) string {
 	jsonExtractSQL := ",\n"
 	for _, obj := range indexes {
 		if obj.RootName == "" {

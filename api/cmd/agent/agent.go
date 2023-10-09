@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/clickvisual/clickvisual/api/cmd"
-	"github.com/clickvisual/clickvisual/api/pkg/config"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 )
 
 var CmdRun = &cobra.Command{

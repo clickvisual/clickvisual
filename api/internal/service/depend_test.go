@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func Test_customParsing(t *testing.T) {

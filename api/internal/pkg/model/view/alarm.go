@@ -1,7 +1,7 @@
 package view
 
 import (
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 type ReqAlarmCreate struct {
@@ -32,7 +32,7 @@ func (r *ReqAlarmCreate) ConvertV2() {
 }
 
 type AlarmFilterItem struct {
-	*db.AlarmFilter
+	*db2.AlarmFilter
 	Exp string
 }
 
@@ -55,13 +55,13 @@ type ReqAlarmConditionCreate struct {
 
 type (
 	RespAlarmInfo struct {
-		Filters     []RespAlarmInfoFilter          `json:"filters"`
-		RelatedList []*db.RespAlarmListRelatedInfo `json:"relatedList"`
+		Filters     []RespAlarmInfoFilter           `json:"filters"`
+		RelatedList []*db2.RespAlarmListRelatedInfo `json:"relatedList"`
 
 		Ctime int64 `json:"ctime"`
 		Utime int64 `json:"utime"`
 
-		db.Alarm
+		db2.Alarm
 
 		Uid              int    `gorm:"-" json:"uid"`
 		OaId             int64  `gorm:"column:oa_id;type:bigint(20);NOT NULL" json:"oaId"`                                // oa_id
@@ -81,17 +81,17 @@ type (
 		Access           string `gorm:"column:access;type:varchar(256);NOT NULL" json:"access"`                           // access
 
 		// Deprecated:
-		Table db.BaseTable `json:"table"`
+		Table db2.BaseTable `json:"table"`
 		// Deprecated:
-		Instance db.BaseInstance `json:"instance"`
+		Instance db2.BaseInstance `json:"instance"`
 		// Deprecated: Conditions
-		Conditions []*db.AlarmCondition `json:"conditions"`
+		Conditions []*db2.AlarmCondition `json:"conditions"`
 	}
 
 	RespAlarmInfoFilter struct {
-		*db.AlarmFilter
-		TableName  string               `json:"tableName"`
-		Conditions []*db.AlarmCondition `json:"conditions"`
+		*db2.AlarmFilter
+		TableName  string                `json:"tableName"`
+		Conditions []*db2.AlarmCondition `json:"conditions"`
 	}
 )
 
@@ -100,20 +100,20 @@ type (
 		AlarmId   int `json:"alarmId" form:"alarmId"`
 		StartTime int `json:"startTime" form:"startTime"`
 		EndTime   int `json:"endTime" form:"endTime"` // 0 m 1 s 2 h 3 d 4 w 5 y
-		db.ReqPage
+		db2.ReqPage
 	}
 
 	RespAlarmHistoryList struct {
-		Total int64              `json:"total"`
-		Succ  int64              `json:"succ"`
-		List  []*db.AlarmHistory `json:"list"`
+		Total int64               `json:"total"`
+		Succ  int64               `json:"succ"`
+		List  []*db2.AlarmHistory `json:"list"`
 	}
 )
 
 type (
 	RespAlarmList struct {
-		*db.Alarm
-		RelatedList []*db.RespAlarmListRelatedInfo `json:"relatedList"`
+		*db2.Alarm
+		RelatedList []*db2.RespAlarmListRelatedInfo `json:"relatedList"`
 
 		// Deprecated:
 		TableName string `json:"tableName"`

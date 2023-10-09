@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 // status of kubernetes cluster
