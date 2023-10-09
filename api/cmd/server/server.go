@@ -19,8 +19,8 @@ import (
 
 var CmdRun = &cobra.Command{
 	Use:   "server",
-	Short: "启动 clickvisual 服务端",
-	Long:  `启动 clickvisual 服务端`,
+	Short: "启动 clickvisual server 服务端",
+	Long:  `启动 clickvisual server 服务端`,
 	Run:   CmdFunc,
 }
 
@@ -43,7 +43,7 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 		Job(ejob.Job("install", job.RunInstall)).
 		Serve(
 			egovernor.Load("server.governor").Build(),
-			router.GetRouter(),
+			router.GetServerRouter(),
 		)
 	if econf.GetBool("prom2click.enable") {
 		// Compatible with historical versions

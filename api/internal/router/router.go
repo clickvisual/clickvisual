@@ -8,6 +8,7 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/server/egin"
 
+	"github.com/clickvisual/clickvisual/api/internal/api/agent"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/initialize"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
@@ -18,7 +19,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 )
 
-func GetRouter() *egin.Component {
+func GetServerRouter() *egin.Component {
 	_, appSubUrl, err := utils.ParseAppUrlAndSubUrl(econf.GetString("app.rootURL"))
 	if err != nil {
 		panic(err.Error())
@@ -55,6 +56,7 @@ func GetRouter() *egin.Component {
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
 		v1Open.POST("/prometheus/alerts", core.Handle(alert.Webhook))
+
 	}
 	admin := g.Group("/api/admin")
 	{
@@ -64,5 +66,12 @@ func GetRouter() *egin.Component {
 
 	v1(g)
 	v2(g)
+
 	return r
+}
+
+func GetAgentRouter() *egin.Component {
+	g := egin.Load("server.http").Build()
+	g.GET("/api/v1/search", core.Handle(agent.Search))
+	return g
 }
