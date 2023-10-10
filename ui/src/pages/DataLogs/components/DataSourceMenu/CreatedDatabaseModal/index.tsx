@@ -201,7 +201,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
                       }),
                     },
                     {
-                      pattern: new RegExp(/^[a-z][a-z\d_]{0,31}$/),
+                      // pattern: new RegExp(/^[a-z][a-z\d_]{0,31}$/),
                       message: i18n.formatMessage({
                         id: "database.form.reg.name",
                       }),

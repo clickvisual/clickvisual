@@ -29,7 +29,7 @@ type Operator interface {
 	Count(view2.ReqQuery) (uint64, error)
 	GroupBy(view2.ReqQuery) map[string]uint64
 	DoSQL(string) (view2.RespComplete, error)
-	Prepare(view2.ReqQuery, bool) (view2.ReqQuery, error)
+	Prepare(view2.ReqQuery, *db2.BaseTable, bool) (view2.ReqQuery, error)
 	SyncView(db2.BaseTable, *db2.BaseView, []*db2.BaseView, bool) (string, string, error)
 
 	CreateDatabase(string, string) error

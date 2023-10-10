@@ -393,7 +393,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
-	firstTry, err := op.Prepare(param, false)
+	firstTry, err := op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "param prepare failed", err)
 		return
@@ -516,7 +516,7 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "instanceManagerLoad", err)
 		return
 	}
-	param, err = op.Prepare(param, false)
+	param, err = op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -675,7 +675,7 @@ func TableIndexes(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	param, err = op.Prepare(param, false)
+	param, err = op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter. "+err.Error(), nil)
 		return

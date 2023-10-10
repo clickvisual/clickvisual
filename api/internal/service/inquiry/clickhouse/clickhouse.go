@@ -355,7 +355,7 @@ func (c *ClickHouseX) SyncView(table db2.BaseTable, current *db2.BaseView, list 
 	return
 }
 
-func (c *ClickHouseX) Prepare(res view2.ReqQuery, isRegroup bool) (view2.ReqQuery, error) {
+func (c *ClickHouseX) Prepare(res view2.ReqQuery, table *db2.BaseTable, isRegroup bool) (view2.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("`%s`.`%s`", res.Database, res.Table)
 	}

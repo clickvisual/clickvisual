@@ -10,7 +10,7 @@ export default {
   submit: "提交",
   name: "名称",
   description: "描述",
-  descAsAlias: "备注",
+  descAsAlias: "附加",
   loading: "正在加载",
   loadingDone: "加载成功",
   noData: "没有数据",

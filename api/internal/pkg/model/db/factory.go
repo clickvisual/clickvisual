@@ -27,6 +27,7 @@ const (
 	DatasourceMySQL      = "mysql"
 	DatasourceClickHouse = "ch"
 	DatasourceDatabend   = "databend"
+	DatasourceAgent      = "agent"
 )
 
 var Datasource2IntORM = map[string]int{

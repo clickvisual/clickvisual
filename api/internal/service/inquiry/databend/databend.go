@@ -727,7 +727,7 @@ func (c *Databend) SyncView(table db2.BaseTable, current *db2.BaseView, list []*
 	return
 }
 
-func (c *Databend) Prepare(res view2.ReqQuery, isFilter bool) (view2.ReqQuery, error) {
+func (c *Databend) Prepare(res view2.ReqQuery, table *db2.BaseTable, isFilter bool) (view2.ReqQuery, error) {
 	if res.Database != "" {
 		res.DatabaseTable = fmt.Sprintf("`%s`.`%s`", res.Database, res.Table)
 	}

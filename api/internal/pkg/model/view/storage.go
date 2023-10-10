@@ -51,6 +51,11 @@ type ReqCreateStorageByTemplateILogtail struct {
 	Topic      string `form:"topic" binding:"required"`
 }
 
+type ReqCreateAgentStorage struct {
+	Name       string `form:"name" binding:"required"`
+	DatabaseId int    `form:"databaseId" binding:"required"`
+}
+
 func (r *ReqStorageCreate) GetRawLogField() string {
 	if r.CreateType == constx.TableCreateTypeJSONAsString {
 		if r.RawLogFieldParent != "" {

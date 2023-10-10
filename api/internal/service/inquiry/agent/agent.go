@@ -31,18 +31,27 @@ func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 		KeyWord:   query.Query,
 		Limit:     int64(query.PageSize),
 	}
+	if req.KeyWord == "*" {
+		req.KeyWord = ""
+	}
 	resp.Logs, err = search.Run(req)
 	if err != nil {
 		panic(err)
 	}
 	resp.Limited = query.PageSize
 	resp.Count = uint64(len(resp.Logs))
+	resp.Keys = make([]*db2.BaseIndex, 0)
+	resp.ShowKeys = make([]string, 0)
+	resp.HiddenFields = make([]string, 0)
+	resp.DefaultFields = make([]string, 0)
+	resp.Terms = make([][]string, 0)
+
 	return resp, nil
 }
 
 func (a Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 	// TODO implement me
-	panic("implement me")
+	return make([]*view.HighChart, 0), "", nil
 }
 
 func (a Agent) Count(query view.ReqQuery) (uint64, error) {
@@ -60,9 +69,17 @@ func (a Agent) DoSQL(s string) (view.RespComplete, error) {
 	panic("implement me")
 }
 
-func (a Agent) Prepare(query view.ReqQuery, b bool) (view.ReqQuery, error) {
+func (a Agent) Prepare(query view.ReqQuery, table *db2.BaseTable, b bool) (view.ReqQuery, error) {
 	// TODO implement me
-	panic("implement me")
+	if query.Query == "" {
+		query.Query = "*"
+	}
+	if table.Name == "*" {
+		query.Dir = table.Database.Desc
+	} else {
+		query.Path = table.Database.Desc + "/" + table.Name
+	}
+	return query, nil
 }
 
 func (a Agent) SyncView(table db2.BaseTable, view *db2.BaseView, views []*db2.BaseView, b bool) (string, string, error) {
@@ -71,8 +88,7 @@ func (a Agent) SyncView(table db2.BaseTable, view *db2.BaseView, views []*db2.Ba
 }
 
 func (a Agent) CreateDatabase(s string, s2 string) error {
-	// TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (a Agent) CreateAlertView(s string, s2 string, s3 string) error {
@@ -147,7 +163,7 @@ func (a Agent) GetMetricsSamples() error {
 
 func (a Agent) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
 	// TODO implement me
-	panic("implement me")
+	return map[string]dto.ClusterInfo{}, nil
 }
 
 func (a Agent) ListSystemTable() []*view.SystemTables {
@@ -197,9 +213,9 @@ func (a Agent) DeleteTraceJaegerDependencies(database, cluster, table string) (e
 
 func (a Agent) CalculateInterval(interval int64, timeField string) (string, int64) {
 	// TODO implement me
-	panic("implement me")
+	return "", 0
 }
 
-func NewFactoryAgent(db *sql.DB, ins *db2.BaseInstance) (*Agent, error) {
+func NewFactoryAgent() (*Agent, error) {
 	return &Agent{}, nil
 }
