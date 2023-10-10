@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
@@ -20,11 +21,23 @@ func (a Agent) Conn() *sql.DB {
 	panic("implement me")
 }
 
-func (a Agent) GetLogs(query view.ReqQuery, i int) (view.RespQuery, error) {
-	// TODO 实现这个接口
-	// 调用 ./api/internal/pkg/agent/search/main.go 中的 Run 方法
-	// 增加 Run 方法的返回参数，目前 search 的输出是控制台输出，需要调整为函数返回
-	return view.RespQuery{}, nil
+func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err error) {
+	req := search.Request{
+		StartTime: query.ST,
+		EndTime:   query.ET,
+		Date:      query.Date,
+		Path:      query.Path,
+		Dir:       query.Dir,
+		KeyWord:   query.Query,
+		Limit:     int64(query.PageSize),
+	}
+	resp.Logs, err = search.Run(req)
+	if err != nil {
+		panic(err)
+	}
+	resp.Limited = query.PageSize
+	resp.Count = uint64(len(resp.Logs))
+	return resp, nil
 }
 
 func (a Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
