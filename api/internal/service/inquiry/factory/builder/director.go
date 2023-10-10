@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
 )
 
 type Director struct {

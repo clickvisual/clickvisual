@@ -1,10 +1,10 @@
-package standalone
+package cluster
 
 import (
 	"fmt"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/common"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/common"
 )
 
 // StreamBuilder stand-alone cluster version
@@ -18,7 +18,8 @@ func (b *StreamBuilder) NewProject(params bumo.Params) {
 }
 
 func (b *StreamBuilder) BuilderCreate() {
-	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s\n", b.QueryAssembly.Params.Stream.TableName)
+	b.QueryAssembly.Result += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s on cluster '%s' \n",
+		b.QueryAssembly.Params.Stream.TableName, b.QueryAssembly.Params.Cluster)
 }
 
 func (b *StreamBuilder) BuilderFields() {

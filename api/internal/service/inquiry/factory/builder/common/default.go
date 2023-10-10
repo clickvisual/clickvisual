@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
 )
 
 func BuilderFieldsData(mapping string) string {

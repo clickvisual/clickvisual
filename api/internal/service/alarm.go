@@ -21,8 +21,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/alertcomponent"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/rule"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
 )
 
 // const prometheusRuleTemplate = `groups:
@@ -130,7 +130,7 @@ func (i *alert) FilterCreate(tx *gorm.DB, alarmObj *db2.Alarm, filters []view.Re
 }
 
 func (i *alert) ConditionCreate(tx *gorm.DB, obj *db2.Alarm, conditions []view.ReqAlarmConditionCreate, filter *db2.AlarmFilter) (exp string, err error) {
-	expVal := fmt.Sprintf("%s{%s} offset 10s", bumo.PrometheusMetricName, inquiry.TagsToString(obj, false, filter.ID))
+	expVal := fmt.Sprintf("%s{%s} offset 10s", bumo.PrometheusMetricName, factory.TagsToString(obj, false, filter.ID))
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].SetOperatorTyp < conditions[j].SetOperatorTyp
 	})
@@ -149,7 +149,7 @@ func (i *alert) ConditionCreate(tx *gorm.DB, obj *db2.Alarm, conditions []view.R
 		case 4:
 			ot = "count_over_time"
 		}
-		expValOverTime := fmt.Sprintf("%s(%s{%s}[%s] offset 10s)", ot, bumo.PrometheusMetricName, inquiry.TagsToString(obj, false, filter.ID), obj.AlertInterval())
+		expValOverTime := fmt.Sprintf("%s(%s{%s}[%s] offset 10s)", ot, bumo.PrometheusMetricName, factory.TagsToString(obj, false, filter.ID), obj.AlertInterval())
 		switch condition.Cond {
 		case 0:
 			innerCond = fmt.Sprintf("%s>%d", expValOverTime, condition.Val1)
@@ -325,7 +325,7 @@ func (i *alert) CreateOrUpdate(alarmObj *db2.Alarm, req view.ReqAlarmCreate) (er
 		if err != nil {
 			return
 		}
-		var op inquiry.Operator
+		var op factory.Operator
 		op, err = InstanceManager.Load(tableInfo.Database.Iid)
 		if err != nil {
 			return

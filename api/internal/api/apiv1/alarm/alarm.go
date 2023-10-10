@@ -16,7 +16,7 @@ import (
 	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 )
@@ -443,7 +443,7 @@ func Delete(c *core.Context) {
 		} else if instance.RuleStoreType == db2.RuleStoreTypeFile || instance.RuleStoreType == db2.RuleStoreTypeK8sConfigMap {
 			_ = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo)
 		}
-		var op inquiry.Operator
+		var op factory.Operator
 		op, err = service.InstanceManager.Load(ri.Table.Database.Iid)
 		if err != nil {
 			tx.Rollback()

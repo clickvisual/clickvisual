@@ -1,4 +1,4 @@
-package inquiry
+package factory
 
 import (
 	"context"
@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	queryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "like"}
+	QueryOperatorArr = []string{"=", "!=", "<", "<=", ">", ">=", "like"}
 )
 
 type Operator interface {
@@ -74,14 +74,23 @@ func TagsToString(alarm *db2.Alarm, isMV bool, filterId int) string {
 	tags["alarmId"] = strconv.Itoa(alarm.ID)
 	result := make([]string, 0)
 	for k, v := range tags {
-		result = resultAppend(result, k, v, isMV)
+		result = ResultAppend(result, k, v, isMV)
 	}
 	if filterId != 0 {
-		result = resultAppend(result, "filterId", strconv.Itoa(filterId), isMV)
+		result = ResultAppend(result, "filterId", strconv.Itoa(filterId), isMV)
 	}
 	res := strings.Join(result, ",")
 	if isMV && econf.GetString("prom2click.tags") != "" {
 		res = fmt.Sprintf("%s,%s", res, econf.GetString("prom2click.tags"))
 	}
 	return res
+}
+
+func ResultAppend(input []string, k, v string, withQuote bool) []string {
+	if withQuote {
+		input = append(input, fmt.Sprintf("'%s=%s'", k, v))
+	} else {
+		input = append(input, fmt.Sprintf(`%s="%s"`, k, v))
+	}
+	return input
 }

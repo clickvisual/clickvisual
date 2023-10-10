@@ -1,4 +1,4 @@
-package inquiry
+package clickhouse
 
 import (
 	"context"
@@ -25,14 +25,15 @@ import (
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/cluster"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/standalone"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
+	cluster2 "github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/cluster"
+	standalone2 "github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/standalone"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builderv2"
 )
 
-var _ Operator = (*ClickHouseX)(nil)
+var _ factory.Operator = (*ClickHouseX)(nil)
 
 type ClickHouseX struct {
 	id int
@@ -424,11 +425,11 @@ func (c *ClickHouseX) CreateTable(did int, database db2.BaseDatabase, ct view2.R
 			dataParams.ReplicaStatus = db2.ReplicaStatusNo
 			streamParams.ReplicaStatus = db2.ReplicaStatusNo
 		}
-		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
-		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+		dDataSQL = builder.Do(new(cluster2.DataBuilder), dataParams)
+		dStreamSQL = builder.Do(new(cluster2.StreamBuilder), streamParams)
 	} else {
-		dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
-		dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+		dDataSQL = builder.Do(new(standalone2.DataBuilder), dataParams)
+		dStreamSQL = builder.Do(new(standalone2.StreamBuilder), streamParams)
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
@@ -464,7 +465,7 @@ func (c *ClickHouseX) CreateTable(did int, database db2.BaseDatabase, ct view2.R
 		} else {
 			p.ReplicaStatus = db2.ReplicaStatusNo
 		}
-		dDistributedSQL = builder.Do(new(cluster.DataBuilder), p)
+		dDistributedSQL = builder.Do(new(cluster2.DataBuilder), p)
 		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
@@ -540,7 +541,7 @@ func (c *ClickHouseX) GetAlertViewSQL(alarm *db2.Alarm, tableInfo db2.BaseTable,
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
 		ViewTable:    viewTableName,
-		CommonFields: TagsToString(alarm, true, filterId),
+		CommonFields: factory.TagsToString(alarm, true, filterId),
 		SourceTable:  sourceTableName,
 		Where:        filter.When,
 	}
@@ -1213,9 +1214,9 @@ func (c *ClickHouseX) CreateStorage(did int, database db2.BaseDatabase, ct view2
 	dStreamName := genStreamNameWithMode(isCluster, database.Name, ct.TableName)
 	// build view statement
 	var timeTyp string
-	if ct.Typ == TableTypeString {
+	if ct.Typ == factory.TableTypeString {
 		timeTyp = "String"
-	} else if ct.Typ == TableTypeFloat {
+	} else if ct.Typ == factory.TableTypeFloat {
 		timeTyp = "Float64"
 	} else {
 		err = errors.New("invalid time type")
@@ -1254,11 +1255,11 @@ func (c *ClickHouseX) CreateStorage(did int, database db2.BaseDatabase, ct view2
 			streamParams.ReplicaStatus = db2.ReplicaStatusNo
 			dataParams.ReplicaStatus = db2.ReplicaStatusNo
 		}
-		dDataSQL = builder.Do(new(cluster.DataBuilder), dataParams)
-		dStreamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+		dDataSQL = builder.Do(new(cluster2.DataBuilder), dataParams)
+		dStreamSQL = builder.Do(new(cluster2.StreamBuilder), streamParams)
 	} else {
-		dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
-		dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+		dDataSQL = builder.Do(new(standalone2.DataBuilder), dataParams)
+		dStreamSQL = builder.Do(new(standalone2.StreamBuilder), streamParams)
 	}
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
@@ -1289,7 +1290,7 @@ func (c *ClickHouseX) CreateStorage(did int, database db2.BaseDatabase, ct view2
 		} else {
 			p.ReplicaStatus = db2.ReplicaStatusNo
 		}
-		dDistributedSQL = builder.Do(new(cluster.DataBuilder), p)
+		dDistributedSQL = builder.Do(new(cluster2.DataBuilder), p)
 		elog.Debug("CreateTable", elog.Any("distributeSQL", dDistributedSQL))
 		_, err = c.db.Exec(dDistributedSQL)
 		if err != nil {
@@ -1376,9 +1377,9 @@ func (c *ClickHouseX) CreateKafkaTable(tableInfo *db2.BaseTable, params view2.Re
 			} else {
 				streamParams.ReplicaStatus = db2.ReplicaStatusNo
 			}
-			streamSQL = builder.Do(new(cluster.StreamBuilder), streamParams)
+			streamSQL = builder.Do(new(cluster2.StreamBuilder), streamParams)
 		} else {
-			streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+			streamSQL = builder.Do(new(standalone2.StreamBuilder), streamParams)
 		}
 		_, err = c.db.Exec(streamSQL)
 	}
@@ -1818,7 +1819,7 @@ func (c *ClickHouseX) timeParseSQLV3(typ int, v *db2.BaseView, timeField string)
 	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, rawLogField, v.Key, rawLogField, v.Key)
 	}
-	if typ == TableTypeString {
+	if typ == factory.TableTypeString {
 		return fmt.Sprintf(defaultStringTimeParseV3, rawLogField, timeField, rawLogField, timeField)
 	}
 	return fmt.Sprintf(defaultFloatTimeParseV3, rawLogField, timeField, rawLogField, timeField)
@@ -1857,7 +1858,7 @@ func (c *ClickHouseX) timeParseJSONAsString(typ int, v *db2.BaseView, timeField,
 	}
 	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		timeField = fmt.Sprintf("JSONExtractInt(%s, '%s')", l, timeField)
-	} else if typ == TableTypeFloat {
+	} else if typ == factory.TableTypeFloat {
 		timeField = fmt.Sprintf("JSONExtractFloat(%s, '%s')", l, timeField)
 	} else {
 		timeField = fmt.Sprintf("JSONExtractString(%s, '%s')", l, timeField)
@@ -1872,7 +1873,7 @@ func (c *ClickHouseX) timeParseSQL(typ int, v *db2.BaseView, timeField, rawLogFi
 	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, rawLogField, v.Key, rawLogField, v.Key)
 	}
-	if typ == TableTypeString {
+	if typ == factory.TableTypeString {
 		return fmt.Sprintf(defaultStringTimeParse, timeField, timeField)
 	}
 	return fmt.Sprintf(defaultFloatTimeParse, timeField, timeField)
@@ -2224,9 +2225,9 @@ func (c *ClickHouseX) execView(params bumo.Params) (string, error) {
 	}
 	switch isCluster {
 	case ModeCluster:
-		obj = new(cluster.ViewBuilder)
+		obj = new(cluster2.ViewBuilder)
 	default:
-		obj = new(standalone.ViewBuilder)
+		obj = new(standalone2.ViewBuilder)
 	}
 	return builder.Do(obj, params), nil
 }

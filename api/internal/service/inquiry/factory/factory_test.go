@@ -1,4 +1,4 @@
-package inquiry
+package factory
 
 import (
 	"testing"
@@ -23,7 +23,7 @@ func Test_dayTime2Timestamp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := dayTime2Timestamp(tt.args.in, "'2006-01-02T15:04:05+08:00'"); got != tt.want {
+			if got := inquiry.dayTime2Timestamp(tt.args.in, "'2006-01-02T15:04:05+08:00'"); got != tt.want {
 				t.Errorf("dayTime2Timestamp() = %v, want %v", got, tt.want)
 			}
 		})
@@ -114,7 +114,7 @@ func Test_queryTransformer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotOut, err := queryTransformer(tt.args.in)
+			gotOut, err := inquiry.queryTransformer(tt.args.in)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("queryTransformer() got %v, error %v, wantErr %v", gotOut, err, tt.wantErr)
 				return

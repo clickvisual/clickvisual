@@ -20,7 +20,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 )
@@ -522,7 +522,7 @@ func TableCharts(c *core.Context) {
 		return
 	}
 	var interval int64
-	param.GroupByCond, interval = op.CalculateInterval(param.ET-param.ST, inquiry.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
+	param.GroupByCond, interval = op.CalculateInterval(param.ET-param.ST, clickhouse.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
 	charts, sql, err := op.Chart(param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), sql)

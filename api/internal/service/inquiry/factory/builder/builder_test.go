@@ -3,8 +3,8 @@ package builder
 import (
 	"testing"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/standalone"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
+	standalone2 "github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/standalone"
 )
 
 func TestStandaloneData(t *testing.T) {
@@ -21,7 +21,7 @@ func TestStandaloneData(t *testing.T) {
 		{
 			name: "test-data",
 			args: args{
-				builder: new(standalone.DataBuilder),
+				builder: new(standalone2.DataBuilder),
 				params: bumo.Params{
 					Data: bumo.ParamsData{
 						TableName: "dev.app_stdout",
@@ -51,7 +51,7 @@ SETTINGS index_granularity = 8192;`,
 		}, {
 			name: "test-stream",
 			args: args{
-				builder: new(standalone.StreamBuilder),
+				builder: new(standalone2.StreamBuilder),
 				params: bumo.Params{
 					Stream: bumo.ParamsStream{
 						TableName:   "dev.app_stdout_stream",
@@ -80,7 +80,7 @@ ENGINE = Kafka SETTINGS kafka_broker_list = 'kafka:9092', kafka_topic_list = 'to
 		}, {
 			name: "test-view",
 			args: args{
-				builder: new(standalone.ViewBuilder),
+				builder: new(standalone2.ViewBuilder),
 				params: bumo.Params{
 					View: bumo.ParamsView{
 						ViewTable:    "local.test_view",
@@ -108,7 +108,7 @@ WHERE 1=1;`},
 		{
 			name: "test-view-prometheus",
 			args: args{
-				builder: new(standalone.ViewBuilder),
+				builder: new(standalone2.ViewBuilder),
 				params: bumo.Params{
 					View: bumo.ParamsView{
 						ViewType:     bumo.ViewTypePrometheusMetric,

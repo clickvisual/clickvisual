@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/common"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/common"
 )
 
 // DataBuilder stand-alone cluster version

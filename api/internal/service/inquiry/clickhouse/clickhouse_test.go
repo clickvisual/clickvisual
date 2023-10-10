@@ -1,4 +1,4 @@
-package inquiry
+package clickhouse
 
 import (
 	"testing"

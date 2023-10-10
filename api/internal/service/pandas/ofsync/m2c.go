@@ -8,7 +8,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	"github.com/clickvisual/clickvisual/api/internal/service/source"
 )
 
@@ -80,7 +80,7 @@ func (c *MySQL2ClickHouse) Run() (map[string]string, error) {
 
 func (c *MySQL2ClickHouse) mysqlEngineDatabase(ins db2.BaseInstance, sc *view.SyncContent) (err error) {
 	dbNameClusterInfo := mysqlEngineDatabaseName(sc)
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER '%s'", dbNameClusterInfo, sc.Cluster())
 	}
 	s, err := db2.SourceInfo(invoker.Db, c.sc.Source.SourceId)

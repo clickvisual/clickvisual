@@ -8,7 +8,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	"github.com/clickvisual/clickvisual/api/internal/service/source"
 )
 
@@ -82,7 +82,7 @@ func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 
 func (c *ClickHouse2MySQL) materializedView(ins db2.BaseInstance) error {
 	viewClusterInfo := materialView(c.sc)
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, c.sc.Cluster())
 	}
 	// Deletes the materialized view from the last execution
@@ -123,7 +123,7 @@ func (c *ClickHouse2MySQL) execTargetSQL(sql string) error {
 func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db2.BaseInstance, sc *view.SyncContent) (err error) {
 	// 创建在 clickhouse 中的表是否对用户可见？如果不可见，涉及集群操作，默认采用第一集群？
 	dbNameClusterInfo := mysqlEngineDatabaseName(sc)
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER '%s'", dbNameClusterInfo, sc.Cluster())
 	}
 	s, err := db2.SourceInfo(invoker.Db, sc.Target.SourceId)

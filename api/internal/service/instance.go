@@ -18,7 +18,9 @@ import (
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/databend"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 )
@@ -43,7 +45,7 @@ func NewInstanceManager() *instanceManager {
 				core.LoggerError("ClickHouseX", "link", err)
 				continue
 			}
-			ch, err := inquiry.NewClickHouse(chDb, ds)
+			ch, err := clickhouse.NewClickHouse(chDb, ds)
 			if err != nil {
 				core.LoggerError("ClickHouseX", "new", err)
 				continue
@@ -55,7 +57,7 @@ func NewInstanceManager() *instanceManager {
 				core.LoggerError("Databend", "link", err)
 				continue
 			}
-			dd, err := inquiry.NewDatabend(databendDb, ds)
+			dd, err := databend.NewDatabend(databendDb, ds)
 			if err != nil {
 				core.LoggerError("Databend", "new", err)
 				continue
@@ -78,7 +80,7 @@ func (i *instanceManager) Add(obj *db2.BaseInstance) error {
 		if err != nil {
 			return err
 		}
-		ch, err := inquiry.NewClickHouse(chDb, obj)
+		ch, err := clickhouse.NewClickHouse(chDb, obj)
 		if err != nil {
 			return err
 		}
@@ -88,7 +90,7 @@ func (i *instanceManager) Add(obj *db2.BaseInstance) error {
 		if err != nil {
 			return err
 		}
-		dd, err := inquiry.NewDatabend(databendDb, obj)
+		dd, err := databend.NewDatabend(databendDb, obj)
 		if err != nil {
 			return err
 		}
@@ -97,7 +99,7 @@ func (i *instanceManager) Add(obj *db2.BaseInstance) error {
 	return nil
 }
 
-func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
+func (i *instanceManager) Load(id int) (factory.Operator, error) {
 	instance, err := db2.InstanceInfo(invoker.Db, id)
 	if err != nil {
 		return nil, err
@@ -115,20 +117,20 @@ func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	}
 	switch instance.Datasource {
 	case db2.DatasourceClickHouse:
-		return obj.(*inquiry.ClickHouseX), nil
+		return obj.(*clickhouse.ClickHouseX), nil
 	case db2.DatasourceDatabend:
-		return obj.(*inquiry.Databend), nil
+		return obj.(*databend.Databend), nil
 	}
 	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 }
 
-func (i *instanceManager) All() []inquiry.Operator {
-	res := make([]inquiry.Operator, 0)
+func (i *instanceManager) All() []factory.Operator {
+	res := make([]factory.Operator, 0)
 	i.dss.Range(func(key, obj interface{}) bool {
 		iid, _ := strconv.Atoi(key.(string))
 		instance, _ := db2.InstanceInfo(invoker.Db, iid)
 		if instance.Datasource == db2.DatasourceClickHouse {
-			res = append(res, obj.(*inquiry.ClickHouseX))
+			res = append(res, obj.(*clickhouse.ClickHouseX))
 		}
 		return true
 	})

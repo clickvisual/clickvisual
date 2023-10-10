@@ -3,8 +3,8 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/common"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/common"
 )
 
 // ViewBuilder stand-alone cluster version

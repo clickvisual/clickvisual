@@ -10,7 +10,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	"github.com/clickvisual/clickvisual/api/internal/service/source"
 )
 
@@ -77,7 +77,7 @@ func dropMaterialView(ins db2.BaseInstance, nodeId int, sc *view.SyncContent) er
 	if viewClusterInfo == "" {
 		viewClusterInfo = materialView(sc)
 	}
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, sc.Cluster())
 	}
 	// 删除上次执行产生的物化视图

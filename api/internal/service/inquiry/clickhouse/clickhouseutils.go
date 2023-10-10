@@ -1,4 +1,4 @@
-package inquiry
+package clickhouse
 
 import (
 	"errors"
@@ -15,6 +15,7 @@ import (
 	constx2 "github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 )
 
 var regSingleWord = regexp.MustCompile(`([a-z]|[A-Z]|[0-9]|_|-|')+`)
@@ -125,15 +126,6 @@ func genTimeConditionEqual(param view2.ReqQuery, t time.Time) string {
 		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
 	}
 	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
-}
-
-func resultAppend(input []string, k, v string, withQuote bool) []string {
-	if withQuote {
-		input = append(input, fmt.Sprintf("'%s=%s'", k, v))
-	} else {
-		input = append(input, fmt.Sprintf(`%s="%s"`, k, v))
-	}
-	return input
 }
 
 func fieldTypeJudgment(typ string) int {
@@ -317,9 +309,9 @@ func isEmpty(input interface{}) bool {
 }
 
 func tableTypStr(typ int) string {
-	if typ == TableTypeString {
+	if typ == factory.TableTypeString {
 		return "String"
-	} else if typ == TableTypeFloat {
+	} else if typ == factory.TableTypeFloat {
 		return "Float64"
 	}
 	return ""
@@ -373,7 +365,7 @@ func queryTransformer(in string) (out string, err error) {
 func queryEncode(in string) ([]queryItem, error) {
 	res := make([]queryItem, 0)
 	for _, a := range strings.Split(in, "' and ") {
-		for _, op := range queryOperatorArr {
+		for _, op := range factory.QueryOperatorArr {
 			if err := queryEncodeOperation(a, op, &res); err != nil {
 				return nil, err
 			}

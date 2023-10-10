@@ -13,7 +13,7 @@ import (
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 )
 
 func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notification db2.Notification) (err error) {
@@ -133,7 +133,7 @@ func (i *alert) compatibleFilter(alarmId int, filterId int) (res *db2.AlarmFilte
 	return
 }
 
-func (i *alert) getPartialLog(op inquiry.Operator, table *db2.BaseTable, alarm *db2.Alarm, filter *db2.AlarmFilter) (partialLog string) {
+func (i *alert) getPartialLog(op factory.Operator, table *db2.BaseTable, alarm *db2.Alarm, filter *db2.AlarmFilter) (partialLog string) {
 	param := view.ReqQuery{
 		Tid:           table.ID,
 		Database:      table.Database.Name,

@@ -1,4 +1,4 @@
-package inquiry
+package databend
 
 import (
 	"context"
@@ -19,13 +19,14 @@ import (
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/bumo"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builder/standalone"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/builderv2"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
+	standalone2 "github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/standalone"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builderv2"
 )
 
-var _ Operator = (*Databend)(nil)
+var _ factory.Operator = (*Databend)(nil)
 
 type Databend struct {
 	id   int
@@ -176,7 +177,7 @@ func (c *Databend) CreateKafkaTable(tableInfo *db2.BaseTable, params view2.ReqSt
 			KafkaSkipBrokenMessages: params.KafkaSkipBrokenMessages,
 		},
 	}
-	streamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+	streamSQL = builder.Do(new(standalone2.StreamBuilder), streamParams)
 	if _, err = c.db.Exec(streamSQL); err != nil {
 		elog.Error("CreateKafkaTable", elog.Any("streamSQL", streamSQL), elog.Any("err", err.Error()))
 		_, _ = c.db.Exec(currentKafkaSQL)
@@ -216,9 +217,9 @@ func (c *Databend) CreateStorage(did int, database db2.BaseDatabase, ct view2.Re
 	dStreamName := genStreamNameWithMode(c.mode, database.Name, ct.TableName)
 	// build view statement
 	var timeTyp string
-	if ct.Typ == TableTypeString {
+	if ct.Typ == factory.TableTypeString {
 		timeTyp = "String"
-	} else if ct.Typ == TableTypeFloat {
+	} else if ct.Typ == factory.TableTypeFloat {
 		timeTyp = "Float64"
 	} else {
 		err = errors.New("invalid time type")
@@ -247,8 +248,8 @@ func (c *Databend) CreateStorage(did int, database db2.BaseDatabase, ct view2.Re
 			KafkaSkipBrokenMessages: ct.KafkaSkipBrokenMessages,
 		},
 	}
-	dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
-	dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+	dDataSQL = builder.Do(new(standalone2.DataBuilder), dataParams)
+	dStreamSQL = builder.Do(new(standalone2.StreamBuilder), streamParams)
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
 		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("isCluster", c.mode), elog.Any("cluster", database.Cluster))
@@ -782,8 +783,8 @@ func (c *Databend) CreateTable(did int, database db2.BaseDatabase, ct view2.ReqT
 		},
 	}
 
-	dDataSQL = builder.Do(new(standalone.DataBuilder), dataParams)
-	dStreamSQL = builder.Do(new(standalone.StreamBuilder), streamParams)
+	dDataSQL = builder.Do(new(standalone2.DataBuilder), dataParams)
+	dStreamSQL = builder.Do(new(standalone2.StreamBuilder), streamParams)
 	_, err = c.db.Exec(dStreamSQL)
 	if err != nil {
 		elog.Error("CreateTable", elog.Any("dStreamSQL", dStreamSQL), elog.Any("err", err.Error()), elog.Any("isCluster", c.mode), elog.Any("cluster", database.Cluster))
@@ -832,7 +833,7 @@ func (c *Databend) GetAlertViewSQL(alarm *db2.Alarm, tableInfo db2.BaseTable, fi
 	vp := bumo.ParamsView{
 		ViewType:     bumo.ViewTypePrometheusMetric,
 		ViewTable:    viewTableName,
-		CommonFields: TagsToString(alarm, true, filterId),
+		CommonFields: factory.TagsToString(alarm, true, filterId),
 		SourceTable:  sourceTableName,
 		Where:        filter.When,
 	}
@@ -1379,7 +1380,7 @@ func (c *Databend) genJsonExtractSQL(indexes map[string]*db2.BaseIndex, rawLogFi
 }
 
 func (c *Databend) execView(params bumo.Params) string {
-	return builder.Do(new(standalone.ViewBuilder), params)
+	return builder.Do(new(standalone2.ViewBuilder), params)
 }
 
 func (c *Databend) CalculateInterval(interval int64, timeField string) (string, int64) {
