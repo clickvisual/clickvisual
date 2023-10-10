@@ -1,11 +1,10 @@
 package search
 
 import (
-	"fmt"
-	"os"
 	"strings"
 	"sync"
-	"time"
+
+	"github.com/gotomicro/ego/core/elog"
 )
 
 type Container struct {
@@ -22,6 +21,7 @@ type Component struct {
 	bash        *Bash
 	limit       int64
 	output      []string
+	logs        []map[string]interface{}
 }
 
 type KeySearch struct {
@@ -31,8 +31,8 @@ type KeySearch struct {
 }
 
 type Request struct {
-	StartTime string
-	EndTime   string
+	StartTime int64
+	EndTime   int64
 	Date      string // last 30min,6h,1d,7d
 	Path      string // 文件路径
 	Dir       string // 文件夹路径
@@ -41,7 +41,7 @@ type Request struct {
 	Limit     int64  // 最少多少条数据
 }
 
-func Run(req Request) {
+func Run(req Request) (logs []map[string]interface{}, err error) {
 	var filePaths []string
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
 	if req.Path != "" {
@@ -58,9 +58,9 @@ func Run(req Request) {
 	// 多了没意义，自动变为 50，提示用户
 	if req.Limit <= 0 || req.Limit > 500 {
 		req.Limit = 50
-		fmt.Println("limit上限为500，超过后会自动变为50")
+		elog.Info("limit exceeds 500. it will be automatically set to 50", elog.Int64("limit", req.Limit))
 	}
-	fmt.Printf("req--------------->"+"%+v\n", req)
+	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
 	l := sync.WaitGroup{}
 
@@ -71,7 +71,7 @@ func Run(req Request) {
 		go func() {
 			comp := NewComponent(req.StartTime, req.EndTime, value, req.KeyWord, req.Limit)
 			if req.KeyWord != "" && len(comp.words) == 0 {
-				fmt.Fprintln(os.Stderr, "-k format is error")
+				elog.Error("-k format is error", elog.FieldErr(err))
 				l.Done()
 				return
 			}
@@ -81,36 +81,24 @@ func Run(req Request) {
 		}()
 	}
 	l.Wait()
-	for _, comp := range container.components {
-		fmt.Println(comp.bash.ColorAll(comp.file.path))
-		for _, value := range comp.output {
-			fmt.Println(value)
-		}
-	}
 
+	logs = make([]map[string]interface{}, 0)
+	for _, comp := range container.components {
+		logs = append(logs, comp.logs...)
+	}
+	return logs, nil
 }
 
-func NewComponent(startTime string, endTime string, filename string, keyWord string, limit int64) *Component {
+func NewComponent(startTime int64, endTime int64, filename string, keyWord string, limit int64) *Component {
 	obj := &Component{}
 	file, err := OpenFile(filename)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error()+", file path is "+filename)
+		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
 	}
+
 	obj.file = file
-	if startTime != "" {
-		start, err := time.Parse(time.DateTime, startTime)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
-		obj.startTime = start.Unix()
-	}
-	if endTime != "" {
-		end, err := time.Parse(time.DateTime, endTime)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
-		obj.endTime = end.Unix()
-	}
+	obj.startTime = startTime
+	obj.endTime = endTime
 	words := make([]KeySearch, 0)
 
 	arrs := strings.Split(keyWord, "and")
@@ -148,7 +136,7 @@ func NewComponent(startTime string, endTime string, filename string, keyWord str
  * searchFile 搜索文件内容
  * searchFile 2023-09-28 10:10:00 2023-09-28 10:20:00 /xxx/your_service.log`
  */
-func (c *Component) SearchFile() ([]string, error) {
+func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	defer c.file.ptr.Close()
 	if c.file.size == 0 {
 		panic("file size is 0")
@@ -162,22 +150,27 @@ func (c *Component) SearchFile() ([]string, error) {
 	if c.startTime > 0 {
 		start, err = c.searchByStartTime()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			elog.Error("agent search ts error", elog.FieldErr(err))
 		}
 	}
 	if c.endTime > 0 {
 		end, err = c.searchByEndTime()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			elog.Error("agent search ts error", elog.FieldErr(err))
 		}
 	}
 	if start != -1 && start <= end {
-		c.output, err = c.searchByBackWord(start, end)
-		if len(c.output) == 0 {
-			fmt.Println("nothing")
+		_, err = c.searchByBackWord(start, end)
+
+		if err != nil {
+
 		}
-		return c.output, err
+
+		if len(c.logs) == 0 {
+			elog.Info("agent log search nothing", elog.Any("words", c.words))
+		}
+		return c.logs, err
 	}
-	fmt.Println("nothing")
+	elog.Info("agent log search nothing", elog.Any("words", c.words))
 	return nil, nil
 }

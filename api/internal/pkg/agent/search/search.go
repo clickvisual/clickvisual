@@ -8,6 +8,10 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gotomicro/ego/core/elog"
+
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 // isSearchTime 根据时间搜索到数据
@@ -85,11 +89,11 @@ func (c *Component) searchByStartTime() (int64, error) {
 		isSearch := c.isSearchByStartTime(value)
 		// 如果查到了满足条件，继续往上一层查找
 		if isSearch {
-			//it's already result, but we need to search for more results
+			// it's already result, but we need to search for more results
 			result = strFrom
 			to = strFrom - int64(1)
 		} else {
-			//it's not a result, we need to search for more results
+			// it's not a result, we need to search for more results
 			from = strTo + int64(1)
 		}
 		currCall++
@@ -125,11 +129,11 @@ func (c *Component) searchByEndTime() (int64, error) {
 
 		isSearch := c.isSearchByEndTime(value)
 		if isSearch {
-			//it's already result, but we need to search for more results
+			// it's already result, but we need to search for more results
 			result = strTo
-			from = strTo + int64(2) //next byte is \n, so we need to move to the bytes after \n
+			from = strTo + int64(2) // next byte is \n, so we need to move to the bytes after \n
 		} else {
-			//it's not a result, we need to search for more results
+			// it's not a result, we need to search for more results
 			to = strFrom - int64(1)
 		}
 		currCall++
@@ -152,7 +156,7 @@ func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
 			break
 		}
 		i += len(scanner.Text())
-		//fmt.Println(scanner.Text())
+		// fmt.Println(scanner.Text())
 		flag := c.isSearchByKeyWord(scanner.Text())
 		if flag {
 			str := scanner.Text()
@@ -165,8 +169,31 @@ func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
 	return 0, nil
 }
 
+func (c *Component) parseHitLog(line string) (log map[string]interface{}, err error) {
+	log = make(map[string]interface{})
+	for _, word := range c.words {
+		log[word.Key] = word.Value
+	}
+	c.logs = append(c.logs, log)
+	curTime, indexValue := Index(line, `"ts":"`)
+	if indexValue == -1 {
+		return
+	}
+	curTimeParser, err := time.Parse(time.DateTime, curTime)
+	if err != nil {
+		elog.Error("agent log parse timestamp error", elog.FieldErr(err))
+		panic(err)
+	}
+	ts := curTimeParser.Unix()
+	log["ts"] = ts
+	log["body"] = line
+	log[db2.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
+	log[db2.TimeFieldSecond] = ts
+	return
+}
+
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
-func (c *Component) searchByBackWord(startPos, endPos int64) ([]string, error) {
+func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]interface{}, error error) {
 	// 游标去掉一部分数据
 	_, err := c.file.ptr.Seek(startPos, io.SeekStart)
 	if err != nil {
@@ -189,10 +216,10 @@ func (c *Component) searchByBackWord(startPos, endPos int64) ([]string, error) {
 			flag := c.isSearchByKeyWord(line)
 			if flag {
 				str = line
-				for _, value := range c.filterWords {
-					str = c.bash.ColorWord(value, str)
+				_, err := c.parseHitLog(str)
+				if err != nil {
+					return nil, err
 				}
-				output = append(output, str)
 				if i == c.limit {
 					break
 				}
@@ -207,7 +234,7 @@ func (c *Component) searchByBackWord(startPos, endPos int64) ([]string, error) {
 		}
 
 	}
-	return output, nil
+	return c.logs, nil
 }
 
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
@@ -217,8 +244,8 @@ func (c *Component) searchByWord2(startPos, endPos int64) (int64, error) {
 	buff := make([]byte, 0, 4096)
 	char := make([]byte, 1)
 	cnt := 0
-	//scanner := bufio.NewReader(c.file.ptr.)
-	//scanner.ReadString("/n")
+	// scanner := bufio.NewReader(c.file.ptr.)
+	// scanner.ReadString("/n")
 	for {
 		_, _ = c.file.ptr.Seek(cursor, io.SeekStart)
 		_, err = c.file.ptr.Read(char)
@@ -251,13 +278,13 @@ func (c *Component) searchByWord2(startPos, endPos int64) (int64, error) {
 		cursor++
 	}
 	//
-	//bufio.NewReader()
-	//io.seek
-	//value, err := getString(c.file.ptr, startPos, endPos)
-	//if err != nil {
+	// bufio.NewReader()
+	// io.seek
+	// value, err := getString(c.file.ptr, startPos, endPos)
+	// if err != nil {
 	//	return -1, err
-	//}
-	//fmt.Printf("value--------------->"+"%+v\n", value)
+	// }
+	// fmt.Printf("value--------------->"+"%+v\n", value)
 	return 0, nil
 }
 
@@ -379,20 +406,20 @@ func findString(file *os.File, from int64, to int64) (int64, int64, error) {
 	if err != nil {
 		return -1, -1, err
 	} else if strFrom == -1 {
-		//no newline found, just return from position
+		// no newline found, just return from position
 		strFrom = from
 	} else {
-		//new line found, need to increment position to omit newline byte
+		// new line found, need to increment position to omit newline byte
 		strFrom++
 	}
 	strTo, err := findBorder(file, middle+1, to, 1, maxBufferSize)
 	if err != nil {
 		return -1, -1, err
 	} else if strTo == -1 {
-		//no newline found, just return from position
+		// no newline found, just return from position
 		strTo = to
 	} else {
-		//new line found, need to decrement position to omit newline byte
+		// new line found, need to decrement position to omit newline byte
 		strTo--
 	}
 	return strFrom, strTo, nil
