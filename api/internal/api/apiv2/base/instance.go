@@ -1,8 +1,8 @@
 package base
 
 import (
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/service"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
 )
 
 // InstanceList  godoc

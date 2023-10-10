@@ -10,7 +10,7 @@ import (
 
 	tb "gopkg.in/telebot.v3"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 var _ IPusher = (*Telegram)(nil)

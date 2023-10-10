@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 func TestInstantiate(t *testing.T) {

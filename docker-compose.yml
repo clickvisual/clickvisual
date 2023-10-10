@@ -188,7 +188,7 @@ services:
     volumes:
       - ./data/all-in-one/clickvisual/config:/clickvisual/config
       - ./data/all-in-one/prometheus/rules:/clickvisual/rules
-    command: [ '/bin/sh', '-c', './bin/clickvisual' ]
+    command: [ '/bin/sh', '-c', './bin/clickvisual server' ]
   mock:
     image: clickvisual/clickvisual:master
     networks:
@@ -203,4 +203,4 @@ services:
     restart: 'no'
     volumes:
       - ./data/all-in-one/clickvisual/config:/clickvisual/config
-    command: [ '/bin/sh', '-c', './bin/clickvisual -job install' ]
+    command: [ '/bin/sh', '-c', './bin/clickvisual server -job install' ]

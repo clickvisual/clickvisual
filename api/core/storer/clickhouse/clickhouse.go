@@ -7,11 +7,11 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/core/common"
-	"github.com/clickvisual/clickvisual/api/core/storer/ifstorer"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/core/i"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 )
 
-var _ ifstorer.Storer = (*Storer)(nil)
+var _ i.Storer = (*Storer)(nil)
 
 type Storer struct {
 	createType int
@@ -29,7 +29,7 @@ type Storer struct {
 	withAttachFields bool // withAttachFields Whether to include attachment fields, such as _key/headers
 }
 
-func NewStorer(req ifstorer.Params) *Storer {
+func NewStorer(req i.StorerParams) *Storer {
 	return &Storer{
 		createType: req.CreateType,
 		isShard:    req.IsShard,

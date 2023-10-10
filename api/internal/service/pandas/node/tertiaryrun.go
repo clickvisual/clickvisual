@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/ofsync"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/rtsync"
 	"github.com/clickvisual/clickvisual/api/internal/service/source"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func doTyClickHouse(n *node) (res view.RunNodeResult, err error) {
@@ -29,7 +29,7 @@ func doTyClickHouse(n *node) (res view.RunNodeResult, err error) {
 }
 
 func doTyMySQL(n *node) (res view.RunNodeResult, err error) {
-	s, err := db.SourceInfo(invoker.Db, n.n.SourceId)
+	s, err := db2.SourceInfo(invoker.Db, n.n.SourceId)
 	if err != nil {
 		return
 	}
@@ -57,16 +57,16 @@ func doTyRealTimeSync(n *node) (res view.RunNodeResult, err error) {
 	}
 	switch n.op {
 	case OperatorRun:
-		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusHandler})
+		_ = db2.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db2.NodeStatusHandler})
 		res.InvolvedSQLs, err = c.Run()
 	case OperatorStop:
 		err = c.Stop()
-		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusDefault})
+		_ = db2.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db2.NodeStatusDefault})
 	default:
 		err = constx.ErrBigdataRTSyncOperatorTypeNotSupported
 	}
 	if err != nil {
-		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusError})
+		_ = db2.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db2.NodeStatusError})
 		return
 	}
 	return res, nil
@@ -83,16 +83,16 @@ func doTyOfflineSync(n *node) (res view.RunNodeResult, err error) {
 	}
 	switch n.op {
 	case OperatorRun:
-		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusHandler})
+		_ = db2.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db2.NodeStatusHandler})
 		res.InvolvedSQLs, err = c.Run()
 	case OperatorStop:
 		err = c.Stop()
-		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusDefault})
+		_ = db2.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db2.NodeStatusDefault})
 	default:
 		err = constx.ErrBigdataRTSyncOperatorTypeNotSupported
 	}
 	if err != nil {
-		_ = db.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db.NodeStatusError})
+		_ = db2.NodeUpdate(invoker.Db, n.n.ID, map[string]interface{}{"status": db2.NodeStatusError})
 		return
 	}
 	return res, nil
@@ -100,7 +100,7 @@ func doTyOfflineSync(n *node) (res view.RunNodeResult, err error) {
 
 // Make a variable substitution from the parameters of the task schedule
 func argsReplace(nodeId int, sql string) (res string) {
-	crontab, _ := db.CrontabInfo(invoker.Db, nodeId)
+	crontab, _ := db2.CrontabInfo(invoker.Db, nodeId)
 	args := make([]view.ReqCrontabArg, 0)
 	_ = json.Unmarshal([]byte(crontab.Args), &args)
 	if len(args) == 0 {

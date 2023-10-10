@@ -8,14 +8,14 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/worker"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // NodeLockAcquire  godoc
@@ -33,12 +33,12 @@ func NodeLockAcquire(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var n db.BigdataNode
+	var n db2.BigdataNode
 	if err := invoker.Db.Where("id = ?", nodeId).First(&n).Error; err != nil || n.ID == 0 {
 		c.JSONE(1, "failed to get information", nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -52,7 +52,7 @@ func NodeLockAcquire(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
 	c.JSONOK()
 }
 
@@ -65,17 +65,17 @@ func NodeCrontabCreate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view.ReqCreateCrontab
+	var req view2.ReqCreateCrontab
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, nodeId)
+	n, err := db2.NodeInfo(invoker.Db, nodeId)
 	if err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -86,7 +86,7 @@ func NodeCrontabCreate(c *core.Context) {
 		return
 	}
 	argsBytes, _ := json.Marshal(req.Args)
-	obj := &db.BigdataCrontab{
+	obj := &db2.BigdataCrontab{
 		NodeId:        nodeId,
 		Desc:          req.Desc,
 		DutyUid:       req.DutyUid,
@@ -97,14 +97,14 @@ func NodeCrontabCreate(c *core.Context) {
 		IsRetry:       req.IsRetry,
 		RetryTimes:    req.RetryTimes,
 		RetryInterval: req.RetryInterval,
-		ChannelIds:    db.Ints(req.ChannelIds),
+		ChannelIds:    db2.Ints(req.ChannelIds),
 	}
-	err = db.CrontabCreate(invoker.Db, obj)
+	err = db2.CrontabCreate(invoker.Db, obj)
 	if err != nil {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeCrontabCreate, map[string]interface{}{"obj": obj})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeCrontabCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -117,17 +117,17 @@ func NodeCrontabUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view.ReqUpdateCrontab
+	var req view2.ReqUpdateCrontab
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, nodeId)
+	n, err := db2.NodeInfo(invoker.Db, nodeId)
 	if err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -137,7 +137,7 @@ func NodeCrontabUpdate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	nodeCrontabInfo, _ := db.CrontabInfo(invoker.Db, nodeId)
+	nodeCrontabInfo, _ := db2.CrontabInfo(invoker.Db, nodeId)
 	var isReload bool = false
 	if nodeCrontabInfo.NodeId != 0 {
 		if req.Cron != nodeCrontabInfo.Cron ||
@@ -149,7 +149,7 @@ func NodeCrontabUpdate(c *core.Context) {
 	} else {
 		// create
 		argsBytes, _ := json.Marshal(req.Args)
-		obj := &db.BigdataCrontab{
+		obj := &db2.BigdataCrontab{
 			NodeId:        nodeId,
 			Desc:          req.Desc,
 			DutyUid:       req.DutyUid,
@@ -160,9 +160,9 @@ func NodeCrontabUpdate(c *core.Context) {
 			IsRetry:       req.IsRetry,
 			RetryTimes:    req.RetryTimes,
 			RetryInterval: req.RetryInterval,
-			ChannelIds:    db.Ints(req.ChannelIds),
+			ChannelIds:    db2.Ints(req.ChannelIds),
 		}
-		err = db.CrontabCreate(invoker.Db, obj)
+		err = db2.CrontabCreate(invoker.Db, obj)
 		if err != nil {
 			c.JSONE(1, "create failed: "+err.Error(), nil)
 			return
@@ -182,19 +182,19 @@ func NodeCrontabUpdate(c *core.Context) {
 	ups["is_retry"] = req.IsRetry
 	ups["retry_times"] = req.RetryTimes
 	ups["retry_interval"] = req.RetryInterval
-	ups["channel_ids"] = db.Ints(req.ChannelIds)
-	if req.Typ == db.CrontabTypSuspended || isReload {
+	ups["channel_ids"] = db2.Ints(req.ChannelIds)
+	if req.Typ == db2.CrontabTypSuspended || isReload {
 		if err = worker.NodeCrontabStop(nodeId); err != nil {
 			c.JSONE(1, "update failed: "+err.Error(), nil)
 			return
 		}
-		ups["status"] = db.CrontabStatusWait
+		ups["status"] = db2.CrontabStatusWait
 	}
-	if err = db.CrontabUpdate(invoker.Db, nodeId, ups); err != nil {
+	if err = db2.CrontabUpdate(invoker.Db, nodeId, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeCrontabUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeCrontabUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -207,18 +207,18 @@ func NodeResultUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view.ReqNodeRunResult
+	var req view2.ReqNodeRunResult
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	nr, err := db.NodeResultInfo(invoker.Db, resultId)
+	nr, err := db2.NodeResultInfo(invoker.Db, resultId)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	nodeInfo, _ := db.NodeInfo(invoker.Db, nr.NodeId)
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	nodeInfo, _ := db2.NodeInfo(invoker.Db, nr.NodeId)
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(nodeInfo.Iid),
@@ -231,11 +231,11 @@ func NodeResultUpdate(c *core.Context) {
 	ups := make(map[string]interface{}, 0)
 	ups["uid"] = c.Uid()
 	ups["excel_process"] = req.ExcelProcess
-	if err = db.NodeResultUpdate(invoker.Db, resultId, ups); err != nil {
+	if err = db2.NodeResultUpdate(invoker.Db, resultId, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeResultUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeResultUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK(service.Node.NodeResultRespAssemble(&nr))
 }
 
@@ -248,8 +248,8 @@ func NodeResultListPage(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	nodeInfo, _ := db.NodeInfo(invoker.Db, id)
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	nodeInfo, _ := db2.NodeInfo(invoker.Db, id)
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(nodeInfo.Iid),
@@ -259,7 +259,7 @@ func NodeResultListPage(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	var req view.ReqNodeHistoryList
+	var req view2.ReqNodeHistoryList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "request parameter error: "+err.Error(), nil)
 		return
@@ -272,15 +272,15 @@ func NodeResultListPage(c *core.Context) {
 			Val: -1,
 		}
 	}
-	total, nodeResList := db.NodeResultListPage(conds, &db.ReqPage{
+	total, nodeResList := db2.NodeResultListPage(conds, &db2.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
-	list := make([]view.RespNodeResult, 0)
+	list := make([]view2.RespNodeResult, 0)
 	for _, nodeRes := range nodeResList {
 		list = append(list, service.Node.NodeResultRespAssemble(nodeRes))
 	}
-	c.JSONPage(view.RespNodeResultList{
+	c.JSONPage(view2.RespNodeResultList{
 		Total: total,
 		List:  list,
 	}, core.Pagination{
@@ -294,12 +294,12 @@ func NodeResultListPage(c *core.Context) {
 // @Summary	     Kanban Dashboard
 // @Tags         BIGDATA
 func WorkerDashboard(c *core.Context) {
-	var req view.ReqWorkerDashboard
+	var req view2.ReqWorkerDashboard
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
@@ -317,12 +317,12 @@ func WorkerDashboard(c *core.Context) {
 // @Summary	     定时任务执行结果列表
 // @Tags         BIGDATA
 func WorkerList(c *core.Context) {
-	var req view.ReqWorkerList
+	var req view2.ReqWorkerList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
@@ -344,7 +344,7 @@ func WorkerList(c *core.Context) {
 			Val: req.NodeName,
 		}
 	}
-	nodes, _ := db.NodeList(condsNodes)
+	nodes, _ := db2.NodeList(condsNodes)
 	// Read the execution result based on the node information
 	nodeIdArr := make([]int, 0)
 	for _, n := range nodes {
@@ -371,15 +371,15 @@ func WorkerList(c *core.Context) {
 	if req.Status != 0 {
 		condsResult["status"] = req.Status
 	}
-	total, nodeResList := db.NodeResultListPage(condsResult, &db.ReqPage{
+	total, nodeResList := db2.NodeResultListPage(condsResult, &db2.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
-	list := make([]view.RespWorkerRow, 0)
+	list := make([]view2.RespWorkerRow, 0)
 	for _, nodeRes := range nodeResList {
 		list = append(list, service.Node.RespWorkerAssemble(nodeRes))
 	}
-	c.JSONPage(view.RespWorkerList{
+	c.JSONPage(view2.RespWorkerList{
 		Total: total,
 		List:  list,
 	}, core.Pagination{
@@ -398,12 +398,12 @@ func TableDependencies(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	var req view.ReqTableDependencies
+	var req view2.ReqTableDependencies
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -418,8 +418,8 @@ func TableDependencies(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res := make([]view.RespTableDeps, 0)
-	databaseCache := make(map[string]*view.SystemClusters, 0)
+	res := make([]view2.RespTableDeps, 0)
+	databaseCache := make(map[string]*view2.SystemClusters, 0)
 	op, err := service.InstanceManager.Load(iid)
 	if err != nil {
 		return
@@ -434,7 +434,7 @@ func TableDependencies(c *core.Context) {
 			conds := egorm.Conds{}
 			conds["iid"] = iid
 			conds["name"] = req.DatabaseName
-			database, _ := db.DatabaseInfoX(invoker.Db, conds)
+			database, _ := db2.DatabaseInfoX(invoker.Db, conds)
 			if database.Cluster != "" {
 				if cluster, okCluster := clusterCache[database.Cluster]; okCluster {
 					row.ShardNum = cluster.ShardNum
@@ -444,8 +444,8 @@ func TableDependencies(c *core.Context) {
 		}
 		res = append(res, row)
 	}
-	row, _ := db.EarliestDependRow(iid)
-	c.JSONOK(view.RespTableDependencies{
+	row, _ := db2.EarliestDependRow(iid)
+	c.JSONOK(view2.RespTableDependencies{
 		Utime: row.Utime,
 		Data:  res,
 	})

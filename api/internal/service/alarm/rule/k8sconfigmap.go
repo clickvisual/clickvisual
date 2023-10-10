@@ -5,9 +5,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/resource"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/resource"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 var _ Component = (*k8sConfigMap)(nil)

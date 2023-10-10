@@ -10,33 +10,33 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // Create
 // @Tags         ALARM
 // @Summary	     告警创建
 func Create(c *core.Context) {
-	var req view.ReqAlarmCreate
+	var req view2.ReqAlarmCreate
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
 	for _, f := range req.Filters {
-		tableInfo, err := db.TableInfo(invoker.Db, f.Tid)
+		tableInfo, err := db2.TableInfo(invoker.Db, f.Tid)
 		if err != nil {
 			c.JSONE(1, "table create", err)
 			return
 		}
-		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 			UserId:      c.Uid(),
 			ObjectType:  pmsplugin.PrefixInstance,
 			ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -50,11 +50,11 @@ func Create(c *core.Context) {
 		}
 	}
 	tx := invoker.Db.Begin()
-	tableIds := db.Ints{}
+	tableIds := db2.Ints{}
 	for _, f := range req.Filters {
 		tableIds = append(tableIds, f.Tid)
 	}
-	obj := &db.Alarm{
+	obj := &db2.Alarm{
 		Uuid:             uuid.NewString(),
 		Name:             req.Name,
 		Desc:             req.Desc,
@@ -62,14 +62,14 @@ func Create(c *core.Context) {
 		Unit:             req.Unit,
 		Tags:             req.Tags,
 		NoDataOp:         req.NoDataOp,
-		ChannelIds:       db.Ints(req.ChannelIds),
+		ChannelIds:       db2.Ints(req.ChannelIds),
 		Uid:              c.Uid(),
 		Level:            req.Level,
 		TableIds:         tableIds,
-		DutyOfficers:     db.Ints(req.DutyOfficers),
+		DutyOfficers:     db2.Ints(req.DutyOfficers),
 		IsDisableResolve: req.IsDisableResolve,
 	}
-	if err := db.AlarmCreate(tx, obj); err != nil {
+	if err := db2.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 01", err)
 		return
@@ -83,7 +83,7 @@ func Create(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsCreate, map[string]interface{}{"obj": obj})
+	event.Event.AlarmCMDB(c.User(), db2.OpnAlarmsCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -96,19 +96,19 @@ func Update(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view.ReqAlarmCreate
+	var req view2.ReqAlarmCreate
 	err := c.Bind(&req)
 	if err != nil {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-	alarmInfo, relatedList, errAlarmInfo := db.GetAlarmTableInstanceInfo(id)
+	alarmInfo, relatedList, errAlarmInfo := db2.GetAlarmTableInstanceInfo(id)
 	if errAlarmInfo != nil {
 		c.JSONE(1, "alarm info not found", errAlarmInfo)
 		return
 	}
 	for _, ri := range relatedList {
-		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 			UserId:      c.Uid(),
 			ObjectType:  pmsplugin.PrefixInstance,
 			ObjectIdx:   strconv.Itoa(ri.Table.Database.Iid),
@@ -122,15 +122,15 @@ func Update(c *core.Context) {
 		}
 	}
 	switch req.Status {
-	case db.AlarmStatusNormal:
+	case db2.AlarmStatusNormal:
 		err = service.Alert.OpenOperator(id)
-	case db.AlarmStatusClose:
-		clusterRuleGroups := map[string]db.ClusterRuleGroup{}
+	case db2.AlarmStatusClose:
+		clusterRuleGroups := map[string]db2.ClusterRuleGroup{}
 		// 删除告警规则
 		for _, ri := range relatedList {
 			instance := ri.Instance
-			if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
-				clusterRuleGroup := db.ClusterRuleGroup{}
+			if instance.RuleStoreType == db2.RuleStoreTypeK8sOperator {
+				clusterRuleGroup := db2.ClusterRuleGroup{}
 				if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
 					clusterRuleGroup = tmp
 				} else {
@@ -139,7 +139,7 @@ func Update(c *core.Context) {
 					clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
 				}
 				clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
-			} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+			} else if instance.RuleStoreType == db2.RuleStoreTypeFile || instance.RuleStoreType == db2.RuleStoreTypeK8sConfigMap {
 				if err = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo); err != nil {
 					c.JSONE(core.CodeErr, "prometheus rule delete failed:"+err.Error(), err)
 					return
@@ -184,8 +184,8 @@ func Update(c *core.Context) {
 				}
 			}
 		}
-		_ = db.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
-		err = db.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db.AlarmStatusClose})
+		_ = db2.AlarmFilterUpdateStatus(invoker.Db, id, map[string]interface{}{"status": db2.AlarmStatusClose})
+		err = db2.AlarmUpdate(invoker.Db, id, map[string]interface{}{"status": db2.AlarmStatusClose})
 	default:
 		err = service.Alert.Update(c.Uid(), id, req)
 	}
@@ -193,7 +193,7 @@ func Update(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsUpdate, map[string]interface{}{"req": req})
+	event.Event.AlarmCMDB(c.User(), db2.OpnAlarmsUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -201,7 +201,7 @@ func Update(c *core.Context) {
 // @Tags         ALARM
 // @Summary	     告警列表
 func List(c *core.Context) {
-	req := &db.ReqPage{}
+	req := &db2.ReqPage{}
 	if err := c.Bind(req); err != nil {
 		c.JSONE(1, "invalid parameter", err)
 		return
@@ -231,26 +231,26 @@ func List(c *core.Context) {
 	}
 	var (
 		total int64
-		list  []*db.Alarm
+		list  []*db2.Alarm
 	)
 	if tid != 0 {
-		table, _ := db.TableInfo(invoker.Db, tid)
+		table, _ := db2.TableInfo(invoker.Db, tid)
 		if !service.TableViewIsPermission(c.Uid(), table.Database.Iid, tid) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}
-		total, list = db.AlarmListPageByTidArr(query, req, []int{tid})
+		total, list = db2.AlarmListPageByTidArr(query, req, []int{tid})
 	} else if did != 0 {
-		database, _ := db.DatabaseInfo(invoker.Db, did)
+		database, _ := db2.DatabaseInfo(invoker.Db, did)
 		if !service.DatabaseViewIsPermission(c.Uid(), database.Iid, did) {
 			c.JSONE(1, "", constx.ErrPmsCheck)
 			return
 		}
 		// (replace(replace(JSON_EXTRACT(`cv_alarm`.`table_ids`, '$[*]'),'[',''),']',''))
-		query[db.TableNameBaseTable+".did"] = did
-		total, list = db.AlarmListByDidPage(query, req)
+		query[db2.TableNameBaseTable+".did"] = did
+		total, list = db2.AlarmListByDidPage(query, req)
 	} else if iid != 0 {
-		if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+		if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 			UserId:      c.Uid(),
 			ObjectType:  pmsplugin.PrefixInstance,
 			ObjectIdx:   strconv.Itoa(iid),
@@ -264,10 +264,10 @@ func List(c *core.Context) {
 		if iid != 0 {
 			conds["iid"] = iid
 		}
-		ds, _ := db.DatabaseList(invoker.Db, conds)
+		ds, _ := db2.DatabaseList(invoker.Db, conds)
 		for _, d := range ds {
-			query[db.TableNameBaseTable+".did"] = d.ID
-			totalTmp, listTmp := db.AlarmListByDidPage(query, req)
+			query[db2.TableNameBaseTable+".did"] = d.ID
+			totalTmp, listTmp := db2.AlarmListByDidPage(query, req)
 			list = append(list, listTmp...)
 			total += totalTmp
 		}
@@ -280,7 +280,7 @@ func List(c *core.Context) {
 			tidArr = service.ReadAllPermissionTable(c.Uid())
 		}
 		// SELECT *  FROM `cv_alarm` WHERE JSON_CONTAINS(`table_ids`, '[1]') OR JSON_CONTAINS(`table_ids`, '[7]')
-		total, list = db.AlarmListPageByTidArr(query, req, tidArr)
+		total, list = db2.AlarmListPageByTidArr(query, req, tidArr)
 	}
 	c.JSONPage(service.AlarmAttachInfo(list), core.Pagination{
 		Current:  req.Current,
@@ -298,13 +298,13 @@ func Info(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
+	alarmInfo, relatedList, err := db2.GetAlarmTableInstanceInfo(id)
 	if err != nil {
 		c.JSONE(core.CodeErr, "alarm info load failed", err)
 		return
 	}
 	for _, ri := range relatedList {
-		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 			UserId:      c.Uid(),
 			ObjectType:  pmsplugin.PrefixInstance,
 			ObjectIdx:   strconv.Itoa(ri.Table.Database.Iid),
@@ -319,31 +319,31 @@ func Info(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["alarm_id"] = alarmInfo.ID
-	filters, err := db.AlarmFilterList(invoker.Db, conds)
+	filters, err := db2.AlarmFilterList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	respAlarmFilters := make([]view.RespAlarmInfoFilter, 0)
+	respAlarmFilters := make([]view2.RespAlarmInfoFilter, 0)
 	for _, filter := range filters {
 		conditionConds := egorm.Conds{}
 		conditionConds["alarm_id"] = alarmInfo.ID
 		if len(filters) != 1 {
 			conditionConds["filter_id"] = filter.ID
 		}
-		conditions, _ := db.AlarmConditionList(conditionConds)
-		filterTableInfo, _ := db.TableInfo(invoker.Db, filter.Tid)
-		respAlarmFilters = append(respAlarmFilters, view.RespAlarmInfoFilter{
+		conditions, _ := db2.AlarmConditionList(conditionConds)
+		filterTableInfo, _ := db2.TableInfo(invoker.Db, filter.Tid)
+		respAlarmFilters = append(respAlarmFilters, view2.RespAlarmInfoFilter{
 			AlarmFilter: filter,
 			TableName:   filterTableInfo.Name,
 			Conditions:  conditions,
 		})
 	}
-	user, _ := db.UserInfo(alarmInfo.Uid)
+	user, _ := db2.UserInfo(alarmInfo.Uid)
 
 	var (
-		tableInfo    db.BaseTable
-		instanceInfo db.BaseInstance
+		tableInfo    db2.BaseTable
+		instanceInfo db2.BaseInstance
 	)
 	if len(relatedList) > 0 {
 		tableInfo = relatedList[0].Table
@@ -352,7 +352,7 @@ func Info(c *core.Context) {
 	instanceInfo.Dsn = "*"
 	user.Password = "*"
 
-	res := view.RespAlarmInfo{
+	res := view2.RespAlarmInfo{
 		Alarm:            alarmInfo,
 		Filters:          respAlarmFilters,
 		Uid:              user.Uid,
@@ -391,13 +391,13 @@ func Delete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	alarmInfo, relatedList, err := db.GetAlarmTableInstanceInfo(id)
+	alarmInfo, relatedList, err := db2.GetAlarmTableInstanceInfo(id)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
 	for _, ri := range relatedList {
-		if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 			UserId:      c.Uid(),
 			ObjectType:  pmsplugin.PrefixInstance,
 			ObjectIdx:   strconv.Itoa(ri.Table.Database.Iid),
@@ -411,27 +411,27 @@ func Delete(c *core.Context) {
 		}
 	}
 	tx := invoker.Db.Begin()
-	if err = db.AlarmDelete(tx, id); err != nil {
+	if err = db2.AlarmDelete(tx, id); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// filter
-	if err = db.AlarmFilterDeleteBatch(tx, id); err != nil {
+	if err = db2.AlarmFilterDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// condition
-	if err = db.AlarmConditionDeleteBatch(tx, id); err != nil {
+	if err = db2.AlarmConditionDeleteBatch(tx, id); err != nil {
 		tx.Rollback()
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	clusterRuleGroups := map[string]db.ClusterRuleGroup{}
+	clusterRuleGroups := map[string]db2.ClusterRuleGroup{}
 	for _, ri := range relatedList {
 		instance := ri.Instance
-		if instance.RuleStoreType == db.RuleStoreTypeK8sOperator {
-			clusterRuleGroup := db.ClusterRuleGroup{}
+		if instance.RuleStoreType == db2.RuleStoreTypeK8sOperator {
+			clusterRuleGroup := db2.ClusterRuleGroup{}
 			if tmp, ok := clusterRuleGroups[instance.GetRuleStoreKey()]; ok {
 				clusterRuleGroup = tmp
 			} else {
@@ -440,10 +440,10 @@ func Delete(c *core.Context) {
 				clusterRuleGroup.GroupName = alarmInfo.GetGroupName(instance.ID)
 			}
 			clusterRuleGroups[instance.GetRuleStoreKey()] = clusterRuleGroup
-		} else if instance.RuleStoreType == db.RuleStoreTypeFile || instance.RuleStoreType == db.RuleStoreTypeK8sConfigMap {
+		} else if instance.RuleStoreType == db2.RuleStoreTypeFile || instance.RuleStoreType == db2.RuleStoreTypeK8sConfigMap {
 			_ = service.Alert.DeletePrometheusRule(&ri.Instance, &alarmInfo)
 		}
-		var op inquiry.Operator
+		var op factory.Operator
 		op, err = service.InstanceManager.Load(ri.Table.Database.Iid)
 		if err != nil {
 			tx.Rollback()
@@ -488,7 +488,7 @@ func Delete(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db.OpnAlarmsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
+	event.Event.AlarmCMDB(c.User(), db2.OpnAlarmsDelete, map[string]interface{}{"alarmInfo": alarmInfo})
 	c.JSONOK()
 }
 
@@ -496,7 +496,7 @@ func Delete(c *core.Context) {
 // @Tags         ALARM
 // @Summary	     告警推送记录
 func HistoryList(c *core.Context) {
-	var req view.ReqAlarmHistoryList
+	var req view2.ReqAlarmHistoryList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
@@ -512,16 +512,16 @@ func HistoryList(c *core.Context) {
 	if req.EndTime != 0 {
 		conds["ctime"] = egorm.Cond{Op: "<", Val: req.EndTime}
 	}
-	total, list := db.AlarmHistoryPage(conds, &db.ReqPage{
+	total, list := db2.AlarmHistoryPage(conds, &db2.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
 	conds["is_pushed"] = 1
-	succ, _ := db.AlarmHistoryPage(conds, &db.ReqPage{
+	succ, _ := db2.AlarmHistoryPage(conds, &db2.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
-	c.JSONPage(view.RespAlarmHistoryList{
+	c.JSONPage(view2.RespAlarmHistoryList{
 		Total: total,
 		Succ:  succ,
 		List:  list,
@@ -541,7 +541,7 @@ func HistoryInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res, err := db.AlarmHistoryInfo(invoker.Db, id)
+	res, err := db2.AlarmHistoryInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return

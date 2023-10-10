@@ -3,7 +3,7 @@ package configure
 import (
 	"testing"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func TestCheckSyntax(t *testing.T) {

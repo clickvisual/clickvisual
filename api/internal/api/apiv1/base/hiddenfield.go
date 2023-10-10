@@ -7,12 +7,12 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 // @Tags         LOGSTORE
@@ -23,19 +23,19 @@ func HiddenUpsert(c *core.Context) {
 		return
 	}
 	var (
-		req view.HiddenFieldCreate
+		req view2.HiddenFieldCreate
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(core.CodeErr, "param error:"+err.Error(), nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	tableInfo, err := db2.TableInfo(invoker.Db, tid)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -52,7 +52,7 @@ func HiddenUpsert(c *core.Context) {
 		Op:  "=",
 		Val: tid,
 	}}
-	list, err := db.HiddenFieldList(conds)
+	list, err := db2.HiddenFieldList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -71,7 +71,7 @@ func HiddenUpsert(c *core.Context) {
 		for i := range deleteList {
 			deleteField = append(deleteField, deleteList[i].(string))
 		}
-		err = db.HiddenFieldDeleteByFields(invoker.Db, deleteField)
+		err = db2.HiddenFieldDeleteByFields(invoker.Db, deleteField)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), nil)
 			return
@@ -79,14 +79,14 @@ func HiddenUpsert(c *core.Context) {
 	}
 
 	if len(insert) > 0 {
-		hiddenFields := make([]*db.BaseHiddenField, 0)
+		hiddenFields := make([]*db2.BaseHiddenField, 0)
 		for i := range insert {
-			hiddenFields = append(hiddenFields, &db.BaseHiddenField{
+			hiddenFields = append(hiddenFields, &db2.BaseHiddenField{
 				Tid:   tid,
 				Field: insert[i].(string),
 			})
 		}
-		err = db.HiddenFieldCreateBatch(invoker.Db, hiddenFields)
+		err = db2.HiddenFieldCreateBatch(invoker.Db, hiddenFields)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), nil)
 			return
@@ -106,7 +106,7 @@ func HiddenList(c *core.Context) {
 		Op:  "=",
 		Val: tid,
 	}}
-	list, err := db.HiddenFieldList(conds)
+	list, err := db2.HiddenFieldList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return

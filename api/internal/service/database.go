@@ -8,32 +8,32 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
-func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
-	res = make([]view.RespDatabaseSimple, 0)
-	dMap := make(map[int]view.RespDatabaseSimple)
+func DatabaseListFilterPms(uid int) (res []view2.RespDatabaseSimple, err error) {
+	res = make([]view2.RespDatabaseSimple, 0)
+	dMap := make(map[int]view2.RespDatabaseSimple)
 	// Fill in all database information and verify related permissions
-	ds, _ := db.DatabaseList(invoker.Db, egorm.Conds{})
+	ds, _ := db2.DatabaseList(invoker.Db, egorm.Conds{})
 	for _, d := range ds {
 		if !DatabaseViewIsPermission(uid, d.Iid, d.ID) {
 			continue
 		}
-		dMap[d.ID] = view.RespDatabaseSimple{
+		dMap[d.ID] = view2.RespDatabaseSimple{
 			Id:           d.ID,
 			Iid:          d.Iid,
 			DatabaseName: d.Name,
 			IsCreateByCV: d.IsCreateByCV,
 			Desc:         d.Desc,
 			Cluster:      d.Cluster,
-			Tables:       make([]view.RespTableSimple, 0),
+			Tables:       make([]view2.RespTableSimple, 0),
 		}
 	}
-	ts, err := db.TableList(invoker.Db, egorm.Conds{})
+	ts, err := db2.TableList(invoker.Db, egorm.Conds{})
 	if err != nil {
 		return
 	}
@@ -48,7 +48,7 @@ func DatabaseListFilterPms(uid int) (res []view.RespDatabaseSimple, err error) {
 		if !TableViewIsPermission(uid, row.Database.Iid, row.ID) {
 			continue
 		}
-		respTableSimple := view.RespTableSimple{
+		respTableSimple := view2.RespTableSimple{
 			Id:              row.ID,
 			Did:             row.Database.ID,
 			TableName:       row.Name,
@@ -80,7 +80,7 @@ func DatabaseViewIsPermission(uid, iid, did int) bool {
 
 func databaseViewIsPermission(uid, iid, did int, subResource string) bool {
 	// check database permission
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      uid,
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -100,7 +100,7 @@ func databaseViewIsPermission(uid, iid, did int, subResource string) bool {
 	// check databases permission
 	conds := egorm.Conds{}
 	conds["did"] = did
-	tables, err := db.TableList(invoker.Db, conds)
+	tables, err := db2.TableList(invoker.Db, conds)
 	if err != nil {
 		elog.Error("PmsCheckInstanceRead", elog.String("error", err.Error()))
 		return false

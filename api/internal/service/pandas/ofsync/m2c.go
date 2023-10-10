@@ -6,10 +6,10 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	"github.com/clickvisual/clickvisual/api/internal/service/source"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type MySQL2ClickHouse struct {
@@ -39,11 +39,11 @@ type MySQL2ClickHouse struct {
 // [ rate_limiter_row_count_per_second ]
 func (c *MySQL2ClickHouse) Run() (map[string]string, error) {
 	var (
-		ins db.BaseInstance
+		ins db2.BaseInstance
 		err error
 	)
 	c.involvedSQLs = make(map[string]string)
-	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
+	if ins, err = db2.InstanceInfo(invoker.Db, c.iid); err != nil {
 		return c.involvedSQLs, err
 	}
 	if err = c.mysqlEngineDatabase(ins, c.sc); err != nil {
@@ -74,16 +74,16 @@ func (c *MySQL2ClickHouse) Run() (map[string]string, error) {
 			return c.involvedSQLs, err
 		}
 	}
-	_ = db.NodeUpdate(invoker.Db, c.nodeId, map[string]interface{}{"status": db.NodeStatusFinish})
+	_ = db2.NodeUpdate(invoker.Db, c.nodeId, map[string]interface{}{"status": db2.NodeStatusFinish})
 	return c.involvedSQLs, nil
 }
 
-func (c *MySQL2ClickHouse) mysqlEngineDatabase(ins db.BaseInstance, sc *view.SyncContent) (err error) {
+func (c *MySQL2ClickHouse) mysqlEngineDatabase(ins db2.BaseInstance, sc *view.SyncContent) (err error) {
 	dbNameClusterInfo := mysqlEngineDatabaseName(sc)
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER '%s'", dbNameClusterInfo, sc.Cluster())
 	}
-	s, err := db.SourceInfo(invoker.Db, c.sc.Source.SourceId)
+	s, err := db2.SourceInfo(invoker.Db, c.sc.Source.SourceId)
 	if err != nil {
 		return
 	}
@@ -97,16 +97,16 @@ func (c *MySQL2ClickHouse) mysqlEngineDatabase(ins db.BaseInstance, sc *view.Syn
 	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
+		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }
 
 func (c *MySQL2ClickHouse) Stop() error {
 	var (
-		ins db.BaseInstance
+		ins db2.BaseInstance
 		err error
 	)
-	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
+	if ins, err = db2.InstanceInfo(invoker.Db, c.iid); err != nil {
 		elog.Error("MySQL2ClickHouse", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return err
 	}
@@ -138,7 +138,7 @@ func (c *MySQL2ClickHouse) Stop() error {
 // }
 
 // insert into `local_mex_2`.`test_0701` select * from `local_mex_2`.`clickvisualrtsync_test_0701_view`
-func (c *MySQL2ClickHouse) insert(ins db.BaseInstance) error {
+func (c *MySQL2ClickHouse) insert(ins db2.BaseInstance) error {
 	sourceTableName := fmt.Sprintf("`%s`.`%s`", mysqlEngineDatabaseName(c.sc), c.sc.Source.Table)
 	targetTableName := fmt.Sprintf("`%s`.`%s`", c.sc.Target.Database, c.sc.Target.Table)
 	sourceColumns, targetColumns := columns(c.sc.Mapping)
@@ -148,16 +148,16 @@ func (c *MySQL2ClickHouse) insert(ins db.BaseInstance) error {
 	c.involvedSQLs["m2cInsert"] = completeSQL
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
+		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }
 
-func (c *MySQL2ClickHouse) execTargetSQL(ins db.BaseInstance, sql string) error {
+func (c *MySQL2ClickHouse) execTargetSQL(ins db2.BaseInstance, sql string) error {
 	if sql == "" {
 		return nil
 	}
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
+		Typ: db2.SourceTypClickHouse,
 	}).Exec(sql)
 }

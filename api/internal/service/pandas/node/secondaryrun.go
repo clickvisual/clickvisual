@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func doSyDashboard(n *node) (res view.RunNodeResult, err error) {

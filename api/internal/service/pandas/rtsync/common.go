@@ -8,10 +8,10 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	"github.com/clickvisual/clickvisual/api/internal/service/source"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func mapping(mappings []view.IntegrationMapping) (res string) {
@@ -60,8 +60,8 @@ func mysqlEngineDatabaseName(s *view.SyncContent) string {
 	return fmt.Sprintf("clickvisualrtsync_%s", s.Source.Database)
 }
 
-func dropMaterialView(ins db.BaseInstance, nodeId int, sc *view.SyncContent) error {
-	nc, err := db.NodeContentInfo(invoker.Db, nodeId)
+func dropMaterialView(ins db2.BaseInstance, nodeId int, sc *view.SyncContent) error {
+	nc, err := db2.NodeContentInfo(invoker.Db, nodeId)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func dropMaterialView(ins db.BaseInstance, nodeId int, sc *view.SyncContent) err
 	if viewClusterInfo == "" {
 		viewClusterInfo = materialView(sc)
 	}
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, sc.Cluster())
 	}
 	// 删除上次执行产生的物化视图
@@ -89,7 +89,7 @@ func dropMaterialView(ins db.BaseInstance, nodeId int, sc *view.SyncContent) err
 
 	if err = source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
+		Typ: db2.SourceTypClickHouse,
 	}).Exec(dmv); err != nil {
 		return err
 	}

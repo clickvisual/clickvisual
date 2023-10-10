@@ -1,9 +1,9 @@
 APP_NAME:=clickvisual
 SHELL:=/bin/bash
 ROOT:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-APP_PATH=$(ROOT)/api
-SCRIPT_PATH:=$(APP_PATH)/../scripts
-COMPILE_OUT:=$(APP_PATH)/../bin/$(APP_NAME)
+APP_PATH=$(ROOT)
+SCRIPT_PATH:=$(APP_PATH)/scripts
+COMPILE_OUT:=$(APP_PATH)/bin/$(APP_NAME)
 HUB_USER:=clickvisual
 
 build: build.ui build.dist build.api
@@ -21,13 +21,13 @@ build.api:
 
 build.dist:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@rm -rf $(APP_PATH)/../api/internal/ui/dist
-	@mv $(APP_PATH)/../ui/dist $(APP_PATH)/../api/internal/ui/dist
+	@rm -rf $(APP_PATH)/api/internal/ui/dist
+	@mv $(APP_PATH)/ui/dist $(APP_PATH)/api/internal/ui/dist
 	@echo -e "\n"
 
 build.ui:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	@cd $(APP_PATH)/../ui && yarn install --frozen-lockfile && yarn run build
+	@cd $(APP_PATH)/ui && yarn install --frozen-lockfile && yarn run build
 	@echo -e "\n"
 
 docker:docker.build docker.push

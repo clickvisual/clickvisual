@@ -3,8 +3,8 @@ package permission
 import (
 	"fmt"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 type (

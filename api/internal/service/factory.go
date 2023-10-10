@@ -3,7 +3,7 @@ package service
 import (
 	"strings"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func arrFilter(source, target []string) []string {

@@ -8,7 +8,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/robfig/cron/v3"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 var _ iWorker = (*Trace)(nil)

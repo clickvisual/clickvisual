@@ -7,11 +7,11 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/core/common"
-	"github.com/clickvisual/clickvisual/api/core/reader/ifreader"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/core/i"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 )
 
-var _ ifreader.Reader = (*Reader)(nil)
+var _ i.Reader = (*Reader)(nil)
 
 type Reader struct {
 	createType int
@@ -31,7 +31,7 @@ type Reader struct {
 	kafkaSkipBrokenMessages int
 }
 
-func NewReader(req ifreader.Params) *Reader {
+func NewReader(req i.ReaderParams) *Reader {
 	return &Reader{
 		createType:              req.CreateType,
 		isShard:                 req.IsShard,
