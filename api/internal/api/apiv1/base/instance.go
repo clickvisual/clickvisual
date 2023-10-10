@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/l"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -108,17 +110,24 @@ func InstanceUpdate(c *core.Context) {
 func InstanceList(c *core.Context) {
 	res := make([]view2.RespInstance, 0)
 	tmp, err := db2.InstanceList(egorm.Conds{})
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	var errMsg string
 	for _, row := range tmp {
 		if service.InstanceViewIsPermission(c.Uid(), row.ID) {
 			op, err := service.InstanceManager.Load(row.ID)
 			if err != nil {
-				c.JSONE(core.CodeErr, err.Error(), err)
-				return
+				elog.Error("InstanceList", l.S("step", "InstanceManager"), l.E(err))
+				errMsg += err.Error() + ";"
+				continue
 			}
 			clusterInfo, err := op.ClusterInfo()
 			if err != nil {
-				c.JSONE(core.CodeErr, err.Error(), err)
-				return
+				elog.Error("InstanceList", l.S("step", "ClusterInfo"), l.E(err))
+				errMsg += err.Error() + ";"
+				continue
 			}
 			cis := make([]string, 0)
 			cs := make([]string, 0)
@@ -140,8 +149,8 @@ func InstanceList(c *core.Context) {
 			})
 		}
 	}
-	if err != nil {
-		c.JSONE(core.CodeErr, err.Error(), nil)
+	if errMsg != "" {
+		c.JSONE(0, errMsg, res)
 		return
 	}
 	c.JSONOK(res)
