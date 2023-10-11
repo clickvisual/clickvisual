@@ -39,7 +39,7 @@ COPY --from=go-builder /clickvisual/config ./config
 
 EXPOSE 9001
 EXPOSE 9003
-
-RUN apk add --no-cache tzdata
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk --update add --no-cache tzdata
 
 CMD ["sh", "-c", "./bin/clickvisual"]
