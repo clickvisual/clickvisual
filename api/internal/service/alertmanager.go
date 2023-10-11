@@ -147,7 +147,7 @@ func (i *alert) getPartialLog(op factory.Operator, table *db2.BaseTable, alarm *
 		Page:          1,
 		PageSize:      1,
 	}
-	param, _ = op.Prepare(param, false)
+	param, _ = op.Prepare(param, table, false)
 	resp, _ := op.GetLogs(param, table.ID)
 	if table.V3TableType == db2.V3TableTypeJaegerJSON {
 		resp.IsTrace = 1

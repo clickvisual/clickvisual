@@ -10,9 +10,10 @@ import (
 func TestAgentGetLogs(t *testing.T) {
 
 	req := view.ReqQuery{
-		ST:       1695286239,
-		ET:       1696063839,
-		Path:     "./ego.sys",
+		ST: 1695286239,
+		ET: 1696063839,
+		// Path:     "/Users/duminxiang/cosmos/go/src/github.com/clickvisual/clickvisual/logs/ego.sys",
+		Dir:      "/Users/duminxiang/cosmos/go/src/github.com/clickvisual/clickvisual/logs",
 		PageSize: 10,
 		Query:    "comp=core.econf and msg='read watch'",
 	}

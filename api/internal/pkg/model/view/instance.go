@@ -21,7 +21,7 @@ type ReqTestInstance struct {
 type ReqCreateInstance struct {
 	Datasource       string `json:"datasource" binding:"required"`
 	Name             string `json:"name" binding:"required"`
-	Dsn              string `json:"dsn" binding:"required"`
+	Dsn              string `json:"dsn"`
 	RuleStoreType    int    `json:"ruleStoreType"`
 	FilePath         string `json:"filePath"`
 	Desc             string `json:"desc"`

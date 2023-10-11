@@ -12,8 +12,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils/mapping"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
@@ -31,7 +31,7 @@ import (
 // @Success      200 {object} view.List
 // @Router       /api/v2/storage/mapping-json [post]
 func KafkaJsonMapping(c *core.Context) {
-	var req view2.ReqKafkaJSONMapping
+	var req view.ReqKafkaJSONMapping
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "request parameter error: "+err.Error(), nil)
 		return
@@ -54,18 +54,18 @@ func KafkaJsonMapping(c *core.Context) {
 // @Success      200 {object} core.Res{}
 // @Router       /api/v2/storage [post]
 func Create(c *core.Context) {
-	var param view2.ReqStorageCreate
+	var param view.ReqStorageCreate
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	databaseInfo, err := db2.DatabaseInfo(invoker.Db, param.DatabaseId)
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
@@ -83,7 +83,7 @@ func Create(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnTablesCreate, map[string]interface{}{"param": param})
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
 	c.JSONOK()
 }
 
@@ -102,16 +102,16 @@ func AnalysisFields(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	res := view2.RespStorageAnalysisFields{
-		BaseFields: make([]view2.StorageAnalysisField, 0),
-		LogFields:  make([]view2.StorageAnalysisField, 0),
+	res := view.RespStorageAnalysisFields{
+		BaseFields: make([]view.StorageAnalysisField, 0),
+		LogFields:  make([]view.StorageAnalysisField, 0),
 	}
 	// Read the index data
 	conds := egorm.Conds{}
 	conds["tid"] = storageId
-	fields, _ := db2.IndexList(conds)
+	fields, _ := db.IndexList(conds)
 	for _, row := range fields {
-		f := view2.StorageAnalysisField{
+		f := view.StorageAnalysisField{
 			Id:         row.ID,
 			Tid:        row.Tid,
 			Field:      row.Field,
@@ -156,19 +156,19 @@ func Update(c *core.Context) {
 		return
 	}
 	var (
-		req view2.ReqStorageUpdate
+		req view.ReqStorageUpdate
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	tableInfo, err := db2.TableInfo(invoker.Db, id)
+	tableInfo, err := db.TableInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -220,7 +220,7 @@ func Update(c *core.Context) {
 		ups["sql_stream"] = streamSQL
 	}
 	if tableInfo.V3TableType != req.V3TableType {
-		if req.V3TableType == db2.V3TableTypeJaegerJSON {
+		if req.V3TableType == db.V3TableTypeJaegerJSON {
 			err = op.CreateTraceJaegerDependencies(tableInfo.Database.Name, tableInfo.Database.Cluster, tableInfo.Name, tableInfo.Days)
 			if err != nil {
 				c.JSONE(1, "update failed 04: "+err.Error(), nil)
@@ -235,11 +235,11 @@ func Update(c *core.Context) {
 		}
 	}
 	// 判断是否增加依赖解析
-	if err = db2.TableUpdate(invoker.Db, id, ups); err != nil {
+	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed 06: "+err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnTablesUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -261,24 +261,26 @@ func CreateStorageByTemplate(c *core.Context) {
 		return
 	case "ilogtail":
 		createStorageByTemplateILogtail(c)
+	case "agent":
+		createStorageByTemplateAgent(c)
 		return
 	}
 	c.JSONE(core.CodeErr, "template error", nil)
 }
 
 func createStorageByTemplateEgo(c *core.Context) {
-	var param view2.ReqCreateStorageByTemplateEgo
+	var param view.ReqCreateStorageByTemplateEgo
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	databaseInfo, err := db2.DatabaseInfo(invoker.Db, param.DatabaseId)
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
@@ -294,23 +296,68 @@ func createStorageByTemplateEgo(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnTablesCreate, map[string]interface{}{"param": param})
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
 	c.JSONOK()
 }
 
-func createStorageByTemplateILogtail(c *core.Context) {
-	var param view2.ReqCreateStorageByTemplateILogtail
+func createStorageByTemplateAgent(c *core.Context) {
+	var param view.ReqCreateAgentStorage
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	databaseInfo, err := db2.DatabaseInfo(invoker.Db, param.DatabaseId)
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActEdit},
+		DomainType:  pmsplugin.PrefixDatabase,
+		DomainId:    strconv.Itoa(databaseInfo.ID),
+	}); err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	conds := egorm.Conds{}
+	conds["did"] = databaseInfo.ID
+	conds["name"] = param.Name
+	tableInfo, _ := db.TableInfoX(invoker.Db, conds)
+	if tableInfo.ID != 0 {
+		c.JSONE(1, "table is repeat", err)
+		return
+	}
+	tableInfo = db.BaseTable{
+		Did:  databaseInfo.ID,
+		Name: param.Name,
+	}
+	err = db.TableCreate(invoker.Db, &tableInfo)
+	if err != nil {
+		c.JSONE(1, "table created failed", err)
+		return
+	}
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
+	c.JSONOK()
+}
+
+func createStorageByTemplateILogtail(c *core.Context) {
+	var param view.ReqCreateStorageByTemplateILogtail
+	err := c.Bind(&param)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	databaseInfo, err := db.DatabaseInfo(invoker.Db, param.DatabaseId)
+	if err != nil {
+		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), err)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(databaseInfo.Iid),
@@ -326,6 +373,6 @@ func createStorageByTemplateILogtail(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnTablesCreate, map[string]interface{}{"param": param})
+	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})
 	c.JSONOK()
 }
