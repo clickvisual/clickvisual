@@ -1,9 +1,12 @@
 package search
 
 import (
+	"fmt"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/gotomicro/ego/core/elog"
 )
 
@@ -13,6 +16,7 @@ type Container struct {
 
 // Component 每个执行指令地方
 type Component struct {
+	isCommand   bool // 是否命令行
 	file        *File
 	startTime   int64
 	endTime     int64
@@ -30,20 +34,88 @@ type KeySearch struct {
 	Type  string
 }
 
+type CmdRequest struct {
+	StartTime    string
+	EndTime      string
+	Date         string // last 30min,6h,1d,7d
+	Path         string // 文件路径
+	Dir          string // 文件夹路径
+	KeyWord      string // 搜索的关键词
+	Limit        int64  // 最少多少条数据
+	IsK8S        bool
+	K8SContainer []string
+}
+
+func (c CmdRequest) ToRequest() Request {
+	var (
+		st int64
+		et int64
+	)
+
+	if c.StartTime != "" {
+		sDate, err := time.Parse(time.DateTime, c.StartTime)
+		st = sDate.Unix()
+		if err != nil {
+			elog.Panic("parse start time error", elog.FieldErr(err))
+		}
+	}
+
+	if c.EndTime != "" {
+		eDate, err := time.Parse(time.DateTime, c.EndTime)
+		et = eDate.Unix()
+		if err != nil {
+			elog.Panic("parse end time error", elog.FieldErr(err))
+		}
+	}
+
+	return Request{
+		StartTime:    st,
+		EndTime:      et,
+		Date:         c.Date,
+		Path:         c.Path,
+		Dir:          c.Dir,
+		KeyWord:      c.KeyWord,
+		Limit:        c.Limit,
+		IsCommand:    true,
+		IsK8S:        c.IsK8S,
+		K8SContainer: c.K8SContainer,
+	}
+}
+
 type Request struct {
-	StartTime int64
-	EndTime   int64
-	Date      string // last 30min,6h,1d,7d
-	Path      string // 文件路径
-	Dir       string // 文件夹路径
-	TruePath  []string
-	KeyWord   string // 搜索的关键词
-	Limit     int64  // 最少多少条数据
+	StartTime    int64
+	EndTime      int64
+	Date         string // last 30min,6h,1d,7d
+	Path         string // 文件路径
+	Dir          string // 文件夹路径
+	TruePath     []string
+	KeyWord      string // 搜索的关键词
+	Limit        int64  // 最少多少条数据
+	IsCommand    bool   // 是否是命令行 默认不是
+	IsK8S        bool
+	K8SContainer []string
 }
 
 func Run(req Request) (logs []map[string]interface{}, err error) {
 	var filePaths []string
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
+
+	if req.IsK8S {
+		obj := cvdocker.NewContainer()
+		containers := obj.GetActiveContainers()
+		for _, value := range containers {
+			if len(req.K8SContainer) == 0 {
+				filePaths = append(filePaths, value.LogPath)
+			} else {
+				for _, v := range req.K8SContainer {
+					if value.K8SInfo.Container == v {
+						filePaths = append(filePaths, value.LogPath)
+					}
+				}
+			}
+
+		}
+	}
 	if req.Path != "" {
 		filePaths = strings.Split(req.Path, ",")
 	}
@@ -63,13 +135,12 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
 	l := sync.WaitGroup{}
-
 	// 文件添加并发查找
 	l.Add(len(filePaths))
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
-			comp := NewComponent(req.StartTime, req.EndTime, value, req.KeyWord, req.Limit)
+			comp := NewComponent(req.StartTime, req.EndTime, value, req.KeyWord, req.Limit, req.IsCommand)
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
 				l.Done()
@@ -82,14 +153,23 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	}
 	l.Wait()
 
-	logs = make([]map[string]interface{}, 0)
-	for _, comp := range container.components {
-		logs = append(logs, comp.logs...)
+	if req.IsCommand {
+		for _, comp := range container.components {
+			fmt.Println(comp.bash.ColorAll(comp.file.path))
+			for _, value := range comp.output {
+				fmt.Println(value)
+			}
+		}
+	} else {
+		logs = make([]map[string]interface{}, 0)
+		for _, comp := range container.components {
+			logs = append(logs, comp.logs...)
+		}
 	}
 	return logs, nil
 }
 
-func NewComponent(startTime int64, endTime int64, filename string, keyWord string, limit int64) *Component {
+func NewComponent(startTime int64, endTime int64, filename string, keyWord string, limit int64, isCommand bool) *Component {
 	obj := &Component{}
 	file, err := OpenFile(filename)
 	if err != nil {
@@ -99,6 +179,7 @@ func NewComponent(startTime int64, endTime int64, filename string, keyWord strin
 	obj.file = file
 	obj.startTime = startTime
 	obj.endTime = endTime
+	obj.isCommand = isCommand
 	words := make([]KeySearch, 0)
 
 	arrs := strings.Split(keyWord, "and")
@@ -161,7 +242,6 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	}
 	if start != -1 && start <= end {
 		_, err = c.searchByBackWord(start, end)
-
 		if err != nil {
 
 		}
