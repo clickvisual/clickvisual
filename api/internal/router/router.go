@@ -72,6 +72,7 @@ func GetServerRouter() *egin.Component {
 
 func GetAgentRouter() *egin.Component {
 	g := egin.Load("server.http").Build()
-	g.GET("/api/v1/search", core.Handle(agent.Search))
+	k8sAgent := agent.NewAgent()
+	g.GET("/api/v1/search", core.Handle(k8sAgent.Search))
 	return g
 }

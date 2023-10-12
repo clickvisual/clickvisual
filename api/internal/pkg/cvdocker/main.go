@@ -10,12 +10,14 @@ import (
 
 const containerdSock = "/run/containerd/containerd.sock"
 const dockerSock = "/var/run/docker.sock"
+const ClientTypeDocker = "docker"
+const ClientTypeContainerd = "containerd"
 
 // Component 组件
 type Component struct {
 	config       *manager.Config
 	containerMap map[string]*manager.DockerInfo
-	clientType   string // docker, containerd
+	ClientType   string // docker, containerd
 }
 
 func NewContainer() *Component {
@@ -37,17 +39,17 @@ func NewContainer() *Component {
 	}
 	if isExistContainerdSock {
 		obj.config.ClientSocket = containerdSock
-		obj.clientType = "containerd"
+		obj.ClientType = ClientTypeContainerd
 	} else if isExistDockerSock {
 		obj.config.ClientSocket = dockerSock
-		obj.clientType = "docker"
+		obj.ClientType = ClientTypeDocker
 	}
 	return obj
 }
 
 func (c *Component) GetActiveContainers() (containerMap map[string]*manager.DockerInfo) {
 	var err error
-	obj := manager.Get(c.clientType)
+	obj := manager.Get(c.ClientType)
 	obj.Run(c.config)
 	containerMap, err = obj.GetAllDockerInfo()
 	if err != nil {
