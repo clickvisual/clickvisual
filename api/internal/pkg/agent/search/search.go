@@ -11,6 +11,7 @@ import (
 
 	"github.com/gotomicro/ego/core/elog"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
@@ -205,6 +206,9 @@ func (c *Component) parseHitLog(line string) (log map[string]interface{}, err er
 		panic(err)
 	}
 	ts := curTimeParser.Unix()
+	if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
+		line = getFilterK8SContainerdWrapLog(line)
+	}
 
 	// 根据时间偏移量统计
 	if c.IsChartsRequest() {
@@ -241,10 +245,14 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]
 			flag := c.isSearchByKeyWord(line)
 			if flag {
 				str = line
-				if c.isCommand {
+				if c.request.IsCommand {
 					for _, value := range c.filterWords {
 						str = c.bash.ColorWord(value, str)
 					}
+					if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
+						str = getFilterK8SContainerdWrapLog(str)
+					}
+
 					c.output = append(c.output, str)
 				} else {
 					_, err := c.parseHitLog(str)

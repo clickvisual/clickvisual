@@ -1,5 +1,9 @@
 package search
 
+import (
+	"strings"
+)
+
 // Index 根据数据匹配，获得后面的时间数据，"ts":"(.*)"
 // "ts":"
 func Index(s, substr string) (string, int) {
@@ -13,14 +17,6 @@ func Index(s, substr string) (string, int) {
 		i++
 	}
 	return "", -1
-}
-
-func StringPointer(s string) *string {
-	return &s
-}
-
-func Int64Pointer(s int64) *int64 {
-	return &s
 }
 
 // getValue 获取内容
@@ -39,4 +35,13 @@ func getValue(s string) string {
 		i++
 	}
 	return s[0:i]
+}
+
+// getFilterK8SContainerdWrapLog 过滤k8s containerd包起来日志
+// containerd日志有一些数据前缀，导致不是json，需要过滤一些数据
+// 2023-10-12T16:27:56.359684537+08:00 stderr F {"lv":"info","ts":1697099276,"caller":"egorm@v1.0.6/interceptor.go:125","msg":"access","lname":"ego.sys","comp":"component.egorm","compName":"mysql.file","addr":"mysql-master:3306","method":"gorm:row","name":"svc_file.","cost":0.223,"tid":"","event":"normal"}
+func getFilterK8SContainerdWrapLog(s string) string {
+	filter := " stderr F "
+	i := strings.Index(s, filter)
+	return s[i+len(filter):]
 }
