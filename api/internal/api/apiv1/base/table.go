@@ -521,8 +521,9 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	var interval int64
-	param.GroupByCond, interval = op.CalculateInterval(param.ET-param.ST, clickhouse.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
+	param.GroupByCond, param.Interval = op.CalculateInterval(param.ET-param.ST, clickhouse.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
+	interval := param.Interval
+
 	charts, sql, err := op.Chart(param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), sql)
