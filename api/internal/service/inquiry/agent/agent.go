@@ -21,7 +21,8 @@ func (a Agent) Conn() *sql.DB {
 	panic("implement me")
 }
 
-func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err error) {
+func (a Agent) GetLogs(query view.ReqQuery, i int) (view.RespQuery, error) {
+
 	req := search.Request{
 		StartTime: query.ST,
 		EndTime:   query.ET,
@@ -30,14 +31,16 @@ func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 		Dir:       query.Dir,
 		KeyWord:   query.Query,
 		Limit:     int64(query.PageSize),
+		Interval:  query.Interval,
 	}
 	if req.KeyWord == "*" {
 		req.KeyWord = ""
 	}
-	resp.Logs, err = search.Run(req)
+	searchResp, err := search.Run(req)
 	if err != nil {
 		panic(err)
 	}
+	var resp view.RespQuery
 	resp.Limited = query.PageSize
 	resp.Count = uint64(len(resp.Logs))
 	resp.Keys = make([]*db2.BaseIndex, 0)
@@ -45,13 +48,27 @@ func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 	resp.HiddenFields = make([]string, 0)
 	resp.DefaultFields = make([]string, 0)
 	resp.Terms = make([][]string, 0)
-
+	resp.Logs = searchResp.Logs
 	return resp, nil
 }
 
 func (a Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
-	// TODO implement me
-	return make([]*view.HighChart, 0), "", nil
+	req := search.Request{
+		StartTime: query.ST,
+		EndTime:   query.ET,
+		Date:      query.Date,
+		Path:      query.Path,
+		Dir:       query.Dir,
+		KeyWord:   query.Query,
+		Limit:     int64(query.PageSize),
+		Interval:  query.Interval,
+	}
+	searchResp, err := search.Run(req)
+	if err != nil {
+		return nil, "", err
+	}
+	return searchResp.Charts, "", err
+
 }
 
 func (a Agent) Count(query view.ReqQuery) (uint64, error) {
@@ -211,9 +228,22 @@ func (a Agent) DeleteTraceJaegerDependencies(database, cluster, table string) (e
 	panic("implement me")
 }
 
-func (a Agent) CalculateInterval(interval int64, timeField string) (string, int64) {
-	// TODO implement me
-	return "", 0
+func (a Agent) CalculateInterval(interval int64, timeField string) (sql string, standard int64) {
+	switch {
+	case interval <= 60*5:
+		standard = 1
+	case interval <= 60*30:
+		standard = 60
+	case interval <= 60*60*4:
+		standard = 600
+	case interval <= 60*60*24:
+		standard = 3600
+	case interval <= 60*60*24*7:
+		standard = 21600
+	default:
+		standard = 86400
+	}
+	return
 }
 
 func NewFactoryAgent() (*Agent, error) {

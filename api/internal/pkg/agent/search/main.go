@@ -6,8 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type Container struct {
@@ -26,6 +29,8 @@ type Component struct {
 	limit       int64
 	output      []string
 	logs        []map[string]interface{}
+	charts      map[int64]int64 // key: offset, value: count
+	interval    int64
 }
 
 type KeySearch struct {
@@ -44,6 +49,14 @@ type CmdRequest struct {
 	Limit        int64  // 最少多少条数据
 	IsK8S        bool
 	K8SContainer []string
+}
+
+func (req *Request) IsChartsRequest() bool {
+	return req.Interval > 0
+}
+
+func (c *Component) IsChartsRequest() bool {
+	return c.interval > 0
 }
 
 func (c CmdRequest) ToRequest() Request {
@@ -91,12 +104,17 @@ type Request struct {
 	TruePath     []string
 	KeyWord      string // 搜索的关键词
 	Limit        int64  // 最少多少条数据
-	IsCommand    bool   // 是否是命令行 默认不是
+	Interval     int64
+	IsCommand    bool // 是否是命令行 默认不是
 	IsK8S        bool
 	K8SContainer []string
 }
+type FileSearchResp struct {
+	Logs   []map[string]interface{}
+	Charts []*view2.HighChart
+}
 
-func Run(req Request) (logs []map[string]interface{}, err error) {
+func Run(req Request) (resp FileSearchResp, err error) {
 	var filePaths []string
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
 
@@ -128,7 +146,7 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 		panic("file cant empty")
 	}
 	// 多了没意义，自动变为 50，提示用户
-	if req.Limit <= 0 || req.Limit > 500 {
+	if !req.IsChartsRequest() && (req.Limit <= 0 || req.Limit > 500) {
 		req.Limit = 50
 		elog.Info("limit exceeds 500. it will be automatically set to 50", elog.Int64("limit", req.Limit))
 	}
@@ -140,7 +158,7 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
-			comp := NewComponent(req.StartTime, req.EndTime, value, req.KeyWord, req.Limit, req.IsCommand)
+			comp := NewComponent(req.StartTime, req.EndTime, value, req.KeyWord, req.Limit, req.Interval, req.IsCommand)
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
 				l.Done()
@@ -153,29 +171,61 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	}
 	l.Wait()
 
-	if req.IsCommand {
-		for _, comp := range container.components {
-			fmt.Println(comp.bash.ColorAll(comp.file.path))
-			for _, value := range comp.output {
-				fmt.Println(value)
+	// true if this request for logs
+	if !req.IsChartsRequest() {
+		if req.IsCommand {
+			for _, comp := range container.components {
+				fmt.Println(comp.bash.ColorAll(comp.file.path))
+				for _, value := range comp.output {
+					fmt.Println(value)
+				}
+			}
+		} else {
+			resp.Logs = make([]map[string]interface{}, 0)
+			for _, comp := range container.components {
+				resp.Logs = append(resp.Logs, comp.logs...)
 			}
 		}
-	} else {
-		logs = make([]map[string]interface{}, 0)
-		for _, comp := range container.components {
-			logs = append(logs, comp.logs...)
-		}
+		return
 	}
-	return logs, nil
+
+	resp.Charts = make([]*view2.HighChart, 0)
+	times := (req.EndTime - req.StartTime) / req.Interval
+	var i int64 = 0
+
+	for i < times {
+		var total int64 = 0
+		for _, comp := range container.components {
+			if count, ok := comp.charts[i]; ok {
+				total += count
+			}
+		}
+		if total != 0 {
+			to := max(req.StartTime+(i+1)*req.Interval, req.EndTime)
+			resp.Charts = append(resp.Charts, &view2.HighChart{
+				Count: uint64(total),
+				From:  req.StartTime + i*req.Interval,
+				To:    to,
+			})
+		}
+		i++
+	}
+	fmt.Println("## 查 charts")
+
+	return
 }
 
-func NewComponent(startTime int64, endTime int64, filename string, keyWord string, limit int64, isCommand bool) *Component {
+func NewComponent(startTime int64, endTime int64, filename string, keyWord string, limit int64, interval int64, isCommand bool) *Component {
 	obj := &Component{}
 	file, err := OpenFile(filename)
 	if err != nil {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
 	}
-
+	// request for charts
+	if interval > 0 {
+		obj.charts = make(map[int64]int64)
+	}
+	obj.interval = interval
 	obj.file = file
 	obj.startTime = startTime
 	obj.endTime = endTime
@@ -240,6 +290,40 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 			elog.Error("agent search ts error", elog.FieldErr(err))
 		}
 	}
+
+	// 如果需要聚合计算图表, 并且没有过滤条件，使用更加快捷的扫描
+	if c.IsChartsRequest() && len(c.filterWords) == 0 {
+		times := (c.endTime - c.startTime) / c.interval
+		originStartTime, originEndTime := c.startTime, c.endTime
+		var i int64
+		var endTime int64
+		st := c.startTime
+		for i = 1; i <= times; i++ {
+			endTime = max(st+i*c.interval, originEndTime)
+			c.startTime, c.endTime = st, endTime
+			end, err = c.searchByEndTime()
+			if err != nil {
+				elog.Error("agent search ts error", elog.FieldErr(err))
+				panic("agent search timestamp error")
+			}
+			// if true, after this turn, endTime will be larger, end always be -1
+			if end == -1 {
+				t := i
+				for t <= times {
+					c.charts[t-1] = 0
+					t++
+				}
+				break
+			}
+
+			count := c.calcLines(start, end)
+			c.charts[i-1] = count
+			start = end + 2
+		}
+		c.startTime, c.endTime = originStartTime, originEndTime
+		return nil, nil
+	}
+
 	if start != -1 && start <= end {
 		_, err = c.searchByBackWord(start, end)
 		if err != nil {
