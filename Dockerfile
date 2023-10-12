@@ -23,10 +23,7 @@ WORKDIR /clickvisual
 
 COPY go.mod go.sum ./
 RUN go mod download -x
-COPY scripts scripts
-COPY api api
-COPY config config
-COPY Makefile Makefile
+COPY . .
 COPY --from=js-builder /clickvisual/dist ./api/internal/ui/dist
 RUN ls -rlt ./api/internal/ui/dist && make build.api
 
@@ -42,7 +39,7 @@ COPY --from=go-builder /clickvisual/config ./config
 
 EXPOSE 9001
 EXPOSE 9003
-
-RUN apk add --no-cache tzdata
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk --update add --no-cache tzdata
 
 CMD ["sh", "-c", "./bin/clickvisual"]
