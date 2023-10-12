@@ -9,9 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gotomicro/ego/core/elog"
-
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/gotomicro/ego/core/elog"
 )
 
 // isSearchTime 根据时间搜索到数据
@@ -156,7 +155,6 @@ func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
 			break
 		}
 		i += len(scanner.Text())
-		// fmt.Println(scanner.Text())
 		flag := c.isSearchByKeyWord(scanner.Text())
 		if flag {
 			str := scanner.Text()
@@ -201,8 +199,7 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]
 	}
 	i := int64(0)
 	var (
-		str    string
-		output []string
+		str string
 	)
 	scanner := NewBackScan(c.file.ptr, c.file.size)
 	for {
@@ -211,22 +208,29 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]
 			fmt.Println("Error:", err)
 			break
 		}
-
 		if len(c.filterWords) > 0 {
 			flag := c.isSearchByKeyWord(line)
 			if flag {
 				str = line
-				_, err := c.parseHitLog(str)
-				if err != nil {
-					return nil, err
+				if c.isCommand {
+					for _, value := range c.filterWords {
+						str = c.bash.ColorWord(value, str)
+					}
+					c.output = append(c.output, str)
+				} else {
+					_, err := c.parseHitLog(str)
+					if err != nil {
+						return nil, err
+					}
 				}
+
 				if i == c.limit {
 					break
 				}
 				i++
 			}
 		} else {
-			output = append(output, line)
+			c.output = append(c.output, line)
 			if i == c.limit {
 				break
 			}
@@ -277,14 +281,6 @@ func (c *Component) searchByWord2(startPos, endPos int64) (int64, error) {
 		}
 		cursor++
 	}
-	//
-	// bufio.NewReader()
-	// io.seek
-	// value, err := getString(c.file.ptr, startPos, endPos)
-	// if err != nil {
-	//	return -1, err
-	// }
-	// fmt.Printf("value--------------->"+"%+v\n", value)
 	return 0, nil
 }
 

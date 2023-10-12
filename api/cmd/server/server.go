@@ -1,6 +1,9 @@
 package server
 
 import (
+	"log"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/prom2click"
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/econf"
@@ -21,7 +24,11 @@ var CmdRun = &cobra.Command{
 	Use:   "server",
 	Short: "启动 clickvisual server 服务端",
 	Long:  `启动 clickvisual server 服务端`,
-	Run:   CmdFunc,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		log.Println("PreRun args: ", args)
+		config.PreRun(cmd, args)
+	},
+	Run: CmdFunc,
 }
 
 func init() {
