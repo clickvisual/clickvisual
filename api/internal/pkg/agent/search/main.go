@@ -16,7 +16,7 @@ type Container struct {
 
 // Component 每个执行指令地方
 type Component struct {
-	isCommand   bool // 是否命令行
+	request     Request
 	file        *File
 	startTime   int64
 	endTime     int64
@@ -83,25 +83,27 @@ func (c CmdRequest) ToRequest() Request {
 }
 
 type Request struct {
-	StartTime    int64
-	EndTime      int64
-	Date         string // last 30min,6h,1d,7d
-	Path         string // 文件路径
-	Dir          string // 文件夹路径
-	TruePath     []string
-	KeyWord      string // 搜索的关键词
-	Limit        int64  // 最少多少条数据
-	IsCommand    bool   // 是否是命令行 默认不是
-	IsK8S        bool
-	K8SContainer []string
+	StartTime     int64
+	EndTime       int64
+	Date          string // last 30min,6h,1d,7d
+	Path          string // 文件路径
+	Dir           string // 文件夹路径
+	TruePath      []string
+	KeyWord       string // 搜索的关键词
+	Limit         int64  // 最少多少条数据
+	IsCommand     bool   // 是否是命令行 默认不是
+	IsK8S         bool
+	K8SContainer  []string
+	K8sClientType string // 是 containerd，还是docker
 }
 
 func Run(req Request) (logs []map[string]interface{}, err error) {
 	var filePaths []string
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
-
+	// todo 需要做优化，不用重复new
 	if req.IsK8S {
 		obj := cvdocker.NewContainer()
+		req.K8sClientType = obj.ClientType
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
@@ -140,7 +142,10 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
-			comp := NewComponent(req.StartTime, req.EndTime, value, req.KeyWord, req.Limit, req.IsCommand)
+			comp := NewComponent(
+				value,
+				req,
+			)
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
 				l.Done()
@@ -169,7 +174,7 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	return logs, nil
 }
 
-func NewComponent(startTime int64, endTime int64, filename string, keyWord string, limit int64, isCommand bool) *Component {
+func NewComponent(filename string, req Request) *Component {
 	obj := &Component{}
 	file, err := OpenFile(filename)
 	if err != nil {
@@ -177,12 +182,12 @@ func NewComponent(startTime int64, endTime int64, filename string, keyWord strin
 	}
 
 	obj.file = file
-	obj.startTime = startTime
-	obj.endTime = endTime
-	obj.isCommand = isCommand
+	obj.startTime = req.StartTime
+	obj.endTime = req.EndTime
+	obj.request = req
 	words := make([]KeySearch, 0)
 
-	arrs := strings.Split(keyWord, "and")
+	arrs := strings.Split(req.KeyWord, "and")
 	for _, value := range arrs {
 		if strings.Contains(value, "=") {
 			info := strings.Split(value, "=")
@@ -209,7 +214,7 @@ func NewComponent(startTime int64, endTime int64, filename string, keyWord strin
 	}
 	obj.filterWords = filterString
 	obj.bash = NewBash()
-	obj.limit = limit
+	obj.limit = req.Limit
 	return obj
 }
 
