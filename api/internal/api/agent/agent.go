@@ -47,10 +47,11 @@ func (a *Agent) Search(c *core.Context) {
 		req.KeyWord = ""
 	}
 	resp := view.RespQuery{}
-	resp.Logs, err = search.Run(req)
+	searchResp, err := search.Run(req)
 	if err != nil {
 		panic(err)
 	}
+	resp.Logs = searchResp.Logs
 	resp.Limited = uint32(postReq.Limit)
 	resp.Count = uint64(len(resp.Logs))
 	resp.Keys = make([]*db2.BaseIndex, 0)

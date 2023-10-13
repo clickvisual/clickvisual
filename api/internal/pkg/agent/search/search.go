@@ -25,7 +25,7 @@ func (c *Component) isSearchByStartTime(value string) bool {
 	if indexValue == -1 {
 		return false
 	}
-	curTimeParser, err := time.Parse(time.DateTime, curTime)
+	curTimeParser, err := time.ParseInLocation("2006-01-02 15:04:05", curTime, time.Local)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func (c *Component) isSearchByEndTime(value string) bool {
 	if indexValue == -1 {
 		return false
 	}
-	curTimeParser, err := time.Parse(time.DateTime, curTime)
+	curTimeParser, err := time.ParseInLocation("2006-01-02 15:04:05", curTime, time.Local)
 	if err != nil {
 		panic(err)
 	}
@@ -200,7 +200,7 @@ func (c *Component) parseHitLog(line string) (log map[string]interface{}, err er
 	if indexValue == -1 {
 		return
 	}
-	curTimeParser, err := time.Parse(time.DateTime, curTime)
+	curTimeParser, err := time.ParseInLocation("2006-01-02 15:04:05", curTime, time.Local)
 	if err != nil {
 		elog.Error("agent log parse timestamp error", elog.FieldErr(err))
 		panic(err)
@@ -214,6 +214,9 @@ func (c *Component) parseHitLog(line string) (log map[string]interface{}, err er
 	if c.IsChartsRequest() {
 		offset := (ts - c.startTime) / c.interval
 		c.charts[offset]++
+		if offset > c.maxTimes {
+			c.maxTimes = offset
+		}
 	}
 
 	log["ts"] = ts

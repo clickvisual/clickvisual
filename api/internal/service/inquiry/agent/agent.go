@@ -31,7 +31,7 @@ func (a Agent) GetLogs(query view.ReqQuery, i int) (view.RespQuery, error) {
 		Dir:       query.Dir,
 		KeyWord:   query.Query,
 		Limit:     int64(query.PageSize),
-		Interval:  query.Interval,
+		Interval:  -1,
 	}
 	if req.KeyWord == "*" {
 		req.KeyWord = ""
