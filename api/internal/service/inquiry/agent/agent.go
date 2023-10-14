@@ -43,7 +43,7 @@ func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 				"keyWord":   query.Query,
 				"limit":     fmt.Sprintf("%d", query.PageSize),
 				"container": fmt.Sprintf(strings.Join(query.K8SContainer, ",")),
-				"isK8s":     "true",
+				"isK8s":     "1",
 			}).Get(agent + "/api/v1/search")
 		if err != nil {
 			return view.RespQuery{}, errors.Wrapf(err, "request agent %s error", agent)

@@ -155,7 +155,10 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 				return
 			}
 			container.components = append(container.components, comp)
-			comp.SearchFile()
+			_, err = comp.SearchFile()
+			if err != nil {
+				elog.Error("agent search file error", elog.FieldErr(err))
+			}
 			l.Done()
 		}()
 	}
@@ -239,15 +242,13 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	if c.startTime > 0 {
 		start, err = c.searchByStartTime()
 		if err != nil {
-			elog.Error("agent search ts error", elog.FieldErr(err))
-			return make([]map[string]interface{}, 0), errors.New("search start time error")
+			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search start time error")
 		}
 	}
 	if c.endTime > 0 {
 		end, err = c.searchByEndTime()
 		if err != nil {
-			elog.Error("agent search ts error", elog.FieldErr(err))
-			return make([]map[string]interface{}, 0), errors.New("search end time error")
+			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search end time error")
 		}
 	}
 	if start != -1 && start <= end {
@@ -255,12 +256,10 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 		if err != nil {
 			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search by back word error")
 		}
-
 		if len(c.logs) == 0 {
 			elog.Info("agent log search nothing", elog.Any("words", c.words))
 		}
 		return c.logs, err
 	}
-	elog.Info("agent log search nothing", elog.Any("words", c.words))
 	return nil, nil
 }
