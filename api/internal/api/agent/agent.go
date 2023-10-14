@@ -20,12 +20,13 @@ func NewAgent() *Agent {
 }
 
 type SearchRequest struct {
-	StartTime int64
-	EndTime   int64
-	Date      string   // last 30min,6h,1d,7d
-	KeyWord   string   // 搜索的关键词
-	Limit     int64    // 最少多少条数据
-	Container []string // container信息
+	StartTime int64    `json:"startTime" form:"startTime"`
+	EndTime   int64    `json:"endTime" form:"endTime"`
+	Date      string   `json:"date" form:"date"`           // last 30min,6h,1d,7d
+	KeyWord   string   `json:"keyWord" form:"keyWord"`     // 搜索的关键词
+	Limit     int64    `json:"limit" form:"limit"`         // 最少多少条数据
+	Container []string `json:"container" form:"container"` // container信息
+	IsK8s     int      `json:"isK8s" form:"isK8s"`         // 是否为k8s
 }
 
 func (a *Agent) Search(c *core.Context) {
@@ -43,8 +44,14 @@ func (a *Agent) Search(c *core.Context) {
 		Limit:        postReq.Limit,
 		K8SContainer: postReq.Container,
 	}
+	if postReq.IsK8s == 1 {
+		req.IsK8S = true
+	}
 	if req.KeyWord == "*" {
 		req.KeyWord = ""
+	}
+	if len(postReq.Container) != 0 && postReq.Container[0] == "" {
+		req.K8SContainer = make([]string, 0)
 	}
 	resp := view.RespQuery{}
 	resp.Logs, err = search.Run(req)

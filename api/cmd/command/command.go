@@ -1,8 +1,9 @@
 package command
 
 import (
-	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/spf13/cobra"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 
 	"github.com/clickvisual/clickvisual/api/cmd"
 )

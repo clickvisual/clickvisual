@@ -6,8 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 )
 
 type Container struct {
@@ -115,7 +117,6 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 					}
 				}
 			}
-
 		}
 	}
 	if req.Path != "" {
@@ -142,17 +143,22 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
-			comp := NewComponent(
-				value,
-				req,
-			)
+			comp, err := NewComponent(value, req)
+			if err != nil {
+				elog.Error("agent new component error", elog.FieldErr(err))
+				l.Done()
+				return
+			}
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
 				l.Done()
 				return
 			}
 			container.components = append(container.components, comp)
-			comp.SearchFile()
+			_, err = comp.SearchFile()
+			if err != nil {
+				elog.Error("agent search file error", elog.FieldErr(err))
+			}
 			l.Done()
 		}()
 	}
@@ -174,11 +180,12 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	return logs, nil
 }
 
-func NewComponent(filename string, req Request) *Component {
+func NewComponent(filename string, req Request) (*Component, error) {
 	obj := &Component{}
 	file, err := OpenFile(filename)
 	if err != nil {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
+		return nil, errors.Wrapf(err, "open file %s error", filename)
 	}
 
 	obj.file = file
@@ -215,7 +222,7 @@ func NewComponent(filename string, req Request) *Component {
 	obj.filterWords = filterString
 	obj.bash = NewBash()
 	obj.limit = req.Limit
-	return obj
+	return obj, nil
 }
 
 /*
@@ -225,9 +232,8 @@ func NewComponent(filename string, req Request) *Component {
 func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	defer c.file.ptr.Close()
 	if c.file.size == 0 {
-		panic("file size is 0")
+		return make([]map[string]interface{}, 0), errors.New("file size is 0")
 	}
-
 	var (
 		start = int64(0)
 		end   = c.file.size
@@ -236,26 +242,24 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	if c.startTime > 0 {
 		start, err = c.searchByStartTime()
 		if err != nil {
-			elog.Error("agent search ts error", elog.FieldErr(err))
+			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search start time error")
 		}
 	}
 	if c.endTime > 0 {
 		end, err = c.searchByEndTime()
 		if err != nil {
-			elog.Error("agent search ts error", elog.FieldErr(err))
+			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search end time error")
 		}
 	}
 	if start != -1 && start <= end {
 		_, err = c.searchByBackWord(start, end)
 		if err != nil {
-
+			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search by back word error")
 		}
-
 		if len(c.logs) == 0 {
 			elog.Info("agent log search nothing", elog.Any("words", c.words))
 		}
 		return c.logs, err
 	}
-	elog.Info("agent log search nothing", elog.Any("words", c.words))
 	return nil, nil
 }

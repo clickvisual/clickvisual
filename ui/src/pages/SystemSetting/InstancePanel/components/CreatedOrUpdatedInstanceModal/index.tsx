@@ -42,7 +42,7 @@ const CreatedOrUpdatedInstanceModal = (
   const instanceFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const [disabledSubmit, setDisabledSubmit] = useState<boolean>(false);
-  const [sourceType, setSourceType] = useState<string>("clickhouse");
+  const [sourceType, setSourceType] = useState<string>(current?.datasource || "clickvisual");
 
   const onSubmit = (field: any) => {
     const params = {
@@ -231,14 +231,13 @@ const CreatedOrUpdatedInstanceModal = (
             placeholder={i18n.formatMessage({
               id: "instance.form.placeholder.datasource",
             })}
-            onChange={(value) => {if(value==="agent"){setDisabledSubmit(false)}else{setDisabledSubmit(true)} setSourceType(value)}}
+            onChange={(value) => {setSourceType(value)}}
           >
             <Option value={"ch"}>ClickHouse</Option>
             <Option value={"databend"}>Databend</Option>
             <Option value={"agent"}>Agent</Option>
           </Select>
         </Form.Item>
-        {sourceType !== "agent" && (
         <Form.Item
           name={"dsn"}
           label={"DSN"}
@@ -259,12 +258,14 @@ const CreatedOrUpdatedInstanceModal = (
                   "clickhouse://username:password@host1:9000,host2:9000/database?dial_timeout=200ms&max_execution_time=60",
               }
             )}
-            onChange={() => setDisabledSubmit(true)}
+            onChange={() => {
+              console.log("datasource", sourceType)
+              setDisabledSubmit(true)}
+          }
             autoSize={{ minRows: 5, maxRows: 5 }}
             allowClear
           />
         </Form.Item>
-        )}
         <Form.Item
           name={"desc"}
           label={i18n.formatMessage({ id: "descAsAlias" })}

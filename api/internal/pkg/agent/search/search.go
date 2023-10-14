@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 // isSearchTime 根据时间搜索到数据
@@ -189,8 +190,8 @@ func (c *Component) parseHitLog(line string) (log map[string]interface{}, err er
 	}
 	log["ts"] = ts
 	log["body"] = line
-	log[db2.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
-	log[db2.TimeFieldSecond] = ts
+	log[db.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
+	log[db.TimeFieldSecond] = ts
 	return
 }
 
