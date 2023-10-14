@@ -6,6 +6,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/cmd"
 	_ "github.com/clickvisual/clickvisual/api/cmd/agent"
+	_ "github.com/clickvisual/clickvisual/api/cmd/command"
 	_ "github.com/clickvisual/clickvisual/api/cmd/server"
 )
 

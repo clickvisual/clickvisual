@@ -229,9 +229,8 @@ func NewComponent(filename string, req Request) (*Component, error) {
 func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	defer c.file.ptr.Close()
 	if c.file.size == 0 {
-		panic("file size is 0")
+		return make([]map[string]interface{}, 0), errors.New("file size is 0")
 	}
-
 	var (
 		start = int64(0)
 		end   = c.file.size
@@ -241,18 +240,20 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 		start, err = c.searchByStartTime()
 		if err != nil {
 			elog.Error("agent search ts error", elog.FieldErr(err))
+			return make([]map[string]interface{}, 0), errors.New("search start time error")
 		}
 	}
 	if c.endTime > 0 {
 		end, err = c.searchByEndTime()
 		if err != nil {
 			elog.Error("agent search ts error", elog.FieldErr(err))
+			return make([]map[string]interface{}, 0), errors.New("search end time error")
 		}
 	}
 	if start != -1 && start <= end {
 		_, err = c.searchByBackWord(start, end)
 		if err != nil {
-
+			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search by back word error")
 		}
 
 		if len(c.logs) == 0 {
