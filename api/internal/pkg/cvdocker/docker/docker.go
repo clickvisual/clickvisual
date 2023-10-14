@@ -1,9 +1,10 @@
 package docker
 
 import (
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 	dockerclient "github.com/fsouza/go-dockerclient"
 	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 )
 
 // Component ...
@@ -33,6 +34,7 @@ func (c *Component) GetAllDockerInfo() (containerMap map[string]*manager.DockerI
 	if err != nil {
 		elog.Panic("docker list container fail ", elog.FieldErr(err))
 	}
+	containerMap = make(map[string]*manager.DockerInfo)
 	for _, container := range containers {
 		var containerDetail *dockerclient.Container
 		for idx := 0; idx < 3; idx++ {

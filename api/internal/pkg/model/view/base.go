@@ -67,8 +67,7 @@ type (
 		GroupByCond   string   `form:"groupByCond"`
 		IsQueryCount  int      `form:"isQueryCount"` // 是否请求日志总数 0 不请求 1 请求
 		Date          string   `form:"date"`
-		Path          string   `form:"path"`
-		Dir           string   `form:"dir"`
+		K8SContainer  []string
 	}
 
 	RespQuery struct {

@@ -3,8 +3,14 @@ package agent
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
+	"github.com/go-resty/resty/v2"
+	"github.com/pkg/errors"
+
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
@@ -14,6 +20,8 @@ import (
 var _ factory.Operator = (*Agent)(nil)
 
 type Agent struct {
+	agents     []string
+	httpClient *resty.Client
 }
 
 func (a Agent) Conn() *sql.DB {
@@ -22,30 +30,31 @@ func (a Agent) Conn() *sql.DB {
 }
 
 func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err error) {
-	req := search.Request{
-		StartTime: query.ST,
-		EndTime:   query.ET,
-		Date:      query.Date,
-		Path:      query.Path,
-		Dir:       query.Dir,
-		KeyWord:   query.Query,
-		Limit:     int64(query.PageSize),
+	for _, agent := range a.agents {
+		if !strings.HasPrefix(agent, "http://") {
+			agent = "http://" + agent
+		}
+		searchResp, err := a.httpClient.R().
+			EnableTrace().
+			SetQueryParams(map[string]string{
+				"startTime": fmt.Sprintf("%d", query.ST),
+				"endTime":   fmt.Sprintf("%d", query.ET),
+				"date":      query.Date,
+				"keyWord":   query.Query,
+				"limit":     fmt.Sprintf("%d", query.PageSize),
+				"container": fmt.Sprintf(strings.Join(query.K8SContainer, ",")),
+				"isK8s":     "true",
+			}).Get(agent + "/api/v1/search")
+		if err != nil {
+			return view.RespQuery{}, errors.Wrapf(err, "request agent %s error", agent)
+		}
+		var res view.RespQuery
+		err = json.Unmarshal(searchResp.Body(), &res)
+		if err != nil {
+			return view.RespQuery{}, errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
+		}
+		resp.Logs = append(resp.Logs, res.Logs...)
 	}
-	if req.KeyWord == "*" {
-		req.KeyWord = ""
-	}
-	resp.Logs, err = search.Run(req)
-	if err != nil {
-		panic(err)
-	}
-	resp.Limited = query.PageSize
-	resp.Count = uint64(len(resp.Logs))
-	resp.Keys = make([]*db2.BaseIndex, 0)
-	resp.ShowKeys = make([]string, 0)
-	resp.HiddenFields = make([]string, 0)
-	resp.DefaultFields = make([]string, 0)
-	resp.Terms = make([][]string, 0)
-
 	return resp, nil
 }
 
@@ -70,14 +79,15 @@ func (a Agent) DoSQL(s string) (view.RespComplete, error) {
 }
 
 func (a Agent) Prepare(query view.ReqQuery, table *db2.BaseTable, b bool) (view.ReqQuery, error) {
-	// TODO implement me
 	if query.Query == "" {
 		query.Query = "*"
 	}
 	if table.Name == "*" {
-		query.Dir = table.Database.Desc
+		var tmp = make([]string, 0)
+		_ = json.Unmarshal([]byte(table.Database.Desc), &tmp)
+		query.K8SContainer = tmp
 	} else {
-		query.Path = table.Database.Desc + "/" + table.Name
+		query.K8SContainer = []string{table.Name}
 	}
 	return query, nil
 }
@@ -216,6 +226,11 @@ func (a Agent) CalculateInterval(interval int64, timeField string) (string, int6
 	return "", 0
 }
 
-func NewFactoryAgent() (*Agent, error) {
-	return &Agent{}, nil
+func NewFactoryAgent(dsn string) (*Agent, error) {
+	agents := make([]string, 0)
+	_ = json.Unmarshal([]byte(dsn), &agents)
+	return &Agent{
+		agents:     agents,
+		httpClient: resty.New().SetTimeout(time.Second * 10),
+	}, nil
 }

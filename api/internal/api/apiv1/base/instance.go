@@ -1,6 +1,7 @@
 package base
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -236,6 +237,17 @@ func InstanceTest(c *core.Context) {
 		_, err = service.ClickHouseLink(req.Dsn)
 	case db2.DatasourceDatabend:
 		_, err = service.DatabendLink(req.Dsn)
+	case db2.DatasourceAgent:
+		var tmp = make([]string, 0)
+		err = json.Unmarshal([]byte(req.Dsn), &tmp)
+		if err != nil {
+			c.JSONE(1, "invalid parameter: "+err.Error(), err)
+			return
+		}
+		if len(tmp) == 0 {
+			c.JSONE(1, "Please enter at least one agent address", nil)
+			return
+		}
 	default:
 		c.JSONE(1, "data source type error", nil)
 		return

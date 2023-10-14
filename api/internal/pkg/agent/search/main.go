@@ -6,8 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 )
 
 type Container struct {
@@ -115,7 +117,6 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 					}
 				}
 			}
-
 		}
 	}
 	if req.Path != "" {
@@ -142,10 +143,12 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
-			comp := NewComponent(
-				value,
-				req,
-			)
+			comp, err := NewComponent(value, req)
+			if err != nil {
+				elog.Error("agent new component error", elog.FieldErr(err))
+				l.Done()
+				return
+			}
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
 				l.Done()
@@ -174,11 +177,12 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	return logs, nil
 }
 
-func NewComponent(filename string, req Request) *Component {
+func NewComponent(filename string, req Request) (*Component, error) {
 	obj := &Component{}
 	file, err := OpenFile(filename)
 	if err != nil {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
+		return nil, errors.Wrapf(err, "open file %s error", filename)
 	}
 
 	obj.file = file
@@ -215,7 +219,7 @@ func NewComponent(filename string, req Request) *Component {
 	obj.filterWords = filterString
 	obj.bash = NewBash()
 	obj.limit = req.Limit
-	return obj
+	return obj, nil
 }
 
 /*

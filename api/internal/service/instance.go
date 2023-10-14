@@ -97,7 +97,7 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 		}
 		i.dss.Store(obj.DsKey(), dd)
 	case db.DatasourceAgent:
-		a, _ := agent.NewFactoryAgent()
+		a, _ := agent.NewFactoryAgent(obj.Dsn)
 		i.dss.Store(obj.DsKey(), a)
 	}
 
