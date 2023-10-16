@@ -106,7 +106,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		req.K8SContainer = make([]string, 0)
 	}
 	var filePaths []string
-	elog.Info("agentRun", l.A("containers", len(req.K8SContainer)))
+	elog.Info("agentRun", l.A("req", req))
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
 	if req.IsK8S {
 		obj := cvdocker.NewContainer()
