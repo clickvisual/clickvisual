@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
@@ -170,28 +171,32 @@ func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
 }
 
 func (c *Component) parseHitLog(line string) (log map[string]interface{}, err error) {
+	if line == "" {
+		return nil, errors.New("line is empty")
+	}
 	log = make(map[string]interface{})
 	for _, word := range c.words {
 		log[word.Key] = word.Value
 	}
-	c.logs = append(c.logs, log)
 	curTime, indexValue := Index(line, `"ts":"`)
-	if indexValue == -1 {
-		return
+	if indexValue != -1 {
+		curTimeParser, err := time.Parse(time.DateTime, curTime)
+		if err != nil {
+			elog.Error("agent log parse timestamp error", elog.FieldErr(err))
+			panic(err)
+		}
+		ts := curTimeParser.Unix()
+		if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
+			line = getFilterK8SContainerdWrapLog(line)
+		}
+		log["ts"] = ts
+		log[db.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
+		log[db.TimeFieldSecond] = ts
 	}
-	curTimeParser, err := time.Parse(time.DateTime, curTime)
-	if err != nil {
-		elog.Error("agent log parse timestamp error", elog.FieldErr(err))
-		panic(err)
-	}
-	ts := curTimeParser.Unix()
-	if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
-		line = getFilterK8SContainerdWrapLog(line)
-	}
-	log["ts"] = ts
+
 	log["body"] = line
-	log[db.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
-	log[db.TimeFieldSecond] = ts
+	log["_file"] = c.extFile
+	c.logs = append(c.logs, log)
 	return
 }
 
@@ -229,17 +234,26 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]
 				} else {
 					_, err := c.parseHitLog(str)
 					if err != nil {
-						return nil, err
+						elog.Error("agent log parse timestamp error", l.E(err))
+						continue
 					}
 				}
-
 				if i == c.limit {
 					break
 				}
 				i++
 			}
 		} else {
-			c.output = append(c.output, line)
+			str = line
+			if c.request.IsCommand {
+				c.output = append(c.output, str)
+			} else {
+				_, err := c.parseHitLog(str)
+				if err != nil {
+					elog.Error("agent log parse timestamp error", l.E(err))
+					continue
+				}
+			}
 			if i == c.limit {
 				break
 			}

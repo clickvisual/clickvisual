@@ -34,17 +34,22 @@ func (a Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 		if !strings.HasPrefix(agent, "http://") {
 			agent = "http://" + agent
 		}
+		data := map[string]string{
+			"startTime": fmt.Sprintf("%d", query.ST),
+			"endTime":   fmt.Sprintf("%d", query.ET),
+			"date":      query.Date,
+			"limit":     fmt.Sprintf("%d", query.PageSize),
+			"isK8s":     "1",
+		}
+		if len(query.K8SContainer) != 0 {
+			data["container"] = fmt.Sprintf(strings.Join(query.K8SContainer, ","))
+		}
+		if query.Query != "" && query.Query != "*" {
+			data["keyWord"] = query.Query
+		}
 		searchResp, err := a.httpClient.R().
 			EnableTrace().
-			SetQueryParams(map[string]string{
-				"startTime": fmt.Sprintf("%d", query.ST),
-				"endTime":   fmt.Sprintf("%d", query.ET),
-				"date":      query.Date,
-				"keyWord":   query.Query,
-				"limit":     fmt.Sprintf("%d", query.PageSize),
-				"container": fmt.Sprintf(strings.Join(query.K8SContainer, ",")),
-				"isK8s":     "1",
-			}).Get(agent + "/api/v1/search")
+			SetQueryParams(data).Get(agent + "/api/v1/search")
 		if err != nil {
 			return view.RespQuery{}, errors.Wrapf(err, "request agent %s error", agent)
 		}

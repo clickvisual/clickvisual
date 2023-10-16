@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
@@ -28,6 +29,7 @@ type Component struct {
 	limit       int64
 	output      []string
 	logs        []map[string]interface{}
+	extFile     string
 }
 
 type KeySearch struct {
@@ -100,6 +102,9 @@ type Request struct {
 }
 
 func Run(req Request) (logs []map[string]interface{}, err error) {
+	if len(req.K8SContainer) != 0 && req.K8SContainer[0] == "" {
+		req.K8SContainer = make([]string, 0)
+	}
 	var filePaths []string
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
 	// todo 需要做优化，不用重复new
@@ -128,7 +133,8 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	}
 	req.TruePath = filePaths
 	if len(filePaths) == 0 {
-		panic("file cant empty")
+		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("truePath", req.TruePath))
+		return nil, errors.New("file cant empty")
 	}
 	// 多了没意义，自动变为 50，提示用户
 	if req.Limit <= 0 || req.Limit > 500 {
@@ -137,21 +143,21 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	}
 	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
-	l := sync.WaitGroup{}
+	sw := sync.WaitGroup{}
 	// 文件添加并发查找
-	l.Add(len(filePaths))
+	sw.Add(len(filePaths))
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
-				l.Done()
+				sw.Done()
 				return
 			}
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
-				l.Done()
+				sw.Done()
 				return
 			}
 			container.components = append(container.components, comp)
@@ -159,10 +165,10 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 			if err != nil {
 				elog.Error("agent search file error", elog.FieldErr(err))
 			}
-			l.Done()
+			sw.Done()
 		}()
 	}
-	l.Wait()
+	sw.Wait()
 
 	if req.IsCommand {
 		for _, comp := range container.components {
@@ -187,7 +193,7 @@ func NewComponent(filename string, req Request) (*Component, error) {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
 		return nil, errors.Wrapf(err, "open file %s error", filename)
 	}
-
+	obj.extFile = filename
 	obj.file = file
 	obj.startTime = req.StartTime
 	obj.endTime = req.EndTime
