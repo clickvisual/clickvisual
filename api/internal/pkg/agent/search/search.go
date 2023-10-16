@@ -21,7 +21,7 @@ import (
 // startTime，数据大于他的都符合要求
 // endTime，数据小于他的都符合要求
 func (c *Component) isSearchByStartTime(value string) bool {
-	curTime, indexValue := Index(value, `"ts":"`)
+	curTime, indexValue := IndexParse(value)
 	if indexValue == -1 {
 		return false
 	}
@@ -33,7 +33,7 @@ func (c *Component) isSearchByStartTime(value string) bool {
 }
 
 func (c *Component) isSearchByEndTime(value string) bool {
-	curTime, indexValue := Index(value, `"ts":"`)
+	curTime, indexValue := IndexParse(value)
 	if indexValue == -1 {
 		return false
 	}
@@ -171,7 +171,7 @@ func (c *Component) parseHitLog(line string) (log map[string]interface{}, err er
 	for _, word := range c.words {
 		log[word.Key] = word.Value
 	}
-	curTime, indexValue := Index(line, `"ts":"`)
+	curTime, indexValue := IndexParse(line)
 	if indexValue != -1 {
 		curTimeParser := TimeParse(curTime)
 		ts := curTimeParser.Unix()

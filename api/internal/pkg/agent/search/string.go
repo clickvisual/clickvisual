@@ -4,6 +4,18 @@ import (
 	"strings"
 )
 
+var indexField = []string{"ts", "time"}
+
+func IndexParse(line string) (string, int) {
+	for _, field := range indexField {
+		res, index := Index(line, `"`+field+`":"`)
+		if index != -1 {
+			return res, index
+		}
+	}
+	return "", -1
+}
+
 // Index 根据数据匹配，获得后面的时间数据，"ts":"(.*)"
 // "ts":"
 func Index(s, substr string) (string, int) {
