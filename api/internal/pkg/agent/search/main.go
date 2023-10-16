@@ -106,8 +106,8 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		req.K8SContainer = make([]string, 0)
 	}
 	var filePaths []string
+	elog.Info("agentRun", l.A("containers", len(req.K8SContainer)))
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
-	// todo 需要做优化，不用重复new
 	if req.IsK8S {
 		obj := cvdocker.NewContainer()
 		req.K8sClientType = obj.ClientType
@@ -115,10 +115,12 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
+				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.LogPath))
 				filePaths = append(filePaths, value.LogPath)
 			} else {
 				for _, v := range req.K8SContainer {
 					if value.K8SInfo.Container == v {
+						elog.Info("agentRun", l.S("step", "withContainer"), l.A("logPath", value.LogPath))
 						filePaths = append(filePaths, value.LogPath)
 					}
 				}
@@ -134,7 +136,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	}
 	req.TruePath = filePaths
 	if len(filePaths) == 0 {
-		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("truePath", req.TruePath))
+		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("K8SContainer", req.K8SContainer), l.A("truePath", req.TruePath))
 		return data, errors.New("file cant empty")
 	}
 	// 多了没意义，自动变为 50，提示用户

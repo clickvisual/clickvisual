@@ -76,6 +76,8 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 		}
 		if query.Dir != "" {
 			data["dir"] = query.Dir
+		} else {
+			data["isK8s"] = "1"
 		}
 		searchResp, err := a.httpClient.R().EnableTrace().SetQueryParams(data).Get(agent + "/api/v1/search")
 		if err != nil {

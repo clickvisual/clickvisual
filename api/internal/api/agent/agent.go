@@ -39,19 +39,24 @@ func (a *Agent) Search(c *core.Context) {
 		return
 	}
 	req := search.Request{
-		StartTime:    postReq.StartTime,
-		EndTime:      postReq.EndTime,
-		Date:         postReq.Date,
-		KeyWord:      postReq.KeyWord,
-		Limit:        postReq.Limit,
-		K8SContainer: postReq.Container,
-		Dir:          postReq.Dir,
+		StartTime: postReq.StartTime,
+		EndTime:   postReq.EndTime,
+		Limit:     postReq.Limit,
+	}
+	if postReq.Date != "" {
+		req.Date = postReq.Date
 	}
 	if postReq.IsK8s == 1 {
 		req.IsK8S = true
 	}
-	if req.KeyWord == "*" {
-		req.KeyWord = ""
+	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
+		req.KeyWord = postReq.KeyWord
+	}
+	if len(postReq.Container) > 0 {
+		req.K8SContainer = postReq.Container
+	}
+	if postReq.Dir != "" {
+		req.Dir = postReq.Dir
 	}
 	resp, err := search.Run(req)
 	if err != nil {
