@@ -35,6 +35,7 @@ func (a *Agent) Conn() *sql.DB {
 }
 
 func (a *Agent) parseHitLog(k8sClientType string, item view.RespAgentSearchItem) (log map[string]interface{}, err error) {
+	elog.Info("parseHitLog", l.S("k8sClientType", k8sClientType))
 	line := item.Line
 	if line == "" {
 		return nil, errors.New("line is empty")
@@ -50,10 +51,10 @@ func (a *Agent) parseHitLog(k8sClientType string, item view.RespAgentSearchItem)
 		log["ts"] = ts
 		log[db.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
 		log[db.TimeFieldSecond] = ts
-	}
-	log["_raw_log_"] = line
-	for k, v := range item.Ext {
-		log[k] = v
+		log["_raw_log_"] = line
+		for k, v := range item.Ext {
+			log[k] = v
+		}
 	}
 	return log, nil
 }
