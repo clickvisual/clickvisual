@@ -8,11 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gotomicro/cetus/l"
-	"github.com/gotomicro/ego/core/elog"
-
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 // isSearchTime 根据时间搜索到数据
@@ -21,11 +18,11 @@ import (
 // startTime，数据大于他的都符合要求
 // endTime，数据小于他的都符合要求
 func (c *Component) isSearchByStartTime(value string) bool {
-	curTime, indexValue := IndexParse(value)
+	curTime, indexValue := utils.IndexParse(value)
 	if indexValue == -1 {
 		return false
 	}
-	curTimeParser := TimeParse(curTime)
+	curTimeParser := utils.TimeParse(curTime)
 	if curTimeParser.Unix() >= c.startTime {
 		return true
 	}
@@ -33,11 +30,11 @@ func (c *Component) isSearchByStartTime(value string) bool {
 }
 
 func (c *Component) isSearchByEndTime(value string) bool {
-	curTime, indexValue := IndexParse(value)
+	curTime, indexValue := utils.IndexParse(value)
 	if indexValue == -1 {
 		return false
 	}
-	curTimeParser := TimeParse(curTime)
+	curTimeParser := utils.TimeParse(curTime)
 	if curTimeParser.Unix() <= c.endTime {
 		return true
 	}
@@ -163,34 +160,8 @@ func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
 	return 0, nil
 }
 
-func (c *Component) parseHitLog(line string) (log map[string]interface{}, err error) {
-	if line == "" {
-		return nil, errors.New("line is empty")
-	}
-	log = make(map[string]interface{})
-	for _, word := range c.words {
-		log[word.Key] = word.Value
-	}
-	curTime, indexValue := IndexParse(line)
-	if indexValue != -1 {
-		curTimeParser := TimeParse(curTime)
-		ts := curTimeParser.Unix()
-		if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
-			line = getFilterK8SContainerdWrapLog(line)
-		}
-		log["ts"] = ts
-		log[db.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
-		log[db.TimeFieldSecond] = ts
-	}
-
-	log["body"] = line
-	log["_file"] = c.extFile
-	c.logs = append(c.logs, log)
-	return
-}
-
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
-func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]interface{}, error error) {
+func (c *Component) searchByBackWord(startPos, endPos int64) (error error) {
 	// 游标去掉一部分数据
 	_, err := c.file.ptr.Seek(startPos, io.SeekStart)
 	if err != nil {
@@ -216,33 +187,17 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]
 						str = c.bash.ColorWord(value, str)
 					}
 					if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
-						str = getFilterK8SContainerdWrapLog(str)
-					}
-
-					c.output = append(c.output, str)
-				} else {
-					_, err := c.parseHitLog(str)
-					if err != nil {
-						elog.Error("agent log parse timestamp error", l.E(err))
-						continue
+						str = utils.GetFilterK8SContainerdWrapLog(str)
 					}
 				}
+				c.output = append(c.output, str)
 				if i == c.limit {
 					break
 				}
 				i++
 			}
 		} else {
-			str = line
-			if c.request.IsCommand {
-				c.output = append(c.output, str)
-			} else {
-				_, err := c.parseHitLog(str)
-				if err != nil {
-					elog.Error("agent log parse timestamp error", l.E(err))
-					continue
-				}
-			}
+			c.output = append(c.output, line)
 			if i == c.limit {
 				break
 			}
@@ -250,7 +205,7 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (logs []map[string]
 		}
 
 	}
-	return c.logs, nil
+	return nil
 }
 
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string

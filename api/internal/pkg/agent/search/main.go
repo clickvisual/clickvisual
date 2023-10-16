@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type Container struct {
@@ -28,8 +29,6 @@ type Component struct {
 	bash        *Bash
 	limit       int64
 	output      []string
-	logs        []map[string]interface{}
-	extFile     string
 }
 
 type KeySearch struct {
@@ -101,7 +100,8 @@ type Request struct {
 	K8sClientType string // 是 containerd，还是docker
 }
 
-func Run(req Request) (logs []map[string]interface{}, err error) {
+func Run(req Request) (data view.RespAgentSearch, err error) {
+	data.Data = make([]view.RespAgentSearchItem, 0)
 	if len(req.K8SContainer) != 0 && req.K8SContainer[0] == "" {
 		req.K8SContainer = make([]string, 0)
 	}
@@ -111,6 +111,7 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	if req.IsK8S {
 		obj := cvdocker.NewContainer()
 		req.K8sClientType = obj.ClientType
+		data.K8sClientType = obj.ClientType
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
@@ -134,7 +135,7 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	req.TruePath = filePaths
 	if len(filePaths) == 0 {
 		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("truePath", req.TruePath))
-		return nil, errors.New("file cant empty")
+		return data, errors.New("file cant empty")
 	}
 	// 多了没意义，自动变为 50，提示用户
 	if req.Limit <= 0 || req.Limit > 500 {
@@ -161,7 +162,7 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 				return
 			}
 			container.components = append(container.components, comp)
-			_, err = comp.SearchFile()
+			err = comp.SearchFile()
 			if err != nil {
 				elog.Error("agent search file error", elog.FieldErr(err))
 			}
@@ -178,12 +179,16 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 			}
 		}
 	} else {
-		logs = make([]map[string]interface{}, 0)
 		for _, comp := range container.components {
-			logs = append(logs, comp.logs...)
+			for _, value := range comp.output {
+				data.Data = append(data.Data, view.RespAgentSearchItem{
+					Line: value,
+					Ext:  map[string]interface{}{"_file": comp.file.path},
+				})
+			}
 		}
 	}
-	return logs, nil
+	return data, nil
 }
 
 func NewComponent(filename string, req Request) (*Component, error) {
@@ -193,7 +198,6 @@ func NewComponent(filename string, req Request) (*Component, error) {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
 		return nil, errors.Wrapf(err, "open file %s error", filename)
 	}
-	obj.extFile = filename
 	obj.file = file
 	obj.startTime = req.StartTime
 	obj.endTime = req.EndTime
@@ -235,10 +239,10 @@ func NewComponent(filename string, req Request) (*Component, error) {
  * searchFile 搜索文件内容
  * searchFile 2023-09-28 10:10:00 2023-09-28 10:20:00 /xxx/your_service.log`
  */
-func (c *Component) SearchFile() ([]map[string]interface{}, error) {
+func (c *Component) SearchFile() error {
 	defer c.file.ptr.Close()
 	if c.file.size == 0 {
-		return make([]map[string]interface{}, 0), errors.New("file size is 0")
+		return errors.New("file size is 0")
 	}
 	var (
 		start = int64(0)
@@ -248,24 +252,22 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	if c.startTime > 0 {
 		start, err = c.searchByStartTime()
 		if err != nil {
-			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search start time error")
+			return errors.Wrapf(err, "search start time error")
 		}
 	}
 	if c.endTime > 0 {
 		end, err = c.searchByEndTime()
 		if err != nil {
-			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search end time error")
+			return errors.Wrapf(err, "search end time error")
 		}
 	}
 	if start != -1 && start <= end {
-		_, err = c.searchByBackWord(start, end)
+		err = c.searchByBackWord(start, end)
 		if err != nil {
-			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search by back word error")
+			return errors.Wrapf(err, "search by back word error")
 		}
-		if len(c.logs) == 0 {
-			elog.Info("agent log search nothing", elog.Any("words", c.words))
-		}
-		return c.logs, err
+
+		return err
 	}
-	return nil, nil
+	return nil
 }

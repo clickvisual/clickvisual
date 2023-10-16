@@ -7,8 +7,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type Agent struct {
@@ -55,19 +53,11 @@ func (a *Agent) Search(c *core.Context) {
 	if req.KeyWord == "*" {
 		req.KeyWord = ""
 	}
-	resp := view.RespQuery{}
-	resp.Logs, err = search.Run(req)
+	resp, err := search.Run(req)
 	if err != nil {
 		elog.Error("search error", l.E(err))
 		c.JSONE(1, "search error", err)
 		return
 	}
-	resp.Limited = uint32(postReq.Limit)
-	resp.Count = uint64(len(resp.Logs))
-	resp.Keys = make([]*db2.BaseIndex, 0)
-	resp.ShowKeys = make([]string, 0)
-	resp.HiddenFields = make([]string, 0)
-	resp.DefaultFields = make([]string, 0)
-	resp.Terms = make([][]string, 0)
 	c.JSONOK(resp)
 }
