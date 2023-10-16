@@ -64,5 +64,8 @@ func (a *Agent) Search(c *core.Context) {
 		c.JSONE(1, "search error", err)
 		return
 	}
+	if len(resp.Data) > 50 {
+		resp.Data = resp.Data[:50]
+	}
 	c.JSONOK(resp)
 }
