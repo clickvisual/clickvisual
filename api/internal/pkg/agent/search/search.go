@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
@@ -26,10 +25,7 @@ func (c *Component) isSearchByStartTime(value string) bool {
 	if indexValue == -1 {
 		return false
 	}
-	curTimeParser, err := time.Parse(time.DateTime, curTime)
-	if err != nil {
-		panic(err)
-	}
+	curTimeParser := TimeParse(curTime)
 	if curTimeParser.Unix() >= c.startTime {
 		return true
 	}
@@ -41,10 +37,7 @@ func (c *Component) isSearchByEndTime(value string) bool {
 	if indexValue == -1 {
 		return false
 	}
-	curTimeParser, err := time.Parse(time.DateTime, curTime)
-	if err != nil {
-		panic(err)
-	}
+	curTimeParser := TimeParse(curTime)
 	if curTimeParser.Unix() <= c.endTime {
 		return true
 	}
@@ -180,11 +173,7 @@ func (c *Component) parseHitLog(line string) (log map[string]interface{}, err er
 	}
 	curTime, indexValue := Index(line, `"ts":"`)
 	if indexValue != -1 {
-		curTimeParser, err := time.Parse(time.DateTime, curTime)
-		if err != nil {
-			elog.Error("agent log parse timestamp error", elog.FieldErr(err))
-			panic(err)
-		}
+		curTimeParser := TimeParse(curTime)
 		ts := curTimeParser.Unix()
 		if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
 			line = getFilterK8SContainerdWrapLog(line)
