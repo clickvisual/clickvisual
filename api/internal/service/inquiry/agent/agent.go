@@ -48,8 +48,6 @@ func (a *Agent) parseHitLog(k8sClientType string, item view.RespAgentSearchItem)
 		if k8sClientType == cvdocker.ClientTypeContainerd {
 			line = utils.GetFilterK8SContainerdWrapLog(line)
 		}
-		log["ts"] = ts
-		log[db.TimeFieldNanoseconds] = curTimeParser.Nanosecond()
 		log[db.TimeFieldSecond] = ts
 		log["_raw_log_"] = line
 		for k, v := range item.Ext {
