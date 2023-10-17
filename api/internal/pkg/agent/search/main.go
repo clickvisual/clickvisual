@@ -36,7 +36,7 @@ type Component struct {
 
 type KeySearch struct {
 	Key   string
-	Value string
+	Value interface{}
 	Type  string
 }
 
@@ -231,30 +231,14 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	obj.startTime = req.StartTime
 	obj.endTime = req.EndTime
 	obj.request = req
-	words := make([]KeySearch, 0)
-
-	arrs := strings.Split(req.KeyWord, "and")
-	for _, value := range arrs {
-		if strings.Contains(value, "=") {
-			info := strings.Split(value, "=")
-			v := strings.Trim(info[1], " ")
-			v = strings.ReplaceAll(v, `"`, "")
-			v = strings.ReplaceAll(v, `'`, "")
-			word := KeySearch{
-				Key:   strings.Trim(info[0], " "),
-				Value: v,
-			}
-			words = append(words, word)
-		}
-	}
-	obj.words = words
+	obj.words = Keyword2Array(req.KeyWord, true)
 	filterString := make([]string, 0)
-	for _, value := range words {
+	for _, value := range obj.words {
 		var info string
-		if value.Type == "int" {
-			info = `"` + value.Key + `":` + value.Value
+		if value.Type == typeInt {
+			info = fmt.Sprintf(`"%s":%d`, value.Key, value.Value.(int))
 		} else {
-			info = `"` + value.Key + `":"` + value.Value + `"`
+			info = fmt.Sprintf(`"%s":"%s"`, value.Key, value.Value.(string))
 		}
 		filterString = append(filterString, info)
 	}

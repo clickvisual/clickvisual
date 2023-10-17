@@ -49,11 +49,18 @@ func (a *Agent) Search(c *core.Context) {
 	if postReq.IsK8s == 1 {
 		req.IsK8S = true
 	}
-	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
-		req.KeyWord = postReq.KeyWord
-	}
 	if len(postReq.Container) > 0 {
 		req.K8SContainer = postReq.Container
+	}
+	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
+		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
+			if t.Key == search.InnerKeyContainer {
+				req.K8SContainer = append(req.K8SContainer, t.Value.(string))
+			} else {
+				req.KeyWord = postReq.KeyWord
+			}
+		}
+		req.KeyWord = postReq.KeyWord
 	}
 	if postReq.Dir != "" {
 		req.Dir = postReq.Dir
