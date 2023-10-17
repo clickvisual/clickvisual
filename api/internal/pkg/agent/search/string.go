@@ -48,3 +48,13 @@ func Keyword2Array(keyword string, isSkip bool) []KeySearch {
 	}
 	return words
 }
+
+func TrimKeyWord(keyWord string) string {
+	if keyWord == "" {
+		return ""
+	}
+	keyWord = strings.ReplaceAll(keyWord, "'", "")
+	keyWord = strings.ReplaceAll(keyWord, "\"", "")
+	keyWord = strings.ReplaceAll(keyWord, "`", "")
+	return keyWord
+}

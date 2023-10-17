@@ -1,8 +1,6 @@
 package agent
 
 import (
-	"strings"
-
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
 
@@ -56,11 +54,8 @@ func (a *Agent) Search(c *core.Context) {
 	}
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
 		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
-			if t.Key == search.InnerKeyContainer {
-				tmp := t.Value.(string)
-				tmp = strings.ReplaceAll(tmp, `"`, "")
-				tmp = strings.ReplaceAll(tmp, `'`, "")
-				req.K8SContainer = append(req.K8SContainer, tmp)
+			if search.TrimKeyWord(t.Key) == search.InnerKeyContainer {
+				req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
 			} else {
 				req.KeyWord = postReq.KeyWord
 			}
