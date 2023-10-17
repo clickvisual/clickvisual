@@ -6,6 +6,9 @@ import (
 )
 
 func Keyword2Array(keyword string, isSkip bool) []KeySearch {
+	if keyword == "" {
+		return make([]KeySearch, 0)
+	}
 	words := make([]KeySearch, 0)
 	arrs := strings.Split(keyword, "and")
 	for _, value := range arrs {

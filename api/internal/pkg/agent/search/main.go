@@ -202,15 +202,18 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 				if value == "" {
 					continue
 				}
+				ext := map[string]interface{}{
+					"_file": comp.file.path,
+				}
+				if comp.k8sInfo != nil {
+					ext["_namespace"] = comp.k8sInfo.Namespace
+					ext["_container"] = comp.k8sInfo.Container
+					ext["_pod"] = comp.k8sInfo.Pod
+					ext["_image"] = comp.k8sInfo.Image
+				}
 				data.Data = append(data.Data, view.RespAgentSearchItem{
 					Line: value,
-					Ext: map[string]interface{}{
-						"_file":      comp.file.path,
-						"_namespace": comp.k8sInfo.Namespace,
-						"_container": comp.k8sInfo.Container,
-						"_pod":       comp.k8sInfo.Pod,
-						"_image":     comp.k8sInfo.Image,
-					},
+					Ext:  ext,
 				})
 			}
 		}
