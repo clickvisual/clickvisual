@@ -240,8 +240,13 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		var info string
 		if value.Type == typeInt {
 			info = fmt.Sprintf(`"%s":%d`, value.Key, value.Value.(int))
-		} else {
-			info = fmt.Sprintf(`"%s":"%s"`, value.Key, value.Value.(string))
+		} else if value.Type == typeString {
+			if value.Key == "" {
+				// 模糊匹配内容
+				info = value.Value.(string)
+			} else {
+				info = fmt.Sprintf(`"%s":"%s"`, value.Key, value.Value.(string))
+			}
 		}
 		filterString = append(filterString, info)
 	}

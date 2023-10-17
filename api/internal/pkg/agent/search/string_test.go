@@ -37,8 +37,8 @@ func TestKeyword2Array(t *testing.T) {
 					Type:  typeInt,
 				},
 				{
-					Key:   "xyz",
-					Value: "",
+					Key:   "",
+					Value: "xyz",
 					Type:  typeString,
 				},
 			},
@@ -46,7 +46,7 @@ func TestKeyword2Array(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Keyword2Array(tt.args.keyword); !reflect.DeepEqual(got, tt.want) {
+			if got := Keyword2Array(tt.args.keyword, false); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Keyword2Array() = %v, want %v", got, tt.want)
 			}
 		})
