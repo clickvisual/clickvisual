@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
@@ -185,9 +184,6 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (error error) {
 				if c.request.IsCommand {
 					for _, value := range c.filterWords {
 						str = c.bash.ColorWord(value, str)
-					}
-					if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
-						str = utils.GetFilterK8SContainerdWrapLog(str)
 					}
 				}
 				c.output = append(c.output, str)
