@@ -38,10 +38,10 @@ func searchLogs(query view.ReqQuery) []map[string]interface{} {
 		panic(err)
 	}
 
-	// for _, log := range resp.Logs {
-	// 	fmt.Println(log)
-	// }
-	//
+	for _, log := range resp.Logs {
+		fmt.Println(log)
+	}
+
 	fmt.Println("count: ", len(resp.Logs))
 	return resp.Logs
 }
@@ -56,15 +56,15 @@ func searchCharts(query view.ReqQuery) []*view.HighChart {
 
 	times := (query.ET - query.ST) / query.Interval
 	var total uint64 = 0
-	for i, chart := range charts {
-		fmt.Printf("=========== %d ============= \n", i)
-		fmt.Println("count: ", chart.Count)
-		fmt.Println("from: ", chart.From)
-		fmt.Println("to: ", chart.To)
-		fmt.Printf("=========== %d ============= \n", i)
+	for _, chart := range charts {
+		// fmt.Printf("=========== %d ============= \n", i)
+		// fmt.Println("count: ", chart.Count)
+		// fmt.Println("from: ", chart.From)
+		// fmt.Println("to: ", chart.To)
+		// fmt.Printf("=========== %d ============= \n", i)
 		total += chart.Count
 	}
-
+	//
 	fmt.Printf("res.len: %d, interval: %d times: %d, total: %d\n", len(charts), query.Interval, times, total)
 	return charts
 }
@@ -93,16 +93,7 @@ func TestAgentCharts(t *testing.T) {
 }
 
 var (
-	n          = 10
 	comp_words = []string{
-		"Invalid input",
-		"Unauthorized access",
-		"File not found",
-		"Database connection error",
-		"Permission denied",
-		"Duplicate entry",
-		"Invalid credentials",
-		"Internal server error",
 		"Timeout exceeded",
 		"Unexpected error occurred",
 	}
@@ -110,72 +101,20 @@ var (
 	etc_words = []string{
 		"server.port:8080",
 		"db.host:localhost",
-		"db.port:3306",
-		"db.username:root",
-		"db.password:secret",
-		"logging.level:info",
-		"cache.enabled:true",
-		"cache.maxSize:1000",
-		"api.key:your-api-key",
-		"timeout.seconds:30",
 	}
 
 	log_level = []string{
 		"info",
 		"error",
-		"warn",
-		"debug",
 	}
 
 	addrs = []string{
 		"[Kafka:9092]",
 		"[Elasticsearch:9093]",
-		"[Mongodb:9094]",
-		"[Mysql:9095]",
-		"[PostgreSQL:9096]",
-		"[Redis:9097]",
-		"[ClickHouse:9098]",
-		"[Nacos:9099]",
-		"[Consul:9099]",
-		"[Apollo:9099]",
 	}
 
 	log_template = `{"tss":%d,"lv":"%s","comp":"%s","etc":"%s","addr":"%s","ts":"%s"}`
 )
-
-func TestRandomLogsSearch(t *testing.T) {
-	writer, err := os.OpenFile("./ego2.sys", os.O_RDWR|os.O_CREATE, 0666)
-	if err != nil {
-		panic(err)
-	}
-
-	now := time.Now().Unix()
-	record := now - 60*60*24*365*5
-	lines := 100_0000
-	for i := 0; i < lines; i++ {
-		record = record + int64(rand.Intn(5))
-		writer.WriteString(fmt.Sprintf(log_template+"\n", log_level[rand.Intn(4)], comp_words[rand.Intn(n)], etc_words[rand.Intn(n)], addrs[rand.Intn(n)], time.UnixMilli(record*1000).Format("2006-01-02 15:04:05")))
-	}
-
-	logs := view.ReqQuery{
-		ST:       now - 60*60*24*365*5,
-		ET:       now,
-		Path:     "./ego2.sys",
-		Query:    "lv=info",
-		PageSize: 400,
-	}
-	t.Run("searchLogs", func(t *testing.T) {
-		fmt.Println("### searchLogs ###")
-		searchLogs(logs)
-	})
-
-	charts := logs
-	t.Run("searchCharts", func(t *testing.T) {
-		fmt.Println("### searchCharts  ###")
-		searchCharts(charts)
-	})
-	err = os.Remove("./ego2.sys")
-}
 
 /*
 | 数据量  | 包含 Query  | charts 命中条数  | Logs 命中条数(MAX = 500)  | 分布程度(目标日志与非目标日志)      | Logs  | Charts |
@@ -185,45 +124,274 @@ func TestRandomLogsSearch(t *testing.T) {
 | 100w   | 否         | 100w            | 500                      | 全部                           | 0.00s | 3.56s  |
 | 100w   | 是         | 50w             | 500                      | 均匀分布                       | 0.01s | 2.03s  |
 */
+
+type Category struct {
+	count int
+	addrs int
+	etc   int
+	comp  int
+	lv    int
+	now   int
+}
+
+type CasesFile struct {
+	path          string
+	st            int64
+	et            int64
+	logCategories []Category
+	count         int64
+}
+
 func TestPrecisionLogData(t *testing.T) {
-	writer, err := os.OpenFile("./ego2.sys", os.O_RDWR|os.O_CREATE, 0666)
+	file := files[5]
+	logc := file.logCategories[0]
+	logs := view.ReqQuery{
+		ST:   file.st,
+		ET:   file.et,
+		Path: file.path,
+		// Dir: "./logs",
+		Query:    fmt.Sprintf("lv=%s and comp=%s and etc=%s", log_level[logc.lv], comp_words[logc.comp], etc_words[logc.etc]),
+		PageSize: 499,
+	}
+
+	// t.Run("searchLogs", func(t *testing.T) {
+	// 	searchLogs(logs)
+	// })
+
+	charts := logs
+	t.Run("searchCharts", func(t *testing.T) {
+		searchCharts(charts)
+	})
+}
+
+var (
+	files = []CasesFile{
+		CasesFile{
+			count: 50,
+			path:  "./logs/50.sys",
+			st:    1697356864,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 25,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 25,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+		{
+			count: 1000,
+			path:  "./logs/1000.sys",
+			st:    1697353324,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 500,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 500,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+		{
+			count: 100000,
+			path:  "./10w.sys",
+			st:    1696060924,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 50000,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 50000,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+		{
+			count: 500000,
+			path:  "./logs/50w.sys",
+			st:    1634284924,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 250000,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 250000,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+		{
+			count: 1000000,
+			path:  "./logs/100w.sys",
+			st:    1571212924,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 500000,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 500000,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+		{
+			count: 3580000,
+			path:  "./logs/358w.sys",
+			st:    1634184924,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 1280000,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 1280000,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+		{
+			count: 5000000,
+			path:  "./logs/500w.sys",
+			st:    1508140924,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 2500000,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 2500000,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+		{
+			count: 10000000,
+			path:  "./logs/1000w.sys",
+			st:    1381996924,
+			et:    1697356924,
+			logCategories: []Category{
+				{
+					count: 1000000,
+					addrs: 0,
+					etc:   0,
+					comp:  0,
+					lv:    0,
+				},
+				{
+					count: 1000000,
+					addrs: 1,
+					etc:   1,
+					comp:  1,
+					lv:    1,
+				},
+			},
+		},
+	}
+)
+
+func TestGenerateTestFile(t *testing.T) {
+	writer, err := os.OpenFile("./358w.sys", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
 
-	type Category struct {
-		count int
-		addrs int
-		etc   int
-		comp  int
-		lv    int
-		now   int
-	}
+	lines := files[5].count
 
-	lines := 100
+	// 用例编号
+	// casen := 5
+	//
+	// cases := []int64{
+	// 	60,
+	// 	60 * 60,
+	// 	60 * 60 * 24 * 15,
+	// 	60 * 60 * 24 * 365 * 2,
+	// 	60 * 60 * 24 * 365 * 4,
+	// 	60 * 60 * 24 * 365 * 6,
+	// 	60 * 60 * 24 * 365 * 10,
+	// 	60 * 60 * 24 * 365 * 20,
+	// }
+
+	now := int64(1697356924)
+	interval := (files[5].et - files[5].st) / lines
+	st := now - (files[5].et - files[5].st)
+
 	cs := []Category{
 		Category{
-			count: lines / 2,
-			addrs: 2,
-			etc:   5,
-			comp:  7,
-			lv:    3,
+			count: int(lines / 2),
+			addrs: 0,
+			etc:   0,
+			comp:  0,
+			lv:    0,
 		},
 
 		Category{
-			count: lines / 2,
-			addrs: 5,
-			etc:   2,
-			comp:  9,
+			count: int(lines / 2),
+			addrs: 1,
+			etc:   1,
+			comp:  1,
 			lv:    1,
 		},
 	}
 
-	now := time.Now().Unix()
-	st := now - int64(60*60)
+	fmt.Printf("now: %d, st: %d\n", now, st)
 	record := st
-
-	for i := 0; i < lines; i++ {
+	for i := 0; i < int(lines); i++ {
 		pos := i % 2
 		c := cs[pos]
 		if c.now >= c.count {
@@ -232,31 +400,12 @@ func TestPrecisionLogData(t *testing.T) {
 		}
 		cs[pos].now += 1
 		logLevel, addr, comp, etc := c.lv, c.addrs, c.comp, c.etc
-		record += 36
+		record += rand.Int63n(interval)
 		writer.WriteString(fmt.Sprintf(log_template+"\n", record, log_level[logLevel], comp_words[comp], etc_words[etc], addrs[addr], time.Unix(record, 0).Format("2006-01-02 15:04:05")))
 	}
-	fmt.Printf("c[0].count : %d, c[1].count : %d\n", cs[0].now, cs[1].now)
-
-	logs := view.ReqQuery{
-		ST:       st,
-		ET:       now - int64(60*30),
-		Path:     "./ego2.sys",
-		Query:    fmt.Sprintf("lv=%s and comp=%s and etc=%s", log_level[cs[0].lv], comp_words[cs[0].comp], etc_words[cs[0].etc]),
-		PageSize: 499,
-	}
-
-	t.Run("searchLogs", func(t *testing.T) {
-		searchLogs(logs)
-	})
-
-	charts := logs
-	t.Run("searchCharts", func(t *testing.T) {
-		searchCharts(charts)
-	})
-	// err = os.Remove("./ego2.sys")
 }
 
 func TestMap(t *testing.T) {
-	var mp = make(map[string]int)
-	fmt.Println(mp["123"])
+	var mp map[int64]int64
+	fmt.Println(mp[1])
 }

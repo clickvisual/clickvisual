@@ -31,6 +31,12 @@ type SearchRequest struct {
 	Dir       string   `json:"dir" form:"dir"`             // 文件夹路径
 }
 
+type ChartsSearchRequest struct {
+	SearchRequest
+	IsChartRequest bool  `json:"isChartRequest" form:"isChartRequest"`
+	Interval       int64 `json:"interval" form:"interval"`
+}
+
 func (a *Agent) Search(c *core.Context) {
 	postReq := &SearchRequest{}
 	err := c.Bind(postReq)
@@ -73,6 +79,58 @@ func (a *Agent) Search(c *core.Context) {
 	}
 	if len(resp.Data) > 50 {
 		resp.Data = resp.Data[:50]
+	}
+	c.JSONOK(resp)
+}
+
+func (a *Agent) Charts(c *core.Context) {
+	postReq := &ChartsSearchRequest{}
+	err := c.Bind(postReq)
+	if err != nil {
+		c.JSONE(1, "can not bind request", err)
+		return
+	}
+	req := search.Request{
+		StartTime: postReq.StartTime,
+		EndTime:   postReq.EndTime,
+		Limit:     postReq.Limit,
+	}
+	if postReq.Date != "" {
+		req.Date = postReq.Date
+	}
+	if postReq.IsK8s == 1 {
+		req.IsK8S = true
+	}
+	if len(postReq.Container) > 0 {
+		req.K8SContainer = postReq.Container
+	}
+
+	if postReq.Interval < 0 || !postReq.IsChartRequest {
+		c.JSONE(1, "only support request for charts, please check params...", nil)
+		return
+	}
+
+	req.Interval = postReq.Interval
+	req.IsChartRequest = postReq.IsChartRequest
+
+	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
+		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
+			if search.TrimKeyWord(t.Key) == search.InnerKeyContainer {
+				req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
+			} else {
+				req.KeyWord = postReq.KeyWord
+			}
+		}
+		req.KeyWord = postReq.KeyWord
+	}
+	if postReq.Dir != "" {
+		req.Dir = postReq.Dir
+	}
+	resp, err := search.RunCharts(req)
+	if err != nil {
+		elog.Error("search error", l.E(err))
+		c.JSONE(1, "search error", err)
+		return
 	}
 	c.JSONOK(resp)
 }

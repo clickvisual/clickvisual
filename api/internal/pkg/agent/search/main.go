@@ -2,6 +2,8 @@ package search
 
 import (
 	"fmt"
+	"math"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -16,22 +18,59 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
+const (
+	KB = 1024
+	MB = 1024 * KB
+	GB = 1024 * MB
+
+	PARTITION_MAX_SIZE = 4 * MB
+	PARTITION_MAX_NUM  = 10
+)
+
 type Container struct {
 	components []*Component
 }
 
 // Component 每个执行指令地方
 type Component struct {
-	request     Request
-	file        *File
-	startTime   int64
-	endTime     int64
-	words       []KeySearch
-	filterWords []string // 变成匹配的语句
-	bash        *Bash
-	limit       int64
-	output      []string
-	k8sInfo     *manager.K8SInfo
+	request       Request
+	file          *File
+	startTime     int64
+	endTime       int64
+	words         []KeySearch
+	filterWords   []string // 变成匹配的语句
+	bash          *Bash
+	limit         int64
+	output        []string
+	k8sInfo       *manager.K8SInfo
+	interval      int64 // 请求 charts 时，划分的标准时间间隔
+	times         int64 // 请求 charts 时，startTime - endTime 能被 interval 划分的段数
+	charts        map[int64]int64
+	mu            sync.Mutex
+	partitionSize int64 // 每次缓冲区初始化为多大
+	partitionNum  int   // 开启多少个协程任务
+}
+
+func (c *Component) IsChartRequest() bool {
+	return c.interval > 0
+}
+
+func (c *Component) preparePartition(from, to int64) {
+	size := to - from + 1
+	switch {
+	case size <= 50*MB:
+		c.partitionNum = 1
+		c.partitionSize = 3 * MB
+	case size <= GB:
+		c.partitionNum = 2
+		c.partitionSize = 5 * MB
+	case size <= 2*GB:
+		c.partitionNum = 3
+		c.partitionSize = 3 * MB
+	default:
+		c.partitionNum = 3
+		c.partitionSize = PARTITION_MAX_SIZE
+	}
 }
 
 type KeySearch struct {
@@ -89,22 +128,24 @@ func (c CmdRequest) ToRequest() Request {
 }
 
 type Request struct {
-	StartTime     int64
-	EndTime       int64
-	Date          string // last 30min,6h,1d,7d
-	Path          string // 文件路径
-	Dir           string // 文件夹路径
-	TruePath      []dto.AgentSearchTargetInfo
-	KeyWord       string // 搜索的关键词
-	Limit         int64  // 最少多少条数据
-	IsCommand     bool   // 是否是命令行 默认不是
-	IsK8S         bool
-	K8SContainer  []string
-	K8sClientType string // 是 containerd，还是docker
+	StartTime      int64
+	EndTime        int64
+	Date           string // last 30min,6h,1d,7d
+	Path           string // 文件路径
+	Dir            string // 文件夹路径
+	TruePath       []dto.AgentSearchTargetInfo
+	KeyWord        string // 搜索的关键词
+	Limit          int64  // 最少多少条数据
+	IsCommand      bool   // 是否是命令行 默认不是
+	IsK8S          bool
+	K8SContainer   []string
+	K8sClientType  string // 是 containerd，还是docker
+	IsChartRequest bool   // 是否为请求 Charts
+	Interval       int64  // 请求 charts 时，划分的标准时间间隔
+	Debug          bool
 }
 
-func Run(req Request) (data view.RespAgentSearch, err error) {
-	data.Data = make([]view.RespAgentSearchItem, 0)
+func (req *Request) prepare() {
 	if len(req.K8SContainer) != 0 && req.K8SContainer[0] == "" {
 		req.K8SContainer = make([]string, 0)
 	}
@@ -114,7 +155,6 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	if req.IsK8S {
 		obj := cvdocker.NewContainer()
 		req.K8sClientType = obj.ClientType
-		data.K8sClientType = obj.ClientType
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
@@ -153,6 +193,15 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		}
 	}
 	req.TruePath = filePaths
+}
+
+func Run(req Request) (data view.RespAgentSearch, err error) {
+	data.Data = make([]view.RespAgentSearchItem, 0)
+
+	req.prepare()
+	data.K8sClientType = req.K8sClientType
+	filePaths := req.TruePath
+
 	if len(filePaths) == 0 {
 		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("K8SContainer", req.K8SContainer), l.A("truePath", req.TruePath))
 		return data, nil
@@ -222,10 +271,16 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	obj := &Component{
 		k8sInfo: targetInfo.K8sInfo,
 	}
+
 	file, err := OpenFile(targetInfo.FilePath)
 	if err != nil {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", targetInfo.FilePath))
 		return nil, errors.Wrapf(err, "open file %s error", targetInfo.FilePath)
+	}
+	if req.IsChartRequest {
+		obj.interval = req.Interval
+		obj.times = (req.EndTime - req.StartTime) / req.Interval
+		obj.charts = make(map[int64]int64)
 	}
 	obj.file = file
 	obj.startTime = req.StartTime
@@ -247,6 +302,11 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		}
 		filterString = append(filterString, info)
 	}
+
+	sort.Slice(filterString, func(i, j int) bool {
+		return len(filterString[i]) < len(filterString[j])
+	})
+
 	obj.filterWords = filterString
 	obj.bash = NewBash()
 	obj.limit = req.Limit
@@ -280,7 +340,16 @@ func (c *Component) SearchFile() error {
 		}
 	}
 	if start != -1 && start <= end {
-		err = c.searchByBackWord(start, end)
+		c.preparePartition(start, end)
+		if c.IsChartRequest() {
+			err = c.searchCharts(start, end)
+		} else {
+			// read based on buffer
+			err = c.getLogs(start, end)
+
+			// read based on scanner
+			// err = c.searchByBackWord(start, end)
+		}
 		if err != nil {
 			return errors.Wrapf(err, "search by back word error")
 		}
@@ -288,4 +357,98 @@ func (c *Component) SearchFile() error {
 		return err
 	}
 	return nil
+}
+
+func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
+	req.prepare()
+	filePaths := req.TruePath
+
+	elog.Info("agent log search start", elog.Any("req", req))
+	container := &Container{}
+	sw := sync.WaitGroup{}
+	// 文件添加并发查找
+	sw.Add(len(filePaths))
+	for _, pathName := range filePaths {
+		value := pathName
+		go func() {
+			comp, err := NewComponent(value, req)
+			// fmt.Println("file size: ", comp.file.size)
+			if err != nil {
+				elog.Error("agent new component error", elog.FieldErr(err))
+				sw.Done()
+				return
+			}
+			if req.KeyWord != "" && len(comp.words) == 0 {
+				elog.Error("-k format is error", elog.FieldErr(err))
+				sw.Done()
+				return
+			}
+			container.components = append(container.components, comp)
+			err = comp.SearchFile()
+			if err != nil {
+				elog.Error("agent search file error", elog.FieldErr(err))
+			}
+			sw.Done()
+		}()
+	}
+	sw.Wait()
+
+	charts := make(map[int64]int64)
+	minTimes, maxTimes := int64(math.MaxInt64), int64(math.MinInt64)
+	for _, comp := range container.components {
+		for k, v := range comp.charts {
+			if _, ok := charts[k]; ok {
+				charts[k] += v
+			} else {
+				charts[k] = v
+			}
+
+			if k <= minTimes {
+				minTimes = k
+			}
+
+			if k > maxTimes {
+				maxTimes = k
+			}
+		}
+	}
+
+	data := make([]view.HighChart, 0)
+
+	// fmt.Println("minTimes: ", minTimes, " maxTimes: ", maxTimes)
+	for i := minTimes; i <= maxTimes; i++ {
+		end := req.StartTime + (i+1)*req.Interval
+		if end > req.EndTime {
+			end = req.EndTime
+		}
+
+		data = append(data, view.HighChart{
+			Count: uint64(charts[i]),
+			From:  req.StartTime + i*req.Interval,
+			To:    end,
+		})
+	}
+	resp.Data = data
+	resp.MinOffset = minTimes
+	resp.MaxOffset = maxTimes
+	resp.K8sClientType = req.K8sClientType
+	return resp, nil
+}
+
+func ChartsIntervalConvert(interval int64) (standard int64) {
+	switch {
+	case interval <= 60*5:
+		standard = 1
+	case interval <= 60*30:
+		standard = 60
+	case interval <= 60*60*4:
+		standard = 600
+	case interval <= 60*60*24:
+		standard = 3600
+	case interval <= 60*60*24*7:
+		standard = 21600
+	default:
+		standard = 86400
+	}
+	return
 }

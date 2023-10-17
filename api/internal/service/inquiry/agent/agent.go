@@ -14,6 +14,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
@@ -121,8 +122,83 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 }
 
 func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
-	// TODO implement me
-	return make([]*view.HighChart, 0), "", nil
+	resp := make([]*view.HighChart, 0)
+	chartsMap := make(map[int64]*view.HighChart)
+	minOffset, maxOffset := int64(-1), int64(-1)
+	interval := int64(0)
+	for _, agent := range a.agents {
+		if !strings.HasPrefix(agent, "http://") {
+			agent = "http://" + agent
+		}
+		data := map[string]string{
+			"startTime": fmt.Sprintf("%d", query.ST),
+			"endTime":   fmt.Sprintf("%d", query.ET),
+		}
+		if len(query.K8SContainer) != 0 {
+			data["container"] = fmt.Sprintf(strings.Join(query.K8SContainer, ","))
+			data["isK8s"] = "1"
+		}
+		if query.Query != "" && query.Query != "*" {
+			data["keyWord"] = query.Query
+		}
+		if query.Dir != "" {
+			data["dir"] = query.Dir
+		} else {
+			data["isK8s"] = "1"
+		}
+
+		_, interval = a.CalculateInterval(query.ET-query.ST, "")
+		data["interval"] = string(interval)
+		data["isChartRequest"] = "1"
+
+		searchResp, err := a.httpClient.R().EnableTrace().SetQueryParams(data).Get(agent + "/api/v1/charts")
+		if err != nil {
+		}
+		var res struct {
+			Code int                        `json:"code"`
+			Msg  string                     `json:"msg"`
+			Data view.RespAgentChartsSearch `json:"data"`
+		}
+		err = json.Unmarshal(searchResp.Body(), &res)
+		if err != nil {
+			return nil, "", errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
+		}
+		if minOffset == -1 || res.Data.MinOffset < minOffset {
+			minOffset = res.Data.MinOffset
+		}
+
+		if maxOffset == -1 || res.Data.MaxOffset > maxOffset {
+			maxOffset = res.Data.MinOffset
+		}
+
+		length := len(res.Data.Data)
+		// 返回数据处理
+		for i := 0; i < length; i++ {
+			d := &res.Data.Data[i]
+			if _, ok := chartsMap[d.From]; ok {
+				chartsMap[d.From].Count += d.Count
+			} else {
+				chartsMap[d.From] = d
+			}
+		}
+	}
+
+	for i := minOffset; i <= maxOffset; i++ {
+		var chart *view.HighChart
+		start := query.ST + i*interval
+		end := query.ST + (i+1)*interval
+		if v, ok := chartsMap[query.ST+minOffset*interval]; ok {
+			chart = v
+		} else {
+			chart = &view.HighChart{
+				From:  start,
+				To:    end,
+				Count: uint64(0),
+			}
+		}
+		resp = append(resp, chart)
+	}
+	return resp, "", nil
 }
 
 func (a *Agent) Count(query view.ReqQuery) (uint64, error) {
@@ -288,9 +364,9 @@ func (a *Agent) DeleteTraceJaegerDependencies(database, cluster, table string) (
 	panic("implement me")
 }
 
-func (a *Agent) CalculateInterval(interval int64, timeField string) (string, int64) {
-	// TODO implement me
-	return "", 0
+func (a *Agent) CalculateInterval(interval int64, timeField string) (sql string, standard int64) {
+	standard = search.ChartsIntervalConvert(interval)
+	return
 }
 
 func NewFactoryAgent(dsn string) (*Agent, error) {
