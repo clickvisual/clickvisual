@@ -131,6 +131,8 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 							K8sInfo:  value.K8SInfo,
 							FilePath: value.LogPath,
 						})
+					} else {
+						elog.Info("agentRun", l.S("step", "withContainer"), l.A("container", value.K8SInfo.Container))
 					}
 				}
 			}
@@ -153,7 +155,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	req.TruePath = filePaths
 	if len(filePaths) == 0 {
 		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("K8SContainer", req.K8SContainer), l.A("truePath", req.TruePath))
-		return data, errors.New("file cant empty")
+		return data, nil
 	}
 	// 多了没意义，自动变为 50，提示用户
 	if req.Limit <= 0 || req.Limit > 500 {
