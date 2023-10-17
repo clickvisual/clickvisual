@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,8 +13,16 @@ func TimeParse(value string) time.Time {
 	if err != nil {
 		curTimeParser, err = time.Parse(time.RFC3339, value)
 		if err != nil {
-			elog.Error("agent log parse timestamp error", elog.FieldErr(err))
-			panic(err)
+			// 可能为 1693573909,
+			// 移除 ,
+			value = strings.TrimSuffix(value, ",")
+			// 将时间戳转换为 time 类型
+			timestamp, _ := strconv.Atoi(value)
+			if timestamp <= 0 {
+				elog.Error("agent log parse timestamp error", elog.FieldErr(err))
+				panic(err)
+			}
+			curTimeParser = time.Unix(int64(timestamp), 0)
 		}
 	}
 	return curTimeParser
@@ -34,11 +43,11 @@ func GetFilterK8SContainerdWrapLog(s string) string {
 	return s
 }
 
-var indexFields = []string{"ts", "time"}
+var indexFields = []string{`"ts":`, `"ts":"`, `"time":"`}
 
 func IndexParse(line string) (string, int) {
 	for _, field := range indexFields {
-		res, index := Index(line, `"`+field+`":"`)
+		res, index := Index(line, field)
 		if index != -1 {
 			return res, index
 		}
