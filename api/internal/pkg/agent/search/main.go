@@ -176,11 +176,6 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 				sw.Done()
 				return
 			}
-			if req.KeyWord != "" && len(comp.words) == 0 {
-				elog.Error("-k format is error", elog.FieldErr(err))
-				sw.Done()
-				return
-			}
 			container.components = append(container.components, comp)
 			err = comp.SearchFile()
 			if err != nil {
