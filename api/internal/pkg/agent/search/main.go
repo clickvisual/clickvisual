@@ -6,10 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type Container struct {
@@ -27,7 +29,6 @@ type Component struct {
 	bash        *Bash
 	limit       int64
 	output      []string
-	logs        []map[string]interface{}
 }
 
 type KeySearch struct {
@@ -99,20 +100,27 @@ type Request struct {
 	K8sClientType string // 是 containerd，还是docker
 }
 
-func Run(req Request) (logs []map[string]interface{}, err error) {
+func Run(req Request) (data view.RespAgentSearch, err error) {
+	data.Data = make([]view.RespAgentSearchItem, 0)
+	if len(req.K8SContainer) != 0 && req.K8SContainer[0] == "" {
+		req.K8SContainer = make([]string, 0)
+	}
 	var filePaths []string
+	elog.Info("agentRun", l.A("req", req))
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
-	// todo 需要做优化，不用重复new
 	if req.IsK8S {
 		obj := cvdocker.NewContainer()
 		req.K8sClientType = obj.ClientType
+		data.K8sClientType = obj.ClientType
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
+				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.LogPath))
 				filePaths = append(filePaths, value.LogPath)
 			} else {
 				for _, v := range req.K8SContainer {
 					if value.K8SInfo.Container == v {
+						elog.Info("agentRun", l.S("step", "withContainer"), l.A("logPath", value.LogPath))
 						filePaths = append(filePaths, value.LogPath)
 					}
 				}
@@ -128,7 +136,8 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	}
 	req.TruePath = filePaths
 	if len(filePaths) == 0 {
-		panic("file cant empty")
+		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("K8SContainer", req.K8SContainer), l.A("truePath", req.TruePath))
+		return data, errors.New("file cant empty")
 	}
 	// 多了没意义，自动变为 50，提示用户
 	if req.Limit <= 0 || req.Limit > 500 {
@@ -137,32 +146,32 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 	}
 	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
-	l := sync.WaitGroup{}
+	sw := sync.WaitGroup{}
 	// 文件添加并发查找
-	l.Add(len(filePaths))
+	sw.Add(len(filePaths))
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
-				l.Done()
+				sw.Done()
 				return
 			}
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
-				l.Done()
+				sw.Done()
 				return
 			}
 			container.components = append(container.components, comp)
-			_, err = comp.SearchFile()
+			err = comp.SearchFile()
 			if err != nil {
 				elog.Error("agent search file error", elog.FieldErr(err))
 			}
-			l.Done()
+			sw.Done()
 		}()
 	}
-	l.Wait()
+	sw.Wait()
 
 	if req.IsCommand {
 		for _, comp := range container.components {
@@ -172,12 +181,16 @@ func Run(req Request) (logs []map[string]interface{}, err error) {
 			}
 		}
 	} else {
-		logs = make([]map[string]interface{}, 0)
 		for _, comp := range container.components {
-			logs = append(logs, comp.logs...)
+			for _, value := range comp.output {
+				data.Data = append(data.Data, view.RespAgentSearchItem{
+					Line: value,
+					Ext:  map[string]interface{}{"_file": comp.file.path},
+				})
+			}
 		}
 	}
-	return logs, nil
+	return data, nil
 }
 
 func NewComponent(filename string, req Request) (*Component, error) {
@@ -187,7 +200,6 @@ func NewComponent(filename string, req Request) (*Component, error) {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
 		return nil, errors.Wrapf(err, "open file %s error", filename)
 	}
-
 	obj.file = file
 	obj.startTime = req.StartTime
 	obj.endTime = req.EndTime
@@ -229,10 +241,10 @@ func NewComponent(filename string, req Request) (*Component, error) {
  * searchFile 搜索文件内容
  * searchFile 2023-09-28 10:10:00 2023-09-28 10:20:00 /xxx/your_service.log`
  */
-func (c *Component) SearchFile() ([]map[string]interface{}, error) {
+func (c *Component) SearchFile() error {
 	defer c.file.ptr.Close()
 	if c.file.size == 0 {
-		return make([]map[string]interface{}, 0), errors.New("file size is 0")
+		return errors.New("file size is 0")
 	}
 	var (
 		start = int64(0)
@@ -242,24 +254,22 @@ func (c *Component) SearchFile() ([]map[string]interface{}, error) {
 	if c.startTime > 0 {
 		start, err = c.searchByStartTime()
 		if err != nil {
-			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search start time error")
+			return errors.Wrapf(err, "search start time error")
 		}
 	}
 	if c.endTime > 0 {
 		end, err = c.searchByEndTime()
 		if err != nil {
-			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search end time error")
+			return errors.Wrapf(err, "search end time error")
 		}
 	}
 	if start != -1 && start <= end {
-		_, err = c.searchByBackWord(start, end)
+		err = c.searchByBackWord(start, end)
 		if err != nil {
-			return make([]map[string]interface{}, 0), errors.Wrapf(err, "search by back word error")
+			return errors.Wrapf(err, "search by back word error")
 		}
-		if len(c.logs) == 0 {
-			elog.Info("agent log search nothing", elog.Any("words", c.words))
-		}
-		return c.logs, err
+
+		return err
 	}
-	return nil, nil
+	return nil
 }

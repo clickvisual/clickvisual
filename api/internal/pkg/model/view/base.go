@@ -67,7 +67,8 @@ type (
 		GroupByCond   string   `form:"groupByCond"`
 		IsQueryCount  int      `form:"isQueryCount"` // 是否请求日志总数 0 不请求 1 请求
 		Date          string   `form:"date"`
-		K8SContainer  []string
+		K8SContainer  []string `form:"k8sContainer"`
+		Dir           string   `json:"dir"`
 	}
 
 	RespQuery struct {
@@ -98,6 +99,16 @@ type (
 	RespChart struct {
 	}
 )
+
+type RespAgentSearch struct {
+	Data          []RespAgentSearchItem `json:"data"`
+	K8sClientType string                `json:"k8sClientType"`
+}
+
+type RespAgentSearchItem struct {
+	Line string                 `json:"line"`
+	Ext  map[string]interface{} `json:"ext"`
+}
 
 type HighCharts struct {
 	Histograms []*HighChart `json:"histograms"`

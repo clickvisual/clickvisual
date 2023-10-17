@@ -1,11 +1,12 @@
 package agent
 
 import (
+	"github.com/gotomicro/cetus/l"
+	"github.com/gotomicro/ego/core/elog"
+
 	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type Agent struct {
@@ -27,6 +28,7 @@ type SearchRequest struct {
 	Limit     int64    `json:"limit" form:"limit"`         // 最少多少条数据
 	Container []string `json:"container" form:"container"` // container信息
 	IsK8s     int      `json:"isK8s" form:"isK8s"`         // 是否为k8s
+	Dir       string   `json:"dir" form:"dir"`             // 文件夹路径
 }
 
 func (a *Agent) Search(c *core.Context) {
@@ -37,33 +39,33 @@ func (a *Agent) Search(c *core.Context) {
 		return
 	}
 	req := search.Request{
-		StartTime:    postReq.StartTime,
-		EndTime:      postReq.EndTime,
-		Date:         postReq.Date,
-		KeyWord:      postReq.KeyWord,
-		Limit:        postReq.Limit,
-		K8SContainer: postReq.Container,
+		StartTime: postReq.StartTime,
+		EndTime:   postReq.EndTime,
+		Limit:     postReq.Limit,
+	}
+	if postReq.Date != "" {
+		req.Date = postReq.Date
 	}
 	if postReq.IsK8s == 1 {
 		req.IsK8S = true
 	}
-	if req.KeyWord == "*" {
-		req.KeyWord = ""
+	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
+		req.KeyWord = postReq.KeyWord
 	}
-	if len(postReq.Container) != 0 && postReq.Container[0] == "" {
-		req.K8SContainer = make([]string, 0)
+	if len(postReq.Container) > 0 {
+		req.K8SContainer = postReq.Container
 	}
-	resp := view.RespQuery{}
-	resp.Logs, err = search.Run(req)
+	if postReq.Dir != "" {
+		req.Dir = postReq.Dir
+	}
+	resp, err := search.Run(req)
 	if err != nil {
-		panic(err)
+		elog.Error("search error", l.E(err))
+		c.JSONE(1, "search error", err)
+		return
 	}
-	resp.Limited = uint32(postReq.Limit)
-	resp.Count = uint64(len(resp.Logs))
-	resp.Keys = make([]*db2.BaseIndex, 0)
-	resp.ShowKeys = make([]string, 0)
-	resp.HiddenFields = make([]string, 0)
-	resp.DefaultFields = make([]string, 0)
-	resp.Terms = make([][]string, 0)
+	if len(resp.Data) > 50 {
+		resp.Data = resp.Data[:50]
+	}
 	c.JSONOK(resp)
 }
