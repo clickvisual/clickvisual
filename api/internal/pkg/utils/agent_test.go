@@ -8,8 +8,8 @@ import (
 )
 
 func Test_getFilterK8SContainerdWrapLog(t *testing.T) {
-	logs := GetFilterK8SContainerdWrapLog(`2023-10-12T16:27:56.359684537+08:00 stderr F {"lv":"info","ts":1697099276,"caller":"egorm@v1.0.6/interceptor.go:125","msg":"access","lname":"ego.sys","comp":"component.egorm","compName":"mysql.file","addr":"mysql-master:3306","method":"gorm:row","name":"svc_file.","cost":0.223,"tid":"","event":"normal"}`)
-	assert.Equal(t, `{"lv":"info","ts":1697099276,"caller":"egorm@v1.0.6/interceptor.go:125","msg":"access","lname":"ego.sys","comp":"component.egorm","compName":"mysql.file","addr":"mysql-master:3306","method":"gorm:row","name":"svc_file.","cost":0.223,"tid":"","event":"normal"}`, logs)
+	logs := GetFilterK8SContainerdWrapLog(`7T10:34:41.033134359+08:00 stderr F {"level":20,"time":"2023-10-17T02:34:41.032Z","pid":1,"hostname":"svc-nodejs-sheet-calc-local-queue-78d864ccc6-f229x","category":"rollout","image_tag":"unknown","env":"production","application":"svc-sheet-calc","message":"rollout keep redis alive starting...","file":"b.s.d.u.feature","requestId":"e20f0709-6b5c-415b-894c-a132e015be53"}`)
+	assert.Equal(t, `{"level":20,"time":"2023-10-17T02:34:41.032Z","pid":1,"hostname":"svc-nodejs-sheet-calc-local-queue-78d864ccc6-f229x","category":"rollout","image_tag":"unknown","env":"production","application":"svc-sheet-calc","message":"rollout keep redis alive starting...","file":"b.s.d.u.feature","requestId":"e20f0709-6b5c-415b-894c-a132e015be53"}`, logs)
 }
 
 func Test_Index(t *testing.T) {

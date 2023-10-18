@@ -1,11 +1,12 @@
 package cvdocker
 
 import (
+	"github.com/gotomicro/ego/core/elog"
+
 	_ "github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/containerd"
 	_ "github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/docker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
-	"github.com/gotomicro/ego/core/elog"
 )
 
 const containerdSock = "/run/containerd/containerd.sock"
@@ -35,7 +36,7 @@ func NewContainer() *Component {
 	}
 
 	if !isExistDockerSock && !isExistContainerdSock {
-		elog.Panic("docker.sock and containerd.sock is empty", elog.FieldValue("we need "+containerdSock+" or "+dockerSock))
+		elog.Error("docker.sock and containerd.sock is empty", elog.FieldValue("we need "+containerdSock+" or "+dockerSock))
 	}
 	if isExistContainerdSock {
 		obj.config.ClientSocket = containerdSock

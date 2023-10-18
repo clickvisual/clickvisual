@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
@@ -43,8 +42,12 @@ func (c *Component) isSearchByEndTime(value string) bool {
 
 func (c *Component) isSearchByKeyWord(value string) bool {
 	flag := true
-	for _, str := range c.filterWords {
-		flag = strings.Contains(value, str) && flag
+	// 每个 filtersWord 匹配 string 和 int 两种情况
+	for _, filterStr := range c.filterWords {
+		filterInt := strings.TrimSuffix(filterStr, `"`)
+		filterInt = strings.Replace(filterInt, `":"`, `":`, 1)
+		// 匹配其中一个即可
+		flag = (strings.Contains(value, filterStr) || strings.Contains(value, filterInt)) && flag
 	}
 
 	return flag
@@ -185,9 +188,6 @@ func (c *Component) searchByBackWord(startPos, endPos int64) (error error) {
 				if c.request.IsCommand {
 					for _, value := range c.filterWords {
 						str = c.bash.ColorWord(value, str)
-					}
-					if c.request.K8sClientType == cvdocker.ClientTypeContainerd {
-						str = utils.GetFilterK8SContainerdWrapLog(str)
 					}
 				}
 				c.output = append(c.output, str)

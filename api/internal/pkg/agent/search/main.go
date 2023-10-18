@@ -11,6 +11,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
@@ -29,11 +31,12 @@ type Component struct {
 	bash        *Bash
 	limit       int64
 	output      []string
+	k8sInfo     *manager.K8SInfo
 }
 
 type KeySearch struct {
 	Key   string
-	Value string
+	Value interface{}
 	Type  string
 }
 
@@ -91,7 +94,7 @@ type Request struct {
 	Date          string // last 30min,6h,1d,7d
 	Path          string // 文件路径
 	Dir           string // 文件夹路径
-	TruePath      []string
+	TruePath      []dto.AgentSearchTargetInfo
 	KeyWord       string // 搜索的关键词
 	Limit         int64  // 最少多少条数据
 	IsCommand     bool   // 是否是命令行 默认不是
@@ -105,7 +108,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	if len(req.K8SContainer) != 0 && req.K8SContainer[0] == "" {
 		req.K8SContainer = make([]string, 0)
 	}
-	var filePaths []string
+	var filePaths = make([]dto.AgentSearchTargetInfo, 0)
 	elog.Info("agentRun", l.A("req", req))
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
 	if req.IsK8S {
@@ -116,28 +119,43 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
 				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.LogPath))
-				filePaths = append(filePaths, value.LogPath)
+				filePaths = append(filePaths, dto.AgentSearchTargetInfo{
+					K8sInfo:  value.K8SInfo,
+					FilePath: value.LogPath,
+				})
 			} else {
 				for _, v := range req.K8SContainer {
 					if value.K8SInfo.Container == v {
 						elog.Info("agentRun", l.S("step", "withContainer"), l.A("logPath", value.LogPath))
-						filePaths = append(filePaths, value.LogPath)
+						filePaths = append(filePaths, dto.AgentSearchTargetInfo{
+							K8sInfo:  value.K8SInfo,
+							FilePath: value.LogPath,
+						})
+					} else {
+						elog.Info("agentRun", l.S("step", "withContainer"), l.A("container", value.K8SInfo.Container))
 					}
 				}
 			}
 		}
 	}
 	if req.Path != "" {
-		filePaths = strings.Split(req.Path, ",")
+		for _, p := range strings.Split(req.Path, ",") {
+			filePaths = append(filePaths, dto.AgentSearchTargetInfo{
+				FilePath: p,
+			})
+		}
 	}
 	if req.Dir != "" {
-		filePathsByDir := findFiles(req.Dir)
-		filePaths = append(filePaths, filePathsByDir...)
+		for _, p := range findFiles(req.Dir) {
+			filePaths = append(filePaths, dto.AgentSearchTargetInfo{
+				FilePath: p,
+			})
+		}
 	}
 	req.TruePath = filePaths
 	if len(filePaths) == 0 {
 		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("K8SContainer", req.K8SContainer), l.A("truePath", req.TruePath))
-		return data, errors.New("file cant empty")
+		return data, nil
 	}
 	// 多了没意义，自动变为 50，提示用户
 	if req.Limit <= 0 || req.Limit > 500 {
@@ -155,11 +173,6 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
-				sw.Done()
-				return
-			}
-			if req.KeyWord != "" && len(comp.words) == 0 {
-				elog.Error("-k format is error", elog.FieldErr(err))
 				sw.Done()
 				return
 			}
@@ -183,9 +196,21 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	} else {
 		for _, comp := range container.components {
 			for _, value := range comp.output {
+				if value == "" {
+					continue
+				}
+				ext := map[string]interface{}{
+					"_file": comp.file.path,
+				}
+				if comp.k8sInfo != nil {
+					ext["_namespace"] = comp.k8sInfo.Namespace
+					ext["_container"] = comp.k8sInfo.Container
+					ext["_pod"] = comp.k8sInfo.Pod
+					ext["_image"] = comp.k8sInfo.Image
+				}
 				data.Data = append(data.Data, view.RespAgentSearchItem{
 					Line: value,
-					Ext:  map[string]interface{}{"_file": comp.file.path},
+					Ext:  ext,
 				})
 			}
 		}
@@ -193,41 +218,32 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	return data, nil
 }
 
-func NewComponent(filename string, req Request) (*Component, error) {
-	obj := &Component{}
-	file, err := OpenFile(filename)
+func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component, error) {
+	obj := &Component{
+		k8sInfo: targetInfo.K8sInfo,
+	}
+	file, err := OpenFile(targetInfo.FilePath)
 	if err != nil {
-		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", filename))
-		return nil, errors.Wrapf(err, "open file %s error", filename)
+		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", targetInfo.FilePath))
+		return nil, errors.Wrapf(err, "open file %s error", targetInfo.FilePath)
 	}
 	obj.file = file
 	obj.startTime = req.StartTime
 	obj.endTime = req.EndTime
 	obj.request = req
-	words := make([]KeySearch, 0)
-
-	arrs := strings.Split(req.KeyWord, "and")
-	for _, value := range arrs {
-		if strings.Contains(value, "=") {
-			info := strings.Split(value, "=")
-			v := strings.Trim(info[1], " ")
-			v = strings.ReplaceAll(v, `"`, "")
-			v = strings.ReplaceAll(v, `'`, "")
-			word := KeySearch{
-				Key:   strings.Trim(info[0], " "),
-				Value: v,
-			}
-			words = append(words, word)
-		}
-	}
-	obj.words = words
+	obj.words = Keyword2Array(req.KeyWord, true)
 	filterString := make([]string, 0)
-	for _, value := range words {
+	for _, value := range obj.words {
 		var info string
-		if value.Type == "int" {
-			info = `"` + value.Key + `":` + value.Value
-		} else {
-			info = `"` + value.Key + `":"` + value.Value + `"`
+		if value.Type == typeInt {
+			info = fmt.Sprintf(`"%s":%d`, value.Key, value.Value.(int))
+		} else if value.Type == typeString {
+			if value.Key == "" {
+				// 模糊匹配内容
+				info = value.Value.(string)
+			} else {
+				info = fmt.Sprintf(`"%s":"%s"`, value.Key, value.Value.(string))
+			}
 		}
 		filterString = append(filterString, info)
 	}

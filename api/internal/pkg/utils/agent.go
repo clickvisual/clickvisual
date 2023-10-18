@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,27 +13,41 @@ func TimeParse(value string) time.Time {
 	if err != nil {
 		curTimeParser, err = time.Parse(time.RFC3339, value)
 		if err != nil {
-			elog.Error("agent log parse timestamp error", elog.FieldErr(err))
-			panic(err)
+			// 可能为 1693573909,
+			// 移除 ,
+			value = strings.TrimSuffix(value, ",")
+			// 将时间戳转换为 time 类型
+			timestamp, _ := strconv.Atoi(value)
+			if timestamp <= 0 {
+				elog.Error("agent log parse timestamp error", elog.FieldErr(err))
+				panic(err)
+			}
+			curTimeParser = time.Unix(int64(timestamp), 0)
 		}
 	}
 	return curTimeParser
 }
 
+var filterKeys = []string{" stderr F ", " stdout F "}
+
 // getFilterK8SContainerdWrapLog 过滤k8s containerd 包起来日志
 // containerd 日志有一些数据前缀，导致不是json，需要过滤一些数据
 // 2023-10-12T16:27:56.359684537+08:00 stderr F {"lv":"info","ts":1697099276,"caller":"egorm@v1.0.6/interceptor.go:125","msg":"access","lname":"ego.sys","comp":"component.egorm","compName":"mysql.file","addr":"mysql-master:3306","method":"gorm:row","name":"svc_file.","cost":0.223,"tid":"","event":"normal"}
 func GetFilterK8SContainerdWrapLog(s string) string {
-	filter := " stderr F "
-	i := strings.Index(s, filter)
-	return s[i+len(filter):]
+	for _, filter := range filterKeys {
+		i := strings.Index(s, filter)
+		if i != -1 {
+			return s[i+len(filter):]
+		}
+	}
+	return s
 }
 
-var indexField = []string{"ts", "time"}
+var indexFields = []string{`"ts":"`, `"time":"`, `"ts":`}
 
 func IndexParse(line string) (string, int) {
-	for _, field := range indexField {
-		res, index := Index(line, `"`+field+`":"`)
+	for _, field := range indexFields {
+		res, index := Index(line, field)
 		if index != -1 {
 			return res, index
 		}
