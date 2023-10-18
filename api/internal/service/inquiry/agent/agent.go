@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -58,6 +59,7 @@ func (a *Agent) parseHitLog(k8sClientType string, item view.RespAgentSearchItem)
 }
 
 func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err error) {
+	tmpLogs := make([]map[string]interface{}, 0)
 	for _, agent := range a.agents {
 		if !strings.HasPrefix(agent, "http://") {
 			agent = "http://" + agent
@@ -98,9 +100,17 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 				elog.Error("parse agent log error", l.E(err))
 				continue
 			}
-			resp.Logs = append(resp.Logs, logs)
+			tmpLogs = append(tmpLogs, logs)
 		}
 	}
+	if len(tmpLogs) > 100 {
+		resp.Logs = tmpLogs[:100]
+	} else {
+		resp.Logs = tmpLogs
+	}
+	sort.Slice(resp.Logs, func(i, j int) bool {
+		return resp.Logs[i][db.TimeFieldSecond].(int64) > resp.Logs[j][db.TimeFieldSecond].(int64)
+	})
 	resp.Count = uint64(len(resp.Logs))
 	resp.Keys = make([]*db2.BaseIndex, 0)
 	resp.ShowKeys = make([]string, 0)
@@ -117,7 +127,7 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 
 func (a *Agent) Count(query view.ReqQuery) (uint64, error) {
 	// TODO implement me
-	panic("implement me")
+	return 0, nil
 }
 
 func (a *Agent) GroupBy(query view.ReqQuery) map[string]uint64 {
