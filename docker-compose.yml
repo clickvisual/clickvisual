@@ -160,7 +160,7 @@ services:
     ports:
       - 19004:9090
   clickvisual:
-    image: clickvisual/clickvisual:1.0.0-rc2
+    image: clickvisual/clickvisual:master
     networks:
       - clickvisual-net
     environment:
