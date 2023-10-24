@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/panjf2000/ants"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
@@ -18,10 +19,12 @@ import (
 
 var (
 	pool *ants.Pool
-	wg   sync.WaitGroup
 )
 
 func init() {
+	// The scanned files will be searched for fragments and occupy memory based on the read buffer size.
+	// If the number of files is too large, OOM risks may occur.
+	// The goroutine pool is used to limit the number of goroutine
 	p, err := ants.NewPool(10, ants.WithOptions(ants.Options{
 		ExpiryDuration:   time.Minute,
 		MaxBlockingTasks: 30,
@@ -33,6 +36,8 @@ func init() {
 	pool = p
 }
 
+// This structure is mainly used to record the maximum pos belonging to the same offset when searching,
+// and the number of rows that have been searched for a match
 type OffsetSection struct {
 	endPos int64
 	offset int64
@@ -217,7 +222,8 @@ func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
 func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, error) {
 	_, err := c.file.ptr.Seek(startPos, io.SeekStart)
 	if err != nil {
-		panic(err)
+		elog.Error("agent getlogs file seek error", elog.String("file", c.file.path), elog.FieldErr(err))
+		return 0, err
 	}
 
 	ep := endPos
@@ -232,6 +238,7 @@ func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, er
 		limit             = remainedLines
 	)
 
+	// '\n' in the last line will be ignored, so need to check and append it
 	includeFileEnd := now == c.file.size-1 || now == c.file.size-2
 
 	for {
@@ -249,13 +256,15 @@ func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, er
 
 		data = append(data, fileReader...)
 
-		// '\n' in the last line will be ingored, so need to append it
+		// '\n' in the last line will be ignored, so need to append it
 		if includeFileEnd {
 			data = append(data, '\n')
 			includeFileEnd = false
 		}
 
 		limit, before = c.doGetLogs(data, before, limit)
+
+		// clear data for next turn
 		data = data[0:0]
 
 		if limit == 0 || now <= 0 {
@@ -271,10 +280,9 @@ func (c *Component) getLogs(startPos, endPos int64) (error error) {
 
 	// logs need the latest record, so need to search from the end side
 	for i := 1; i >= 0; i-- {
-		// fmt.Println("partitions: ", partitions[i][0], partitions[i][1])
 		lines, err := c.searchLogs(partitions[i][0], partitions[i][1], remainedLines)
-		// fmt.Println("lines: ", lines)
 		if err != nil {
+			elog.Error("agent getlogs error", elog.FieldErr(err))
 			return err
 		}
 		if lines == 0 {
@@ -352,15 +360,14 @@ func (c *Component) searchCharts(startPos, endPos int64) (error error) {
 		return func() {
 			defer wg.Done()
 			c.calcLogsLine(start, end)
-			// fmt.Printf("%s goroutine -> lines: %d\n", c.file.path, lines)
 		}
 	}
 
 	for i, _ := range partitions {
-		// fmt.Println(partitions[i][0], partitions[i][1])
 		err := pool.Submit(task(partitions[i][0], partitions[i][1]))
 		if err != nil {
-			// fmt.Println("submut partition successful")
+			elog.Error("ants pool submit error", elog.FieldErr(err))
+			return err
 		}
 	}
 	wg.Wait()
@@ -387,10 +394,11 @@ func (c *Component) calcLogsLine(startPos, endPos int64) int64 {
 		file *File
 	)
 
-	// seek operation is not safe in the concurrent env, so need to open a new ptr
+	// seek operation is not safe in the concurrent env, so need to create a new ptr
 	f, err := OpenFile(c.file.path)
 	if err != nil {
-		panic("error")
+		elog.Error("search charts failed", elog.String("file", c.file.path), elog.FieldErr(err))
+		panic(err)
 	}
 	file = f
 	defer file.ptr.Close()
@@ -415,58 +423,61 @@ func (c *Component) calcLogsLine(startPos, endPos int64) int64 {
 			break
 		}
 	}
+	// the last section need to record
 	c.recordCharts(section)
 	return total
 }
 
+// calcPartitionInterval divide the file into n partitions
+// TODO: use search cache
 func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 	var resp [][2]int64
+
+	errWrapper := func(err error) {
+		if err != nil {
+			elog.Error("agent search calcPartitionInterval findString failed", elog.String("file", c.file.path), elog.FieldErr(err))
+			panic("agent search calc partition interval findString failed")
+		}
+	}
+
 	switch {
 	case n == 1:
 		resp = append(resp, [2]int64{start, end})
 		break
 	case n == 2:
 		from, _, err := findString(c.file.ptr, start, end)
-		if err != nil {
-			panic(err)
-		}
+		errWrapper(err)
 		resp = append(resp, [2]int64{start, from - 2}, [2]int64{from, end})
 		break
 	case n == 3:
 		leftFrom, _, err := findString(c.file.ptr, start, (end*2)/3)
-		if err != nil {
-			panic(err)
-		}
+		errWrapper(err)
 
 		rightFrom, _, err := findString(c.file.ptr, leftFrom, end)
-		if err != nil {
-			panic(err)
-		}
+		errWrapper(err)
 		resp = append(resp, [2]int64{start, leftFrom - 2}, [2]int64{leftFrom, rightFrom - 2}, [2]int64{rightFrom, end})
 		break
 	case n == 4:
 		middleFrom, _, err := findString(c.file.ptr, start, end)
-		if err != nil {
-			panic(err)
-		}
+		errWrapper(err)
 
 		leftFrom, _, err := findString(c.file.ptr, start, middleFrom-2)
-		if err != nil {
-			panic(err)
-		}
+		errWrapper(err)
 
 		rightFrom, _, err := findString(c.file.ptr, middleFrom, end)
-		if err != nil {
-			panic(err)
-		}
+		errWrapper(err)
 		resp = append(resp, [2]int64{start, leftFrom - 2}, [2]int64{leftFrom, middleFrom - 2}, [2]int64{middleFrom, rightFrom - 2}, [2]int64{rightFrom, end})
 	default:
-		panic("error")
+		panic("invalid partition number, need to support in `calcPartitionInterval`")
 	}
 	return resp
 }
 
+// doGetLogs search from the tail to head
 func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines int64, beforeLine []byte) {
+
+	//		   br2        br1
+	// {xxxxxx}\n{xxxxxxx}\n{xxxxxx}
 	var (
 		br1            int = -1
 		br2            int = -1
@@ -478,11 +489,14 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 		data = append(data, beforeLine...)
 	}
 
+	// keep \n to next turn
 	if data[0] == '\n' {
 		beforeLine = append(beforeLine, '\n')
 		data = data[1:]
 	} else {
 		firstLinePos := bytes.Index(data, []byte{'\n'})
+
+		// must clone, because data may be changed in the outside
 		if firstLinePos != -1 {
 			beforeLine = append(beforeLine, bytes.Clone(data[:firstLinePos+1])...)
 		} else {
@@ -495,6 +509,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 	br1 = bytes.LastIndexByte(data, '\n')
 	br2 = bytes.LastIndexByte(data[:br1], '\n')
 
+	// means there is the first line
 	if br2 == -1 {
 		_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
 		if ok {
@@ -513,13 +528,17 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 					return limit, tailLine
 				}
 
+				// valid br2 *****p***** br1
+				// invalid 	 ***p*** br2 ******** br1, need to skip lines
 				if p <= br2 {
 					flag = false
+
+					// skip lines
 					for p <= br2 {
 						br1 = br2
 						pos := bytes.LastIndexByte(data[:br2], '\n')
+						// means there is the first line
 						if p == -1 {
-							// 找到第一行了
 							_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
 							if ok {
 								c.output = append(c.output, string(data[:br1]))
@@ -560,6 +579,9 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 	return limit, tailLine
 }
 
+// doCalcLines calc match log lines
+// startPos: help to calc the line pos in the file
+// section: record the offset 、lines
 func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos int64, section *OffsetSection) (lines int64, tailLine []byte) {
 	var (
 		pos            int = -1
@@ -572,6 +594,9 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		hasFilterWords = len(c.filterWords) > 0
 	)
 
+	// Because it is a forward search, 'before' is the incomplete row of data at the end of the last round of search.
+	// In this case, the data needs to be concatenated to the beginning of the current data.
+	// To avoid the overhead of frequent expansion of slice, the first row is separately searched instead of concatenated
 	pos = bytes.Index(data, []byte{'\n'})
 	if pos == -1 {
 		if hasFilterWords && len(before) > 0 {
@@ -592,6 +617,9 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 				c.recordCharts(*section)
 				section.clear()
 			}
+			// If this row of logs matches,
+			// the start time of this row of logs is used to find the largest timestamp pos belonging to the same offset.
+			// If it is found later, there is no need to parse it again for calculation as long as it is less than this pos
 			c.calcOffsetSectionPos(file, data, section, startPos, pos)
 		}
 		if ok {
@@ -634,8 +662,8 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 
 				p, ok := c.verifyKeyWord(data, v, pos)
 
-				// 若读取的没有找到，说明这段数据中不可能存在匹配的日志
-				// 此时需要找到末尾的 \n 重新匹配
+				// If the read is not found, it indicates that no matching log exists in the data
+				// At this point, just need to find the \n at the end to rematch
 				if !ok {
 					if p == -1 {
 						return lines, tailLine
@@ -692,11 +720,15 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 
 		strFrom, strTo, err := findString(file.ptr, from, to)
 		if err != nil {
+			elog.Error("agent search calc section offset pos error, maybe search time is invalid", elog.String("file", file.path), elog.Int64("endTime", endTime),
+				elog.FieldErr(err))
 			panic(err)
 		}
 
 		value, err := getString(file.ptr, strFrom, strTo)
 		if err != nil {
+			elog.Error("agent search calc section offset pos error, maybe search time is invalid", elog.String("file", file.path), elog.Int64("endTime", endTime),
+				elog.FieldErr(err))
 			panic(err)
 		}
 
@@ -716,6 +748,7 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 		offsetSection.load(offset, result)
 		return
 	}
+	elog.Error("agent search calc section offset failed, maybe search time is invalid", elog.String("file", file.path), elog.Int64("endTime", endTime))
 	panic("file search calcOffsetSectionPos error")
 }
 
@@ -731,12 +764,13 @@ func skipLines(data []byte, skipTag, pos int, filterPosMap map[string]int) ([]by
 	return data, skipTag, pos, offset
 }
 
+// goingOn move the pos to next \n and update other related args
 func goingOn(data []byte, skipTag, pos int, filterPosMap map[string]int) ([]byte, int, int) {
 	skipTag -= pos + 1
 	if skipTag <= 0 {
 		skipTag = -1
 	}
-	// 更新 pos map
+	// update filter pos map
 	for k, v := range filterPosMap {
 		if v < pos+1 {
 			delete(filterPosMap, k)
@@ -985,7 +1019,6 @@ func getString(file *os.File, from int64, to int64) (string, error) {
 		return "", err
 	}
 
-	// fmt.Printf("####getString from: %d, to: %d, str : %s####\n", from, to, string(buffer[:bufferSize]))
 	return string(buffer[:bufferSize]), nil
 }
 

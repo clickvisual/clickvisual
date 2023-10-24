@@ -19,7 +19,7 @@ func TestGoroutineCalc(t *testing.T) {
 		Limit:          499,
 		// Dir: "./logs",
 		KeyWord:  "lv=info and comp=Timeout exceeded",
-		Interval: ChartsIntervalConvert(st, et),
+		Interval: ChartsIntervalConvert(et - st),
 	}
 	resp, _ := RunCharts(req)
 
@@ -29,7 +29,7 @@ func TestGoroutineCalc(t *testing.T) {
 	// 1669596907
 	//  1669327789
 
-	fmt.Println("len: ", len(resp))
+	fmt.Println("len: ", len(resp.Data))
 	// total := int64(0)
 	// for i, chart := range resp {
 	// 	fmt.Printf("========= %d =========\n", i)

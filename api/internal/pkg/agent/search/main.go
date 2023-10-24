@@ -43,9 +43,9 @@ type Component struct {
 	limit         int64
 	output        []string
 	k8sInfo       *manager.K8SInfo
-	interval      int64 // 请求 charts 时，划分的标准时间间隔
-	times         int64 // 请求 charts 时，startTime - endTime 能被 interval 划分的段数
-	charts        map[int64]int64
+	interval      int64           // 请求 charts 时，划分的标准时间间隔
+	times         int64           // 请求 charts 时，startTime - endTime 能被 interval 划分的段数
+	charts        map[int64]int64 // key: offset(time - startTime / interval), value: lines
 	mu            sync.Mutex
 	partitionSize int64 // 每次缓冲区初始化为多大
 	partitionNum  int   // 开启多少个协程任务
@@ -55,6 +55,8 @@ func (c *Component) IsChartRequest() bool {
 	return c.interval > 0
 }
 
+// preparePartition calculate the number of slices and the size of the slices
+// TODO: consider further partitioning according to runtime.NumCPU()
 func (c *Component) preparePartition(from, to int64) {
 	size := to - from + 1
 	switch {
@@ -346,12 +348,9 @@ func (c *Component) SearchFile() error {
 		} else {
 			// read based on buffer
 			err = c.getLogs(start, end)
-
-			// read based on scanner
-			// err = c.searchByBackWord(start, end)
 		}
 		if err != nil {
-			return errors.Wrapf(err, "search by back word error")
+			return errors.Wrapf(err, "agent search logs error")
 		}
 
 		return err
@@ -372,7 +371,6 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 		value := pathName
 		go func() {
 			comp, err := NewComponent(value, req)
-			// fmt.Println("file size: ", comp.file.size)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
 				sw.Done()
@@ -415,7 +413,7 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 
 	data := make([]view.HighChart, 0)
 
-	// fmt.Println("minTimes: ", minTimes, " maxTimes: ", maxTimes)
+	// need to make sure the section is continuous
 	for i := minTimes; i <= maxTimes; i++ {
 		end := req.StartTime + (i+1)*req.Interval
 		if end > req.EndTime {
