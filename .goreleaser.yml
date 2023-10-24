@@ -7,7 +7,7 @@ before:
     - go mod download -x
 builds:
   - id: clickvisual
-    main: ./api
+    main: .
     env:
       - CGO_ENABLED=0
     goos:

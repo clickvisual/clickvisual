@@ -1,6 +1,6 @@
 output: api/docs
 plugin: gin
-dir: 'api'
+dir: '.'
 
 depends:
   - gorm.io/plugin/soft_delete
