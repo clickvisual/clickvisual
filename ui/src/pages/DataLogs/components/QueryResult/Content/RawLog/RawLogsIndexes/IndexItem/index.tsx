@@ -1,11 +1,12 @@
 import useRequest from "@/hooks/useRequest/useRequest";
-import indexItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexItem/index.less";
-import api, { IndexDetail, IndexInfoType } from "@/services/dataLogs";
-import { useModel } from "@umijs/max";
-import { Progress, Spin, Tooltip } from "antd";
+import indexItemStyles
+  from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexItem/index.less";
+import api, {IndexDetail, IndexInfoType} from "@/services/dataLogs";
+import {useModel} from "@umijs/max";
+import {Progress, Spin, Tooltip} from "antd";
 import classNames from "classnames";
-import { useEffect, useState } from "react";
-import { useIntl } from "umi";
+import {useEffect, useState} from "react";
+import {useIntl} from "umi";
 
 type IndexItemProps = {
   index: IndexInfoType;
@@ -13,11 +14,9 @@ type IndexItemProps = {
 };
 const IndexItem = (props: IndexItemProps) => {
   const { index, isActive } = props;
-  const { keywordInput, startDateTime, endDateTime, doUpdatedQuery } =
+  const { keywordInput, logFilterList, startDateTime, endDateTime, doUpdatedQuery } =
     useModel("dataLogs");
-
   const i18n = useIntl();
-
   const getIndexDetails = useRequest(api.getIndexDetail, {
     loadingText: false,
   });
@@ -39,13 +38,22 @@ const IndexItem = (props: IndexItemProps) => {
       !index?.tid ||
       !index?.id ||
       !startDateTime ||
-      !endDateTime
+      !endDateTime ||
+        !logFilterList
     )
       return;
+    // 循环读取 logFilterList 里的 statement 值，放到 filters 数组中
+    let filters: string[] = [];
+    logFilterList.forEach((item) => {
+        if (item.statement != "") {
+            filters.push(item.statement);
+        }
+    });
     const params = {
       st: startDateTime,
       et: endDateTime,
       query: keywordInput,
+      filters: filters,
     };
     getIndexDetails.run(index.tid, index.id, params).then((res) => {
       if (res?.code === 0) {

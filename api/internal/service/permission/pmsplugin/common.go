@@ -12,9 +12,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 /*
@@ -324,7 +324,7 @@ func GetValidRoleStrByRoleItem(roleItem view.RoleItem) (res string, err error) {
 	}
 	// 2. check role name
 	// 2.1 check in default_role_pms first
-	defaultRolePmsList, err := db.GetDefaultRolePmsList(db.Conds{
+	defaultRolePmsList, err := db2.GetDefaultRolePmsList(db2.Conds{
 		"belong_type": roleItem.BelongType,
 		"role_name":   roleItem.RoleName,
 	})
@@ -336,7 +336,7 @@ func GetValidRoleStrByRoleItem(roleItem view.RoleItem) (res string, err error) {
 	}
 	// 2.2 if roleItem is invalid, then check custom_role_pms
 	if !isRoleItemValid {
-		customRolePmsList, err := db.GetCustomRolePmsList(db.Conds{
+		customRolePmsList, err := db2.GetCustomRolePmsList(db2.Conds{
 			"belong_type": roleItem.BelongType,
 			"role_name":   roleItem.RoleName,
 			"refer_id":    roleItem.ReferId,
@@ -434,7 +434,7 @@ func GetDomainCascaderOptions(iid int) (resp view.RespDomainCascader) {
 	if iid != 0 {
 		condsDatabases["iid"] = iid
 	}
-	entWithDatabase, err := db.DatabaseList(invoker.Db, condsDatabases)
+	entWithDatabase, err := db2.DatabaseList(invoker.Db, condsDatabases)
 	if err != nil {
 		elog.Error("Get all enterprise for domain cascade selector error.", zap.Error(err))
 		return
@@ -463,7 +463,7 @@ func GetDomainCascaderOptions(iid int) (resp view.RespDomainCascader) {
 		})
 		conds := egorm.Conds{}
 		conds["did"] = ent.ID
-		tables, _ := db.TableList(invoker.Db, conds)
+		tables, _ := db2.TableList(invoker.Db, conds)
 		if len(tables) <= 0 {
 			continue
 		}

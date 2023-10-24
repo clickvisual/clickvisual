@@ -7,11 +7,11 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/core/common"
-	"github.com/clickvisual/clickvisual/api/core/switcher/ifswitcher"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/core/i"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 )
 
-var _ ifswitcher.Switcher = (*Switcher)(nil)
+var _ i.Switcher = (*Switcher)(nil)
 
 type Switcher struct {
 	createType int
@@ -24,27 +24,34 @@ type Switcher struct {
 
 	conn *sql.DB // clickhouse instance
 
-	rawLogField  string
-	parseIndexes string
-	parseFields  string
-	parseTime    string
-	parseWhere   string
+	rawLogField         string
+	rawLogFieldParent   string
+	parseIndexes        string
+	parseFields         string
+	parseTime           string
+	parseWhere          string
+	withAttachFields    bool // withAttachFields Whether to include attachment fields, such as _key/headers
+	isRawLogFieldString bool // isRawLogFieldJSON Whether the raw log field is JSON
+	customTimeField     string
 }
 
-func NewSwitcher(req ifswitcher.Params) *Switcher {
+func NewSwitcher(req i.SwitcherParams) *Switcher {
 	return &Switcher{
-		createType:   req.CreateType,
-		isShard:      req.IsShard,
-		isReplica:    req.IsReplica,
-		cluster:      req.Cluster,
-		database:     req.Database,
-		table:        req.Table,
-		conn:         req.Conn,
-		rawLogField:  req.RawLogField,
-		parseIndexes: req.ParseIndexes,
-		parseFields:  req.ParseFields,
-		parseTime:    req.ParseTime,
-		parseWhere:   req.ParseWhere,
+		createType:          req.CreateType,
+		isShard:             req.IsShard,
+		isReplica:           req.IsReplica,
+		cluster:             req.Cluster,
+		database:            req.Database,
+		table:               req.Table,
+		conn:                req.Conn,
+		rawLogField:         req.RawLogField,
+		rawLogFieldParent:   req.RawLogFieldParent,
+		parseIndexes:        req.ParseIndexes,
+		parseFields:         req.ParseFields,
+		parseTime:           req.ParseTime,
+		parseWhere:          req.ParseWhere,
+		isRawLogFieldString: req.IsRawLogFieldString,
+		customTimeField:     req.CustomTimeField,
 	}
 }
 
@@ -76,32 +83,84 @@ func (ch *Switcher) createJSONAsString() (names []string, sqls []string) {
 
 func (ch *Switcher) materializedView() (name string, sql string) {
 	var dataName string
-	streamName := fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
+	var streamName string
 	var viewNameWithCluster string
 	viewName := fmt.Sprintf("`%s`.`%s_view`", ch.database, ch.table)
 	if ch.isReplica || ch.isShard {
 		dataName = fmt.Sprintf("`%s`.`%s_local`", ch.database, ch.table)
+		streamName = fmt.Sprintf("`%s`.`%s_local_stream`", ch.database, ch.table)
+		viewName = fmt.Sprintf("`%s`.`%s_local_view`", ch.database, ch.table)
+		if ch.customTimeField != "" {
+			viewName = fmt.Sprintf("`%s`.`%s_%s_local_view`", ch.database, ch.table, ch.customTimeField)
+		}
 		viewNameWithCluster = fmt.Sprintf("%s on cluster '%s'", viewName, ch.cluster)
 	} else {
 		dataName = fmt.Sprintf("`%s`.`%s`", ch.database, ch.table)
+		streamName = fmt.Sprintf("`%s`.`%s_stream`", ch.database, ch.table)
+		if ch.customTimeField != "" {
+			viewName = fmt.Sprintf("`%s`.`%s_%s_view`", ch.database, ch.table, ch.customTimeField)
+		}
 		viewNameWithCluster = viewName
 	}
-	return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS  %s TO %s AS
+	l := "_log"
+	if ch.rawLogFieldParent != "" {
+		l = fmt.Sprintf("JSONExtractRaw(_log, '%s')", ch.rawLogFieldParent)
+	}
+	var rawLogFieldCheck = fmt.Sprintf(`FROM 
+(
+  SELECT
+    _log,
+    JSONLength(JSONExtractString(%s, '%s')) as len
+  FROM %s 
+)
+WHERE len>0 and`, l, ch.rawLogField, streamName)
+
+	if ch.isRawLogFieldString {
+		rawLogFieldCheck = fmt.Sprintf("FROM %s WHERE", streamName)
+	}
+
+	if ch.withAttachFields {
+		return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS
 SELECT
 %s
 %s,
 _key AS _key,
 %s,
-toString(JSONExtractRaw(_log, '%s')) AS _raw_log_%s
-FROM %s
-WHERE %s;
-`, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime, "`_headers.name` AS `_headersname`,\n`_headers.value` AS `_headersvalue`",
-		ch.rawLogField, ch.parseIndexes, streamName, ch.parseWhere)
+JSONExtractString(%s, '%s') AS _raw_log_%s
+%s %s;
+`, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime,
+			"`_headers.name` AS `_headers_name`,\n`_headers.value` AS `_headers_name`",
+			l, ch.rawLogField, ch.parseIndexes, rawLogFieldCheck, ch.parseWhere)
+	}
+	return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS
+SELECT
+%s
+%s,
+JSONExtractString(%s, '%s') AS _raw_log_%s
+%s %s;
+`, viewNameWithCluster, dataName, ch.parseFields, ch.parseTime,
+		l, ch.rawLogField, ch.parseIndexes,
+		rawLogFieldCheck,
+		ch.parseWhere)
 }
 
 func (ch *Switcher) Delete() error {
-	// TODO implement me
-	panic("implement me")
+	sqls := make([]string, 0)
+	// delete mv table
+	if ch.isReplica || ch.isShard {
+		if ch.customTimeField != "" {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.customTimeField, ch.cluster))
+		} else {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.cluster))
+		}
+	} else {
+		if ch.customTimeField != "" {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_%s_local_view` ON CLUSTER %s", ch.database, ch.table, ch.customTimeField, ch.cluster))
+		} else {
+			sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS `%s`.`%s_view`", ch.database, ch.table))
+		}
+	}
+	return common.Exec(ch.conn, sqls)
 }
 
 func (ch *Switcher) Detach() error {

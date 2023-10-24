@@ -9,8 +9,8 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 const (
@@ -57,7 +57,7 @@ func (d *dependence) Table(iid int, database, table string) (res []view.RespTabl
 // analysis Periodically synchronize the data of each instance
 func (d *dependence) analysis() {
 	// Get all the instance data
-	instances, err := db.InstanceList(egorm.Conds{})
+	instances, err := db2.InstanceList(egorm.Conds{})
 	if err != nil {
 		elog.Error("depsBatch", elog.String("step", "instances"), elog.String("error", err.Error()))
 		return
@@ -85,7 +85,7 @@ func (d *dependence) analysis() {
 }
 
 func (d *dependence) analysisInstance(iid int, rows []*view.SystemTables) {
-	filter := make(map[string]*db.BigdataDepend)
+	filter := make(map[string]*db2.BigdataDepend)
 	deriveUps := make(map[string][]string)
 	deriveDowns := make(map[string][]string)
 	for _, row := range rows {
@@ -102,7 +102,7 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTables) {
 		for _, up := range ups {
 			deriveDowns[up] = append(deriveDowns[up], row.Name())
 		}
-		item := &db.BigdataDepend{
+		item := &db2.BigdataDepend{
 			Iid:                  iid,
 			Database:             row.Database,
 			Table:                row.Table,
@@ -136,17 +136,17 @@ func (d *dependence) analysisInstance(iid int, rows []*view.SystemTables) {
 	}
 
 	// Bulk insert
-	depends := make([]*db.BigdataDepend, 0)
+	depends := make([]*db2.BigdataDepend, 0)
 	for _, depend := range filter {
 		depends = append(depends, depend)
 	}
 	tx := invoker.Db.Begin()
-	if err := db.DependsDeleteAll(tx, iid); err != nil {
+	if err := db2.DependsDeleteAll(tx, iid); err != nil {
 		tx.Rollback()
 		elog.Error("analysisInstance", elog.String("step", "DependsDeleteAll"), elog.FieldErr(err))
 		return
 	}
-	if err := db.DependsBatchInsert(tx, depends); err != nil {
+	if err := db2.DependsBatchInsert(tx, depends); err != nil {
 		tx.Rollback()
 		elog.Error("analysisInstance", elog.String("step", "DependsBatchInsert"), elog.FieldErr(err))
 		return
@@ -163,7 +163,7 @@ func (d *dependence) loopDepsV2(iid int, database, table string, checked map[str
 	conds["iid"] = iid
 	conds["table"] = table
 	conds["database"] = database
-	deps, _ := db.DependsList(conds)
+	deps, _ := db2.DependsList(conds)
 	if len(deps) != 1 {
 		return res
 	}

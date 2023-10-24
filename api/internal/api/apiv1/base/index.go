@@ -7,14 +7,13 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // IndexUpdate
@@ -27,19 +26,19 @@ func IndexUpdate(c *core.Context) {
 		return
 	}
 	var (
-		req view.ReqCreateIndex
+		req view2.ReqCreateIndex
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "param error:"+err.Error(), err)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	tableInfo, err := db2.TableInfo(invoker.Db, tid)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -51,7 +50,7 @@ func IndexUpdate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesIndexUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesIndexUpdate, map[string]interface{}{"req": req})
 	if err = service.AnalysisFieldsUpdate(tid, req.Data); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
@@ -71,7 +70,7 @@ func Indexes(c *core.Context) {
 	conds := egorm.Conds{}
 	conds["tid"] = tid
 	conds["kind"] = 1
-	indexes, err := db.IndexList(conds)
+	indexes, err := db2.IndexList(conds)
 	if err != nil {
 		c.JSONE(1, "unknown error: "+err.Error(), nil)
 		return

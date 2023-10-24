@@ -38,10 +38,11 @@ const CreatedOrUpdatedInstanceModal = (
     doTestInstance,
   } = useModel("instances");
 
-  const { doGetClusters, doGetConfigMaps } = useModel("configure");
+  const { doGetConfigMaps } = useModel("configure");
   const instanceFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const [disabledSubmit, setDisabledSubmit] = useState<boolean>(false);
+  const [sourceType, setSourceType] = useState<string>(current?.datasource || "clickvisual");
 
   const onSubmit = (field: any) => {
     const params = {
@@ -123,31 +124,6 @@ const CreatedOrUpdatedInstanceModal = (
     }
   }, [open, isEditor, current, current?.id]);
 
-  const formItemLayout = {
-    labelCol: {
-      xs: { span: 20 },
-      sm: { span: 4 },
-    },
-    wrapperCol: {
-      xs: { span: 24 },
-      sm: { span: 20 },
-    },
-  };
-
-  const formItemLayoutWithOutLabel = {
-    wrapperCol: {
-      xs: { span: 20, offset: 4 },
-      sm: { span: 20, offset: 4 },
-    },
-  };
-
-  const formItemLayoutBtnLabel = {
-    wrapperCol: {
-      xs: { span: 20, offset: 4 },
-      sm: { span: 18, offset: 4 },
-    },
-  };
-
   useEffect(() => {
     if (!open) {
       setDisabledSubmit(false);
@@ -159,10 +135,6 @@ const CreatedOrUpdatedInstanceModal = (
     if (!open || isEditor) return;
     setDisabledSubmit(true);
   }, [open, isEditor]);
-
-  useEffect(() => {
-    if (open) doGetClusters();
-  }, [open]);
 
   return (
     <Modal
@@ -259,161 +231,13 @@ const CreatedOrUpdatedInstanceModal = (
             placeholder={i18n.formatMessage({
               id: "instance.form.placeholder.datasource",
             })}
+            onChange={(value) => {setSourceType(value)}}
           >
             <Option value={"ch"}>ClickHouse</Option>
             <Option value={"databend"}>Databend</Option>
+            <Option value={"agent"}>Agent</Option>
           </Select>
         </Form.Item>
-
-        {/*<Form.Item*/}
-        {/*  label={i18n.formatMessage({ id: "instance.form.title.mode" })}*/}
-        {/*>*/}
-        {/*  <Space>*/}
-        {/*    <Form.Item*/}
-        {/*      name={"mode"}*/}
-        {/*      noStyle*/}
-        {/*      valuePropName="checked"*/}
-        {/*      initialValue={false}*/}
-        {/*    >*/}
-        {/*      <Switch*/}
-        {/*        onChange={(flag: boolean) => {*/}
-        {/*          if (flag) {*/}
-        {/*            instanceFormRef.current?.setFieldsValue({*/}
-        {/*              clusters: [""],*/}
-        {/*              replicaStatus: false,*/}
-        {/*            });*/}
-        {/*          }*/}
-        {/*        }}*/}
-        {/*      />*/}
-        {/*    </Form.Item>*/}
-        {/*    <Form.Item*/}
-        {/*      shouldUpdate={(prevValues, nextValues) =>*/}
-        {/*        prevValues.mode !== nextValues.mode*/}
-        {/*      }*/}
-        {/*      noStyle*/}
-        {/*    >*/}
-        {/*      {({ getFieldValue }) => (*/}
-        {/*        <span>*/}
-        {/*          {getFieldValue("mode")*/}
-        {/*            ? i18n.formatMessage({*/}
-        {/*                id: "instance.form.title.cluster",*/}
-        {/*              })*/}
-        {/*            : i18n.formatMessage({*/}
-        {/*                id: "instance.form.title.modeType.single",*/}
-        {/*              })}*/}
-        {/*        </span>*/}
-        {/*      )}*/}
-        {/*    </Form.Item>*/}
-
-        {/*    <Form.Item*/}
-        {/*      noStyle*/}
-        {/*      shouldUpdate={(prevValues, nextValues) =>*/}
-        {/*        prevValues.mode !== nextValues.mode*/}
-        {/*      }*/}
-        {/*    >*/}
-        {/*      {({ getFieldValue }) => {*/}
-        {/*        const mode = getFieldValue("mode");*/}
-        {/*        if (!mode) {*/}
-        {/*          return <></>;*/}
-        {/*        }*/}
-        {/*        return (*/}
-        {/*          <Form.Item*/}
-        {/*            label={i18n.formatMessage({*/}
-        {/*              id: "instance.form.title.replicaStatus",*/}
-        {/*            })}*/}
-        {/*            valuePropName="checked"*/}
-        {/*            name={"replicaStatus"}*/}
-        {/*            initialValue={false}*/}
-        {/*            style={{ marginBottom: 0, marginLeft: 200 }}*/}
-        {/*          >*/}
-        {/*            <Checkbox />*/}
-        {/*          </Form.Item>*/}
-        {/*        );*/}
-        {/*      }}*/}
-        {/*    </Form.Item>*/}
-        {/*  </Space>*/}
-        {/*</Form.Item>*/}
-        {/*<Form.Item*/}
-        {/*  noStyle*/}
-        {/*  shouldUpdate={(prevValues, nextValues) =>*/}
-        {/*    prevValues.mode !== nextValues.mode*/}
-        {/*  }*/}
-        {/*>*/}
-        {/*  {({ getFieldValue }) => {*/}
-        {/*    const mode = getFieldValue("mode");*/}
-        {/*    if (!mode) {*/}
-        {/*      return <></>;*/}
-        {/*    }*/}
-        {/*    return (*/}
-        {/*      <>*/}
-        {/*        <Form.List name="clusters">*/}
-        {/*          {(fields, { add, remove }, { errors }) => {*/}
-        {/*            return (*/}
-        {/*              <>*/}
-        {/*                {fields.map((field, index) => (*/}
-        {/*                  <Form.Item*/}
-        {/*                    key={field.key}*/}
-        {/*                    {...(index === 0*/}
-        {/*                      ? formItemLayout*/}
-        {/*                      : formItemLayoutWithOutLabel)}*/}
-        {/*                    required*/}
-        {/*                    label={*/}
-        {/*                      index === 0*/}
-        {/*                        ? i18n.formatMessage({*/}
-        {/*                            id: "instance.form.title.cluster",*/}
-        {/*                          })*/}
-        {/*                        : ""*/}
-        {/*                    }*/}
-        {/*                  >*/}
-        {/*                    <Form.Item*/}
-        {/*                      {...field}*/}
-        {/*                      validateTrigger={["onChange", "onBlur"]}*/}
-        {/*                      rules={[*/}
-        {/*                        {*/}
-        {/*                          required: true,*/}
-        {/*                          whitespace: true,*/}
-        {/*                          message: i18n.formatMessage({*/}
-        {/*                            id: "instance.form.placeholder.clusterName",*/}
-        {/*                          }),*/}
-        {/*                        },*/}
-        {/*                      ]}*/}
-        {/*                      noStyle*/}
-        {/*                    >*/}
-        {/*                      <Input*/}
-        {/*                        placeholder={i18n.formatMessage({*/}
-        {/*                          id: "instance.form.placeholder.clusterName",*/}
-        {/*                        })}*/}
-        {/*                        style={{ width: "90%", marginRight: "10px" }}*/}
-        {/*                      />*/}
-        {/*                    </Form.Item>*/}
-        {/*                    {fields.length > 1 ? (*/}
-        {/*                      <MinusCircleOutlined*/}
-        {/*                        className="dynamic-delete-button"*/}
-        {/*                        onClick={() => remove(field.name)}*/}
-        {/*                      />*/}
-        {/*                    ) : null}*/}
-        {/*                  </Form.Item>*/}
-        {/*                ))}*/}
-        {/*                <Form.Item {...formItemLayoutBtnLabel}>*/}
-        {/*                  <Button*/}
-        {/*                    type="dashed"*/}
-        {/*                    onClick={() => add()}*/}
-        {/*                    style={{ width: "100%" }}*/}
-        {/*                    icon={<PlusOutlined />}*/}
-        {/*                  >*/}
-        {/*                    {i18n.formatMessage({ id: "cluster.button.add" })}*/}
-        {/*                  </Button>*/}
-        {/*                  <Form.ErrorList errors={errors} />*/}
-        {/*                </Form.Item>*/}
-        {/*              </>*/}
-        {/*            );*/}
-        {/*          }}*/}
-        {/*        </Form.List>*/}
-        {/*      </>*/}
-        {/*    );*/}
-        {/*  }}*/}
-        {/*</Form.Item>*/}
-
         <Form.Item
           name={"dsn"}
           label={"DSN"}
@@ -434,7 +258,10 @@ const CreatedOrUpdatedInstanceModal = (
                   "clickhouse://username:password@host1:9000,host2:9000/database?dial_timeout=200ms&max_execution_time=60",
               }
             )}
-            onChange={() => setDisabledSubmit(true)}
+            onChange={() => {
+              console.log("datasource", sourceType)
+              setDisabledSubmit(true)}
+          }
             autoSize={{ minRows: 5, maxRows: 5 }}
             allowClear
           />

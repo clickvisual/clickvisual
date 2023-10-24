@@ -13,15 +13,17 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/agent"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/databend"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 type instanceManager struct {
@@ -44,7 +46,7 @@ func NewInstanceManager() *instanceManager {
 				core.LoggerError("ClickHouseX", "link", err)
 				continue
 			}
-			ch, err := inquiry.NewClickHouse(chDb, ds)
+			ch, err := clickhouse.NewClickHouse(chDb, ds)
 			if err != nil {
 				core.LoggerError("ClickHouseX", "new", err)
 				continue
@@ -56,7 +58,7 @@ func NewInstanceManager() *instanceManager {
 				core.LoggerError("Databend", "link", err)
 				continue
 			}
-			dd, err := inquiry.NewDatabend(databendDb, ds)
+			dd, err := databend.NewDatabend(databendDb, ds)
 			if err != nil {
 				core.LoggerError("Databend", "new", err)
 				continue
@@ -79,7 +81,7 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 		if err != nil {
 			return err
 		}
-		ch, err := inquiry.NewClickHouse(chDb, obj)
+		ch, err := clickhouse.NewClickHouse(chDb, obj)
 		if err != nil {
 			return err
 		}
@@ -89,16 +91,20 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 		if err != nil {
 			return err
 		}
-		dd, err := inquiry.NewDatabend(databendDb, obj)
+		dd, err := databend.NewDatabend(databendDb, obj)
 		if err != nil {
 			return err
 		}
 		i.dss.Store(obj.DsKey(), dd)
+	case db.DatasourceAgent:
+		a, _ := agent.NewFactoryAgent(obj.Dsn)
+		i.dss.Store(obj.DsKey(), a)
 	}
+
 	return nil
 }
 
-func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
+func (i *instanceManager) Load(id int) (factory.Operator, error) {
 	instance, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
 		return nil, err
@@ -116,20 +122,22 @@ func (i *instanceManager) Load(id int) (inquiry.Operator, error) {
 	}
 	switch instance.Datasource {
 	case db.DatasourceClickHouse:
-		return obj.(*inquiry.ClickHouseX), nil
+		return obj.(*clickhouse.ClickHouseX), nil
 	case db.DatasourceDatabend:
-		return obj.(*inquiry.Databend), nil
+		return obj.(*databend.Databend), nil
+	case db.DatasourceAgent:
+		return obj.(*agent.Agent), nil
 	}
 	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 }
 
-func (i *instanceManager) All() []inquiry.Operator {
-	res := make([]inquiry.Operator, 0)
+func (i *instanceManager) All() []factory.Operator {
+	res := make([]factory.Operator, 0)
 	i.dss.Range(func(key, obj interface{}) bool {
 		iid, _ := strconv.Atoi(key.(string))
 		instance, _ := db.InstanceInfo(invoker.Db, iid)
 		if instance.Datasource == db.DatasourceClickHouse {
-			res = append(res, obj.(*inquiry.ClickHouseX))
+			res = append(res, obj.(*clickhouse.ClickHouseX))
 		}
 		return true
 	})
@@ -229,10 +237,6 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		err = errors.New("data source configuration with duplicate name")
 		return
 	}
-	isCluster, _, isReplica, clusters, err := source.Instantiate(&source.Source{
-		DSN: req.Dsn,
-		Typ: db.Datasource2IntORM[req.Datasource],
-	}).ClusterInfo()
 	if err != nil {
 		return
 	}
@@ -243,16 +247,11 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		RuleStoreType:    req.RuleStoreType,
 		FilePath:         req.FilePath,
 		Desc:             req.Desc,
-		ClusterId:        req.ClusterId,
-		Namespace:        req.Namespace,
-		Configmap:        req.Configmap,
+		K8sClusterId:     req.ClusterId,
+		K8sNamespace:     req.Namespace,
+		K8sConfigmap:     req.Configmap,
 		PrometheusTarget: req.PrometheusTarget,
-		Mode:             isCluster,
-		Clusters:         clusters,
-	}
-	// status 0 has replica 1 no replica
-	if isReplica == 1 {
-		obj.Mode = 0
+		Clusters:         make(db.Strings, 0),
 	}
 	if req.PrometheusTarget != "" {
 		if err = Alert.PrometheusReload(req.PrometheusTarget); err != nil {

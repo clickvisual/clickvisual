@@ -7,22 +7,22 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // @Tags         BIGDATA
 func FolderCreate(c *core.Context) {
-	var req view.ReqCreateFolder
+	var req view2.ReqCreateFolder
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
@@ -32,7 +32,7 @@ func FolderCreate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	obj := &db.BigdataFolder{
+	obj := &db2.BigdataFolder{
 		Uid:        c.Uid(),
 		Name:       req.Name,
 		Desc:       req.Desc,
@@ -42,12 +42,12 @@ func FolderCreate(c *core.Context) {
 		Iid:        req.Iid,
 		WorkflowId: req.WorkflowId,
 	}
-	err := db.FolderCreate(invoker.Db, obj)
+	err := db2.FolderCreate(invoker.Db, obj)
 	if err != nil {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataFolderCreate, map[string]interface{}{"obj": obj})
+	event.Event.Pandas(c.User(), db2.OpnBigDataFolderCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK()
 }
 
@@ -58,12 +58,12 @@ func FolderUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	f, err := db.FolderInfo(invoker.Db, id)
+	f, err := db2.FolderInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(f.Iid),
@@ -73,7 +73,7 @@ func FolderUpdate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	var req view.ReqUpdateFolder
+	var req view2.ReqUpdateFolder
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
@@ -83,11 +83,11 @@ func FolderUpdate(c *core.Context) {
 	ups["desc"] = req.Desc
 	ups["parent_id"] = req.ParentId
 	ups["uid"] = c.Uid()
-	if err = db.FolderUpdate(invoker.Db, id, ups); err != nil {
+	if err = db2.FolderUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataFolderUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db2.OpnBigDataFolderUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -98,12 +98,12 @@ func FolderDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	f, err := db.FolderInfo(invoker.Db, id)
+	f, err := db2.FolderInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(f.Iid),
@@ -115,7 +115,7 @@ func FolderDelete(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["folder_id"] = id
-	ns, err := db.NodeList(conds)
+	ns, err := db2.NodeList(conds)
 	if err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
@@ -124,11 +124,11 @@ func FolderDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete: u should delete nodes first.", nil)
 		return
 	}
-	if err = db.FolderDelete(invoker.Db, id); err != nil {
+	if err = db2.FolderDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataFolderDelete, map[string]interface{}{"obj": f})
+	event.Event.Pandas(c.User(), db2.OpnBigDataFolderDelete, map[string]interface{}{"obj": f})
 	c.JSONOK()
 }
 
@@ -139,12 +139,12 @@ func FolderInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	f, err := db.FolderInfo(invoker.Db, id)
+	f, err := db2.FolderInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(f.Iid),
@@ -154,11 +154,11 @@ func FolderInfo(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	res := view.RespInfoFolder{
+	res := view2.RespInfoFolder{
 		BigdataFolder: f,
 	}
 	if res.Uid != 0 {
-		u, _ := db.UserInfo(f.Uid)
+		u, _ := db2.UserInfo(f.Uid)
 		res.UserName = u.Username
 		res.NickName = u.Nickname
 	}

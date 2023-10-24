@@ -79,7 +79,7 @@ var _hmt = _hmt || [];
                     },
                     {
                         text: "API",
-                        link: "https://clickvisual.gocn.vip/api",
+                        link: "https://clickvisual.net/api",
                     },
                     {
                         text: "GitHub",
@@ -103,7 +103,7 @@ var _hmt = _hmt || [];
                     },
                     {
                         text: "API",
-                        link: "https://clickvisual.gocn.vip/api",
+                        link: "https://clickvisual.net/api",
                     },
                     {
                         text: "GitHub",
@@ -144,6 +144,7 @@ var _hmt = _hmt || [];
                             title: "日志采集",
                             collapsable: false, // 可选的, 默认值是 true,
                             children: [
+                                "07collect/ilogtail",
                                 "07collect/fluent-bit-configuration-reference",
                                 "07collect/loggie-io",
                             ],

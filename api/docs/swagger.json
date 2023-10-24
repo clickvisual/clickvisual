@@ -521,6 +521,7 @@
                         "type": "integer"
                     },
                     "clusters": {
+                        "description": "Deprecated: Use real time data instead.",
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.Strings"
                     },
                     "configmap": {
@@ -553,7 +554,7 @@
                         "type": "integer"
                     },
                     "mode": {
-                        "description": "0 standalone 1 cluster",
+                        "description": "Deprecated: Use real time data instead.",
                         "type": "integer"
                     },
                     "name": {
@@ -569,7 +570,7 @@
                         "type": "string"
                     },
                     "replicaStatus": {
-                        "description": "status 0 has replica 1 no replica",
+                        "description": "Deprecated: Use real time data instead.",
                         "type": "integer"
                     },
                     "ruleStoreType": {
@@ -604,6 +605,7 @@
             "github.com_clickvisual_clickvisual_api_pkg_model_db.BaseTable": {
                 "properties": {
                     "anyJSON": {
+                        "description": "Deprecated: use base_table_attach instead",
                         "type": "string"
                     },
                     "brokers": {
@@ -625,7 +627,7 @@
                         "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseDatabase"
                     },
                     "days": {
-                        "description": "data expire days",
+                        "description": "ClickHouse setting",
                         "type": "integer"
                     },
                     "desc": {
@@ -642,6 +644,7 @@
                         "type": "integer"
                     },
                     "isKafkaTimestamp": {
+                        "description": "Deprecated: use CreateType instead",
                         "type": "integer"
                     },
                     "kafkaSkipBrokenMessages": {
@@ -655,31 +658,30 @@
                         "type": "string"
                     },
                     "selectFields": {
-                        "description": "text",
+                        "description": "Deprecated: use base_table_attach instead",
                         "type": "string"
                     },
                     "sqlData": {
-                        "description": "sql_data",
+                        "description": "Deprecated: use base_table_attach instead",
                         "type": "string"
                     },
                     "sqlDistributed": {
-                        "description": "sql_distributed",
+                        "description": "Deprecated: use base_table_attach instead",
                         "type": "string"
                     },
                     "sqlStream": {
-                        "description": "sql_stream",
+                        "description": "Deprecated: use base_table_attach instead",
                         "type": "string"
                     },
                     "sqlView": {
-                        "description": "sql_view",
+                        "description": "Deprecated: use base_table_attach instead",
                         "type": "string"
                     },
                     "timeField": {
-                        "description": "custom time filed name of _time_",
                         "type": "string"
                     },
                     "timeFieldType": {
-                        "description": "custom time filed type name of _time_",
+                        "description": "time field type: 0 DateTime 1 second 2 ms 3 DataTime64(3)",
                         "type": "integer"
                     },
                     "topic": {
@@ -687,10 +689,11 @@
                         "type": "string"
                     },
                     "traceTableId": {
+                        "description": "associated trace table id",
                         "type": "integer"
                     },
                     "typ": {
-                        "description": "table type, 1 string 2 float",
+                        "description": "base attribute",
                         "type": "integer"
                     },
                     "uid": {
@@ -701,7 +704,7 @@
                         "type": "integer"
                     },
                     "v3TableType": {
-                        "description": "0 default 1 jaegerJson",
+                        "description": "Deprecated: use CreateType instead",
                         "type": "integer"
                     }
                 },
@@ -2378,6 +2381,9 @@
                     "RawLogField": {
                         "type": "string"
                     },
+                    "RawLogFieldParent": {
+                        "type": "string"
+                    },
                     "Source": {
                         "description": "Raw JSON data",
                         "type": "string"
@@ -2389,6 +2395,9 @@
                         "type": "string"
                     },
                     "TimeField": {
+                        "type": "string"
+                    },
+                    "TimeFieldParent": {
                         "type": "string"
                     },
                     "Topics": {
@@ -3342,6 +3351,36 @@
                 "title": "RespInfoNode",
                 "type": "object"
             },
+            "github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstance": {
+                "properties": {
+                    "clusterInfo": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "clusters": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "desc": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "mode": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "title": "RespInstance",
+                "type": "object"
+            },
             "github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstanceSimple": {
                 "properties": {
                     "databases": {
@@ -3904,6 +3943,9 @@
                     "id": {
                         "type": "integer"
                     },
+                    "orderField": {
+                        "type": "string"
+                    },
                     "rootName": {
                         "type": "string"
                     },
@@ -3941,6 +3983,9 @@
             "github.com_clickvisual_clickvisual_api_pkg_utils_mapping.Item": {
                 "properties": {
                     "key": {
+                        "type": "string"
+                    },
+                    "parent": {
                         "type": "string"
                     },
                     "value": {
@@ -8353,7 +8398,7 @@
                                         },
                                         "data": {
                                             "items": {
-                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_db.BaseInstance"
+                                                "$ref": "#/components/schemas/github.com_clickvisual_clickvisual_api_pkg_model_view.RespInstance"
                                             },
                                             "type": "array"
                                         },
@@ -8851,7 +8896,7 @@
                     },
                     {
                         "in": "query",
-                        "name": "filters",
+                        "name": "filters[]",
                         "schema": {
                             "items": {
                                 "type": "string"
@@ -9097,7 +9142,7 @@
                     },
                     {
                         "in": "query",
-                        "name": "filters",
+                        "name": "filters[]",
                         "schema": {
                             "items": {
                                 "type": "string"
@@ -9264,7 +9309,7 @@
                     },
                     {
                         "in": "query",
-                        "name": "filters",
+                        "name": "filters[]",
                         "schema": {
                             "items": {
                                 "type": "string"

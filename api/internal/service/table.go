@@ -3,18 +3,17 @@ package service
 import (
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils/mapping"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/utils/mapping"
 )
 
 func TableViewIsPermission(uid, iid, tid int) bool {
@@ -28,7 +27,7 @@ func TableViewIsPermission(uid, iid, tid int) bool {
 
 func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 	// check database permission
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      uid,
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -54,25 +53,15 @@ func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 	return false
 }
 
-// 判断日志库类型
-func decideCreateType(param view.ReqStorageCreate) int {
-	for _, m := range param.SourceMapping.Data {
-		if strings.Contains(m.Value, "JSON") {
-			return constx.TableCreateTypeJSONAsString
-		}
-	}
-	if param.RawLogField == "" {
-		return constx.TableCreateTypeJSONAsString
-	}
-	return constx.TableCreateTypeJSONEachRow
+func IsCheckInner(createType int) bool {
+	return createType == constx.TableCreateTypeJSONAsString
 }
 
-func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (tableInfo db.BaseTable, err error) {
-	param.SourceMapping, err = mapping.Handle(param.Source)
+func StorageCreate(uid int, databaseInfo db2.BaseDatabase, param view2.ReqStorageCreate) (tableInfo db2.BaseTable, err error) {
+	param.SourceMapping, err = mapping.Handle(param.Source, IsCheckInner(param.CreateType))
 	if err != nil {
 		return
 	}
-	param.CreateType = decideCreateType(param)
 	if err = json.Unmarshal([]byte(param.Source), &param.SourceMapping); err != nil {
 		return
 	}
@@ -80,15 +69,25 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	if err != nil {
 		return
 	}
-	s, d, v, a, err := op.CreateStorage(databaseInfo.ID, databaseInfo, param)
+	var (
+		s string
+		d string
+		v string
+		a string
+	)
+	if param.CreateType == constx.TableCreateTypeJSONAsString {
+		s, d, v, a, err = op.CreateStorageJSONAsString(databaseInfo, param)
+	} else {
+		s, d, v, a, err = op.CreateStorage(databaseInfo.ID, databaseInfo, param)
+	}
 	if err != nil {
 		err = errors.Wrap(err, "storage create failed")
 		return
 	}
-	tableInfo = db.BaseTable{
+	tableInfo = db2.BaseTable{
 		Did:                     databaseInfo.ID,
 		Name:                    param.TableName,
-		Typ:                     param.Typ,
+		TimeFieldKind:           param.Typ,
 		Days:                    param.Days,
 		Brokers:                 param.Brokers,
 		Topic:                   param.Topics,
@@ -101,22 +100,24 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 		CreateType:              param.CreateType,
 		Uid:                     uid,
 		RawLogField:             param.RawLogField,
-		TimeField:               db.TimeFieldSecond,
+		TimeField:               db2.TimeFieldSecond,
 		SelectFields:            param.SelectFields(),
 		AnyJSON:                 param.JSON(),
 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
 	}
 	tx := invoker.Db.Begin()
-	err = db.TableCreate(tx, &tableInfo)
+	err = db2.TableCreate(tx, &tableInfo)
 	if err != nil {
 		tx.Rollback()
-		err = errors.Wrap(err, "create failed 02:")
+		err = errors.WithMessage(err, "TableCreateFailed")
 		return
 	}
 	if param.CreateType == constx.TableCreateTypeJSONAsString || param.CreateType == constx.TableCreateTypeJSONEachRow {
 		columns, errListColumn := op.ListColumn(databaseInfo.Name, param.TableName, false)
 		if errListColumn != nil {
-			return tableInfo, errListColumn
+			tx.Rollback()
+			err = errors.WithMessage(errListColumn, "ListColumn")
+			return tableInfo, err
 		}
 		for _, col := range columns {
 			if col.Type < 0 || col.Type == 3 {
@@ -125,7 +126,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 			if col.Name == "_raw_log_" {
 				continue
 			}
-			err = db.IndexCreate(tx, &db.BaseIndex{
+			err = db2.IndexCreate(tx, &db2.BaseIndex{
 				Tid:      tableInfo.ID,
 				Field:    col.Name,
 				Typ:      col.Type,
@@ -135,6 +136,7 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 			})
 			if err != nil {
 				tx.Rollback()
+				err = errors.WithMessage(err, "IndexCreateFailed")
 				return tableInfo, err
 			}
 		}
@@ -144,70 +146,3 @@ func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageC
 	}
 	return tableInfo, nil
 }
-
-//
-// func StorageCreateV3(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreateV3) (tableInfo db.BaseTable, err error) {
-// 	op, err := InstanceManager.Load(databaseInfo.Iid)
-// 	if err != nil {
-// 		return
-// 	}
-// 	var s, d, v, a = "", "", "", ""
-// 	var names []string
-// 	var sqls []string
-// 	switch param.CreateType {
-// 	case constx.TableCreateTypeBufferNullDataPipe:
-// 		names, sqls, err = op.CreateBufferNullDataPipe(db.ReqCreateBufferNullDataPipe{
-// 			Cluster:  databaseInfo.Cluster,
-// 			Database: databaseInfo.Name,
-// 			TableName:    param.TableName,
-// 			TTL:      param.Days,
-// 		})
-// 		if err != nil {
-// 			return
-// 		}
-// 	default:
-// 		s, d, v, a, err = op.CreateStorageV3(databaseInfo.ID, databaseInfo, param)
-// 		if err != nil {
-// 			return
-// 		}
-// 	}
-// 	tableInfo = db.BaseTable{
-// 		Did:                     databaseInfo.ID,
-// 		Name:                    param.TableName,
-// 		Typ:                     param.TimeFieldType,
-// 		Days:                    param.Days,
-// 		Brokers:                 param.Brokers,
-// 		Topic:                   param.Topics,
-// 		Desc:                    param.Desc,
-// 		SqlData:                 d,
-// 		SqlStream:               s,
-// 		SqlView:                 v,
-// 		SqlDistributed:          a,
-// 		CreateType:              param.CreateType,
-// 		Uid:                     uid,
-// 		TimeField:               param.TimeField,
-// 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
-// 		V3TableType:             param.V3TableType,
-// 		IsKafkaTimestamp:        param.IsKafkaTimestamp,
-// 	}
-// 	tx := invoker.Db.Begin()
-// 	err = db.TableCreate(tx, &tableInfo)
-// 	if err != nil {
-// 		tx.Rollback()
-// 		err = errors.Wrap(err, "create failed 02:")
-// 		return
-// 	}
-// 	tableAttach := db.BaseTableAttach{
-// 		Tid:   tableInfo.ID,
-// 		SQLs:  sqls,
-// 		Names: names,
-// 	}
-// 	if err = tableAttach.Create(tx); err != nil {
-// 		tx.Rollback()
-// 		return
-// 	}
-// 	if err = tx.Commit().Error; err != nil {
-// 		return tableInfo, err
-// 	}
-// 	return tableInfo, nil
-// }

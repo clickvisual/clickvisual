@@ -12,14 +12,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/api"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/configure"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // List 配置文件列表
@@ -41,7 +41,7 @@ func List(c *core.Context) {
 		condsKCM["name"] = param.K8SConfigMapName
 		condsKCM["cluster_id"] = param.ClusterId
 		condsKCM["namespace"] = param.K8SConfigMapNamespace
-		kcm, _ := db.K8SConfigMapInfoX(condsKCM)
+		kcm, _ := db2.K8SConfigMapInfoX(condsKCM)
 		if kcm.ID == 0 {
 			c.JSONOK(resp)
 			return
@@ -50,7 +50,7 @@ func List(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["k8s_cm_id"] = param.K8SConfigMapId
-	list, err := db.ConfigurationList(conds)
+	list, err := db2.ConfigurationList(conds)
 	if err != nil {
 		c.JSONE(1, "permission verification failed", err)
 		return
@@ -77,7 +77,7 @@ func Detail(c *core.Context) {
 		c.JSONE(1, "error cluster id", nil)
 		return
 	}
-	configuration, err := db.ConfigurationInfo(id)
+	configuration, err := db2.ConfigurationInfo(id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
@@ -92,7 +92,7 @@ func Detail(c *core.Context) {
 		PublishTime: configuration.PublishTime,
 	}
 	if configuration.LockUid != 0 {
-		user, _ := db.UserInfo(configuration.LockUid)
+		user, _ := db2.UserInfo(configuration.LockUid)
 		resp.CurrentEditUser = &user
 	}
 	c.JSONOK(resp)
@@ -112,7 +112,7 @@ func Create(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.ConfigCMDB(c.User(), db.OpnConfigsCreate, map[string]interface{}{"params": param})
+	event.Event.ConfigCMDB(c.User(), db2.OpnConfigsCreate, map[string]interface{}{"params": param})
 	c.JSONOK()
 }
 
@@ -131,7 +131,7 @@ func Update(c *core.Context) {
 		return
 	}
 	param.ID = id
-	var configuration db.Configuration
+	var configuration db2.Configuration
 	err = invoker.Db.Where("id = ?", param.ID).First(&configuration).Error
 	if err != nil || configuration.ID == 0 {
 		c.JSONE(1, "can not get the configuration information", err)
@@ -147,7 +147,7 @@ func Update(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.ConfigCMDB(c.User(), db.OpnConfigsUpdate, map[string]interface{}{"params": param})
+	event.Event.ConfigCMDB(c.User(), db2.OpnConfigsUpdate, map[string]interface{}{"params": param})
 	c.JSONOK()
 }
 
@@ -166,7 +166,7 @@ func Publish(c *core.Context) {
 		return
 	}
 	param.ID = id
-	var configuration db.Configuration
+	var configuration db2.Configuration
 	err = invoker.Db.Where("id = ?", param.ID).First(&configuration).Error
 	if err != nil || configuration.ID == 0 {
 		c.JSONE(1, "failed to get configuration information", nil)
@@ -177,7 +177,7 @@ func Publish(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.ConfigCMDB(c.User(), db.OpnConfigsPublish, map[string]interface{}{"params": param})
+	event.Event.ConfigCMDB(c.User(), db2.OpnConfigsPublish, map[string]interface{}{"params": param})
 	c.JSONOK("succ")
 }
 
@@ -189,13 +189,13 @@ func HistoryList(c *core.Context) {
 		c.JSONE(1, "error cluster id", nil)
 		return
 	}
-	param := db.ReqPage{}
+	param := db2.ReqPage{}
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	total, list := db.ConfigurationHistoryListPage(egorm.Conds{"configuration_id": id}, &param)
+	total, list := db2.ConfigurationHistoryListPage(egorm.Conds{"configuration_id": id}, &param)
 	resp := make([]view.RespHistoryConfigItem, 0)
 	for _, item := range list {
 		configItem := view.RespHistoryConfigItem{
@@ -207,7 +207,7 @@ func HistoryList(c *core.Context) {
 			ChangeLog:       item.ChangeLog,
 		}
 		configItem.UID = item.Uid
-		user, _ := db.UserInfo(item.Uid)
+		user, _ := db2.UserInfo(item.Uid)
 		configItem.UserName = user.Nickname
 		resp = append(resp, configItem)
 	}
@@ -231,7 +231,7 @@ func HistoryInfo(c *core.Context) {
 	conds := egorm.Conds{}
 	conds["configuration_id"] = id
 	conds["version"] = version
-	resp, err := db.ConfigurationHistoryInfoX(conds)
+	resp, err := db2.ConfigurationHistoryInfoX(conds)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
@@ -270,13 +270,13 @@ func Delete(c *core.Context) {
 		c.JSONE(1, "error param id", nil)
 		return
 	}
-	configInfo, _ := db.ConfigurationInfo(id)
+	configInfo, _ := db2.ConfigurationInfo(id)
 	err := configure.Configure.Delete(c, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.ConfigCMDB(c.User(), db.OpnConfigsDelete, map[string]interface{}{"configInfo": configInfo})
+	event.Event.ConfigCMDB(c.User(), db2.OpnConfigsDelete, map[string]interface{}{"configInfo": configInfo})
 	c.JSONOK()
 }
 
@@ -287,7 +287,7 @@ func Lock(c *core.Context) {
 		c.JSONE(1, "error param id", nil)
 		return
 	}
-	var configuration db.Configuration
+	var configuration db2.Configuration
 	err := invoker.Db.Where("id = ?", id).First(&configuration).Error
 	if err != nil || configuration.ID == 0 {
 		c.JSONE(1, "failed to get configuration information", nil)
@@ -351,12 +351,12 @@ func Sync(c *core.Context) {
 	cm := *(obj.(*corev1.ConfigMap))
 	elog.Debug("sync", elog.String("step", "cm"), elog.Any("cm", cm))
 
-	k8sCMObject := db.K8SConfigMap{
+	k8sCMObject := db2.K8SConfigMap{
 		ClusterId: param.ClusterId,
 		Name:      param.K8SConfigMapName,
 		Namespace: param.K8SConfigMapNamespace,
 	}
-	k8sCM, err := db.K8SConfigMapLoadOrSave(tx, &k8sCMObject)
+	k8sCM, err := db2.K8SConfigMapLoadOrSave(tx, &k8sCMObject)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "cluster data acquisition failed", err)
@@ -382,8 +382,8 @@ func Sync(c *core.Context) {
 		conds["name"] = name
 		conds["format"] = format
 		conds["k8s_cm_id"] = param.K8SConfigMapId
-		var configuration db.Configuration
-		configuration, err = db.ConfigurationInfoX(conds)
+		var configuration db2.Configuration
+		configuration, err = db2.ConfigurationInfoX(conds)
 		if err != nil {
 			continue
 		}
@@ -422,6 +422,6 @@ func Sync(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.ConfigCMDB(c.User(), db.OpnConfigsSync, map[string]interface{}{"param": param})
+	event.Event.ConfigCMDB(c.User(), db2.OpnConfigsSync, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 }

@@ -10,24 +10,24 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/node"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // @Tags         BIGDATA
 func NodeCreate(c *core.Context) {
-	var req view.ReqCreateNode
+	var req view2.ReqCreateNode
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
@@ -38,7 +38,7 @@ func NodeCreate(c *core.Context) {
 		return
 	}
 	tx := invoker.Db.Begin()
-	obj := &db.BigdataNode{
+	obj := &db2.BigdataNode{
 		Uid:        c.Uid(),
 		Iid:        req.Iid,
 		FolderID:   req.FolderId,
@@ -52,13 +52,13 @@ func NodeCreate(c *core.Context) {
 		LockUid:    0,
 		LockAt:     0,
 	}
-	err := db.NodeCreate(tx, obj)
+	err := db2.NodeCreate(tx, obj)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	if err = db.NodeContentCreate(tx, &db.BigdataNodeContent{
+	if err = db2.NodeContentCreate(tx, &db2.BigdataNodeContent{
 		NodeId:  obj.ID,
 		Content: req.Content,
 	}); err != nil {
@@ -70,7 +70,7 @@ func NodeCreate(c *core.Context) {
 		c.JSONE(1, "create failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeCreate, map[string]interface{}{"obj": obj})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeCreate, map[string]interface{}{"obj": obj})
 	c.JSONOK(obj)
 }
 
@@ -81,12 +81,12 @@ func NodeUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, id)
+	n, err := db2.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -96,7 +96,7 @@ func NodeUpdate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	var req view.ReqUpdateNode
+	var req view2.ReqUpdateNode
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
@@ -122,7 +122,7 @@ func NodeUpdate(c *core.Context) {
 	// create node content history
 	onlyId := uuid.New().String()
 	ups["uuid"] = onlyId
-	if err = db.NodeUpdate(tx, id, ups); err != nil {
+	if err = db2.NodeUpdate(tx, id, ups); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
@@ -130,12 +130,12 @@ func NodeUpdate(c *core.Context) {
 
 	upsContent := make(map[string]interface{}, 0)
 	upsContent["content"] = req.Content
-	if err = db.NodeContentUpdate(tx, id, upsContent); err != nil {
+	if err = db2.NodeContentUpdate(tx, id, upsContent); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	if err = db.NodeHistoryCreate(tx, &db.BigdataNodeHistory{
+	if err = db2.NodeHistoryCreate(tx, &db2.BigdataNodeHistory{
 		UUID:    onlyId,
 		NodeId:  id,
 		Content: req.Content,
@@ -149,7 +149,7 @@ func NodeUpdate(c *core.Context) {
 		c.JSONE(1, "update failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeUpdate, map[string]interface{}{"obj": req})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeUpdate, map[string]interface{}{"obj": req})
 	c.JSONOK()
 }
 
@@ -160,12 +160,12 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, id)
+	n, err := db2.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -175,23 +175,23 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	if n.Status == db.NodeStatusHandler {
-		u, _ := db.UserInfo(n.LockUid)
+	if n.Status == db2.NodeStatusHandler {
+		u, _ := db2.UserInfo(n.LockUid)
 		c.JSONE(1, fmt.Sprintf("node %s is running by %s", n.Name, u.Nickname), nil)
 		return
 	}
 	if n.LockUid != c.Uid() {
-		u, _ := db.UserInfo(n.LockUid)
+		u, _ := db2.UserInfo(n.LockUid)
 		c.JSONE(1, fmt.Sprintf("node %s is editing by %s", n.Name, u.Nickname), nil)
 		return
 	}
 	tx := invoker.Db.Begin()
-	if err = db.NodeDelete(tx, id); err != nil {
+	if err = db2.NodeDelete(tx, id); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
-	if err = db.NodeContentDelete(tx, id); err != nil {
+	if err = db2.NodeContentDelete(tx, id); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
@@ -200,7 +200,7 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, "delete failed: "+err.Error(), nil)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeDelete, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeDelete, map[string]interface{}{"obj": n})
 
 	c.JSONOK()
 }
@@ -212,12 +212,12 @@ func NodeInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, id)
+	n, err := db2.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -227,12 +227,12 @@ func NodeInfo(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
+	nc, err := db2.NodeContentInfo(invoker.Db, n.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res := view.RespInfoNode{
+	res := view2.RespInfoNode{
 		Id:      n.ID,
 		Name:    n.Name,
 		Desc:    n.Desc,
@@ -243,7 +243,7 @@ func NodeInfo(c *core.Context) {
 		Result:  nc.Result,
 	}
 	if res.LockUid != 0 {
-		u, _ := db.UserInfo(res.LockUid)
+		u, _ := db2.UserInfo(res.LockUid)
 		res.Username = u.Username
 		res.Nickname = u.Nickname
 	}
@@ -257,13 +257,13 @@ func NodeLock(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var n db.BigdataNode
+	var n db2.BigdataNode
 	err := invoker.Db.Where("id = ?", id).First(&n).Error
 	if err != nil || n.ID == 0 {
 		c.JSONE(1, "failed to get information", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -278,7 +278,7 @@ func NodeLock(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeLock, map[string]interface{}{"obj": n})
 	c.JSONOK()
 }
 
@@ -289,13 +289,13 @@ func NodeUnlock(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var n db.BigdataNode
+	var n db2.BigdataNode
 	err := invoker.Db.Where("id = ?", id).First(&n).Error
 	if err != nil || n.ID == 0 {
 		c.JSONE(1, "failed to get information", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -310,19 +310,19 @@ func NodeUnlock(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeUnlock, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeUnlock, map[string]interface{}{"obj": n})
 
 	c.JSONOK()
 }
 
 // @Tags         BIGDATA
 func NodeList(c *core.Context) {
-	var req view.ReqListNode
+	var req view2.ReqListNode
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(req.Iid),
@@ -341,37 +341,37 @@ func NodeList(c *core.Context) {
 	if req.WorkflowId != 0 {
 		conds["workflow_id"] = req.WorkflowId
 	}
-	fs, err := db.FolderList(conds)
+	fs, err := db2.FolderList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	// no folder node
 	conds["folder_id"] = 0
-	nsnf, _ := db.NodeList(conds)
+	nsnf, _ := db2.NodeList(conds)
 	// root
-	res := view.RespListFolder{
+	res := view2.RespListFolder{
 		Id:       0,
 		Name:     "root",
 		Desc:     "",
 		ParentId: -1,
-		Children: make([]view.RespListFolder, 0),
+		Children: make([]view2.RespListFolder, 0),
 		Nodes:    nsnf,
 	}
 	// level 1
-	level1children := make(map[int][]view.RespListFolder)
+	level1children := make(map[int][]view2.RespListFolder)
 	for _, f := range fs {
 		// query nodes
 		condsNs := egorm.Conds{}
 		condsNs["folder_id"] = f.ID
-		ns, _ := db.NodeList(condsNs)
+		ns, _ := db2.NodeList(condsNs)
 		// build item
-		item := view.RespListFolder{
+		item := view2.RespListFolder{
 			Id:        f.ID,
 			Name:      f.Name,
 			Desc:      f.Desc,
 			ParentId:  f.ParentId,
-			Children:  make([]view.RespListFolder, 0),
+			Children:  make([]view2.RespListFolder, 0),
 			Nodes:     ns,
 			Primary:   f.Primary,
 			Secondary: f.Secondary,
@@ -398,12 +398,12 @@ func NodeRun(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, id)
+	n, err := db2.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -413,7 +413,7 @@ func NodeRun(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeRun, map[string]interface{}{"obj": n})
 	res, err := node.Run(id, c.Uid())
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), res)
@@ -429,12 +429,12 @@ func NodeStop(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	n, err := db.NodeInfo(invoker.Db, id)
+	n, err := db2.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -445,11 +445,11 @@ func NodeStop(c *core.Context) {
 		return
 	}
 	if n.LockUid != c.Uid() {
-		u, _ := db.UserInfo(n.LockUid)
+		u, _ := db2.UserInfo(n.LockUid)
 		c.JSONE(1, fmt.Sprintf("%s is editing %s", u.Nickname, n.Name), nil)
 		return
 	}
-	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
+	nc, err := db2.NodeContentInfo(invoker.Db, n.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -459,13 +459,13 @@ func NodeStop(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	afterNodeInfo, err := db.NodeInfo(invoker.Db, id)
+	afterNodeInfo, err := db2.NodeInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
 	res.Status = afterNodeInfo.Status
-	event.Event.Pandas(c.User(), db.OpnBigDataNodeStop, map[string]interface{}{"obj": n})
+	event.Event.Pandas(c.User(), db2.OpnBigDataNodeStop, map[string]interface{}{"obj": n})
 	c.JSONOK(res)
 }
 
@@ -476,18 +476,18 @@ func NodeHistoryInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	nh, err := db.NodeHistoryInfo(invoker.Db, id)
+	nh, err := db2.NodeHistoryInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	var n db.BigdataNode
+	var n db2.BigdataNode
 	err = invoker.Db.Where("id = ?", nh.NodeId).First(&n).Error
 	if err != nil || n.ID == 0 {
 		c.JSONE(1, "failed to get information", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -507,13 +507,13 @@ func NodeHistoryListPage(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var n db.BigdataNode
+	var n db2.BigdataNode
 	err := invoker.Db.Where("id = ?", id).First(&n).Error
 	if err != nil || n.ID == 0 {
 		c.JSONE(1, "failed to get information", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(n.Iid),
@@ -523,20 +523,20 @@ func NodeHistoryListPage(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	var req view.ReqNodeHistoryList
+	var req view2.ReqNodeHistoryList
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "请求参数错误. "+err.Error(), nil)
 		return
 	}
-	total, nhl := db.NodeHistoryListPage(egorm.Conds{"node_id": id}, &db.ReqPage{
+	total, nhl := db2.NodeHistoryListPage(egorm.Conds{"node_id": id}, &db2.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
 
-	list := make([]view.NodeHistoryItem, 0)
+	list := make([]view2.NodeHistoryItem, 0)
 	for _, nh := range nhl {
-		u, _ := db.UserInfo(nh.Uid)
-		list = append(list, view.NodeHistoryItem{
+		u, _ := db2.UserInfo(nh.Uid)
+		list = append(list, view2.NodeHistoryItem{
 			UUID:     nh.UUID,
 			Utime:    nh.Utime,
 			Uid:      nh.Uid,
@@ -544,7 +544,7 @@ func NodeHistoryListPage(c *core.Context) {
 			Nickname: u.Nickname,
 		})
 	}
-	c.JSONPage(view.RespNodeHistoryList{
+	c.JSONPage(view2.RespNodeHistoryList{
 		Total: total,
 		List:  list,
 	}, core.Pagination{
@@ -561,13 +561,13 @@ func NodeResultInfo(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	nr, err := db.NodeResultInfo(invoker.Db, id)
+	nr, err := db2.NodeResultInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	nodeInfo, _ := db.NodeInfo(invoker.Db, nr.NodeId)
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	nodeInfo, _ := db2.NodeInfo(invoker.Db, nr.NodeId)
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(nodeInfo.Iid),

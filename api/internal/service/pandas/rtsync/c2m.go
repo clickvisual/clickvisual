@@ -6,10 +6,10 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/source"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
+	"github.com/clickvisual/clickvisual/api/internal/service/source"
 )
 
 type ClickHouse2MySQL struct {
@@ -23,10 +23,10 @@ type ClickHouse2MySQL struct {
 // Drop Materialized View -> MySQL engine
 func (c *ClickHouse2MySQL) Stop() error {
 	var (
-		ins db.BaseInstance
+		ins db2.BaseInstance
 		err error
 	)
-	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
+	if ins, err = db2.InstanceInfo(invoker.Db, c.iid); err != nil {
 		elog.Error("ClickHouse2MySQL", elog.String("step", "instanceInfo"), elog.String("error", err.Error()))
 		return err
 	}
@@ -42,11 +42,11 @@ func (c *ClickHouse2MySQL) Stop() error {
 // ENGINE = MySQL('host:port', 'database', 'user', 'password')
 func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 	var (
-		ins db.BaseInstance
+		ins db2.BaseInstance
 		err error
 	)
 	c.involvedSQLs = make(map[string]string)
-	if ins, err = db.InstanceInfo(invoker.Db, c.iid); err != nil {
+	if ins, err = db2.InstanceInfo(invoker.Db, c.iid); err != nil {
 		return c.involvedSQLs, err
 	}
 	if err = c.mysqlEngineDatabase(ins, c.sc); err != nil {
@@ -80,9 +80,9 @@ func (c *ClickHouse2MySQL) Run() (map[string]string, error) {
 	return c.involvedSQLs, err
 }
 
-func (c *ClickHouse2MySQL) materializedView(ins db.BaseInstance) error {
+func (c *ClickHouse2MySQL) materializedView(ins db2.BaseInstance) error {
 	viewClusterInfo := materialView(c.sc)
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		viewClusterInfo = fmt.Sprintf("%s ON CLUSTER '%s'", viewClusterInfo, c.sc.Cluster())
 	}
 	// Deletes the materialized view from the last execution
@@ -100,7 +100,7 @@ func (c *ClickHouse2MySQL) materializedView(ins db.BaseInstance) error {
 
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
+		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }
 
@@ -108,7 +108,7 @@ func (c *ClickHouse2MySQL) execTargetSQL(sql string) error {
 	if sql == "" {
 		return nil
 	}
-	mysqlTarget, err := db.SourceInfo(invoker.Db, c.sc.Target.SourceId)
+	mysqlTarget, err := db2.SourceInfo(invoker.Db, c.sc.Target.SourceId)
 	if err != nil {
 		return err
 	}
@@ -116,17 +116,17 @@ func (c *ClickHouse2MySQL) execTargetSQL(sql string) error {
 		URL:      mysqlTarget.URL,
 		UserName: mysqlTarget.UserName,
 		Password: mysqlTarget.Password,
-		Typ:      db.SourceTypMySQL,
+		Typ:      db2.SourceTypMySQL,
 	}).Exec(sql)
 }
 
-func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db.BaseInstance, sc *view.SyncContent) (err error) {
+func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db2.BaseInstance, sc *view.SyncContent) (err error) {
 	// 创建在 clickhouse 中的表是否对用户可见？如果不可见，涉及集群操作，默认采用第一集群？
 	dbNameClusterInfo := mysqlEngineDatabaseName(sc)
-	if ins.Mode == inquiry.ModeCluster {
+	if ins.Mode == clickhouse.ModeCluster {
 		dbNameClusterInfo = fmt.Sprintf("`%s` ON CLUSTER '%s'", dbNameClusterInfo, sc.Cluster())
 	}
-	s, err := db.SourceInfo(invoker.Db, sc.Target.SourceId)
+	s, err := db2.SourceInfo(invoker.Db, sc.Target.SourceId)
 	if err != nil {
 		return
 	}
@@ -140,6 +140,6 @@ func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db.BaseInstance, sc *view.Syn
 	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
 	return source.Instantiate(&source.Source{
 		DSN: ins.Dsn,
-		Typ: db.SourceTypClickHouse,
+		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }

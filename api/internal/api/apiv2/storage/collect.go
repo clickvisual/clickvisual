@@ -5,9 +5,9 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
 )
 
 // CreateCollect godoc
@@ -19,13 +19,13 @@ import (
 // @Success      200 {object} core.Res{data=db.ReqCreateCollect}
 // @Router       /api/v2/storage/collects [post]
 func CreateCollect(c *core.Context) {
-	params := db.ReqCreateCollect{}
+	params := db2.ReqCreateCollect{}
 	err := c.Bind(&params)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	m := db.Collect{
+	m := db2.Collect{
 		Uid:         c.Uid(),
 		TableId:     params.TableId,
 		Alias:       params.Alias,
@@ -55,19 +55,19 @@ func UpdateCollect(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req db.ReqUpdateCollect
+	var req db2.ReqUpdateCollect
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	currentCollect := db.Collect{}
+	currentCollect := db2.Collect{}
 	currentCollect.ID = id
 	if err := currentCollect.Info(invoker.Db); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
 	if currentCollect.Uid != c.Uid() {
-		c.JSONE(1, db.ErrCollectCreator.Error(), db.ErrCollectCreator)
+		c.JSONE(1, db2.ErrCollectCreator.Error(), db2.ErrCollectCreator)
 		return
 	}
 	// just mysql record update
@@ -79,17 +79,17 @@ func UpdateCollect(c *core.Context) {
 		ups["alias"] = req.Alias
 		ups["statement"] = req.Statement
 	} else {
-		c.JSONE(1, db.ErrCollectUpdateParams.Error(), db.ErrCollectUpdateParams)
+		c.JSONE(1, db2.ErrCollectUpdateParams.Error(), db2.ErrCollectUpdateParams)
 		return
 	}
 
-	m := db.Collect{}
+	m := db2.Collect{}
 	m.ID = id
 	if err := m.Update(invoker.Db, ups); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -103,16 +103,16 @@ func UpdateCollect(c *core.Context) {
 // @Success      200 {object} core.Res{data=db.RespListCollect}
 // @Router       /api/v2/storage/collects [get]
 func ListCollect(c *core.Context) {
-	var req db.ReqListCollect
+	var req db2.ReqListCollect
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "request parameter error: "+err.Error(), nil)
 		return
 	}
-	if req.CollectType&db.CollectTypeQuery == db.CollectTypeQuery {
+	if req.CollectType&db2.CollectTypeQuery == db2.CollectTypeQuery {
 		conds := egorm.Conds{}
 		conds["uid"] = c.Uid()
-		conds["collect_type"] = db.CollectTypeQuery
-		m := db.Collect{}
+		conds["collect_type"] = db2.CollectTypeQuery
+		m := db2.Collect{}
 		list, err := m.List(invoker.Db, conds)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
@@ -121,13 +121,13 @@ func ListCollect(c *core.Context) {
 		c.JSONOK(list)
 		return
 	}
-	resp := make([]*db.Collect, 0)
-	if req.CollectType&db.CollectTypeTableFilter == db.CollectTypeTableFilter {
+	resp := make([]*db2.Collect, 0)
+	if req.CollectType&db2.CollectTypeTableFilter == db2.CollectTypeTableFilter {
 		conds := egorm.Conds{}
 		conds["uid"] = c.Uid()
 		conds["table_id"] = req.TableId
-		conds["collect_type"] = db.CollectTypeTableFilter
-		m := db.Collect{}
+		conds["collect_type"] = db2.CollectTypeTableFilter
+		m := db2.Collect{}
 		tmp, err := m.List(invoker.Db, conds)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
@@ -135,11 +135,11 @@ func ListCollect(c *core.Context) {
 		}
 		resp = append(resp, tmp...)
 	}
-	if req.CollectType&db.CollectTypeGlobalFilter == db.CollectTypeGlobalFilter {
+	if req.CollectType&db2.CollectTypeGlobalFilter == db2.CollectTypeGlobalFilter {
 		conds := egorm.Conds{}
 		conds["uid"] = c.Uid()
-		conds["collect_type"] = db.CollectTypeGlobalFilter
-		m := db.Collect{}
+		conds["collect_type"] = db2.CollectTypeGlobalFilter
+		m := db2.Collect{}
 		tmp, err := m.List(invoker.Db, conds)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
@@ -165,17 +165,17 @@ func DeleteCollect(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	currentCollect := db.Collect{}
+	currentCollect := db2.Collect{}
 	currentCollect.ID = id
 	if err := currentCollect.Info(invoker.Db); err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
 	if currentCollect.Uid != c.Uid() {
-		c.JSONE(1, db.ErrCollectCreator.Error(), db.ErrCollectCreator)
+		c.JSONE(1, db2.ErrCollectCreator.Error(), db2.ErrCollectCreator)
 		return
 	}
-	m := db.Collect{}
+	m := db2.Collect{}
 	m.ID = id
 	if err := m.Delete(invoker.Db); err != nil {
 		c.JSONE(1, err.Error(), err)

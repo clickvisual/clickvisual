@@ -4,21 +4,21 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func Run(nodeId, uid int) (res view.RespRunNode, err error) {
-	n, err := db.NodeInfo(invoker.Db, nodeId)
+	n, err := db2.NodeInfo(invoker.Db, nodeId)
 	if err != nil {
 		return
 	}
 	if n.LockUid != uid && n.LockUid != 0 {
-		u, _ := db.UserInfo(n.LockUid)
+		u, _ := db2.UserInfo(n.LockUid)
 		err = errors.Errorf("%s is editing %s", u.Nickname, n.Name)
 		return
 	}
-	nc, err := db.NodeContentInfo(invoker.Db, n.ID)
+	nc, err := db2.NodeContentInfo(invoker.Db, n.ID)
 	if err != nil {
 		return
 	}
@@ -26,7 +26,7 @@ func Run(nodeId, uid int) (res view.RespRunNode, err error) {
 	if err != nil {
 		return
 	}
-	afterNodeInfo, err := db.NodeInfo(invoker.Db, nodeId)
+	afterNodeInfo, err := db2.NodeInfo(invoker.Db, nodeId)
 	if err != nil {
 		return
 	}

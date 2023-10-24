@@ -8,13 +8,13 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/preempt"
 	"github.com/clickvisual/clickvisual/api/internal/service/configure"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/shorturl"
 	"github.com/clickvisual/clickvisual/api/internal/service/user"
-	"github.com/clickvisual/clickvisual/api/pkg/preempt"
 )
 
 var (

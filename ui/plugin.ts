@@ -1,5 +1,8 @@
 import { IApi } from "umi";
 
+const handleResourcePath = (url: string): string => {
+  return (process.env.PUBLIC_PATH ?? "/") + url;
+};
 /**
  * html
  * https://github.com/umijs/umi-next/issues/868
@@ -23,24 +26,24 @@ export default (api: IApi) => {
     { rel: "icon", type: "image/x-icon", href: "./cv.png" },
     {
       rel: "stylesheet",
-      href: "/luckysheet/css/pluginsCss.css",
+      href: handleResourcePath("luckysheet/css/pluginsCss.css"),
     },
     {
       rel: "stylesheet",
-      href: "/luckysheet/css/plugins.css",
+      href: handleResourcePath("luckysheet/css/plugins.css"),
     },
     {
       rel: "stylesheet",
-      href: "/luckysheet/css/luckysheet.css",
+      href: handleResourcePath("luckysheet/css/luckysheet.css"),
     },
   ]);
 
   api.addHTMLScripts(() => [
     {
-      src: "/luckysheet/js/plugin.js",
+      src: handleResourcePath("luckysheet/js/plugin.js"),
     },
     {
-      src: "/luckysheet/js/luckysheet.umd.js",
+      src: handleResourcePath("luckysheet/js/luckysheet.umd.js"),
     },
   ]);
 };

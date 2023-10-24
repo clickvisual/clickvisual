@@ -1,8 +1,10 @@
 import { DEBOUNCE_WAIT } from "@/config/config";
+import AgentTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/AgentTable";
 import LocalTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/LocalTable";
 import NewTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/NewTable";
 import SelectField from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/SelectField";
-import TemplateTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTable";
+import TemplateTable from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTableEgo";
+import TemplateTableILogtail from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary/TemplateTableILogtail";
 import { useModel } from "@umijs/max";
 import { useDebounceFn } from "ahooks";
 import { Form, FormInstance, message, Modal, Select } from "antd";
@@ -72,6 +74,19 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               topicsEgo: field.topicsEgo,
               topicsIngressStderr: field.topicsIngressStderr,
               topicsIngressStdout: field.topicsIngressStdout,
+            })
+          : field.mode === 4
+          ? doCreatedTableTemplate.run("ilogtail", {
+              brokers: field.brokers,
+              databaseId: addLogToDatabase?.id as number,
+              topic: field.topic,
+              days: field.days,
+              name: field.name,
+            })
+          : field.mode === 21
+          ? doCreatedTableTemplate.run("agent", {
+              databaseId: addLogToDatabase?.id as number,
+              name: field.name,
             })
           : null;
       response &&
@@ -202,6 +217,14 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                   id: "datasource.logLibrary.from.creationMode.option.logLibrary",
                 })}
               </Option>
+              <Option value={4}>
+                {i18n.formatMessage(
+                  {
+                    id: "datasource.logLibrary.from.creationMode.option.template",
+                  },
+                  { name: "iLogtail" }
+                )}
+              </Option>
               <Option value={3}>
                 {i18n.formatMessage(
                   {
@@ -210,6 +233,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                   { name: "EGO" }
                 )}
               </Option>
+              <Option value={21}>Agent - File</Option>
             </Select>
           )}
         </Form.Item>
@@ -232,6 +256,10 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                 );
               case 3:
                 return <TemplateTable />;
+              case 4:
+                return <TemplateTableILogtail />;
+              case 21:
+                return <AgentTable />;
               default:
                 return (
                   <NewTable

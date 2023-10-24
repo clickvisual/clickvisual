@@ -7,6 +7,8 @@ const useAlarmEnums = () => {
     { name: i18n.formatMessage({ id: "weCom" }), value: 2 },
     { name: i18n.formatMessage({ id: "feishu" }), value: 3 },
     { name: i18n.formatMessage({ id: "slack" }), value: 4 },
+    { name: "Webhook", value: 5 },
+    { name: "Telegram", value: 6 },
   ];
   const AlarmStatus = [
     {

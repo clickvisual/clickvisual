@@ -58,7 +58,7 @@ const JsonEachRow = ({
             </Button>
             <Button
               type="link"
-              href="https://clickvisual.gocn.vip/zh/clickvisual/02install/quick-start.html#第六步-创建日志库"
+              href="https://clickvisual.net/zh/clickvisual/02install/quick-start.html#第六步-创建日志库"
               target="_blank"
             >
               {i18n.formatMessage({ id: "datasource.logLibrary.documentBtn" })}

@@ -28,9 +28,6 @@ port = 19011
 level = "info"
 name = "clickvisual.log"
 
-[logger.default]
-level = "info"
-
 # if isMultiCopy is true
 [redis]
 debug = true

@@ -8,17 +8,18 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/server/egin"
 
+	"github.com/clickvisual/clickvisual/api/internal/api/agent"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/initialize"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 )
 
-func GetRouter() *egin.Component {
+func GetServerRouter() *egin.Component {
 	_, appSubUrl, err := utils.ParseAppUrlAndSubUrl(econf.GetString("app.rootURL"))
 	if err != nil {
 		panic(err.Error())
@@ -48,7 +49,6 @@ func GetRouter() *egin.Component {
 		apiPrefix = appSubUrl
 	}
 	g := r.Group(apiPrefix)
-
 	r.Group(apiPrefix).GET("/api/share/:s-code", core.Handle(base.ShortURLRedirect), middlewares.AuthChecker())
 
 	v1Open := g.Group("/api/v1")
@@ -56,6 +56,7 @@ func GetRouter() *egin.Component {
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
 		v1Open.POST("/prometheus/alerts", core.Handle(alert.Webhook))
+
 	}
 	admin := g.Group("/api/admin")
 	{
@@ -65,5 +66,14 @@ func GetRouter() *egin.Component {
 
 	v1(g)
 	v2(g)
+
 	return r
+}
+
+func GetAgentRouter() *egin.Component {
+	g := egin.Load("server.http").Build()
+	k8sAgent := agent.NewAgent()
+	g.GET("/api/v1/search", core.Handle(k8sAgent.Search))
+	g.GET("/api/v1/charts", core.Handle(k8sAgent.Charts))
+	return g
 }

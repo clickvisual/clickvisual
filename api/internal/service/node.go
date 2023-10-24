@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type node struct {
@@ -40,11 +40,11 @@ func NewNode() *node {
 // n.Stats.Store(nodeInfo.ID, nodeResultMap)
 // nodeResultMap := make(map[string]view.WorkerStatsRow, 0)
 func (n *node) SetStats(isInit bool) {
-	nodes, _ := db.NodeListWithWorker()
+	nodes, _ := db2.NodeListWithWorker()
 	startTime := time.Now().Add(-time.Hour).Unix()
 	key := hourPrecision(time.Now().Unix())
 	for _, nodeInfo := range nodes {
-		workerStatsRow := make(map[int64]view.WorkerStatsRow, 0)
+		workerStatsRow := make(map[int64]view2.WorkerStatsRow, 0)
 		conds := egorm.Conds{}
 		conds["node_id"] = nodeInfo.ID
 		if !isInit {
@@ -53,13 +53,13 @@ func (n *node) SetStats(isInit bool) {
 				Val: startTime,
 			}
 			if obj, ok := n.Stats.Load(nodeInfo.ID); ok {
-				workerStatsRow = obj.(view.WorkerStats).Data
+				workerStatsRow = obj.(view2.WorkerStats).Data
 			}
 		}
-		nodeResults, _ := db.NodeResultList(conds)
+		nodeResults, _ := db2.NodeResultList(conds)
 		// Split the data by time point (hour)
 		for _, result := range nodeResults {
-			var stats view.WorkerStatsRow
+			var stats view2.WorkerStatsRow
 			hour := hourPrecision(result.Ctime)
 			if !isInit && hour != key {
 				continue
@@ -68,17 +68,17 @@ func (n *node) SetStats(isInit bool) {
 				stats = tmp
 			}
 			switch result.Status {
-			case db.BigdataNodeResultUnknown:
+			case db2.BigdataNodeResultUnknown:
 				stats.Unknown++
-			case db.BigdataNodeResultSucc:
+			case db2.BigdataNodeResultSucc:
 				stats.Success++
-			case db.BigdataNodeResultFailed:
+			case db2.BigdataNodeResultFailed:
 				stats.Failed++
 			}
 			workerStatsRow[hour] = stats
 		}
-		crontab, _ := db.CrontabInfo(invoker.Db, nodeInfo.ID)
-		n.Stats.Store(nodeInfo.ID, view.WorkerStats{
+		crontab, _ := db2.CrontabInfo(invoker.Db, nodeInfo.ID)
+		n.Stats.Store(nodeInfo.ID, view2.WorkerStats{
 			Iid:  nodeInfo.Iid,
 			Uid:  crontab.DutyUid,
 			Data: workerStatsRow,
@@ -86,13 +86,13 @@ func (n *node) SetStats(isInit bool) {
 	}
 }
 
-func (n *node) WorkerDashboard(req view.ReqWorkerDashboard, uid int) (res view.RespWorkerDashboard) {
+func (n *node) WorkerDashboard(req view2.ReqWorkerDashboard, uid int) (res view2.RespWorkerDashboard) {
 	start := hourPrecision(req.Start)
 	end := hourPrecision(req.End)
-	collectsFlow := make(map[int64]view.WorkerStatsRow)
-	collectsNode := make(map[int]view.WorkerStatsRow)
+	collectsFlow := make(map[int64]view2.WorkerStatsRow)
+	collectsNode := make(map[int]view2.WorkerStatsRow)
 	n.Stats.Range(func(nodeId, obj interface{}) bool {
-		ws := obj.(view.WorkerStats)
+		ws := obj.(view2.WorkerStats)
 		if ws.Iid != req.Iid {
 			return true
 		}
@@ -144,7 +144,7 @@ func (n *node) WorkerDashboard(req view.ReqWorkerDashboard, uid int) (res view.R
 }
 
 func (n *node) NodeTryLock(uid, configId int, isForced bool) (err error) {
-	var nodeInfo db.BigdataNode
+	var nodeInfo db2.BigdataNode
 	tx := invoker.Db.Begin()
 	{
 		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&nodeInfo).Error
@@ -158,7 +158,7 @@ func (n *node) NodeTryLock(uid, configId int, isForced bool) (err error) {
 				return fmt.Errorf("failed to release the edit lock because another client is currently editing")
 			}
 		}
-		err = tx.Model(&db.BigdataNode{}).Where("id = ?", nodeInfo.ID).Updates(map[string]interface{}{
+		err = tx.Model(&db2.BigdataNode{}).Where("id = ?", nodeInfo.ID).Updates(map[string]interface{}{
 			"lock_at":  time.Now().Unix(),
 			"lock_uid": uid,
 		}).Error
@@ -171,7 +171,7 @@ func (n *node) NodeTryLock(uid, configId int, isForced bool) (err error) {
 }
 
 func (n *node) NodeUnlock(uid, configId int) (err error) {
-	var nodeInfo db.BigdataNode
+	var nodeInfo db2.BigdataNode
 	tx := invoker.Db.Begin()
 	{
 		err = tx.Set("gorm:query_option", "FOR UPDATE").Where("id = ?", configId).First(&nodeInfo).Error
@@ -183,7 +183,7 @@ func (n *node) NodeUnlock(uid, configId int) (err error) {
 			tx.Rollback()
 			return fmt.Errorf("failed to release the edit lock because another client is currently editing")
 		}
-		err = tx.Model(&db.BigdataNode{}).Where("id = ?", nodeInfo.ID).Updates(map[string]interface{}{
+		err = tx.Model(&db2.BigdataNode{}).Where("id = ?", nodeInfo.ID).Updates(map[string]interface{}{
 			"lock_at":  nil,
 			"lock_uid": 0,
 		}).Error
@@ -195,8 +195,8 @@ func (n *node) NodeUnlock(uid, configId int) (err error) {
 	return tx.Commit().Error
 }
 
-func (n *node) NodeResultRespAssemble(nr *db.BigdataNodeResult) view.RespNodeResult {
-	res := view.RespNodeResult{
+func (n *node) NodeResultRespAssemble(nr *db2.BigdataNodeResult) view2.RespNodeResult {
+	res := view2.RespNodeResult{
 		ID:           nr.ID,
 		Ctime:        nr.Ctime,
 		NodeId:       nr.NodeId,
@@ -207,22 +207,22 @@ func (n *node) NodeResultRespAssemble(nr *db.BigdataNodeResult) view.RespNodeRes
 		Status:       nr.Status,
 	}
 	if nr.Uid == -1 {
-		res.RespUserSimpleInfo = view.RespUserSimpleInfo{
+		res.RespUserSimpleInfo = view2.RespUserSimpleInfo{
 			Uid:      -1,
 			Username: "Crontab",
 			Nickname: "Crontab",
 		}
 	} else {
-		u, _ := db.UserInfo(nr.Uid)
+		u, _ := db2.UserInfo(nr.Uid)
 		res.RespUserSimpleInfo.Gen(u)
 	}
 	return res
 }
 
-func (n *node) RespWorkerAssemble(nr *db.BigdataNodeResult) view.RespWorkerRow {
-	nodeInfo, _ := db.NodeInfo(invoker.Db, nr.NodeId)
-	nodeCrontabInfo, _ := db.CrontabInfo(invoker.Db, nr.NodeId)
-	res := view.RespWorkerRow{
+func (n *node) RespWorkerAssemble(nr *db2.BigdataNodeResult) view2.RespWorkerRow {
+	nodeInfo, _ := db2.NodeInfo(invoker.Db, nr.NodeId)
+	nodeCrontabInfo, _ := db2.CrontabInfo(invoker.Db, nr.NodeId)
+	res := view2.RespWorkerRow{
 		NodeName:     nodeInfo.Name,
 		Status:       nr.Status,
 		Tertiary:     nodeInfo.Tertiary,
@@ -232,10 +232,10 @@ func (n *node) RespWorkerAssemble(nr *db.BigdataNodeResult) view.RespWorkerRow {
 		ID:           nr.ID,
 		NodeId:       nr.NodeId,
 		Cost:         nr.Cost,
-		ChargePerson: view.RespUserSimpleInfo{},
+		ChargePerson: view2.RespUserSimpleInfo{},
 		Iid:          nodeInfo.Iid,
 	}
-	u, _ := db.UserInfo(nodeCrontabInfo.DutyUid)
+	u, _ := db2.UserInfo(nodeCrontabInfo.DutyUid)
 	res.ChargePerson.Gen(u)
 	return res
 }

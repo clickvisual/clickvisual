@@ -17,11 +17,11 @@ export const typList = [
 ];
 
 export const expList = [
-  { key: 0, label: "avg()" },
-  { key: 1, label: "min()" },
-  { key: 2, label: "max()" },
-  { key: 3, label: "sum()" },
-  { key: 4, label: "count()" },
+  { key: 3, label: "sum" },
+  { key: 0, label: "avg" },
+  { key: 1, label: "min" },
+  { key: 2, label: "max" },
+  // { key: 4, label: "count()" },
 ];
 
 export const condList = [

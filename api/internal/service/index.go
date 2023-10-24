@@ -6,14 +6,16 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/cetus/pkg/kutl"
+	"github.com/gotomicro/cetus/pkg/xgo"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 type index struct{}
@@ -23,15 +25,15 @@ func NewIndex() *index {
 	return &index{}
 }
 
-func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[string]*db.BaseIndex, map[string]*db.BaseIndex, error) {
+func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db2.BaseIndex, map[string]*db2.BaseIndex, map[string]*db2.BaseIndex, error) {
 	conds := egorm.Conds{}
 	conds["tid"] = req.Tid
-	conds["kind"] = db.IndexKindLog
-	nowIndexList, err := db.IndexList(conds)
+	conds["kind"] = db2.IndexKindLog
+	nowIndexList, err := db2.IndexList(conds)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	nowIndexMap := make(map[string]*db.BaseIndex)
+	nowIndexMap := make(map[string]*db2.BaseIndex)
 	nowIndexArr := make([]string, 0)
 	for _, ir := range nowIndexList {
 		key := fmt.Sprintf("%s.%d.%d", ir.Field, ir.Typ, ir.HashTyp)
@@ -41,14 +43,14 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[str
 		nowIndexMap[key] = ir
 		nowIndexArr = append(nowIndexArr, key)
 	}
-	newIndexMap := make(map[string]*db.BaseIndex)
+	newIndexMap := make(map[string]*db2.BaseIndex)
 	newIndexArr := make([]string, 0)
 	for _, ir := range req.Data {
 		key := fmt.Sprintf("%s.%d.%d", ir.Field, ir.Typ, ir.HashTyp)
 		if ir.RootName != "" {
 			key = fmt.Sprintf("%s|%s.%d.%d", ir.RootName, ir.Field, ir.Typ, ir.HashTyp)
 		}
-		newIndexMap[key] = &db.BaseIndex{
+		newIndexMap[key] = &db2.BaseIndex{
 			Tid:      req.Tid,
 			Field:    ir.Field,
 			Typ:      ir.Typ,
@@ -62,8 +64,8 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[str
 	delArr := kutl.Difference(nowIndexArr, newIndexArr)
 
 	var (
-		addMap = make(map[string]*db.BaseIndex)
-		delMap = make(map[string]*db.BaseIndex)
+		addMap = make(map[string]*db2.BaseIndex)
+		delMap = make(map[string]*db2.BaseIndex)
 	)
 	for _, add := range addArr {
 		if obj, ok := newIndexMap[add]; ok {
@@ -83,15 +85,15 @@ func (i *index) Diff(req view.ReqCreateIndex) (map[string]*db.BaseIndex, map[str
 // 2. Alert Delete or Create
 // 3. Drop BaseView
 // 4. Create BaseView
-func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, dels map[string]*db.BaseIndex, newList map[string]*db.BaseIndex) (err error) {
+func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db2.BaseIndex, dels map[string]*db2.BaseIndex, newList map[string]*db2.BaseIndex) (err error) {
 	tx := invoker.Db.Begin()
-	err = db.IndexDeleteBatch(tx, req.Tid, false)
+	err = db2.IndexDeleteBatch(tx, req.Tid, false)
 	if err != nil {
 		tx.Rollback()
 		return
 	}
 	for _, d := range req.Data {
-		err = db.IndexCreate(tx, &db.BaseIndex{
+		err = db2.IndexCreate(tx, &db2.BaseIndex{
 			Tid:   req.Tid,
 			Field: d.Field,
 			Typ:   d.Typ,
@@ -99,7 +101,7 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 			Alias:    d.Alias,
 			RootName: d.RootName,
 			HashTyp:  d.HashTyp,
-			Kind:     db.IndexKindLog,
+			Kind:     db2.IndexKindLog,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -107,31 +109,31 @@ func (i *index) Sync(req view.ReqCreateIndex, adds map[string]*db.BaseIndex, del
 		}
 	}
 	// do clickhouse operator
-	tableInfo, _ := db.TableInfo(tx, req.Tid)
-	databaseInfo, _ := db.DatabaseInfo(tx, tableInfo.Did)
+	tableInfo, _ := db2.TableInfo(tx, req.Tid)
+	databaseInfo, _ := db2.DatabaseInfo(tx, tableInfo.Did)
 	op, err := InstanceManager.Load(databaseInfo.Iid)
 	if err != nil {
 		tx.Rollback()
 		return errors.New("corresponding configuration instance does not exist")
-	}
-	err = op.UpdateLogAnalysisFields(databaseInfo, tableInfo,
-		filterSystemField(tableInfo.CreateType, adds, req.Tid),
-		filterSystemField(tableInfo.CreateType, dels, req.Tid),
-		filterSystemField(tableInfo.CreateType, newList, req.Tid))
-	if err != nil {
-		tx.Rollback()
-		return
 	}
 	// If the commit fails, the clickhouse operation is not rolled back
 	if err = tx.Commit().Error; err != nil {
 		elog.Error("Fatal", elog.String("error", err.Error()), elog.Any("step", "clickhouse db struct can't rollback"))
 		return
 	}
+	// 异步处理
+	xgo.Go(func() {
+		err = op.UpdateLogAnalysisFields(databaseInfo, tableInfo, filterSystemField(tableInfo.CreateType, adds, req.Tid), filterSystemField(tableInfo.CreateType, dels, req.Tid), filterSystemField(tableInfo.CreateType, newList, req.Tid))
+		if err != nil {
+			elog.Error("Fatal", l.E(err), l.S("step", "UpdateLogAnalysisFieldsFail"))
+			return
+		}
+	})
 	return
 }
 
-func filterSystemField(createType int, input map[string]*db.BaseIndex, tid int) (out map[string]*db.BaseIndex) {
-	out = make(map[string]*db.BaseIndex)
+func filterSystemField(createType int, input map[string]*db2.BaseIndex, tid int) (out map[string]*db2.BaseIndex) {
+	out = make(map[string]*db2.BaseIndex)
 	var ifm map[string]interface{}
 	if createType == constx.TableCreateTypeUBW {
 		ifm = constx.DefaultFields
@@ -155,7 +157,7 @@ func innerFieldMap(tid int) map[string]interface{} {
 	for _, show := range econf.GetStringSlice("app.defaultFields") {
 		resp[show] = struct{}{}
 	}
-	table, _ := db.TableInfo(invoker.Db, tid)
+	table, _ := db2.TableInfo(invoker.Db, tid)
 	for _, key := range strings.Split(table.SelectFields, ",") {
 		resp[strings.Replace(key, "`", "", -1)] = struct{}{}
 	}

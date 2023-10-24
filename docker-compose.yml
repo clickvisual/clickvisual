@@ -110,7 +110,8 @@ services:
     expose:
       - 9000
     ports:
-      - "8123:8123"
+      - "18123:8123"
+      - "19000:9000"
     volumes:
       - ./data/all-in-one/clickhouse/database:/var/lib/clickhouse
       - ./data/all-in-one/clickhouse/logs:/var/log
@@ -155,10 +156,8 @@ services:
       - 9090
     depends_on:
       - alertmanager
-      - prom2click
     links:
       - alertmanager
-      - prom2click
     ports:
       - 19004:9090
   clickvisual:
@@ -171,7 +170,7 @@ services:
     expose:
       - 9201
     ports:
-      - "19001:19001"
+      - "18001:19001"
       - "19006:19006"
     depends_on:
       - mysql
@@ -190,19 +189,4 @@ services:
     volumes:
       - ./data/all-in-one/clickvisual/config:/clickvisual/config
       - ./data/all-in-one/prometheus/rules:/clickvisual/rules
-    command: [ '/bin/sh', '-c', './bin/clickvisual' ]
-  mock:
-    image: clickvisual/clickvisual:master
-    networks:
-      - clickvisual-net
-    environment:
-      EGO_CONFIG_PATH: /clickvisual/config/docker.toml
-      EGO_LOG_WRITER: stderr
-    depends_on:
-      - mysql
-    links:
-      - mysql
-    restart: 'no'
-    volumes:
-      - ./data/all-in-one/clickvisual/config:/clickvisual/config
-    command: [ '/bin/sh', '-c', './bin/clickvisual -job install' ]
+    command: [ '/bin/sh', '-c', './bin/clickvisual server' ]

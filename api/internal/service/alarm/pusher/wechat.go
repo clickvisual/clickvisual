@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
 var _ IPusher = (*WeChat)(nil)

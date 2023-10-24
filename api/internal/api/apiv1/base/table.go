@@ -13,23 +13,23 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry"
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/constx"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/pkg/utils"
 )
 
 // TableId
 // @Tags         LOGSTORE
 // @Summary		 日志库ID获取
 func TableId(c *core.Context) {
-	var param view.ReqTableId
+	var param view2.ReqTableId
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
@@ -38,7 +38,7 @@ func TableId(c *core.Context) {
 	condsIns := egorm.Conds{}
 	condsIns["name"] = param.Instance
 	condsIns["datasource"] = param.Datasource
-	instance, err := db.InstanceInfoX(invoker.Db, condsIns)
+	instance, err := db2.InstanceInfoX(invoker.Db, condsIns)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -46,7 +46,7 @@ func TableId(c *core.Context) {
 	condsDb := egorm.Conds{}
 	condsDb["iid"] = instance.ID
 	condsDb["name"] = param.Database
-	databaseInfo, err := db.DatabaseInfoX(invoker.Db, condsDb)
+	databaseInfo, err := db2.DatabaseInfoX(invoker.Db, condsDb)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -54,7 +54,7 @@ func TableId(c *core.Context) {
 	condsTb := egorm.Conds{}
 	condsTb["did"] = databaseInfo.ID
 	condsTb["name"] = param.Table
-	tableInfo, err := db.TableInfoX(invoker.Db, condsTb)
+	tableInfo, err := db2.TableInfoX(invoker.Db, condsTb)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
@@ -112,12 +112,12 @@ func TableInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, tid)
+	tableInfo, err := db2.TableInfo(invoker.Db, tid)
 	if err != nil {
 		c.JSONE(core.CodeErr, "this table does not exist, please verify"+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -129,15 +129,15 @@ func TableInfo(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	instance, err := db.InstanceInfo(invoker.Db, tableInfo.Database.Iid)
+	instance, err := db2.InstanceInfo(invoker.Db, tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
 		return
 	}
-	res := view.RespTableDetail{
+	res := view2.RespTableDetail{
 		Did:                     tableInfo.Did,
 		Name:                    tableInfo.Name,
-		Typ:                     tableInfo.Typ,
+		Typ:                     tableInfo.TimeFieldKind,
 		Days:                    tableInfo.Days,
 		Brokers:                 tableInfo.Brokers,
 		Topic:                   tableInfo.Topic,
@@ -148,7 +148,7 @@ func TableInfo(c *core.Context) {
 		Desc:                    tableInfo.Desc,
 		ConsumerNum:             tableInfo.ConsumerNum,
 		KafkaSkipBrokenMessages: tableInfo.KafkaSkipBrokenMessages,
-		Database: view.RespDatabaseItem{
+		Database: view2.RespDatabaseItem{
 			Id:             tableInfo.Database.ID,
 			Iid:            tableInfo.Database.Iid,
 			Name:           tableInfo.Database.Name,
@@ -163,7 +163,7 @@ func TableInfo(c *core.Context) {
 		RawLogField:  tableInfo.RawLogField,
 	}
 	if res.TimeField == "" {
-		res.TimeField = db.TimeFieldSecond
+		res.TimeField = db2.TimeFieldSecond
 	}
 	if tableInfo.RawLogField == "" {
 		res.IsNotSupAnalysisField = 1
@@ -172,7 +172,7 @@ func TableInfo(c *core.Context) {
 	data := make(map[string]string, 0)
 
 	if tableInfo.CreateType == constx.TableCreateTypeBufferNullDataPipe {
-		tableAttach := db.BaseTableAttach{}
+		tableAttach := db2.BaseTableAttach{}
 		tableAttach.Tid = tableInfo.ID
 		if err = tableAttach.Info(invoker.Db); err != nil {
 			c.JSONE(core.CodeErr, "view sql read failed: "+err.Error(), nil)
@@ -197,7 +197,7 @@ func TableInfo(c *core.Context) {
 
 	conds := egorm.Conds{}
 	conds["tid"] = tableInfo.ID
-	viewList, err := db.ViewList(invoker.Db, conds)
+	viewList, err := db2.ViewList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, "view sql read failed: "+err.Error(), nil)
 		return
@@ -223,17 +223,17 @@ func TableList(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["did"] = did
-	tableList, err := db.TableList(invoker.Db, conds)
+	tableList, err := db2.TableList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
 		return
 	}
-	res := make([]view.RespTableSimple, 0)
+	res := make([]view2.RespTableSimple, 0)
 	for _, row := range tableList {
 		if !service.TableViewIsPermission(c.Uid(), row.Database.Iid, row.ID) {
 			continue
 		}
-		res = append(res, view.RespTableSimple{
+		res = append(res, view2.RespTableSimple{
 			Id:         row.ID,
 			TableName:  row.Name,
 			CreateType: row.CreateType,
@@ -248,7 +248,7 @@ func TableList(c *core.Context) {
 // @Summary 	 日志库删除
 func TableDelete(c *core.Context) {
 	id := cast.ToInt(c.Param("id"))
-	tableInfo, err := db.TableInfo(invoker.Db, id)
+	tableInfo, err := db2.TableInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, "delete failed: "+err.Error(), nil)
 		return
@@ -257,7 +257,7 @@ func TableDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, "Unable to delete tables not created by clickvisual.", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -271,7 +271,7 @@ func TableDelete(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["tid"] = tableInfo.ID
-	alarms, err := db.AlarmList(conds)
+	alarms, err := db2.AlarmList(conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, "delete failed 02", err)
 		return
@@ -281,19 +281,19 @@ func TableDelete(c *core.Context) {
 		return
 	}
 	tx := invoker.Db.Begin()
-	err = db.TableDelete(tx, tableInfo.ID)
+	err = db2.TableDelete(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed 03", err)
 		return
 	}
-	err = db.ViewDeleteByTableID(tx, tableInfo.ID)
+	err = db2.ViewDeleteByTableID(tx, tableInfo.ID)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed 04", err)
 		return
 	}
-	err = db.IndexDeleteBatch(tx, tableInfo.ID, true)
+	err = db2.IndexDeleteBatch(tx, tableInfo.ID, true)
 	if err != nil {
 		tx.Rollback()
 		c.JSONE(core.CodeErr, "delete failed 05", err)
@@ -324,7 +324,7 @@ func TableDelete(c *core.Context) {
 			c.JSONE(core.CodeErr, errLoad.Error(), errLoad)
 			return
 		}
-		var tableAttach = db.BaseTableAttach{}
+		var tableAttach = db2.BaseTableAttach{}
 		tableAttach.Tid = tableInfo.ID
 		err = tableAttach.Info(invoker.Db)
 		if err != nil {
@@ -342,7 +342,7 @@ func TableDelete(c *core.Context) {
 			return
 		}
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesDelete, map[string]interface{}{"tableInfo": tableInfo})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesDelete, map[string]interface{}{"tableInfo": tableInfo})
 	c.JSONOK("delete succeeded. Note that Kafka may be backlogged.")
 }
 
@@ -351,7 +351,7 @@ func TableDelete(c *core.Context) {
 // @Summary	 	 日志搜索
 func TableLogs(c *core.Context) {
 	st := time.Now()
-	var param view.ReqQuery
+	var param view2.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter", err)
@@ -362,9 +362,9 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	tableInfo, _ := db2.TableInfo(invoker.Db, id)
 	// default time field
-	param.TimeField = db.TimeFieldSecond
+	param.TimeField = db2.TimeFieldSecond
 	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -376,7 +376,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -393,7 +393,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
-	firstTry, err := op.Prepare(param, false)
+	firstTry, err := op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "param prepare failed", err)
 		return
@@ -407,10 +407,10 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
+	if tableInfo.V3TableType == db2.V3TableTypeJaegerJSON {
 		res.IsTrace = 1
 	}
-	list, err := db.HiddenFieldList(egorm.Conds{"tid": egorm.Cond{
+	list, err := db2.HiddenFieldList(egorm.Conds{"tid": egorm.Cond{
 		Op:  "=",
 		Val: tableInfo.ID,
 	}})
@@ -427,7 +427,7 @@ func TableLogs(c *core.Context) {
 		}
 	}
 	res.Cost = time.Since(st).Milliseconds()
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 }
 
@@ -435,7 +435,7 @@ func TableLogs(c *core.Context) {
 // @Tags         LOGSTORE
 // @Summary      执行SQL请求
 func QueryComplete(c *core.Context) {
-	var param view.ReqComplete
+	var param view2.ReqComplete
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter", err)
@@ -446,7 +446,7 @@ func QueryComplete(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -467,7 +467,7 @@ func QueryComplete(c *core.Context) {
 		return
 	}
 	res.SortRule, res.IsNeedSort = utils.GenerateFieldOrderRules(param.Query)
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesLogsQuery, map[string]interface{}{"param": param})
 	c.JSONOK(res)
 }
 
@@ -475,7 +475,7 @@ func QueryComplete(c *core.Context) {
 // @Tags         LOGSTORE
 // @Summary	     日志趋势图
 func TableCharts(c *core.Context) {
-	var param view.ReqQuery
+	var param view2.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: ", err)
@@ -486,8 +486,8 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(invoker.Db, id)
-	param.TimeField = db.TimeFieldSecond
+	tableInfo, _ := db2.TableInfo(invoker.Db, id)
+	param.TimeField = db2.TimeFieldSecond
 	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -499,7 +499,7 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -516,26 +516,27 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "instanceManagerLoad", err)
 		return
 	}
-	param, err = op.Prepare(param, false)
+	param, err = op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	var interval int64
-	param.GroupByCond, interval = op.CalculateInterval(param.ET-param.ST, inquiry.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
+	param.GroupByCond, param.Interval = op.CalculateInterval(param.ET-param.ST, clickhouse.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
+	interval := param.Interval
+
 	charts, sql, err := op.Chart(param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), sql)
 		return
 	}
-	res := view.HighCharts{
-		Histograms: make([]*view.HighChart, 0),
+	res := view2.HighCharts{
+		Histograms: make([]*view2.HighChart, 0),
 	}
 	if len(charts) == 0 {
 		c.JSONE(core.CodeOK, sql, res)
 		return
 	}
-	chartMap := make(map[int64]*view.HighChart)
+	chartMap := make(map[int64]*view2.HighChart)
 	// get key info
 	var firstFrom int64
 	var latestFrom int64
@@ -563,7 +564,7 @@ func TableCharts(c *core.Context) {
 				from = st
 			}
 			if _, ok := chartMap[from]; !ok {
-				chartMap[from] = &view.HighChart{
+				chartMap[from] = &view2.HighChart{
 					Count: 0,
 					From:  from,
 					To:    firstFrom - interval*i,
@@ -582,7 +583,7 @@ func TableCharts(c *core.Context) {
 			// 	to = st
 			// }
 			if _, ok := chartMap[from]; !ok {
-				chartMap[from] = &view.HighChart{
+				chartMap[from] = &view2.HighChart{
 					Count: 0,
 					From:  from,
 					To:    firstFrom - interval*i,
@@ -592,14 +593,14 @@ func TableCharts(c *core.Context) {
 	}
 	for i := firstFrom; i < latestFrom; i += interval {
 		if _, ok := chartMap[i]; !ok {
-			chartMap[i] = &view.HighChart{
+			chartMap[i] = &view2.HighChart{
 				Count: 0,
 				From:  i,
 				To:    i + interval,
 			}
 		}
 	}
-	fillCharts := make([]*view.HighChart, 0)
+	fillCharts := make([]*view2.HighChart, 0)
 	for _, chart := range chartMap {
 		fillCharts = append(fillCharts, chart)
 	}
@@ -630,7 +631,7 @@ func TableCharts(c *core.Context) {
 // @Tags         LOGSTORE
 // @Summary      分析字段列表
 func TableIndexes(c *core.Context) {
-	var param view.ReqQuery
+	var param view2.ReqQuery
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
@@ -642,8 +643,8 @@ func TableIndexes(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(invoker.Db, tid)
-	param.TimeField = db.TimeFieldSecond
+	tableInfo, _ := db2.TableInfo(invoker.Db, tid)
+	param.TimeField = db2.TimeFieldSecond
 	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
 	}
@@ -656,7 +657,7 @@ func TableIndexes(c *core.Context) {
 		return
 	}
 	// permission check
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -668,20 +669,20 @@ func TableIndexes(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	indexInfo, _ := db.IndexInfo(invoker.Db, indexId)
+	indexInfo, _ := db2.IndexInfo(invoker.Db, indexId)
 	param.Field = indexInfo.GetFieldName()
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	param, err = op.Prepare(param, false)
+	param, err = op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter. "+err.Error(), nil)
 		return
 	}
 	list := op.GroupBy(param)
-	res := make([]view.RespIndexItem, 0)
+	res := make([]view2.RespIndexItem, 0)
 	sum, err := op.Count(param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
@@ -690,7 +691,7 @@ func TableIndexes(c *core.Context) {
 	var count uint64
 	for k, v := range list {
 		count += v
-		res = append(res, view.RespIndexItem{
+		res = append(res, view2.RespIndexItem{
 			IndexName: k,
 			Count:     v,
 			Percent:   kutl.Decimal(float64(v) * 100 / float64(sum)),
@@ -711,13 +712,13 @@ func TableCreateSelfBuilt(c *core.Context) {
 		c.JSONE(1, "param error: missing iid", nil)
 		return
 	}
-	var param view.ReqTableCreateExist
+	var param view2.ReqTableCreateExist
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -732,7 +733,7 @@ func TableCreateSelfBuilt(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": param})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": param})
 	c.JSONOK()
 }
 
@@ -745,13 +746,13 @@ func TableCreateSelfBuiltBatch(c *core.Context) {
 		c.JSONE(1, "param error: missing iid", nil)
 		return
 	}
-	var params view.ReqTableCreateExistBatch
+	var params view2.ReqTableCreateExistBatch
 	err := c.Bind(&params)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -768,23 +769,23 @@ func TableCreateSelfBuiltBatch(c *core.Context) {
 			return
 		}
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": params})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTableCreateSelfBuilt, map[string]interface{}{"tableInfo": params})
 	c.JSONOK()
 }
 
-func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
+func tableCreateSelfBuilt(uid, iid int, param view2.ReqTableCreateExist) error {
 	// check clickvisual exist
 	conds := egorm.Conds{}
 	conds["iid"] = iid
 	conds["name"] = param.DatabaseName
-	existDatabases, err := db.DatabaseList(invoker.Db, conds)
+	existDatabases, err := db2.DatabaseList(invoker.Db, conds)
 	if err != nil {
 		return err
 	}
 	for _, existDatabase := range existDatabases {
 		condsT := egorm.Conds{}
 		condsT["did"] = existDatabase.ID
-		existTables, errExistTables := db.TableList(invoker.Db, condsT)
+		existTables, errExistTables := db2.TableList(invoker.Db, condsT)
 		if errExistTables != nil {
 			return errExistTables
 		}
@@ -795,13 +796,13 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		}
 	}
 	tx := invoker.Db.Begin()
-	databaseInfo, err := db.DatabaseGetOrCreate(tx, uid, iid, param.DatabaseName, param.Cluster)
+	databaseInfo, err := db2.DatabaseGetOrCreate(tx, uid, iid, param.DatabaseName, param.Cluster)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	// no need to operator the database
-	tableInfo := db.BaseTable{
+	tableInfo := db2.BaseTable{
 		Did:           databaseInfo.ID,
 		Name:          param.TableName,
 		Uid:           uid,
@@ -810,7 +811,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		TimeFieldType: param.TimeFieldType,
 		Desc:          param.Desc,
 	}
-	err = db.TableCreate(tx, &tableInfo)
+	err = db2.TableCreate(tx, &tableInfo)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -830,7 +831,7 @@ func tableCreateSelfBuilt(uid, iid int, param view.ReqTableCreateExist) error {
 		if col.Type < 0 || col.Type == 3 {
 			continue
 		}
-		err = db.IndexCreate(tx, &db.BaseIndex{
+		err = db2.IndexCreate(tx, &db2.BaseIndex{
 			Tid:      tableInfo.ID,
 			Field:    col.Name,
 			Typ:      col.Type,
@@ -857,7 +858,7 @@ func TableColumnsSelfBuilt(c *core.Context) {
 		c.JSONE(1, "param error: missing iid", nil)
 		return
 	}
-	var param view.ReqTableCreateExist
+	var param view2.ReqTableCreateExist
 	err := c.Bind(&param)
 	elog.Debug("TableColumnsSelfBuilt", elog.Any("param", param))
 	if err != nil {
@@ -870,8 +871,8 @@ func TableColumnsSelfBuilt(c *core.Context) {
 		return
 	}
 	var columnsInfo struct {
-		All               []*view.RespColumn `json:"all"`
-		ConformToStandard []*view.RespColumn `json:"conformToStandard"`
+		All               []*view2.RespColumn `json:"all"`
+		ConformToStandard []*view2.RespColumn `json:"conformToStandard"`
 	}
 	columnsInfo.ConformToStandard, err = op.ListColumn(param.DatabaseName, param.TableName, true)
 	if err != nil {
@@ -896,19 +897,19 @@ func TableUpdate(c *core.Context) {
 		return
 	}
 	var (
-		req view.ReqTableUpdate
+		req view2.ReqTableUpdate
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	table, err := db.TableInfo(invoker.Db, id)
+	table, err := db2.TableInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "update failed 00"+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(table.Database.Iid),
@@ -922,11 +923,11 @@ func TableUpdate(c *core.Context) {
 	}
 	ups := make(map[string]interface{}, 0)
 	ups["desc"] = req.Desc
-	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
+	if err = db2.TableUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed 01"+err.Error(), nil)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	event.Event.AlarmCMDB(c.User(), db2.OpnTablesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -941,7 +942,7 @@ func TableDeps(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),

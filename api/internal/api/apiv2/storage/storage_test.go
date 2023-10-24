@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/middlewares"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 	"github.com/clickvisual/clickvisual/api/internal/service"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/config"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 func TestCreateJSONAsString(t *testing.T) {
@@ -84,10 +84,11 @@ func TestCreateStorageByTemplate(t *testing.T) {
 		byteInfo := m.Exec(
 			gintest.WithUri("/storage/ilogtail"),
 			gintest.WithJsonBody(view.ReqCreateStorageByTemplateILogtail{
-				Name:       "demo_0201_v3",
+				Name:       "demo_0614_v1",
 				Brokers:    "127.0.0.1:9092",
 				DatabaseId: 14,
 				Topic:      "otlp_spans",
+				Days:       1,
 			}))
 		assert.Equal(t, `{"code":0,"msg":"succ","data":""}`, string(byteInfo))
 		return nil

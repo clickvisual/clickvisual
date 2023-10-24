@@ -11,13 +11,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/api"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/resource"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/api"
-	"github.com/clickvisual/clickvisual/api/internal/service/kube/resource"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // ConfigMapList Get configmap by name
@@ -38,19 +38,19 @@ func ConfigMapList(c *core.Context) {
 		c.JSONE(core.CodeErr, "Cluster data acquisition failed: "+err.Error(), err)
 		return
 	}
-	resp := make([]view.RespNamespaceConfigmaps, 0)
+	resp := make([]view2.RespNamespaceConfigmaps, 0)
 
 	filter := make(map[string]interface{})
 
 	conds := egorm.Conds{}
 	conds["cluster_id"] = clusterId
-	dbConfigmaps, _ := db.K8SConfigMapListX(conds)
-	nscm := make(map[string][]view.RespConfigmap)
+	dbConfigmaps, _ := db2.K8SConfigMapListX(conds)
+	nscm := make(map[string][]view2.RespConfigmap)
 	for _, cm := range dbConfigmaps {
 		if _, ok := nscm[cm.Namespace]; !ok {
-			nscm[cm.Namespace] = make([]view.RespConfigmap, 0)
+			nscm[cm.Namespace] = make([]view2.RespConfigmap, 0)
 		}
-		nscm[cm.Namespace] = append(nscm[cm.Namespace], view.RespConfigmap{
+		nscm[cm.Namespace] = append(nscm[cm.Namespace], view2.RespConfigmap{
 			Name: cm.Name,
 		})
 		filter[fmt.Sprintf("%d|%s|%s", clusterId, cm.Namespace, cm.Name)] = struct{}{}
@@ -70,9 +70,9 @@ func ConfigMapList(c *core.Context) {
 				continue
 			}
 			if _, ok := nscm[cm.Namespace]; !ok {
-				nscm[cm.Namespace] = make([]view.RespConfigmap, 0)
+				nscm[cm.Namespace] = make([]view2.RespConfigmap, 0)
 			}
-			nscm[cm.Namespace] = append(nscm[cm.Namespace], view.RespConfigmap{
+			nscm[cm.Namespace] = append(nscm[cm.Namespace], view2.RespConfigmap{
 				Name: cm.Name,
 			})
 		}
@@ -80,7 +80,7 @@ func ConfigMapList(c *core.Context) {
 
 	for namespace, respConfigMap := range nscm {
 		if len(respConfigMap) > 0 {
-			resp = append(resp, view.RespNamespaceConfigmaps{
+			resp = append(resp, view2.RespNamespaceConfigmaps{
 				Namespace:  namespace,
 				Configmaps: respConfigMap,
 			})
@@ -99,24 +99,24 @@ func ConfigMapCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	param := view.ReqCreateConfigMap{}
+	param := view2.ReqCreateConfigMap{}
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// Gets the configmap ID
-	obj := db.K8SConfigMap{
+	obj := db2.K8SConfigMap{
 		ClusterId: clusterId,
 		Name:      param.ConfigmapName,
 		Namespace: param.Namespace,
 	}
-	resp, err := db.K8SConfigMapLoadOrSave(invoker.Db, &obj)
+	resp, err := db2.K8SConfigMapLoadOrSave(invoker.Db, &obj)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.ClusterCMDB(c.User(), db.OpnClustersConfigMapCreate, map[string]interface{}{"param": param})
+	event.Event.ClusterCMDB(c.User(), db2.OpnClustersConfigMapCreate, map[string]interface{}{"param": param})
 	c.JSONOK(resp)
 }
 
@@ -130,7 +130,7 @@ func ConfigMapInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	param := view.ReqConfigMapInfo{}
+	param := view2.ReqConfigMapInfo{}
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)

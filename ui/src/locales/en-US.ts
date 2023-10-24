@@ -38,8 +38,10 @@ export default {
 
   type: "Type",
   capacity: "Capacity",
-  shardNum: "Shard",
-  replicaNum: "Replica",
+  shardNum: "Shard Number",
+  shard: "Shard",
+  replicaNum: "Replica Number",
+  replica: "Replica",
   count: "Count",
   status: "Status",
   dingTalk: "DingTalk",
@@ -502,7 +504,7 @@ export default {
     "Specify the field query: Method='Get' and _raw_log_ like '%error%'",
   "log.search.help.content.directionsUse": "Directions for use",
   "log.search.help.content.directionsUse.url":
-    "https://clickvisual.gocn.vip/en/clickvisual/03funcintro/instructions.html",
+    "https://clickvisual.net/en/clickvisual/03funcintro/instructions.html",
   "log.search.quickSearch.column.placeholder": "Please select column",
   "log.search.quickSearch.operator.placeholder": "Please select operator",
   "log.search.quickSearch.value.placeholder": "Please enter a value",

@@ -1,23 +1,23 @@
-import styles from "./index.less";
-import ReactDom from "react-dom";
-import { useIntl, useModel } from "umi";
 import { useRef, useState } from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
+import { useIntl, useModel } from "umi";
+import styles from "./index.less";
 // 白色主题
-import "codemirror/theme/neo.css";
+import useLocalStorages from "@/hooks/useLocalStorages";
+import { dataLogLocalaStorageType } from "@/models/dataLogs";
+import CreateLogFilter from "@/pages/DataLogs/components/CreateLogFilter";
+import { LogFilterType } from "@/services/dataLogs";
 import {
   FontSizeOutlined,
   HistoryOutlined,
   KeyOutlined,
   PushpinOutlined,
 } from "@ant-design/icons";
-import { dataLogLocalaStorageType } from "@/models/dataLogs";
-import useLocalStorages from "@/hooks/useLocalStorages";
+import classNames from "classnames";
+import "codemirror/theme/neo.css";
+import { createRoot } from "react-dom/client";
 import { MYSQL_KEYWORD } from "./MySQLKeyWord";
 import WhereBox from "./WhereBox";
-import CreateLogFilter from "@/pages/DataLogs/components/CreateLogFilter";
-import { LogFilterType } from "@/services/dataLogs";
-import classNames from "classnames";
 
 export enum CodeHintsType {
   history = 1,
@@ -235,8 +235,8 @@ const Editors = (props: {
       }
     });
     virtualDom = <div dangerouslySetInnerHTML={{ __html: c }} />;
-
-    ReactDom.render(virtualDom, text);
+    const root = createRoot(text);
+    root.render(virtualDom);
     arr.push({
       text: promptText.text,
       domText: text,
@@ -367,7 +367,9 @@ const Editors = (props: {
     divInfo.setAttribute("class", "autocomplete-info");
     divInfo.innerText = data.displayText;
 
-    ReactDom.render(data.displayIcon, divIcon);
+    const root = createRoot(divIcon);
+    root.render(data.displayIcon);
+
     div.appendChild(divIcon);
     div.appendChild(divText);
     div.appendChild(divInfo);
@@ -388,7 +390,8 @@ const Editors = (props: {
           ×
         </span>
       );
-      ReactDom.render(delDom, delIcon);
+      const root = createRoot(delIcon);
+      root.render(delDom);
       isNeedFork && delIcon && div.appendChild(delIcon);
     }
 

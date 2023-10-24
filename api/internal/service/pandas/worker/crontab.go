@@ -14,10 +14,10 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/preempt"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/node"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/preempt"
 )
 
 const crontabUid = -1
@@ -56,7 +56,7 @@ func Close() error {
 	}
 	CrontabRules.crones.Range(func(k, v interface{}) bool {
 		nodeId := k.(int)
-		_ = db.CrontabUpdate(invoker.Db, nodeId, map[string]interface{}{"status": db.CrontabStatusWait})
+		_ = db2.CrontabUpdate(invoker.Db, nodeId, map[string]interface{}{"status": db2.CrontabStatusWait})
 		c := v.(*cron.Cron)
 		c.Stop()
 		return true
@@ -79,7 +79,7 @@ func NodeCrontabStop(nodeId int) error {
 func clear() {
 	for {
 		time.Sleep(time.Minute)
-		db.NodeResultDelete30Days()
+		db2.NodeResultDelete30Days()
 	}
 }
 
@@ -92,7 +92,7 @@ func looper() {
 		// Obtain the offline synchronization task to be executed
 		// TODO Currently, only offline synchronization tasks can be detected
 		var (
-			crs []*db.BigdataCrontab
+			crs []*db2.BigdataCrontab
 			err error
 		)
 		if crs, err = fetchNodeCrontabs(); err != nil {
@@ -104,38 +104,38 @@ func looper() {
 	}
 }
 
-func fetchNodeCrontabs() ([]*db.BigdataCrontab, error) {
+func fetchNodeCrontabs() ([]*db2.BigdataCrontab, error) {
 	conds := egorm.Conds{}
-	conds["status"] = db.CrontabStatusWait
+	conds["status"] = db2.CrontabStatusWait
 	conds["typ"] = 0
-	return db.CrontabList(conds)
+	return db2.CrontabList(conds)
 }
 
 // 执行调度流程，cron -> run
-func dispatch(crontabs []*db.BigdataCrontab) {
+func dispatch(crontabs []*db2.BigdataCrontab) {
 	// 获取待执行状态的离线同步任务
 	// no folder node
 	for _, n := range crontabs {
-		_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusPreempt})
+		_ = db2.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db2.CrontabStatusPreempt})
 		if err := buildCronFn(n); err != nil {
-			_ = db.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db.CrontabStatusWait})
+			_ = db2.CrontabUpdate(invoker.Db, n.NodeId, map[string]interface{}{"status": db2.CrontabStatusWait})
 			elog.Error("crontabRules", elog.String("step", "CrontabUpdate"), elog.String("error", err.Error()))
 		}
 	}
 }
 
 // Cron task trigger
-func buildCronFn(cr *db.BigdataCrontab) (err error) {
+func buildCronFn(cr *db2.BigdataCrontab) (err error) {
 	c := cron.New()
 	spec := cr.Cron
 	id, err := c.AddFunc(spec, func() {
-		n, errNodeInfo := db.NodeInfo(invoker.Db, cr.NodeId)
+		n, errNodeInfo := db2.NodeInfo(invoker.Db, cr.NodeId)
 		if errNodeInfo != nil {
 			elog.Error("crontabRules", elog.String("step", "buildCronFn"),
 				elog.Any("nodeId", cr.NodeId), elog.Any("err", errNodeInfo))
 			return
 		}
-		nc, errNodeContentInfo := db.NodeContentInfo(invoker.Db, n.ID)
+		nc, errNodeContentInfo := db2.NodeContentInfo(invoker.Db, n.ID)
 		if errNodeContentInfo != nil {
 			elog.Error("crontabRules", elog.String("step", "buildCronFn"),
 				elog.Any("nodeId", cr.NodeId), elog.Any("err", errNodeContentInfo))
@@ -175,16 +175,17 @@ func buildCronFn(cr *db.BigdataCrontab) (err error) {
 	}
 	elog.Info("crontabRules", elog.String("step", "buildCronFn"), elog.Any("id", id))
 	c.Start()
-	_ = db.CrontabUpdate(invoker.Db, cr.NodeId, map[string]interface{}{"status": db.CrontabStatusDoing})
+	_ = db2.CrontabUpdate(invoker.Db, cr.NodeId, map[string]interface{}{"status": db2.CrontabStatusDoing})
 	CrontabRules.crones.Store(cr.NodeId, c)
 	return
 }
 
 func pushExec(channelIds []int, text string, iid int) {
-	_ = pusher.Execute(channelIds, &db.PushMsg{
+	msg := db2.PushMsg{
 		Title: "###  <font color=#FF0000>您有待处理的告警</font>\n",
 		Text: fmt.Sprintf("Scheduled task execution failed: %s\n href: %s/bigdata?id=%d&navKey=TaskExecutionDetails\n",
 			text, strings.TrimRight(econf.GetString("app.rootURL"), "/"), iid,
 		),
-	})
+	}
+	_ = pusher.Execute(channelIds, &msg, &msg)
 }

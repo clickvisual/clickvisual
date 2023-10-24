@@ -1,12 +1,12 @@
 package reader
 
 import (
+	"github.com/clickvisual/clickvisual/api/core/i"
 	"github.com/clickvisual/clickvisual/api/core/reader/clickhouse"
-	"github.com/clickvisual/clickvisual/api/core/reader/ifreader"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
-func New(ds string, params ifreader.Params) ifreader.Reader {
+func New(ds string, params i.ReaderParams) i.Reader {
 	switch ds {
 	case db.DatasourceClickHouse:
 		return clickhouse.NewReader(params)

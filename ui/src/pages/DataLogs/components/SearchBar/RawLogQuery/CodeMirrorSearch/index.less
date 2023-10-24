@@ -6,7 +6,7 @@
 
   .codemirrorInput {
     display: flex;
-    width: 100%;
+    width: calc(100% - 60px);
     background-color: #fff;
     border: 1px solid #e8e8e8;
     border-radius: 0 8px 8px 0;
@@ -62,13 +62,13 @@
       border: none !important;
     }
     :global(.CodeMirror-scroll) {
+      width: calc(100%);
       height: auto !important;
       min-height: 32px !important;
       max-height: 32px !important;
       padding-bottom: 0 !important;
       overflow-y: hidden;
       scrollbar-width: none;
-      width: calc(100%);
       &::-webkit-scrollbar {
         display: none;
       }

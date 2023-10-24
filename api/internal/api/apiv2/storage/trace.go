@@ -7,13 +7,13 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
-	"github.com/clickvisual/clickvisual/api/pkg/component/core"
-	"github.com/clickvisual/clickvisual/api/pkg/model/db"
-	"github.com/clickvisual/clickvisual/api/pkg/model/view"
 )
 
 // GetTraceList  godoc
@@ -26,18 +26,18 @@ import (
 // @Router       /api/v2/storage/traces [get]
 func GetTraceList(c *core.Context) {
 	conds := egorm.Conds{}
-	conds["v3_table_type"] = db.V3TableTypeJaegerJSON
-	tableList, err := db.TableList(invoker.Db, conds)
+	conds["v3_table_type"] = db2.V3TableTypeJaegerJSON
+	tableList, err := db2.TableList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, "read list failed: "+err.Error(), nil)
 		return
 	}
-	res := make([]view.RespTableSimple, 0)
+	res := make([]view2.RespTableSimple, 0)
 	for _, row := range tableList {
 		if !service.TableViewIsPermission(c.Uid(), row.Database.Iid, row.ID) {
 			continue
 		}
-		res = append(res, view.RespTableSimple{
+		res = append(res, view2.RespTableSimple{
 			Id:         row.ID,
 			TableName:  row.Name,
 			CreateType: row.CreateType,
@@ -64,19 +64,19 @@ func UpdateTraceInfo(c *core.Context) {
 		return
 	}
 	var (
-		req view.ReqStorageUpdateTraceInfo
+		req view2.ReqStorageUpdateTraceInfo
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, id)
+	tableInfo, err := db2.TableInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "update failed 01: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -92,11 +92,11 @@ func UpdateTraceInfo(c *core.Context) {
 	ups := make(map[string]interface{}, 0)
 	ups["uid"] = c.Uid()
 	ups["trace_table_id"] = req.TraceTableId
-	if err = db.TableUpdate(invoker.Db, id, ups); err != nil {
+	if err = db2.TableUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed 04: "+err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -117,19 +117,19 @@ func GetTraceGraph(c *core.Context) {
 		return
 	}
 	var (
-		req view.ReqStorageGetTraceGraph
+		req view2.ReqStorageGetTraceGraph
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, id)
+	tableInfo, err := db2.TableInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "get trace graph failed: "+err.Error(), nil)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -155,7 +155,7 @@ func GetTraceGraph(c *core.Context) {
 		c.JSONE(1, "update failed 04", err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesLogsQuery, map[string]interface{}{"req": req})
 	c.JSONOK(res)
 }
 
@@ -175,19 +175,19 @@ func GetStorageColumns(c *core.Context) {
 		return
 	}
 	var (
-		req view.ReqStorageGetTraceGraph
+		req view2.ReqStorageGetTraceGraph
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
-	tableInfo, err := db.TableInfo(invoker.Db, id)
+	tableInfo, err := db2.TableInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -209,6 +209,6 @@ func GetStorageColumns(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db2.OpnTablesLogsQuery, map[string]interface{}{"req": req})
 	c.JSONOK(columns)
 }
