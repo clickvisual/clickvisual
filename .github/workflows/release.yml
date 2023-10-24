@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v**"
-
+      - "feature/docker-ci"
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
