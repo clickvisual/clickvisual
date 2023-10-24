@@ -2,9 +2,10 @@ name: goreleaser
 
 on:
   push:
+    branches:
+      - 'feature/docker-ci'
     tags:
       - "v**"
-      - "feature/docker-ci"
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
