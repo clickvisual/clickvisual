@@ -7,12 +7,13 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/gotomicro/ego/core/elog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	cri "k8s.io/cri-api/pkg/apis/runtime/v1"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 )
 
 const maxMsgSize = 1024 * 1024 * 16

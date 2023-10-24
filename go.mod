@@ -29,6 +29,7 @@ require (
 	github.com/jonboulle/clockwork v0.3.0
 	github.com/link-duan/go-redoc v1.0.1
 	github.com/link-duan/toml v0.3.2
+	github.com/panjf2000/ants v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.60.1
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.60.1

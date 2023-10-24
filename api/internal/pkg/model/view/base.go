@@ -69,6 +69,8 @@ type (
 		Date          string   `form:"date"`
 		K8SContainer  []string `form:"k8sContainer"`
 		Dir           string   `json:"dir"`
+		Path          string   `form:"path";json:"path"`
+		Interval      int64    `json:"interval"`
 	}
 
 	RespQuery struct {
@@ -103,6 +105,13 @@ type (
 type RespAgentSearch struct {
 	Data          []RespAgentSearchItem `json:"data"`
 	K8sClientType string                `json:"k8sClientType"`
+}
+
+type RespAgentChartsSearch struct {
+	Data          []HighChart `json:"data"`
+	MinOffset     int64       `json:"minOffset"`
+	MaxOffset     int64       `json:"maxOffset"`
+	K8sClientType string      `json:"k8sClientType"`
 }
 
 type RespAgentSearchItem struct {
