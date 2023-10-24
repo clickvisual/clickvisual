@@ -110,7 +110,8 @@ services:
     expose:
       - 9000
     ports:
-      - "8123:8123"
+      - "18123:8123"
+      - "19000:9000"
     volumes:
       - ./data/all-in-one/clickhouse/database:/var/lib/clickhouse
       - ./data/all-in-one/clickhouse/logs:/var/log
@@ -189,18 +190,3 @@ services:
       - ./data/all-in-one/clickvisual/config:/clickvisual/config
       - ./data/all-in-one/prometheus/rules:/clickvisual/rules
     command: [ '/bin/sh', '-c', './bin/clickvisual server' ]
-  mock:
-    image: clickvisual/clickvisual:master
-    networks:
-      - clickvisual-net
-    environment:
-      EGO_CONFIG_PATH: /clickvisual/config/docker.toml
-      EGO_LOG_WRITER: stderr
-    depends_on:
-      - mysql
-    links:
-      - mysql
-    restart: 'no'
-    volumes:
-      - ./data/all-in-one/clickvisual/config:/clickvisual/config
-    command: [ '/bin/sh', '-c', './bin/clickvisual server -job install' ]

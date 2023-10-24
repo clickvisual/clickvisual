@@ -3,18 +3,16 @@ package server
 import (
 	"log"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/prom2click"
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egovernor"
-	"github.com/gotomicro/ego/task/ejob"
 	"github.com/spf13/cobra"
 
 	"github.com/clickvisual/clickvisual/api/cmd"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/job"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/router"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/worker"
@@ -47,7 +45,6 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 			service.Init,
 			worker.Init,
 		).
-		Job(ejob.Job("install", job.RunInstall)).
 		Serve(
 			egovernor.Load("server.governor").Build(),
 			router.GetServerRouter(),

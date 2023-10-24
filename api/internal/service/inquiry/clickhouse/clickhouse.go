@@ -803,6 +803,8 @@ func (c *ClickHouseX) Chart(param view2.ReqQuery) (res []*view2.HighChart, q str
 			switch chart["timeline"].(type) {
 			case time.Time:
 				row.From = chart["timeline"].(time.Time).Unix()
+			case *time.Time:
+				row.From = chart["timeline"].(*time.Time).Unix()
 			}
 		}
 		res = append(res, &row)

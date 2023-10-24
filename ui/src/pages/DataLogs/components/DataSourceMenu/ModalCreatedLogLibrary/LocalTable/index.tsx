@@ -387,7 +387,6 @@ const LocalTable = ({
                                 fieldKey={[field.key, "cluster"]}
                                 rules={[
                                   {
-                                    required: true,
                                     message: i18n.formatMessage({
                                       id: "config.selectedBar.cluster",
                                     }),
@@ -399,6 +398,9 @@ const LocalTable = ({
                                     id: "config.selectedBar.cluster",
                                   })}`}
                                 >
+                                  <Option key="" value="">
+                                    非集群
+                                  </Option>
                                   {currentInstance?.clusters.map(
                                     (item: string) => (
                                       <Option key={item} value={item}>
