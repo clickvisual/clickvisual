@@ -3,10 +3,10 @@ package search
 import (
 	"fmt"
 	"math"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
@@ -16,6 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 const (
@@ -26,6 +27,15 @@ const (
 	PARTITION_MAX_SIZE = 4 * MB
 	PARTITION_MAX_NUM  = 10
 )
+
+var (
+	CORE_NUM int
+)
+
+func init() {
+	CORE_NUM = runtime.NumCPU()
+	runtime.NumGoroutine()
+}
 
 type Container struct {
 	components []*Component
@@ -64,8 +74,8 @@ func (c *Component) preparePartition(from, to int64) {
 		c.partitionNum = 1
 		c.partitionSize = 3 * MB
 	case size <= GB:
-		c.partitionNum = 2
-		c.partitionSize = 5 * MB
+		c.partitionNum = 3
+		c.partitionSize = 3 * MB
 	case size <= 2*GB:
 		c.partitionNum = 3
 		c.partitionSize = 3 * MB
@@ -100,19 +110,13 @@ func (c CmdRequest) ToRequest() Request {
 	)
 
 	if c.StartTime != "" {
-		sDate, err := time.Parse(time.DateTime, c.StartTime)
+		sDate := utils.TimeParse(c.StartTime)
 		st = sDate.Unix()
-		if err != nil {
-			elog.Panic("parse start time error", elog.FieldErr(err))
-		}
 	}
 
 	if c.EndTime != "" {
-		eDate, err := time.Parse(time.DateTime, c.EndTime)
-		et = eDate.Unix()
-		if err != nil {
-			elog.Panic("parse end time error", elog.FieldErr(err))
-		}
+		sDate := utils.TimeParse(c.StartTime)
+		st = sDate.Unix()
 	}
 
 	return Request{
@@ -348,6 +352,7 @@ func (c *Component) SearchFile() error {
 		} else {
 			// read based on buffer
 			err = c.getLogs(start, end)
+			// err = c.searchByBackWord(start, end)
 		}
 		if err != nil {
 			return errors.Wrapf(err, "agent search logs error")

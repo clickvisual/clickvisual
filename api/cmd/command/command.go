@@ -18,12 +18,12 @@ var CmdRun = &cobra.Command{
 }
 
 func init() {
-	CmdRun.PersistentFlags().StringVarP(&request.Dir, "dir", "d", "", "指定日志文件路径")
-	CmdRun.PersistentFlags().StringVarP(&request.Path, "path", "p", "", "指定日志文件路径")
-	CmdRun.PersistentFlags().StringVarP(&request.StartTime, "start", "s", "", "指定日志文件")
-	CmdRun.PersistentFlags().StringVarP(&request.EndTime, "end", "e", "", "指定日志文件")
-	CmdRun.PersistentFlags().StringVarP(&request.KeyWord, "key", "k", "", "指定日志文件")
-	CmdRun.PersistentFlags().Int64VarP(&request.Limit, "limit", "l", 5, "日志最大渲染条数")
+	CmdRun.PersistentFlags().StringVarP(&request.Dir, "dir", "d", "", "日志文件夹路径")
+	CmdRun.PersistentFlags().StringVarP(&request.Path, "path", "p", "", "日志文件路径")
+	CmdRun.PersistentFlags().StringVarP(&request.StartTime, "start", "s", "", "搜索日志开始时间")
+	CmdRun.PersistentFlags().StringVarP(&request.EndTime, "end", "e", "", "搜索日志结束时间")
+	CmdRun.PersistentFlags().StringVarP(&request.KeyWord, "key", "k", "", "搜索的关键词")
+	CmdRun.PersistentFlags().Int64VarP(&request.Limit, "limit", "l", 5, "查询记录条数")
 	CmdRun.PersistentFlags().StringVarP(&request.Date, "date", "t", "last 6h", "日期会有默认查询时间，默认last 6h")
 	CmdRun.PersistentFlags().BoolVarP(&request.IsK8S, "k8s", "z", false, "是否为k8s")
 	CmdRun.PersistentFlags().StringArrayVarP(&request.K8SContainer, "container", "y", []string{}, "k8s container名字")

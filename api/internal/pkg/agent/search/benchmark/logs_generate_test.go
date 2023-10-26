@@ -33,11 +33,11 @@ var (
 			logCategories: []Category{
 				{
 					content: `{"tss":%d,"lv":"info","key":"service down","msg":"cannot support xxx operation or xxxxxxx","addr":"[xxxx service:xxxx] heartbeat down","ts":"%s"}`,
-					count:   500000,
+					count:   500,
 				},
 				{
 					content: `{"tss":%d,"lv":"error","key":"service down","msg":"invalid input, make sure what you input is right","addr":"[xxxx service:xxxx] heartbeat down","ts":"%s"}`,
-					count:   2560000 - 500000,
+					count:   2560000 - 500,
 				},
 			},
 		},
@@ -50,11 +50,11 @@ var (
 			logCategories: []Category{
 				{
 					content: `{"tss":%d,"lv":"info","key":"service down","msg":"cannot support xxx operation or xxxxxxx","addr":"[xxxx service:xxxx] heartbeat down","ts":"%s"}`,
-					count:   100_0000,
+					count:   500,
 				},
 				{
 					content: `{"tss":%d,"lv":"error","key":"service down","msg":"invalid input, make sure what you input is right","addr":"[xxxx service:xxxx] heartbeat down","ts":"%s"}`,
-					count:   524_0000 - 100_0000,
+					count:   524_0000 - 500,
 				},
 			},
 		},
@@ -79,8 +79,8 @@ var (
 )
 
 func TestGenerateTestFile(t *testing.T) {
-
-	file := casesFiles[2]
+	fmt.Println("start generate log")
+	file := casesFiles[0]
 
 	writer, err := os.OpenFile(file.path, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
