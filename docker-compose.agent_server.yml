@@ -1,0 +1,37 @@
+version: '3'
+networks:
+  clickvisual-net:
+    driver: bridge
+services:
+  mysql:
+    image: mysql:5.7.37
+    platform: linux/amd64
+    networks:
+      - clickvisual-net
+    environment:
+      MYSQL_ROOT_PASSWORD: shimo
+      MYSQL_ROOT_HOST: '%'
+    command: [
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_general_ci',
+      '--port=13306',
+      '--init-file=/data/all-in-one/migration/database.sql',
+    ]
+    ports:
+      - 13306:13306
+    volumes:
+      - ./scripts/migration:/data/all-in-one/migration
+    restart: always
+  redis:
+    image: redis:5.0.14-alpine
+    networks:
+      - clickvisual-net
+    expose:
+      - 6380
+    restart: always
+    volumes:
+      - ./data/all-in-one/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/all-in-one/redis/data:/data
+      - ./data/all-in-one/redis/logs:/logs
+    command: [ '--port 6380' ]
+#  sudo docker run -p 6380:6379 --name redis -v ./data/all-in-one/redis/redis.conf:/etc/redis/redis.conf  -v ./data/all-in-one/redis:/data -d redis redis-server /etc/redis/redis.conf --appendonly yes
