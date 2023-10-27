@@ -75,7 +75,7 @@ func (c *Component) isSearchByStartTime(value string) bool {
 		return true
 	}
 	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser.Unix() >= c.startTime {
+	if curTimeParser == nil || curTimeParser.Unix() >= c.startTime {
 		return true
 	}
 	return false
@@ -87,7 +87,7 @@ func isSearchByEndTime(value string, endTime int64) bool {
 		return true
 	}
 	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser.Unix() <= endTime {
+	if curTimeParser == nil || curTimeParser.Unix() <= endTime {
 		return true
 	}
 	return false
@@ -638,6 +638,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 			_, ok, _ = c.verifyKeyWords(firstLine, c.filterWords, -1, filterPosMap)
 		}
 
+		var err error
 		if !section.isValid(startPos) {
 			if section.offset != -1 {
 				c.recordCharts(*section)
@@ -646,9 +647,9 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 			// If this row of logs matches,
 			// the start time of this row of logs is used to find the largest timestamp pos belonging to the same offset.
 			// If it is found later, there is no need to parse it again for calculation as long as it is less than this pos
-			c.calcOffsetSectionPos(file, data, section, startPos, pos)
+			err = c.calcOffsetSectionPos(file, data, section, startPos, pos)
 		}
-		if ok {
+		if err == nil && ok {
 			if firstLine[0] == '{' {
 				lines++
 				section.incr()
@@ -708,18 +709,17 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		}
 
 		if flag {
+			var err error
 			if !section.isValid(startPos) {
 				if section.offset != -1 {
 					c.recordCharts(*section)
 					section.clear()
 				}
-				c.calcOffsetSectionPos(file, data, section, startPos, pos)
+				err = c.calcOffsetSectionPos(file, data, section, startPos, pos)
 			}
-			if data[0] == '{' {
+			if err == nil && data[0] == '{' {
 				lines++
 				section.incr()
-			} else {
-				fmt.Println("complete->", string(data[:pos]))
 			}
 			startPos += int64(pos)
 			data, _, pos = goingOn(data, skipTag, pos, filterPosMap)
@@ -732,13 +732,19 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 	return lines, tailLine
 }
 
-func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection *OffsetSection, startPos int64, pos int) {
+func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection *OffsetSection, startPos int64, pos int) error {
 	line := data[:pos]
 	curTime, timeIndex := utils.IndexParse(string(line))
 	if timeIndex == -1 {
-		return
+		return errors.New("time column name unsupported")
 	}
-	unixTime := utils.TimeParse(curTime).Unix()
+	parse := utils.TimeParse(curTime)
+
+	if parse == nil {
+		return errors.New("parse time error")
+	}
+
+	unixTime := parse.Unix()
 	offset := (unixTime - c.startTime) / c.interval
 	endTime := c.startTime + (offset+1)*c.interval
 
@@ -778,7 +784,7 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 	}
 
 	offsetSection.load(offset, result)
-	return
+	return nil
 }
 
 func skipLines(data []byte, skipTag, pos int, filterPosMap map[string]int) ([]byte, int, int, int64) {
