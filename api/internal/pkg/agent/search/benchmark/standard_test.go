@@ -84,3 +84,30 @@ func TestSingleCase(t *testing.T) {
 	}
 	fmt.Printf("expected :%d, actual: %d", log.count, total)
 }
+
+func TestDevEnvFile(t *testing.T) {
+	a := assert.New(t)
+	file := casesFiles[1]
+	log := file.logCategories[1]
+	req := search.Request{
+		IsChartRequest: true,
+		StartTime:      1698716774,
+		EndTime:        1698718344,
+		Path:           "./container.log",
+		Interval:       search.ChartsIntervalConvert(1698718344 - 1698716774),
+	}
+	resp, err := search.RunCharts(req)
+	a.NoError(err, "charts search error -> ", file.path, log.filter, log.count)
+	total := int64(0)
+	for k, v := range resp.Data {
+		total += v
+		fmt.Printf("key: %d, value: %d\n", k, v)
+	}
+	fmt.Printf("expected :%d, actual: %d\n", log.count, total)
+
+	req.IsChartRequest = false
+
+	r, err := search.Run(req)
+	a.NoError(err, "logs search error -> ", file.path, log.filter, log.count)
+	fmt.Println("logs: ", len(r.Data))
+}
