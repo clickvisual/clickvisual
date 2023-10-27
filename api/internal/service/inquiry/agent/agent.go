@@ -81,8 +81,10 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 		} else {
 			data["isK8s"] = "1"
 		}
+		elog.Info("get agent logs request", l.S("agent", agent), l.A("request", data))
 		searchResp, err := a.httpClient.R().EnableTrace().SetQueryParams(data).Get(agent + "/api/v1/search")
 		if err != nil {
+			elog.Error("get agent logs error", l.E(err), l.S("agent", agent))
 			return view.RespQuery{}, errors.Wrapf(err, "request agent %s error", agent)
 		}
 		var res struct {
@@ -92,6 +94,7 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 		}
 		err = json.Unmarshal(searchResp.Body(), &res)
 		if err != nil {
+			elog.Error("Unmarshal agent logs resp body error", l.E(err), l.S("agent", agent))
 			return view.RespQuery{}, errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
 		}
 		// 返回数据处理
@@ -151,8 +154,11 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 		data["interval"] = string(interval)
 		data["isChartRequest"] = "1"
 
+		elog.Info("get agent charts request", l.S("agent", agent), l.A("request", data))
 		searchResp, err := a.httpClient.R().EnableTrace().SetQueryParams(data).Get(agent + "/api/v1/charts")
 		if err != nil {
+			elog.Error("get agent charts error", l.E(err), l.S("agent", agent))
+			return nil, "", errors.Wrapf(err, "get agent %s charts error", agent)
 		}
 		var res struct {
 			Code int                        `json:"code"`
@@ -161,6 +167,7 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 		}
 		err = json.Unmarshal(searchResp.Body(), &res)
 		if err != nil {
+			elog.Error("Unmarshal agent charts resp body error", l.E(err), l.S("agent", agent))
 			return nil, "", errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
 		}
 		if minOffset == -1 || res.Data.MinOffset < minOffset {

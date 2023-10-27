@@ -33,7 +33,7 @@ type SearchRequest struct {
 
 type ChartsSearchRequest struct {
 	SearchRequest
-	IsChartRequest int   `json:"isChartRequest" form:"isChartRequest"`
+	IsChartRequest bool   `json:"isChartRequest" form:"isChartRequest"`
 	Interval       int64 `json:"interval" form:"interval"`
 }
 
@@ -41,6 +41,7 @@ func (a *Agent) Search(c *core.Context) {
 	postReq := &SearchRequest{}
 	err := c.Bind(postReq)
 	if err != nil {
+		elog.Error("can not bind request", l.E(err), l.A("request", c.Request))
 		c.JSONE(1, "can not bind request", err)
 		return
 	}
@@ -87,6 +88,7 @@ func (a *Agent) Charts(c *core.Context) {
 	postReq := &ChartsSearchRequest{}
 	err := c.Bind(postReq)
 	if err != nil {
+		elog.Error("can not bind request", l.E(err), l.A("request", c.Request))
 		c.JSONE(1, "can not bind request", err)
 		return
 	}
@@ -104,14 +106,14 @@ func (a *Agent) Charts(c *core.Context) {
 	if len(postReq.Container) > 0 {
 		req.K8SContainer = postReq.Container
 	}
-
-	if postReq.Interval < 0 || postReq.IsChartRequest != 1 {
+	elog.Info("agent client charts request", l.A("request", postReq))
+	if postReq.Interval < 0 || !postReq.IsChartRequest {
 		c.JSONE(1, "only support request for charts, please check params...", nil)
 		return
 	}
 
 	req.Interval = postReq.Interval
-	req.IsChartRequest = postReq.IsChartRequest == 1
+	req.IsChartRequest = postReq.IsChartRequest
 
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
 		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
@@ -128,7 +130,7 @@ func (a *Agent) Charts(c *core.Context) {
 	}
 	resp, err := search.RunCharts(req)
 	if err != nil {
-		elog.Error("search error", l.E(err))
+		elog.Error("agent charts search error", l.E(err))
 		c.JSONE(1, "search error", err)
 		return
 	}

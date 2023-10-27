@@ -322,7 +322,8 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 func (c *Component) SearchFile() error {
 	defer c.file.ptr.Close()
 	if c.file.size == 0 {
-		return errors.New("file size is 0")
+		elog.Info("file size is 0", l.S("path", c.file.path))
+		return nil
 	}
 	var (
 		start = int64(0)

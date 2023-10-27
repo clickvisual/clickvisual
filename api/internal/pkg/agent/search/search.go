@@ -440,7 +440,6 @@ func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 			panic("agent search calc partition interval findString failed")
 		}
 	}
-
 	switch {
 	case n == 1:
 		resp = append(resp, [2]int64{start, end})
@@ -508,6 +507,12 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 	}
 
 	br1 = bytes.LastIndexByte(data, '\n')
+
+	if br1 == -1 {
+		beforeLine = append(beforeLine, bytes.Clone(data)...)
+		return lines, beforeLine
+	}
+
 	br2 = bytes.LastIndexByte(data[:br1], '\n')
 
 	// means there is the first line
