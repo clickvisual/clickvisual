@@ -247,12 +247,13 @@ func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, er
 			readStartPos = 0
 		}
 		c.file.ptr.Seek(readStartPos, 0)
-		now -= basicSize
 		c.file.ptr.Read(fileReader)
 
 		if readStartPos == 0 {
 			fileReader = fileReader[:now]
 		}
+
+		now -= basicSize
 
 		data = append(data, fileReader...)
 
