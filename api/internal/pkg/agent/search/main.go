@@ -144,7 +144,6 @@ type Request struct {
 	K8sClientType  string // 是 containerd，还是docker
 	IsChartRequest bool   // 是否为请求 Charts
 	Interval       int64  // 请求 charts 时，划分的标准时间间隔
-	Debug          bool
 }
 
 func (req *Request) prepare() {
@@ -198,6 +197,7 @@ func (req *Request) prepare() {
 }
 
 func Run(req Request) (data view.RespAgentSearch, err error) {
+	elog.Info("agent[node] log search start", elog.Any("req", req))
 	data.Data = make([]view.RespAgentSearchItem, 0)
 
 	req.prepare()
@@ -213,7 +213,6 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		req.Limit = 50
 		elog.Info("limit exceeds 500. it will be automatically set to 50", elog.Int64("limit", req.Limit))
 	}
-	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
 	sw := sync.WaitGroup{}
 	// 文件添加并发查找
@@ -221,6 +220,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
+			defer sw.Done()
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
@@ -232,11 +232,11 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 			if err != nil {
 				elog.Error("agent search file error", elog.FieldErr(err))
 			}
-			sw.Done()
 		}()
 	}
 	sw.Wait()
 
+	elog.Info("agent[node] log search over", elog.Any("resp", data), elog.Any("path", req.TruePath))
 	if req.IsCommand {
 		for _, comp := range container.components {
 			fmt.Println(comp.bash.ColorAll(comp.file.path))
@@ -322,7 +322,8 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 func (c *Component) SearchFile() error {
 	defer c.file.ptr.Close()
 	if c.file.size == 0 {
-		return errors.New("file size is 0")
+		elog.Info("file size is 0", l.S("path", c.file.path))
+		return nil
 	}
 	var (
 		start = int64(0)
@@ -359,10 +360,10 @@ func (c *Component) SearchFile() error {
 }
 
 func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
+	elog.Info("agent[node] charts search start", elog.Any("req", req))
 	req.prepare()
 	filePaths := req.TruePath
 
-	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
 	sw := sync.WaitGroup{}
 	// 文件添加并发查找
@@ -370,6 +371,7 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
+			defer sw.Done()
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
@@ -386,7 +388,6 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 			if err != nil {
 				elog.Error("agent search file error", elog.FieldErr(err))
 			}
-			sw.Done()
 		}()
 	}
 	sw.Wait()
@@ -395,11 +396,7 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 	minTimes, maxTimes := int64(math.MaxInt64), int64(math.MinInt64)
 	for _, comp := range container.components {
 		for k, v := range comp.charts {
-			if _, ok := charts[k]; ok {
-				charts[k] += v
-			} else {
-				charts[k] = v
-			}
+			charts[k] += v
 
 			if k <= minTimes {
 				minTimes = k
@@ -410,26 +407,17 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 			}
 		}
 	}
-
-	data := make([]view.HighChart, 0)
-
-	// need to make sure the section is continuous
-	for i := minTimes; i <= maxTimes; i++ {
-		end := req.StartTime + (i+1)*req.Interval
-		if end > req.EndTime {
-			end = req.EndTime
-		}
-
-		data = append(data, view.HighChart{
-			Count: uint64(charts[i]),
-			From:  req.StartTime + i*req.Interval,
-			To:    end,
-		})
-	}
-	resp.Data = data
+	resp.Data = charts
 	resp.MinOffset = minTimes
 	resp.MaxOffset = maxTimes
 	resp.K8sClientType = req.K8sClientType
+	if minTimes == math.MaxInt64 {
+		resp.MinOffset = -1
+	}
+
+	if maxTimes == math.MinInt64 {
+		resp.MinOffset = -1
+	}
 	return resp, nil
 }
 
