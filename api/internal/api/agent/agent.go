@@ -33,7 +33,7 @@ type SearchRequest struct {
 
 type ChartsSearchRequest struct {
 	SearchRequest
-	IsChartRequest bool  `json:"isChartRequest" form:"isChartRequest"`
+	IsChartRequest int   `json:"isChartRequest" form:"isChartRequest"`
 	Interval       int64 `json:"interval" form:"interval"`
 }
 
@@ -105,13 +105,13 @@ func (a *Agent) Charts(c *core.Context) {
 		req.K8SContainer = postReq.Container
 	}
 
-	if postReq.Interval < 0 || !postReq.IsChartRequest {
+	if postReq.Interval < 0 || postReq.IsChartRequest != 1 {
 		c.JSONE(1, "only support request for charts, please check params...", nil)
 		return
 	}
 
 	req.Interval = postReq.Interval
-	req.IsChartRequest = postReq.IsChartRequest
+	req.IsChartRequest = postReq.IsChartRequest == 1
 
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
 		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
