@@ -108,10 +108,10 @@ type RespAgentSearch struct {
 }
 
 type RespAgentChartsSearch struct {
-	Data          []HighChart `json:"data"`
-	MinOffset     int64       `json:"minOffset"`
-	MaxOffset     int64       `json:"maxOffset"`
-	K8sClientType string      `json:"k8sClientType"`
+	Data          map[int64]int64 `json:"data"`
+	MinOffset     int64           `json:"minOffset"`
+	MaxOffset     int64           `json:"maxOffset"`
+	K8sClientType string          `json:"k8sClientType"`
 }
 
 type RespAgentSearchItem struct {

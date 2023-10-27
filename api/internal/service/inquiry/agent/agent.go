@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -55,6 +56,8 @@ func (a *Agent) parseHitLog(k8sClientType string, item view.RespAgentSearchItem)
 		for k, v := range item.Ext {
 			log[k] = v
 		}
+	} else {
+		log = nil
 	}
 	return log, nil
 }
@@ -81,8 +84,11 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 		} else {
 			data["isK8s"] = "1"
 		}
+		data["limit"] = fmt.Sprintf("%d", query.PageSize)
+		elog.Info("get agent logs request", l.S("agent", agent), l.A("request", data))
 		searchResp, err := a.httpClient.R().EnableTrace().SetQueryParams(data).Get(agent + "/api/v1/search")
 		if err != nil {
+			elog.Error("get agent logs error", l.E(err), l.S("agent", agent))
 			return view.RespQuery{}, errors.Wrapf(err, "request agent %s error", agent)
 		}
 		var res struct {
@@ -92,6 +98,7 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 		}
 		err = json.Unmarshal(searchResp.Body(), &res)
 		if err != nil {
+			elog.Error("Unmarshal agent logs resp body error", l.E(err), l.S("agent", agent))
 			return view.RespQuery{}, errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
 		}
 		// 返回数据处理
@@ -101,7 +108,9 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 				elog.Error("parse agent log error", l.E(err))
 				continue
 			}
-			tmpLogs = append(tmpLogs, logs)
+			if logs != nil {
+				tmpLogs = append(tmpLogs, logs)
+			}
 		}
 	}
 	if len(tmpLogs) > 100 {
@@ -123,7 +132,7 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 
 func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 	resp := make([]*view.HighChart, 0)
-	chartsMap := make(map[int64]*view.HighChart)
+	chartsOffsetMap := make(map[int64]int64)
 	minOffset, maxOffset := int64(-1), int64(-1)
 	interval := int64(0)
 	for _, agent := range a.agents {
@@ -148,11 +157,14 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 		}
 
 		_, interval = a.CalculateInterval(query.ET-query.ST, "")
-		data["interval"] = string(interval)
+		data["interval"] = strconv.FormatInt(interval, 10)
 		data["isChartRequest"] = "1"
 
+		elog.Info("get agent charts request", l.S("agent", agent), l.A("request", data))
 		searchResp, err := a.httpClient.R().EnableTrace().SetQueryParams(data).Get(agent + "/api/v1/charts")
 		if err != nil {
+			elog.Error("get agent charts error", l.E(err), l.S("agent", agent))
+			return nil, "", errors.Wrapf(err, "get agent %s charts error", agent)
 		}
 		var res struct {
 			Code int                        `json:"code"`
@@ -161,6 +173,7 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 		}
 		err = json.Unmarshal(searchResp.Body(), &res)
 		if err != nil {
+			elog.Error("Unmarshal agent charts resp body error", l.E(err), l.S("agent", agent), l.S("body", string(searchResp.Body())))
 			return nil, "", errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
 		}
 		if minOffset == -1 || res.Data.MinOffset < minOffset {
@@ -168,35 +181,28 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 		}
 
 		if maxOffset == -1 || res.Data.MaxOffset > maxOffset {
-			maxOffset = res.Data.MinOffset
+			maxOffset = res.Data.MaxOffset
 		}
 
-		length := len(res.Data.Data)
 		// 返回数据处理
-		for i := 0; i < length; i++ {
-			d := &res.Data.Data[i]
-			if _, ok := chartsMap[d.From]; ok {
-				chartsMap[d.From].Count += d.Count
-			} else {
-				chartsMap[d.From] = d
-			}
+		for k, v := range res.Data.Data {
+			chartsOffsetMap[k] += v
 		}
+
 	}
 
 	for i := minOffset; i <= maxOffset; i++ {
-		var chart *view.HighChart
 		start := query.ST + i*interval
 		end := query.ST + (i+1)*interval
-		if v, ok := chartsMap[query.ST+minOffset*interval]; ok {
-			chart = v
-		} else {
-			chart = &view.HighChart{
-				From:  start,
-				To:    end,
-				Count: uint64(0),
-			}
+		count := int64(0)
+		if cnt, ok := chartsOffsetMap[i]; ok {
+			count = cnt
 		}
-		resp = append(resp, chart)
+		resp = append(resp, &view.HighChart{
+			From:  start,
+			To:    end,
+			Count: uint64(count),
+		})
 	}
 	return resp, "", nil
 }

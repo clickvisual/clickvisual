@@ -45,7 +45,6 @@ func BenchmarkCharts_1GB_424w(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[1]
 		req := search.Request{
-			Debug:          false,
 			IsChartRequest: true,
 			StartTime:      file.st,
 			EndTime:        file.et,
@@ -62,14 +61,12 @@ func BenchmarkCharts_1GB_100w(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[1]
 		req := search.Request{
-			Debug:          false,
 			IsChartRequest: true,
 			StartTime:      file.st,
 			EndTime:        file.et,
 			Path:           file.path,
 			KeyWord:        "lv=info and key=service down and msg=cannot support xxx operation or xxxxxxx",
-
-			Interval: search.ChartsIntervalConvert(file.et - file.st),
+			Interval:       search.ChartsIntervalConvert(file.et - file.st),
 		}
 		search.RunCharts(req)
 	}
@@ -129,7 +126,6 @@ func BenchmarkLogs_1GB_100w(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[1]
 		req := search.Request{
-			Debug:     false,
 			StartTime: file.st,
 			EndTime:   file.et,
 			Path:      file.path,
