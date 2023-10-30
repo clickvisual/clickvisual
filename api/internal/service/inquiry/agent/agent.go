@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -93,6 +94,7 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 			Data view.RespAgentSearch `json:"data"`
 		}
 		err = json.Unmarshal(searchResp.Body(), &res)
+		elog.Info("agent[master] logs response", l.S("agent", agent), l.A("response", res))
 		if err != nil {
 			elog.Error("Unmarshal agent logs resp body error", l.E(err), l.S("agent", agent))
 			return view.RespQuery{}, errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
@@ -151,7 +153,7 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 		}
 
 		_, interval = a.CalculateInterval(query.ET-query.ST, "")
-		data["interval"] = string(interval)
+		data["interval"] = strconv.FormatInt(interval, 10)
 		data["isChartRequest"] = "1"
 
 		elog.Info("get agent charts request", l.S("agent", agent), l.A("request", data))
@@ -166,8 +168,9 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 			Data view.RespAgentChartsSearch `json:"data"`
 		}
 		err = json.Unmarshal(searchResp.Body(), &res)
+		elog.Info("agent[master] charts response", l.S("agent", agent), l.A("response", res))
 		if err != nil {
-			elog.Error("Unmarshal agent charts resp body error", l.E(err), l.S("agent", agent))
+			elog.Error("Unmarshal agent charts resp body error", l.E(err), l.S("agent", agent), l.S("body", string(searchResp.Body())))
 			return nil, "", errors.Wrapf(err, "unmarshal agent %s response error, body is %s", agent, string(searchResp.Body()))
 		}
 		if minOffset == -1 || res.Data.MinOffset < minOffset {

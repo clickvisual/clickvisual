@@ -198,6 +198,7 @@ func (req *Request) prepare() {
 }
 
 func Run(req Request) (data view.RespAgentSearch, err error) {
+	elog.Info("agent[node] log search start", elog.Any("req", req))
 	data.Data = make([]view.RespAgentSearchItem, 0)
 
 	req.prepare()
@@ -213,14 +214,15 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		req.Limit = 50
 		elog.Info("limit exceeds 500. it will be automatically set to 50", elog.Int64("limit", req.Limit))
 	}
-	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
 	sw := sync.WaitGroup{}
+	elog.Info("agent[node] log search start", elog.Any("path", req.TruePath))
 	// 文件添加并发查找
 	sw.Add(len(filePaths))
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
+			defer sw.Done()
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
@@ -232,11 +234,11 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 			if err != nil {
 				elog.Error("agent search file error", elog.FieldErr(err))
 			}
-			sw.Done()
 		}()
 	}
 	sw.Wait()
 
+	elog.Info("agent[node] log search over", elog.Any("resp", data), elog.Any("path", req.TruePath))
 	if req.IsCommand {
 		for _, comp := range container.components {
 			fmt.Println(comp.bash.ColorAll(comp.file.path))
@@ -360,10 +362,10 @@ func (c *Component) SearchFile() error {
 }
 
 func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
+	elog.Info("agent[node] charts search start", elog.Any("req", req))
 	req.prepare()
 	filePaths := req.TruePath
 
-	elog.Info("agent log search start", elog.Any("req", req))
 	container := &Container{}
 	sw := sync.WaitGroup{}
 	// 文件添加并发查找
@@ -371,6 +373,7 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 	for _, pathName := range filePaths {
 		value := pathName
 		go func() {
+			defer sw.Done()
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
@@ -383,15 +386,16 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 				return
 			}
 			container.components = append(container.components, comp)
+			elog.Info("agent[node] charts search start", elog.Any("req", req))
 			err = comp.SearchFile()
 			if err != nil {
 				elog.Error("agent search file error", elog.FieldErr(err))
 			}
-			sw.Done()
 		}()
 	}
 	sw.Wait()
 
+	elog.Info("agent[node] charts search start calc data", elog.Any("req", req))
 	charts := make(map[int64]int64)
 	minTimes, maxTimes := int64(math.MaxInt64), int64(math.MinInt64)
 	for _, comp := range container.components {
@@ -427,6 +431,7 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 			To:    end,
 		})
 	}
+	elog.Info("agent[node] charts search calc data success", elog.Any("resp", resp))
 	resp.Data = data
 	resp.MinOffset = minTimes
 	resp.MaxOffset = maxTimes

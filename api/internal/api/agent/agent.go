@@ -21,27 +21,27 @@ func NewAgent() *Agent {
 }
 
 type SearchRequest struct {
-	StartTime int64    `json:"startTime" form:"startTime"`
-	EndTime   int64    `json:"endTime" form:"endTime"`
+	StartTime int64    `json:"startTime,string" form:"startTime"`
+	EndTime   int64    `json:"endTime,string" form:"endTime"`
 	Date      string   `json:"date" form:"date"`           // last 30min,6h,1d,7d
 	KeyWord   string   `json:"keyWord" form:"keyWord"`     // 搜索的关键词
-	Limit     int64    `json:"limit" form:"limit"`         // 最少多少条数据
+	Limit     int64    `json:"limit,string" form:"limit"`  // 最少多少条数据
 	Container []string `json:"container" form:"container"` // container信息
-	IsK8s     int      `json:"isK8s" form:"isK8s"`         // 是否为k8s
+	IsK8s     int      `json:"isK8s,string" form:"isK8s"`  // 是否为k8s
 	Dir       string   `json:"dir" form:"dir"`             // 文件夹路径
 }
 
 type ChartsSearchRequest struct {
 	SearchRequest
-	IsChartRequest bool   `json:"isChartRequest" form:"isChartRequest"`
-	Interval       int64 `json:"interval" form:"interval"`
+	IsChartRequest bool  `json:"isChartRequest,string" form:"isChartRequest"`
+	Interval       int64 `json:"interval,string" form:"interval"`
 }
 
 func (a *Agent) Search(c *core.Context) {
 	postReq := &SearchRequest{}
 	err := c.Bind(postReq)
 	if err != nil {
-		elog.Error("can not bind request", l.E(err), l.A("request", c.Request))
+		elog.Error("agent[node] can not bind request", l.E(err), l.A("request", c.Request))
 		c.JSONE(1, "can not bind request", err)
 		return
 	}
@@ -73,8 +73,9 @@ func (a *Agent) Search(c *core.Context) {
 		req.Dir = postReq.Dir
 	}
 	resp, err := search.Run(req)
+	elog.Info("agent[node] client logs response", l.A("response", resp))
 	if err != nil {
-		elog.Error("search error", l.E(err))
+		elog.Error("agent[node] search error", l.E(err))
 		c.JSONE(1, "search error", err)
 		return
 	}
@@ -88,7 +89,7 @@ func (a *Agent) Charts(c *core.Context) {
 	postReq := &ChartsSearchRequest{}
 	err := c.Bind(postReq)
 	if err != nil {
-		elog.Error("can not bind request", l.E(err), l.A("request", c.Request))
+		elog.Error("agent[node] can not bind request", l.E(err), l.A("request", c.Request))
 		c.JSONE(1, "can not bind request", err)
 		return
 	}
@@ -106,7 +107,7 @@ func (a *Agent) Charts(c *core.Context) {
 	if len(postReq.Container) > 0 {
 		req.K8SContainer = postReq.Container
 	}
-	elog.Info("agent client charts request", l.A("request", postReq))
+	elog.Info("agent[node] client charts request", l.A("request", postReq))
 	if postReq.Interval < 0 || !postReq.IsChartRequest {
 		c.JSONE(1, "only support request for charts, please check params...", nil)
 		return
@@ -129,8 +130,9 @@ func (a *Agent) Charts(c *core.Context) {
 		req.Dir = postReq.Dir
 	}
 	resp, err := search.RunCharts(req)
+	elog.Info("agent[node] client charts response", l.A("response", resp))
 	if err != nil {
-		elog.Error("agent charts search error", l.E(err))
+		elog.Error("agent[node] charts search error", l.E(err))
 		c.JSONE(1, "search error", err)
 		return
 	}

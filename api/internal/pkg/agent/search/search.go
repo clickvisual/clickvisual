@@ -45,7 +45,7 @@ type OffsetSection struct {
 }
 
 func (offset *OffsetSection) isValid(pos int64) bool {
-	return offset.endPos >= pos
+	return offset.offset >= 0 && (offset.endPos >= pos || offset.endPos == -1)
 }
 
 func (offset *OffsetSection) clear() {
@@ -750,12 +750,8 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 		// from ----------middle-------E-------- To
 	}
 
-	if result != -1 {
-		offsetSection.load(offset, result)
-		return
-	}
-	elog.Error("agent search calc section offset failed, maybe search time is invalid", elog.String("file", file.path), elog.Int64("endTime", endTime))
-	panic("file search calcOffsetSectionPos error")
+	offsetSection.load(offset, result)
+	return
 }
 
 func skipLines(data []byte, skipTag, pos int, filterPosMap map[string]int) ([]byte, int, int, int64) {
