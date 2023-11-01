@@ -45,7 +45,7 @@ type OffsetSection struct {
 }
 
 func (offset *OffsetSection) isValid(pos int64) bool {
-	return offset.endPos >= pos
+	return offset.offset >= 0 && (offset.endPos >= pos || offset.endPos == -1)
 }
 
 func (offset *OffsetSection) clear() {
@@ -72,7 +72,7 @@ func (offset *OffsetSection) load(newOffset, newEndPos int64) {
 func (c *Component) isSearchByStartTime(value string) bool {
 	curTime, indexValue := utils.IndexParse(value)
 	if indexValue == -1 {
-		return false
+		return true
 	}
 	curTimeParser := utils.TimeParse(curTime)
 	if curTimeParser.Unix() >= c.startTime {
@@ -84,7 +84,7 @@ func (c *Component) isSearchByStartTime(value string) bool {
 func isSearchByEndTime(value string, endTime int64) bool {
 	curTime, indexValue := utils.IndexParse(value)
 	if indexValue == -1 {
-		return false
+		return true
 	}
 	curTimeParser := utils.TimeParse(curTime)
 	if curTimeParser.Unix() <= endTime {
@@ -402,6 +402,8 @@ func (c *Component) calcLogsLine(startPos, endPos int64) int64 {
 		panic(err)
 	}
 	file = f
+	file.size = c.file.size
+
 	defer file.ptr.Close()
 	for {
 		file.ptr.Seek(now, 0)
@@ -440,7 +442,6 @@ func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 			panic("agent search calc partition interval findString failed")
 		}
 	}
-
 	switch {
 	case n == 1:
 		resp = append(resp, [2]int64{start, end})
@@ -508,6 +509,12 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 	}
 
 	br1 = bytes.LastIndexByte(data, '\n')
+
+	if br1 == -1 {
+		beforeLine = append(beforeLine, bytes.Clone(data)...)
+		return lines, beforeLine
+	}
+
 	br2 = bytes.LastIndexByte(data[:br1], '\n')
 
 	// means there is the first line
@@ -542,10 +549,14 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 						if p == -1 {
 							_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
 							if ok {
-								c.output = append(c.output, string(data[:br1]))
-								limit--
-								if limit <= 0 {
-									return limit, nil
+								if data[0] == '{' {
+									c.output = append(c.output, string(data[:br1]))
+									limit--
+									if limit <= 0 {
+										return limit, nil
+									}
+								} else {
+									elog.Info("Agent File Search Find UnComplete Json Log Line", elog.Any("k8sInfo", c.k8sInfo), elog.Any("keywords", c.words), elog.String("file", c.file.path), elog.String("log", string(data[:pos])))
 								}
 							}
 							return limit, tailLine
@@ -558,8 +569,15 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 		}
 
 		if flag {
-			c.output = append(c.output, string(data[br2+1:br1]))
-			limit--
+			if data[br2+1] == '{' {
+				c.output = append(c.output, string(data[br2+1:br1]))
+				limit--
+				if limit <= 0 {
+					return limit, nil
+				}
+			} else {
+				elog.Info("Agent File Search Find UnComplete Json Log Line", elog.Any("k8sInfo", c.k8sInfo), elog.Any("keywords", c.words), elog.String("file", c.file.path), elog.String("log", string(data[br2+1:br1])))
+			}
 			if limit <= 0 {
 				return limit, nil
 			}
@@ -570,8 +588,15 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 			if br2 == -1 {
 				_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
 				if ok {
-					c.output = append(c.output, string(data[:br1]))
-					limit--
+					if data[0] == '{' {
+						c.output = append(c.output, string(data[:br1]))
+						limit--
+						if limit <= 0 {
+							return limit, nil
+						}
+					} else {
+						elog.Info("Agent File Search Find UnComplete Json Log Line", elog.Any("k8sInfo", c.k8sInfo), elog.Any("keywords", c.words), elog.String("file", c.file.path), elog.String("log", string(data[:br1])))
+					}
 				}
 				return limit, tailLine
 			}
@@ -624,8 +649,10 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 			c.calcOffsetSectionPos(file, data, section, startPos, pos)
 		}
 		if ok {
-			lines++
-			section.incr()
+			if firstLine[0] == '{' {
+				lines++
+				section.incr()
+			}
 		}
 		startPos += int64(pos)
 		data, _, pos = goingOn(data, -1, pos, filterPosMap)
@@ -637,6 +664,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		return lines, tailLine
 	} else {
 		tailLine = append(tailLine, bytes.Clone(data[lastPos+1:])...)
+		data = data[:lastPos+1]
 	}
 
 	for pos != -1 {
@@ -687,8 +715,12 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 				}
 				c.calcOffsetSectionPos(file, data, section, startPos, pos)
 			}
-			lines++
-			section.incr()
+			if data[0] == '{' {
+				lines++
+				section.incr()
+			} else {
+				fmt.Println("complete->", string(data[:pos]))
+			}
 			startPos += int64(pos)
 			data, _, pos = goingOn(data, skipTag, pos, filterPosMap)
 		}
@@ -745,12 +777,8 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 		// from ----------middle-------E-------- To
 	}
 
-	if result != -1 {
-		offsetSection.load(offset, result)
-		return
-	}
-	elog.Error("agent search calc section offset failed, maybe search time is invalid", elog.String("file", file.path), elog.Int64("endTime", endTime))
-	panic("file search calcOffsetSectionPos error")
+	offsetSection.load(offset, result)
+	return
 }
 
 func skipLines(data []byte, skipTag, pos int, filterPosMap map[string]int) ([]byte, int, int, int64) {
