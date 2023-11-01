@@ -1,7 +1,6 @@
 package search
 
 import (
-	"bytes"
 	"fmt"
 	"math"
 	"sort"
@@ -17,7 +16,6 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 const (
@@ -332,11 +330,6 @@ func (c *Component) SearchFile() error {
 		end   = c.file.size
 		err   error
 	)
-	// filter unsupported file
-	err = LogFileFilter(c.file)
-	if err != nil {
-		return err
-	}
 
 	if c.startTime > 0 {
 		start, err = c.searchByStartTime()
@@ -445,38 +438,4 @@ func ChartsIntervalConvert(interval int64) (standard int64) {
 		standard = 86400
 	}
 	return
-}
-
-// LogFileFilter
-func LogFileFilter(file *File) error {
-	buf := make([]byte, 60*1024)
-	_, err := file.ptr.Read(buf)
-	if err != nil {
-		elog.Error("Agent Search File Filter Read First Lines error", l.S("path", file.path))
-		return err
-	}
-
-	// get file first line
-	idx := bytes.IndexByte(buf, '\n')
-	line := string(buf[:idx])
-
-	// verify json
-	if line[0] != '{' && line[idx-1] != '}' {
-		return errors.New("only support json logs")
-	}
-
-	// timeParse column name
-	timeStr, index := utils.IndexParse(line)
-	if index == -1 {
-		elog.Info("agent search found unsupported timeParse column name", l.S("path", file.path), l.S("line", line))
-		return errors.New("unsupported timeParse column name")
-	}
-
-	timeParse := utils.TimeParse(timeStr)
-	if timeParse == nil {
-		elog.Info("agent search found unsupported timeParse format", l.S("path", file.path), l.S("line", line))
-		return errors.New("unsupported time format")
-	}
-
-	return nil
 }
