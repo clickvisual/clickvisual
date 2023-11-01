@@ -4,11 +4,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/gotomicro/ego/core/elog"
 )
 
-func TimeParse(value string) time.Time {
+func TimeParse(value string) *time.Time {
 	curTimeParser, err := time.ParseInLocation(time.DateTime, value, time.Local)
 	if err != nil {
 		curTimeParser, err = time.ParseInLocation(time.RFC3339, value, time.Local)
@@ -19,13 +17,12 @@ func TimeParse(value string) time.Time {
 			// 将时间戳转换为 time 类型
 			timestamp, _ := strconv.Atoi(value)
 			if timestamp <= 0 {
-				elog.Error("agent log parse timestamp error", elog.FieldErr(err))
-				panic(err)
+				return nil
 			}
 			curTimeParser = time.Unix(int64(timestamp), 0)
 		}
 	}
-	return curTimeParser
+	return &curTimeParser
 }
 
 var filterKeys = []string{" stderr F ", " stdout F "}
