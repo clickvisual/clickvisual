@@ -6,6 +6,8 @@ import (
 	"time"
 
 	dockerclient "github.com/fsouza/go-dockerclient"
+	"github.com/gotomicro/cetus/l"
+	"github.com/gotomicro/ego/core/elog"
 )
 
 const k8sPodNameLabel = "io.kubernetes.pod.name"
@@ -48,6 +50,7 @@ func CreateInfoDetail(info *dockerclient.Container) *DockerInfo {
 	k8sInfo.Image = GetImageName(info.Image, info.Config.Image)
 	if strings.HasPrefix(info.Name, "/k8s_") || strings.HasPrefix(info.Name, "k8s_") || strings.Count(info.Name, "_") >= 4 {
 		tags := strings.SplitN(info.Name, "_", 6)
+		elog.Info("k8s container tags info", l.A("tags", tags), l.S("image", k8sInfo.Image))
 		baseIndex := 0
 		if len(tags) == 6 {
 			baseIndex = 1

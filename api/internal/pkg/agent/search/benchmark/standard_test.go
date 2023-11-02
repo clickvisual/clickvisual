@@ -18,6 +18,9 @@ func TestLogsStandard(t *testing.T) {
 	a := assert.New(t)
 	for i := 0; i < caseLen; i++ {
 		file := casesFiles[i]
+		if file.skip {
+			continue
+		}
 		categoriesLen := len(file.logCategories)
 		for j := 0; j < categoriesLen; j++ {
 			log := file.logCategories[j]
@@ -41,6 +44,9 @@ func TestChartsStandard(t *testing.T) {
 	a := assert.New(t)
 	for i := 0; i < caseLen; i++ {
 		file := casesFiles[i]
+		if file.skip {
+			continue
+		}
 		categoriesLen := len(file.logCategories)
 		for j := 0; j < categoriesLen; j++ {
 			log := file.logCategories[i]
@@ -85,13 +91,29 @@ func TestSingleCase(t *testing.T) {
 	fmt.Printf("expected :%d, actual: %d", log.count, total)
 }
 
+func TestLogsSingleCase(t *testing.T) {
+	a := assert.New(t)
+	file := casesFiles[2]
+	log := file.logCategories[1]
+	req := search.Request{
+		StartTime: file.st,
+		EndTime:   file.et,
+		Path:      file.path,
+		Limit:     500,
+		// KeyWord:        log.filter, // hit 60w logs
+	}
+	resp, err := search.Run(req)
+	a.NoError(err, "charts search error -> ", file.path, log.filter, log.count)
+	fmt.Println(len(resp.Data))
+}
+
 func TestDevEnvFile(t *testing.T) {
 	a := assert.New(t)
 	file := CasesFile{
 		// path:     "./app-api.log",
 		// st:       1698716774,
 		// et:       1698718344,
-		path:     "./log.sys",
+		path:     "./kube.sys",
 		st:       1698716774,
 		et:       1698718344,
 		interval: search.ChartsIntervalConvert(1698718344 - 1698716774),

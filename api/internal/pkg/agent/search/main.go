@@ -153,6 +153,7 @@ func (req *Request) prepare() {
 	var filePaths = make([]dto.AgentSearchTargetInfo, 0)
 	elog.Info("agentRun", l.A("req", req))
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
+	// req.Dir = "./test"
 	if req.IsK8S {
 		obj := cvdocker.NewContainer()
 		req.K8sClientType = obj.ClientType
@@ -230,7 +231,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 			container.components = append(container.components, comp)
 			err = comp.SearchFile()
 			if err != nil {
-				elog.Error("agent search file error", elog.FieldErr(err))
+				elog.Error("agent search file error", l.S("path", comp.file.path), elog.FieldErr(err))
 			}
 		}()
 	}
@@ -332,13 +333,13 @@ func (c *Component) SearchFile() error {
 	)
 
 	if c.startTime > 0 {
-		start, err = c.searchByStartTime()
+		start, err = searchByStartTime(c.file, c.startTime)
 		if err != nil {
 			return errors.Wrapf(err, "search start time error")
 		}
 	}
 	if c.endTime > 0 {
-		end, err = c.searchByEndTime()
+		end, err = searchByEndTime(c.file, 0, c.endTime)
 		if err != nil {
 			return errors.Wrapf(err, "search end time error")
 		}
