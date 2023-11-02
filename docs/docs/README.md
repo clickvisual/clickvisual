@@ -15,5 +15,5 @@ features:
 
 ::: slot footer
 MIT Licensed | Copyright © 2022-present ClickVisual Authors <br/>
-[鄂ICP备14013665号-17](https://www.miit.gov.cn/)
+[鄂ICP备14013665号-17](https://beian.miit.gov.cn/)
 :::
