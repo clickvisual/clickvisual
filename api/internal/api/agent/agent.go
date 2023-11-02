@@ -73,7 +73,7 @@ func (a *Agent) Search(c *core.Context) {
 		req.Dir = postReq.Dir
 	}
 	resp, err := search.Run(req)
-	elog.Info("agent[node] client logs response", l.A("response", resp))
+	elog.Info("agent[node] client logs response", l.I("response", len(resp.Data)))
 	if err != nil {
 		elog.Error("agent[node] search error", l.E(err))
 		c.JSONE(1, "search error", err)

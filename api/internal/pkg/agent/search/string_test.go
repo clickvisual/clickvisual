@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -51,4 +52,23 @@ func TestKeyword2Array(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSearchTime(t *testing.T) {
+	f, _ := OpenFile("./agent.sys")
+	cmp := Component{
+		startTime: 1698834726,
+		endTime:   1698921126,
+		file:      f,
+	}
+	i, err := searchByStartTime(cmp.file, cmp.startTime)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("response: -> ", i)
+	// i, err = searchByEndTime(cmp.file, 0, cmp.endTime)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("response: -> ", i)
 }
