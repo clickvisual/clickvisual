@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/panjf2000/ants"
 
@@ -220,6 +221,12 @@ func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
 }
 
 func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			elog.Error("agent search logs panic", l.S("file", c.file.path), l.I64("pos", startPos), elog.FieldErr(err.(error)))
+		}
+	}()
+
 	_, err := c.file.ptr.Seek(startPos, io.SeekStart)
 	if err != nil {
 		elog.Error("agent getlogs file seek error", elog.String("file", c.file.path), elog.FieldErr(err))
@@ -549,14 +556,10 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 						if p == -1 {
 							_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
 							if ok {
-								if data[0] == '{' {
-									c.output = append(c.output, string(data[:br1]))
-									limit--
-									if limit <= 0 {
-										return limit, nil
-									}
-								} else {
-									elog.Info("Agent File Search Find UnComplete Json Log Line", elog.Any("k8sInfo", c.k8sInfo), elog.Any("keywords", c.words), elog.String("file", c.file.path), elog.String("log", string(data[:pos])))
+								c.output = append(c.output, string(data[:br1]))
+								limit--
+								if limit <= 0 {
+									return limit, nil
 								}
 							}
 							return limit, tailLine
@@ -569,33 +572,21 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 		}
 
 		if flag {
-			if data[br2+1] == '{' {
-				c.output = append(c.output, string(data[br2+1:br1]))
-				limit--
-				if limit <= 0 {
-					return limit, nil
-				}
-			} else {
-				elog.Info("Agent File Search Find UnComplete Json Log Line", elog.Any("k8sInfo", c.k8sInfo), elog.Any("keywords", c.words), elog.String("file", c.file.path), elog.String("log", string(data[br2+1:br1])))
-			}
+			c.output = append(c.output, string(data[br2+1:br1]))
+			limit--
 			if limit <= 0 {
 				return limit, nil
 			}
-
 			data = data[:br2]
 			br1 = br2
 			br2 = bytes.LastIndexByte(data, '\n')
 			if br2 == -1 {
 				_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
 				if ok {
-					if data[0] == '{' {
-						c.output = append(c.output, string(data[:br1]))
-						limit--
-						if limit <= 0 {
-							return limit, nil
-						}
-					} else {
-						elog.Info("Agent File Search Find UnComplete Json Log Line", elog.Any("k8sInfo", c.k8sInfo), elog.Any("keywords", c.words), elog.String("file", c.file.path), elog.String("log", string(data[:br1])))
+					c.output = append(c.output, string(data[:br1]))
+					limit--
+					if limit <= 0 {
+						return limit, nil
 					}
 				}
 				return limit, tailLine
@@ -650,10 +641,8 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 			err = c.calcOffsetSectionPos(file, data, section, startPos, pos)
 		}
 		if err == nil && ok {
-			if firstLine[0] == '{' {
-				lines++
-				section.incr()
-			}
+			lines++
+			section.incr()
 		}
 		startPos += int64(pos)
 		data, _, pos = goingOn(data, -1, pos, filterPosMap)
@@ -717,7 +706,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 				}
 				err = c.calcOffsetSectionPos(file, data, section, startPos, pos)
 			}
-			if err == nil && data[0] == '{' {
+			if err == nil {
 				lines++
 				section.incr()
 			}
@@ -1064,7 +1053,6 @@ func (c *Component) seekFile() {
 	}
 	scanner := bufio.NewScanner(c.file.ptr)
 	for scanner.Scan() {
-
 		fmt.Println(scanner.Text())
 	}
 }
