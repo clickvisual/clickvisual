@@ -170,7 +170,7 @@ services:
     expose:
       - 9201
     ports:
-      - "18001:19001"
+      - "19001:19001"
       - "19006:19006"
     depends_on:
       - mysql
