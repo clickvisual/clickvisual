@@ -30,6 +30,6 @@ serveFromSubPath = true
 rootURL = "http://localhost:19001/clickvisual/"
 ```
 The directory structure is shown in the following figure,execute the command to start:
->./bin/clickvisual --config=./config/default.toml
+>./bin/clickvisual server --config=./config/default.toml
 
 ![img.png](../../../images/config-tree.png)

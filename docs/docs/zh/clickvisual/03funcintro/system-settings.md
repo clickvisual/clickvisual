@@ -56,7 +56,7 @@ serveFromSubPath = true
 rootURL = "http://localhost:19001/clickvisual/"
 ```
 
-此时目录结构如下图所示，执行./bin/clickvisual --config=./config/default.toml 启动服务即可
+此时目录结构如下图所示，执行./bin/clickvisual server --config=./config/default.toml 启动服务即可
 
 ![img.png](../../../images/config-tree.png)
 

@@ -27,7 +27,7 @@ services:
     restart: always
     volumes:
       - ./config:/clickvisual/config
-    command: [ '/bin/sh', '-c', './bin/clickvisual' ]
+    command: [ '/bin/sh', '-c', './bin/clickvisual server' ]
 ```
 需要把配置挂载到 docker 容器内
 
