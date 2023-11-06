@@ -41,4 +41,4 @@ EXPOSE 9003
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk --update add --no-cache tzdata
 
-CMD ["sh", "-c", "./bin/clickvisual"]
+CMD ["sh", "-c", "./bin/clickvisual server"]
