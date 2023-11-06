@@ -70,28 +70,34 @@ func (offset *OffsetSection) load(newOffset, newEndPos int64) {
 // $1 拿到数据后，按照预设的时间格式解析
 // startTime，数据大于他的都符合要求
 // endTime，数据小于他的都符合要求
-func (c *Component) isSearchByStartTime(value string) bool {
+func isSearchByStartTime(value string, startTime int64) int {
 	curTime, indexValue := utils.IndexParse(value)
 	if indexValue == -1 {
-		return true
+		return -1
 	}
 	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser == nil || curTimeParser.Unix() >= c.startTime {
-		return true
+	if curTimeParser == nil {
+		return -1
 	}
-	return false
+	if curTimeParser.Unix() >= startTime {
+		return 1
+	}
+	return 0
 }
 
-func isSearchByEndTime(value string, endTime int64) bool {
+func isSearchByEndTime(value string, endTime int64) int {
 	curTime, indexValue := utils.IndexParse(value)
 	if indexValue == -1 {
-		return true
+		return -1
 	}
 	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser == nil || curTimeParser.Unix() <= endTime {
-		return true
+	if curTimeParser == nil {
+		return -1
 	}
-	return false
+	if curTimeParser.Unix() <= endTime {
+		return 1
+	}
+	return 0
 }
 
 func (c *Component) isSearchByKeyWord(value string) bool {
@@ -108,16 +114,17 @@ func (c *Component) isSearchByKeyWord(value string) bool {
 }
 
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
-func (c *Component) searchByStartTime() (int64, error) {
+func searchByStartTime(file *File, startTime int64) (int64, error) {
 	result := int64(-1)
 	from := int64(0)
-	to := c.file.size - 1
+	to := file.size - 1
 
 	const maxCalls = 128
 	currCall := 0
-
+	ok := true
+	nextStartPos := int64(0)
 	for {
-		if from < 0 || from > to || to >= c.file.size {
+		if from < 0 || from > to || to >= file.size {
 			return result, nil
 		}
 
@@ -125,42 +132,53 @@ func (c *Component) searchByStartTime() (int64, error) {
 			return -1, errors.New("MAX_CALLS_EXCEEDED")
 		}
 
+		strFrom, strTo := int64(-1), int64(-1)
+		var err error
 		// 二分法查找
-		strFrom, strTo, err := findString(c.file.ptr, from, to)
+		if ok {
+			strFrom, strTo, err = findString(file.ptr, from, to)
+		} else {
+			strFrom, strTo, err = findNextString(file, nextStartPos)
+		}
+		if err != nil {
+			return -1, err
+		}
+		nextStartPos = strTo
+		ok = true
+		value, err := getString(file.ptr, strFrom, strTo)
 		if err != nil {
 			return -1, err
 		}
 
-		value, err := getString(c.file.ptr, strFrom, strTo)
-		if err != nil {
-			return -1, err
-		}
-
-		isSearch := c.isSearchByStartTime(value)
+		isSearch := isSearchByStartTime(value, startTime)
 		// 如果查到了满足条件，继续往上一层查找
-		if isSearch {
+		if isSearch == 1 {
 			// it's already result, but we need to search for more results
 			result = strFrom
 			to = strFrom - int64(1)
-		} else {
+		} else if isSearch == 0 {
 			// it's not a result, we need to search for more results
-			from = strTo + int64(1)
+			from = strTo + int64(2)
+		} else {
+			ok = false
 		}
 		currCall++
 	}
 }
 
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
-func (c *Component) searchByEndTime() (int64, error) {
+// because of not all log is format, so maybe verify it lead to ret -1
+func searchByEndTime(file *File, from, endTime int64) (int64, error) {
 	result := int64(-1)
-	from := int64(0)
-	to := c.file.size - 1
+	to := file.size - 1
 
 	const maxCalls = 128
 	currCall := 0
+	ok := true
+	nextStartPos := int64(0)
 
 	for {
-		if from < 0 || from > to || to >= c.file.size {
+		if from < 0 || from > to || to >= file.size {
 			return result, nil
 		}
 
@@ -168,28 +186,65 @@ func (c *Component) searchByEndTime() (int64, error) {
 			return -1, errors.New("MAX_CALLS_EXCEEDED")
 		}
 
-		strFrom, strTo, err := findString(c.file.ptr, from, to)
+		strFrom, strTo := int64(-1), int64(-1)
+		var err error
+		// 二分法查找
+		if ok {
+			strFrom, strTo, err = findString(file.ptr, from, to)
+		} else {
+			strFrom, strTo, err = findNextString(file, nextStartPos)
+		}
 		if err != nil {
 			return -1, err
 		}
 
-		value, err := getString(c.file.ptr, strFrom, strTo)
+		nextStartPos = strTo
+		ok = true
+		value, err := getString(file.ptr, strFrom, strTo)
 		if err != nil {
 			return -1, err
 		}
 
-		isSearch := isSearchByEndTime(value, c.endTime)
-		if isSearch {
+		isSearch := isSearchByEndTime(value, endTime)
+		if isSearch == 1 {
 			// it's already result, but we need to search for more results
 			result = strTo
 			from = strTo + int64(2) // next byte is \n, so we need to move to the bytes after \n
-		} else {
+		} else if isSearch == 0 {
 			// it's not a result, we need to search for more results
 			to = strFrom - int64(1)
+		} else {
+			ok = false
 		}
 		currCall++
 		// from ----------middle-------E-------- To
 	}
+}
+
+func findNextString(file *File, to int64) (int64, int64, error) {
+	bufSize := int64(60 * 1024)
+	buf := make([]byte, bufSize)
+	pos := -1
+	h := to + 2
+	for pos == -1 {
+		_, err := file.ptr.Seek(h, 0)
+		if err != nil {
+			return -1, -1, err
+		}
+		_, err = file.ptr.Read(buf)
+		if err != nil {
+			return -1, -1, err
+		}
+		pos = bytes.IndexByte(buf, '\n')
+		fmt.Println("Pos ---> ", pos)
+		h += bufSize
+		if pos != -1 && h > file.size {
+			return -1, -1, errors.New("Cannot Found Line")
+		}
+	}
+
+	h -= bufSize
+	return to + 2, h + int64(pos), nil
 }
 
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
@@ -737,42 +792,13 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 	offset := (unixTime - c.startTime) / c.interval
 	endTime := c.startTime + (offset+1)*c.interval
 
-	result := int64(-1)
 	from := startPos + int64(pos+1)
-	to := file.size - 1
 
-	for {
-		if from < 0 || from > to || to >= c.file.size {
-			break
-		}
-
-		strFrom, strTo, err := findString(file.ptr, from, to)
-		if err != nil {
-			elog.Error("agent search calc section offset pos error, maybe search time is invalid", elog.String("file", file.path), elog.Int64("endTime", endTime),
-				elog.FieldErr(err))
-			panic(err)
-		}
-
-		value, err := getString(file.ptr, strFrom, strTo)
-		if err != nil {
-			elog.Error("agent search calc section offset pos error, maybe search time is invalid", elog.String("file", file.path), elog.Int64("endTime", endTime),
-				elog.FieldErr(err))
-			panic(err)
-		}
-
-		isSearch := isSearchByEndTime(value, endTime)
-		if isSearch {
-			// it's already result, but we need to search for more results
-			result = strTo
-			from = strTo + int64(2) // next byte is \n, so we need to move to the bytes after \n
-		} else {
-			// it's not a result, we need to search for more results
-			to = strFrom - int64(1)
-		}
-		// from ----------middle-------E-------- To
+	p, err := searchByEndTime(file, from, endTime)
+	if err != nil {
+		return err
 	}
-
-	offsetSection.load(offset, result)
+	offsetSection.load(offset, p)
 	return nil
 }
 
@@ -1031,8 +1057,8 @@ func findString(file *os.File, from int64, to int64) (int64, int64, error) {
 // getString returns string from `file` in [from; to]
 func getString(file *os.File, from int64, to int64) (string, error) {
 	bufferSize := to - from + 1
+	// fmt.Println("bufferSize -> ", bufferSize)
 	buffer := make([]byte, bufferSize)
-
 	_, err := file.Seek(from, 0)
 	if err != nil {
 		return "", err
