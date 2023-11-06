@@ -27,7 +27,7 @@ ports:
 restart: always
 volumes:
 - ./config:/clickvisual/config
-command: [ '/bin/sh', '-c', './bin/clickvisual' ]<br/>
+command: [ '/bin/sh', '-c', './bin/clickvisual server' ]
 ```
 The configuration needs to be attached to the docker container.
 
