@@ -302,6 +302,7 @@ func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, er
 
 	// '\n' in the last line will be ignored, so need to check and append it
 	includeFileEnd := now == c.file.size-1 || now == c.file.size-2
+	includeFirstLine := startPos == 0
 
 	for {
 		readStartPos := now - basicSize
@@ -311,8 +312,11 @@ func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, er
 		c.file.ptr.Seek(readStartPos, 0)
 		c.file.ptr.Read(fileReader)
 
-		if readStartPos == 0 {
+		if readStartPos <= 0 {
 			fileReader = fileReader[:now]
+			if includeFirstLine && readStartPos == 0 {
+				fileReader = append([]byte("\n"), fileReader...)
+			}
 		}
 
 		now -= basicSize
@@ -586,7 +590,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 			c.output = append(c.output, string(data[:br1]))
 			limit--
 		}
-		return limit, tailLine
+		return limit, beforeLine
 	}
 
 	for br2 != -1 {
@@ -595,7 +599,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 			for _, v := range c.filterWords {
 				p := bytes.LastIndex(data[:br1], []byte(v))
 				if p == -1 {
-					return limit, tailLine
+					return limit, beforeLine
 				}
 
 				// valid br2 *****p***** br1
@@ -617,7 +621,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 									return limit, nil
 								}
 							}
-							return limit, tailLine
+							return limit, beforeLine
 						} else {
 							br2 = pos
 						}
@@ -644,11 +648,11 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 						return limit, nil
 					}
 				}
-				return limit, tailLine
+				return limit, beforeLine
 			}
 		}
 	}
-	return limit, tailLine
+	return limit, beforeLine
 }
 
 // doCalcLines calc match log lines
