@@ -22,6 +22,9 @@ curl -H "X-WEBAUTH-USER: admin"  http://localhost:19001/api/v1/users/info
 
 第三方系统通过 AuthProxy 嵌入clickvisual：
 
+参数只需要填写 tid 即可，参考
+> http://localhost:19001/share?tid=6
+
 ![img.png](../../../images/auth-proxy.png)
 
 ## 管理员模式
