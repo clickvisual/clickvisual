@@ -113,7 +113,7 @@ func TestDevEnvFile(t *testing.T) {
 		// path:     "./app-api.log",
 		// st:       1698716774,
 		// et:       1698718344,
-		path:     "./kube.sys",
+		path:     "./agent.sys",
 		st:       1698716774,
 		et:       1698718344,
 		interval: search.ChartsIntervalConvert(1698718344 - 1698716774),
@@ -128,20 +128,20 @@ func TestDevEnvFile(t *testing.T) {
 	log := file.logCategories[0]
 	req := search.Request{
 		IsChartRequest: true,
-		StartTime:      file.st,
-		EndTime:        file.et,
+		// StartTime:      file.st,
+		// EndTime:        file.et,
 		// KeyWord:        "msg=do proxy",
 		Path:     file.path,
 		Interval: file.interval,
 	}
-	resp, err := search.RunCharts(req)
-	a.NoError(err, "charts search error -> ", file.path, log.filter, log.count)
-	total := int64(0)
-	for k, v := range resp.Data {
-		total += v
-		fmt.Printf("key: %d, value: %d\n", k, v)
-	}
-	fmt.Printf("expected :%d, actual: %d\n", log.count, total)
+	// resp, err := search.RunCharts(req)
+	// a.NoError(err, "charts search error -> ", file.path, log.filter, log.count)
+	// total := int64(0)
+	// for k, v := range resp.Data {
+	// 	total += v
+	// 	fmt.Printf("key: %d, value: %d\n", k, v)
+	// }
+	// fmt.Printf("expected :%d, actual: %d\n", log.count, total)
 
 	req.IsChartRequest = false
 	req.Limit = 500

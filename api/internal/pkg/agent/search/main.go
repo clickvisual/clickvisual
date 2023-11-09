@@ -328,7 +328,7 @@ func (c *Component) SearchFile() error {
 	}
 	var (
 		start = int64(0)
-		end   = c.file.size
+		end   = c.file.size - 1
 		err   error
 	)
 
