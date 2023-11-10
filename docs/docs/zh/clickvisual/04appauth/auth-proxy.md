@@ -2,7 +2,9 @@
 
 你可以将 clickvisual 配置为让 HTTP 反向代理处理身份验证，通过这种方式你可以很方便的将 clickvisual 嵌入到其他系统里。下面我们详细介绍 auth proxy 的配置选项。
 
-
+auth proxy 是嵌入其他系统的方式，需要在另外的进行 HTTP 反向代理，可以通过以下两种方式
+- 通过代码实现代理，在代理模块增加 header，让目前的系统代理 clickvisual 的鉴权
+- nginx 增加 header
 
 HTTP Proxy 配置：
 ```toml
@@ -22,7 +24,7 @@ curl -H "X-WEBAUTH-USER: admin"  http://localhost:19001/api/v1/users/info
 
 第三方系统通过 AuthProxy 嵌入clickvisual：
 
-参数只需要填写 tid 即可，参考
+参数只需要填写 tid 即可，tid 在 query 页面 url 参数上可以看到，参考
 > http://localhost:19001/share?tid=6
 
 ![img.png](../../../images/auth-proxy.png)
@@ -33,3 +35,4 @@ curl -H "X-WEBAUTH-USER: admin"  http://localhost:19001/api/v1/users/info
 curl -H "X-WEBAUTH-USER: admin" \
      -H "X-CLICKVISUAL-TOKEN: xxx" http://localhost:19001/api/v1/users/info
 ```
+
