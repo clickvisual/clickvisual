@@ -39,7 +39,15 @@ func (c *Component) GetAllDockerInfo() (containerMap map[string]*manager.DockerI
 		var containerDetail *dockerclient.Container
 		for idx := 0; idx < 3; idx++ {
 			if containerDetail, err = c.client.InspectContainerWithOptions(dockerclient.InspectContainerOptions{ID: container.ID}); err == nil {
-				containerMap[container.ID] = manager.CreateInfoDetail(containerDetail)
+				dockerContainer := &manager.ContainerInfo{
+					Id:      containerDetail.ID,
+					Name:    containerDetail.Name,
+					LogPath: containerDetail.LogPath,
+					Image:   containerDetail.Image,
+					State:   container.State,
+					Labels:  container.Labels,
+				}
+				containerMap[container.ID] = manager.CreateInfoDetail(dockerContainer)
 			}
 		}
 	}

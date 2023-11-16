@@ -71,7 +71,7 @@ func (offset *OffsetSection) load(newOffset, newEndPos int64) {
 // startTime，数据大于他的都符合要求
 // endTime，数据小于他的都符合要求
 func isSearchByStartTime(value string, startTime int64) int {
-	curTime, indexValue := utils.IndexParse(value)
+	curTime, indexValue := utils.IndexParseTime(value)
 	if indexValue == -1 {
 		return -1
 	}
@@ -86,7 +86,7 @@ func isSearchByStartTime(value string, startTime int64) int {
 }
 
 func isSearchByEndTime(value string, endTime int64) int {
-	curTime, indexValue := utils.IndexParse(value)
+	curTime, indexValue := utils.IndexParseTime(value)
 	if indexValue == -1 {
 		return -1
 	}
@@ -236,7 +236,6 @@ func findNextString(file *File, to int64) (int64, int64, error) {
 			return -1, -1, err
 		}
 		pos = bytes.IndexByte(buf, '\n')
-		fmt.Println("Pos ---> ", pos)
 		h += bufSize
 		if pos != -1 && h > file.size {
 			return -1, -1, errors.New("Cannot Found Line")
@@ -344,7 +343,6 @@ func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, er
 func (c *Component) getLogs(startPos, endPos int64) (error error) {
 	partitions := c.calcPartitionInterval(2, startPos, endPos)
 	remainedLines := c.limit
-
 	// logs need the latest record, so need to search from the end side
 	for i := 1; i >= 0; i-- {
 		lines, err := c.searchLogs(partitions[i][0], partitions[i][1], remainedLines)
@@ -360,15 +358,14 @@ func (c *Component) getLogs(startPos, endPos int64) (error error) {
 
 	if c.request.IsCommand {
 		var str string
-		output := make([]string, len(c.output))
-		for i, value := range c.output {
+		c.commandOutput = make([]string, len(c.output))
+		for _, value := range c.output {
 			str = value
 			for _, filter := range c.filterWords {
 				str = c.bash.ColorWord(filter, str)
 			}
-			output[i] = str
+			c.commandOutput = append(c.commandOutput, str)
 		}
-		c.output = output
 	}
 	return nil
 }
@@ -504,14 +501,14 @@ func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 
 	errWrapper := func(err error) {
 		if err != nil {
-			elog.Error("agent search calcPartitionInterval findString failed", elog.String("file", c.file.path), elog.FieldErr(err))
-			panic("agent search calc partition interval findString failed")
+			elog.Panic("agent search calcPartitionInterval findString failed", elog.String("file", c.file.path), elog.FieldErr(err))
 		}
 	}
 	switch {
 	case n == 1:
 		resp = append(resp, [2]int64{start, end})
 		break
+	// 目前只用到2
 	case n == 2:
 		from, _, err := findString(c.file.ptr, start, end)
 		errWrapper(err)
@@ -543,7 +540,6 @@ func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 
 // doGetLogs search from the tail to head
 func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines int64, beforeLine []byte) {
-
 	//		   br2        br1
 	// {xxxxxx}\n{xxxxxxx}\n{xxxxxx}
 	var (
@@ -782,7 +778,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 
 func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection *OffsetSection, startPos int64, pos int) error {
 	line := data[:pos]
-	curTime, timeIndex := utils.IndexParse(string(line))
+	curTime, timeIndex := utils.IndexParseTime(string(line))
 	if timeIndex == -1 {
 		return errors.New("time column name unsupported")
 	}
@@ -992,16 +988,15 @@ func newLineIndex(buffer []byte, diff int64) int {
 // findBorder searches for newline symbol in [from; to]
 // when diff = 1 makes forward search (`from` -> `to`)
 // when diff = -1 makes backward search (`to` -> `from`)
+// 因为from从0开始，这里的to，应该是文件大小-1
 func findBorder(file *os.File, from int64, to int64, diff int64, maxBufferSize int64) (int64, error) {
 	size := to - from + int64(1)
 	currentSize := min(size, maxBufferSize)
-
 	position := from
 	if diff == -1 {
 		position = to - currentSize + int64(1)
 	}
 	buffer := make([]byte, currentSize)
-
 	for {
 		if size == 0 {
 			return -1, nil

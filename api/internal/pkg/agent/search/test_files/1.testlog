@@ -1,0 +1,4 @@
+2023-11-03T08:50:57.581891924+08:00 stdout F ilogtail started. pid: 11
+2023-11-03T08:51:00.606830738+08:00 stderr F register fun v2 0x775190 0x77aaa0 0x77a280 0x777160
+2023-11-03T08:51:00.63685349+08:00 stderr F 2023/11/03 00:51:00 DEBUG Now using Go's stdlib log package (via loggers/mappers/stdlib).
+2023-11-03T08:51:00.643210676+08:00 stderr F load log config /usr/local/ilogtail/plugin_logger.xml

@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/inspect_log_cron"
 	"github.com/clickvisual/prom2click"
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/econf"
@@ -44,11 +45,14 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 			invoker.Init,
 			service.Init,
 			worker.Init,
-		).
-		Serve(
-			egovernor.Load("server.governor").Build(),
-			router.GetServerRouter(),
 		)
+
+	// 日志巡检定时任务
+	app = inspect_log_cron.InspectLogCron(app)
+	app.Serve(
+		egovernor.Load("server.governor").Build(),
+		router.GetServerRouter(),
+	)
 	if econf.GetBool("prom2click.enable") {
 		// Compatible with historical versions
 		if econf.GetString("prom2click.dev.host") != "" {
