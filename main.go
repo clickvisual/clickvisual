@@ -8,6 +8,7 @@ import (
 	_ "github.com/clickvisual/clickvisual/api/cmd/agent"
 	_ "github.com/clickvisual/clickvisual/api/cmd/command"
 	_ "github.com/clickvisual/clickvisual/api/cmd/server"
+	_ "github.com/clickvisual/clickvisual/api/cmd/upload"
 )
 
 func main() {

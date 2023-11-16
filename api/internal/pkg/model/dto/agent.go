@@ -5,6 +5,6 @@ import (
 )
 
 type AgentSearchTargetInfo struct {
-	K8sInfo  *manager.K8SInfo
+	K8sInfo  *manager.ContainerInfo
 	FilePath string
 }

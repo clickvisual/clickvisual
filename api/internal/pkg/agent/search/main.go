@@ -1,21 +1,32 @@
 package search
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"math"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/gotomicro/cetus/l"
-	"github.com/gotomicro/ego/core/elog"
-	"github.com/pkg/errors"
-
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
+	"github.com/ego-component/ek8s"
+	"github.com/ego-component/eos"
+	"github.com/ego-component/excelplus"
+	"github.com/gotomicro/cetus/l"
+	"github.com/gotomicro/ego/client/ehttp"
+	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
+	"github.com/spf13/cast"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -42,7 +53,8 @@ type Component struct {
 	bash          *Bash
 	limit         int64
 	output        []string
-	k8sInfo       *manager.K8SInfo
+	commandOutput []string
+	k8sInfo       *manager.ContainerInfo
 	interval      int64           // 请求 charts 时，划分的标准时间间隔
 	times         int64           // 请求 charts 时，startTime - endTime 能被 interval 划分的段数
 	charts        map[int64]int64 // key: offset(time - startTime / interval), value: lines
@@ -116,16 +128,18 @@ func (c CmdRequest) ToRequest() Request {
 	}
 
 	return Request{
-		StartTime:    st,
-		EndTime:      et,
-		Date:         c.Date,
-		Path:         c.Path,
-		Dir:          c.Dir,
-		KeyWord:      c.KeyWord,
-		Limit:        c.Limit,
-		IsCommand:    true,
-		IsK8S:        c.IsK8S,
-		K8SContainer: c.K8SContainer,
+		StartTime:     st,
+		EndTime:       et,
+		Date:          c.Date,
+		Path:          c.Path,
+		Dir:           c.Dir,
+		KeyWord:       c.KeyWord,
+		Limit:         c.Limit,
+		IsCommand:     true,
+		IsK8S:         c.IsK8S,
+		IsUploadExcel: econf.GetBool("upload.enable"),
+		IsAllCurl:     econf.GetBool("k8s.enable"),
+		K8SContainer:  c.K8SContainer,
 	}
 }
 
@@ -139,11 +153,14 @@ type Request struct {
 	KeyWord        string // 搜索的关键词
 	Limit          int64  // 最少多少条数据
 	IsCommand      bool   // 是否是命令行 默认不是
+	IsUploadExcel  bool   //
+	Namespace      string // 指定namespace
 	IsK8S          bool
 	K8SContainer   []string
 	K8sClientType  string // 是 containerd，还是docker
 	IsChartRequest bool   // 是否为请求 Charts
-	Interval       int64  // 请求 charts 时，划分的标准时间间隔
+	IsAllCurl      bool
+	Interval       int64 // 请求 charts 时，划分的标准时间间隔
 }
 
 func (req *Request) prepare() {
@@ -160,21 +177,14 @@ func (req *Request) prepare() {
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
-				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.LogPath))
-				filePaths = append(filePaths, dto.AgentSearchTargetInfo{
-					K8sInfo:  value.K8SInfo,
-					FilePath: value.LogPath,
-				})
+				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
+				filePaths = req.prepareByNamespace(filePaths, value)
 			} else {
 				for _, v := range req.K8SContainer {
-					if value.K8SInfo.Container == v {
-						elog.Info("agentRun", l.S("step", "withContainer"), l.A("logPath", value.LogPath))
-						filePaths = append(filePaths, dto.AgentSearchTargetInfo{
-							K8sInfo:  value.K8SInfo,
-							FilePath: value.LogPath,
-						})
+					if value.ContainerInfo.Container == v {
+						filePaths = req.prepareByNamespace(filePaths, value)
 					} else {
-						elog.Info("agentRun", l.S("step", "withContainer"), l.A("container", value.K8SInfo.Container))
+						elog.Info("agentRun", l.S("step", "withContainer"), l.A("container", value.ContainerInfo.Container))
 					}
 				}
 			}
@@ -197,9 +207,130 @@ func (req *Request) prepare() {
 	req.TruePath = filePaths
 }
 
+func (req *Request) prepareByNamespace(filePaths []dto.AgentSearchTargetInfo, value *manager.DockerInfo) []dto.AgentSearchTargetInfo {
+	if req.Namespace != "" && req.Namespace == value.ContainerInfo.Namespace {
+		elog.Info("agentRun", l.S("step", "withContainer"), l.A("logPath", value.ContainerInfo.LogPath))
+		filePaths = append(filePaths, dto.AgentSearchTargetInfo{
+			K8sInfo:  value.ContainerInfo,
+			FilePath: value.ContainerInfo.LogPath,
+		})
+	} else {
+		filePaths = append(filePaths, dto.AgentSearchTargetInfo{
+			K8sInfo:  value.ContainerInfo,
+			FilePath: value.ContainerInfo.LogPath,
+		})
+	}
+	return filePaths
+}
+
+// LogRes defines HTTP JSON response
+type LogRes struct {
+	// Code means response business code
+	Code int `json:"code"`
+	// Msg means response extra message
+	Msg string `json:"msg"`
+	// Data means response data payload
+	Data view.RespAgentSearch `json:"data"`
+}
+
 func Run(req Request) (data view.RespAgentSearch, err error) {
 	elog.Info("agent[node] log search start", elog.Any("req", req))
 	data.Data = make([]view.RespAgentSearchItem, 0)
+
+	// 如果是请求所有的 curl，直接返回
+	if req.IsAllCurl {
+		obj := ek8s.Load("k8s").Build()
+		if econf.GetString("k8s.labelSelector") == "" {
+			elog.Panic("k8s label selector cant empty")
+		}
+		list2, err := obj.CoreV1().Pods(req.Namespace).List(context.Background(), metav1.ListOptions{
+			LabelSelector: econf.GetString("k8s.labelSelector"),
+		})
+		if err != nil {
+			elog.Error("k8s get pods error", elog.FieldErr(err), elog.Any("namespace", econf.GetString("inspectLog.namespace")), elog.Any("labelSelector", econf.GetString("k8s.labelSelector")))
+		}
+		ips := make([]string, 0)
+		for _, value := range list2.Items {
+			ips = append(ips, value.Status.PodIP)
+		}
+
+		if len(ips) == 0 {
+			return data, nil
+		}
+
+		eclient := ehttp.Load("").Build()
+		exFile := excelplus.Load().Build(
+			excelplus.WithDefaultSheetName("结果表"),
+			excelplus.WithS3(eos.Load("upload").Build()),
+			excelplus.WithEnableUpload(req.IsUploadExcel),
+		)
+		exSheet, err := exFile.NewSheet("结果表", searchexcel.Logger{})
+		if err != nil {
+			elog.Panic("agent new sheet error", elog.FieldErr(err))
+		}
+
+		v := url.Values{}
+		v.Set("isK8s", "1")
+		v.Set("keyWord", req.KeyWord)
+		if req.Date != "" {
+			req.StartTime, req.EndTime = calculateStartTimeAndEndTime(req.Date)
+		}
+
+		v.Set("startTime", cast.ToString(req.StartTime))
+		v.Set("endTime", cast.ToString(req.EndTime))
+		v.Set("limit", cast.ToString(req.Limit))
+		v.Set("namespace", req.Namespace)
+
+		elog.Info("k8s ips", elog.FieldValueAny(ips))
+
+		for _, ip := range ips {
+			url := "http://" + ip + ":" + econf.GetString("k8s.port") + "/api/v1/search?" + v.Encode()
+			elog.Info("k8s log url", elog.FieldValueAny(url))
+			resp, err := eclient.SetTimeout(30 * time.Second).R().Get(url)
+			if err != nil {
+				elog.Error("eclient log fail", elog.FieldErr(err), elog.Any("ip", ip))
+				continue
+			}
+			var output LogRes
+			err = json.Unmarshal(resp.Body(), &output)
+			if err != nil {
+				elog.Panic("json unmarshal fail", elog.FieldErr(err))
+			}
+			for _, value := range output.Data.Data {
+				if value.Line == "" {
+					continue
+				}
+
+				var timeInfo string
+				curTime, indexValue := utils.IndexParseTime(value.Line)
+				if indexValue > 0 {
+					curTimeParser := utils.TimeParse(curTime)
+					timeInfo = curTimeParser.Format("2006-01-02 15:04:05")
+				}
+				loggerInfo := searchexcel.Logger{
+					FilePath:  value.Ext["_file"].(string),
+					Ip:        ip,
+					Log:       value.Line,
+					Time:      timeInfo,
+					Namespace: value.Ext["_namespace"].(string),
+					Container: value.Ext["_container"].(string),
+					Pod:       value.Ext["_pod"].(string),
+					Image:     value.Ext["_image"].(string),
+				}
+				err = exSheet.SetRow(loggerInfo)
+				if err != nil {
+					elog.Panic("agent set row error", elog.FieldErr(err))
+				}
+			}
+		}
+
+		err = exFile.SaveAs(context.Background(), fmt.Sprintf("clickvisual_log_search/%s/agent_search_%s.xlsx", time.Now().Format("2006_01_02"), time.Now().Format("2006_01_02_15_04_05")))
+		if err != nil {
+			elog.Panic("agent save as error", elog.FieldErr(err))
+		}
+
+		return data, nil
+	}
 
 	req.prepare()
 	data.K8sClientType = req.K8sClientType
@@ -241,10 +372,11 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	if req.IsCommand {
 		for _, comp := range container.components {
 			fmt.Println(comp.bash.ColorAll(comp.file.path))
-			for _, value := range comp.output {
+			for _, value := range comp.commandOutput {
 				fmt.Println(value)
 			}
 		}
+
 	} else {
 		for _, comp := range container.components {
 			for _, value := range comp.output {
@@ -252,7 +384,11 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 					continue
 				}
 				ext := map[string]interface{}{
-					"_file": comp.file.path,
+					"_file":      comp.file.path,
+					"_namespace": "",
+					"_container": "",
+					"_pod":       "",
+					"_image":     "",
 				}
 				if comp.k8sInfo != nil {
 					ext["_namespace"] = comp.k8sInfo.Namespace
@@ -265,6 +401,53 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 					Ext:  ext,
 				})
 			}
+		}
+	}
+
+	// 是否需要上传excel
+	if req.IsUploadExcel {
+		exFile := excelplus.Load().Build(
+			excelplus.WithDefaultSheetName("结果表"),
+			excelplus.WithS3(eos.Load("upload").Build()),
+			excelplus.WithEnableUpload(req.IsUploadExcel),
+		)
+		exSheet, err := exFile.NewSheet("结果表", searchexcel.Logger{})
+		if err != nil {
+			elog.Panic("agent new sheet error", elog.FieldErr(err))
+		}
+		for _, comp := range container.components {
+			for _, value := range comp.output {
+				if value == "" {
+					continue
+				}
+
+				var timeInfo string
+				curTime, indexValue := utils.IndexParseTime(value)
+				if indexValue > 0 {
+					curTimeParser := utils.TimeParse(curTime)
+					timeInfo = curTimeParser.Format("2006-01-02 15:04:05")
+				}
+
+				loggerInfo := searchexcel.Logger{
+					FilePath: comp.file.path,
+					Log:      value,
+					Time:     timeInfo,
+				}
+				if comp.k8sInfo != nil {
+					loggerInfo.Namespace = comp.k8sInfo.Namespace
+					loggerInfo.Container = comp.k8sInfo.Container
+					loggerInfo.Pod = comp.k8sInfo.Pod
+					loggerInfo.Image = comp.k8sInfo.Image
+				}
+				err = exSheet.SetRow(loggerInfo)
+				if err != nil {
+					elog.Panic("agent set row error", elog.FieldErr(err))
+				}
+			}
+		}
+		err = exFile.SaveAs(context.Background(), fmt.Sprintf("clickvisual_log_search/%s/agent_search_%s.xlsx", time.Now().Format("2006_01_02"), time.Now().Format("2006_01_02_15_04_05")))
+		if err != nil {
+			elog.Panic("agent save as error", elog.FieldErr(err))
 		}
 	}
 	return data, nil
@@ -285,9 +468,14 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		obj.times = (req.EndTime - req.StartTime) / req.Interval
 		obj.charts = make(map[int64]int64)
 	}
-	obj.file = file
+
 	obj.startTime = req.StartTime
 	obj.endTime = req.EndTime
+	if req.Date != "" {
+		obj.startTime, obj.endTime = calculateStartTimeAndEndTime(req.Date)
+	}
+
+	obj.file = file
 	obj.request = req
 	obj.words = Keyword2Array(req.KeyWord, true)
 	filterString := make([]string, 0)
@@ -316,6 +504,35 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	return obj, nil
 }
 
+func calculateStartTimeAndEndTime(date string) (st, et int64) {
+	switch date {
+	case "last 6h":
+		st = time.Now().Add(-6 * time.Hour).Unix()
+		et = time.Now().Unix()
+	case "last 12h":
+		st = time.Now().Add(-12 * time.Hour).Unix()
+		et = time.Now().Unix()
+	case "last 24h":
+		st = time.Now().Add(-24 * time.Hour).Unix()
+		et = time.Now().Unix()
+	case "last 7d":
+		st = time.Now().Add(-7 * 24 * time.Hour).Unix()
+		et = time.Now().Unix()
+	case "yesterday":
+		ts := time.Now().AddDate(0, 0, -1)
+		st = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location()).Unix()
+		et = time.Date(ts.Year(), ts.Month(), ts.Day(), 23, 59, 59, 0, ts.Location()).Unix()
+	case "today":
+		ts := time.Now().AddDate(0, 0, 0)
+		st = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location()).Unix()
+		et = time.Date(ts.Year(), ts.Month(), ts.Day(), 23, 59, 59, 0, ts.Location()).Unix()
+	default:
+		st = time.Now().Add(-6 * time.Hour).Unix()
+		et = time.Now().Unix()
+	}
+	return
+}
+
 /*
  * searchFile 搜索文件内容
  * searchFile 2023-09-28 10:10:00 2023-09-28 10:20:00 /xxx/your_service.log`
@@ -327,30 +544,31 @@ func (c *Component) SearchFile() error {
 		return nil
 	}
 	var (
-		start = int64(0)
-		end   = c.file.size - 1
-		err   error
+		// startPos 从0开始，那么end就是size-1
+		startPos = int64(0)
+		endPos   = c.file.size - 1
+		err      error
 	)
 
 	if c.startTime > 0 {
-		start, err = searchByStartTime(c.file, c.startTime)
+		startPos, err = searchByStartTime(c.file, c.startTime)
 		if err != nil {
-			return errors.Wrapf(err, "search start time error")
+			return errors.Wrapf(err, "search startPos time error")
 		}
 	}
 	if c.endTime > 0 {
-		end, err = searchByEndTime(c.file, 0, c.endTime)
+		endPos, err = searchByEndTime(c.file, 0, c.endTime)
 		if err != nil {
-			return errors.Wrapf(err, "search end time error")
+			return errors.Wrapf(err, "search endPos time error")
 		}
 	}
-	if start != -1 && start <= end {
-		c.preparePartition(start, end)
+	if startPos != -1 && startPos <= endPos {
+		c.preparePartition(startPos, endPos)
 		if c.IsChartRequest() {
-			err = c.searchCharts(start, end)
+			err = c.searchCharts(startPos, endPos)
 		} else {
 			// read based on buffer
-			err = c.getLogs(start, end)
+			err = c.getLogs(startPos, endPos)
 		}
 		if err != nil {
 			return errors.Wrapf(err, "agent search logs error")
