@@ -42,7 +42,7 @@ func GetFilterK8SContainerdWrapLog(s string) string {
 
 var indexFields = []string{`"ts":"`, `"time":"`, `"ts":`}
 
-func IndexParse(line string) (string, int) {
+func IndexParseTime(line string) (string, int) {
 	for _, field := range indexFields {
 		res, index := Index(line, field)
 		if index != -1 {

@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"time"
 
-	docker "github.com/fsouza/go-dockerclient"
 	"github.com/gotomicro/ego/core/elog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -149,17 +148,17 @@ func (c *Component) createContainerInfo(_ context.Context, cc *cri.Container) (*
 	if image == "" {
 		image = status.GetStatus().GetImageRef()
 	}
-
-	dockerContainer := &docker.Container{
-		ID:      cc.GetId(),
+	dockerContainer := &manager.ContainerInfo{
+		Id:      cc.GetId(),
+		Name:    cc.GetMetadata().GetName(),
 		LogPath: status.GetStatus().GetLogPath(),
-		Config: &docker.Config{
-			Image: image,
-		},
-	}
-
-	if cc.GetMetadata() != nil {
-		dockerContainer.Name = cc.GetMetadata().GetName()
+		Image:   image,
+		State:   cc.GetState().String(),
+		Labels:  cc.GetLabels(),
+		//Namespace: cc.GetLabels()["io.kubernetes.pod.namespace"],
+		//Container: cc.GetLabels()["io.kubernetes.container"],
+		//Pod:       cc.GetLabels()["io.kubernetes.pod.name"],
+		//PodUid:    cc.GetLabels()["io.kubernetes.pod.uid"],
 	}
 
 	return manager.CreateInfoDetail(dockerContainer), nil

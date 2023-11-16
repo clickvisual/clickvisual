@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
 
@@ -20,25 +21,14 @@ func NewAgent() *Agent {
 	}
 }
 
-type SearchRequest struct {
-	StartTime int64    `json:"startTime,string" form:"startTime"`
-	EndTime   int64    `json:"endTime,string" form:"endTime"`
-	Date      string   `json:"date" form:"date"`           // last 30min,6h,1d,7d
-	KeyWord   string   `json:"keyWord" form:"keyWord"`     // 搜索的关键词
-	Limit     int64    `json:"limit,string" form:"limit"`  // 最少多少条数据
-	Container []string `json:"container" form:"container"` // container信息
-	IsK8s     int      `json:"isK8s,string" form:"isK8s"`  // 是否为k8s
-	Dir       string   `json:"dir" form:"dir"`             // 文件夹路径
-}
-
 type ChartsSearchRequest struct {
-	SearchRequest
+	dto.SearchRequest
 	IsChartRequest bool  `json:"isChartRequest,string" form:"isChartRequest"`
 	Interval       int64 `json:"interval,string" form:"interval"`
 }
 
 func (a *Agent) Search(c *core.Context) {
-	postReq := &SearchRequest{}
+	postReq := &dto.SearchRequest{}
 	err := c.Bind(postReq)
 	if err != nil {
 		elog.Error("agent[node] can not bind request", l.E(err), l.A("request", c.Request))
@@ -49,6 +39,7 @@ func (a *Agent) Search(c *core.Context) {
 		StartTime: postReq.StartTime,
 		EndTime:   postReq.EndTime,
 		Limit:     postReq.Limit,
+		Namespace: postReq.Namespace,
 	}
 	if postReq.Date != "" {
 		req.Date = postReq.Date

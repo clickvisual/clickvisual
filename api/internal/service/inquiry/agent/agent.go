@@ -44,7 +44,7 @@ func (a *Agent) parseHitLog(k8sClientType string, item view.RespAgentSearchItem)
 		return nil, errors.New("line is empty")
 	}
 	log = make(map[string]interface{})
-	curTime, indexValue := utils.IndexParse(line)
+	curTime, indexValue := utils.IndexParseTime(line)
 	if indexValue != -1 {
 		curTimeParser := utils.TimeParse(curTime)
 		if curTimeParser != nil {

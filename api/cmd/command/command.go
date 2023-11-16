@@ -1,6 +1,9 @@
 package command
 
 import (
+	"log"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/spf13/cobra"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
@@ -15,21 +18,26 @@ var CmdRun = &cobra.Command{
 	Short: "启动 clickvisual 命令行",
 	Long:  `启动 clickvisual 命令行`,
 	Run:   CmdFunc,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		log.Println("PreRun args: ", args)
+		config.PreRun(cmd, args)
+	},
 }
 
 func init() {
-	CmdRun.PersistentFlags().StringVarP(&request.Dir, "dir", "d", "", "指定日志文件路径")
-	CmdRun.PersistentFlags().StringVarP(&request.Path, "path", "p", "", "指定日志文件路径")
-	CmdRun.PersistentFlags().StringVarP(&request.StartTime, "start", "s", "", "指定日志文件")
-	CmdRun.PersistentFlags().StringVarP(&request.EndTime, "end", "e", "", "指定日志文件")
-	CmdRun.PersistentFlags().StringVarP(&request.KeyWord, "key", "k", "", "指定日志文件")
-	CmdRun.PersistentFlags().Int64VarP(&request.Limit, "limit", "l", 5, "日志最大渲染条数")
-	CmdRun.PersistentFlags().StringVarP(&request.Date, "date", "t", "last 6h", "日期会有默认查询时间，默认last 6h")
-	CmdRun.PersistentFlags().BoolVarP(&request.IsK8S, "k8s", "z", false, "是否为k8s")
-	CmdRun.PersistentFlags().StringArrayVarP(&request.K8SContainer, "container", "y", []string{}, "k8s container名字")
+	CmdRun.PersistentFlags().StringVar(&request.Dir, "dir", "", "指定日志文件夹路径")
+	CmdRun.PersistentFlags().StringVar(&request.Path, "path", "", "指定日志文件路径")
+	CmdRun.PersistentFlags().StringVar(&request.StartTime, "start", "", "指定开始时间")
+	CmdRun.PersistentFlags().StringVar(&request.EndTime, "end", "", "指定结束时间")
+	CmdRun.PersistentFlags().StringVar(&request.KeyWord, "key", "", `指定关键词,例如key="lv=error"`)
+	CmdRun.PersistentFlags().Int64Var(&request.Limit, "limit", 20, "日志最大渲染条数，默认20条")
+	CmdRun.PersistentFlags().StringVar(&request.Date, "date", "last 6h", "日期会有默认查询时间，默认last 6h")
+	CmdRun.PersistentFlags().BoolVar(&request.IsK8S, "k8s", false, "是否为k8s")
+	CmdRun.PersistentFlags().StringArrayVar(&request.K8SContainer, "container", []string{}, "k8s container名字")
 	cmd.RootCommand.AddCommand(CmdRun)
 }
 
+// CmdFunc 实验性方法 2023-11-08
 func CmdFunc(cmd *cobra.Command, args []string) {
 	search.Run(request.ToRequest())
 }
