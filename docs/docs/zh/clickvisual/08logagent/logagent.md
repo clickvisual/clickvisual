@@ -1,16 +1,16 @@
-# LogAgent
+# Clickvisual Agent 用法
 ClickVisual 提供了`LogAgent`接口，用于直接查询`K8S` `Node`节点中的日志数据
 
-## LogAgent 接口查询日志流程
+## Clickvisual Agent 接口查询日志流程
 * 提供一个Search接口
 * 根据Search参数获得需要查询的数据
 * 根据namespace，container，获取到要查container的日志目录
 * 根据日志条件，扫描日志内容
 * 返回数据
 
-## LogAgent部署方式
+## Clickvisual Agent 部署方式
 使用`Daemonset`部署到`K8S` `Node`节点上
-### Containerd权限
+### Containerd 权限
 需要挂载3个目录，待确认，估计目前只需要containerd权限
 * /var/run 读权限
 * /var/log 读权限

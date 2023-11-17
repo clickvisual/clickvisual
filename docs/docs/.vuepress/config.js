@@ -141,15 +141,6 @@ var _hmt = _hmt || [];
                             ],
                         },
                         {
-                            title: "日志采集",
-                            collapsable: false, // 可选的, 默认值是 true,
-                            children: [
-                                "07collect/ilogtail",
-                                "07collect/fluent-bit-configuration-reference",
-                                "07collect/loggie-io",
-                            ],
-                        },
-                        {
                             title: "功能介绍",
                             collapsable: false, // 可选的, 默认值是 true,
                             children: [
@@ -160,6 +151,24 @@ var _hmt = _hmt || [];
                                 "03funcintro/casbin",
                                 "03funcintro/clickhouse-commonly-used-sql",
                                 "03funcintro/template-gen",
+                            ],
+                        },
+                        {
+                            title: "日志采集",
+                            collapsable: false, // 可选的, 默认值是 true,
+                            children: [
+                                "07collect/ilogtail",
+                                "07collect/fluent-bit-configuration-reference",
+                                "07collect/loggie-io",
+                            ],
+                        },
+                        {
+                            title: "Clickvisual日志分析",
+                            collapsable: false, // 可选的, 默认值是 true,
+                            children: [
+                                "08logagent/readme",
+                                "08logagent/infra",
+                                "08logagent/logagent",
                             ],
                         },
                         {
