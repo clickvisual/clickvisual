@@ -166,7 +166,7 @@ var _hmt = _hmt || [];
                             title: "Clickvisual日志分析",
                             collapsable: false, // 可选的, 默认值是 true,
                             children: [
-                                "08logagent/readme",
+                                "08logagent/intro",
                                 "08logagent/infra",
                                 "08logagent/logagent",
                             ],
