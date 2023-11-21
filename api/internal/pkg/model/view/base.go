@@ -69,7 +69,7 @@ type (
 		Date          string   `form:"date"`
 		K8SContainer  []string `form:"k8sContainer"`
 		Dir           string   `json:"dir"`
-		Path          string   `form:"path";json:"path"`
+		Path          string   `form:"path" json:"path"`
 		Interval      int64    `json:"interval"`
 	}
 

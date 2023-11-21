@@ -9,7 +9,6 @@ import (
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
-	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	constx2 "github.com/clickvisual/clickvisual/api/internal/pkg/constx"
@@ -37,7 +36,8 @@ func genDatabendTimeConditionEqual(param view.ReqQuery, t time.Time) string {
 
 var regSingleWord = regexp.MustCompile(`([a-z]|[A-Z]|[0-9]|_|-|')+`)
 var regChinese = regexp.MustCompile("^[\u4e00-\u9fa5]")
-var regDistributedSubTable = regexp.MustCompile(`ENGINE = Distributed\([^,]+,[^,]+,([\S\s]+),`)
+
+// var regDistributedSubTable = regexp.MustCompile(`ENGINE = Distributed\([^,]+,[^,]+,([\S\s]+),`)
 
 type JaegerJsonOriginal struct {
 	TraceId  string `json:"trace_id"`
@@ -107,17 +107,17 @@ func transformJaegerDependencies(req []view.JaegerDependencyDataModel) (resp []v
 	return
 }
 
-func genTimeCondition(param view.ReqQuery) string {
-	switch param.TimeFieldType {
-	case db.TimeFieldTypeDT:
-		return fmt.Sprintf("%s >= toDateTime(%s) AND %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
-	case db.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s >= toDateTime64(%s, 3) AND %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
-	case db.TimeFieldTypeTsMs:
-		return fmt.Sprintf("intDiv(%s,1000) >= %s AND intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
-	}
-	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
-}
+// func genTimeCondition(param view.ReqQuery) string {
+// 	switch param.TimeFieldType {
+// 	case db.TimeFieldTypeDT:
+// 		return fmt.Sprintf("%s >= toDateTime(%s) AND %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
+// 	case db.TimeFieldTypeDT3:
+// 		return fmt.Sprintf("%s >= toDateTime64(%s, 3) AND %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
+// 	case db.TimeFieldTypeTsMs:
+// 		return fmt.Sprintf("intDiv(%s,1000) >= %s AND intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
+// 	}
+// 	return param.TimeField + " >= %d AND " + param.TimeField + " < %d"
+// }
 
 func TransferGroupTimeField(timeField string, timeFieldTyp int) string {
 	switch timeFieldTyp {
@@ -133,17 +133,17 @@ func TransferGroupTimeField(timeField string, timeFieldTyp int) string {
 	return timeField
 }
 
-func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
-	switch param.TimeFieldType {
-	case db.TimeFieldTypeDT:
-		return fmt.Sprintf("toUnixTimestamp(%s) = %d", param.TimeField, t.Unix())
-	case db.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
-	case db.TimeFieldTypeTsMs:
-		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
-	}
-	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
-}
+// func genTimeConditionEqual(param view.ReqQuery, t time.Time) string {
+// 	switch param.TimeFieldType {
+// 	case db.TimeFieldTypeDT:
+// 		return fmt.Sprintf("toUnixTimestamp(%s) = %d", param.TimeField, t.Unix())
+// 	case db.TimeFieldTypeDT3:
+// 		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
+// 	case db.TimeFieldTypeTsMs:
+// 		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
+// 	}
+// 	return fmt.Sprintf("%s = %d", param.TimeField, t.Unix())
+// }
 
 func fieldTypeJudgment(typ string) int {
 	for _, val := range typArr {
@@ -434,12 +434,12 @@ func queryEncodeOperation(a string, op string, res *[]queryItem) error {
 	return nil
 }
 
-func getDistributedSubTableName(sql string) (string, error) {
-	matches := regDistributedSubTable.FindStringSubmatch(strings.TrimSpace(sql))
-	if len(matches) == 2 {
-		res := strings.TrimSpace(matches[1])
-		res = strings.ReplaceAll(res, "'", "")
-		return res, nil
-	}
-	return "", errors.New("cannot find distributed sub table")
-}
+// func getDistributedSubTableName(sql string) (string, error) {
+// 	matches := regDistributedSubTable.FindStringSubmatch(strings.TrimSpace(sql))
+// 	if len(matches) == 2 {
+// 		res := strings.TrimSpace(matches[1])
+// 		res = strings.ReplaceAll(res, "'", "")
+// 		return res, nil
+// 	}
+// 	return "", errors.New("cannot find distributed sub table")
+// }

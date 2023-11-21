@@ -9,17 +9,14 @@ import (
 	"path"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/ego-component/eos"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cobra"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 
 	"github.com/clickvisual/clickvisual/api/cmd"
 )
-
-var request = search.CmdRequest{}
 
 var CmdRun = &cobra.Command{
 	Use:   "upload",

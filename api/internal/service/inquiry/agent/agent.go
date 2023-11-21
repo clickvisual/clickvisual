@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/gotomicro/cetus/l"
+	"github.com/gotomicro/cetus/x"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
@@ -71,11 +72,11 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 			agent = "http://" + agent
 		}
 		data := map[string]string{
-			"startTime": fmt.Sprintf("%d", query.ST),
-			"endTime":   fmt.Sprintf("%d", query.ET),
+			"startTime": x.I2S(query.ST),
+			"endTime":   x.I2S(query.ET),
 		}
 		if len(query.K8SContainer) != 0 {
-			data["container"] = fmt.Sprintf(strings.Join(query.K8SContainer, ","))
+			data["container"] = strings.Join(query.K8SContainer, ",")
 			data["isK8s"] = "1"
 		}
 		if query.Query != "" && query.Query != "*" {
@@ -142,11 +143,11 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 			agent = "http://" + agent
 		}
 		data := map[string]string{
-			"startTime": fmt.Sprintf("%d", query.ST),
-			"endTime":   fmt.Sprintf("%d", query.ET),
+			"startTime": x.I2S(query.ST),
+			"endTime":   x.I2S(query.ET),
 		}
 		if len(query.K8SContainer) != 0 {
-			data["container"] = fmt.Sprintf(strings.Join(query.K8SContainer, ","))
+			data["container"] = strings.Join(query.K8SContainer, ",")
 			data["isK8s"] = "1"
 		}
 		if query.Query != "" && query.Query != "*" {

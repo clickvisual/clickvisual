@@ -20,7 +20,13 @@ func TestFindBorder(t *testing.T) {
 	to := fileInfo.Size() - 1
 	middle := (from + to) / 2
 	border1, err := findBorder(file, from, middle, -1, 1000)
+	if err != nil {
+		t.Error(err)
+	}
 	border2, err := findBorder(file, middle+1, to, 1, 1000)
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, int64(167), border1)
 	assert.Equal(t, int64(301), border2)
 	assert.NoError(t, err)

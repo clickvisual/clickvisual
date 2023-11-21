@@ -118,8 +118,7 @@ func TestGenerateTestFile(t *testing.T) {
 			q[i] = i
 		}
 
-		var i int64 = 0
-		for i = 0; i < file.count; i++ {
+		for i := 0; i < int(file.count); i++ {
 			record += rand.Int63n(file.interval / file.count)
 			idx := rand.Int63n(int64(100)) % n
 			pos := int64(q[idx])
@@ -131,9 +130,9 @@ func TestGenerateTestFile(t *testing.T) {
 			}
 			log := file.logCategories[pos]
 			if log.conditionSearch {
-				writer.WriteString(log.content + "\n")
+				_, _ = writer.WriteString(log.content + "\n")
 			} else {
-				writer.WriteString(fmt.Sprintf(file.logCategories[pos].content+"\n", record, time.Unix(record, 0).Format("2006-01-02 15:04:05")))
+				_, _ = writer.WriteString(fmt.Sprintf(file.logCategories[pos].content+"\n", record, time.Unix(record, 0).Format("2006-01-02 15:04:05")))
 			}
 		}
 	}
@@ -147,7 +146,7 @@ func GenerateTestLogFile(start, end, lines int64, name string) {
 	rands := (end - start) / lines
 	for i := int64(0); i < lines; i++ {
 		start += rand.Int63n(rands)
-		writter.WriteString(fmt.Sprintf(`{"tss":%d,"lv":"info","key":"service down","msg":"cannot support xxx operation or xxxxxxx","addr":"[xxxx service:xxxx] heartbeat down","ts":"%s"}`+"\n", start, time.Unix(start, 0).Format("2006-01-02 15:04:05")))
+		_, _ = writter.WriteString(fmt.Sprintf(`{"tss":%d,"lv":"info","key":"service down","msg":"cannot support xxx operation or xxxxxxx","addr":"[xxxx service:xxxx] heartbeat down","ts":"%s"}`+"\n", start, time.Unix(start, 0).Format("2006-01-02 15:04:05")))
 	}
 }
 

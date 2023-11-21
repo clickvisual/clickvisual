@@ -308,8 +308,8 @@ func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, er
 		if readStartPos <= 0 {
 			readStartPos = 0
 		}
-		c.file.ptr.Seek(readStartPos, 0)
-		c.file.ptr.Read(fileReader)
+		_, _ = c.file.ptr.Seek(readStartPos, 0)
+		_, _ = c.file.ptr.Read(fileReader)
 
 		if readStartPos <= 0 {
 			fileReader = fileReader[:now]
@@ -427,7 +427,7 @@ func (c *Component) searchCharts(startPos, endPos int64) (error error) {
 		}
 	}
 
-	for i, _ := range partitions {
+	for i := range partitions {
 		err := pool.Submit(task(partitions[i][0], partitions[i][1]))
 		if err != nil {
 			elog.Error("ants pool submit error", elog.FieldErr(err))
@@ -469,7 +469,7 @@ func (c *Component) calcLogsLine(startPos, endPos int64) int64 {
 
 	defer file.ptr.Close()
 	for {
-		file.ptr.Seek(now, 0)
+		_, _ = file.ptr.Seek(now, 0)
 		bl, _ := file.ptr.Read(fileReader)
 		bytesLen := int64(bl)
 
@@ -874,48 +874,49 @@ func (c *Component) verifyKeyWord(data []byte, filter string, pos int) (int, boo
 	return p, p != -1 && p < pos
 }
 
-// search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
-func (c *Component) searchByWord2(startPos, endPos int64) (int64, error) {
-	var err error
-	var cursor = startPos
-	buff := make([]byte, 0, 4096)
-	char := make([]byte, 1)
-	cnt := 0
-	// scanner := bufio.NewReader(c.file.ptr.)
-	// scanner.ReadString("/n")
-	for {
-		_, _ = c.file.ptr.Seek(cursor, io.SeekStart)
-		_, err = c.file.ptr.Read(char)
-		if err != nil {
-			panic(err)
-		}
-
-		if char[0] == '\n' {
-			if len(buff) > 0 {
-				// 读取到的行
-				flag := c.isSearchByKeyWord(string(buff))
-				if flag {
-					fmt.Println(string(buff))
-				}
-				cnt++
-				if cnt == 1000000 {
-					// 超过数量退出
-					break
-				}
-
-			}
-			buff = buff[:0]
-		} else {
-			buff = append(buff, char[0])
-		}
-
-		if cursor == endPos {
-			break
-		}
-		cursor++
-	}
-	return 0, nil
-}
+//
+// // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
+// func (c *Component) searchByWord2(startPos, endPos int64) (int64, error) {
+// 	var err error
+// 	var cursor = startPos
+// 	buff := make([]byte, 0, 4096)
+// 	char := make([]byte, 1)
+// 	cnt := 0
+// 	// scanner := bufio.NewReader(c.file.ptr.)
+// 	// scanner.ReadString("/n")
+// 	for {
+// 		_, _ = c.file.ptr.Seek(cursor, io.SeekStart)
+// 		_, err = c.file.ptr.Read(char)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+//
+// 		if char[0] == '\n' {
+// 			if len(buff) > 0 {
+// 				// 读取到的行
+// 				flag := c.isSearchByKeyWord(string(buff))
+// 				if flag {
+// 					fmt.Println(string(buff))
+// 				}
+// 				cnt++
+// 				if cnt == 1000000 {
+// 					// 超过数量退出
+// 					break
+// 				}
+//
+// 			}
+// 			buff = buff[:0]
+// 		} else {
+// 			buff = append(buff, char[0])
+// 		}
+//
+// 		if cursor == endPos {
+// 			break
+// 		}
+// 		cursor++
+// 	}
+// 	return 0, nil
+// }
 
 // min returns minimum of two int64 numbers
 func min(a int64, b int64) int64 {
@@ -925,39 +926,40 @@ func min(a int64, b int64) int64 {
 	return a
 }
 
-// writeBytes writes [start; stop] bytes from fromFile to toFile
-func writeBytes(fromFile *os.File, start int64, stop int64, toFile *os.File, maxBufferSize int64) (int64, error) {
-	var bytesWritten int64
-	bytesWritten = 0
-	if start > stop {
-		return bytesWritten, nil
-	}
-
-	fromFile.Seek(start, 0)
-	buffer := make([]byte, min(stop-start+1, maxBufferSize))
-	for current := start; current < stop; {
-		bufferSize := min(stop-current+1, maxBufferSize)
-		if bufferSize < maxBufferSize {
-			buffer = make([]byte, bufferSize)
-		}
-
-		n, err := fromFile.Read(buffer)
-		if err != nil {
-			return bytesWritten, err
-		} else if int64(n) < bufferSize {
-			return bytesWritten, errors.New("Error: unexpected end of input")
-		}
-		n, err = toFile.Write(buffer)
-		if err != nil {
-			return bytesWritten, err
-		}
-		bytesWritten += int64(n)
-
-		current += int64(bufferSize)
-	}
-
-	return bytesWritten, nil
-}
+//
+// // writeBytes writes [start; stop] bytes from fromFile to toFile
+// func writeBytes(fromFile *os.File, start int64, stop int64, toFile *os.File, maxBufferSize int64) (int64, error) {
+// 	var bytesWritten int64
+// 	bytesWritten = 0
+// 	if start > stop {
+// 		return bytesWritten, nil
+// 	}
+//
+// 	_, _ = fromFile.Seek(start, 0)
+// 	buffer := make([]byte, min(stop-start+1, maxBufferSize))
+// 	for current := start; current < stop; {
+// 		bufferSize := min(stop-current+1, maxBufferSize)
+// 		if bufferSize < maxBufferSize {
+// 			buffer = make([]byte, bufferSize)
+// 		}
+//
+// 		n, err := fromFile.Read(buffer)
+// 		if err != nil {
+// 			return bytesWritten, err
+// 		} else if int64(n) < bufferSize {
+// 			return bytesWritten, errors.New("Error: unexpected end of input")
+// 		}
+// 		n, err = toFile.Write(buffer)
+// 		if err != nil {
+// 			return bytesWritten, err
+// 		}
+// 		bytesWritten += int64(n)
+//
+// 		current += int64(bufferSize)
+// 	}
+//
+// 	return bytesWritten, nil
+// }
 
 // newLineIndex returns index of newline symbol in buffer;
 // if no newline symbol found returns -1
@@ -1005,7 +1007,7 @@ func findBorder(file *os.File, from int64, to int64, diff int64, maxBufferSize i
 			buffer = make([]byte, currentSize)
 		}
 
-		file.Seek(position, 0)
+		_, _ = file.Seek(position, 0)
 
 		n, err := file.Read(buffer)
 		if err != nil {
@@ -1071,13 +1073,13 @@ func getString(file *os.File, from int64, to int64) (string, error) {
 	return string(buffer[:bufferSize]), nil
 }
 
-func (c *Component) seekFile() {
-	_, err := c.file.ptr.Seek(100, 0)
-	if err != nil {
-		panic(err)
-	}
-	scanner := bufio.NewScanner(c.file.ptr)
-	for scanner.Scan() {
-		fmt.Println(scanner.Text())
-	}
-}
+// func (c *Component) seekFile() {
+// 	_, err := c.file.ptr.Seek(100, 0)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	scanner := bufio.NewScanner(c.file.ptr)
+// 	for scanner.Scan() {
+// 		fmt.Println(scanner.Text())
+// 	}
+// }
