@@ -1,4 +1,4 @@
-name: apidocs
+name: apis
 
 on:
   push:
@@ -15,35 +15,35 @@ jobs:
         with:
           go-version: '>=1.21.0'
       - run: go version    
-      - name: Install Ego Gen API
-        id: egogen
+      - name: install eapi
+        id: eapi
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
           go version 
-          go install github.com/gotomicro/eapi/cmd/egogen@v0.4.5
-          egogen --config egogen.yaml
-      - name: Install ReDoc
+          go install github.com/gotomicro/eapi@v0.4.5
+          eapi --config eapi.yaml
+      - name: install redoc
         run: npm i -g redoc-cli
-      - name: Gen HTML
+      - name: gen HTML
         run: |
           redoc-cli bundle ./api/docs/swagger.json ./api/docs/index.html
           mv redoc-static.html ./api/docs/index.html
-      - name: Install obsutil
-        run: wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -zxvf obsutil_linux_amd64.tar.gz && chmod 755 ./obsutil_linux_amd64_5.4.11/obsutil
-      - name: Config ossutil
-        run: ./obsutil_linux_amd64_5.4.11/obsutil config -i ${{ secrets.OBS_ACCESS_KEY_ID }} -k ${{ secrets.OBS_ACCESS_KEY_SECRET }} -e https://obs.cn-north-4.myhuaweicloud.com
+      - name: install obsutil
+        run: wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -zxvf obsutil_linux_amd64.tar.gz && chmod 755 ./obsutil_linux_amd64_5.5.9/obsutil
+      - name: config ossutil
+        run: ./obsutil_linux_amd64_5.5.9/obsutil config -i ${{ secrets.OBS_ACCESS_KEY_ID }} -k ${{ secrets.OBS_ACCESS_KEY_SECRET }} -e https://obs.cn-north-4.myhuaweicloud.com
       - name: Upload docs by obsutil
-        run: ./obsutil_linux_amd64_5.4.11/obsutil cp ./api/docs/index.html obs://open-read/clickvisual/api/index.html -f -r
-      - name: Install ossutil
+        run: ./obsutil_linux_amd64_5.5.9/obsutil cp ./api/docs/index.html obs://open-read/clickvisual/api/index.html -f -r
+      - name: install ossutil
         run: wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64
-      - name: Config ossutil
+      - name: config ossutil
         run: ./ossutil64 config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.OSS_ACCESS_KEY_ID }} -k ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-      - name: Upload docs
+      - name: upload docs
         run: ./ossutil64 cp -r -f ./api/docs/swagger.json oss://gocn-cdn/clickvisual/api/swagger/doc.json
-      - name: Create Commit
+      - name: create commit
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           delete-branch: true
-          commit-message: 'docs: update api docs'
-          title: update api docs
+          commit-message: 'docs: eapi'
+          title: eapi
