@@ -10,10 +10,10 @@ jobs:
   updateAPI:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: '>=1.21.0'
+          go-version: '>=1.21.1'
       - run: go version    
       - name: install eapi
         id: eapi
