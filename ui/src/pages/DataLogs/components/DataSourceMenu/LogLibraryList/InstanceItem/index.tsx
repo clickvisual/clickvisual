@@ -59,6 +59,11 @@ const InstanceItem = (props: { instanceItem: any }) => {
     },
   ];
 
+  let nameDesc = instanceItem.instanceName;
+  if (instanceItem.desc) {
+    // 只取desc前7个字符
+    nameDesc += " (" + instanceItem.desc.substring(0, 7) + ")";
+  }
   return (
     <Dropdown menu={{ items: menuList }} trigger={["contextMenu"]}>
       <Tooltip
@@ -76,7 +81,7 @@ const InstanceItem = (props: { instanceItem: any }) => {
           }}
         >
           <IconFont type="icon-instance" style={{ marginRight: "4px" }} />
-          {instanceItem.instanceName} {instanceItem.desc}
+          {nameDesc}
         </div>
       </Tooltip>
     </Dropdown>

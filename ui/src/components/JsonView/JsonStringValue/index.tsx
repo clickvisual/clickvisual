@@ -1,6 +1,6 @@
 import jsonViewStyles from "@/components/JsonView/index.less";
 import classNames from "classnames";
-import { LOGMAXTEXTLENGTH } from "@/config/config";
+import {LOGMAXTEXTLENGTH, LOGMAXTEXTLENGTHUnParse} from "@/config/config";
 import { Button, message } from "antd";
 import { useState } from "react";
 import { useIntl } from "umi";
@@ -205,6 +205,9 @@ const JsonStringValue = ({
 };
 
 const splitRawLogString = (str: string): string[] => {
+  if(str.length>LOGMAXTEXTLENGTHUnParse){
+    return [str]
+  }
   const result: string[] = [];
   const strLen = str.length;
 
