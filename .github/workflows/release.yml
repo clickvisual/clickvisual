@@ -3,7 +3,7 @@ name: goreleaser
 on:
   push:
     branches:
-      - 'feature/docker-ci'
+      # - 'feature/docker-ci'
     tags:
       - "v**"
 jobs:
