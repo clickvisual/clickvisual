@@ -20,7 +20,7 @@ jobs:
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
           go version 
-          go install github.com/gotomicro/ego-gen-api/cmd/egogen@v0.0.6
+          go install github.com/gotomicro/eapi/cmd/egogen@v0.4.5
           egogen --config egogen.yaml
       - name: Install ReDoc
         run: npm i -g redoc-cli
