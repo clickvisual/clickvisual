@@ -20,7 +20,7 @@ jobs:
         run: |
           export PATH=$(go env GOPATH)/bin:$PATH
           go version 
-          go install github.com/gotomicro/eapi/cmd/eapi@latest
+          go install github.com/gotomicro/eapi/cmd/eapi@main
           eapi --config eapi.yaml
       - name: install redoc
         run: npm i -g redoc-cli
