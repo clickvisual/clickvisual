@@ -852,6 +852,8 @@ github.com/gotomicro/cetus v0.1.2 h1:QMVGklC27jcDxoYxpFCgx7x4JkmzB409tHShvlQdkls
 github.com/gotomicro/cetus v0.1.2/go.mod h1:KB2uNE7HLSPc+XGTDRrsS9wWfMthQcW8rhmctuS1kAY=
 github.com/gotomicro/cetus/l v0.0.0-20230725040649-ab58de0846c1 h1:3nEgvPGySp2zOB0BLNwbtKely+tfoGdYLi8qIYd5abI=
 github.com/gotomicro/cetus/l v0.0.0-20230725040649-ab58de0846c1/go.mod h1:tVQMk4cc/KDFf48fJJao8yn4OsAuVNVXFyJkWn4DlTc=
+github.com/gotomicro/cetus/x v0.0.0-20230913033801-447349951432 h1:RgqVxbHJEKab7s4TOKpLA/q3OtmBvDtXf1mbIvItY20=
+github.com/gotomicro/cetus/x v0.0.0-20230913033801-447349951432/go.mod h1:JVs+zvEYZ1JDnjLXbSH+1ECVopAgH/syhY1a7+ktEJA=
 github.com/gotomicro/ego v1.1.16 h1:bExibRelcKifEKKXhrhnFkBYI6DPD2WRPLa1KyCDj8o=
 github.com/gotomicro/ego v1.1.16/go.mod h1:wBY4OGZeA0iFZxzJF7RHeRYJvqAC8SkO/Ai9mWyJFKU=
 github.com/gotomicro/logrotate v0.0.0-20211108034117-46d53eedc960 h1:vp5ls3l11a1XCaU3pJUBV85PwRW47qybqdYEIWCGLIo=

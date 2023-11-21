@@ -2,7 +2,6 @@ package manager
 
 import (
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gotomicro/cetus/l"
@@ -15,8 +14,8 @@ const k8sPodUUIDLabel = "io.kubernetes.pod.uid"
 
 type DockerInfo struct {
 	ContainerInfo *ContainerInfo
-	//K8SInfo       *K8SInfo
-	//LogPath       string
+	// K8SInfo       *K8SInfo
+	// LogPath       string
 }
 
 /*
@@ -61,8 +60,8 @@ type K8SInfo struct {
 	PodUid          string
 	Labels          map[string]string
 	PausedContainer bool
-	matchedCache    map[uint64]bool
-	mu              sync.Mutex
+	// matchedCache    map[uint64]bool
+	// mu sync.Mutex
 }
 
 type Config struct {

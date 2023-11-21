@@ -26,6 +26,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gotomicro/cetus v0.1.2
 	github.com/gotomicro/cetus/l v0.0.0-20230725040649-ab58de0846c1
+	github.com/gotomicro/cetus/x v0.0.0-20230913033801-447349951432
 	github.com/gotomicro/ego v1.1.16
 	github.com/gotomicro/unittest v0.0.1
 	github.com/jinzhu/gorm v1.9.16

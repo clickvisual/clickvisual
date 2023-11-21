@@ -16,9 +16,9 @@ const ClientTypeContainerd = "containerd"
 
 // Component 组件
 type Component struct {
-	config       *manager.Config
-	containerMap map[string]*manager.DockerInfo
-	ClientType   string // docker, containerd
+	config *manager.Config
+	// containerMap map[string]*manager.DockerInfo
+	ClientType string // docker, containerd
 }
 
 func NewContainer() *Component {
@@ -51,10 +51,13 @@ func NewContainer() *Component {
 func (c *Component) GetActiveContainers() (containerMap map[string]*manager.DockerInfo) {
 	var err error
 	obj := manager.Get(c.ClientType)
-	obj.Run(c.config)
+	err = obj.Run(c.config)
+	if err != nil {
+		elog.Panic("GetActiveContainers run fail", elog.FieldErr(err))
+	}
 	containerMap, err = obj.GetAllDockerInfo()
 	if err != nil {
-		elog.Panic("containerdSockObj fetchAll fail", elog.FieldErr(err))
+		elog.Panic("GetActiveContainers fetchAll fail", elog.FieldErr(err))
 	}
 	return
 }

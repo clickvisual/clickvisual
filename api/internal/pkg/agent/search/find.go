@@ -7,7 +7,7 @@ import (
 
 func findFiles(searchDir string) []string {
 	var arr []string
-	filepath.Walk(searchDir, func(path string, file os.FileInfo, _ error) error {
+	_ = filepath.Walk(searchDir, func(path string, file os.FileInfo, _ error) error {
 		// 如果是目录需要过滤
 		if file.IsDir() {
 			return nil

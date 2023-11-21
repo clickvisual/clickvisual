@@ -3,17 +3,18 @@ package inspect_log_cron
 import (
 	"context"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/task/ecron"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 )
 
 // InspectLogCron 日志巡检定时任务
 // inspectLog.namespace: clickvisual agent daemonset namespace
 func InspectLogCron(app *ego.Ego) *ego.Ego {
 	job := func(ctx context.Context) error {
-		search.Run(search.Request{
+		_, _ = search.Run(search.Request{
 			Date:          econf.GetString("inspectLog.date"),
 			KeyWord:       econf.GetString("inspectLog.keyWord"),
 			Limit:         econf.GetInt64("inspectLog.limit"),

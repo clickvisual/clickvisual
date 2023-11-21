@@ -7,7 +7,7 @@ import (
 )
 
 func BenchmarkCharts_500M_206w(b *testing.B) {
-	b.N = 10
+	// b.N = 10
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[0]
 		req := search.Request{
@@ -24,7 +24,7 @@ func BenchmarkCharts_500M_206w(b *testing.B) {
 }
 
 func BenchmarkCharts_500M_50w(b *testing.B) {
-	b.N = 10
+	// b.N = 10
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[0]
 		req := search.Request{
@@ -41,7 +41,7 @@ func BenchmarkCharts_500M_50w(b *testing.B) {
 }
 
 func BenchmarkCharts_1GB_424w(b *testing.B) {
-	b.N = 10
+	// b.N = 10
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[1]
 		req := search.Request{
@@ -57,7 +57,6 @@ func BenchmarkCharts_1GB_424w(b *testing.B) {
 }
 
 func BenchmarkCharts_1GB_100w(b *testing.B) {
-	b.N = 10
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[1]
 		req := search.Request{
@@ -88,7 +87,6 @@ func BenchmarkCharts_1GB_100w(b *testing.B) {
 //		}
 //	}
 func BenchmarkLogs_500M_50w(b *testing.B) {
-	b.N = 10
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[0]
 		req := search.Request{
@@ -122,7 +120,6 @@ func BenchmarkLogs_500M_50w(b *testing.B) {
 // }
 
 func BenchmarkLogs_1GB_100w(b *testing.B) {
-	b.N = 10
 	for n := 0; n < b.N; n++ {
 		file := casesFiles[1]
 		req := search.Request{
@@ -134,6 +131,6 @@ func BenchmarkLogs_1GB_100w(b *testing.B) {
 
 			Interval: search.ChartsIntervalConvert(file.et - file.st),
 		}
-		search.Run(req)
+		_, _ = search.Run(req)
 	}
 }
