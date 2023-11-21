@@ -130,7 +130,11 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
       </div>
     </div>
   );
-
+    let nameDesc = databasesItem.databaseName;
+    if (databasesItem.desc) {
+        // 只取desc前7个字符
+        nameDesc += " (" + databasesItem.desc.substring(0, 7) + ")";
+    }
   return (
     <Dropdown menu={{ items: items }} trigger={["contextMenu"]}>
       <Tooltip
@@ -148,7 +152,7 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
           }}
         >
           <IconFont type="icon-database" style={{ marginRight: "4px" }} />
-          {databasesItem.databaseName}
+          {nameDesc}
         </div>
       </Tooltip>
     </Dropdown>
