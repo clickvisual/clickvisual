@@ -35,14 +35,14 @@ proxt.ts
 
 ### inner folder
 logs/
-dist/
 node_modules/
 
 .umi/
 .umi-production/
 
 ### necessary file
-!api/internal/ui/dist/README.md
+!api/internal/ui/dist/404.html
+api/internal/ui/dist/
 
 ### file
 package-lock.json
@@ -55,5 +55,3 @@ api/docs/index.html
 ossutil64
 ossutil64.1
 obsutil_linux_amd64*/
-
-api/docs/index.html
