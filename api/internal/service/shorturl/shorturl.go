@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -48,5 +49,7 @@ func GenShortURL(ur string) (string, error) {
 		return "", errors.Wrap(err, "tx commit error")
 	}
 	rootUrl := strings.TrimSuffix(econf.GetString("app.rootURL"), "/")
-	return fmt.Sprintf("%s/api/share/%s", rootUrl, sCode), nil
+	short := fmt.Sprintf("%s/api/share/%s", rootUrl, sCode)
+	elog.Info("GenShortURL", elog.String("short", short), elog.String("originUrl", u2))
+	return short, nil
 }
