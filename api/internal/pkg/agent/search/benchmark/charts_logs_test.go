@@ -19,7 +19,10 @@ func BenchmarkCharts_500M_206w(b *testing.B) {
 			KeyWord:        "lv=error and key=service down and msg=invalid input, make sure what you input is right", // hit 206w logs
 			Interval:       search.ChartsIntervalConvert(file.et - file.st),
 		}
-		search.RunCharts(req)
+		_, err := search.RunCharts(req)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -36,7 +39,10 @@ func BenchmarkCharts_500M_50w(b *testing.B) {
 			KeyWord:        "lv=info and key=service down and msg=cannot support xxx operation or xxxxxxx", // hit 60w logs
 			Interval:       search.ChartsIntervalConvert(file.et - file.st),
 		}
-		search.RunCharts(req)
+		_, err := search.RunCharts(req)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -52,7 +58,10 @@ func BenchmarkCharts_1GB_424w(b *testing.B) {
 			KeyWord:        "lv=error and key=service down and msg=invalid input, make sure what you input is right", // hit 424w logs
 			Interval:       search.ChartsIntervalConvert(file.et - file.st),
 		}
-		search.RunCharts(req)
+		_, err := search.RunCharts(req)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -67,7 +76,10 @@ func BenchmarkCharts_1GB_100w(b *testing.B) {
 			KeyWord:        "lv=info and key=service down and msg=cannot support xxx operation or xxxxxxx",
 			Interval:       search.ChartsIntervalConvert(file.et - file.st),
 		}
-		search.RunCharts(req)
+		_, err := search.RunCharts(req)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -97,7 +109,10 @@ func BenchmarkLogs_500M_50w(b *testing.B) {
 			KeyWord:   "lv=info and key=service down and msg=cannot support xxx operation or xxxxxxx", // hit 60w logs
 			Interval:  search.ChartsIntervalConvert(file.et - file.st),
 		}
-		search.Run(req)
+		_, err := search.Run(req)
+		if err != nil {
+			panic(err)
+		}
 		// fmt.Println("total:", len(resp.Data))
 	}
 }

@@ -1,13 +1,10 @@
 package search
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -100,19 +97,6 @@ func isSearchByEndTime(value string, endTime int64) int {
 	return 0
 }
 
-func (c *Component) isSearchByKeyWord(value string) bool {
-	flag := true
-	// 每个 filtersWord 匹配 string 和 int 两种情况
-	for _, filterStr := range c.filterWords {
-		filterInt := strings.TrimSuffix(filterStr, `"`)
-		filterInt = strings.Replace(filterInt, `":"`, `":`, 1)
-		// 匹配其中一个即可
-		flag = (strings.Contains(value, filterStr) || strings.Contains(value, filterInt)) && flag
-	}
-
-	return flag
-}
-
 // search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
 func searchByStartTime(file *File, startTime int64) (int64, error) {
 	result := int64(-1)
@@ -132,7 +116,7 @@ func searchByStartTime(file *File, startTime int64) (int64, error) {
 			return -1, errors.New("MAX_CALLS_EXCEEDED")
 		}
 
-		strFrom, strTo := int64(-1), int64(-1)
+		var strFrom, strTo int64
 		var err error
 		// 二分法查找
 		if ok {
@@ -186,7 +170,7 @@ func searchByEndTime(file *File, from, endTime int64) (int64, error) {
 			return -1, errors.New("MAX_CALLS_EXCEEDED")
 		}
 
-		strFrom, strTo := int64(-1), int64(-1)
+		var strFrom, strTo int64
 		var err error
 		// 二分法查找
 		if ok {
@@ -244,34 +228,6 @@ func findNextString(file *File, to int64) (int64, int64, error) {
 
 	h -= bufSize
 	return to + 2, h + int64(pos), nil
-}
-
-// search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
-func (c *Component) searchByWord(startPos, endPos int64) (int64, error) {
-	// 游标去掉一部分数据
-	_, err := c.file.ptr.Seek(startPos, io.SeekStart)
-	if err != nil {
-		panic(err)
-	}
-	i := 0
-	// 在读取这个内容
-	scanner := bufio.NewScanner(c.file.ptr)
-	for scanner.Scan() {
-		// 超过位置，直接退出
-		if int64(i) > endPos {
-			break
-		}
-		i += len(scanner.Text())
-		flag := c.isSearchByKeyWord(scanner.Text())
-		if flag {
-			str := scanner.Text()
-			for _, value := range c.filterWords {
-				str = c.bash.ColorWord(value, str)
-			}
-			fmt.Println(str)
-		}
-	}
-	return 0, nil
 }
 
 func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, error) {
@@ -370,51 +326,6 @@ func (c *Component) getLogs(startPos, endPos int64) (error error) {
 	return nil
 }
 
-// search returns first byte number in the ordered `file` where `pattern` is occured as a prefix string
-func (c *Component) searchByBackWord(startPos, endPos int64) (error error) {
-	// 游标去掉一部分数据
-	_, err := c.file.ptr.Seek(startPos, io.SeekStart)
-	if err != nil {
-		panic(err)
-	}
-	i := int64(0)
-	var (
-		str string
-	)
-	scanner := NewBackScan(c.file.ptr, c.file.size)
-	for {
-		line, _, err := scanner.Line()
-		if err != nil {
-			fmt.Println("Error:", err)
-			break
-		}
-		if len(c.filterWords) > 0 {
-			flag := c.isSearchByKeyWord(line)
-			if flag {
-				str = line
-				if c.request.IsCommand {
-					for _, value := range c.filterWords {
-						str = c.bash.ColorWord(value, str)
-					}
-				}
-				c.output = append(c.output, str)
-				if i == c.limit {
-					break
-				}
-				i++
-			}
-		} else {
-			c.output = append(c.output, line)
-			if i == c.limit {
-				break
-			}
-			i++
-		}
-
-	}
-	return nil
-}
-
 func (c *Component) searchCharts(startPos, endPos int64) (error error) {
 	var wg sync.WaitGroup
 	wg.Add(c.partitionNum)
@@ -507,13 +418,11 @@ func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 	switch {
 	case n == 1:
 		resp = append(resp, [2]int64{start, end})
-		break
 	// 目前只用到2
 	case n == 2:
 		from, _, err := findString(c.file.ptr, start, end)
 		errWrapper(err)
 		resp = append(resp, [2]int64{start, from - 2}, [2]int64{from, end})
-		break
 	case n == 3:
 		leftFrom, _, err := findString(c.file.ptr, start, (end*2)/3)
 		errWrapper(err)
@@ -521,7 +430,6 @@ func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 		rightFrom, _, err := findString(c.file.ptr, leftFrom, end)
 		errWrapper(err)
 		resp = append(resp, [2]int64{start, leftFrom - 2}, [2]int64{leftFrom, rightFrom - 2}, [2]int64{rightFrom, end})
-		break
 	case n == 4:
 		middleFrom, _, err := findString(c.file.ptr, start, end)
 		errWrapper(err)
@@ -543,8 +451,8 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 	//		   br2        br1
 	// {xxxxxx}\n{xxxxxxx}\n{xxxxxx}
 	var (
-		br1            int = -1
-		br2            int = -1
+		br1            int
+		br2            int
 		ok             bool
 		hasFilterWords = len(c.filterWords) > 0
 	)
@@ -656,12 +564,12 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 // section: record the offset 、lines
 func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos int64, section *OffsetSection) (lines int64, tailLine []byte) {
 	var (
-		pos            int = -1
+		pos            int
 		ok             bool
-		filterPosMap   map[string]int = make(map[string]int)
-		emptyPos       bool           = true
-		skipTag        int            = -1
-		offset                        = int64(0)
+		filterPosMap   = make(map[string]int)
+		emptyPos       = true
+		skipTag        int
+		offset         int64
 		firstLine      []byte
 		hasFilterWords = len(c.filterWords) > 0
 	)
@@ -770,7 +678,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		}
 
 		if hasFilterWords {
-			skipTag, _, emptyPos = c.verifyKeyWords(data, c.filterWords, pos, filterPosMap)
+			_, _, emptyPos = c.verifyKeyWords(data, c.filterWords, pos, filterPosMap)
 		}
 	}
 	return lines, tailLine
