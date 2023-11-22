@@ -3,8 +3,10 @@ package command
 import (
 	"log"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cobra"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 
@@ -39,5 +41,8 @@ func init() {
 
 // CmdFunc 实验性方法 2023-11-08
 func CmdFunc(cmd *cobra.Command, args []string) {
-	search.Run(request.ToRequest())
+	_, err := search.Run(request.ToRequest())
+	if err != nil {
+		elog.Error("agent command error", elog.String("path", request.Path), elog.String("dir", request.Dir), elog.FieldErr(err))
+	}
 }
