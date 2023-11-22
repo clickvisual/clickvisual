@@ -12,9 +12,9 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/gotomicro/cetus/l"
-	"github.com/gotomicro/cetus/x"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
@@ -72,8 +72,8 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 			agent = "http://" + agent
 		}
 		data := map[string]string{
-			"startTime": x.I2S(query.ST),
-			"endTime":   x.I2S(query.ET),
+			"startTime": cast.ToString(query.ST),
+			"endTime":   cast.ToString(query.ET),
 		}
 		if len(query.K8SContainer) != 0 {
 			data["container"] = strings.Join(query.K8SContainer, ",")
@@ -143,8 +143,8 @@ func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 			agent = "http://" + agent
 		}
 		data := map[string]string{
-			"startTime": x.I2S(query.ST),
-			"endTime":   x.I2S(query.ET),
+			"startTime": cast.ToString(query.ST),
+			"endTime":   cast.ToString(query.ET),
 		}
 		if len(query.K8SContainer) != 0 {
 			data["container"] = strings.Join(query.K8SContainer, ",")
