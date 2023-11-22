@@ -1,0 +1,2921 @@
+{
+    "components": {},
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.3",
+    "paths": {
+        "/api/admin/login/{oauth}": {
+            "get": {
+                "operationId": "user.Oauth",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "oauth",
+                        "required": true,
+                        "schema": {
+                            "title": "oauth",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "state",
+                        "schema": {
+                            "title": "state",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "error",
+                        "schema": {
+                            "title": "error",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "error_description",
+                        "schema": {
+                            "title": "error_description",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "code",
+                        "schema": {
+                            "title": "code",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {}
+                },
+                "summary": "三方鉴权",
+                "tags": [
+                    "USER"
+                ]
+            }
+        },
+        "/api/admin/users/login": {
+            "post": {
+                "operationId": "user.Login",
+                "responses": {},
+                "summary": "用户登陆",
+                "tags": [
+                    "USER"
+                ]
+            }
+        },
+        "/api/v1/alarms": {
+            "get": {
+                "description": "alarm",
+                "operationId": "alarm.List",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "schema": {
+                            "title": "name",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "iid",
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "tid",
+                        "schema": {
+                            "title": "tid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "did",
+                        "schema": {
+                            "title": "did",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "alarmId",
+                        "schema": {
+                            "title": "alarmId",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "title": "status",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "isReload",
+                        "schema": {
+                            "title": "isReload",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警列表",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "post": {
+                "description": "Create",
+                "operationId": "alarm.Create",
+                "responses": {},
+                "summary": "告警创建",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/alarms-channels": {
+            "get": {
+                "description": "ChannelList",
+                "operationId": "alarm.ChannelList",
+                "responses": {},
+                "summary": "告警渠道列表",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "post": {
+                "description": "ChannelCreate",
+                "operationId": "alarm.ChannelCreate",
+                "responses": {},
+                "summary": "告警渠道创建",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/alarms-channels/send-test": {
+            "post": {
+                "description": "ChannelSendTest",
+                "operationId": "alarm.ChannelSendTest",
+                "responses": {},
+                "summary": "告警渠道测试",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/alarms-channels/{id}": {
+            "delete": {
+                "description": "ChannelDelete",
+                "operationId": "alarm.ChannelDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警渠道删除",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "get": {
+                "description": "ChannelInfo",
+                "operationId": "alarm.ChannelInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警渠道详情",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "patch": {
+                "description": "ChannelUpdate",
+                "operationId": "alarm.ChannelUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警渠道更新",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/alarms-histories": {
+            "get": {
+                "description": "HistoryList",
+                "operationId": "alarm.HistoryList",
+                "responses": {},
+                "summary": "告警推送记录",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/alarms-histories/{id}": {
+            "get": {
+                "description": "HistoryInfo",
+                "operationId": "alarm.HistoryInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警推送详情",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/alarms/{id}": {
+            "delete": {
+                "description": "Delete",
+                "operationId": "alarm.Delete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警删除",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "get": {
+                "description": "Info",
+                "operationId": "alarm.Info",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警详情",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "patch": {
+                "description": "Update",
+                "operationId": "alarm.Update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警更新",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/bigdata/folders": {
+            "post": {
+                "description": "bigdata",
+                "operationId": "bigdata.FolderCreate",
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/folders/{id}": {
+            "delete": {
+                "operationId": "bigdata.FolderDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "get": {
+                "operationId": "bigdata.FolderInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "patch": {
+                "operationId": "bigdata.FolderUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/instances/{id}/columns": {
+            "get": {
+                "operationId": "bigdata.InstanceColumnList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/instances/{id}/databases": {
+            "get": {
+                "operationId": "bigdata.InstanceDatabaseList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/instances/{id}/tables": {
+            "get": {
+                "description": "inner clickhouse source table struct",
+                "operationId": "bigdata.InstanceTableList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/nodes/{id}/crontab": {
+            "delete": {
+                "operationId": "mining.CrontabDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "get": {
+                "description": "data mining crontab",
+                "operationId": "mining.CrontabInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/sources/{id}/columns": {
+            "get": {
+                "operationId": "bigdata.SourceColumnList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/sources/{id}/databases": {
+            "get": {
+                "operationId": "bigdata.SourceDatabaseList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/sources/{id}/tables": {
+            "get": {
+                "description": "source table struct",
+                "operationId": "bigdata.SourceTableList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/workflows": {
+            "get": {
+                "description": "data mining workflows",
+                "operationId": "mining.WorkflowList",
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "post": {
+                "operationId": "mining.WorkflowCreate",
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/mining/workflows/{id}": {
+            "delete": {
+                "operationId": "mining.WorkflowDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "get": {
+                "operationId": "mining.WorkflowInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "patch": {
+                "operationId": "mining.WorkflowUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes": {
+            "get": {
+                "description": "bigdata node",
+                "operationId": "bigdata.NodeList",
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "post": {
+                "operationId": "bigdata.NodeCreate",
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}": {
+            "delete": {
+                "operationId": "bigdata.NodeDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "get": {
+                "operationId": "bigdata.NodeInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "patch": {
+                "operationId": "bigdata.NodeUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}/histories": {
+            "get": {
+                "description": "bigdata node history",
+                "operationId": "bigdata.NodeHistoryListPage",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}/histories/{uuid}": {
+            "get": {
+                "operationId": "bigdata.NodeHistoryInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uuid",
+                        "required": true,
+                        "schema": {
+                            "title": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}/lock": {
+            "patch": {
+                "description": "bigdata node lock",
+                "operationId": "bigdata.NodeLock",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}/result/{rid}": {
+            "get": {
+                "description": "bigdata node result",
+                "operationId": "bigdata.NodeResultInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "rid",
+                        "required": true,
+                        "schema": {
+                            "title": "rid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}/run": {
+            "post": {
+                "operationId": "bigdata.NodeRun",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}/stop": {
+            "post": {
+                "operationId": "bigdata.NodeStop",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/nodes/{id}/unlock": {
+            "patch": {
+                "operationId": "bigdata.NodeUnlock",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/sources": {
+            "get": {
+                "description": "source curl",
+                "operationId": "bigdata.SourceList",
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "post": {
+                "operationId": "bigdata.SourceCreate",
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/bigdata/sources/{id}": {
+            "delete": {
+                "operationId": "bigdata.SourceDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "get": {
+                "operationId": "bigdata.SourceInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "patch": {
+                "operationId": "bigdata.SourceUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v1/charts": {
+            "get": {
+                "operationId": "agent.Charts",
+                "responses": {}
+            }
+        },
+        "/api/v1/clusters": {
+            "get": {
+                "description": "Cluster-related interfaces",
+                "operationId": "kube.ClusterList",
+                "responses": {},
+                "tags": [
+                    "KUBE"
+                ]
+            }
+        },
+        "/api/v1/clusters/{clusterId}/configmaps": {
+            "get": {
+                "description": "ConfigMapList Get configmap by name",
+                "operationId": "kube.ConfigMapList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "clusterId",
+                        "required": true,
+                        "schema": {
+                            "title": "clusterId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "KUBE"
+                ]
+            },
+            "post": {
+                "description": "ConfigMapCreate Get configmap by name",
+                "operationId": "kube.ConfigMapCreate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "clusterId",
+                        "required": true,
+                        "schema": {
+                            "title": "clusterId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "KUBE"
+                ]
+            }
+        },
+        "/api/v1/clusters/{clusterId}/namespace/{namespace}/configmaps/{name}": {
+            "get": {
+                "description": "ConfigMapInfo Get configmap by name",
+                "operationId": "kube.ConfigMapInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "clusterId",
+                        "required": true,
+                        "schema": {
+                            "title": "clusterId",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "namespace",
+                        "required": true,
+                        "schema": {
+                            "title": "namespace",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "title": "name",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "KUBE"
+                ]
+            }
+        },
+        "/api/v1/configurations": {
+            "get": {
+                "description": "Configuration management",
+                "operationId": "configure.List",
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            },
+            "post": {
+                "description": "Create ..",
+                "operationId": "configure.Create",
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}": {
+            "delete": {
+                "description": "Delete ..",
+                "operationId": "configure.Delete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            },
+            "get": {
+                "description": "Detail ..",
+                "operationId": "configure.Detail",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            },
+            "patch": {
+                "description": "Update ..",
+                "operationId": "configure.Update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/diff": {
+            "get": {
+                "description": "Diff ..",
+                "operationId": "configure.Diff",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/histories": {
+            "get": {
+                "description": "HistoryList ..",
+                "operationId": "configure.HistoryList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/histories/{version}": {
+            "get": {
+                "description": "HistoryInfo ..",
+                "operationId": "configure.HistoryInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "version",
+                        "required": true,
+                        "schema": {
+                            "title": "version",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/lock": {
+            "get": {
+                "operationId": "configure.Lock",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/publish": {
+            "post": {
+                "description": "Publish ..",
+                "operationId": "configure.Publish",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/sync": {
+            "post": {
+                "description": "Sync Synchronize the configmap configuration\n\nif id is 0 means all configurations need to be synchronized\n\nnot support update operator",
+                "operationId": "configure.Sync",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/configurations/{id}/unlock": {
+            "post": {
+                "operationId": "configure.Unlock",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "CONFIGURE"
+                ]
+            }
+        },
+        "/api/v1/databases/{did}/tables": {
+            "get": {
+                "description": "TableList",
+                "operationId": "base.TableList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "did",
+                        "required": true,
+                        "schema": {
+                            "title": "did",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "日志库列表",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/databases/{id}": {
+            "delete": {
+                "operationId": "base.DatabaseDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "patch": {
+                "description": "Database",
+                "operationId": "base.DatabaseUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/event/enums": {
+            "get": {
+                "operationId": "event.GetAllEnums",
+                "responses": {},
+                "tags": [
+                    "EVENT"
+                ]
+            }
+        },
+        "/api/v1/event/source/{name}/enums": {
+            "get": {
+                "operationId": "event.GetEnumsOfSource",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "title": "name",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "EVENT"
+                ]
+            }
+        },
+        "/api/v1/events": {
+            "get": {
+                "description": "OpEvent Operation event interface",
+                "operationId": "event.ListPage",
+                "responses": {},
+                "tags": [
+                    "EVENT"
+                ]
+            }
+        },
+        "/api/v1/hidden/{tid}": {
+            "get": {
+                "description": "hidden field",
+                "operationId": "base.HiddenList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tid",
+                        "required": true,
+                        "schema": {
+                            "title": "tid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "post": {
+                "operationId": "base.HiddenUpsert",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tid",
+                        "required": true,
+                        "schema": {
+                            "title": "tid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/install": {
+            "get": {
+                "description": "IsInstall Determine whether the installation process is required",
+                "operationId": "initialize.IsInstall",
+                "responses": {},
+                "tags": [
+                    "INSTILL"
+                ]
+            },
+            "post": {
+                "description": "Install Perform the installation process",
+                "operationId": "initialize.Install",
+                "responses": {},
+                "tags": [
+                    "INSTILL"
+                ]
+            }
+        },
+        "/api/v1/instances/{iid}/columns-self-built": {
+            "get": {
+                "description": "TableColumnsSelfBuilt",
+                "operationId": "base.TableColumnsSelfBuilt",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "接入已有日志库",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/instances/{iid}/complete": {
+            "post": {
+                "description": "r.POST(\"/databases/:did/tables\", core.Handle(base.TableCreate))",
+                "operationId": "base.QueryComplete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "执行SQL请求",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/instances/{iid}/databases": {
+            "get": {
+                "operationId": "base.DatabaseList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "post": {
+                "operationId": "base.DatabaseCreate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/instances/{iid}/databases-exist": {
+            "get": {
+                "operationId": "base.DatabaseExistList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/instances/{iid}/databases/{dn}/tables/{tn}/deps": {
+            "get": {
+                "description": "TableDeps",
+                "operationId": "base.TableDeps",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "dn",
+                        "required": true,
+                        "schema": {
+                            "title": "dn",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "tn",
+                        "required": true,
+                        "schema": {
+                            "title": "tn",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "日志库依赖分析",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/instances/{iid}/tables-exist": {
+            "post": {
+                "description": "TableCreateSelfBuilt",
+                "operationId": "base.TableCreateSelfBuilt",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "接入已有日志库",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/instances/{iid}/tables-exist-batch": {
+            "post": {
+                "description": "TableCreateSelfBuiltBatch",
+                "operationId": "base.TableCreateSelfBuiltBatch",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "批量接入已有日志库",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/menus/list": {
+            "get": {
+                "operationId": "permission.MenuList",
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/migration": {
+            "get": {
+                "operationId": "initialize.Migration",
+                "responses": {},
+                "tags": [
+                    "INSTILL"
+                ]
+            }
+        },
+        "/api/v1/pms/check": {
+            "post": {
+                "operationId": "permission.CheckPermission",
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/pms/commonInfo": {
+            "get": {
+                "operationId": "permission.GetPmsCommonInfo",
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/pms/instance/{iid}/role/grant": {
+            "get": {
+                "operationId": "permission.GetInstancePmsRolesGrant",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            },
+            "put": {
+                "operationId": "permission.UpdateInstancePmsRolesGrant",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "iid",
+                        "required": true,
+                        "schema": {
+                            "title": "iid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/pms/role": {
+            "get": {
+                "description": "pms",
+                "operationId": "permission.PmsRoleList",
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            },
+            "post": {
+                "operationId": "permission.CreatePmsRole",
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/pms/role/{id}": {
+            "delete": {
+                "operationId": "permission.DeletePmsRole",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            },
+            "get": {
+                "operationId": "permission.PmsRoleInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            },
+            "put": {
+                "operationId": "permission.UpdatePmsRole",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/pms/root/grant": {
+            "post": {
+                "operationId": "permission.GrantRootUids",
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/pms/root/uids": {
+            "get": {
+                "operationId": "permission.GetRootUids",
+                "responses": {},
+                "tags": [
+                    "PREMISSION"
+                ]
+            }
+        },
+        "/api/v1/prometheus/alerts": {
+            "post": {
+                "description": " {\"version\":\"4\",\"groupKey\":\"{}:{alertname=\\\\\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\\\\\"}\",\"status\":\"firing\",\"receiver\":\"webhook\",\"groupLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\"},\"commonLabels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"commonAnnotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"externalURL\":\"http://duminxiangdeMacBook-Pro.local:9093\",\"alerts\":[{\"labels\":{\"alertname\":\"e6e85281_6e22_4159_90e8_38943e75fb3f_194\",\"filterId\":\"194\",\"severity\":\"warning\",\"uuid\":\"e6e85281-6e22-4159-90e8-38943e75fb3f\"},\"annotations\":{\"description\":\" (当前值: 1)\",\"summary\":\"告警 \"},\"startsAt\":\"2022-11-07T09:23:17.6Z\",\"endsAt\":\"0001-01-01T00:00:00Z\"}]}",
+                "operationId": "alert.Webhook",
+                "responses": {},
+                "summary": "告警推送 Webhook",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v1/search": {
+            "get": {
+                "operationId": "agent.Search",
+                "responses": {}
+            }
+        },
+        "/api/v1/sys/clusters": {
+            "get": {
+                "description": "ClusterPageList 根据分页获取Cluster列表",
+                "operationId": "setting.ClusterPageList",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "schema": {
+                            "title": "name",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "SYSTEM"
+                ]
+            },
+            "post": {
+                "description": "Cluster configuration",
+                "operationId": "setting.ClusterCreate",
+                "responses": {},
+                "summary": "创建集群",
+                "tags": [
+                    "SYSTEM"
+                ]
+            }
+        },
+        "/api/v1/sys/clusters/{id}": {
+            "delete": {
+                "description": "ClusterDelete 删除数据",
+                "operationId": "setting.ClusterDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "SYSTEM"
+                ]
+            },
+            "get": {
+                "description": "ClusterInfo   集群信息",
+                "operationId": "setting.ClusterInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "SYSTEM"
+                ]
+            },
+            "patch": {
+                "description": "ClusterUpdate 更新Cluster数据",
+                "operationId": "setting.ClusterUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "SYSTEM"
+                ]
+            }
+        },
+        "/api/v1/sys/instances": {
+            "get": {
+                "description": "Instance",
+                "operationId": "base.InstanceList",
+                "responses": {},
+                "summary": "ClickHouse 列表",
+                "tags": [
+                    "SYSTEM"
+                ]
+            },
+            "post": {
+                "description": "InstanceCreate",
+                "operationId": "base.InstanceCreate",
+                "responses": {},
+                "summary": "ClickHouse 创建",
+                "tags": [
+                    "SYSTEM"
+                ]
+            }
+        },
+        "/api/v1/sys/instances/test": {
+            "post": {
+                "description": "InstanceTest",
+                "operationId": "base.InstanceTest",
+                "responses": {},
+                "summary": "ClickHouse/Databend DSN 测试",
+                "tags": [
+                    "SYSTEM"
+                ]
+            }
+        },
+        "/api/v1/sys/instances/{id}": {
+            "delete": {
+                "description": "InstanceDelete",
+                "operationId": "base.InstanceDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "ClickHouse 删除",
+                "tags": [
+                    "SYSTEM"
+                ]
+            },
+            "get": {
+                "description": "InstanceInfo",
+                "operationId": "base.InstanceInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "ClickHouse 详情",
+                "tags": [
+                    "SYSTEM"
+                ]
+            },
+            "patch": {
+                "description": "InstanceUpdate",
+                "operationId": "base.InstanceUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "ClickHouse 更新",
+                "tags": [
+                    "SYSTEM"
+                ]
+            }
+        },
+        "/api/v1/table/id": {
+            "get": {
+                "description": "TableName",
+                "operationId": "base.TableId",
+                "responses": {},
+                "summary": "日志库ID获取",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/tables/{id}": {
+            "delete": {
+                "description": "TableDelete",
+                "operationId": "base.TableDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "日志库删除",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "get": {
+                "description": "TableInfo",
+                "operationId": "base.TableInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "日志库详情",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "patch": {
+                "description": "TableUpdate",
+                "operationId": "base.TableUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "日志库配置更新",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/tables/{id}/charts": {
+            "get": {
+                "description": "TableCharts",
+                "operationId": "base.TableCharts",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "日志趋势图",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/tables/{id}/indexes": {
+            "get": {
+                "description": "analysis fields",
+                "operationId": "base.Indexes",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "分析字段列表",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "patch": {
+                "description": "IndexUpdate",
+                "operationId": "base.IndexUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "分析字段更新",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/tables/{id}/indexes/{idx}": {
+            "get": {
+                "description": "TableIndexes",
+                "operationId": "base.TableIndexes",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "idx",
+                        "required": true,
+                        "schema": {
+                            "title": "idx",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "分析字段列表",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/tables/{id}/logs": {
+            "get": {
+                "description": "TableLogs",
+                "operationId": "base.TableLogs",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "日志搜索",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/tables/{id}/views": {
+            "get": {
+                "operationId": "base.ViewList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "post": {
+                "description": "ViewCreate",
+                "operationId": "base.ViewCreate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "description": "User related",
+                "operationId": "user.List",
+                "responses": {},
+                "summary": "用户列表",
+                "tags": [
+                    "USER"
+                ]
+            }
+        },
+        "/api/v1/users/info": {
+            "get": {
+                "operationId": "user.Info",
+                "responses": {},
+                "summary": "用户详情",
+                "tags": [
+                    "USER"
+                ]
+            }
+        },
+        "/api/v1/users/logout": {
+            "post": {
+                "operationId": "user.Logout",
+                "responses": {},
+                "summary": "用户退出",
+                "tags": [
+                    "USER"
+                ]
+            }
+        },
+        "/api/v1/users/{uid}/password": {
+            "patch": {
+                "operationId": "user.UpdatePassword",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid",
+                        "required": true,
+                        "schema": {
+                            "title": "uid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "修改密码",
+                "tags": [
+                    "USER"
+                ]
+            }
+        },
+        "/api/v1/views/{id}": {
+            "delete": {
+                "description": "ViewDelete",
+                "operationId": "base.ViewDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "删除视图",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "get": {
+                "description": "view",
+                "operationId": "base.ViewInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "patch": {
+                "operationId": "base.ViewUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "title": "id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/alert/metrics-samples": {
+            "post": {
+                "description": "CreateMetricsSamples",
+                "operationId": "alert.CreateMetricsSamples",
+                "responses": {},
+                "summary": "Create metrics.samples table",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v2/alert/settings": {
+            "get": {
+                "description": "SettingList",
+                "operationId": "alert.SettingList",
+                "responses": {},
+                "summary": "告警配置列表",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v2/alert/settings/{instance-id}": {
+            "get": {
+                "description": "SettingInfo",
+                "operationId": "alert.SettingInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警配置详情",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "patch": {
+                "description": "SettingUpdate",
+                "operationId": "alert.SettingUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警配置更新",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/api/v2/base/instances": {
+            "get": {
+                "description": "other apis",
+                "operationId": "base.InstanceList",
+                "responses": {},
+                "summary": "Gets all instance database and table data filtered by permissions test",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/base/shorturls": {
+            "post": {
+                "description": "todo: deprecated",
+                "operationId": "base.ShortURLCreate",
+                "responses": {},
+                "summary": "Create short links",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/base/su/{s-code}": {
+            "get": {
+                "description": "ShortURLRedirect",
+                "operationId": "base.ShortURLRedirect",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "s-code",
+                        "required": true,
+                        "schema": {
+                            "title": "s-code",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "301": {}
+                },
+                "summary": "获取短链接",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/base/users": {
+            "get": {
+                "description": "user apis",
+                "operationId": "base.ListUser",
+                "responses": {},
+                "tags": [
+                    "User"
+                ]
+            },
+            "post": {
+                "description": "CreateUser  godoc",
+                "operationId": "base.CreateUser",
+                "responses": {},
+                "tags": [
+                    "User"
+                ]
+            }
+        },
+        "/api/v2/base/users/{user-id}": {
+            "delete": {
+                "description": "DeleteUser  godoc",
+                "operationId": "base.DeleteUser",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "user-id",
+                        "required": true,
+                        "schema": {
+                            "title": "user-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "User"
+                ]
+            },
+            "patch": {
+                "description": "UpdateUser",
+                "operationId": "base.UpdateUser",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "user-id",
+                        "required": true,
+                        "schema": {
+                            "title": "user-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "User"
+                ]
+            }
+        },
+        "/api/v2/base/users/{user-id}/password-reset": {
+            "patch": {
+                "description": "ResetUserPassword  godoc",
+                "operationId": "base.ResetUserPassword",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "user-id",
+                        "required": true,
+                        "schema": {
+                            "title": "user-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "tags": [
+                    "User"
+                ]
+            }
+        },
+        "/api/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql": {
+            "get": {
+                "description": "TableName Create SQL",
+                "operationId": "pandas.TableCreateSQL",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "database",
+                        "required": true,
+                        "schema": {
+                            "title": "database",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "table",
+                        "required": true,
+                        "schema": {
+                            "title": "table",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "table create sql",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/instances/{instance-id}/table-dependencies": {
+            "get": {
+                "description": "TableDependencies",
+                "operationId": "pandas.TableDependencies",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "表依赖解析",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/nodes-results/{result-id}": {
+            "patch": {
+                "description": "NodeResultUpdate",
+                "operationId": "pandas.NodeResultUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "result-id",
+                        "required": true,
+                        "schema": {
+                            "title": "result-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "更新节点执行结果",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/nodes/{node-id}/crontab": {
+            "patch": {
+                "description": "NodeCrontabUpdate",
+                "operationId": "pandas.NodeCrontabUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "node-id",
+                        "required": true,
+                        "schema": {
+                            "title": "node-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "节点任务更新",
+                "tags": [
+                    "BIGDATA"
+                ]
+            },
+            "post": {
+                "description": "Scheduled Task Scheduling",
+                "operationId": "pandas.NodeCrontabCreate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "node-id",
+                        "required": true,
+                        "schema": {
+                            "title": "node-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "创建节点任务",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/nodes/{node-id}/lock-acquire": {
+            "post": {
+                "description": "The edit lock can be actively obtained if the file is in the edit state",
+                "operationId": "pandas.NodeLockAcquire",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "node-id",
+                        "required": true,
+                        "schema": {
+                            "title": "node-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "Force the file edit lock to be acquired",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/nodes/{node-id}/results": {
+            "get": {
+                "description": "The node running data is processed by Excel",
+                "operationId": "pandas.NodeResultListPage",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "node-id",
+                        "required": true,
+                        "schema": {
+                            "title": "node-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "节点执行结果列表",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/utils/structural-transfer": {
+            "post": {
+                "description": "DDL structural transfer",
+                "operationId": "pandas.StructuralTransfer",
+                "responses": {},
+                "summary": "Data field mapping transformation",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/workers": {
+            "get": {
+                "description": "Timing schedule stats",
+                "operationId": "pandas.WorkerList",
+                "responses": {},
+                "summary": "定时任务执行结果列表",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/pandas/workers/dashboard": {
+            "get": {
+                "description": "WorkerDashboard",
+                "operationId": "pandas.WorkerDashboard",
+                "responses": {},
+                "summary": "Kanban Dashboard",
+                "tags": [
+                    "BIGDATA"
+                ]
+            }
+        },
+        "/api/v2/storage": {
+            "post": {
+                "description": "  Creating a log library",
+                "operationId": "storage.Create",
+                "responses": {},
+                "summary": "Creating a log library",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/collects": {
+            "get": {
+                "description": "collect",
+                "operationId": "storage.ListCollect",
+                "responses": {},
+                "summary": "List Collect",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "post": {
+                "description": "  CollectType",
+                "operationId": "storage.CreateCollect",
+                "responses": {},
+                "summary": "Create Collect",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/collects/{collect-id}": {
+            "delete": {
+                "description": "  Delete Collect",
+                "operationId": "storage.DeleteCollect",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "collect-id",
+                        "required": true,
+                        "schema": {
+                            "title": "collect-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "Delete Collect",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            },
+            "patch": {
+                "description": "  Update collect",
+                "operationId": "storage.UpdateCollect",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "collect-id",
+                        "required": true,
+                        "schema": {
+                            "title": "collect-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "Update collect",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/mapping-json": {
+            "post": {
+                "description": "  Kafka JSON field mapping",
+                "operationId": "storage.KafkaJsonMapping",
+                "responses": {},
+                "summary": "Kafka JSON field mapping",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/traces": {
+            "get": {
+                "description": "trace apis",
+                "operationId": "storage.GetTraceList",
+                "responses": {},
+                "summary": "trace storage list",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/{storage-id}": {
+            "patch": {
+                "description": "  iStorage update",
+                "operationId": "storage.Update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "storage-id",
+                        "required": true,
+                        "schema": {
+                            "title": "storage-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "iStorage update",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/{storage-id}/analysis-fields": {
+            "get": {
+                "description": "  iStorage analysis field list",
+                "operationId": "storage.AnalysisFields",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "storage-id",
+                        "required": true,
+                        "schema": {
+                            "title": "storage-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "iStorage analysis field list",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/{storage-id}/columns": {
+            "get": {
+                "description": "  Get storage columns",
+                "operationId": "storage.GetStorageColumns",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "storage-id",
+                        "required": true,
+                        "schema": {
+                            "title": "storage-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "Get storage columns",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/{storage-id}/trace": {
+            "patch": {
+                "description": "  iStorage related trace info update",
+                "operationId": "storage.UpdateTraceInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "storage-id",
+                        "required": true,
+                        "schema": {
+                            "title": "storage-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "iStorage related trace info update",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/{storage-id}/trace-graph": {
+            "get": {
+                "description": "  Get trace graph",
+                "operationId": "storage.GetTraceGraph",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "storage-id",
+                        "required": true,
+                        "schema": {
+                            "title": "storage-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "Get trace graph",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        },
+        "/api/v2/storage/{template}": {
+            "post": {
+                "description": "  Create storage by template",
+                "operationId": "storage.CreateStorageByTemplate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "template",
+                        "required": true,
+                        "schema": {
+                            "title": "template",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "Create storage by template",
+                "tags": [
+                    "LOGSTORE"
+                ]
+            }
+        }
+    }
+}
