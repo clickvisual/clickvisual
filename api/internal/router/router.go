@@ -39,7 +39,7 @@ func GetServerRouter() *egin.Component {
 		}
 		maxAge := econf.GetInt("server.http.maxAge")
 		if maxAge == 0 {
-			maxAge = 86400
+			maxAge = 31536000
 		}
 		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d, public", maxAge))
 		c.Header("Expires", time.Now().AddDate(1, 0, 0).Format("Mon, 01 Jan 2006 00:00:00 GMT"))
