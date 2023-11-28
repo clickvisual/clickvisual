@@ -28,7 +28,7 @@ func GetServerRouter() *egin.Component {
 	serveFromSubPath := econf.GetBool("app.serveFromSubPath")
 	r := invoker.Gin
 	r.Use(invoker.Session)
-	r.NoRoute(core.Handle(func(c *core.Context) {
+	r.NoRoute(egin.Gzip(egin.DefaultCompression, egin.WithGzipExcludedExtensions([]string{"", ".html"})), core.Handle(func(c *core.Context) {
 		prefix := "/api/"
 		if serveFromSubPath {
 			prefix = appSubUrl + prefix
@@ -44,7 +44,7 @@ func GetServerRouter() *egin.Component {
 		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d, public", maxAge))
 		c.Header("Expires", time.Now().AddDate(1, 0, 0).Format("Mon, 01 Jan 2006 00:00:00 GMT"))
 		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
-		c.FileFromFS(path, invoker.Gin.HTTPEmbedFs())
+		c.FileFromFS(path, r.HTTPEmbedFs())
 	}))
 	apiPrefix := ""
 	if serveFromSubPath {
@@ -58,7 +58,6 @@ func GetServerRouter() *egin.Component {
 		v1Open.POST("/install", core.Handle(initialize.Install))
 		v1Open.GET("/install", core.Handle(initialize.IsInstall))
 		v1Open.POST("/prometheus/alerts", core.Handle(alert.Webhook))
-
 	}
 	admin := g.Group("/api/admin")
 	{
