@@ -320,7 +320,7 @@ func (a *Agent) GetTraceGraph(ctx context.Context) ([]view.RespJaegerDependencyD
 
 func (a *Agent) GetMetricsSamples() error {
 	// TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (a *Agent) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
