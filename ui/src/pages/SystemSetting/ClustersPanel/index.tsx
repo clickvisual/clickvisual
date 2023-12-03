@@ -38,7 +38,7 @@ const ClustersPanel = () => {
         isEditor={isEditor}
         current={current}
         onCancel={() => {
-          setVisible(false);
+            setOpen(false);
           setIsEditor(false);
           setCurrent(undefined);
         }}
