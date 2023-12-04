@@ -88,12 +88,13 @@ func BuildAlarmMsg(notification db.Notification, table *db.BaseTable, alarm *db.
 			user, _ := db.UserInfo(alarm.Uid)
 			buffer.WriteString(fmt.Sprintf("【告警更新】: %s\n\n", user.Nickname))
 		}
+		mode := 0
 		filterMode := "rawLog"
 		if filter.Mode == db.AlarmModeAggregation {
+			mode = 1
 			filterMode = "statisticalTable"
 		}
-		jumpURL := fmt.Sprintf("%s/share?mode=0&tab=custom&tid=%d&kw=%s&start=%d&end=%d&queryType=%s",
-			strings.TrimRight(econf.GetString("app.rootURL"), "/"), filter.Tid, url.QueryEscape(filter.When), start, end, filterMode)
+		jumpURL := fmt.Sprintf("%s/share?mode=%d&tab=custom&tid=%d&kw=%s&start=%d&end=%d&queryType=%s", strings.TrimRight(econf.GetString("app.rootURL"), "/"), mode, filter.Tid, url.QueryEscape(filter.When), start, end, filterMode)
 		shortURL, err := shorturl.GenShortURL(jumpURL)
 		if err != nil {
 			elog.Error("shorturl.GenShortURL", elog.FieldErr(err), elog.String("jumpURL", jumpURL))

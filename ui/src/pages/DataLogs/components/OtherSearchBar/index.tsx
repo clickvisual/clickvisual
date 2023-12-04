@@ -1,11 +1,11 @@
 import IconFont from "@/components/IconFont";
-import { QueryTypeEnum } from "@/config/config";
-import { PaneType } from "@/models/datalogs/types";
+import {QueryTypeEnum} from "@/config/config";
+import {PaneType} from "@/models/datalogs/types";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
 import useUrlState from "@ahooksjs/use-url-state";
-import { useModel } from "@umijs/max";
-import { Button } from "antd";
-import { useEffect, useMemo } from "react";
+import {useModel} from "@umijs/max";
+import {Button} from "antd";
+import {useMemo} from "react";
 
 const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
   const [usrState] = useUrlState<any>();
@@ -37,11 +37,14 @@ const OtherSearchBar = ({ isShowSwitch }: { isShowSwitch: boolean }) => {
     onChangeCurrentLogPane({ ...(oldPane as PaneType), queryType });
   };
 
-  useEffect(() => {
-    if (usrState?.mode == 1) {
-      handleClick();
-    }
-  }, [usrState?.mode]);
+  // useEffect(() => {
+  //   if (usrState?.mode == 1) {
+  //     const queryType =QueryTypeEnum.TABLE
+  //     setActiveQueryType(queryType);
+  //     queryType == QueryTypeEnum.TABLE && onChangeInitValue(keywordInput || "");
+  //     onChangeCurrentLogPane({ ...(oldPane as PaneType), queryType });
+  //   }
+  // }, [usrState?.mode]);
 
   return (
     <>

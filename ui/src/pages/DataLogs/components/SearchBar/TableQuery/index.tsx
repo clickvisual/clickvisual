@@ -1,18 +1,18 @@
 import ExportExcelButton from "@/components/ExportExcelButton";
 import IconFont from "@/components/IconFont";
 import UrlShareButton from "@/components/UrlShareButton";
-import { DEBOUNCE_WAIT } from "@/config/config";
-import useLocalStorages, { LocalModuleType } from "@/hooks/useLocalStorages";
-import { PaneType } from "@/models/datalogs/types";
+import {DEBOUNCE_WAIT} from "@/config/config";
+import useLocalStorages, {LocalModuleType} from "@/hooks/useLocalStorages";
+import {PaneType} from "@/models/datalogs/types";
 import searchBarStyles from "@/pages/DataLogs/components/SearchBar/index.less";
-import { LogsResponse } from "@/services/dataLogs";
+import {LogsResponse} from "@/services/dataLogs";
 import useUrlState from "@ahooksjs/use-url-state";
-import { useModel } from "@umijs/max";
-import { useDebounce, useDebounceFn } from "ahooks";
-import { Button, Tooltip } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { format } from "sql-formatter";
-import { useIntl } from "umi";
+import {useModel} from "@umijs/max";
+import {useDebounce, useDebounceFn} from "ahooks";
+import {Button, Tooltip} from "antd";
+import {useEffect, useMemo, useRef, useState} from "react";
+import {format} from "sql-formatter";
+import {useIntl} from "umi";
 
 import "codemirror/addon/display/placeholder.js";
 import "codemirror/addon/fold/brace-fold.js";
@@ -27,7 +27,7 @@ import "codemirror/lib/codemirror.css";
 import "codemirror/lib/codemirror.js";
 import "codemirror/mode/javascript/javascript.js";
 import "codemirror/mode/sql/sql.js";
-import { UnControlled as CodeMirror } from "react-codemirror2";
+import {UnControlled as CodeMirror} from "react-codemirror2";
 // 引入代码自动提示插件
 import "codemirror/addon/hint/show-hint";
 import "codemirror/addon/hint/show-hint.css";
@@ -132,9 +132,10 @@ const TableQuery = () => {
     // mode == 1为报警的聚合模式，此时直接拿url上的kw作为查询语句
     if (urlState?.mode == 1) {
       // 报警的聚合模式的初次
-      if (chartSql == undefined) {
+      if (chartSql == undefined || chartSql == "") {
         onChangeAggregationChartSql(format(urlState?.kw));
         setSql(format(urlState.kw));
+        setDefaultSql(format(urlState.kw));
         doSearch.run();
         return;
       }
