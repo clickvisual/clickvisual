@@ -50,7 +50,7 @@ func BuilderFieldsStream(mapping, timeField, timeTyp, logField string) string {
   %s %s,
   %s String CODEC(ZSTD(1))
 )
-`, mapping, timeField, timeTyp, logField)
+`, mapping, "`"+timeField+"`", timeTyp, "`"+logField+"`")
 }
 
 func BuilderFieldsView(mapping, logField string, paramsView bumo.ParamsView) string {
