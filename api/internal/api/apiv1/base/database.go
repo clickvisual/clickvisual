@@ -164,6 +164,11 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete database, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
+	err = permission.Manager.DeleteDatabasePmsRoleGrant(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
 	event.Event.AlarmCMDB(c.User(), db2.OpnDatabasesDelete, map[string]interface{}{"database": database})
 	c.JSONOK()
 }
