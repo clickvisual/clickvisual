@@ -213,6 +213,11 @@ func InstanceDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
+	err = permission.Manager.DeleteInstancePmsRoleGrant(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
 	service.InstanceManager.Delete(obj.DsKey())
 	event.Event.InquiryCMDB(c.User(), db2.OpnInstancesDelete, map[string]interface{}{"instanceInfo": obj})
 	c.JSONOK()
