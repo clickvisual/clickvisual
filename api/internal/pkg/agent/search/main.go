@@ -11,12 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/ego-component/ek8s"
 	"github.com/ego-component/eos"
 	"github.com/ego-component/excelplus"
@@ -27,6 +21,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 const (
@@ -177,14 +178,14 @@ func (req *Request) prepare() {
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
-				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
+				elog.Debug("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
 				filePaths = req.prepareByNamespace(filePaths, value)
 			} else {
 				for _, v := range req.K8SContainer {
 					if value.ContainerInfo.Container == v {
 						filePaths = req.prepareByNamespace(filePaths, value)
 					} else {
-						elog.Info("agentRun", l.S("step", "withContainer"), l.A("container", value.ContainerInfo.Container))
+						elog.Debug("agentRun", l.S("step", "withContainer"), l.A("container", value.ContainerInfo.Container))
 					}
 				}
 			}
@@ -192,6 +193,9 @@ func (req *Request) prepare() {
 	}
 	if req.Path != "" {
 		for _, p := range strings.Split(req.Path, ",") {
+			if strings.Contains(p, SkipPath) {
+				continue
+			}
 			filePaths = append(filePaths, dto.AgentSearchTargetInfo{
 				FilePath: p,
 			})
@@ -199,6 +203,9 @@ func (req *Request) prepare() {
 	}
 	if req.Dir != "" {
 		for _, p := range findFiles(req.Dir) {
+			if strings.Contains(p, SkipPath) {
+				continue
+			}
 			filePaths = append(filePaths, dto.AgentSearchTargetInfo{
 				FilePath: p,
 			})
@@ -208,6 +215,9 @@ func (req *Request) prepare() {
 }
 
 func (req *Request) prepareByNamespace(filePaths []dto.AgentSearchTargetInfo, value *manager.DockerInfo) []dto.AgentSearchTargetInfo {
+	if strings.Contains(value.ContainerInfo.LogPath, SkipPath) || strings.Contains(value.ContainerInfo.Container, SkipPath) {
+		return filePaths
+	}
 	if req.Namespace != "" && req.Namespace == value.ContainerInfo.Namespace {
 		elog.Info("agentRun", l.S("step", "withContainer"), l.A("logPath", value.ContainerInfo.LogPath))
 		filePaths = append(filePaths, dto.AgentSearchTargetInfo{
