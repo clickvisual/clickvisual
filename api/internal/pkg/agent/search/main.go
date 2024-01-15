@@ -169,7 +169,6 @@ func (req *Request) prepare() {
 		req.K8SContainer = make([]string, 0)
 	}
 	var filePaths = make([]dto.AgentSearchTargetInfo, 0)
-	elog.Info("agentRun", l.A("req", req))
 	// 如果filename为空字符串，分割会得到一个长度为1的空字符串数组
 	// req.Dir = "./test"
 	if req.IsK8S {
@@ -212,6 +211,7 @@ func (req *Request) prepare() {
 		}
 	}
 	req.TruePath = filePaths
+	elog.Info("agentRun", l.A("req", req))
 }
 
 func (req *Request) prepareByNamespace(filePaths []dto.AgentSearchTargetInfo, value *manager.DockerInfo) []dto.AgentSearchTargetInfo {
@@ -366,13 +366,13 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component error", elog.FieldErr(err))
-				sw.Done()
 				return
 			}
 			container.components = append(container.components, comp)
 			err = comp.SearchFile()
 			if err != nil {
 				elog.Error("agent search file error", l.S("path", comp.file.path), elog.FieldErr(err))
+				return
 			}
 		}()
 	}

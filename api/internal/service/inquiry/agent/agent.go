@@ -263,7 +263,7 @@ func (a *Agent) queryTransformLike(query string) (res string) {
 				res = a.findBetweenPercentSigns(item)
 				continue
 			}
-			res = fmt.Sprintf("%s AND %s", res, a.findBetweenPercentSigns(item))
+			res = fmt.Sprintf("%s and %s", res, a.findBetweenPercentSigns(item))
 		}
 		return res
 	}
@@ -290,7 +290,7 @@ func (a *Agent) findBetweenPercentSigns(input string) string {
 			return match[1]
 		}
 	}
-	return ""
+	return input
 }
 
 func (a *Agent) SyncView(table db2.BaseTable, view *db2.BaseView, views []*db2.BaseView, b bool) (string, string, error) {
