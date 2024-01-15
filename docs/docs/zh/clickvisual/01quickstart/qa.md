@@ -158,3 +158,7 @@ name = "clickvisual.log"
 如果出现菜单不一致的情况需要更新 config/resource.yaml 文件  
 
 ![img.png](../../../images/qa-menu.png)
+
+## Docker Compose 启动报错
+可以参考这个 issue
+https://github.com/clickvisual/clickvisual/issues/1117

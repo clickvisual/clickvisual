@@ -355,7 +355,10 @@ export default {
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持数字、英文字母或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
-  "datasource.logLibrary.placeholder.source": "请输入 Source",
+  "datasource.logLibrary.placeholder.source": `{
+"time": 1702539716 ,
+"log":"{"time": "2023-12-14T07:41:56+00:00", "client_ip": "192.168.1.1"}"
+}`,
   "datasource.logLibrary.placeholder.rawLogField":
     "请输入 Source 并转换选择 RawLogField",
   "datasource.logLibrary.placeholder.timeField":
