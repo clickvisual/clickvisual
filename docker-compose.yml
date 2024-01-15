@@ -91,6 +91,7 @@ services:
       - 13306:13306
     volumes:
       - ./scripts/migration:/data/all-in-one/migration
+      - ./data/all-in-one/mysql/data:/var/lib/mysql
     restart: always
   redis:
     image: redis:5.0.14-alpine
@@ -98,6 +99,8 @@ services:
       - clickvisual-net
     expose:
       - 6380
+    volumes:
+      - ./data/all-in-one/redis/data:/data
     restart: always
     command: [ '--port 6380' ]
   clickhouse:
