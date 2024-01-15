@@ -200,7 +200,7 @@ func (req *Request) prepare() {
 			})
 		}
 	}
-	if req.Dir != "" {
+	if req.Dir != "" && req.Path == "" {
 		for _, p := range findFiles(req.Dir) {
 			if strings.Contains(p, SkipPath) {
 				continue
