@@ -365,14 +365,13 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 			defer sw.Done()
 			comp, err := NewComponent(value, req)
 			if err != nil {
-				elog.Error("agent new component error", elog.FieldErr(err))
+				elog.Error("agent new component RunLogs error", elog.FieldErr(err))
 				return
 			}
 			container.components = append(container.components, comp)
 			err = comp.SearchFile()
 			if err != nil {
 				elog.Error("agent search file error", l.S("path", comp.file.path), elog.FieldErr(err))
-				return
 			}
 		}()
 	}
@@ -604,13 +603,11 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 			defer sw.Done()
 			comp, err := NewComponent(value, req)
 			if err != nil {
-				elog.Error("agent new component error", elog.FieldErr(err))
-				sw.Done()
+				elog.Error("agent new component RunCharts error", elog.FieldErr(err))
 				return
 			}
 			if req.KeyWord != "" && len(comp.words) == 0 {
 				elog.Error("-k format is error", elog.FieldErr(err))
-				sw.Done()
 				return
 			}
 			container.components = append(container.components, comp)

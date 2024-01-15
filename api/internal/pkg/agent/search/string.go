@@ -15,27 +15,28 @@ func Keyword2Array(keyword string, isSkip bool) []KeySearch {
 		word := KeySearch{}
 		if strings.Contains(value, "=") {
 			info := strings.Split(value, "=")
-			v := strings.Trim(info[1], " ")
-			v = strings.ReplaceAll(v, `'`, `"`)
-			if tmp, err := strconv.Atoi(v); err == nil {
+			key := strings.TrimSpace(info[0])
+			val := strings.TrimSpace(info[1])
+			val = strings.ReplaceAll(val, `'`, `"`)
+			if tmp, err := strconv.Atoi(val); err == nil {
 				// value is int
 				word = KeySearch{
-					Key:   strings.Trim(info[0], " "),
+					Key:   key,
 					Value: tmp,
 					Type:  typeInt,
 				}
 			} else {
 				// value is string
 				word = KeySearch{
-					Key:   strings.Trim(info[0], " "),
-					Value: v,
+					Key:   key,
+					Value: val,
 					Type:  typeString,
 				}
 			}
 		} else {
 			word = KeySearch{
 				Key:   "",
-				Value: strings.Trim(value, " "),
+				Value: strings.TrimSpace(value),
 				Type:  typeString,
 			}
 		}
@@ -53,6 +54,7 @@ func TrimKeyWord(keyWord string) string {
 	if keyWord == "" {
 		return ""
 	}
+	keyWord = strings.TrimSpace(keyWord)
 	keyWord = strings.ReplaceAll(keyWord, "'", "")
 	keyWord = strings.ReplaceAll(keyWord, "\"", "")
 	keyWord = strings.ReplaceAll(keyWord, "`", "")
