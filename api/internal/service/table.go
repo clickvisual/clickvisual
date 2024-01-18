@@ -9,8 +9,8 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils/mapping"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
@@ -27,7 +27,7 @@ func TableViewIsPermission(uid, iid, tid int) bool {
 
 func tableViewIsPermission(uid, iid, tid int, subResource string) bool {
 	// check database permission
-	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      uid,
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -57,7 +57,7 @@ func IsCheckInner(createType int) bool {
 	return createType == constx.TableCreateTypeJSONAsString
 }
 
-func StorageCreate(uid int, databaseInfo db2.BaseDatabase, param view2.ReqStorageCreate) (tableInfo db2.BaseTable, err error) {
+func StorageCreate(uid int, databaseInfo db.BaseDatabase, param view.ReqStorageCreate) (tableInfo db.BaseTable, err error) {
 	param.SourceMapping, err = mapping.Handle(param.Source, IsCheckInner(param.CreateType))
 	if err != nil {
 		return
@@ -84,7 +84,7 @@ func StorageCreate(uid int, databaseInfo db2.BaseDatabase, param view2.ReqStorag
 		err = errors.Wrap(err, "storage create failed")
 		return
 	}
-	tableInfo = db2.BaseTable{
+	tableInfo = db.BaseTable{
 		Did:                     databaseInfo.ID,
 		Name:                    param.TableName,
 		TimeFieldKind:           param.Typ,
@@ -100,13 +100,13 @@ func StorageCreate(uid int, databaseInfo db2.BaseDatabase, param view2.ReqStorag
 		CreateType:              param.CreateType,
 		Uid:                     uid,
 		RawLogField:             param.RawLogField,
-		TimeField:               db2.TimeFieldSecond,
+		TimeField:               db.TimeFieldSecond,
 		SelectFields:            param.SelectFields(),
 		AnyJSON:                 param.JSON(),
 		KafkaSkipBrokenMessages: param.KafkaSkipBrokenMessages,
 	}
 	tx := invoker.Db.Begin()
-	err = db2.TableCreate(tx, &tableInfo)
+	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
 		tx.Rollback()
 		err = errors.WithMessage(err, "TableCreateFailed")
@@ -126,7 +126,7 @@ func StorageCreate(uid int, databaseInfo db2.BaseDatabase, param view2.ReqStorag
 			if col.Name == "_raw_log_" {
 				continue
 			}
-			err = db2.IndexCreate(tx, &db2.BaseIndex{
+			err = db.IndexCreate(tx, &db.BaseIndex{
 				Tid:      tableInfo.ID,
 				Field:    col.Name,
 				Typ:      col.Type,

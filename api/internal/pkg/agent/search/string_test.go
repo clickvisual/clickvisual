@@ -3,6 +3,7 @@ package search
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -44,10 +45,28 @@ func TestKeyword2Array(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "test-2",
+			args: args{
+				keyword: "`_file`='/var/log/pods/co-dev-arm_egocron-worker-84d779b844-8wqng_6c423fc0-dd2f-403c-9d42-eaa14760cde3/egocron/0.log'",
+			},
+			want: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Keyword2Array(tt.args.keyword, false); !reflect.DeepEqual(got, tt.want) {
+				for _, t := range got {
+					var tmp string
+					switch TrimKeyWord(t.Key) {
+					case InnerKeyFile:
+						tmp = TrimKeyWord(strings.TrimSpace(t.Value.(string)))
+					case InnerKeyNamespace:
+						tmp = TrimKeyWord(strings.TrimSpace(t.Value.(string)))
+					}
+					fmt.Println("tmp", tmp)
+				}
+
 				t.Errorf("Keyword2Array() = %v, want %v", got, tt.want)
 			}
 		})

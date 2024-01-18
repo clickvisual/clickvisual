@@ -1875,10 +1875,13 @@ func (c *ClickHouseX) timeParseSQL(typ int, v *db.BaseView, timeField, rawLogFie
 	if v != nil && v.Format == "fromUnixTimestamp64Micro" && v.IsUseDefaultTime == 0 {
 		return fmt.Sprintf(nanosecondTimeParse, rawLogField, v.Key, rawLogField, v.Key)
 	}
-	if typ == factory.TableTypeString {
-		return fmt.Sprintf(defaultStringTimeParse, "`"+timeField+"`", "`"+timeField+"`")
+	if !strings.Contains(timeField, "JSONExtractString") {
+		timeField = "`" + timeField + "`"
 	}
-	return fmt.Sprintf(defaultFloatTimeParse, "`"+timeField+"`", "`"+timeField+"`")
+	if typ == factory.TableTypeString {
+		return fmt.Sprintf(defaultStringTimeParse, timeField, timeField)
+	}
+	return fmt.Sprintf(defaultFloatTimeParse, timeField, timeField)
 }
 
 func (c *ClickHouseX) updateSwitcherJSONEachRow(typ, tid int, did int, table, customTimeField string, current *db.BaseView,

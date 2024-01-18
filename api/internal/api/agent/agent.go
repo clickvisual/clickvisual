@@ -1,9 +1,10 @@
 package agent
 
 import (
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/elog"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
@@ -52,9 +53,16 @@ func (a *Agent) Search(c *core.Context) {
 	}
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
 		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
-			if search.TrimKeyWord(t.Key) == search.InnerKeyContainer {
+			switch search.TrimKeyWord(t.Key) {
+			case search.InnerKeyContainer:
 				req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
-			} else {
+			case search.InnerKeyFile:
+				req.Path = search.TrimKeyWord(t.Value.(string))
+			case search.InnerKeyNamespace:
+				req.Namespace = search.TrimKeyWord(t.Value.(string))
+			case search.InnerKeyPod:
+				// TODO 目前还没有针对 pod 进行过滤
+			default:
 				req.KeyWord = postReq.KeyWord
 			}
 		}
@@ -109,9 +117,16 @@ func (a *Agent) Charts(c *core.Context) {
 
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
 		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
-			if search.TrimKeyWord(t.Key) == search.InnerKeyContainer {
+			switch search.TrimKeyWord(t.Key) {
+			case search.InnerKeyContainer:
 				req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
-			} else {
+			case search.InnerKeyFile:
+				req.Path = search.TrimKeyWord(t.Value.(string))
+			case search.InnerKeyNamespace:
+				req.Namespace = search.TrimKeyWord(t.Value.(string))
+			case search.InnerKeyPod:
+				// TODO 目前还没有针对 pod 进行过滤
+			default:
 				req.KeyWord = postReq.KeyWord
 			}
 		}

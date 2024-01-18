@@ -261,6 +261,7 @@ func CreateStorageByTemplate(c *core.Context) {
 		return
 	case "ilogtail":
 		createStorageByTemplateILogtail(c)
+		return
 	case "agent":
 		createStorageByTemplateAgent(c)
 		return

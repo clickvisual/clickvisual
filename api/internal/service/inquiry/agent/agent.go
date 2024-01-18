@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -31,6 +32,7 @@ var _ factory.Operator = (*Agent)(nil)
 type Agent struct {
 	agents     []string
 	httpClient *resty.Client
+	regLike    *regexp.Regexp
 }
 
 func (a *Agent) Conn() *sql.DB {
@@ -226,9 +228,8 @@ func (a *Agent) DoSQL(s string) (view.RespComplete, error) {
 }
 
 func (a *Agent) Prepare(query view.ReqQuery, table *db2.BaseTable, b bool) (view.ReqQuery, error) {
-	if query.Query == "" {
-		query.Query = "*"
-	}
+	// query 适配
+	query.Query = a.agentQueryAdapted(query.Query)
 	if table.Database.Desc != "" {
 		var tmp = make([]string, 0)
 		err := json.Unmarshal([]byte(table.Database.Desc), &tmp)
@@ -242,6 +243,54 @@ func (a *Agent) Prepare(query view.ReqQuery, table *db2.BaseTable, b bool) (view
 		query.K8SContainer = []string{table.Name}
 	}
 	return query, nil
+}
+
+func (a *Agent) agentQueryAdapted(query string) (res string) {
+	if query == "" {
+		return "*"
+	}
+	// 按照 and 拆分
+	query = a.queryTransformLike(query)
+	return query
+}
+
+func (a *Agent) queryTransformLike(query string) (res string) {
+	andArr := transformAndArr(query)
+	if len(andArr) > 0 {
+		for k, item := range andArr {
+			item = strings.TrimSpace(item)
+			if k == 0 {
+				res = a.findBetweenPercentSigns(item)
+				continue
+			}
+			res = fmt.Sprintf("%s and %s", res, a.findBetweenPercentSigns(item))
+		}
+		return res
+	}
+	return a.findBetweenPercentSigns(query)
+}
+
+func transformAndArr(query string) []string {
+	var res = make([]string, 0)
+	if strings.Contains(query, " AND ") {
+		res = strings.Split(query, " AND ")
+	}
+	if strings.Contains(query, " and ") {
+		res = strings.Split(query, " and ")
+	}
+	return res
+}
+
+func (a *Agent) findBetweenPercentSigns(input string) string {
+	// 在输入字符串中查找所有匹配的子串
+	matches := a.regLike.FindAllStringSubmatch(input, -1)
+	// 提取匹配的内容
+	for _, match := range matches {
+		if len(match) > 1 {
+			return match[1]
+		}
+	}
+	return input
 }
 
 func (a *Agent) SyncView(table db2.BaseTable, view *db2.BaseView, views []*db2.BaseView, b bool) (string, string, error) {
@@ -384,5 +433,6 @@ func NewFactoryAgent(dsn string) (*Agent, error) {
 	return &Agent{
 		agents:     agents,
 		httpClient: resty.New().SetTimeout(time.Second * 10),
+		regLike:    regexp.MustCompile(`'%([^%]+)%'`),
 	}, nil
 }
