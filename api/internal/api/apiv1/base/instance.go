@@ -127,7 +127,7 @@ func InstanceList(c *core.Context) {
 				elog.Error("InstanceList", l.S("step", "InstanceManager"), l.E(err))
 				ins.Error = err.Error()
 				ins.Desc += ins.Error
-				res = append(res)
+				res = append(res, ins)
 				continue
 			}
 			clusterInfo, err := op.ClusterInfo()
@@ -135,7 +135,7 @@ func InstanceList(c *core.Context) {
 				elog.Error("InstanceList", l.S("step", "ClusterInfo"), l.E(err))
 				ins.Error = err.Error()
 				ins.Desc += ins.Error
-				res = append(res)
+				res = append(res, ins)
 				continue
 			}
 			cis := make([]string, 0)
@@ -151,7 +151,7 @@ func InstanceList(c *core.Context) {
 			ins.Clusters = cs
 			ins.ClusterInfo = cis
 			ins.Mode = isCluster
-			res = append(res)
+			res = append(res, ins)
 		}
 	}
 	c.JSONOK(res)
