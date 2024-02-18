@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/pkg/errors"
+
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
@@ -30,17 +32,17 @@ func (d *DingDing) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	}
 	data, err := json.Marshal(markdown)
 	if err != nil {
-		return
+		return errors.Wrapf(err, "json marshal failed")
 	}
 	req, err := http.NewRequest("POST", channel.Key, bytes.NewBuffer(data))
 	if err != nil {
-		return
+		return errors.Wrap(err, "new request failed")
 	}
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return
+		return errors.Wrap(err, "client do failed")
 	}
 	defer func() { _ = resp.Body.Close() }()
 	return

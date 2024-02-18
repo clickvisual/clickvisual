@@ -702,13 +702,16 @@ func AlertRuleCheck() error {
 func SendTestToChannel(c *db2.AlarmChannel) (err error) {
 	ci, err := pusher.GetPusher(c.Typ)
 	if err != nil {
-		return
+		return errors.Wrapf(err, "channel type %d not found", c.Typ)
 	}
 	err = ci.Send(c, &db2.PushMsg{
 		Title:   "Hello",
 		Text:    "test/alert/alarm/告警 the availability of the alarm channel",
 		Mobiles: econf.GetStringSlice("app.mobiles"),
 	})
+	if err != nil {
+		return errors.Wrapf(err, "channel type %d send failed", c.Typ)
+	}
 	return
 }
 

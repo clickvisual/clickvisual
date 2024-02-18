@@ -2,6 +2,7 @@ package alarm
 
 import (
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -125,5 +126,6 @@ func ChannelSendTest(c *core.Context) {
 		c.JSONE(1, "send test error: "+err.Error(), err)
 		return
 	}
+	elog.Info("send test success", elog.Any("req", req))
 	c.JSONOK()
 }
