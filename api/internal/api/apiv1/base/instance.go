@@ -12,8 +12,8 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
@@ -24,7 +24,7 @@ import (
 // @Tags         SYSTEM
 // @Summary 	 ClickHouse 创建
 func InstanceCreate(c *core.Context) {
-	var req view2.ReqCreateInstance
+	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
@@ -37,7 +37,7 @@ func InstanceCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnInstancesCreate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db.OpnInstancesCreate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -50,12 +50,12 @@ func InstanceUpdate(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	var req view2.ReqCreateInstance
+	var req view.ReqCreateInstance
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(id),
@@ -72,7 +72,7 @@ func InstanceUpdate(c *core.Context) {
 			return
 		}
 	}
-	objBef, err := db2.InstanceInfo(invoker.Db, id)
+	objBef, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
@@ -81,7 +81,7 @@ func InstanceUpdate(c *core.Context) {
 	if objBef.Dsn != req.Dsn {
 		// dns changed
 		service.InstanceManager.Delete(objBef.DsKey())
-		objUpdate := db2.BaseInstance{
+		objUpdate := db.BaseInstance{
 			Datasource: req.Datasource,
 			Name:       req.Name,
 			Dsn:        req.Dsn,
@@ -97,11 +97,11 @@ func InstanceUpdate(c *core.Context) {
 	ups["name"] = req.Name
 	ups["datasource"] = req.Datasource
 	ups["desc"] = req.Desc
-	if err = db2.InstanceUpdate(invoker.Db, id, ups); err != nil {
+	if err = db.InstanceUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), err)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnInstancesUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db.OpnInstancesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -109,25 +109,33 @@ func InstanceUpdate(c *core.Context) {
 // @Tags         SYSTEM
 // @Summary 	 ClickHouse 列表
 func InstanceList(c *core.Context) {
-	res := make([]view2.RespInstance, 0)
-	tmp, err := db2.InstanceList(egorm.Conds{})
+	res := make([]view.RespInstance, 0)
+	tmp, err := db.InstanceList(egorm.Conds{})
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	var errMsg string
 	for _, row := range tmp {
 		if service.InstanceViewIsPermission(c.Uid(), row.ID) {
+			ins := view.RespInstance{
+				Id:   row.ID,
+				Name: row.Name,
+				Desc: row.Desc,
+			}
 			op, err := service.InstanceManager.Load(row.ID)
 			if err != nil {
 				elog.Error("InstanceList", l.S("step", "InstanceManager"), l.E(err))
-				errMsg += err.Error() + ";"
+				ins.Error = err.Error()
+				ins.Desc += ins.Error
+				res = append(res, ins)
 				continue
 			}
 			clusterInfo, err := op.ClusterInfo()
 			if err != nil {
 				elog.Error("InstanceList", l.S("step", "ClusterInfo"), l.E(err))
-				errMsg += err.Error() + ";"
+				ins.Error = err.Error()
+				ins.Desc += ins.Error
+				res = append(res, ins)
 				continue
 			}
 			cis := make([]string, 0)
@@ -140,19 +148,11 @@ func InstanceList(c *core.Context) {
 					isCluster = 1
 				}
 			}
-			res = append(res, view2.RespInstance{
-				Id:          row.ID,
-				Name:        row.Name,
-				Clusters:    cs,
-				ClusterInfo: cis,
-				Mode:        isCluster,
-				Desc:        row.Desc,
-			})
+			ins.Clusters = cs
+			ins.ClusterInfo = cis
+			ins.Mode = isCluster
+			res = append(res, ins)
 		}
-	}
-	if errMsg != "" {
-		c.JSONE(0, errMsg, res)
-		return
 	}
 	c.JSONOK(res)
 }
@@ -170,7 +170,7 @@ func InstanceInfo(c *core.Context) {
 		c.JSONE(1, "authentication failed", nil)
 		return
 	}
-	res, err := db2.InstanceInfo(invoker.Db, id)
+	res, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
@@ -187,7 +187,7 @@ func InstanceDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(id),
@@ -197,19 +197,19 @@ func InstanceDelete(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	obj, err := db2.InstanceInfo(invoker.Db, id)
+	obj, err := db.InstanceInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
 	conds := egorm.Conds{}
 	conds["iid"] = id
-	databases, _ := db2.DatabaseList(invoker.Db, conds)
+	databases, _ := db.DatabaseList(invoker.Db, conds)
 	if len(databases) != 0 {
 		c.JSONE(1, "please delete the database first", nil)
 		return
 	}
-	if err = db2.InstanceDelete(invoker.Db, id); err != nil {
+	if err = db.InstanceDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
 	}
@@ -219,7 +219,7 @@ func InstanceDelete(c *core.Context) {
 		return
 	}
 	service.InstanceManager.Delete(obj.DsKey())
-	event.Event.InquiryCMDB(c.User(), db2.OpnInstancesDelete, map[string]interface{}{"instanceInfo": obj})
+	event.Event.InquiryCMDB(c.User(), db.OpnInstancesDelete, map[string]interface{}{"instanceInfo": obj})
 	c.JSONOK()
 }
 
@@ -227,7 +227,7 @@ func InstanceDelete(c *core.Context) {
 // @Tags         SYSTEM
 // @Summary 	 ClickHouse/Databend DSN 测试
 func InstanceTest(c *core.Context) {
-	var req view2.ReqTestInstance
+	var req view.ReqTestInstance
 	var err error
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
@@ -238,11 +238,11 @@ func InstanceTest(c *core.Context) {
 		return
 	}
 	switch req.Datasource {
-	case db2.DatasourceClickHouse:
+	case db.DatasourceClickHouse:
 		_, err = service.ClickHouseLink(req.Dsn)
-	case db2.DatasourceDatabend:
+	case db.DatasourceDatabend:
 		_, err = service.DatabendLink(req.Dsn)
-	case db2.DatasourceAgent:
+	case db.DatasourceAgent:
 		var tmp = make([]string, 0)
 		err = json.Unmarshal([]byte(req.Dsn), &tmp)
 		if err != nil {

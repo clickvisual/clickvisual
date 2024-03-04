@@ -72,4 +72,5 @@ type RespInstance struct {
 	ClusterInfo []string `json:"clusterInfo"`
 	Desc        string   `json:"desc"`
 	Mode        int      `json:"mode"`
+	Error       string   `json:"error"`
 }

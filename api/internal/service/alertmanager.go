@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ego-component/egorm"
@@ -17,6 +18,8 @@ import (
 )
 
 func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notification db.Notification) (err error) {
+	alarmUUID = strings.ReplaceAll(alarmUUID, "\u0000", "")
+	filterIdStr = strings.ReplaceAll(filterIdStr, "\u0000", "")
 	// 获取告警信息
 	tx := invoker.Db.Begin()
 	conds := egorm.Conds{}
