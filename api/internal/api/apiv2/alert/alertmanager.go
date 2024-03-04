@@ -1,6 +1,8 @@
 package alert
 
 import (
+	"strings"
+
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
@@ -25,7 +27,7 @@ func Webhook(c *core.Context) {
 		return
 	}
 	elog.Info("alarm", elog.Any("notification", notification))
-	err = service.Alert.HandlerAlertManager(notification.CommonLabels["uuid"], notification.CommonLabels["filterId"], notification)
+	err = service.Alert.HandlerAlertManager(strings.TrimSpace(notification.CommonLabels["uuid"]), strings.TrimSpace(notification.CommonLabels["filterId"]), notification)
 	if err != nil {
 		c.JSONE(1, "message send failed: "+err.Error(), err)
 		return
