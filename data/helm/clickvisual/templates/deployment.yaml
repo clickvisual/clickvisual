@@ -39,10 +39,6 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - /bin/sh
-            - -c
-            - ./bin/clickvisual
           ports:
             - name: server
               containerPort: {{ .Values.service.port }}
