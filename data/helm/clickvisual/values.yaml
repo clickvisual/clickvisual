@@ -30,6 +30,12 @@ service:
   type: ClusterIP
   port: 19001
 
+# clickvisual env config, default if not set
+env:
+ configPath: "config/default.toml"
+ debug: "true"
+ logWritter: "stderr"
+
 ingress:
   enabled: false
   className: ""
