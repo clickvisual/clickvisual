@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: https://cdn.gocn.vip/clickvisual/logo.png
+heroImage: https://clickvisual.net/clickvisual/logo.png
 heroText: ClickVisual
 actionText: 快速上手 →
 actionLink: /zh/clickvisual/
