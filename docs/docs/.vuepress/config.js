@@ -42,7 +42,7 @@ var _hmt = _hmt || [];
         if(NODE_ENV === 'production'){
             return {
                 output: {
-                    publicPath: 'https://cdn.gocn.vip/clickvisual/'
+                    publicPath: 'https://clickvisual.net/clickvisual/'
                 },
                 resolve: {
                     //配置路径别名
