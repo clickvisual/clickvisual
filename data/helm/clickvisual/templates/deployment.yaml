@@ -30,19 +30,15 @@ spec:
         - name: {{ .Chart.Name }}
           env:
             - name: EGO_DEBUG
-              value: "true"
+              value: "{{ if hasKey .Values.env "debug" }}{{ .Values.env.debug | default true | toString }}{{ else }}{{ default "true" }}{{ end }}"
             - name: EGO_CONFIG_PATH
-              value: "config/default.toml"
+              value: {{ .Values.env.configPath | default "config/default.toml" }}
             - name: EGO_LOG_WRITER
-              value: "stderr"
+              value: {{ .Values.env.logWritter | default "stderr" }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - /bin/sh
-            - -c
-            - ./bin/clickvisual
           ports:
             - name: server
               containerPort: {{ .Values.service.port }}
