@@ -57,8 +57,7 @@ func AlarmHistoryPage(conds egorm.Conds, reqList *ReqPage) (total int64, respLis
 
 func AlarmHistoryCreate(db *gorm.DB, data *AlarmHistory) (err error) {
 	if err = db.Model(AlarmHistory{}).Create(data).Error; err != nil {
-		elog.Error("create releaseZone error", zap.Error(err))
-		return
+		return errors.Wrapf(err, "create releaseZone error, data: %v", data)
 	}
 	return
 }

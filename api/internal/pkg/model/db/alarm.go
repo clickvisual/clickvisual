@@ -199,7 +199,7 @@ func (m *Alarm) UpdateStatus(db *gorm.DB, status int) (err error) {
 	ups["status"] = status
 	err = AlarmUpdate(db, m.ID, ups)
 	if err != nil {
-		return
+		return errors.Wrapf(err, "update alarm status failed, id: %d, status: %d", m.ID, status)
 	}
 	return
 }
