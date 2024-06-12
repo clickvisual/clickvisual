@@ -2,7 +2,8 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/gotomicro/cetus/l"
+	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
@@ -17,61 +18,63 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 )
 
+// HandlerAlertManager Processing Alarms
 func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notification db.Notification) (err error) {
+	log := elog.With(l.A("alarmUUID", alarmUUID), l.A("filterIdStr", filterIdStr), l.A("notification", notification), elog.FieldMethod("HandlerAlertManager"))
 	alarmUUID = strings.ReplaceAll(alarmUUID, "\u0000", "")
 	filterIdStr = strings.ReplaceAll(filterIdStr, "\u0000", "")
-	// 获取告警信息
+	// Getting Alarm Information
 	tx := invoker.Db.Begin()
 	conds := egorm.Conds{}
 	conds["uuid"] = alarmUUID
 	alarm, err := db.AlarmInfoX(tx, conds)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return errors.WithMessagef(err, "AlarmInfoX %s", alarmUUID)
 	}
 	if alarm.Status == db.AlarmStatusClose {
+		log.Warn("AlarmStatusClose")
 		tx.Commit()
 		return
 	}
-	notifStatus := notification.GetStatus() // 当前需要推送的状态
-	if alarm.IsDisableResolve == 1 && notifStatus == db.AlarmStatusNormal {
+	notificationStatus := notification.GetStatus() // 当前需要推送的状态
+	if alarm.IsDisableResolve == 1 && notificationStatus == db.AlarmStatusNormal {
+		log.Warn("AlarmIsDisableResolve", l.A("alarm", alarm))
 		tx.Commit()
 		return
 	}
 	// create history
 	filterId, _ := strconv.Atoi(filterIdStr)
-	alarmHistory := db.AlarmHistory{AlarmId: alarm.ID, FilterId: filterId, FilterStatus: notifStatus, IsPushed: db.PushedStatusRepeat}
+	alarmHistory := db.AlarmHistory{AlarmId: alarm.ID, FilterId: filterId, FilterStatus: notificationStatus, IsPushed: db.PushedStatusRepeat}
 	if err = db.AlarmHistoryCreate(tx, &alarmHistory); err != nil {
 		tx.Rollback()
-		return err
+		return errors.WithMessagef(err, "AlarmHistoryCreate %s", alarmUUID)
 	}
 	currentFiltersStatus := alarm.GetStatus(tx)
 	// update filter
 	af := db.AlarmFilter{}
 	af.ID = filterId
-	af.Status = notifStatus
+	af.Status = notificationStatus
 	if err = af.UpdateStatus(tx); err != nil {
 		tx.Rollback()
 		return
 	}
 	if err = alarm.UpdateStatus(tx, alarm.GetStatus(tx)); err != nil {
-		elog.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
 		tx.Rollback()
-		return err
+		return errors.WithMessagef(err, "UpdateStatus %s", alarmUUID)
 	}
-	if currentFiltersStatus == notifStatus && time.Now().Unix()-alarm.Utime < 300 {
+	if currentFiltersStatus == notificationStatus && time.Now().Unix()-alarm.Utime < 300 {
 		// 此时有正在进行中的告警
-		elog.Info("PushAlertManagerRepeat", elog.Int("notifStatus", notifStatus), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
+		log.Info("PushAlertManagerRepeat", l.I("filterId", filterId))
 		tx.Commit()
-		return nil
+		return
 	}
 	// 完成告警状态更新
 	tx.Commit()
 	// get alarm filter info
 	filter, err := i.compatibleFilter(alarm.ID, filterId)
 	if err != nil {
-		elog.Error("PushAlertManagerError", elog.FieldErr(err), elog.Int("filterId", filterId), elog.String("alarmUUID", alarmUUID))
-		return
+		return errors.WithMessagef(err, "compatibleFilter %s", alarmUUID)
 	}
 	// get table info
 	tableInfo, err := db.TableInfo(invoker.Db, filter.Tid)
@@ -120,7 +123,7 @@ func (i *alert) compatibleFilter(alarmId int, filterId int) (res *db.AlarmFilter
 		condsFilter["alarm_id"] = alarmId
 		filters, errAlarmFilterList := db.AlarmFilterList(invoker.Db, condsFilter)
 		if errAlarmFilterList != nil {
-			return nil, errAlarmFilterList
+			return nil, errors.WithMessagef(errAlarmFilterList, "AlarmFilterList %d", alarmId)
 		}
 		if len(filters) == 0 {
 			return nil, errors.New("empty alarm filter")
@@ -129,7 +132,7 @@ func (i *alert) compatibleFilter(alarmId int, filterId int) (res *db.AlarmFilter
 	} else {
 		filter, errAlarmFilterInfo := db.AlarmFilterInfo(invoker.Db, filterId)
 		if errAlarmFilterInfo != nil {
-			return nil, errAlarmFilterInfo
+			return nil, errors.WithMessagef(errAlarmFilterInfo, "AlarmFilterInfo %d", filterId)
 		}
 		res = &filter
 	}
