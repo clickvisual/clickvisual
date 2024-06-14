@@ -100,7 +100,7 @@ func dropMaterialView(ins db2.BaseInstance, nodeId int, sc *view.SyncContent) er
 	elog.Debug("dropMaterialView", elog.Int("nodeId", nodeId), elog.Any("sql", dmv))
 
 	if err = source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
+		DSN: ins.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Exec(dmv); err != nil {
 		return err

@@ -37,7 +37,7 @@ func InstanceDatabaseList(c *core.Context) {
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
-		DSN: s.Dsn,
+		DSN: s.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Databases()
 	if err != nil {
@@ -75,7 +75,7 @@ func InstanceTableList(c *core.Context) {
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
-		DSN: s.Dsn,
+		DSN: s.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Tables(req.Database)
 	if err != nil {
@@ -113,7 +113,7 @@ func InstanceColumnList(c *core.Context) {
 		return
 	}
 	res, err := source.Instantiate(&source.Source{
-		DSN: s.Dsn,
+		DSN: s.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Columns(req.Database, req.Table)
 	if err != nil {

@@ -5,6 +5,7 @@ rootURL = "http://localhost:19001"
 baseURL = "/api/admin/login/"
 permissionFile = './config/resource.yaml'
 serveFromSubPath = false
+encryptionKey= "00112233445566778899aabbccddeeff"
 
 [casbin.rule]
 path = "./config/rbac.conf"

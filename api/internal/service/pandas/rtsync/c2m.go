@@ -99,7 +99,7 @@ func (c *ClickHouse2MySQL) materializedView(ins db2.BaseInstance) error {
 	c.involvedSQLs["c2mMaterialView"] = completeSQL
 
 	return source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
+		DSN: ins.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }
@@ -139,7 +139,7 @@ func (c *ClickHouse2MySQL) mysqlEngineDatabase(ins db2.BaseInstance, sc *view.Sy
 	elog.Debug("ClickHouse2MySQL", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
 	return source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
+		DSN: ins.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }

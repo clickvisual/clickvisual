@@ -1,23 +1,27 @@
 # 版本列表
 
+## [v1.0.1](https://github.com/clickvisual/clickvisual/releases/tag/v1.0.0)
+
+https://github.com/clickvisual/clickvisual/issues/1163 增加 AES 方式加密数据库中涉及密码的字段，在使用 clickvisual 的时候出于安全性考虑，需要修改 app.encryptionKey 的默认配置，推荐长度是 32 
+
 ## [v1.0.0](https://github.com/clickvisual/clickvisual/releases/tag/v1.0.0)
 
 - **优化：**
- - 由 @qianque7 在 [#960](https://github.com/clickvisual/clickvisual/pull/960) 修复 bug
- - 由 @kl7sn 在 [#980](https://github.com/clickvisual/clickvisual/pull/980) 修复错误访问现有数据库
- - 由 @kl7sn 在 [#986](https://github.com/clickvisual/clickvisual/pull/986) 修复搜索字段未完全显示
- - 由 @kl7sn 在 [#992](https://github.com/clickvisual/clickvisual/pull/992) 修复分析字段显示优化
- - 由 @qianque7 在 [#996](https://github.com/clickvisual/clickvisual/pull/996) 修复部署子域名时无法获取 luckysheet 的问题
- - 由 @kl7sn 在 [#1005](https://github.com/clickvisual/clickvisual/pull/1005) 修复 bug
- - 由 @kl7sn 在 [#1016](https://github.com/clickvisual/clickvisual/pull/1016) 修复过滤标签无法正确过滤的问题
- - 由 @isyanthony 在 [#1078](https://github.com/clickvisual/clickvisual/pull/1078) 修复搜索日志
- - 由 @isyanthony 在 [#1108](https://github.com/clickvisual/clickvisual/pull/1108) 修复 golint
- - 由 @isyanthony 在 [#1079](https://github.com/clickvisual/clickvisual/pull/1079) 修复和升级实现
- - 由 @isyanthony 在 [#1080](https://github.com/clickvisual/clickvisual/pull/1080) 恢复错误
- - 由 @isyanthony 在 [#1085](https://github.com/clickvisual/clickvisual/pull/1085) 修复中
- - 由 @isyanthony 在 [#1089](https://github.com/clickvisual/clickvisual/pull/1089) 修复 agent 获取日志丢失第一行
- - 由 @isyanthony 在 [#1074](https://github.com/clickvisual/clickvisual/pull/1074) 修复搜索日志
- - 由 @isyanthony 在 [#1108](https://github.com/clickvisual/clickvisual/pull/1108) 修复 golint
+  - 由 @qianque7 在 [#960](https://github.com/clickvisual/clickvisual/pull/960) 修复 bug
+  - 由 @kl7sn 在 [#980](https://github.com/clickvisual/clickvisual/pull/980) 修复错误访问现有数据库
+  - 由 @kl7sn 在 [#986](https://github.com/clickvisual/clickvisual/pull/986) 修复搜索字段未完全显示
+  - 由 @kl7sn 在 [#992](https://github.com/clickvisual/clickvisual/pull/992) 修复分析字段显示优化
+  - 由 @qianque7 在 [#996](https://github.com/clickvisual/clickvisual/pull/996) 修复部署子域名时无法获取 luckysheet 的问题
+  - 由 @kl7sn 在 [#1005](https://github.com/clickvisual/clickvisual/pull/1005) 修复 bug
+  - 由 @kl7sn 在 [#1016](https://github.com/clickvisual/clickvisual/pull/1016) 修复过滤标签无法正确过滤的问题
+  - 由 @isyanthony 在 [#1078](https://github.com/clickvisual/clickvisual/pull/1078) 修复搜索日志
+  - 由 @isyanthony 在 [#1108](https://github.com/clickvisual/clickvisual/pull/1108) 修复 golint
+  - 由 @isyanthony 在 [#1079](https://github.com/clickvisual/clickvisual/pull/1079) 修复和升级实现
+  - 由 @isyanthony 在 [#1080](https://github.com/clickvisual/clickvisual/pull/1080) 恢复错误
+  - 由 @isyanthony 在 [#1085](https://github.com/clickvisual/clickvisual/pull/1085) 修复中
+  - 由 @isyanthony 在 [#1089](https://github.com/clickvisual/clickvisual/pull/1089) 修复 agent 获取日志丢失第一行
+  - 由 @isyanthony 在 [#1074](https://github.com/clickvisual/clickvisual/pull/1074) 修复搜索日志
+  - 由 @isyanthony 在 [#1108](https://github.com/clickvisual/clickvisual/pull/1108) 修复 golint
 
 - **优化：**
   - 由 @kl7sn 在 [#1034](https://github.com/clickvisual/clickvisual/pull/1034) 优化集群副本分片计算逻辑

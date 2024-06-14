@@ -78,21 +78,21 @@ func InstanceUpdate(c *core.Context) {
 		return
 	}
 	ups := make(map[string]interface{}, 0)
-	if objBef.Dsn != req.Dsn {
+	if objBef.GetDSN() != req.Dsn {
 		// dns changed
 		service.InstanceManager.Delete(objBef.DsKey())
 		objUpdate := db.BaseInstance{
 			Datasource: req.Datasource,
 			Name:       req.Name,
-			Dsn:        req.Dsn,
 		}
+		objUpdate.Dsn = req.Dsn
 		objUpdate.ID = id
 		if err = service.InstanceManager.Add(&objUpdate); err != nil {
 			_ = service.InstanceManager.Add(&objBef)
 			c.JSONE(1, "DNS configuration exception, database connection failure 03: "+err.Error(), nil)
 			return
 		}
-		ups["dsn"] = req.Dsn
+		ups["dsn"] = objUpdate.SetDSN(strings.TrimSpace(req.Dsn))
 	}
 	ups["name"] = req.Name
 	ups["datasource"] = req.Datasource
@@ -175,6 +175,7 @@ func InstanceInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
+	res.Dsn = res.GetDSN()
 	c.JSONOK(res)
 }
 
@@ -202,13 +203,13 @@ func InstanceDelete(c *core.Context) {
 		c.JSONE(1, "failed to delete, corresponding record does not exist in database: "+err.Error(), nil)
 		return
 	}
-	conds := egorm.Conds{}
-	conds["iid"] = id
-	databases, _ := db.DatabaseList(invoker.Db, conds)
-	if len(databases) != 0 {
-		c.JSONE(1, "please delete the database first", nil)
-		return
-	}
+	//conds := egorm.Conds{}
+	//conds["iid"] = id
+	//databases, _ := db.DatabaseList(invoker.Db, conds)
+	//if len(databases) != 0 {
+	//	c.JSONE(1, "please delete the database first", nil)
+	//	return
+	//}
 	if err = db.InstanceDelete(invoker.Db, id); err != nil {
 		c.JSONE(1, "failed to delete: "+err.Error(), nil)
 		return
