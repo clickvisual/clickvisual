@@ -175,16 +175,17 @@ func (req *Request) prepare() {
 		obj := cvdocker.NewContainer()
 		req.K8sClientType = obj.ClientType
 		containers := obj.GetActiveContainers()
+		elog.Info("agentRun", l.S("step", "GetActiveContainers"), l.A("containers", containers))
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
-				elog.Debug("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
+				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
 				filePaths = req.prepareByNamespace(filePaths, value)
 			} else {
 				for _, v := range req.K8SContainer {
 					if value.ContainerInfo.Container == v {
 						filePaths = req.prepareByNamespace(filePaths, value)
 					} else {
-						elog.Debug("agentRun", l.S("step", "withContainer"), l.A("container", value.ContainerInfo.Container))
+						elog.Info("agentRun", l.S("step", "withContainer"), l.A("container", value.ContainerInfo.Container))
 					}
 				}
 			}
