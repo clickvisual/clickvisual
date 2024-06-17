@@ -608,10 +608,6 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 				elog.Error("agent new component RunCharts error", elog.FieldErr(err))
 				return
 			}
-			if req.KeyWord != "" && len(comp.words) == 0 {
-				elog.Error("-k format is error", elog.FieldErr(err))
-				return
-			}
 			container.components = append(container.components, comp)
 			err = comp.SearchFile()
 			if err != nil {
