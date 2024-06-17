@@ -175,7 +175,6 @@ func (req *Request) prepare() {
 		obj := cvdocker.NewContainer()
 		req.K8sClientType = obj.ClientType
 		containers := obj.GetActiveContainers()
-		elog.Info("agentRun", l.S("step", "GetActiveContainers"), l.A("containers", containers))
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
 				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
@@ -507,6 +506,8 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	sort.Slice(filterString, func(i, j int) bool {
 		return len(filterString[i]) < len(filterString[j])
 	})
+
+	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", obj.words), l.A("filterString", filterString))
 
 	obj.filterWords = filterString
 	obj.bash = NewBash()
