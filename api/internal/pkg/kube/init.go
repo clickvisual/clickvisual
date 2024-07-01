@@ -103,7 +103,7 @@ func (s *clusterManager) addConn(key string, cluster *db.Cluster) {
 		elog.Warn("cluster's apiServer is null:%s", zap.String("clusterName", cluster.Name))
 		return
 	}
-	clientSet, config, err := buildClient(cluster.ApiServer, cluster.KubeConfig)
+	clientSet, config, err := buildClient(cluster.ApiServer, cluster.GetKubeConfig())
 	if err != nil {
 		elog.Warn(fmt.Sprintf("build cluster (%s)'s client error.", cluster.Name), zap.Error(err))
 		return
