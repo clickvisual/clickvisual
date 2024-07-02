@@ -38,7 +38,7 @@ See <https://clickvisual.net>
 
 ## Architecture
 
-![image](https://clickvisual.net/clickvisual/assets/img/technical-architecture.f3cf8d04.png)
+![image](https://clickvisual.net/clickvisual/assets/img/technical-architecture.2858a64f.png)
 
 ## Installation
 

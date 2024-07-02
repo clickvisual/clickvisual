@@ -34,7 +34,7 @@ ClickVisual 是一个轻量级的基于浏览器的日志分析和查询平台�
 
 ## 架构
 
-![image](https://clickvisual.net/clickvisual/assets/img/technical-architecture.f3cf8d04.png)
+![image](https://clickvisual.net/clickvisual/assets/img/technical-architecture.2858a64f.png)
 
 ## 安装方法
 
