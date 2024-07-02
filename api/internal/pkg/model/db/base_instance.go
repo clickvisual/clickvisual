@@ -2,6 +2,9 @@ package db
 
 import (
 	"fmt"
+	"github.com/gotomicro/cetus/x"
+	"github.com/gotomicro/ego/core/econf"
+	"strings"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -51,6 +54,34 @@ func (b *BaseInstance) DsKey() string {
 
 func (b *BaseInstance) GetRuleStoreKey() string {
 	return fmt.Sprintf("%d_%d", b.K8sClusterId, b.ID)
+}
+
+func (b *BaseInstance) GetDSN() string {
+	// It's a bit silly to judge by prefixes and contained character content
+	if strings.Contains(b.Dsn, "://") || strings.HasPrefix(b.Dsn, "[") {
+		return b.Dsn
+	}
+	aesKey := econf.GetString("app.encryptionKey")
+	if aesKey == "" || !(len(aesKey) == 16 || len(aesKey) == 24 || len(aesKey) == 32) {
+		return b.Dsn
+	}
+	res, err := x.AESDecrypt(b.Dsn, aesKey)
+	if err != nil {
+		elog.Panic("aes encrypt error", zap.Error(err))
+	}
+	return res
+}
+
+func (b *BaseInstance) SetDSN(dsn string) string {
+	aesKey := econf.GetString("app.encryptionKey")
+	if aesKey == "" || !(len(aesKey) == 16 || len(aesKey) == 24 || len(aesKey) == 32) {
+		return dsn
+	}
+	res, err := x.AESEncrypt(dsn, aesKey)
+	if err != nil {
+		elog.Panic("aes encrypt error", zap.Error(err))
+	}
+	return res
 }
 
 func InstanceKey(id int) string {

@@ -13,7 +13,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
@@ -24,7 +24,7 @@ import (
 func ClusterInfo(c *core.Context) {
 	var (
 		err  error
-		info db2.Cluster
+		info db.Cluster
 	)
 	if err = permission.Manager.IsRootUser(c.Uid()); err != nil {
 		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
@@ -35,7 +35,7 @@ func ClusterInfo(c *core.Context) {
 		c.JSONE(1, "error cluster id", nil)
 		return
 	}
-	info, err = db2.ClusterInfo(clusterId)
+	info, err = db.ClusterInfo(clusterId)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
@@ -46,7 +46,7 @@ func ClusterInfo(c *core.Context) {
 // ClusterPageList 根据分页获取Cluster列表
 // @Tags         SYSTEM
 func ClusterPageList(c *core.Context) {
-	req := &db2.ReqPage{}
+	req := &db.ReqPage{}
 	if err := c.Bind(req); err != nil {
 		c.JSONE(1, "invalid parameter", err)
 		return
@@ -62,7 +62,7 @@ func ClusterPageList(c *core.Context) {
 			Val: v,
 		}
 	}
-	total, list := db2.ClusterListPage(query, req)
+	total, list := db.ClusterListPage(query, req)
 	c.JSONPage(list, core.Pagination{
 		Current:  req.Current,
 		PageSize: req.PageSize,
@@ -91,17 +91,18 @@ func ClusterCreate(c *core.Context) {
 		c.JSONE(1, "KubeConfig format error: ", err)
 		return
 	}
-	if err = db2.ClusterCreate(invoker.Db, &db2.Cluster{
+	obj := db.Cluster{
 		Name:        params.Name,
 		Description: params.Description,
 		Status:      params.Status,
 		ApiServer:   strings.TrimSpace(params.ApiServer),
-		KubeConfig:  strings.TrimSpace(params.KubeConfig),
-	}); err != nil {
+	}
+	obj.KubeConfig = obj.SetKubeConfig(strings.TrimSpace(params.KubeConfig))
+	if err = db.ClusterCreate(invoker.Db, &obj); err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.ClusterCMDB(c.User(), db2.OpnClustersCreate, map[string]interface{}{"param": params})
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersCreate, map[string]interface{}{"param": params})
 	c.JSONOK()
 }
 
@@ -125,6 +126,7 @@ func ClusterUpdate(c *core.Context) {
 		return
 	}
 	// make sure the format of kubeConfig is json.
+	obj := db.Cluster{}
 	params.KubeConfig, err = getJsonStr(params.KubeConfig)
 	if err != nil {
 		c.JSONE(1, "KubeConfig format error: ", err)
@@ -135,13 +137,13 @@ func ClusterUpdate(c *core.Context) {
 	ups["description"] = params.Description
 	ups["status"] = params.Status
 	ups["api_server"] = params.ApiServer
-	ups["kube_config"] = params.KubeConfig
-	err = db2.ClusterUpdate(invoker.Db, clusterId, ups)
+	ups["kube_config"] = obj.SetKubeConfig(params.KubeConfig)
+	err = db.ClusterUpdate(invoker.Db, clusterId, ups)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.ClusterCMDB(c.User(), db2.OpnClustersUpdate, map[string]interface{}{"param": params})
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersUpdate, map[string]interface{}{"param": params})
 	c.JSONOK()
 }
 
@@ -160,13 +162,13 @@ func ClusterDelete(c *core.Context) {
 		c.JSONE(1, "IsRootUser: "+err.Error(), nil)
 		return
 	}
-	clusterInfo, _ := db2.ClusterInfo(clusterId)
-	err = db2.ClusterDelete(invoker.Db, clusterId)
+	clusterInfo, _ := db.ClusterInfo(clusterId)
+	err = db.ClusterDelete(invoker.Db, clusterId)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.ClusterCMDB(c.User(), db2.OpnClustersDelete, map[string]interface{}{"clusterInfo": clusterInfo})
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersDelete, map[string]interface{}{"clusterInfo": clusterInfo})
 	c.JSONOK()
 }
 

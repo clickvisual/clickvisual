@@ -2,8 +2,11 @@ package db
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ego-component/egorm"
+	"github.com/gotomicro/cetus/x"
+	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -36,6 +39,34 @@ type Cluster struct {
 	Status      int    `gorm:"column:status;type:tinyint(1)" json:"status"`                                             // 0 means Well-Running, others mean not running
 	ApiServer   string `gorm:"column:api_server;type:varchar(255);NOT NULL" json:"apiServer"`                           // address of cluster API server
 	KubeConfig  string `gorm:"column:kube_config;type:mediumtext;NOT NULL" json:"kubeConfig"`                           // raw content of kube config
+}
+
+func (m *Cluster) GetKubeConfig() string {
+	// It's a bit silly to judge by prefixes and contained character content
+	if strings.Contains(m.KubeConfig, `{"apiVersion":"`) {
+		return m.KubeConfig
+	}
+	aesKey := econf.GetString("app.encryptionKey")
+	if aesKey == "" || !(len(aesKey) == 16 || len(aesKey) == 24 || len(aesKey) == 32) {
+		return m.KubeConfig
+	}
+	res, err := x.AESDecrypt(m.KubeConfig, aesKey)
+	if err != nil {
+		elog.Panic("aes encrypt error", zap.Error(err))
+	}
+	return res
+}
+
+func (m *Cluster) SetKubeConfig(kubeConfig string) string {
+	aesKey := econf.GetString("app.encryptionKey")
+	if aesKey == "" || !(len(aesKey) == 16 || len(aesKey) == 24 || len(aesKey) == 32) {
+		return kubeConfig
+	}
+	res, err := x.AESEncrypt(kubeConfig, aesKey)
+	if err != nil {
+		elog.Panic("aes encrypt error", zap.Error(err))
+	}
+	return res
 }
 
 type K8SConfigMap struct {
@@ -98,7 +129,7 @@ func K8SConfigMapLoadOrSave(db *gorm.DB, data *K8SConfigMap) (resp *K8SConfigMap
 func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
-	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err = invoker.Db.Table(TableNameK8SConfigMap).Where(sql, binds...).First(&resp).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		err = errors.Wrapf(err, "k8s config map id: %d", paramId)
 		return
 	}
@@ -106,7 +137,7 @@ func K8SConfigMapInfo(paramId int) (resp K8SConfigMap, err error) {
 }
 
 func (m *Cluster) Key() string {
-	return utils.MD5Encode32(fmt.Sprintf("%s-%s-%s", m.Name, m.ApiServer, m.KubeConfig))
+	return utils.MD5Encode32(fmt.Sprintf("%s-%s-%s", m.Name, m.ApiServer, m.GetKubeConfig()))
 }
 
 // ClusterCreate CRUD
@@ -136,7 +167,7 @@ func ClusterInfo(paramId int) (resp Cluster, err error) {
 		err = errors.Wrapf(err, "cluster id: %d", paramId)
 		return
 	}
-	resp.KubeConfig = json2yaml(resp.KubeConfig)
+	resp.KubeConfig = json2yaml(resp.GetKubeConfig())
 	return
 }
 
@@ -188,7 +219,7 @@ func ClusterListPage(conds egorm.Conds, reqList *ReqPage) (total int64, respList
 	db.Count(&total)
 	db.Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
 	for _, cluster := range respList {
-		cluster.KubeConfig = json2yaml(cluster.KubeConfig)
+		cluster.KubeConfig = json2yaml(cluster.GetKubeConfig())
 	}
 	return
 }

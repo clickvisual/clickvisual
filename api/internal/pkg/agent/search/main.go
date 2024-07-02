@@ -177,14 +177,14 @@ func (req *Request) prepare() {
 		containers := obj.GetActiveContainers()
 		for _, value := range containers {
 			if len(req.K8SContainer) == 0 {
-				elog.Debug("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
+				elog.Info("agentRun", l.S("step", "noContainer"), l.A("logPath", value.ContainerInfo.LogPath))
 				filePaths = req.prepareByNamespace(filePaths, value)
 			} else {
 				for _, v := range req.K8SContainer {
 					if value.ContainerInfo.Container == v {
 						filePaths = req.prepareByNamespace(filePaths, value)
 					} else {
-						elog.Debug("agentRun", l.S("step", "withContainer"), l.A("container", value.ContainerInfo.Container))
+						elog.Info("agentRun", l.S("step", "withContainer"), l.A("container", value.ContainerInfo.Container))
 					}
 				}
 			}
@@ -507,6 +507,8 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		return len(filterString[i]) < len(filterString[j])
 	})
 
+	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", obj.words), l.A("filterString", filterString))
+
 	obj.filterWords = filterString
 	obj.bash = NewBash()
 	obj.limit = req.Limit
@@ -604,10 +606,6 @@ func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 			comp, err := NewComponent(value, req)
 			if err != nil {
 				elog.Error("agent new component RunCharts error", elog.FieldErr(err))
-				return
-			}
-			if req.KeyWord != "" && len(comp.words) == 0 {
-				elog.Error("-k format is error", elog.FieldErr(err))
 				return
 			}
 			container.components = append(container.components, comp)

@@ -41,7 +41,7 @@ func Keyword2Array(keyword string, isSkip bool) []KeySearch {
 			}
 		}
 		if isSkip {
-			if _, ok := SkipKeys[word.Key]; ok {
+			if _, ok := SkipKeys[TrimKeyWord(word.Key)]; ok {
 				continue
 			}
 		}

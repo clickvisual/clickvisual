@@ -96,7 +96,7 @@ func (c *MySQL2ClickHouse) mysqlEngineDatabase(ins db2.BaseInstance, sc *view.Sy
 	elog.Debug("MySQL2ClickHouse", elog.String("step", "mysqlEngineDatabase"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["mysqlEngineDatabase"] = completeSQL
 	return source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
+		DSN: ins.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }
@@ -147,7 +147,7 @@ func (c *MySQL2ClickHouse) insert(ins db2.BaseInstance) error {
 	elog.Debug("MySQL2ClickHouse", elog.String("step", "insert"), elog.String("completeSQL", completeSQL))
 	c.involvedSQLs["m2cInsert"] = completeSQL
 	return source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
+		DSN: ins.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Exec(completeSQL)
 }
@@ -157,7 +157,7 @@ func (c *MySQL2ClickHouse) execTargetSQL(ins db2.BaseInstance, sql string) error
 		return nil
 	}
 	return source.Instantiate(&source.Source{
-		DSN: ins.Dsn,
+		DSN: ins.GetDSN(),
 		Typ: db2.SourceTypClickHouse,
 	}).Exec(sql)
 }

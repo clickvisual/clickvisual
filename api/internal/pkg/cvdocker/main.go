@@ -36,7 +36,7 @@ func NewContainer() *Component {
 	}
 
 	if !isExistDockerSock && !isExistContainerdSock {
-		elog.Error("docker.sock and containerd.sock is empty", elog.FieldValue("we need "+containerdSock+" or "+dockerSock))
+		elog.Panic("docker.sock and containerd.sock is empty", elog.FieldValue("we need "+containerdSock+" or "+dockerSock))
 	}
 	if isExistContainerdSock {
 		obj.config.ClientSocket = containerdSock

@@ -41,7 +41,7 @@ func NewInstanceManager() *instanceManager {
 			// TODO Not supported at this time
 		case db.DatasourceClickHouse:
 			// Test connection, storage
-			chDb, err := ClickHouseLink(ds.Dsn)
+			chDb, err := ClickHouseLink(ds.GetDSN())
 			if err != nil {
 				core.LoggerError("ClickHouseX", "link", err)
 				continue
@@ -53,7 +53,7 @@ func NewInstanceManager() *instanceManager {
 			}
 			m.dss.Store(ds.DsKey(), ch)
 		case db.DatasourceDatabend:
-			databendDb, err := DatabendLink(ds.Dsn)
+			databendDb, err := DatabendLink(ds.GetDSN())
 			if err != nil {
 				core.LoggerError("Databend", "link", err)
 				continue
@@ -77,7 +77,7 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 	switch obj.Datasource {
 	case db.DatasourceClickHouse:
 		// Test connection, storage
-		chDb, err := ClickHouseLink(obj.Dsn)
+		chDb, err := ClickHouseLink(obj.GetDSN())
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 		}
 		i.dss.Store(obj.DsKey(), ch)
 	case db.DatasourceDatabend:
-		databendDb, err := DatabendLink(obj.Dsn)
+		databendDb, err := DatabendLink(obj.GetDSN())
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 		}
 		i.dss.Store(obj.DsKey(), dd)
 	case db.DatasourceAgent:
-		a, _ := agent.NewFactoryAgent(obj.Dsn)
+		a, _ := agent.NewFactoryAgent(obj.GetDSN())
 		i.dss.Store(obj.DsKey(), a)
 	}
 
@@ -237,13 +237,9 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		err = errors.New("data source configuration with duplicate name")
 		return
 	}
-	if err != nil {
-		return
-	}
 	obj = db.BaseInstance{
 		Datasource:       req.Datasource,
 		Name:             req.Name,
-		Dsn:              strings.TrimSpace(req.Dsn),
 		RuleStoreType:    req.RuleStoreType,
 		FilePath:         req.FilePath,
 		Desc:             req.Desc,
@@ -253,6 +249,7 @@ func InstanceCreate(req view.ReqCreateInstance) (obj db.BaseInstance, err error)
 		PrometheusTarget: req.PrometheusTarget,
 		Clusters:         make(db.Strings, 0),
 	}
+	obj.Dsn = obj.SetDSN(strings.TrimSpace(req.Dsn))
 	if req.PrometheusTarget != "" {
 		if err = Alert.PrometheusReload(req.PrometheusTarget); err != nil {
 			err = errors.Wrapf(err, "prometheus target: %s", req.PrometheusTarget)
