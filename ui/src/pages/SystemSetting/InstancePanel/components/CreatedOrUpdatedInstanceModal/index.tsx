@@ -271,7 +271,7 @@ const CreatedOrUpdatedInstanceModal = (
             autoSize={{ minRows: 5, maxRows: 5 }}
             allowClear
           />
-        </Form.Item>}
+        </Form.Item>
         <Form.Item
           name={"desc"}
           label={i18n.formatMessage({ id: "descAsAlias" })}
