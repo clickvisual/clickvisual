@@ -73,7 +73,7 @@ func Install() (err error) {
 		return
 	}
 
-	d.Exec("INSERT INTO cv_user (`oa_id`, `username`, `nickname`, `secret`, `phone`,`email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES ( 0, 'clickvisual', 'clickvisual', '', '', '', '', '', '', '', '', '', '$2a$10$mj/hP5ToyVYZsyH2.84sr.nXPT.c2iTenx6euMHZQhNQlGXFJlDBa', '', 'init', '{}', 1640624435, 1640624435, 0);")
+	d.Exec("INSERT INTO cv_user (`id`, `oa_id`, `username`, `nickname`, `secret`, `phone`,`email`, `avatar`, `hash`,`web_url`, `oauth`, `state`, `oauth_id`, `password`, `current_authority`, `access`, `oauth_token`, `ctime`, `utime`, `dtime`) VALUES (1, 0, 'clickvisual', 'clickvisual', '', '', '', '', '', '', '', '', '', '$2a$10$mj/hP5ToyVYZsyH2.84sr.nXPT.c2iTenx6euMHZQhNQlGXFJlDBa', '', 'init', '{}', 1640624435, 1640624435, 0);")
 	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (1, 'p', 'role__root', '*', '*', '*', '', '', '','');")
 	d.Exec("INSERT INTO `cv_pms_casbin_rule` VALUES (2, 'g3', 'user__1', 'role__root', '', '', '', '', '', '');")
 	pmsplugin.EnforcerLoadPolicy()
