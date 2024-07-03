@@ -112,6 +112,7 @@ const WhereBox = ({
         open={isCollectionPopover}
         content={
           <List
+            style={{ maxHeight: "calc(100vh - 250px)", overflow: "auto" }}
             bordered
             dataSource={collectingHistorical}
             size="small"
