@@ -28,6 +28,7 @@ const (
 	DatasourceClickHouse = "ch"
 	DatasourceDatabend   = "databend"
 	DatasourceAgent      = "agent"
+	DatasourceLocal      = "local" // 用于ClickVisual直接读取单机日志
 )
 
 var Datasource2IntORM = map[string]int{

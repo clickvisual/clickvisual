@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/local"
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
@@ -98,6 +99,9 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 		i.dss.Store(obj.DsKey(), dd)
 	case db.DatasourceAgent:
 		a, _ := agent.NewFactoryAgent(obj.GetDSN())
+		i.dss.Store(obj.DsKey(), a)
+	case db.DatasourceLocal:
+		a, _ := local.NewFactoryLocal(obj.GetDSN())
 		i.dss.Store(obj.DsKey(), a)
 	}
 
