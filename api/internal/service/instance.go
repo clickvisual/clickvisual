@@ -8,10 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/local"
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
+
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/local"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
@@ -131,6 +132,8 @@ func (i *instanceManager) Load(id int) (factory.Operator, error) {
 		return obj.(*databend.Databend), nil
 	case db.DatasourceAgent:
 		return obj.(*agent.Agent), nil
+	case db.DatasourceLocal:
+		return obj.(*local.Local), nil
 	}
 	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 }
