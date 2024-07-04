@@ -275,7 +275,7 @@ func (l Local) GetMetricsSamples() error {
 
 func (l Local) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
 	// TODO implement me
-	panic("implement me")
+	return make(map[string]dto.ClusterInfo, 0), nil
 }
 
 func (l Local) ListSystemTable() []*view.SystemTables {
@@ -290,7 +290,7 @@ func (l Local) ListSystemCluster() ([]*view.SystemClusters, map[string]*view.Sys
 
 func (l Local) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
 	// TODO implement me
-	panic("implement me")
+	return make([]*view.RespDatabaseSelfBuilt, 0), nil
 }
 
 func (l Local) ListColumn(s string, s2 string, b bool) ([]*view.RespColumn, error) {
