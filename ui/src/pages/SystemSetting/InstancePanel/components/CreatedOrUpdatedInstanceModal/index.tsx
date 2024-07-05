@@ -132,6 +132,12 @@ const CreatedOrUpdatedInstanceModal = (
   }, [open]);
 
   useEffect(() => {
+    if (sourceType=="local") {
+      setDisabledSubmit(false);
+    }
+  }, [sourceType]);
+
+  useEffect(() => {
     if (!open || isEditor) return;
     setDisabledSubmit(true);
   }, [open, isEditor]);
@@ -235,7 +241,8 @@ const CreatedOrUpdatedInstanceModal = (
           >
             <Option value={"ch"}>ClickHouse</Option>
             <Option value={"databend"}>Databend</Option>
-            <Option value={"agent"}>Agent</Option>
+            <Option value={"agent"}>Agent 模式</Option>
+            <Option value={"local"}>本地模式</Option>
           </Select>
         </Form.Item>
         <Form.Item
@@ -243,7 +250,7 @@ const CreatedOrUpdatedInstanceModal = (
           label={"DSN"}
           rules={[
             {
-              required: true,
+              required: false,
               message: i18n.formatMessage({
                 id: "instance.form.rule.dsn",
               }),
@@ -259,7 +266,6 @@ const CreatedOrUpdatedInstanceModal = (
               }
             )}
             onChange={() => {
-              console.log("datasource", sourceType)
               setDisabledSubmit(true)}
           }
             autoSize={{ minRows: 5, maxRows: 5 }}

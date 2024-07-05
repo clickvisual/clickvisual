@@ -12,6 +12,8 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
+	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/local"
+
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
@@ -99,6 +101,9 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 	case db.DatasourceAgent:
 		a, _ := agent.NewFactoryAgent(obj.GetDSN())
 		i.dss.Store(obj.DsKey(), a)
+	case db.DatasourceLocal:
+		a, _ := local.NewFactoryLocal(obj.GetDSN())
+		i.dss.Store(obj.DsKey(), a)
 	}
 
 	return nil
@@ -127,6 +132,8 @@ func (i *instanceManager) Load(id int) (factory.Operator, error) {
 		return obj.(*databend.Databend), nil
 	case db.DatasourceAgent:
 		return obj.(*agent.Agent), nil
+	case db.DatasourceLocal:
+		return obj.(*local.Local), nil
 	}
 	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 }
