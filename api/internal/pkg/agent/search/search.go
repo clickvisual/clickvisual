@@ -72,11 +72,11 @@ func isSearchByStartTime(value string, startTime int64) int {
 	if indexValue == -1 {
 		return -1
 	}
-	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser == nil {
-		return -1
-	}
-	if curTimeParser.Unix() >= startTime {
+	//curTimeParser := utils.TimeParse(curTime)
+	//if curTimeParser == nil {
+	//	return -1
+	//}
+	if curTime >= startTime {
 		return 1
 	}
 	return 0
@@ -87,11 +87,11 @@ func isSearchByEndTime(value string, endTime int64) int {
 	if indexValue == -1 {
 		return -1
 	}
-	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser == nil {
-		return -1
-	}
-	if curTimeParser.Unix() <= endTime {
+	//curTimeParser := utils.TimeParse(curTime)
+	//if curTimeParser == nil {
+	//	return -1
+	//}
+	if curTime <= endTime {
 		return 1
 	}
 	return 0
@@ -690,13 +690,13 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 	if timeIndex == -1 {
 		return errors.New("time column name unsupported")
 	}
-	parse := utils.TimeParse(curTime)
+	//parse := utils.TimeParse(curTime)
 
-	if parse == nil {
-		return errors.New("parse time error")
-	}
+	//if parse == nil {
+	//	return errors.New("parse time error")
+	//}
 
-	unixTime := parse.Unix()
+	unixTime := curTime
 	offset := (unixTime - c.startTime) / c.interval
 	endTime := c.startTime + (offset+1)*c.interval
 

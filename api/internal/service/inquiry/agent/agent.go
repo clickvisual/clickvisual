@@ -49,18 +49,18 @@ func (a *Agent) parseHitLog(k8sClientType string, item view.RespAgentSearchItem)
 	log = make(map[string]interface{})
 	curTime, indexValue := utils.IndexParseTime(line)
 	if indexValue != -1 {
-		curTimeParser := utils.TimeParse(curTime)
-		if curTimeParser != nil {
-			ts := curTimeParser.Unix()
-			if k8sClientType == cvdocker.ClientTypeContainerd {
-				line = utils.GetFilterK8SContainerdWrapLog(line)
-			}
-			log[db.TimeFieldSecond] = ts
-			log["_raw_log_"] = line
-			for k, v := range item.Ext {
-				log[k] = v
-			}
+		//curTimeParser := utils.TimeParse(curTime)
+		//if curTimeParser != nil {
+		ts := curTime
+		if k8sClientType == cvdocker.ClientTypeContainerd {
+			line = utils.GetFilterK8SContainerdWrapLog(line)
 		}
+		log[db.TimeFieldSecond] = ts
+		log["_raw_log_"] = line
+		for k, v := range item.Ext {
+			log[k] = v
+		}
+		//}
 	} else {
 		log = nil
 	}

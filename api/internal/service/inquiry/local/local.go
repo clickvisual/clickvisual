@@ -238,15 +238,15 @@ func (a *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]inter
 	log = make(map[string]interface{})
 	curTime, indexValue := utils.IndexParseTime(line)
 	if indexValue != -1 {
-		curTimeParser := utils.TimeParse(curTime)
-		if curTimeParser != nil {
-			ts := curTimeParser.Unix()
-			log[db.TimeFieldSecond] = ts
-			log["_raw_log_"] = line
-			for k, v := range item.Ext {
-				log[k] = v
-			}
+		//curTimeParser := utils.TimeParse(curTime)
+		//if curTimeParser != nil {
+		//ts := curTimeParser.Unix()
+		log[db.TimeFieldSecond] = curTime
+		log["_raw_log_"] = line
+		for k, v := range item.Ext {
+			log[k] = v
 		}
+		//}
 	} else {
 		log = nil
 	}

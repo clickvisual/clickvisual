@@ -314,8 +314,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 				var timeInfo string
 				curTime, indexValue := utils.IndexParseTime(value.Line)
 				if indexValue > 0 {
-					curTimeParser := utils.TimeParse(curTime)
-					timeInfo = curTimeParser.Format("2006-01-02 15:04:05")
+					timeInfo = time.Unix(curTime, 0).Format("2006-01-02 15:04:05")
 				}
 				loggerInfo := searchexcel.Logger{
 					FilePath:  value.Ext["_file"].(string),
@@ -433,8 +432,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 				var timeInfo string
 				curTime, indexValue := utils.IndexParseTime(value)
 				if indexValue > 0 {
-					curTimeParser := utils.TimeParse(curTime)
-					timeInfo = curTimeParser.Format("2006-01-02 15:04:05")
+					timeInfo = time.Unix(curTime, 0).Format("2006-01-02 15:04:05")
 				}
 
 				loggerInfo := searchexcel.Logger{
