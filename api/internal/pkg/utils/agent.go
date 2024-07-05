@@ -31,6 +31,7 @@ import (
 //	return &curTimeParser
 //}
 
+
 var filterKeys = []string{" stderr F ", " stdout F "}
 
 // getFilterK8SContainerdWrapLog 过滤k8s containerd 包起来日志

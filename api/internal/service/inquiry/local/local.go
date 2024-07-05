@@ -238,6 +238,7 @@ func (a *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]inter
 	log = make(map[string]interface{})
 	curTime, indexValue := utils.IndexParseTime(line)
 	if indexValue != -1 {
+
 		//curTimeParser := utils.TimeParse(curTime)
 		//if curTimeParser != nil {
 		//ts := curTimeParser.Unix()
@@ -247,6 +248,7 @@ func (a *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]inter
 			log[k] = v
 		}
 		//}
+
 	} else {
 		log = nil
 	}
@@ -274,7 +276,6 @@ func (l Local) GetMetricsSamples() error {
 }
 
 func (l Local) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
-	// TODO implement me
 	return make(map[string]dto.ClusterInfo, 0), nil
 }
 
@@ -289,7 +290,6 @@ func (l Local) ListSystemCluster() ([]*view.SystemClusters, map[string]*view.Sys
 }
 
 func (l Local) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
-	// TODO implement me
 	return make([]*view.RespDatabaseSelfBuilt, 0), nil
 }
 

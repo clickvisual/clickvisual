@@ -62,3 +62,12 @@ func TestIndexParseTime3(t *testing.T) {
 	info, _ := IndexParseTime(`"ts":1720147634`)
 	assert.Equal(t, int64(1720147634), info)
 }
+func TestTimeParse(t *testing.T) {
+	t0 := TimeParse("1720145941")
+	assert.Equal(t, 1720145941, int(t0.Unix()))
+}
+
+func TestTimeParse2(t *testing.T) {
+	t0 := TimeParse("1720145941.9131143")
+	assert.Equal(t, 1720145941, int(t0.Unix()))
+}
