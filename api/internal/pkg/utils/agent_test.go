@@ -31,3 +31,12 @@ func Test_getValue(t *testing.T) {
 	fmt.Printf("str--------------->"+"%+v\n", str)
 	assert.Equal(t, "2023-08-23 23:22:12", str)
 }
+func TestTimeParse(t *testing.T) {
+	t0 := TimeParse("1720145941")
+	assert.Equal(t, 1720145941, int(t0.Unix()))
+}
+
+func TestTimeParse2(t *testing.T) {
+	t0 := TimeParse("1720145941.9131143")
+	assert.Equal(t, 1720145941, int(t0.Unix()))
+}

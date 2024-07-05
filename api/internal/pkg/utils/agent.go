@@ -12,8 +12,13 @@ func TimeParse(value string) *time.Time {
 		curTimeParser, err = time.ParseInLocation(time.RFC3339, value, time.Local)
 		if err != nil {
 			// 可能为 1693573909,
+			// 可能为 1693573909.123456,
 			// 移除 ,
 			value = strings.TrimSuffix(value, ",")
+			// 可能为 1693573909.123456,
+			if strings.Contains(value, ".") {
+				value = strings.Split(value, ".")[0]
+			}
 			// 将时间戳转换为 time 类型
 			timestamp, _ := strconv.Atoi(value)
 			if timestamp <= 0 {
