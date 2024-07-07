@@ -2,25 +2,12 @@ package search
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
-	"net/url"
 	"sort"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/ego-component/ek8s"
-	"github.com/ego-component/eos"
-	"github.com/ego-component/excelplus"
-	"github.com/gotomicro/cetus/l"
-	"github.com/gotomicro/ego/client/ehttp"
-	"github.com/gotomicro/ego/core/econf"
-	"github.com/gotomicro/ego/core/elog"
-	"github.com/pkg/errors"
-	"github.com/spf13/cast"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
@@ -28,6 +15,12 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
+	"github.com/ego-component/eos"
+	"github.com/ego-component/excelplus"
+	"github.com/gotomicro/cetus/l"
+	"github.com/gotomicro/ego/core/econf"
+	"github.com/gotomicro/ego/core/elog"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -45,23 +38,24 @@ type Container struct {
 
 // Component 每个执行指令地方
 type Component struct {
-	request       Request
-	file          *File
-	startTime     int64
-	endTime       int64
-	words         []KeySearch
-	filterWords   []string // 变成匹配的语句
-	bash          *Bash
-	limit         int64
-	output        []string
-	commandOutput []string
-	k8sInfo       *manager.ContainerInfo
-	interval      int64           // 请求 charts 时，划分的标准时间间隔
-	times         int64           // 请求 charts 时，startTime - endTime 能被 interval 划分的段数
-	charts        map[int64]int64 // key: offset(time - startTime / interval), value: lines
-	mu            sync.Mutex
-	partitionSize int64 // 每次缓冲区初始化为多大
-	partitionNum  int   // 开启多少个协程任务
+	request   Request
+	file      *File
+	startTime int64
+	endTime   int64
+	//words         []CustomSearch
+	filterWords    []string // 变成匹配的语句
+	customSearches []CustomSearch
+	bash           *Bash
+	limit          int64
+	output         []string
+	commandOutput  []string
+	k8sInfo        *manager.ContainerInfo
+	interval       int64           // 请求 charts 时，划分的标准时间间隔
+	times          int64           // 请求 charts 时，startTime - endTime 能被 interval 划分的段数
+	charts         map[int64]int64 // key: offset(time - startTime / interval), value: lines
+	mu             sync.Mutex
+	partitionSize  int64 // 每次缓冲区初始化为多大
+	partitionNum   int   // 开启多少个协程任务
 }
 
 func (c *Component) IsChartRequest() bool {
@@ -88,10 +82,18 @@ func (c *Component) preparePartition(from, to int64) {
 	}
 }
 
-type KeySearch struct {
-	Key   string
-	Value interface{}
-	Type  string
+type CustomSearch struct {
+	Key          string
+	ValueString  string
+	ValueInt64   int64
+	ValueFloat64 float64
+	Operate      KeySearchOperate
+	Type         KeySearchType
+}
+
+type SystemSearch struct {
+	Key         string
+	ValueString string
 }
 
 type CmdRequest struct {
@@ -139,32 +141,50 @@ func (c CmdRequest) ToRequest() Request {
 		IsCommand:     true,
 		IsK8S:         c.IsK8S,
 		IsUploadExcel: econf.GetBool("upload.enable"),
-		IsAllCurl:     econf.GetBool("k8s.enable"),
+		IsK8sAllCurl:  econf.GetBool("k8s.enable"),
 		K8SContainer:  c.K8SContainer,
 	}
 }
 
 type Request struct {
-	StartTime      int64
-	EndTime        int64
-	Date           string // last 30min,6h,1d,7d
-	Path           string // 文件路径
-	Dir            string // 文件夹路径
-	TruePath       []dto.AgentSearchTargetInfo
-	KeyWord        string // 搜索的关键词
-	Limit          int64  // 最少多少条数据
-	IsCommand      bool   // 是否是命令行 默认不是
-	IsUploadExcel  bool   //
-	Namespace      string // 指定namespace
-	IsK8S          bool
-	K8SContainer   []string
-	K8sClientType  string // 是 containerd，还是docker
-	IsChartRequest bool   // 是否为请求 Charts
-	IsAllCurl      bool
-	Interval       int64 // 请求 charts 时，划分的标准时间间隔
+	StartTime       int64
+	EndTime         int64
+	Date            string // last 30min,6h,1d,7d
+	Path            string // 文件路径
+	Dir             string // 文件夹路径
+	TruePath        []dto.AgentSearchTargetInfo
+	KeyWord         string // 搜索的关键词
+	customSearchArr []CustomSearch
+	Limit           int64  // 最少多少条数据
+	IsCommand       bool   // 是否是命令行 默认不是
+	IsUploadExcel   bool   //
+	Namespace       string // 指定namespace
+	IsK8S           bool
+	K8SContainer    []string
+	K8sClientType   string // 是 containerd，还是docker
+	IsChartRequest  bool   // 是否为请求 Charts
+	IsK8sAllCurl    bool
+	Interval        int64 // 请求 charts 时，划分的标准时间间隔
 }
 
-func (req *Request) prepare() {
+func (req *Request) prepare() error {
+	customSearchArr, systemSearchArr, err := Keyword2Array(req.KeyWord)
+	if err != nil {
+		return err
+	}
+	for _, value := range systemSearchArr {
+		switch value.Key {
+		case InnerKeyContainer:
+			req.K8SContainer = append(req.K8SContainer, value.ValueString)
+		case InnerKeyFile:
+			req.Path = value.ValueString
+		case InnerKeyNamespace:
+			req.Namespace = value.ValueString
+			// TODO 目前还没有针对 pod 进行过滤
+		case InnerKeyPod:
+		}
+	}
+	req.customSearchArr = customSearchArr
 	if len(req.K8SContainer) != 0 && req.K8SContainer[0] == "" {
 		req.K8SContainer = make([]string, 0)
 	}
@@ -212,6 +232,7 @@ func (req *Request) prepare() {
 	}
 	req.TruePath = filePaths
 	elog.Info("agentRun", l.A("req", req))
+	return nil
 }
 
 func (req *Request) prepareByNamespace(filePaths []dto.AgentSearchTargetInfo, value *manager.DockerInfo) []dto.AgentSearchTargetInfo {
@@ -247,101 +268,16 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 	elog.Info("agent[node] log search start", elog.Any("req", req))
 	data.Data = make([]view.RespAgentSearchItem, 0)
 
-	// 如果是请求所有的 curl，直接返回
-	if req.IsAllCurl {
-		obj := ek8s.Load("k8s").Build()
-		if econf.GetString("k8s.labelSelector") == "" {
-			elog.Panic("k8s label selector cant empty")
-		}
-		list2, err := obj.CoreV1().Pods(req.Namespace).List(context.Background(), metav1.ListOptions{
-			LabelSelector: econf.GetString("k8s.labelSelector"),
-		})
-		if err != nil {
-			elog.Error("k8s get pods error", elog.FieldErr(err), elog.Any("namespace", econf.GetString("inspectLog.namespace")), elog.Any("labelSelector", econf.GetString("k8s.labelSelector")))
-		}
-		ips := make([]string, 0)
-		for _, value := range list2.Items {
-			ips = append(ips, value.Status.PodIP)
-		}
-
-		if len(ips) == 0 {
-			return data, nil
-		}
-
-		eclient := ehttp.Load("").Build()
-		exFile := excelplus.Load().Build(
-			excelplus.WithDefaultSheetName("结果表"),
-			excelplus.WithS3(eos.Load("upload").Build()),
-			excelplus.WithEnableUpload(req.IsUploadExcel),
-		)
-		exSheet, err := exFile.NewSheet("结果表", searchexcel.Logger{})
-		if err != nil {
-			elog.Panic("agent new sheet error", elog.FieldErr(err))
-		}
-
-		v := url.Values{}
-		v.Set("isK8s", "1")
-		v.Set("keyWord", req.KeyWord)
-		if req.Date != "" {
-			req.StartTime, req.EndTime = calculateStartTimeAndEndTime(req.Date)
-		}
-
-		v.Set("startTime", cast.ToString(req.StartTime))
-		v.Set("endTime", cast.ToString(req.EndTime))
-		v.Set("limit", cast.ToString(req.Limit))
-		v.Set("namespace", req.Namespace)
-
-		elog.Info("k8s ips", elog.FieldValueAny(ips))
-
-		for _, ip := range ips {
-			url := "http://" + ip + ":" + econf.GetString("k8s.port") + "/api/v1/search?" + v.Encode()
-			elog.Info("k8s log url", elog.FieldValueAny(url))
-			resp, err := eclient.SetTimeout(30 * time.Second).R().Get(url)
-			if err != nil {
-				elog.Error("eclient log fail", elog.FieldErr(err), elog.Any("ip", ip))
-				continue
-			}
-			var output LogRes
-			err = json.Unmarshal(resp.Body(), &output)
-			if err != nil {
-				elog.Panic("json unmarshal fail", elog.FieldErr(err))
-			}
-			for _, value := range output.Data.Data {
-				if value.Line == "" {
-					continue
-				}
-
-				var timeInfo string
-				curTime, indexValue := utils.IndexParseTime(value.Line)
-				if indexValue > 0 {
-					timeInfo = time.Unix(curTime, 0).Format("2006-01-02 15:04:05")
-				}
-				loggerInfo := searchexcel.Logger{
-					FilePath:  value.Ext["_file"].(string),
-					Ip:        ip,
-					Log:       value.Line,
-					Time:      timeInfo,
-					Namespace: value.Ext["_namespace"].(string),
-					Container: value.Ext["_container"].(string),
-					Pod:       value.Ext["_pod"].(string),
-					Image:     value.Ext["_image"].(string),
-				}
-				err = exSheet.SetRow(loggerInfo)
-				if err != nil {
-					elog.Panic("agent set row error", elog.FieldErr(err))
-				}
-			}
-		}
-
-		err = exFile.SaveAs(context.Background(), fmt.Sprintf("clickvisual_log_search/%s/agent_search_%s.xlsx", time.Now().Format("2006_01_02"), time.Now().Format("2006_01_02_15_04_05")))
-		if err != nil {
-			elog.Panic("agent save as error", elog.FieldErr(err))
-		}
-
-		return data, nil
+	// 如果是k8s请求所有的 curl，直接返回
+	if req.IsK8sAllCurl {
+		return k8sAllCurlSearch(req)
 	}
 
-	req.prepare()
+	err = req.prepare()
+	if err != nil {
+		err = fmt.Errorf("req prepare fail, err: %w", err)
+		return
+	}
 	data.K8sClientType = req.K8sClientType
 	filePaths := req.TruePath
 
@@ -349,9 +285,9 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 		elog.Error("agent log search file cant empty", l.S("path", req.Path), l.S("dir", req.Dir), l.A("K8SContainer", req.K8SContainer), l.A("truePath", req.TruePath))
 		return data, nil
 	}
-	// 多了没意义，自动变为 50，提示用户
+	// 多了没意义，自动变为 100，提示用户
 	if req.Limit <= 0 || req.Limit > 500 {
-		req.Limit = 50
+		req.Limit = 100
 		elog.Info("limit exceeds 500. it will be automatically set to 50", elog.Int64("limit", req.Limit))
 	}
 	container := &Container{}
@@ -384,7 +320,6 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 				fmt.Println(value)
 			}
 		}
-
 	} else {
 		for _, comp := range container.components {
 			for _, value := range comp.output {
@@ -392,17 +327,17 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 					continue
 				}
 				ext := map[string]interface{}{
-					"_file":      comp.file.path,
-					"_namespace": "",
-					"_container": "",
-					"_pod":       "",
-					"_image":     "",
+					"_file_":      comp.file.path,
+					"_namespace_": "",
+					"_container_": "",
+					"_pod_":       "",
+					"_image_":     "",
 				}
 				if comp.k8sInfo != nil {
-					ext["_namespace"] = comp.k8sInfo.Namespace
-					ext["_container"] = comp.k8sInfo.Container
-					ext["_pod"] = comp.k8sInfo.Pod
-					ext["_image"] = comp.k8sInfo.Image
+					ext["_namespace_"] = comp.k8sInfo.Namespace
+					ext["_container_"] = comp.k8sInfo.Container
+					ext["_pod_"] = comp.k8sInfo.Pod
+					ext["_image_"] = comp.k8sInfo.Image
 				}
 				data.Data = append(data.Data, view.RespAgentSearchItem{
 					Line: value,
@@ -464,7 +399,7 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	obj := &Component{
 		k8sInfo: targetInfo.K8sInfo,
 	}
-
+	var err error
 	file, err := OpenFile(targetInfo.FilePath)
 	if err != nil {
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", targetInfo.FilePath))
@@ -484,18 +419,22 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 
 	obj.file = file
 	obj.request = req
-	obj.words = Keyword2Array(req.KeyWord, true)
+	obj.customSearches = req.customSearchArr
+	//obj.words, err = Keyword2Array(req.KeyWord, true)
+	if err != nil {
+		return nil, fmt.Errorf("Keyword2Array fail, err: %w", err)
+	}
 	filterString := make([]string, 0)
-	for _, value := range obj.words {
+	for _, value := range req.customSearchArr {
 		var info string
-		if value.Type == typeInt {
-			info = fmt.Sprintf(`"%s":%d`, value.Key, value.Value.(int))
-		} else if value.Type == typeString {
+		if value.Type == KeySearchTypeInt64 {
+			info = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueInt64)
+		} else if value.Type == KeySearchTypeString {
 			if value.Key == "" {
 				// 模糊匹配内容
-				info = value.Value.(string)
+				info = value.ValueString
 			} else {
-				info = fmt.Sprintf(`"%s":"%s"`, value.Key, value.Value.(string))
+				info = fmt.Sprintf(`"%s":"%s"`, value.Key, value.ValueString)
 			}
 		}
 		filterString = append(filterString, info)
@@ -505,7 +444,7 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		return len(filterString[i]) < len(filterString[j])
 	})
 
-	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", obj.words), l.A("filterString", filterString))
+	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", req.customSearchArr), l.A("filterString", filterString))
 
 	obj.filterWords = filterString
 	obj.bash = NewBash()

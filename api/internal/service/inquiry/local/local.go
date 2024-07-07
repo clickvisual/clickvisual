@@ -190,6 +190,9 @@ func (l Local) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 	if query.Query != "" && query.Query != "*" {
 		data.KeyWord = query.Query
 	}
+	// ClickVisual设计的标准语法是 `lv`='error'
+	// 如果在日志中搜索实际是 "lv":"error"
+	// 并且要能够将系统的 `_file_`='/xxx/xxx/ego.sys' 排除
 
 	respSearch, err := search.Run(data)
 	if err != nil {

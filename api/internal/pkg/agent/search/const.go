@@ -1,8 +1,19 @@
 package search
 
+type KeySearchType int
+
 const (
-	typeString = "string"
-	typeInt    = "int"
+	KeySearchTypeInt64   = 1
+	KeySearchTypeFloat64 = 2
+	KeySearchTypeString  = 3
+)
+
+type KeySearchOperate int
+
+const (
+	KeySearchOperateEqual = 1 // 相等
+	KeySearchOperateGT    = 2 // 大于
+	KeySearchOperateLT    = 3 // 小于
 )
 
 const (
@@ -10,13 +21,19 @@ const (
 )
 
 const (
-	InnerKeyContainer = "_container"
-	InnerKeyFile      = "_file"
-	InnerKeyNamespace = "_namespace"
-	InnerKeyPod       = "_pod"
+	InnerKeyContainer = "_container_"
+	InnerKeyFile      = "_file_"
+	InnerKeyNamespace = "_namespace_"
+	InnerKeyPod       = "_pod_"
 )
 
-var SkipKeys = map[string]interface{}{
+var SystemKeyArr = []string{
+	InnerKeyContainer,
+	InnerKeyFile,
+	InnerKeyNamespace,
+	InnerKeyPod,
+}
+var SkipKeys = map[string]any{
 	InnerKeyContainer: struct{}{},
 	InnerKeyFile:      struct{}{},
 	InnerKeyNamespace: struct{}{},

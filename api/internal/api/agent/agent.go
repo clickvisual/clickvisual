@@ -52,20 +52,21 @@ func (a *Agent) Search(c *core.Context) {
 		req.K8SContainer = postReq.Container
 	}
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
-		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
-			switch search.TrimKeyWord(t.Key) {
-			case search.InnerKeyContainer:
-				req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
-			case search.InnerKeyFile:
-				req.Path = search.TrimKeyWord(t.Value.(string))
-			case search.InnerKeyNamespace:
-				req.Namespace = search.TrimKeyWord(t.Value.(string))
-			case search.InnerKeyPod:
-				// TODO 目前还没有针对 pod 进行过滤
-			default:
-				req.KeyWord = postReq.KeyWord
-			}
-		}
+		//search.Keyword2Array(postReq.KeyWord, false)
+		//for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
+		//	switch search.TrimKeyWord(t.Key) {
+		//	case search.InnerKeyContainer:
+		//		req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
+		//	case search.InnerKeyFile:
+		//		req.Path = search.TrimKeyWord(t.Value.(string))
+		//	case search.InnerKeyNamespace:
+		//		req.Namespace = search.TrimKeyWord(t.Value.(string))
+		//	case search.InnerKeyPod:
+		//		// TODO 目前还没有针对 pod 进行过滤
+		//	default:
+		//		req.KeyWord = postReq.KeyWord
+		//	}
+		//}
 		req.KeyWord = postReq.KeyWord
 	}
 	if postReq.Dir != "" {
@@ -116,20 +117,20 @@ func (a *Agent) Charts(c *core.Context) {
 	req.IsChartRequest = postReq.IsChartRequest
 
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
-		for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
-			switch search.TrimKeyWord(t.Key) {
-			case search.InnerKeyContainer:
-				req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
-			case search.InnerKeyFile:
-				req.Path = search.TrimKeyWord(t.Value.(string))
-			case search.InnerKeyNamespace:
-				req.Namespace = search.TrimKeyWord(t.Value.(string))
-			case search.InnerKeyPod:
-				// TODO 目前还没有针对 pod 进行过滤
-			default:
-				req.KeyWord = postReq.KeyWord
-			}
-		}
+		//for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
+		//	switch search.TrimKeyWord(t.Key) {
+		//	case search.InnerKeyContainer:
+		//		req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
+		//	case search.InnerKeyFile:
+		//		req.Path = search.TrimKeyWord(t.Value.(string))
+		//	case search.InnerKeyNamespace:
+		//		req.Namespace = search.TrimKeyWord(t.Value.(string))
+		//	case search.InnerKeyPod:
+		//		// TODO 目前还没有针对 pod 进行过滤
+		//	default:
+		//		req.KeyWord = postReq.KeyWord
+		//	}
+		//}
 		req.KeyWord = postReq.KeyWord
 	}
 	if postReq.Dir != "" {
