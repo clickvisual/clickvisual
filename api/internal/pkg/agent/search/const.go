@@ -8,12 +8,13 @@ const (
 	KeySearchTypeString  = 3
 )
 
-type KeySearchOperate int
+type SearchOperate int
 
 const (
 	KeySearchOperateEqual = 1 // 相等
 	KeySearchOperateGT    = 2 // 大于
 	KeySearchOperateLT    = 3 // 小于
+	KeySearchOperateLike  = 4 // Like
 )
 
 const (
@@ -25,6 +26,7 @@ const (
 	InnerKeyFile      = "_file_"
 	InnerKeyNamespace = "_namespace_"
 	InnerKeyPod       = "_pod_"
+	InnerRawLog       = "_raw_log_"
 )
 
 var SystemKeyArr = []string{
@@ -32,10 +34,5 @@ var SystemKeyArr = []string{
 	InnerKeyFile,
 	InnerKeyNamespace,
 	InnerKeyPod,
-}
-var SkipKeys = map[string]any{
-	InnerKeyContainer: struct{}{},
-	InnerKeyFile:      struct{}{},
-	InnerKeyNamespace: struct{}{},
-	InnerKeyPod:       struct{}{},
+	InnerRawLog,
 }

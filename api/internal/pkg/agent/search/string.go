@@ -44,6 +44,7 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 			word.Key = newValue[i:]
 		}
 		flagOp := false
+		var operate SearchOperate
 		// 操作符
 		for ; i < len(newValue); i++ {
 			if flagOp {
@@ -55,13 +56,30 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 			switch newValue[i] {
 			case '=':
 				word.Operate = KeySearchOperateEqual
+				operate = KeySearchOperateEqual
 				flagOp = true
 			case '>':
 				word.Operate = KeySearchOperateGT
+				operate = KeySearchOperateGT
 				flagOp = true
 			case '<':
 				word.Operate = KeySearchOperateLT
+				operate = KeySearchOperateLT
 				flagOp = true
+			case 'l':
+				// todo 这里可能会panic
+				if newValue[i:i+4] == "like" {
+					operate = KeySearchOperateLike
+					i = i + 3
+					flagOp = true
+				}
+			case 'L':
+				// todo 这里可能会panic
+				if newValue[i:i+4] == "LIKE" {
+					operate = KeySearchOperateLike
+					i = i + 3
+					flagOp = true
+				}
 			default:
 				return nil, nil, fmt.Errorf("operate not valid, %v", newValue[i])
 			}
@@ -89,7 +107,7 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 					if newValue[i] == '\'' {
 						flagValue = true
 						val := newValue[startI:i]
-						switch word.Operate {
+						switch operate {
 						case KeySearchOperateEqual:
 							// 系统模式只有字符串类型
 							if isSystemSearch {
@@ -132,6 +150,10 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 							if err != nil {
 								return nil, nil, fmt.Errorf("KeySearchOperateGT to number fail, err: %w, val: %v", err, val)
 							}
+						case KeySearchOperateLike:
+							if isSystemSearch {
+								systemSearch.ValueString = val
+							}
 						}
 
 					}
@@ -151,7 +173,7 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 						word.Type = KeySearchTypeInt64
 					}
 					if err != nil {
-						return nil, nil, fmt.Errorf("KeySearchOperate to number fail, err: %w, val: %v", err, val)
+						return nil, nil, fmt.Errorf("SearchOperate to number fail, err: %w, val: %v", err, val)
 					}
 					flagValue = true
 				} else {
@@ -165,9 +187,20 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 			systemSearchArr = append(systemSearchArr, systemSearch)
 		} else {
 			words = append(words, word)
-
 		}
 	}
+
+	for _, systemValue := range systemSearchArr {
+		if systemValue.Key == InnerRawLog {
+			words = append(words, CustomSearch{
+				Key:         "",
+				ValueString: strings.Trim(systemValue.ValueString, "%"),
+				Operate:     KeySearchOperateEqual,
+				Type:        KeySearchTypeString,
+			})
+		}
+	}
+
 	return words, systemSearchArr, nil
 }
 

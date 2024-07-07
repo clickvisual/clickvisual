@@ -123,6 +123,13 @@ func TestKeyword2Array5(t *testing.T) {
 	fmt.Printf("systemSearch--------------->"+"%+v\n", systemSearch)
 }
 
+func TestKeyword2Array6(t *testing.T) {
+	keySearch, systemSearch, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`='10' and `_file_`='ego.sys' and `_raw_log_` like '%cron%'")
+	assert.NoError(t, err)
+	fmt.Printf("keySearch--------------->"+"%+v\n", keySearch)
+	fmt.Printf("systemSearch--------------->"+"%+v\n", systemSearch)
+}
+
 func TestTrimKeyWord(t *testing.T) {
 	type args struct {
 		keyWord string

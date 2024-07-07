@@ -87,7 +87,7 @@ type CustomSearch struct {
 	ValueString  string
 	ValueInt64   int64
 	ValueFloat64 float64
-	Operate      KeySearchOperate
+	Operate      SearchOperate
 	Type         KeySearchType
 }
 
@@ -425,7 +425,7 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		return nil, fmt.Errorf("Keyword2Array fail, err: %w", err)
 	}
 	filterString := make([]string, 0)
-	for _, value := range req.customSearchArr {
+	for _, value := range obj.customSearches {
 		var info string
 		if value.Type == KeySearchTypeInt64 {
 			info = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueInt64)
