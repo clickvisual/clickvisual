@@ -93,31 +93,31 @@ func TestSearchTime(t *testing.T) {
 }
 
 func TestKeyword2Array1(t *testing.T) {
-	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`='10'", true)
+	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`='10'")
 	assert.NoError(t, err)
 	fmt.Printf("keySearch--------------->"+"%+v\n", keySearch)
 }
 
 func TestKeyword2Array2(t *testing.T) {
-	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`=a10'", true)
+	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`=a10'")
 	assert.NoError(t, err)
 	fmt.Printf("keySearch--------------->"+"%+v\n", keySearch)
 }
 
 func TestKeyword2Array3(t *testing.T) {
-	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`>10", true)
+	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`>10")
 	assert.NoError(t, err)
 	fmt.Printf("keySearch--------------->"+"%+v\n", keySearch)
 }
 
 func TestKeyword2Array4(t *testing.T) {
-	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`>'10'", true)
+	keySearch, _, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`>'10'")
 	assert.NoError(t, err)
 	fmt.Printf("keySearch--------------->"+"%+v\n", keySearch)
 }
 
 func TestKeyword2Array5(t *testing.T) {
-	keySearch, systemSearch, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`='10' and `_file_`='ego.sys'", true)
+	keySearch, systemSearch, err := Keyword2Array("`lv`='info' and `msg`='hello' and `size`='10' and `_file_`='ego.sys'")
 	assert.NoError(t, err)
 	fmt.Printf("keySearch--------------->"+"%+v\n", keySearch)
 	fmt.Printf("systemSearch--------------->"+"%+v\n", systemSearch)

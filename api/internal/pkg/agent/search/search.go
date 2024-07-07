@@ -750,6 +750,7 @@ func (c *Component) recordCharts(section OffsetSection) {
 	c.mu.Unlock()
 }
 
+// verifyKeyWords 查找搜索内容是否存在
 func (c *Component) verifyKeyWords(data []byte, filter []string, pos int, filterWordsMap map[string]int) (int, bool, bool) {
 	var (
 		ok       = true
