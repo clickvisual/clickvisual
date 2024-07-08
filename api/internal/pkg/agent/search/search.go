@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -750,7 +751,15 @@ func (c *Component) verifyKeyWords(data []byte, filter []CustomSearch, pos int, 
 		skipTag  = -1
 	)
 	for _, v := range filter {
-		p := bytes.Index(data, []byte(v.Filter))
+		var p int
+		if v.Operate == KeySearchOperateEqual {
+			p = bytes.Index(data, []byte(v.Filter))
+		} else if v.Operate == KeySearchOperateLT {
+			// "cost":172.34,
+			p = ltAndGt(data, v, true)
+		} else if v.Operate == KeySearchOperateGT {
+			p = ltAndGt(data, v, false)
+		}
 		if p == -1 {
 			ok = false
 		} else {
@@ -766,8 +775,59 @@ func (c *Component) verifyKeyWords(data []byte, filter []CustomSearch, pos int, 
 			}
 		}
 	}
-
 	return skipTag, ok, emptyPos
+}
+
+// todo 代码需要优化
+func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
+	// "cost":172.34,
+	p = bytes.Index(data, []byte(`"`+v.Key+`":`))
+	if p >= 0 {
+		i := p + 3 + len(v.Key) // 开始状态
+		for ; i < len(data)-i; i++ {
+			if data[i] == ',' {
+				number := string(data[p+3+len(v.Key) : i])
+				if v.Type == KeySearchTypeInt64 {
+					numInt64, err := strconv.ParseInt(number, 10, 10)
+					if err != nil {
+						p = -1
+					} else {
+						if isLtFlag {
+							// 小于条件
+							// 那么反过来，就是不存在
+							if v.ValueInt64 >= numInt64 {
+								p = -1
+							}
+						} else {
+							if v.ValueInt64 <= numInt64 {
+								p = -1
+							}
+						}
+
+					}
+				} else if v.Type == KeySearchTypeFloat64 {
+					numFloat64, err := strconv.ParseFloat(number, 10)
+					if err != nil {
+						p = -1
+					} else {
+						if isLtFlag {
+							// 小于条件
+							// 那么反过来，就是不存在
+							if v.ValueFloat64 >= numFloat64 {
+								p = -1
+							}
+						} else {
+							if v.ValueFloat64 <= numFloat64 {
+								p = -1
+							}
+						}
+					}
+				}
+				break
+			}
+		}
+	}
+	return p
 }
 
 func (c *Component) verifyKeyWord(data []byte, filter string, pos int) (int, bool) {
