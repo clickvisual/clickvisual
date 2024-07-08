@@ -494,7 +494,16 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 		flag := true
 		if hasFilterWords {
 			for _, v := range c.customSearches {
-				p := bytes.LastIndex(data[:br1], []byte(v.Filter))
+				//p := bytes.LastIndex(data[:br1], []byte(v.Filter))
+				var p int
+				if v.Operate == KeySearchOperateEqual {
+					p = bytes.Index(data, []byte(v.Filter))
+				} else if v.Operate == KeySearchOperateLT {
+					// "cost":172.34,
+					p = ltAndGt(data, v, true)
+				} else if v.Operate == KeySearchOperateGT {
+					p = ltAndGt(data, v, false)
+				}
 				if p == -1 {
 					return limit, beforeLine
 				}
@@ -503,7 +512,6 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 				// invalid 	 ***p*** br2 ******** br1, need to skip lines
 				if p <= br2 {
 					flag = false
-
 					// skip lines
 					for p <= br2 {
 						br1 = br2
@@ -788,7 +796,7 @@ func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
 			if data[i] == ',' {
 				number := string(data[p+3+len(v.Key) : i])
 				if v.Type == KeySearchTypeInt64 {
-					numInt64, err := strconv.ParseInt(number, 10, 10)
+					numInt64, err := strconv.ParseInt(number, 10, 64)
 					if err != nil {
 						p = -1
 					} else {
@@ -806,7 +814,7 @@ func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
 
 					}
 				} else if v.Type == KeySearchTypeFloat64 {
-					numFloat64, err := strconv.ParseFloat(number, 10)
+					numFloat64, err := strconv.ParseFloat(number, 64)
 					if err != nil {
 						p = -1
 					} else {

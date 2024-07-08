@@ -114,9 +114,9 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 							if isSystemSearch {
 								systemSearch.ValueString = val
 							} else {
-								word.ValueInt64, err = strconv.ParseInt(val, 10, 10)
+								word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
 								if err != nil {
-									word.ValueFloat64, err = strconv.ParseFloat(val, 10)
+									word.ValueFloat64, err = strconv.ParseFloat(val, 64)
 									if err != nil {
 										word.ValueString = val
 										word.Type = KeySearchTypeString
@@ -131,10 +131,10 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 						case KeySearchOperateGT:
 							// 必须数字
 							if strings.Contains(val, ".") {
-								word.ValueFloat64, err = strconv.ParseFloat(val, 10)
+								word.ValueFloat64, err = strconv.ParseFloat(val, 64)
 								word.Type = KeySearchTypeFloat64
 							} else {
-								word.ValueInt64, err = strconv.ParseInt(val, 10, 10)
+								word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
 								word.Type = KeySearchTypeInt64
 							}
 							if err != nil {
@@ -142,10 +142,10 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 							}
 						case KeySearchOperateLT:
 							if strings.Contains(val, ".") {
-								word.ValueFloat64, err = strconv.ParseFloat(val, 10)
+								word.ValueFloat64, err = strconv.ParseFloat(val, 64)
 								word.Type = KeySearchTypeFloat64
 							} else {
-								word.ValueInt64, err = strconv.ParseInt(val, 10, 10)
+								word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
 								word.Type = KeySearchTypeInt64
 							}
 							if err != nil {
@@ -167,10 +167,10 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 				if firstVal >= 48 && firstVal <= 57 {
 					// 必须数字
 					if strings.Contains(val, ".") {
-						word.ValueFloat64, err = strconv.ParseFloat(val, 10)
+						word.ValueFloat64, err = strconv.ParseFloat(val, 64)
 						word.Type = KeySearchTypeFloat64
 					} else {
-						word.ValueInt64, err = strconv.ParseInt(val, 10, 10)
+						word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
 						word.Type = KeySearchTypeInt64
 					}
 					if err != nil {
