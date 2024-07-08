@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -226,7 +227,13 @@ func findNextString(file *File, to int64) (int64, int64, error) {
 func (c *Component) searchLogs(startPos, endPos, remainedLines int64) (int64, error) {
 	defer func() {
 		if err := recover(); err != nil {
-			elog.Error("agent search logs panic", l.S("file", c.file.path), l.I64("pos", startPos), elog.FieldErr(err.(error)))
+			stack := make([]byte, 4096)
+			stack = stack[:runtime.Stack(stack, true)]
+			elog.Error("agent search logs panic",
+				l.S("file", c.file.path),
+				l.I64("pos", startPos),
+				elog.Any("stack", stack),
+				elog.FieldErr(err.(error)))
 		}
 	}()
 
