@@ -8,6 +8,7 @@ type LogContentParseProps = {
   logContent: any;
   secondaryIndexKeys?: any[];
   keyItem?: string;
+  rowKeyItem?: string;
   quickInsertLikeQuery?: (
     key: string,
     extra?: { key?: string; isIndex?: boolean; indexKey?: string }
@@ -22,6 +23,7 @@ type LogContentParseProps = {
 const LogContentParse = ({
   logContent,
   keyItem,
+  rowKeyItem,
   secondaryIndexKeys,
   quickInsertLikeQuery,
   quickInsertLikeExclusion,
@@ -39,6 +41,7 @@ const LogContentParse = ({
         <JsonStringValue
           val={logContent.toString()}
           keyItem={keyItem}
+          rowKeyItem={rowKeyItem}
           onClickValue={quickInsertLikeQuery}
           quickInsertLikeExclusion={quickInsertLikeExclusion}
           highLightValue={highlightKeywords}

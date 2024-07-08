@@ -1,16 +1,18 @@
 import jsonViewStyles from "@/components/JsonView/index.less";
 import classNames from "classnames";
-import {LOGMAXTEXTLENGTH, LOGMAXTEXTLENGTHUnParse} from "@/config/config";
-import { Button, message } from "antd";
+import { LOGMAXTEXTLENGTH, LOGMAXTEXTLENGTHUnParse } from "@/config/config";
+import { Button, message, Popover } from "antd";
 import { useState } from "react";
 import { useIntl } from "umi";
 import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
+import moment from "moment";
 
 type JsonStringValueProps = {
   val: string;
   keyItem?: string;
   indexKey?: string;
   isIndex?: boolean;
+  rowKeyItem?: string;
 } & _CommonProps;
 export const REG_SEPARATORS = [
   " ",
@@ -62,6 +64,7 @@ const JsonStringValue = ({
   keyItem,
   indexKey,
   isIndex,
+  rowKeyItem,
   ...restProps
 }: JsonStringValueProps) => {
   const { onClickValue, highLightValue, quickInsertLikeExclusion } = restProps;
@@ -154,14 +157,30 @@ const JsonStringValue = ({
                 });
             }}
           >
-            <span
-              className={classNames(
-                isValue(value) && jsonViewStyles.jsonViewValueHover,
-                highLightFlag(value) && jsonViewStyles.jsonViewHighlight
-              )}
-            >
-              {value}
-            </span>
+            {["ts", "time"].includes(rowKeyItem as string) ? (
+              <Popover
+                content={moment(value, "X").format("YYYY-MM-DD HH:mm:ss")}
+                trigger="hover"
+              >
+                <span
+                  className={classNames(
+                    isValue(value) && jsonViewStyles.jsonViewValueHover,
+                    highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+                  )}
+                >
+                  {value}
+                </span>
+              </Popover>
+            ) : (
+              <span
+                className={classNames(
+                  isValue(value) && jsonViewStyles.jsonViewValueHover,
+                  highLightFlag(value) && jsonViewStyles.jsonViewHighlight
+                )}
+              >
+                {value}
+              </span>
+            )}
           </ClickMenu>
         )}
       </span>
@@ -180,11 +199,11 @@ const JsonStringValue = ({
         >
           {isHidden
             ? i18n.formatMessage({
-                id: "systemSetting.role.collapseX.unfold",
-              })
+              id: "systemSetting.role.collapseX.unfold",
+            })
             : i18n.formatMessage({
-                id: "systemSetting.role.collapseX.packUp",
-              })}
+              id: "systemSetting.role.collapseX.packUp",
+            })}
         </Button>
       )}
       {isHidden ? (
@@ -205,7 +224,7 @@ const JsonStringValue = ({
 };
 
 const splitRawLogString = (str: string): string[] => {
-  if(str.length>LOGMAXTEXTLENGTHUnParse){
+  if (str.length > LOGMAXTEXTLENGTHUnParse) {
     return [str]
   }
   const result: string[] = [];
