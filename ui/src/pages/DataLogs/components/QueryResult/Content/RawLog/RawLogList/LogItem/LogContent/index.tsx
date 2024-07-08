@@ -78,6 +78,7 @@ const LogContent = (props: LogContentProps) => {
           foldingChecked={foldingChecked}
           secondaryIndexKeys={jsonIndexKeys}
           logContent={newLog[keyItem]}
+          keyItem={keyItem}
           quickInsertLikeQuery={quickInsertLikeQuery}
           quickInsertLikeExclusion={quickInsertLikeExclusion}
         />
