@@ -130,20 +130,20 @@ func TestKeyword2Array6(t *testing.T) {
 	fmt.Printf("systemSearch--------------->"+"%+v\n", systemSearch)
 }
 
-func TestTrimKeyWord(t *testing.T) {
-	type args struct {
-		keyWord string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, TrimKeyWord(tt.args.keyWord), "TrimKeyWord(%v)", tt.args.keyWord)
-		})
-	}
-}
+//func TestTrimKeyWord(t *testing.T) {
+//	type args struct {
+//		keyWord string
+//	}
+//	tests := []struct {
+//		name string
+//		args args
+//		want string
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			assert.Equalf(t, tt.want, TrimKeyWord(tt.args.keyWord), "TrimKeyWord(%v)", tt.args.keyWord)
+//		})
+//	}
+//}

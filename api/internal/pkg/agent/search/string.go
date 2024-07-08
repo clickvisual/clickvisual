@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,7 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 	if keyword == "" {
 		return make([]CustomSearch, 0), make([]SystemSearch, 0), nil
 	}
-	words := make([]CustomSearch, 0)
+	customSearchArr := make([]CustomSearch, 0)
 	systemSearchArr := make([]SystemSearch, 0)
 
 	arrs := strings.Split(keyword, "and")
@@ -186,13 +187,13 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 		if isSystemSearch {
 			systemSearchArr = append(systemSearchArr, systemSearch)
 		} else {
-			words = append(words, word)
+			customSearchArr = append(customSearchArr, word)
 		}
 	}
 
 	for _, systemValue := range systemSearchArr {
 		if systemValue.Key == InnerRawLog {
-			words = append(words, CustomSearch{
+			customSearchArr = append(customSearchArr, CustomSearch{
 				Key:         "",
 				ValueString: strings.Trim(systemValue.ValueString, "%"),
 				Operate:     KeySearchOperateEqual,
@@ -201,16 +202,29 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 		}
 	}
 
-	return words, systemSearchArr, nil
+	return generateFilter(customSearchArr), systemSearchArr, nil
 }
 
-func TrimKeyWord(keyWord string) string {
-	if keyWord == "" {
-		return ""
+func generateFilter(arr []CustomSearch) (output []CustomSearch) {
+	output = make([]CustomSearch, 0)
+	for _, value := range arr {
+		if value.Type == KeySearchTypeInt64 {
+			value.Filter = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueInt64)
+		} else if value.Type == KeySearchTypeFloat64 {
+			value.Filter = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueFloat64)
+		} else if value.Type == KeySearchTypeString {
+			if value.Key == "" {
+				// 模糊匹配内容
+				value.Filter = value.ValueString
+			} else {
+				value.Filter = fmt.Sprintf(`"%s":"%s"`, value.Key, value.ValueString)
+			}
+		}
+		output = append(output, value)
 	}
-	keyWord = strings.TrimSpace(keyWord)
-	keyWord = strings.ReplaceAll(keyWord, "'", "")
-	keyWord = strings.ReplaceAll(keyWord, "\"", "")
-	keyWord = strings.ReplaceAll(keyWord, "`", "")
-	return keyWord
+	sort.Slice(output, func(i, j int) bool {
+		return len(output[i].Filter) < len(output[j].Filter)
+	})
+	return output
+
 }

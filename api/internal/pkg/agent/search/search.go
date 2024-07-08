@@ -72,10 +72,6 @@ func isSearchByStartTime(value string, startTime int64) int {
 	if indexValue == -1 {
 		return -1
 	}
-	//curTimeParser := utils.TimeParse(curTime)
-	//if curTimeParser == nil {
-	//	return -1
-	//}
 	if curTime >= startTime {
 		return 1
 	}
@@ -87,10 +83,6 @@ func isSearchByEndTime(value string, endTime int64) int {
 	if indexValue == -1 {
 		return -1
 	}
-	//curTimeParser := utils.TimeParse(curTime)
-	//if curTimeParser == nil {
-	//	return -1
-	//}
 	if curTime <= endTime {
 		return 1
 	}
@@ -317,8 +309,8 @@ func (c *Component) getLogs(startPos, endPos int64) (error error) {
 		c.commandOutput = make([]string, len(c.output))
 		for _, value := range c.output {
 			str = value
-			for _, filter := range c.filterWords {
-				str = c.bash.ColorWord(filter, str)
+			for _, val := range c.customSearches {
+				str = c.bash.ColorWord(val.Filter, str)
 			}
 			c.commandOutput = append(c.commandOutput, str)
 		}
@@ -454,7 +446,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 		br1            int
 		br2            int
 		ok             bool
-		hasFilterWords = len(c.filterWords) > 0
+		hasFilterWords = len(c.customSearches) > 0
 	)
 
 	if len(beforeLine) > 0 {
@@ -489,7 +481,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 
 	// means there is the first line
 	if br2 == -1 {
-		_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
+		_, ok, _ = c.verifyKeyWords(data[:br1], c.customSearches, br1, nil)
 		if ok {
 			c.output = append(c.output, string(data[:br1]))
 			limit--
@@ -500,8 +492,8 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 	for br2 != -1 {
 		flag := true
 		if hasFilterWords {
-			for _, v := range c.filterWords {
-				p := bytes.LastIndex(data[:br1], []byte(v))
+			for _, v := range c.customSearches {
+				p := bytes.LastIndex(data[:br1], []byte(v.Filter))
 				if p == -1 {
 					return limit, beforeLine
 				}
@@ -517,7 +509,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 						pos := bytes.LastIndexByte(data[:br2], '\n')
 						// means there is the first line
 						if p == -1 {
-							_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
+							_, ok, _ = c.verifyKeyWords(data[:br1], c.customSearches, br1, nil)
 							if ok {
 								c.output = append(c.output, string(data[:br1]))
 								limit--
@@ -544,7 +536,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 			br1 = br2
 			br2 = bytes.LastIndexByte(data, '\n')
 			if br2 == -1 {
-				_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
+				_, ok, _ = c.verifyKeyWords(data[:br1], c.customSearches, br1, nil)
 				if ok {
 					c.output = append(c.output, string(data[:br1]))
 					limit--
@@ -571,7 +563,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		skipTag        int
 		offset         int64
 		firstLine      []byte
-		hasFilterWords = len(c.filterWords) > 0
+		hasFilterWords = len(c.customSearches) > 0
 	)
 
 	// Because it is a forward search, 'before' is the incomplete row of data at the end of the last round of search.
@@ -589,7 +581,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		firstLine = append(firstLine, firstLinesBuf...)
 		ok = true
 		if hasFilterWords {
-			_, ok, _ = c.verifyKeyWords(firstLine, c.filterWords, -1, filterPosMap)
+			_, ok, _ = c.verifyKeyWords(firstLine, c.customSearches, -1, filterPosMap)
 		}
 
 		var err error
@@ -624,9 +616,9 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		skipTag = -1
 		flag := true
 		if hasFilterWords {
-			for _, v := range c.filterWords {
+			for _, v := range c.customSearches {
 				if !emptyPos {
-					p, ok := filterPosMap[v]
+					p, ok := filterPosMap[v.Filter]
 					if ok {
 						if p >= pos {
 							skipTag = p
@@ -642,7 +634,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 					}
 				}
 
-				p, ok := c.verifyKeyWord(data, v, pos)
+				p, ok := c.verifyKeyWord(data, v.Filter, pos)
 
 				// If the read is not found, it indicates that no matching log exists in the data
 				// At this point, just need to find the \n at the end to rematch
@@ -678,7 +670,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		}
 
 		if hasFilterWords {
-			_, _, emptyPos = c.verifyKeyWords(data, c.filterWords, pos, filterPosMap)
+			_, _, emptyPos = c.verifyKeyWords(data, c.customSearches, pos, filterPosMap)
 		}
 	}
 	return lines, tailLine
@@ -751,19 +743,19 @@ func (c *Component) recordCharts(section OffsetSection) {
 }
 
 // verifyKeyWords 查找搜索内容是否存在
-func (c *Component) verifyKeyWords(data []byte, filter []string, pos int, filterWordsMap map[string]int) (int, bool, bool) {
+func (c *Component) verifyKeyWords(data []byte, filter []CustomSearch, pos int, filterWordsMap map[string]int) (int, bool, bool) {
 	var (
 		ok       = true
 		emptyPos = true
 		skipTag  = -1
 	)
 	for _, v := range filter {
-		p := bytes.Index(data, []byte(v))
+		p := bytes.Index(data, []byte(v.Filter))
 		if p == -1 {
 			ok = false
 		} else {
 			if filterWordsMap != nil {
-				filterWordsMap[v] = p
+				filterWordsMap[v.Filter] = p
 				emptyPos = false
 			}
 			if pos != -1 && p > pos {

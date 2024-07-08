@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -38,12 +37,10 @@ type Container struct {
 
 // Component 每个执行指令地方
 type Component struct {
-	request   Request
-	file      *File
-	startTime int64
-	endTime   int64
-	//words         []CustomSearch
-	filterWords    []string // 变成匹配的语句
+	request        Request
+	file           *File
+	startTime      int64
+	endTime        int64
 	customSearches []CustomSearch
 	bash           *Bash
 	limit          int64
@@ -89,6 +86,7 @@ type CustomSearch struct {
 	ValueFloat64 float64
 	Operate      SearchOperate
 	Type         KeySearchType
+	Filter       string // 如果是 = ，那么直接用这个字段来匹配
 }
 
 type SystemSearch struct {
@@ -326,7 +324,7 @@ func Run(req Request) (data view.RespAgentSearch, err error) {
 				if value == "" {
 					continue
 				}
-				ext := map[string]interface{}{
+				ext := map[string]any{
 					"_file_":      comp.file.path,
 					"_namespace_": "",
 					"_container_": "",
@@ -420,33 +418,11 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	obj.file = file
 	obj.request = req
 	obj.customSearches = req.customSearchArr
-	//obj.words, err = Keyword2Array(req.KeyWord, true)
 	if err != nil {
 		return nil, fmt.Errorf("Keyword2Array fail, err: %w", err)
 	}
-	filterString := make([]string, 0)
-	for _, value := range obj.customSearches {
-		var info string
-		if value.Type == KeySearchTypeInt64 {
-			info = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueInt64)
-		} else if value.Type == KeySearchTypeString {
-			if value.Key == "" {
-				// 模糊匹配内容
-				info = value.ValueString
-			} else {
-				info = fmt.Sprintf(`"%s":"%s"`, value.Key, value.ValueString)
-			}
-		}
-		filterString = append(filterString, info)
-	}
 
-	sort.Slice(filterString, func(i, j int) bool {
-		return len(filterString[i]) < len(filterString[j])
-	})
-
-	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", req.customSearchArr), l.A("filterString", filterString))
-
-	obj.filterWords = filterString
+	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", req.customSearchArr))
 	obj.bash = NewBash()
 	obj.limit = req.Limit
 	return obj, nil
