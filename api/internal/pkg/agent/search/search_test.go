@@ -36,7 +36,7 @@ func TestFindBorder(t *testing.T) {
 func Test_ltAndGt(t *testing.T) {
 	p := ltAndGt([]byte(`{"lv":"info","cost":1.35}`), CustomSearch{
 		Key:          "cost",
-		ValueFloat64: 1,
+		ValueFloat64: 2,
 		Operate:      KeySearchOperateLT,
 		Type:         KeySearchTypeFloat64,
 	}, true)

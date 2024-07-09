@@ -812,12 +812,11 @@ func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
 					} else {
 						if isLtFlag {
 							// 小于条件
-							// 那么反过来，就是不存在
-							if v.ValueFloat64 >= numFloat64 {
+							if v.ValueFloat64 <= numFloat64 {
 								p = -1
 							}
 						} else {
-							if v.ValueFloat64 <= numFloat64 {
+							if v.ValueFloat64 >= numFloat64 {
 								p = -1
 							}
 						}
