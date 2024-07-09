@@ -796,33 +796,18 @@ func (c *Component) verifyKeyWords(data []byte, filter []CustomSearch, pos int, 
 // todo 代码需要优化
 func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
 	// "cost":172.34,
+	// "cost":172.34}
 	p = bytes.Index(data, []byte(`"`+v.Key+`":`))
 	if p >= 0 {
 		i := p + 3 + len(v.Key) // 开始状态
-		for ; i < len(data)-i; i++ {
-			if data[i] == ',' {
+		for ; i < len(data); i++ {
+			// 结尾情况
+			if data[i] == ',' || data[i] == '}' {
 				number := string(data[p+3+len(v.Key) : i])
-				if v.Type == KeySearchTypeInt64 {
-					numInt64, err := strconv.ParseInt(number, 10, 64)
-					if err != nil {
-						p = -1
-					} else {
-						if isLtFlag {
-							// 小于条件
-							// 那么反过来，就是不存在
-							if v.ValueInt64 >= numInt64 {
-								p = -1
-							}
-						} else {
-							if v.ValueInt64 <= numInt64 {
-								p = -1
-							}
-						}
-
-					}
-				} else if v.Type == KeySearchTypeFloat64 {
+				if v.Type == KeySearchTypeFloat64 {
 					numFloat64, err := strconv.ParseFloat(number, 64)
 					if err != nil {
+						elog.Error("parse float64 fail", elog.FieldErr(err), elog.FieldValueAny(number))
 						p = -1
 					} else {
 						if isLtFlag {
@@ -841,6 +826,7 @@ func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
 				break
 			}
 		}
+
 	}
 	return p
 }

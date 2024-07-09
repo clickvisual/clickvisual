@@ -3,9 +3,8 @@ package search
 type KeySearchType int
 
 const (
-	KeySearchTypeInt64   = 1
-	KeySearchTypeFloat64 = 2
-	KeySearchTypeString  = 3
+	KeySearchTypeFloat64 = 1
+	KeySearchTypeString  = 2
 )
 
 type SearchOperate int

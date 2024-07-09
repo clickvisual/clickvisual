@@ -114,15 +114,10 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 							if isSystemSearch {
 								systemSearch.ValueString = val
 							} else {
-								word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
+								word.ValueFloat64, err = strconv.ParseFloat(val, 64)
 								if err != nil {
-									word.ValueFloat64, err = strconv.ParseFloat(val, 64)
-									if err != nil {
-										word.ValueString = val
-										word.Type = KeySearchTypeString
-									} else {
-										word.Type = KeySearchTypeFloat64
-									}
+									word.ValueString = val
+									word.Type = KeySearchTypeString
 								} else {
 									word.Type = KeySearchTypeFloat64
 								}
@@ -130,24 +125,14 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 							// 必须数字
 						case KeySearchOperateGT:
 							// 必须数字
-							if strings.Contains(val, ".") {
-								word.ValueFloat64, err = strconv.ParseFloat(val, 64)
-								word.Type = KeySearchTypeFloat64
-							} else {
-								word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
-								word.Type = KeySearchTypeInt64
-							}
+							word.ValueFloat64, err = strconv.ParseFloat(val, 64)
+							word.Type = KeySearchTypeFloat64
 							if err != nil {
 								return nil, nil, fmt.Errorf("KeySearchOperateGT to number fail, err: %w, val: %v", err, val)
 							}
 						case KeySearchOperateLT:
-							if strings.Contains(val, ".") {
-								word.ValueFloat64, err = strconv.ParseFloat(val, 64)
-								word.Type = KeySearchTypeFloat64
-							} else {
-								word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
-								word.Type = KeySearchTypeInt64
-							}
+							word.ValueFloat64, err = strconv.ParseFloat(val, 64)
+							word.Type = KeySearchTypeFloat64
 							if err != nil {
 								return nil, nil, fmt.Errorf("KeySearchOperateGT to number fail, err: %w, val: %v", err, val)
 							}
@@ -166,13 +151,8 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 				// 是数字
 				if firstVal >= 48 && firstVal <= 57 {
 					// 必须数字
-					if strings.Contains(val, ".") {
-						word.ValueFloat64, err = strconv.ParseFloat(val, 64)
-						word.Type = KeySearchTypeFloat64
-					} else {
-						word.ValueInt64, err = strconv.ParseInt(val, 10, 64)
-						word.Type = KeySearchTypeInt64
-					}
+					word.ValueFloat64, err = strconv.ParseFloat(val, 64)
+					word.Type = KeySearchTypeFloat64
 					if err != nil {
 						return nil, nil, fmt.Errorf("SearchOperate to number fail, err: %w, val: %v", err, val)
 					}
@@ -208,10 +188,8 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 func generateFilter(arr []CustomSearch) (output []CustomSearch) {
 	output = make([]CustomSearch, 0)
 	for _, value := range arr {
-		if value.Type == KeySearchTypeInt64 {
-			value.Filter = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueInt64)
-		} else if value.Type == KeySearchTypeFloat64 {
-			value.Filter = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueFloat64)
+		if value.Type == KeySearchTypeFloat64 {
+			value.Filter = fmt.Sprintf(`"%s":%v`, value.Key, value.ValueFloat64)
 		} else if value.Type == KeySearchTypeString {
 			if value.Key == "" {
 				// 模糊匹配内容

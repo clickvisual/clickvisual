@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -30,4 +31,14 @@ func TestFindBorder(t *testing.T) {
 	assert.Equal(t, int64(167), border1)
 	assert.Equal(t, int64(301), border2)
 	assert.NoError(t, err)
+}
+
+func Test_ltAndGt(t *testing.T) {
+	p := ltAndGt([]byte(`{"lv":"info","cost":1.35}`), CustomSearch{
+		Key:          "cost",
+		ValueFloat64: 1,
+		Operate:      KeySearchOperateLT,
+		Type:         KeySearchTypeFloat64,
+	}, true)
+	fmt.Printf("p--------------->"+"%+v\n", p)
 }

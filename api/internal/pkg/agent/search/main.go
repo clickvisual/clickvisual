@@ -82,7 +82,6 @@ func (c *Component) preparePartition(from, to int64) {
 type CustomSearch struct {
 	Key          string
 	ValueString  string
-	ValueInt64   int64
 	ValueFloat64 float64
 	Operate      SearchOperate
 	Type         KeySearchType
