@@ -18,8 +18,18 @@ func Keyword2Array(keyword string) ([]CustomSearch, []SystemSearch, error) {
 
 	arrs := strings.Split(keyword, "and")
 	for _, value := range arrs {
-		isSystemSearch := false
 		word := CustomSearch{}
+		// xxyyzz and `cost`=123
+		// 如果不存在 ` , 我们认为他就是value
+		if !strings.Contains(value, "`") {
+			word.Operate = KeySearchOperateEqual
+			word.ValueString = value
+			word.Type = KeySearchTypeString
+			customSearchArr = append(customSearchArr, word)
+			continue
+		}
+
+		isSystemSearch := false
 		systemSearch := SystemSearch{}
 		newValue := strings.TrimSpace(value)
 		i := 0
