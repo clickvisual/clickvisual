@@ -1,12 +1,13 @@
 import useRequest from "@/hooks/useRequest/useRequest";
 import indexItemStyles
   from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexItem/index.less";
-import api, {IndexDetail, IndexInfoType} from "@/services/dataLogs";
-import {useModel} from "@umijs/max";
-import {Progress, Spin, Tooltip} from "antd";
+import api, { IndexDetail, IndexInfoType } from "@/services/dataLogs";
+import { useModel } from "@umijs/max";
+import { Progress, Spin, Tooltip } from "antd";
 import classNames from "classnames";
-import {useEffect, useState} from "react";
-import {useIntl} from "umi";
+import { useEffect, useState } from "react";
+import { useIntl } from "umi";
+import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
 
 type IndexItemProps = {
   index: IndexInfoType;
@@ -22,12 +23,13 @@ const IndexItem = (props: IndexItemProps) => {
   });
   const [details, setDetails] = useState<IndexDetail[]>([]);
 
-  const insertQuery = (name: string) => {
+  const insertQuery = (name: string, exclusion: boolean) => {
     let currentSelected = "";
+    let symbol = exclusion ? "!=" : "="
     if (index.rootName != "") {
-      currentSelected = `${index.rootName}.${index.field}='${name}'`;
+      currentSelected = `${index.rootName}.${index.field}${symbol}'${name}'`;
     } else {
-      currentSelected = `\`${index.field}\`='${name}'`;
+      currentSelected = `\`${index.field}\`${symbol}'${name}'`;
     }
     doUpdatedQuery(currentSelected);
   };
@@ -39,15 +41,15 @@ const IndexItem = (props: IndexItemProps) => {
       !index?.id ||
       !startDateTime ||
       !endDateTime ||
-        !logFilterList
+      !logFilterList
     )
       return;
     // 循环读取 logFilterList 里的 statement 值，放到 filters 数组中
     let filters: string[] = [];
     logFilterList.forEach((item) => {
-        if (item.statement != "") {
-            filters.push(item.statement);
-        }
+      if (item.statement != "") {
+        filters.push(item.statement);
+      }
     });
     const params = {
       st: startDateTime,
@@ -61,6 +63,23 @@ const IndexItem = (props: IndexItemProps) => {
       }
     });
   }, [index, isActive]);
+
+  const indexItem = (detail: IndexDetail) => {
+    return (
+      <div className={indexItemStyles.title}>
+        <span
+          className={classNames(
+            indexItemStyles.name,
+            detail.indexName !== "" && indexItemStyles.nameHover
+          )}
+        >
+          <Tooltip title={detail.indexName} placement={"left"}>
+            {detail.indexName === "" ? " " : detail.indexName}
+          </Tooltip>
+        </span>
+      </div>
+    )
+  }
   return (
     <div className={classNames(indexItemStyles.indexItemMain)}>
       <Spin
@@ -70,26 +89,20 @@ const IndexItem = (props: IndexItemProps) => {
         <div className={indexItemStyles.detailContextMain}>
           {details.length > 0 ? (
             <>
-              {details.map((detail, index) => (
-                <div key={index} className={indexItemStyles.context}>
-                  <div
-                    className={indexItemStyles.title}
-                    onClick={() => {
-                      if (detail.indexName !== "")
-                        insertQuery(detail.indexName);
-                    }}
-                  >
-                    <span
-                      className={classNames(
-                        indexItemStyles.name,
-                        detail.indexName !== "" && indexItemStyles.nameHover
-                      )}
+              {details.map((detail, i) => (
+                <div key={i} className={indexItemStyles.context}>
+                  {detail.indexName !== "" ? (
+                    <ClickMenu
+                      field={index.rootName != "" ? `${index.rootName}.${index.field}` : `\`${index.field}\``}
+                      content={detail.indexName}
+                      handleAddCondition={() => { insertQuery(detail.indexName, false); }}
+                      handleOutCondition={() => { insertQuery(detail.indexName, true) }}
                     >
-                      <Tooltip title={detail.indexName} placement={"left"}>
-                        {detail.indexName === "" ? " " : detail.indexName}
-                      </Tooltip>
-                    </span>
-                  </div>
+                      {indexItem(detail)}
+                    </ClickMenu>
+                  ) : (
+                    <> {indexItem(detail)} </>
+                  )}
                   <div>
                     <Tooltip title={detail.count} placement={"right"}>
                       <div className={indexItemStyles.progressMain}>
