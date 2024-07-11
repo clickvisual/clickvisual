@@ -190,6 +190,9 @@ func (l Local) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 	if query.Query != "" && query.Query != "*" {
 		data.KeyWord = query.Query
 	}
+	// ClickVisual设计的标准语法是 `lv`='error'
+	// 如果在日志中搜索实际是 "lv":"error"
+	// 并且要能够将系统的 `_file_`='/xxx/xxx/ego.sys' 排除
 
 	respSearch, err := search.Run(data)
 	if err != nil {
@@ -238,15 +241,17 @@ func (a *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]inter
 	log = make(map[string]interface{})
 	curTime, indexValue := utils.IndexParseTime(line)
 	if indexValue != -1 {
-		curTimeParser := utils.TimeParse(curTime)
-		if curTimeParser != nil {
-			ts := curTimeParser.Unix()
-			log[db.TimeFieldSecond] = ts
-			log["_raw_log_"] = line
-			for k, v := range item.Ext {
-				log[k] = v
-			}
+
+		//curTimeParser := utils.TimeParse(curTime)
+		//if curTimeParser != nil {
+		//ts := curTimeParser.Unix()
+		log[db.TimeFieldSecond] = curTime
+		log["_raw_log_"] = line
+		for k, v := range item.Ext {
+			log[k] = v
 		}
+		//}
+
 	} else {
 		log = nil
 	}
@@ -274,8 +279,7 @@ func (l Local) GetMetricsSamples() error {
 }
 
 func (l Local) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
-	// TODO implement me
-	panic("implement me")
+	return make(map[string]dto.ClusterInfo, 0), nil
 }
 
 func (l Local) ListSystemTable() []*view.SystemTables {
@@ -289,8 +293,7 @@ func (l Local) ListSystemCluster() ([]*view.SystemClusters, map[string]*view.Sys
 }
 
 func (l Local) ListDatabase() ([]*view.RespDatabaseSelfBuilt, error) {
-	// TODO implement me
-	panic("implement me")
+	return make([]*view.RespDatabaseSelfBuilt, 0), nil
 }
 
 func (l Local) ListColumn(s string, s2 string, b bool) ([]*view.RespColumn, error) {

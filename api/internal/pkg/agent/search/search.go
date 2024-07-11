@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -72,11 +73,7 @@ func isSearchByStartTime(value string, startTime int64) int {
 	if indexValue == -1 {
 		return -1
 	}
-	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser == nil {
-		return -1
-	}
-	if curTimeParser.Unix() >= startTime {
+	if curTime >= startTime {
 		return 1
 	}
 	return 0
@@ -87,11 +84,7 @@ func isSearchByEndTime(value string, endTime int64) int {
 	if indexValue == -1 {
 		return -1
 	}
-	curTimeParser := utils.TimeParse(curTime)
-	if curTimeParser == nil {
-		return -1
-	}
-	if curTimeParser.Unix() <= endTime {
+	if curTime <= endTime {
 		return 1
 	}
 	return 0
@@ -317,8 +310,8 @@ func (c *Component) getLogs(startPos, endPos int64) (error error) {
 		c.commandOutput = make([]string, len(c.output))
 		for _, value := range c.output {
 			str = value
-			for _, filter := range c.filterWords {
-				str = c.bash.ColorWord(filter, str)
+			for _, val := range c.customSearches {
+				str = c.bash.ColorWord(val.Filter, str)
 			}
 			c.commandOutput = append(c.commandOutput, str)
 		}
@@ -454,7 +447,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 		br1            int
 		br2            int
 		ok             bool
-		hasFilterWords = len(c.filterWords) > 0
+		hasFilterWords = len(c.customSearches) > 0
 	)
 
 	if len(beforeLine) > 0 {
@@ -489,7 +482,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 
 	// means there is the first line
 	if br2 == -1 {
-		_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
+		_, ok, _ = c.verifyKeyWords(data[:br1], c.customSearches, br1, nil)
 		if ok {
 			c.output = append(c.output, string(data[:br1]))
 			limit--
@@ -500,8 +493,8 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 	for br2 != -1 {
 		flag := true
 		if hasFilterWords {
-			for _, v := range c.filterWords {
-				p := bytes.LastIndex(data[:br1], []byte(v))
+			for _, v := range c.customSearches {
+				p := bytes.LastIndex(data[:br1], []byte(v.Filter))
 				if p == -1 {
 					return limit, beforeLine
 				}
@@ -517,7 +510,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 						pos := bytes.LastIndexByte(data[:br2], '\n')
 						// means there is the first line
 						if p == -1 {
-							_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
+							_, ok, _ = c.verifyKeyWords(data[:br1], c.customSearches, br1, nil)
 							if ok {
 								c.output = append(c.output, string(data[:br1]))
 								limit--
@@ -544,7 +537,7 @@ func (c *Component) doGetLogs(data []byte, tailLine []byte, limit int64) (lines 
 			br1 = br2
 			br2 = bytes.LastIndexByte(data, '\n')
 			if br2 == -1 {
-				_, ok, _ = c.verifyKeyWords(data[:br1], c.filterWords, br1, nil)
+				_, ok, _ = c.verifyKeyWords(data[:br1], c.customSearches, br1, nil)
 				if ok {
 					c.output = append(c.output, string(data[:br1]))
 					limit--
@@ -571,7 +564,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		skipTag        int
 		offset         int64
 		firstLine      []byte
-		hasFilterWords = len(c.filterWords) > 0
+		hasFilterWords = len(c.customSearches) > 0
 	)
 
 	// Because it is a forward search, 'before' is the incomplete row of data at the end of the last round of search.
@@ -589,7 +582,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		firstLine = append(firstLine, firstLinesBuf...)
 		ok = true
 		if hasFilterWords {
-			_, ok, _ = c.verifyKeyWords(firstLine, c.filterWords, -1, filterPosMap)
+			_, ok, _ = c.verifyKeyWords(firstLine, c.customSearches, -1, filterPosMap)
 		}
 
 		var err error
@@ -624,9 +617,9 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		skipTag = -1
 		flag := true
 		if hasFilterWords {
-			for _, v := range c.filterWords {
+			for _, v := range c.customSearches {
 				if !emptyPos {
-					p, ok := filterPosMap[v]
+					p, ok := filterPosMap[v.Filter]
 					if ok {
 						if p >= pos {
 							skipTag = p
@@ -642,7 +635,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 					}
 				}
 
-				p, ok := c.verifyKeyWord(data, v, pos)
+				p, ok := c.verifyKeyWord(data, v.Filter, pos)
 
 				// If the read is not found, it indicates that no matching log exists in the data
 				// At this point, just need to find the \n at the end to rematch
@@ -678,7 +671,7 @@ func (c *Component) doCalcLines(file *File, data []byte, before []byte, startPos
 		}
 
 		if hasFilterWords {
-			_, _, emptyPos = c.verifyKeyWords(data, c.filterWords, pos, filterPosMap)
+			_, _, emptyPos = c.verifyKeyWords(data, c.customSearches, pos, filterPosMap)
 		}
 	}
 	return lines, tailLine
@@ -690,13 +683,13 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 	if timeIndex == -1 {
 		return errors.New("time column name unsupported")
 	}
-	parse := utils.TimeParse(curTime)
+	//parse := utils.TimeParse(curTime)
 
-	if parse == nil {
-		return errors.New("parse time error")
-	}
+	//if parse == nil {
+	//	return errors.New("parse time error")
+	//}
 
-	unixTime := parse.Unix()
+	unixTime := curTime
 	offset := (unixTime - c.startTime) / c.interval
 	endTime := c.startTime + (offset+1)*c.interval
 
@@ -750,19 +743,28 @@ func (c *Component) recordCharts(section OffsetSection) {
 	c.mu.Unlock()
 }
 
-func (c *Component) verifyKeyWords(data []byte, filter []string, pos int, filterWordsMap map[string]int) (int, bool, bool) {
+// verifyKeyWords 查找搜索内容是否存在
+func (c *Component) verifyKeyWords(data []byte, filter []CustomSearch, pos int, filterWordsMap map[string]int) (int, bool, bool) {
 	var (
 		ok       = true
 		emptyPos = true
 		skipTag  = -1
 	)
 	for _, v := range filter {
-		p := bytes.Index(data, []byte(v))
+		var p int
+		if v.Operate == KeySearchOperateEqual {
+			p = bytes.Index(data, []byte(v.Filter))
+		} else if v.Operate == KeySearchOperateLT {
+			// "cost":172.34,
+			p = ltAndGt(data, v, true)
+		} else if v.Operate == KeySearchOperateGT {
+			p = ltAndGt(data, v, false)
+		}
 		if p == -1 {
 			ok = false
 		} else {
 			if filterWordsMap != nil {
-				filterWordsMap[v] = p
+				filterWordsMap[v.Filter] = p
 				emptyPos = false
 			}
 			if pos != -1 && p > pos {
@@ -773,8 +775,59 @@ func (c *Component) verifyKeyWords(data []byte, filter []string, pos int, filter
 			}
 		}
 	}
-
 	return skipTag, ok, emptyPos
+}
+
+// todo 代码需要优化
+func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
+	// "cost":172.34,
+	p = bytes.Index(data, []byte(`"`+v.Key+`":`))
+	if p >= 0 {
+		i := p + 3 + len(v.Key) // 开始状态
+		for ; i < len(data)-i; i++ {
+			if data[i] == ',' {
+				number := string(data[p+3+len(v.Key) : i])
+				if v.Type == KeySearchTypeInt64 {
+					numInt64, err := strconv.ParseInt(number, 10, 10)
+					if err != nil {
+						p = -1
+					} else {
+						if isLtFlag {
+							// 小于条件
+							// 那么反过来，就是不存在
+							if v.ValueInt64 >= numInt64 {
+								p = -1
+							}
+						} else {
+							if v.ValueInt64 <= numInt64 {
+								p = -1
+							}
+						}
+
+					}
+				} else if v.Type == KeySearchTypeFloat64 {
+					numFloat64, err := strconv.ParseFloat(number, 10)
+					if err != nil {
+						p = -1
+					} else {
+						if isLtFlag {
+							// 小于条件
+							// 那么反过来，就是不存在
+							if v.ValueFloat64 >= numFloat64 {
+								p = -1
+							}
+						} else {
+							if v.ValueFloat64 <= numFloat64 {
+								p = -1
+							}
+						}
+					}
+				}
+				break
+			}
+		}
+	}
+	return p
 }
 
 func (c *Component) verifyKeyWord(data []byte, filter string, pos int) (int, bool) {

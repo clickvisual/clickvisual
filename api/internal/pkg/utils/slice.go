@@ -67,7 +67,7 @@ func DiffListToSlice(source, dest interface{}, cmp func(a, b interface{}) bool) 
 			}
 		}
 		if !exist {
-			// res = append(res, valA.Index(i).Interface())
+			// res = append(res, valA.IndexTime(i).Interface())
 			tmpSlice = append(tmpSlice, valA.Index(i))
 		}
 	}
