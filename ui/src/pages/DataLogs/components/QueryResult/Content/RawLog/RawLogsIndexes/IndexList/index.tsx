@@ -4,13 +4,13 @@ import indexHeaderStyles
   from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexHeader/index.less";
 import IconFont from "@/components/IconFont";
 import classNames from "classnames";
-import {Button, Collapse, Empty, Spin, Tooltip} from "antd";
-import {CaretDownOutlined, CaretUpOutlined, QuestionCircleOutlined,} from "@ant-design/icons";
-import {useEffect, useMemo, useState} from "react";
+import { Button, Collapse, Empty, Spin, Tooltip } from "antd";
+import { CaretDownOutlined, CaretUpOutlined, QuestionCircleOutlined, } from "@ant-design/icons";
+import { useEffect, useMemo, useState } from "react";
 import IndexItem from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogsIndexes/IndexItem";
-import {useIntl, useModel} from "umi";
-import {IndexInfoType} from "@/services/dataLogs";
-import {IndexType} from "../..";
+import { useIntl, useModel } from "umi";
+import { IndexInfoType } from "@/services/dataLogs";
+import { IndexType } from "../..";
 
 const { Panel } = Collapse;
 
@@ -102,26 +102,26 @@ const IndexList = (props: IndexListProps) => {
               }}
             >
               <div
-                  style={{  float:"left"}}
+                style={{ float: "left" }}
               >
-              {isBaseField
-                ? i18n.formatMessage({ id: "log.index.baseField" })
-                : i18n.formatMessage({ id: "log.index.logField" })}
-                </div>
+                {isBaseField
+                  ? i18n.formatMessage({ id: "log.index.baseField" })
+                  : i18n.formatMessage({ id: "log.index.logField" })}
+              </div>
               <div
                 className={indexHeaderStyles.icon}
-                style={{ marginRight: "5px",float:"right"}}
+                style={{ marginRight: "5px", float: "right" }}
               >
-                {isBaseField ?<Tooltip
+                {isBaseField ? <Tooltip
                   title={i18n.formatMessage({ id: "log.index.help" })}
                 >
                   <a>
                     <QuestionCircleOutlined />
                   </a>
-                </Tooltip>:<></>}
+                </Tooltip> : <></>}
               </div>
               {currentLogLibrary?.createType !== 1 && !isBaseField && (
-                <div className={indexHeaderStyles.icon}  style={{  float:"right"}}>
+                <div className={indexHeaderStyles.icon} style={{ float: "right" }}>
                   <Button
                     onClick={() => {
                       onChangeVisibleIndexModal(true);
@@ -144,7 +144,7 @@ const IndexList = (props: IndexListProps) => {
         >
           <Spin spinning={doGetAnalysisField.loading}>
             {list && list?.length > 0 ? (
-              <ul style={{paddingBottom:"20px"}}>
+              <ul style={{ paddingBottom: "20px" }}>
                 {list.map((index) => {
                   const isActive = activeList.indexOf(index.id as number) > -1;
                   return (

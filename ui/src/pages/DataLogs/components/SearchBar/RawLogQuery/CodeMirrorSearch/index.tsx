@@ -293,7 +293,10 @@ const Editors = (props: {
         value,
         CodeHintsType.history,
         end
-      );
+      ).map(item => ({
+        ...item,
+        from: { ch: 0, line: 0 } // 设置 historyList 的 from 为文本开头
+      }));
       const list = handleCodePromptRecord(
         tables,
         value,
