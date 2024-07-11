@@ -211,7 +211,7 @@ func generateFilter(arr []CustomSearch) (output []CustomSearch) {
 		if value.Type == KeySearchTypeInt64 {
 			value.Filter = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueInt64)
 		} else if value.Type == KeySearchTypeFloat64 {
-			value.Filter = fmt.Sprintf(`"%s":%d`, value.Key, value.ValueFloat64)
+			value.Filter = fmt.Sprintf(`"%s":%f`, value.Key, value.ValueFloat64)
 		} else if value.Type == KeySearchTypeString {
 			if value.Key == "" {
 				// 模糊匹配内容

@@ -43,12 +43,12 @@ func (l Local) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
 
 func (l Local) Count(query view.ReqQuery) (uint64, error) {
 	// TODO implement me
-	panic("implement me")
+	return 0, nil
 }
 
 func (l Local) GroupBy(query view.ReqQuery) map[string]uint64 {
 	// TODO implement me
-	panic("implement me")
+	return map[string]uint64{}
 }
 
 func (l Local) DoSQL(s string) (view.RespComplete, error) {
@@ -57,7 +57,6 @@ func (l Local) DoSQL(s string) (view.RespComplete, error) {
 }
 
 func (l Local) Prepare(query view.ReqQuery, table *db.BaseTable, b bool) (view.ReqQuery, error) {
-	query.Query = l.agentQueryAdapted(query.Query)
 	if table.Database.Desc != "" {
 		var tmp = make([]string, 0)
 		err := json.Unmarshal([]byte(table.Database.Desc), &tmp)
@@ -226,14 +225,26 @@ func (l Local) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 	})
 	resp.Count = uint64(len(resp.Logs))
 	resp.Keys = make([]*db.BaseIndex, 0)
+
+	resp.Keys = append(resp.Keys, &db.BaseIndex{
+		Field:    "",
+		RootName: "",
+		Typ:      0,
+		HashTyp:  0,
+		Alias:    "",
+		Kind:     0,
+	})
+
 	resp.ShowKeys = make([]string, 0)
 	resp.HiddenFields = make([]string, 0)
 	resp.DefaultFields = make([]string, 0)
+	// resp.DefaultFields = append(resp.DefaultFields, search.SystemKeyArr...)
+	// resp.DefaultFields = append(resp.DefaultFields, search.DefaultKeyArr...)
 	resp.Terms = make([][]string, 0)
 	return resp, nil
 }
 
-func (a *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]interface{}, err error) {
+func (l *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]interface{}, err error) {
 	line := item.Line
 	if line == "" {
 		return nil, fmt.Errorf("line is empty")
@@ -242,15 +253,15 @@ func (a *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]inter
 	curTime, indexValue := utils.IndexParseTime(line)
 	if indexValue != -1 {
 
-		//curTimeParser := utils.TimeParse(curTime)
-		//if curTimeParser != nil {
-		//ts := curTimeParser.Unix()
+		// curTimeParser := utils.TimeParse(curTime)
+		// if curTimeParser != nil {
+		// ts := curTimeParser.Unix()
 		log[db.TimeFieldSecond] = curTime
 		log["_raw_log_"] = line
 		for k, v := range item.Ext {
 			log[k] = v
 		}
-		//}
+		// }
 
 	} else {
 		log = nil

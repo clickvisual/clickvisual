@@ -146,7 +146,7 @@ func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db2.BaseData
 	}
 	cp.Topics = param.Topic
 	cp.TableName = param.Name
-	if err = s.createByILogtailTemplateItem(uid, databaseInfo, cp); err != nil {
+	if err = s.createByIlogtailTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
 	return
@@ -234,7 +234,7 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db2.BaseDatabase,
 	return
 }
 
-func (s *srvStorage) createByILogtailTemplateItem(uid int, databaseInfo db2.BaseDatabase, param view.ReqStorageCreate) (err error) {
+func (s *srvStorage) createByIlogtailTemplateItem(uid int, databaseInfo db2.BaseDatabase, param view.ReqStorageCreate) (err error) {
 	// Detection is whether it has been created
 	conds := egorm.Conds{}
 	conds["did"] = databaseInfo.ID

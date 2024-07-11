@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//func TestKeyword2Array(t *testing.T) {
+// func TestKeyword2Array(t *testing.T) {
 //	type args struct {
 //		keyword string
 //	}
@@ -71,7 +71,7 @@ import (
 //			}
 //		})
 //	}
-//}
+// }
 
 func TestSearchTime(t *testing.T) {
 	f, _ := OpenFile("./agent.sys")
@@ -130,7 +130,14 @@ func TestKeyword2Array6(t *testing.T) {
 	fmt.Printf("systemSearch--------------->"+"%+v\n", systemSearch)
 }
 
-//func TestTrimKeyWord(t *testing.T) {
+func TestKeyword2Array7(t *testing.T) {
+	keySearch, systemSearch, err := Keyword2Array("`_file_`='/Users/mex/Downloads/log/long_text_2024-07-11-17-17-22.txt' and `_raw_log_` like '%/spaces?orderBy=updatedAt%' and `_raw_log_` like '%GET./panda-api/file/*path%'")
+	assert.NoError(t, err)
+	fmt.Printf("keySearch--------------->"+"%+v\n", keySearch)
+	fmt.Printf("systemSearch--------------->"+"%+v\n", systemSearch)
+}
+
+// func TestTrimKeyWord(t *testing.T) {
 //	type args struct {
 //		keyWord string
 //	}
@@ -146,4 +153,4 @@ func TestKeyword2Array6(t *testing.T) {
 //			assert.Equalf(t, tt.want, TrimKeyWord(tt.args.keyWord), "TrimKeyWord(%v)", tt.args.keyWord)
 //		})
 //	}
-//}
+// }

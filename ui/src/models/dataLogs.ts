@@ -791,7 +791,7 @@ const DataLogsModel = () => {
     if (extra?.isIndex && extra?.indexKey) {
       currentSelected = `\`${extra.indexKey}\`='${value}'`;
     } else {
-      currentSelected = `${extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
+      currentSelected = `${extra?.key ? "`" + extra?.key + "`" : "`_raw_log_`"
         } like '%${value}%'`;
     }
     doUpdatedQuery(currentSelected);
@@ -805,7 +805,7 @@ const DataLogsModel = () => {
     if (extra?.isIndex && extra?.indexKey) {
       currentSelected = `\`${extra.indexKey}\`!='${value}'`;
     } else {
-      currentSelected = `${extra?.key ? "`" + extra?.key + "`" : "_raw_log_"
+      currentSelected = `${extra?.key ? "`" + extra?.key + "`" : "`_raw_log_`"
         } not like '%${value}%'`;
     }
     doUpdatedQuery(currentSelected);

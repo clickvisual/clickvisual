@@ -436,6 +436,8 @@ func (c *Component) calcPartitionInterval(n int, start, end int64) [][2]int64 {
 	default:
 		panic("invalid partition number, need to support in `calcPartitionInterval`")
 	}
+	// 修复最后一个字符没有读取的问题
+	resp[len(resp)-1][1] = resp[len(resp)-1][1] + 1
 	return resp
 }
 
@@ -683,11 +685,11 @@ func (c *Component) calcOffsetSectionPos(file *File, data []byte, offsetSection 
 	if timeIndex == -1 {
 		return errors.New("time column name unsupported")
 	}
-	//parse := utils.TimeParse(curTime)
+	// parse := utils.TimeParse(curTime)
 
-	//if parse == nil {
+	// if parse == nil {
 	//	return errors.New("parse time error")
-	//}
+	// }
 
 	unixTime := curTime
 	offset := (unixTime - c.startTime) / c.interval

@@ -245,7 +245,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
           }}
         </Form.Item>
         <Form.Item
-          label={i18n.formatMessage({ id: "description" })}
+          label={ i18n.formatMessage({ id: "descriptionAndPath" })}
           name={"desc"}
           rules={[
             {
