@@ -50,6 +50,8 @@ func v2(r *gin.RouterGroup) {
 		// todo: deprecated
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
 		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))
+		// instance
+		r.GET("/base/install/local", core.Handle(base.ListUser))
 	}
 	// The data analysis module - pandas
 	{
@@ -94,6 +96,5 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/alert/settings/:instance-id", core.Handle(alert.SettingInfo))
 		r.POST("/alert/metrics-samples", core.Handle(alert.CreateMetricsSamples))
 		r.PATCH("/alert/settings/:instance-id", core.Handle(alert.SettingUpdate))
-
 	}
 }

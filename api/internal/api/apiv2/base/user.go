@@ -8,9 +8,9 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	utils2 "github.com/clickvisual/clickvisual/api/internal/pkg/utils"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 )
@@ -19,7 +19,7 @@ import (
 // @Tags         User
 func CreateUser(c *core.Context) {
 	var err error
-	params := view2.ReqUserCreate{}
+	params := view.ReqUserCreate{}
 	err = c.Bind(&params)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
@@ -31,7 +31,7 @@ func CreateUser(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["username"] = params.Username
-	check, err := db2.UserList(conds)
+	check, err := db.UserList(conds)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
@@ -41,13 +41,13 @@ func CreateUser(c *core.Context) {
 		return
 	}
 	// gen random password
-	pwd := utils2.RandomString(8)
-	hash, err := bcrypt.GenerateFromPassword([]byte(utils2.MD5Encode32(pwd)), bcrypt.DefaultCost)
+	pwd := utils.RandomString(8)
+	hash, err := bcrypt.GenerateFromPassword([]byte(utils.MD5Encode32(pwd)), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	if err = db2.UserCreate(invoker.Db, &db2.User{
+	if err = db.UserCreate(invoker.Db, &db.User{
 		Username: params.Username,
 		Nickname: params.Nickname,
 		Password: string(hash),
@@ -55,8 +55,8 @@ func CreateUser(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.UserCMDB(c.User(), db2.OpnUserCreate, map[string]interface{}{"params": params})
-	c.JSONOK(view2.RespUserCreate{
+	event.Event.UserCMDB(c.User(), db.OpnUserCreate, map[string]interface{}{"params": params})
+	c.JSONOK(view.RespUserCreate{
 		Username: params.Username,
 		Password: pwd,
 	})
@@ -65,7 +65,7 @@ func CreateUser(c *core.Context) {
 // ListUser   	 Get user list
 // @Tags         User
 func ListUser(c *core.Context) {
-	var req view2.ReqUserList
+	var req view.ReqUserList
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(1, "request parameter error: "+err.Error(), nil)
 		return
@@ -77,13 +77,13 @@ func ListUser(c *core.Context) {
 			Val: req.Username,
 		}
 	}
-	total, userResList := db2.UserListPage(conds, &db2.ReqPage{
+	total, userResList := db.UserListPage(conds, &db.ReqPage{
 		Current:  req.Current,
 		PageSize: req.PageSize,
 	})
-	list := make([]view2.RespUserSimpleInfo, 0)
+	list := make([]view.RespUserSimpleInfo, 0)
 	for _, row := range userResList {
-		list = append(list, view2.RespUserSimpleInfo{
+		list = append(list, view.RespUserSimpleInfo{
 			Uid:      row.ID,
 			Username: row.Username,
 			Nickname: row.Nickname,
@@ -92,7 +92,47 @@ func ListUser(c *core.Context) {
 			Phone:    row.Phone,
 		})
 	}
-	c.JSONPage(view2.RespUserSimpleList{
+	c.JSONPage(view.RespUserSimpleList{
+		Total: total,
+		List:  list,
+	}, core.Pagination{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+		Total:    total,
+	})
+}
+
+// InstallLocal  install local user
+// @Tags         User
+func InstallLocal(c *core.Context) {
+	var req view.ReqUserList
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "request parameter error: "+err.Error(), nil)
+		return
+	}
+	conds := egorm.Conds{}
+	if req.Username != "" {
+		conds["username"] = egorm.Cond{
+			Op:  "like",
+			Val: req.Username,
+		}
+	}
+	total, userResList := db.UserListPage(conds, &db.ReqPage{
+		Current:  req.Current,
+		PageSize: req.PageSize,
+	})
+	list := make([]view.RespUserSimpleInfo, 0)
+	for _, row := range userResList {
+		list = append(list, view.RespUserSimpleInfo{
+			Uid:      row.ID,
+			Username: row.Username,
+			Nickname: row.Nickname,
+			Email:    row.Email,
+			Avatar:   row.Avatar,
+			Phone:    row.Phone,
+		})
+	}
+	c.JSONPage(view.RespUserSimpleList{
 		Total: total,
 		List:  list,
 	}, core.Pagination{
@@ -120,7 +160,7 @@ func UpdateUser(c *core.Context) {
 	}
 
 UPDATE:
-	var req db2.ReqUserUpdate
+	var req db.ReqUserUpdate
 	if err := c.Bind(&req); err != nil {
 		c.JSONE(core.CodeErr, "param error:"+err.Error(), err)
 		return
@@ -133,11 +173,11 @@ UPDATE:
 	ups["email"] = req.Email
 	ups["phone"] = req.Phone
 	ups["nickname"] = req.Nickname
-	if err := db2.UserUpdate(invoker.Db, uid, ups); err != nil {
+	if err := db.UserUpdate(invoker.Db, uid, ups); err != nil {
 		c.JSONE(1, "password reset failed 01: "+err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnUserUpdate, map[string]interface{}{"req": req})
+	event.Event.InquiryCMDB(c.User(), db.OpnUserUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }
 
@@ -153,7 +193,7 @@ func ResetUserPassword(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	u, err := db2.UserInfo(uid)
+	u, err := db.UserInfo(uid)
 	if err != nil {
 		c.JSONE(1, "password reset failed 02: "+err.Error(), nil)
 		return
@@ -163,21 +203,21 @@ func ResetUserPassword(c *core.Context) {
 		return
 	}
 	// gen random password
-	pwd := utils2.RandomString(8)
-	hash, err := bcrypt.GenerateFromPassword([]byte(utils2.MD5Encode32(pwd)), bcrypt.DefaultCost)
+	pwd := utils.RandomString(8)
+	hash, err := bcrypt.GenerateFromPassword([]byte(utils.MD5Encode32(pwd)), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
 	ups := make(map[string]interface{}, 0)
 	ups["password"] = string(hash)
-	err = db2.UserUpdate(invoker.Db, uid, ups)
+	err = db.UserUpdate(invoker.Db, uid, ups)
 	if err != nil {
 		c.JSONE(1, "password reset failed 01: "+err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnUserPasswordReset, map[string]interface{}{"req": u.Username})
-	c.JSONOK(view2.RespUserCreate{
+	event.Event.InquiryCMDB(c.User(), db.OpnUserPasswordReset, map[string]interface{}{"req": u.Username})
+	c.JSONOK(view.RespUserCreate{
 		Username: u.Username,
 		Password: pwd,
 	})
@@ -195,11 +235,11 @@ func DeleteUser(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	err := db2.UserDelete(invoker.Db, uid)
+	err := db.UserDelete(invoker.Db, uid)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.InquiryCMDB(c.User(), db2.OpnUserDelete, map[string]interface{}{"req": uid})
+	event.Event.InquiryCMDB(c.User(), db.OpnUserDelete, map[string]interface{}{"req": uid})
 	c.JSONOK()
 }
