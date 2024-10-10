@@ -54,7 +54,7 @@ func v1(r *gin.RouterGroup) {
 	r.PATCH("/sys/clusters/:id", core.Handle(setting.ClusterUpdate))
 	r.DELETE("/sys/clusters/:id", core.Handle(setting.ClusterDelete))
 	// Instance
-	r.GET("/sys/instances", core.Handle(base.InstanceList))
+	r.GET("/sys/instances", middlewares.DangerPasswordChecker(), core.Handle(base.InstanceList))
 	r.POST("/sys/instances", core.Handle(base.InstanceCreate))
 	r.GET("/sys/instances/:id", core.Handle(base.InstanceInfo))
 	r.POST("/sys/instances/test", core.Handle(base.InstanceTest))
