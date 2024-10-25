@@ -12,7 +12,7 @@ require (
 	github.com/databendcloud/databend-go v0.2.1
 	github.com/ego-component/egorm v1.0.4
 	github.com/ego-component/ek8s v1.1.0
-	github.com/ego-component/eos v0.1.1
+	github.com/ego-component/eos v1.0.1-0.20240920022356-6d4485f88440
 	github.com/ego-component/eredis v1.0.3
 	github.com/ego-component/excelplus v0.0.0-20231108140026-f0252a040f43
 	github.com/fatih/color v1.13.0
@@ -22,12 +22,12 @@ require (
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.14.0
-	github.com/go-resty/resty/v2 v2.7.0
+	github.com/go-resty/resty/v2 v2.13.1
 	github.com/google/uuid v1.3.0
 	github.com/gotomicro/cetus v0.1.2
 	github.com/gotomicro/cetus/l v0.0.0-20230725040649-ab58de0846c1
 	github.com/gotomicro/cetus/x v0.0.0-20240613044814-bcb1e8591960
-	github.com/gotomicro/ego v1.1.16
+	github.com/gotomicro/ego v1.2.2
 	github.com/gotomicro/unittest v0.0.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jonboulle/clockwork v0.3.0
@@ -87,7 +87,7 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/containerd/containerd v1.7.7 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/denisenkom/go-mssqldb v0.12.0 // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -182,7 +182,7 @@ require (
 	github.com/paulmach/orb v0.7.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
@@ -232,7 +232,7 @@ require (
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
