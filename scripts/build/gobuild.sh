@@ -37,13 +37,11 @@ OUT=${2:?"output path"}
 shift
 
 set -e
-GOOS=${GOOS:-linux}
-GOARCH=${GOARCH:-amd64}
 GOBINARY=${GOBINARY:-go}
 GOPKG="$GOPATH/pkg"
 BUILDINFO=${BUILDINFO:-""}
 STATIC=${STATIC:-1}
-LDFLAGS="-extldflags -static"
+LDFLAGS=""
 GOBUILDFLAGS=${GOBUILDFLAGS:-""}
 GCFLAGS=${GCFLAGS:-}
 
@@ -51,7 +49,6 @@ GCFLAGS=${GCFLAGS:-}
 IFS=' ' read -r -a GOBUILDFLAGS_ARRAY <<< "$GOBUILDFLAGS"
 
 GCFLAGS=${GCFLAGS:-}
-export CGO_ENABLED=0
 
 if [[ "${STATIC}" !=  "1" ]];then
     LDFLAGS=""
@@ -62,7 +59,7 @@ fi
 # at the beginning of the build and used throughout
 if [[ -z ${BUILDINFO} ]];then
     BUILDINFO=$(mktemp)
-    "${SCRIPTPATH}/report_build_info.sh"  ${APP_NAME} > "${BUILDINFO}"
+    "${SCRIPTPATH}/report_build_info.sh"  ${APP_NAME}> "${BUILDINFO}"
 fi
 
 # BUILD LD_EXTRAFLAGS
@@ -85,8 +82,7 @@ if [ "${DEBUG}" == "1" ]; then
     OPTIMIZATION_FLAGS=""
 fi
 
-#echo time ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o ${OUT} \
-#       -pkgdir=${GOPKG}/${GOOS}_${GOARCH} -ldflags "${LDFLAGS} ${LD_EXTRAFLAGS}"
+echo time ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o ${OUT} \
+       -pkgdir=${GOPKG}/${GOOS}_${GOARCH} -ldflags "${LDFLAGS} ${LD_EXTRAFLAGS}"
 time ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o ${OUT} \
        -pkgdir=${GOPKG}/${GOOS}_${GOARCH} -ldflags "${LDFLAGS} ${LD_EXTRAFLAGS}"
-#time GOOS=${GOOS} GOARCH=${GOARCH} ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o ${OUT} \

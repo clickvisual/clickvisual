@@ -36,26 +36,48 @@ ClickVisual 可以安装在不同种类的操作系统上，并且可以使用�
   - 时间字段，日志展示的时间轴字段，支持 string、float 两种类型；
   - 项目日志字段， 具体服务产生的业务日志，支持 string 类型；
 
-```
+```json
+
 {
-    // 基础属性字段
     "_source_": "stdout",
     "_pod_name_": "nginx-ingress-controller-internal-565449885b-c27hv",
     "_namespace_": "kube-system",
     "_cluster_": "xxx",
     "_log_agent_": "fluent-bit-kpnmz",
     "_node_ip_": "xx.xx.xx.xx",
-
-    // 采集必须字段
     "_time_": "2022-09-08T09:29:06.941368Z",
-    "_log_": "{\"time\": \"2022-09-08T17:29:06+08:00\", \"client_ip\": \"xx.xx.xx.xx\", \"method\": \"GET\", \"url\": \"/static/js/2.dc02066e.chunk.js\", \"version\": \"HTTP/2.0\", \"status\": \"200\", \"body_bytes_sent\": \"538283\", \"http_user_agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36\", \"request_length\": \"49\", \"request_time\": \"0.189\", \"upstream_status\": \"200\", \"req_id\": \"334bc867425106ad15eb815e2bb7a4da\"}",
+    "_log_": "{\"time\": \"2022-09-08T17:29:06+08:00\", \"client_ip\": \"xx.xx.xx.xx\", \"method\": \"GET\", \"url\": \"/static/js/2.dc02066e.chunk.js\", \"version\": \"HTTP/2.0\", \"status\": \"200\", \"body_bytes_sent\": \"538283\", \"http_user_agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36\", \"request_length\": \"49\", \"request_time\": \"0.189\", \"upstream_status\": \"200\", \"req_id\": \"334bc867425106ad15eb815e2bb7a4da\"}"
 }
+
 ```
-例如上面的例子: 
+
+例如上面的例子:
 - 选择 `_time_` 作为时间字段
 - 选择 `_log_` 作为项目日志字段
 
 这两个字段的选择可以在配置的时候自行决定。
+
+具体说明
+
+基础属性字段，日志采集的时候的属性数据
+```
+    "_source_": "stdout",
+    "_pod_name_": "nginx-ingress-controller-internal-565449885b-c27hv",
+    "_namespace_": "kube-system",
+    "_cluster_": "xxx",
+    "_log_agent_": "fluent-bit-kpnmz",
+    "_node_ip_": "xx.xx.xx.xx",
+```
+
+采集必须字段
+_time_ 日志时间轴字段，用作时间解析的，名称不限制
+_log_ 字段是实际的业务存储字段，名称不限制
+
+```
+    "_time_": "2022-09-08T09:29:06.941368Z",
+    "_log_": "{\"time\": \"2022-09-08T17:29:06+08:00\", \"client_ip\": \"xx.xx.xx.xx\", \"method\": \"GET\", \"url\": \"/static/js/2.dc02066e.chunk.js\", \"version\": \"HTTP/2.0\", \"status\": \"200\", \"body_bytes_sent\": \"538283\", \"http_user_agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36\", \"request_length\": \"49\", \"request_time\": \"0.189\", \"upstream_status\": \"200\", \"req_id\": \"334bc867425106ad15eb815e2bb7a4da\"}"
+```
+
 
 ![img_1.png](../../../images/table-create-1.png)
 

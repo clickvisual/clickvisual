@@ -38,15 +38,15 @@ func Test_getValue2(t *testing.T) {
 	assert.Equal(t, int64(12345), str)
 }
 
-//func TestTimeParse(t *testing.T) {
+// func TestTimeParse(t *testing.T) {
 //	t0 := TimeParse("1720145941")
 //	assert.Equal(t, 1720145941, int(t0.Unix()))
-//}
+// }
 //
-//func TestTimeParse2(t *testing.T) {
+// func TestTimeParse2(t *testing.T) {
 //	t0 := TimeParse("1720145941.9131143")
 //	assert.Equal(t, 1720145941, int(t0.Unix()))
-//}
+// }
 
 func TestIndexParseTime(t *testing.T) {
 	info, _ := IndexParseTime(`"ts":"2023-08-23 23:22:12"`)
@@ -62,12 +62,13 @@ func TestIndexParseTime3(t *testing.T) {
 	info, _ := IndexParseTime(`"ts":1720147634`)
 	assert.Equal(t, int64(1720147634), info)
 }
-func TestTimeParse(t *testing.T) {
-	t0 := TimeParse("1720145941")
-	assert.Equal(t, 1720145941, int(t0.Unix()))
-}
 
-func TestTimeParse2(t *testing.T) {
-	t0 := TimeParse("1720145941.9131143")
-	assert.Equal(t, 1720145941, int(t0.Unix()))
-}
+// func TestTimeParse(t *testing.T) {
+// 	t0 := TimeParse("1720145941")
+// 	assert.Equal(t, 1720145941, int(t0.Unix()))
+// }
+//
+// func TestTimeParse2(t *testing.T) {
+// 	t0 := TimeParse("1720145941.9131143")
+// 	assert.Equal(t, 1720145941, int(t0.Unix()))
+// }

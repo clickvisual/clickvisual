@@ -15,8 +15,8 @@ FROM golang:1.21.0-alpine3.17 as go-builder
 ARG GOPROXY=goproxy.cn
 
 ENV GOPROXY=https://${GOPROXY},direct
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-RUN apk add --no-cache make bash git tzdata
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk add --no-cache make bash tzdata
 
 WORKDIR /clickvisual
 
@@ -38,7 +38,7 @@ COPY --from=go-builder /clickvisual/config ./config
 
 EXPOSE 9001
 EXPOSE 9003
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk --update add --no-cache tzdata
 
 CMD ["sh", "-c", "./bin/clickvisual server"]
