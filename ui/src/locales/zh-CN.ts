@@ -689,7 +689,7 @@ export default {
 
   "install.init.model.databaseInit.successTitle": "初始化完成",
   "install.init.model.databaseInit.successContent":
-    "数据库初始化完成，点击'确定'按钮跳转到登录页面",
+    "数据库初始化完成，点击'确定'按钮跳转登录",
 
   // sys -> instance -> roleAssign
   "systemSetting.instancePanel.roleAssign.modelTitle.name": "实例",

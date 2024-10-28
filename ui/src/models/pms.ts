@@ -189,7 +189,7 @@ const usePmsCommonModel = () => {
 
   const fetchPmsCommonInfo = (iid: number) => {
     reqPmsCommonInfo(iid).then((r) => {
-      if (r.code !== 0) {
+      if (r.code !== 0 && r.msg != '') {
         message.error(
           `${formatMessage({ id: "models.pms.permissions.failureText" })} ${
             r.msg

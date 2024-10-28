@@ -51,7 +51,7 @@ func GetServerRouter() *egin.Component {
 		apiPrefix = appSubUrl
 	}
 	g := r.Group(apiPrefix)
-	r.Group(apiPrefix).GET("/api/share/:s-code", core.Handle(base.ShortURLRedirect), middlewares.AuthChecker())
+	r.Group(apiPrefix).GET("/api/share/:s-code", middlewares.AuthChecker(), core.Handle(base.ShortURLRedirect))
 
 	v1Open := g.Group("/api/v1")
 	{
