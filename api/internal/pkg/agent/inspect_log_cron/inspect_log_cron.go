@@ -20,7 +20,7 @@ func InspectLogCron(app *ego.Ego) *ego.Ego {
 			Limit:         econf.GetInt64("inspectLog.limit"),
 			IsK8S:         true,
 			IsUploadExcel: econf.GetBool("inspectLog.enable"),
-			IsAllCurl:     true,
+			IsK8sAllCurl:  true,
 			K8SContainer:  econf.GetStringSlice("inspectLog.containers"),
 			Namespace:     econf.GetString("inspectLog.namespace"),
 		})

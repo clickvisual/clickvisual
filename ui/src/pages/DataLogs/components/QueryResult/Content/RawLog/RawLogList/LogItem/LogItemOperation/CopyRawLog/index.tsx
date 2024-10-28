@@ -12,7 +12,7 @@ const CopyRawLog = ({ log }: CopyRawLogProps) => {
 
   const copyRawLog = (value: any) => {
     if (value) {
-      copy(typeof log === "object" ? JSON.stringify(value) : value);
+      copy(typeof value === "object" ? JSON.stringify(value, null, 2) : JSON.stringify(JSON.parse(value), null, 2));
       message.success(i18n.formatMessage({ id: "log.item.copy.success" }));
     } else {
       message.error(i18n.formatMessage({ id: "log.item.copy.failed" }));

@@ -112,15 +112,13 @@ func (s *srvStorage) stop() {
 func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db2.BaseDatabase, param view.ReqCreateStorageByTemplateILogtail) (err error) {
 	cp := view.ReqStorageCreate{
 		CreateType:              constx.TableCreateTypeJSONAsString,
-		Typ:                     1,
+		Typ:                     2,
 		Days:                    param.Days,
 		Brokers:                 param.Brokers,
 		Consumers:               1,
 		KafkaSkipBrokenMessages: 1000,
 		Source: `{
     "contents": {
-        "_source_": "stderr",
-        "_time_": "2023-04-17T04:07:17.624075074Z",
         "content": "{\"lv\":\"debug\",\"ts\":1681704437,\"msg\":\"presigned get object URL\"}"
     },
     "tags": {  
@@ -139,14 +137,14 @@ func (s *srvStorage) CreateByILogtailTemplate(uid int, databaseInfo db2.BaseData
     "time": 1681704438
 }`,
 		DatabaseId:        databaseInfo.ID,
-		TimeField:         "_time_",
-		TimeFieldParent:   "contents",
+		TimeField:         "time",
+		TimeFieldParent:   "",
 		RawLogField:       "content",
 		RawLogFieldParent: "contents",
 	}
 	cp.Topics = param.Topic
 	cp.TableName = param.Name
-	if err = s.createByILogtailTemplateItem(uid, databaseInfo, cp); err != nil {
+	if err = s.createByIlogtailTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
 	return
@@ -234,7 +232,7 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db2.BaseDatabase,
 	return
 }
 
-func (s *srvStorage) createByILogtailTemplateItem(uid int, databaseInfo db2.BaseDatabase, param view.ReqStorageCreate) (err error) {
+func (s *srvStorage) createByIlogtailTemplateItem(uid int, databaseInfo db2.BaseDatabase, param view.ReqStorageCreate) (err error) {
 	// Detection is whether it has been created
 	conds := egorm.Conds{}
 	conds["did"] = databaseInfo.ID

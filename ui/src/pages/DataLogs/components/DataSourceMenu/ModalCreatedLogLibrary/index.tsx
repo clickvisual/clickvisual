@@ -233,7 +233,7 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
                   { name: "EGO" }
                 )}
               </Option>
-              <Option value={21}>Agent - File</Option>
+              <Option value={21}>文件扫描</Option>
             </Select>
           )}
         </Form.Item>

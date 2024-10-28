@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
@@ -325,11 +326,13 @@ func createStorageByTemplateAgent(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
+	tx := invoker.Db.Begin()
 	conds := egorm.Conds{}
 	conds["did"] = databaseInfo.ID
 	conds["name"] = param.Name
-	tableInfo, _ := db.TableInfoX(invoker.Db, conds)
+	tableInfo, _ := db.TableInfoX(tx, conds)
 	if tableInfo.ID != 0 {
+		tx.Rollback()
 		c.JSONE(1, "table is repeat", err)
 		return
 	}
@@ -337,9 +340,44 @@ func createStorageByTemplateAgent(c *core.Context) {
 		Did:  databaseInfo.ID,
 		Name: param.Name,
 	}
-	err = db.TableCreate(invoker.Db, &tableInfo)
+	err = db.TableCreate(tx, &tableInfo)
 	if err != nil {
+		tx.Rollback()
 		c.JSONE(1, "table created failed", err)
+		return
+	}
+	for _, col := range search.DefaultBaseFields {
+		err = db.IndexCreate(tx, &db.BaseIndex{
+			Tid:      tableInfo.ID,
+			Field:    col.Name,
+			Typ:      col.Type,
+			Alias:    "",
+			RootName: "",
+			Kind:     0,
+		})
+		if err != nil {
+			tx.Rollback()
+			c.JSONE(1, "index created failed", err)
+			return
+		}
+	}
+	for _, col := range search.DefaultLogFields {
+		err = db.IndexCreate(tx, &db.BaseIndex{
+			Tid:      tableInfo.ID,
+			Field:    col.Name,
+			Typ:      col.Type,
+			Alias:    "",
+			RootName: "",
+			Kind:     1,
+		})
+		if err != nil {
+			tx.Rollback()
+			c.JSONE(1, "index created failed", err)
+			return
+		}
+	}
+	if err = tx.Commit().Error; err != nil {
+		c.JSONE(core.CodeErr, "commit error", err)
 		return
 	}
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesCreate, map[string]interface{}{"param": param})

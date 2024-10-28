@@ -10,6 +10,7 @@ export default {
   submit: "Submit",
   name: "Name",
   description: "Description",
+  descriptionAndPath: "Description/Path",
   descAsAlias: "Alias",
   loading: "loading",
   loadingDone: "Loading successful",

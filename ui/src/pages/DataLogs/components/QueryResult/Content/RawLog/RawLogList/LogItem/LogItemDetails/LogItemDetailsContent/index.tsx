@@ -1,11 +1,12 @@
-import {Button} from "antd";
-import {useState} from "react";
+import { Button, Popover } from "antd";
+import { useState } from "react";
 import classNames from "classnames";
 import logItemStyles from "@/pages/DataLogs/components/QueryResult/Content/RawLog/RawLogList/LogItem/index.less";
-import {LOGMAXTEXTLENGTH} from "@/config/config";
-import {useIntl} from "umi";
-import {PRE_SYMBOL} from "@/components/JsonView/JsonStringValue";
+import { LOGMAXTEXTLENGTH } from "@/config/config";
+import { useIntl } from "umi";
+import { PRE_SYMBOL } from "@/components/JsonView/JsonStringValue";
 import ClickMenu from "@/pages/DataLogs/components/QueryResult/Content/RawLog/ClickMenu";
+import moment from "moment";
 
 interface onInsertQuery {
   onInsertQuery: any;
@@ -114,7 +115,16 @@ const LogItemDetailsContent = (props: onInsertQuery) => {
             }
             isHidden={!isNotTimeKey}
           >
-            <span>{value}</span>
+            {["ts", "time"].includes(keyItem as string) ? (
+              <Popover
+                content={moment(value, "X").format("YYYY-MM-DD HH:mm:ss")}
+                trigger="hover"
+              >
+                <span>{value}</span>
+              </Popover>
+            ) : (
+              <span>{value}</span>
+            )}
           </ClickMenu>
         </span>
       )}

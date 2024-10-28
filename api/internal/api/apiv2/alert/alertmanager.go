@@ -1,8 +1,9 @@
 package alert
 
 import (
-	"github.com/gotomicro/cetus/l"
 	"strings"
+
+	"github.com/gotomicro/cetus/l"
 
 	"github.com/gotomicro/ego/core/elog"
 
@@ -20,7 +21,6 @@ import (
 // @Success      200 {object} core.Res{}
 // @Router       /api/v1/prometheus/alerts [post]
 func Webhook(c *core.Context) {
-	elog.Debug("start", elog.FieldMethod("Webhook"))
 	var notification db.Notification
 	err := c.Bind(&notification)
 	if err != nil {
@@ -28,6 +28,7 @@ func Webhook(c *core.Context) {
 		c.JSONE(1, "invalid parameter", err)
 		return
 	}
+	elog.Info("alert", elog.FieldMethod("Webhook"), l.A("notification", notification))
 	err = service.Alert.HandlerAlertManager(strings.TrimSpace(notification.CommonLabels["uuid"]), strings.TrimSpace(notification.CommonLabels["filterId"]), notification)
 	if err != nil {
 		elog.Error("HandlerAlertManager", elog.FieldMethod("Webhook"), elog.Any("notification", notification), l.E(err))

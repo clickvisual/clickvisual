@@ -10,8 +10,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
@@ -25,12 +25,12 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	var req view2.ReqDatabaseCreate
+	var req view.ReqDatabaseCreate
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), err)
 		return
 	}
-	if err := permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err := permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(iid),
@@ -40,7 +40,7 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	obj := db2.BaseDatabase{
+	obj := db.BaseDatabase{
 		Iid:          iid,
 		Name:         req.Name,
 		Cluster:      req.Cluster,
@@ -56,7 +56,7 @@ func DatabaseCreate(c *core.Context) {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db2.OpnDatabasesCreate, map[string]interface{}{"database": obj})
+	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesCreate, map[string]interface{}{"database": obj})
 	c.JSONOK()
 }
 
@@ -87,17 +87,17 @@ func DatabaseList(c *core.Context) {
 	if iid != 0 {
 		conds["iid"] = iid
 	}
-	dl, err := db2.DatabaseList(invoker.Db, conds)
+	dl, err := db.DatabaseList(invoker.Db, conds)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), nil)
 		return
 	}
-	res := make([]view2.RespDatabaseItem, 0)
+	res := make([]view.RespDatabaseItem, 0)
 	for _, row := range dl {
 		if !service.DatabaseViewIsPermission(c.Uid(), row.Iid, row.ID) {
 			continue
 		}
-		tmp := view2.RespDatabaseItem{
+		tmp := view.RespDatabaseItem{
 			Id:      row.ID,
 			Iid:     row.Iid,
 			Name:    row.Name,
@@ -123,12 +123,12 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(1, "invalid parameter", nil)
 		return
 	}
-	database, err := db2.DatabaseInfo(invoker.Db, id)
+	database, err := db.DatabaseInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "failed to delete database: "+err.Error(), err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(database.Iid),
@@ -142,7 +142,7 @@ func DatabaseDelete(c *core.Context) {
 	}
 	conds := egorm.Conds{}
 	conds["did"] = id
-	tables, _ := db2.TableList(invoker.Db, conds)
+	tables, _ := db.TableList(invoker.Db, conds)
 	if len(tables) > 0 {
 		c.JSONE(1, "you should delete all tables before delete database", errors.Wrap(constx.ErrEmptyData, ""))
 		return
@@ -159,7 +159,7 @@ func DatabaseDelete(c *core.Context) {
 			return
 		}
 	}
-	err = db2.DatabaseDelete(invoker.Db, id)
+	err = db.DatabaseDelete(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "failed to delete database, corresponding record does not exist in database: "+err.Error(), nil)
 		return
@@ -169,7 +169,7 @@ func DatabaseDelete(c *core.Context) {
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db2.OpnDatabasesDelete, map[string]interface{}{"database": database})
+	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesDelete, map[string]interface{}{"database": database})
 	c.JSONOK()
 }
 
@@ -181,19 +181,19 @@ func DatabaseUpdate(c *core.Context) {
 		return
 	}
 	var (
-		req view2.ReqDatabaseCreate
+		req view.ReqDatabaseCreate
 		err error
 	)
 	if err = c.Bind(&req); err != nil {
 		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
 		return
 	}
-	database, err := db2.DatabaseInfo(invoker.Db, id)
+	database, err := db.DatabaseInfo(invoker.Db, id)
 	if err != nil {
 		c.JSONE(1, "failed to update database: "+err.Error(), err)
 		return
 	}
-	if err = permission.Manager.CheckNormalPermission(view2.ReqPermission{
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(database.Iid),
@@ -208,10 +208,10 @@ func DatabaseUpdate(c *core.Context) {
 	ups := make(map[string]interface{}, 0)
 	ups["desc"] = req.Desc
 	ups["cluster"] = req.Cluster
-	if err = db2.DatabaseUpdate(invoker.Db, id, ups); err != nil {
+	if err = db.DatabaseUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed 01"+err.Error(), nil)
 		return
 	}
-	event.Event.AlarmCMDB(c.User(), db2.OpnDatabasesUpdate, map[string]interface{}{"req": req})
+	event.Event.AlarmCMDB(c.User(), db.OpnDatabasesUpdate, map[string]interface{}{"req": req})
 	c.JSONOK()
 }

@@ -7,55 +7,55 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
 )
 
 var models = []interface{}{
-	db2.BaseTableAttach{},
-	db2.BaseInstance{},
-	db2.BigdataCrontab{},
-	db2.AlarmFilter{},
-	db2.AlarmHistory{},
+	db.BaseTableAttach{},
+	db.BaseInstance{},
+	db.BigdataCrontab{},
+	db.AlarmFilter{},
+	db.AlarmHistory{},
 
-	db2.Collect{},
+	db.Collect{},
 
-	db2.BigdataWorkflow{},
-	db2.BigdataSource{},
-	db2.BigdataFolder{},
-	db2.BigdataNode{},
-	db2.BigdataNodeContent{},
-	db2.BigdataNodeHistory{},
-	db2.BigdataNodeResult{},
-	db2.BigdataDepend{},
+	db.BigdataWorkflow{},
+	db.BigdataSource{},
+	db.BigdataFolder{},
+	db.BigdataNode{},
+	db.BigdataNodeContent{},
+	db.BigdataNodeHistory{},
+	db.BigdataNodeResult{},
+	db.BigdataDepend{},
 
-	db2.BaseView{},
-	db2.BaseTable{},
-	db2.BaseIndex{},
-	db2.BaseShortURL{},
-	db2.BaseDatabase{},
-	db2.BaseHiddenField{},
+	db.BaseView{},
+	db.BaseTable{},
+	db.BaseIndex{},
+	db.BaseShortURL{},
+	db.BaseDatabase{},
+	db.BaseHiddenField{},
 
-	db2.Alarm{},
-	db2.AlarmCondition{},
-	db2.AlarmChannel{},
+	db.Alarm{},
+	db.AlarmCondition{},
+	db.AlarmChannel{},
 
-	db2.User{},
-	db2.Event{},
-	db2.Cluster{},
-	db2.K8SConfigMap{},
+	db.User{},
+	db.Event{},
+	db.Cluster{},
+	db.K8SConfigMap{},
 
-	db2.Configuration{},
-	db2.ConfigurationHistory{},
-	db2.ConfigurationPublish{},
+	db.Configuration{},
+	db.ConfigurationHistory{},
+	db.ConfigurationPublish{},
 
-	db2.PmsRole{},
-	db2.PmsCustomRole{},
-	db2.PmsRoleRef{},
-	db2.PmsRoleRefGrant{},
-	db2.PmsDefaultRole{},
-	db2.PmsRoleDetail{},
-	db2.PmsCasbinRule{},
+	db.PmsRole{},
+	db.PmsCustomRole{},
+	db.PmsRoleRef{},
+	db.PmsRoleRefGrant{},
+	db.PmsDefaultRole{},
+	db.PmsRoleDetail{},
+	db.PmsCasbinRule{},
 }
 
 func Install() (err error) {
