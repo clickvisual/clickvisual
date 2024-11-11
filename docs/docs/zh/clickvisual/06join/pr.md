@@ -3,7 +3,7 @@
 ## Fork 阶段
 1. fork 代码
 2. git clone
-3. git remote add upstream https://github.com/xxx/xxx
+3. git remote add upstream https://github.com/clickvisual/clickvisual
 
 ## 开发阶段
 1. git fetch upstream
