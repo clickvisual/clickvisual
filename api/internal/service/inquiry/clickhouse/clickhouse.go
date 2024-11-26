@@ -740,7 +740,9 @@ func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery,
 					res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField].(int64) / 1000
 					res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField].(int64)
 				}
-			} else if param.TimeFieldType == db.TimeFieldTypeDT3 {
+			} else if param.TimeFieldType == db.TimeFieldTypeDT3 ||
+				param.TimeFieldType == db.TimeFieldTypeDT6 ||
+				param.TimeFieldType == db.TimeFieldTypeDT9 {
 				res.Logs[k][db.TimeFieldNanoseconds] = res.Logs[k][param.TimeField]
 			} else {
 				res.Logs[k][db.TimeFieldSecond] = res.Logs[k][param.TimeField]
