@@ -13,8 +13,8 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	constx2 "github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 )
 
@@ -27,7 +27,12 @@ func genDatabendTimeConditionEqual(param view.ReqQuery, t time.Time) string {
 	case db.TimeFieldTypeDT:
 		return fmt.Sprintf("to_timestamp(%s) = %d", param.TimeField, t.Unix())
 	case db.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s = to_timestamp(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
+		return fmt.Sprintf("%s = to_timestamp('%s', 3)", param.TimeField, utils.TimeToPrecisionString(t, "milli"))
+	case db.TimeFieldTypeDT6:
+		return fmt.Sprintf("%s = to_timestamp('%s', 6)", param.TimeField, utils.TimeToPrecisionString(t, "micro"))
+	case db.TimeFieldTypeDT9:
+		return fmt.Sprintf("%s = to_timestamp('%s', 9)", param.TimeField, utils.TimeToPrecisionString(t, "nano"))
+
 	case db.TimeFieldTypeTsMs:
 		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
 	}
@@ -275,10 +280,10 @@ func hashTransform(query string, index *db.BaseIndex) string {
 		val := r.FindString(query)
 		val = strings.Replace(val, key+"=", "", 1)
 		query = strings.Replace(query, key+"=", hashFieldName+"=", 1)
-		if hashTyp == db2.HashTypeSip {
+		if hashTyp == db.HashTypeSip {
 			query = strings.Replace(query, val, fmt.Sprintf("sipHash64(%s)", val), 1)
 		}
-		if hashTyp == db2.HashTypeURL {
+		if hashTyp == db.HashTypeURL {
 			query = strings.Replace(query, val, fmt.Sprintf("URLHash(%s)", val), 1)
 		}
 		if !strings.HasPrefix(query, "_inner") && !strings.Contains(query, " _inner") {
@@ -393,7 +398,7 @@ func queryEncode(in string) ([]queryItem, error) {
 
 func queryDecode(in []queryItem) (out string) {
 	for index, item := range in {
-		if item.Key == db2.TimeFieldSecond {
+		if item.Key == db.TimeFieldSecond {
 			item.Value = fmt.Sprintf("'%d'", dayTime2Timestamp(item.Value, "'2006-01-02T15:04:05+08:00'"))
 		}
 		if index == 0 {
