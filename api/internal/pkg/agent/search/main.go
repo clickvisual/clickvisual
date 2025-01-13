@@ -8,18 +8,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/ego-component/eos"
 	"github.com/ego-component/excelplus"
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 const (
@@ -505,9 +506,11 @@ func (c *Component) SearchFile() error {
 
 func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 	elog.Info("agent[node] charts search start", elog.Any("req", req))
-	req.prepare()
+	err = req.prepare()
+	if err != nil {
+		return resp, fmt.Errorf("run charts params prepare err: %w", err)
+	}
 	filePaths := req.TruePath
-
 	container := &Container{}
 	sw := sync.WaitGroup{}
 	// 文件添加并发查找

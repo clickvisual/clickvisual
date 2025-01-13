@@ -177,11 +177,11 @@ func (s *configure) Publish(c *core.Context, param view.ReqPublishConfig) (err e
 
 	client, err := kube.ClusterManager.GetClusterManager(k8sConfigmap.ClusterId)
 	if err != nil {
-		return fmt.Errorf("cluster data acquisition failed: " + err.Error())
+		return fmt.Errorf("cluster data acquisition failed: %w", err)
 	}
 	err = resource.CreateOrUpdateConfigmap(client, k8sConfigmap.Namespace, k8sConfigmap.Name, configData)
 	if err != nil {
-		return errors.Wrap(err, "configMap update failed")
+		return fmt.Errorf("configMap update failed: %w", err)
 	}
 	return
 }

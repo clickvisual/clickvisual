@@ -275,7 +275,13 @@ func (i *alert) PrometheusRuleBatchRemove(clusterRuleGroups map[string]db2.Clust
 }
 
 func (i *alert) DeletePrometheusRule(instance *db2.BaseInstance, obj *db2.Alarm) (err error) {
-	if obj.AlertRules == nil || len(obj.AlertRules) == 0 {
+	if instance == nil {
+		return fmt.Errorf("instance is nil")
+	}
+	if obj == nil {
+		return fmt.Errorf("alarm is nil")
+	}
+	if len(obj.AlertRules) == 0 {
 		// v1 version
 		return alarmRuleDelete(instance, obj.GetGroupName(instance.ID), obj.RuleName(0))
 	} else {
