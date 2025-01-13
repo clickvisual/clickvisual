@@ -2,10 +2,11 @@ name: goreleaser
 
 on:
   push:
-    branches:
-      - 'feature/docker-ci'
     tags:
       - "v**"
+    branches:
+      - 'master'
+      - 'fix/ci'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -25,6 +26,7 @@ jobs:
           cd ui
           yarn install --frozen-lockfile
           yarn run build
+          rm -rf ../api/internal/ui/dist
           cp -rf dist ../api/internal/ui
       - name: Set up Go 1.21
         uses: actions/setup-go@v2
@@ -44,6 +46,6 @@ jobs:
           # either 'goreleaser' (default) or 'goreleaser-pro'
           distribution: goreleaser
           version: latest
-          args: release --skip-validate
+          args: release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}

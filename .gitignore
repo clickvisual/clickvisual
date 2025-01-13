@@ -41,8 +41,7 @@ node_modules/
 .umi-production/
 
 ### necessary file
-!api/internal/ui/dist/cv.png
-api/internal/ui/dist/
+
 
 ### file
 package-lock.json

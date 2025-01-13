@@ -5,8 +5,8 @@ on:
     tags:
       - "v**"
     branches:
-#      - 'master'
-#      - 'feature/docker-ci'
+      - 'master'
+      - 'fix/ci'
 
 jobs:
   docker:
