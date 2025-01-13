@@ -13,6 +13,8 @@ const (
 	TimeFieldTypeSecond = 1
 	TimeFieldTypeTsMs   = 2 // unix ms
 	TimeFieldTypeDT3    = 3 // DataTime64(3)
+	TimeFieldTypeDT6    = 4 // DataTime64(6)
+	TimeFieldTypeDT9    = 5 // DataTime64(9)
 )
 
 type BaseTable struct {

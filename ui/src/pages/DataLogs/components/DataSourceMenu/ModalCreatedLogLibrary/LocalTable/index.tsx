@@ -338,6 +338,8 @@ const LocalTable = ({
                                       >
                                         <Radio.Group>
                                           <Radio value={3}>DateTime64(3)</Radio>
+                                          <Radio value={4}>DateTime64(6)</Radio>
+                                          <Radio value={5}>DateTime64(9)</Radio>
                                         </Radio.Group>
                                       </Form.Item>
                                     );
