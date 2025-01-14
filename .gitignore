@@ -41,7 +41,7 @@ node_modules/
 .umi-production/
 
 ### necessary file
-
+dist/
 
 ### file
 package-lock.json
