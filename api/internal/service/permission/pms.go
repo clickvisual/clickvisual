@@ -620,7 +620,7 @@ func (p *pms) IsRootUser(uid int) error {
 	if pmsplugin.IsRootWithoutCheckingSysLock(uid) {
 		return nil
 	}
-	return fmt.Errorf(MsgNeedRoot)
+	return errors.New(MsgNeedRoot)
 }
 
 func (p *pms) IsRootUserAndDomNotLock(uid int, reqDomains ...ReqDomainLockStatus) error {
