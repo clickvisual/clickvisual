@@ -1,6 +1,10 @@
 package utils
 
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -58,4 +62,33 @@ func SundaySearch(s, p string, keys map[uint8]int) int {
 		}
 	}
 	return -1
+}
+
+// TimeToPrecisionString formats a time to a string with specified precision
+// precision:
+//
+//	"milli" -> milliseconds (10^-3)
+//	"micro" -> microseconds (10^-6)
+//	"nano"  -> nanoseconds  (10^-9)
+func TimeToPrecisionString(t time.Time, precision string) string {
+	switch precision {
+	case "milli":
+		return formatWithPrecision(t.UnixMilli(), 1e3, 3)
+	case "micro":
+		return formatWithPrecision(t.UnixMicro(), 1e6, 6)
+	case "nano":
+		return formatWithPrecision(t.UnixNano(), 1e9, 9)
+	default:
+		return ""
+	}
+}
+
+// formatWithPrecision formats timestamp with given precision
+// timestamp: Unix timestamp with specific precision
+// divisor: divisor to get seconds part
+// width: number of digits for decimal part
+func formatWithPrecision(timestamp int64, divisor int64, width int) string {
+	seconds := timestamp / divisor
+	fraction := timestamp % divisor
+	return fmt.Sprintf("%d.%0*d", seconds, width, fraction)
 }
