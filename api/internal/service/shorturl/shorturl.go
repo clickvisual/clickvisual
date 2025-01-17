@@ -31,10 +31,7 @@ func GenShortURL(ur string) (string, error) {
 	v.Set("tab", "custom")
 	u2 := fmt.Sprintf("%s://%s%s?%s", u.Scheme, u.Host, u.Path, v.Encode())
 	// 判断是否存在相同的记录
-	existShortURL, err := db.ShortURLInfoByURL(invoker.Db, u2)
-	if err != nil {
-		return "", errors.Wrap(err, "ShortURLInfoByURL short url error")
-	}
+	existShortURL, _ := db.ShortURLInfoByURL(invoker.Db, u2)
 	if existShortURL.ID != 0 {
 		return fmt.Sprintf("%s/api/share/%s", strings.TrimSuffix(econf.GetString("app.rootURL"), "/"), existShortURL.SCode), nil
 	}

@@ -41,7 +41,7 @@ node_modules/
 .umi-production/
 
 ### necessary file
-
+dist/
 
 ### file
 package-lock.json
@@ -56,3 +56,4 @@ ossutil64.1
 obsutil_linux_amd64*/
 
 dump.rdb
+test/
