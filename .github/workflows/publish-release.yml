@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.yarn
           key: yarn-${{ hashFiles('ui/yarn.lock') }}
@@ -29,7 +29,7 @@ jobs:
           cp -rf dist ../api/internal/ui
       - name: Set up Go
         uses: actions/setup-go@v5
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
