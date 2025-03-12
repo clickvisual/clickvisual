@@ -10,11 +10,8 @@
 
 [English](https://github.com/clickvisual/clickvisual/blob/master/README.md) | [中文](https://github.com/clickvisual/clickvisual/blob/master/README-CN.md)
 
-ClickVisual is a lightweight browser-based logs analytics and logs search platform for ClickHouse.
+ClickVisual is a lightweight browser-based logs analytics and logs search platform for ClickHouse, we are from [@Link Office](https://officesdk.com)
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=clickvisual/clickvisual&type=Date)](https://star-history.com/#clickvisual/clickvisual&Date)
 
 ### Documentation
 
@@ -139,6 +136,11 @@ Thanks for these wonderful people:
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=clickvisual/clickvisual&type=Date)](https://star-history.com/#clickvisual/clickvisual&Date)
+
+
 ## Thank You
 - [腾源会/WeOpen](https://cloud.tencent.com/act/pro/weopen-home)
 
@@ -149,3 +151,4 @@ Thanks for these wonderful people:
 ## Friends
 
 - [DBM - An awesome database management tool specified for ClickHouse](https://github.com/EdurtIO/dbm)
+
