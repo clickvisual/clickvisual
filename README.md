@@ -13,6 +13,10 @@
 ClickVisual is a lightweight browser-based logs analytics and logs search platform for ClickHouse, we are from [@Link Office](https://officesdk.com)
 
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=clickvisual/clickvisual&type=Date)](https://star-history.com/#clickvisual/clickvisual&Date)
+
 ### Documentation
 
 See <https://clickvisual.net>
