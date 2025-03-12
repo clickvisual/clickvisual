@@ -12,11 +12,6 @@
 
 ClickVisual is a lightweight browser-based logs analytics and logs search platform for ClickHouse, we are from [@Link Office](https://officesdk.com)
 
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=clickvisual/clickvisual&type=Date)](https://star-history.com/#clickvisual/clickvisual&Date)
-
 ### Documentation
 
 See <https://clickvisual.net>
@@ -144,13 +139,11 @@ Thanks for these wonderful people:
 
 [![Star History Chart](https://api.star-history.com/svg?repos=clickvisual/clickvisual&type=Date)](https://star-history.com/#clickvisual/clickvisual&Date)
 
-
 ## Thank You
 - [腾源会/WeOpen](https://cloud.tencent.com/act/pro/weopen-home)
 
 ## Thank JetBrains for Open Source licenses support
 <a href="https://www.jetbrains.com/?from=Ego"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/GoLand_icon.svg" height="120" alt="JetBrains"/></a>
-
 
 ## Friends
 
