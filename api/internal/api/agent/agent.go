@@ -29,8 +29,8 @@ type ChartsSearchRequest struct {
 }
 
 func (a *Agent) Search(c *core.Context) {
-	postReq := &dto.SearchRequest{}
-	err := c.Bind(postReq)
+	postReq := dto.SearchRequest{}
+	err := c.Bind(&postReq)
 	if err != nil {
 		elog.Error("agent[node] can not bind request", l.E(err), l.A("request", c.Request))
 		c.JSONE(1, "can not bind request", err)
@@ -52,8 +52,8 @@ func (a *Agent) Search(c *core.Context) {
 		req.K8SContainer = postReq.Container
 	}
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
-		//search.Keyword2Array(postReq.KeyWord, false)
-		//for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
+		// search.Keyword2Array(postReq.KeyWord, false)
+		// for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
 		//	switch search.TrimKeyWord(t.Key) {
 		//	case search.InnerKeyContainer:
 		//		req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
@@ -66,7 +66,7 @@ func (a *Agent) Search(c *core.Context) {
 		//	default:
 		//		req.KeyWord = postReq.KeyWord
 		//	}
-		//}
+		// }
 		req.KeyWord = postReq.KeyWord
 	}
 	if postReq.Dir != "" {
@@ -117,7 +117,7 @@ func (a *Agent) Charts(c *core.Context) {
 	req.IsChartRequest = postReq.IsChartRequest
 
 	if postReq.KeyWord != "*" && postReq.KeyWord != "" {
-		//for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
+		// for _, t := range search.Keyword2Array(postReq.KeyWord, false) {
 		//	switch search.TrimKeyWord(t.Key) {
 		//	case search.InnerKeyContainer:
 		//		req.K8SContainer = append(req.K8SContainer, search.TrimKeyWord(t.Value.(string)))
@@ -130,7 +130,7 @@ func (a *Agent) Charts(c *core.Context) {
 		//	default:
 		//		req.KeyWord = postReq.KeyWord
 		//	}
-		//}
+		// }
 		req.KeyWord = postReq.KeyWord
 	}
 	if postReq.Dir != "" {
