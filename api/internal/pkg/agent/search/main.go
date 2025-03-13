@@ -404,6 +404,7 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", targetInfo.FilePath))
 		return nil, errors.Wrapf(err, "open file %s error", targetInfo.FilePath)
 	}
+
 	if req.IsChartRequest {
 		obj.interval = req.Interval
 		obj.times = (req.EndTime - req.StartTime) / req.Interval
@@ -419,11 +420,9 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	obj.file = file
 	obj.request = req
 	obj.customSearches = req.customSearchArr
-	if err != nil {
-		return nil, fmt.Errorf("Keyword2Array fail, err: %w", err)
-	}
 
 	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", req.customSearchArr))
+
 	obj.bash = NewBash()
 	obj.limit = req.Limit
 	return obj, nil
