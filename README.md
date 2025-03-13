@@ -10,7 +10,7 @@
 
 [English](https://github.com/clickvisual/clickvisual/blob/master/README.md) | [中文](https://github.com/clickvisual/clickvisual/blob/master/README-CN.md)
 
-ClickVisual is a lightweight browser-based logs analytics and logs search platform for ClickHouse, we are from [@Link Office](https://officesdk.com)
+ClickVisual is a lightweight browser-based logs analytics and logs search platform for ClickHouse, we are from [@OfficeSDK](https://officesdk.com)
 
 ### Documentation
 
