@@ -10,15 +10,17 @@ on:
 jobs:
   golangci:
     name: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential
       - uses: actions/setup-go@v5
         with:
-          go-version: stable
+          go-version: '1.21'  # 固定 Go 版本
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.60
+          version: v1.60.1  # 使用最新版
           args: --timeout=10m --print-issued-lines=true --print-linter-name=true --uniq-by-line=true
-
+          skip-build-cache: true  # 避免缓存问题
