@@ -25,7 +25,7 @@ func Clean() {
 func GenShortURL(ur string) (string, error) {
 	u, err := url.Parse(ur)
 	if err != nil {
-		return "", errors.New(err.Error())
+		return "", fmt.Errorf("url parse error: %w", err)
 	}
 	v := u.Query()
 	v.Set("tab", "custom")
