@@ -2153,11 +2153,20 @@ func (c *ClickHouseX) groupBySQL(param view.ReqQuery) (sql string) {
 func (c *ClickHouseX) doQueryWithRetry(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
 	res, err = c.doQuery(sql, isShowNull)
 	if err != nil {
-		if strings.Contains(err.Error(), "Authentication failed: password is incorrect") {
-			return c.doQuery(sql, isShowNull)
+		if strings.Contains(err.Error(), "password is incorrect") {
+			elog.Error("doQueryWithRetry", elog.Any("step", "doQuery"), elog.Any("sql", sql), l.E(err))
+			// 重试十次
+			maxRetries := 10
+			for i := 0; i < maxRetries; i++ {
+				res, err = c.doQuery(sql, isShowNull)
+				if err == nil || !strings.Contains(err.Error(), "password is incorrect") {
+					return res, err
+				}
+				elog.Error("doQueryWithRetry", elog.Any("step", "retry"), elog.Any("attempt", i+1), elog.Any("sql", sql), l.E(err))
+			}
 		}
 	}
-	return res, nil
+	return res, err
 }
 
 func (c *ClickHouseX) doQuery(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
