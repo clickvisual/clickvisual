@@ -24,7 +24,8 @@ const TemplateTable = (props: TemplateTableType) => {
       </Form.Item>
       <Form.Item
         name={"days"}
-        label={"TTL(day)"}
+        label={"TTL(days)"}
+        initialValue={3}
         rules={[{ required: true }]}
       >
         <InputNumber
