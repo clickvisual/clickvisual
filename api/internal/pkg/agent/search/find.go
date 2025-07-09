@@ -9,7 +9,7 @@ func findFiles(searchDir string) []string {
 	var arr []string
 	_ = filepath.Walk(searchDir, func(path string, file os.FileInfo, _ error) error {
 		// 如果是目录需要过滤
-		if file.IsDir() {
+		if file != nil && file.IsDir() {
 			return nil
 		}
 		// todo 过滤后缀名，过滤路径

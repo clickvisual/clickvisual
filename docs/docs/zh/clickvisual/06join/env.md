@@ -24,8 +24,13 @@ fork 代码后，在项目根目录可以看到 `docker-compose.devops.yml`
 ## 代码允许
 
 ### 后端运行
+在项目根目录下执行
 
-> go run ./api/main.go --config=./config/default.toml
+> go run ./main.go server --config=./config/default.toml
+
+后端服务启动成功后会看到 mysql 报错，这个可以忽略
+
+访问 127.0.0.1:19001 进行数据库初始化就可以了
 
 ### 前端运行
 

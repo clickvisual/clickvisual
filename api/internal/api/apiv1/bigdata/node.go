@@ -180,7 +180,7 @@ func NodeDelete(c *core.Context) {
 		c.JSONE(1, fmt.Sprintf("node %s is running by %s", n.Name, u.Nickname), nil)
 		return
 	}
-	if n.LockUid != c.Uid() {
+	if n.LockUid != c.Uid() && n.LockUid != 0 {
 		u, _ := db2.UserInfo(n.LockUid)
 		c.JSONE(1, fmt.Sprintf("node %s is editing by %s", n.Name, u.Nickname), nil)
 		return

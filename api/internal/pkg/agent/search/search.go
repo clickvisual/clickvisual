@@ -808,7 +808,7 @@ func ltAndGt(data []byte, v CustomSearch, isLtFlag bool) (p int) {
 
 					}
 				} else if v.Type == KeySearchTypeFloat64 {
-					numFloat64, err := strconv.ParseFloat(number, 10)
+					numFloat64, err := strconv.ParseFloat(number, 32)
 					if err != nil {
 						p = -1
 					} else {

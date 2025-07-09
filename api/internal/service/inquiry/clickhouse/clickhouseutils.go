@@ -15,6 +15,7 @@ import (
 	constx2 "github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 )
 
@@ -96,6 +97,10 @@ func genTimeCondition(param view2.ReqQuery) string {
 		return fmt.Sprintf("%s >= toDateTime(%s) AND %s < toDateTime(%s)", param.TimeField, "%d", param.TimeField, "%d")
 	case db2.TimeFieldTypeDT3:
 		return fmt.Sprintf("%s >= toDateTime64(%s, 3) AND %s < toDateTime64(%s, 3)", param.TimeField, "%d", param.TimeField, "%d")
+	case db2.TimeFieldTypeDT6:
+		return fmt.Sprintf("%s >= toDateTime64(%s, 6) AND %s < toDateTime64(%s, 6)", param.TimeField, "%d", param.TimeField, "%d")
+	case db2.TimeFieldTypeDT9:
+		return fmt.Sprintf("%s >= toDateTime64(%s, 9) AND %s < toDateTime64(%s, 9)", param.TimeField, "%d", param.TimeField, "%d")
 	case db2.TimeFieldTypeTsMs:
 		return fmt.Sprintf("intDiv(%s,1000) >= %s AND intDiv(%s,1000) < %s", param.TimeField, "%d", param.TimeField, "%d")
 	}
@@ -107,6 +112,8 @@ func TransferGroupTimeField(timeField string, timeFieldTyp int) string {
 	case db2.TimeFieldTypeDT:
 		return timeField
 	case db2.TimeFieldTypeDT3:
+	case db2.TimeFieldTypeDT6:
+	case db2.TimeFieldTypeDT9:
 		return timeField
 	case db2.TimeFieldTypeTsMs:
 		return fmt.Sprintf("toDateTime(intDiv(%s,1000))", timeField)
@@ -121,7 +128,11 @@ func genTimeConditionEqual(param view2.ReqQuery, t time.Time) string {
 	case db2.TimeFieldTypeDT:
 		return fmt.Sprintf("toUnixTimestamp(%s) = %d", param.TimeField, t.Unix())
 	case db2.TimeFieldTypeDT3:
-		return fmt.Sprintf("%s = toDateTime64(%f, 3)", param.TimeField, float64(t.UnixMilli())/1000.0)
+		return fmt.Sprintf("%s = toDateTime64('%s', 3)", param.TimeField, utils.TimeToPrecisionString(t, "milli"))
+	case db2.TimeFieldTypeDT6:
+		return fmt.Sprintf("%s = toDateTime64('%s', 6)", param.TimeField, utils.TimeToPrecisionString(t, "micro"))
+	case db2.TimeFieldTypeDT9:
+		return fmt.Sprintf("%s = toDateTime64('%s', 9)", param.TimeField, utils.TimeToPrecisionString(t, "nano"))
 	case db2.TimeFieldTypeTsMs:
 		return fmt.Sprintf("%s = %d", param.TimeField, t.UnixMilli())
 	}

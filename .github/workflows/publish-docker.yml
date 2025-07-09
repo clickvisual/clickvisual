@@ -1,12 +1,9 @@
-name: docker
+name: publish-docker
 
 on:
   push:
     tags:
       - "v**"
-    branches:
-#      - 'master'
-#      - 'feature/docker-ci'
 
 jobs:
   docker:

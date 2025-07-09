@@ -8,15 +8,15 @@ import (
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
-	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/api"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/kube/resource"
-	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
-	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 )
 
@@ -38,41 +38,39 @@ func ConfigMapList(c *core.Context) {
 		c.JSONE(core.CodeErr, "Cluster data acquisition failed: "+err.Error(), err)
 		return
 	}
-	resp := make([]view2.RespNamespaceConfigmaps, 0)
+	resp := make([]view.RespNamespaceConfigmaps, 0)
 
 	filter := make(map[string]interface{})
 
 	conds := egorm.Conds{}
 	conds["cluster_id"] = clusterId
-	dbConfigmaps, _ := db2.K8SConfigMapListX(conds)
-	nscm := make(map[string][]view2.RespConfigmap)
+	dbConfigmaps, _ := db.K8SConfigMapListX(conds)
+	nscm := make(map[string][]view.RespConfigmap)
 	for _, cm := range dbConfigmaps {
 		if _, ok := nscm[cm.Namespace]; !ok {
-			nscm[cm.Namespace] = make([]view2.RespConfigmap, 0)
+			nscm[cm.Namespace] = make([]view.RespConfigmap, 0)
 		}
-		nscm[cm.Namespace] = append(nscm[cm.Namespace], view2.RespConfigmap{
+		nscm[cm.Namespace] = append(nscm[cm.Namespace], view.RespConfigmap{
 			Name: cm.Name,
 		})
 		filter[fmt.Sprintf("%d|%s|%s", clusterId, cm.Namespace, cm.Name)] = struct{}{}
 	}
 
 	for _, obj := range namespaces {
-		ns := *(obj.(*corev1.Namespace))
-		elog.Debug("namespace", elog.Any("ns", ns))
-		configmaps, errConfigs := client.KubeClient.List(api.ResourceNameConfigMap, ns.Name, "")
+		configmaps, errConfigs := client.KubeClient.List(api.ResourceNameConfigMap, obj.(*v1.Namespace).Name, "")
 		if errConfigs != nil {
 			elog.Error("configmaps", elog.String("err", errConfigs.Error()))
 			continue
 		}
 		for _, configMapObj := range configmaps {
-			cm := *(configMapObj.(*corev1.ConfigMap))
+			cm := configMapObj.(*v1.ConfigMap)
 			if _, ok := filter[fmt.Sprintf("%d|%s|%s", clusterId, cm.Namespace, cm.Name)]; ok {
 				continue
 			}
 			if _, ok := nscm[cm.Namespace]; !ok {
-				nscm[cm.Namespace] = make([]view2.RespConfigmap, 0)
+				nscm[cm.Namespace] = make([]view.RespConfigmap, 0)
 			}
-			nscm[cm.Namespace] = append(nscm[cm.Namespace], view2.RespConfigmap{
+			nscm[cm.Namespace] = append(nscm[cm.Namespace], view.RespConfigmap{
 				Name: cm.Name,
 			})
 		}
@@ -80,7 +78,7 @@ func ConfigMapList(c *core.Context) {
 
 	for namespace, respConfigMap := range nscm {
 		if len(respConfigMap) > 0 {
-			resp = append(resp, view2.RespNamespaceConfigmaps{
+			resp = append(resp, view.RespNamespaceConfigmaps{
 				Namespace:  namespace,
 				Configmaps: respConfigMap,
 			})
@@ -99,24 +97,24 @@ func ConfigMapCreate(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	param := view2.ReqCreateConfigMap{}
+	param := view.ReqCreateConfigMap{}
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)
 		return
 	}
 	// Gets the configmap ID
-	obj := db2.K8SConfigMap{
+	obj := db.K8SConfigMap{
 		ClusterId: clusterId,
 		Name:      param.ConfigmapName,
 		Namespace: param.Namespace,
 	}
-	resp, err := db2.K8SConfigMapLoadOrSave(invoker.Db, &obj)
+	resp, err := db.K8SConfigMapLoadOrSave(invoker.Db, &obj)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
-	event.Event.ClusterCMDB(c.User(), db2.OpnClustersConfigMapCreate, map[string]interface{}{"param": param})
+	event.Event.ClusterCMDB(c.User(), db.OpnClustersConfigMapCreate, map[string]interface{}{"param": param})
 	c.JSONOK(resp)
 }
 
@@ -130,7 +128,7 @@ func ConfigMapInfo(c *core.Context) {
 		c.JSONE(core.CodeErr, "invalid parameter", nil)
 		return
 	}
-	param := view2.ReqConfigMapInfo{}
+	param := view.ReqConfigMapInfo{}
 	err := c.Bind(&param)
 	if err != nil {
 		c.JSONE(1, err.Error(), err)

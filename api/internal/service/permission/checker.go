@@ -1,6 +1,7 @@
 package permission
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
@@ -33,7 +34,7 @@ func (b *baseChecker) CheckDomLockIfActWrite(reqParam *view.ReqPermission) error
 	// 2. check normal req.Domain is locked or not
 	_, isReqDomValid := pmsplugin.PermittedDomPrefixMap[reqParam.DomainType]
 	if !isReqDomValid {
-		return fmt.Errorf(MsgInvalidReqDomType)
+		return errors.New(MsgInvalidReqDomType)
 	}
 	switch reqParam.DomainType {
 	case pmsplugin.SystemDom:

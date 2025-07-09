@@ -8,18 +8,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/ego-component/eos"
 	"github.com/ego-component/excelplus"
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/agent/search/searchexcel"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/cvdocker/manager"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 )
 
 const (
@@ -403,6 +404,7 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 		elog.Error("agent open log file error", elog.FieldErr(err), elog.String("path", targetInfo.FilePath))
 		return nil, errors.Wrapf(err, "open file %s error", targetInfo.FilePath)
 	}
+
 	if req.IsChartRequest {
 		obj.interval = req.Interval
 		obj.times = (req.EndTime - req.StartTime) / req.Interval
@@ -418,11 +420,9 @@ func NewComponent(targetInfo dto.AgentSearchTargetInfo, req Request) (*Component
 	obj.file = file
 	obj.request = req
 	obj.customSearches = req.customSearchArr
-	if err != nil {
-		return nil, fmt.Errorf("Keyword2Array fail, err: %w", err)
-	}
 
 	elog.Info("NewComponentSearch", l.A("keyword", req.KeyWord), l.A("words", req.customSearchArr))
+
 	obj.bash = NewBash()
 	obj.limit = req.Limit
 	return obj, nil
@@ -505,9 +505,11 @@ func (c *Component) SearchFile() error {
 
 func RunCharts(req Request) (resp view.RespAgentChartsSearch, err error) {
 	elog.Info("agent[node] charts search start", elog.Any("req", req))
-	req.prepare()
+	err = req.prepare()
+	if err != nil {
+		return resp, fmt.Errorf("run charts params prepare err: %w", err)
+	}
 	filePaths := req.TruePath
-
 	container := &Container{}
 	sw := sync.WaitGroup{}
 	// 文件添加并发查找

@@ -1,10 +1,9 @@
-name: docs
+name: docs-cv
 on:
   push:
     branches:
       - 'master'
-      - 'feature/docker-ci'
-
+      - 'fix/ci'
 jobs:
   deploy:
     runs-on: ubuntu-latest

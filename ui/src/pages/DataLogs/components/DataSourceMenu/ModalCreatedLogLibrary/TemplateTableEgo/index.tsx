@@ -1,4 +1,4 @@
-import { Form, Input } from "antd";
+import { Form, Input, InputNumber } from "antd";
 import { useIntl } from "umi";
 
 export interface TemplateTableType {
@@ -19,6 +19,18 @@ const TemplateTable = (props: TemplateTableType) => {
           placeholder={i18n.formatMessage(
             { id: "input.placeholder" },
             { name: "Brokers" }
+          )}
+        />
+      </Form.Item>
+      <Form.Item
+        name={"days"}
+        label={"TTL(day)"}
+        rules={[{ required: true }]}
+      >
+        <InputNumber
+          placeholder={i18n.formatMessage(
+            { id: "input.placeholder" },
+            { name: "TTL" }
           )}
         />
       </Form.Item>

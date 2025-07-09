@@ -1,10 +1,9 @@
-name: apis
+name: docs-apis
 
 on:
   push:
     branches:
       - 'master'
-      - 'feature/docker-ci'
 
 jobs:
   updateAPI:
@@ -30,18 +29,12 @@ jobs:
           mv redoc-static.html ./api/docs/index.html
       - name: install obsutil
         run: wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -zxvf obsutil_linux_amd64.tar.gz && chmod 755 ./obsutil_linux_amd64_5.5.12/obsutil
-      - name: config ossutil
+      - name: config obsutil
         run: ./obsutil_linux_amd64_5.5.12/obsutil config -i ${{ secrets.OBS_ACCESS_KEY_ID }} -k ${{ secrets.OBS_ACCESS_KEY_SECRET }} -e https://obs.cn-north-4.myhuaweicloud.com
-      - name: Upload docs by obsutil
+      - name: upload docs by obsutil
         run: ./obsutil_linux_amd64_5.5.12/obsutil cp ./api/docs/index.html obs://open-read/clickvisual/api/index.html -f -r
-      - name: install ossutil
-        run: wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64 && chmod 755 ossutil64
-      - name: config ossutil
-        run: ./ossutil64 config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.OSS_ACCESS_KEY_ID }} -k ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-      - name: upload docs
-        run: ./ossutil64 cp -r -f ./api/docs/swagger.json oss://gocn-cdn/clickvisual/api/swagger/doc.json
       - name: create commit
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           delete-branch: true
