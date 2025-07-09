@@ -9,6 +9,8 @@ import (
 	_ "github.com/clickvisual/clickvisual/api/cmd/command"
 	_ "github.com/clickvisual/clickvisual/api/cmd/server"
 	_ "github.com/clickvisual/clickvisual/api/cmd/upload"
+	_ "git.shimo.im/gopkg/gorm-to-dm"
+
 )
 
 func main() {

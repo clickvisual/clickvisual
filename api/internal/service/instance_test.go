@@ -8,8 +8,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
-
-	_ "github.com/ClickHouse/clickhouse-go/v2"
+	// _ "github.com/ClickHouse/clickhouse-go/v2"
 )
 
 func TestMain(m *testing.M) {
