@@ -437,12 +437,23 @@ func (c *Databend) GetLogs(param view2.ReqQuery, tid int) (res view2.RespQuery, 
 			}
 		}
 	}
+	removeEmptyValues(res.Logs)
 	res.HiddenFields = econf.GetStringSlice("app.hiddenFields")
 	res.DefaultFields = econf.GetStringSlice("app.defaultFields")
 	for _, k := range res.Keys {
 		res.DefaultFields = append(res.DefaultFields, k.GetFieldName())
 	}
 	return
+}
+
+func removeEmptyValues(logs []map[string]interface{}) {
+	for _, logMap := range logs {
+		for key, value := range logMap {
+			if value == nil || value == "" {
+				delete(logMap, key)
+			}
+		}
+	}
 }
 
 func (c *Databend) logsSQL(param view2.ReqQuery, tid int) (sql, optSQL, originalWhere string) {
