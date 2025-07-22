@@ -220,6 +220,7 @@ func (l Local) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 	} else {
 		resp.Logs = tmpLogs
 	}
+	removeEmptyValues(resp.Logs)
 	sort.Slice(resp.Logs, func(i, j int) bool {
 		return resp.Logs[i][db.TimeFieldSecond].(int64) > resp.Logs[j][db.TimeFieldSecond].(int64)
 	})
@@ -242,6 +243,16 @@ func (l Local) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 	// resp.DefaultFields = append(resp.DefaultFields, search.DefaultKeyArr...)
 	resp.Terms = make([][]string, 0)
 	return resp, nil
+}
+
+func removeEmptyValues(logs []map[string]interface{}) {
+	for _, logMap := range logs {
+		for key, value := range logMap {
+			if value == nil || value == "" {
+				delete(logMap, key)
+			}
+		}
+	}
 }
 
 func (l *Local) parseHitLog(item view.RespAgentSearchItem) (log map[string]interface{}, err error) {

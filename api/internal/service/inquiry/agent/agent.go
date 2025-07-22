@@ -123,6 +123,7 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 	} else {
 		resp.Logs = tmpLogs
 	}
+	removeEmptyValues(resp.Logs)
 	sort.Slice(resp.Logs, func(i, j int) bool {
 		return resp.Logs[i][db.TimeFieldSecond].(int64) > resp.Logs[j][db.TimeFieldSecond].(int64)
 	})
@@ -133,6 +134,16 @@ func (a *Agent) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err er
 	resp.DefaultFields = make([]string, 0)
 	resp.Terms = make([][]string, 0)
 	return resp, nil
+}
+
+func removeEmptyValues(logs []map[string]interface{}) {
+	for _, logMap := range logs {
+		for key, value := range logMap {
+			if value == nil || value == "" {
+				delete(logMap, key)
+			}
+		}
+	}
 }
 
 func (a *Agent) Chart(query view.ReqQuery) ([]*view.HighChart, string, error) {
