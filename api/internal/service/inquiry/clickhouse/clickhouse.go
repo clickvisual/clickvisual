@@ -2157,7 +2157,7 @@ func (c *ClickHouseX) doQueryWithRetry(sql string, isShowNull bool) (res []map[s
 			return c.doQuery(sql, isShowNull)
 		}
 	}
-	return res, nil
+	return res, err
 }
 
 func (c *ClickHouseX) doQuery(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
