@@ -7,7 +7,8 @@ COPY ui/package.json ui/yarn.lock ./
 
 RUN yarn -v
 
-ENV PUBLIC_PATH=/clickvisual/
+ENV PUBLIC_PATH=/mdp/clickvisual/
+
 RUN yarn install --frozen-lockfile --network-timeout 100000
 ENV NODE_ENV production
 COPY ui .
