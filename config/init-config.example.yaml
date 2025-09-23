@@ -1,0 +1,14 @@
+# ClickVisual 初始化配置文件示例
+# 这个文件展示了如何配置 ClickVisual 的初始化参数
+
+# ClickHouse 连接配置
+clickhouse_dsn=tcp://172.17.3.83:9000?username=chadmin&password=V9GyWIl5gRj04
+
+# Kafka 配置
+brokers=kafka-service.default:9092
+
+# Topic 配置
+topics_app=app-stdout-logs-ilogtail
+topics_ego=app-stdout-logs-ilogtail
+topics_ingress_stdout=ingress-stdout-logs-ilogtail
+topics_ingress_stderr=ingress-stderr-logs-ilogtail

@@ -16,6 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/elog"
@@ -67,8 +68,9 @@ var CmdRun = &cobra.Command{
 			elog.Panic("用户不存在: " + cpUsername)
 		}
 
-		// 生成 hash 并更新
-		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		// 与前端登录一致：先 MD5(32)，再 bcrypt
+		md5pwd := utils.MD5Encode32(password)
+		hash, err := bcrypt.GenerateFromPassword([]byte(md5pwd), bcrypt.DefaultCost)
 		if err != nil {
 			elog.Panic("加密密码失败: " + err.Error())
 		}
