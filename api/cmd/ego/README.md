@@ -12,7 +12,7 @@
 
 ```bash
 # 使用配置文件
-./clickvisual ego --init-config init-config.example.yaml --config=./configs/local.toml 
+./clickvisual ego --init-config init-config.example.ini --config=./configs/local.toml 
 ```
 
 ## 参数说明

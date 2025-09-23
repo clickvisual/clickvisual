@@ -1,6 +1,7 @@
 package init
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -158,9 +159,12 @@ func parseConfigContent(content string) error {
 				clickhouseDSN = value
 			}
 		case "brokers":
-			if brokers == "" {
-				brokers = value
+			var tmp []string
+			err := json.Unmarshal([]byte(value), &tmp)
+			if err != nil {
+				return fmt.Errorf("解析 brokers 失败: %v", err)
 			}
+			brokers = strings.Join(tmp, ",") // "kafka-service.default:9092,kafka-service.default:9091"
 		case "topics_app":
 			if topicsApp == "" {
 				topicsApp = value
