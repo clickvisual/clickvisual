@@ -55,7 +55,7 @@ func (t *BufferNullDataPipe) sqlMaterializedView() (name string, sql string) {
 	return viewName, fmt.Sprintf(`CREATE MATERIALIZED VIEW IF NOT EXISTS  %s TO %s AS
 SELECT
     toDateTime(toInt64(_timestamp)) AS _time_second_,
-    toDateTime64(toInt64(_timestamp), 9) AS _time_nanosecond_,
+    toDateTime64(toInt64(_timestamp), 9, 'UTC') AS _time_nanosecond_,
     _log AS _raw_log_
 FROM %s;
 `, viewNameWithCluster, dataName, nullName)

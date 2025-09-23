@@ -125,15 +125,51 @@ func (i *instanceManager) Load(id int) (factory.Operator, error) {
 	if obj == nil {
 		return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 	}
+	// 类型断言容错：若内存中的对象与数据库类型不一致，重建一次
 	switch instance.Datasource {
 	case db.DatasourceClickHouse:
-		return obj.(*clickhouse.ClickHouseX), nil
+		if v, ok := obj.(*clickhouse.ClickHouseX); ok {
+			return v, nil
+		}
 	case db.DatasourceDatabend:
-		return obj.(*databend.Databend), nil
+		if v, ok := obj.(*databend.Databend); ok {
+			return v, nil
+		}
 	case db.DatasourceAgent:
-		return obj.(*agent.Agent), nil
+		if v, ok := obj.(*agent.Agent); ok {
+			return v, nil
+		}
 	case db.DatasourceLocal:
-		return obj.(*local.Local), nil
+		if v, ok := obj.(*local.Local); ok {
+			return v, nil
+		}
+	}
+	// 不一致：删除并重建
+	i.Delete(db.InstanceKey(id))
+	if err = i.Add(&instance); err != nil {
+		return nil, err
+	}
+	obj, _ = i.dss.Load(db.InstanceKey(id))
+	if obj == nil {
+		return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
+	}
+	switch instance.Datasource {
+	case db.DatasourceClickHouse:
+		if v, ok := obj.(*clickhouse.ClickHouseX); ok {
+			return v, nil
+		}
+	case db.DatasourceDatabend:
+		if v, ok := obj.(*databend.Databend); ok {
+			return v, nil
+		}
+	case db.DatasourceAgent:
+		if v, ok := obj.(*agent.Agent); ok {
+			return v, nil
+		}
+	case db.DatasourceLocal:
+		if v, ok := obj.(*local.Local); ok {
+			return v, nil
+		}
 	}
 	return nil, errors.Wrapf(constx.ErrInstanceObj, "instance id: %d", id)
 }
