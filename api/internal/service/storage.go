@@ -191,11 +191,11 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db2.BaseDatabase,
 		return err
 	}
 
-	cp.Topics = param.TopicsEgo
-	cp.TableName = "ego_stdout"
-	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
-		return err
-	}
+	// cp.Topics = param.TopicsEgo
+	// cp.TableName = "ego_stdout"
+	// if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
+	// 	return err
+	// }
 
 	cp.Topics = param.TopicsIngressStdout
 	cp.TableName = "ingress_stdout"
@@ -203,32 +203,32 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db2.BaseDatabase,
 		return err
 	}
 
-	cp.Topics = param.TopicsIngressStderr
-	cp.TableName = "ingress_stderr"
-	cp.Source = `{
-    "contents": {
-        "_source_": "stderr",
-        "_time_": "2023-04-17T04:07:17.624075074Z",
-        "content": "abc123...asfa"
-    },
-    "tags": {  
-        "container.image.name": "xxx",
-        "container.ip": "127.0.0.1",
-        "container.name": "xx-xx",
-        "host.ip": "127.0.0.1",
-        "host.name": "xx-xx-xx",
-        "log.file.path": "xx-xx-xx",
-        "k8s.namespace.name": "default",
-        "k8s.node.ip": "127.0.0.1",
-        "k8s.node.name": "127.0.0.1",
-        "k8s.pod.name": "xx-xx-xx-xx",
-        "k8s.pod.uid": "xx-xx-xx-xx-xx"
-    },
-    "time": 1681704438
-}`
-	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
-		return err
-	}
+// 	cp.Topics = param.TopicsIngressStderr
+// 	cp.TableName = "ingress_stderr"
+// 	cp.Source = `{
+//     "contents": {
+//         "_source_": "stderr",
+//         "_time_": "2023-04-17T04:07:17.624075074Z",
+//         "content": "abc123...asfa"
+//     },
+//     "tags": {  
+//         "container.image.name": "xxx",
+//         "container.ip": "127.0.0.1",
+//         "container.name": "xx-xx",
+//         "host.ip": "127.0.0.1",
+//         "host.name": "xx-xx-xx",
+//         "log.file.path": "xx-xx-xx",
+//         "k8s.namespace.name": "default",
+//         "k8s.node.ip": "127.0.0.1",
+//         "k8s.node.name": "127.0.0.1",
+//         "k8s.pod.name": "xx-xx-xx-xx",
+//         "k8s.pod.uid": "xx-xx-xx-xx-xx"
+//     },
+//     "time": 1681704438
+// }`
+// 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
+// 		return err
+// 	}
 	return
 }
 
