@@ -1,6 +1,7 @@
 package init
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -30,7 +31,7 @@ var (
 )
 
 var CmdInit = &cobra.Command{
-	Use:   "initego",
+	Use:   "ego",
 	Short: "初始化 ClickVisual 实例和存储",
 	Long:  `初始化 ClickVisual 实例和存储，包括创建 ClickHouse 实例、logger 数据库和 ego 存储模板`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -106,7 +107,7 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 		elog.Panic("初始化失败: " + err.Error())
 	}
 
-	elog.Info("ClickVisual 初始化完成")
+	fmt.Println("ClickVisual 初始化完成")
 }
 
 // loadInitConfig 加载初始化配置文件
@@ -158,9 +159,12 @@ func parseConfigContent(content string) error {
 				clickhouseDSN = value
 			}
 		case "brokers":
-			if brokers == "" {
-				brokers = value
+			var tmp []string
+			err := json.Unmarshal([]byte(value), &tmp)
+			if err != nil {
+				return fmt.Errorf("解析 brokers 失败: %v", err)
 			}
+			brokers = strings.Join(tmp, ",") // "kafka-service.default:9092,kafka-service.default:9091"
 		case "topics_app":
 			if topicsApp == "" {
 				topicsApp = value
@@ -218,7 +222,10 @@ func createClickHouseInstance() (*db.BaseInstance, error) {
 	// 检查 ClickHouse 实例是否存在
 	instance, err := db.InstanceInfoX(invoker.Db, map[string]interface{}{"name": "clickhouse-instance"})
 	if err != nil {
-		return nil, err
+		// 未找到记录不视为错误，继续创建
+		if !strings.Contains(strings.ToLower(err.Error()), "record not found") {
+			return nil, err
+		}
 	}
 	if instance.ID != 0 {
 		return &instance, nil
@@ -247,7 +254,10 @@ func createLoggerDatabase(instanceID int) (int, error) {
 	// 检查 logger 数据库是否存在
 	database, err := db.DatabaseInfoX(invoker.Db, map[string]interface{}{"name": "logger"})
 	if err != nil {
-		return 0, err
+		// 未找到记录不视为错误，继续创建
+		if !strings.Contains(strings.ToLower(err.Error()), "record not found") {
+			return 0, err
+		}
 	}
 	if database.ID != 0 {
 		return database.ID, nil
@@ -260,7 +270,6 @@ func createLoggerDatabase(instanceID int) (int, error) {
 		IsCreateByCV: 1,
 		Desc:         "ClickVisual 初始化创建的 logger 数据库",
 	}
-
 	database, err = service.DatabaseCreate(req)
 	if err != nil {
 		return 0, err
