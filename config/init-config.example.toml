@@ -6,6 +6,4 @@ brokers=["kafka-service.default:9092", "kafka-service.default:9093", "kafka-serv
 
 # Topic 配置
 topics_app=app-stdout-logs-ilogtail
-topics_ego=app-stdout-logs-ilogtail
 topics_ingress_stdout=ingress-stdout-logs-ilogtail
-topics_ingress_stderr=ingress-stderr-logs-ilogtail
