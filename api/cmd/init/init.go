@@ -36,7 +36,7 @@ var CmdRun = &cobra.Command{
 
 		path := flagSQLFile
 		if strings.TrimSpace(path) == "" {
-			path = "scripts/migration/database.sql"
+			path = "./config/database.sql"
 		}
 		abs, _ := filepath.Abs(path)
 		elog.Info("使用 SQL 文件", elog.String("path", abs))
