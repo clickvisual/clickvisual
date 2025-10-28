@@ -1,11 +1,11 @@
 package init
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/gotomicro/cetus/l"
 	"github.com/gotomicro/ego"
 	"github.com/gotomicro/ego/core/elog"
@@ -18,6 +18,16 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 )
+
+// InitConfig TOML 配置结构
+type InitConfig struct {
+	ClickhouseDSN       string   `toml:"clickhouse_dsn"`
+	Brokers             []string `toml:"brokers"`
+	TopicsApp           string   `toml:"topics_app"`
+	TopicsEgo           string   `toml:"topics_ego"`
+	TopicsIngressStdout string   `toml:"topics_ingress_stdout"`
+	TopicsIngressStderr string   `toml:"topics_ingress_stderr"`
+}
 
 var (
 	initConfigFile      string
@@ -132,56 +142,38 @@ func loadInitConfig(configFile string) error {
 	return nil
 }
 
-// parseConfigContent 解析配置文件内容
+// parseConfigContent 解析 TOML 配置文件内容
 func parseConfigContent(content string) error {
-	lines := strings.Split(content, "\n")
+	var config InitConfig
 
-	for _, line := range lines {
-		// 跳过空行和注释行
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
+	// 使用 TOML 库解析配置内容
+	if err := toml.Unmarshal([]byte(content), &config); err != nil {
+		return fmt.Errorf("解析 TOML 配置失败: %v", err)
+	}
 
-		// 解析 key=value 格式
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
+	// 只有当命令行参数未设置时，才使用配置文件中的值
+	if clickhouseDSN == "" && config.ClickhouseDSN != "" {
+		clickhouseDSN = config.ClickhouseDSN
+	}
 
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
+	if brokers == "" && len(config.Brokers) > 0 {
+		brokers = strings.Join(config.Brokers, ",")
+	}
 
-		// 根据 key 设置对应的变量
-		switch key {
-		case "clickhouse_dsn":
-			if clickhouseDSN == "" {
-				clickhouseDSN = value
-			}
-		case "brokers":
-			var tmp []string
-			err := json.Unmarshal([]byte(value), &tmp)
-			if err != nil {
-				return fmt.Errorf("解析 brokers 失败: %v", err)
-			}
-			brokers = strings.Join(tmp, ",") // "kafka-service.default:9092,kafka-service.default:9091"
-		case "topics_app":
-			if topicsApp == "" {
-				topicsApp = value
-			}
-		case "topics_ego":
-			if topicsEgo == "" {
-				topicsEgo = value
-			}
-		case "topics_ingress_stdout":
-			if topicsIngressStdout == "" {
-				topicsIngressStdout = value
-			}
-		case "topics_ingress_stderr":
-			if topicsIngressStderr == "" {
-				topicsIngressStderr = value
-			}
-		}
+	if topicsApp == "" && config.TopicsApp != "" {
+		topicsApp = config.TopicsApp
+	}
+
+	if topicsEgo == "" && config.TopicsEgo != "" {
+		topicsEgo = config.TopicsEgo
+	}
+
+	if topicsIngressStdout == "" && config.TopicsIngressStdout != "" {
+		topicsIngressStdout = config.TopicsIngressStdout
+	}
+
+	if topicsIngressStderr == "" && config.TopicsIngressStderr != "" {
+		topicsIngressStderr = config.TopicsIngressStderr
 	}
 
 	return nil
