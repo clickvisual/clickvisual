@@ -22,6 +22,7 @@ import (
 // InitConfig TOML 配置结构
 type InitConfig struct {
 	ClickhouseDSN       string   `toml:"clickhouse_dsn"`
+	Cluster             string   `toml:"cluster"`
 	Brokers             []string `toml:"brokers"`
 	TopicsApp           string   `toml:"topics_app"`
 	TopicsEgo           string   `toml:"topics_ego"`
@@ -32,6 +33,7 @@ type InitConfig struct {
 var (
 	initConfigFile      string
 	clickhouseDSN       string
+	cluster             string
 	brokers             string
 	topicsApp           string
 	topicsEgo           string
@@ -176,6 +178,10 @@ func parseConfigContent(content string) error {
 		topicsIngressStderr = config.TopicsIngressStderr
 	}
 
+	if cluster == "" && config.Cluster != "" {
+		cluster = config.Cluster
+	}
+
 	return nil
 }
 
@@ -252,7 +258,11 @@ func createLoggerDatabase(instanceID int) (int, error) {
 		}
 	}
 	if database.ID != 0 {
-		return database.ID, nil
+		// delete database
+		err = db.DatabaseDelete(invoker.Db, database.ID)
+		if err != nil {
+			return 0, fmt.Errorf("删除 logger 数据库失败: %v", err)
+		}
 	}
 	req := db.BaseDatabase{
 		Iid:          instanceID,
@@ -261,6 +271,9 @@ func createLoggerDatabase(instanceID int) (int, error) {
 		Uid:          1, // 使用系统用户
 		IsCreateByCV: 1,
 		Desc:         "ClickVisual 初始化创建的 logger 数据库",
+	}
+	if cluster != "" {
+		req.Cluster = cluster
 	}
 	database, err = service.DatabaseCreate(req)
 	if err != nil {
@@ -282,7 +295,7 @@ func createEgoStorageTemplate(databaseID int, instance *db.BaseInstance) error {
 		TopicsIngressStdout: topicsIngressStdout,
 		TopicsIngressStderr: topicsIngressStderr,
 	}
-	elog.Info("createEgoStorageTemplate", l.A("instance", instance))
+	elog.Info("createEgoStorageTemplate", l.A("instance", instance), l.A("req", req))
 	// 调用存储服务创建模板
 	database := db.BaseDatabase{}
 	database.ID = databaseID

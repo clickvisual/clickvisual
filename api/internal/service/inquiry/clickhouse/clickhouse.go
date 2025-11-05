@@ -481,16 +481,18 @@ func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
 	if err != nil {
 		return errors.Wrap(err, "isCluster error")
 	}
+	var sql string
 	if isCluster == ModeCluster {
 		if cluster == "" {
 			return errors.New("cluster is required")
 		}
-		_, err = c.db.Exec(fmt.Sprintf("CREATE DATABASE `%s` ON CLUSTER '%s'", name, cluster))
+		sql = fmt.Sprintf("CREATE DATABASE `%s` ON CLUSTER '%s'", name, cluster)
 	} else {
-		_, err = c.db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", name))
+		sql = fmt.Sprintf("CREATE DATABASE `%s`", name)
 	}
+	_, err = c.db.Exec(sql)
 	if err != nil {
-		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
+		elog.Error("CreateDatabase", l.E(err), l.A("step", "exec"), l.A("name", name), l.S("sql", sql))
 		return err
 	}
 	return nil
