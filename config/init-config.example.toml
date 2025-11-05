@@ -1,9 +1,9 @@
 # ClickHouse 连接配置
-clickhouse_dsn=tcp://localhost:9000?database=default&username=default&password=
+clickhouse_dsn="tcp://localhost:9000?database=default&username=default&password="
 
 # Kafka 配置
 brokers=["kafka-service.default:9092", "kafka-service.default:9093", "kafka-service.default:9094"]
 
 # Topic 配置
-topics_app=app-stdout-logs-ilogtail
-topics_ingress_stdout=ingress-stdout-logs-ilogtail
+topics_app="app-stdout-logs-ilogtail"
+topics_ingress_stdout="ingress-stdout-logs-ilogtail"
