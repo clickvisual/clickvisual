@@ -686,11 +686,6 @@ const CreatedAndUpdatedModal = ({
                         justifyContent: "space-around",
                       }}
                     >
-                      「
-                      {i18n.formatMessage({
-                        id: "alarm.rules.form.aggregatedData",
-                      })}
-                      」
                       {mode == alarmModeType.AggregationMode && (
                         <Button
                           style={{
