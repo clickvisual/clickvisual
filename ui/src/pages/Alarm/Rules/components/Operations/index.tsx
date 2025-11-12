@@ -7,10 +7,8 @@ import { PlusOutlined, RedoOutlined, SearchOutlined } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
 import { useDebounceFn } from "ahooks";
 import { Button, Input, Select, Space, Tooltip } from "antd";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useIntl } from "umi";
-
-const { Option } = Select;
 
 export interface urlStateType {
   iid?: string | number;
@@ -24,6 +22,8 @@ export interface urlStateType {
 const Operations = () => {
   const [urlState, setUrlState] = useUrlState<urlStateType>();
   const { operations, alarmDraw, doGetAlarms } = useModel("alarm");
+  const isComposingName = useRef(false);
+  const isComposingAlarmId = useRef(false);
 
   const {
     tableList,
@@ -275,7 +275,18 @@ const Operations = () => {
           placeholder={`${i18n.formatMessage({
             id: "alarm.rules.form.placeholder.alarmName",
           })}`}
-          onChange={(env) => operations.onChangeInputName(env.target.value)}
+          onCompositionStart={() => {
+            isComposingName.current = true;
+          }}
+          onCompositionEnd={(e) => {
+            isComposingName.current = false;
+            operations.onChangeInputName(e.currentTarget.value);
+          }}
+          onChange={(env) => {
+            if (!isComposingName.current) {
+              operations.onChangeInputName(env.target.value);
+            }
+          }}
           onPressEnter={() => handleSearch()}
         />
         <Input
@@ -285,11 +296,20 @@ const Operations = () => {
           placeholder={`${i18n.formatMessage({
             id: "alarm.rules.form.placeholder.alarmId",
           })}`}
-          onChange={(env) =>
-            operations.onChangeAlarmId(
-              env.target.value && parseInt(env.target.value)
-            )
-          }
+          onCompositionStart={() => {
+            isComposingAlarmId.current = true;
+          }}
+          onCompositionEnd={(e) => {
+            isComposingAlarmId.current = false;
+            const value = e.currentTarget.value;
+            operations.onChangeAlarmId(value && parseInt(value));
+          }}
+          onChange={(env) => {
+            if (!isComposingAlarmId.current) {
+              const value = env.target.value;
+              operations.onChangeAlarmId(value && parseInt(value));
+            }
+          }}
           onPressEnter={() => handleSearch()}
         />
         <Button
