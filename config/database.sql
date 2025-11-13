@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `cv_alarm` (
     `view` text,
     `view_table_name` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_alarm_channel definition
 CREATE TABLE IF NOT EXISTS `cv_alarm_channel` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `cv_alarm_channel` (
     `typ` int DEFAULT NULL,
     `uid` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_alarm_condition definition
 CREATE TABLE IF NOT EXISTS `cv_alarm_condition` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `cv_alarm_condition` (
     `val_1` int DEFAULT NULL,
     `val_2` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_alarm_filter definition
 CREATE TABLE IF NOT EXISTS `cv_alarm_filter` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `cv_alarm_filter` (
     `mode` int DEFAULT NULL,
     `status` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_alarm_history definition
 CREATE TABLE IF NOT EXISTS `cv_alarm_history` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `cv_alarm_history` (
     `filter_status` int DEFAULT NULL,
     `is_pushed` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_database definition
 CREATE TABLE IF NOT EXISTS `cv_base_database` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `cv_base_database` (
     `desc` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_iid_name` (`iid`, `name`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_hidden_field definition
 CREATE TABLE IF NOT EXISTS `cv_base_hidden_field` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `cv_base_hidden_field` (
     `field` varchar(128) NOT NULL DEFAULT '',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_tid_field` (`tid`, `field`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_index definition
 CREATE TABLE IF NOT EXISTS `cv_base_index` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS `cv_base_index` (
     `kind` tinyint(1) DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_tid_field_root` (`tid`, `field`, `root_name`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_instance definition
 CREATE TABLE IF NOT EXISTS `cv_base_instance` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS `cv_base_instance` (
     `config_prometheus_operator` text,
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_datasource_name` (`datasource`, `name`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_short_url definition
 CREATE TABLE IF NOT EXISTS `cv_base_short_url` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `cv_base_short_url` (
     `s_code` varchar(64) NOT NULL DEFAULT '',
     `call_cnt` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_table definition
 CREATE TABLE IF NOT EXISTS `cv_base_table` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -191,14 +191,14 @@ CREATE TABLE IF NOT EXISTS `cv_base_table` (
     `sql_distributed` text,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_did_name` (`did`, `name`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_table_attach definition
 CREATE TABLE IF NOT EXISTS `cv_base_table_attach` (
     `tid` int DEFAULT NULL,
     `sqls` longtext,
     `names` text,
     UNIQUE KEY `uix_tid` (`tid`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_base_view definition
 CREATE TABLE IF NOT EXISTS `cv_base_view` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS `cv_base_view` (
     `uid` int DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_tid_name` (`tid`, `name`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_crontab definition
 CREATE TABLE IF NOT EXISTS `cv_bd_crontab` (
     `node_id` int DEFAULT NULL,
@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_crontab` (
     `ctime` bigint DEFAULT NULL COMMENT '创建时间',
     `utime` bigint DEFAULT NULL COMMENT '更新时间',
     `channel_ids` varchar(255) NOT NULL DEFAULT ''
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_depend definition
 CREATE TABLE IF NOT EXISTS `cv_bd_depend` (
     `iid` int DEFAULT NULL,
@@ -244,7 +244,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_depend` (
     `bytes` bigint NOT NULL DEFAULT '0',
     `utime` bigint DEFAULT NULL COMMENT '更新时间',
     UNIQUE KEY `uix_iid_database_table` (`iid`, `database`, `table`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_folder definition
 CREATE TABLE IF NOT EXISTS `cv_bd_folder` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_folder` (
     `workflow_id` int DEFAULT NULL,
     `parent_id` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_node definition
 CREATE TABLE IF NOT EXISTS `cv_bd_node` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -282,7 +282,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_node` (
     `status` int DEFAULT NULL,
     `uuid` varchar(128) DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_node_content definition
 CREATE TABLE IF NOT EXISTS `cv_bd_node_content` (
     `node_id` int DEFAULT NULL,
@@ -290,7 +290,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_node_content` (
     `result` longtext,
     `previous_content` longtext,
     `utime` bigint DEFAULT NULL COMMENT 'update time'
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_node_history definition
 CREATE TABLE IF NOT EXISTS `cv_bd_node_history` (
     `uuid` varchar(128) DEFAULT NULL,
@@ -298,7 +298,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_node_history` (
     `content` longtext,
     `uid` int DEFAULT NULL,
     `utime` bigint DEFAULT NULL COMMENT 'update time'
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_node_result definition
 CREATE TABLE IF NOT EXISTS `cv_bd_node_result` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -313,7 +313,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_node_result` (
     `result` longtext,
     `excel_process` longtext,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_source definition
 CREATE TABLE IF NOT EXISTS `cv_bd_source` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -329,7 +329,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_source` (
     `typ` int DEFAULT NULL,
     `uid` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_bd_workflow definition
 CREATE TABLE IF NOT EXISTS `cv_bd_workflow` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -341,7 +341,7 @@ CREATE TABLE IF NOT EXISTS `cv_bd_workflow` (
     `desc` varchar(255) NOT NULL DEFAULT '',
     `uid` int DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_cluster definition
 CREATE TABLE IF NOT EXISTS `cv_cluster` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -355,7 +355,7 @@ CREATE TABLE IF NOT EXISTS `cv_cluster` (
     `kube_config` mediumtext,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_cluster_name` (`name`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_collect definition
 CREATE TABLE IF NOT EXISTS `cv_collect` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -368,7 +368,7 @@ CREATE TABLE IF NOT EXISTS `cv_collect` (
     `statement` text,
     `collect_type` bigint DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_configuration definition
 CREATE TABLE IF NOT EXISTS `cv_configuration` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -385,7 +385,7 @@ CREATE TABLE IF NOT EXISTS `cv_configuration` (
     `lock_uid` int unsigned DEFAULT NULL,
     `lock_at` bigint unsigned DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_configuration_history definition
 CREATE TABLE IF NOT EXISTS `cv_configuration_history` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -398,7 +398,7 @@ CREATE TABLE IF NOT EXISTS `cv_configuration_history` (
     `content` longtext,
     `version` varchar(64) DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_configuration_publish definition
 CREATE TABLE IF NOT EXISTS `cv_configuration_publish` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -409,7 +409,7 @@ CREATE TABLE IF NOT EXISTS `cv_configuration_publish` (
     `configuration_id` int unsigned DEFAULT NULL,
     `configuration_history_id` int unsigned DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_event definition
 CREATE TABLE IF NOT EXISTS `cv_event` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -424,7 +424,7 @@ CREATE TABLE IF NOT EXISTS `cv_event` (
     PRIMARY KEY (`id`),
     KEY `idx_source` (`source`),
     KEY `idx_operation` (`operation`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_k8s_cm definition
 CREATE TABLE IF NOT EXISTS `cv_k8s_cm` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -436,7 +436,7 @@ CREATE TABLE IF NOT EXISTS `cv_k8s_cm` (
     `namespace` varchar(64) DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_cluster_id_name_namespace` (`cluster_id`, `name`, `namespace`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
 -- test.cv_pms_custom_role definition
 CREATE TABLE IF NOT EXISTS `cv_pms_custom_role` (
@@ -448,11 +448,11 @@ CREATE TABLE IF NOT EXISTS `cv_pms_custom_role` (
     `refer_id` bigint NOT NULL DEFAULT 0 COMMENT '所属资源类型的对应资源id',
     `role_name` varchar(50) NOT NULL DEFAULT '' COMMENT '所属对应资源的角色名称',
     `description` varchar(255) NOT NULL DEFAULT '' COMMENT '对角色的中文描述',
-    `sub_resources` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '角色所属refer_id资源的子资源列表',
-    `acts` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '对资源列表中各资源的actions',
+    `sub_resources` json NOT NULL COMMENT '角色所属refer_id资源的子资源列表',
+    `acts` json NOT NULL COMMENT '对资源列表中各资源的actions',
     `updated_by` bigint NOT NULL DEFAULT '0' COMMENT '最近一次对记录做更新的用户id',
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_pms_default_role definition
 CREATE TABLE IF NOT EXISTS `cv_pms_default_role` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -462,11 +462,11 @@ CREATE TABLE IF NOT EXISTS `cv_pms_default_role` (
     `belong_type` varchar(50) NOT NULL DEFAULT '' COMMENT '所属资源类型,如''app''',
     `role_name` varchar(50) NOT NULL DEFAULT '' COMMENT '所属资源的角色名称',
     `description` varchar(255) NOT NULL DEFAULT '' COMMENT '对角色的中文描述',
-    `sub_resources` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '角色所属belongType资源下的子资源列表',
-    `acts` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '对资源列表中各资源的actions',
+    `sub_resources` json NOT NULL COMMENT '角色所属belongType资源下的子资源列表',
+    `acts` json NOT NULL COMMENT '对资源列表中各资源的actions',
     `updated_by` int NOT NULL DEFAULT '0' COMMENT '最近一次对记录做更新的用户id',
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_pms_role definition
 CREATE TABLE IF NOT EXISTS `cv_pms_role` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -479,7 +479,7 @@ CREATE TABLE IF NOT EXISTS `cv_pms_role` (
     `role_type` tinyint NOT NULL DEFAULT '0' COMMENT '角色类型[1:默认角色, 2:自定义角色],创建后不可修改',
     `resource_id` bigint NOT NULL DEFAULT '0' COMMENT '所属资源的id[默认角色该字段为0, 自定义角色不为0],创建后不可修改',
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_pms_role_detail definition
 CREATE TABLE IF NOT EXISTS `cv_pms_role_detail` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -487,11 +487,11 @@ CREATE TABLE IF NOT EXISTS `cv_pms_role_detail` (
     `utime` bigint DEFAULT NULL COMMENT '更新时间',
     `dtime` bigint unsigned DEFAULT NULL COMMENT '删除时间',
     `pms_role_id` bigint NOT NULL DEFAULT 0 COMMENT '所属pmsRole的id',
-    `sub_resources` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '授权目标资源的子资源列表',
-    `acts` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '准许动作列表',
+    `sub_resources` json NOT NULL COMMENT '授权目标资源的子资源列表',
+    `acts` json NOT NULL COMMENT '准许动作列表',
     `rule_tpl` text NOT NULL COMMENT '规则模板,用于生成casbin中的p类型规则',
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_pms_role_ref definition
 CREATE TABLE IF NOT EXISTS `cv_pms_role_ref` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -499,7 +499,7 @@ CREATE TABLE IF NOT EXISTS `cv_pms_role_ref` (
     `ref_id` bigint NOT NULL DEFAULT 0 COMMENT '角色belongResource类型对象的id',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_role_ref` (`pms_role_id`, `ref_id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_pms_role_ref_grant definition
 CREATE TABLE IF NOT EXISTS `cv_pms_role_ref_grant` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -517,7 +517,7 @@ CREATE TABLE IF NOT EXISTS `cv_pms_role_ref_grant` (
         `domain_type`,
         `domain_id`
     )
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_user definition
 CREATE TABLE IF NOT EXISTS `cv_user` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -542,7 +542,7 @@ CREATE TABLE IF NOT EXISTS `cv_user` (
     `oauth_token` text DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uix_user` (`username`, `nickname`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 -- test.cv_pms_casbin_rule definition
 CREATE TABLE IF NOT EXISTS `cv_pms_casbin_rule` (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -567,7 +567,7 @@ CREATE TABLE IF NOT EXISTS `cv_pms_casbin_rule` (
         `v6`,
         `v7`
     )
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
 INSERT INTO cv_user (`id`,`oa_id`,`username`,`nickname`,`secret`,`phone`,`email`,`avatar`,`hash`,`web_url`,`oauth`,`state`,`oauth_id`,`password`,`current_authority`,`access`,`oauth_token`,`ctime`,`utime`,`dtime` ) VALUES (1,0,'clickvisual','clickvisual','','','','','','','','','','$2a$10$mj/hP5ToyVYZsyH2.84sr.nXPT.c2iTenx6euMHZQhNQlGXFJlDBa','','init','{}',1640624435,1640624435,0);
 
